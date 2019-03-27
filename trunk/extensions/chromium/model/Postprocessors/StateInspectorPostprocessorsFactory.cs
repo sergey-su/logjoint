@@ -101,7 +101,7 @@ namespace LogJoint.Chromium.StateInspector
 			var webRtcEvts = webRtcStateInspector.GetEvents(logMessages);
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
-			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher);
+			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
 			var symMessages = Sym.Helpers.MatchPrefixes((new Sym.Reader()).FromChromeDebugLog(inputMultiplexed), matcher).Multiplex();
 
 			var symMeetingEvents = symMeetingsStateInspector.GetEvents(symMessages);
@@ -173,7 +173,7 @@ namespace LogJoint.Chromium.StateInspector
 			var logMessages = Sym.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
-			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher);
+			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
 
 			var symMeetingEvents = symMeetingsStateInspector.GetEvents(logMessages);
 			var symMediagEvents = symMediaStateInspector.GetEvents(logMessages);

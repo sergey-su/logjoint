@@ -194,6 +194,9 @@
     <Compile Include="..\..\..\..\analytics\blocks\state\EventsStringifier.cs">
       <Link>Blocks\State\EventsStringifier.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\state\Extensions.cs">
+      <Link>Blocks\State\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\state\Interfaces.cs">
       <Link>Blocks\State\Interfaces.cs</Link>
     </Compile>

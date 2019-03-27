@@ -10,6 +10,7 @@ namespace LogJoint.Symphony.Rtc
 	public interface IMeetingsStateInspector
 	{
 		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		string EnsureRootObjectCreated(Message trigger, Queue<Event> buffer);
 	};
 
 	public class MeetingsStateInspector : IMeetingsStateInspector
@@ -20,16 +21,25 @@ namespace LogJoint.Symphony.Rtc
 		{
 		}
 
-
 		IEnumerableAsync<Event[]> IMeetingsStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
+			return input
+				.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags))
+				.EnsureParented((creationEvt, buffer) => 
+					creationEvt.ObjectType == rootTypeInfo ? null :
+						EnsureRootReported((Message)creationEvt.Trigger, buffer));
 		}
 
 		public static ObjectTypeInfo MeetingTypeInfo { get { return meetingTypeInfo; } }
 		public static ObjectTypeInfo MeetingSessionTypeInfo { get { return meetingSessionTypeInfo; } }
 		public static ObjectTypeInfo MeetingRemoteParticipantTypeInfo { get { return meetingRemotePartTypeInfo; } }
 		public static ObjectTypeInfo ProbeSessionTypeInfo { get { return psessionTypeInfo; } }
+
+		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		{
+			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			return defaultCollapsedNodesTypes.Contains(objectType);
+		}
 
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
 		{
@@ -279,13 +289,19 @@ namespace LogJoint.Symphony.Rtc
 		{
 		}
 
-		void EnsureRootReported(Message trigger, Queue<Event> buffer)
+		string IMeetingsStateInspector.EnsureRootObjectCreated(Message trigger, Queue<Event> buffer)
+		{
+			return EnsureRootReported(trigger, buffer);
+		}
+
+		string EnsureRootReported(Message trigger, Queue<Event> buffer)
 		{
 			if (rootReported)
-				return;
+				return rootObjectId;
 			rootReported = true;
 
 			buffer.Enqueue(new ObjectCreation(trigger, rootObjectId, rootTypeInfo));
+			return rootObjectId;
 		}
 
 		class ProtocolSessionData
@@ -302,7 +318,7 @@ namespace LogJoint.Symphony.Rtc
 		bool invitationsReported;
 
 		readonly static ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("sym.rtc", isTimeless: true);
-		readonly string rootObjectId = "Symphony RTC";
+		readonly static string rootObjectId = "Symphony RTC";
 		readonly static ObjectTypeInfo meetingTypeInfo = new ObjectTypeInfo("sym.meeting", primaryPropertyName: "state");
 		readonly static ObjectTypeInfo meetingSessionTypeInfo = new ObjectTypeInfo("sym.meeting.session");
 		readonly static ObjectTypeInfo meetingRemotePartTypeInfo = new ObjectTypeInfo("sym.meeting.remotePart", displayIdPropertyName: "user name", primaryPropertyName: "audio state");
@@ -343,5 +359,10 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex psessionDtrRegex = new Regex(@"^disposed", reopts);
 
 		readonly HashSet<string> tags = new HashSet<string>() { "meetings" };
+
+		static readonly HashSet<string> defaultCollapsedNodesTypes = new [] 
+		{
+			meetingSessionTypeInfo, psessionTypeInfo, 
+		}.Select(i => i.TypeName).ToHashSet();
 	}
 }

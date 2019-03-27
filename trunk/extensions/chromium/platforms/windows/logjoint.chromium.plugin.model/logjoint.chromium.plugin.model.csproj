@@ -157,6 +157,9 @@
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\CITimeline.cs">
       <Link>Formats\SymphonyRtc\Timeline\CITimeline.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\DiagTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\DiagTimeline.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
       <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
     </Compile>
