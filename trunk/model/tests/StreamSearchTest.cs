@@ -8,11 +8,11 @@ namespace LogJoint.Tests
 	[TestFixture]
 	public class TrieNodeTest
 	{
-		void DoTest(TrieNode n, string streamStr, long initialPos, long? expected)
+		void DoTest(TrieNode n, string streamStr, long initialPos, long? expected, long limit = long.MaxValue)
 		{
 			Stream s = new MemoryStream(Encoding.UTF8.GetBytes(streamStr));
 			s.Position = initialPos;
-			Assert.AreEqual(expected, n.Find(s));
+			Assert.AreEqual(expected, n.Find(s, limit));
 		}
 
 		[Test]
@@ -34,6 +34,16 @@ namespace LogJoint.Tests
 			DoTest(n, "bbaarr", 0, 1);
 			DoTest(n, "йцbaук", 1, 4);
 			DoTest(n, "йцbукar", 1, null);
+		}
+
+		[Test]
+		public void FindTestAtEndOfStream()
+		{
+			TrieNode n = new TrieNode();
+
+			n.Add(Encoding.UTF8.GetBytes("</pdml>"), 0);
+			string testInput = "</packet> </pdml>";
+			DoTest(n, testInput, 0, 10, limit: testInput.Length);
 		}
 
 	}

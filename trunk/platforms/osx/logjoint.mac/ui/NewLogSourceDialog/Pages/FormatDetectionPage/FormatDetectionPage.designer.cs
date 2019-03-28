@@ -1,6 +1,6 @@
 ﻿// WARNING
 //
-// This file has been generated automatically by Xamarin Studio to store outlets and
+// This file has been generated automatically by Visual Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
@@ -15,14 +15,25 @@ namespace LogJoint.UI
 		[Outlet]
 		AppKit.NSTextField fileNameTextField { get; set; }
 
+		[Outlet]
+		AppKit.NSTextField keyFileField { get; set; }
+
 		[Action ("OnBrowseButtonClicked:")]
 		partial void OnBrowseButtonClicked (Foundation.NSObject sender);
+
+		[Action ("OnBrowseKeyClicked:")]
+		partial void OnBrowseKeyClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
 			if (fileNameTextField != null) {
 				fileNameTextField.Dispose ();
 				fileNameTextField = null;
+			}
+
+			if (keyFileField != null) {
+				keyFileField.Dispose ();
+				keyFileField = null;
 			}
 		}
 	}

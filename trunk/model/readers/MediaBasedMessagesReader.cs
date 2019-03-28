@@ -250,7 +250,7 @@ namespace LogJoint
 		private static TextStreamPosition FindBound(BoundFinder finder, Stream stm, Encoding encoding, string boundName,
 			TextStreamPositioningParams textStreamPositioningParams)
 		{
-			TextStreamPosition? pos = finder.Find(stm, encoding, textStreamPositioningParams);
+			TextStreamPosition? pos = finder.Find(stm, encoding, boundName == "end", textStreamPositioningParams);
 			if (!pos.HasValue)
 				throw new Exception(string.Format("Cannot detect the {0} of the log", boundName));
 			return pos.Value;

@@ -111,10 +111,10 @@ namespace LogJoint
 			return "yyyy-MM-dd HH:mm:ss";
 		}
 
-		public DateTime EPOCH_TIME(long epochTime)
+		public DateTime EPOCH_TIME(double epochTime)
 		{
-			DateTime ret = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-			return ret.ToLocalTime().AddMilliseconds(epochTime);
+			DateTime ret = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+			return ret.AddMilliseconds(epochTime);
 		}
 
 		public string NEW_LINE()

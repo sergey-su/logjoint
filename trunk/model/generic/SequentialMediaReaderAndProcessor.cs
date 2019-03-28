@@ -118,13 +118,16 @@ namespace LogJoint
 				HandleAggregatedCancellation(ae);
 				throw;
 			}
-			threadLocal.Dispose();
-			foreach (var state in threadLocalStates)
-				callback.FinalizeThreadLocalState(ref state.State);
-			// in case of interruption (e.g. exception) some items may be unprocessed. dispose them.
-			RawDataHolder tmp;
-			while (itemsBeingProcessed.TryDequeue(out tmp))
-				(tmp.Data as IDisposable)?.Dispose();
+			finally
+			{
+				threadLocal.Dispose();
+				foreach (var state in threadLocalStates)
+					callback.FinalizeThreadLocalState(ref state.State);
+				// in case of interruption (e.g. exception) some items may be unprocessed. dispose them.
+				RawDataHolder tmp;
+				while (itemsBeingProcessed.TryDequeue(out tmp))
+					(tmp.Data as IDisposable)?.Dispose();
+			}
 		}
 
 		#endregion

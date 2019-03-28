@@ -17,7 +17,7 @@ namespace LogJoint
 
 		public StringSliceReallocator()
 		{
-			AllocateNewBuffer();
+			AllocateNewBuffer(0);
 		}
 
 		void IDisposable.Dispose()
@@ -45,7 +45,7 @@ namespace LogJoint
 			if (bufPosition + value.Length > buf.Length)
 			{
 				FreeBuffer();
-				AllocateNewBuffer();
+				AllocateNewBuffer(value.Length);
 			}
 			var ret = new StringSlice(buf, bufPosition, value.Length);
 			fixed (char* src = value.Buffer)
@@ -56,9 +56,12 @@ namespace LogJoint
 			return ret;
 		}
 
-		void AllocateNewBuffer()
+		void AllocateNewBuffer(int minLen)
 		{
-			buf = new string('\0', 64 * 1024);
+			int sz = 64 * 1024;
+			while (sz < minLen)
+				sz *= 2;
+			buf = new string('\0', sz);
 			bufHandle = GCHandle.Alloc(buf, GCHandleType.Pinned);
 			bufPtr = (char*)bufHandle.AddrOfPinnedObject();
 			bufPosition = 0;

@@ -37,14 +37,14 @@ namespace LogJoint.UI
 
 			FillOutlineBackground();
 			DrawContentOutline(msg);
+
+			DrawLastLineSeparator(msg);
 		}
 
 		protected override void HandleMessageText(IMessage msg, float textXPos)
 		{
 			DrawMessageBackground(msg, textXPos);
 		}
-
-
 
 		void DrawTime(IMessage msg)
 		{
@@ -166,6 +166,16 @@ namespace LogJoint.UI
 
 			if (tmpBrush != null)
 				tmpBrush.Dispose();
+		}
+
+		void DrawLastLineSeparator(IMessage msg)
+		{
+			var displayText = msg.GetDisplayText(ctx.ShowRawMessages);
+			if (displayText.IsMultiline && displayText.GetLinesCount() == this.TextLineIdx + 1)
+			{
+				float y = m.MessageRect.Bottom - 0.5f;
+				ctx.Canvas.DrawLine(ctx.TimeSeparatorLine, m.MessageRect.X, y, m.MessageRect.Right, y);
+			}
 		}
 
 		void DrawCursorIfNeeded(IMessage msg)

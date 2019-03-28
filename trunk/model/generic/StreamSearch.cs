@@ -33,19 +33,17 @@ namespace LogJoint.StreamSearch
 				int k = s.ReadByte();
 				if (k == -1)
 					return null;
-				TrieNode n;
-				if (!this.children.TryGetValue((byte)k, out n))
+				if (!this.children.TryGetValue((byte)k, out TrieNode n))
 					continue;
 				long pos = s.Position - 1;
-				for (; ; )
+				for (long bytesRead2 = bytesRead; ; )
 				{
-					if (++bytesRead > readBytesLimit)
-						return null;
+					if (++bytesRead2 > readBytesLimit)
+						break;
 					int k2 = s.ReadByte();
 					if (k2 == -1)
-						return null;
-					TrieNode n2;
-					if (!n.children.TryGetValue((byte)k2, out n2))
+						break;
+					if (!n.children.TryGetValue((byte)k2, out TrieNode n2))
 						break;
 					if (n2.isTerminal)
 						return pos;
