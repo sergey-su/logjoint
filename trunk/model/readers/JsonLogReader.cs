@@ -372,7 +372,7 @@ namespace LogJoint.Json
 			return impl.TO_DATETIME(value, format);
 		}
 
-		public static DateTime EPOCH_TIME(long epochTime)
+		public static DateTime EPOCH_TIME(double epochTime)
 		{
 			return impl.EPOCH_TIME(epochTime);
 		}

@@ -28,6 +28,7 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib ();
 			codeTextView.Font = NSFont.FromFontName("Courier", 11);
+			codeTextView.AutomaticQuoteSubstitutionEnabled = false;
 			helpLink.LinkClicked = (sender, e) => events.OnHelpLinkClicked();
 		}
 

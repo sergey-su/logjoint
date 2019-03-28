@@ -244,6 +244,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			var msg = logViewerPresenter.FocusedMessage;
 			if (msg == null)
 				return null;
+			if (msg.GetLogSource() == null)
+				return null;
 			var dataItem = sourcesDataCache.Get(msg.GetLogSource());
 			if (dataItem == null)
 				return null;

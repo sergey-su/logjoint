@@ -457,7 +457,7 @@ namespace LogJoint.XmlFormat
 							if (nrOfSequentialFailures < maxNrOfSequentialFailures)
 							{
 								++nrOfSequentialFailures;
-								// Try to parse the next messsage if it's not the end of the stream
+								// Try to parse the next message if it's not the end of the stream
 								continue;
 							}
 							else
@@ -662,6 +662,7 @@ namespace LogJoint.XmlFormat
 		ITempFilesManager tempFilesManager;
 		static XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 		static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
+		readonly string uiKey;
 
 		static UserDefinedFormatFactory()
 		{
@@ -712,12 +713,13 @@ namespace LogJoint.XmlFormat
 				return new XmlFormatInfo(xsl, head, body, beginFinder, endFinder,
 					encoding, extensionsInitData, textStreamPositioningParams, dejitteringParams, viewOptions);
 			});
+			uiKey = ReadParameter(formatSpecificNode, "ui-key");
 		}
 
 
 		#region ILogProviderFactory Members
 
-		public override string UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
+		public override string UITypeKey { get { return string.IsNullOrEmpty(uiKey) ? StdProviderFactoryUIs.FileBasedProviderUIKey : uiKey; } }
 
 		public override IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{

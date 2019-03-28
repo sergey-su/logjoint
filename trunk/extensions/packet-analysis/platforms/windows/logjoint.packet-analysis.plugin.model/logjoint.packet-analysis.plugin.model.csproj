@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3C4AABD0-7BD7-4403-B7D5-210CC4409F0B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LogJoint.PacketAnalysis</RootNamespace>
+    <AssemblyName>logjoint.packet-analysis.plugin.model</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WIN</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <DefineConstants>TRACE;WIN</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\platforms\windows\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\platforms\windows\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Converters\Converters.cs">
+      <Link>Formats\WiresharkPdml\Converters\Converters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Converters\Interfaces.cs">
+      <Link>Formats\WiresharkPdml\Converters\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Converters\PcapUnpackPreprocessingStep.cs">
+      <Link>Formats\WiresharkPdml\Converters\PcapUnpackPreprocessingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Converters\PreprocessingManagerExtension.cs">
+      <Link>Formats\WiresharkPdml\Converters\PreprocessingManagerExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Converters\PreprocessingStepsFactory.cs">
+      <Link>Formats\WiresharkPdml\Converters\PreprocessingStepsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Converters\TShark.cs">
+      <Link>Formats\WiresharkPdml\Converters\TShark.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Reader\Extensions.cs">
+      <Link>Formats\WiresharkPdml\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Reader\Interfaces.cs">
+      <Link>Formats\WiresharkPdml\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Reader\Reader.cs">
+      <Link>Formats\WiresharkPdml\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WiresharkPdml\Timeline\PdmlDriverTimeline.cs">
+      <Link>Formats\WiresharkPdml\Timeline\PdmlDriverTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
+      <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\TimelinePostprocessorsFactory.cs">
+      <Link>Postprocessors\TimelinePostprocessorsFactory.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\analytics\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
+      <Name>logjoint.analytics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
+      <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
+      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
+      <Project>{929f7c79-e2bb-4e6c-af17-f21e5025265a}</Project>
+      <Name>logjoint</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\model\Formats\Wireshark - pdml.format.xml">
+      <Link>Formats\Wireshark - pdml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

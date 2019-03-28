@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LogJoint.PacketAnalysis</RootNamespace>
+    <AssemblyName>logjoint.packet-analysis.plugin</AssemblyName>
+    <UseXamMacFullFramework>true</UseXamMacFullFramework>
+    <FileAlignment>512</FileAlignment>
+	<ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Debug\logjoint.app\Contents\MonoBundle</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseSGen>false</UseSGen>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>AfterBuild</type>
+          <command>bash ${ProjectDir}/UI/copy_nibs.sh "${ProjectDir}" ${ProjectConfigName} "${TargetDir}"</command>
+          <workingdir>${ProjectDir}/UI</workingdir>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>		
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Release\logjoint.app\Contents\MonoBundle</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseSGen>false</UseSGen>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>AfterBuild</type>
+          <command>bash ${ProjectDir}/UI/copy_nibs.sh "${ProjectDir}" ${ProjectConfigName} "${TargetDir}"</command>
+          <workingdir>${ProjectDir}/UI</workingdir>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Xamarin.Mac" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Plugin.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\..\shared\PluginInitializer.cs">
+      <Link>PluginInitializer.cs</Link>
+    </Compile>
+    <Compile Include="UI\WiresharkPage\WiresharkPage.cs" />
+    <Compile Include="UI\WiresharkPage\WiresharkPage.designer.cs">
+        <DependentUpon>WiresharkPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\WiresharkPage\WiresharkPageAdapter.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
+      <Name>logjoint.analytics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.model\logjoint.model.csproj">
+      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.presenters\logjoint.presenters.csproj">
+      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
+      <Project>{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}</Project>
+      <Name>logjoint.packet-analysis.plugin.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.packet-analysis.plugin.presenters\logjoint.packet-analysis.plugin.presenters.csproj">
+      <Project>{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}</Project>
+      <Name>logjoint.packet-analysis.plugin.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.mac\logjoint.mac.csproj">
+      <Project>{9F528C3D-D79B-4394-A6C2-7FF3AB7F91C3}</Project>
+      <Name>logjoint.mac</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="UI\copy_nibs.sh" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="UI\" />
+    <Folder Include="UI\WiresharkPage\" />
+  </ItemGroup>
+  <!--<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />-->
+  <ItemGroup>
+    <InterfaceDefinition Include="UI\WiresharkPage\WiresharkPage.xib" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -25,14 +25,14 @@ namespace LogJoint.Analytics
 			IHeaderMatcher headerMatcher,
 			Func<List<MessageInfo>, Task<bool>> messagesSink,
 			Action<double> progressHandler = null,
-			Flags flags = Flags.None
+			Flags flags = Flags.None,
+			int rawBufferSize = 1024 * 512
 		)
 		{
 			inputStream.Position = 0;
 			var totalLen = inputStream.Length;
 			if (totalLen == 0)
 				progressHandler = null;
-			int rawBufferSize = 1024 * 512;
 			int bufferUnderflowThreshold = 1024 * 4;
 			byte[] rawBytesBuffer = new byte[rawBufferSize];
 			char[] rawCharsBuffer = new char[rawBufferSize];
@@ -56,8 +56,7 @@ namespace LogJoint.Analytics
 				if (!await messagesSink(messages))
 					break;
 				messages.Clear();
-				if (progressHandler != null)
-					progressHandler((double)inputStream.Position / (double)totalLen);
+				progressHandler?.Invoke((double)inputStream.Position / (double)totalLen);
 			}
 			buffer.Pop(HandleBufferContent(headerMatcher, buffer, messages, 0, ref currentMessageIndex, flags));
 			YieldMessage(buffer, buffer.CurrentContent.Length, messages, ref currentMessageIndex);
@@ -180,9 +179,9 @@ namespace LogJoint.Analytics
 				var endOfHeaderPos = buffer.CurrentMessageHeader.EndOfHeaderPosition;
 				var bodyLen = TrimBodyRight(contentPtr, endOfBodyPosition, endOfHeaderPos) - endOfHeaderPos;
 				string messageBody = new string(contentPtr,
-					 buffer.CurrentMessageHeader.EndOfHeaderPosition,
-					 bodyLen
-				 );
+					buffer.CurrentMessageHeader.EndOfHeaderPosition,
+					bodyLen
+				);
 
 				var h = buffer.CurrentMessageHeader;
 				messagesList.Add(new MessageInfo()
@@ -269,6 +268,11 @@ namespace LogJoint.Analytics
 		int IHeaderMatch.Length
 		{
 			get { return m.Length; }
+		}
+
+		public override string ToString()
+		{
+			return m.ToString();
 		}
 	};
 }
