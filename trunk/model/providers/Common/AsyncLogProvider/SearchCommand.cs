@@ -24,7 +24,7 @@ namespace LogJoint
 
 		public override string ToString()
 		{
-			return string.Format("fc={0}", searchParams.Filters.Count);
+			return string.Format("fc={0}", searchParams.Filters.Items.Count);
 		}
 
 		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
@@ -36,7 +36,7 @@ namespace LogJoint
 				return false; // only reader knows how to handle its continuation tokens
 
 			if (!ctx.Stats.PositionsRange.Equals(ctx.Cache.MessagesRange))
-				return false; // speed up only fully cached logs. partial optimization it's noticable.
+				return false; // speed up only fully cached logs. partial optimization isn't noticeable.
 
 			var elapsed = Stopwatch.StartNew();
 			using (var preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(

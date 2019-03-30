@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using System.Collections.Immutable;
 
 namespace LogJoint
 {
@@ -12,6 +13,7 @@ namespace LogJoint
 			this.actionWhenEmptyOrDisabled = actionWhenEmptyOrDisabled;
 			this.purpose = purpose;
 			this.changeNotification = changeNotification;
+			this.getItems = MakeGetItems();
 		}
 
 		public FiltersList(XElement e, FiltersListPurpose purpose, IFiltersFactory factory, IChangeNotification changeNotification)
@@ -19,6 +21,7 @@ namespace LogJoint
 			LoadInternal(e, factory);
 			this.purpose = purpose;
 			this.changeNotification = changeNotification;
+			this.getItems = MakeGetItems();
 		}
 
 		void IDisposable.Dispose()
@@ -31,6 +34,7 @@ namespace LogJoint
 				f.Dispose();
 			}
 			list.Clear();
+			listRevision++;
 			OnFiltersListChanged = null;
 			OnPropertiesChanged = null;
 		}
@@ -39,8 +43,9 @@ namespace LogJoint
 		{
 			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled, purpose, changeNotification);
 			ret.FilteringEnabled = filteringEnabled;
+			int c = 0;
 			foreach (var f in list)
-				ret.Insert(ret.Count, f.Clone());
+				ret.Insert(c++, f.Clone());
 			return ret;
 		}
 
@@ -68,14 +73,9 @@ namespace LogJoint
 		#endregion
 
 		#region Filters access and manipulation
-		IEnumerable<IFilter> IFiltersList.Items
-		{
-			get { return list; }
-		}
-		int IFiltersList.Count
-		{
-			get { return list.Count; }
-		}
+
+		ImmutableList<IFilter> IFiltersList.Items => getItems();
+
 		void IFiltersList.Insert(int position, IFilter filter)
 		{
 			if (filter == null)
@@ -206,6 +206,8 @@ namespace LogJoint
 			return defaultAction.Value;
 		}
 
+		int IFiltersList.FiltersVersion => filtersVersion;
+
 		void IFiltersList.InvalidateDefaultAction()
 		{
 			InvalidateDefaultActionInternal();
@@ -213,8 +215,12 @@ namespace LogJoint
 
 		void IFiltersList.FireOnPropertiesChanged(IFilter sender, bool changeAffectsFilterResult, bool changeAffectsPreprocessingResult)
 		{
-			if (OnPropertiesChanged != null)
-				OnPropertiesChanged(sender, new FilterChangeEventArgs(changeAffectsFilterResult, changeAffectsPreprocessingResult));
+			OnPropertiesChanged?.Invoke(sender, new FilterChangeEventArgs(changeAffectsFilterResult, changeAffectsPreprocessingResult));
+			if (changeAffectsFilterResult)
+			{
+				++filtersVersion;
+				changeNotification?.Post();
+			}
 		}
 
 		#endregion
@@ -229,6 +235,7 @@ namespace LogJoint
 		private void OnChanged()
 		{
 			InvalidateDefaultActionInternal();
+			listRevision++;
 			changeNotification?.Post();
 			OnFiltersListChanged?.Invoke (this, EventArgs.Empty);
 		}
@@ -269,6 +276,11 @@ namespace LogJoint
 			}
 		}
 
+		Func<ImmutableList<IFilter>> MakeGetItems()
+		{
+			return Selectors.Create(() => listRevision, (_) => ImmutableList.CreateRange(list));
+		}
+
 		#endregion
 
 		#region Members
@@ -277,9 +289,12 @@ namespace LogJoint
 		bool disposed;
 		readonly FiltersListPurpose purpose;
 		readonly List<IFilter> list = new List<IFilter>();
+		int listRevision;
 		FilterAction actionWhenEmptyOrDisabled;
 		FilterAction? defaultAction;
 		bool filteringEnabled = true;
+		Func<ImmutableList<IFilter>> getItems;
+		int filtersVersion;
 
 		#endregion
 

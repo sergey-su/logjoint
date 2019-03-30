@@ -108,7 +108,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					}
 				}
 
-				if (filters.Count == 0)
+				if (filters.Items.Count == 0)
 				{
 					if (defActionItem != null)
 					{

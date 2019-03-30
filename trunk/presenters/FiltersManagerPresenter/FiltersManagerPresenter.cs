@@ -200,7 +200,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		bool IsNavigationOverHighlightedMessagesEnabled()
 		{
-			return filtersList.FilteringEnabled && filtersList.Count > 0;
+			return filtersList.FilteringEnabled && filtersList.Items.Count > 0;
 		}
 
 		private void DoRemoveSelected()

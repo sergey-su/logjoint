@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					var isBookmarked = IsMessageBookmarked(focused);
 					return (isBookmarked ? "yes" : "no", isBookmarked ? "clear bookmark" : "set bookmark");
 				});
-			bool getHlFilteringEnabled() => hlFilters.FilteringEnabled && hlFilters.Count > 0;
+			bool getHlFilteringEnabled() => hlFilters.FilteringEnabled && hlFilters.Items.Count > 0;
 			this.getDialogData = Selectors.Create(getFocusedMessage, getBookmarkData, getHlFilteringEnabled, (message, bmk, hlEnabled) =>
 			{
 				var (bookmarkedStatus, bookmarkAction) = bmk;

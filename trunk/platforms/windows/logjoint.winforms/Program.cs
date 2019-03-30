@@ -178,7 +178,8 @@ namespace LogJoint
 					modelSynchronizationContext,
 					globalSettingsAccessor,
 					telemetryCollector,
-					heartBeatTimer
+					heartBeatTimer,
+					changeNotification
 				);
 
 				IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory, modelSynchronizationContext);

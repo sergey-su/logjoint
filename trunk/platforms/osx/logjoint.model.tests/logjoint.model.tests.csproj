@@ -186,6 +186,9 @@
     <Compile Include="..\..\..\model\tests\TagsPredicateTest.cs">
       <Link>TagsPredicateTest.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\tests\LRUCacheTests.cs">
+      <Link>LRUCacheTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">

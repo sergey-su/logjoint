@@ -130,7 +130,7 @@ namespace LogJoint.UI
 			);
 		}
 
-		protected override void WndProc(ref Message m)
+		protected override void WndProc(ref System.Windows.Forms.Message m)
 		{
 			if (m.Msg == WM_REFRESHCULUMNHEADER)
 			{

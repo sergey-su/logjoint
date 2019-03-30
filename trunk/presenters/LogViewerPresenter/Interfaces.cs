@@ -216,15 +216,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 		SelectionInfo Selection { get; }
 		ColoringMode Coloring { get; }
 		FocusedMessageDisplayModes FocusedMessageDisplayMode { get; }
-		IHighlightingHandler CreateSelectionHighlightingHandler();
-		IHighlightingHandler CreateSearchResultHighlightingHandler();
-		IHighlightingHandler CreateHighlightingFiltersHandler();
+		IHighlightingHandler SelectionHighlightingHandler { get; }
+		IHighlightingHandler SearchResultHighlightingHandler { get; }
+		IHighlightingHandler HighlightingFiltersHandler { get; }
 		Tuple<int, int> FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx);
+		IChangeNotification ChangeNotification { get; }
 	};
 
-	public interface IHighlightingHandler: IDisposable
+	public interface IHighlightingHandler
 	{
-		IEnumerable<Tuple<int, int, FilterAction>> GetHighlightingRanges(IMessage msg);
+		/// <summary>
+		/// Enumerates ranges of Message's test that need highlighting. Only the ranges overlapping passed interval as enumerated.
+		/// </summary>
+		IEnumerable<(int, int, FilterAction)> GetHighlightingRanges(IMessage msg, int intervalBegin, int intervalEnd);
 	};
 
 	public class MenuData
@@ -293,7 +297,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface ISearchResultModel : IModel
 	{
-		IFiltersList CreateSearchFiltersList();
+		IFiltersList SearchFiltersList { get; }
 		void RaiseSourcesChanged();
 	};
 

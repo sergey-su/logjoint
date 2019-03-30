@@ -27,9 +27,6 @@ namespace LogJoint.UI
 			bufferedGraphicsContext = new BufferedGraphicsContext() { MaximumBuffer = new Size(5000, 4000) };
 
 			drawContext.CollapseBoxesAreaSize = UIUtils.Dpi.Scale(drawContext.CollapseBoxesAreaSize);
-			drawContext.OutlineBoxSize = UIUtils.Dpi.Scale(drawContext.OutlineBoxSize);
-			drawContext.OutlineCrossSize = UIUtils.Dpi.Scale(drawContext.OutlineCrossSize);
-			drawContext.LevelOffset = UIUtils.Dpi.Scale(drawContext.LevelOffset);
 			drawContext.DpiScale = UIUtils.Dpi.Scale(1f);
 
 			var prototypeStringFormat = (StringFormat)StringFormat.GenericDefault.Clone();
@@ -38,10 +35,6 @@ namespace LogJoint.UI
 				StringFormatFlags.MeasureTrailingSpaces | 
 				StringFormatFlags.NoFontFallback; // this is to treat \0002 and \0003 as regular characters
 			drawContext.TextFormat = new LJD.StringFormat(prototypeStringFormat);
-
-
-			drawContext.OutlineMarkupPen = new LJD.Pen(Color.Gray, 1);
-			drawContext.SelectedOutlineMarkupPen = new LJD.Pen(Color.White, 1);
 
 			drawContext.InfoMessagesBrush = new LJD.Brush(SystemColors.ControlText);
 			drawContext.SelectedTextBrush = new LJD.Brush(SystemColors.HighlightText);
@@ -155,6 +148,14 @@ namespace LogJoint.UI
 		{
 			this.presentationDataAccess = presentationDataAccess;
 			this.drawContext.Presenter = presentationDataAccess;
+
+			var updater = Updaters.Create(
+				() => presentationDataAccess.HighlightingFiltersHandler,
+				() => presentationDataAccess.SelectionHighlightingHandler,
+				() => presentationDataAccess.SearchResultHighlightingHandler,
+				(_1, _2, _3) => Invalidate()
+			);
+			presentationDataAccess.ChangeNotification.CreateSubscription(updater);
 		}
 
 		void IView.InvalidateLine(ViewLine line)

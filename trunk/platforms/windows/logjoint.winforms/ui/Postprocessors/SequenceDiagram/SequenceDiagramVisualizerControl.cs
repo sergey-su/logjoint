@@ -359,7 +359,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			eventsHandler.OnLeftPanelMouseDown(arrowsPanel.PointToClient(leftPanel.PointToScreen(e.Location)), e.Clicks >= 2, GetModifiers());
 		}
 
-		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		protected override bool ProcessCmdKey(ref System.Windows.Forms.Message msg, Keys keyData)
 		{
 			if (keyData == Keys.Escape)
 			{

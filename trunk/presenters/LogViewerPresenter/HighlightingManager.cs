@@ -1,75 +1,113 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	internal interface IHighlightingManager
 	{
-		IHighlightingHandler CreateSearchResultHandler();
-		IHighlightingHandler CreateHighlightingFiltersHandler();
+		IHighlightingHandler SearchResultHandler { get; }
+		IHighlightingHandler HighlightingFiltersHandler { get; }
+		IHighlightingHandler SelectionHandler { get; }
 	};
-
 
 	internal class HighlightingManager : IHighlightingManager
 	{
-		readonly ISearchResultModel searchResultModel;
-		readonly IPresentationDataAccess presentationDataAccess;
-		readonly IFiltersList highlightFilters;
+		readonly Func<IHighlightingHandler> getHighlightingHandler;
+		readonly Func<IHighlightingHandler> getSearchResultHandler;
+		readonly Func<IHighlightingHandler> getSelectionHandler;
 
 		public HighlightingManager(
 			ISearchResultModel searchResultModel,
-			IPresentationDataAccess presentationDataAccess,
-			IFiltersList highlightFilters
+			Func<bool> isRawMessagesModeSelector,
+			Func<int> viewSizeSelector,
+			IFiltersList highlightFilters,
+			ISelectionManager selectionManager,
+			IWordSelection wordSelection
 		)
 		{
-			this.searchResultModel = searchResultModel;
-			this.presentationDataAccess = presentationDataAccess;
-			this.highlightFilters = highlightFilters;
+			this.getHighlightingHandler = Selectors.Create(
+				() => highlightFilters?.FilteringEnabled,
+				() => highlightFilters?.Items,
+				isRawMessagesModeSelector,
+				() => highlightFilters?.FiltersVersion,
+				viewSizeSelector,
+				(filteringEnabled, filters, isRawMessagesMode, _, viewSize) => filteringEnabled == true ? 
+					  new CachingHighlightingHandler(msg => GetHlHighlightingRanges(msg, filters, isRawMessagesMode), ViewSizeToCacheSize(viewSize))
+					: (IHighlightingHandler)new DummyHandler()
+			);
+			this.getSearchResultHandler = Selectors.Create(
+				() => searchResultModel?.SearchFiltersList,
+				isRawMessagesModeSelector,
+				viewSizeSelector,
+				(filters, isRawMessagesMode, viewSize) => filters != null ?
+					  new CachingHighlightingHandler(msg => GetSearchResultsHighlightingRanges(msg, filters, isRawMessagesMode), ViewSizeToCacheSize(viewSize))
+					: null
+			);
+			this.getSelectionHandler = Selectors.Create(
+				() => selectionManager.Selection.Version,
+				isRawMessagesModeSelector,
+				viewSizeSelector,
+				(selectionVersion, isRawMessagesMode, viewSize) =>
+					MakeSelectionInplaceHighlightingHander(selectionManager.Selection, isRawMessagesMode, wordSelection, ViewSizeToCacheSize(viewSize))
+			);
 		}
 
+		IHighlightingHandler IHighlightingManager.SearchResultHandler => getSearchResultHandler();
 
-		IHighlightingHandler IHighlightingManager.CreateSearchResultHandler()
+		IHighlightingHandler IHighlightingManager.HighlightingFiltersHandler => getHighlightingHandler();
+
+		IHighlightingHandler IHighlightingManager.SelectionHandler => getSelectionHandler();
+
+		private static int ViewSizeToCacheSize(int viewSize)
 		{
-			if (searchResultModel == null)
-				return null;
+			return Math.Max(viewSize, 1);
+		}
+
+		private static IEnumerable<(int, int, FilterAction)> GetHlHighlightingRanges(
+			IMessage msg, ImmutableList<IFilter> hlFilters, bool isRawMessagesMode)
+		{
+			var filtersState = hlFilters
+				.Where(f => f.Enabled)
+				.Select(f => (f.StartBulkProcessing(isRawMessagesMode, false), f))
+				.ToArray();
+
+			for (int i = 0; i < filtersState.Length; ++i)
+			{
+				var f = filtersState[i];
+				for (int? startPos = null; ;)
+				{
+					var rslt = f.Item1.Match(msg, startPos);
+					if (rslt == null)
+						break;
+					var r = rslt.Value;
+					if (r.MatchBegin == r.MatchEnd)
+						break;
+					yield return (r.MatchBegin, r.MatchEnd, f.Item2.Action);
+					if (r.WholeTextMatched)
+						break;
+					startPos = r.MatchEnd;
+				}
+			}
+
+			foreach (var f in filtersState)
+				f.Item1.Dispose();
+		}
+
+		private static IEnumerable<(int, int, FilterAction)> GetSearchResultsHighlightingRanges(
+			IMessage msg, IFiltersList filters, bool isRawMessagesMode)
+		{
+			IFiltersListBulkProcessing processing;
 			try
 			{
-				return new SearchResultHandler(searchResultModel.CreateSearchFiltersList(), presentationDataAccess.ShowRawMessages);
+				processing = filters.StartBulkProcessing(isRawMessagesMode, reverseMatchDirection: false);
 			}
 			catch (Search.TemplateException)
 			{
-				return null;
+				yield break;
 			}
-		}
-
-		IHighlightingHandler IHighlightingManager.CreateHighlightingFiltersHandler()
-		{
-			if (highlightFilters == null)
-				return null;
-			if (!highlightFilters.FilteringEnabled)
-				return new DummyHandler();
-			return new HighlightFiltersHandler(highlightFilters, presentationDataAccess.ShowRawMessages);
-		}
-
-		class SearchResultHandler : IHighlightingHandler
-		{
-			readonly IFiltersList filter;
-			readonly IFiltersListBulkProcessing processing;
-
-			public SearchResultHandler(IFiltersList filters, bool matchRawMessages)
-			{
-				this.filter = filters;
-				this.processing = filters.StartBulkProcessing(matchRawMessages, reverseMatchDirection: false);
-			}
-
-			public void Dispose()
-			{
-				processing.Dispose();
-				filter.Dispose();
-			}
-
-			IEnumerable<Tuple<int, int, FilterAction>> IHighlightingHandler.GetHighlightingRanges(IMessage msg)
+			using (processing)
 			{
 				for (int? startPos = null; ;)
 				{
@@ -81,64 +119,68 @@ namespace LogJoint.UI.Presenters.LogViewer
 						yield break;
 					if (r.MatchBegin == r.MatchEnd)
 						yield break;
-					yield return Tuple.Create(r.MatchBegin, r.MatchEnd, rslt.Action);
+					yield return (r.MatchBegin, r.MatchEnd, rslt.Action);
 					startPos = r.MatchEnd;
 				}
 			}
-		};
+		}
 
-		class DummyHandler : IHighlightingHandler
+		private static IHighlightingHandler MakeSelectionInplaceHighlightingHander(
+			SelectionInfo selection, bool isRawMessagesMode, IWordSelection wordSelection, int cacheSize)
 		{
-			void IDisposable.Dispose()
-			{
-			}
+			IHighlightingHandler newHandler = null;
 
-			IEnumerable<Tuple<int, int, FilterAction>> IHighlightingHandler.GetHighlightingRanges(IMessage msg)
+			if (selection.IsSingleLine)
 			{
-				yield break;
-			}
-		};
-
-		class HighlightFiltersHandler : IHighlightingHandler
-		{
-			readonly KeyValuePair<IFilterBulkProcessing, IFilter>[] filters;
-
-			public HighlightFiltersHandler(IFiltersList filters, bool matchRawMessages)
-			{
-				this.filters = filters
-					.Items
-					.Where(f => f.Enabled)
-					.Select(f => new KeyValuePair<IFilterBulkProcessing, IFilter>(
-						f.StartBulkProcessing(matchRawMessages, false), f
-					))
-					.ToArray();
-			}
-
-			public void Dispose()
-			{
-				foreach (var f in filters)
-					f.Key.Dispose();
-			}
-
-			IEnumerable<Tuple<int, int, FilterAction>> IHighlightingHandler.GetHighlightingRanges(IMessage msg)
-			{
-				for (int i = 0; i < filters.Length; ++i)
+				var normSelection = selection.Normalize();
+				var line = normSelection.First.Message.GetDisplayText(isRawMessagesMode).GetNthTextLine(normSelection.First.TextLineIndex);
+				int beginIdx = normSelection.First.LineCharIndex;
+				int endIdx = normSelection.Last.LineCharIndex;
+				if (wordSelection.IsWordBoundary(line, beginIdx, endIdx))
 				{
-					var f = filters[i];
-					for (int? startPos = null; ;)
+					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
+					if (wordSelection.IsWord(selectedPart))
 					{
-						var rslt = f.Key.Match(msg, startPos);
-						if (rslt == null)
-							break;
-						var r = rslt.Value;
-						if (r.MatchBegin == r.MatchEnd)
-							break;
-						yield return Tuple.Create(r.MatchBegin, r.MatchEnd, f.Value.Action);
-						if (r.WholeTextMatched)
-							break;
-						startPos = r.MatchEnd;
+						var options = new Search.Options() 
+						{
+							Template = selectedPart,
+							SearchInRawText = isRawMessagesMode,
+						};
+						var optionsPreprocessed = options.BeginSearch();
+						newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection), cacheSize);
 					}
 				}
+			}
+
+			return newHandler;
+		}
+
+		private static IEnumerable<(int, int, FilterAction)> GetSelectionHighlightingRanges(
+			IMessage msg, Search.SearchState searchOpts, IWordSelection wordSelection)
+		{
+			for (int? startPos = null; ;)
+			{
+				var matchedTextRangle = Search.SearchInMessageText(msg, searchOpts, startPos);
+				if (!matchedTextRangle.HasValue)
+					yield break;
+				var r = matchedTextRangle.Value;
+				if (r.WholeTextMatched)
+					yield break;
+				if (r.MatchBegin == r.MatchEnd)
+					yield break;
+				if (wordSelection.IsWordBoundary(r.SourceText, r.MatchBegin, r.MatchEnd))
+					yield return (r.MatchBegin, r.MatchEnd, FilterAction.Include);
+				startPos = r.MatchEnd;
+			}
+		}
+
+
+		private class DummyHandler : IHighlightingHandler
+		{
+			IEnumerable<(int, int, FilterAction)> IHighlightingHandler.GetHighlightingRanges(
+				IMessage msg, int intervalBegin, int intervalEnd)
+			{
+				yield break;
 			}
 		};
 	};

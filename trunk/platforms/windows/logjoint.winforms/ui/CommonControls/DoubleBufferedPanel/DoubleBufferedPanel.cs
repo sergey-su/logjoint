@@ -83,7 +83,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		protected override void WndProc(ref Message m)
+		protected override void WndProc(ref System.Windows.Forms.Message m)
 		{
 			const int WM_SETCURSOR = 0x0020;
 			switch (m.Msg)
@@ -98,7 +98,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		private bool WmSetCursor(ref Message m)
+		private bool WmSetCursor(ref System.Windows.Forms.Message m)
 		{
 			if (SetCursor != null)
 			{

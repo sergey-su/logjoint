@@ -57,6 +57,9 @@
       <HintPath>..\packages\System.Drawing.Primitives.4.3.0\lib\net45\System.Drawing.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="RangeTree">
+      <HintPath>..\packages\RangeTree.1.0.6\lib\net45\RangeTree.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\presenters\BookmarksListPresenter\BookmarksListPresenter.cs">
@@ -542,6 +545,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\Common\LinkLabelUtils.cs">
       <Link>Common\LinkLabelUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\CachingHighlightingHandler.cs">
+      <Link>LogViewerPresenter\CachingHighlightingHandler.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

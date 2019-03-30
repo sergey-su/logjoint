@@ -9,6 +9,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public IMessage Message { get { return First.Message; } }
 
+		public int Version { get; set; } // todo: convert object to immutable ref class
+
 		public bool IsEmpty
 		{
 			get

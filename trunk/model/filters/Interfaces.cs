@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Xml.Linq;
 
 namespace LogJoint
@@ -59,9 +60,9 @@ namespace LogJoint
 		void Insert(int position, IFilter filter);
 		void Delete(IEnumerable<IFilter> range);
 		bool Move(IFilter f, bool upward);
-		IEnumerable<IFilter> Items { get; }
-		int Count { get; }
+		ImmutableList<IFilter> Items { get; }
 		FilterAction GetDefaultAction();
+		int FiltersVersion { get; }
 		void Save(XElement e);
 
 		event EventHandler OnFiltersListChanged;

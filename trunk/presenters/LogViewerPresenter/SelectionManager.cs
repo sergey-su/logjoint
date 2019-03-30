@@ -11,7 +11,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	internal interface ISelectionManager
 	{
 		SelectionInfo Selection { get; }
-		IHighlightingHandler CreateHighlightingHandler();
 
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null);
 		void SetSelection(int displayIndex, int textCharIndex1, int textCharIndex2);
@@ -51,15 +50,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly LJTraceSource tracer;
 		readonly IClipboardAccess clipboard;
 		readonly IPresentationDataAccess presentationDataAccess;
-		readonly IWordSelection wordSelection = new WordSelection();
+		readonly IWordSelection wordSelection;
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly IChangeNotification changeNotification;
 
 		SelectionInfo selection;
 		IBookmark focusedMessageBookmark;
-
-		IHighlightingHandler selectionInplaceHighlightingHandler;
 
 		public SelectionManager(
 			IView view,
@@ -69,7 +66,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IClipboardAccess clipboard,
 			IScreenBufferFactory screenBufferFactory,
 			IBookmarksFactory bookmarksFactory,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			IWordSelection wordSelection
 		)
 		{
 			this.view = view;
@@ -80,6 +78,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.screenBufferFactory = screenBufferFactory;
 			this.bookmarksFactory = bookmarksFactory;
 			this.changeNotification = changeNotification;
+			this.wordSelection = wordSelection;
 		}
 
 		public event EventHandler SelectionChanged;
@@ -136,7 +135,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			selection.last = new CursorPosition();
 			selection.first.TextLineIndex = 0;
-			UpdateSelectionInplaceHighlightingFields();
+			selection.Version++;
+			changeNotification.Post();
 		}
 
 		bool ISelectionManager.SelectWordBoundaries(CursorPosition pos)
@@ -195,7 +195,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var maxIdx = Math.Min((int)screenBuffer.ViewSize, viewLines.Count);
 					IComparer<IMessage> cmp = new DatesComparer(selection.First.Message.Time.ToLocalDateTime());
-					var idx = ListUtils.BinarySearch(viewLines, 0, maxIdx, dl => cmp.Compare(dl.Message, null) < 0);
+					var idx = viewLines.BinarySearch(0, maxIdx, dl => cmp.Compare(dl.Message, null) < 0);
 					if (idx != maxIdx)
 						SetSelection(idx, SelectionFlag.SelectBeginningOfLine);
 					else
@@ -225,18 +225,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return focusedMessageBookmark;
 		}
 
-		IHighlightingHandler ISelectionManager.CreateHighlightingHandler()
-		{
-			return selectionInplaceHighlightingHandler;
-		}
-
-
 		void SetSelection(CursorPosition begin, CursorPosition? end)
 		{
 			selection.first = begin;
 			if (end.HasValue)
 				selection.last = end.Value;
 			selection.normalized = CursorPosition.Compare(selection.first, selection.last) <= 0;
+			selection.Version++;
 			changeNotification.Post();
 		}
 
@@ -301,40 +296,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void OnSelectionChanged()
 		{
 			SelectionChanged?.Invoke(this, EventArgs.Empty);
-		}
-
-		void UpdateSelectionInplaceHighlightingFields()
-		{
-			IHighlightingHandler newHandler = null;
-
-			if (selection.IsSingleLine)
-			{
-				var normSelection = selection.Normalize();
-				var line = GetTextToDisplay(normSelection.First.Message).GetNthTextLine(normSelection.First.TextLineIndex);
-				int beginIdx = normSelection.First.LineCharIndex;
-				int endIdx = normSelection.Last.LineCharIndex;
-				if (wordSelection.IsWordBoundary(line, beginIdx, endIdx))
-				{
-					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
-					if (wordSelection.IsWord(selectedPart))
-					{
-						var options = new Search.Options() 
-						{
-							Template = selectedPart,
-							SearchInRawText = presentationDataAccess.ShowRawMessages,
-						};
-						var optionsPreprocessed = options.BeginSearch();
-						newHandler = new HighlightingHandler(optionsPreprocessed, wordSelection);
-					}
-				}
-			}
-
-			if ((selectionInplaceHighlightingHandler != null) != (newHandler != null))
-				view.Invalidate();
-			else if (newHandler != null)
-				view.Invalidate();
-
-			selectionInplaceHighlightingHandler = newHandler;
 		}
 
 		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
@@ -411,8 +372,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				InvalidateTextLineUnderCursor();
 
 				doScrolling();
-
-				UpdateSelectionInplaceHighlightingFields();
 
 				if (selection.First.Message != oldSelection.First.Message)
 				{
@@ -617,40 +576,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			public IMessage Message;
 			public int LineIndex;
 			public bool IsSingleLineSelectionFragment;
-		};
-
-		class HighlightingHandler : IHighlightingHandler
-		{
-			readonly Search.SearchState searchOpts;
-			readonly IWordSelection wordSelection;
-
-			public HighlightingHandler(Search.SearchState searchOpts, IWordSelection wordSelection)
-			{
-				this.searchOpts = searchOpts;
-				this.wordSelection = wordSelection;
-			}
-
-			public void Dispose()
-			{
-			}
-
-			IEnumerable<Tuple<int, int, FilterAction>> IHighlightingHandler.GetHighlightingRanges(IMessage msg)
-			{
-				for (int? startPos = null; ;)
-				{
-					var matchedTextRangle = Search.SearchInMessageText(msg, searchOpts, startPos);
-					if (!matchedTextRangle.HasValue)
-						yield break;
-					var r = matchedTextRangle.Value;
-					if (r.WholeTextMatched)
-						yield break;
-					if (r.MatchBegin == r.MatchEnd)
-						yield break;
-					if (wordSelection.IsWordBoundary(r.SourceText, r.MatchBegin, r.MatchEnd))
-						yield return Tuple.Create(r.MatchBegin, r.MatchEnd, FilterAction.Include);
-					startPos = r.MatchEnd;
-				}
-			}
 		};
 	};
 };

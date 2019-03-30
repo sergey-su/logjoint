@@ -1016,6 +1016,9 @@
     <Compile Include="..\..\..\model\messages\Message.cs">
       <Link>messages\Message.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\LRUCache.cs">
+      <Link>generic\LRUCache.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

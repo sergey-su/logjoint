@@ -137,7 +137,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			};
 		}
 
-		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		protected override bool ProcessCmdKey(ref System.Windows.Forms.Message msg, Keys keyData)
 		{
 			KeyCode k = KeyCode.None;
 			switch (keyData)

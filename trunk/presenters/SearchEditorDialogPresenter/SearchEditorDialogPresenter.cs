@@ -60,7 +60,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 						);
 						return false;
 					}
-					if (tempList.Count == 0)
+					if (tempList.Items.Count == 0)
 					{
 						alerts.ShowPopup(
 							alertsCaption, 

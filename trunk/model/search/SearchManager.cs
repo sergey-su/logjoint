@@ -13,6 +13,7 @@ namespace LogJoint
 		readonly List<ISearchResultInternal> results = new List<ISearchResultInternal>();
 		readonly AsyncInvokeHelper combinedResultUpdateInvoker;
 		readonly LazyUpdateFlag combinedResultNeedsLazyUpdateFlag;
+		readonly IChangeNotification changeNotification;
 		int lastId;
 		ICombinedSearchResultInternal combinedSearchResult;
 		Task combinedResultUpdater;
@@ -24,12 +25,14 @@ namespace LogJoint
 			ISynchronizationContext modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
 			Telemetry.ITelemetryCollector telemetryCollector,
-			IHeartBeatTimer heartBeat
+			IHeartBeatTimer heartBeat,
+			IChangeNotification changeNotification
 		) :this(
 			sources,
 			modelSynchronization, 
 			heartBeat,
-			new SearchObjectsFactory(progressAggregatorFactory, modelSynchronization, settings, telemetryCollector)
+			new SearchObjectsFactory(progressAggregatorFactory, modelSynchronization, settings, telemetryCollector),
+			changeNotification
 		)
 		{
 		}
@@ -38,11 +41,13 @@ namespace LogJoint
 			ILogSourcesManager sources,
 			ISynchronizationContext modelSynchronization,
 			IHeartBeatTimer heartBeat,
-			ISearchObjectsFactory factory
+			ISearchObjectsFactory factory,
+			IChangeNotification changeNotification
 		)
 		{
 			this.sources = sources;
 			this.factory = factory;
+			this.changeNotification = changeNotification;
 
 			this.combinedSearchResult = factory.CreateCombinedSearchResult(this);
 			this.combinedResultUpdateInvoker = new AsyncInvokeHelper(
@@ -66,7 +71,10 @@ namespace LogJoint
 				if (nrOfFullyDisposedResults > 0 && SearchResultsChanged != null)
 					SearchResultsChanged(this, EventArgs.Empty);
 				if (nrOfFullyDisposedResults > 0)
+				{
+					changeNotification.Post();
 					combinedResultNeedsLazyUpdateFlag.Invalidate();
+				}
 			};
 			heartBeat.OnTimer += (s, e) =>
 			{
@@ -89,7 +97,7 @@ namespace LogJoint
 			var newSearchResults = positiveFilters.Select(filter => factory.CreateSearchResults(this, options, filter, ++lastId, searchWorkers)).ToList();
 
 			var currentTop = GetTopSearch();
-			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished searches has no effect
+			results.ForEach(r => r.Cancel()); // cancel all active searches, canceling of finished searches has no effect
 			RemoveSameOlderSearches(newSearchResults);
 			results.AddRange(newSearchResults);
 			EnforceSearchesListLengthLimit(lastId - newSearchResults.Count + 1);
@@ -100,6 +108,7 @@ namespace LogJoint
 			searchWorkers.ForEach(w => w.Start());
 
 			SearchResultsChanged?.Invoke(this, EventArgs.Empty);
+			changeNotification.Post();
 		}
 
 		ICombinedSearchResult ISearchManager.CombinedSearchResult
@@ -119,6 +128,7 @@ namespace LogJoint
 				return;
 			var rsltInternal = results[rsltIndex.Value];
 			SearchResultsChanged?.Invoke (this, EventArgs.Empty);
+			changeNotification.Post();
 			if (rsltInternal.HitsCount > 0)
 				combinedResultNeedsLazyUpdateFlag.Invalidate();
 			DisposeResults(new[] { rsltInternal }.ToHashSet());
@@ -137,6 +147,7 @@ namespace LogJoint
 				combinedResultNeedsLazyUpdateFlag.Invalidate();
 			}
 			SearchResultChanged?.Invoke (rslt, new SearchResultChangeEventArgs (flags));
+			changeNotification.Post();
 		}
 
 		bool EnforceSearchesListLengthLimit(int minFixedId)

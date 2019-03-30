@@ -5,7 +5,7 @@ namespace LogJoint
 {
 	/// <summary>
 	/// Manages active search and searches history.
-	/// Threading: see invdividual members.
+	/// Threading: see individual members.
 	/// </summary>
 	public interface ISearchManager
 	{
@@ -24,7 +24,7 @@ namespace LogJoint
 		/// Only visible search results from visible log sources
 		/// are included to the snapshot.
 		/// Reference to same object is returned until 
-		/// combined seach result changes.
+		/// combined search result changes.
 		/// Must be called from model thread.
 		/// </summary>
 		ICombinedSearchResult CombinedSearchResult { get; }
@@ -85,8 +85,8 @@ namespace LogJoint
 		int HitsCount { get; }
 		double? Progress { get; }
 		/// <summary>
-		/// Indicates whether search result is merged into combined seaech result by SearchManager.
-		/// Combined seaech result is displayed to the user.
+		/// Indicates whether search result is merged into combined search result by SearchManager.
+		/// Combined search result is displayed to the user.
 		/// </summary>
 		bool Visible { get; set; }
 		bool Pinned { get; set; }

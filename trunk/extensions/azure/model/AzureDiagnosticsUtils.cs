@@ -205,7 +205,7 @@ namespace LogJoint.Azure
 				var entry = entryAndIndex.Entry as WADLogsTableEntry;
 				if (entry == null)
 					continue;
-				yield return new Content(
+				yield return new Message(
 					new EntryPartition(entry.EventTickCount).MakeMessagePosition(entryAndIndex.IndexWithinPartition),
 					new EntryPartition(entry.EventTickCount).MakeMessagePosition(entryAndIndex.IndexWithinPartition + 1),
 					threads.GetThread(new StringSlice(string.Format("{0}-{1}", entry.Pid, entry.Tid))),

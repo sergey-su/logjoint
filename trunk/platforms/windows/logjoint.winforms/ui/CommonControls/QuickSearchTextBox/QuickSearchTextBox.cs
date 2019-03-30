@@ -173,7 +173,7 @@ namespace LogJoint.UI.QuickSearchTextBox
 			base.OnPreviewKeyDown(e);
 		}
 
-		protected override bool ProcessCmdKey(ref Message msg, Keys keyCode)
+		protected override bool ProcessCmdKey(ref System.Windows.Forms.Message msg, Keys keyCode)
 		{
 			var key = Key.None;
 			if (keyCode == Keys.Down)

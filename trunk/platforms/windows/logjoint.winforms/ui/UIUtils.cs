@@ -203,7 +203,7 @@ namespace LogJoint.UI
 				return true;
 			}
 
-			bool IMessageFilter.PreFilterMessage(ref Message m)
+			bool IMessageFilter.PreFilterMessage(ref System.Windows.Forms.Message m)
 			{
 				int WM_MOUSEWHEEL = 0x20A;
 				if (m.Msg == WM_MOUSEWHEEL && control.CanFocus && !control.Focused)

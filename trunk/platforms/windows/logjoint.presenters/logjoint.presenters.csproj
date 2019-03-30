@@ -46,6 +46,9 @@
       <HintPath>..\packages\Newtonsoft.Json.Schema.3.0.1\lib\net45\Newtonsoft.Json.Schema.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="RangeTree, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RangeTree.1.0.6\lib\net45\RangeTree.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
@@ -161,6 +164,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\LoadedMessagesPresenter.cs">
       <Link>LoadedMessagesPresenter\LoadedMessagesPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\CachingHighlightingHandler.cs">
+      <Link>LogViewerPresenter\CachingHighlightingHandler.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\CursorPosition.cs">
       <Link>LogViewerPresenter\CursorPosition.cs</Link>

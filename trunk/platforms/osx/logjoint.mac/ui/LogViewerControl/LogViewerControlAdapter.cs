@@ -134,6 +134,13 @@ namespace LogJoint.UI
 		{
 			this.presentationDataAccess = presentationDataAccess;
 			this.drawContext.Presenter = presentationDataAccess;
+			var updater = Updaters.Create (
+				() => presentationDataAccess.HighlightingFiltersHandler,
+				() => presentationDataAccess.SelectionHighlightingHandler,
+				() => presentationDataAccess.SearchResultHighlightingHandler,
+				(_1, _2, _3) => { this.InnerView.NeedsDisplay = true; }
+			);
+			presentationDataAccess.ChangeNotification.CreateSubscription (updater);
 		}
 
 		void IView.UpdateFontDependentData(string fontName, Appearance.LogFontSize fontSize)

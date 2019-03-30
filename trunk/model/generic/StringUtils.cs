@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace LogJoint
@@ -90,108 +91,32 @@ namespace LogJoint
 			return ret.ToString();
 		}
 
-		public struct MultilineText
+		public class MultilineText
 		{
-			StringSlice text;
-			bool textIsMultiline;
+			readonly StringSlice text;
+			List<StringSlice> lines;
 
-			public MultilineText(StringSlice txt, bool isMultiline)
+			public MultilineText(StringSlice txt)
 			{
 				this.text = txt;
-				this.textIsMultiline = isMultiline;
 			}
 
 			public StringSlice Text { get { return text; } }
-			public bool IsMultiline { get { return textIsMultiline; } }
+			public bool IsMultiline { get { return EnsureLines().Count > 1; } }
 
 			public int EnumLines(Func<StringSlice, int, bool> callback)
 			{
-				if (!textIsMultiline)
-				{
-					if (callback != null)
-						callback(text, 0);
-					return 1;
-				}
-				return EnumLines(text, callback);
-			}
-
-			public static int EnumLines(StringSlice txt, Func<StringSlice, int, bool> callback)
-			{
-				int currentIdx = 0;
-				bool lastWasR = false;
-				int currentStart = 0;
-				for (int i = 0; i < txt.Length; ++i)
-				{
-					bool yieldLine = false;
-					int newCurrentStart = currentStart;
-					int currentEnd = 0;
-					switch (txt[i])
-					{
-						case '\r':
-							if (lastWasR)
-							{
-								yieldLine = true;
-								newCurrentStart = i;
-								currentEnd = i - 1;
-							}
-							lastWasR = true;
-							break;
-						case '\n':
-							yieldLine = true;
-							if (lastWasR)
-								currentEnd = i - 1;
-							else
-								currentEnd = i;
-							lastWasR = false;
-							newCurrentStart = i + 1;
-							break;
-						default:
-							if (lastWasR)
-							{
-								yieldLine = true;
-								newCurrentStart = i;
-								currentEnd = i - 1;
-							}
-							lastWasR = false;
-							break;
-					}
-					if (yieldLine)
-					{
-						if (callback != null)
-							if (!callback(txt.SubString(currentStart, currentEnd - currentStart), currentIdx))
-								return currentIdx + 1;
-						++currentIdx;
-						currentStart = newCurrentStart;
-					}
-				}
-				if (lastWasR)
-				{
-					if (callback != null)
-						if (!callback(txt.SubString(currentStart, txt.Length - currentStart - 1), currentIdx))
-							return currentIdx + 1;
-					++currentIdx;
-				}
-				else
-				{
-					if (callback != null)
-						callback(txt.SubString(currentStart, txt.Length - currentStart), currentIdx);
-				}
-				return currentIdx + 1;
+				int lineIdx = 0;
+				foreach (var l in EnsureLines())
+					if (!callback(l, lineIdx))
+						break;
+				return lineIdx + 1;
 			}
 
 			public StringSlice GetNthTextLine(int lineIdx)
 			{
-				StringSlice ret = StringSlice.Empty;
-				EnumLines(text, (s, idx) =>
-				{
-					if (idx == lineIdx)
-					{
-						ret = s;
-						return false;
-					}
-					return true;
-				});
-				return ret;
+				StringSlice ret = EnsureLines().ElementAtOrDefault(lineIdx); 
+				return ret.IsInitialized ? ret : StringSlice.Empty;
 			}
 
 			public int? CharIndexToLineIndex(int charIndex)
@@ -214,7 +139,16 @@ namespace LogJoint
 
 			public int GetLinesCount()
 			{
-				return EnumLines(null);
+				return EnsureLines().Count;
+			}
+
+			private List<StringSlice> EnsureLines()
+			{
+				if (lines == null)
+				{
+					lines = text.EnumLines().ToList();
+				}
+				return lines;
 			}
 		}
 

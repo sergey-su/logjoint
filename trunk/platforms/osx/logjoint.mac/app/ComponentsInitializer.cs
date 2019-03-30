@@ -165,7 +165,8 @@ namespace LogJoint.UI
 					invokingSynchronization,
 					globalSettingsAccessor,
 					telemetryCollector,
-					heartBeatTimer
+					heartBeatTimer,
+					changeNotification
 				);
 
 				IUserDefinedSearches userDefinedSearchesManager = new UserDefinedSearchesManager(

@@ -208,7 +208,7 @@ namespace LogJoint.UI
 		{
 			if (handler != null)
 			{
-				foreach (var hlRange in handler.GetHighlightingRanges(msg))
+				foreach (var hlRange in handler.GetHighlightingRanges(msg, lineBegin, lineEnd))
 				{
 					int? hlBegin = null;
 					int? hlEnd = null;
@@ -470,9 +470,9 @@ namespace LogJoint.UI
 		{
 			var drawingVisitor = new DrawingVisitor();
 			drawingVisitor.ctx = drawContext;
-			drawingVisitor.SearchResultHighlightingHandler = presentationDataAccess.CreateSearchResultHighlightingHandler(); 
-			drawingVisitor.SelectionHighlightingHandler = presentationDataAccess.CreateSelectionHighlightingHandler();
-			drawingVisitor.HighlightingFiltersHandler = presentationDataAccess.CreateHighlightingFiltersHandler();
+			drawingVisitor.SearchResultHighlightingHandler = presentationDataAccess.SearchResultHighlightingHandler; 
+			drawingVisitor.SelectionHighlightingHandler = presentationDataAccess.SelectionHighlightingHandler;
+			drawingVisitor.HighlightingFiltersHandler = presentationDataAccess.HighlightingFiltersHandler;
 
 			maxRight = 0;
 			var sel = selection;
@@ -499,10 +499,6 @@ namespace LogJoint.UI
 			}
 
 			DrawFocusedMessageMark(drawContext, presentationDataAccess, messagesToDraw);
-
-			drawingVisitor.SearchResultHighlightingHandler?.Dispose();
-			drawingVisitor.SelectionHighlightingHandler?.Dispose();
-			drawingVisitor.HighlightingFiltersHandler?.Dispose();
 		}
 
 		public static void DrawFocusedMessageMark(DrawContext drawContext, 

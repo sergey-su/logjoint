@@ -276,6 +276,65 @@ namespace LogJoint
 			return new StringSlice(ret.ToString());
 		}
 
+		public IEnumerable<StringSlice> EnumLines()
+		{
+			var txt = this;
+			int currentIdx = 0;
+			bool lastWasR = false;
+			int currentStart = 0;
+			for (int i = 0; i < txt.Length; ++i)
+			{
+				bool yieldLine = false;
+				int newCurrentStart = currentStart;
+				int currentEnd = 0;
+				switch (txt[i])
+				{
+					case '\r':
+						if (lastWasR)
+						{
+							yieldLine = true;
+							newCurrentStart = i;
+							currentEnd = i - 1;
+						}
+						lastWasR = true;
+						break;
+					case '\n':
+						yieldLine = true;
+						if (lastWasR)
+							currentEnd = i - 1;
+						else
+							currentEnd = i;
+						lastWasR = false;
+						newCurrentStart = i + 1;
+						break;
+					default:
+						if (lastWasR)
+						{
+							yieldLine = true;
+							newCurrentStart = i;
+							currentEnd = i - 1;
+						}
+						lastWasR = false;
+						break;
+				}
+				if (yieldLine)
+				{
+					yield return txt.SubString(currentStart, currentEnd - currentStart);
+					++currentIdx;
+					currentStart = newCurrentStart;
+				}
+			}
+			if (lastWasR)
+			{
+				yield return txt.SubString(currentStart, txt.Length - currentStart - 1);
+				++currentIdx;
+			}
+			else
+			{
+				yield return txt.SubString(currentStart, txt.Length - currentStart);
+			}
+		}
+
 		public static bool operator != (StringSlice stringSlice1, StringSlice stringSlice2)
 		{
 			return Compare(stringSlice1, stringSlice2) != 0;

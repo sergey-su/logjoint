@@ -48,9 +48,9 @@ namespace LogJoint
 		IThread IMessage.Thread => thread;
 		MessageTimestamp IMessage.Time => time;
 		StringSlice IMessage.Text => text;
-		StringUtils.MultilineText IMessage.TextAsMultilineText { get { return new StringUtils.MultilineText(text, true); } }
+		StringUtils.MultilineText IMessage.TextAsMultilineText => textML ?? (textML = new StringUtils.MultilineText(text));
 		StringSlice IMessage.RawText => rawText;
-		StringUtils.MultilineText IMessage.RawTextAsMultilineText { get { return new StringUtils.MultilineText(rawText, true); } }
+		StringUtils.MultilineText IMessage.RawTextAsMultilineText => rawTextML ?? (rawTextML = new StringUtils.MultilineText(rawText));
 		SeverityFlag IMessage.Severity => (SeverityFlag) (flags & MessageFlag.ContentTypeMask);
 
 		void IMessage.Visit(IMessageVisitor visitor) { visitor.Visit(this); }
@@ -63,8 +63,10 @@ namespace LogJoint
 
 		void IMessage.ReallocateTextBuffer(IStringSliceReallocator alloc)
 		{
-			rawText = alloc.Reallocate(rawText);
 			text = alloc.Reallocate(text);
+			textML = null;
+			rawText = alloc.Reallocate(rawText);
+			rawTextML = null;
 		}
 
 		void IMessage.SetPosition(long position, long endPosition)
@@ -113,7 +115,9 @@ namespace LogJoint
 		readonly MessageFlag flags;
 		long position, endPosition;
 		StringSlice text;
+		StringUtils.MultilineText textML;
 		StringSlice rawText;
+		StringUtils.MultilineText rawTextML;
 
 		#endregion
 	};

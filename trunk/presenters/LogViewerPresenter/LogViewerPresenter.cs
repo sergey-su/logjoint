@@ -24,6 +24,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		)
 		{
 			this.model = model;
+			this.changeNotification = changeNotification;
 			this.searchResultModel = model as ISearchResultModel;
 			this.view = view;
 			this.presentationFacade = navHandler;
@@ -36,11 +37,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.UpdateFontDependentData(fontName, fontSize);
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
+			var wordSelection = new WordSelection();
 			this.selectionManager = new SelectionManager(
-				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification);
+				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection);
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry);
-			this.highlightingManager = new HighlightingManager(searchResultModel, this, model.HighlightFilters);
+			this.highlightingManager = new HighlightingManager(
+				searchResultModel, () => this.showRawMessages, () => this.screenBuffer.Messages.Count,
+				model.HighlightFilters, this.selectionManager, wordSelection
+			);
 
 			ReadGlobalSettings(model);
 
@@ -700,20 +705,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		SelectionInfo IPresentationDataAccess.Selection { get { return Selection; } }
 		ColoringMode IPresentationDataAccess.Coloring { get { return coloring; } }
 
-		IHighlightingHandler IPresentationDataAccess.CreateSearchResultHighlightingHandler()
-		{
-			return highlightingManager.CreateSearchResultHandler();
-		}
+		IHighlightingHandler IPresentationDataAccess.SearchResultHighlightingHandler => highlightingManager.SearchResultHandler;
 
-		IHighlightingHandler IPresentationDataAccess.CreateSelectionHighlightingHandler()
-		{
-			return selectionManager.CreateHighlightingHandler();
-		}
+		IHighlightingHandler IPresentationDataAccess.SelectionHighlightingHandler => highlightingManager.SelectionHandler;
 
-		IHighlightingHandler IPresentationDataAccess.CreateHighlightingFiltersHandler()
-		{
-			return highlightingManager.CreateHighlightingFiltersHandler();
-		}
+		IHighlightingHandler IPresentationDataAccess.HighlightingFiltersHandler => highlightingManager.HighlightingFiltersHandler;
 
 		FocusedMessageDisplayModes IPresentationDataAccess.FocusedMessageDisplayMode
 		{
@@ -749,6 +745,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return screenBuffer.TopLineScrollValue;
 		}
+
+		IChangeNotification IPresentationDataAccess.ChangeNotification => changeNotification;
 
 
 		#endregion
@@ -1327,6 +1325,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool showRawMessages { get { return screenBuffer.IsRawLogMode; } }
 
 		readonly IModel model;
+		readonly IChangeNotification changeNotification;
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
 		readonly IPresentersFacade presentationFacade;

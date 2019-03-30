@@ -228,7 +228,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		public static void GetUserFriendlySearchHistoryEntryDescription(
 			IUserDefinedSearch uds, StringBuilder stringBuilder)
 		{
-			stringBuilder.AppendFormat("{0} (filter, {1} rules)", uds.Name, uds.Filters.Count);
+			stringBuilder.AppendFormat("{0} (filter, {1} rules)", uds.Name, uds.Filters.Items.Count);
 		}
 
 		public static void GetUserFriendlySearchHistoryEntryDescription(

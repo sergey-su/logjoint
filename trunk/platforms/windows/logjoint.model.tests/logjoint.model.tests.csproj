@@ -69,6 +69,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\tests\LRUCacheTests.cs">
+      <Link>LRUCacheTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\tests\nlog\NLogLayoutImporterTest.cs">
       <Link>NLogLayoutImporterTest.cs</Link>
     </Compile>

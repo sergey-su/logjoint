@@ -56,6 +56,9 @@
     <Compile Include="..\..\..\presenters\tests\TagsListPresenter\TagsListPresenterTests.cs">
       <Link>TagsListPresenter\TagsListPresenterTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\tests\LogViewerPresenter\HighlightingManagerTests.cs">
+      <Link>LogViewerPresenter\HighlightingManagerTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="LogViewerPresenter\" />

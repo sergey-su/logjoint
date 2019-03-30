@@ -439,6 +439,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly IFiltersFactory filtersFactory;
 		readonly List<LogViewerSource> sourcesCache = new List<LogViewerSource>();
 		ICombinedSearchResult lastCombinedSearhResult;
+		readonly Func<IFiltersList> getSearchFiltersList;
 
 		public SearchResultMessagesModel(
 			ILogSourcesManager logSources,
@@ -459,6 +460,25 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				OnLogSourceColorChanged?.Invoke(s, e);
 			};
+
+			int searchFiltersListVersion = 0;
+			searchManager.SearchResultsChanged += (s, e) => ++searchFiltersListVersion;
+			searchManager.SearchResultChanged += (s, e) => searchFiltersListVersion += ((e.Flags & SearchResultChangeFlag.VisibleChanged) != 0 ? 1 : 0);
+			this.getSearchFiltersList = Selectors.Create(
+				() => searchFiltersListVersion,
+				_ =>
+				{
+					var list = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
+					foreach (var f in searchManager
+						.Results
+						.Where(r => r.Visible && r.OptionsFilter != null)
+						.Select(r => r.OptionsFilter))
+					{
+						list.Insert(list.Items.Count, f.Clone());
+					}
+					return list;
+				}
+			);
 		}
 
 		void LogViewer.ISearchResultModel.RaiseSourcesChanged()
@@ -503,18 +523,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			get { return null; }
 		}
 
-		IFiltersList LogViewer.ISearchResultModel.CreateSearchFiltersList()
-		{
-			var list = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
-			foreach (var f in searchManager
-				.Results
-				.Where(r => r.Visible && r.OptionsFilter != null)
-				.Select(r => r.OptionsFilter))
-			{
-				list.Insert(list.Count, f.Clone());
-			}
-			return list;
-		}
+		IFiltersList LogViewer.ISearchResultModel.SearchFiltersList => getSearchFiltersList();
 
 		Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings
 		{
