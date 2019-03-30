@@ -117,9 +117,13 @@ namespace LogJoint.UI
 				else if (msg.Thread.IsDisposed)
 					b = dc.DefaultBackgroundBrush;
 				else if (coloring == Settings.Appearance.ColoringMode.Threads)
-					b = tmpBrush = new Brush(msg.Thread.ThreadColor.ToColor());
-				else if (coloring == Settings.Appearance.ColoringMode.Sources)
-					b = (msg.LogSource == null || msg.LogSource.IsDisposed) ? dc.DefaultBackgroundBrush : (tmpBrush = new Brush(msg.LogSource.Color.ToColor()));
+					b = tmpBrush = new Brush (msg.Thread.ThreadColor.ToColor ());
+				else if (coloring == Settings.Appearance.ColoringMode.Sources) {
+					if (msg.TryGetLogSource (out var ls))
+						b = tmpBrush = new Brush (ls.Color.ToColor ());
+					else
+						b = dc.DefaultBackgroundBrush;
+				}
 			}
 			if (b == null)
 			{

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
-
 namespace LogJoint
 {
 	public static class MessageExtentions
@@ -46,6 +40,12 @@ namespace LogJoint
 			if (ls == null || ls.IsDisposed)
 				return null;
 			return ls;
+		}
+
+		public static bool TryGetLogSource(this IMessage message, out ILogSource ls)
+		{
+			ls = message.GetLogSource();
+			return ls != null;
 		}
 
 		/// <summary>

@@ -28,7 +28,6 @@ namespace LogJoint
 		long IMessage.Position => position;
 		long IMessage.EndPosition => endPosition;
 		IThread IMessage.Thread => thread;
-		ILogSource IMessage.LogSource => thread?.LogSource;
 		MessageTimestamp IMessage.Time => time;
 		StringSlice IMessage.Text => DoGetText();
 		StringUtils.MultilineText IMessage.TextAsMultilineText { get { return GetTextAsMultilineText(); } }

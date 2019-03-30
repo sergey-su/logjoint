@@ -7,7 +7,6 @@ namespace LogJoint
 		long Position { get; }
 		long EndPosition { get; }
 		IThread Thread { get; }
-		ILogSource LogSource { get; } // todo: delete in favor of GetLogSource extension
 		MessageTimestamp Time { get; }
 		MessageFlag Flags { get; }
 		SeverityFlag Severity { get; }

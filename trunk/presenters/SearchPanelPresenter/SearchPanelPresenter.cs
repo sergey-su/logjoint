@@ -286,7 +286,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				}
 				else if ((controlsState & ViewCheckableControl.SearchWithinCurrentLog) != 0)
 				{
-					targetSources.Add(focusedMsg.LogSource);
+					targetSources.Add(focusedMsg.GetLogSource());
 				}
 				if (targetSources.Count != 0 || targetThreads.Count != 0)
 				{

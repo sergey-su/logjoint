@@ -474,7 +474,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			var focusedMsg = viewerPresenter.FocusedMessage;
 			if (focusedMsg == null)
 				return null;
-			ILogSource ls = focusedMsg.LogSource;
+			ILogSource ls = focusedMsg.GetLogSource();
 			return GetSources().FirstOrDefault(s => s.Contains(ls));
 		}
 

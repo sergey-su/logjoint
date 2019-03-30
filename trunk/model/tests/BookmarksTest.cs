@@ -31,7 +31,7 @@ namespace LogJoint.Tests
 			var ret = Substitute.For<IMessage>();
 			ret.Time.Returns(ToTestTS(time));
 			ret.Position.Returns(position);
-			ret.LogSource.ConnectionId.Returns(logSourceConnectionId);
+			ret.Thread.LogSource.ConnectionId.Returns(logSourceConnectionId);
 			return ret;
 		}
 
@@ -52,7 +52,7 @@ namespace LogJoint.Tests
 			ret.CreateBookmark((IMessage)null, 0).ReturnsForAnyArgs(callInfo => 
 			{
 				var msg = (IMessage)(callInfo.Args()[0]);
-				return CreateBmk(FromTestTS(msg.Time), msg.LogSource.ConnectionId, msg.Position);
+				return CreateBmk(FromTestTS(msg.Time), msg.Thread.LogSource.ConnectionId, msg.Position);
 			});
 			return ret;
 		}

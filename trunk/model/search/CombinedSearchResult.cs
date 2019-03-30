@@ -29,9 +29,8 @@ namespace LogJoint
 				var msg = m.Message.Message;
 				if (lastMessage != null && MessagesComparer.Compare(lastMessage, msg) == 0)
 					continue;
-				ICombinedSourceSearchResultInternal rslt;
-				if (!logSourcesResults.TryGetValue(msg.LogSource, out rslt))
-					logSourcesResults.Add(msg.LogSource, rslt = objectsFactory.CreateCombinedSourceSearchResult(msg.LogSource));
+				if (!logSourcesResults.TryGetValue(msg.GetLogSource(), out ICombinedSourceSearchResultInternal rslt))
+					logSourcesResults.Add(msg.GetLogSource(), rslt = objectsFactory.CreateCombinedSourceSearchResult(msg.GetLogSource()));
 				if (!rslt.Add(msg))
 					continue;
 				lastMessage = msg;

@@ -19,7 +19,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.navHandler = navHandler;
 
 			this.getFocusedMessage = Selectors.Create(() => viewerPresenter.FocusedMessage,
-				message => message?.LogSource?.IsDisposed == true ? null : message);
+				message => message?.GetLogSource() == null ? null : message);
 			var getBookmarkData = bookmarks == null ? () => (null, null) :
 				Selectors.Create(getFocusedMessage, () => bookmarks.Items, (focused, bmks) =>
 				{
@@ -115,8 +115,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		void IDialogViewModel.OnSourceLinkClicked()
 		{
 			var msg = getFocusedMessage();
-			if (msg?.LogSource != null && navHandler != null)
-				navHandler.ShowLogSource(msg.LogSource);
+			if (msg?.GetLogSource() != null && navHandler != null)
+				navHandler.ShowLogSource(msg.GetLogSource());
 		}
 
 		IDialog GetPropertiesForm()
