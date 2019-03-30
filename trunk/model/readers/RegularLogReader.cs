@@ -144,11 +144,9 @@ namespace LogJoint.RegularGrammar
 			}
 
 			threadLocalCallbackImpl.SetCurrentPosition(capture.BeginPosition, capture.EndPosition);
+			threadLocalCallbackImpl.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
 
-			IMessage ret;
-			ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags);
-
-			ret.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
+			var ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags);
 
 			return ret;
 		}

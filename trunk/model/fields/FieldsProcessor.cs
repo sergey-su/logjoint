@@ -21,6 +21,7 @@ namespace LogJoint
 	{
 		long CurrentPosition { get; }
 		long CurrentEndPosition { get; }
+		StringSlice CurrentRawText { get; }
 		IThread GetThread(StringSlice id);
 	};
 
@@ -408,7 +409,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			}
 			code.AppendFormat(@"
 	}}{0}", Environment.NewLine);
-
+	
 			code.AppendFormat(@"
 	protected override int INPUT_FIELDS_COUNT()
 	{{");
@@ -472,7 +473,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 	}");
 
 			code.AppendLine(@"
-	static IMessage fakeMsg = new Content(0, 0, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
+	static IMessage fakeMsg = new Message(0, 0, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
 			");
 
 			code.AppendLine(@"
@@ -619,13 +620,14 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		//fakeMsg.SetPosition(__callback.CurrentPosition);
 		//return fakeMsg;
 
-		return new Content(
+		return new Message(
 			__callback.CurrentPosition,
 			__callback.CurrentEndPosition,
 			mtd,
 			new MessageTimestamp(__time),
 			__body,
-			(SeverityFlag)__severity
+			(SeverityFlag)__severity,
+			__callback.CurrentRawText
 		);
 		");
 

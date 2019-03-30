@@ -44,7 +44,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				};
 				var txt = generateText(linesPerMessage, "ln");
 				var rawTxt = generateText(rawLinesPerMessage, "rln");
-				linesSource.messages.Add(new Content(
+				linesSource.messages.Add(new Message(
 					i * messageSize,
 					(i + 1) * messageSize,
 					messagesThread,

@@ -28,7 +28,7 @@ namespace LogJoint.Tests
 
 		Msg NewMsg(long pos, string msg, DateTime d)
 		{
-			return new LogJoint.Content(pos, pos + 1, null, new LogJoint.MessageTimestamp(d), new StringSlice(msg), SeverityFlag.Info);
+			return new LogJoint.Message(pos, pos + 1, null, new LogJoint.MessageTimestamp(d), new StringSlice(msg), SeverityFlag.Info);
 		}
 
 		void CheckLines(RangesManagingCollection lines, params string[] ranges)

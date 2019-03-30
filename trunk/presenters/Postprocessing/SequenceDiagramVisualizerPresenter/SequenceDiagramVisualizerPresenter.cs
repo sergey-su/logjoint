@@ -1255,7 +1255,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return bookmarksAdded;
 		}
 
-		TriggerData MakeTriggerData(Message msgInfo)
+		TriggerData MakeTriggerData(LogJoint.Postprocessing.SequenceDiagram.Message msgInfo)
 		{
 			TextLogEventTrigger textLogTrigger = msgInfo.Event.Trigger as TextLogEventTrigger;
 			if (textLogTrigger == null)
@@ -1351,7 +1351,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		static ArrowColor GetArrowColor(params Message[] msgs)
+		static ArrowColor GetArrowColor(params LogJoint.Postprocessing.SequenceDiagram.Message[] msgs)
 		{
 			foreach (var m in msgs)
 			{

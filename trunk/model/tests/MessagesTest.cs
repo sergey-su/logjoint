@@ -7,7 +7,7 @@ namespace LogJoint.Tests
 	{
 		IMessage CreateMessage(StringSlice txt)
 		{
-			return new Content(0, 1, null, new MessageTimestamp(), txt, SeverityFlag.Info);
+			return new Message(0, 1, null, new MessageTimestamp(), txt, SeverityFlag.Info);
 		}
 		IMessage CreateMessage(string txt)
 		{

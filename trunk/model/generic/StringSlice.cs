@@ -260,6 +260,22 @@ namespace LogJoint
 			return new StringSlice(tmp.ToString());
 		}
 
+		public StringSlice Wrap(int lineLen)
+		{
+			var text = this;
+			if (text.Length < lineLen)
+				return text;
+			var ret = new StringBuilder(text.Length + Environment.NewLine.Length * text.Length / lineLen);
+			for (var idx = 0; idx < text.Length;)
+			{
+				var len = Math.Min(lineLen, text.Length - idx);
+				text.SubString(idx, len).Append(ret);
+				ret.AppendLine();
+				idx += len;
+			}
+			return new StringSlice(ret.ToString());
+		}
+
 		public static bool operator != (StringSlice stringSlice1, StringSlice stringSlice2)
 		{
 			return Compare(stringSlice1, stringSlice2) != 0;

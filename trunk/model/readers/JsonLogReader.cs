@@ -123,21 +123,19 @@ namespace LogJoint.JsonFormat
 			var s = transfromed.Property("s")?.Value?.ToString();
 			var sev = !string.IsNullOrEmpty(s) ? char.ToLower(s[0]) : 'i';
 
-			IMessage ret = new Content(
-				capture.BeginPosition, capture.EndPosition,
+			Message ret = new Message(
+				capture.BeginPosition,
+				capture.EndPosition,
 				callback.GetThread(new StringSlice(t ?? "")),
 				new MessageTimestamp(date),
 				new StringSlice(msg),
 				sev == 'i' ? SeverityFlag.Info :
 				sev == 'e' ? SeverityFlag.Error :
 				sev == 'w' ? SeverityFlag.Warning :
-				SeverityFlag.Info
+				SeverityFlag.Info,
+				formatInfo.ViewOptions.RawViewAllowed ? StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim() : new StringSlice(),
+				maxLineLen: formatInfo.ViewOptions.WrapLineLength
 			);
-
-			if (formatInfo.ViewOptions.RawViewAllowed)
-				ret.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
-			if (formatInfo.ViewOptions.WrapLineLength.HasValue)
-				ret.WrapsTexts(formatInfo.ViewOptions.WrapLineLength.Value);
 
 			return ret;
 		}

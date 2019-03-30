@@ -28,12 +28,12 @@ namespace LogJoint.Writers
 			writer.WriteStartElement("m");
 			writer.WriteAttributeString("d", Listener.FormatDate(msg.Time.ToLocalDateTime()));
 			writer.WriteAttributeString("t", msg.Thread.ID);
-			switch (msg.Flags & MessageFlag.ContentTypeMask)
+			switch (msg.Severity)
 			{
-				case MessageFlag.Warning:
+				case SeverityFlag.Warning:
 					writer.WriteAttributeString("s", "w");
 					break;
-				case MessageFlag.Error:
+				case SeverityFlag.Error:
 					writer.WriteAttributeString("s", "e");
 					break;
 			}

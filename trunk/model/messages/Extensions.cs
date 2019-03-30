@@ -2,16 +2,6 @@ namespace LogJoint
 {
 	public static class MessageExtentions
 	{
-		public static bool IsVisible(this IMessage message)
-		{
-			return (message.Flags & MessageFlag.HiddenAll) == 0;
-		}
-
-		public static bool IsHiddenAsFilteredOut(this IMessage message)
-		{
-			return (message.Flags & MessageFlag.HiddenAsFilteredOut) != 0;
-		}
-
 		public static StringUtils.MultilineText GetDisplayText(this IMessage msg, bool displayRawTextMode)
 		{
 			if (displayRawTextMode)

@@ -17,10 +17,15 @@ namespace LogJoint.XmlFormat
 
 	class FactoryWriter : XmlWriter
 	{
-		public FactoryWriter(IMessagesBuilderCallback callback, ITimeOffsets timeOffsets)
+		public FactoryWriter(
+			IMessagesBuilderCallback callback,
+			ITimeOffsets timeOffsets,
+			int? maxLineLen
+		)
 		{
 			this.callback = callback;
 			this.timeOffsets = timeOffsets;
+			this.maxLineLen = maxLineLen;
 			states.Push(WriteState.Content);
 		}
 
@@ -152,10 +157,17 @@ namespace LogJoint.XmlFormat
 
 			if (thread == null)
 				thread = callback.GetThread(StringSlice.Empty);
-			long position = callback.CurrentPosition;
-			long endPosition = callback.CurrentEndPosition;
 
-			output = new Content(position, endPosition, thread, dateTime, new StringSlice(GetAndClearContent()), severity);
+			output = new Message(
+				callback.CurrentPosition,
+				callback.CurrentEndPosition,
+				thread,
+				dateTime,
+				new StringSlice(GetAndClearContent()),
+				severity,
+				callback.CurrentRawText,
+				maxLineLen: this.maxLineLen
+			);
 
 			elemName = null;
 			Reset();
@@ -226,7 +238,7 @@ namespace LogJoint.XmlFormat
 			content.Append(text);
 		}
 
-		public IMessage GetOutput()
+		public Message GetOutput()
 		{
 			return output;
 		}
@@ -245,9 +257,10 @@ namespace LogJoint.XmlFormat
 		MessageTimestamp dateTime;
 		StringBuilder content = new StringBuilder();
 		SeverityFlag severity = SeverityFlag.Info;
-		IMessage output;
+		Message output;
 		readonly IMessagesBuilderCallback callback;
 		readonly ITimeOffsets timeOffsets;
+		readonly int? maxLineLen;
 	};
 
 	public class LogJointXSLExtension : UserCodeHelperFunctions
@@ -408,12 +421,16 @@ namespace LogJoint.XmlFormat
 				messageBuf.Append("</root>");
 
 				callback.SetCurrentPosition(capture.BeginPosition, capture.EndPosition);
-				
+				if (formatInfo.ViewOptions.RawViewAllowed)
+				{
+					callback.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
+				}
+
 				//this.owner.xslExt.SetSourceTime(this.owner.MediaLastModified); todo?
 
 				string messageStr = messageBuf.ToString();
 
-				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets))
+				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets, formatInfo.ViewOptions.WrapLineLength))
 				using (XmlReader xmlReader = XmlReader.Create(new StringReader(messageStr), xmlReaderSettings))
 				{
 					try
@@ -454,16 +471,6 @@ namespace LogJoint.XmlFormat
 					if (ret == null)
 						throw new XsltException(
 							"Normalization XSLT produced no output");
-
-					if (formatInfo.ViewOptions.RawViewAllowed)
-					{
-						ret.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
-					}
-
-					if (formatInfo.ViewOptions.WrapLineLength.HasValue)
-					{
-						ret.WrapsTexts(formatInfo.ViewOptions.WrapLineLength.Value);
-					}
 
 					return ret;
 				}

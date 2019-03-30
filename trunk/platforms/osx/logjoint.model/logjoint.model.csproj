@@ -376,17 +376,11 @@
     <Compile Include="..\..\..\model\messages-containers\RangesManagingCollection.cs">
       <Link>messages-containers\RangesManagingCollection.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\messages\Content.cs">
-      <Link>messages\Content.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\messages\Extensions.cs">
       <Link>messages\Extensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\messages\Interfaces.cs">
       <Link>messages\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\messages\MessageBase.cs">
-      <Link>messages\MessageBase.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\messages\MessagesComparer.cs">
       <Link>messages\MessagesComparer.cs</Link>
@@ -1018,6 +1012,9 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\TagsPredicate.cs">
       <Link>generic\TagsPredicate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Message.cs">
+      <Link>messages\Message.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

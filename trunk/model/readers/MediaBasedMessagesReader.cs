@@ -369,6 +369,7 @@ namespace LogJoint
 		readonly ILogSourceThreads threads;
 		readonly IThread fakeThread;
 		long currentBeginPosition, currentEndPosition;
+		StringSlice rawText;
 
 		public MessagesBuilderCallback(ILogSourceThreads threads, IThread fakeThread)
 		{
@@ -376,15 +377,11 @@ namespace LogJoint
 			this.fakeThread = fakeThread;
 		}
 
-		public long CurrentPosition
-		{
-			get { return currentBeginPosition; }
-		}
+		public long CurrentPosition => currentBeginPosition;
 
-		public long CurrentEndPosition
-		{
-			get { return currentEndPosition; }
-		}
+		public long CurrentEndPosition => currentEndPosition;
+
+		public StringSlice CurrentRawText => rawText;
 
 		public IThread GetThread(StringSlice id)
 		{
@@ -395,6 +392,11 @@ namespace LogJoint
 		{
 			currentBeginPosition = beginPosition;
 			currentEndPosition = endPosition;
+		}
+
+		internal void SetRawText(StringSlice value)
+		{
+			rawText = value;
 		}
 	};	
 }
