@@ -155,12 +155,7 @@ namespace LogJoint.XmlFormat
 			long position = callback.CurrentPosition;
 			long endPosition = callback.CurrentEndPosition;
 
-			switch (elemName)
-			{
-				case "m":
-					output = new Content(position, endPosition, thread, dateTime, new StringSlice(GetAndClearContent()), severity);
-					break;
-			}
+			output = new Content(position, endPosition, thread, dateTime, new StringSlice(GetAndClearContent()), severity);
 
 			elemName = null;
 			Reset();

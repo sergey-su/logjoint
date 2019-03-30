@@ -79,9 +79,9 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 			}
 
 			[Test]
-			public void SingleLineFlagIsRefectedInViewModel()
+			public void SingleLineFlagIsReflectedInViewModel()
 			{
-				Assert.IsFalse(viewModel.IsSingleLine);
+				Assert.IsTrue(viewModel.IsSingleLine);
 
 				changeNotification.ClearReceivedCalls();
 				presenter.SetIsSingleLine(false);

@@ -22,12 +22,6 @@
       <field name="Time"><![CDATA[TO_DATETIME(d, "yyyy/MM/dd HH:mm:ss.fff")]]></field>
       <field name="Thread"><![CDATA[th]]></field>
       <field name="Body"><![CDATA[body]]></field>
-      <field name="EntryType" code-type="function"><![CDATA[switch (s)
-{
-case "{": return EntryType.FrameBegin;
-case "}": return EntryType.FrameEnd;
-default: return EntryType.Content;
-}]]></field>
       <field name="Severity" code-type="function"><![CDATA[switch (s)
 {
 case "C":

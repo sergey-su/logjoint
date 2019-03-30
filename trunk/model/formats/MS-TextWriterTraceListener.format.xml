@@ -29,15 +29,6 @@ case "Warning":
 default:
 	return Severity.Info;
 }]]></field>
-      <field name="EntryType" code-type="function"><![CDATA[switch (type)
-{
-case "Start":
-	return EntryType.FrameBegin;
-case "Stop":
-	return EntryType.FrameEnd;
-default:
-	return EntryType.Content;
-}]]></field>
       <field name="Source"><![CDATA[source]]></field>
       <field name="EventId"><![CDATA[eventId]]></field>
       <field name="OpStack"><![CDATA[opStack]]></field>

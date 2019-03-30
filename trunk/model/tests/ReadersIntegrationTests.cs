@@ -24,7 +24,6 @@ namespace LogJoint.Tests
 		public MessageTimestamp? Date;
 		public MessageFlag? Type;
 		public MessageFlag? ContentType;
-		public int? FrameLevel;
 		public Func<MessageTimestamp, bool> DateVerifier;
 		public Func<string, bool> TextVerifier;
 		internal bool Verified;
@@ -70,10 +69,9 @@ namespace LogJoint.Tests
 				Assert.IsTrue(m.Value.Verified, string.Format("Message {0} left unverified", m.Key));
 		}
 
-		public void Verify(int actualLine, IMessage actualMessage, int actualFrameLevel)
+		public void Verify(int actualLine, IMessage actualMessage)
 		{
-			ExpectedMessage expectedMessage;
-			if (expectedMessages.TryGetValue(actualLine, out expectedMessage))
+			if (expectedMessages.TryGetValue(actualLine, out EM expectedMessage))
 			{
 				expectedMessage.Verified = true;
 				Assert.IsNotNull(actualMessage);
@@ -84,8 +82,6 @@ namespace LogJoint.Tests
 					Assert.IsTrue(expectedMessage.DateVerifier(actualMessage.Time));
 				if (expectedMessage.Thread != null)
 					Assert.AreEqual(expectedMessage.Thread, actualMessage.Thread.ID);
-				if (expectedMessage.Type != null)
-					Assert.AreEqual(expectedMessage.Type.Value, actualMessage.Flags & MessageFlag.TypeMask);
 				if (expectedMessage.ContentType != null)
 					Assert.AreEqual(expectedMessage.ContentType.Value, actualMessage.Flags & MessageFlag.ContentTypeMask);
 				if (expectedMessage.Text != null)
@@ -95,8 +91,6 @@ namespace LogJoint.Tests
 						Assert.AreEqual(expectedMessage.Text, actualMessage.Text.Value);
 				else if (expectedMessage.TextVerifier != null)
 					Assert.IsTrue(expectedMessage.TextVerifier(actualMessage.Text.Value));
-				if (expectedMessage.FrameLevel != null)
-					Assert.AreEqual(expectedMessage.FrameLevel.Value, actualFrameLevel);
 			}
 		}
 
@@ -143,20 +137,9 @@ namespace LogJoint.Tests
 				}
 
 				expectation.StartVerification();
-				int frameLevel = 0;
 				for (int i = 0; i < msgs.Count; ++i)
 				{
-					switch (msgs[i].Flags & MessageFlag.TypeMask)
-					{
-						case MessageFlag.StartFrame:
-							++frameLevel;
-							break;
-						case MessageFlag.EndFrame:
-							--frameLevel;
-							break;
-					}
-
-					expectation.Verify(i, msgs[i], frameLevel);
+					expectation.Verify(i, msgs[i]);
 				}
 				expectation.FinishVerification();
 			}
@@ -245,8 +228,8 @@ SampleApp Information: 0 : Timestamp parsed and ignored
 				new EM("Searching for data files", "4756 - 7", null),
 				new EM("No free data file found. Going sleep.", "4756 - 7", null),
 				new EM("File cannot be open which means that it was handled", "4756 - 6", null),
-				new EM("Test frame", "4756 - 6", null) { Type = MessageFlag.Content },
-				new EM("", "4756 - 6", null) { Type = MessageFlag.Content },
+				new EM("Test frame", "4756 - 6", null),
+				new EM("", "4756 - 6", null),
 				new EM("Timestamp parsed and ignored", "4756 - 6", null)
 			);
 		}
@@ -351,14 +334,14 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 					Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(n => n.Contains("XmlWriterTraceListener1.xml"))),
 				new ExpectedLog()
 				.Add(0, 
-					new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1") { Type = MessageFlag.StartFrame },
+					new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1"),
 					new EM("----- Sample application started 07/24/2011 12:37:26 ----", "SampleLoggingApp(1956), 1")
 				)
 				.Add(8,
-					new EM("Void Producer()", "SampleLoggingApp(1956), 6") { Type = MessageFlag.StartFrame }
+					new EM("Void Producer()", "SampleLoggingApp(1956), 6")
 				)
 				.Add(11,
-					new EM("", "SampleLoggingApp(1956), 1") { Type = MessageFlag.EndFrame }
+					new EM("", "SampleLoggingApp(1956), 1")
 				)
 			);			
 		}
