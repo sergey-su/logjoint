@@ -368,7 +368,6 @@ namespace LogJoint.UI
 		void InitDrawingContext()
 		{
 			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.White);
-			drawContext.OutlineMarkupPen = new LJD.Pen(Color.Gray, 1);
 			drawContext.InfoMessagesBrush = new LJD.Brush(Color.Black);
 			drawContext.CommentsBrush = new LJD.Brush(Color.Gray);
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));

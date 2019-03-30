@@ -382,12 +382,6 @@
     <Compile Include="..\..\..\model\messages\Extensions.cs">
       <Link>messages\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\messages\FrameBegin.cs">
-      <Link>messages\FrameBegin.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\messages\FrameEnd.cs">
-      <Link>messages\FrameEnd.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\messages\Interfaces.cs">
       <Link>messages\Interfaces.cs</Link>
     </Compile>

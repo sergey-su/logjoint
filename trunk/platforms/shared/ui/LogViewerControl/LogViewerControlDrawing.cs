@@ -25,7 +25,7 @@ namespace LogJoint.UI
 		public IHighlightingHandler HighlightingFiltersHandler;
 		public Presenters.LogViewer.CursorPosition? CursorPosition;
 
-		public override void Visit(IContent msg)
+		public override void Visit(IMessage msg)
 		{
 			base.Visit(msg);
 
@@ -37,67 +37,6 @@ namespace LogJoint.UI
 
 			FillOutlineBackground();
 			DrawContentOutline(msg);
-		}
-
-		public override void Visit(IFrameBegin msg)
-		{
-			base.Visit(msg);
-
-			DrawTime(msg);
-
-			Rectangle r = m.OffsetTextRect;
-
-			bool collapsed = msg.Collapsed;
-
-			Brush txtBrush = ctx.InfoMessagesBrush;
-			Brush commentsBrush = ctx.CommentsBrush;
-
-			string mark = FrameBegin.GetCollapseMark(collapsed);
-
-			if (TextLineIdx == 0)
-			{
-				ctx.Canvas.DrawString(
-					mark,
-					ctx.Font,
-					txtBrush,
-					r.X, r.Y);
-			}
-
-			r.X += (int)(ctx.CharSize.Width * (mark.Length + 1));
-
-			DrawStringWithInplaceHightlight(msg, commentsBrush, r.Location);
-
-			DrawCursorIfNeeded(msg);
-
-			FillOutlineBackground();
-			DrawFrameBeginOutline(msg);
-		}
-
-		public override void Visit(IFrameEnd msg)
-		{
-			base.Visit(msg);
-
-			DrawTime(msg);
-
-			RectangleF r = m.OffsetTextRect;
-
-			if (TextLineIdx == 0)
-			{
-				ctx.Canvas.DrawString("}", ctx.Font, ctx.InfoMessagesBrush, r.X, r.Y);
-			}
-			if (msg.Start != null)
-			{
-				r.X += ctx.CharSize.Width * 2;
-				Brush commentsBrush = ctx.CommentsBrush;
-				ctx.Canvas.DrawString("//", ctx.Font, commentsBrush, r.X, r.Y);
-				r.X += ctx.CharSize.Width * 3;
-				DrawStringWithInplaceHightlight(msg, commentsBrush, r.Location);
-			}
-
-			DrawCursorIfNeeded(msg);
-
-			FillOutlineBackground();
-			DrawFrameEndOutline(msg);
 		}
 
 		protected override void HandleMessageText(IMessage msg, float textXPos)
@@ -124,7 +63,7 @@ namespace LogJoint.UI
 				m.MessageRect.Y, ctx.CollapseBoxesAreaSize, m.MessageRect.Height));
 		}
 
-		void DrawContentOutline(IContent msg)
+		void DrawContentOutline(IMessage msg)
 		{
 			Image icon = null;
 			Image icon2 = null;
@@ -158,45 +97,6 @@ namespace LogJoint.UI
 					m.MessageRect.Y + (ctx.LineHeight - icon2Sz.Height) / 2,
 					icon2Sz.Width,
 					icon2Sz.Height
-				);
-			}
-		}
-
-		void DrawFrameBeginOutline(IFrameBegin msg)
-		{
-			if (TextLineIdx == 0)
-			{
-				Pen murkupPen = ctx.OutlineMarkupPen;
-				ctx.Canvas.DrawRectangle(murkupPen, m.OulineBox);
-				Point p = m.OulineBoxCenter;
-				ctx.Canvas.DrawLine(murkupPen, p.X - ctx.OutlineCrossSize / 2, p.Y, p.X + ctx.OutlineCrossSize / 2, p.Y);
-				bool collapsed = msg.Collapsed;
-				if (collapsed)
-					ctx.Canvas.DrawLine(murkupPen, p.X, p.Y - ctx.OutlineCrossSize / 2, p.X, p.Y + ctx.OutlineCrossSize / 2);
-			}
-			if (IsBookmarked)
-			{
-				Image icon = ctx.BookmarkIcon;
-				var iconSz = icon.GetSize(width: 9).Scale(ctx.DpiScale);
-				ctx.Canvas.DrawImage(icon,
-					ctx.CollapseBoxesAreaSize - iconSz.Width - 1,
-					m.MessageRect.Y + (ctx.LineHeight - iconSz.Height) / 2,
-					iconSz.Width,
-					iconSz.Height
-				);
-			}
-		}
-
-		void DrawFrameEndOutline(IFrameEnd msg)
-		{
-			if (IsBookmarked)
-			{
-				Image icon = ctx.BookmarkIcon;
-				ctx.Canvas.DrawImage(icon,
-					(ctx.CollapseBoxesAreaSize - icon.Width) / 2,
-					m.MessageRect.Y + (ctx.LineHeight - icon.Height) / 2,
-					icon.Width,
-					icon.Height
 				);
 			}
 		}
@@ -351,22 +251,10 @@ namespace LogJoint.UI
 
 		protected abstract void HandleMessageText(IMessage msg, float textXPos);
 
-		public virtual void Visit(IContent msg)
+		public virtual void Visit(IMessage msg)
 		{
 			HandleMessageText(msg, 0);
 		}
-
-		public virtual void Visit(IFrameBegin msg)
-		{
-			HandleMessageText(msg,
-				ctx.CharSize.Width * (FrameBegin.GetCollapseMark(msg.Collapsed).Length + 1));
-		}
-
-		public virtual void Visit(IFrameEnd msg)
-		{
-			HandleMessageText(msg, ctx.CharSize.Width * 5);
-		}
-
 	};
 
 	internal class DrawCursorVisitor : MessageTextHandlingVisitor
@@ -423,15 +311,11 @@ namespace LogJoint.UI
 		public int LineHeight;
 		public int TimeAreaSize;
 		public int CollapseBoxesAreaSize = 25;
-		public int OutlineBoxSize = 10;
-		public int OutlineCrossSize = 7;
-		public int LevelOffset = 15;
 		public float DpiScale = 1f;
 		public Brush InfoMessagesBrush;
 		public Font Font;
 		public Brush CommentsBrush;
 		public Brush DefaultBackgroundBrush;
-		public Pen OutlineMarkupPen, SelectedOutlineMarkupPen;
 		public Brush SelectedBkBrush;
 		public Brush SelectedFocuslessBkBrush;
 		public Brush SelectedTextBrush;
@@ -457,9 +341,9 @@ namespace LogJoint.UI
 
 		public int SlaveMessagePositionAnimationStep;
 
-		public Point GetTextOffset(int level, int displayIndex)
+		public Point GetTextOffset(int displayIndex)
 		{
-			int x = this.CollapseBoxesAreaSize + this.LevelOffset * level - ScrollPos.X;
+			int x = this.CollapseBoxesAreaSize - ScrollPos.X;
 			if (ShowTime)
 				x += TimeAreaSize;
 			int y = displayIndex * LineHeight - ScrollPos.Y;
@@ -487,13 +371,11 @@ namespace LogJoint.UI
 			public Rectangle MessageRect;
 			public Point TimePos;
 			public Rectangle OffsetTextRect;
-			public Point OulineBoxCenter;
-			public Rectangle OulineBox;
 		};
 
 		public static Metrics GetMetrics(ViewLine line, DrawContext dc)
 		{
-			Point offset = dc.GetTextOffset(line.Message.Level, line.LineIndex);
+			Point offset = dc.GetTextOffset(line.LineIndex);
 
 			Metrics m;
 
@@ -516,19 +398,6 @@ namespace LogJoint.UI
 				m.MessageRect.Y,
 				(int)((double)charCount * dc.CharWidthDblPrecision),
 				m.MessageRect.Height
-			);
-
-			m.OulineBoxCenter = new Point(
-				line.IsBookmarked ?
-					dc.OutlineBoxSize / 2 + 1 :
-					dc.CollapseBoxesAreaSize / 2,
-				m.MessageRect.Y + dc.LineHeight / 2
-			);
-			m.OulineBox = new Rectangle(
-				m.OulineBoxCenter.X - dc.OutlineBoxSize / 2,
-				m.OulineBoxCenter.Y - dc.OutlineBoxSize / 2,
-				dc.OutlineBoxSize,
-				dc.OutlineBoxSize
 			);
 
 			return m;
@@ -646,7 +515,7 @@ namespace LogJoint.UI
 				{
 					focusedMessageMark = dc.FocusedMessageIcon;
 					focusedMessageSz = focusedMessageMark.GetSize(height: 14);
-					markYPos = dc.GetTextOffset(0, sel.First.DisplayIndex).Y + (dc.LineHeight - focusedMessageSz.Height) / 2;
+					markYPos = dc.GetTextOffset(sel.First.DisplayIndex).Y + (dc.LineHeight - focusedMessageSz.Height) / 2;
 				}
 			}
 			else
@@ -662,7 +531,7 @@ namespace LogJoint.UI
 						focusedMessageSz = focusedMessageMark.GetSize(height: 9);
 						float yOffset = slaveModeFocusInfo.Item1 != slaveModeFocusInfo.Item2 ?
 							(dc.LineHeight - focusedMessageSz.Height) / 2 : -focusedMessageSz.Height / 2;
-						markYPos = dc.GetTextOffset(0, slaveModeFocusInfo.Item1).Y + yOffset;
+						markYPos = dc.GetTextOffset(slaveModeFocusInfo.Item1).Y + yOffset;
 					}
 				}
 			}
@@ -709,14 +578,6 @@ namespace LogJoint.UI
 				foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, clientRectangle))
 				{
 					DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext);
-
-					// if user clicked line's outline box (collapse/expand cross)
-					if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt.X, pt.Y) && i.TextLineIndex == 0)
-					//if (viewEvents.OnOulineBoxClicked(i.Message, (flags & MessageMouseEventFlag.CtrlIsHeld) != 0))
-					{
-						captureTheMouse = false;
-						break;
-					}
 
 					// if user clicked line area
 					if (mtx.MessageRect.Contains(pt.X, pt.Y))
@@ -775,11 +636,9 @@ namespace LogJoint.UI
 								flags |= MessageMouseEventFlag.OulineBoxesArea;
 							viewEvents.OnMessageMouseEvent(i, hitTester.LineTextPosition, flags, pt);
 						}
-						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt))
-							newCursor = CursorType.Arrow;
-						else if (pt.X < drawContext.CollapseBoxesAreaSize)
+						if (pt.X < drawContext.CollapseBoxesAreaSize)
 							newCursor = CursorType.RightToLeftArrow;
-						else if (pt.X >= drawContext.GetTextOffset(0, 0).X)
+						else if (pt.X >= drawContext.GetTextOffset(0).X)
 							newCursor = CursorType.IBeam;
 						else
 							newCursor = CursorType.Arrow;

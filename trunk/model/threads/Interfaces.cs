@@ -24,18 +24,11 @@ namespace LogJoint
 
 	public struct ThreadsBulkProcessingResult
 	{
-		public bool ThreadWasInCollapsedRegion { get { return threadWasInCollapsedRegion; } }
-		public bool ThreadIsInCollapsedRegion { get { return threadIsInCollapsedRegion; } }
-
-		internal ModelThreads.ThreadsBulkProcessing.ThreadInfo info;
-		internal bool threadWasInCollapsedRegion;
-		internal bool threadIsInCollapsedRegion;
 	};
 
 	public interface IThreadsBulkProcessing : IDisposable
 	{
 		ThreadsBulkProcessingResult ProcessMessage(IMessage message);
-		void HandleHangingFrames(IMessagesCollection messagesCollection);
 	};
 
 	public interface IModelThreads

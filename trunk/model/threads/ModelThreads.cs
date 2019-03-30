@@ -235,8 +235,6 @@ namespace LogJoint
 		{
 			public ThreadsBulkProcessing(ModelThreads owner)
 			{
-				foreach (ThreadInfo t in threads.Values)
-					t.ResetFrames();
 			}
 
 			public void Dispose()
@@ -246,80 +244,14 @@ namespace LogJoint
 			public ThreadsBulkProcessingResult ProcessMessage(IMessage message)
 			{
 				var threadInfo = GetThreadInfo(message.Thread);
-				bool wasInCollapsedRegion = threadInfo.collapsedRegionDepth != 0;
 				threadInfo.ThreadImpl.RegisterKnownMessage(message);
-				HandleFrameFlagsAndSetLevel(threadInfo, message);
 				return new ThreadsBulkProcessingResult() { 
-					info = threadInfo,
-					threadWasInCollapsedRegion = wasInCollapsedRegion,
-					threadIsInCollapsedRegion = threadInfo.collapsedRegionDepth != 0
 				};
 			}
 
-			void HandleFrameFlagsAndSetLevel(ThreadInfo td, IMessage message)
-			{
-				MessageFlag f = message.Flags;
-				int level = td.frames.Count;
-				switch (f & MessageFlag.TypeMask)
-				{
-					case MessageFlag.StartFrame:
-						td.frames.Push(message);
-						if ((f & MessageFlag.Collapsed) != 0)
-							++td.collapsedRegionDepth;
-						break;
-					case MessageFlag.EndFrame:
-						var end = (IFrameEnd)message;
-						if (td.frames.Count > 0)
-						{
-							var begin = (IFrameBegin)td.frames.Pop();
-							end.SetStart(begin);
-							begin.SetEnd(end);
-							--level;
-						}
-						else
-						{
-							thereAreHangingEndFrames = true;
-							end.SetStart(null);
-						}
-						if ((f & MessageFlag.Collapsed) != 0)
-							--td.collapsedRegionDepth;
-						break;
-				}
-
-				message.SetLevel(level);
-			}
-
-			public void HandleHangingFrames(IMessagesCollection messagesCollection)
-			{
-				if (!thereAreHangingEndFrames)
-					return;
-
-				foreach (ThreadInfo t in threads.Values)
-					t.ResetFrames();
-
-				foreach (IndexedMessage r in messagesCollection.Reverse(int.MaxValue, -1))
-				{
-					ThreadInfo t = GetThreadInfo(r.Message.Thread);
-					r.Message.SetLevel(r.Message.Level + t.frames.Count);
-
-					var fe = r.Message as IFrameEnd;
-					if (fe != null && fe.Start == null)
-						t.frames.Push(r.Message);
-				}
-			}
-
-			/// <summary>
-			/// Flag that will indicate that there are ending frames that don't 
-			/// have appropriate begining frames. Such end frames can appear 
-			/// if the log is not loaded completely and some begin frames are
-			/// before the the loaded log range.
-			/// </summary>
-			bool thereAreHangingEndFrames;
-
 			ThreadInfo GetThreadInfo(IThread thread)
 			{
-				ThreadInfo threadInfo;
-				if (threads.TryGetValue(thread, out threadInfo))
+				if (threads.TryGetValue(thread, out ThreadInfo threadInfo))
 					return threadInfo;
 				threadInfo = new ThreadInfo() { ThreadImpl = (Thread)thread };
 				threads.Add(thread, threadInfo);
@@ -329,14 +261,6 @@ namespace LogJoint
 			internal class ThreadInfo
 			{
 				public Thread ThreadImpl;
-				public readonly Stack<IMessage> frames = new Stack<IMessage>();
-				public int collapsedRegionDepth;
-
-				public void ResetFrames()
-				{
-					frames.Clear();
-					collapsedRegionDepth = 0;
-				}
 			};
 			readonly Dictionary<IThread, ThreadInfo> threads = new Dictionary<IThread, ThreadInfo>();
 		};

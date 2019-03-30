@@ -7,7 +7,7 @@ namespace LogJoint
 	[DebuggerDisplay("{flags} {DoGetRawText().Value}")]
 	public abstract class MessageBase : IMessage
 	{
-		public MessageBase(long position, long endPosition, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())
+		protected MessageBase(long position, long endPosition, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())
 		{
 			if (endPosition < position)
 				throw new ArgumentException("bad message positions");
@@ -25,25 +25,20 @@ namespace LogJoint
 
 		MessageFlag IMessage.Flags { get { return flags; } }
 
-		int IMessage.Level { get { return level; } }
-
+		long IMessage.Position => position;
+		long IMessage.EndPosition => endPosition;
+		IThread IMessage.Thread => thread;
+		ILogSource IMessage.LogSource => thread?.LogSource;
+		MessageTimestamp IMessage.Time => time;
+		StringSlice IMessage.Text => DoGetText();
 		StringUtils.MultilineText IMessage.TextAsMultilineText { get { return GetTextAsMultilineText(); } }
-
+		StringSlice IMessage.RawText => DoGetRawText();
 		StringUtils.MultilineText IMessage.RawTextAsMultilineText { get { return new StringUtils.MultilineText(DoGetRawText(), GetIsRawTextMultiLine()); } }
-
-		long IMessage.Position { get { return position; } }
-		long IMessage.EndPosition { get { return endPosition; } }
-		IThread IMessage.Thread { get { return thread; } }
-		ILogSource IMessage.LogSource { get { return thread != null ? thread.LogSource : null; } }
-		MessageTimestamp IMessage.Time { get { return time; } }
-		StringSlice IMessage.Text { get { return DoGetText(); } }
-		StringSlice IMessage.RawText { get { return DoGetRawText(); } }
-		bool IMessage.IsTextMultiline { get { return GetIsTextMultiline(); } }
-		bool IMessage.IsRawTextMultiLine { get { return GetIsRawTextMultiLine(); } }
+		SeverityFlag IMessage.Severity => (SeverityFlag) (flags & MessageFlag.ContentTypeMask);
 
 		void IMessage.Visit(IMessageVisitor visitor) { DoVisit(visitor); }
 
-		IMessage IMessage.Clone() { throw new NotImplementedException(); }
+		IMessage IMessage.Clone() => throw new NotImplementedException();
 
 		void IMessage.ReallocateTextBuffer(IStringSliceReallocator alloc) { DoReallocateTextBuffer(alloc); }
 
@@ -53,17 +48,6 @@ namespace LogJoint
  				flags &= ~MessageFlag.IsMultiLineInited;
 		}
 
-		void IMessage.SetLevel(int level)
-		{
-			if (level < 0)
-				level = 0;
-			else if (level > UInt16.MaxValue)
-				level = UInt16.MaxValue;
-			unchecked
-			{
-				this.level = (UInt16)level;
-			}
-		}
 		void IMessage.SetPosition(long position, long endPosition)
 		{
 			if (endPosition < position)
@@ -95,17 +79,6 @@ namespace LogJoint
 		protected virtual bool DoWrapTooLongText(int maxLineLen) { return WrapIfTooLong(ref rawText, maxLineLen); }
 
 		#endregion
-
-		#region Protected helpers
-		protected void SetCollapsedFlag(bool value)
-		{
-			if (value)
-				flags |= MessageFlag.Collapsed;
-			else
-				flags &= ~MessageFlag.Collapsed;
-		}
-		#endregion
-
 
 		#region Implementation
 
@@ -148,17 +121,13 @@ namespace LogJoint
 
 			int ret = Hashing.GetStableHashCode(position);
 
-			// Don't hash Text for frame-end beacause it doesn't have its own permanent text. 
-			// It takes the text from brame begin instead. The link to frame begin may change 
-			// during the time (it may get null or not null).
-			if ((flags & MessageFlag.TypeMask) != MessageFlag.EndFrame)
-				ret ^= DoGetText().GetStableHashCode();
+			ret ^= DoGetText().GetStableHashCode();
 
 			if (!ignoreMessageTime)
 				ret = MessagesUtils.XORTimestampHash(ret, time);
 			if (thread != null)
 				ret ^= Hashing.GetStableHashCode(thread.ID);
-			ret ^= (int)(flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask));
+			ret ^= (int)(flags & MessageFlag.ContentTypeMask);
 
 			return ret;
 		}
@@ -186,7 +155,6 @@ namespace LogJoint
 		readonly MessageTimestamp time;
 		readonly IThread thread;
 		protected MessageFlag flags;
-		UInt16 level;
 		long position, endPosition;
 		StringSlice rawText;
 

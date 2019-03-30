@@ -1,27 +1,19 @@
 
 namespace LogJoint
 {
-	public sealed class Content : MessageBase, IContent
+	public sealed class Content : MessageBase, IMessage // todo: delete hierarchy?
 	{
 		public Content(long position, long endPosition, IThread t, MessageTimestamp time, StringSlice msg, SeverityFlag s, StringSlice rawText = new StringSlice())
 			:
 			base(position, endPosition, t, time, rawText)
 		{
 			this.message = msg;
-			this.flags = MessageFlag.Content | (MessageFlag)s;
-		}
-
-		SeverityFlag IContent.Severity
-		{
-			get
-			{
-				return (SeverityFlag)(flags & MessageFlag.ContentTypeMask);
-			}
+			this.flags = (MessageFlag)s;
 		}
 
 		IMessage IMessage.Clone()
 		{
-			IContent intf = this;
+			IMessage intf = this;
 			return new Content(intf.Position, intf.EndPosition, intf.Thread, intf.Time, message, intf.Severity, this.DoGetRawText());
 		}
 

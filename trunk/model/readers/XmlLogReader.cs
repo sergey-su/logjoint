@@ -160,12 +160,6 @@ namespace LogJoint.XmlFormat
 				case "m":
 					output = new Content(position, endPosition, thread, dateTime, new StringSlice(GetAndClearContent()), severity);
 					break;
-				case "f":
-					output = new FrameBegin(position, endPosition, thread, dateTime, new StringSlice(GetAndClearContent()));
-					break;
-				case "ef":
-					output = new FrameEnd(position, endPosition, thread, dateTime);
-					break;
 			}
 
 			elemName = null;

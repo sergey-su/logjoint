@@ -18,11 +18,6 @@ namespace LogJoint
 			return (message.Flags & MessageFlag.HiddenAsFilteredOut) != 0;
 		}
 
-		public static bool IsStartFrame(this IMessage message)
-		{
-			return (message.Flags & MessageFlag.TypeMask) == MessageFlag.StartFrame;
-		}
-
 		public static StringUtils.MultilineText GetDisplayText(this IMessage msg, bool displayRawTextMode)
 		{
 			if (displayRawTextMode)

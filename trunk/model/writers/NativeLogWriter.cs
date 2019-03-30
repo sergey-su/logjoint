@@ -25,32 +25,17 @@ namespace LogJoint.Writers
 
 		public void WriteMessage(IMessage msg)
 		{
-			var type = msg.Flags & MessageFlag.TypeMask;
-			switch (type)
-			{
-				case MessageFlag.StartFrame:
-					writer.WriteStartElement("f");
-					break;
-				case MessageFlag.EndFrame:
-					writer.WriteStartElement("ef");
-					break;
-				default:
-					writer.WriteStartElement("m");
-					break;
-			}
+			writer.WriteStartElement("m");
 			writer.WriteAttributeString("d", Listener.FormatDate(msg.Time.ToLocalDateTime()));
 			writer.WriteAttributeString("t", msg.Thread.ID);
-			if (type == MessageFlag.Content)
+			switch (msg.Flags & MessageFlag.ContentTypeMask)
 			{
-				switch (msg.Flags & MessageFlag.ContentTypeMask)
-				{
-					case MessageFlag.Warning:
-						writer.WriteAttributeString("s", "w");
-						break;
-					case MessageFlag.Error:
-						writer.WriteAttributeString("s", "e");
-						break;
-				}
+				case MessageFlag.Warning:
+					writer.WriteAttributeString("s", "w");
+					break;
+				case MessageFlag.Error:
+					writer.WriteAttributeString("s", "e");
+					break;
 			}
 			writer.WriteString(msg.Text.Value);
 			writer.WriteEndElement();

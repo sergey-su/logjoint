@@ -32,8 +32,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.getDialogData = Selectors.Create(getFocusedMessage, getBookmarkData, getHlFilteringEnabled, (message, bmk, hlEnabled) =>
 			{
 				var (bookmarkedStatus, bookmarkAction) = bmk;
-				ILogSource ls = message?.Thread.LogSource;
-				IContent content = message as IContent;
+				ILogSource ls = message.GetLogSource();
 				return new DialogData()
 				{
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
@@ -50,9 +49,9 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					BookmarkActionLinkText = bookmarkAction,
 					BookmarkActionLinkEnabled = !string.IsNullOrEmpty(bookmarkAction),
 
-					SeverityValue = (content?.Severity)?.ToString() ?? noSelection,
+					SeverityValue = (message?.Severity)?.ToString() ?? noSelection,
 
-					TextValue = (content?.Text)?.Value ?? "",
+					TextValue = (message?.Text)?.Value ?? "",
 
 					HighlightedCheckboxEnabled = hlEnabled
 				};

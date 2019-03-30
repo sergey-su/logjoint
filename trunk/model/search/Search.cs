@@ -190,8 +190,7 @@ namespace LogJoint
 			int? startTextPosition = null)
 		{
 			MessageFlag msgFlags = msg.Flags;
-			var msgType = msgFlags & MessageFlag.TypeMask;
-			if (msgType == MessageFlag.Content && (msgFlags & state.contentTypeMask) == 0)
+			if ((msgFlags & state.contentTypeMask) == 0)
 			{
 				return null;
 			}
