@@ -275,8 +275,9 @@ namespace LogJoint.UI
 
 		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
 		{
-			//return new Point(0, (selection.DisplayPosition + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
-			return new Point(); // todo: reimpl
+			if (presentationDataAccess.Selection.Message != null)
+				return new Point(0, (presentationDataAccess.Selection.First.DisplayIndex + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
+			return new Point();
 		}
 
 		void IView.AnimateSlaveMessagePosition()
