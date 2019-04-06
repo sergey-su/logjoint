@@ -263,7 +263,7 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				return Math.Max(0, (float)(Height - scrollBarsInfo.scrollBarsSize.Height) / (float)drawContext.LineHeight);
+				return Math.Max(0, (float)(ClientSize.Height) / (float)drawContext.LineHeight);
 			} 
 		}
 
