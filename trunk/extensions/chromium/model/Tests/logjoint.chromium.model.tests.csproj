@@ -88,7 +88,6 @@
   <ItemGroup>
     <EmbeddedResource Include="LogSamples\chromedriver_2019_01_23.log" />
     <EmbeddedResource Include="LogSamples\chromedriver_2019_01_22.log" />
-    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
