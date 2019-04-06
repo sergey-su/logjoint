@@ -191,9 +191,9 @@ namespace LogJoint.UI
 
 			int lineBegin = line.StartIndex - text.StartIndex;
 			int lineEnd = lineBegin + line.Length;
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SearchResultHighlightingHandler, ctx.SearchResultHighlightingBackground);
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SelectionHighlightingHandler, ctx.SelectionHighlightingBackground);
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, HighlightingFiltersHandler, null);
+			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SearchResultHighlightingHandler, null, ctx.SearchResultHighlightingBackground);
+			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SelectionHighlightingHandler, ctx.SelectionHighlightingBackground, null);
+			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, HighlightingFiltersHandler, null, null);
 
 			ctx.Canvas.DrawString(line.Value, ctx.Font, brush, location, ctx.TextFormat);
 		}
@@ -204,7 +204,8 @@ namespace LogJoint.UI
 			StringSlice text, 
 			int lineBegin, int lineEnd,
 			IHighlightingHandler handler,
-			Brush brush)
+			Brush forcedBrush,
+			Brush defaultBrush)
 		{
 			if (handler != null)
 			{
@@ -227,7 +228,7 @@ namespace LogJoint.UI
 							ctx.TextFormat, 
 							m.MessageRect, location.X);
 						tmp.Inflate(0, -1);
-						if (brush == null)
+						if (forcedBrush == null)
 						{
 							var cl = hlRange.Item3.GetBackgroundColor();
 							if (cl != null)
@@ -237,10 +238,14 @@ namespace LogJoint.UI
 									FillInplaceHightlightRectangle(ctx, tmp, tmpBrush);
 								}
 							}
+							else if (defaultBrush != null)
+							{
+								FillInplaceHightlightRectangle(ctx, tmp, defaultBrush);
+							}
 						}
 						else
 						{
-							FillInplaceHightlightRectangle(ctx, tmp, brush);
+							FillInplaceHightlightRectangle(ctx, tmp, forcedBrush);
 						}
 					}
 				}
