@@ -32,7 +32,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.getDialogData = Selectors.Create(getFocusedMessage, getBookmarkData, getHlFilteringEnabled, (message, bmk, hlEnabled) =>
 			{
 				var (bookmarkedStatus, bookmarkAction) = bmk;
-				ILogSource ls = message.GetLogSource();
+				ILogSource ls = message?.GetLogSource();
 				return new DialogData()
 				{
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
