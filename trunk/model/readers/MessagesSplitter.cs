@@ -377,6 +377,11 @@ namespace LogJoint
 				capture.BodyIndex = headerPointer1;
 				capture.BodyLength = capture.BodyBuffer.Length - headerPointer1;
 				capture.EndPosition = textIterator.CharIndexToPosition(capture.BodyBuffer.Length);
+				if (capture.EndPosition > range.End)
+				{
+					capture.EndPosition = range.End;
+					capture.BodyLength = Math.Max(0, capture.BodyLength - (capture.BodyBuffer.Length - textIterator.PositionToCharIndex(range.End)));
+				}
 				capture.IsLastMessage = true;
 			}
 
