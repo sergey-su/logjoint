@@ -49,6 +49,10 @@ namespace LogJoint.Wireshark.Dpml
 				if (tester.ExitCode == 0)
 					return "tshark";
 			}
+			if (File.Exists("/usr/local/bin/tshark"))
+			{
+				return "/usr/local/bin/tshark";
+			}
 			return null;
 		}
 #elif WIN

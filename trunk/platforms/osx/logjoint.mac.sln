@@ -39,7 +39,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.pl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin.presenters", "..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin.presenters\logjoint.packet-analysis.plugin.presenters.csproj", "{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin", "..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin\logjoint.packet-analysis.plugin.csproj", "{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin", "..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin\logjoint.chromium.plugin.csproj", "{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin", "..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin\logjoint.packet-analysis.plugin.csproj", "{C04BD9F7-2731-4BE7-A980-7719E789EF91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -169,6 +171,14 @@ Global
 		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}.Debug|x86.Build.0 = Debug|Any CPU
 		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}.Release|x86.ActiveCfg = Release|Any CPU
 		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}.Release|x86.Build.0 = Release|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Debug|x86.Build.0 = Debug|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Release|x86.ActiveCfg = Release|Any CPU
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -215,6 +225,7 @@ Global
 		{F14D10AD-3F32-4793-AB6A-450DB99EE65F} = {68F58D7E-4D53-4F62-9338-E965AE399D8A}
 		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
 		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
-		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
+		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
+		{C04BD9F7-2731-4BE7-A980-7719E789EF91} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
 	EndGlobalSection
 EndGlobal
