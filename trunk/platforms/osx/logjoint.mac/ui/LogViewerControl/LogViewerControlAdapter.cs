@@ -21,8 +21,7 @@ namespace LogJoint.UI
 {
 	public class LogViewerControlAdapter: NSResponder, IView
 	{
-		internal IViewEvents viewEvents;
-		internal IPresentationDataAccess presentationDataAccess;
+		internal IViewModel viewEvents;
 		internal bool isFocused;
 		NSTimer animationTimer;
 		string drawDropMessage;
@@ -125,22 +124,17 @@ namespace LogJoint.UI
 
 		#region IView implementation
 
-		void IView.SetViewEvents(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
-		}
-
-		void IView.SetPresentationDataAccess(IPresentationDataAccess presentationDataAccess)
-		{
-			this.presentationDataAccess = presentationDataAccess;
-			this.drawContext.Presenter = presentationDataAccess;
+			this.viewEvents = viewModel;
+			this.drawContext.Presenter = viewModel;
 			var updater = Updaters.Create (
-				() => presentationDataAccess.HighlightingFiltersHandler,
-				() => presentationDataAccess.SelectionHighlightingHandler,
-				() => presentationDataAccess.SearchResultHighlightingHandler,
+				() => viewModel.HighlightingFiltersHandler,
+				() => viewModel.SelectionHighlightingHandler,
+				() => viewModel.SearchResultHighlightingHandler,
 				(_1, _2, _3) => { this.InnerView.NeedsDisplay = true; }
 			);
-			presentationDataAccess.ChangeNotification.CreateSubscription (updater);
+			viewModel.ChangeNotification.CreateSubscription (updater);
 		}
 
 		void IView.UpdateFontDependentData(string fontName, Appearance.LogFontSize fontSize)
@@ -299,17 +293,17 @@ namespace LogJoint.UI
 
 		internal void OnPaint(RectangleF dirtyRect)
 		{
-			if (presentationDataAccess == null)
+			if (viewEvents == null)
 				return;
 			
 			UpdateClientSize();
 
 			drawContext.Canvas = new LJD.Graphics();
 			drawContext.ScrollPos = new Point(0,
-				(int)(presentationDataAccess.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight));
+				(int)(viewEvents.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight));
 
 			int maxRight;
-			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, isFocused, 
+			DrawingUtils.PaintControl(drawContext, viewEvents, selection, isFocused, 
 				dirtyRect.ToRectangle(), out maxRight);
 
 			if (maxRight > viewWidth)
@@ -348,7 +342,7 @@ namespace LogJoint.UI
 			bool captureTheMouse;
 
 			DrawingUtils.MouseDownHelper(
-				presentationDataAccess,
+				viewEvents,
 				drawContext,
 				ClientRectangle,
 				viewEvents,
@@ -362,7 +356,7 @@ namespace LogJoint.UI
 		{
 			DrawingUtils.CursorType cursor;
 			DrawingUtils.MouseMoveHelper(
-				presentationDataAccess,
+				viewEvents,
 				drawContext,
 				ClientRectangle,
 				viewEvents,
@@ -431,7 +425,7 @@ namespace LogJoint.UI
 			) + 10;
 		}
 
-		SelectionInfo selection { get { return presentationDataAccess != null ? presentationDataAccess.Selection : new SelectionInfo(); } }
+		SelectionInfo selection { get { return viewEvents != null ? viewEvents.Selection : new SelectionInfo(); } }
 
 		Rectangle ClientRectangle
 		{

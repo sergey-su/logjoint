@@ -166,8 +166,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IView : IViewFonts
 	{
-		void SetViewEvents(IViewEvents viewEvents);
-		void SetPresentationDataAccess(IPresentationDataAccess presentationDataAccess);
+		void SetViewModel(IViewModel viewEvents);
 		float DisplayLinesPerPage { get; }
 		void SetVScroll(double? value);
 		void UpdateFontDependentData(string fontName, LogFontSize fontSize);
@@ -186,7 +185,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void PopupContextMenu(object contextMenuPopupData);
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
 		void OnDisplayLinesPerPageChanged();
 		void OnIncrementalVScroll(float nrOfDisplayLines);
@@ -203,10 +202,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			MessageMouseEventFlag flags,
 			object preparedContextMenuPopupData);
 		void OnDrawingError(Exception e);
-	};
 
-	public interface IPresentationDataAccess
-	{
 		int ViewLinesCount { get; }
 		IEnumerable<ViewLine> GetViewLines(int beginIdx, int endIdx);
 		double GetFirstDisplayMessageScrolledLines();

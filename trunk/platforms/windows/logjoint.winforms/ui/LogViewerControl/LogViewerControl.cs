@@ -75,8 +75,8 @@ namespace LogJoint.UI
 			cursorTimer.Tick += (s, e) =>
 			{
 				drawContext.CursorState = !drawContext.CursorState;
-				if (viewEvents != null)
-					viewEvents.OnCursorTimerTick();
+				if (viewModel != null)
+					viewModel.OnCursorTimerTick();
 			};
 
 			animationTimer.Tick += (s, e) =>
@@ -119,8 +119,8 @@ namespace LogJoint.UI
 
 			UpdateTimeAreaSize();
 
-			if (oldDpp != 0 && oldDpp != ((IView)this).DisplayLinesPerPage && viewEvents != null)
-				viewEvents.OnDisplayLinesPerPageChanged();
+			if (oldDpp != 0 && oldDpp != ((IView)this).DisplayLinesPerPage && viewModel != null)
+				viewModel.OnDisplayLinesPerPageChanged();
 		}
 
 		private static int ToFontEmSize(LogFontSize fontSize)
@@ -139,23 +139,18 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.SetViewEvents(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
-		}
-
-		void IView.SetPresentationDataAccess(IPresentationDataAccess presentationDataAccess)
-		{
-			this.presentationDataAccess = presentationDataAccess;
-			this.drawContext.Presenter = presentationDataAccess;
+			this.viewModel = viewModel;
+			this.drawContext.Presenter = viewModel;
 
 			var updater = Updaters.Create(
-				() => presentationDataAccess.HighlightingFiltersHandler,
-				() => presentationDataAccess.SelectionHighlightingHandler,
-				() => presentationDataAccess.SearchResultHighlightingHandler,
+				() => viewModel.HighlightingFiltersHandler,
+				() => viewModel.SelectionHighlightingHandler,
+				() => viewModel.SearchResultHighlightingHandler,
 				(_1, _2, _3) => Invalidate()
 			);
-			presentationDataAccess.ChangeNotification.CreateSubscription(updater);
+			viewModel.ChangeNotification.CreateSubscription(updater);
 		}
 
 		void IView.InvalidateLine(ViewLine line)
@@ -275,8 +270,8 @@ namespace LogJoint.UI
 
 		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
 		{
-			if (presentationDataAccess.Selection.Message != null)
-				return new Point(0, (presentationDataAccess.Selection.First.DisplayIndex + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
+			if (viewModel.Selection.Message != null)
+				return new Point(0, (viewModel.Selection.First.DisplayIndex + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
 			return new Point();
 		}
 
@@ -313,19 +308,19 @@ namespace LogJoint.UI
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
-			if (viewEvents == null)
+			if (viewModel == null)
 				return;
 
 			if ((Control.ModifierKeys & Keys.Control) != 0)
 			{
-				viewEvents.OnMouseWheelWithCtrl(e.Delta);
+				viewModel.OnMouseWheelWithCtrl(e.Delta);
 			}
 			else
 			{
 				/*Rectangle clientRectangle = base.ClientRectangle;
 				int p = drawContext.ScrollPos.Y - e.Delta;
 				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, p));*/
-				viewEvents.OnIncrementalVScroll(-(float)e.Delta / (float)drawContext.LineHeight);
+				viewModel.OnIncrementalVScroll(-(float)e.Delta / (float)drawContext.LineHeight);
 				if (e is HandledMouseEventArgs)
 				{
 					((HandledMouseEventArgs)e).Handled = true;
@@ -365,7 +360,7 @@ namespace LogJoint.UI
 			else
 				flags |= MessageMouseEventFlag.SingleClick;
 
-			DrawingUtils.MouseDownHelper(presentationDataAccess, drawContext, ClientRectangle, viewEvents, e.Location, flags, out captureTheMouse);
+			DrawingUtils.MouseDownHelper(viewModel, drawContext, ClientRectangle, viewModel, e.Location, flags, out captureTheMouse);
 
 			base.OnMouseDown(e);
 			
@@ -375,7 +370,7 @@ namespace LogJoint.UI
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
 			DrawingUtils.CursorType newCursor;
-			DrawingUtils.MouseMoveHelper(presentationDataAccess, drawContext, ClientRectangle, viewEvents, e.Location,
+			DrawingUtils.MouseMoveHelper(viewModel, drawContext, ClientRectangle, viewModel, e.Location,
 				e.Button == MouseButtons.Left && this.Capture, out newCursor);
 
 			Cursor newNativeCursor = Cursors.Arrow;
@@ -452,7 +447,7 @@ namespace LogJoint.UI
 			else
 				pk = Key.None;
 
-			if (viewEvents != null && pk != Key.None)
+			if (viewModel != null && pk != Key.None)
 			{
 				if (ctrl)
 					pk |= Key.JumpOverWordsModifier;
@@ -460,7 +455,7 @@ namespace LogJoint.UI
 					pk |= Key.AlternativeModeModifier;
 				if (shift)
 					pk |= Key.ModifySelectionModifier;
-				viewEvents.OnKeyPressed(pk);
+				viewModel.OnKeyPressed(pk);
 			}
 
 			base.OnKeyDown(kevent);
@@ -468,7 +463,7 @@ namespace LogJoint.UI
 
 		protected override void OnPaintBackground(PaintEventArgs pevent)
 		{
-			if (presentationDataAccess != null)
+			if (viewModel != null)
 			{
 				// Do nothing. All painting is in OnPaint.
 			}
@@ -481,7 +476,7 @@ namespace LogJoint.UI
 
 		protected override void OnPaint(PaintEventArgs pe)
 		{
-			if (presentationDataAccess == null)
+			if (viewModel == null)
 			{
 				base.OnPaint(pe);
 				return;
@@ -496,7 +491,7 @@ namespace LogJoint.UI
 				UpdateDrawContextScrollPos();
 
 				int maxRight;
-				DrawingUtils.PaintControl(drawContext, presentationDataAccess, presentationDataAccess.Selection, this.Focused,
+				DrawingUtils.PaintControl(drawContext, viewModel, viewModel.Selection, this.Focused,
 					pe.ClipRectangle, out maxRight);
 
 				backBufferCanvas.Render(pe.Graphics);
@@ -505,8 +500,8 @@ namespace LogJoint.UI
 			}
 			catch (Exception e)
 			{
-				if (viewEvents != null)
-					viewEvents.OnDrawingError(e);
+				if (viewModel != null)
+					viewModel.OnDrawingError(e);
 				throw;
 			}
 
@@ -519,8 +514,8 @@ namespace LogJoint.UI
 			EnsureBackbufferIsUpToDate();
 			SetScrollPos();
 			Invalidate();
-			if (viewEvents != null)
-				viewEvents.OnDisplayLinesPerPageChanged();
+			if (viewModel != null)
+				viewModel.OnDisplayLinesPerPageChanged();
 			base.OnResize(e);
 		}
 
@@ -656,7 +651,7 @@ namespace LogJoint.UI
 
 		void contextMenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
 		{
-			if (viewEvents == null)
+			if (viewModel == null)
 				return;
 			var clickedItem = menuItemsMap.FirstOrDefault(t => t.Item1 == e.ClickedItem);
 			if (clickedItem == null)
@@ -668,14 +663,14 @@ namespace LogJoint.UI
 			{
 				itemChecked = (clickedItem.Item1.Checked = !clickedItem.Item1.Checked);
 			}
-			viewEvents.OnMenuItemClicked(code, itemChecked);
+			viewModel.OnMenuItemClicked(code, itemChecked);
 		}
 
 		void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
-			if (viewEvents == null)
+			if (viewModel == null)
 				return;
-			var menuData = viewEvents.OnMenuOpening();
+			var menuData = viewModel.OnMenuOpening();
 			foreach (var mi in menuItemsMap)
 			{
 				mi.Item1.Visible = (menuData.VisibleItems & mi.Item2) != 0;
@@ -712,7 +707,7 @@ namespace LogJoint.UI
 		{
 			maxRight += dc.ScrollPos.X;
 			if (maxRight > scrollBarsInfo.scrollSize.Width // if view grows
-			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && presentationDataAccess != null && presentationDataAccess.ViewLinesCount == 0) // or no lines are displayed
+			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && viewModel != null && viewModel.ViewLinesCount == 0) // or no lines are displayed
 			)
 			{
 				// update the horz scroll bar
@@ -808,11 +803,11 @@ namespace LogJoint.UI
 
 		private void UpdateDrawContextScrollPos()
 		{
-			if (presentationDataAccess != null)
+			if (viewModel != null)
 			{
 				drawContext.ScrollPos = new Point(
 					GetScrollInfo(Native.SB.HORZ).nPos,
-					(int)(presentationDataAccess.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight)
+					(int)(viewModel.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight)
 				);
 			}
 		}
@@ -882,9 +877,9 @@ namespace LogJoint.UI
 			{
 				this.SetScrollPos(posX: ret);
 			}
-			if (viewEvents != null)
+			if (viewModel != null)
 			{
-				viewEvents.OnHScroll();
+				viewModel.OnHScroll();
 			}
 		}
 
@@ -984,12 +979,12 @@ namespace LogJoint.UI
 			{
 				if (scrollRlst.delta != 0)
 				{
-					viewEvents.OnIncrementalVScroll((float)scrollRlst.delta / (float)drawContext.LineHeight);
+					viewModel.OnIncrementalVScroll((float)scrollRlst.delta / (float)drawContext.LineHeight);
 				}
 				else if (scrollRlst.absoluteScrollPos >= 0)
 				{
 					var pos = (double)scrollRlst.absoluteScrollPos / (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1);
-					viewEvents.OnVScroll(
+					viewModel.OnVScroll(
 						Math.Min(pos, 1d), 
 						scrollRlst.isRealtimeScroll
 					);
@@ -999,15 +994,14 @@ namespace LogJoint.UI
 
 		int GetDisplayMessagesCount()
 		{
-			return presentationDataAccess != null ? presentationDataAccess.ViewLinesCount : 0;
+			return viewModel != null ? viewModel.ViewLinesCount : 0;
 		}
 
 		#endregion
 
 		#region Data members
 
-		IViewEvents viewEvents;
-		IPresentationDataAccess presentationDataAccess;
+		IViewModel viewModel;
 
 		struct ScrollBarsInfo
 		{

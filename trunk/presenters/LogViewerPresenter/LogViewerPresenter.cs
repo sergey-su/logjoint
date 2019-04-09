@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public class Presenter : IPresenter, IViewEvents, IPresentationDataAccess
+	public class Presenter : IPresenter, IViewModel
 	{
 		public Presenter(
 			IModel model,
@@ -530,7 +530,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 
-		void IViewEvents.OnMouseWheelWithCtrl(int delta)
+		void IViewModel.OnMouseWheelWithCtrl(int delta)
 		{
 			if ((disabledUserInteractions & UserInteraction.FontResizing) == 0)
 			{
@@ -541,17 +541,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		void IViewEvents.OnCursorTimerTick()
+		void IViewModel.OnCursorTimerTick()
 		{
 			selectionManager.InvalidateTextLineUnderCursor();
 		}
 
-		void IViewEvents.OnKeyPressed(Key k)
+		void IViewModel.OnKeyPressed(Key k)
 		{
 			OnKeyPressedAsync(k).IgnoreCancellation();
 		}
 
-		MenuData IViewEvents.OnMenuOpening()
+		MenuData IViewModel.OnMenuOpening()
 		{
 			var ret = new MenuData();
 			ret.VisibleItems =
@@ -588,7 +588,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		void IViewEvents.OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked)
+		void IViewModel.OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked)
 		{
 			if (menuItem == ContextMenuItem.Copy)
 				ThisIntf.CopySelectionToClipboard().IgnoreCancellation();
@@ -606,7 +606,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ThisIntf.GoToPrevMessageInThread();
 		}
 
-		void IViewEvents.OnDisplayLinesPerPageChanged()
+		void IViewModel.OnDisplayLinesPerPageChanged()
 		{
 			navigationManager.NavigateView(async cancellation => 
 			{
@@ -615,7 +615,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}).IgnoreCancellation();
 		}
 
-		void IViewEvents.OnIncrementalVScroll(float nrOfDisplayLines)
+		void IViewModel.OnIncrementalVScroll(float nrOfDisplayLines)
 		{
 			navigationManager.NavigateView(async cancellation =>
 			{
@@ -623,7 +623,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}).IgnoreCancellation();
 		}
 
-		void IViewEvents.OnVScroll(double value, bool isRealtimeScroll)
+		void IViewModel.OnVScroll(double value, bool isRealtimeScroll)
 		{
 			//if (!isRealtimeScroll)
 			navigationManager.NavigateView(async cancellation =>
@@ -633,12 +633,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}).IgnoreCancellation();
 		}
 
-		void IViewEvents.OnHScroll()
+		void IViewModel.OnHScroll()
 		{
 			selectionManager.InvalidateTextLineUnderCursor();
 		}
 
-		void IViewEvents.OnMessageMouseEvent(
+		void IViewModel.OnMessageMouseEvent(
 			ViewLine line,
 			int charIndex,
 			MessageMouseEventFlag flags,
@@ -689,7 +689,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SetViewTailMode(false);
 		}
 
-		void IViewEvents.OnDrawingError(Exception e)
+		void IViewModel.OnDrawingError(Exception e)
 		{
 			if (!drawingErrorReported)
 			{
@@ -699,29 +699,29 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 
-		bool IPresentationDataAccess.ShowTime { get { return showTime; } }
-		bool IPresentationDataAccess.ShowMilliseconds { get { return showMilliseconds; } }
-		bool IPresentationDataAccess.ShowRawMessages { get { return showRawMessages; } }
-		SelectionInfo IPresentationDataAccess.Selection { get { return Selection; } }
-		ColoringMode IPresentationDataAccess.Coloring { get { return coloring; } }
+		bool IViewModel.ShowTime { get { return showTime; } }
+		bool IViewModel.ShowMilliseconds { get { return showMilliseconds; } }
+		bool IViewModel.ShowRawMessages { get { return showRawMessages; } }
+		SelectionInfo IViewModel.Selection { get { return Selection; } }
+		ColoringMode IViewModel.Coloring { get { return coloring; } }
 
-		IHighlightingHandler IPresentationDataAccess.SearchResultHighlightingHandler => highlightingManager.SearchResultHandler;
+		IHighlightingHandler IViewModel.SearchResultHighlightingHandler => highlightingManager.SearchResultHandler;
 
-		IHighlightingHandler IPresentationDataAccess.SelectionHighlightingHandler => highlightingManager.SelectionHandler;
+		IHighlightingHandler IViewModel.SelectionHighlightingHandler => highlightingManager.SelectionHandler;
 
-		IHighlightingHandler IPresentationDataAccess.HighlightingFiltersHandler => highlightingManager.HighlightingFiltersHandler;
+		IHighlightingHandler IViewModel.HighlightingFiltersHandler => highlightingManager.HighlightingFiltersHandler;
 
-		FocusedMessageDisplayModes IPresentationDataAccess.FocusedMessageDisplayMode
+		FocusedMessageDisplayModes IViewModel.FocusedMessageDisplayMode
 		{
 			get { return focusedMessageDisplayMode; }
 		}
 
-		Tuple<int, int> IPresentationDataAccess.FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx)
+		Tuple<int, int> IViewModel.FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx)
 		{
 			return FindSlaveModeFocusedMessagePositionInternal(beginIdx, endIdx);
 		}
 
-		IEnumerable<ViewLine> IPresentationDataAccess.GetViewLines(int beginIdx, int endIdx)
+		IEnumerable<ViewLine> IViewModel.GetViewLines(int beginIdx, int endIdx)
 		{
 			using (var bookmarksHandler = (model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler()))
 			{
@@ -736,17 +736,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		int IPresentationDataAccess.ViewLinesCount
+		int IViewModel.ViewLinesCount
 		{
 			get { return screenBuffer.Messages.Count; }
 		}
 
-		double IPresentationDataAccess.GetFirstDisplayMessageScrolledLines()
+		double IViewModel.GetFirstDisplayMessageScrolledLines()
 		{
 			return screenBuffer.TopLineScrollValue;
 		}
 
-		IChangeNotification IPresentationDataAccess.ChangeNotification => changeNotification;
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
 
 		#endregion
@@ -1064,8 +1064,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void AttachToView(IView view)
 		{
-			view.SetViewEvents(this);
-			view.SetPresentationDataAccess(this);
+			view.SetViewModel(this);
 		}
 
 		private void ReadGlobalSettings(IModel model)

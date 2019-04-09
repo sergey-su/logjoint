@@ -49,7 +49,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IScreenBuffer screenBuffer;
 		readonly LJTraceSource tracer;
 		readonly IClipboardAccess clipboard;
-		readonly IPresentationDataAccess presentationDataAccess;
+		readonly IViewModel presentationDataAccess;
 		readonly IWordSelection wordSelection;
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly IBookmarksFactory bookmarksFactory;
@@ -62,7 +62,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IView view,
 			IScreenBuffer screenBuffer,
 			LJTraceSource tracer,
-			IPresentationDataAccess presentationDataAccess,
+			IViewModel presentationDataAccess,
 			IClipboardAccess clipboard,
 			IScreenBufferFactory screenBufferFactory,
 			IBookmarksFactory bookmarksFactory,

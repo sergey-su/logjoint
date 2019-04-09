@@ -324,7 +324,7 @@ namespace LogJoint.UI
 
 	public class DrawContext
 	{
-		public IPresentationDataAccess Presenter;
+		public IViewModel Presenter;
 		public SizeF CharSize;
 		public double CharWidthDblPrecision;
 		public int LineHeight;
@@ -447,13 +447,13 @@ namespace LogJoint.UI
 			return lineCharIdx;
 		}
 
-		public static IEnumerable<ViewLine> GetVisibleMessagesIterator(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
+		public static IEnumerable<ViewLine> GetVisibleMessagesIterator(DrawContext drawContext, IViewModel presentationDataAccess, Rectangle viewRect)
 		{
 			var vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, viewRect);
 			return presentationDataAccess.GetViewLines(vl.begin, vl.end);
 		}
 
-		public static VisibleMessagesIndexes GetVisibleMessages(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
+		public static VisibleMessagesIndexes GetVisibleMessages(DrawContext drawContext, IViewModel presentationDataAccess, Rectangle viewRect)
 		{
 			VisibleMessagesIndexes rv;
 
@@ -472,7 +472,7 @@ namespace LogJoint.UI
 			return rv;
 		}
 
-		public static void PaintControl(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, 
+		public static void PaintControl(DrawContext drawContext, IViewModel presentationDataAccess, 
 			SelectionInfo selection, bool controlIsFocused, Rectangle dirtyRect, out int maxRight)
 		{
 			var drawingVisitor = new DrawingVisitor();
@@ -508,8 +508,8 @@ namespace LogJoint.UI
 			DrawFocusedMessageMark(drawContext, presentationDataAccess, messagesToDraw);
 		}
 
-		public static void DrawFocusedMessageMark(DrawContext drawContext, 
-			IPresentationDataAccess presentationDataAccess, VisibleMessagesIndexes messagesToDraw)
+		public static void DrawFocusedMessageMark(DrawContext drawContext,
+			IViewModel presentationDataAccess, VisibleMessagesIndexes messagesToDraw)
 		{
 			var dc = drawContext;
 			Image focusedMessageMark = null;
@@ -569,10 +569,10 @@ namespace LogJoint.UI
 
 
 		public static void MouseDownHelper(
-			IPresentationDataAccess presentationDataAccess,
+			IViewModel presentationDataAccess,
 			DrawContext drawContext,
 			Rectangle clientRectangle,
-			IViewEvents viewEvents,
+			IViewModel viewEvents,
 			Point pt,
 			MessageMouseEventFlag flags,
 			out bool captureTheMouse
@@ -614,10 +614,10 @@ namespace LogJoint.UI
 		};
 
 		public static void MouseMoveHelper(
-			IPresentationDataAccess presentationDataAccess,
+			IViewModel presentationDataAccess,
 			DrawContext drawContext,
 			Rectangle clientRectangle,
-			IViewEvents viewEvents,
+			IViewModel viewEvents,
 			Point pt,
 			bool isLeftDrag,
 			out CursorType newCursor
