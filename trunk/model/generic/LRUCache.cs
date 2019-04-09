@@ -8,12 +8,14 @@ namespace LogJoint
 		private readonly int capacity;
 		private readonly Dictionary<K, Entry> map = new Dictionary<K, Entry>();
 		private readonly LinkedList<K> lruKeys = new LinkedList<K>();
+		private readonly Action<V> destroyValue;
 
-		public LRUCache(int capacity)
+		public LRUCache(int capacity, Action<V> destroyValue = null)
 		{
 			if (capacity <= 0)
 				throw new ArgumentException("bad LRUCache capacity");
 			this.capacity = capacity;
+			this.destroyValue = destroyValue;
 		}
 
 		public V this[K key]
@@ -49,12 +51,15 @@ namespace LogJoint
 			if (map.TryGetValue(key, out var node))
 			{
 				Touch(node.keyNode);
+				destroyValue?.Invoke(node.value);
 				node.value = value;
 			}
 			else
 			{
 				if (map.Count >= capacity)
 				{
+					if (destroyValue != null)
+						destroyValue(map[lruKeys.First.Value].value);
 					map.Remove(lruKeys.First.Value);
 					lruKeys.RemoveFirst();
 				}
@@ -68,6 +73,9 @@ namespace LogJoint
 
 		public void Clear()
 		{
+			if (destroyValue != null)
+				foreach (var i in map)
+					destroyValue(i.Value.value);
 			lruKeys.Clear();
 			map.Clear();
 		}

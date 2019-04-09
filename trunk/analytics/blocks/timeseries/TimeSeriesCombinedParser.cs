@@ -48,7 +48,7 @@ namespace LogJoint.Analytics.TimeSeries
 		readonly ILookup<int, TSA.ILineParser> _parsers;
 		readonly ILookup<UInt32, TSA.ILineParser> _numericIdCapableParsers;
 
-		private Dictionary<Tuple<TSA.TimeSeriesDescriptor, string, string>, TimeSeriesData> _timeSeriesMap;
+		private Dictionary<(TSA.TimeSeriesDescriptor, string, string, string), TimeSeriesData> _timeSeriesMap;
 		private List<EventBase> _genericEventsList;
 
 		private bool _profilingEnabled;
@@ -160,7 +160,7 @@ namespace LogJoint.Analytics.TimeSeries
 
 		private void PrepareParsing()
 		{
-			_timeSeriesMap = new Dictionary<Tuple<TSA.TimeSeriesDescriptor, string, string>, TimeSeriesData>();
+			_timeSeriesMap = new Dictionary<(TSA.TimeSeriesDescriptor, string, string, string), TimeSeriesData>();
 			_genericEventsList = new List<EventBase>();
 			if (_profilingEnabled)
 			{
@@ -168,26 +168,30 @@ namespace LogJoint.Analytics.TimeSeries
 			}
 		}
 
-		private TS GetOrCreateTimeSeries(Tuple<TSA.TimeSeriesDescriptor, string, string> tsKey)
+		private TS GetOrCreateTimeSeries(
+			(TSA.TimeSeriesDescriptor descriptor, string dynamicName, string dynamicUnit, string objectId) tsKey)
 		{
-			TimeSeriesData ts;
-			if (!_timeSeriesMap.TryGetValue(tsKey, out ts))
+			if (!_timeSeriesMap.TryGetValue(tsKey, out var ts))
 			{
-				ts = new TimeSeriesData();
-				ts.Descriptor = tsKey.Item1;
-				ts.ObjectId = tsKey.Item3;
-				ts.Name = tsKey.Item2 ?? ts.Descriptor.Name;
-				ts.ObjectType = ts.Descriptor.ObjectType;
+				ts = new TS
+				{
+					Descriptor = tsKey.descriptor,
+					ObjectId = tsKey.objectId,
+					Name = tsKey.dynamicName ?? tsKey.descriptor.Name,
+					Unit = (tsKey.dynamicUnit ?? tsKey.descriptor.Unit) ?? "",
+					ObjectType = tsKey.descriptor.ObjectType
+				};
 				_timeSeriesMap.Add(tsKey, ts);
 			}
 
 			return ts;
 		}
 
-		void TSA.ILineParserVisitor.VisitTimeSeries(TSA.TimeSeriesDescriptor descriptor, string objectId, string dynamicName, double value)
+		void TSA.ILineParserVisitor.VisitTimeSeries(TSA.TimeSeriesDescriptor descriptor,
+			string objectId, string dynamicName, string dynamicUnit, double value)
 		{
 			_lastParserSucceeded = true;
-			var tsKey = Tuple.Create(descriptor, dynamicName, objectId);
+			var tsKey = (descriptor, dynamicName, dynamicUnit, objectId);
 			TS ts = GetOrCreateTimeSeries(tsKey);
 
 			ts.DataPoints.Add(new TSA.DataPoint()

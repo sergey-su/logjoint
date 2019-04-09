@@ -14,6 +14,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 	{
 		static readonly CancellationToken cancel = CancellationToken.None;
 		static readonly IBookmarksFactory bmks = new BookmarksFactory(Substitute.For<IChangeNotification>());
+		readonly static IChangeNotification changeNotification = Substitute.For<IChangeNotification>();
 
 		static DummyModel.DummySource CreateTestSource(
 			int messageSize = 123,
@@ -80,7 +81,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			{
 				var src = CreateTestSource();
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(3);
+				IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, 3);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
@@ -99,7 +100,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			{
 				var src = CreateTestSource(messagesCount: 2);
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(1);
+				IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, 1);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
@@ -118,7 +119,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			{
 				var src = CreateTestSource(messagesCount: 1, linesPerMessage: 2);
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(1);
+				IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, 1);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
@@ -136,7 +137,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			{
 				var src = CreateTestSource(messagesCount: 1, linesPerMessage: 3);
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(2);
+				IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, 2);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
@@ -160,7 +161,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			{
 				var src = CreateTestSource(linesPerMessage: 6);
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(3);
+				IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, 3);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
@@ -178,7 +179,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			{
 				var src = CreateTestSource(messagesCount: 1, linesPerMessage: 11);
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(10);
+				IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, 10);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
@@ -198,7 +199,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					var src = CreateTestSource(messagesCount: messagesCount, linesPerMessage: linesPerMessage);
 
-					IScreenBuffer screenBuffer = new ScreenBuffer(viewSize,
+					IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, viewSize,
 						disableSingleLogPositioningOptimization: disableSingleLogPositioningOptimization);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 
@@ -259,7 +260,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			{
 				var src = CreateTestSource(messagesCount: 1);
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(10);
+				IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, 10);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 
 				await screenBuffer.MoveToPosition(0, cancel);
@@ -285,7 +286,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 20);
-					screenBuffer = new ScreenBuffer(5.3);
+					screenBuffer = new ScreenBuffer(changeNotification, 5.3);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 				}
 
@@ -365,7 +366,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					src1 = CreateTestSource(messagesCount: 18, messagesPrefix: "a:");
 					src2 = CreateTestSource(messagesCount: 15, timestampShiftMillis: 50, messagesPrefix: "b:");
-					screenBuffer = new ScreenBuffer(5.3);
+					screenBuffer = new ScreenBuffer(changeNotification, 5.3);
 					await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
 				}
 
@@ -434,7 +435,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					src1 = CreateTestSource(messagesCount: 20, messagesPrefix: "a:");
 					src2 = CreateTestSource(messagesCount: 18, timestampShiftMillis: 7, messagesPrefix: "b:");
-					screenBuffer = new ScreenBuffer(6.3);
+					screenBuffer = new ScreenBuffer(changeNotification, 6.3);
 					await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
 				}
 
@@ -509,7 +510,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 2, linesPerMessage: 6);
-					screenBuffer = new ScreenBuffer(6.8);
+					screenBuffer = new ScreenBuffer(changeNotification, 6.8);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 				}
 
@@ -660,7 +661,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 7);
-					screenBuffer = new ScreenBuffer(9.2);
+					screenBuffer = new ScreenBuffer(changeNotification, 9.2);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 					await screenBuffer.MoveToStreamsEnd(cancel);
 				}
@@ -731,7 +732,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 20);
-					screenBuffer = new ScreenBuffer(4.6);
+					screenBuffer = new ScreenBuffer(changeNotification, 4.6);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 					await screenBuffer.MoveToStreamsEnd(cancel);
 				}
@@ -793,7 +794,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task ShouldLoadNothingIsViewSizeIsZero()
 				{
 					src = CreateTestSource(messagesCount: 20);
-					screenBuffer = new ScreenBuffer(0);
+					screenBuffer = new ScreenBuffer(changeNotification, 0);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 
 					await screenBuffer.MoveToBookmark(
@@ -819,7 +820,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 10, linesPerMessage: 3);
-					screenBuffer = new ScreenBuffer(4.4);
+					screenBuffer = new ScreenBuffer(changeNotification, 4.4);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 				}
 
@@ -875,7 +876,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task CanLoadExactMessageWhenViewIsLargerThanLog()
 				{
 					src = CreateTestSource(messagesCount: 2, linesPerMessage: 3);
-					screenBuffer = new ScreenBuffer(8.2);
+					screenBuffer = new ScreenBuffer(changeNotification, 8.2);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 
 					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch, cancel));
@@ -892,7 +893,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task CanLoadExactMessageWhenViewIsLargerThanLogg_WithScrollingToTopMiddleOfScreen()
 				{
 					src = CreateTestSource(messagesCount: 2, linesPerMessage: 3);
-					screenBuffer = new ScreenBuffer(8.2);
+					screenBuffer = new ScreenBuffer(changeNotification, 8.2);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 
 					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel));
@@ -997,7 +998,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					src1 = CreateTestSource(messagesCount: 10, linesPerMessage: 3, messagesPrefix: "a");
 					src2 = CreateTestSource(messagesCount: 10, linesPerMessage: 2, messagesPrefix: "b");
-					screenBuffer = new ScreenBuffer(4.4);
+					screenBuffer = new ScreenBuffer(changeNotification, 4.4);
 					await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
 				}
 
@@ -1057,7 +1058,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					src1 = CreateTestSource(messagesCount: 20, linesPerMessage: 1, messagesPrefix: "a", messagesPerTimestamp: 10);
 					src2 = CreateTestSource(messagesCount: 20, linesPerMessage: 1, messagesPrefix: "b", messagesPerTimestamp: 10);
-					screenBuffer = new ScreenBuffer(3);
+					screenBuffer = new ScreenBuffer(changeNotification, 3);
 					await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
 
 					await screenBuffer.MoveToBookmark(
@@ -1091,7 +1092,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 20);
-					screenBuffer = new ScreenBuffer(6.8);
+					screenBuffer = new ScreenBuffer(changeNotification, 6.8);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 					await screenBuffer.MoveToStreamsEnd(cancel);
 					VerifyMessages(screenBuffer,
@@ -1175,7 +1176,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 5, linesPerMessage: 10);
-					screenBuffer = new ScreenBuffer(6.8);
+					screenBuffer = new ScreenBuffer(changeNotification, 6.8);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 					await screenBuffer.MoveToStreamsEnd(cancel);
 					VerifyMessages(screenBuffer,
@@ -1231,7 +1232,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task Setup()
 				{
 					src = CreateTestSource(messagesCount: 10, linesPerMessage: 5);
-					screenBuffer = new ScreenBuffer(5.6);
+					screenBuffer = new ScreenBuffer(changeNotification, 5.6);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 				}
 
@@ -1276,7 +1277,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					src1 = CreateTestSource(messagesCount: 5, linesPerMessage: 2, messagesPrefix: "a");
 					src2 = CreateTestSource(messagesCount: 5, linesPerMessage: 2, messagesPrefix: "b");
-					screenBuffer = new ScreenBuffer(5.3);
+					screenBuffer = new ScreenBuffer(changeNotification, 5.3);
 					await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
 				}
 
@@ -1334,7 +1335,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			public async Task Setup()
 			{
 				src = CreateTestSource(messagesCount: 10, linesPerMessage: 2, rawLinesPerMessage: 3);
-				screenBuffer = new ScreenBuffer(3.3);
+				screenBuffer = new ScreenBuffer(changeNotification, 3.3);
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 			}
@@ -1349,14 +1350,14 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					1-ln_1
 					2-ln_0", 0.1);
 
-				await screenBuffer.SetRawLogMode(true, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, cancel);
 				VerifyMessages(screenBuffer,
 					@"0-rln_1
 					0-rln_2
 					1-rln_0
 					1-rln_1", 0.1, verifyRaw: true);
 
-				await screenBuffer.SetRawLogMode(false, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, cancel);
 				VerifyMessages(screenBuffer,
 					@"0-ln_1
 					1-ln_0
@@ -1374,7 +1375,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					9-ln_0
 					9-ln_1", 0.7);
 
-				await screenBuffer.SetRawLogMode(true, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, cancel);
 				VerifyMessages(screenBuffer,
 					@"8-rln_0
 					8-rln_1
@@ -1382,7 +1383,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					9-rln_0", 0.7, verifyRaw: true);
 
 				await screenBuffer.MoveToStreamsEnd(cancel);
-				await screenBuffer.SetRawLogMode(false, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, cancel);
 				VerifyMessages(screenBuffer,
 					@"8-ln_0
 					8-ln_1

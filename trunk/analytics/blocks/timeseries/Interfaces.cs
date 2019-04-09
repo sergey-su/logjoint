@@ -64,9 +64,14 @@ namespace LogJoint.Analytics.TimeSeries
 		public string ObjectType { get; set; }
 
 		/// <summary>
-		/// The unit of each data point in the time series.
+		/// The static unit of each data point in the time series.
 		/// </summary>
 		public string Unit { get; set; }
+
+		/// <summary>
+		/// Name of the group to obtain unit from dynamically.
+		/// </summary>
+		public string UnitFromGroup { get; set; }
 
 		/// <summary>
 		/// Example log lines that this time series is parsed from.
@@ -121,6 +126,11 @@ namespace LogJoint.Analytics.TimeSeries
 		/// The name of the Timeseries.
 		/// </summary>
 		public string Name { get; set; }
+
+		/// <summary>
+		/// Unit of all datapoints in the Timeseries
+		/// </summary>
+		public string Unit { get; set; }
 
 		/// <summary>
 		/// The name of the classifier
@@ -264,7 +274,8 @@ namespace LogJoint.Analytics.TimeSeries
 
 	public interface ILineParserVisitor
 	{
-		void VisitTimeSeries(TimeSeriesDescriptor descriptor, string objectId, string dynamicName, double value);
+		void VisitTimeSeries(TimeSeriesDescriptor descriptor, string objectId,
+			string dynamicName, string dynamicUnit, double value);
 
 		void VisitEvent(EventBase e);
 	}

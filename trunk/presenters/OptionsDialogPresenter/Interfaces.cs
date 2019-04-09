@@ -89,7 +89,7 @@ namespace LogJoint.UI.Presenters.Options
 
 	namespace Appearance
 	{
-		public interface IPresenter
+		public interface IPresenter: IDisposable
 		{
 			bool Apply();
 		};

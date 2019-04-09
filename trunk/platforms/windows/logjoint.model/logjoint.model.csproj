@@ -971,8 +971,11 @@
     <Compile Include="..\..\..\model\tracing\MemBufferTraceAccess.cs">
       <Link>tracing\MemBufferTraceAccess.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\tracing\ProfilingTracing.cs">
-      <Link>tracing\ProfilingTracing.cs</Link>
+    <Compile Include="..\..\..\model\tracing\ProfilingCounters.cs">
+      <Link>tracing\ProfilingCounters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tracing\ProfilingOperation.cs">
+      <Link>tracing\ProfilingOperation.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\tracing\TraceListener.cs">
       <Link>tracing\TraceListener.cs</Link>

@@ -29,7 +29,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// Gets the list of sources previously set by <see cref="SetSources(IEnumerable{IMessagesSource}, CancellationToken)"/>.
 		/// </summary>
-		IEnumerable<SourceScreenBuffer> Sources { get; }
+		IReadOnlyList<SourceScreenBuffer> Sources { get; }
 
 		/// <summary>
 		/// Updates the size of view the buffer needs to fill with log lines. Size can be zero in which case the buffer will contain one line.
@@ -48,8 +48,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// The passed value is accepted always synchronously. Cancellation only affects
 		/// reloading that follow the change.
 		/// </summary>
-		Task SetRawLogMode(bool isRawMode, CancellationToken cancellation);
-		bool IsRawLogMode { get; }
+		Task SetDisplayTextGetter(MessageTextGetter displayTextGetter, CancellationToken cancellation);
+		MessageTextGetter DisplayTextGetter { get; }
 
 		/// <summary>
 		/// List of log lines the buffer is filled with.

@@ -8,10 +8,11 @@ using System.Threading;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using System.Threading.Tasks;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public interface IPresenter
+	public interface IPresenter: IDisposable
 	{
 		LogFontSize FontSize { get; set; }
 		string FontName { get; set; }
@@ -49,7 +50,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task SelectSlaveModeFocusedMessage();
 
 		Task<string> GetSelectedText(); // func is async when selected text is not on the screen atm
-		void ClearSelection();
 		Task CopySelectionToClipboard();
 		bool IsSinglelineNonEmptySelection { get; }
 
@@ -129,9 +129,50 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public struct ViewLine
 	{
 		public int LineIndex;
-		public IMessage Message;
-		public int TextLineIndex;
+		public string Time;
+		public string TextLineValue;
 		public bool IsBookmarked;
+		public SeverityIcon Severity;
+		public ModelColor? BackgroundColor;
+		public (int, int)? SelectedBackground;
+		public int? CursorCharIndex;
+		public bool HasMessageSeparator;
+		public IEnumerable<(int, int, FilterAction)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, FilterAction)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, FilterAction)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
+
+		internal IMessage Message;
+		internal int TextLineIndex;
+		internal StringUtils.MultilineText Text;
+		internal IHighlightingHandler searchResultHighlightingHandler;
+		internal IHighlightingHandler selectionHighlightingHandler;
+		internal IHighlightingHandler highlightingFiltersHandler;
+
+		public static (int relativeOrder, bool changed) Compare(ViewLine vl1, ViewLine vl2)
+		{
+			int cmp = MessagesComparer.Compare(vl1.Message, vl2.Message);
+			if (cmp != 0)
+				return (cmp, false);
+			cmp = vl1.TextLineIndex - vl2.TextLineIndex;
+			if (cmp != 0)
+				return (cmp, false);
+			var unchanged =
+				vl1.IsBookmarked == vl2.IsBookmarked
+			 && vl1.SelectedBackground == vl2.SelectedBackground
+			 && vl1.BackgroundColor == vl2.BackgroundColor
+			 && vl1.CursorCharIndex == vl2.CursorCharIndex
+			 && vl1.TextLineValue == vl2.TextLineValue
+			 && vl1.Time == vl2.Time;
+			// todo: filters
+			return (0, unchanged);
+		}
+	};
+
+	public enum SeverityIcon
+	{
+		None,
+		Error,
+		Warning
 	};
 
 	[Flags]
@@ -166,34 +207,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IView : IViewFonts
 	{
-		void SetViewEvents(IViewEvents viewEvents);
-		void SetPresentationDataAccess(IPresentationDataAccess presentationDataAccess);
+		void SetViewModel(IViewModel viewEvents);
 		float DisplayLinesPerPage { get; }
-		void SetVScroll(double? value);
-		void UpdateFontDependentData(string fontName, LogFontSize fontSize);
-		void HScrollToSelectedText(SelectionInfo selection);
-		void Invalidate();
-		void InvalidateLine(ViewLine line);
-		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
-		void RestartCursorBlinking();
-		void AnimateSlaveMessagePosition();
-		void UpdateMillisecondsModeDependentData();
+		void HScrollToSelectedText(int charIndex);
 		bool HasInputFocus { get; }
 		void ReceiveInputFocus();
-
-		// todo: review if methods below are still valid
-		object GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection);
+		object GetContextMenuPopupData(int? viewLineIndex);
 		void PopupContextMenu(object contextMenuPopupData);
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
-		void OnDisplayLinesPerPageChanged();
+		IChangeNotification ChangeNotification { get; }
+
 		void OnIncrementalVScroll(float nrOfDisplayLines);
 		void OnVScroll(double value, bool isRealtimeScroll);
 		void OnHScroll();
 		void OnMouseWheelWithCtrl(int delta);
-		void OnCursorTimerTick();
 		void OnKeyPressed(Key k);
 		MenuData OnMenuOpening();
 		void OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked = null);
@@ -203,32 +233,29 @@ namespace LogJoint.UI.Presenters.LogViewer
 			MessageMouseEventFlag flags,
 			object preparedContextMenuPopupData);
 		void OnDrawingError(Exception e);
-	};
 
-	public interface IPresentationDataAccess
-	{
-		int ViewLinesCount { get; }
-		IEnumerable<ViewLine> GetViewLines(int beginIdx, int endIdx);
-		double GetFirstDisplayMessageScrolledLines();
-		bool ShowTime { get; }
-		bool ShowMilliseconds { get; }
-		bool ShowRawMessages { get; }
-		SelectionInfo Selection { get; }
-		ColoringMode Coloring { get; }
-		FocusedMessageDisplayModes FocusedMessageDisplayMode { get; }
-		IHighlightingHandler SelectionHighlightingHandler { get; }
-		IHighlightingHandler SearchResultHighlightingHandler { get; }
-		IHighlightingHandler HighlightingFiltersHandler { get; }
-		Tuple<int, int> FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx);
-		IChangeNotification ChangeNotification { get; }
-	};
-
-	public interface IHighlightingHandler
-	{
 		/// <summary>
-		/// Enumerates ranges of Message's test that need highlighting. Only the ranges overlapping passed interval as enumerated.
+		/// Collection of lines that should be displayed on the view.
+		/// Whenever the collection changes, view needs to be re-rendered.
 		/// </summary>
-		IEnumerable<(int, int, FilterAction)> GetHighlightingRanges(IMessage msg, int intervalBegin, int intervalEnd);
+		ImmutableArray<ViewLine> ViewLines { get; }
+		string ViewLinesAggregaredText { get; }
+		double FirstDisplayMessageScrolledLines { get; }
+		/// <summary>
+		/// Max length of string representing view line time. <see cref="ViewLine.Time"/>.
+		/// Zero if time should not be rendered.
+		/// </summary>
+		int TimeMaxLength { get; }
+		/// <summary>
+		/// Returns null if focused message mark is not visible.
+		/// Returns array with one number if focused message mark is large (master view). 0-th item is view line index.
+		/// Returns array with three numbers if focused message mark is small (slave view). 0-th and 1-st items are view line indexes. 2-nd item is animation stage.
+		/// </summary>
+		int[] FocusedMessageMark { get; }
+		FontData Font { get; }
+		LJTraceSource Trace { get; }
+		double? VerticalScrollerPosition { get; }
+		string EmptyViewMessage { get; }
 	};
 
 	public class MenuData
@@ -242,6 +269,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			public Action Click;
 		};
 		public List<ExtendedItem> ExtendededItems;
+	};
+
+	public class FontData
+	{
+		public string Name { get; private set; }
+		public LogFontSize Size { get; private set; }
+		public FontData(string name = null, LogFontSize size = LogFontSize.Normal)
+		{
+			Name = name;
+			Size = size;
+		}
 	};
 
 	public interface IMessagesSource

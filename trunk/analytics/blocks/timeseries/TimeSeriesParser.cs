@@ -79,7 +79,12 @@ namespace LogJoint.Analytics.TimeSeries
                 {
                     dynamicName = match.Groups[ts.NameFromGroup].Value;
                 }
-                visitor.VisitTimeSeries(ts, objectId, dynamicName, numVal);
+				string dynamicUnit = null;
+				if (ts.UnitFromGroup != null)
+				{
+					dynamicUnit = match.Groups[ts.UnitFromGroup].Value;
+				}
+				visitor.VisitTimeSeries(ts, objectId, dynamicName, dynamicUnit, numVal);
             }
         }
 

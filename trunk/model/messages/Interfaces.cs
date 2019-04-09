@@ -21,15 +21,8 @@ namespace LogJoint
 		StringSlice RawText { get; }
 		StringUtils.MultilineText RawTextAsMultilineText { get; }
 
-		void Visit(IMessageVisitor visitor);
-
 		void SetPosition(long position, long endPosition);
 		void ReallocateTextBuffer(IStringSliceReallocator alloc);
-	};
-
-	public interface IMessageVisitor
-	{
-		void Visit(IMessage msg);
 	};
 
 	[Flags]
@@ -61,5 +54,15 @@ namespace LogJoint
 			this.Index = idx;
 			this.Message = m;
 		}
+	};
+
+	public delegate StringUtils.MultilineText MessageTextGetter(IMessage message);
+
+	public static class MessageTextGetters
+	{
+		public static MessageTextGetter SummaryTextGetter = MessageExtentions.GetText;
+		public static MessageTextGetter RawTextGetter = MessageExtentions.GetRawText;
+
+		public static MessageTextGetter Get(bool rawTextGetter) => rawTextGetter ? RawTextGetter : SummaryTextGetter;
 	};
 }

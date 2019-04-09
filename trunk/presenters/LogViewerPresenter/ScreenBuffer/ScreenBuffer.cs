@@ -6,22 +6,34 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using LogJoint.Analytics;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	public class ScreenBuffer: IScreenBuffer
 	{
 		internal ScreenBuffer(
+			IChangeNotification changeNotification,
 			double viewSize,
 			LJTraceSource trace = null,
 			bool disableSingleLogPositioningOptimization = false
 		)
 		{
+			this.changeNotification = changeNotification;
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
-			this.entries = new List<ScreenBufferEntry>();
-			this.entriesReadonly = entries.AsReadOnly();
+			this.entries = ImmutableArray.Create<ScreenBufferEntry>();
 			this.disableSingleLogPositioningOptimization = disableSingleLogPositioningOptimization;
 			this.trace = trace ?? LJTraceSource.EmptyTracer;
+			this.sources = Selectors.Create(
+				() => buffersVersion,
+				_ => (IReadOnlyList<SourceScreenBuffer>)ImmutableArray.CreateRange(buffers.Select(b => new SourceScreenBuffer
+				{
+					Source = b.Key,
+					Begin = b.Value.BeginPosition,
+					End = b.Value.EndPosition
+				}))
+			);
+			this.bufferPosition = CreateBufferPositionSelector();
 			this.SetViewSize(viewSize);
 		}
 
@@ -33,8 +45,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 
 			var oldBuffers = buffers;
-			buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics, isRawLogMode));
+			buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics, displayTextGetter));
 			bool needsClear = false;
+			if (!buffers.Keys.ToHashSet().SetEquals(oldBuffers.Keys))
+			{
+				buffersVersion++;
+				changeNotification.Post();
+			}
 
 			if (!currentTop.IsEmpty)
 			{
@@ -72,8 +89,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			if (needsClear)
 			{
-				entries.Clear();
+				entries = entries.Clear();
 				SetScrolledLines(0);
+				changeNotification.Post();
 			}
 		}
 
@@ -85,14 +103,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(sz), cancellation))), 				getPivotLine: MakePivotLineGetter(l => 				{ 					if (currentTop.IsEmpty) 						return 0; 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex) 						return -scrolledLines; 					return null; 				})
 			); 		}
 
-		Task IScreenBuffer.SetRawLogMode(bool isRawMode, CancellationToken cancellation)
+		Task IScreenBuffer.SetDisplayTextGetter(MessageTextGetter displayTextGetter, CancellationToken cancellation)
 		{
-			if (this.isRawLogMode == isRawMode)
+			if (this.displayTextGetter == displayTextGetter)
 				return Task.FromResult(0);
-			this.isRawLogMode = isRawMode;
+			this.displayTextGetter = displayTextGetter;
+			changeNotification.Post();
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 			return PerformBuffersTransaction(
-				string.Format("SetRawLogMode({0})", isRawMode),
+				string.Format("SetDisplayTextGetter({0})", displayTextGetter),
 				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))), 				getPivotLine: (lines, bufs) => 				{ 					var candidate = new DisplayLine();
 					if (!currentTop.IsEmpty)
 					{
@@ -104,7 +123,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (candidate.IsEmpty)
 						return null; 					return Tuple.Create(candidate, -scrolledLines); 				} 			); 		}
 
-		bool IScreenBuffer.IsRawLogMode { get { return isRawLogMode; } }
+		MessageTextGetter IScreenBuffer.DisplayTextGetter { get { return displayTextGetter; } }
 
 		double IScreenBuffer.TopLineScrollValue 
 		{
@@ -116,23 +135,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SetScrolledLines(0);
 		}
 
-		IReadOnlyList<ScreenBufferEntry> IScreenBuffer.Messages
-		{
-			get { return entriesReadonly; }
-		}
+		IReadOnlyList<ScreenBufferEntry> IScreenBuffer.Messages => entries;
 
-		IEnumerable<SourceScreenBuffer> IScreenBuffer.Sources
-		{
-			get
-			{
-				return buffers.Select(b => new SourceScreenBuffer()
-				{
-					Source = b.Key, 
-					Begin = b.Value.BeginPosition,
-					End = b.Value.EndPosition
-				});
-			}
-		}
+		IReadOnlyList<SourceScreenBuffer> IScreenBuffer.Sources => sources();
 
 		Task IScreenBuffer.MoveToStreamsBegin(CancellationToken cancellation)
 		{
@@ -271,31 +276,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return -saveScrolledLines - pivotLinePosition.Value;
 		}
 
-		double IScreenBuffer.BufferPosition
-		{
-			get
-			{
-				long totalScrollLength = buffers.Values.Aggregate(0L, (agg, src) => agg + src.Source.ScrollPositionsRange.Length);
-				if (totalScrollLength == 0 || ViewIsTooSmall())
-					return 0;
-				foreach (var i in GetBufferZippedWithScrollPositions(buffers.Values, EnumScreenBufferLines(buffers.Values)))
-				{
-					var lineScrollPosEnd = i.ScrollPositionEnd / (double)totalScrollLength;
-					var lineViewPosEnd = ((double)i.Index + 1 - scrolledLines) / viewSize;
-					if (lineViewPosEnd >= lineScrollPosEnd)
-					{
-						var lb = i.ScrollPositionBegin / (double)totalScrollLength;
-						var le = lineScrollPosEnd;
-
-						var vb = ((double)i.Index - scrolledLines) / viewSize;
-						var ve = lineViewPosEnd;
-
-						return vb + (lb - vb) * (ve - vb) / (ve - vb - le + lb);
-					}
-				}
-				return 0;
-			}
-		}
+		double IScreenBuffer.BufferPosition => bufferPosition();
 
 		Task IScreenBuffer.MoveToPosition(
 			double position,
@@ -313,10 +294,41 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var ret = new StringBuilder();
 			foreach (var e in entries)
 			{
-				e.Message.GetDisplayText(isRawLogMode).GetNthTextLine(e.TextLineIndex).Append(ret);
+				displayTextGetter(e.Message).GetNthTextLine(e.TextLineIndex).Append(ret);
 				ret.AppendLine();
 			}
 			return ret.ToString();
+		}
+
+		Func<double> CreateBufferPositionSelector()
+		{
+			return Selectors.Create(
+				() => buffersVersion,
+				() => entries,
+				() => viewSize,
+				() => buffers.Values.Aggregate(0L, (agg, src) => agg + src.Source.ScrollPositionsRange.Length),
+				(_1, _2, _3, totalScrollLength) =>
+				{
+					if (totalScrollLength == 0 || ViewIsTooSmall())
+						return 0;
+					foreach (var i in GetBufferZippedWithScrollPositions(buffers.Values, EnumScreenBufferLines(buffers.Values)))
+					{
+						var lineScrollPosEnd = i.ScrollPositionEnd / (double)totalScrollLength;
+						var lineViewPosEnd = ((double)i.Index + 1 - scrolledLines) / viewSize;
+						if (lineViewPosEnd >= lineScrollPosEnd)
+						{
+							var lb = i.ScrollPositionBegin / (double)totalScrollLength;
+							var le = lineScrollPosEnd;
+
+							var vb = ((double)i.Index - scrolledLines) / viewSize;
+							var ve = lineViewPosEnd;
+
+							return vb + (lb - vb) * (ve - vb) / (ve - vb - le + lb);
+						}
+					}
+					return 0;
+				}
+			);
 		}
 
 		static IEnumerable<DisplayLine> EnumScreenBufferLines(IEnumerable<IMessagesCollection> colls)
@@ -460,6 +472,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (sz < 0)
 				throw new ArgumentOutOfRangeException("view size");
 			viewSize = sz;
+			changeNotification.Post();
 		}
 
 		OperationTracker CreateTrackerForNewOperation(string operationName, CancellationToken operationCancellation)
@@ -486,6 +499,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (value < 0 || value >= 1d)
 				throw new ArgumentOutOfRangeException();
 			scrolledLines = value;
+			changeNotification.Post();
 		}
 
 		static ScreenBufferEntry ToScreenBufferMessage(MessagesContainers.MergingCollectionEntry m)
@@ -529,7 +543,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			using (name != null ? CreateTrackerForNewOperation(name, cancellation) : null)
 			{
-				var tmpCopy = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value, isRawLogMode));
+				var tmpCopy = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value, displayTextGetter));
 				await modifyBuffers(tmpCopy.Values);
 				cancellation.ThrowIfCancellationRequested();
 				return FinalizeTransaction(tmpCopy, getPivotLine);
@@ -584,8 +598,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 
 					buffers = tmpCopy;
-					entries.Clear();
-					entries.AddRange(MakeMergingCollection(tmpCopy.Values).Forward(0, bufferSize).Select(ToScreenBufferMessage));
+					entries = ImmutableArray.CreateRange(MakeMergingCollection(tmpCopy.Values).Forward(0, bufferSize).Select(ToScreenBufferMessage));
+					changeNotification.Post();
 
 					SetScrolledLines(topLineScroll);
 
@@ -644,20 +658,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return (int)Math.Ceiling(viewSize) + 1;
 		}
 
+		readonly IChangeNotification changeNotification;
 		readonly bool disableSingleLogPositioningOptimization;
 		readonly LJTraceSource trace;
 		OperationTracker currentOperationTracker;
 		readonly bool profilingEnabled = true;
 
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
-		bool isRawLogMode;
+		MessageTextGetter displayTextGetter = MessageTextGetters.SummaryTextGetter;
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
+		int buffersVersion;
+		Func<IReadOnlyList<SourceScreenBuffer>> sources;
 		double scrolledLines; // scrolling position as nr of lines. [0..1)
 
 		// computed values
-		List<ScreenBufferEntry> entries;
-		IReadOnlyList<ScreenBufferEntry> entriesReadonly;
+		ImmutableArray<ScreenBufferEntry> entries;
+		Func<double> bufferPosition;
 
 		readonly Diagnostics diagnostics = new Diagnostics();
 	};

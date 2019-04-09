@@ -9,18 +9,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	class SourceBuffer : IMessagesCollection
 	{
-		public SourceBuffer(IMessagesSource src, Diagnostics diagnostics, bool isRawLogMode)
+		public SourceBuffer(IMessagesSource src, Diagnostics diagnostics, MessageTextGetter displayTextGetter)
 		{
 			this.source = src;
 			this.diagnostics = diagnostics;
-			this.isRawLogMode = isRawLogMode;
+			this.displayTextGetter = displayTextGetter;
 		}
 
-		public SourceBuffer(SourceBuffer other, bool isRawLogMode)
+		public SourceBuffer(SourceBuffer other, MessageTextGetter displayTextGetter)
 		{
 			this.source = other.source;
-			this.isRawLogMode = isRawLogMode;
-			if (other.isRawLogMode == this.isRawLogMode)
+			this.displayTextGetter = displayTextGetter;
+			if (other.displayTextGetter == this.displayTextGetter)
 			{
 				this.beginPosition = other.beginPosition;
 				this.endPosition = other.endPosition;
@@ -65,7 +65,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var range1 = new ScreenBufferLinesRange
 				{
 					Lines = Enumerable.Range(firstLine.LineIndex - existingNrOfLines, existingNrOfLines)
-						.Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, isRawLogMode, source)).ToList(),
+						.Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, displayTextGetter, source)).ToList(),
 					BeginPosition = firstLine.Message.Position,
 					EndPosition = BeginPosition
 				};
@@ -75,16 +75,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (nrOfLines > 0)
 			{
 				var range2 = await GetScreenBufferLines(Source, BeginPosition, nrOfLines,
-					EnumMessagesFlag.Backward, isRawLogMode, diagnostics, cancellation);
+					EnumMessagesFlag.Backward, displayTextGetter, diagnostics, cancellation);
 				Prepend(range2);
 			}
 		}
 
 		public async Task LoadAt(DateTime date, int nrOfLines, CancellationToken cancellation)
 		{
-			var r1 = await GetScreenBufferLines(source, date, nrOfLines, isRawLogMode, diagnostics, cancellation);
+			var r1 = await GetScreenBufferLines(source, date, nrOfLines, displayTextGetter, diagnostics, cancellation);
 			var r2 = await GetScreenBufferLines(source, r1.BeginPosition, nrOfLines,
-					EnumMessagesFlag.Backward, isRawLogMode, diagnostics, cancellation);
+					EnumMessagesFlag.Backward, displayTextGetter, diagnostics, cancellation);
 			Set(r1);
 			Prepend(r2);
 		}
@@ -98,7 +98,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var range1 = new ScreenBufferLinesRange
 				{
 					Lines = Enumerable.Range(lastLine.LineIndex + 1, existingNrOfLines).Select(ln => new DisplayLine(
-						lastLine.Message, ln, lastLine.TotalLinesInMessage, isRawLogMode, source)).ToList(),
+						lastLine.Message, ln, lastLine.TotalLinesInMessage, displayTextGetter, source)).ToList(),
 					BeginPosition = EndPosition,
 					EndPosition = lastLine.Message.EndPosition
 				};
@@ -108,7 +108,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (nrOfLines > 0)
 			{
 				var range2 = await GetScreenBufferLines(Source, EndPosition, nrOfLines,
-					EnumMessagesFlag.Forward, isRawLogMode, diagnostics, cancellation);
+					EnumMessagesFlag.Forward, displayTextGetter, diagnostics, cancellation);
 				Append(range2);
 			}
 		}
@@ -117,9 +117,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation, bool doNotCountFirstMessage = false)
 		{
 			var range1 = await GetScreenBufferLines(source, position, nrOfLines,
-				EnumMessagesFlag.Forward, isRawLogMode, diagnostics, cancellation, doNotCountFirstMessage);
+				EnumMessagesFlag.Forward, displayTextGetter, diagnostics, cancellation, doNotCountFirstMessage);
 			var range2 = await GetScreenBufferLines(source, range1.BeginPosition, nrOfLines,
-				EnumMessagesFlag.Backward, isRawLogMode, diagnostics, cancellation, doNotCountFirstMessage);
+				EnumMessagesFlag.Backward, displayTextGetter, diagnostics, cancellation, doNotCountFirstMessage);
 			Set(range2);
 			Append(range1);
 		}
@@ -204,7 +204,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			long startFrom,
 			int maxCount,
 			EnumMessagesFlag flags,
-			bool rawLogMode,
+			MessageTextGetter displayTextGetter,
 			Diagnostics diag,
 			CancellationToken cancellation,
 			bool doNotCountFirstMessage = false // todo: needed?
@@ -216,13 +216,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var linesToIgnore = 0;
 			await src.EnumMessages(startFrom, msg =>
 			{
-				var messagesLinesCount = msg.GetDisplayText(rawLogMode).GetLinesCount();
+				var messagesLinesCount = displayTextGetter(msg).GetLinesCount();
 				if (backward)
 					for (int i = messagesLinesCount - 1; i >= 0; --i)
-						lines.Add(new DisplayLine(msg, i, messagesLinesCount, rawLogMode, src));
+						lines.Add(new DisplayLine(msg, i, messagesLinesCount, displayTextGetter, src));
 				else
 					for (int i = 0; i < messagesLinesCount; ++i)
-						lines.Add(new DisplayLine(msg, i, messagesLinesCount, rawLogMode, src));
+						lines.Add(new DisplayLine(msg, i, messagesLinesCount, displayTextGetter, src));
 				if (diag.IsEnabled)
 					diag.VerifyLines(backward ? Enumerable.Reverse(lines) : lines, src.HasConsecutiveMessages);
 				++loadedMessages;
@@ -250,7 +250,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IMessagesSource src,
 			DateTime dt,
 			int maxCount,
-			bool rawLogMode,
+			MessageTextGetter displayTextGetter,
 			Diagnostics diag,
 			CancellationToken cancellation)
 		{
@@ -263,9 +263,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				startFrom.Position,
 				msg =>
 				{
-					var messagesLinesCount = msg.GetDisplayText(rawLogMode).GetLinesCount();
+					var messagesLinesCount = displayTextGetter(msg).GetLinesCount();
 					for (int i = 0; i < messagesLinesCount; ++i)
-						lines.Add(new DisplayLine(msg, i, messagesLinesCount, rawLogMode, src));
+						lines.Add(new DisplayLine(msg, i, messagesLinesCount, displayTextGetter, src));
 					var pastRequestedTime = msg.Time.ToLocalDateTime() > dt;
 					if (!pastRequestedTime)
 						return true;
@@ -332,7 +332,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly Diagnostics diagnostics;
 		readonly string loggableId;
 		readonly IMessagesSource source;
-		readonly bool isRawLogMode;
+		readonly MessageTextGetter displayTextGetter;
 		readonly List<DisplayLine> lines = new List<DisplayLine>();
 		long beginPosition;
 		long endPosition;

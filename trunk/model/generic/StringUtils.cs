@@ -150,6 +150,11 @@ namespace LogJoint
 				}
 				return lines;
 			}
+
+			public override string ToString()
+			{
+				return Text.ToString();
+			}
 		}
 
 

@@ -23,7 +23,6 @@ namespace LogJoint
 			// Filters ignores following flags passed.
 			// Actually used values are provided later when filters are appied.
 			this.options.ReverseSearch = false;
-			this.options.SearchInRawText = false;
 
 			InvalidateName();
 		}
@@ -133,11 +132,11 @@ namespace LogJoint
 		}
 
 		IFilterBulkProcessing IFilter.StartBulkProcessing(
-			bool matchRawMessages, bool reverseMatchDirection, bool timeboxedMatching)
+			MessageTextGetter messageTextGetter, bool reverseMatchDirection, bool timeboxedMatching)
 		{
 			CheckDisposed();
 			var tmp = options;
-			tmp.SearchInRawText = matchRawMessages;
+			tmp.MessageTextGetter = messageTextGetter;
 			tmp.ReverseSearch = reverseMatchDirection;
 			return new BulkProcessing()
 			{

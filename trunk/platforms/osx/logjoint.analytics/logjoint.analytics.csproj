@@ -277,6 +277,9 @@
     <Compile Include="..\..\..\analytics\blocks\state\Extensions.cs">
       <Link>blocks\state\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\ljtrace\TimeSeriesEventsSources\ProfilingTimeSeriesEventsSource.cs">
+      <Link>blocks\ljtrace\TimeSeriesEventsSources\ProfilingTimeSeriesEventsSource.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blocks\" />
@@ -297,6 +300,7 @@
     <Folder Include="blocks\correlation\SolverCorrelator\ExternalSolver\" />
     <Folder Include="ortools\" />
     <Folder Include="blocks\timeseries\filters\" />
+    <Folder Include="blocks\ljtrace\TimeSeriesEventsSources\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\logjoint.ortoolswrp\prebuilt\libcvrptw_lib.dylib">

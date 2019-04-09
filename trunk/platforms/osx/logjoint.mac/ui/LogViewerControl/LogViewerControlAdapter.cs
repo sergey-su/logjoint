@@ -21,14 +21,17 @@ namespace LogJoint.UI
 {
 	public class LogViewerControlAdapter: NSResponder, IView
 	{
-		internal IViewEvents viewEvents;
-		internal IPresentationDataAccess presentationDataAccess;
+		internal IViewModel viewModel;
 		internal bool isFocused;
-		NSTimer animationTimer;
 		string drawDropMessage;
 		bool enableCursor = true;
+		Profiling.Counters drawingPerfCounters;
+		LJD.Graphics.PerformanceCounters graphicsCounters;
+		Profiling.Counters.CounterDescriptor controlPaintTimeCounter;
+		Profiling.Counters.CounterDescriptor controlPaintWidthCounter;
+		Profiling.Counters.CounterDescriptor controlPaintHeightCounter;
 
-		[Export("innerView")]
+		[Export ("innerView")]
 		public LogViewerControl InnerView { get; set;}
 
 
@@ -50,7 +53,6 @@ namespace LogJoint.UI
 			InnerView.Init(this);
 			InitScrollView();
 			InitDrawingContext();
-			InitCursorTimer();
 			InnerView.Menu = new NSMenu()
 			{
 				Delegate = new ContextMenuDelegate()
@@ -84,16 +86,6 @@ namespace LogJoint.UI
 			};
 		}
 
-		void InitCursorTimer()
-		{
-			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(500), _ =>
-			{
-				drawContext.CursorState = !drawContext.CursorState;
-				if (viewEvents != null)
-					viewEvents.OnCursorTimerTick();
-			});
-		}
-
 		void InitScrollView()
 		{
 			// without this vert. scrolling with touch gesture often gets stuck
@@ -103,8 +95,7 @@ namespace LogJoint.UI
 			ScrollView.PostsFrameChangedNotifications = true;
 			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, async ns =>
 			{
-				if (viewEvents != null)
-					viewEvents.OnDisplayLinesPerPageChanged();
+				viewModel?.ChangeNotification?.Post();
 				await Task.Yield(); // w/o this hack inner view is never painted until first resize
 				UpdateInnerViewSize();
 			}, ScrollView);
@@ -125,51 +116,46 @@ namespace LogJoint.UI
 
 		#region IView implementation
 
-		void IView.SetViewEvents(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
-		}
-
-		void IView.SetPresentationDataAccess(IPresentationDataAccess presentationDataAccess)
-		{
-			this.presentationDataAccess = presentationDataAccess;
-			this.drawContext.Presenter = presentationDataAccess;
-			var updater = Updaters.Create (
-				() => presentationDataAccess.HighlightingFiltersHandler,
-				() => presentationDataAccess.SelectionHighlightingHandler,
-				() => presentationDataAccess.SearchResultHighlightingHandler,
-				(_1, _2, _3) => { this.InnerView.NeedsDisplay = true; }
+			this.viewModel = viewModel;
+			this.drawContext.ViewModel = viewModel;
+			this.drawingPerfCounters = new Profiling.Counters (viewModel.Trace, "drawing");
+			this.graphicsCounters = LJD.Graphics.CreateCounters (drawingPerfCounters);
+			this.controlPaintTimeCounter = this.drawingPerfCounters.AddCounter ("paint", unit: "ms");
+			this.controlPaintWidthCounter = this.drawingPerfCounters.AddCounter ("width", unit: "pixel");
+			this.controlPaintHeightCounter = this.drawingPerfCounters.AddCounter ("height", unit: "pixel");
+			var viewUpdater = Updaters.Create (
+				() => viewModel.ViewLines,
+				() => viewModel.FocusedMessageMark,
+				(_1, _2) => { this.InnerView.NeedsDisplay = true; }
 			);
-			presentationDataAccess.ChangeNotification.CreateSubscription (updater);
+			var emptyViewMessageUpdater = Updaters.Create (
+				() => viewModel.EmptyViewMessage,
+				value => {
+					drawDropMessage = value;
+					DragDropIconView.Hidden = value == null;
+				}
+			);
+			var vScrollUpdater = Updaters.Create(
+				() => viewModel.VerticalScrollerPosition,
+				value => {
+					VertScroller.Enabled = value.HasValue;
+					VertScroller.KnobProportion = 0.0001f;
+					VertScroller.DoubleValue = value.GetValueOrDefault();
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				viewUpdater();
+				emptyViewMessageUpdater();
+				vScrollUpdater();
+			});
 		}
 
-		void IView.UpdateFontDependentData(string fontName, Appearance.LogFontSize fontSize)
+		void IView.HScrollToSelectedText(int charIndex)
 		{
-			if (drawContext.Font != null)
-				drawContext.Font.Dispose();
-			
-			drawContext.Font = new LJD.Font("monaco", 12);
-
-			using (var tmp = new LJD.Graphics()) // todo: consider reusing with windows
-			{
-				int count = 8 * 1024;
-				drawContext.CharSize = tmp.MeasureString(new string('0', count), drawContext.Font);
-				drawContext.CharWidthDblPrecision = (double)drawContext.CharSize.Width / (double)count;
-				drawContext.CharSize.Width /= (float)count;
-				drawContext.LineHeight = (int)Math.Floor(drawContext.CharSize.Height);
-			}
-
-			UpdateTimeAreaSize();
-		}
-
-		void IView.HScrollToSelectedText(SelectionInfo selection)
-		{
-			if (selection.First.Message == null)
-				return;
-
-			int pixelThatMustBeVisible = (int)(selection.First.LineCharIndex * drawContext.CharSize.Width);
-			if (drawContext.ShowTime)
-				pixelThatMustBeVisible += drawContext.TimeAreaSize;
+			int pixelThatMustBeVisible = (int)(charIndex * drawContext.CharSize.Width);
+			pixelThatMustBeVisible += drawContext.TimeAreaSize;
 
 			var pos = ScrollView.ContentView.Bounds.Location.ToPointF().ToPoint ();
 
@@ -188,7 +174,7 @@ namespace LogJoint.UI
 
 		}
 
-		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
+		object IView.GetContextMenuPopupData(int? viewLineIndex)
 		{
 			// todo
 			return null;
@@ -199,63 +185,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.Invalidate()
-		{
-			InnerView.NeedsDisplay = true;
-		}
-
-		void IView.InvalidateLine(ViewLine line)
-		{
-			Rectangle r = DrawingUtils.GetMetrics(line, drawContext).MessageRect;
-			InnerView.SetNeedsDisplayInRect(r.ToRectangleF().ToCGRect ());
-		}
-
-		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
-		{
-			drawDropMessage = messageToDisplayOrNull;
-			DragDropIconView.Hidden = messageToDisplayOrNull == null;
-		}
-
-		void IView.RestartCursorBlinking()
-		{
-			drawContext.CursorState = true;
-		}
-
-		void IView.UpdateMillisecondsModeDependentData()
-		{
-			UpdateTimeAreaSize();
-		}
-
-		void IView.AnimateSlaveMessagePosition()
-		{
-			drawContext.SlaveMessagePositionAnimationStep = 0;
-			InnerView.NeedsDisplay = true;
-			if (animationTimer != null)
-				animationTimer.Dispose();
-			animationTimer = NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(50), _ =>
-			{
-				if (drawContext.SlaveMessagePositionAnimationStep < 8)
-				{
-					drawContext.SlaveMessagePositionAnimationStep++;
-				}
-				else
-				{
-					animationTimer.Dispose();
-					animationTimer = null;
-					drawContext.SlaveMessagePositionAnimationStep = 0;
-				}
-				InnerView.NeedsDisplay = true;
-			});
-		}
-
 		float IView.DisplayLinesPerPage { get { return (float)ScrollView.Frame.Height / (float)drawContext.LineHeight; } }
-
-		void IView.SetVScroll(double? value)
-		{
-			VertScroller.Enabled = value.HasValue;
-			VertScroller.KnobProportion = 0.0001f;
-			VertScroller.DoubleValue = value.GetValueOrDefault();
-		}
 
 		bool IView.HasInputFocus
 		{
@@ -299,23 +229,37 @@ namespace LogJoint.UI
 
 		internal void OnPaint(RectangleF dirtyRect)
 		{
-			if (presentationDataAccess == null)
+			if (viewModel == null)
 				return;
-			
-			UpdateClientSize();
 
-			drawContext.Canvas = new LJD.Graphics();
-			drawContext.ScrollPos = new Point(0,
-				(int)(presentationDataAccess.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight));
+			var perfCountersWriter = drawingPerfCounters.GetWriter (
+				atMostOncePer: TimeSpan.FromMilliseconds (250));
+			using (perfCountersWriter.IncrementTicks (controlPaintTimeCounter)) {
+				if (!perfCountersWriter.IsNull) {
+					var sz = ScrollView.Frame.Size;
+					perfCountersWriter.Increment (controlPaintWidthCounter, (long)sz.Width);
+					perfCountersWriter.Increment (controlPaintHeightCounter, (long)sz.Height);
+				}
 
-			int maxRight;
-			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, isFocused, 
-				dirtyRect.ToRectangle(), out maxRight);
+				drawContext.Canvas.SetCurrentContext();
+				drawContext.Canvas.ConfigureProfiling (this.graphicsCounters, perfCountersWriter);
+				drawContext.ViewWidth = viewWidth;
+				drawContext.ScrollPos = new Point (0,
+					(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight));
+				drawContext.Canvas.EnableTextAntialiasing(false);
 
-			if (maxRight > viewWidth)
-			{
-				viewWidth = maxRight;
-				UpdateInnerViewSize();
+				int maxRight;
+				DrawingUtils.PaintControl (drawContext, viewModel, isFocused,
+					dirtyRect.ToRectangle (), out maxRight);
+
+				if (maxRight > viewWidth) {
+					viewWidth = maxRight;
+					UpdateInnerViewSize ();
+				}
+			}
+			if (!perfCountersWriter.IsNull) {
+				drawingPerfCounters.Report ();
+				drawingPerfCounters.ResetAll ();
 			}
 		}
 
@@ -323,7 +267,7 @@ namespace LogJoint.UI
 		{
 			bool isRegularMouseScroll = !e.HasPreciseScrollingDeltas;
 			nfloat multiplier = isRegularMouseScroll ? 20 : 1;
-			viewEvents.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
+			viewModel.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
 
 			var pos = ScrollView.ContentView.Bounds.Location;
 			InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
@@ -344,41 +288,50 @@ namespace LogJoint.UI
 				flags |= MessageMouseEventFlag.DblClick;
 			else
 				flags |= MessageMouseEventFlag.SingleClick;
-			
-			bool captureTheMouse;
 
 			DrawingUtils.MouseDownHelper(
-				presentationDataAccess,
+				viewModel,
 				drawContext,
 				ClientRectangle,
-				viewEvents,
 				InnerView.ConvertPointFromView (e.LocationInWindow, null).ToPoint(),
 				flags,
-				out captureTheMouse
+				out var _
 			);
 		}
 
 		internal void OnMouseMove(NSEvent e, bool dragging)
 		{
-			DrawingUtils.CursorType cursor;
 			DrawingUtils.MouseMoveHelper(
-				presentationDataAccess,
+				viewModel,
 				drawContext,
 				ClientRectangle,
-				viewEvents,
 				InnerView.ConvertPointFromView(e.LocationInWindow, null).ToPoint(),
 				dragging,
-				out cursor
+				out var _
 			);
 		}
 
 		void InitDrawingContext()
 		{
+			drawContext = new DrawContext(
+				fontData => {
+					var font = new LJD.Font(fontData.Name ?? "monaco",
+						(float)NSFont.SystemFontSizeForControlSize(NSControlSize.Small));
+					using (var tmp = new LJD.Graphics())
+					{
+						int count = 8 * 1024;
+						var charSize = tmp.MeasureString(new string('0', count), font);
+						double charWidth = (double)charSize.Width / (double)count;
+						charSize.Width /= (float)count;
+						return (font, charSize, charWidth);
+					}
+				}
+			);
+			drawContext.Canvas = new LJD.Graphics ();
 			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.White);
 			drawContext.InfoMessagesBrush = new LJD.Brush(Color.Black);
 			drawContext.CommentsBrush = new LJD.Brush(Color.Gray);
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
-			//drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
 			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
 			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 
@@ -396,42 +349,11 @@ namespace LogJoint.UI
 			drawContext.FocusedMessageSlaveIcon = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
 		}
 
-		void UpdateClientSize()
-		{
-			drawContext.ViewWidth = viewWidth;
-		}
-
 		[Export("OnVertScrollChanged")]
 		void OnVertScrollChanged()
 		{
-			viewEvents.OnVScroll(VertScroller.DoubleValue, isRealtimeScroll: true);
+			viewModel.OnVScroll(VertScroller.DoubleValue, isRealtimeScroll: true);
 		}
-
-		private static int ToFontEmSize(LogFontSize fontSize) // todo: review sizes
-		{
-			switch (fontSize)
-			{
-				case LogFontSize.SuperSmall: return 6;
-				case LogFontSize.ExtraSmall: return 7;
-				case LogFontSize.Small: return 8;
-				case LogFontSize.Large1: return 10;
-				case LogFontSize.Large2: return 11;
-				case LogFontSize.Large3: return 14;
-				case LogFontSize.Large4: return 16;
-				case LogFontSize.Large5: return 18;
-				default: return 14;
-			}
-		}
-
-		void UpdateTimeAreaSize()
-		{
-			string testStr = (new MessageTimestamp(new DateTime(2011, 11, 11, 11, 11, 11, 111))).ToUserFrendlyString(drawContext.ShowMilliseconds);
-			drawContext.TimeAreaSize = (int)Math.Floor(
-				drawContext.CharSize.Width * (float)testStr.Length
-			) + 10;
-		}
-
-		SelectionInfo selection { get { return presentationDataAccess != null ? presentationDataAccess.Selection : new SelectionInfo(); } }
 
 		Rectangle ClientRectangle
 		{
@@ -452,7 +374,7 @@ namespace LogJoint.UI
 			public override void MenuWillOpen (NSMenu menu)
 			{
 				menu.RemoveAllItems();
-				var menuData = owner.viewEvents.OnMenuOpening();
+				var menuData = owner.viewModel.OnMenuOpening();
 				foreach (var item in new Dictionary<ContextMenuItem, string>()
 				{
 					{ ContextMenuItem.ShowTime, "Show time" },
@@ -478,14 +400,14 @@ namespace LogJoint.UI
 			
 			NSMenuItem MakeItem(ContextMenuItem i, string title, bool isChecked)
 			{
-				var item = new NSMenuItem(title, (sender, e) => owner.viewEvents.OnMenuItemClicked(i, !isChecked));
+				var item = new NSMenuItem(title, (sender, e) => owner.viewModel.OnMenuItemClicked(i, !isChecked));
 				if (isChecked)
 					item.State = NSCellStateValue.On;
 				return item;
 			}
 		};
 
-		DrawContext drawContext = new DrawContext();
+		DrawContext drawContext;
 		int viewWidth = 2000;
 	}
 }

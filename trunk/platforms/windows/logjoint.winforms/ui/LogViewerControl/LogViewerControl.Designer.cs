@@ -45,8 +45,6 @@ namespace LogJoint.UI
 			this.showTimeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showRawMessagesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.defaultActionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.cursorTimer = new System.Windows.Forms.Timer(this.components);
-			this.animationTimer = new System.Windows.Forms.Timer(this.components);
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -164,15 +162,6 @@ namespace LogJoint.UI
 			this.defaultActionMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.defaultActionMenuItem.Text = "...";
 			// 
-			// cursorTimer
-			// 
-			this.cursorTimer.Enabled = true;
-			this.cursorTimer.Interval = 500;
-			// 
-			// animationTimer
-			// 
-			this.animationTimer.Interval = 50;
-			// 
 			// LogViewerControl
 			// 
 			this.Cursor = System.Windows.Forms.Cursors.IBeam;
@@ -195,7 +184,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem toggleBmkStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoNextMessageInTheThreadMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoPrevMessageInTheThreadMenuItem;
-		private System.Windows.Forms.Timer cursorTimer;
 		private System.Windows.Forms.ToolStripMenuItem showRawMessagesMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem collapseAlllFramesMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem expandAllFramesMenuItem;

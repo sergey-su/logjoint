@@ -45,7 +45,7 @@ namespace LogJoint
 		IBookmark ToggleBookmark(IBookmark bmk);
 		void Clear();
 		IBookmark GetNext(IBookmark current, bool forward);
-		IEnumerable<IBookmark> Items { get; }
+		IReadOnlyList<IBookmark> Items { get; }
 		int Count { get; }
 		IBookmark this[int idx] { get; }
 		IBookmarksHandler CreateHandler();

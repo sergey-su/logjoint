@@ -69,12 +69,14 @@ namespace LogJoint.UI
 		public override bool BecomeFirstResponder()
 		{
 			owner.isFocused = true;
+			owner.viewModel?.ChangeNotification?.Post ();
 			return base.BecomeFirstResponder();
 		}
 
 		public override bool ResignFirstResponder()
 		{
 			owner.isFocused = false;
+			owner.viewModel?.ChangeNotification?.Post ();
 			return base.ResignFirstResponder();
 		}
 
@@ -90,48 +92,48 @@ namespace LogJoint.UI
 			var s = theEvent.ToString();
 			if (s == "b" || s == "B")
 			{
-				owner.viewEvents.OnKeyPressed(Key.BookmarkShortcut);
+				owner.viewModel.OnKeyPressed(Key.BookmarkShortcut);
 			}
 
 			if (s == "[")
 			{
-				owner.viewEvents.OnKeyPressed(Key.PageUp);
+				owner.viewModel.OnKeyPressed(Key.PageUp);
 			}
 			else if (s == "]")
 			{
-				owner.viewEvents.OnKeyPressed(Key.PageDown);
+				owner.viewModel.OnKeyPressed(Key.PageDown);
 			}
 			else if (s == "h")
 			{
-				owner.viewEvents.OnKeyPressed(Key.BeginOfLine);
+				owner.viewModel.OnKeyPressed(Key.BeginOfLine);
 			}
 			else if (s == "H")
 			{
-				owner.viewEvents.OnKeyPressed(Key.BeginOfDocument);
+				owner.viewModel.OnKeyPressed(Key.BeginOfDocument);
 			}
 			else if (s == "e")
 			{
-				owner.viewEvents.OnKeyPressed(Key.EndOfLine);
+				owner.viewModel.OnKeyPressed(Key.EndOfLine);
 			}
 			else if (s == "E")
 			{
-				owner.viewEvents.OnKeyPressed(Key.EndOfDocument);
+				owner.viewModel.OnKeyPressed(Key.EndOfDocument);
 			}
 			else if (s == "w" || s == "W")
 			{
-				owner.viewEvents.OnKeyPressed(Key.Up | Key.AlternativeModeModifier);
+				owner.viewModel.OnKeyPressed(Key.Up | Key.AlternativeModeModifier);
 			}
 			else if (s == "s" || s == "S")
 			{
-				owner.viewEvents.OnKeyPressed(Key.Down | Key.AlternativeModeModifier);
+				owner.viewModel.OnKeyPressed(Key.Down | Key.AlternativeModeModifier);
 			}
 			else if (s == "<")
 			{
-				owner.viewEvents.OnKeyPressed(Key.PrevHighlightedMessage);
+				owner.viewModel.OnKeyPressed(Key.PrevHighlightedMessage);
 			}
 			else if (s == ">")
 			{
-				owner.viewEvents.OnKeyPressed(Key.NextHighlightedMessage);
+				owner.viewModel.OnKeyPressed(Key.NextHighlightedMessage);
 			}
 		}
 
@@ -139,97 +141,97 @@ namespace LogJoint.UI
 		[Export ("moveUp:")]
 		void OnMoveUp (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Up | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.Up | GetModifiers());
 		}
 
 		[Export ("moveDown:")]
 		void OnMoveDown (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Down | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.Down | GetModifiers());
 		}
 
 		[Export ("moveRight:")]
 		void OnMoveRight (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Right | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.Right | GetModifiers());
 		}
 
 		[Export ("moveLeft:")]
 		void OnMoveLeft (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Left | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.Left | GetModifiers());
 		}
 
 		[Export ("moveLeftAndModifySelection:")]
 		void OnMoveLeftAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Left | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.Left | Key.ModifySelectionModifier);
 		}
 
 		[Export ("moveRightAndModifySelection:")]
 		void OnMoveRightAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Right | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.Right | Key.ModifySelectionModifier);
 		}
 
 		[Export ("moveUpAndModifySelection:")]
 		void OnMoveUpAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Up | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.Up | Key.ModifySelectionModifier);
 		}
 
 		[Export ("moveDownAndModifySelection:")]
 		void OnMoveDownAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Down | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.Down | Key.ModifySelectionModifier);
 		}
 
 		[Export ("moveToBeginningOfLine:")]
 		void OnMoveToBeginningOfLine (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.BeginOfLine);
+			owner.viewModel.OnKeyPressed(Key.BeginOfLine);
 		}
 
 		[Export ("moveToBeginningOfLineAndModifySelection:")]
 		void OnMoveToBeginningOfLineAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.BeginOfLine | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.BeginOfLine | Key.ModifySelectionModifier);
 		}
 
 		[Export ("moveToEndOfLine:")]
 		void OnMoveToEndOfLine (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.EndOfLine);
+			owner.viewModel.OnKeyPressed(Key.EndOfLine);
 		}
 
 		[Export ("moveToEndOfLineAndModifySelection:")]
 		void OnMoveToEndOfLineAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.EndOfLine  | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.EndOfLine  | Key.ModifySelectionModifier);
 		}
 
 		[Export ("pageDown:")]
 		void OnPageDown (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.PageDown);
+			owner.viewModel.OnKeyPressed(Key.PageDown);
 		}
 
 		[Export ("pageDownAndModifySelection:")]
 		void OnPageDownAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.PageDown | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.PageDown | Key.ModifySelectionModifier);
 		}
 
 		[Export ("pageUp:")]
 		void OnPageUp (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.PageUp);
+			owner.viewModel.OnKeyPressed(Key.PageUp);
 		}
 
 		[Export ("pageUpAndModifySelection:")]
 		void OnPageUpAndModifySelection (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.PageUp | Key.ModifySelectionModifier);
+			owner.viewModel.OnKeyPressed(Key.PageUp | Key.ModifySelectionModifier);
 		}
 
 
@@ -238,37 +240,37 @@ namespace LogJoint.UI
 		[Export ("scrollPageUp:")]
 		void OnScrollPageUp (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.PageUp | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.PageUp | GetModifiers());
 		}
 			
 		[Export ("scrollPageDown:")]
 		void OnScrollPageDown (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.PageDown | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.PageDown | GetModifiers());
 		}
 
 		[Export ("scrollToBeginningOfDocument:")]
 		void OnScrollToBeginningOfDocument (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.BeginOfLine | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.BeginOfLine | GetModifiers());
 		}
 
 		[Export ("scrollToEndOfDocument:")]
 		void OnScrollToEndOfDocument (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.EndOfLine | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.EndOfLine | GetModifiers());
 		}
 
 		[Export ("moveToBeginningOfDocument:")]
 		void OnMoveToBeginningOfDocument (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.BeginOfDocument);
+			owner.viewModel.OnKeyPressed(Key.BeginOfDocument);
 		}
 
 		[Export ("moveToEndOfDocument:")]
 		void OnMoveToEndOfDocument (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.EndOfDocument);
+			owner.viewModel.OnKeyPressed(Key.EndOfDocument);
 		}
 
 		#endregion
@@ -283,13 +285,13 @@ namespace LogJoint.UI
 		[Export ("copy:")]
 		void OnCopy (NSObject item)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Copy | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.Copy | GetModifiers());
 		}
 
 		[Export ("insertNewline:")]
 		void OnInsertNewline (NSObject theEvent)
 		{
-			owner.viewEvents.OnKeyPressed(Key.Enter | GetModifiers());
+			owner.viewModel.OnKeyPressed(Key.Enter | GetModifiers());
 		}
 
 		public override void ScrollWheel(NSEvent theEvent)

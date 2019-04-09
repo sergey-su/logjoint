@@ -40,7 +40,7 @@ namespace LogJoint
 
 			var elapsed = Stopwatch.StartNew();
 			using (var preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(
-				matchRawMessages: searchParams.SearchInRawText,
+				messageTextGetter: MessageTextGetters.Get(searchParams.SearchInRawText),
 				reverseMatchDirection: false,
 				timeboxedMatching: true
 			))

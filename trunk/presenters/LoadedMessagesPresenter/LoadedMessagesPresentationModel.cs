@@ -89,8 +89,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		{
 			get
 			{
-				if (logSources.Items.Any(s => s.Visible)) // todo: need this check?
-					return null;
 				return "No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
 			}
 		}
@@ -138,17 +136,17 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 			FileRange.Range IMessagesSource.PositionsRange
 			{
-				get { return ls.Provider.Stats.PositionsRange; }
+				get { return !ls.Provider.IsDisposed ? ls.Provider.Stats.PositionsRange : new FileRange.Range(); }
 			}
 
 			DateRange IMessagesSource.DatesRange
 			{
-				get { return ls.Provider.Stats.AvailableTime; }
+				get { return !ls.Provider.IsDisposed ? ls.Provider.Stats.AvailableTime : new DateRange(); }
 			}
 
 			FileRange.Range LogViewer.IMessagesSource.ScrollPositionsRange
 			{
-				get { return ls.Provider.Stats.PositionsRange; }
+				get { return !ls.Provider.IsDisposed ? ls.Provider.Stats.PositionsRange : new FileRange.Range(); }
 			}
 
 			long LogViewer.IMessagesSource.MapPositionToScrollPosition(long pos)

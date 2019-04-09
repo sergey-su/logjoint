@@ -97,10 +97,13 @@ namespace LogJoint.Analytics.TimeSeries
         /// </summary>
         public string Description { get; set; }
 
-        /// <summary>
-        /// Unit label for each datapoint in the time series.
-        /// </summary>
-        public string Unit { get; set; }
+		/// <summary>
+		/// Unit label for each datapoint in the time series.
+		/// If value is in angle brackets (&lt;foo&gt;), then
+		/// the unit it's a regex group from where the unit will be
+		/// read dynamically.
+		/// </summary>
+		public string Unit { get; set; }
 
         /// <summary>
         /// Conversion factor to multiply each data point with to get the desired unit.

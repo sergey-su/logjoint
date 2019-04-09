@@ -15,14 +15,22 @@ namespace LogJoint.Analytics.TimeSeries
             var exampleLogLines = (from a in t.GetCustomAttributes(typeof(ExampleLineAttribute), true).OfType<ExampleLineAttribute>()
                                    select a.Value).ToList();
 
+			string getUnitGroup(string value)
+			{
+				var m = Regex.Match(value ?? "", @"\<(\w+)\>");
+				return m.Success ? m.Groups[1].Value : null;
+			};
+
             return from f in t.GetFields()
                           from a in f.GetCustomAttributes(typeof(TimeSeriesAttribute), true).OfType<TimeSeriesAttribute>()
+						  let unitGroup = getUnitGroup(a.Unit)
                           select new TimeSeriesDescriptor()
                           {
                               Name = a.Name == null ? f.Name : null,
                               NameFromGroup = a.Name,
                               ObjectType = tsAttr.Type,
-                              Unit = a.Unit,
+                              Unit = unitGroup == null ? a.Unit : null,
+							  UnitFromGroup = unitGroup,
                               ExampleLogLines = exampleLogLines,
                               Description = a.Description,
                               Scale = a.Scale,

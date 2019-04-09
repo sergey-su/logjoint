@@ -274,7 +274,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (reverseDirection)
 				coreOptions.ReverseSearch = !coreOptions.ReverseSearch;
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;
-			coreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
+			coreOptions.MessageTextGetter = MessageTextGetters.Get(loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages);
 			if (loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
 			{
 				var focusedMsg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;

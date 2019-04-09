@@ -30,13 +30,18 @@ namespace LogJoint
 #else
 				false;
 #endif
+			public MessageTextGetter messageTextGetter;
 
 			public string Template;
 			public bool WholeWord;
 			public bool Regexp;
 			public bool MatchCase;
 			public bool ReverseSearch;
-			public bool SearchInRawText;
+			public MessageTextGetter MessageTextGetter
+			{
+				get => messageTextGetter ?? MessageTextGetters.SummaryTextGetter;
+				set => messageTextGetter = value ?? throw new ArgumentNullException();
+			}
 
 			public static IEqualityComparer<Options> EqualityComparer = new EqualityComparerImp();
 
@@ -145,7 +150,7 @@ namespace LogJoint
 						x.Regexp == y.Regexp &&
 						x.ContentTypes == y.ContentTypes &&
 						x.ReverseSearch == y.ReverseSearch &&
-						x.SearchInRawText == y.SearchInRawText &&
+						x.MessageTextGetter == y.MessageTextGetter &&
 						GetTemplateComparer(x.MatchCase).Equals(x.Template, y.Template) &&
 						x.Scope.Equals(y.Scope);
 				}
@@ -200,17 +205,7 @@ namespace LogJoint
 				return null;
 			}
 
-			StringSlice sourceText;
-			if (state.options.SearchInRawText)
-			{
-				sourceText = msg.RawText;
-				if (!sourceText.IsInitialized)
-					sourceText = msg.Text;
-			}
-			else
-			{
-				sourceText = msg.Text;
-			}
+			StringSlice sourceText = state.options.MessageTextGetter(msg).Text;
 			return SearchInText(sourceText, state, startTextPosition);
 		}
 
