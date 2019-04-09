@@ -379,8 +379,6 @@ namespace LogJoint.UI
 	{
 		public int begin;
 		public int end;
-		public int fullyVisibleBegin;
-		public int fullyVisibleEnd;
 	};
 
 	static class DrawingUtils
@@ -462,20 +460,14 @@ namespace LogJoint.UI
 			viewRect.Offset(0, drawContext.ScrollPos.Y);
 
 			rv.begin = viewRect.Y / drawContext.LineHeight;
-			rv.fullyVisibleBegin = rv.begin;
-			if ((viewRect.Y % drawContext.LineHeight) != 0)
-				++rv.fullyVisibleBegin;
 
 			rv.end = viewRect.Bottom / drawContext.LineHeight;
-			rv.fullyVisibleEnd = rv.end;
-			--rv.fullyVisibleEnd;
 			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
 				++rv.end;
 
 			int availableLines = presentationDataAccess.ViewLinesCount;
 			rv.begin = Math.Min(availableLines, rv.begin);
 			rv.end = Math.Min(availableLines, rv.end);
-			rv.fullyVisibleEnd = Math.Min(availableLines, rv.fullyVisibleEnd);
 
 			return rv;
 		}
