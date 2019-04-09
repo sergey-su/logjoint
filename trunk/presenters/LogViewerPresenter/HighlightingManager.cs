@@ -136,19 +136,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var line = normSelection.First.Message.GetDisplayText(isRawMessagesMode).GetNthTextLine(normSelection.First.TextLineIndex);
 				int beginIdx = normSelection.First.LineCharIndex;
 				int endIdx = normSelection.Last.LineCharIndex;
-				if (wordSelection.IsWordBoundary(line, beginIdx, endIdx))
+				var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
+				if (!selectedPart.IsEmpty)
 				{
-					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
-					if (wordSelection.IsWord(selectedPart))
+					var options = new Search.Options() 
 					{
-						var options = new Search.Options() 
-						{
-							Template = selectedPart,
-							SearchInRawText = isRawMessagesMode,
-						};
-						var optionsPreprocessed = options.BeginSearch();
-						newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection), cacheSize);
-					}
+						Template = selectedPart,
+						SearchInRawText = isRawMessagesMode,
+					};
+					var optionsPreprocessed = options.BeginSearch();
+					newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection), cacheSize);
 				}
 			}
 
@@ -168,8 +165,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					yield break;
 				if (r.MatchBegin == r.MatchEnd)
 					yield break;
-				if (wordSelection.IsWordBoundary(r.SourceText, r.MatchBegin, r.MatchEnd))
-					yield return (r.MatchBegin, r.MatchEnd, FilterAction.Include);
+				yield return (r.MatchBegin, r.MatchEnd, FilterAction.Include);
 				startPos = r.MatchEnd;
 			}
 		}

@@ -27,12 +27,12 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			searchResultModel = Substitute.For<ISearchResultModel>();
 			highlightFilters = Substitute.For<IFiltersList>();
 			selectionManager = Substitute.For<ISelectionManager>();
-			wordSelection = Substitute.For<IWordSelection>();
+			wordSelection = new WordSelection();
 			isRawMessagesMode = false;
 			viewSize = 3;
 			highlightFilters.FilteringEnabled.Returns(true);
-			msg1 = new Message(0, 1, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
-			msg2 = new Message(0, 1, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
+			msg1 = new Message(0, 1, null, new MessageTimestamp(), new StringSlice("test message 1"), SeverityFlag.Info);
+			msg2 = new Message(0, 1, null, new MessageTimestamp(), new StringSlice("test message 2"), SeverityFlag.Info);
 		}
 
 		void CreateHighlightingManager()
@@ -58,7 +58,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 
 		void VerifyRanges(IEnumerable<(int, int, FilterAction)> actual, params (int, int, FilterAction)[] expected)
 		{
-			CollectionAssert.AreEqual(expected, actual);
+			CollectionAssert.AreEqual(expected.OrderBy(x => x), actual.OrderBy(x => x));
 		}
 
 		[TestFixture]
@@ -77,6 +77,59 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 				CreateHighlightingManager();
 				VerifyRanges(highlightingManager.HighlightingFiltersHandler.GetHighlightingRanges(msg1, 0, 10),
 					(3, 4, FilterAction.Include)
+				);
+			}
+		};
+
+		[TestFixture]
+		public class SelectionFiltersTests: HighlightingManagerTests
+		{
+			[SetUp]
+			public new void BeforeEach()
+			{
+			}
+
+			[Test]
+			public void EmptySelection()
+			{
+				selectionManager.Selection.Returns(new SelectionInfo()
+				{
+					first = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
+					last = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
+					normalized = true
+				});
+				CreateHighlightingManager();
+				Assert.IsNull(highlightingManager.SelectionHandler);
+			}
+
+			[Test]
+			public void SubstringSelection()
+			{
+				selectionManager.Selection.Returns(new SelectionInfo()
+				{
+					first = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
+					last = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 4 },
+					normalized = true
+				});
+				CreateHighlightingManager();
+				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(msg1, 0, 10),
+					(1, 4, FilterAction.Include)
+				);
+			}
+
+			[Test]
+			public void SelectionWithMultipleMatches()
+			{
+				selectionManager.Selection.Returns(new SelectionInfo()
+				{
+					first = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
+					last = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 3 },
+					normalized = true
+				});
+				CreateHighlightingManager();
+				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(msg1, 0, 10),
+					(1, 3, FilterAction.Include),
+					(6, 8, FilterAction.Include)
 				);
 			}
 		};
