@@ -15,7 +15,7 @@ using Color = System.Drawing.Color;
 
 namespace LogJoint.UI
 {
-	internal class DrawingVisitor : MessageTextHandlingVisitor, IMessageVisitor
+	internal class DrawingVisitor : MessageTextHandlingVisitor
 	{
 		public int DisplayIndex;
 		public int TextLineIdx;
@@ -25,7 +25,7 @@ namespace LogJoint.UI
 		public IHighlightingHandler HighlightingFiltersHandler;
 		public Presenters.LogViewer.CursorPosition? CursorPosition;
 
-		public override void Visit(IMessage msg)
+		public override void Visit(ViewLine msg)
 		{
 			base.Visit(msg);
 
@@ -41,16 +41,17 @@ namespace LogJoint.UI
 			DrawLastLineSeparator(msg);
 		}
 
-		protected override void HandleMessageText(IMessage msg, float textXPos)
+		protected override void HandleMessageText(ViewLine msg, float textXPos)
 		{
 			DrawMessageBackground(msg, textXPos);
 		}
 
-		void DrawTime(IMessage msg)
+		void DrawTime(ViewLine msg)
 		{
-			if (ctx.ShowTime && TextLineIdx == 0)
+			if (msg.Time != null)
 			{
-				ctx.Canvas.DrawString(msg.Time.ToUserFrendlyString(ctx.ShowMilliseconds),
+				ctx.Canvas.DrawString(
+					msg.Time,
 					ctx.Font,
 					ctx.InfoMessagesBrush,
 					m.TimePos.X, m.TimePos.Y);
@@ -63,15 +64,15 @@ namespace LogJoint.UI
 				m.MessageRect.Y, ctx.CollapseBoxesAreaSize, m.MessageRect.Height));
 		}
 
-		void DrawContentOutline(IMessage msg)
+		void DrawContentOutline(ViewLine vl)
 		{
 			Image icon = null;
 			Image icon2 = null;
-			if (this.TextLineIdx == 0)
+			if (vl.Severity != SeverityIcon.None)
 			{
-				if (msg.Severity == SeverityFlag.Error)
+				if (vl.Severity == SeverityIcon.Error)
 					icon = ctx.ErrorIcon;
-				else if (msg.Severity == SeverityFlag.Warning)
+				else if (vl.Severity == SeverityIcon.Warning)
 					icon = ctx.WarnIcon;
 			}
 			if (IsBookmarked)
@@ -101,8 +102,9 @@ namespace LogJoint.UI
 			}
 		}
 		
-		void DrawMessageBackground(IMessage msg, float textXPos)
+		void DrawMessageBackground(ViewLine vl, float textXPos)
 		{
+			var msg = vl.Message;
 			DrawContext dc = ctx;
 			Rectangle r = m.MessageRect;
 			r.Offset(ctx.CollapseBoxesAreaSize, 0);
@@ -138,7 +140,7 @@ namespace LogJoint.UI
 			{
 				int selectionStartIdx;
 				int selectionEndIdx;
-				var line = dc.GetTextToDisplay(msg).GetNthTextLine(TextLineIdx);
+				var line = vl.Text.GetNthTextLine(TextLineIdx);
 				if (DisplayIndex == normalizedSelection.First.DisplayIndex)
 					selectionStartIdx = normalizedSelection.First.LineCharIndex;
 				else
@@ -168,9 +170,9 @@ namespace LogJoint.UI
 				tmpBrush.Dispose();
 		}
 
-		void DrawLastLineSeparator(IMessage msg)
+		void DrawLastLineSeparator(ViewLine msg)
 		{
-			var displayText = msg.GetDisplayText(ctx.ShowRawMessages);
+			var displayText = msg.Text;
 			if (displayText.IsMultiline && displayText.GetLinesCount() == this.TextLineIdx + 1)
 			{
 				float y = m.MessageRect.Bottom - 0.5f;
@@ -178,11 +180,11 @@ namespace LogJoint.UI
 			}
 		}
 
-		void DrawCursorIfNeeded(IMessage msg)
+		void DrawCursorIfNeeded(ViewLine msg)
 		{
 			if (!CursorPosition.HasValue)
 				return;
-			msg.Visit(new DrawCursorVisitor() { ctx = ctx, m = m, pos = CursorPosition.Value });
+			new DrawCursorVisitor() { ctx = ctx, m = m, pos = CursorPosition.Value }.Visit(msg);
 		}
 
 		static void FillInplaceHightlightRectangle(DrawContext ctx, RectangleF rect, Brush brush)
@@ -193,9 +195,9 @@ namespace LogJoint.UI
 			ctx.Canvas.PopState();
 		}
 
-		void DrawStringWithInplaceHightlight(IMessage msg, Brush brush, PointF location)
+		void DrawStringWithInplaceHightlight(ViewLine msg, Brush brush, PointF location)
 		{
-			var textToDisplay = msg.GetDisplayText(ctx.ShowRawMessages);
+			var textToDisplay = msg.Text;
 			var text = textToDisplay.Text;
 			var line = textToDisplay.GetNthTextLine(this.TextLineIdx);
 
@@ -209,7 +211,7 @@ namespace LogJoint.UI
 		}
 
 		private void DoInplaceHighlighting(
-			IMessage msg, 
+			ViewLine msg, 
 			PointF location, 
 			StringSlice text, 
 			int lineBegin, int lineEnd,
@@ -219,7 +221,7 @@ namespace LogJoint.UI
 		{
 			if (handler != null)
 			{
-				foreach (var hlRange in handler.GetHighlightingRanges(msg, lineBegin, lineEnd))
+				foreach (var hlRange in handler.GetHighlightingRanges(msg.Message, lineBegin, lineEnd))
 				{
 					int? hlBegin = null;
 					int? hlEnd = null;
@@ -263,14 +265,14 @@ namespace LogJoint.UI
 		}
 	};
 
-	internal abstract class MessageTextHandlingVisitor : IMessageVisitor
+	internal abstract class MessageTextHandlingVisitor
 	{
 		public DrawContext ctx;
 		public DrawingUtils.Metrics m;
 
-		protected abstract void HandleMessageText(IMessage msg, float textXPos);
+		protected abstract void HandleMessageText(ViewLine msg, float textXPos);
 
-		public virtual void Visit(IMessage msg)
+		public virtual void Visit(ViewLine msg)
 		{
 			HandleMessageText(msg, 0);
 		}
@@ -280,11 +282,11 @@ namespace LogJoint.UI
 	{
 		public Presenters.LogViewer.CursorPosition pos;
 
-		protected override void HandleMessageText(IMessage msg, float textXPos)
+		protected override void HandleMessageText(ViewLine msg, float textXPos)
 		{
 			DrawContext dc = ctx;
 
-			var line = dc.GetTextToDisplay(msg).GetNthTextLine(pos.TextLineIndex);
+			var line = msg.Text.GetNthTextLine(pos.TextLineIndex);
 			var lineCharIdx = pos.LineCharIndex;
 			
 			if (lineCharIdx > line.Value.Length)
@@ -314,10 +316,10 @@ namespace LogJoint.UI
 			TextLineIndex = lineIndex;
 		}
 
-		protected override void HandleMessageText(IMessage msg, float textXPos)
+		protected override void HandleMessageText(ViewLine msg, float textXPos)
 		{
 			DrawContext dc = ctx;
-			LineTextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, dc.ShowRawMessages, TextLineIndex, dc.Font, dc.TextFormat,
+			LineTextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, TextLineIndex, dc.Font, dc.TextFormat,
 				(int)(ClickedPointX - textXPos - m.OffsetTextRect.X));
 		}
 	};
@@ -350,7 +352,6 @@ namespace LogJoint.UI
 
 		public bool ShowTime { get { return Presenter != null ? Presenter.ShowTime : false; } }
 		public bool ShowMilliseconds { get { return Presenter != null ? Presenter.ShowMilliseconds : false; } }
-		public bool ShowRawMessages { get { return Presenter != null ? Presenter.ShowRawMessages : false; } }
 		public SelectionInfo NormalizedSelection { get { return Presenter != null ? Presenter.Selection.Normalize() : new SelectionInfo(); } }
 		public Settings.Appearance.ColoringMode Coloring { get { return Presenter != null ? Presenter.Coloring : Settings.Appearance.ColoringMode.None; } }
 
@@ -367,11 +368,6 @@ namespace LogJoint.UI
 				x += TimeAreaSize;
 			int y = displayIndex * LineHeight - ScrollPos.Y;
 			return new Point(x, y);
-		}
-		public StringUtils.MultilineText GetTextToDisplay(IMessage msg)
-		{
-			return Presenter != null ? 
-				msg.GetDisplayText(Presenter.ShowRawMessages) : msg.TextAsMultilineText;
 		}
 	};
 
@@ -408,7 +404,7 @@ namespace LogJoint.UI
 				m.MessageRect.Y
 			);
 
-			int charCount = dc.GetTextToDisplay(line.Message).GetNthTextLine(line.TextLineIndex).Length;
+			int charCount = line.Text.GetNthTextLine(line.TextLineIndex).Length;
 
 			m.OffsetTextRect = new Rectangle(
 				offset.X,
@@ -432,9 +428,9 @@ namespace LogJoint.UI
 		}
 
 		public static int ScreenPositionToMessageTextCharIndex(Graphics g, 
-			IMessage msg, bool showRawMessages, int textLineIndex, Font font, StringFormat format, int screenPosition)
+			ViewLine msg, int textLineIndex, Font font, StringFormat format, int screenPosition)
 		{
-			var textToDisplay = msg.GetDisplayText(showRawMessages);
+			var textToDisplay = msg.Text;
 			var txt = textToDisplay.Text;
 			var line = textToDisplay.GetNthTextLine(textLineIndex);
 			var lineValue = line.Value;
@@ -500,7 +496,7 @@ namespace LogJoint.UI
 				else
 					drawingVisitor.CursorPosition = null;
 
-				il.Message.Visit(drawingVisitor);
+				drawingVisitor.Visit(il);
 
 				maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
 			}
@@ -590,7 +586,7 @@ namespace LogJoint.UI
 					if (mtx.MessageRect.Contains(pt.X, pt.Y))
 					{
 						var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
-						i.Message.Visit(hitTester);
+						hitTester.Visit(i);
 						if ((flags & MessageMouseEventFlag.DblClick) != 0)
 						{
 							captureTheMouse = false;
@@ -636,7 +632,7 @@ namespace LogJoint.UI
 						if (isLeftDrag)
 						{
 							var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
-							i.Message.Visit(hitTester);
+							hitTester.Visit(i);
 							MessageMouseEventFlag flags = MessageMouseEventFlag.ShiftIsHeld 
 								| MessageMouseEventFlag.CapturedMouseMove;
 							if (pt.X < drawContext.CollapseBoxesAreaSize)

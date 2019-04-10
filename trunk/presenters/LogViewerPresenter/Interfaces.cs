@@ -130,8 +130,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		public int LineIndex;
 		public IMessage Message;
+		public string Time;
+		public StringUtils.MultilineText Text;
 		public int TextLineIndex;
 		public bool IsBookmarked;
+		public SeverityIcon Severity;
+	};
+
+	public enum SeverityIcon
+	{
+		None,
+		Error,
+		Warning
 	};
 
 	[Flags]
@@ -208,7 +218,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		double GetFirstDisplayMessageScrolledLines();
 		bool ShowTime { get; }
 		bool ShowMilliseconds { get; }
-		bool ShowRawMessages { get; }
 		SelectionInfo Selection { get; }
 		ColoringMode Coloring { get; }
 		FocusedMessageDisplayModes FocusedMessageDisplayMode { get; }

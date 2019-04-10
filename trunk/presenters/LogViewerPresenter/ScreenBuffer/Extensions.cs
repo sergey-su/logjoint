@@ -6,13 +6,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	public static class Extenstions
 	{
-		public static ViewLine ToViewLine(this ScreenBufferEntry e)
+		public static ViewLine ToViewLine(this ScreenBufferEntry e, bool rawMode, bool showTime, bool showMilliseconds)
 		{
 			return new ViewLine()
 			{
 				Message = e.Message,
 				LineIndex = e.Index,
+				Text = e.Message.GetDisplayText(rawMode),
 				TextLineIndex = e.TextLineIndex,
+				Time = showTime && e.TextLineIndex == 0 ? e.Message.Time.ToUserFrendlyString(showMilliseconds) : null,
+				Severity =
+					e.TextLineIndex != 0 ? SeverityIcon.None :
+					e.Message.Severity == SeverityFlag.Error ? SeverityIcon.Error :
+					e.Message.Severity == SeverityFlag.Warning ? SeverityIcon.Warning :
+					SeverityIcon.None
 			};
 		}
 

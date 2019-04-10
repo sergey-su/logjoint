@@ -21,15 +21,8 @@ namespace LogJoint
 		StringSlice RawText { get; }
 		StringUtils.MultilineText RawTextAsMultilineText { get; }
 
-		void Visit(IMessageVisitor visitor);
-
 		void SetPosition(long position, long endPosition);
 		void ReallocateTextBuffer(IStringSliceReallocator alloc);
-	};
-
-	public interface IMessageVisitor
-	{
-		void Visit(IMessage msg);
 	};
 
 	[Flags]

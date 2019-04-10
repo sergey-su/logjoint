@@ -53,8 +53,6 @@ namespace LogJoint
 		StringUtils.MultilineText IMessage.RawTextAsMultilineText => rawTextML ?? (rawTextML = new StringUtils.MultilineText(rawText));
 		SeverityFlag IMessage.Severity => (SeverityFlag) (flags & MessageFlag.ContentTypeMask);
 
-		void IMessage.Visit(IMessageVisitor visitor) { visitor.Visit(this); }
-
 		IMessage IMessage.Clone()
 		{
 			IMessage intf = this;

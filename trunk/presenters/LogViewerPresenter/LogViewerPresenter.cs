@@ -701,7 +701,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool IViewModel.ShowTime { get { return showTime; } }
 		bool IViewModel.ShowMilliseconds { get { return showMilliseconds; } }
-		bool IViewModel.ShowRawMessages { get { return showRawMessages; } }
 		SelectionInfo IViewModel.Selection { get { return Selection; } }
 		ColoringMode IViewModel.Coloring { get { return coloring; } }
 
@@ -728,9 +727,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				int i = beginIdx;
 				for (; i != endIdx; ++i)
 				{
-					var vl = screenBuffer.Messages[i].ToViewLine();
-					if (!vl.Message.Thread.IsDisposed)
-						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(vl.Message, vl.TextLineIndex);
+					var screenBufferEntry = screenBuffer.Messages[i];
+					var vl = screenBufferEntry.ToViewLine(showRawMessages, showTime, showMilliseconds);
+					if (!screenBufferEntry.Message.Thread.IsDisposed)
+						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(screenBufferEntry.Message, vl.TextLineIndex);
 					yield return vl;
 				}
 			}

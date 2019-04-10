@@ -98,7 +98,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			InvalidateTextLineUnderCursor();
 			foreach (var displayIndexToInvalidate in selection.GetDisplayIndexesRange()
 				.Where(idx => idx < screenBuffer.Messages.Count))
-				view.InvalidateLine(screenBuffer.Messages[displayIndexToInvalidate].ToViewLine());
+				view.InvalidateLine(screenBuffer.Messages[displayIndexToInvalidate].ToViewLine(screenBuffer.IsRawLogMode, false, false));
 
 			SetSelection(new CursorPosition(), new CursorPosition());
 			OnSelectionChanged();
@@ -219,7 +219,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (f.Message != null)
 				{
 					focusedMessageBookmark = bookmarksFactory.CreateBookmark(
-						f.Message, f.TextLineIndex, useRawText: presentationDataAccess.ShowRawMessages);
+						f.Message, f.TextLineIndex, useRawText: screenBuffer.IsRawLogMode);
 				}
 			}
 			return focusedMessageBookmark;
@@ -278,7 +278,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (selection.First.Message != null)
 			{
-				view.InvalidateLine(selection.First.ToDisplayLine());
+				var m = screenBuffer.Messages.ElementAtOrDefault(selection.First.DisplayIndex);
+				if (m.Message != null)
+					view.InvalidateLine(m.ToViewLine(screenBuffer.IsRawLogMode, false, false));
 			}
 		}
 
@@ -300,7 +302,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
 		{
-			return msg.GetDisplayText(presentationDataAccess.ShowRawMessages);
+			return msg.GetDisplayText(screenBuffer.IsRawLogMode);
 		}
 
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
@@ -366,7 +368,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				foreach (var displayIndexToInvalidate in oldSelection.GetDisplayIndexesRange().SymmetricDifference(selection.GetDisplayIndexesRange())
 					.Where(idx => idx < screenBuffer.Messages.Count && idx >= 0))
 				{
-					view.InvalidateLine(screenBuffer.Messages[displayIndexToInvalidate].ToViewLine());
+					view.InvalidateLine(screenBuffer.Messages[displayIndexToInvalidate].ToViewLine(screenBuffer.IsRawLogMode, false, false));
 				}
 
 				InvalidateTextLineUnderCursor();
@@ -476,7 +478,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						}
 					)
 				)
-				.TakeWhile(m => CursorPosition.Compare(CursorPosition.FromViewLine(m.ToViewLine(), 0), normSelection.Last) <= 0)
+				.TakeWhile(m => CursorPosition.Compare(CursorPosition.FromViewLine(m.ToViewLine(screenBuffer.IsRawLogMode, false, false), 0), normSelection.Last) <= 0)
 				.ToList();
 		}
 
@@ -485,7 +487,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var ret = new List<SelectedTextLine>();
 			if (selection.IsEmpty)
 				return ret;
-			var showRawMessages = presentationDataAccess.ShowRawMessages;
+			var showRawMessages = screenBuffer.IsRawLogMode;
 			var showMilliseconds = presentationDataAccess.ShowMilliseconds;
 			var selectedDisplayEntries = await GetSelectedDisplayMessagesEntries();
 			var normSelection = selection.Normalize();
