@@ -6,20 +6,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	public static class Extenstions
 	{
-		public static ViewLine ToViewLine(this ScreenBufferEntry e, bool rawMode, bool showTime, bool showMilliseconds)
+		public static ViewLine ToViewLine(this ScreenBufferEntry e,
+			bool rawMode, bool showTime, bool showMilliseconds, Settings.Appearance.ColoringMode coloring = Settings.Appearance.ColoringMode.None)
 		{
+			var msg = e.Message;
 			return new ViewLine()
 			{
-				Message = e.Message,
+				Message = msg,
 				LineIndex = e.Index,
-				Text = e.Message.GetDisplayText(rawMode),
+				Text = msg.GetDisplayText(rawMode),
 				TextLineIndex = e.TextLineIndex,
-				Time = showTime && e.TextLineIndex == 0 ? e.Message.Time.ToUserFrendlyString(showMilliseconds) : null,
+				Time = showTime && e.TextLineIndex == 0 ? msg.Time.ToUserFrendlyString(showMilliseconds) : null,
 				Severity =
 					e.TextLineIndex != 0 ? SeverityIcon.None :
-					e.Message.Severity == SeverityFlag.Error ? SeverityIcon.Error :
-					e.Message.Severity == SeverityFlag.Warning ? SeverityIcon.Warning :
-					SeverityIcon.None
+					msg.Severity == SeverityFlag.Error ? SeverityIcon.Error :
+					msg.Severity == SeverityFlag.Warning ? SeverityIcon.Warning :
+					SeverityIcon.None,
+				BackgroundColor =
+					coloring == Settings.Appearance.ColoringMode.None || msg.Thread == null || msg.Thread.IsDisposed ? new ModelColor?() :
+					coloring == Settings.Appearance.ColoringMode.Threads ? msg.Thread.ThreadColor :
+					coloring == Settings.Appearance.ColoringMode.Sources && msg.TryGetLogSource(out var ls) ? ls.Color :
+					new ModelColor?()
 			};
 		}
 

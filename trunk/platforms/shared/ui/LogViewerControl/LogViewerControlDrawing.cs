@@ -104,33 +104,16 @@ namespace LogJoint.UI
 		
 		void DrawMessageBackground(ViewLine vl, float textXPos)
 		{
-			var msg = vl.Message;
 			DrawContext dc = ctx;
 			Rectangle r = m.MessageRect;
 			r.Offset(ctx.CollapseBoxesAreaSize, 0);
 			Brush b = null;
 			Brush tmpBrush = null;
 
-			if (msg.Thread != null)
-			{
-				var coloring = dc.Coloring;
-				if (coloring == Settings.Appearance.ColoringMode.None)
-					b = dc.DefaultBackgroundBrush;
-				else if (msg.Thread.IsDisposed)
-					b = dc.DefaultBackgroundBrush;
-				else if (coloring == Settings.Appearance.ColoringMode.Threads)
-					b = tmpBrush = new Brush (msg.Thread.ThreadColor.ToColor ());
-				else if (coloring == Settings.Appearance.ColoringMode.Sources) {
-					if (msg.TryGetLogSource (out var ls))
-						b = tmpBrush = new Brush (ls.Color.ToColor ());
-					else
-						b = dc.DefaultBackgroundBrush;
-				}
-			}
-			if (b == null)
-			{
+			if (vl.BackgroundColor != null)
+				b = tmpBrush = new Brush (vl.BackgroundColor.Value.ToColor ());
+			else
 				b = dc.DefaultBackgroundBrush;
-			}
 			dc.Canvas.FillRectangle(b, r);
 
 			var normalizedSelection = dc.NormalizedSelection;
@@ -195,70 +178,56 @@ namespace LogJoint.UI
 			ctx.Canvas.PopState();
 		}
 
-		void DrawStringWithInplaceHightlight(ViewLine msg, Brush brush, PointF location)
+		void DrawStringWithInplaceHightlight(ViewLine vl, Brush brush, PointF location)
 		{
-			var textToDisplay = msg.Text;
-			var text = textToDisplay.Text;
-			var line = textToDisplay.GetNthTextLine(this.TextLineIdx);
+			var lineValue = vl.Text.GetNthTextLine(vl.TextLineIndex).Value;
 
-			int lineBegin = line.StartIndex - text.StartIndex;
-			int lineEnd = lineBegin + line.Length;
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SearchResultHighlightingHandler, null, ctx.SearchResultHighlightingBackground);
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SelectionHighlightingHandler, ctx.SelectionHighlightingBackground, null);
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, HighlightingFiltersHandler, null, null);
+			DoInplaceHighlighting(vl, lineValue, location, SearchResultHighlightingHandler, null, ctx.SearchResultHighlightingBackground);
+			DoInplaceHighlighting(vl, lineValue, location, SelectionHighlightingHandler, ctx.SelectionHighlightingBackground, null);
+			DoInplaceHighlighting(vl, lineValue, location, HighlightingFiltersHandler, null, null);
 
-			ctx.Canvas.DrawString(line.Value, ctx.Font, brush, location, ctx.TextFormat);
+			ctx.Canvas.DrawString(lineValue, ctx.Font, brush, location, ctx.TextFormat);
 		}
 
 		private void DoInplaceHighlighting(
-			ViewLine msg, 
-			PointF location, 
-			StringSlice text, 
-			int lineBegin, int lineEnd,
+			ViewLine vl,
+			string lineValue,
+			PointF location,
 			IHighlightingHandler handler,
 			Brush forcedBrush,
 			Brush defaultBrush)
 		{
 			if (handler != null)
 			{
-				foreach (var hlRange in handler.GetHighlightingRanges(msg.Message, lineBegin, lineEnd))
+				foreach (var hlRange in handler.GetHighlightingRanges(vl))
 				{
-					int? hlBegin = null;
-					int? hlEnd = null;
-					if (hlRange.Item1 >= lineBegin && hlRange.Item1 <= lineEnd)
-						hlBegin = hlRange.Item1;
-					if (hlRange.Item2 >= lineBegin && hlRange.Item2 <= lineEnd)
-						hlEnd = hlRange.Item2;
-					if (hlBegin != null || hlEnd != null)
+					var tmp = DrawingUtils.GetLineSubstringBounds(
+						lineValue,
+						hlRange.Item1,
+						hlRange.Item2,
+						ctx.Canvas,
+						ctx.Font,
+						ctx.TextFormat, 
+						m.MessageRect, location.X);
+					tmp.Inflate(0, -1);
+					if (forcedBrush == null)
 					{
-						var tmp = DrawingUtils.GetLineSubstringBounds(
-							text.SubString(lineBegin, lineEnd - lineBegin).Value, 
-							hlBegin.GetValueOrDefault(lineBegin) - lineBegin,
-							hlEnd.GetValueOrDefault(lineEnd) - lineBegin,
-							ctx.Canvas,
-							ctx.Font,
-							ctx.TextFormat, 
-							m.MessageRect, location.X);
-						tmp.Inflate(0, -1);
-						if (forcedBrush == null)
+						var cl = hlRange.Item3.GetBackgroundColor();
+						if (cl != null)
 						{
-							var cl = hlRange.Item3.GetBackgroundColor();
-							if (cl != null)
+							using (var tmpBrush = new Brush(cl.Value.ToColor()))
 							{
-								using (var tmpBrush = new Brush(cl.Value.ToColor()))
-								{
-									FillInplaceHightlightRectangle(ctx, tmp, tmpBrush);
-								}
-							}
-							else if (defaultBrush != null)
-							{
-								FillInplaceHightlightRectangle(ctx, tmp, defaultBrush);
+								FillInplaceHightlightRectangle(ctx, tmp, tmpBrush);
 							}
 						}
-						else
+						else if (defaultBrush != null)
 						{
-							FillInplaceHightlightRectangle(ctx, tmp, forcedBrush);
+							FillInplaceHightlightRectangle(ctx, tmp, defaultBrush);
 						}
+					}
+					else
+					{
+						FillInplaceHightlightRectangle(ctx, tmp, forcedBrush);
 					}
 				}
 			}
@@ -353,7 +322,6 @@ namespace LogJoint.UI
 		public bool ShowTime { get { return Presenter != null ? Presenter.ShowTime : false; } }
 		public bool ShowMilliseconds { get { return Presenter != null ? Presenter.ShowMilliseconds : false; } }
 		public SelectionInfo NormalizedSelection { get { return Presenter != null ? Presenter.Selection.Normalize() : new SelectionInfo(); } }
-		public Settings.Appearance.ColoringMode Coloring { get { return Presenter != null ? Presenter.Coloring : Settings.Appearance.ColoringMode.None; } }
 
 		public bool CursorState;
 		public Point ScrollPos;

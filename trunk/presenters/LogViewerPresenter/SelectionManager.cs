@@ -29,6 +29,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler FocusedMessageBookmarkChanged;
 	};
 
+	internal interface IPresentationProperties
+	{
+		bool ShowTime { get; }
+		bool ShowMilliseconds { get; }
+		ColoringMode Coloring { get; }
+	};
+
 	[Flags]
 	internal enum SelectionFlag
 	{
@@ -49,7 +56,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IScreenBuffer screenBuffer;
 		readonly LJTraceSource tracer;
 		readonly IClipboardAccess clipboard;
-		readonly IViewModel presentationDataAccess;
+		readonly IPresentationProperties presentationProperties;
 		readonly IWordSelection wordSelection;
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly IBookmarksFactory bookmarksFactory;
@@ -62,7 +69,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IView view,
 			IScreenBuffer screenBuffer,
 			LJTraceSource tracer,
-			IViewModel presentationDataAccess,
+			IPresentationProperties presentationProperties,
 			IClipboardAccess clipboard,
 			IScreenBufferFactory screenBufferFactory,
 			IBookmarksFactory bookmarksFactory,
@@ -73,7 +80,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.view = view;
 			this.screenBuffer = screenBuffer;
 			this.clipboard = clipboard;
-			this.presentationDataAccess = presentationDataAccess;
+			this.presentationProperties = presentationProperties;
 			this.tracer = tracer;
 			this.screenBufferFactory = screenBufferFactory;
 			this.bookmarksFactory = bookmarksFactory;
@@ -115,9 +122,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (clipboard == null)
 				return;
-			var txt = await GetSelectedTextInternal(includeTime: presentationDataAccess.ShowTime);
+			var txt = await GetSelectedTextInternal(includeTime: presentationProperties.ShowTime);
 			if (txt.Length > 0)
-				clipboard.SetClipboard(txt, await GetSelectedTextAsHtml(includeTime: presentationDataAccess.ShowTime));
+				clipboard.SetClipboard(txt, await GetSelectedTextAsHtml(includeTime: presentationProperties.ShowTime));
 		}
 
 		Task<string> ISelectionManager.GetSelectedText()
@@ -488,7 +495,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (selection.IsEmpty)
 				return ret;
 			var showRawMessages = screenBuffer.IsRawLogMode;
-			var showMilliseconds = presentationDataAccess.ShowMilliseconds;
+			var showMilliseconds = presentationProperties.ShowMilliseconds;
 			var selectedDisplayEntries = await GetSelectedDisplayMessagesEntries();
 			var normSelection = selection.Normalize();
 			IMessage prevMessage = null;
@@ -543,9 +550,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var ls = msg.GetLogSource();
 			var cl = "white";
 			if (ls != null)
-			if (presentationDataAccess.Coloring == ColoringMode.Threads)
+			if (presentationProperties.Coloring == ColoringMode.Threads)
 				cl = msg.Thread.ThreadColor.ToHtmlColor();
-			else if (presentationDataAccess.Coloring == ColoringMode.Sources)
+			else if (presentationProperties.Coloring == ColoringMode.Sources)
 				cl = ls.Color.ToHtmlColor();
 			return cl;
 		}

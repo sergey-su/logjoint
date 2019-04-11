@@ -18,11 +18,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.cache = new LRUCache<IMessage, RangeTree.IRangeTree<int, HighlightRange>>(cacheSize);
 		}
 
-		IEnumerable<(int, int, FilterAction)> IHighlightingHandler.GetHighlightingRanges(IMessage msg, int intervalBegin, int intervalEnd)
+		IEnumerable<(int, int, FilterAction)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
 		{
-			if (!cache.TryGetValue(msg, out var item))
+			if (!cache.TryGetValue(vl.Message, out var item))
 			{
-				cache.Set(msg, item = new RangeTree.RangeTree<int, HighlightRange>(getRangesForMessage(msg).Select(
+				cache.Set(vl.Message, item = new RangeTree.RangeTree<int, HighlightRange>(getRangesForMessage(vl.Message).Select(
 					r => new HighlightRange()
 					{
 						Range = new RangeTree.Range<int>(r.Item1, r.Item2),
@@ -30,7 +30,29 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 				), HighlightRange.Comparer.Instance));
 			}
-			return item.Query(new RangeTree.Range<int>(intervalBegin, intervalEnd)).Select(i => (i.Range.From, i.Range.To, i.Action));
+			var line = vl.Text.GetNthTextLine(vl.TextLineIndex);
+			int lineBegin = line.StartIndex - vl.Text.Text.StartIndex;
+			int lineEnd = lineBegin + line.Length;
+			return
+				item
+				.Query(new RangeTree.Range<int>(lineBegin, lineEnd))
+				.Select(i => (i.Range.From, i.Range.To, i.Action))
+				.Select(hlRange =>
+				{
+					int? hlBegin = null;
+					int? hlEnd = null;
+					if (hlRange.From >= lineBegin && hlRange.From <= lineEnd)
+						hlBegin = hlRange.From;
+					if (hlRange.To >= lineBegin && hlRange.To <= lineEnd)
+						hlEnd = hlRange.To;
+					return (hlBegin, hlEnd, hlRange.Action);
+				})
+				.Where(i => i.hlBegin != null || i.hlEnd != null)
+				.Select(i => (
+					i.hlBegin.GetValueOrDefault(lineBegin) - lineBegin,
+					i.hlEnd.GetValueOrDefault(lineEnd) - lineBegin,
+					i.Action
+				));
 		}
 
 		class HighlightRange : RangeTree.IRangeProvider<int>

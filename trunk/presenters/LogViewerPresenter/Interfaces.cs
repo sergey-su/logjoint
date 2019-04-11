@@ -129,12 +129,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public struct ViewLine
 	{
 		public int LineIndex;
-		public IMessage Message;
 		public string Time;
 		public StringUtils.MultilineText Text;
 		public int TextLineIndex;
 		public bool IsBookmarked;
 		public SeverityIcon Severity;
+		public ModelColor? BackgroundColor;
+
+		internal IMessage Message;
 	};
 
 	public enum SeverityIcon
@@ -219,7 +221,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ShowTime { get; }
 		bool ShowMilliseconds { get; }
 		SelectionInfo Selection { get; }
-		ColoringMode Coloring { get; }
 		FocusedMessageDisplayModes FocusedMessageDisplayMode { get; }
 		IHighlightingHandler SelectionHighlightingHandler { get; }
 		IHighlightingHandler SearchResultHighlightingHandler { get; }
@@ -233,7 +234,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// Enumerates ranges of Message's test that need highlighting. Only the ranges overlapping passed interval as enumerated.
 		/// </summary>
-		IEnumerable<(int, int, FilterAction)> GetHighlightingRanges(IMessage msg, int intervalBegin, int intervalEnd);
+		IEnumerable<(int, int, FilterAction)> GetHighlightingRanges(ViewLine vl);
 	};
 
 	public class MenuData

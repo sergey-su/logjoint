@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public class Presenter : IPresenter, IViewModel
+	public class Presenter : IPresenter, IViewModel, IPresentationProperties
 	{
 		public Presenter(
 			IModel model,
@@ -702,7 +702,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool IViewModel.ShowTime { get { return showTime; } }
 		bool IViewModel.ShowMilliseconds { get { return showMilliseconds; } }
 		SelectionInfo IViewModel.Selection { get { return Selection; } }
-		ColoringMode IViewModel.Coloring { get { return coloring; } }
+		ColoringMode IPresentationProperties.Coloring => coloring;
+		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
+		bool IPresentationProperties.ShowTime => showTime;
 
 		IHighlightingHandler IViewModel.SearchResultHighlightingHandler => highlightingManager.SearchResultHandler;
 
@@ -728,7 +730,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				for (; i != endIdx; ++i)
 				{
 					var screenBufferEntry = screenBuffer.Messages[i];
-					var vl = screenBufferEntry.ToViewLine(showRawMessages, showTime, showMilliseconds);
+					var vl = screenBufferEntry.ToViewLine(showRawMessages, showTime, showMilliseconds, coloring);
 					if (!screenBufferEntry.Message.Thread.IsDisposed)
 						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(screenBufferEntry.Message, vl.TextLineIndex);
 					yield return vl;

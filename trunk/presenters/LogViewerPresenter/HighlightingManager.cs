@@ -173,8 +173,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private class DummyHandler : IHighlightingHandler
 		{
-			IEnumerable<(int, int, FilterAction)> IHighlightingHandler.GetHighlightingRanges(
-				IMessage msg, int intervalBegin, int intervalEnd)
+			IEnumerable<(int, int, FilterAction)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
 			{
 				yield break;
 			}
