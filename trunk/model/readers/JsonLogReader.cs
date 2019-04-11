@@ -100,9 +100,28 @@ namespace LogJoint.JsonFormat
 
 			string messageStr = messageBuf.ToString();
 
+			JObject messageObj;
+			try
+			{
+				messageObj = JObject.Parse(messageStr);
+			}
+			catch (Newtonsoft.Json.JsonReaderException e)
+			{
+				if (!TryRemoveAdditionalText(messageStr, out var fixerdMessageStr))
+					throw;
+				try
+				{
+					messageObj = JObject.Parse(fixerdMessageStr);
+				}
+				catch
+				{
+					throw e;
+				}
+			}
+
 			var transfromed = JsonTransformer.Transform(
 				formatInfo.Transform.DeepClone() as JObject,
-				JObject.Parse(messageStr)
+				messageObj
 			);
 			var d = transfromed.Property("d")?.Value;
 			DateTime date;
@@ -138,6 +157,48 @@ namespace LogJoint.JsonFormat
 			);
 
 			return ret;
+		}
+
+		static bool TryRemoveAdditionalText(string str, out string fixedString)
+		{
+			int depth = 0;
+			int objectBegin = 0;
+			int objectEnd = 0;
+			for (int i = 0; i < str.Length; ++i)
+			{
+				char c = str[i];
+				if (c == '{')
+				{
+					++depth;
+					if (depth == 1)
+					{
+						objectBegin = i;
+					}
+				}
+				else if (c == '}')
+				{
+					--depth;
+					if (depth == 0)
+					{
+						objectEnd = i + 1;
+						break;
+					}
+					else if (depth < 0)
+					{
+						break;
+					}
+				}
+			}
+			if (objectEnd == objectBegin)
+			{
+				fixedString = null;
+				return false;
+			}
+			else
+			{
+				fixedString = str.Substring(objectBegin, objectEnd - objectBegin);
+				return true;
+			}
 		}
 
 		MessagesBuilderCallback CreateMessageBuilderCallback()

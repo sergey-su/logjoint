@@ -627,5 +627,30 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				new EM("", null, new DateTime(2017, 9, 3, 22, 23, 14, 561, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Info }
 			);
 		}
+
+		[Test]
+		public void MalformedInput_ExtraCharachtersBetweenObjects()
+		{
+			DoTest(
+				@"
+<format>
+  <json>
+    <head-re><![CDATA[^\{\""@t\""\:]]></head-re>
+    <transform><![CDATA[{ ""d"": ""#valueof($.@t)"", ""m"": ""#ifcondition(#exists($.@mt),true,#valueof($.@mt),#valueof($.@m))"" }]]></transform>
+    <encoding>utf-8</encoding>
+  </json>
+  <id company=""Test"" name=""JSON"" />
+</format>",
+				@"
+{""@t"":""2018-05-22T20:25:35.9680000Z"",""@mt"":""Hello world""}
+not a json line
+another not a json line
+json-looking stuff {0} {{}{}{}{{{}
+{""@t"":""2018-05-22T20:25:35.9960000Z"",""@m"":""Foo bar""}
+				",
+				new EM("Hello world", null, new DateTime(2018, 5, 22, 20, 25, 35, 968, DateTimeKind.Utc)),
+				new EM("Foo bar", null, new DateTime(2018, 5, 22, 20, 25, 35, 996, DateTimeKind.Utc))
+			);
+		}
 	}
 }
