@@ -152,7 +152,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IMessage IPresenter.FocusedMessage
 		{
-			get { return Selection.Message; }
+			get { return Selection.First.Message; }
 		}
 
 		IBookmark IPresenter.GetFocusedMessageBookmark()
@@ -271,7 +271,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<Dictionary<IMessagesSource, long>> IPresenter.GetCurrentPositions(CancellationToken cancellation)
 		{
-			if (Selection.Message == null)
+			if (!Selection.IsValid)
 				return null;
 			var tmp = screenBufferFactory.CreateScreenBuffer(1);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
@@ -427,7 +427,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task IPresenter.GoToNextMessage()
 		{
-			if (Selection.First.Message != null)
+			if (Selection.IsValid)
 				await MoveSelection(
 					GetTextToDisplay(Selection.First.Message).GetLinesCount() - Selection.First.TextLineIndex,
 					SelectionFlag.None
@@ -436,7 +436,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task IPresenter.GoToPrevMessage()
 		{
-			if (Selection.First.Message != null)
+			if (Selection.IsValid)
 				await MoveSelection(
 					-(Selection.First.TextLineIndex + 1),
 					SelectionFlag.None
@@ -770,7 +770,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None;
 			var alt = (keyFlags & Key.AlternativeModeModifier) != 0;
 
-			if (Selection.Message != null)
+			if (Selection.IsValid)
 			{
 				if (k == Key.Up)
 					if (alt)
@@ -915,11 +915,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<bool> ScrollSelectionIntoScreenBuffer(CancellationToken cancellation)
 		{
-			if (Selection.Message == null || screenBuffer.Messages.Count == 0)
+			if (!Selection.IsValid || screenBuffer.Messages.Count == 0)
 				return false;
 			if (Selection.First.DisplayIndex >= 0 && Selection.First.DisplayIndex < screenBuffer.Messages.Count)
 				return true;
-			var idx = await LoadMessageAt(Selection.Message, 0, BookmarkLookupMode.ExactMatch, cancellation);
+			var idx = await LoadMessageAt(Selection.First.Message, 0, BookmarkLookupMode.ExactMatch, cancellation);
 			if (idx == null)
 				return false;
 			return true;
@@ -1105,9 +1105,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (!await ScrollSelectionIntoScreenBuffer(cancellation))
 					return;
 				cancellation.ThrowIfCancellationRequested();
-				CursorPosition cur = Selection.First;
-				if (cur.Message == null)
+				if (!Selection.IsValid)
 					return;
+				CursorPosition cur = Selection.First;
 				if (jumpOverWords)
 				{
 					var wordFlag = left ? SelectionFlag.SelectBeginningOfPrevWord : SelectionFlag.SelectBeginningOfNextWord;
@@ -1144,19 +1144,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (!isReverseSearch)
 			{
 				var tmp = normSelection.Last;
-				if (tmp.Message == null)
+				if (!tmp.IsValid)
 					tmp = normSelection.First;
-				if (tmp.Message != null)
+				if (tmp.IsValid)
 					startFrom = tmp;
 			}
 			else
 			{
-				if (normSelection.First.Message != null)
+				if (normSelection.IsValid)
 					startFrom = normSelection.First;
 			}
 
 			int startFromTextPosition = 0;
-			if (startFrom.Message != null)
+			if (startFrom.IsValid)
 			{
 				var txt = startFrom.Message.GetDisplayText(showRawMessages);
 				var startLine = txt.GetNthTextLine(startFrom.TextLineIndex);
@@ -1173,7 +1173,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(1);
 				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
-				if (startFrom.Message != null)
+				if (startFrom.IsValid)
 				{
 					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message, startFrom.TextLineIndex),
 						BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation))
@@ -1284,7 +1284,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task GoToNextHighlightedMessage(bool reverse)
 		{
-			if (Selection.Message == null || model.HighlightFilters == null)
+			if (!Selection.IsValid || model.HighlightFilters == null)
 				return;
 			using (var hlFiltersBulkProcessing = model.HighlightFilters.StartBulkProcessing(
 				showRawMessages, reverseMatchDirection: false))

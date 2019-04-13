@@ -447,7 +447,7 @@ namespace LogJoint.UI
 
 			maxRight = 0;
 			var sel = selection;
-			bool needToDrawCursor = drawContext.CursorState == true && controlIsFocused && sel.First.Message != null;
+			bool needToDrawCursor = drawContext.CursorState == true && controlIsFocused && sel.First.IsValid;
 
 			var messagesToDraw = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, dirtyRect);
 
@@ -482,7 +482,7 @@ namespace LogJoint.UI
 			if (presentationDataAccess.FocusedMessageDisplayMode == FocusedMessageDisplayModes.Master)
 			{
 				var sel = presentationDataAccess.Selection;
-				if (sel.First.Message != null)
+				if (sel.First.IsValid)
 				{
 					focusedMessageMark = dc.FocusedMessageIcon;
 					focusedMessageSz = focusedMessageMark.GetSize(height: 14);

@@ -1,28 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
-using LogJoint.RegularExpressions;
-using System.Threading;
-
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	public struct CursorPosition
 	{
-		public IMessage Message;
+		internal IMessage Message;
 		public IMessagesSource Source;
 		public int DisplayIndex;
 		public int TextLineIndex;
 		public int LineCharIndex;
 
+		public bool IsValid => Message != null;
+
 		public static int Compare(CursorPosition p1, CursorPosition p2)
 		{
-			if (p1.Message == null && p2.Message == null)
+			if (!p1.IsValid && !p2.IsValid)
 				return 0;
-			if (p1.Message == null)
+			if (!p1.IsValid)
 				return -1;
-			if (p2.Message == null)
+			if (!p2.IsValid)
 				return 1;
 			int i;
 			i = MessagesComparer.Compare(p1.Message, p2.Message);

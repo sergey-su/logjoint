@@ -99,7 +99,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void ISelectionManager.Clear()
 		{
-			if (selection.First.Message == null)
+			if (!selection.IsValid)
 				return;
 
 			InvalidateTextLineUnderCursor();
@@ -188,7 +188,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ISelectionManager.PickNewSelection()
 		{
 			var viewLines = screenBuffer.Messages;
-			if (selection.First.Message == null)
+			if (!selection.IsValid)
 			{
 				if (viewLines.Count > 0)
 				{
@@ -222,9 +222,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (focusedMessageBookmark == null)
 			{
-				var f = selection.First;
-				if (f.Message != null)
+				if (selection.IsValid)
 				{
+					var f = selection.First;
 					focusedMessageBookmark = bookmarksFactory.CreateBookmark(
 						f.Message, f.TextLineIndex, useRawText: screenBuffer.IsRawLogMode);
 				}
@@ -244,7 +244,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int GetDisplayIndex(CursorPosition pos)
 		{
-			if (pos.Message == null)
+			if (!pos.IsValid)
 				return 0;
 
 			Func<IMessage, IMessage, bool> messagesAreSame = (m1, m2) =>
@@ -283,7 +283,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void InvalidateTextLineUnderCursor()
 		{
-			if (selection.First.Message != null)
+			if (selection.First.IsValid)
 			{
 				var m = screenBuffer.Messages.ElementAtOrDefault(selection.First.DisplayIndex);
 				if (m.Message != null)
@@ -411,7 +411,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			Func<CursorPosition, bool> isGoodDisplayPosition = p =>
 			{
-				if (p.Message == null)
+				if (!p.IsValid)
 					return true;
 				return p.DisplayIndex >= 0 && p.DisplayIndex < viewLines.Count;
 			};

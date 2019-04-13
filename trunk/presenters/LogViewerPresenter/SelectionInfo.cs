@@ -7,15 +7,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public CursorPosition First { get { return first; } }
 		public CursorPosition Last { get { return last; } }
 
-		public IMessage Message { get { return First.Message; } }
-
 		public int Version { get; set; } // todo: convert object to immutable ref class
+
+		public bool IsValid => First.IsValid;
 
 		public bool IsEmpty
 		{
 			get
 			{
-				if (First.Message == null || Last.Message == null)
+				if (!First.IsValid || !Last.IsValid)
 					return true;
 				return CursorPosition.Compare(First, Last) == 0;
 			}
@@ -25,7 +25,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				if (First.Message == null || Last.Message == null) // no selection 
+				if (!First.IsValid || !Last.IsValid) // no selection 
 					return false;
 				return First.Message == Last.Message && First.TextLineIndex == Last.TextLineIndex;
 			}

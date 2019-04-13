@@ -195,7 +195,7 @@ namespace LogJoint.UI
 
 		void IView.HScrollToSelectedText(SelectionInfo selection)
 		{
-			if (selection.First.Message == null)
+			if (!selection.IsValid)
 				return;
 
 			int pixelThatMustBeVisible = (int)(selection.First.LineCharIndex * drawContext.CharSize.Width);
@@ -270,7 +270,7 @@ namespace LogJoint.UI
 
 		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
 		{
-			if (viewModel.Selection.Message != null)
+			if (viewModel.Selection.IsValid)
 				return new Point(0, (viewModel.Selection.First.DisplayIndex + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
 			return new Point();
 		}
