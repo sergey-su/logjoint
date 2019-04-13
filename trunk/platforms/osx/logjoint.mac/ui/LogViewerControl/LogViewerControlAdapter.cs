@@ -158,7 +158,7 @@ namespace LogJoint.UI
 
 		void IView.HScrollToSelectedText(SelectionInfo selection)
 		{
-			if (selection.First.Message == null)
+			if (!selection.IsValid)
 				return;
 
 			int pixelThatMustBeVisible = (int)(selection.First.LineCharIndex * drawContext.CharSize.Width);
