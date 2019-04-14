@@ -42,14 +42,21 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			if (!appearancePresenter.Apply())
 				return;
 			currentDialog.Hide();
+			DisposePages();
 		}
 
 		void IPresenterEvents.OnCancelPressed()
 		{
 			currentDialog.Hide();
+			DisposePages();
 		}
 
 		#region Implementation
+
+		void DisposePages()
+		{
+			appearancePresenter.Dispose();
+		}
 
 		readonly IView view;
 		readonly Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory;

@@ -8,7 +8,7 @@ using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	internal interface ISelectionManager
+	internal interface ISelectionManager: IDisposable
 	{
 		SelectionInfo Selection { get; }
 
@@ -23,6 +23,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void InvalidateTextLineUnderCursor();
 		void HandleRawModeChange();
 		IBookmark GetFocusedMessageBookmark();
+		bool CursorState { get; }
+		ViewLine? CursorViewLine { get; } // todo: make a member of SelectionInfo
 
 		event EventHandler SelectionChanged;
 		event EventHandler FocusedMessageChanged;
@@ -50,7 +52,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		ScrollToViewEventIfSelectionDidNotChange = 128
 	};
 
-	internal class SelectionManager: ISelectionManager
+	internal class SelectionManager: ISelectionManager, IDisposable
 	{
 		readonly IView view;
 		readonly IScreenBuffer screenBuffer;
@@ -61,9 +63,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly IChangeNotification changeNotification;
+		readonly CancellationTokenSource disposed = new CancellationTokenSource();
+		readonly Task cursorThread;
 
 		SelectionInfo selection;
 		IBookmark focusedMessageBookmark;
+		bool cursorState;
 
 		public SelectionManager(
 			IView view,
@@ -86,6 +91,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.bookmarksFactory = bookmarksFactory;
 			this.changeNotification = changeNotification;
 			this.wordSelection = wordSelection;
+
+			this.cursorThread = this.CursorThread();
+		}
+
+		void IDisposable.Dispose()
+		{
+			disposed.Cancel();
+			cursorThread.Wait();
 		}
 
 		public event EventHandler SelectionChanged;
@@ -232,6 +245,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return focusedMessageBookmark;
 		}
 
+		bool ISelectionManager.CursorState => cursorState;
+
+		ViewLine? ISelectionManager.CursorViewLine => GetCursorViewLine();
+
 		void SetSelection(CursorPosition begin, CursorPosition? end)
 		{
 			selection.first = begin;
@@ -283,12 +300,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void InvalidateTextLineUnderCursor()
 		{
-			if (selection.First.IsValid)
+			var vl = GetCursorViewLine();
+			if (vl.HasValue)
+			{
+				view.InvalidateLine(vl.Value);
+			}
+		}
+
+		ViewLine? GetCursorViewLine()
+		{
+			if (selection.IsValid)
 			{
 				var m = screenBuffer.Messages.ElementAtOrDefault(selection.First.DisplayIndex);
 				if (m.Message != null)
-					view.InvalidateLine(m.ToViewLine(screenBuffer.IsRawLogMode, false, false));
+					return m.ToViewLine(screenBuffer.IsRawLogMode, false, false);
 			}
+			return null;
 		}
 
 		void OnFocusedMessageChanged()
@@ -347,7 +374,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					view.HScrollToSelectedText(selection);
 				}
-				view.RestartCursorBlinking();
+				cursorState = true;
 			};
 
 			if (selection.First.Message != msg 
@@ -577,6 +604,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			sb.Append("</pre><br/>");
 			return sb.ToString();
+		}
+
+		async Task CursorThread()
+		{
+			while (!disposed.IsCancellationRequested)
+			{
+				try
+				{
+					await Task.Delay(500, disposed.Token);
+				}
+				catch (TaskCanceledException)
+				{
+					break;
+				}
+				this.cursorState = !this.cursorState;
+				InvalidateTextLineUnderCursor();
+			}
 		}
 
 		struct SelectedTextLine

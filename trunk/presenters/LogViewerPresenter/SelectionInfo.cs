@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public bool IsValid => First.IsValid;
 
-		public bool IsEmpty
+		public bool IsEmpty // todo: cache result
 		{
 			get
 			{

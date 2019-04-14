@@ -36,7 +36,7 @@ namespace LogJoint
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
-				ISynchronizationContext modelSynchronizationContext = new ComponentModelSynchronizationContext(mainForm);
+				ISynchronizationContext modelSynchronizationContext = new ComponentModelSynchronizationContext(mainForm, () => mainForm.IsHandleCreated);
 				ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 				IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);

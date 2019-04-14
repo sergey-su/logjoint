@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public class Presenter : IPresenter, IViewModel, IPresentationProperties
+	public class Presenter : IPresenter, IViewModel, IPresentationProperties, IDisposable
 	{
 		public Presenter(
 			IModel model,
@@ -46,6 +46,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 				searchResultModel, () => this.showRawMessages, () => this.screenBuffer.Messages.Count,
 				model.HighlightFilters, this.selectionManager, wordSelection
 			);
+
+			timeMaxLength = Selectors.Create(
+				() => showMilliseconds,
+				showMilliseconds => (new MessageTimestamp(new DateTime(2011, 11, 11, 11, 11, 11, 111))).ToUserFrendlyString(showMilliseconds).Length
+			);
+
+			focusedMessageMarkLocation = CreateFocusedMessageMarkLocationSelector();
 
 			ReadGlobalSettings(model);
 
@@ -108,6 +115,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			DisplayHintIfMessagesIsEmpty();
 		}
 
+		void IDisposable.Dispose()
+		{
+			selectionManager.Dispose();
+		}
+
 		#region Interfaces implementation
 
 		public event EventHandler DefaultFocusedMessageAction;
@@ -167,7 +179,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		PreferredDblClickAction IPresenter.DblClickAction { get; set; }
 
-		FocusedMessageDisplayModes IPresenter.FocusedMessageDisplayMode { get { return focusedMessageDisplayMode; } set { focusedMessageDisplayMode = value; } }
+		FocusedMessageDisplayModes IPresenter.FocusedMessageDisplayMode
+		{
+			get { return focusedMessageDisplayMode; }
+			set { focusedMessageDisplayMode = value; changeNotification.Post(); }
+		}
 
 		string IPresenter.DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
 
@@ -194,11 +210,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (showMilliseconds == value)
 					return;
 				showMilliseconds = value;
-				view.UpdateMillisecondsModeDependentData();
-				if (showTime)
-				{
-					view.Invalidate();
-				}
+				changeNotification.Post();
 			}
 		}
 
@@ -484,7 +496,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (value == slaveModeFocusedMessage)
 					return;
 				slaveModeFocusedMessage = value;
-				view.Invalidate();
+				changeNotification.Post();
 			}
 		}
 
@@ -495,10 +507,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (slaveModeFocusedMessage == null)
 					return;
 				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestMessage, cancellation);
-				var position = FindSlaveModeFocusedMessagePositionInternal(0, screenBuffer.Messages.Count);
+				var position = FindSlaveModeFocusedMessagePositionInternal(slaveModeFocusedMessage, screenBuffer.Messages, bookmarksFactory);
 				if (position == null)
 					return;
-				var idxToSelect = position.Item1;
+				var idxToSelect = position[0];
 				if (idxToSelect == screenBuffer.Messages.Count)
 					--idxToSelect;
 				selectionManager.SetSelection(idxToSelect,
@@ -539,11 +551,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else if (delta < 0 && fontSize != LogFontSize.Minimum)
 					SetFontSize(fontSize - 1);
 			}
-		}
-
-		void IViewModel.OnCursorTimerTick()
-		{
-			selectionManager.InvalidateTextLineUnderCursor();
 		}
 
 		void IViewModel.OnKeyPressed(Key k)
@@ -700,40 +707,37 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 
 		bool IViewModel.ShowTime { get { return showTime; } }
-		bool IViewModel.ShowMilliseconds { get { return showMilliseconds; } }
-		SelectionInfo IViewModel.Selection { get { return Selection; } }
+		int IViewModel.TimeMaxLength => timeMaxLength();
 		ColoringMode IPresentationProperties.Coloring => coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
 		bool IPresentationProperties.ShowTime => showTime;
 
-		IHighlightingHandler IViewModel.SearchResultHighlightingHandler => highlightingManager.SearchResultHandler;
-
-		IHighlightingHandler IViewModel.SelectionHighlightingHandler => highlightingManager.SelectionHandler;
-
-		IHighlightingHandler IViewModel.HighlightingFiltersHandler => highlightingManager.HighlightingFiltersHandler;
-
-		FocusedMessageDisplayModes IViewModel.FocusedMessageDisplayMode
-		{
-			get { return focusedMessageDisplayMode; }
-		}
-
-		Tuple<int, int> IViewModel.FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx)
-		{
-			return FindSlaveModeFocusedMessagePositionInternal(beginIdx, endIdx);
-		}
+		int[] IViewModel.FocusedMessageMarkLocation => focusedMessageMarkLocation();
 
 		IEnumerable<ViewLine> IViewModel.GetViewLines(int beginIdx, int endIdx)
 		{
 			using (var bookmarksHandler = (model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler()))
 			{
-				int i = beginIdx;
-				for (; i != endIdx; ++i)
+				SelectionInfo? normalizedSelection = null;
+				if (selectionManager.Selection.IsValid)
+					normalizedSelection = selectionManager.Selection.Normalize();
+
+				for (int i = beginIdx; i != endIdx; ++i)
 				{
 					var screenBufferEntry = screenBuffer.Messages[i];
-					var vl = screenBufferEntry.ToViewLine(showRawMessages, showTime, showMilliseconds, coloring);
-					if (!screenBufferEntry.Message.Thread.IsDisposed)
-						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(screenBufferEntry.Message, vl.TextLineIndex);
-					yield return vl;
+					yield return screenBufferEntry.ToViewLine(
+						showRawMessages,
+						showTime,
+						showMilliseconds,
+						isBookmarked: !screenBufferEntry.Message.Thread.IsDisposed && bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(
+							screenBufferEntry.Message, screenBufferEntry.TextLineIndex),
+						coloring: coloring,
+						normalizedValidSelection: normalizedSelection,
+						cursorState: selectionManager.CursorState,
+						searchResultHighlightingHandler: highlightingManager.SearchResultHandler,
+						selectionHighlightingHandler: highlightingManager.SelectionHandler,
+						highlightingFiltersHandler: highlightingManager.HighlightingFiltersHandler
+					);
 				}
 			}
 		}
@@ -793,7 +797,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						preserveSelectionFlag: preserveSelectionFlag
 					);
 				else if (k == Key.ContextMenu)
-					view.PopupContextMenu(view.GetContextMenuPopupDataForCurrentSelection(Selection));
+					view.PopupContextMenu(view.GetContextMenuPopupData(selectionManager.CursorViewLine));
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
 				else if (k == Key.BookmarkShortcut)
@@ -856,15 +860,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		private Tuple<int, int> FindSlaveModeFocusedMessagePositionInternal(int beginIdx, int endIdx)
+		static private int[] FindSlaveModeFocusedMessagePositionInternal(
+			IBookmark slaveModeFocusedMessage, IReadOnlyList<ScreenBufferEntry> screenBufferMessages, IBookmarksFactory bookmarksFactory)
 		{
 			if (slaveModeFocusedMessage == null)
 				return null;
+			if (screenBufferMessages.Count == 0)
+				return null;
 			Func<ScreenBufferEntry, int> cmp = e =>
 				MessagesComparer.Compare(bookmarksFactory.CreateBookmark(e.Message, e.TextLineIndex), slaveModeFocusedMessage);
-			int lowerBound = ListUtils.BinarySearch(screenBuffer.Messages, beginIdx, endIdx, e => cmp(e) < 0);
-			int upperBound = ListUtils.BinarySearch(screenBuffer.Messages, lowerBound, endIdx, e => cmp(e) <= 0);
-			return new Tuple<int, int>(lowerBound, upperBound);
+			int lowerBound = ListUtils.BinarySearch(screenBufferMessages, 0, screenBufferMessages.Count, e => cmp(e) < 0);
+			int upperBound = ListUtils.BinarySearch(screenBufferMessages, lowerBound, screenBufferMessages.Count, e => cmp(e) <= 0);
+			return new[] { lowerBound, upperBound };
 		}
 
 		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
@@ -1320,6 +1327,41 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ThisIntf.GoToEnd().IgnoreCancellation();
 		}
 
+		Func<int[]> CreateFocusedMessageMarkLocationSelector()
+		{
+			var getSelector = Selectors.Create(
+				() => focusedMessageDisplayMode,
+				mode =>
+				{
+					if (mode == FocusedMessageDisplayModes.Master)
+					{
+						return Selectors.Create(
+							() => selectionManager.Selection.Version,
+							_ =>
+							{
+								var vl = selectionManager.CursorViewLine;
+								if (vl.HasValue)
+									return new[] { vl.Value.LineIndex };
+								else
+									return null;
+							}
+						);
+					}
+					else
+					{
+						return Selectors.Create(
+							() => slaveModeFocusedMessage,
+							() => screenBuffer.Messages,
+							(slaveModeFocusedMessage, screenBufferMessages) =>
+								FindSlaveModeFocusedMessagePositionInternal(slaveModeFocusedMessage, screenBufferMessages, bookmarksFactory)
+						);
+					}
+				}
+			);
+			return () => getSelector()();
+		}
+
+
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
 		private SelectionInfo Selection { get { return selectionManager.Selection; }}
@@ -1355,5 +1397,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool drawingErrorReported;
 
 		bool viewTailMode;
+
+		readonly Func<int> timeMaxLength;
+		readonly Func<int[]> focusedMessageMarkLocation;
 	};
 };

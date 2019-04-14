@@ -40,6 +40,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		{
 			view.Dispose();
 			logSourceThreads.Dispose();
+			logPresenter.Dispose();
 		}
 
 		void IViewEvents.OnCloseButtonClicked ()

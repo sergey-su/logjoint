@@ -72,13 +72,6 @@ namespace LogJoint.UI
 
 			EnsureBackbufferIsUpToDate();
 
-			cursorTimer.Tick += (s, e) =>
-			{
-				drawContext.CursorState = !drawContext.CursorState;
-				if (viewModel != null)
-					viewModel.OnCursorTimerTick();
-			};
-
 			animationTimer.Tick += (s, e) =>
 			{
 				if (drawContext.SlaveMessagePositionAnimationStep < 8)
@@ -117,8 +110,6 @@ namespace LogJoint.UI
 				drawContext.LineHeight = (int)Math.Floor(drawContext.CharSize.Height);
 			}
 
-			UpdateTimeAreaSize();
-
 			if (oldDpp != 0 && oldDpp != ((IView)this).DisplayLinesPerPage && viewModel != null)
 				viewModel.OnDisplayLinesPerPageChanged();
 		}
@@ -145,17 +136,15 @@ namespace LogJoint.UI
 			this.drawContext.Presenter = viewModel;
 
 			var updater = Updaters.Create(
-				() => viewModel.HighlightingFiltersHandler,
-				() => viewModel.SelectionHighlightingHandler,
-				() => viewModel.SearchResultHighlightingHandler,
-				(_1, _2, _3) => Invalidate()
+				() => drawContext.TimeAreaSize,
+				(_1) => Invalidate()
 			);
 			viewModel.ChangeNotification.CreateSubscription(updater);
 		}
 
 		void IView.InvalidateLine(ViewLine line)
 		{
-			Rectangle r = DrawingUtils.GetMetrics(line, drawContext).MessageRect;
+			Rectangle r = DrawingUtils.GetMessageRect(line, drawContext);
 			this.Invalidate(r);
 		}
 
@@ -215,11 +204,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.RestartCursorBlinking()
-		{
-			drawContext.CursorState = true;
-		}
-
 		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
 		{
 			if (string.IsNullOrWhiteSpace(messageToDisplayOrNull))
@@ -249,11 +233,6 @@ namespace LogJoint.UI
 			DoContextMenu(pt.X, pt.Y);
 		}
 
-		void IView.UpdateMillisecondsModeDependentData()
-		{
-			UpdateTimeAreaSize();
-		}
-
 		float IView.DisplayLinesPerPage
 		{
 			get
@@ -268,10 +247,10 @@ namespace LogJoint.UI
 			SetScrollPos(posY: (int)(value.GetValueOrDefault() * (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1)));
 		}
 
-		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
+		object IView.GetContextMenuPopupData(ViewLine? line)
 		{
-			if (viewModel.Selection.IsValid)
-				return new Point(0, (viewModel.Selection.First.DisplayIndex + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
+			if (line.HasValue)
+				return new Point(0, DrawingUtils.GetMessageRect(line.Value, drawContext).Bottom);
 			return new Point();
 		}
 
@@ -360,7 +339,7 @@ namespace LogJoint.UI
 			else
 				flags |= MessageMouseEventFlag.SingleClick;
 
-			DrawingUtils.MouseDownHelper(viewModel, drawContext, ClientRectangle, viewModel, e.Location, flags, out captureTheMouse);
+			DrawingUtils.MouseDownHelper(viewModel, drawContext, ClientRectangle, e.Location, flags, out captureTheMouse);
 
 			base.OnMouseDown(e);
 			
@@ -370,7 +349,7 @@ namespace LogJoint.UI
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
 			DrawingUtils.CursorType newCursor;
-			DrawingUtils.MouseMoveHelper(viewModel, drawContext, ClientRectangle, viewModel, e.Location,
+			DrawingUtils.MouseMoveHelper(viewModel, drawContext, ClientRectangle, e.Location,
 				e.Button == MouseButtons.Left && this.Capture, out newCursor);
 
 			Cursor newNativeCursor = Cursors.Arrow;
@@ -491,12 +470,11 @@ namespace LogJoint.UI
 				UpdateDrawContextScrollPos();
 
 				int maxRight;
-				DrawingUtils.PaintControl(drawContext, viewModel, viewModel.Selection, this.Focused,
-					pe.ClipRectangle, out maxRight);
+				DrawingUtils.PaintControl(drawContext, viewModel, this.Focused, pe.ClipRectangle, out maxRight);
 
 				backBufferCanvas.Render(pe.Graphics);
 
-				UpdateScrollSize(dc, maxRight, pe.ClipRectangle.Height == ClientSize.Height);
+				UpdateScrollSize(dc, maxRight);
 			}
 			catch (Exception e)
 			{
@@ -615,14 +593,6 @@ namespace LogJoint.UI
 			return FontFamily.GenericMonospace;
 		}
 
-		void UpdateTimeAreaSize()
-		{
-			string testStr = (new MessageTimestamp(new DateTime(2011, 11, 11, 11, 11, 11, 111))).ToUserFrendlyString(drawContext.ShowMilliseconds);
-			drawContext.TimeAreaSize = (int)Math.Floor(
-				drawContext.CharSize.Width * (float)testStr.Length
-			) + 10;
-		}
-
 		void DoContextMenu(int x, int y)
 		{
 			contextMenuStrip1.Show(this, x, y);
@@ -703,7 +673,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void UpdateScrollSize(DrawContext dc, int maxRight, bool isFullViewUpdate)
+		void UpdateScrollSize(DrawContext dc, int maxRight)
 		{
 			maxRight += dc.ScrollPos.X;
 			if (maxRight > scrollBarsInfo.scrollSize.Width // if view grows
@@ -990,11 +960,6 @@ namespace LogJoint.UI
 					);
 				}
 			}
-		}
-
-		int GetDisplayMessagesCount()
-		{
-			return viewModel != null ? viewModel.ViewLinesCount : 0;
 		}
 
 		#endregion
