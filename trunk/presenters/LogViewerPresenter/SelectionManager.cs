@@ -245,7 +245,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return focusedMessageBookmark;
 		}
 
-		bool ISelectionManager.CursorState => cursorState;
+		bool ISelectionManager.CursorState => cursorState && view.HasInputFocus;
 
 		ViewLine? ISelectionManager.CursorViewLine => GetCursorViewLine();
 

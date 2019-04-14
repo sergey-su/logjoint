@@ -8,6 +8,7 @@ using System.Threading;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using System.Threading.Tasks;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -222,9 +223,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			object preparedContextMenuPopupData);
 		void OnDrawingError(Exception e);
 
-		int ViewLinesCount { get; } // todo: have immutable ViewLines collection instead
-		IEnumerable<ViewLine> GetViewLines(int beginIdx, int endIdx);
-		double GetFirstDisplayMessageScrolledLines();
+		ImmutableList<ViewLine> ViewLines { get; }
+		double GetFirstDisplayMessageScrolledLines(); // todo: have reactive prop
 		bool ShowTime { get; }
 		int TimeMaxLength { get; }
 		/// <summary>

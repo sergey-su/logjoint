@@ -6,20 +6,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using LogJoint.Analytics;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	public class ScreenBuffer: IScreenBuffer
 	{
 		internal ScreenBuffer(
+			IChangeNotification changeNotification,
 			double viewSize,
 			LJTraceSource trace = null,
 			bool disableSingleLogPositioningOptimization = false
 		)
 		{
+			this.changeNotification = changeNotification;
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
-			this.entries = new List<ScreenBufferEntry>();
-			this.entriesReadonly = entries.AsReadOnly();
+			this.entries = ImmutableList.Create<ScreenBufferEntry>();
 			this.disableSingleLogPositioningOptimization = disableSingleLogPositioningOptimization;
 			this.trace = trace ?? LJTraceSource.EmptyTracer;
 			this.SetViewSize(viewSize);
@@ -72,8 +74,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			if (needsClear)
 			{
-				entries.Clear();
+				entries = entries.Clear();
 				SetScrolledLines(0);
+				changeNotification.Post();
 			}
 		}
 
@@ -90,6 +93,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (this.isRawLogMode == isRawMode)
 				return Task.FromResult(0);
 			this.isRawLogMode = isRawMode;
+			changeNotification.Post();
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 			return PerformBuffersTransaction(
 				string.Format("SetRawLogMode({0})", isRawMode),
@@ -118,7 +122,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IReadOnlyList<ScreenBufferEntry> IScreenBuffer.Messages
 		{
-			get { return entriesReadonly; }
+			get { return entries; }
 		}
 
 		IEnumerable<SourceScreenBuffer> IScreenBuffer.Sources
@@ -460,6 +464,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (sz < 0)
 				throw new ArgumentOutOfRangeException("view size");
 			viewSize = sz;
+			changeNotification.Post();
 		}
 
 		OperationTracker CreateTrackerForNewOperation(string operationName, CancellationToken operationCancellation)
@@ -486,6 +491,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (value < 0 || value >= 1d)
 				throw new ArgumentOutOfRangeException();
 			scrolledLines = value;
+			changeNotification.Post();
 		}
 
 		static ScreenBufferEntry ToScreenBufferMessage(MessagesContainers.MergingCollectionEntry m)
@@ -584,8 +590,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 
 					buffers = tmpCopy;
-					entries.Clear();
-					entries.AddRange(MakeMergingCollection(tmpCopy.Values).Forward(0, bufferSize).Select(ToScreenBufferMessage));
+					entries = ImmutableList.CreateRange(MakeMergingCollection(tmpCopy.Values).Forward(0, bufferSize).Select(ToScreenBufferMessage));
+					changeNotification.Post();
 
 					SetScrolledLines(topLineScroll);
 
@@ -644,6 +650,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return (int)Math.Ceiling(viewSize) + 1;
 		}
 
+		readonly IChangeNotification changeNotification;
 		readonly bool disableSingleLogPositioningOptimization;
 		readonly LJTraceSource trace;
 		OperationTracker currentOperationTracker;
@@ -656,8 +663,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		double scrolledLines; // scrolling position as nr of lines. [0..1)
 
 		// computed values
-		List<ScreenBufferEntry> entries;
-		IReadOnlyList<ScreenBufferEntry> entriesReadonly;
+		ImmutableList<ScreenBufferEntry> entries;
 
 		readonly Diagnostics diagnostics = new Diagnostics();
 	};

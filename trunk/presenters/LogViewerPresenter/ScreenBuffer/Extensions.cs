@@ -6,7 +6,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	public static class Extenstions
 	{
-		public static ViewLine ToViewLine(
+		internal static ViewLine ToViewLine(
 			this ScreenBufferEntry e,
 			bool rawMode,
 			bool showTime,

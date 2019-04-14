@@ -6,6 +6,7 @@ using System.Threading;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using System.Threading.Tasks;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -53,6 +54,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 
 			focusedMessageMarkLocation = CreateFocusedMessageMarkLocationSelector();
+			viewLines = CreateViewLinesSelector();
 
 			ReadGlobalSettings(model);
 
@@ -80,7 +82,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			this.model.OnLogSourceColorChanged += (s, e) =>
 			{
-				view.Invalidate();
+				view.Invalidate(); // todo: invalidate view lines
 			};
 
 			this.model.OnSourceMessagesChanged += (sender, e) => 
@@ -109,7 +111,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			if (model.Bookmarks != null)
 			{
-				model.Bookmarks.OnBookmarksChanged += (s, e) => view.Invalidate();
+				model.Bookmarks.OnBookmarksChanged += (s, e) => view.Invalidate(); // todo: bookmarks should raise change notification
 			}
 
 			DisplayHintIfMessagesIsEmpty();
@@ -195,7 +197,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (showTime == value)
 					return;
 				showTime = value;
-				view.Invalidate();
+				changeNotification.Post();
 			}
 		}
 
@@ -275,9 +277,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (coloring == value)
 					return;
 				coloring = value;
-				view.Invalidate();
-				if (ColoringModeChanged != null)
-					ColoringModeChanged(this, EventArgs.Empty);
+				changeNotification.Post();
+				ColoringModeChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -538,7 +539,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void IPresenter.MakeFirstLineFullyVisible()
 		{
 			screenBuffer.MakeFirstLineFullyVisible();
-			view.Invalidate();
 		}
 
 
@@ -714,38 +714,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int[] IViewModel.FocusedMessageMarkLocation => focusedMessageMarkLocation();
 
-		IEnumerable<ViewLine> IViewModel.GetViewLines(int beginIdx, int endIdx)
-		{
-			using (var bookmarksHandler = (model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler()))
-			{
-				SelectionInfo? normalizedSelection = null;
-				if (selectionManager.Selection.IsValid)
-					normalizedSelection = selectionManager.Selection.Normalize();
-
-				for (int i = beginIdx; i != endIdx; ++i)
-				{
-					var screenBufferEntry = screenBuffer.Messages[i];
-					yield return screenBufferEntry.ToViewLine(
-						showRawMessages,
-						showTime,
-						showMilliseconds,
-						isBookmarked: !screenBufferEntry.Message.Thread.IsDisposed && bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(
-							screenBufferEntry.Message, screenBufferEntry.TextLineIndex),
-						coloring: coloring,
-						normalizedValidSelection: normalizedSelection,
-						cursorState: selectionManager.CursorState,
-						searchResultHighlightingHandler: highlightingManager.SearchResultHandler,
-						selectionHighlightingHandler: highlightingManager.SelectionHandler,
-						highlightingFiltersHandler: highlightingManager.HighlightingFiltersHandler
-					);
-				}
-			}
-		}
-
-		int IViewModel.ViewLinesCount
-		{
-			get { return screenBuffer.Messages.Count; }
-		}
+		ImmutableList<ViewLine> IViewModel.ViewLines => viewLines();
 
 		double IViewModel.GetFirstDisplayMessageScrolledLines()
 		{
@@ -994,16 +963,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			}
 
-			DisplayHintIfMessagesIsEmpty();
+			DisplayHintIfMessagesIsEmpty(); // todo: have ViewModel prop
 
 			if (!selectionManager.PickNewSelection())
 			{
 				selectionManager.UpdateSelectionDisplayIndexes();
 			}
 
-			view.Invalidate();
-
-			view.SetVScroll(screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?());
+			view.SetVScroll(screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?()); // todo: have ViewModel prop
 		}
 
 		bool DisplayHintIfMessagesIsEmpty()
@@ -1361,6 +1328,44 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return () => getSelector()();
 		}
 
+		Func<ImmutableList<ViewLine>> CreateViewLinesSelector()
+		{
+			return Selectors.Create(
+				() => (screenBuffer.Messages, model.Bookmarks.Items),
+				() => (showRawMessages, showTime, showMilliseconds, coloring),
+				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
+				() => (selectionManager.Selection.Version, selectionManager.CursorState),
+				(data, displayProps, highlightingProps, selectionProps) =>
+				{
+					var list = ImmutableList.CreateBuilder<ViewLine>();
+					using (var bookmarksHandler = (model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler()))
+					{
+						SelectionInfo? normalizedSelection = null;
+						if (selectionManager.Selection.IsValid)
+							normalizedSelection = selectionManager.Selection.Normalize();
+
+						foreach (var screenBufferEntry in data.Messages)
+						{
+							list.Add(screenBufferEntry.ToViewLine(
+								displayProps.showRawMessages,
+								displayProps.showTime,
+								displayProps.showMilliseconds,
+								isBookmarked: !screenBufferEntry.Message.Thread.IsDisposed && bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(
+									screenBufferEntry.Message, screenBufferEntry.TextLineIndex),
+								coloring: displayProps.coloring,
+								normalizedValidSelection: normalizedSelection,
+								cursorState: selectionProps.CursorState,
+								searchResultHighlightingHandler: highlightingProps.SearchResultHandler,
+								selectionHighlightingHandler: highlightingProps.SelectionHandler,
+								highlightingFiltersHandler: highlightingProps.HighlightingFiltersHandler
+							));
+						}
+					}
+					return list.ToImmutable();
+				}
+			);
+		}
+
 
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
@@ -1400,5 +1405,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		readonly Func<int> timeMaxLength;
 		readonly Func<int[]> focusedMessageMarkLocation;
+		readonly Func<ImmutableList<ViewLine>> viewLines;
 	};
 };

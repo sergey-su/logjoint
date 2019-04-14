@@ -4,7 +4,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		internal IMessage Message;
 		public IMessagesSource Source;
-		public int DisplayIndex;
+		public int DisplayIndex; // todo: reactive update
 		public int TextLineIndex;
 		public int LineCharIndex;
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 
 namespace LogJoint
@@ -19,10 +20,20 @@ namespace LogJoint
 		public void Post(Action action)
 		{
 			if (isReady())
-				impl.BeginInvoke((Action)(() => action()), new object[0]);
+			{
+				while (pending.TryDequeue(out var p))
+					impl.BeginInvoke(p, empty);
+				impl.BeginInvoke(action, empty);
+			}
+			else
+			{
+				pending.Enqueue(action);
+			}
 		}
 
 		readonly ISynchronizeInvoke impl;
 		readonly Func<bool> isReady;
+		readonly ConcurrentQueue<Action> pending = new ConcurrentQueue<Action>();
+		readonly object[] empty = new object[0];
 	}
 }

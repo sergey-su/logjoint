@@ -369,10 +369,11 @@ namespace LogJoint.UI
 		private static IEnumerable<ViewLine> GetVisibleMessagesIterator(DrawContext drawContext, IViewModel viewModel, Rectangle viewRect)
 		{
 			var (begin, end) = GetVisibleMessages(drawContext, viewModel, viewRect);
-			return viewModel.GetViewLines(begin, end);
+			for (var i = begin; i < end; ++i)
+				yield return viewModel.ViewLines[i];
 		}
 
-		private static (int, int) GetVisibleMessages(DrawContext drawContext, IViewModel presentationDataAccess, Rectangle viewRect)
+		private static (int, int) GetVisibleMessages(DrawContext drawContext, IViewModel viewModel, Rectangle viewRect)
 		{
 			viewRect.Offset(0, drawContext.ScrollPos.Y);
 
@@ -382,7 +383,7 @@ namespace LogJoint.UI
 			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
 				++end;
 
-			int availableLines = presentationDataAccess.ViewLinesCount;
+			int availableLines = viewModel.ViewLines.Count;
 			return (Math.Min(availableLines, begin), Math.Min(availableLines, end));
 		}
 
@@ -391,10 +392,9 @@ namespace LogJoint.UI
 		{
 			maxRight = 0;
 
-			var (begin, end) = GetVisibleMessages(drawContext, viewModel, dirtyRect);
-			foreach (var il in viewModel.GetViewLines(begin, end))
+			foreach (var vl in GetVisibleMessagesIterator(drawContext, viewModel, dirtyRect))
 			{
-				MessageDrawing.Draw(il, drawContext, viewModel, controlIsFocused, out var right);
+				MessageDrawing.Draw(vl, drawContext, viewModel, controlIsFocused, out var right);
 				maxRight = Math.Max(maxRight, right);
 			}
 
