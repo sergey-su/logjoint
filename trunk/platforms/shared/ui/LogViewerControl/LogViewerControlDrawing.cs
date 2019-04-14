@@ -133,7 +133,7 @@ namespace LogJoint.UI
 				dc.Canvas.FillRectangle(dc.SelectedBkBrush, tmp);
 			}
 
-			if (ctx.ShowTime)
+			if (ctx.TimeAreaSize > 0)
 			{
 				float x = ctx.CollapseBoxesAreaSize + ctx.TimeAreaSize - ctx.ScrollPos.X - 2;
 				if (x > ctx.CollapseBoxesAreaSize)
@@ -275,8 +275,6 @@ namespace LogJoint.UI
 		public Brush SelectionHighlightingBackground;
 		public Graphics Canvas;
 
-		public bool ShowTime { get { return Presenter != null ? Presenter.ShowTime : false; } }
-
 		public Point ScrollPos;
 		public int ViewWidth;
 
@@ -284,9 +282,7 @@ namespace LogJoint.UI
 
 		public Point GetTextOffset(int displayIndex)
 		{
-			int x = this.CollapseBoxesAreaSize - ScrollPos.X;
-			if (ShowTime)
-				x += TimeAreaSize;
+			int x = this.CollapseBoxesAreaSize - ScrollPos.X + TimeAreaSize;
 			int y = displayIndex * LineHeight - ScrollPos.Y;
 			return new Point(x, y);
 		}
@@ -296,7 +292,7 @@ namespace LogJoint.UI
 			timeAreaSize = Selectors.Create(
 				() => Presenter?.TimeMaxLength,
 				() => CharSize.Width,
-				(maxTimeLength, charWidth) => (int)Math.Floor(charWidth * maxTimeLength.GetValueOrDefault(0)) + 10
+				(maxTimeLength, charWidth) => maxTimeLength.GetValueOrDefault() == 0 ? 0 : ((int)Math.Floor(charWidth * maxTimeLength.Value) + 10)
 			);
 		}
 

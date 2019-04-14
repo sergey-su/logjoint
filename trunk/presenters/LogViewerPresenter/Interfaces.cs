@@ -50,7 +50,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task SelectSlaveModeFocusedMessage();
 
 		Task<string> GetSelectedText(); // func is async when selected text is not on the screen atm
-		void ClearSelection();
 		Task CopySelectionToClipboard();
 		bool IsSinglelineNonEmptySelection { get; }
 
@@ -193,14 +192,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		float DisplayLinesPerPage { get; }
 		void SetVScroll(double? value);
 		void UpdateFontDependentData(string fontName, LogFontSize fontSize);
-		void HScrollToSelectedText(SelectionInfo selection);
+		void HScrollToSelectedText(int charIndex);
 		void Invalidate();
 		void InvalidateLine(ViewLine line);
 		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void AnimateSlaveMessagePosition();
 		bool HasInputFocus { get; }
 		void ReceiveInputFocus();
-		object GetContextMenuPopupData(ViewLine? line);
+		object GetContextMenuPopupData(int? viewLineIndex);
 		void PopupContextMenu(object contextMenuPopupData);
 	};
 
@@ -223,9 +222,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			object preparedContextMenuPopupData);
 		void OnDrawingError(Exception e);
 
+		/// <summary>
+		/// Collection of lines that should be displayed on the view.
+		/// Whenever the collection changes, view needs to be re-rendered.
+		/// </summary>
 		ImmutableList<ViewLine> ViewLines { get; }
 		double GetFirstDisplayMessageScrolledLines(); // todo: have reactive prop
-		bool ShowTime { get; }
+		/// <summary>
+		/// Max length of string representing view line time. <see cref="ViewLine.Time"/>.
+		/// Zero if time should not be rendered.
+		/// </summary>
 		int TimeMaxLength { get; }
 		/// <summary>
 		/// Returns null if focused message mark is not visible.

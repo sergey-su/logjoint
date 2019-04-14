@@ -186,14 +186,9 @@ namespace LogJoint.UI
 				Focus();
 		}
 
-		void IView.HScrollToSelectedText(SelectionInfo selection)
+		void IView.HScrollToSelectedText(int charIndex)
 		{
-			if (!selection.IsValid)
-				return;
-
-			int pixelThatMustBeVisible = (int)(selection.First.LineCharIndex * drawContext.CharSize.Width);
-			if (drawContext.ShowTime)
-				pixelThatMustBeVisible += drawContext.TimeAreaSize;
+			int pixelThatMustBeVisible = (int)(charIndex * drawContext.CharSize.Width) + drawContext.TimeAreaSize;
 
 			int currentVisibleLeft = scrollBarsInfo.scrollPos.X;
 			int currentVisibleRight = scrollBarsInfo.scrollPos.X + drawContext.ViewWidth - scrollBarsInfo.scrollBarsSize.Width;
@@ -251,10 +246,10 @@ namespace LogJoint.UI
 			SetScrollPos(posY: (int)(value.GetValueOrDefault() * (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1)));
 		}
 
-		object IView.GetContextMenuPopupData(ViewLine? line)
+		object IView.GetContextMenuPopupData(int? viewLineIndex)
 		{
-			if (line.HasValue)
-				return new Point(0, DrawingUtils.GetMessageRect(line.Value, drawContext).Bottom);
+			if (viewLineIndex.HasValue)
+				return new Point(0, DrawingUtils.GetMessageRect(viewModel.ViewLines[viewLineIndex.Value], drawContext).Bottom);
 			return new Point();
 		}
 

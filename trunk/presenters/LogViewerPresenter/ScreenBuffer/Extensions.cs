@@ -11,9 +11,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			bool rawMode,
 			bool showTime,
 			bool showMilliseconds,
+			(int, int) selectionViewLinesRange,
+			SelectionInfo? normalizedSelection = null,
 			bool isBookmarked = false,
 			Settings.Appearance.ColoringMode coloring = Settings.Appearance.ColoringMode.None,
-			SelectionInfo? normalizedValidSelection = null,
+			int? cursorCharIndex = null,
 			bool cursorState = false,
 			IHighlightingHandler searchResultHighlightingHandler = null,
 			IHighlightingHandler selectionHighlightingHandler = null,
@@ -42,29 +44,30 @@ namespace LogJoint.UI.Presenters.LogViewer
 					coloring == Settings.Appearance.ColoringMode.Sources && msg.TryGetLogSource(out var ls) ? ls.Color :
 					new ModelColor?(),
 				IsBookmarked = isBookmarked,
-				SelectedBackground = normalizedValidSelection != null && !normalizedValidSelection.Value.IsEmpty ? GetSelection(e.Index, textLine, normalizedValidSelection.Value) : null,
 				HasMessageSeparator = text.IsMultiline && text.GetLinesCount() == e.TextLineIndex + 1,
-				CursorCharIndex = cursorState && normalizedValidSelection != null && normalizedValidSelection.Value.First.DisplayIndex == e.Index ? normalizedValidSelection.Value.First.LineCharIndex : new int?(),
+				SelectedBackground = GetSelection(e.Index, textLine, selectionViewLinesRange, normalizedSelection),
+				CursorCharIndex = cursorCharIndex,
 				searchResultHighlightingHandler = searchResultHighlightingHandler,
 				selectionHighlightingHandler = selectionHighlightingHandler,
 				highlightingFiltersHandler = highlightingFiltersHandler
 			};
 		}
 
-		private static (int, int)? GetSelection(int displayIndex, StringSlice line, SelectionInfo normalizedSelection)
+		private static (int, int)? GetSelection(int displayIndex, StringSlice line, (int first, int last) selectionViewLinesRange, SelectionInfo? normalizedSelection)
 		{
-			if (!normalizedSelection.IsEmpty
-			 && displayIndex >= normalizedSelection.First.DisplayIndex
-			 && displayIndex <= normalizedSelection.Last.DisplayIndex)
+			if (normalizedSelection != null
+			 && !normalizedSelection.Value.IsEmpty
+			 && displayIndex >= selectionViewLinesRange.first
+			 && displayIndex <= selectionViewLinesRange.last)
 			{
 				int selectionStartIdx;
 				int selectionEndIdx;
-				if (displayIndex == normalizedSelection.First.DisplayIndex)
-					selectionStartIdx = normalizedSelection.First.LineCharIndex;
+				if (displayIndex == selectionViewLinesRange.first)
+					selectionStartIdx = normalizedSelection.Value.First.LineCharIndex;
 				else
 					selectionStartIdx = 0;
-				if (displayIndex == normalizedSelection.Last.DisplayIndex)
-					selectionEndIdx = normalizedSelection.Last.LineCharIndex;
+				if (displayIndex == selectionViewLinesRange.last)
+					selectionEndIdx = normalizedSelection.Value.Last.LineCharIndex;
 				else
 					selectionEndIdx = line.Length;
 				if (selectionStartIdx < selectionEndIdx && selectionStartIdx >= 0 && selectionEndIdx <= line.Value.Length)

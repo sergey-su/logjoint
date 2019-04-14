@@ -1,10 +1,9 @@
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public struct CursorPosition
+	internal struct CursorPosition
 	{
 		internal IMessage Message;
 		public IMessagesSource Source;
-		public int DisplayIndex; // todo: reactive update
 		public int TextLineIndex;
 		public int LineCharIndex;
 
@@ -34,7 +33,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return new CursorPosition()
 			{
 				Message = l.Message,
-				DisplayIndex = l.LineIndex,
 				TextLineIndex = l.TextLineIndex,
 				LineCharIndex = charIndex
 			};

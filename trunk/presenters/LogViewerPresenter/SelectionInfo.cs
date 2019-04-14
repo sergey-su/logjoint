@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public struct SelectionInfo
+	internal struct SelectionInfo
 	{
 		public CursorPosition First { get { return first; } }
 		public CursorPosition Last { get { return last; } }
@@ -45,20 +45,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return this;
 			else
 				return new SelectionInfo { first = last, last = first, normalized = true };
-		}
-
-		public IEnumerable<int> GetDisplayIndexesRange()
-		{
-			if (IsEmpty)
-			{
-				yield return first.DisplayIndex;
-			}
-			else
-			{
-				SelectionInfo norm = Normalize();
-				for (int i = norm.first.DisplayIndex; i <= norm.last.DisplayIndex; ++i)
-					yield return i;
-			}
 		}
 
 		public CursorPosition first;
