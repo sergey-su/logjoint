@@ -21,7 +21,7 @@ namespace LogJoint.UI
 {
 	public class LogViewerControlAdapter: NSResponder, IView
 	{
-		internal IViewModel viewEvents;
+		internal IViewModel viewModel;
 		internal bool isFocused;
 		NSTimer animationTimer;
 		string drawDropMessage;
@@ -49,7 +49,6 @@ namespace LogJoint.UI
 			InnerView.Init(this);
 			InitScrollView();
 			InitDrawingContext();
-			InitCursorTimer();
 			InnerView.Menu = new NSMenu()
 			{
 				Delegate = new ContextMenuDelegate()
@@ -83,16 +82,6 @@ namespace LogJoint.UI
 			};
 		}
 
-		void InitCursorTimer()
-		{
-			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(500), _ =>
-			{
-				drawContext.CursorState = !drawContext.CursorState;
-				if (viewEvents != null)
-					viewEvents.OnCursorTimerTick();
-			});
-		}
-
 		void InitScrollView()
 		{
 			// without this vert. scrolling with touch gesture often gets stuck
@@ -102,8 +91,8 @@ namespace LogJoint.UI
 			ScrollView.PostsFrameChangedNotifications = true;
 			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, async ns =>
 			{
-				if (viewEvents != null)
-					viewEvents.OnDisplayLinesPerPageChanged();
+				if (viewModel != null)
+					viewModel.OnDisplayLinesPerPageChanged();
 				await Task.Yield(); // w/o this hack inner view is never painted until first resize
 				UpdateInnerViewSize();
 			}, ScrollView);
@@ -126,13 +115,12 @@ namespace LogJoint.UI
 
 		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewModel;
+			this.viewModel = viewModel;
 			this.drawContext.Presenter = viewModel;
 			var updater = Updaters.Create (
-				() => viewModel.HighlightingFiltersHandler,
-				() => viewModel.SelectionHighlightingHandler,
-				() => viewModel.SearchResultHighlightingHandler,
-				(_1, _2, _3) => { this.InnerView.NeedsDisplay = true; }
+				() => viewModel.ViewLines,
+				() => viewModel.TimeMaxLength,
+				(_1, _2) => { this.InnerView.NeedsDisplay = true; }
 			);
 			viewModel.ChangeNotification.CreateSubscription (updater);
 		}
@@ -152,8 +140,6 @@ namespace LogJoint.UI
 				drawContext.CharSize.Width /= (float)count;
 				drawContext.LineHeight = (int)Math.Floor(drawContext.CharSize.Height);
 			}
-
-			UpdateTimeAreaSize();
 		}
 
 		void IView.HScrollToSelectedText(SelectionInfo selection)
@@ -182,7 +168,7 @@ namespace LogJoint.UI
 
 		}
 
-		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
+		object IView.GetContextMenuPopupData (ViewLine? line)
 		{
 			// todo
 			return null;
@@ -208,16 +194,6 @@ namespace LogJoint.UI
 		{
 			drawDropMessage = messageToDisplayOrNull;
 			DragDropIconView.Hidden = messageToDisplayOrNull == null;
-		}
-
-		void IView.RestartCursorBlinking()
-		{
-			drawContext.CursorState = true;
-		}
-
-		void IView.UpdateMillisecondsModeDependentData()
-		{
-			UpdateTimeAreaSize();
 		}
 
 		void IView.AnimateSlaveMessagePosition()
@@ -293,17 +269,17 @@ namespace LogJoint.UI
 
 		internal void OnPaint(RectangleF dirtyRect)
 		{
-			if (viewEvents == null)
+			if (viewModel == null)
 				return;
 			
 			UpdateClientSize();
 
 			drawContext.Canvas = new LJD.Graphics();
 			drawContext.ScrollPos = new Point(0,
-				(int)(viewEvents.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight));
+				(int)(viewModel.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight));
 
 			int maxRight;
-			DrawingUtils.PaintControl(drawContext, viewEvents, selection, isFocused, 
+			DrawingUtils.PaintControl(drawContext, viewModel, isFocused, 
 				dirtyRect.ToRectangle(), out maxRight);
 
 			if (maxRight > viewWidth)
@@ -317,7 +293,7 @@ namespace LogJoint.UI
 		{
 			bool isRegularMouseScroll = !e.HasPreciseScrollingDeltas;
 			nfloat multiplier = isRegularMouseScroll ? 20 : 1;
-			viewEvents.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
+			viewModel.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
 
 			var pos = ScrollView.ContentView.Bounds.Location;
 			InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
@@ -338,31 +314,26 @@ namespace LogJoint.UI
 				flags |= MessageMouseEventFlag.DblClick;
 			else
 				flags |= MessageMouseEventFlag.SingleClick;
-			
-			bool captureTheMouse;
 
 			DrawingUtils.MouseDownHelper(
-				viewEvents,
+				viewModel,
 				drawContext,
 				ClientRectangle,
-				viewEvents,
 				InnerView.ConvertPointFromView (e.LocationInWindow, null).ToPoint(),
 				flags,
-				out captureTheMouse
+				out var _
 			);
 		}
 
 		internal void OnMouseMove(NSEvent e, bool dragging)
 		{
-			DrawingUtils.CursorType cursor;
 			DrawingUtils.MouseMoveHelper(
-				viewEvents,
+				viewModel,
 				drawContext,
 				ClientRectangle,
-				viewEvents,
 				InnerView.ConvertPointFromView(e.LocationInWindow, null).ToPoint(),
 				dragging,
-				out cursor
+				out var _
 			);
 		}
 
@@ -398,7 +369,7 @@ namespace LogJoint.UI
 		[Export("OnVertScrollChanged")]
 		void OnVertScrollChanged()
 		{
-			viewEvents.OnVScroll(VertScroller.DoubleValue, isRealtimeScroll: true);
+			viewModel.OnVScroll(VertScroller.DoubleValue, isRealtimeScroll: true);
 		}
 
 		private static int ToFontEmSize(LogFontSize fontSize) // todo: review sizes
@@ -416,16 +387,6 @@ namespace LogJoint.UI
 				default: return 14;
 			}
 		}
-
-		void UpdateTimeAreaSize()
-		{
-			string testStr = (new MessageTimestamp(new DateTime(2011, 11, 11, 11, 11, 11, 111))).ToUserFrendlyString(drawContext.ShowMilliseconds);
-			drawContext.TimeAreaSize = (int)Math.Floor(
-				drawContext.CharSize.Width * (float)testStr.Length
-			) + 10;
-		}
-
-		SelectionInfo selection { get { return viewEvents != null ? viewEvents.Selection : new SelectionInfo(); } }
 
 		Rectangle ClientRectangle
 		{
@@ -446,7 +407,7 @@ namespace LogJoint.UI
 			public override void MenuWillOpen (NSMenu menu)
 			{
 				menu.RemoveAllItems();
-				var menuData = owner.viewEvents.OnMenuOpening();
+				var menuData = owner.viewModel.OnMenuOpening();
 				foreach (var item in new Dictionary<ContextMenuItem, string>()
 				{
 					{ ContextMenuItem.ShowTime, "Show time" },
@@ -472,7 +433,7 @@ namespace LogJoint.UI
 			
 			NSMenuItem MakeItem(ContextMenuItem i, string title, bool isChecked)
 			{
-				var item = new NSMenuItem(title, (sender, e) => owner.viewEvents.OnMenuItemClicked(i, !isChecked));
+				var item = new NSMenuItem(title, (sender, e) => owner.viewModel.OnMenuItemClicked(i, !isChecked));
 				if (isChecked)
 					item.State = NSCellStateValue.On;
 				return item;
