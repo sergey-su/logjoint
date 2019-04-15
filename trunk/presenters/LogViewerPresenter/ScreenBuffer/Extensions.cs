@@ -12,14 +12,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			bool showTime,
 			bool showMilliseconds,
 			(int, int) selectionViewLinesRange,
-			SelectionInfo? normalizedSelection = null,
-			bool isBookmarked = false,
-			Settings.Appearance.ColoringMode coloring = Settings.Appearance.ColoringMode.None,
-			int? cursorCharIndex = null,
-			bool cursorState = false,
-			IHighlightingHandler searchResultHighlightingHandler = null,
-			IHighlightingHandler selectionHighlightingHandler = null,
-			IHighlightingHandler highlightingFiltersHandler = null
+			SelectionInfo normalizedSelection,
+			bool isBookmarked,
+			Settings.Appearance.ColoringMode coloring,
+			int? cursorCharIndex,
+			IHighlightingHandler searchResultHighlightingHandler,
+			IHighlightingHandler selectionHighlightingHandler,
+			IHighlightingHandler highlightingFiltersHandler
 		)
 		{
 			var msg = e.Message;
@@ -53,21 +52,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 			};
 		}
 
-		private static (int, int)? GetSelection(int displayIndex, StringSlice line, (int first, int last) selectionViewLinesRange, SelectionInfo? normalizedSelection)
+		private static (int, int)? GetSelection(int displayIndex, StringSlice line, (int first, int last) selectionViewLinesRange, SelectionInfo normalizedSelection)
 		{
 			if (normalizedSelection != null
-			 && !normalizedSelection.Value.IsEmpty
+			 && !normalizedSelection.IsEmpty
 			 && displayIndex >= selectionViewLinesRange.first
 			 && displayIndex <= selectionViewLinesRange.last)
 			{
 				int selectionStartIdx;
 				int selectionEndIdx;
 				if (displayIndex == selectionViewLinesRange.first)
-					selectionStartIdx = normalizedSelection.Value.First.LineCharIndex;
+					selectionStartIdx = normalizedSelection.First.LineCharIndex;
 				else
 					selectionStartIdx = 0;
 				if (displayIndex == selectionViewLinesRange.last)
-					selectionEndIdx = normalizedSelection.Value.Last.LineCharIndex;
+					selectionEndIdx = normalizedSelection.Last.LineCharIndex;
 				else
 					selectionEndIdx = line.Length;
 				if (selectionStartIdx < selectionEndIdx && selectionStartIdx >= 0 && selectionEndIdx <= line.Value.Length)

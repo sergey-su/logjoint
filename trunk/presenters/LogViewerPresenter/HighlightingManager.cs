@@ -54,11 +54,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 					: null
 			);
 			this.getSelectionHandler = Selectors.Create(
-				() => selectionManager.Selection.Version,
+				() => selectionManager.Selection,
 				isRawMessagesModeSelector,
 				viewSizeSelector,
-				(selectionVersion, isRawMessagesMode, viewSize) =>
-					MakeSelectionInplaceHighlightingHander(selectionManager.Selection, isRawMessagesMode, wordSelection, ViewSizeToCacheSize(viewSize))
+				(selection, isRawMessagesMode, viewSize) =>
+					MakeSelectionInplaceHighlightingHander(selection, isRawMessagesMode, wordSelection, ViewSizeToCacheSize(viewSize))
 			);
 		}
 
@@ -138,7 +138,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			IHighlightingHandler newHandler = null;
 
-			if (selection.IsSingleLine)
+			if (selection?.IsSingleLine == true)
 			{
 				var normSelection = selection.Normalize();
 				var line = normSelection.First.Message.GetDisplayText(isRawMessagesMode).GetNthTextLine(normSelection.First.TextLineIndex);

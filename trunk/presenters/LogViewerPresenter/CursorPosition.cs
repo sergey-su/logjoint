@@ -1,21 +1,21 @@
+using System;
+
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	internal struct CursorPosition
+	internal class CursorPosition
 	{
-		internal IMessage Message;
-		public IMessagesSource Source;
-		public int TextLineIndex;
-		public int LineCharIndex;
-
-		public bool IsValid => Message != null;
+		internal readonly IMessage Message;
+		public readonly IMessagesSource Source;
+		public readonly int TextLineIndex;
+		public readonly int LineCharIndex;
 
 		public static int Compare(CursorPosition p1, CursorPosition p2)
 		{
-			if (!p1.IsValid && !p2.IsValid)
+			if (p1 == null && p2 == null)
 				return 0;
-			if (!p1.IsValid)
+			if (p1 == null)
 				return -1;
-			if (!p2.IsValid)
+			if (p2 == null)
 				return 1;
 			int i;
 			i = MessagesComparer.Compare(p1.Message, p2.Message);
@@ -28,14 +28,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return i;
 		}
 
-		public static CursorPosition FromViewLine(ViewLine l, int charIndex)
+		public static CursorPosition FromScreenBufferEntry(ScreenBufferEntry l, int charIndex)
 		{
-			return new CursorPosition()
-			{
-				Message = l.Message,
-				TextLineIndex = l.TextLineIndex,
-				LineCharIndex = charIndex
-			};
+			return new CursorPosition(l.Message, l.Source, l.TextLineIndex, charIndex);
+		}
+
+		private CursorPosition(IMessage message, IMessagesSource source, int textLineIndex, int lineCharIndex)
+		{
+			Message = message ?? throw new ArgumentNullException("message");
+			Source = source ?? throw new ArgumentNullException("source");
+			TextLineIndex = textLineIndex;
+			LineCharIndex = lineCharIndex;
 		}
 	};
 };

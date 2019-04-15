@@ -167,7 +167,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IMessage IPresenter.FocusedMessage
 		{
-			get { return Selection.First.Message; }
+			get { return selectionManager.Selection?.First.Message; }
 		}
 
 		IBookmark IPresenter.GetFocusedMessageBookmark()
@@ -234,7 +234,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					await screenBuffer.SetRawLogMode(value, cancellation);
 					InternalUpdate();
 				}).IgnoreCancellation();
-				selectionManager.HandleRawModeChange();
 				RawViewModeChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
@@ -285,7 +284,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<Dictionary<IMessagesSource, long>> IPresenter.GetCurrentPositions(CancellationToken cancellation)
 		{
-			if (!Selection.IsValid)
+			if (selectionManager.Selection == null)
 				return null;
 			var tmp = screenBufferFactory.CreateScreenBuffer(1);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
@@ -441,18 +440,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task IPresenter.GoToNextMessage()
 		{
-			if (Selection.IsValid)
+			if (selectionManager.Selection != null)
 				await MoveSelection(
-					GetTextToDisplay(Selection.First.Message).GetLinesCount() - Selection.First.TextLineIndex,
+					GetTextToDisplay(selectionManager.Selection.First.Message).GetLinesCount() - selectionManager.Selection.First.TextLineIndex,
 					SelectionFlag.None
 				);
 		}
 
 		async Task IPresenter.GoToPrevMessage()
 		{
-			if (Selection.IsValid)
+			if (selectionManager.Selection != null)
 				await MoveSelection(
-					-(Selection.First.TextLineIndex + 1),
+					-(selectionManager.Selection.First.TextLineIndex + 1),
 					SelectionFlag.None
 				);
 		}
@@ -469,7 +468,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool IPresenter.IsSinglelineNonEmptySelection
 		{
-			get { return !selectionManager.Selection.IsEmpty && selectionManager.Selection.IsSingleLine; }
+			get { return selectionManager.Selection != null && !selectionManager.Selection.IsEmpty && selectionManager.Selection.IsSingleLine; }
 		}
 
 		bool IPresenter.HasInputFocus
@@ -648,7 +647,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if ((flags & MessageMouseEventFlag.RightMouseButton) != 0)
 			{
-				if (!Selection.IsInsideSelection(CursorPosition.FromViewLine(line, charIndex)))
+				var screeBufferEntry = screenBuffer.Messages.ElementAtOrDefault(line.LineIndex);
+				if (screeBufferEntry.Message != null && !selectionManager.Selection?.Contains(CursorPosition.FromScreenBufferEntry(screeBufferEntry, charIndex)) == true)
 					selectionManager.SetSelection(line.LineIndex, SelectionFlag.None, charIndex);
 				view.PopupContextMenu(preparedContextMenuPopupData);
 			}
@@ -735,7 +735,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None;
 			var alt = (keyFlags & Key.AlternativeModeModifier) != 0;
 
-			if (Selection.IsValid)
+			if (selectionManager.Selection != null)
 			{
 				if (k == Key.Up)
 					if (alt)
@@ -883,11 +883,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<int?> ScrollSelectionIntoScreenBuffer(CancellationToken cancellation)
 		{
-			if (!Selection.IsValid || screenBuffer.Messages.Count == 0)
+			if (selectionManager.Selection == null || screenBuffer.Messages.Count == 0)
 				return null;
 			if (selectionManager.CursorViewLine != null)
 				return selectionManager.CursorViewLine;
-			return await LoadMessageAt(Selection.First.Message, Selection.First.TextLineIndex, BookmarkLookupMode.ExactMatch, cancellation);
+			return await LoadMessageAt(selectionManager.Selection.First.Message, selectionManager.Selection.First.TextLineIndex, BookmarkLookupMode.ExactMatch, cancellation);
 		}
 
 		async Task MoveSelectionCore(int selectionDelta, SelectionFlag selFlags, CancellationToken cancellation)
@@ -957,11 +957,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			DisplayHintIfMessagesIsEmpty(); // todo: have ViewModel prop
 
-			if (!selectionManager.PickNewSelection()) // todo: delete ut
-			{
-
-			}
-
 			view.SetVScroll(screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?()); // todo: have ViewModel prop
 		}
 
@@ -982,17 +977,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task FindMessageInCurrentThread(EnumMessagesFlag directionFlag)
 		{
-			var message = Selection.First.Message;
-			var messageSource = Selection.First.Source;
-			if (message == null || messageSource == null)
+			var cursorPos = selectionManager.Selection?.First;
+			if (cursorPos == null)
 				return;
 			await navigationManager.NavigateView (async cancellation =>
 			{
 				var msg = await ScanMessages (
-					messageSource,
-					Selection.First.Message.Position,
+					cursorPos.Source,
+					cursorPos.Message.Position,
 					directionFlag | EnumMessagesFlag.IsSequentialScanningHint,
-					m => m.Position != message.Position && m.Thread == message.Thread,
+					m => m.Position != cursorPos.Message.Position && m.Thread == cursorPos.Message.Thread,
 					cancellation
 				);
 				if (msg != null)
@@ -1072,9 +1066,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (didx == null)
 					return;
 				cancellation.ThrowIfCancellationRequested();
-				if (!Selection.IsValid)
+				if (selectionManager.Selection == null)
 					return;
-				CursorPosition cur = Selection.First;
+				CursorPosition cur = selectionManager.Selection.First;
 				if (jumpOverWords)
 				{
 					var wordFlag = left ? SelectionFlag.SelectBeginningOfPrevWord : SelectionFlag.SelectBeginningOfNextWord;
@@ -1084,7 +1078,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					selectionManager.SetSelection(didx.Value, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
 				}
-				if (Selection.First.LineCharIndex == cur.LineCharIndex)
+				if (selectionManager.Selection?.First?.LineCharIndex == cur.LineCharIndex)
 				{
 					await MoveSelectionCore(
 						left ? -1 : +1,
@@ -1106,24 +1100,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 			bool isReverseSearch = reverse;
 			IMessage scanResult = null;
 
-			CursorPosition startFrom = new CursorPosition();
-			var normSelection = Selection.Normalize();
+			CursorPosition startFrom = null;
+			var normSelection = selectionManager.Selection?.Normalize();
 			if (!isReverseSearch)
 			{
-				var tmp = normSelection.Last;
-				if (!tmp.IsValid)
-					tmp = normSelection.First;
-				if (tmp.IsValid)
-					startFrom = tmp;
+				startFrom = normSelection?.Last ?? normSelection?.First;
 			}
 			else
 			{
-				if (normSelection.IsValid)
-					startFrom = normSelection.First;
+				startFrom = normSelection?.First;
 			}
 
 			int startFromTextPosition = 0;
-			if (startFrom.IsValid)
+			if (startFrom != null)
 			{
 				var txt = startFrom.Message.GetDisplayText(screenBuffer.IsRawLogMode);
 				var startLine = txt.GetNthTextLine(startFrom.TextLineIndex);
@@ -1135,12 +1124,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var searchSources = screenBuffer.Sources;
 				searchSources = searchSources.Where(
 					ss => ss.Source.LogSourceHint == null || positiveFilters == null || positiveFilters.Any(f =>
-						f == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
-				searchSources = searchSources.ToArray();
+						f == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint))).ToArray();
 
 				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(1);
 				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
-				if (startFrom.IsValid)
+				if (startFrom != null)
 				{
 					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message, startFrom.TextLineIndex),
 						BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation))
@@ -1242,7 +1230,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			if (scanResult != null)
 			{
-				view.HScrollToSelectedText(Selection.First.LineCharIndex);
+				if (selectionManager.Selection != null)
+					view.HScrollToSelectedText(selectionManager.Selection.First.LineCharIndex);
 				SetViewTailMode(false);
 			}
 
@@ -1251,7 +1240,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task GoToNextHighlightedMessage(bool reverse)
 		{
-			if (!Selection.IsValid || model.HighlightFilters == null)
+			if (selectionManager.Selection == null || model.HighlightFilters == null)
 				return;
 			using (var hlFiltersBulkProcessing = model.HighlightFilters.StartBulkProcessing(
 				screenBuffer.IsRawLogMode, reverseMatchDirection: false))
@@ -1320,15 +1309,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => (screenBuffer.Messages, model.Bookmarks.Items),
 				() => (screenBuffer.IsRawLogMode, showTime, showMilliseconds, coloring),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
-				() => (selectionManager.Selection.Version, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
+				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
 				{
 					var list = ImmutableList.CreateBuilder<ViewLine>();
 					using (var bookmarksHandler = (model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler()))
 					{
-						SelectionInfo? normalizedSelection = null;
-						if (selectionManager.Selection.IsValid)
-							normalizedSelection = selectionManager.Selection.Normalize();
+						var normalizedSelection = selectionProps.Selection?.Normalize();
 
 						foreach (var screenBufferEntry in data.Messages)
 						{
@@ -1341,8 +1328,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 								isBookmarked: !screenBufferEntry.Message.Thread.IsDisposed && bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(
 									screenBufferEntry.Message, screenBufferEntry.TextLineIndex),
 								coloring: displayProps.coloring,
-								cursorCharIndex: selectionProps.CursorViewLine == screenBufferEntry.Index ? selectionManager.Selection.First.LineCharIndex : new int?(),
-								cursorState: selectionProps.CursorState,
+								cursorCharIndex: selectionProps.CursorState && selectionProps.CursorViewLine == screenBufferEntry.Index ? selectionProps.Selection?.First?.LineCharIndex : new int?(),
 								searchResultHighlightingHandler: highlightingProps.SearchResultHandler,
 								selectionHighlightingHandler: highlightingProps.SelectionHandler,
 								highlightingFiltersHandler: highlightingProps.HighlightingFiltersHandler
@@ -1357,7 +1343,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
-		private SelectionInfo Selection { get { return selectionManager.Selection; }}
 
 		readonly IModel model;
 		readonly IChangeNotification changeNotification;

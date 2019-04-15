@@ -21,9 +21,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			this.changeNotification = changeNotification;
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
-			this.entries = ImmutableList.Create<ScreenBufferEntry>();
+			this.entries = ImmutableArray.Create<ScreenBufferEntry>();
 			this.disableSingleLogPositioningOptimization = disableSingleLogPositioningOptimization;
 			this.trace = trace ?? LJTraceSource.EmptyTracer;
+			this.sources = Selectors.Create(
+				() => buffersVersion,
+				_ => (IReadOnlyList<SourceScreenBuffer>)ImmutableArray.CreateRange(buffers.Select(b => new SourceScreenBuffer
+				{
+					Source = b.Key,
+					Begin = b.Value.BeginPosition,
+					End = b.Value.EndPosition
+				}))
+			);
 			this.SetViewSize(viewSize);
 		}
 
@@ -37,6 +46,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var oldBuffers = buffers;
 			buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics, isRawLogMode));
 			bool needsClear = false;
+			if (!buffers.Keys.ToHashSet().SetEquals(oldBuffers.Keys))
+			{
+				buffersVersion++;
+				changeNotification.Post();
+			}
 
 			if (!currentTop.IsEmpty)
 			{
@@ -120,23 +134,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SetScrolledLines(0);
 		}
 
-		IReadOnlyList<ScreenBufferEntry> IScreenBuffer.Messages
-		{
-			get { return entries; }
-		}
+		IReadOnlyList<ScreenBufferEntry> IScreenBuffer.Messages => entries;
 
-		IEnumerable<SourceScreenBuffer> IScreenBuffer.Sources
-		{
-			get
-			{
-				return buffers.Select(b => new SourceScreenBuffer()
-				{
-					Source = b.Key, 
-					Begin = b.Value.BeginPosition,
-					End = b.Value.EndPosition
-				});
-			}
-		}
+		IReadOnlyList<SourceScreenBuffer> IScreenBuffer.Sources => sources();
 
 		Task IScreenBuffer.MoveToStreamsBegin(CancellationToken cancellation)
 		{
@@ -590,7 +590,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 
 					buffers = tmpCopy;
-					entries = ImmutableList.CreateRange(MakeMergingCollection(tmpCopy.Values).Forward(0, bufferSize).Select(ToScreenBufferMessage));
+					entries = ImmutableArray.CreateRange(MakeMergingCollection(tmpCopy.Values).Forward(0, bufferSize).Select(ToScreenBufferMessage));
 					changeNotification.Post();
 
 					SetScrolledLines(topLineScroll);
@@ -660,10 +660,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool isRawLogMode;
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
+		int buffersVersion;
+		Func<IReadOnlyList<SourceScreenBuffer>> sources;
 		double scrolledLines; // scrolling position as nr of lines. [0..1)
 
 		// computed values
-		ImmutableList<ScreenBufferEntry> entries;
+		ImmutableArray<ScreenBufferEntry> entries;
 
 		readonly Diagnostics diagnostics = new Diagnostics();
 	};

@@ -1,21 +1,23 @@
-using System.Collections.Generic;
+using System;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	internal struct SelectionInfo
+	internal class SelectionInfo
 	{
-		public CursorPosition First { get { return first; } }
-		public CursorPosition Last { get { return last; } }
+		public CursorPosition First => first;
+		public CursorPosition Last => last;
 
-		public int Version { get; set; } // todo: convert object to immutable ref class
-
-		public bool IsValid => First.IsValid;
+		public SelectionInfo(CursorPosition f, CursorPosition l)
+		{
+			this.first = f ?? throw new ArgumentNullException("first");
+			this.last = l;
+		}
 
 		public bool IsEmpty // todo: cache result
 		{
 			get
 			{
-				if (!First.IsValid || !Last.IsValid)
+				if (Last == null)
 					return true;
 				return CursorPosition.Compare(First, Last) == 0;
 			}
@@ -25,30 +27,31 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				if (!First.IsValid || !Last.IsValid) // no selection 
+				if (Last == null) // no range selection 
 					return false;
 				return First.Message == Last.Message && First.TextLineIndex == Last.TextLineIndex;
 			}
 		}
 
-		public bool IsInsideSelection(CursorPosition pos)
+		public bool Contains(CursorPosition pos)
 		{
-			var normalized = this.Normalize();
-			if (normalized.IsEmpty)
+			if (pos == null)
+				throw new ArgumentNullException();
+			if (IsEmpty)
 				return false;
+			var normalized = this.Normalize();
 			return CursorPosition.Compare(normalized.First, pos) <= 0 && CursorPosition.Compare(normalized.Last, pos) >= 0;
 		}
 
 		public SelectionInfo Normalize()
 		{
-			if (normalized)
+			if (last == null || CursorPosition.Compare(first, last) <= 0)
 				return this;
 			else
-				return new SelectionInfo { first = last, last = first, normalized = true };
+				return new SelectionInfo(last, first);
 		}
 
-		public CursorPosition first;
-		public CursorPosition last;
-		public bool normalized;
+		private readonly CursorPosition first;
+		private readonly CursorPosition last;
 	};
 };

@@ -29,7 +29,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// Gets the list of sources previously set by <see cref="SetSources(IEnumerable{IMessagesSource}, CancellationToken)"/>.
 		/// </summary>
-		IEnumerable<SourceScreenBuffer> Sources { get; }
+		IReadOnlyList<SourceScreenBuffer> Sources { get; }
 
 		/// <summary>
 		/// Updates the size of view the buffer needs to fill with log lines. Size can be zero in which case the buffer will contain one line.
