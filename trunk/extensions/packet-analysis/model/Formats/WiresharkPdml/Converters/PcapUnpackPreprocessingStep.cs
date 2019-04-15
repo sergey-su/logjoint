@@ -38,6 +38,7 @@ namespace LogJoint.Wireshark.Dpml
 			await callback.BecomeLongRunning();
 
 			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+			callback.SetStepDescription("scanning...");
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
