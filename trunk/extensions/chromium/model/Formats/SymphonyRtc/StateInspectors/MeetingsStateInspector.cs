@@ -34,6 +34,7 @@ namespace LogJoint.Symphony.Rtc
 		public static ObjectTypeInfo MeetingSessionTypeInfo { get { return meetingSessionTypeInfo; } }
 		public static ObjectTypeInfo MeetingRemoteParticipantTypeInfo { get { return meetingRemotePartTypeInfo; } }
 		public static ObjectTypeInfo ProbeSessionTypeInfo { get { return psessionTypeInfo; } }
+		public static ObjectTypeInfo InvitationTypeInfo { get { return invitationTypeInfo; } }
 
 		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
 		{
@@ -320,7 +321,7 @@ namespace LogJoint.Symphony.Rtc
 		readonly static ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("sym.rtc", isTimeless: true);
 		readonly static string rootObjectId = "Symphony RTC";
 		readonly static ObjectTypeInfo meetingTypeInfo = new ObjectTypeInfo("sym.meeting", primaryPropertyName: "state");
-		readonly static ObjectTypeInfo meetingSessionTypeInfo = new ObjectTypeInfo("sym.meeting.session");
+		readonly static ObjectTypeInfo meetingSessionTypeInfo = new ObjectTypeInfo("sym.meeting.session", primaryPropertyName: "status");
 		readonly static ObjectTypeInfo meetingRemotePartTypeInfo = new ObjectTypeInfo("sym.meeting.remotePart", displayIdPropertyName: "user name", primaryPropertyName: "audio state");
 		readonly static ObjectTypeInfo invitationTypeInfo = new ObjectTypeInfo("sym.invitation", primaryPropertyName: "state");
 		readonly static ObjectTypeInfo invitationsTypeInfo = new ObjectTypeInfo("sym.invitations", isTimeless: true);
