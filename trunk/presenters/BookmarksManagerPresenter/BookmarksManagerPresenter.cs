@@ -150,7 +150,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 				if (!await viewerPresenter.SelectMessageAt(firstBmk))
 				{
 					bool reportFailure = true;
-					var bookmarks = this.bookmarks.Items;
+					IEnumerable<IBookmark> bookmarks = this.bookmarks.Items;
 					if (!forward)
 						bookmarks = bookmarks.Reverse();
 					foreach (var followingBmk in bookmarks.SkipWhile(b => b != firstBmk).Skip(1))

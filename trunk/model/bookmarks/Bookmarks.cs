@@ -1,8 +1,7 @@
 using System; 
 using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
 using System.Linq;
+using System.Collections.Immutable;
 
 namespace LogJoint
 {
@@ -12,7 +11,7 @@ namespace LogJoint
 		{
 			this.factory = factory;
 			this.changeNotification = changeNotification;
-			itemsRef = items.Select(i => i);
+			itemsRef = ImmutableArray.CreateRange(items);
 		}
 
 		public event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
@@ -74,7 +73,7 @@ namespace LogJoint
 			get { return factory; }
 		}
 
-		IEnumerable<IBookmark> IBookmarks.Items
+		IReadOnlyList<IBookmark> IBookmarks.Items
 		{
 			get { return itemsRef; }
 		}
@@ -175,7 +174,7 @@ namespace LogJoint
 
 		void HandleBookmarksChanged(BookmarksChangedEventArgs args)
 		{
-			itemsRef = items.Select(i => i);
+			itemsRef = ImmutableArray.CreateRange(items);
 			changeNotification.Post();
 			OnBookmarksChanged?.Invoke(this, args);
 		}
@@ -191,7 +190,7 @@ namespace LogJoint
 		readonly IBookmarksFactory factory;
 		readonly IChangeNotification changeNotification;
 		readonly List<IBookmark> items = new List<IBookmark>();
-		IEnumerable<IBookmark> itemsRef;
+		IReadOnlyList<IBookmark> itemsRef;
 		readonly IComparer<IBookmark> cmp = new MessagesComparer();
 	}
 }

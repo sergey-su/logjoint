@@ -191,10 +191,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void SetViewModel(IViewModel viewEvents);
 		float DisplayLinesPerPage { get; }
 		void SetVScroll(double? value);
-		void UpdateFontDependentData(string fontName, LogFontSize fontSize);
 		void HScrollToSelectedText(int charIndex);
-		void Invalidate();
-		void InvalidateLine(ViewLine line);
 		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void AnimateSlaveMessagePosition();
 		bool HasInputFocus { get; }
@@ -207,7 +204,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		IChangeNotification ChangeNotification { get; }
 
-		void OnDisplayLinesPerPageChanged();
 		void OnIncrementalVScroll(float nrOfDisplayLines);
 		void OnVScroll(double value, bool isRealtimeScroll);
 		void OnHScroll();
@@ -227,7 +223,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// Whenever the collection changes, view needs to be re-rendered.
 		/// </summary>
 		ImmutableList<ViewLine> ViewLines { get; }
-		double GetFirstDisplayMessageScrolledLines(); // todo: have reactive prop
+		double FirstDisplayMessageScrolledLines { get; }
 		/// <summary>
 		/// Max length of string representing view line time. <see cref="ViewLine.Time"/>.
 		/// Zero if time should not be rendered.
@@ -239,6 +235,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// Returns array with two numbers if focused message mark is between two view lines.
 		/// </summary>
 		int[] FocusedMessageMarkLocation { get; }
+		FontData Font { get; }
 	};
 
 	public class MenuData
@@ -252,6 +249,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			public Action Click;
 		};
 		public List<ExtendedItem> ExtendededItems;
+	};
+
+	public class FontData
+	{
+		public string Name { get; private set; }
+		public LogFontSize Size { get; private set; }
+		public FontData(string name = null, LogFontSize size = LogFontSize.Normal)
+		{
+			Name = name;
+			Size = size;
+		}
 	};
 
 	public interface IMessagesSource

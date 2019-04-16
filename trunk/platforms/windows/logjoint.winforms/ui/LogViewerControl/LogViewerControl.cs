@@ -26,6 +26,20 @@ namespace LogJoint.UI
 
 			bufferedGraphicsContext = new BufferedGraphicsContext() { MaximumBuffer = new Size(5000, 4000) };
 
+			drawContext = new DrawContext(fontData =>
+			{
+				var font = new LJD.Font(GetFontFamily(fontData.Name).Name, ToFontEmSize(fontData.Size));
+				using (var nativeGraphics = CreateGraphics())
+				using (var tmp = new LJD.Graphics(nativeGraphics))
+				{
+					int count = 8 * 1024;
+					var charSize = tmp.MeasureString(new string('0', count), font);
+					var charWidth = (double)charSize.Width / (double)count;
+					charSize.Width /= (float)count;
+					return (font, charSize, charWidth);
+				}
+			});
+
 			drawContext.CollapseBoxesAreaSize = UIUtils.Dpi.Scale(drawContext.CollapseBoxesAreaSize);
 			drawContext.DpiScale = UIUtils.Dpi.Scale(1f);
 
@@ -91,29 +105,6 @@ namespace LogJoint.UI
 
 		#region IView members
 
-		void IView.UpdateFontDependentData(string fontName, LogFontSize fontSize)
-		{
-			if (drawContext.Font != null)
-				drawContext.Font.Dispose();
-
-			var oldDpp = drawContext.LineHeight > 0 ? ((IView)this).DisplayLinesPerPage : 0;
-
-			drawContext.Font = new LJD.Font(GetFontFamily(fontName).Name, ToFontEmSize(fontSize));
-
-			using (var nativeGraphics = CreateGraphics())
-			using (var tmp = new LJD.Graphics(nativeGraphics))
-			{
-				int count = 8 * 1024;
-				drawContext.CharSize = tmp.MeasureString(new string('0', count), drawContext.Font);
-				drawContext.CharWidthDblPrecision = (double)drawContext.CharSize.Width / (double)count;
-				drawContext.CharSize.Width /= (float)count;
-				drawContext.LineHeight = (int)Math.Floor(drawContext.CharSize.Height);
-			}
-
-			if (oldDpp != 0 && oldDpp != ((IView)this).DisplayLinesPerPage && viewModel != null)
-				viewModel.OnDisplayLinesPerPageChanged();
-		}
-
 		private static int ToFontEmSize(LogFontSize fontSize)
 		{
 			switch (fontSize)
@@ -145,35 +136,6 @@ namespace LogJoint.UI
 			);
 			viewModel.ChangeNotification.CreateSubscription(updater);
 		}
-
-		void IView.InvalidateLine(ViewLine line)
-		{
-			Rectangle r = DrawingUtils.GetMessageRect(line, drawContext);
-			this.Invalidate(r);
-		}
-
-		/*
-		void IView.ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
-		{
-			if (scrollBarsInfo.userIsScrolling)
-			{
-				return;
-			}
-
-			int? newScrollPos = null;
-
-			VisibleMessagesIndexes vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, ClientRectangle);
-
-			int extra = showExtraLinesAroundMessage ? 2 : 0;
-
-			if (messageDisplayPosition < vl.fullyVisibleBegin + extra)
-				newScrollPos = messageDisplayPosition - extra;
-			else if (messageDisplayPosition > vl.fullyVisibleEnd - extra)
-				newScrollPos = messageDisplayPosition  - (vl.fullyVisibleEnd - vl.begin) + extra;
-
-			if (newScrollPos.HasValue)
-				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, newScrollPos.Value * drawContext.LineHeight));
-		}*/
 
 		bool IView.HasInputFocus
 		{
@@ -282,7 +244,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		#region Overriden event handlers
+		#region Overridden event handlers
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
@@ -295,9 +257,6 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				/*Rectangle clientRectangle = base.ClientRectangle;
-				int p = drawContext.ScrollPos.Y - e.Delta;
-				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, p));*/
 				viewModel.OnIncrementalVScroll(-(float)e.Delta / (float)drawContext.LineHeight);
 				if (e is HandledMouseEventArgs)
 				{
@@ -309,13 +268,13 @@ namespace LogJoint.UI
 
 		protected override void OnGotFocus(EventArgs e)
 		{
-			InvalidateMessagesArea();
+			viewModel?.ChangeNotification?.Post();
 			base.OnGotFocus(e);
 		}
 
 		protected override void OnLostFocus(EventArgs e)
 		{
-			InvalidateMessagesArea();
+			viewModel?.ChangeNotification?.Post();
 			base.OnLostFocus(e);
 		}
 
@@ -491,8 +450,7 @@ namespace LogJoint.UI
 			EnsureBackbufferIsUpToDate();
 			SetScrollPos();
 			Invalidate();
-			if (viewModel != null)
-				viewModel.OnDisplayLinesPerPageChanged();
+			viewModel?.ChangeNotification?.Post();
 			base.OnResize(e);
 		}
 
@@ -703,14 +661,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		void InvalidateMessagesArea()
-		{
-			Rectangle r = ClientRectangle;
-			r.X += drawContext.CollapseBoxesAreaSize;
-			r.Width -= drawContext.CollapseBoxesAreaSize;
-			Invalidate(r);
-		}
-
 		void SetScrollPos(int? posX = null, int? posY = null)
 		{
 			var pos = scrollBarsInfo.scrollPos;
@@ -776,7 +726,7 @@ namespace LogJoint.UI
 			{
 				drawContext.ScrollPos = new Point(
 					GetScrollInfo(Native.SB.HORZ).nPos,
-					(int)(viewModel.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight)
+					(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight)
 				);
 			}
 		}
@@ -981,7 +931,7 @@ namespace LogJoint.UI
 		};
 		ScrollBarsInfo scrollBarsInfo;
 
-		DrawContext drawContext = new DrawContext();
+		DrawContext drawContext;
 		BufferedGraphics backBufferCanvas;
 		Size backBufferCanvasSize;
 		Cursor rightCursor;

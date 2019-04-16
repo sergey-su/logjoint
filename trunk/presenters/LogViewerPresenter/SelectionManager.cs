@@ -105,6 +105,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => setSelection,
 				() => screenBuffer.Messages,
 				() => screenBuffer.Sources,
+				() => screenBuffer.IsRawLogMode,
 				ComputeSelection
 			);
 			this.cursorViewLine = Selectors.Create(
@@ -193,35 +194,35 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		static SelectionInfo ComputeSelection(SelectionInfo setSelection, IReadOnlyList<ScreenBufferEntry> viewLines, IReadOnlyList<SourceScreenBuffer> sources)
+		static SelectionInfo ComputeSelection(SelectionInfo setSelection, IReadOnlyList<ScreenBufferEntry> viewLines, IReadOnlyList<SourceScreenBuffer> sources, bool rawLogMode)
 		{
-			// todo: handle raw text change
-			if (setSelection == null)
+			SelectionInfo createForViewLineIndex(int idx)
 			{
-				if (viewLines.Count > 0)
-				{
-					return new SelectionInfo(CursorPosition.FromScreenBufferEntry(viewLines[0], 0), null);
-				}
-				return null;
+				if (viewLines.Count == 0)
+					return null;
+				return new SelectionInfo(CursorPosition.FromScreenBufferEntry(idx != viewLines.Count ? viewLines[idx] : viewLines[0], 0), null, rawLogMode);
 			}
 			bool belongsToNonExistingSource(CursorPosition pos) => pos != null && !sources.Any(s => s.Source == pos.Source);
-			if (belongsToNonExistingSource(setSelection.First) || belongsToNonExistingSource(setSelection.Last))
+
+			if (setSelection == null)
 			{
-				if (viewLines.Count > 0)
-				{
-					IComparer<IMessage> cmp = new DatesComparer(setSelection.First.Message.Time.ToLocalDateTime());
-					var idx = viewLines.BinarySearch(0, viewLines.Count, dl => cmp.Compare(dl.Message, null) < 0);
-					if (idx != viewLines.Count)
-						return new SelectionInfo(CursorPosition.FromScreenBufferEntry(viewLines[idx], 0), null);
-					else
-						return new SelectionInfo(CursorPosition.FromScreenBufferEntry(viewLines[0], 0), null);
-				}
-				else
-				{
-					return null;
-				}
+				return createForViewLineIndex(0);
 			}
-			return setSelection;
+			else if (belongsToNonExistingSource(setSelection.First) || belongsToNonExistingSource(setSelection.Last))
+			{
+				IComparer<IMessage> cmp = new DatesComparer(setSelection.First.Message.Time.ToLocalDateTime());
+				var idx = viewLines.BinarySearch(0, viewLines.Count, dl => cmp.Compare(dl.Message, null) < 0);
+				return createForViewLineIndex(idx);
+			}
+			else if (setSelection.RawLogMode != rawLogMode)
+			{
+				var idx = viewLines.BinarySearch(0, viewLines.Count, m => MessagesComparer.Compare(m.Message, setSelection.First.Message) < 0);
+				return createForViewLineIndex(idx);
+			}
+			else
+			{
+				return setSelection;
+			}
 		}
 
 		IBookmark ISelectionManager.GetFocusedMessageBookmark()
@@ -306,7 +307,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (displayIndex == 0 && screenBuffer.TopLineScrollValue > 1e-3)
 				{
 					screenBuffer.MakeFirstLineFullyVisible();
-					view.Invalidate();
 				}
 				if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
 				{
@@ -323,7 +323,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				var tmp = CursorPosition.FromScreenBufferEntry(dmsg, newLineCharIndex);
 
-				setSelection = new SelectionInfo(tmp, resetEnd ? tmp : setSelection.Last);
+				setSelection = new SelectionInfo(tmp, resetEnd ? tmp : setSelection.Last, screenBuffer.IsRawLogMode);
 				changeNotification.Post();
 
 				OnSelectionChanged();

@@ -35,8 +35,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
 
-			view.UpdateFontDependentData(fontName, fontSize);
-
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			var wordSelection = new WordSelection();
 			this.selectionManager = new SelectionManager(
@@ -83,7 +81,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			this.model.OnLogSourceColorChanged += (s, e) =>
 			{
-				view.Invalidate(); // todo: invalidate view lines
+				// todo: invalidate view lines
 			};
 
 			this.model.OnSourceMessagesChanged += (sender, e) => 
@@ -105,15 +103,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
 				{
 					ReadGlobalSettings(model);
-					view.UpdateFontDependentData(fontName, fontSize);
-					view.Invalidate();
 				}
 			};
 
-			if (model.Bookmarks != null)
+			var viewSizeUpdater = Updaters.Create(() => view.DisplayLinesPerPage, OnDisplayLinesPerPageChanged);
+
+			subscription = changeNotification.CreateSubscription(() =>
 			{
-				model.Bookmarks.OnBookmarksChanged += (s, e) => view.Invalidate(); // todo: bookmarks should raise change notification
-			}
+				viewSizeUpdater();
+			});
 
 			DisplayHintIfMessagesIsEmpty();
 		}
@@ -121,6 +119,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void IDisposable.Dispose()
 		{
 			selectionManager.Dispose();
+			subscription.Dispose();
 		}
 
 		#region Interfaces implementation
@@ -155,13 +154,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		LogFontSize IPresenter.FontSize
 		{
-			get { return fontSize; }
+			get { return font.Size; }
 			set { SetFontSize(value); }
 		}
 
 		string IPresenter.FontName
 		{
-			get { return fontName; }
+			get { return font.Name; }
 			set { SetFontName(value); }
 		}
 
@@ -541,10 +540,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if ((disabledUserInteractions & UserInteraction.FontResizing) == 0)
 			{
-				if (delta > 0 && fontSize != LogFontSize.Maximum)
-					SetFontSize(fontSize + 1);
-				else if (delta < 0 && fontSize != LogFontSize.Minimum)
-					SetFontSize(fontSize - 1);
+				if (delta > 0 && font.Size != LogFontSize.Maximum)
+					SetFontSize(font.Size + 1);
+				else if (delta < 0 && font.Size != LogFontSize.Minimum)
+					SetFontSize(font.Size - 1);
 			}
 		}
 
@@ -608,11 +607,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ThisIntf.GoToPrevMessageInThread();
 		}
 
-		void IViewModel.OnDisplayLinesPerPageChanged()
+		void OnDisplayLinesPerPageChanged(float dlpp)
 		{
 			navigationManager.NavigateView(async cancellation => 
 			{
-				await screenBuffer.SetViewSize(view.DisplayLinesPerPage, cancellation);
+				await screenBuffer.SetViewSize(dlpp, cancellation);
 				InternalUpdate();
 			}).IgnoreCancellation();
 		}
@@ -706,13 +705,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		ImmutableList<ViewLine> IViewModel.ViewLines => viewLines();
 
-		double IViewModel.GetFirstDisplayMessageScrolledLines()
-		{
-			return screenBuffer.TopLineScrollValue;
-		}
+		double IViewModel.FirstDisplayMessageScrolledLines => screenBuffer.TopLineScrollValue;
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
+		FontData IViewModel.Font => font;
 
 		ColoringMode IPresentationProperties.Coloring => coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
@@ -1006,21 +1003,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private void SetFontSize(LogFontSize value)
 		{
-			if (value != fontSize)
+			if (value != font.Size)
 			{
-				fontSize = value;
-				view.UpdateFontDependentData(fontName, fontSize);
-				view.Invalidate();
+				font = new FontData(font.Name, value);
+				changeNotification.Post();
 			}
 		}
 
 		private void SetFontName(string value)
 		{
-			if (value != fontName)
+			if (value != font.Name)
 			{
-				fontName = value;
-				view.UpdateFontDependentData(fontName, fontSize);
-				view.Invalidate();
+				font = new FontData(value, font.Size);
+				changeNotification.Post();
 			}
 		}
 
@@ -1032,8 +1027,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		private void ReadGlobalSettings(IModel model)
 		{
 			this.coloring = model.GlobalSettings.Appearance.Coloring;
-			this.fontSize = model.GlobalSettings.Appearance.FontSize;
-			this.fontName = model.GlobalSettings.Appearance.FontFamily;
+			this.font = new FontData(model.GlobalSettings.Appearance.FontFamily, model.GlobalSettings.Appearance.FontSize);
+			changeNotification.Post();
 		}
 
 		void HandleSourcesListChange()
@@ -1306,7 +1301,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Func<ImmutableList<ViewLine>> CreateViewLinesSelector()
 		{
 			return Selectors.Create(
-				() => (screenBuffer.Messages, model.Bookmarks.Items),
+				() => (screenBuffer.Messages, model.Bookmarks?.Items),
 				() => (screenBuffer.IsRawLogMode, showTime, showMilliseconds, coloring),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
@@ -1346,6 +1341,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		readonly IModel model;
 		readonly IChangeNotification changeNotification;
+		readonly ISubscription subscription;
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
 		readonly IPresentersFacade presentationFacade;
@@ -1362,8 +1358,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IBookmark slaveModeFocusedMessage;
 
 		string defaultFocusedMessageActionCaption;
-		LogFontSize fontSize;
-		string fontName;
+		FontData font = new FontData();
 		bool showTime;
 		bool showMilliseconds;
 		bool rawViewAllowed;

@@ -251,15 +251,15 @@ namespace LogJoint.UI
 
 	public class DrawContext
 	{
-		public IViewModel Presenter;
-		public SizeF CharSize;
-		public double CharWidthDblPrecision;
-		public int LineHeight;
+		public IViewModel Presenter; // todo: do not support null ref
+		public SizeF CharSize => fontDependentData().charSize;
+		public double CharWidthDblPrecision => fontDependentData().charWidth;
+		public int LineHeight => fontDependentData().lineHeight;
 		public int TimeAreaSize => timeAreaSize();
 		public int CollapseBoxesAreaSize = 25;
 		public float DpiScale = 1f;
 		public Brush InfoMessagesBrush;
-		public Font Font;
+		public Font Font => fontDependentData().font;
 		public Brush CommentsBrush;
 		public Brush DefaultBackgroundBrush;
 		public Brush SelectedBkBrush;
@@ -287,16 +287,26 @@ namespace LogJoint.UI
 			return new Point(x, y);
 		}
 
-		public DrawContext()
+		public DrawContext(Func<FontData, (Font font, SizeF charSize, double charWidth)> computeFontDependentData)
 		{
 			timeAreaSize = Selectors.Create(
 				() => Presenter?.TimeMaxLength,
 				() => CharSize.Width,
 				(maxTimeLength, charWidth) => maxTimeLength.GetValueOrDefault() == 0 ? 0 : ((int)Math.Floor(charWidth * maxTimeLength.Value) + 10)
 			);
+			fontDependentData = Selectors.Create(
+				() => Presenter?.Font,
+				fontData =>
+				{
+					var (font, charSize, charWidth) = computeFontDependentData(fontData ?? new FontData());
+					var lineHeight = (int)Math.Floor(charSize.Height);
+					return (font, charSize, charWidth, lineHeight);
+				}
+			);
 		}
 
 		private Func<int> timeAreaSize;
+		private Func<(Font font, SizeF charSize, double charWidth, int lineHeight)> fontDependentData;
 	};
 
 	public static class DrawingUtils
