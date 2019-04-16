@@ -141,7 +141,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (selection?.IsSingleLine == true)
 			{
 				var normSelection = selection.Normalize();
-				var line = normSelection.First.Message.GetDisplayText(isRawMessagesMode).GetNthTextLine(normSelection.First.TextLineIndex);
+				var text = normSelection.First.Message.GetDisplayText(isRawMessagesMode);
+				var line = text.GetNthTextLine(normSelection.First.TextLineIndex);
 				int beginIdx = normSelection.First.LineCharIndex;
 				int endIdx = normSelection.Last.LineCharIndex;
 				var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
@@ -153,7 +154,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 						SearchInRawText = isRawMessagesMode,
 					};
 					var optionsPreprocessed = options.BeginSearch();
-					newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection), cacheSize);
+					newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection, 
+						(normSelection.First.Message, beginIdx + line.StartIndex - text.Text.StartIndex)), cacheSize);
 				}
 			}
 
@@ -161,7 +163,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private static IEnumerable<(int, int, FilterAction)> GetSelectionHighlightingRanges(
-			IMessage msg, Search.SearchState searchOpts, IWordSelection wordSelection)
+			IMessage msg, Search.SearchState searchOpts, IWordSelection wordSelection, (IMessage msg, int charIdx) originalSelection)
 		{
 			for (int? startPos = null; ;)
 			{
@@ -173,7 +175,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					yield break;
 				if (r.MatchBegin == r.MatchEnd)
 					yield break;
-				yield return (r.MatchBegin, r.MatchEnd, FilterAction.Include);
+				if (!(msg == originalSelection.msg && r.MatchBegin == originalSelection.charIdx))
+					yield return (r.MatchBegin, r.MatchEnd, FilterAction.Include);
 				startPos = r.MatchEnd;
 			}
 		}
