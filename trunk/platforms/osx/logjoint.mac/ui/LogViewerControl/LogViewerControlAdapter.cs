@@ -91,8 +91,7 @@ namespace LogJoint.UI
 			ScrollView.PostsFrameChangedNotifications = true;
 			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, async ns =>
 			{
-				if (viewModel != null)
-					viewModel.OnDisplayLinesPerPageChanged();
+				viewModel?.ChangeNotification?.Post();
 				await Task.Yield(); // w/o this hack inner view is never painted until first resize
 				UpdateInnerViewSize();
 			}, ScrollView);
@@ -125,31 +124,10 @@ namespace LogJoint.UI
 			viewModel.ChangeNotification.CreateSubscription (updater);
 		}
 
-		void IView.UpdateFontDependentData(string fontName, Appearance.LogFontSize fontSize)
+		void IView.HScrollToSelectedText(int charIndex)
 		{
-			if (drawContext.Font != null)
-				drawContext.Font.Dispose();
-			
-			drawContext.Font = new LJD.Font("monaco", 12);
-
-			using (var tmp = new LJD.Graphics()) // todo: consider reusing with windows
-			{
-				int count = 8 * 1024;
-				drawContext.CharSize = tmp.MeasureString(new string('0', count), drawContext.Font);
-				drawContext.CharWidthDblPrecision = (double)drawContext.CharSize.Width / (double)count;
-				drawContext.CharSize.Width /= (float)count;
-				drawContext.LineHeight = (int)Math.Floor(drawContext.CharSize.Height);
-			}
-		}
-
-		void IView.HScrollToSelectedText(SelectionInfo selection)
-		{
-			if (!selection.IsValid)
-				return;
-
-			int pixelThatMustBeVisible = (int)(selection.First.LineCharIndex * drawContext.CharSize.Width);
-			if (drawContext.ShowTime)
-				pixelThatMustBeVisible += drawContext.TimeAreaSize;
+			int pixelThatMustBeVisible = (int)(charIndex * drawContext.CharSize.Width);
+			pixelThatMustBeVisible += drawContext.TimeAreaSize;
 
 			var pos = ScrollView.ContentView.Bounds.Location.ToPointF().ToPoint ();
 
@@ -168,7 +146,7 @@ namespace LogJoint.UI
 
 		}
 
-		object IView.GetContextMenuPopupData (ViewLine? line)
+		object IView.GetContextMenuPopupData(int? viewLineIndex)
 		{
 			// todo
 			return null;
@@ -177,17 +155,6 @@ namespace LogJoint.UI
 		void IView.PopupContextMenu(object contextMenuPopupData)
 		{
 			// todo
-		}
-
-		void IView.Invalidate()
-		{
-			InnerView.NeedsDisplay = true;
-		}
-
-		void IView.InvalidateLine(ViewLine line)
-		{
-			Rectangle r = DrawingUtils.GetMetrics(line, drawContext).MessageRect;
-			InnerView.SetNeedsDisplayInRect(r.ToRectangleF().ToCGRect ());
 		}
 
 		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
@@ -276,7 +243,7 @@ namespace LogJoint.UI
 
 			drawContext.Canvas = new LJD.Graphics();
 			drawContext.ScrollPos = new Point(0,
-				(int)(viewModel.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight));
+				(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight));
 
 			int maxRight;
 			DrawingUtils.PaintControl(drawContext, viewModel, isFocused, 
@@ -339,11 +306,23 @@ namespace LogJoint.UI
 
 		void InitDrawingContext()
 		{
+			var font = new LJD.Font("monaco", 12);
+			drawContext = new DrawContext(
+				fontData => {
+					using (var tmp = new LJD.Graphics())
+					{
+						int count = 8 * 1024;
+						var charSize = tmp.MeasureString(new string('0', count), font);
+						double charWidth = (double)charSize.Width / (double)count;
+						charSize.Width /= (float)count;
+						return (font, charSize, charWidth);
+					}
+				}
+			);
 			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.White);
 			drawContext.InfoMessagesBrush = new LJD.Brush(Color.Black);
 			drawContext.CommentsBrush = new LJD.Brush(Color.Gray);
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
-			//drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
 			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
 			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 
@@ -440,7 +419,7 @@ namespace LogJoint.UI
 			}
 		};
 
-		DrawContext drawContext = new DrawContext();
+		DrawContext drawContext;
 		int viewWidth = 2000;
 	}
 }
