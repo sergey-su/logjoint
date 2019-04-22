@@ -213,7 +213,8 @@ namespace LogJoint.UI
 				LogJoint.Postprocessing.InternalTracePostprocessors.Register(
 					postprocessorsManager, 
 					userDefinedFormatsManager,
-					tempFilesManager
+					tempFilesManager,
+					timeSeriesTypesAccess
 				);
 
 				tracer.Info("model creation finished");

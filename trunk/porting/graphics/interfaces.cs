@@ -17,14 +17,46 @@ namespace LogJoint.Drawing
 		public Graphics()
 		{
 			var cc = AppKit.NSGraphicsContext.CurrentContext;
-			InitFromContext(cc != null ? cc.GraphicsPort : null);
+			InitFromContext(cc?.GraphicsPort);
 		}
 		public Graphics(CoreGraphics.CGContext context)
 		{
 			InitFromContext(context);
 		}
 		partial void InitFromContext(CoreGraphics.CGContext context);
+
+		public partial class PerformanceCounters
+		{
+			internal Profiling.Counters.CounterDescriptor drawStringPoint;
+			internal Profiling.Counters.CounterDescriptor drawStringPoint_CreateAS;
+			internal Profiling.Counters.CounterDescriptor drawStringPoint_Draw1;
+			internal Profiling.Counters.CounterDescriptor drawStringPoint_Draw2;
+			internal Profiling.Counters.CounterDescriptor fillRectangle;
+			internal Profiling.Counters.CounterDescriptor fillRectangle_SetFill; // todo: remove
+			internal Profiling.Counters.CounterDescriptor fillRectangle_Fill; // todo: remove
+			internal Profiling.Counters.CounterDescriptor fillRoundRectangle;
+			internal Profiling.Counters.CounterDescriptor measureCharRange;
+
+			public PerformanceCounters (Profiling.Counters countersContainer)
+			{
+				Init (countersContainer);
+			}
+			partial void Init (Profiling.Counters countersContainer);
+
+			internal static PerformanceCounters Null = new PerformanceCounters (null);
+		};
+
+		partial void ConfigureProfilingImpl (PerformanceCounters counters, Profiling.Counters.Writer writer);
 #endif
+		public static PerformanceCounters CreateCounters (Profiling.Counters countersContainer)
+		{
+			return new PerformanceCounters (countersContainer);
+		}
+
+		public void ConfigureProfiling (PerformanceCounters counters, Profiling.Counters.Writer writer)
+		{
+			ConfigureProfilingImpl (counters, writer);
+		}
 
 		public void FillRectangle(Brush brush, RectangleF rect)
 		{

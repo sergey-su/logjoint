@@ -11,6 +11,8 @@ namespace LogJoint.Drawing
 	partial class Graphics
 	{
 		internal CGContext context;
+		internal Profiling.Counters.Writer perfCountersWriter = Profiling.Counters.Writer.Null;
+		internal PerformanceCounters perfCounters = PerformanceCounters.Null;
 
 		public void Dispose()
 		{
@@ -21,47 +23,75 @@ namespace LogJoint.Drawing
 			this.context = context;
 		}
 
+		partial class PerformanceCounters
+		{
+			partial void Init (Profiling.Counters countersContainer)
+			{
+				if (countersContainer == null)
+					return;
+				drawStringPoint = countersContainer.AddCounter ("DrawString(pt)", unit: "ms", reportCount: true);
+				drawStringPoint_CreateAS = countersContainer.AddCounter ("DrawString(pt).CreateAttributedString", unit: "ms");
+				drawStringPoint_Draw1 = countersContainer.AddCounter ("DrawString(pt).Draw(1)", unit: "ms");
+				drawStringPoint_Draw2 = countersContainer.AddCounter ("DrawString(pt).Draw(2)", unit: "ms");
+				fillRectangle = countersContainer.AddCounter ("FillRectangle", unit: "ms", reportCount: true);
+				fillRectangle_SetFill = countersContainer.AddCounter ("FillRectangle.SetFill", unit: "ms");
+				fillRectangle_Fill = countersContainer.AddCounter ("FillRectangle.Fill", unit: "ms");
+				fillRoundRectangle = countersContainer.AddCounter ("FillRoundRectangle", unit: "ms");
+				measureCharRange = countersContainer.AddCounter ("MeasureCharRange", unit: "ms");
+			}
+		}
+
+		partial void ConfigureProfilingImpl (PerformanceCounters counters, Profiling.Counters.Writer writer)
+		{
+			this.perfCounters = counters;
+			this.perfCountersWriter = writer;
+		}
+
 		partial void FillRectangleImp(Brush brush, RectangleF rect)
 		{
-			AddClosedRectanglePath(rect.Left, rect.Top, rect.Right, rect.Bottom);
-			FillPath(brush);
+			using (perfCountersWriter.IncrementTicks (perfCounters.fillRectangle)) {
+				using (perfCountersWriter.IncrementTicks (perfCounters.fillRectangle_SetFill))
+					SetFill (brush);
+				using (perfCountersWriter.IncrementTicks (perfCounters.fillRectangle_Fill))
+					context.FillRect (rect.ToCGRect ());
+			}
 		}
 
 		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius)
 		{
-			AddClosedRoundRectanglePath(rect, radius);
-			FillPath(brush);
+			using (perfCountersWriter.IncrementTicks (perfCounters.fillRoundRectangle)) {
+				AddClosedRoundRectanglePath (rect, radius);
+				FillPath (brush);
+			}
 		}
 
 
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format)
 		{
-			var attributedString = CreateAttributedString(s, font, format, brush);
+			using (perfCountersWriter.IncrementTicks (perfCounters.drawStringPoint)) {
 
-			if (format != null && (format.horizontalAlignment != StringAlignment.Near || format.verticalAlignment != StringAlignment.Near))
-			{
-				var sz = attributedString.Size;
-				if (format.horizontalAlignment == StringAlignment.Center)
-				{
-					pt.X -= (float)sz.Width / 2;
+				NSAttributedString attributedString;
+				using (perfCountersWriter.IncrementTicks (perfCounters.drawStringPoint_CreateAS))
+					attributedString = CreateAttributedString (s, font, format, brush);
+
+				if (format != null && (format.horizontalAlignment != StringAlignment.Near || format.verticalAlignment != StringAlignment.Near)) {
+					var sz = attributedString.Size;
+					if (format.horizontalAlignment == StringAlignment.Center) {
+						pt.X -= (float)sz.Width / 2;
+					} else if (format.horizontalAlignment == StringAlignment.Far) {
+						pt.X -= (float)sz.Width;
+					}
+					if (format.verticalAlignment == StringAlignment.Center) {
+						pt.Y -= (float)sz.Height / 2;
+					} else if (format.verticalAlignment == StringAlignment.Far) {
+						pt.Y -= (float)sz.Height;
+					}
+					using (perfCountersWriter.IncrementTicks (perfCounters.drawStringPoint_Draw1))
+						attributedString.DrawString (new RectangleF (pt, sz.ToSizeF ()).ToCGRect ());
+				} else {
+					using (perfCountersWriter.IncrementTicks (perfCounters.drawStringPoint_Draw2))
+						attributedString.DrawString (pt.ToCGPoint ());
 				}
-				else if (format.horizontalAlignment == StringAlignment.Far)
-				{
-					pt.X -= (float)sz.Width;
-				}
-				if (format.verticalAlignment == StringAlignment.Center)
-				{
-					pt.Y -= (float)sz.Height / 2;
-				}
-				else if (format.verticalAlignment == StringAlignment.Far)
-				{
-					pt.Y -= (float)sz.Height;
-				}
-				attributedString.DrawString(new RectangleF(pt, sz.ToSizeF()).ToCGRect());
-			}
-			else
-			{
-				attributedString.DrawString(pt.ToCGPoint());
 			}
 		}
 
@@ -168,13 +198,14 @@ namespace LogJoint.Drawing
 
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret)
 		{
-			var attributedString = CreateAttributedString(str, font, format, null);
-			CTLine line = new CTLine (attributedString);
-			CTRun[] runArray = line.GetGlyphRuns ();
-			if (runArray.Length > 0)
-			{
-				context.TextPosition = new CGPoint();
-				ret = runArray[0].GetImageBounds(context, new NSRange(range.First, range.Length)).ToRectangle ();
+			using (perfCountersWriter.IncrementTicks (perfCounters.measureCharRange)) {
+				var attributedString = CreateAttributedString (str, font, format, null);
+				CTLine line = new CTLine (attributedString);
+				CTRun [] runArray = line.GetGlyphRuns ();
+				if (runArray.Length > 0) {
+					context.TextPosition = new CGPoint ();
+					ret = runArray [0].GetImageBounds (context, new NSRange (range.First, range.Length)).ToRectangle ();
+				}
 			}
 		}
 
@@ -260,9 +291,14 @@ namespace LogJoint.Drawing
 
 		void FillPath(Brush brush)
 		{
-			var c = brush.color;
-			context.SetFillColor(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
+			SetFill (brush);
 			context.FillPath ();
+		}
+
+		void SetFill (Brush brush)
+		{
+			var c = brush.color;
+			context.SetFillColor (c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
 		}
 
 		struct Vector

@@ -236,6 +236,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// </summary>
 		int[] FocusedMessageMarkLocation { get; }
 		FontData Font { get; }
+
+		LJTraceSource Trace { get; }
 	};
 
 	public class MenuData

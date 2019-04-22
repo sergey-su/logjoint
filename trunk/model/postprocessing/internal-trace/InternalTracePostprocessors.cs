@@ -7,6 +7,8 @@ using LJT = LogJoint.Analytics.InternalTrace;
 using LogJoint.Analytics;
 using System.Xml;
 using System.Threading;
+using LogJoint.Analytics.TimeSeries;
+using LogJoint.Postprocessing.TimeSeries;
 
 namespace LogJoint.Postprocessing
 {
@@ -15,19 +17,27 @@ namespace LogJoint.Postprocessing
 		public static void Register(
 			IPostprocessorsManager postprocessorsManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
-			ITempFilesManager tempFiles)
+			ITempFilesManager tempFiles,
+			ITimeSeriesTypesAccess timeSeriesTypesAccess)
 		{
 			var fac = userDefinedFormatsManager.Items.FirstOrDefault(f => f.FormatName == "LogJoint debug trace") as UDF;
 			if (fac == null)
 				return;
 			var timeline = new LogSourcePostprocessorImpl(
 				PostprocessorIds.Timeline, "Timeline", // todo: avoid copy/pasing of the strings
-				DeserializeOutput,
+				p => new TimelinePostprocessorOutput(p, null),
 				input => RunTimelinePostprocessor(input, tempFiles)
 			);
-			postprocessorsManager.RegisterLogType(new LogSourceMetadata(fac, new []
+			var timeSeries = new LogSourcePostprocessorImpl(
+				PostprocessorIds.TimeSeries, "Time series", // todo: avoid copy/pasing of the strings
+				p => new TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess),
+				input => RunTimeSeriesPostprocessor(input, timeSeriesTypesAccess)
+			);
+			timeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(typeof(LJT.ProfilingSeries).Assembly);
+			postprocessorsManager.RegisterLogType(new LogSourceMetadata(fac, new[]
 			{
-				timeline
+				timeline,
+				timeSeries
 			}));
 		}
 
@@ -57,9 +67,33 @@ namespace LogJoint.Postprocessing
 			await Task.WhenAll(serialize, logProducer.Open());
 		}
 
-		static ITimelinePostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
+		static async Task RunTimeSeriesPostprocessor(
+			LogSourcePostprocessorInput input,
+			ITimeSeriesTypesAccess timeSeriesTypesAccess
+		)
 		{
-			return new TimelinePostprocessorOutput(p, null);
+			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
+
+			string outputFileName = input.OutputFileName;
+			var logProducer = LJT.Extensions.Read(new LJT.Reader(), input.LogFileName,
+				null, input.ProgressHandler).Multiplex();
+
+			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
+
+			var events = parser.FeedLogMessages(logProducer, m => m.Text, m => m.Text);
+
+			await Task.WhenAll(events, logProducer.Open());
+
+			foreach (var ts in parser.GetParsedTimeSeries())
+			{
+				ts.DataPoints = Analytics.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
+			}
+
+			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
+				parser.GetParsedTimeSeries(),
+				parser.GetParsedEvents(),
+				outputFileName,
+				timeSeriesTypesAccess);
 		}
 	}
 }

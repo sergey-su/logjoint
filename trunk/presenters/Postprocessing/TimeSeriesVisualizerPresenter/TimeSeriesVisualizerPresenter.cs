@@ -166,7 +166,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					ht.TimeSeries.Name,
 					GetTimestamp(ht.Point, ht.TimeSeriesOrEventOwner),
 					ht.Point.Value, 
-					ht.TimeSeries.Descriptor.Unit
+					ht.TimeSeries.Unit
 				);
 			
 			if (ht.EventsIdx2 - ht.EventsIdx1 == 1) // single event/bookmark
@@ -358,7 +358,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				visibleTimeSeries.TryGetValue(ts, out tsPresentation);
 				configDialogView.UpdateNodePropertiesControls(new NodeProperties()
 				{
-					Description = string.Format("{0} [{1}]", ts.Descriptor.Description, GetUnitDisplayName(ts.Descriptor.Unit)),
+					Description = string.Format("{0} [{1}]", ts.Descriptor.Description, GetUnitDisplayName(ts.Unit)),
 					Color = tsPresentation != null ? tsPresentation.ColorTableEntry.Color : new ModelColor?(),
 					Palette = colorsTable.Items,
 					Examples = ts.Descriptor.ExampleLogLines,
@@ -372,7 +372,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		{
 			this.axisParams =
 				visibleTimeSeries
-				.Select(s => s.Key.Descriptor.Unit)
+				.Select(s => s.Key.Unit)
 				.Distinct()
 				.Union(new[] { xAxisKey })
 				.ToDictionary(
@@ -519,7 +519,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				}
 				else
 				{
-					foreach (var ts in visibleTimeSeries.Where(ts => ts.Key.Descriptor.Unit == axis))
+					foreach (var ts in visibleTimeSeries.Where(ts => ts.Key.Unit == axis))
 					{
 						foreach (var pt in ts.Key.DataPoints)
 						{
@@ -717,7 +717,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						visibleTimeSeries.Add(arg.ts, new TimeSeriesPresentationData(
 							output,
 							arg.ts,
-							string.Format("{0} [{1}]", arg.ts.Name, GetUnitDisplayName(arg.ts.Descriptor.Unit)),
+							string.Format("{0} [{1}]", arg.ts.Name, GetUnitDisplayName(arg.ts.Unit)),
 							colorsTable.GetNextColor(true, arg.preferredColor),
 							arg.preferredMarker,
 							arg.drawLine,
@@ -726,7 +726,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 								arg.ts.ObjectType,
 								arg.ts.ObjectId,
 								arg.ts.Name,
-								GetUnitDisplayName(arg.ts.Descriptor.Unit)
+								GetUnitDisplayName(arg.ts.Unit)
 							)
 						));
 					}
@@ -1245,7 +1245,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						Color = s.Value.ColorTableEntry.Color,
 						Marker = s.Value.LegendItem.Marker,
 						DrawLine = s.Value.LegendItem.EffectiveDrawLine,
-						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Descriptor.Unit), s.Value.Output).Select(p => p.Value)
+						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Unit), s.Value.Output).Select(p => p.Value)
 					}),
 					Events = FilterEvents(),
 					XAxis = new AxisDrawingData()
@@ -1291,7 +1291,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 			IEnumerable<HitTestCandidate> GetTSHitTestCandidates(TimeSeriesData ts, PointF hitTestPt, ITimeSeriesPostprocessorOutput tsOwner)
 			{
-				var axis = owner.GetInitedAxisParams(ts.Descriptor.Unit);
+				var axis = owner.GetInitedAxisParams(ts.Unit);
 				return FilterDataPoints(ts.DataPoints, axis, tsOwner).Select(p => new HitTestCandidate()
 				{
 					DistanceSquare = Sqr(p.Value.X - hitTestPt.X) + Sqr(p.Value.Y - hitTestPt.Y),

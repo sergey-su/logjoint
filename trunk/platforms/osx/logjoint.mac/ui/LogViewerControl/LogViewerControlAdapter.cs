@@ -26,8 +26,13 @@ namespace LogJoint.UI
 		NSTimer animationTimer;
 		string drawDropMessage;
 		bool enableCursor = true;
+		Profiling.Counters drawingPerfCounters;
+		LJD.Graphics.PerformanceCounters graphicsCounters;
+		Profiling.Counters.CounterDescriptor controlPaintTimeCounter;
+		Profiling.Counters.CounterDescriptor controlPaintWidthCounter;
+		Profiling.Counters.CounterDescriptor controlPaintHeightCounter;
 
-		[Export("innerView")]
+		[Export ("innerView")]
 		public LogViewerControl InnerView { get; set;}
 
 
@@ -116,6 +121,11 @@ namespace LogJoint.UI
 		{
 			this.viewModel = viewModel;
 			this.drawContext.Presenter = viewModel;
+			this.drawingPerfCounters = new Profiling.Counters (viewModel.Trace, "drawing");
+			this.graphicsCounters = LJD.Graphics.CreateCounters (drawingPerfCounters);
+			this.controlPaintTimeCounter = this.drawingPerfCounters.AddCounter ("paint", unit: "ms");
+			this.controlPaintWidthCounter = this.drawingPerfCounters.AddCounter ("width", unit: "pixel");
+			this.controlPaintHeightCounter = this.drawingPerfCounters.AddCounter ("height", unit: "pixel");
 			var updater = Updaters.Create (
 				() => viewModel.ViewLines,
 				() => viewModel.TimeMaxLength,
@@ -238,21 +248,34 @@ namespace LogJoint.UI
 		{
 			if (viewModel == null)
 				return;
-			
-			UpdateClientSize();
 
-			drawContext.Canvas = new LJD.Graphics();
-			drawContext.ScrollPos = new Point(0,
-				(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight));
+			var perfCountersWriter = drawingPerfCounters.GetWriter (
+				atMostOncePer: TimeSpan.FromMilliseconds (250));
+			using (perfCountersWriter.IncrementTicks (controlPaintTimeCounter)) {
+				if (!perfCountersWriter.IsNull) {
+					var sz = ScrollView.Frame.Size;
+					perfCountersWriter.Increment (controlPaintWidthCounter, (long)sz.Width);
+					perfCountersWriter.Increment (controlPaintHeightCounter, (long)sz.Height);
+				}
 
-			int maxRight;
-			DrawingUtils.PaintControl(drawContext, viewModel, isFocused, 
-				dirtyRect.ToRectangle(), out maxRight);
+				drawContext.Canvas = new LJD.Graphics ();
+				drawContext.Canvas.ConfigureProfiling (this.graphicsCounters, perfCountersWriter);
+				drawContext.ViewWidth = viewWidth;
+				drawContext.ScrollPos = new Point (0,
+					(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight));
 
-			if (maxRight > viewWidth)
-			{
-				viewWidth = maxRight;
-				UpdateInnerViewSize();
+				int maxRight;
+				DrawingUtils.PaintControl (drawContext, viewModel, isFocused,
+					dirtyRect.ToRectangle (), out maxRight);
+
+				if (maxRight > viewWidth) {
+					viewWidth = maxRight;
+					UpdateInnerViewSize ();
+				}
+			}
+			if (!perfCountersWriter.IsNull) {
+				drawingPerfCounters.Report ();
+				drawingPerfCounters.ResetAll ();
 			}
 		}
 
@@ -338,11 +361,6 @@ namespace LogJoint.UI
 			drawContext.SmallBookmarkIcon = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
 			drawContext.FocusedMessageIcon = new LJD.Image(NSImage.ImageNamed("FocusedMsg.png"));
 			drawContext.FocusedMessageSlaveIcon = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
-		}
-
-		void UpdateClientSize()
-		{
-			drawContext.ViewWidth = viewWidth;
 		}
 
 		[Export("OnVertScrollChanged")]

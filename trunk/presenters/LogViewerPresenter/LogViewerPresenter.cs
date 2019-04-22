@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.telemetry = telemetry;
 			this.screenBufferFactory = screenBufferFactory;
 
-			this.tracer = new LJTraceSource("UI", "ui.lv");
+			this.tracer = new LJTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			var wordSelection = new WordSelection();
@@ -710,6 +710,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
 		FontData IViewModel.Font => font;
+
+		LJTraceSource IViewModel.Trace => tracer;
 
 		ColoringMode IPresentationProperties.Coloring => coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;

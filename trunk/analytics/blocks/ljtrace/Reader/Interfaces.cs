@@ -17,7 +17,7 @@ namespace LogJoint.Analytics.InternalTrace
 		Task Write(Func<Stream> getStream, Action<Stream> releaseStream, IEnumerableAsync<Message[]> messages);
 	};
 
-	public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition, ITriggerThread
+	public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition, ITriggerThread, ITriggerText
 	{
 		public readonly int Index;
 		public readonly long StreamPosition;
@@ -31,6 +31,7 @@ namespace LogJoint.Analytics.InternalTrace
 		long ITriggerStreamPosition.StreamPosition { get { return StreamPosition; } }
 		DateTime ITriggerTime.Timestamp { get { return Timestamp; } }
 		string ITriggerThread.ThreadId { get { return Thread.Value; } }
+		string ITriggerText.Text => Text;
 
 		public Message(int index, long position, DateTime ts, StringSlice thread, 
 			StringSlice level, StringSlice source, string text)

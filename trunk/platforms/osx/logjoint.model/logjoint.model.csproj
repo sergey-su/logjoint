@@ -665,9 +665,6 @@
     <Compile Include="..\..\..\model\app-launch\LaunchUrlParser.cs">
       <Link>app-launch\LaunchUrlParser.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\tracing\ProfilingTracing.cs">
-      <Link>tracing\ProfilingTracing.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\search\SearchManager.cs">
       <Link>search\SearchManager.cs</Link>
     </Compile>
@@ -1018,6 +1015,12 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\LRUCache.cs">
       <Link>generic\LRUCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tracing\ProfilingOperation.cs">
+      <Link>tracing\ProfilingOperation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tracing\ProfilingCounters.cs">
+      <Link>tracing\ProfilingCounters.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
