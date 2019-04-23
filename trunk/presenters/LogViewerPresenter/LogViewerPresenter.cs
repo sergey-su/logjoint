@@ -52,7 +52,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				(showTime, showMilliseconds) => showTime ? (new MessageTimestamp(new DateTime(2011, 11, 11, 11, 11, 11, 111))).ToUserFrendlyString(showMilliseconds).Length : 0
 			);
 
-			focusedMessageMarkLocation = CreateFocusedMessageMarkLocationSelector();
+			focusedMessageMark = CreateFocusedMessageMarkSelector();
 			viewLines = CreateViewLinesSelector();
 			viewLinesText = Selectors.Create(viewLines, lines => lines.Aggregate(
 				new StringBuilder(), (sb, vl) => sb.AppendLine(vl.TextLineValue)).ToString());
@@ -114,8 +114,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				viewSizeUpdater();
 			});
-
-			DisplayHintIfMessagesIsEmpty();
 		}
 
 		void IDisposable.Dispose()
@@ -504,7 +502,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (slaveModeFocusedMessage == null)
 					return;
 				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestMessage, cancellation);
-				var position = FindSlaveModeFocusedMessagePositionInternal(slaveModeFocusedMessage, screenBuffer.Messages, bookmarksFactory);
+				var position = FindSlaveModeFocusedMessagePosition(slaveModeFocusedMessage, screenBuffer.Messages, bookmarksFactory);
 				if (position == null)
 					return;
 				var idxToSelect = position[0];
@@ -512,7 +510,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 					--idxToSelect;
 				selectionManager.SetSelection(idxToSelect,
 					SelectionFlag.SelectBeginningOfLine | SelectionFlag.ScrollToViewEventIfSelectionDidNotChange);
-				view.AnimateSlaveMessagePosition();
+				slaveMessageAnimationThreadCancellation?.Cancel();
+				slaveMessageAnimationThreadCancellation = new CancellationTokenSource();
+				SlaveMessageAnimation(slaveMessageAnimationThreadCancellation.Token);
 			});
 		}
 
@@ -703,7 +703,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int IViewModel.TimeMaxLength => timeMaxLength();
 
-		int[] IViewModel.FocusedMessageMarkLocation => focusedMessageMarkLocation();
+		int[] IViewModel.FocusedMessageMark => focusedMessageMark();
 
 		ImmutableArray<ViewLine> IViewModel.ViewLines => viewLines();
 
@@ -716,6 +716,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		FontData IViewModel.Font => font;
 
 		LJTraceSource IViewModel.Trace => tracer;
+
+		double? IViewModel.VerticalScrollerPosition => screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?();
+
+		string IViewModel.EmptyViewMessage => screenBuffer.Messages.Count == 0 ? model.MessageToDisplayWhenMessagesCollectionIsEmpty : null;
 
 		ColoringMode IPresentationProperties.Coloring => coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
@@ -824,7 +828,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		static private int[] FindSlaveModeFocusedMessagePositionInternal(
+		static private int[] FindSlaveModeFocusedMessagePosition(
 			IBookmark slaveModeFocusedMessage, IReadOnlyList<ScreenBufferEntry> screenBufferMessages, IBookmarksFactory bookmarksFactory)
 		{
 			if (slaveModeFocusedMessage == null)
@@ -957,25 +961,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					threadsBulkProcessing.ProcessMessage(m.Message);
 				}
 			}
-
-			DisplayHintIfMessagesIsEmpty(); // todo: have ViewModel prop
-
-			view.SetVScroll(screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?()); // todo: have ViewModel prop
-		}
-
-		bool DisplayHintIfMessagesIsEmpty()
-		{
-			if (screenBuffer.Messages.Count == 0)
-			{
-				string msg = model.MessageToDisplayWhenMessagesCollectionIsEmpty;
-				if (!string.IsNullOrEmpty(msg))
-				{
-					view.DisplayNothingLoadedMessage(msg);
-					return true;
-				}
-			}
-			view.DisplayNothingLoadedMessage(null);
-			return false;
 		}
 
 		async Task FindMessageInCurrentThread(EnumMessagesFlag directionFlag)
@@ -1277,7 +1262,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ThisIntf.GoToEnd().IgnoreCancellation();
 		}
 
-		Func<int[]> CreateFocusedMessageMarkLocationSelector()
+		Func<int[]> CreateFocusedMessageMarkSelector()
 		{
 			var getSelector = Selectors.Create(
 				() => focusedMessageDisplayMode,
@@ -1295,8 +1280,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 						return Selectors.Create(
 							() => slaveModeFocusedMessage,
 							() => screenBuffer.Messages,
-							(slaveModeFocusedMessage, screenBufferMessages) =>
-								FindSlaveModeFocusedMessagePositionInternal(slaveModeFocusedMessage, screenBufferMessages, bookmarksFactory)
+							() => slaveMessagePositionAnimationStep,
+							(slaveModeFocusedMessage, screenBufferMessages, animationStep) =>
+							{
+								var tmp = FindSlaveModeFocusedMessagePosition(slaveModeFocusedMessage, screenBufferMessages, bookmarksFactory);
+								if (tmp == null)
+									return null;
+								return new[] { tmp[0], tmp[1], animationStep };
+							}
 						);
 					}
 				}
@@ -1341,6 +1332,28 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
+		async void SlaveMessageAnimation(CancellationToken cancellation)
+		{
+			slaveMessagePositionAnimationStep = 0;
+			changeNotification.Post();
+			for (; ; )
+			{
+				await Task.Delay(50);
+				if (cancellation.IsCancellationRequested)
+					break;
+				if (slaveMessagePositionAnimationStep < 8)
+				{
+					slaveMessagePositionAnimationStep++;
+					changeNotification.Post();
+				}
+				else
+				{
+					slaveMessagePositionAnimationStep = 0;
+					changeNotification.Post();
+					break;
+				}
+			}
+		}
 
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
@@ -1371,13 +1384,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		UserInteraction disabledUserInteractions = UserInteraction.None;
 		ColoringMode coloring = ColoringMode.Threads;
 		FocusedMessageDisplayModes focusedMessageDisplayMode;
+		int slaveMessagePositionAnimationStep;
+		CancellationTokenSource slaveMessageAnimationThreadCancellation;
 
 		bool drawingErrorReported;
 
 		bool viewTailMode;
 
 		readonly Func<int> timeMaxLength;
-		readonly Func<int[]> focusedMessageMarkLocation;
+		readonly Func<int[]> focusedMessageMark;
 		readonly Func<ImmutableArray<ViewLine>> viewLines;
 		readonly Func<string> viewLinesText;
 	};

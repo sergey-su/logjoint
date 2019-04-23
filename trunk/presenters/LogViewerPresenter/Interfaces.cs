@@ -190,10 +190,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		void SetViewModel(IViewModel viewEvents);
 		float DisplayLinesPerPage { get; }
-		void SetVScroll(double? value);
 		void HScrollToSelectedText(int charIndex);
-		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
-		void AnimateSlaveMessagePosition();
 		bool HasInputFocus { get; }
 		void ReceiveInputFocus();
 		object GetContextMenuPopupData(int? viewLineIndex);
@@ -232,13 +229,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		int TimeMaxLength { get; }
 		/// <summary>
 		/// Returns null if focused message mark is not visible.
-		/// Returns array with one number if focused message mark points to one specific view line which index is returned.
-		/// Returns array with two numbers if focused message mark is between two view lines.
+		/// Returns array with one number if focused message mark is large (master view). 0-th item is view line index.
+		/// Returns array with three numbers if focused message mark is small (slave view). 0-th and 1-st items are view line indexes. 2-nd item is animation stage.
 		/// </summary>
-		int[] FocusedMessageMarkLocation { get; }
+		int[] FocusedMessageMark { get; }
 		FontData Font { get; }
-
 		LJTraceSource Trace { get; }
+		double? VerticalScrollerPosition { get; }
+		string EmptyViewMessage { get; }
 	};
 
 	public class MenuData

@@ -33,6 +33,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					End = b.Value.EndPosition
 				}))
 			);
+			this.bufferPosition = CreateBufferPositionSelector();
 			this.SetViewSize(viewSize);
 		}
 
@@ -275,31 +276,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return -saveScrolledLines - pivotLinePosition.Value;
 		}
 
-		double IScreenBuffer.BufferPosition
-		{
-			get
-			{
-				long totalScrollLength = buffers.Values.Aggregate(0L, (agg, src) => agg + src.Source.ScrollPositionsRange.Length);
-				if (totalScrollLength == 0 || ViewIsTooSmall())
-					return 0;
-				foreach (var i in GetBufferZippedWithScrollPositions(buffers.Values, EnumScreenBufferLines(buffers.Values)))
-				{
-					var lineScrollPosEnd = i.ScrollPositionEnd / (double)totalScrollLength;
-					var lineViewPosEnd = ((double)i.Index + 1 - scrolledLines) / viewSize;
-					if (lineViewPosEnd >= lineScrollPosEnd)
-					{
-						var lb = i.ScrollPositionBegin / (double)totalScrollLength;
-						var le = lineScrollPosEnd;
-
-						var vb = ((double)i.Index - scrolledLines) / viewSize;
-						var ve = lineViewPosEnd;
-
-						return vb + (lb - vb) * (ve - vb) / (ve - vb - le + lb);
-					}
-				}
-				return 0;
-			}
-		}
+		double IScreenBuffer.BufferPosition => bufferPosition();
 
 		Task IScreenBuffer.MoveToPosition(
 			double position,
@@ -321,6 +298,37 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ret.AppendLine();
 			}
 			return ret.ToString();
+		}
+
+		Func<double> CreateBufferPositionSelector()
+		{
+			return Selectors.Create(
+				() => buffersVersion,
+				() => entries,
+				() => viewSize,
+				() => buffers.Values.Aggregate(0L, (agg, src) => agg + src.Source.ScrollPositionsRange.Length),
+				(_1, _2, _3, totalScrollLength) =>
+				{
+					if (totalScrollLength == 0 || ViewIsTooSmall())
+						return 0;
+					foreach (var i in GetBufferZippedWithScrollPositions(buffers.Values, EnumScreenBufferLines(buffers.Values)))
+					{
+						var lineScrollPosEnd = i.ScrollPositionEnd / (double)totalScrollLength;
+						var lineViewPosEnd = ((double)i.Index + 1 - scrolledLines) / viewSize;
+						if (lineViewPosEnd >= lineScrollPosEnd)
+						{
+							var lb = i.ScrollPositionBegin / (double)totalScrollLength;
+							var le = lineScrollPosEnd;
+
+							var vb = ((double)i.Index - scrolledLines) / viewSize;
+							var ve = lineViewPosEnd;
+
+							return vb + (lb - vb) * (ve - vb) / (ve - vb - le + lb);
+						}
+					}
+					return 0;
+				}
+			);
 		}
 
 		static IEnumerable<DisplayLine> EnumScreenBufferLines(IEnumerable<IMessagesCollection> colls)
@@ -666,6 +674,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		// computed values
 		ImmutableArray<ScreenBufferEntry> entries;
+		Func<double> bufferPosition;
 
 		readonly Diagnostics diagnostics = new Diagnostics();
 	};

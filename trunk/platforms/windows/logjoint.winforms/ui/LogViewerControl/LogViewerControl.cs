@@ -85,21 +85,7 @@ namespace LogJoint.UI
 			scrollBarsInfo.scrollBarsSize = new Size(SystemInformation.VerticalScrollBarWidth, SystemInformation.HorizontalScrollBarHeight);
 
 			EnsureBackbufferIsUpToDate();
-
-			animationTimer.Tick += (s, e) =>
-			{
-				if (drawContext.SlaveMessagePositionAnimationStep < 8)
-				{
-					drawContext.SlaveMessagePositionAnimationStep++;
-				}
-				else
-				{
-					animationTimer.Enabled = false;
-					drawContext.SlaveMessagePositionAnimationStep = 0;
-				}
-				Invalidate();
-			};
-
+			
 			menuItemsMap = MakeMenuItemsMap();
 		}
 
@@ -126,15 +112,39 @@ namespace LogJoint.UI
 			this.viewModel = viewModel;
 			this.drawContext.Presenter = viewModel;
 
-			var updater = Updaters.Create(
+			var viewUpdater = Updaters.Create(
 				() => viewModel.ViewLines,
-				() => drawContext.TimeAreaSize,
-				(_1, _2) =>
+				() => viewModel.FocusedMessageMark,
+				() => viewModel.FirstDisplayMessageScrolledLines,
+				(_1, _2, _3) =>
 				{
 					Invalidate();
 				}
 			);
-			viewModel.ChangeNotification.CreateSubscription(updater);
+			var vScrollerUpdater = Updaters.Create(
+				() => viewModel.VerticalScrollerPosition,
+				value =>
+				{
+					scrollBarsInfo.scrollSize.Height = value != null ? ScrollBarsInfo.virtualVScrollSize : 0;
+					SetScrollPos(posY: (int)(value.GetValueOrDefault() * (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1)));
+				}
+			);
+			var emptyViewMessageUpdater = Updaters.Create(
+				() => viewModel.EmptyViewMessage,
+				value =>
+				{
+					if (emptyMessagesCollectionMessage == null)
+						Controls.Add(emptyMessagesCollectionMessage = new EmptyMessagesCollectionMessage { Dock = DockStyle.Fill });
+					emptyMessagesCollectionMessage.Visible = value != null;
+					emptyMessagesCollectionMessage.SetMessage(value ?? "");
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				viewUpdater();
+				vScrollerUpdater();
+				emptyViewMessageUpdater();
+			});
 		}
 
 		bool IView.HasInputFocus
@@ -165,25 +175,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
-		{
-			if (string.IsNullOrWhiteSpace(messageToDisplayOrNull))
-				messageToDisplayOrNull = null;
-			if (emptyMessagesCollectionMessage == null)
-			{
-				emptyMessagesCollectionMessage = new EmptyMessagesCollectionMessage();
-				emptyMessagesCollectionMessage.Visible = messageToDisplayOrNull != null;
-				Controls.Add(emptyMessagesCollectionMessage);
-				emptyMessagesCollectionMessage.Dock = DockStyle.Fill;
-			}
-			else
-			{
-				emptyMessagesCollectionMessage.Visible = messageToDisplayOrNull != null;
-			}
-			if (messageToDisplayOrNull != null)
-				emptyMessagesCollectionMessage.SetMessage(messageToDisplayOrNull);
-		}
-
 		void IView.PopupContextMenu(object contextMenuPopupData)
 		{
 			Point pt;
@@ -194,32 +185,13 @@ namespace LogJoint.UI
 			DoContextMenu(pt.X, pt.Y);
 		}
 
-		float IView.DisplayLinesPerPage
-		{
-			get
-			{
-				return Math.Max(0, (float)(ClientSize.Height) / (float)drawContext.LineHeight);
-			} 
-		}
-
-		void IView.SetVScroll(double? value)
-		{
-			scrollBarsInfo.scrollSize.Height = value != null ? ScrollBarsInfo.virtualVScrollSize : 0;
-			SetScrollPos(posY: (int)(value.GetValueOrDefault() * (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1)));
-		}
+		float IView.DisplayLinesPerPage => Math.Max(0, (float)(ClientSize.Height) / (float)drawContext.LineHeight);
 
 		object IView.GetContextMenuPopupData(int? viewLineIndex)
 		{
 			if (viewLineIndex.HasValue)
 				return new Point(0, DrawingUtils.GetMessageRect(viewModel.ViewLines[viewLineIndex.Value], drawContext).Bottom);
 			return new Point();
-		}
-
-		void IView.AnimateSlaveMessagePosition()
-		{
-			drawContext.SlaveMessagePositionAnimationStep = 0;
-			animationTimer.Enabled = true;
-			Invalidate();
 		}
 
 		#endregion

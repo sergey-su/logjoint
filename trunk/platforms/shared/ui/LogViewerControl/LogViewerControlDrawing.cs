@@ -280,8 +280,6 @@ namespace LogJoint.UI
 		public Point ScrollPos;
 		public int ViewWidth;
 
-		public int SlaveMessagePositionAnimationStep;
-
 		public Point GetTextOffset(int displayIndex)
 		{
 			int x = this.CollapseBoxesAreaSize - ScrollPos.X + TimeAreaSize;
@@ -420,7 +418,8 @@ namespace LogJoint.UI
 			Image focusedMessageMark;
 			SizeF focusedMessageSz;
 			float markYPos;
-			var loc = viewModel.FocusedMessageMarkLocation;
+			var slaveMessagePositionAnimationStep = 0;
+			var loc = viewModel.FocusedMessageMark;
 			if (loc == null)
 			{
 				focusedMessageMark = null;
@@ -440,6 +439,7 @@ namespace LogJoint.UI
 				float yOffset = loc[0] != loc[1] ?
 					(dc.LineHeight - focusedMessageSz.Height) / 2 : -focusedMessageSz.Height / 2;
 				markYPos = dc.GetTextOffset(loc[0]).Y + yOffset;
+				slaveMessagePositionAnimationStep = loc[2];
 			}
 			if (focusedMessageMark != null)
 			{
@@ -448,11 +448,11 @@ namespace LogJoint.UI
 				canvas.TranslateTransform(
 					drawContext.CollapseBoxesAreaSize - focusedMessageSz.Width / 2 + 1,
 					markYPos + focusedMessageSz.Height / 2);
-				if (dc.SlaveMessagePositionAnimationStep > 0)
+				if (slaveMessagePositionAnimationStep > 0)
 				{
 					focusedMessageSz = focusedMessageMark.GetSize(height: 10);
 					var factors = new float[] { .81f, 1f, 0.9f, .72f, .54f, .36f, .18f, .09f };
-					float factor = 1f + 1.4f * factors[dc.SlaveMessagePositionAnimationStep-1];
+					float factor = 1f + 1.4f * factors[slaveMessagePositionAnimationStep-1];
 					canvas.ScaleTransform(factor, factor);
 				}
 				dc.Canvas.DrawImage(
