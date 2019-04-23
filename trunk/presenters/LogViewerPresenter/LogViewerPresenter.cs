@@ -54,6 +54,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			focusedMessageMarkLocation = CreateFocusedMessageMarkLocationSelector();
 			viewLines = CreateViewLinesSelector();
+			viewLinesText = Selectors.Create(viewLines, lines => lines.Aggregate(
+				new StringBuilder(), (sb, vl) => sb.AppendLine(vl.TextLineValue)).ToString());
 
 			ReadGlobalSettings(model);
 
@@ -703,7 +705,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int[] IViewModel.FocusedMessageMarkLocation => focusedMessageMarkLocation();
 
-		ImmutableList<ViewLine> IViewModel.ViewLines => viewLines();
+		ImmutableArray<ViewLine> IViewModel.ViewLines => viewLines();
+
+		string IViewModel.ViewLinesAggregaredText => viewLinesText();
 
 		double IViewModel.FirstDisplayMessageScrolledLines => screenBuffer.TopLineScrollValue;
 
@@ -1300,7 +1304,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return () => getSelector()();
 		}
 
-		Func<ImmutableList<ViewLine>> CreateViewLinesSelector()
+		Func<ImmutableArray<ViewLine>> CreateViewLinesSelector()
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, model.Bookmarks?.Items),
@@ -1309,7 +1313,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
 				{
-					var list = ImmutableList.CreateBuilder<ViewLine>();
+					var list = ImmutableArray.CreateBuilder<ViewLine>();
 					using (var bookmarksHandler = (model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler()))
 					{
 						var normalizedSelection = selectionProps.Selection?.Normalize();
@@ -1374,6 +1378,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		readonly Func<int> timeMaxLength;
 		readonly Func<int[]> focusedMessageMarkLocation;
-		readonly Func<ImmutableList<ViewLine>> viewLines;
+		readonly Func<ImmutableArray<ViewLine>> viewLines;
+		readonly Func<string> viewLinesText;
 	};
 };

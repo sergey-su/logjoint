@@ -12,6 +12,14 @@ namespace LogJoint.Drawing
 			Init(g, ownsGraphics);
 		}
 		partial void Init(System.Drawing.Graphics g, bool ownsGraphics);
+
+		public class PerformanceCounters
+		{
+			internal PerformanceCounters(Profiling.Counters countersContainer)
+			{
+			}
+		};
+		partial void ConfigureProfilingImpl(PerformanceCounters counters, Profiling.Counters.Writer writer);
 #endif
 #if MONOMAC
 		public Graphics()
@@ -22,6 +30,10 @@ namespace LogJoint.Drawing
 		public Graphics(CoreGraphics.CGContext context)
 		{
 			InitFromContext(context);
+		}
+		public void SetCurrentContext()
+		{
+			InitFromContext(AppKit.NSGraphicsContext.CurrentContext?.GraphicsPort);
 		}
 		partial void InitFromContext(CoreGraphics.CGContext context);
 

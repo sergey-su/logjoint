@@ -428,7 +428,8 @@ namespace LogJoint.UI
 				UpdateDrawContextScrollPos();
 
 				int maxRight;
-				DrawingUtils.PaintControl(drawContext, viewModel, this.Focused, pe.ClipRectangle, out maxRight);
+				DrawingUtils.PaintControl(drawContext, viewModel, this.Focused, pe.ClipRectangle, out maxRight,
+					drawViewLinesAggregaredText: false);
 
 				backBufferCanvas.Render(pe.Graphics);
 
@@ -634,7 +635,7 @@ namespace LogJoint.UI
 		{
 			maxRight += dc.ScrollPos.X;
 			if (maxRight > scrollBarsInfo.scrollSize.Width // if view grows
-			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && viewModel != null && viewModel.ViewLines.Count == 0) // or no lines are displayed
+			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && viewModel != null && viewModel.ViewLines.Length == 0) // or no lines are displayed
 			)
 			{
 				// update the horz scroll bar

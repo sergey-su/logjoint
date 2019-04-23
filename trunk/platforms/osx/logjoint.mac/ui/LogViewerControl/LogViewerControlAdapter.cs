@@ -258,11 +258,12 @@ namespace LogJoint.UI
 					perfCountersWriter.Increment (controlPaintHeightCounter, (long)sz.Height);
 				}
 
-				drawContext.Canvas = new LJD.Graphics ();
+				drawContext.Canvas.SetCurrentContext();
 				drawContext.Canvas.ConfigureProfiling (this.graphicsCounters, perfCountersWriter);
 				drawContext.ViewWidth = viewWidth;
 				drawContext.ScrollPos = new Point (0,
 					(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight));
+				drawContext.Canvas.EnableTextAntialiasing(false);
 
 				int maxRight;
 				DrawingUtils.PaintControl (drawContext, viewModel, isFocused,
@@ -285,8 +286,8 @@ namespace LogJoint.UI
 			nfloat multiplier = isRegularMouseScroll ? 20 : 1;
 			viewModel.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
 
-			var pos = ScrollView.ContentView.Bounds.Location;
-			InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
+			//var pos = ScrollView.ContentView.Bounds.Location;
+			//InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
 		}
 
 		internal void OnMouseDown(NSEvent e)
@@ -329,9 +330,10 @@ namespace LogJoint.UI
 
 		void InitDrawingContext()
 		{
-			var font = new LJD.Font("monaco", 12);
 			drawContext = new DrawContext(
 				fontData => {
+					var font = new LJD.Font(fontData.Name ?? "monaco",
+						(float)NSFont.SystemFontSizeForControlSize(NSControlSize.Small));
 					using (var tmp = new LJD.Graphics())
 					{
 						int count = 8 * 1024;
@@ -342,6 +344,7 @@ namespace LogJoint.UI
 					}
 				}
 			);
+			drawContext.Canvas = new LJD.Graphics ();
 			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.White);
 			drawContext.InfoMessagesBrush = new LJD.Brush(Color.Black);
 			drawContext.CommentsBrush = new LJD.Brush(Color.Gray);
@@ -367,22 +370,6 @@ namespace LogJoint.UI
 		void OnVertScrollChanged()
 		{
 			viewModel.OnVScroll(VertScroller.DoubleValue, isRealtimeScroll: true);
-		}
-
-		private static int ToFontEmSize(LogFontSize fontSize) // todo: review sizes
-		{
-			switch (fontSize)
-			{
-				case LogFontSize.SuperSmall: return 6;
-				case LogFontSize.ExtraSmall: return 7;
-				case LogFontSize.Small: return 8;
-				case LogFontSize.Large1: return 10;
-				case LogFontSize.Large2: return 11;
-				case LogFontSize.Large3: return 14;
-				case LogFontSize.Large4: return 16;
-				case LogFontSize.Large5: return 18;
-				default: return 14;
-			}
 		}
 
 		Rectangle ClientRectangle

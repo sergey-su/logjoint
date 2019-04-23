@@ -13,9 +13,12 @@ namespace LogJoint.Drawing
 		internal CGContext context;
 		internal Profiling.Counters.Writer perfCountersWriter = Profiling.Counters.Writer.Null;
 		internal PerformanceCounters perfCounters = PerformanceCounters.Null;
+		internal LRUCache<(string, Font, Brush, StringFormat), NSAttributedString> drawStringPointCache =
+			new LRUCache<(string, Font, Brush, StringFormat), NSAttributedString>(128, str => str.Dispose());
 
 		public void Dispose()
 		{
+			drawStringPointCache.Clear();
 		}
 
 		partial void InitFromContext(CGContext context)
@@ -71,8 +74,12 @@ namespace LogJoint.Drawing
 			using (perfCountersWriter.IncrementTicks (perfCounters.drawStringPoint)) {
 
 				NSAttributedString attributedString;
-				using (perfCountersWriter.IncrementTicks (perfCounters.drawStringPoint_CreateAS))
-					attributedString = CreateAttributedString (s, font, format, brush);
+
+				using (perfCountersWriter.IncrementTicks (perfCounters.drawStringPoint_CreateAS)) {
+					var cacheKey = (s, font, brush, format);
+					if (!drawStringPointCache.TryGetValue(cacheKey, out attributedString))
+						drawStringPointCache.Set(cacheKey, attributedString = CreateAttributedString (s, font, format, brush));
+				}
 
 				if (format != null && (format.horizontalAlignment != StringAlignment.Near || format.verticalAlignment != StringAlignment.Near)) {
 					var sz = attributedString.Size;
@@ -331,6 +338,11 @@ namespace LogJoint.Drawing
 		partial void EnableAntialiasingImp(bool value)
 		{
 			context.SetAllowsAntialiasing(value);
+		}
+
+		partial void EnableTextAntialiasingImp(bool value)
+		{
+			context.SetShouldSmoothFonts(value);
 		}
 
 		partial void IntersectClipImp(RectangleF r)

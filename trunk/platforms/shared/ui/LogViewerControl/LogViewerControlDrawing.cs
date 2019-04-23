@@ -27,7 +27,8 @@ namespace LogJoint.UI
 			DrawContext ctx,
 			IViewModel viewModel,
 			bool controlIsFocused,
-			out int right
+			out int right,
+			bool drawText
 		)
 		{
 			var helper = new MessageDrawing
@@ -42,7 +43,7 @@ namespace LogJoint.UI
 
 			helper.DrawTime();
 
-			helper.DrawStringWithInplaceHightlight();
+			helper.DrawStringWithInplaceHightlight(drawText);
 
 			helper.DrawCursorIfNeeded(controlIsFocused);
 
@@ -192,7 +193,7 @@ namespace LogJoint.UI
 			ctx.Canvas.PopState();
 		}
 
-		void DrawStringWithInplaceHightlight()
+		void DrawStringWithInplaceHightlight(bool drawText)
 		{
 			var brush = ctx.InfoMessagesBrush;
 			PointF location = m.OffsetTextRect.Location;
@@ -202,7 +203,8 @@ namespace LogJoint.UI
 			DoInplaceHighlighting(lineValue, location, msg.SelectionHighlightingRanges, ctx.SelectionHighlightingBackground, null);
 			DoInplaceHighlighting(lineValue, location, msg.HighlightingFiltersHighlightingRanges, null, null);
 
-			ctx.Canvas.DrawString(lineValue, ctx.Font, brush, location, ctx.TextFormat);
+			if (drawText)
+				ctx.Canvas.DrawString(lineValue, ctx.Font, brush, location, ctx.TextFormat);
 		}
 
 		private void DoInplaceHighlighting(
@@ -389,19 +391,24 @@ namespace LogJoint.UI
 			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
 				++end;
 
-			int availableLines = viewModel.ViewLines.Count;
+			int availableLines = viewModel.ViewLines.Length;
 			return (Math.Min(availableLines, begin), Math.Min(availableLines, end));
 		}
 
 		public static void PaintControl(DrawContext drawContext, IViewModel viewModel, 
-			bool controlIsFocused, Rectangle dirtyRect, out int maxRight)
+			bool controlIsFocused, Rectangle dirtyRect, out int maxRight, bool drawViewLinesAggregaredText = true)
 		{
 			maxRight = 0;
 
 			foreach (var vl in GetVisibleMessagesIterator(drawContext, viewModel, dirtyRect))
 			{
-				MessageDrawing.Draw(vl, drawContext, viewModel, controlIsFocused, out var right);
+				MessageDrawing.Draw(vl, drawContext, viewModel, controlIsFocused, out var right, !drawViewLinesAggregaredText);
 				maxRight = Math.Max(maxRight, right);
+			}
+
+			if (drawViewLinesAggregaredText && viewModel.ViewLines.Length > 0) {
+				drawContext.Canvas.DrawString(viewModel.ViewLinesAggregaredText, drawContext.Font, drawContext.InfoMessagesBrush,
+					GetMetrics(viewModel.ViewLines[0], drawContext).OffsetTextRect.Location, drawContext.TextFormat);
 			}
 
 			DrawFocusedMessageMark(drawContext, viewModel);

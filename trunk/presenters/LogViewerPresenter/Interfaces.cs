@@ -222,7 +222,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// Collection of lines that should be displayed on the view.
 		/// Whenever the collection changes, view needs to be re-rendered.
 		/// </summary>
-		ImmutableList<ViewLine> ViewLines { get; }
+		ImmutableArray<ViewLine> ViewLines { get; }
+		string ViewLinesAggregaredText { get; }
 		double FirstDisplayMessageScrolledLines { get; }
 		/// <summary>
 		/// Max length of string representing view line time. <see cref="ViewLine.Time"/>.
