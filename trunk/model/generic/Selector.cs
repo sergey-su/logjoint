@@ -146,7 +146,7 @@ namespace LogJoint
 				var arg3 = argSelector3();
 				var arg4 = argSelector4();
 				var arg5 = argSelector5();
-				if (firstEvaluation || !cmp1.Equals(arg1, memoArg1) || !cmp2.Equals(arg2, memoArg2) || !cmp3.Equals(arg3, memoArg3) || !cmp4.Equals(arg4, memoArg4) || cmp5.Equals(arg5, memoArg5))
+				if (firstEvaluation || !cmp1.Equals(arg1, memoArg1) || !cmp2.Equals(arg2, memoArg2) || !cmp3.Equals(arg3, memoArg3) || !cmp4.Equals(arg4, memoArg4) || !cmp5.Equals(arg5, memoArg5))
 				{
 					firstEvaluation = false;
 					memoRet = resultSelector(arg1, arg2, arg3, arg4, arg5);
