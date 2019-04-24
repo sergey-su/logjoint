@@ -110,9 +110,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			var viewSizeUpdater = Updaters.Create(() => view.DisplayLinesPerPage, OnDisplayLinesPerPageChanged);
 
+			var linesObserver = Updaters.Create(() => screenBuffer.Messages, messages =>
+			{
+				using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
+				{
+					foreach (var m in messages)
+						threadsBulkProcessing.ProcessMessage(m.Message);
+				}
+			});
+
 			subscription = changeNotification.CreateSubscription(() =>
 			{
 				viewSizeUpdater();
+				linesObserver();
 			});
 		}
 
@@ -231,7 +241,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				navigationManager.NavigateView(async cancellation =>
 				{
 					await screenBuffer.SetRawLogMode(value, cancellation);
-					InternalUpdate();
 				}).IgnoreCancellation();
 				RawViewModeChanged?.Invoke(this, EventArgs.Empty);
 			}
@@ -368,7 +377,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var screenBufferEntry = await screenBuffer.MoveToTimestamp(date, cancellation);
 					SetViewTailMode(false);
-					InternalUpdate();
 					int? idx = screenBufferEntry != null ? FindDisplayLine(bookmarksFactory.CreateBookmark(screenBufferEntry.Value.Message, screenBufferEntry.Value.TextLineIndex)) : null;
 					if (idx != null)
 						SelectFullLine(idx.Value);
@@ -419,9 +427,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
-				SetViewTailMode(false);			
+				SetViewTailMode(false);
 				await screenBuffer.MoveToStreamsBegin(cancellation);
-				InternalUpdate();
 				ThisIntf.SelectFirstMessage();
 			});
 		}
@@ -432,7 +439,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				SetViewTailMode(true);
 				await screenBuffer.MoveToStreamsEnd(cancellation);
-				InternalUpdate();
 				ThisIntf.SelectLastMessage();
 			});
 		}
@@ -611,11 +617,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void OnDisplayLinesPerPageChanged(float dlpp)
 		{
-			navigationManager.NavigateView(async cancellation => 
-			{
-				await screenBuffer.SetViewSize(dlpp, cancellation);
-				InternalUpdate();
-			}).IgnoreCancellation();
+			navigationManager.NavigateView(cancellation => screenBuffer.SetViewSize(dlpp, cancellation)).IgnoreCancellation();
 		}
 
 		void IViewModel.OnIncrementalVScroll(float nrOfDisplayLines)
@@ -629,11 +631,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void IViewModel.OnVScroll(double value, bool isRealtimeScroll)
 		{
 			//if (!isRealtimeScroll)
-			navigationManager.NavigateView(async cancellation =>
-			{
-				await screenBuffer.MoveToPosition(value, cancellation);
-				InternalUpdate();
-			}).IgnoreCancellation();
+			navigationManager.NavigateView(cancellation => screenBuffer.MoveToPosition(value, cancellation)).IgnoreCancellation();
 		}
 
 		void IViewModel.OnHScroll()
@@ -851,8 +849,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			var shiftedBy = await screenBuffer.ShiftBy(nrOfDisplayLines, cancellation);
 
-			InternalUpdate();
-
 			return (int)shiftedBy;
 		}
 
@@ -881,8 +877,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return null;
 
 			SetViewTailMode(false);
-
-			InternalUpdate();
 
 			idx = FindDisplayLine(bookmark);
 			return idx;
@@ -936,31 +930,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void PerformDefaultFocusedMessageAction()
 		{
-			if (DefaultFocusedMessageAction != null)
-				DefaultFocusedMessageAction(this, EventArgs.Empty);
+			DefaultFocusedMessageAction?.Invoke(this, EventArgs.Empty);
 		}
 
 		void OnRefresh()
 		{
-			if (ManualRefresh != null)
-				ManualRefresh(this, EventArgs.Empty);
-		}
-
-		void InternalUpdate() // todo: delete it
-		{
-			IFiltersList hlFilters = model.HighlightFilters;
-			hlFilters?.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
-
-			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
-			{
-				foreach (var m in screenBuffer.Messages)
-				{
-					if (m.Message.Thread.IsDisposed)
-						continue;
-
-					threadsBulkProcessing.ProcessMessage(m.Message);
-				}
-			}
+			ManualRefresh?.Invoke(this, EventArgs.Empty);
 		}
 
 		async Task FindMessageInCurrentThread(EnumMessagesFlag directionFlag)
@@ -1036,8 +1011,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					await screenBuffer.MoveToStreamsEnd(cancellation);
 				else if (wasEmpty && screenBuffer.Sources.Any())
 					await screenBuffer.MoveToStreamsEnd(cancellation);
-
-				InternalUpdate();
 
 				if (viewTailMode)
 					ThisIntf.SelectLastMessage();
