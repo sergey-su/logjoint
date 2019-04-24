@@ -23,7 +23,6 @@ namespace LogJoint.UI
 	{
 		internal IViewModel viewModel;
 		internal bool isFocused;
-		NSTimer animationTimer;
 		string drawDropMessage;
 		bool enableCursor = true;
 		Profiling.Counters drawingPerfCounters;
@@ -126,12 +125,31 @@ namespace LogJoint.UI
 			this.controlPaintTimeCounter = this.drawingPerfCounters.AddCounter ("paint", unit: "ms");
 			this.controlPaintWidthCounter = this.drawingPerfCounters.AddCounter ("width", unit: "pixel");
 			this.controlPaintHeightCounter = this.drawingPerfCounters.AddCounter ("height", unit: "pixel");
-			var updater = Updaters.Create (
+			var viewUpdater = Updaters.Create (
 				() => viewModel.ViewLines,
-				() => viewModel.TimeMaxLength,
+				() => viewModel.FocusedMessageMark,
 				(_1, _2) => { this.InnerView.NeedsDisplay = true; }
 			);
-			viewModel.ChangeNotification.CreateSubscription (updater);
+			var emptyViewMessageUpdater = Updaters.Create (
+				() => viewModel.EmptyViewMessage,
+				value => {
+					drawDropMessage = value;
+					DragDropIconView.Hidden = value == null;
+				}
+			);
+			var vScrollUpdater = Updaters.Create(
+				() => viewModel.VerticalScrollerPosition,
+				value => {
+					VertScroller.Enabled = value.HasValue;
+					VertScroller.KnobProportion = 0.0001f;
+					VertScroller.DoubleValue = value.GetValueOrDefault();
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				viewUpdater();
+				emptyViewMessageUpdater();
+				vScrollUpdater();
+			});
 		}
 
 		void IView.HScrollToSelectedText(int charIndex)
@@ -167,42 +185,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
-		{
-			drawDropMessage = messageToDisplayOrNull;
-			DragDropIconView.Hidden = messageToDisplayOrNull == null;
-		}
-
-		void IView.AnimateSlaveMessagePosition()
-		{
-			drawContext.SlaveMessagePositionAnimationStep = 0;
-			InnerView.NeedsDisplay = true;
-			if (animationTimer != null)
-				animationTimer.Dispose();
-			animationTimer = NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(50), _ =>
-			{
-				if (drawContext.SlaveMessagePositionAnimationStep < 8)
-				{
-					drawContext.SlaveMessagePositionAnimationStep++;
-				}
-				else
-				{
-					animationTimer.Dispose();
-					animationTimer = null;
-					drawContext.SlaveMessagePositionAnimationStep = 0;
-				}
-				InnerView.NeedsDisplay = true;
-			});
-		}
-
 		float IView.DisplayLinesPerPage { get { return (float)ScrollView.Frame.Height / (float)drawContext.LineHeight; } }
-
-		void IView.SetVScroll(double? value)
-		{
-			VertScroller.Enabled = value.HasValue;
-			VertScroller.KnobProportion = 0.0001f;
-			VertScroller.DoubleValue = value.GetValueOrDefault();
-		}
 
 		bool IView.HasInputFocus
 		{
