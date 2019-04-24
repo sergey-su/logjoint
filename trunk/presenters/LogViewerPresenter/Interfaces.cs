@@ -147,6 +147,25 @@ namespace LogJoint.UI.Presenters.LogViewer
 		internal IHighlightingHandler searchResultHighlightingHandler;
 		internal IHighlightingHandler selectionHighlightingHandler;
 		internal IHighlightingHandler highlightingFiltersHandler;
+
+		public static (int relativeOrder, bool changed) Compare(ViewLine vl1, ViewLine vl2)
+		{
+			int cmp = MessagesComparer.Compare(vl1.Message, vl2.Message);
+			if (cmp != 0)
+				return (cmp, false);
+			cmp = vl1.TextLineIndex - vl2.TextLineIndex;
+			if (cmp != 0)
+				return (cmp, false);
+			var unchanged =
+				vl1.IsBookmarked == vl2.IsBookmarked
+			 && vl1.SelectedBackground == vl2.SelectedBackground
+			 && vl1.BackgroundColor == vl2.BackgroundColor
+			 && vl1.CursorCharIndex == vl2.CursorCharIndex
+			 && vl1.TextLineValue == vl2.TextLineValue
+			 && vl1.Time == vl2.Time;
+			// todo: filters
+			return (0, unchanged);
+		}
 	};
 
 	public enum SeverityIcon

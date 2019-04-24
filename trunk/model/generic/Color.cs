@@ -52,6 +52,25 @@ namespace LogJoint
 			return string.Format ("[ModelColor: A={0}, R={1}, G={2}, B={3}]", A, R, G, B);
 		}
 
+		public override bool Equals(object o)
+		{
+			return ((ModelColor)o).argb == this.argb;
+		}
+
+		public override int GetHashCode()
+		{
+			return unchecked((int)argb);
+		}
+
+		public static bool operator ==(ModelColor c1, ModelColor c2)
+		{
+			return c1.argb == c2.argb;
+		}
+		public static bool operator !=(ModelColor c1, ModelColor c2)
+		{
+			return c1.argb != c2.argb;
+		}
+
 		uint argb;
 	}
 
