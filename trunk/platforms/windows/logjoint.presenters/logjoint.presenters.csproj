@@ -175,6 +175,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\DummyModel.cs">
       <Link>LogViewerPresenter\DummyModel.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Extensions.cs">
+      <Link>LogViewerPresenter\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\HighlightingManager.cs">
       <Link>LogViewerPresenter\HighlightingManager.cs</Link>
     </Compile>

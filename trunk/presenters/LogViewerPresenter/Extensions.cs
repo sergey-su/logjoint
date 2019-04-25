@@ -31,17 +31,29 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (cmp == (0, false))
 					{
 						state = LookingForDiff;
+						// todo: compute scroll dist AND optional first repaint region
 					}
 				}
 				else if (state == LookingForDiff)
 				{
-					if (cmp != (0, false))
+					if (cmp.relativeOrder != 0)
+					{
+						// todo: repaint rest of messages
+						break;
+					}
+					if (cmp.changed)
 					{
 						state = LookingForSecondMatch;
 					}
 				}
 				else if (state == LookingForSecondMatch)
 				{
+					if (cmp.relativeOrder != 0)
+					{
+						// todo: repaint rest of messages
+						break;
+					}
+
 				}
 
 				if (cmp.relativeOrder >= 0)
@@ -50,6 +62,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					++idx2;
 			}
 			// 
+
+			return (0, null);
 		}
 	};
 };

@@ -20,6 +20,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 		bool isRawMessagesMode;
 		int viewSize;
 		IMessage msg1, msg2;
+		IMessagesSource messagesSource;
 
 		[SetUp]
 		public void BeforeEach()
@@ -27,6 +28,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			searchResultModel = Substitute.For<ISearchResultModel>();
 			highlightFilters = Substitute.For<IFiltersList>();
 			selectionManager = Substitute.For<ISelectionManager>();
+			messagesSource = Substitute.For<IMessagesSource>();
 			wordSelection = new WordSelection();
 			isRawMessagesMode = false;
 			viewSize = 3;
@@ -56,6 +58,17 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			return filter;
 		}
 
+		ViewLine CreateViewLine(IMessage message, int textLineIndex, int lineIndex)
+		{
+			return new ViewLine()
+			{
+				Message = msg1,
+				Text = new StringUtils.MultilineText(new StringSlice("test message 1")),
+				TextLineIndex = 0,
+				LineIndex = 10
+			};
+		}
+
 		void VerifyRanges(IEnumerable<(int, int, FilterAction)> actual, params (int, int, FilterAction)[] expected)
 		{
 			CollectionAssert.AreEqual(expected.OrderBy(x => x), actual.OrderBy(x => x));
@@ -75,7 +88,8 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			public void HappyPath()
 			{
 				CreateHighlightingManager();
-				VerifyRanges(highlightingManager.HighlightingFiltersHandler.GetHighlightingRanges(msg1, 0, 10),
+				VerifyRanges(
+					highlightingManager.HighlightingFiltersHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
 					(3, 4, FilterAction.Include)
 				);
 			}
@@ -92,12 +106,11 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			[Test]
 			public void EmptySelection()
 			{
-				selectionManager.Selection.Returns(new SelectionInfo()
-				{
-					first = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
-					last = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
-					normalized = true
-				});
+				selectionManager.Selection.Returns(new SelectionInfo(
+					new CursorPosition(msg1, messagesSource, 0, 1),
+					new CursorPosition(msg1, messagesSource, 0, 1),
+					false
+				));
 				CreateHighlightingManager();
 				Assert.IsNull(highlightingManager.SelectionHandler);
 			}
@@ -105,31 +118,29 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			[Test]
 			public void SubstringSelection()
 			{
-				selectionManager.Selection.Returns(new SelectionInfo()
-				{
-					first = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
-					last = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 4 },
-					normalized = true
-				});
+				selectionManager.Selection.Returns(new SelectionInfo(
+					new CursorPosition(msg1, messagesSource, 0, 1),
+					new CursorPosition(msg1, messagesSource, 0, 3),
+					false
+				));
 				CreateHighlightingManager();
-				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(msg1, 0, 10),
-					(1, 4, FilterAction.Include)
+				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
+					(6, 8, FilterAction.Include) // two matches "es" but first original one is not highlighted
 				);
 			}
 
 			[Test]
 			public void SelectionWithMultipleMatches()
 			{
-				selectionManager.Selection.Returns(new SelectionInfo()
-				{
-					first = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 1 },
-					last = new CursorPosition { Message = msg1, DisplayIndex = 0, TextLineIndex = 0, LineCharIndex = 3 },
-					normalized = true
-				});
+				selectionManager.Selection.Returns(new SelectionInfo(
+					new CursorPosition(msg1, messagesSource, 0, 1),
+					new CursorPosition(msg1, messagesSource, 0, 2),
+					false
+				));
 				CreateHighlightingManager();
-				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(msg1, 0, 10),
-					(1, 3, FilterAction.Include),
-					(6, 8, FilterAction.Include)
+				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
+					(11, 12, FilterAction.Include),
+					(6, 7, FilterAction.Include)
 				);
 			}
 		};
