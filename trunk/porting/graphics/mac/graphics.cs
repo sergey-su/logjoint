@@ -37,8 +37,6 @@ namespace LogJoint.Drawing
 				drawStringPoint_Draw1 = countersContainer.AddCounter ("DrawString(pt).Draw(1)", unit: "ms");
 				drawStringPoint_Draw2 = countersContainer.AddCounter ("DrawString(pt).Draw(2)", unit: "ms");
 				fillRectangle = countersContainer.AddCounter ("FillRectangle", unit: "ms", reportCount: true);
-				fillRectangle_SetFill = countersContainer.AddCounter ("FillRectangle.SetFill", unit: "ms");
-				fillRectangle_Fill = countersContainer.AddCounter ("FillRectangle.Fill", unit: "ms");
 				fillRoundRectangle = countersContainer.AddCounter ("FillRoundRectangle", unit: "ms");
 				measureCharRange = countersContainer.AddCounter ("MeasureCharRange", unit: "ms");
 			}
@@ -53,10 +51,8 @@ namespace LogJoint.Drawing
 		partial void FillRectangleImp(Brush brush, RectangleF rect)
 		{
 			using (perfCountersWriter.IncrementTicks (perfCounters.fillRectangle)) {
-				using (perfCountersWriter.IncrementTicks (perfCounters.fillRectangle_SetFill))
-					SetFill (brush);
-				using (perfCountersWriter.IncrementTicks (perfCounters.fillRectangle_Fill))
-					context.FillRect (rect.ToCGRect ());
+				SetFill (brush);
+				context.FillRect (rect.ToCGRect ());
 			}
 		}
 

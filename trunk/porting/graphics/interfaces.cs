@@ -44,8 +44,6 @@ namespace LogJoint.Drawing
 			internal Profiling.Counters.CounterDescriptor drawStringPoint_Draw1;
 			internal Profiling.Counters.CounterDescriptor drawStringPoint_Draw2;
 			internal Profiling.Counters.CounterDescriptor fillRectangle;
-			internal Profiling.Counters.CounterDescriptor fillRectangle_SetFill; // todo: remove
-			internal Profiling.Counters.CounterDescriptor fillRectangle_Fill; // todo: remove
 			internal Profiling.Counters.CounterDescriptor fillRoundRectangle;
 			internal Profiling.Counters.CounterDescriptor measureCharRange;
 
