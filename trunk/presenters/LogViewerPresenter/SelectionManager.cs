@@ -105,7 +105,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => setSelection,
 				() => screenBuffer.Messages,
 				() => screenBuffer.Sources,
-				() => screenBuffer.IsRawLogMode,
+				() => screenBuffer.DisplayTextGetter,
 				ComputeSelection
 			);
 			this.cursorViewLine = Selectors.Create(
@@ -159,7 +159,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ISelectionManager.SelectWordBoundaries(ViewLine viewLine, int charIndex)
 		{
 			var word = wordSelection.FindWordBoundaries(
-				GetTextToDisplay(viewLine.Message).GetNthTextLine(viewLine.TextLineIndex), charIndex);
+				screenBuffer.DisplayTextGetter(viewLine.Message).GetNthTextLine(viewLine.TextLineIndex), charIndex);
 			if (word != null)
 			{
 				SetSelection(viewLine.LineIndex, SelectionFlag.NoHScrollToSelection, word.Item1);
@@ -177,7 +177,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void ISelectionManager.SetSelection(int messageDisplayIndex, int textCharIndex1, int textCharIndex2)
 		{
 			var anchor = screenBuffer.Messages[messageDisplayIndex];
-			var mtxt = GetTextToDisplay(anchor.Message);
+			var mtxt = screenBuffer.DisplayTextGetter(anchor.Message);
 			var txt = mtxt.Text;
 			mtxt.EnumLines((line, lineIdx) =>
 			{
@@ -194,13 +194,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		static SelectionInfo ComputeSelection(SelectionInfo setSelection, IReadOnlyList<ScreenBufferEntry> viewLines, IReadOnlyList<SourceScreenBuffer> sources, bool rawLogMode)
+		static SelectionInfo ComputeSelection(SelectionInfo setSelection, IReadOnlyList<ScreenBufferEntry> viewLines, IReadOnlyList<SourceScreenBuffer> sources, MessageTextGetter dessageTextGetter)
 		{
 			SelectionInfo createForViewLineIndex(int idx)
 			{
 				if (viewLines.Count == 0)
 					return null;
-				return new SelectionInfo(CursorPosition.FromScreenBufferEntry(idx != viewLines.Count ? viewLines[idx] : viewLines[0], 0), null, rawLogMode);
+				return new SelectionInfo(CursorPosition.FromScreenBufferEntry(idx != viewLines.Count ? viewLines[idx] : viewLines[0], 0), null, dessageTextGetter);
 			}
 			bool belongsToNonExistingSource(CursorPosition pos) => pos != null && !sources.Any(s => s.Source == pos.Source);
 
@@ -214,7 +214,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var idx = viewLines.BinarySearch(0, viewLines.Count, dl => cmp.Compare(dl.Message, null) < 0);
 				return createForViewLineIndex(idx);
 			}
-			else if (setSelection.RawLogMode != rawLogMode)
+			else if (setSelection.MessageTextGetter != dessageTextGetter)
 			{
 				var idx = viewLines.BinarySearch(0, viewLines.Count, m => MessagesComparer.Compare(m.Message, setSelection.First.Message) < 0);
 				return createForViewLineIndex(idx);
@@ -233,7 +233,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var f = selection().First;
 					focusedMessageBookmark = bookmarksFactory.CreateBookmark(
-						f.Message, f.TextLineIndex, useRawText: screenBuffer.IsRawLogMode);
+						f.Message, f.TextLineIndex,
+						useRawText: screenBuffer.DisplayTextGetter == MessageTextGetters.RawTextGetter);
 				}
 			}
 			return focusedMessageBookmark;
@@ -273,16 +274,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SelectionChanged?.Invoke(this, EventArgs.Empty);
 		}
 
-		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
-		{
-			return msg.GetDisplayText(screenBuffer.IsRawLogMode);
-		}
-
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
 		{
 			var dmsg = screenBuffer.Messages[displayIndex];
 			var msg = dmsg.Message;
-			var line = GetTextToDisplay(msg).GetNthTextLine(dmsg.TextLineIndex);
+			var line = screenBuffer.DisplayTextGetter(msg).GetNthTextLine(dmsg.TextLineIndex);
 			int newLineCharIndex;
 			if ((flag & SelectionFlag.SelectBeginningOfLine) != 0)
 				newLineCharIndex = 0;
@@ -323,7 +319,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				var tmp = CursorPosition.FromScreenBufferEntry(dmsg, newLineCharIndex);
 
-				setSelection = new SelectionInfo(tmp, resetEnd ? tmp : setSelection.Last, screenBuffer.IsRawLogMode);
+				setSelection = new SelectionInfo(tmp, resetEnd ? tmp : setSelection.Last, screenBuffer.DisplayTextGetter);
 				changeNotification.Post();
 
 				OnSelectionChanged();
@@ -409,7 +405,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				new MessagesContainers.SimpleMergingCollection(messagesToSource.Keys)
 				.Forward(0, int.MaxValue)
 				.SelectMany(m =>
-					Enumerable.Range(0, GetTextToDisplay(m.Message.Message).GetLinesCount()).Select(
+					Enumerable.Range(0, screenBuffer.DisplayTextGetter(m.Message.Message).GetLinesCount()).Select(
 						lineIdx => new ScreenBufferEntry()
 						{
 							TextLineIndex = lineIdx,
@@ -419,7 +415,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					)
 				)
 				.Where(m => 
-					CursorPosition.Compare(CursorPosition.FromScreenBufferEntry(m, GetTextToDisplay(m.Message).GetNthTextLine(m.TextLineIndex).Length), normSelection.First) >= 0 
+					CursorPosition.Compare(CursorPosition.FromScreenBufferEntry(m, screenBuffer.DisplayTextGetter(m.Message).GetNthTextLine(m.TextLineIndex).Length), normSelection.First) >= 0 
 				 && CursorPosition.Compare(CursorPosition.FromScreenBufferEntry(m, 0), normSelection.Last) <= 0)
 				.ToList();
 		}
@@ -430,7 +426,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var normSelection = selection().Normalize();
 			if (normSelection?.IsEmpty != false)
 				return ret;
-			var showRawMessages = screenBuffer.IsRawLogMode;
 			var showMilliseconds = presentationProperties.ShowMilliseconds;
 			var selectedDisplayEntries = await GetSelectedDisplayMessagesEntries();
 			IMessage prevMessage = null;
@@ -438,7 +433,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			foreach (var i in selectedDisplayEntries.ZipWithIndex())
 			{
 				sb.Clear();
-				var line = i.Value.Message.GetDisplayText(showRawMessages).GetNthTextLine(i.Value.TextLineIndex);
+				var line = screenBuffer.DisplayTextGetter(i.Value.Message).GetNthTextLine(i.Value.TextLineIndex);
 				bool isFirstLine = i.Key == 0;
 				bool isLastLine = i.Key == selectedDisplayEntries.Count - 1;
 				int beginIdx = isFirstLine ? normSelection.First.LineCharIndex : 0;

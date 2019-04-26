@@ -6,13 +6,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		public CursorPosition First => first;
 		public CursorPosition Last => last;
-		public bool RawLogMode => rawLogMode;
+		public MessageTextGetter MessageTextGetter => messageTextGetter;
 
-		public SelectionInfo(CursorPosition f, CursorPosition l, bool rawLogMode)
+		public SelectionInfo(CursorPosition f, CursorPosition l, MessageTextGetter messageTextGetter)
 		{
 			this.first = f ?? throw new ArgumentNullException("first");
 			this.last = l;
-			this.rawLogMode = rawLogMode;
+			this.messageTextGetter = messageTextGetter;
 		}
 
 		public bool IsEmpty // todo: cache result
@@ -50,11 +50,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (last == null || CursorPosition.Compare(first, last) <= 0)
 				return this;
 			else
-				return new SelectionInfo(last, first, rawLogMode);
+				return new SelectionInfo(last, first, messageTextGetter);
 		}
 
 		private readonly CursorPosition first;
 		private readonly CursorPosition last;
-		private readonly bool rawLogMode;
+		private readonly MessageTextGetter messageTextGetter;
 	};
 };

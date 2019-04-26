@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public HighlightingManager(
 			ISearchResultModel searchResultModel,
-			Func<bool> isRawMessagesModeSelector,
+			Func<MessageTextGetter> displayTextGetterSelector,
 			Func<int> viewSizeSelector,
 			IFiltersList highlightFilters,
 			ISelectionManager selectionManager,
@@ -38,27 +38,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.getHighlightingHandler = Selectors.Create(
 				() => highlightFilters?.FilteringEnabled,
 				() => highlightFilters?.Items,
-				isRawMessagesModeSelector,
+				displayTextGetterSelector,
 				() => highlightFilters?.FiltersVersion,
 				viewSizeSelector,
-				(filteringEnabled, filters, isRawMessagesMode, _, viewSize) => filteringEnabled == true ? 
-					  new CachingHighlightingHandler(msg => GetHlHighlightingRanges(msg, filters, isRawMessagesMode), ViewSizeToCacheSize(viewSize))
+				(filteringEnabled, filters, displayTextGetter, _, viewSize) => filteringEnabled == true ? 
+					  new CachingHighlightingHandler(msg => GetHlHighlightingRanges(msg, filters, displayTextGetter), ViewSizeToCacheSize(viewSize))
 					: (IHighlightingHandler)new DummyHandler()
 			);
 			this.getSearchResultHandler = Selectors.Create(
 				() => searchResultModel?.SearchFiltersList,
-				isRawMessagesModeSelector,
+				displayTextGetterSelector,
 				viewSizeSelector,
-				(filters, isRawMessagesMode, viewSize) => filters != null ?
-					  new CachingHighlightingHandler(msg => GetSearchResultsHighlightingRanges(msg, filters, isRawMessagesMode), ViewSizeToCacheSize(viewSize))
+				(filters, displayTextGetter, viewSize) => filters != null ?
+					  new CachingHighlightingHandler(msg => GetSearchResultsHighlightingRanges(msg, filters, displayTextGetter), ViewSizeToCacheSize(viewSize))
 					: null
 			);
 			this.getSelectionHandler = Selectors.Create(
 				() => selectionManager.Selection,
-				isRawMessagesModeSelector,
+				displayTextGetterSelector,
 				viewSizeSelector,
-				(selection, isRawMessagesMode, viewSize) =>
-					MakeSelectionInplaceHighlightingHander(selection, isRawMessagesMode, wordSelection, ViewSizeToCacheSize(viewSize))
+				(selection, displayTextGetter, viewSize) =>
+					MakeSelectionInplaceHighlightingHander(selection, displayTextGetter, wordSelection, ViewSizeToCacheSize(viewSize))
 			);
 		}
 
@@ -74,11 +74,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private static IEnumerable<(int, int, FilterAction)> GetHlHighlightingRanges(
-			IMessage msg, ImmutableList<IFilter> hlFilters, bool isRawMessagesMode)
+			IMessage msg, ImmutableList<IFilter> hlFilters, MessageTextGetter displayTextGetter)
 		{
 			var filtersState = hlFilters
 				.Where(f => f.Enabled)
-				.Select(f => (f.StartBulkProcessing(isRawMessagesMode, false), f))
+				.Select(f => (f.StartBulkProcessing(displayTextGetter, false), f))
 				.ToArray();
 
 			for (int i = 0; i < filtersState.Length; ++i)
@@ -104,12 +104,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private static IEnumerable<(int, int, FilterAction)> GetSearchResultsHighlightingRanges(
-			IMessage msg, IFiltersList filters, bool isRawMessagesMode)
+			IMessage msg, IFiltersList filters, MessageTextGetter displayTextGetter)
 		{
 			IFiltersListBulkProcessing processing;
 			try
 			{
-				processing = filters.StartBulkProcessing(isRawMessagesMode, reverseMatchDirection: false);
+				processing = filters.StartBulkProcessing(displayTextGetter, reverseMatchDirection: false);
 			}
 			catch (Search.TemplateException)
 			{
@@ -134,14 +134,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private static IHighlightingHandler MakeSelectionInplaceHighlightingHander(
-			SelectionInfo selection, bool isRawMessagesMode, IWordSelection wordSelection, int cacheSize)
+			SelectionInfo selection, MessageTextGetter displayTextGetter, IWordSelection wordSelection, int cacheSize)
 		{
 			IHighlightingHandler newHandler = null;
 
 			if (selection?.IsSingleLine == true)
 			{
 				var normSelection = selection.Normalize();
-				var text = normSelection.First.Message.GetDisplayText(isRawMessagesMode);
+				var text = displayTextGetter(normSelection.First.Message);
 				var line = text.GetNthTextLine(normSelection.First.TextLineIndex);
 				int beginIdx = normSelection.First.LineCharIndex;
 				int endIdx = normSelection.Last.LineCharIndex;
@@ -151,7 +151,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var options = new Search.Options() 
 					{
 						Template = selectedPart,
-						SearchInRawText = isRawMessagesMode,
+						MessageTextGetter = displayTextGetter,
 					};
 					var optionsPreprocessed = options.BeginSearch();
 					newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection, 

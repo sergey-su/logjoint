@@ -55,4 +55,12 @@ namespace LogJoint
 			this.Message = m;
 		}
 	};
+
+	public delegate StringUtils.MultilineText MessageTextGetter(IMessage message);
+
+	public static class MessageTextGetters
+	{
+		public static MessageTextGetter SummaryTextGetter = MessageExtentions.GetText;
+		public static MessageTextGetter RawTextGetter = MessageExtentions.GetRawText;
+	};
 }

@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 
 			var oldBuffers = buffers;
-			buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics, isRawLogMode));
+			buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics, displayTextGetter));
 			bool needsClear = false;
 			if (!buffers.Keys.ToHashSet().SetEquals(oldBuffers.Keys))
 			{
@@ -103,15 +103,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(sz), cancellation))), 				getPivotLine: MakePivotLineGetter(l => 				{ 					if (currentTop.IsEmpty) 						return 0; 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex) 						return -scrolledLines; 					return null; 				})
 			); 		}
 
-		Task IScreenBuffer.SetRawLogMode(bool isRawMode, CancellationToken cancellation)
+		Task IScreenBuffer.SetDisplayTextGetter(MessageTextGetter displayTextGetter, CancellationToken cancellation)
 		{
-			if (this.isRawLogMode == isRawMode)
+			if (this.displayTextGetter == displayTextGetter)
 				return Task.FromResult(0);
-			this.isRawLogMode = isRawMode;
+			this.displayTextGetter = displayTextGetter;
 			changeNotification.Post();
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 			return PerformBuffersTransaction(
-				string.Format("SetRawLogMode({0})", isRawMode),
+				string.Format("SetDisplayTextGetter({0})", displayTextGetter),
 				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))), 				getPivotLine: (lines, bufs) => 				{ 					var candidate = new DisplayLine();
 					if (!currentTop.IsEmpty)
 					{
@@ -123,7 +123,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (candidate.IsEmpty)
 						return null; 					return Tuple.Create(candidate, -scrolledLines); 				} 			); 		}
 
-		bool IScreenBuffer.IsRawLogMode { get { return isRawLogMode; } }
+		MessageTextGetter IScreenBuffer.DisplayTextGetter { get { return displayTextGetter; } }
 
 		double IScreenBuffer.TopLineScrollValue 
 		{
@@ -294,7 +294,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var ret = new StringBuilder();
 			foreach (var e in entries)
 			{
-				e.Message.GetDisplayText(isRawLogMode).GetNthTextLine(e.TextLineIndex).Append(ret);
+				displayTextGetter(e.Message).GetNthTextLine(e.TextLineIndex).Append(ret);
 				ret.AppendLine();
 			}
 			return ret.ToString();
@@ -543,7 +543,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			using (name != null ? CreateTrackerForNewOperation(name, cancellation) : null)
 			{
-				var tmpCopy = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value, isRawLogMode));
+				var tmpCopy = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value, displayTextGetter));
 				await modifyBuffers(tmpCopy.Values);
 				cancellation.ThrowIfCancellationRequested();
 				return FinalizeTransaction(tmpCopy, getPivotLine);
@@ -665,7 +665,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly bool profilingEnabled = true;
 
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
-		bool isRawLogMode;
+		MessageTextGetter displayTextGetter = MessageTextGetters.SummaryTextGetter;
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
 		int buffersVersion;

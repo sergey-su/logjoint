@@ -42,7 +42,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry);
 			this.highlightingManager = new HighlightingManager(
-				searchResultModel, () => this.screenBuffer.IsRawLogMode, () => this.screenBuffer.Messages.Count,
+				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
 				model.HighlightFilters, this.selectionManager, wordSelection
 			);
 
@@ -230,17 +230,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				return screenBuffer.IsRawLogMode;
+				return screenBuffer.DisplayTextGetter == MessageTextGetters.RawTextGetter;
 			}
 			set
 			{
-				if (screenBuffer.IsRawLogMode == value)
+				var val = value ? MessageTextGetters.RawTextGetter : MessageTextGetters.SummaryTextGetter;
+				if (screenBuffer.DisplayTextGetter == val)
 					return;
 				if (value && !rawViewAllowed)
 					return;
 				navigationManager.NavigateView(async cancellation =>
 				{
-					await screenBuffer.SetRawLogMode(value, cancellation);
+					await screenBuffer.SetDisplayTextGetter(val, cancellation);
 				}).IgnoreCancellation();
 				RawViewModeChanged?.Invoke(this, EventArgs.Empty);
 			}
@@ -257,7 +258,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (rawViewAllowed == value)
 					return;
 				rawViewAllowed = value;
-				if (!rawViewAllowed && screenBuffer.IsRawLogMode)
+				if (!rawViewAllowed && ThisIntf.ShowRawMessages)
 					ThisIntf.ShowRawMessages = false;
 			}
 		}
@@ -302,7 +303,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<IMessage> IPresenter.Search(SearchOptions opts)
 		{
-			using (var bulkProcessing = opts.Filters.StartBulkProcessing(screenBuffer.IsRawLogMode, opts.ReverseSearch))
+			using (var bulkProcessing = opts.Filters.StartBulkProcessing(screenBuffer.DisplayTextGetter, opts.ReverseSearch))
 			{
 				var positiveFilters = opts.Filters.GetPositiveFilters();
 				bool hasEmptyTemplate = positiveFilters.Any(f => f == null || 
@@ -447,7 +448,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (selectionManager.Selection != null)
 				await MoveSelection(
-					GetTextToDisplay(selectionManager.Selection.First.Message).GetLinesCount() - selectionManager.Selection.First.TextLineIndex,
+					screenBuffer.DisplayTextGetter(selectionManager.Selection.First.Message).GetLinesCount() - selectionManager.Selection.First.TextLineIndex,
 					SelectionFlag.None
 				);
 		}
@@ -840,11 +841,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return new[] { lowerBound, upperBound };
 		}
 
-		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
-		{
-			return msg.GetDisplayText(screenBuffer.IsRawLogMode);
-		}
-
 		async Task<int> ShiftViewBy(float nrOfDisplayLines, CancellationToken cancellation)
 		{
 			var shiftedBy = await screenBuffer.ShiftBy(nrOfDisplayLines, cancellation);
@@ -1073,7 +1069,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			int startFromTextPosition = 0;
 			if (startFrom != null)
 			{
-				var txt = startFrom.Message.GetDisplayText(screenBuffer.IsRawLogMode);
+				var txt = screenBuffer.DisplayTextGetter(startFrom.Message);
 				var startLine = txt.GetNthTextLine(startFrom.TextLineIndex);
 				startFromTextPosition = (startLine.StartIndex - txt.Text.StartIndex) + startFrom.LineCharIndex;
 			}
@@ -1171,7 +1167,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					IMessage matchedMessage = matchedMessageAndRange.Message;
 					var matchedTextRange = matchedMessageAndRange.Match;
 
-					var lineIdx = GetTextToDisplay(matchedMessage).CharIndexToLineIndex(matchedTextRange.Item1);
+					var lineIdx = screenBuffer.DisplayTextGetter(matchedMessage).CharIndexToLineIndex(matchedTextRange.Item1);
 					if (lineIdx != null)
 					{
 						var displayIndex = await LoadMessageAt(matchedMessage, lineIdx.Value, BookmarkLookupMode.ExactMatch, cancellation);
@@ -1202,7 +1198,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (selectionManager.Selection == null || model.HighlightFilters == null)
 				return;
 			using (var hlFiltersBulkProcessing = model.HighlightFilters.StartBulkProcessing(
-				screenBuffer.IsRawLogMode, reverseMatchDirection: false))
+				screenBuffer.DisplayTextGetter, reverseMatchDirection: false))
 			{
 				await Scan(
 					reverse: reverse,
@@ -1217,7 +1213,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 								return null;
 							var rslt = hlFiltersBulkProcessing.ProcessMessage(m, null);
 							if (rslt.Action != FilterAction.Exclude)
-								return Tuple.Create(0, GetTextToDisplay(m).Text.Length);
+								return Tuple.Create(0, screenBuffer.DisplayTextGetter(m).Text.Length);
 							return null;
 						};
 					}
@@ -1272,7 +1268,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, model.Bookmarks?.Items),
-				() => (screenBuffer.IsRawLogMode, showTime, showMilliseconds, coloring),
+				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
@@ -1285,7 +1281,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						foreach (var screenBufferEntry in data.Messages)
 						{
 							list.Add(screenBufferEntry.ToViewLine(
-								displayProps.IsRawLogMode,
+								displayProps.DisplayTextGetter,
 								displayProps.showTime,
 								displayProps.showMilliseconds,
 								selectionViewLinesRange: selectionProps.ViewLinesRange,

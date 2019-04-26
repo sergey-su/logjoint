@@ -8,7 +8,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		internal static ViewLine ToViewLine(
 			this ScreenBufferEntry e,
-			bool rawMode,
+			MessageTextGetter displayTextGetter,
 			bool showTime,
 			bool showMilliseconds,
 			(int, int) selectionViewLinesRange,
@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		)
 		{
 			var msg = e.Message;
-			var text = msg.GetDisplayText(rawMode);
+			var text = displayTextGetter(msg);
 			var textLine = text.GetNthTextLine(e.TextLineIndex);
 			return new ViewLine()
 			{

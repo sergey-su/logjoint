@@ -52,7 +52,7 @@ namespace LogJoint
 		/// Returned object can not be shared between different threads. Each thread has to call this method.
 		/// </summary>
 		IFiltersListBulkProcessing StartBulkProcessing(
-			bool matchRawMessages, bool reverseMatchDirection, bool timeboxedMatching = false);
+			MessageTextGetter messageTextGetter, bool reverseMatchDirection, bool timeboxedMatching = false);
 		
 		IFiltersList Clone();
 		FiltersListPurpose Purpose { get; }
@@ -123,7 +123,7 @@ namespace LogJoint
 		void Save(XElement e);
 
 		IFilterBulkProcessing StartBulkProcessing(
-			bool matchRawMessages, bool reverseMatchDirection, bool timeboxedMatching = false);
+			MessageTextGetter messageTextGetter, bool reverseMatchDirection, bool timeboxedMatching = false);
 
 		void SetOwner(IFiltersList newOwner);
 	};

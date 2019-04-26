@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
@@ -8,7 +9,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public IMessage Message { get; private set; } // the message that this line belongs to
 		public int LineIndex { get; private set; } // line number within the message
 		public int TotalLinesInMessage { get; private set; } // nr of lines in the Message
-		public bool RawTextMode { get; private set; }
+		public MessageTextGetter DisplayTextGetter { get; private set; }
 		public IMessagesSource Source { get; private set; }
 		public int Index { get; private set; } // Line's index inside the screen buffer.
 		public double LineOffsetBegin { get; private set; } // global scrolling support
@@ -16,12 +17,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public bool IsEmpty { get { return Message == null; } }
 
-		public DisplayLine(IMessage msg, int lineIndex, int linesCount, bool rawTextMode, IMessagesSource source, int index = -1)
+		public DisplayLine(IMessage msg, int lineIndex, int linesCount, MessageTextGetter displayTextGetter, IMessagesSource source, int index = -1)
 		{
 			Message = msg;
 			LineIndex = lineIndex;
 			TotalLinesInMessage = linesCount;
-			RawTextMode = rawTextMode;
+			DisplayTextGetter = displayTextGetter;
 			var msgLen = msg.EndPosition - msg.Position;
 			if (linesCount > 1)
 			{
@@ -51,7 +52,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				Message = Message,
 				LineIndex = LineIndex,
 				TotalLinesInMessage = TotalLinesInMessage,
-				RawTextMode = RawTextMode,
+				DisplayTextGetter = DisplayTextGetter,
 				LineOffsetBegin = LineOffsetBegin,
 				LineOffsetEnd = LineOffsetEnd,
 				Index = index,
@@ -61,7 +62,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public override string ToString()
 		{
-			return Message.GetDisplayText(RawTextMode).GetNthTextLine(LineIndex);
+			return DisplayTextGetter(Message).GetNthTextLine(LineIndex);
 		}
 
 		public ScreenBufferEntry ToScreenBufferEntry()
