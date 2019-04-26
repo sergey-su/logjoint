@@ -45,6 +45,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
 				model.HighlightFilters, this.selectionManager, wordSelection
 			);
+			this.displayTextGetterSelector = MakeDisplayTextGetterSelector();
 
 			timeMaxLength = Selectors.Create(
 				() => showTime,
@@ -108,7 +109,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			};
 
-			var viewSizeUpdater = Updaters.Create(() => view.DisplayLinesPerPage, OnDisplayLinesPerPageChanged);
+			var viewSizeObserver = Updaters.Create(
+				() => view.DisplayLinesPerPage,
+				dlpp => navigationManager.NavigateView(cancel => screenBuffer.SetViewSize(dlpp, cancel)).IgnoreCancellation()
+			);
 
 			var linesObserver = Updaters.Create(() => screenBuffer.Messages, messages =>
 			{
@@ -119,10 +123,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			});
 
+			var displayTextGetterObserver = Updaters.Create(
+				displayTextGetterSelector,
+				value =>
+					navigationManager
+					.NavigateView(cancel => screenBuffer.SetDisplayTextGetter(msg => value(msg).text, cancel))
+					.IgnoreCancellation()
+			);
+
 			subscription = changeNotification.CreateSubscription(() =>
 			{
-				viewSizeUpdater();
+				viewSizeObserver();
 				linesObserver();
+				displayTextGetterObserver();
 			});
 		}
 
@@ -230,19 +243,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				return screenBuffer.DisplayTextGetter == MessageTextGetters.RawTextGetter;
+				return rawMessagesViewMode;
 			}
 			set
 			{
-				var val = value ? MessageTextGetters.RawTextGetter : MessageTextGetters.SummaryTextGetter;
-				if (screenBuffer.DisplayTextGetter == val)
+				if (rawMessagesViewMode == value)
 					return;
 				if (value && !rawViewAllowed)
 					return;
-				navigationManager.NavigateView(async cancellation =>
-				{
-					await screenBuffer.SetDisplayTextGetter(val, cancellation);
-				}).IgnoreCancellation();
+				rawMessagesViewMode = value;
+				changeNotification.Post();
 				RawViewModeChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
@@ -509,7 +519,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (slaveModeFocusedMessage == null)
 					return;
 				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestMessage, cancellation);
-				var position = FindSlaveModeFocusedMessagePosition(slaveModeFocusedMessage, screenBuffer.Messages, bookmarksFactory);
+				var position = FindSlaveModeFocusedMessagePosition(
+					slaveModeFocusedMessage, screenBuffer.Messages,
+					bookmarksFactory, m => displayTextGetterSelector()(m).mapper);
 				if (position == null)
 					return;
 				var idxToSelect = position[0];
@@ -616,11 +628,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ThisIntf.GoToPrevMessageInThread();
 		}
 
-		void OnDisplayLinesPerPageChanged(float dlpp)
-		{
-			navigationManager.NavigateView(cancellation => screenBuffer.SetViewSize(dlpp, cancellation)).IgnoreCancellation();
-		}
-
 		void IViewModel.OnIncrementalVScroll(float nrOfDisplayLines)
 		{
 			navigationManager.NavigateView(async cancellation =>
@@ -723,6 +730,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		ColoringMode IPresentationProperties.Coloring => coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
 		bool IPresentationProperties.ShowTime => showTime;
+		MessageTextLinesMapper IPresentationProperties.GetDisplayTextLinesMapper(IMessage msg) => displayTextGetterSelector()(msg).mapper;
+		bool IPresentationProperties.RawMessageViewMode => rawMessagesViewMode;
 
 		#endregion
 
@@ -828,14 +837,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		static private int[] FindSlaveModeFocusedMessagePosition(
-			IBookmark slaveModeFocusedMessage, IReadOnlyList<ScreenBufferEntry> screenBufferMessages, IBookmarksFactory bookmarksFactory)
+			IBookmark slaveModeFocusedMessage,
+			IReadOnlyList<ScreenBufferEntry> screenBufferMessages,
+			IBookmarksFactory bookmarksFactory,
+			Func<IMessage, MessageTextLinesMapper> displayTextLinesMapper)
 		{
 			if (slaveModeFocusedMessage == null)
 				return null;
 			if (screenBufferMessages.Count == 0)
 				return null;
-			Func<ScreenBufferEntry, int> cmp = e =>
-				MessagesComparer.Compare(bookmarksFactory.CreateBookmark(e.Message, e.TextLineIndex), slaveModeFocusedMessage);
+			int cmp(ScreenBufferEntry e) => MessagesComparer.Compare(
+				bookmarksFactory.CreateBookmark(e.Message, displayTextLinesMapper(e.Message)(e.TextLineIndex)),
+				slaveModeFocusedMessage
+			);
 			int lowerBound = ListUtils.BinarySearch(screenBufferMessages, 0, screenBufferMessages.Count, e => cmp(e) < 0);
 			int upperBound = ListUtils.BinarySearch(screenBufferMessages, lowerBound, screenBufferMessages.Count, e => cmp(e) <= 0);
 			return new[] { lowerBound, upperBound };
@@ -1250,9 +1264,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 							() => slaveModeFocusedMessage,
 							() => screenBuffer.Messages,
 							() => slaveMessagePositionAnimationStep,
-							(slaveModeFocusedMessage, screenBufferMessages, animationStep) =>
+							displayTextGetterSelector,
+							(slaveModeFocusedMessage, screenBufferMessages, animationStep, displayTextGetter) =>
 							{
-								var tmp = FindSlaveModeFocusedMessagePosition(slaveModeFocusedMessage, screenBufferMessages, bookmarksFactory);
+								var tmp = FindSlaveModeFocusedMessagePosition(
+									slaveModeFocusedMessage, screenBufferMessages, bookmarksFactory,
+									m => displayTextGetter(m).mapper);
 								if (tmp == null)
 									return null;
 								return new[] { tmp[0], tmp[1], animationStep };
@@ -1324,6 +1341,95 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		Func<Func<IMessage, (StringUtils.MultilineText, MessageTextLinesMapper)>> MakeDisplayTextGetterSelector()
+		{
+			return Selectors.Create(
+				() => rawMessagesViewMode,
+				() => searchResultModel?.SearchFiltersList,
+				(rawMode, searchResultFilters) =>
+				{
+					var directGetter = rawMode ? MessageTextGetters.RawTextGetter : MessageTextGetters.SummaryTextGetter;
+					if (searchResultFilters == null)
+						return msg => (directGetter(msg), identityTextLinesMapper);
+					return CreateSearchTextGetter(directGetter, searchResultFilters);
+				}
+			);
+		}
+
+		static IEnumerable<(int b, int e)> FindSearchMatches(IMessage msg, MessageTextGetter textGetter, IFiltersList filters)
+		{
+			IFiltersListBulkProcessing processing;
+			try
+			{
+				processing = filters.StartBulkProcessing(textGetter, reverseMatchDirection: false);
+			}
+			catch (Search.TemplateException)
+			{
+				yield break;
+			}
+			using (processing)
+			{
+				for (int? startPos = null; ;)
+				{
+					var rslt = processing.ProcessMessage(msg, startPos);
+					if (rslt.Action == FilterAction.Exclude || rslt.MatchedRange == null)
+						yield break;
+					var r = rslt.MatchedRange.Value;
+					if (r.MatchBegin == r.MatchEnd)
+						yield break;
+					yield return (r.MatchBegin, r.MatchEnd);
+					startPos = r.MatchEnd;
+				}
+			}
+		}
+
+		static (StringUtils.MultilineText, MessageTextLinesMapper) GenerateText(IMessage msg, MessageTextGetter textGetter, IFiltersList filters)
+		{
+			var text = textGetter(msg);
+			var retLines = new List<StringSlice>();
+			int textLineIdx = 0;
+			var linesMap = new List<int>();
+			foreach (var m in FindSearchMatches(msg, textGetter, filters))
+			{
+				for (;textLineIdx < text.GetLinesCount();)
+				{
+					var line = text.GetNthTextLine(textLineIdx);
+					var lineContainsMatchBegin = line.StartIndex - text.Text.StartIndex >= m.b;
+					var lineContainsMatchEnd = line.EndIndex - text.Text.StartIndex >= m.e;
+					if (lineContainsMatchBegin || lineContainsMatchEnd)
+					{
+						retLines.Add(line);
+						linesMap.Add(textLineIdx);
+					}
+					++textLineIdx;
+					if (lineContainsMatchEnd)
+						break;
+				}
+			}
+			if (textLineIdx == 0)
+			{
+				retLines.Add(text.GetNthTextLine(0));
+				linesMap.Add(textLineIdx);
+			}
+			return (
+				new StringUtils.MultilineText(new StringSlice(string.Join(Environment.NewLine, retLines))),
+				i => linesMap.ElementAtOrDefault(i)
+			);
+		}
+
+		static Func<IMessage, (StringUtils.MultilineText, MessageTextLinesMapper)> CreateSearchTextGetter(MessageTextGetter inner, IFiltersList filters)
+		{
+			var cache = new LRUCache<IMessage, (StringUtils.MultilineText, MessageTextLinesMapper)>(128);
+			return msg => 
+			{
+				if (cache.TryGetValue(msg, out var ret))
+					return ret;
+				ret = GenerateText(msg, inner, filters);
+				cache.Set(msg, ret);
+				return ret;
+			};
+		}
+
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
 
@@ -1350,6 +1456,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool showTime;
 		bool showMilliseconds;
 		bool rawViewAllowed;
+		bool rawMessagesViewMode;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
 		ColoringMode coloring = ColoringMode.Threads;
 		FocusedMessageDisplayModes focusedMessageDisplayMode;
@@ -1364,5 +1471,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly Func<int[]> focusedMessageMark;
 		readonly Func<ImmutableArray<ViewLine>> viewLines;
 		readonly Func<string> viewLinesText;
+		readonly Func<Func<IMessage, (StringUtils.MultilineText text, MessageTextLinesMapper mapper)>> displayTextGetterSelector;
+		static readonly MessageTextLinesMapper identityTextLinesMapper = i => i;
 	};
 };

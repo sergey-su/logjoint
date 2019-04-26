@@ -37,11 +37,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler FocusedMessageBookmarkChanged;
 	};
 
+	internal delegate int MessageTextLinesMapper (int lineIdx);
+
 	internal interface IPresentationProperties
 	{
 		bool ShowTime { get; }
 		bool ShowMilliseconds { get; }
 		ColoringMode Coloring { get; }
+		MessageTextLinesMapper GetDisplayTextLinesMapper(IMessage msg);
 	};
 
 	[Flags]
@@ -233,8 +236,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var f = selection().First;
 					focusedMessageBookmark = bookmarksFactory.CreateBookmark(
-						f.Message, f.TextLineIndex,
-						useRawText: screenBuffer.DisplayTextGetter == MessageTextGetters.RawTextGetter);
+						f.Message,
+						presentationProperties.GetDisplayTextLinesMapper(f.Message)(f.TextLineIndex),
+						useRawText: screenBuffer.DisplayTextGetter == MessageTextGetters.RawTextGetter); // todo: incorrect?
 				}
 			}
 			return focusedMessageBookmark;

@@ -243,8 +243,11 @@ namespace LogJoint
 
 			public ThreadsBulkProcessingResult ProcessMessage(IMessage message)
 			{
-				var threadInfo = GetThreadInfo(message.Thread);
-				threadInfo.ThreadImpl.RegisterKnownMessage(message);
+				if (!message.Thread.IsDisposed)
+				{
+					var threadInfo = GetThreadInfo(message.Thread);
+					threadInfo.ThreadImpl.RegisterKnownMessage(message);
+				}
 				return new ThreadsBulkProcessingResult() { 
 				};
 			}
