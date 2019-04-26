@@ -92,7 +92,7 @@ namespace LogJoint
 			public MessagesPostprocessor(SearchAllOccurencesParams searchParams, LJTraceSource trace)
 			{
 				this.bulkProcessing = searchParams.Filters.StartBulkProcessing(
-					searchParams.SearchInRawText ? MessageTextGetters.RawTextGetter : MessageTextGetters.SummaryTextGetter,
+					MessageTextGetters.Get(searchParams.SearchInRawText),
 					reverseMatchDirection: false);
 				this.filteringTime = new Stopwatch();
 				this.tid = Thread.CurrentThread.ManagedThreadId;

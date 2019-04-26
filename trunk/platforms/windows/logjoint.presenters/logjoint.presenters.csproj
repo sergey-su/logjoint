@@ -166,26 +166,23 @@
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\LoadedMessagesPresenter.cs">
       <Link>LoadedMessagesPresenter\LoadedMessagesPresenter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\CachingHighlightingHandler.cs">
-      <Link>LogViewerPresenter\CachingHighlightingHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\CursorPosition.cs">
-      <Link>LogViewerPresenter\CursorPosition.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\DummyModel.cs">
       <Link>LogViewerPresenter\DummyModel.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\Extensions.cs">
       <Link>LogViewerPresenter\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\HighlightingManager.cs">
-      <Link>LogViewerPresenter\HighlightingManager.cs</Link>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Highlighting\CachingHighlightingHandler.cs">
+      <Link>LogViewerPresenter\Highlighting\CachingHighlightingHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Highlighting\HighlightingManager.cs">
+      <Link>LogViewerPresenter\Highlighting\HighlightingManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Highlighting\Interfaces.cs">
+      <Link>LogViewerPresenter\Highlighting\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\Interfaces.cs">
       <Link>LogViewerPresenter\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\ISearchResultModel.cs">
-      <Link>LogViewerPresenter\ISearchResultModel.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenter.cs">
       <Link>LogViewerPresenter\LogViewerPresenter.cs</Link>
@@ -193,8 +190,11 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenterFactory.cs">
       <Link>LogViewerPresenter\LogViewerPresenterFactory.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\NavigationManager.cs">
-      <Link>LogViewerPresenter\NavigationManager.cs</Link>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Navigation\Interfaces.cs">
+      <Link>LogViewerPresenter\Navigation\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Navigation\NavigationManager.cs">
+      <Link>LogViewerPresenter\Navigation\NavigationManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\Diagnostics.cs">
       <Link>LogViewerPresenter\ScreenBuffer\Diagnostics.cs</Link>
@@ -220,14 +220,20 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchOptions.cs">
       <Link>LogViewerPresenter\SearchOptions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionInfo.cs">
-      <Link>LogViewerPresenter\SelectionInfo.cs</Link>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\CursorPosition.cs">
+      <Link>LogViewerPresenter\Selection\CursorPosition.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionManager.cs">
-      <Link>LogViewerPresenter\SelectionManager.cs</Link>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\Interfaces.cs">
+      <Link>LogViewerPresenter\Selection\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\WordSelection.cs">
-      <Link>LogViewerPresenter\WordSelection.cs</Link>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\SelectionInfo.cs">
+      <Link>LogViewerPresenter\Selection\SelectionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\SelectionManager.cs">
+      <Link>LogViewerPresenter\Selection\SelectionManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\WordSelection.cs">
+      <Link>LogViewerPresenter\Selection\WordSelection.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\MainFormPresenter\Interfaces.cs">
       <Link>MainFormPresenter\Interfaces.cs</Link>

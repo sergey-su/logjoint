@@ -62,5 +62,7 @@ namespace LogJoint
 	{
 		public static MessageTextGetter SummaryTextGetter = MessageExtentions.GetText;
 		public static MessageTextGetter RawTextGetter = MessageExtentions.GetRawText;
+
+		public static MessageTextGetter Get(bool rawTextGetter) => rawTextGetter ? RawTextGetter : SummaryTextGetter;
 	};
 }

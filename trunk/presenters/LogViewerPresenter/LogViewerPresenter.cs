@@ -1348,7 +1348,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => searchResultModel?.SearchFiltersList,
 				(rawMode, searchResultFilters) =>
 				{
-					var directGetter = rawMode ? MessageTextGetters.RawTextGetter : MessageTextGetters.SummaryTextGetter;
+					var directGetter = MessageTextGetters.Get(rawMode);
 					if (searchResultFilters == null)
 						return msg => (directGetter(msg), identityTextLinesMapper);
 					return CreateSearchTextGetter(directGetter, searchResultFilters);

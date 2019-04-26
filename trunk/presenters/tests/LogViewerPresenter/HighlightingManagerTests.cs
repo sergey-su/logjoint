@@ -40,7 +40,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 		void CreateHighlightingManager()
 		{
 			highlightingManager = new HighlightingManager(searchResultModel,
-				() => isRawMessagesMode, () => viewSize, highlightFilters, selectionManager, wordSelection);
+				() => MessageTextGetters.Get(isRawMessagesMode), () => viewSize, highlightFilters, selectionManager, wordSelection);
 		}
 
 		IFilter CreateFilter(FilterAction action, bool expectRawMessagesMode, bool enabed,
@@ -50,7 +50,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			filter.Enabled.Returns(true);
 			filter.Action.Returns(action);
 			var processing = Substitute.For<IFilterBulkProcessing>();
-			filter.StartBulkProcessing(expectRawMessagesMode, false).Returns(processing);
+			filter.StartBulkProcessing(MessageTextGetters.Get(expectRawMessagesMode), false).Returns(processing);
 			foreach (var m in matches)
 			{
 				processing.Match(m.Item1, m.Item2).Returns(m.Item3);
@@ -109,7 +109,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 				selectionManager.Selection.Returns(new SelectionInfo(
 					new CursorPosition(msg1, messagesSource, 0, 1),
 					new CursorPosition(msg1, messagesSource, 0, 1),
-					false
+					MessageTextGetters.Get(false)
 				));
 				CreateHighlightingManager();
 				Assert.IsNull(highlightingManager.SelectionHandler);
@@ -121,7 +121,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 				selectionManager.Selection.Returns(new SelectionInfo(
 					new CursorPosition(msg1, messagesSource, 0, 1),
 					new CursorPosition(msg1, messagesSource, 0, 3),
-					false
+					MessageTextGetters.Get(false)
 				));
 				CreateHighlightingManager();
 				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
@@ -135,7 +135,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 				selectionManager.Selection.Returns(new SelectionInfo(
 					new CursorPosition(msg1, messagesSource, 0, 1),
 					new CursorPosition(msg1, messagesSource, 0, 2),
-					false
+					MessageTextGetters.Get(false)
 				));
 				CreateHighlightingManager();
 				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),

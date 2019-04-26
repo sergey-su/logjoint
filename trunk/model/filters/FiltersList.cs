@@ -350,20 +350,28 @@ namespace LogJoint
 
 			MessageFilteringResult IFiltersListBulkProcessing.ProcessMessage(IMessage msg, int? startFromChar)
 			{
+				MessageFilteringResult? candidate = null;
 				for (int i = 0; i < filters.Length; ++i)
 				{
 					var f = filters[i];
 					var m = f.Key.Match(msg, startFromChar);
 					if (m != null)
 					{
-						return new MessageFilteringResult()
+						var result = new MessageFilteringResult()
 						{
 							Action = f.Value.Action,
 							Filter = f.Value,
 							MatchedRange = m
 						};
+						if (startFromChar == null)
+							return result;
+						if (candidate == null || m.Value.MatchBegin < candidate.Value.MatchedRange.Value.MatchBegin)
+							candidate = result;
 					}
 				}
+
+				if (candidate != null)
+					return candidate.Value;
 
 				return new MessageFilteringResult()
 				{
