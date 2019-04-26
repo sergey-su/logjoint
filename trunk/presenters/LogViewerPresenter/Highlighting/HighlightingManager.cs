@@ -20,12 +20,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IWordSelection wordSelection
 		)
 		{
+			var viewSizeQuantizedSelector = Selectors.Create(
+				viewSizeSelector,
+				viewSize => (1 + (viewSize / 16)) * 16
+			);
 			this.getHighlightingHandler = Selectors.Create(
 				() => highlightFilters?.FilteringEnabled,
 				() => highlightFilters?.Items,
 				displayTextGetterSelector,
 				() => highlightFilters?.FiltersVersion,
-				viewSizeSelector,
+				viewSizeQuantizedSelector,
 				(filteringEnabled, filters, displayTextGetter, _, viewSize) => filteringEnabled == true ? 
 					  new CachingHighlightingHandler(msg => GetHlHighlightingRanges(msg, filters, displayTextGetter), ViewSizeToCacheSize(viewSize))
 					: (IHighlightingHandler)new DummyHandler()
@@ -33,7 +37,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.getSearchResultHandler = Selectors.Create(
 				() => searchResultModel?.SearchFiltersList,
 				displayTextGetterSelector,
-				viewSizeSelector,
+				viewSizeQuantizedSelector,
 				(filters, displayTextGetter, viewSize) => filters != null ?
 					  new CachingHighlightingHandler(msg => GetSearchResultsHighlightingRanges(msg, filters, displayTextGetter), ViewSizeToCacheSize(viewSize))
 					: null
@@ -41,7 +45,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.getSelectionHandler = Selectors.Create(
 				() => selectionManager.Selection,
 				displayTextGetterSelector,
-				viewSizeSelector,
+				viewSizeQuantizedSelector,
 				(selection, displayTextGetter, viewSize) =>
 					MakeSelectionInplaceHighlightingHander(selection, displayTextGetter, wordSelection, ViewSizeToCacheSize(viewSize))
 			);

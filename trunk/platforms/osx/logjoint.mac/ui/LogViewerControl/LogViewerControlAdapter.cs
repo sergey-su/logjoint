@@ -119,7 +119,7 @@ namespace LogJoint.UI
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
-			this.drawContext.Presenter = viewModel;
+			this.drawContext.ViewModel = viewModel;
 			this.drawingPerfCounters = new Profiling.Counters (viewModel.Trace, "drawing");
 			this.graphicsCounters = LJD.Graphics.CreateCounters (drawingPerfCounters);
 			this.controlPaintTimeCounter = this.drawingPerfCounters.AddCounter ("paint", unit: "ms");

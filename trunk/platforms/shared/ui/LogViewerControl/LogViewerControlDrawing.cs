@@ -253,7 +253,7 @@ namespace LogJoint.UI
 
 	public class DrawContext
 	{
-		public IViewModel Presenter; // todo: do not support null ref
+		public IViewModel ViewModel;
 		public SizeF CharSize => fontDependentData().charSize;
 		public double CharWidthDblPrecision => fontDependentData().charWidth;
 		public int LineHeight => fontDependentData().lineHeight;
@@ -290,12 +290,12 @@ namespace LogJoint.UI
 		public DrawContext(Func<FontData, (Font font, SizeF charSize, double charWidth)> computeFontDependentData)
 		{
 			timeAreaSize = Selectors.Create(
-				() => Presenter?.TimeMaxLength,
+				() => ViewModel?.TimeMaxLength,
 				() => CharSize.Width,
 				(maxTimeLength, charWidth) => maxTimeLength.GetValueOrDefault() == 0 ? 0 : ((int)Math.Floor(charWidth * maxTimeLength.Value) + 10)
 			);
 			fontDependentData = Selectors.Create(
-				() => Presenter?.Font,
+				() => ViewModel?.Font,
 				fontData =>
 				{
 					var (font, charSize, charWidth) = computeFontDependentData(fontData ?? new FontData());
