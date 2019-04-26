@@ -529,16 +529,36 @@
     <Compile Include="..\..\..\presenters\Common\LinkLabelUtils.cs">
       <Link>Common\LinkLabelUtils.cs</Link>
     </Compile>
-    <Compile Include="LogViewerPresenter\Selection\CursorPosition.cs" />
-    <Compile Include="LogViewerPresenter\Selection\Interfaces.cs" />
-    <Compile Include="LogViewerPresenter\Selection\SelectionInfo.cs" />
-    <Compile Include="LogViewerPresenter\Selection\SelectionManager.cs" />
-    <Compile Include="LogViewerPresenter\Selection\WordSelection.cs" />
-    <Compile Include="LogViewerPresenter\Highlighting\CachingHighlightingHandler.cs" />
-    <Compile Include="LogViewerPresenter\Highlighting\HighlightingManager.cs" />
-    <Compile Include="LogViewerPresenter\Highlighting\Interfaces.cs" />
-    <Compile Include="LogViewerPresenter\Navigation\Interfaces.cs" />
-    <Compile Include="LogViewerPresenter\Navigation\NavigationManager.cs" />
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\CursorPosition.cs">
+      <Link>LogViewerPresenter\Selection\CursorPosition.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\Interfaces.cs">
+      <Link>LogViewerPresenter\Selection\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\SelectionInfo.cs">
+      <Link>LogViewerPresenter\Selection\SelectionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\SelectionManager.cs">
+      <Link>LogViewerPresenter\Selection\SelectionManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\WordSelection.cs">
+      <Link>LogViewerPresenter\Selection\WordSelection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Highlighting\CachingHighlightingHandler.cs">
+      <Link>LogViewerPresenter\Highlighting\CachingHighlightingHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Highlighting\HighlightingManager.cs">
+      <Link>LogViewerPresenter\Highlighting\HighlightingManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Highlighting\Interfaces.cs">
+      <Link>LogViewerPresenter\Highlighting\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Navigation\Interfaces.cs">
+      <Link>LogViewerPresenter\Navigation\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Navigation\NavigationManager.cs">
+      <Link>LogViewerPresenter\Navigation\NavigationManager.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
