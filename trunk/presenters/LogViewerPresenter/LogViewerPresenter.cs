@@ -1394,9 +1394,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				for (;textLineIdx < text.GetLinesCount();)
 				{
 					var line = text.GetNthTextLine(textLineIdx);
-					var lineContainsMatchBegin = line.StartIndex - text.Text.StartIndex >= m.b;
+					var lineContainsMatchBegin = line.StartIndex - text.Text.StartIndex <= m.b;
 					var lineContainsMatchEnd = line.EndIndex - text.Text.StartIndex >= m.e;
-					if (lineContainsMatchBegin || lineContainsMatchEnd)
+					if (lineContainsMatchBegin && lineContainsMatchEnd)
 					{
 						retLines.Add(line);
 						linesMap.Add(textLineIdx);
