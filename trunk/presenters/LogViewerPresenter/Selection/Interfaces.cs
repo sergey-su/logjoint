@@ -35,6 +35,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	internal delegate int MessageTextLinesMapper (int lineIdx);
 
+	/// <summary>
+	/// Holds information about the text that is displayed for a given log message.
+	/// It can be computed and be different from any of intrinsic message's texts.
+	/// Example of computed text: search results view.
+	/// </summary>
+	internal struct MessageDisplayTextInfo
+	{
+		public StringUtils.MultilineText DisplayText;
+		/// <summary>
+		/// Maps <see cref="DisplayText"/>'s line indexes to that of original text.
+		/// </summary>
+		public MessageTextLinesMapper LinesMapper;
+		/// <summary>
+		/// Maps text lines of original message text to line of <see cref="DisplayText"/>.
+		/// </summary>
+		public MessageTextLinesMapper ReverseLinesMapper;
+	};
+
 	internal interface IPresentationProperties
 	{
 		bool ShowTime { get; }

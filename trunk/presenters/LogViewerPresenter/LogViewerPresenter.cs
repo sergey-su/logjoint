@@ -127,7 +127,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				displayTextGetterSelector,
 				value =>
 					navigationManager
-					.NavigateView(cancel => screenBuffer.SetDisplayTextGetter(msg => value(msg).text, cancel))
+					.NavigateView(cancel => screenBuffer.SetDisplayTextGetter(msg => value(msg).DisplayText, cancel))
 					.IgnoreCancellation()
 			);
 
@@ -519,9 +519,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (slaveModeFocusedMessage == null)
 					return;
 				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestMessage, cancellation);
+				var screenBufferEntry = screenBuffer.Messages.FirstOrDefault(entry => MessagesComparer.Compare(
+					bookmarksFactory.CreateBookmark(entry.Message, slaveModeFocusedMessage.LineIndex), slaveModeFocusedMessage) == 0);
+				if (screenBufferEntry.Message != null)
+				{
+					await LoadMessageAt(bookmarksFactory.CreateBookmark(
+						screenBufferEntry.Message,
+						displayTextGetterSelector()(screenBufferEntry.Message).ReverseLinesMapper(slaveModeFocusedMessage.LineIndex)
+					), BookmarkLookupMode.FindNearestMessage, cancellation);
+				}
 				var position = FindSlaveModeFocusedMessagePosition(
 					slaveModeFocusedMessage, screenBuffer.Messages,
-					bookmarksFactory, m => displayTextGetterSelector()(m).mapper);
+					bookmarksFactory, m => displayTextGetterSelector()(m).LinesMapper);
 				if (position == null)
 					return;
 				var idxToSelect = position[0];
@@ -730,7 +739,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		ColoringMode IPresentationProperties.Coloring => coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
 		bool IPresentationProperties.ShowTime => showTime;
-		MessageTextLinesMapper IPresentationProperties.GetDisplayTextLinesMapper(IMessage msg) => displayTextGetterSelector()(msg).mapper;
+		MessageTextLinesMapper IPresentationProperties.GetDisplayTextLinesMapper(IMessage msg) => displayTextGetterSelector()(msg).LinesMapper;
 		bool IPresentationProperties.RawMessageViewMode => rawMessagesViewMode;
 
 		#endregion
@@ -1269,7 +1278,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 							{
 								var tmp = FindSlaveModeFocusedMessagePosition(
 									slaveModeFocusedMessage, screenBufferMessages, bookmarksFactory,
-									m => displayTextGetter(m).mapper);
+									m => displayTextGetter(m).LinesMapper);
 								if (tmp == null)
 									return null;
 								return new[] { tmp[0], tmp[1], animationStep };
@@ -1341,8 +1350,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		Func<Func<IMessage, (StringUtils.MultilineText, MessageTextLinesMapper)>> MakeDisplayTextGetterSelector()
+		Func<Func<IMessage, MessageDisplayTextInfo>> MakeDisplayTextGetterSelector()
 		{
+			Func<IMessage, MessageDisplayTextInfo> createSearchResultsTextGetter(MessageTextGetter inner, IFiltersList filters)
+			{
+				var cache = new LRUCache<IMessage, MessageDisplayTextInfo>(128);
+				return msg =>
+				{
+					var key = msg;
+					if (cache.TryGetValue(key, out var ret))
+						return ret;
+					ret = highlightingManager.GetSearchResultMessageText(msg, inner, filters);
+					cache.Set(key, ret);
+					return ret;
+				};
+			};
+
 			return Selectors.Create(
 				() => rawMessagesViewMode,
 				() => searchResultModel?.SearchFiltersList,
@@ -1350,84 +1373,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var directGetter = MessageTextGetters.Get(rawMode);
 					if (searchResultFilters == null)
-						return msg => (directGetter(msg), identityTextLinesMapper);
-					return CreateSearchTextGetter(directGetter, searchResultFilters);
+						return msg => new MessageDisplayTextInfo()
+						{
+							DisplayText = directGetter(msg),
+							LinesMapper = identityTextLinesMapper,
+							ReverseLinesMapper = identityTextLinesMapper
+						};
+					return createSearchResultsTextGetter(directGetter, searchResultFilters);
 				}
 			);
-		}
-
-		static IEnumerable<(int b, int e)> FindSearchMatches(IMessage msg, MessageTextGetter textGetter, IFiltersList filters)
-		{
-			IFiltersListBulkProcessing processing;
-			try
-			{
-				processing = filters.StartBulkProcessing(textGetter, reverseMatchDirection: false);
-			}
-			catch (Search.TemplateException)
-			{
-				yield break;
-			}
-			using (processing)
-			{
-				for (int? startPos = null; ;)
-				{
-					var rslt = processing.ProcessMessage(msg, startPos);
-					if (rslt.Action == FilterAction.Exclude || rslt.MatchedRange == null)
-						yield break;
-					var r = rslt.MatchedRange.Value;
-					if (r.MatchBegin == r.MatchEnd)
-						yield break;
-					yield return (r.MatchBegin, r.MatchEnd);
-					startPos = r.MatchEnd;
-				}
-			}
-		}
-
-		static (StringUtils.MultilineText, MessageTextLinesMapper) GenerateText(IMessage msg, MessageTextGetter textGetter, IFiltersList filters)
-		{
-			var text = textGetter(msg);
-			var retLines = new List<StringSlice>();
-			int textLineIdx = 0;
-			var linesMap = new List<int>();
-			foreach (var m in FindSearchMatches(msg, textGetter, filters))
-			{
-				for (;textLineIdx < text.GetLinesCount();)
-				{
-					var line = text.GetNthTextLine(textLineIdx);
-					var lineContainsMatchBegin = line.StartIndex - text.Text.StartIndex <= m.b;
-					var lineContainsMatchEnd = line.EndIndex - text.Text.StartIndex >= m.e;
-					if (lineContainsMatchBegin && lineContainsMatchEnd)
-					{
-						retLines.Add(line);
-						linesMap.Add(textLineIdx);
-					}
-					++textLineIdx;
-					if (lineContainsMatchEnd)
-						break;
-				}
-			}
-			if (textLineIdx == 0)
-			{
-				retLines.Add(text.GetNthTextLine(0));
-				linesMap.Add(textLineIdx);
-			}
-			return (
-				new StringUtils.MultilineText(new StringSlice(string.Join(Environment.NewLine, retLines))),
-				i => linesMap.ElementAtOrDefault(i)
-			);
-		}
-
-		static Func<IMessage, (StringUtils.MultilineText, MessageTextLinesMapper)> CreateSearchTextGetter(MessageTextGetter inner, IFiltersList filters)
-		{
-			var cache = new LRUCache<IMessage, (StringUtils.MultilineText, MessageTextLinesMapper)>(128);
-			return msg => 
-			{
-				if (cache.TryGetValue(msg, out var ret))
-					return ret;
-				ret = GenerateText(msg, inner, filters);
-				cache.Set(msg, ret);
-				return ret;
-			};
 		}
 
 		private IPresenter ThisIntf { get { return this; } }
@@ -1471,7 +1425,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly Func<int[]> focusedMessageMark;
 		readonly Func<ImmutableArray<ViewLine>> viewLines;
 		readonly Func<string> viewLinesText;
-		readonly Func<Func<IMessage, (StringUtils.MultilineText text, MessageTextLinesMapper mapper)>> displayTextGetterSelector;
+		readonly Func<Func<IMessage, MessageDisplayTextInfo>> displayTextGetterSelector;
 		static readonly MessageTextLinesMapper identityTextLinesMapper = i => i;
 	};
 };

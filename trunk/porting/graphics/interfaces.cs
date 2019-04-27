@@ -91,7 +91,8 @@ namespace LogJoint.Drawing
 		public RectangleF MeasureCharacterRange(string str, Font font, StringFormat format, CharacterRange range)
 		{
 			RectangleF r = new RectangleF();
-			MeasureCharacterRangeImp(str, font, format, range, ref r);
+			if (range.Length != 0)
+				MeasureCharacterRangeImp(str, font, format, range, ref r);
 			return r;
 		}
 

@@ -57,6 +57,78 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IHighlightingHandler IHighlightingManager.SelectionHandler => getSelectionHandler();
 
+		MessageDisplayTextInfo IHighlightingManager.GetSearchResultMessageText(IMessage msg, MessageTextGetter originalTextGetter, IFiltersList filters)
+		{
+			var originalText = originalTextGetter(msg);
+			var retLines = new List<StringSlice>();
+			var retLinesMap = new List<int>();
+			int originalTextLineIdx = 0;
+			foreach (var m in FindSearchMatches(msg, originalTextGetter, filters))
+			{
+				for (int stage = 0; originalTextLineIdx < originalText.GetLinesCount() && stage != 2; ++originalTextLineIdx)
+				{
+					var line = originalText.GetNthTextLine(originalTextLineIdx);
+					var lineBeginIndex = line.StartIndex - originalText.Text.StartIndex;
+					var lineEndIndex = line.EndIndex - originalText.Text.StartIndex;
+					if (lineBeginIndex >= m.e)
+						break;
+					if (stage == 0 && lineEndIndex >= m.b)
+						stage = 1;
+					if (stage == 1 && lineEndIndex >= m.e)
+						stage = 2;
+					if (stage != 0)
+					{
+						retLines.Add(line);
+						retLinesMap.Add(originalTextLineIdx);
+					}
+				}
+			}
+			if (originalTextLineIdx == 0)
+			{
+				retLines.Add(originalText.GetNthTextLine(0));
+				retLinesMap.Add(originalTextLineIdx);
+			}
+			return new MessageDisplayTextInfo()
+			{
+				DisplayText = new StringUtils.MultilineText(new StringSlice(string.Join("\n", retLines))),
+				LinesMapper = i => retLinesMap.ElementAtOrDefault(i),
+				ReverseLinesMapper = i =>
+				{
+					int result = 0;
+					while (result < retLinesMap.Count && retLinesMap[result] < i)
+						++result;
+					return result;
+				}
+			};
+		}
+
+		private static IEnumerable<(int b, int e)> FindSearchMatches(IMessage msg, MessageTextGetter textGetter, IFiltersList filters) // todo: merge with GetSearchResultsHighlightingRanges
+		{
+			IFiltersListBulkProcessing processing;
+			try
+			{
+				processing = filters.StartBulkProcessing(textGetter, reverseMatchDirection: false);
+			}
+			catch (Search.TemplateException)
+			{
+				yield break;
+			}
+			using (processing)
+			{
+				for (int? startPos = null; ;)
+				{
+					var rslt = processing.ProcessMessage(msg, startPos);
+					if (rslt.Action == FilterAction.Exclude || rslt.MatchedRange == null)
+						yield break;
+					var r = rslt.MatchedRange.Value;
+					if (r.MatchBegin == r.MatchEnd)
+						yield break;
+					yield return (r.MatchBegin, r.MatchEnd);
+					startPos = r.MatchEnd;
+				}
+			}
+		}
+
 		private static int ViewSizeToCacheSize(int viewSize)
 		{
 			return Math.Max(viewSize, 1);

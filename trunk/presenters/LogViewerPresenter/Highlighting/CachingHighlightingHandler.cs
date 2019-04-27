@@ -47,7 +47,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 						hlEnd = hlRange.To;
 					return (hlBegin, hlEnd, hlRange.Action);
 				})
-				.Where(i => i.hlBegin != null || i.hlEnd != null)
 				.Select(i => (
 					i.hlBegin.GetValueOrDefault(lineBegin) - lineBegin,
 					i.hlEnd.GetValueOrDefault(lineEnd) - lineBegin,

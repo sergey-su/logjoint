@@ -110,7 +110,7 @@ namespace LogJoint.UI
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
-			this.drawContext.Presenter = viewModel;
+			this.drawContext.ViewModel = viewModel;
 
 			var viewUpdater = Updaters.Create(
 				() => viewModel.ViewLines,
