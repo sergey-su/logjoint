@@ -559,6 +559,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\Navigation\NavigationManager.cs">
       <Link>LogViewerPresenter\Navigation\NavigationManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Extensions.cs">
+      <Link>LogViewerPresenter\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

@@ -66,25 +66,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				HandleSourcesListChange();
 			};
-			if (this.model.HighlightFilters != null)
-			{
-				this.model.HighlightFilters.OnFiltersListChanged += (sender, e) =>
-				{
-					pendingUpdateFlag.Invalidate();
-				};
-				this.model.HighlightFilters.OnPropertiesChanged += (sender, e) =>
-				{
-					if (e.ChangeAffectsFilterResult)
-						pendingUpdateFlag.Invalidate();
-				};
-				this.model.HighlightFilters.OnFilteringEnabledChanged += (sender, e) =>
-				{
-					pendingUpdateFlag.Invalidate();
-				};
-			}
 			this.model.OnLogSourceColorChanged += (s, e) =>
 			{
-				// todo: invalidate view lines
+				++logSourceColorsRevision;
+				changeNotification.Post();
 			};
 
 			this.model.OnSourceMessagesChanged += (sender, e) => 
@@ -1294,7 +1279,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, model.Bookmarks?.Items),
-				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring),
+				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring, logSourceColorsRevision),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
@@ -1404,7 +1389,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IHighlightingManager highlightingManager;
 
 		IBookmark slaveModeFocusedMessage;
-
 		string defaultFocusedMessageActionCaption;
 		FontData font = new FontData();
 		bool showTime;
@@ -1416,10 +1400,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		FocusedMessageDisplayModes focusedMessageDisplayMode;
 		int slaveMessagePositionAnimationStep;
 		CancellationTokenSource slaveMessageAnimationThreadCancellation;
-
 		bool drawingErrorReported;
-
 		bool viewTailMode;
+		int logSourceColorsRevision;
 
 		readonly Func<int> timeMaxLength;
 		readonly Func<int[]> focusedMessageMark;

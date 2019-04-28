@@ -269,8 +269,8 @@ namespace LogJoint.UI
 			nfloat multiplier = isRegularMouseScroll ? 20 : 1;
 			viewModel.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
 
-			//var pos = ScrollView.ContentView.Bounds.Location;
-			//InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
+			var pos = ScrollView.ContentView.Bounds.Location;
+			InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
 		}
 
 		internal void OnMouseDown(NSEvent e)
