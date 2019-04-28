@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		void SetPresenter(IViewEvents presenter);
 		IInputFocusState CaptureInputFocusState();
-		void ExecuteThreadPropertiesDialog(IThread thread, IPresentersFacade navHandler);
+		void ExecuteThreadPropertiesDialog(IThread thread, IPresentersFacade navHandler, IColorTheme theme);
 		void SetAnalyzingIndicationVisibility(bool value);
 		void BeginSplittingSearchResults();
 		void BeginSplittingTabsPanel();
@@ -78,6 +78,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 	public interface IViewEvents
 	{
+		IChangeNotification ChangeNotification { get; }
 		void OnClosing();
 		void OnLoad();
 		void OnTabPressed();

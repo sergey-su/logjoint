@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IBookmarksFactory bookmarksFactory,
 			Telemetry.ITelemetryCollector telemetry,
 			IScreenBufferFactory screenBufferFactory,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			IColorTheme theme
 		)
 		{
 			this.model = model;
@@ -32,18 +33,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.bookmarksFactory = bookmarksFactory;
 			this.telemetry = telemetry;
 			this.screenBufferFactory = screenBufferFactory;
+			this.theme = theme;
 
 			this.tracer = new LJTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			var wordSelection = new WordSelection();
 			this.selectionManager = new SelectionManager(
-				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection);
+				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection, theme);
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry);
 			this.highlightingManager = new HighlightingManager(
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
-				model.HighlightFilters, this.selectionManager, wordSelection
+				model.HighlightFilters, this.selectionManager, wordSelection, theme
 			);
 			this.displayTextGetterSelector = MakeDisplayTextGetterSelector();
 
@@ -58,7 +60,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			viewLinesText = Selectors.Create(viewLines, lines => lines.Aggregate(
 				new StringBuilder(), (sb, vl) => sb.AppendLine(vl.TextLineValue)).ToString());
 
-			ReadGlobalSettings(model);
+			ReadGlobalSettings();
 
 			AttachToView(view);
 
@@ -83,6 +85,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (viewTailMode)
 						ThisIntf.GoToEnd();
+					else
+						Refresh().IgnoreCancellation();
 				}
 			};
 
@@ -90,7 +94,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
 				{
-					ReadGlobalSettings(model);
+					ReadGlobalSettings();
 				}
 			};
 
@@ -177,10 +181,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			get { return selectionManager.Selection?.First.Message; }
 		}
 
-		IBookmark IPresenter.GetFocusedMessageBookmark()
-		{
-			return selectionManager.GetFocusedMessageBookmark();
-		}
+		IBookmark IPresenter.FocusedMessageBookmark => selectionManager.FocusedMessageBookmark;
 
 		bool IPresenter.NavigationIsInProgress
 		{
@@ -292,7 +293,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return null;
 			var tmp = screenBufferFactory.CreateScreenBuffer(1);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
-			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
+			await tmp.MoveToBookmark(ThisIntf.FocusedMessageBookmark, BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
 		}
 
@@ -615,7 +616,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else if (menuItem == ContextMenuItem.DefaultAction)
 				PerformDefaultFocusedMessageAction();
 			else if (menuItem == ContextMenuItem.ToggleBmk)
-				model.Bookmarks.ToggleBookmark(ThisIntf.GetFocusedMessageBookmark());
+				model.Bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
 			else if (menuItem == ContextMenuItem.GotoNextMessageInTheThread)
 				ThisIntf.GoToNextMessageInThread();
 			else if (menuItem == ContextMenuItem.GotoPrevMessageInTheThread)
@@ -717,6 +718,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		LJTraceSource IViewModel.Trace => tracer;
 
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
+
 		double? IViewModel.VerticalScrollerPosition => screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?();
 
 		string IViewModel.EmptyViewMessage => screenBuffer.Messages.Count == 0 ? model.MessageToDisplayWhenMessagesCollectionIsEmpty : null;
@@ -771,7 +774,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
 				else if (k == Key.BookmarkShortcut)
-					model.Bookmarks.ToggleBookmark(ThisIntf.GetFocusedMessageBookmark());
+					model.Bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
 			}
 			if (k == Key.Copy)
 			{
@@ -932,6 +935,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
+		Task Refresh()
+		{
+			return navigationManager.NavigateView(async cancellation =>
+			{
+				await screenBuffer.Refresh(cancellation);
+			});
+		}
+
 		void PerformDefaultFocusedMessageAction()
 		{
 			DefaultFocusedMessageAction?.Invoke(this, EventArgs.Empty);
@@ -994,7 +1005,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.SetViewModel(this);
 		}
 
-		private void ReadGlobalSettings(IModel model)
+		private void ReadGlobalSettings()
 		{
 			this.coloring = model.GlobalSettings.Appearance.Coloring;
 			this.font = new FontData(model.GlobalSettings.Appearance.FontFamily, model.GlobalSettings.Appearance.FontSize);
@@ -1279,7 +1290,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, model.Bookmarks?.Items),
-				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring, logSourceColorsRevision),
+				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
@@ -1300,6 +1311,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 								isBookmarked: !screenBufferEntry.Message.Thread.IsDisposed && bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(
 									screenBufferEntry.Message, screenBufferEntry.TextLineIndex),
 								coloring: displayProps.coloring,
+								threadColors: displayProps.threadColors,
 								cursorCharIndex: selectionProps.CursorState && selectionProps.CursorViewLine == screenBufferEntry.Index ? selectionProps.Selection?.First?.LineCharIndex : new int?(),
 								searchResultHighlightingHandler: highlightingProps.SearchResultHandler,
 								selectionHighlightingHandler: highlightingProps.SelectionHandler,
@@ -1387,6 +1399,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly INavigationManager navigationManager;
 		readonly ISelectionManager selectionManager;
 		readonly IHighlightingManager highlightingManager;
+		readonly IColorTheme theme;
 
 		IBookmark slaveModeFocusedMessage;
 		string defaultFocusedMessageActionCaption;

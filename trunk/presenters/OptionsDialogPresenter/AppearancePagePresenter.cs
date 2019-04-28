@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using LogJoint.Settings;
@@ -13,17 +14,22 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		public Presenter(
 			Settings.IGlobalSettingsAccessor settings,
 			IView view,
-			LogViewer.IPresenterFactory logViewerPresenterFactory)
+			LogViewer.IPresenterFactory logViewerPresenterFactory,
+			IChangeNotification changeNotification,
+			IColorTheme theme
+		)
 		{
 			this.view = view;
 			this.settingsAccessor = settings;
 
 			this.sampleMessagesBaseTime = DateTime.UtcNow;
-			this.colorTable = new AdjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Normal);
-			this.sampleThreads = new ModelThreads(colorTable);
+			this.temporaryColorTheme = new TemporaryColorTheme(theme, changeNotification);
+			this.sampleThreads = new ModelThreads(new ColorLease(temporaryColorTheme.ThreadColorsCount));
 			this.dummyModel = new LogViewer.DummyModel(threads: sampleThreads);
 			this.sampleLogViewerPresenter = logViewerPresenterFactory.Create(
-				dummyModel, view.PreviewLogView, createIsolatedPresenter: true);
+				dummyModel, view.PreviewLogView,
+				createIsolatedPresenter: true,
+				theme: temporaryColorTheme);
 			this.sampleLogViewerPresenter.ShowTime = false;
 			this.sampleLogViewerPresenter.ShowRawMessages = false;
 			this.sampleLogViewerPresenter.DisabledUserInteractions =
@@ -51,13 +57,12 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
 		bool IPresenter.Apply()
 		{
-			settingsAccessor.Appearance = new Settings.Appearance()
-			{
-				Coloring = ReadColoringModeControl(),
-				FontFamily = ReadFontNameControl(),
-				FontSize = ReadFontSizeControl(),
-				ColoringBrightness = ReadColoringPaletteControl()
-			};
+			settingsAccessor.Appearance = new Settings.Appearance(
+				coloring: ReadColoringModeControl(),
+				fontFamily: ReadFontNameControl(),
+				fontSize: ReadFontSizeControl(),
+				coloringBrightness: ReadColoringPaletteControl()
+			);
 			return true;
 		}
 
@@ -117,7 +122,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			sampleLogViewerPresenter.Coloring = ReadColoringModeControl();
 			if (fullUpdate)
 			{
-				colorTable.Brightness = ReadColoringPaletteControl();
+				temporaryColorTheme.SetBrightness(ReadColoringPaletteControl());
 				FillSampleMessagesCollection();
 			}
 		}
@@ -147,10 +152,39 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			return (PaletteBrightness)view.GetSelectedValue(ViewControl.PaletteSelector);
 		}
 
+		class TemporaryColorTheme : IColorTheme
+		{
+			private readonly IColorTheme appTheme;
+			private readonly IColorTable threadsColorTable;
+			private readonly IChangeNotification changeNotification;
+			private PaletteBrightness paletteBrightness = PaletteBrightness.Normal;
+
+			public TemporaryColorTheme(IColorTheme appTheme, IChangeNotification changeNotification)
+			{
+				this.appTheme = appTheme;
+				this.changeNotification = changeNotification;
+				this.threadsColorTable = new LogThreadsColorsTable(this, () => paletteBrightness);
+			}
+
+			ColorThemeMode IColorTheme.Mode => appTheme.Mode;
+
+			ImmutableArray<ModelColor> IColorTheme.ThreadColors => threadsColorTable.Items;
+
+			ImmutableArray<ModelColor> IColorTheme.HighlightingColors => appTheme.HighlightingColors;
+
+			public int ThreadColorsCount => threadsColorTable.Items.Length;
+
+			public void SetBrightness(PaletteBrightness paletteBrightness)
+			{
+				this.paletteBrightness = paletteBrightness;
+				this.changeNotification.Post();
+			}
+		};
+
 		readonly string[] coloringModes = new[] 
 		{
 			"White backgound",
-			"Background color represents message thread",
+			"Background color represents message thread", // todo: dark mode
 			"Background color represents message log source",
 		};
 		readonly string[] coloringPalettes = new[] 
@@ -164,7 +198,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly IGlobalSettingsAccessor settingsAccessor;
 		readonly LogViewer.IViewFonts viewFonts;
 		readonly LogViewer.IPresenter sampleLogViewerPresenter;
-		readonly IAdjustingColorsGenerator colorTable;
+		readonly TemporaryColorTheme temporaryColorTheme;
 		readonly IModelThreads sampleThreads;
 		LogViewer.DummyModel dummyModel;
 		readonly DateTime sampleMessagesBaseTime;

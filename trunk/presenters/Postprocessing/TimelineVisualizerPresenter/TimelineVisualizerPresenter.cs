@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			Persistence.IStorageManager storageManager,
 			IPresentersFacade presentersFacade,
 			IUserNamesProvider userNamesProvider,
-			IChangeNotification parentChangeNotification
+			IChangeNotification parentChangeNotification,
+			IColorTheme theme
 		)
 		{
 			this.model = model;
@@ -33,6 +34,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			this.presentersFacade = presentersFacade;
 			this.bookmarks = bookmarks;
 			this.userNamesProvider = userNamesProvider;
+			this.theme = theme;
 			this.unfinishedActivities.IsFolded = true;
 
 			var getAvailableTags = Selectors.Create(() => model.Activities, activities => ImmutableHashSet.CreateRange(activities.SelectMany(a => a.Tags)));
@@ -109,6 +111,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 
 		void IViewModel.OnWindowShown()
 		{
@@ -196,7 +200,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 							a.Type == ActivityType.Procedure ? ActivityDrawType.Procedure :
 							a.Type == ActivityType.IncomingNetworking || a.Type == ActivityType.OutgoingNetworking ? ActivityDrawType.Networking :
 							ActivityDrawType.Unknown,
-						Color = !a.BeginOwner.LogSource.IsDisposed ? a.BeginOwner.LogSource.Color : new ModelColor?(),
+						Color = !a.BeginOwner.LogSource.IsDisposed ? theme.ThreadColors.GetByIndex(a.BeginOwner.LogSource.ColorIndex) : new ModelColor?(),
 						BeginTrigger = new TriggerData(a, a.BeginOwner, a.BeginTrigger),
 						EndTrigger = new TriggerData(a, a.EndOwner, a.EndTrigger),
 						MilestonesCount = a.Milestones.Count,
@@ -1494,6 +1498,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly Func<VisibileActivityInfo?> getSelectedActivity;
 		readonly Func<CurrentActivityDrawInfo> getCurrentActivityDrawInfo;
 		readonly Func<bool> isSelectedActivityPresentInStateInspector;
+		readonly IColorTheme theme;
 		DateTime origin;
 		TimeSpan availableRangeBegin, availableRangeEnd;
 		TimeSpan visibleRangeBegin, visibleRangeEnd;

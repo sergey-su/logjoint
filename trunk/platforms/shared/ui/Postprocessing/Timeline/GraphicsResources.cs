@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
+using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
@@ -10,14 +12,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		public readonly LJD.Font ActionCaptionFont, RulerMarkFont;
 		public readonly LJD.Image UserIcon, APIIcon, BookmarkIcon;
-		public readonly LJD.Brush SelectedLineBrush, RulerMarkBrush;
-		public readonly LJD.Pen RulerLinePen;
+		public LJD.Brush SelectedActivityBackgroundBrush => selectedActivityBackgroundBrush();
+		public readonly LJD.Brush RulerMarkBrush;
+		public LJD.Pen RulerLinePen => rulerLinePen();
 
-		public readonly LJD.Brush ProcedureBrush;
-		public readonly LJD.Brush LifetimeBrush;
-		public readonly LJD.Brush NetworkMessageBrush;
-		public readonly LJD.Brush UnknownActivityBrush;
-		public readonly LJD.Pen ActivitiesTopBoundPen, MilestonePen, ActivityBarBoundsPen, ActivitiesConnectorPen;
+		public LJD.Brush ProcedureBrush => procedureBrush ();
+		public LJD.Brush LifetimeBrush => lifetimeBrush ();
+		public LJD.Brush NetworkMessageBrush => networkMessageBrush ();
+		public LJD.Brush UnknownActivityBrush => unknownActivityBrush ();
+		public readonly LJD.Pen ActivitiesTopBoundPen, MilestonePen, ActivitiesConnectorPen;
+		public LJD.Pen ActivityBarBoundsPen => activityBarBoundsPen ();
 		public readonly LJD.Brush[] PhaseBrushes;
 
 		public readonly LJD.Pen UserEventPen;
@@ -39,14 +43,29 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public readonly LJD.Pen MeasurerTextBoxPen;
 		public readonly LJD.StringFormat MeasurerTextFormat;
 
-		public readonly LJD.Brush NavigationPanel_InvisibleBackground;
-		public readonly LJD.Brush NavigationPanel_VisibleBackground;
+		public LJD.Brush NavigationPanel_InvisibleBackground => navigationPanel_InvisibleBackground ();
+		public LJD.Brush NavigationPanel_VisibleBackground => navigationPanel_VisibleBackground ();
 		public readonly LJD.Brush SystemControlBrush;
 		public readonly LJD.Pen VisibleRangePen;
 
-		public readonly LJD.Pen FoldingSignPen;
+		public LJD.Pen FoldingSignPen => foldingSignPen();
 
-		public GraphicsResources(
+		private readonly Func<LJD.Brush> selectedActivityBackgroundBrush;
+		private readonly Func<LJD.Brush> procedureBrush;
+		private readonly Func<LJD.Brush> lifetimeBrush;
+		private readonly Func<LJD.Brush> networkMessageBrush;
+		private readonly Func<LJD.Brush> unknownActivityBrush;
+
+		private readonly Func<LJD.Pen> activityBarBoundsPen;
+
+		private readonly Func<LJD.Brush> navigationPanel_InvisibleBackground;
+		private readonly Func<LJD.Brush> navigationPanel_VisibleBackground;
+
+		private readonly Func<LJD.Pen> rulerLinePen;
+		private readonly Func<LJD.Pen> foldingSignPen;
+
+		public GraphicsResources (
+			IViewModel viewModel,
 			string fontName,
 			float activitesCaptionsFontSize,
 			float actionCaptionsFontSize,
@@ -56,12 +75,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			LJD.Image bookmarkIcon,
 			LJD.Image focusedMessageLineTop,
 			float pensScale,
-			LJD.Brush systemControlBrush,
-			float activityBarBoundsPenWidth
+			LJD.Brush systemControlBrush
 		)
 		{
+			bool isDark () => viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
 			ActivitesCaptionsFont = new LJD.Font(fontName, activitesCaptionsFontSize);
-			ActivitesCaptionsBrush = new LJD.Brush(Color.Black);
+			ActivitesCaptionsBrush = LJD.Brushes.Text;
 
 			ActionCaptionFont = new LJD.Font(fontName, actionCaptionsFontSize);
 			RulerMarkFont = new LJD.Font(fontName, rulerMarkFontSize);
@@ -70,18 +89,24 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			APIIcon = apiIcon;
 			BookmarkIcon = bookmarkIcon;
 
-			SelectedLineBrush = new LJD.Brush(Color.FromArgb(187, 196, 221));
-			RulerMarkBrush = new LJD.Brush(Color.Black);
-			RulerLinePen = new LJD.Pen(Color.LightGray, 1);
+			selectedActivityBackgroundBrush = Selectors.Create (isDark,
+				dark => new LJD.Brush (dark ? Color.FromArgb (40, 80, 120) : Color.FromArgb (187, 196, 221)));
 
-			ProcedureBrush = new LJD.Brush(Color.LightBlue);
-			LifetimeBrush = new LJD.Brush(Color.LightGreen);
-			NetworkMessageBrush = new LJD.Brush(Color.LightSalmon);
-			UnknownActivityBrush = new LJD.Brush(Color.LightGray);
+			RulerMarkBrush = LJD.Brushes.Text;
+			rulerLinePen = Selectors.Create(isDark, dark =>
+				new LJD.Pen(dark ? Color.DarkGray : Color.LightGray, 1));
+
+			Color adjust (Color cl, bool dark) =>
+				dark ? new ModelColor(cl.ToArgb()).MakeDarker (60).ToColor() : cl;
+			procedureBrush = Selectors.Create(isDark, dark => new LJD.Brush(adjust(Color.LightBlue, dark)));
+			lifetimeBrush = Selectors.Create (isDark, dark => new LJD.Brush(adjust(Color.LightGreen, dark)));
+			networkMessageBrush = Selectors.Create(isDark, dark => new LJD.Brush(adjust(Color.LightSalmon, dark)));
+			unknownActivityBrush = Selectors.Create (isDark, dark => new LJD.Brush(adjust(Color.LightGray, dark)));
 			ActivitiesTopBoundPen = new LJD.Pen(Color.Gray, 1);
 
 			MilestonePen = new LJD.Pen(Color.FromArgb(180, Color.SteelBlue), pensScale * 3f);
-			ActivityBarBoundsPen = new LJD.Pen(Color.Gray, activityBarBoundsPenWidth);
+			activityBarBoundsPen = Selectors.Create(isDark,
+				dark => new LJD.Pen(dark ? Color.White : Color.Gray, 1f));
 			ActivitiesConnectorPen = new LJD.Pen(Color.DarkGray, pensScale * 1f, new[] { 1f, 1f });
 
 			PhaseBrushes = new LJD.Brush[]
@@ -111,12 +136,15 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			MeasurerTextBoxPen = new LJD.Pen(Color.DarkGreen, 1f);
 			MeasurerTextFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Center);
 
-			NavigationPanel_InvisibleBackground = new LJD.Brush(Color.FromArgb(235, 235, 235));
-			NavigationPanel_VisibleBackground = new LJD.Brush(Color.White);
+			navigationPanel_InvisibleBackground = Selectors.Create(isDark,
+				dark => dark ? LJD.Brushes.TextBackground : new LJD.Brush(Color.FromArgb(235, 235, 235)));
+			navigationPanel_VisibleBackground = Selectors.Create (isDark, 
+				dark => new LJD.Brush(dark ? Color.FromArgb(60, 60, 60) : Color.White));
 			SystemControlBrush = systemControlBrush;
 			VisibleRangePen = new LJD.Pen(Color.Gray, 1f);
 
-			FoldingSignPen = LJD.Pens.Black;
+			foldingSignPen = Selectors.Create (isDark,
+				dark => dark? LJD.Pens.White : LJD.Pens.Black);
 		}
 	};
 }

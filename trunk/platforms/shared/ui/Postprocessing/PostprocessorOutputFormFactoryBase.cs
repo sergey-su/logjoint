@@ -96,7 +96,8 @@ namespace LogJoint.UI.Postprocessing
 				app.Model.Threads,
 				app.Presentation.Facade,
 				app.Presentation.ClipboardAccess,
-				app.Presentation.SourcesManager
+				app.Presentation.SourcesManager,
+				app.Presentation.Theme
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.StateInspector, stateInspectorForm, stateInspectorPresenter));
 		}
@@ -125,7 +126,8 @@ namespace LogJoint.UI.Postprocessing
 				app.Model.StorageManager,
 				app.Presentation.Facade,
 				app.Model.Postprocessing.ShortNames,
-				app.Model.ChangeNotification
+				app.Model.ChangeNotification,
+				app.Presentation.Theme
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Timeline, timelineForm, timelinePresenter));
 		}

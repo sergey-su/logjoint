@@ -31,7 +31,9 @@ namespace LogJoint.UI.Presenters.MainForm
 			IAlertPopup alerts,
 			SharingDialog.IPresenter sharingDialogPresenter,
 			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter,
-			IShutdown shutdown
+			IShutdown shutdown,
+			IColorTheme theme,
+			IChangeNotification changeNotification
 		)
 		{
 			this.tracer = new LJTraceSource("UI", "ui.main");
@@ -53,6 +55,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.issueReportDialogPresenter = issueReportDialogPresenter;
 			this.shutdown = shutdown;
 			this.statusRepors = statusReportFactory;
+			this.theme = theme;
+			this.changeNotification = changeNotification;
 
 			view.SetPresenter(this);
 
@@ -67,7 +71,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			viewerPresenter.FocusedMessageBookmarkChanged += delegate(object sender, EventArgs args)
 			{
 				if (searchResultPresenter != null)
-					searchResultPresenter.MasterFocusedMessage = viewerPresenter.GetFocusedMessageBookmark();
+					searchResultPresenter.MasterFocusedMessage = viewerPresenter.FocusedMessageBookmark;
 			};
 			if (messagePropertiesDialogPresenter != null)
 			{
@@ -162,7 +166,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IPresenter.ExecuteThreadPropertiesDialog(IThread thread)
 		{
-			view.ExecuteThreadPropertiesDialog(thread, presentersFacade);
+			view.ExecuteThreadPropertiesDialog(thread, presentersFacade, theme);
 		}
 
 		void IPresenter.ActivateTab(string tabId)
@@ -181,6 +185,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.AddTab(tabId, caption, uiControl, tag);
 			return tabId;
 		}
+
+		IChangeNotification IViewEvents.ChangeNotification => changeNotification;
 
 		async void IViewEvents.OnClosing()
 		{
@@ -419,6 +425,8 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IShutdown shutdown;
 		readonly StatusReports.IPresenter statusRepors;
 		readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;
+		readonly IColorTheme theme;
+		readonly IChangeNotification changeNotification;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalyzing;

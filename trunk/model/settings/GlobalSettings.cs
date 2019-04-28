@@ -187,10 +187,12 @@ namespace LogJoint.Settings
 
 				multithreadedParsingDisabled = root.SafeIntValue(multithreadedParsingDisabledAttrName, DefaultSettingsAccessor.DefaultMultithreadedParsingDisabled ? 1 : 0) != 0;
 
-				appearance.FontSize = (Appearance.LogFontSize)root.SafeIntValue(fontSizeAttrName, (int)Appearance.Default.FontSize);
-				appearance.FontFamily = root.AttributeValue(fontNameAttrName, Appearance.Default.FontFamily);
-				appearance.Coloring = (Appearance.ColoringMode)root.SafeIntValue(coloringAttrName, (int)Appearance.Default.Coloring);
-				appearance.ColoringBrightness = (PaletteBrightness)root.SafeIntValue(coloringPaletteAttrName, (int)Appearance.Default.ColoringBrightness);
+				appearance = new Appearance(
+					fontSize: (Appearance.LogFontSize)root.SafeIntValue(fontSizeAttrName, (int)Appearance.Default.FontSize),
+					fontFamily: root.AttributeValue(fontNameAttrName, Appearance.Default.FontFamily),
+					coloring: (Appearance.ColoringMode)root.SafeIntValue(coloringAttrName, (int)Appearance.Default.Coloring),
+					coloringBrightness: (PaletteBrightness)root.SafeIntValue(coloringPaletteAttrName, (int)Appearance.Default.ColoringBrightness)
+				);
 				Validate(ref appearance);
 
 				userDataStorageSizes.StoreSizeLimit = root.SafeIntValue(userDataStoreSizeLimitAttrName, StorageSizes.Default.StoreSizeLimit);

@@ -44,7 +44,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void MakeFirstLineFullyVisible();
 
 		IMessage FocusedMessage { get; }
-		IBookmark GetFocusedMessageBookmark();
+		IBookmark FocusedMessageBookmark { get; }
 		Task<Dictionary<IMessagesSource, long>> GetCurrentPositions(CancellationToken cancellation);
 		IBookmark SlaveModeFocusedMessage { get; set; }
 		Task SelectSlaveModeFocusedMessage();
@@ -133,13 +133,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public string TextLineValue;
 		public bool IsBookmarked;
 		public SeverityIcon Severity;
-		public ModelColor? BackgroundColor;
+		public ModelColor? ContextColor;
 		public (int, int)? SelectedBackground;
 		public int? CursorCharIndex;
 		public bool HasMessageSeparator;
-		public IEnumerable<(int, int, FilterAction)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
-		public IEnumerable<(int, int, FilterAction)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
-		public IEnumerable<(int, int, FilterAction)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, ModelColor)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, ModelColor)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, ModelColor)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
 
 		internal IMessage Message;
 		internal int TextLineIndex;
@@ -159,7 +159,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var unchanged =
 				vl1.IsBookmarked == vl2.IsBookmarked
 			 && vl1.SelectedBackground == vl2.SelectedBackground
-			 && vl1.BackgroundColor == vl2.BackgroundColor
+			 && vl1.ContextColor == vl2.ContextColor
 			 && vl1.CursorCharIndex == vl2.CursorCharIndex
 			 && vl1.TextLineValue == vl2.TextLineValue
 			 && vl1.Time == vl2.Time;
@@ -256,6 +256,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		LJTraceSource Trace { get; }
 		double? VerticalScrollerPosition { get; }
 		string EmptyViewMessage { get; }
+		ColorThemeMode ColorTheme { get; }
 	};
 
 	public class MenuData
@@ -341,7 +342,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IPresenterFactory
 	{
-		IPresenter Create(IModel model, IView view, bool createIsolatedPresenter);
+		IPresenter Create(IModel model, IView view, bool createIsolatedPresenter, IColorTheme theme = null);
 		IModel CreateLoadedMessagesModel();
 		ISearchResultModel CreateSearchResultsModel();
 	};

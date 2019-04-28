@@ -10,7 +10,9 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			IFiltersList hlFilters,
 			IView view,
 			LogViewer.IPresenter viewerPresenter,
-			IPresentersFacade navHandler)
+			IPresentersFacade navHandler,
+			IColorTheme theme
+		)
 		{
 			this.hlFilters = hlFilters;
 			this.bookmarks = bookmarks;
@@ -38,11 +40,11 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
 
 					ThreadLinkValue = message != null ? message.Thread.DisplayName : noSelection,
-					ThreadLinkBkColor = message?.Thread?.ThreadColor,
+					ThreadLinkBkColor = theme.ThreadColors.GetByIndex(message?.Thread?.ThreadColorIndex),
 					ThreadLinkEnabled = message != null && navHandler?.CanShowThreads == true,
 
 					SourceLinkValue = ls != null ? ls.DisplayName : noSelection,
-					SourceLinkBkColor = ls?.Color,
+					SourceLinkBkColor = theme.ThreadColors.GetByIndex(ls?.ColorIndex),
 					SourceLinkEnabled = ls != null && navHandler != null,
 
 					BookmarkedStatusText = bookmarkedStatus ?? "N/A",

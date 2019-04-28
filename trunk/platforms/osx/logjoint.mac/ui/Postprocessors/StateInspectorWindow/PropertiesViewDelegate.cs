@@ -9,12 +9,11 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	{
 		public StateInspectorWindowController owner;
 		public NSTableView table;
-		nint selectedRow = -1;
 
 		public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 		{
 			var data = owner.PropsDataSource.data [(int)row];
-			var paintInfo = owner.EventsHandler.OnPropertyCellPaint ((int)row);
+			var paintInfo = owner.ViewModel.OnPropertyCellPaint ((int)row);
 
 			if (tableColumn == owner.PropKeyColumn) {
 				var viewId = "name";
@@ -37,7 +36,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 						};
 					view.StringValue = data.Value.ToString();
 					view.LinkClicked = (s, e) => 
-						owner.EventsHandler.OnPropertyCellClicked((int)row);
+						owner.ViewModel.OnPropertyCellClicked((int)row);
 					return view;
 				} else {
 					var viewId = "val";
@@ -65,20 +64,9 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			return ret;
 		}
 
-		void InvalidateValueCell (nint row)
+		public override NSTableRowView CoreGetRowView (NSTableView tableView, nint row)
 		{
-			if (row >= 0 && row < table.RowCount) {
-				var v = table.GetView (1, row, false);
-				if (v != null)
-					v.NeedsDisplay = true;
-			}
-		}
-
-		public override void SelectionDidChange (NSNotification notification)
-		{
-			InvalidateValueCell (table.SelectedRow);
-			InvalidateValueCell (selectedRow);
-			selectedRow = table.SelectedRow;
+			return new NSCustomTableRowView { InvalidateSubviewsOnSelectionChange = true };
 		}
 	};
 }

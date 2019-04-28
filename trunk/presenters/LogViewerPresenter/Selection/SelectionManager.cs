@@ -19,6 +19,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly IChangeNotification changeNotification;
+		readonly IColorTheme theme;
 		readonly CancellationTokenSource disposed = new CancellationTokenSource();
 		readonly Task cursorThread;
 		readonly Func<int?> cursorViewLine;
@@ -38,7 +39,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IScreenBufferFactory screenBufferFactory,
 			IBookmarksFactory bookmarksFactory,
 			IChangeNotification changeNotification,
-			IWordSelection wordSelection
+			IWordSelection wordSelection,
+			IColorTheme theme
 		)
 		{
 			this.view = view;
@@ -50,6 +52,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.bookmarksFactory = bookmarksFactory;
 			this.changeNotification = changeNotification;
 			this.wordSelection = wordSelection;
+			this.theme = theme;
 
 			this.selection = Selectors.Create(
 				() => setSelection,
@@ -79,7 +82,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void IDisposable.Dispose()
 		{
 			disposed.Cancel();
-			cursorThread.Wait();
 		}
 
 		public event EventHandler SelectionChanged;
@@ -175,20 +177,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IBookmark ISelectionManager.GetFocusedMessageBookmark()
+		IBookmark ISelectionManager.FocusedMessageBookmark
 		{
-			if (focusedMessageBookmark == null)
+			get
 			{
-				if (selection() != null)
+				if (focusedMessageBookmark == null)
 				{
-					var f = selection().First;
-					focusedMessageBookmark = bookmarksFactory.CreateBookmark(
-						f.Message,
-						presentationProperties.GetDisplayTextLinesMapper(f.Message)(f.TextLineIndex),
-						useRawText: presentationProperties.RawMessageViewMode);
+					if (selection() != null)
+					{
+						var f = selection().First;
+						focusedMessageBookmark = bookmarksFactory.CreateBookmark(
+							f.Message,
+							presentationProperties.GetDisplayTextLinesMapper(f.Message)(f.TextLineIndex),
+							useRawText: presentationProperties.RawMessageViewMode);
+					}
 				}
+				return focusedMessageBookmark;
 			}
-			return focusedMessageBookmark;
 		}
 
 		bool ISelectionManager.CursorState => cursorState && view.HasInputFocus;
@@ -374,7 +379,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		async Task<List<SelectedTextLine>> GetSelectedTextLines(bool includeTime)
 		{
 			var ret = new List<SelectedTextLine>();
-			var normSelection = selection().Normalize();
+			var normSelection = selection()?.Normalize();
 			if (normSelection?.IsEmpty != false)
 				return ret;
 			var showMilliseconds = presentationProperties.ShowMilliseconds;
@@ -432,9 +437,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var cl = "white";
 			if (ls != null)
 			if (presentationProperties.Coloring == ColoringMode.Threads)
-				cl = msg.Thread.ThreadColor.ToHtmlColor();
+				cl = theme.ThreadColors.GetByIndex(msg.Thread.ThreadColorIndex).ToHtmlColor();
 			else if (presentationProperties.Coloring == ColoringMode.Sources)
-				cl = ls.Color.ToHtmlColor();
+				cl = theme.ThreadColors.GetByIndex(ls.ColorIndex).ToHtmlColor();
 			return cl;
 		}
 

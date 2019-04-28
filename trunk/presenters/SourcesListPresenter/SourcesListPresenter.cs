@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IFileDialogs fileDialogs,
 			IClipboardAccess clipboard,
 			IShellOpen shellOpen,
-			SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter
+			SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter,
+			IColorTheme theme
 		)
 		{
 			this.logSources = logSources;
@@ -34,6 +35,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.clipboard = clipboard;
 			this.shellOpen = shellOpen;
 			this.saveJointLogInteractionPresenter = saveJointLogInteractionPresenter;
+			this.theme = theme;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -359,7 +361,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				itemData.Checked = s.Visible;
 				itemData.Description = GetLogSourceDescription (s, stats);
 				itemData.IsFailed = stats.Error != null;
-				itemData.ItemColor = stats.Error != null ? failedSourceColor : s.Color;
+				itemData.ItemColor = stats.Error != null ? failedSourceColor : theme.ThreadColors.GetByIndex(s.ColorIndex);
 				yield return itemData;
 			}
 			sourcesDataCache.Cleanup();
@@ -537,6 +539,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
 		readonly SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter;
+		readonly IColorTheme theme;
 
 		readonly CacheDictionary<ILogSource, LogSourceItemData> sourcesDataCache = 
 			new CacheDictionary<ILogSource, LogSourceItemData>();

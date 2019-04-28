@@ -101,7 +101,7 @@ describe('MeetingV2', () => {
 			};
 		}
 
-		void VerifyRanges(IEnumerable<(int, int, FilterAction)> actual, params (int, int, FilterAction)[] expected)
+		void VerifyRanges(IEnumerable<(int, int, ModelColor)> actual, params (int, int, ModelColor)[] expected)
 		{
 			CollectionAssert.AreEqual(expected.OrderBy(x => x), actual.OrderBy(x => x));
 		}

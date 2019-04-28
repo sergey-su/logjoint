@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 		readonly IView dialog;
 		readonly Help.IPresenter help;
 		readonly IAlertPopup alerts;
-		static HTMLColorsGenerator colors = new HTMLColorsGenerator();
+		static IColorTable colors = new HTMLColorsTable();
 		const int sampleLogTextLength = 1024 * 4;
 		bool updateSampleEditLock = false;
 		bool headerReMode;
@@ -297,20 +297,20 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 
 		private void FillCapturesListBox(Match m, Regex re)
 		{
-			colors.Reset();
+			int colorIdx = 0;
 			for (int i = 1; i < m.Groups.Count; ++i)
 			{
 				dialog.AddCapturesListBoxItem(new CapturesListBoxItem()
 				{
 					Text = re.GroupNameFromNumber(i),
-					Color = colors.GetNextColor(true, null).Color
+					Color = colors.Items.GetByIndex(colorIdx++)
 				});
 			}
 		}
 
 		private void ColorizeMatch(Match m)
 		{
-			colors.Reset();
+			int colorIdx = 0;
 			dialog.PatchLogSample(new TextPatch()
 			{
 				RangeBegin = m.Index,
@@ -320,7 +320,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 			for (int i = 1; i < m.Groups.Count; ++i)
 			{
 				Group g = m.Groups[i];
-				var cl = colors.GetNextColor(true, null).Color;
+				var cl = colors.Items.GetByIndex(colorIdx++);
 				dialog.PatchLogSample(new TextPatch()
 				{
 					RangeBegin = g.Index,

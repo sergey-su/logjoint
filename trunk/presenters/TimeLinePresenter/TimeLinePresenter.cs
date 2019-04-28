@@ -8,7 +8,7 @@ using System.Drawing;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		#region Data
 
@@ -21,6 +21,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;
+		readonly IColorTheme theme;
 		readonly LazyUpdateFlag gapsUpdateFlag = new LazyUpdateFlag();
 		readonly LazyUpdateFlag viewUpdateFlag = new LazyUpdateFlag();
 
@@ -49,7 +50,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			LogViewer.IPresenter viewerPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			ITabUsageTracker tabUsageTracker,
-			IHeartBeatTimer heartbeat)
+			IHeartBeatTimer heartbeat,
+			IColorTheme theme
+		)
 		{
 			this.sourcesManager = sourcesManager;
 			this.preprocMgr = preprocMgr;
@@ -60,6 +63,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			this.statusReportFactory = statusReportFactory;
 			this.tabUsageTracker = tabUsageTracker;
 			this.heartbeat = heartbeat;
+			this.theme = theme;
 
 			viewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -120,7 +124,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			};
 
 
-			view.SetEventsHandler(this);
+			view.SetViewModel(this);
 			UpdateView();
 		}
 
@@ -161,12 +165,14 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		#region View events
 
-		void IViewEvents.OnBeginTimeRangeDrag()
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
+
+		void IViewModel.OnBeginTimeRangeDrag()
 		{
 			heartbeat.Suspend();
 		}
 
-		void IViewEvents.OnEndTimeRangeDrag(DateTime? date, bool isFromTopDragArea)
+		void IViewModel.OnEndTimeRangeDrag(DateTime? date, bool isFromTopDragArea)
 		{
 			heartbeat.Resume();
 			if (date.HasValue)
@@ -183,7 +189,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void IViewEvents.OnLeftMouseDown(int x, int y)
+		void IViewModel.OnLeftMouseDown(int x, int y)
 		{
 			if (range.IsEmpty)
 				return;
@@ -237,7 +243,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			return false;
 		}
 
-		DraggingHandlingResult IViewEvents.OnDragging(ViewArea area, int y)
+		DraggingHandlingResult IViewModel.OnDragging(ViewArea area, int y)
 		{
 			var m = GetPresentationData();
 
@@ -254,13 +260,13 @@ namespace LogJoint.UI.Presenters.Timeline
 			};
 		}
 
-		void IViewEvents.OnMouseLeave()
+		void IViewModel.OnMouseLeave()
 		{
 			RelaseStatusReport();
 			ReleaseHotTrack();
 		}
 
-		CursorShape IViewEvents.OnMouseMove(int x, int y)
+		CursorShape IViewModel.OnMouseMove(int x, int y)
 		{
 			CursorShape cursor;
 			var area = view.HitTest(x, y).Area;
@@ -299,7 +305,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			return cursor;
 		}
 
-		void IViewEvents.OnMouseDblClick(int x, int y)
+		void IViewModel.OnMouseDblClick(int x, int y)
 		{
 			var area = view.HitTest(x, y).Area;
 			if (area == ViewArea.TopDrag)
@@ -322,7 +328,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void IViewEvents.OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed)
+		void IViewModel.OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed)
 		{
 			if (range.IsEmpty)
 				return;
@@ -340,14 +346,14 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void IViewEvents.OnMagnify(int x, int y, double magnification)
+		void IViewModel.OnMagnify(int x, int y, double magnification)
 		{
 			if (range.IsEmpty)
 				return;
 			ZoomRangeInternal(GetDateFromYCoord(GetPresentationData(), y), 1d + magnification);
 		}
 
-		ContextMenuInfo IViewEvents.OnContextMenu(int x, int y)
+		ContextMenuInfo IViewModel.OnContextMenu(int x, int y)
 		{
 			if (range.IsEmpty)
 			{
@@ -396,12 +402,12 @@ namespace LogJoint.UI.Presenters.Timeline
 			return ret;
 		}
 
-		void IViewEvents.OnContextMenuClosed()
+		void IViewModel.OnContextMenuClosed()
 		{
 			SetHotTrackRange(new HotTrackRange());
 		}
 
-		string IViewEvents.OnTooltip(int x, int y)
+		string IViewModel.OnTooltip(int x, int y)
 		{
 			HotTrackRange range = FindHotTrackRange(GetPresentationData(), x, y);
 			if (range.Source == null)
@@ -409,17 +415,17 @@ namespace LogJoint.UI.Presenters.Timeline
 			return range.ToString();
 		}
 
-		void IViewEvents.OnResetTimeLineMenuItemClicked()
+		void IViewModel.OnResetTimeLineMenuItemClicked()
 		{
 			DoSetRangeAnimated(GetPresentationData(), availableRange);
 		}
 
-		void IViewEvents.OnZoomToMenuItemClicked(object menuItemTag)
+		void IViewModel.OnZoomToMenuItemClicked(object menuItemTag)
 		{
 			DoSetRangeAnimated(GetPresentationData(), (DateRange)menuItemTag);
 		}
 
-		DrawInfo IViewEvents.OnDraw()
+		DrawInfo IViewModel.OnDraw()
 		{
 			var m = GetPresentationData();
 
@@ -450,12 +456,12 @@ namespace LogJoint.UI.Presenters.Timeline
 			return ret;
 		}
 
-		DragAreaDrawInfo IViewEvents.OnDrawDragArea(DateTime dt)
+		DragAreaDrawInfo IViewModel.OnDrawDragArea(DateTime dt)
 		{
 			return DrawDragArea(FindRulerIntervals(GetPresentationData()), dt);
 		}
 
-		void IViewEvents.OnTimelineClientSizeChanged()
+		void IViewModel.OnTimelineClientSizeChanged()
 		{
 			gapsUpdateFlag.Invalidate();
 		}
@@ -795,7 +801,7 @@ namespace LogJoint.UI.Presenters.Timeline
 					}
 					else
 					{
-						// toutch the container to keep it's state in the cache
+						// touch the container to keep it's state in the cache
 						containers.Get(containerGroup.Key, cnt => new ContainerDataSource(cnt));
 						pd.Sources.AddRange(visibleGroupSources);
 					}
@@ -813,7 +819,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			sourcesCache1.MarkAllInvalid();
 			sourcesCache2.MarkAllInvalid();
 			foreach (ILogSource s in sourcesManager.Items)
-				yield return sourcesCache1.Get(s, ls => new LogTimelineDataSource(ls, preprocMgr));
+				yield return sourcesCache1.Get(s, ls => new LogTimelineDataSource(ls, preprocMgr, theme));
 			foreach (ISearchResult sr in searchManager.Results)
 				yield return sourcesCache2.Get(sr, arg => new SearchResultDataSource(arg));
 			sourcesCache1.Cleanup();
@@ -1208,10 +1214,11 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				this.X = m.SourcesArea.X + m.Metrics.SourcesHorizontalPadding;
 				this.DistanceBetweenSources = m.Metrics.DistanceBetweenSources;
-				this.Width = m.SourcesArea.Width + 2*m.Metrics.SourcesHorizontalPadding;
+				this.Width = m.SourcesArea.Width - 2*m.Metrics.SourcesHorizontalPadding;
 				this.sourcesCount = m.Sources.Count;
 				int minSourceWidth = 7;
-				this.sourceWidth = sourcesCount != 0 ? Math.Max(Width / sourcesCount, minSourceWidth) : 1;
+				this.sourceWidth = sourcesCount == 0 ? 1 :
+					Math.Max((Width - (sourcesCount - 1) * DistanceBetweenSources) / sourcesCount, minSourceWidth);
 			}
 
 			public bool NeedsDrawing
@@ -1232,27 +1239,19 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			public int GetSourceLeft(int sourceIdx)
 			{
-				return X + sourceIdx * sourceWidth;
+				return X + sourceIdx * (sourceWidth + DistanceBetweenSources);
 			}
 
 			public int GetSourceRight(int sourceIdx)
 			{
-				// Left-coord of the next source (sourceIdx + 1)
-				int nextSrcLeft = GetSourceLeft(sourceIdx + 1);
-
-				// Right coord of the source
-				int srcRight = nextSrcLeft - 1;
-				if (sourceIdx != sourcesCount - 1)
-					srcRight -= DistanceBetweenSources;
-
-				return srcRight;
+				return GetSourceLeft(sourceIdx) + sourceWidth;
 			}
 
 			public int? XCoordToSourceIndex(int x)
 			{
 				if (x < X)
 					return null;
-				int tmp = (x - X) / sourceWidth;
+				int tmp = (x - X) / (sourceWidth + DistanceBetweenSources);
 				if (x >= GetSourceRight(tmp))
 					return null;
 				if (tmp >= sourcesCount)
@@ -1300,11 +1299,13 @@ namespace LogJoint.UI.Presenters.Timeline
 	class LogTimelineDataSource : ITimeLineDataSource
 	{
 		readonly ILogSource logSource;
+		readonly IColorTheme theme;
 		readonly string containerName;
 
-		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc)
+		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc, IColorTheme theme)
 		{
 			this.logSource = logSource;
+			this.theme = theme;
 			this.containerName = preproc.ExtractContentsContainerNameFromConnectionParams(
 				logSource.Provider.ConnectionParams);
 		}
@@ -1321,7 +1322,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		ModelColor ITimeLineDataSource.Color
 		{
-			get { return logSource.Color; }
+			get { return theme.ThreadColors.GetByIndex(logSource.ColorIndex); }
 		}
 
 		string ITimeLineDataSource.DisplayName

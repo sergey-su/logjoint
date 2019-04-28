@@ -196,9 +196,6 @@
     <Compile Include="..\..\..\model\generic\Color.cs">
       <Link>generic\Color.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\ColorsGenerator.cs">
-      <Link>generic\ColorsGenerator.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\DateParsing.cs">
       <Link>generic\DateParsing.cs</Link>
     </Compile>
@@ -1021,6 +1018,9 @@
     </Compile>
     <Compile Include="..\..\..\model\tracing\ProfilingCounters.cs">
       <Link>tracing\ProfilingCounters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\ColorLease.cs">
+      <Link>generic\ColorLease.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

@@ -28,7 +28,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		public override void SelectionDidChange (NSNotification notification)
 		{
-			owner.EventsHandler.OnSelectedNodesChanged ();
+			owner.ViewModel.OnSelectedNodesChanged ();
 		}
 
 		[Export("outlineView:rowViewForItem:")]

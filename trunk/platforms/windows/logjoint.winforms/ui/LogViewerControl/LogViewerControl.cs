@@ -9,6 +9,7 @@ using LogJoint.UI.Presenters.LogViewer;
 using System.Linq;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using LJD = LogJoint.Drawing;
+using LogJoint.UI.LogViewer;
 
 namespace LogJoint.UI
 {
@@ -26,61 +27,8 @@ namespace LogJoint.UI
 
 			bufferedGraphicsContext = new BufferedGraphicsContext() { MaximumBuffer = new Size(5000, 4000) };
 
-			drawContext = new DrawContext(fontData =>
-			{
-				var font = new LJD.Font(GetFontFamily(fontData.Name).Name, ToFontEmSize(fontData.Size));
-				using (var nativeGraphics = CreateGraphics())
-				using (var tmp = new LJD.Graphics(nativeGraphics))
-				{
-					int count = 8 * 1024;
-					var charSize = tmp.MeasureString(new string('0', count), font);
-					var charWidth = (double)charSize.Width / (double)count;
-					charSize.Width /= (float)count;
-					return (font, charSize, charWidth);
-				}
-			});
-
-			drawContext.CollapseBoxesAreaSize = UIUtils.Dpi.Scale(drawContext.CollapseBoxesAreaSize);
-			drawContext.DpiScale = UIUtils.Dpi.Scale(1f);
-
-			var prototypeStringFormat = (StringFormat)StringFormat.GenericDefault.Clone();
-			prototypeStringFormat.SetTabStops(0, new float[] { 20 });
-			prototypeStringFormat.FormatFlags |= 
-				StringFormatFlags.MeasureTrailingSpaces | 
-				StringFormatFlags.NoFontFallback; // this is to treat \0002 and \0003 as regular characters
-			drawContext.TextFormat = new LJD.StringFormat(prototypeStringFormat);
-
-			drawContext.InfoMessagesBrush = new LJD.Brush(SystemColors.ControlText);
-			drawContext.SelectedTextBrush = new LJD.Brush(SystemColors.HighlightText);
-			drawContext.SelectedFocuslessTextBrush = new LJD.Brush(SystemColors.ControlText);
-			drawContext.CommentsBrush = new LJD.Brush(SystemColors.GrayText);
-
-			drawContext.DefaultBackgroundBrush = new LJD.Brush(SystemColors.Window);
-			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
-			drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
-
-			drawContext.FocusedMessageBkBrush = new LJD.Brush(Color.FromArgb(167 + 30, 176 + 30, 201 + 30));
-
-			drawContext.ErrorIcon = new LJD.Image(Properties.Resources.ErrorLogSeverity);
-			drawContext.WarnIcon = new LJD.Image(Properties.Resources.WarnLogSeverity);
-			drawContext.BookmarkIcon = new LJD.Image(Properties.Resources.Bookmark);
-			drawContext.FocusedMessageIcon = new LJD.Image(Properties.Resources.FocusedMsg);
-			drawContext.FocusedMessageSlaveIcon = new LJD.Image(Properties.Resources.FocusedMsgSlave);
-
-			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
-
-			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
-
-			int hightlightingAlpha = 170;
-			drawContext.SearchResultHighlightingBackground =
-				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
-			drawContext.SelectionHighlightingBackground =
-				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
-
-			rightCursor = new System.Windows.Forms.Cursor(
-				System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("LogJoint.ui.LogViewerControl.cursor_r.cur"));
-
-			drawContext.ViewWidth = this.ClientRectangle.Width;
+			rightCursor = new Cursor(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(
+				"LogJoint.ui.LogViewerControl.cursor_r.cur"));
 
 			scrollBarsInfo.scrollBarsSize = new Size(SystemInformation.VerticalScrollBarWidth, SystemInformation.HorizontalScrollBarHeight);
 
@@ -88,8 +36,6 @@ namespace LogJoint.UI
 			
 			menuItemsMap = MakeMenuItemsMap();
 		}
-
-		#region IView members
 
 		private static int ToFontEmSize(LogFontSize fontSize)
 		{
@@ -110,7 +56,32 @@ namespace LogJoint.UI
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
-			this.drawContext.ViewModel = viewModel;
+
+			var prototypeStringFormat = (StringFormat)StringFormat.GenericDefault.Clone();
+			prototypeStringFormat.SetTabStops(0, new float[] { 20 });
+			prototypeStringFormat.FormatFlags |=
+				StringFormatFlags.MeasureTrailingSpaces |
+				StringFormatFlags.NoFontFallback; // this is to treat \0002 and \0003 as regular characters
+
+			graphicsResources = new GraphicsResources(viewModel,
+				fontData => new LJD.Font(GetFontFamily(fontData.Name).Name, ToFontEmSize(fontData.Size)),
+				textFormat: new LJD.StringFormat(prototypeStringFormat),
+				(error: new LJD.Image(Properties.Resources.ErrorLogSeverity),
+				warn: new LJD.Image(Properties.Resources.WarnLogSeverity),
+				bookmark: new LJD.Image(Properties.Resources.Bookmark),
+				focusedMark: new LJD.Image(Properties.Resources.FocusedMsg)),
+				() => new LJD.Graphics(this.CreateGraphics(), ownsGraphics: true)
+			);
+
+			viewDrawing = new ViewDrawing(
+				viewModel,
+				graphicsResources,
+				dpiScale: UIUtils.Dpi.Scale(1f),
+				scrollPosXSelector: () => scrollPosXCache,
+				viewWidthSelector: () => viewWidthCache
+			);
+
+			viewWidthCache = this.ClientRectangle.Width;
 
 			var viewUpdater = Updaters.Create(
 				() => viewModel.ViewLines,
@@ -159,10 +130,10 @@ namespace LogJoint.UI
 
 		void IView.HScrollToSelectedText(int charIndex)
 		{
-			int pixelThatMustBeVisible = (int)(charIndex * drawContext.CharSize.Width) + drawContext.TimeAreaSize;
+			int pixelThatMustBeVisible = (int)(charIndex * viewDrawing.CharSize.Width) + viewDrawing.TimeAreaSize;
 
 			int currentVisibleLeft = scrollBarsInfo.scrollPos.X;
-			int currentVisibleRight = scrollBarsInfo.scrollPos.X + drawContext.ViewWidth - scrollBarsInfo.scrollBarsSize.Width;
+			int currentVisibleRight = scrollBarsInfo.scrollPos.X + viewDrawing.ViewWidth - scrollBarsInfo.scrollBarsSize.Width;
 			int extraPixelsAroundSelection = 30;
 			if (pixelThatMustBeVisible < scrollBarsInfo.scrollPos.X)
 			{
@@ -184,16 +155,14 @@ namespace LogJoint.UI
 			DoContextMenu(pt.X, pt.Y);
 		}
 
-		float IView.DisplayLinesPerPage => Math.Max(0, (float)(ClientSize.Height) / (float)drawContext.LineHeight);
+		float IView.DisplayLinesPerPage => graphicsResources != null ? Math.Max(0, (float)(ClientSize.Height) / (float)viewDrawing.LineHeight) : 10;
 
 		object IView.GetContextMenuPopupData(int? viewLineIndex)
 		{
 			if (viewLineIndex.HasValue)
-				return new Point(0, DrawingUtils.GetMessageRect(viewModel.ViewLines[viewLineIndex.Value], drawContext).Bottom);
+				return new Point(0, viewDrawing.GetMessageRect(viewModel.ViewLines[viewLineIndex.Value]).Bottom);
 			return new Point();
 		}
-
-		#endregion
 
 		string[] IViewFonts.AvailablePreferredFamilies
 		{
@@ -215,8 +184,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		#region Overridden event handlers
-
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
 			if (viewModel == null)
@@ -228,7 +195,7 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				viewModel.OnIncrementalVScroll(-(float)e.Delta / (float)drawContext.LineHeight);
+				viewModel.OnIncrementalVScroll(-(float)e.Delta / (float)viewDrawing.LineHeight);
 				if (e is HandledMouseEventArgs)
 				{
 					((HandledMouseEventArgs)e).Handled = true;
@@ -252,6 +219,7 @@ namespace LogJoint.UI
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
 			this.Focus();
+
 			bool captureTheMouse = true;
 
 			MessageMouseEventFlag flags = MessageMouseEventFlag.None;
@@ -268,7 +236,7 @@ namespace LogJoint.UI
 			else
 				flags |= MessageMouseEventFlag.SingleClick;
 
-			DrawingUtils.MouseDownHelper(viewModel, drawContext, ClientRectangle, e.Location, flags, out captureTheMouse);
+			viewDrawing.HandleMouseDown(ClientRectangle, e.Location, flags, out captureTheMouse);
 
 			base.OnMouseDown(e);
 			
@@ -277,16 +245,17 @@ namespace LogJoint.UI
 
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
-			DrawingUtils.CursorType newCursor;
-			DrawingUtils.MouseMoveHelper(viewModel, drawContext, ClientRectangle, e.Location,
-				e.Button == MouseButtons.Left && this.Capture, out newCursor);
+			if (viewDrawing == null)
+				return;
+			viewDrawing.HandleMouseMove(ClientRectangle, e.Location,
+				e.Button == MouseButtons.Left && this.Capture, out var newCursor);
 
 			Cursor newNativeCursor = Cursors.Arrow;
-			if (newCursor == DrawingUtils.CursorType.Arrow)
+			if (newCursor == CursorType.Arrow)
 				newNativeCursor = Cursors.Arrow;
-			else if (newCursor == DrawingUtils.CursorType.IBeam)
+			else if (newCursor == CursorType.IBeam)
 				newNativeCursor = Cursors.IBeam;
-			else if (newCursor == DrawingUtils.CursorType.RightToLeftArrow)
+			else if (newCursor == CursorType.RightToLeftArrow)
 				newNativeCursor = rightCursor;
 			if (Cursor != newNativeCursor)
 				Cursor = newNativeCursor;
@@ -384,7 +353,7 @@ namespace LogJoint.UI
 
 		protected override void OnPaint(PaintEventArgs pe)
 		{
-			if (viewModel == null)
+			if (viewDrawing == null)
 			{
 				base.OnPaint(pe);
 				return;
@@ -392,19 +361,19 @@ namespace LogJoint.UI
 
 			try
 			{
-				DrawContext dc = drawContext;
+				using (var g = new LJD.Graphics(backBufferCanvas.Graphics, ownsGraphics: false))
+				{
+					g.FillRectangle(graphicsResources.DefaultBackgroundBrush, pe.ClipRectangle);
 
-				dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
+					UpdateDrawContextScrollPos();
 
-				UpdateDrawContextScrollPos();
+					int maxRight;
+					viewDrawing.PaintControl(g, pe.ClipRectangle, this.Focused, out maxRight);
 
-				int maxRight;
-				DrawingUtils.PaintControl(drawContext, viewModel, this.Focused, pe.ClipRectangle, out maxRight,
-					drawViewLinesAggregaredText: false);
+					backBufferCanvas.Render(pe.Graphics);
 
-				backBufferCanvas.Render(pe.Graphics);
-
-				UpdateScrollSize(dc, maxRight);
+					UpdateScrollSize(maxRight);
+				}
 			}
 			catch (Exception e)
 			{
@@ -418,7 +387,7 @@ namespace LogJoint.UI
 
 		protected override void OnResize(EventArgs e)
 		{
-			drawContext.ViewWidth = this.ClientRectangle.Width;
+			viewWidthCache = this.ClientRectangle.Width;
 			EnsureBackbufferIsUpToDate();
 			SetScrollPos();
 			Invalidate();
@@ -461,10 +430,6 @@ namespace LogJoint.UI
 				return createParams;
 			}
 		}
-
-		#endregion
-
-		#region Implementation
 
 		static List<string> CreateWindowsPreferredFontFamiliesList()
 		{
@@ -602,9 +567,9 @@ namespace LogJoint.UI
 			}
 		}
 
-		void UpdateScrollSize(DrawContext dc, int maxRight)
+		void UpdateScrollSize(int maxRight)
 		{
-			maxRight += dc.ScrollPos.X;
+			maxRight += viewDrawing.ScrollPosX;
 			if (maxRight > scrollBarsInfo.scrollSize.Width // if view grows
 			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && viewModel != null && viewModel.ViewLines.Length == 0) // or no lines are displayed
 			)
@@ -628,7 +593,6 @@ namespace LogJoint.UI
 				using (var tmp = this.CreateGraphics())
 					backBufferCanvas = bufferedGraphicsContext.Allocate(tmp, new Rectangle(0, 0, clientSize.Width, clientSize.Height));
 				backBufferCanvasSize = clientSize;
-				drawContext.Canvas = new LJD.Graphics(backBufferCanvas.Graphics);
 				backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 			}
 		}
@@ -675,10 +639,10 @@ namespace LogJoint.UI
 			else if (scrollDC)
 			{
 				Rectangle r = ClientRectangle;
-				if (xDelta != 0)
+				if (xDelta != 0 && viewDrawing != null)
 				{
-					r.X += drawContext.CollapseBoxesAreaSize;
-					r.Width -= drawContext.CollapseBoxesAreaSize;
+					r.X += viewDrawing.ServiceInformationAreaSize;
+					r.Width -= viewDrawing.ServiceInformationAreaSize;
 				}
 				Native.RECT scroll = new Native.RECT(r);
 				Native.RECT clip = scroll;
@@ -694,13 +658,7 @@ namespace LogJoint.UI
 
 		private void UpdateDrawContextScrollPos()
 		{
-			if (viewModel != null)
-			{
-				drawContext.ScrollPos = new Point(
-					GetScrollInfo(Native.SB.HORZ).nPos,
-					(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight)
-				);
-			}
+			scrollPosXCache = GetScrollInfo(Native.SB.HORZ).nPos;
 		}
 
 		void SetScrollSize(Size sz, bool vRedraw, bool hRedraw)
@@ -870,7 +828,7 @@ namespace LogJoint.UI
 			{
 				if (scrollRlst.delta != 0)
 				{
-					viewModel.OnIncrementalVScroll((float)scrollRlst.delta / (float)drawContext.LineHeight);
+					viewModel.OnIncrementalVScroll((float)scrollRlst.delta / (float)viewDrawing.LineHeight);
 				}
 				else if (scrollRlst.absoluteScrollPos >= 0)
 				{
@@ -883,11 +841,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		#endregion
-
-		#region Data members
-
-		IViewModel viewModel;
 
 		struct ScrollBarsInfo
 		{
@@ -901,20 +854,21 @@ namespace LogJoint.UI
 			public bool repaintPosted;
 			public bool userIsScrolling;
 		};
-		ScrollBarsInfo scrollBarsInfo;
 
-		DrawContext drawContext;
+		IViewModel viewModel;
+		GraphicsResources graphicsResources;
+		ViewDrawing viewDrawing;
 		BufferedGraphics backBufferCanvas;
 		Size backBufferCanvasSize;
 		Cursor rightCursor;
-
+		ScrollBarsInfo scrollBarsInfo;
 		BufferedGraphicsContext bufferedGraphicsContext;
 		EmptyMessagesCollectionMessage emptyMessagesCollectionMessage;
 		Tuple<ToolStripMenuItem, ContextMenuItem>[] menuItemsMap;
 		List<ToolStripItem> lastExtendedItems;
 		string[] availablePreferredFontFamilies;
 		KeyValuePair<LogFontSize, int>[] fontSizesMap;
-
-		#endregion
+		int scrollPosXCache;
+		int viewWidthCache;
 	}
 }

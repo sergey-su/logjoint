@@ -289,6 +289,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return MoveToPositionMultipleLogs(position, cancellation);
 		}
 
+		Task IScreenBuffer.Refresh(CancellationToken cancellation)
+		{
+			var currentTop = EnumScreenBufferLines().FirstOrDefault(); 			return PerformBuffersTransaction(
+				string.Format("Refresh()"),
+				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))), 				getPivotLine: MakePivotLineGetter(l => 				{ 					if (currentTop.IsEmpty) 						return 0; 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex) 						return -scrolledLines; 					return null; 				})
+			);
+		}
+
 		public override string ToString()
 		{
 			var ret = new StringBuilder();

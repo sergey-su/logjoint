@@ -12,7 +12,7 @@ using LogJoint.Analytics.StateInspector;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
-	public class StateInspectorPresenter: IPresenter, IViewEvents
+	public class StateInspectorPresenter: IPresenter, IViewModel
 	{
 		public StateInspectorPresenter(
 			IView view, 
@@ -24,7 +24,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			IModelThreads threads,
 			IPresentersFacade presentersFacade,
 			IClipboardAccess clipboardAccess,
-			SourcesManager.IPresenter sourcesManagerPresenter
+			SourcesManager.IPresenter sourcesManagerPresenter,
+			IColorTheme theme
 		)
 		{
 			this.view = view;
@@ -36,6 +37,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.clipboardAccess = clipboardAccess;
 			this.sourcesManagerPresenter = sourcesManagerPresenter;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
+			this.theme = theme;
 
 			view.SetEventsHandler(this);
 
@@ -124,7 +126,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			view.Show();
 		}
 
-		void IViewEvents.OnVisibleChanged()
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
+
+		void IViewModel.OnVisibleChanged()
 		{
 			if (view.Visible)
 			{
@@ -133,12 +137,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		void IViewEvents.OnSelectedNodesChanged()
+		void IViewModel.OnSelectedNodesChanged()
 		{
 			UpdateSelectedObjectPropertiesAndHistory();
 		}
 
-		void IViewEvents.OnPropertiesRowDoubleClicked()
+		void IViewModel.OnPropertiesRowDoubleClicked()
 		{
 			var selectedProp = GetSelectedProperty();
 			if (selectedProp == null)
@@ -149,7 +153,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			ShowPropertyChange(evt, false);
 		}
 
-		PropertyCellPaintInfo IViewEvents.OnPropertyCellPaint(int rowIndex)
+		PropertyCellPaintInfo IViewModel.OnPropertyCellPaint(int rowIndex)
 		{
 			var ret = new PropertyCellPaintInfo();
 			var p = currentProperties[rowIndex];
@@ -161,7 +165,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return ret;
 		}
 
-		void IViewEvents.OnPropertyCellClicked(int rowIndex)
+		void IViewModel.OnPropertyCellClicked(int rowIndex)
 		{
 			if (rowIndex >= 0 && rowIndex < currentProperties.Count)
 			{
@@ -203,7 +207,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		NodePaintInfo IViewEvents.OnPaintNode(NodeInfo node, bool getPrimaryPropValue)
+		NodePaintInfo IViewModel.OnPaintNode(NodeInfo node, bool getPrimaryPropValue)
 		{
 			var ret = new NodePaintInfo();
 			
@@ -242,19 +246,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return ret;
 		}
 
-		void IViewEvents.OnNodeExpanding(NodeInfo node)
+		void IViewModel.OnNodeExpanding(NodeInfo node)
 		{
 			if (!view.TreeSupportsLoadingOnExpansion)
 				return;
 			EnsureLazyLoadedChildrenCollectionAndEnum(node).FirstOrDefault();
 		}
 
-		Tuple<int, int> IViewEvents.OnDrawFocusedMessageMark()
+		Tuple<int, int> IViewModel.OnDrawFocusedMessageMark()
 		{
 			return stateHistoryFocusedMessage;
 		}
 
-		bool IViewEvents.OnGetHistoryItemBookmarked(StateHistoryItem item)
+		bool IViewModel.OnGetHistoryItemBookmarked(StateHistoryItem item)
 		{
 			var change = item.Data as StateInspectorEvent;
 			if (change == null || change.Output.LogSource.IsDisposed)
@@ -266,14 +270,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return pos.Item2 > pos.Item1;
 		}
 
-		void IViewEvents.OnChangeHistoryItemClicked(StateHistoryItem item)
+		void IViewModel.OnChangeHistoryItemClicked(StateHistoryItem item)
 		{
 			var change = item != null ? item.Data as StateInspectorEvent : null;
 			if (change != null)
 				ShowPropertyChange(change, retainFocus: false);
 		}
 
-		void IViewEvents.OnChangeHistoryItemKeyEvent(StateHistoryItem item, Key key)
+		void IViewModel.OnChangeHistoryItemKeyEvent(StateHistoryItem item, Key key)
 		{
 			var change = item != null ? item.Data as StateInspectorEvent : null;
 			if (change != null)
@@ -285,19 +289,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		void IViewEvents.OnChangeHistorySelectionChanged()
+		void IViewModel.OnChangeHistorySelectionChanged()
 		{
 			UpdateSelectedObjectHistory(GetSelectedInspectedObjects());
 		}
 
-		void IViewEvents.OnFindCurrentPositionInStateHistory()
+		void IViewModel.OnFindCurrentPositionInStateHistory()
 		{
 			if (stateHistoryFocusedMessage == null)
 				return;
 			view.ScrollStateHistoryItemIntoView(stateHistoryFocusedMessage.Item1);
 		}
 
-		MenuData IViewEvents.OnMenuOpening()
+		MenuData IViewModel.OnMenuOpening()
 		{
 			var menuData = new MenuData()
 			{
@@ -307,7 +311,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return menuData;
 		}
 
-		void IViewEvents.OnCopyShortcutPressed()
+		void IViewModel.OnCopyShortcutPressed()
 		{
 			var sel = view.SelectedPropertiesRow;
 			if (sel == null || sel.Value >= currentProperties.Count)
@@ -317,7 +321,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				clipboardAccess.SetClipboard(str);
 		}
 
-		void IViewEvents.OnDeleteKeyPressed()
+		void IViewModel.OnDeleteKeyPressed()
 		{
 			var objs = GetSelectedInspectedObjects();
 			if (objs.All(x => x.Parent == null))
@@ -991,6 +995,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly IClipboardAccess clipboardAccess;
 		readonly SourcesManager.IPresenter sourcesManagerPresenter;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
+		readonly IColorTheme theme;
 		readonly Dictionary<string, TreeViewPart> viewPartsCache = new Dictionary<string, TreeViewPart>();
 		readonly List<PropertyInfo> currentProperties = new List<PropertyInfo>();
 		readonly HashSet<IInspectedObject> currentObjects = new HashSet<IInspectedObject>();

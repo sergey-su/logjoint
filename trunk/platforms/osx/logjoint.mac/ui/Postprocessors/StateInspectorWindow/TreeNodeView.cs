@@ -32,16 +32,16 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			mainTextPara.TighteningFactorForTruncation = 0;
 			mainTextAttrs.Add (NSStringAttributeKey.ParagraphStyle, mainTextPara);
 			if (isSelected)
-				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.White);
+				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.SelectedText);
 			else
-				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.Black);
+				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.Text);
 
 			var mainTextSz = mainText.StringSize (mainTextAttrs).ToSizeF ();
 			float nodeTextAndPrimaryPropHorzSpacing = 8;
 			float spaceAvailableForDefaultPropValue =
 				bounds.Width - mainTextSz.Width - nodeTextAndPrimaryPropHorzSpacing;
 
-			var paintInfo = owner.EventsHandler.OnPaintNode(node.ToNodeInfo(), spaceAvailableForDefaultPropValue > 30);
+			var paintInfo = owner.ViewModel.OnPaintNode(node.ToNodeInfo(), spaceAvailableForDefaultPropValue > 30);
 			if (paintInfo.PrimaryPropValue != null)
 			{
 				var r = new RectangleF(

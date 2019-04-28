@@ -32,7 +32,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		[Export ("copy:")]
 		void OnCopy (NSObject theEvent)
 		{
-			owner.EventsHandler.OnCopyShortcutPressed ();
+			owner.ViewModel.OnCopyShortcutPressed ();
 		}
 
 		public override void MouseDown (NSEvent e)
@@ -40,7 +40,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			base.MouseDown (e);
 
 			if (e.ClickCount == 2)
-				owner.EventsHandler.OnPropertiesRowDoubleClicked ();
+				owner.ViewModel.OnPropertiesRowDoubleClicked ();
 		}
 	};
 }

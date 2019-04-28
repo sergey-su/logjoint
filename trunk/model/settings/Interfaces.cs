@@ -50,7 +50,7 @@ namespace LogJoint.Settings
 		static public readonly FileSizes Default = new FileSizes() { Threshold = 30, WindowSize = 4 };
 	};
 
-	public struct Appearance
+	public class Appearance
 	{
 		public enum LogFontSize
 		{
@@ -66,12 +66,12 @@ namespace LogJoint.Settings
 			Minimum = SuperSmall,
 			Maximum = Large5
 		};
-		public LogFontSize FontSize;
+		public LogFontSize FontSize { get; internal set; }
 
 		/// <summary>
 		/// Font family name or null if platform-default is to be used
 		/// </summary>
-		public string FontFamily;
+		public string FontFamily { get; internal set; }
 
 		public enum ColoringMode
 		{
@@ -81,16 +81,19 @@ namespace LogJoint.Settings
 			Minimum = None,
 			Maximum = Sources
 		};
-		public ColoringMode Coloring;
+		public ColoringMode Coloring { get; internal set; }
 
-		public PaletteBrightness ColoringBrightness;
+		public PaletteBrightness ColoringBrightness { get; internal set; }
 
-		static public readonly Appearance Default = new Appearance()
+		public Appearance(LogFontSize fontSize, string fontFamily, ColoringMode coloring, PaletteBrightness coloringBrightness)
 		{
-			FontSize = LogFontSize.Normal,
-			Coloring = ColoringMode.Threads,
-			ColoringBrightness = PaletteBrightness.Increased
-		};
+			this.FontSize = fontSize;
+			this.FontFamily = fontFamily;
+			this.Coloring = coloring;
+			this.ColoringBrightness = coloringBrightness;
+		}
+
+		static public readonly Appearance Default = new Appearance(LogFontSize.Normal, null, ColoringMode.Threads, PaletteBrightness.Normal);
 	};
 
 	public struct StorageSizes
@@ -107,5 +110,14 @@ namespace LogJoint.Settings
 			StoreSizeLimit = 300,
 			CleanupPeriod = 24 * 3
 		};
+	};
+
+	public enum PaletteBrightness
+	{
+		Decreased,
+		Normal,
+		Increased,
+		Minimum = Decreased,
+		Maximum = Increased
 	};
 }

@@ -273,6 +273,7 @@ namespace LogJoint
 				var f = factory.CreateFilter(elt);
 				f.SetOwner(this);
 				list.Add(f);
+				++listRevision;
 			}
 		}
 

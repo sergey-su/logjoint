@@ -13,7 +13,8 @@
 			UI.Presenters.IPromptDialog prompt,
 			UI.Presenters.MainForm.IPresenter mainFormPresenter,
 			UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessorsTabPage,
-			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorsFormFactory
+			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorsFormFactory,
+			UI.Presenters.IColorTheme theme
 		)
 		{
 			this.LoadedMessages = loadedMessagesPresenter;
@@ -27,6 +28,7 @@
 			this.MainFormPresenter = mainFormPresenter;
 			this.PostprocessorsTabPage = postprocessorsTabPage;
 			this.PostprocessorsFormFactory = postprocessorsFormFactory;
+			this.Theme = theme;
 		}
 
 
@@ -41,6 +43,7 @@
 		public UI.Presenters.MainForm.IPresenter MainFormPresenter { get; private set; }
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter PostprocessorsTabPage { get; private set; }
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; private set; }
+		public UI.Presenters.IColorTheme Theme { get; private set; }
 	};
 
 }

@@ -7,10 +7,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 	class CachingHighlightingHandler : IHighlightingHandler
 	{
 		readonly LRUCache<IMessage, RangeTree.IRangeTree<int, HighlightRange>> cache;
-		readonly Func<IMessage, IEnumerable<(int, int, FilterAction)>> getRangesForMessage;
+		readonly Func<IMessage, IEnumerable<(int, int, ModelColor)>> getRangesForMessage;
 
 		public CachingHighlightingHandler(
-			Func<IMessage, IEnumerable<(int, int, FilterAction)>> getRangesForMessage,
+			Func<IMessage, IEnumerable<(int, int, ModelColor)>> getRangesForMessage,
 			int cacheSize
 		)
 		{
@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.cache = new LRUCache<IMessage, RangeTree.IRangeTree<int, HighlightRange>>(cacheSize);
 		}
 
-		IEnumerable<(int, int, FilterAction)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
+		IEnumerable<(int, int, ModelColor)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
 		{
 			if (!cache.TryGetValue(vl.Message, out var item))
 			{
@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					r => new HighlightRange()
 					{
 						Range = new RangeTree.Range<int>(r.Item1, r.Item2),
-						Action = r.Item3
+						Color = r.Item3
 					}
 				), HighlightRange.Comparer.Instance));
 			}
@@ -36,7 +36,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return
 				item
 				.Query(new RangeTree.Range<int>(lineBegin, lineEnd))
-				.Select(i => (i.Range.From, i.Range.To, i.Action))
+				.Select(i => (i.Range.From, i.Range.To, i.Color))
 				.Select(hlRange =>
 				{
 					int? hlBegin = null;
@@ -45,19 +45,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 						hlBegin = hlRange.From;
 					if (hlRange.To >= lineBegin && hlRange.To <= lineEnd)
 						hlEnd = hlRange.To;
-					return (hlBegin, hlEnd, hlRange.Action);
+					return (hlBegin, hlEnd, hlRange.Color);
 				})
 				.Select(i => (
 					i.hlBegin.GetValueOrDefault(lineBegin) - lineBegin,
 					i.hlEnd.GetValueOrDefault(lineEnd) - lineBegin,
-					i.Action
+					i.Color
 				));
 		}
 
 		class HighlightRange : RangeTree.IRangeProvider<int>
 		{
 			public RangeTree.Range<int> Range { get; set; }
-			public FilterAction Action { get; set; }
+			public ModelColor Color { get; set; }
 
 			public class Comparer : IComparer<HighlightRange>
 			{

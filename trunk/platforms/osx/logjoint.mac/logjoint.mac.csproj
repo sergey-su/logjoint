@@ -144,6 +144,7 @@
     <Folder Include="ui\CommonControls\NSLabeledStepper\" />
     <Folder Include="help\" />
     <Folder Include="help\images\" />
+    <Folder Include="ui\CommonControls\NSCustomTableRowView\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -660,6 +661,13 @@
       <Link>ui\Postprocessors\TimelineWindow\PlatformIndependent\GraphicsResources.cs</Link>
     </Compile>
     <Compile Include="app\MonoChecker.cs" />
+    <Compile Include="..\..\shared\ui\LogViewerControl\GraphicsResource.cs">
+      <Link>ui\LogViewerControl\GraphicsResource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\LogViewerControl\MessageDrawing.cs">
+      <Link>ui\LogViewerControl\MessageDrawing.cs</Link>
+    </Compile>
+    <Compile Include="ui\CommonControls\NSCustomTableRowView\CustomTableRowView.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

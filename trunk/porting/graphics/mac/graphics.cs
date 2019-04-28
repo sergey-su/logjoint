@@ -262,6 +262,11 @@ namespace LogJoint.Drawing
 
 		void AddClosedRoundRectanglePath (RectangleF rect, float radius)
 		{
+			radius = Math.Min (radius, Math.Min (rect.Width/2, rect.Height/2));
+			if (radius <= 1) {
+				context.AddRect (rect.ToCGRect ());
+				return;
+			}
 			float minx = rect.Left;
 			float midx = (rect.Left + rect.Right) / 2f;
 			float maxx = rect.Right; 

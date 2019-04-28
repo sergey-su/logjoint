@@ -14,9 +14,9 @@ namespace LogJoint.UI
 	public partial class BookmarksListControlAdapter : NSViewController, IView
 	{
 		readonly DataSource dataSource = new DataSource();
-		IViewEvents viewEvents;
-		IPresentationDataAccess presentationDataAccess;
+		IViewModel viewModel;
 		bool isUpdating;
+		Func<NSColor> selectedBkColor;
 
 		#region Constructors
 
@@ -63,60 +63,51 @@ namespace LogJoint.UI
 			get { return (BookmarksListControl)base.View; }
 		}
 
-		internal IViewEvents ViewEvents
+		internal IViewModel ViewEvents
 		{
-			get { return viewEvents; }
+			get { return viewModel; }
 		}
 
-		void IView.SetPresenter(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
-			this.presentationDataAccess = (IPresentationDataAccess)viewEvents;
-		}
+			this.viewModel = viewModel;
 
-		void IView.UpdateItems(IEnumerable<ViewItem> viewItems, ViewUpdateFlags flags)
-		{
-			isUpdating = true;
-			var items = dataSource.items;
-			items.Clear();
-			items.AddRange(viewItems.Select((d, i) => new Item(this, d, i)));
-			tableView.ReloadData();
-			tableView.SelectRows(
-				NSIndexSet.FromArray(items.Where(i => i.Data.IsSelected).Select(i => i.Index).ToArray()),
-				byExtendingSelection: false
+			selectedBkColor = Selectors.Create (
+				() => viewModel.Theme,
+				theme => theme == Presenters.ColorThemeMode.Light ?
+					NSColor.FromDeviceRgba (.77f, .80f, .90f, 1f) :
+					NSColor.FromDeviceRgba (.37f, .40f, .60f, 1f)
 			);
-			UpdateTimeDeltasColumn();
-			isUpdating = false;
-		}
 
-		void IView.RefreshFocusedMessageMark()
-		{
-			InvalidateTable();
-		}
+			var updateItems = Updaters.Create(
+				() => viewModel.Items,
+				viewItems =>
+				{
+					isUpdating = true;
+					var items = dataSource.items;
+					items.Clear();
+					items.AddRange(viewItems.Select((d, i) => new Item(this, d, i)));
+					tableView.ReloadData();
+					tableView.SelectRows(
+						NSIndexSet.FromArray(items.Where(i => i.Data.IsSelected).Select(i => i.Index).ToArray()),
+						byExtendingSelection: false
+					);
+					UpdateTimeDeltasColumn();
+					isUpdating = false;
+				}
+			);
 
-		void IView.Invalidate()
-		{
-			InvalidateTable();
-		}
+			var updateFocusedMessageMark = Updaters.Create(
+				() => viewModel.FocusedMessagePosition,
+				(_) => {
+					InvalidateTable();
+				}
+			);
 
-		LogJoint.IBookmark IView.SelectedBookmark
-		{
-			get
-			{
-				return GetBookmark(GetItem((int)tableView.SelectedRow));
-			}
-		}
-
-		IEnumerable<LogJoint.IBookmark> IView.SelectedBookmarks
-		{
-			get
-			{
-				return 
-					dataSource.items
-					.Where(i => tableView.IsRowSelected((int)i.Index))
-					.Select(i => GetBookmark(i))
-					.Where(b => b != null);
-			}
+			viewModel.ChangeNotification.CreateSubscription(() => {
+				updateItems();
+				updateFocusedMessageMark();
+			});
 		}
 
 		void UpdateTimeDeltasColumn()
@@ -136,17 +127,12 @@ namespace LogJoint.UI
 			return row >= 0 && row < dataSource.items.Count ? dataSource.items[row] : null;
 		}
 
-		IBookmark GetBookmark(Item item)
-		{
-			return item != null ? item.Data.Bookmark : null;
-		}
-
 		void OnItemClicked(Item item, NSEvent evt)
 		{
 			if (evt.ClickCount == 1)
-				viewEvents.OnBookmarkLeftClicked(item.Data.Bookmark);
+				viewModel.OnBookmarkLeftClicked(item.Data);
 			else if (evt.ClickCount == 2)
-				viewEvents.OnViewDoubleClicked();
+				viewModel.OnViewDoubleClicked();
 		}
 
 		void InvalidateTable()
@@ -157,6 +143,19 @@ namespace LogJoint.UI
 				if (v != null)
 					v.NeedsDisplay = true;
 			}
+		}
+
+		IEnumerable<ViewItem> GetSelectedItems()
+		{
+			var selectedRow = (int)tableView.SelectedRow;
+			var selectedItem = GetItem(selectedRow)?.Data;
+			if (!selectedItem.HasValue)
+				return Enumerable.Empty<ViewItem>();
+			return (new [] { selectedItem.Value }).Union(
+				dataSource.items
+				.Where(i => tableView.IsRowSelected((int)i.Index) && i.Index != selectedRow)
+				.Select(i => i.Data)
+			);
 		}
 
 		class Item: NSObject
@@ -242,8 +241,10 @@ namespace LogJoint.UI
 					if (view == null)
 						view = new NSLinkLabel();
 
-					view.StringValue = item.Data.Bookmark.DisplayName;
+					view.StringValue = item.Data.Text;
 					view.LinkClicked = (s, e) => owner.OnItemClicked(item, e.NativeEvent);
+					if (owner.viewModel.Theme == Presenters.ColorThemeMode.Dark && item.Data.ContextColor.HasValue)
+						view.LinksColor = item.Data.ContextColor.Value.ToColor().ToNSColor();
 
 					return view;
 				}
@@ -253,7 +254,7 @@ namespace LogJoint.UI
 			public override void SelectionDidChange(NSNotification notification)
 			{
 				if (!owner.isUpdating)
-					owner.viewEvents.OnSelectionChanged();
+					owner.viewModel.OnChangeSelection(owner.GetSelectedItems());
 			}
 		};
 
@@ -261,7 +262,6 @@ namespace LogJoint.UI
 		{
 			public BookmarksListControlAdapter owner;
 			public int row;
-			static NSColor selectedBkColor = NSColor.FromDeviceRgba(.77f, .80f, .90f, 1f);
 
 			public override NSBackgroundStyle InteriorBackgroundStyle
 			{
@@ -277,30 +277,15 @@ namespace LogJoint.UI
 
 				if (row < 0 || row >= owner.dataSource.items.Count)
 					return;
-				var bmk = owner.dataSource.items[row].Data.Bookmark;
 
-				ModelColor? cl = null;
-
-				switch (owner.presentationDataAccess.Coloring)
+				if (owner.viewModel.Theme == Presenters.ColorThemeMode.Light)
 				{
-					case Settings.Appearance.ColoringMode.None:
-						break;
-					case Settings.Appearance.ColoringMode.Sources:
-						var ls = bmk.GetSafeLogSource();
-						if (ls != null)
-							cl = ls.Color;
-						break;
-					case Settings.Appearance.ColoringMode.Threads:
-						var t = bmk.GetSafeThread();
-						if (t != null)
-							cl = t.ThreadColor;
-						break;
-				}
-
-				if (cl != null)
-				{
-					cl.Value.ToColor().ToNSColor().SetFill();
-					NSBezierPath.FillRect(dirtyRect);
+					ModelColor? cl = owner.dataSource.items[row].Data.ContextColor;
+					if (cl != null)
+					{
+						cl.Value.ToColor().ToNSColor().SetFill();
+						NSBezierPath.FillRect(dirtyRect);
+					}
 				}
 
 				DrawFocusedMessage();
@@ -308,15 +293,14 @@ namespace LogJoint.UI
 
 			public override void DrawSelection(CGRect dirtyRect)
 			{
-				selectedBkColor.SetFill();
+				owner.selectedBkColor().SetFill();
 				NSBezierPath.FillRect(dirtyRect);
 				DrawFocusedMessage();
 			}
 
 			void DrawFocusedMessage()
 			{
-				Tuple<int, int> focused;
-				owner.viewEvents.OnFocusedMessagePositionRequired(out focused);
+				Tuple<int, int> focused = owner.viewModel.FocusedMessagePosition;
 				if (focused != null)
 				{
 					var frame = this.Frame;

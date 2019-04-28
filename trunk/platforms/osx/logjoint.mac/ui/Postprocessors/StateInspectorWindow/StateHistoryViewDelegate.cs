@@ -55,7 +55,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		public override void SelectionDidChange(NSNotification notification)
 		{
 			if (!owner.IsUpdatingStateHistory)
-				owner.EventsHandler.OnChangeHistorySelectionChanged();
+				owner.ViewModel.OnChangeHistorySelectionChanged();
 		}
 	}
 }

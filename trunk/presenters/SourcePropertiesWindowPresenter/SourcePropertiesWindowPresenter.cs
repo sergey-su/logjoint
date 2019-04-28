@@ -14,6 +14,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessings;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
+		readonly IColorTheme theme;
 		IWindow currentWindow;
 		ILogSource source;
 		string previouslySetAnnotation;
@@ -33,7 +34,8 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			IPresentersFacade navHandler,
 			IAlertPopup alerts,
 			IClipboardAccess clipboard,
-			IShellOpen shellOpen
+			IShellOpen shellOpen,
+			IColorTheme theme
 		)
 		{
 			this.view = view;
@@ -43,6 +45,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			this.clipboard = clipboard;
 			this.shellOpen = shellOpen;
 			this.logSources = logSources;
+			this.theme = theme;
 
 			view.SetEventsHandler(this);
 
@@ -148,12 +151,14 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void IViewEvents.OnChangeColorLinkClicked()
 		{
 			currentWindow.ShowColorSelector(
-				source.Threads.UnderlyingThreadsContainer.ColorTable.Items.Where(c => c.Argb != source.Color.Argb).ToArray());
+				theme.ThreadColors.ZipWithIndex().Where(x => x.Key != source.ColorIndex).Select(x => x.Value).ToArray());
 		}
 
 		void IViewEvents.OnColorSelected(ModelColor color)
 		{
-			source.Color = color;
+			var cl = theme.ThreadColors.IndexOf(color);
+			if (cl != -1)
+				source.ColorIndex = cl;
 		}
 
 		void IViewEvents.OnCopyButtonClicked()
@@ -200,7 +205,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 
 		private void UpdateColorPanel()
 		{
-			WriteControl(ControlFlag.ColorPanel | ControlFlag.BackColor, source.Color.Argb.ToString());
+			WriteControl(ControlFlag.ColorPanel | ControlFlag.BackColor, theme.ThreadColors.GetByIndex(source.ColorIndex).Argb.ToString());
 		}
 
 		void WriteControl(ControlFlag flags, string value)

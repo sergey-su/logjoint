@@ -30,10 +30,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.listPresenter = listPresenter;
 			this.alerts = alerts;
 
-			viewerPresenter.FocusedMessageBookmarkChanged += delegate(object sender, EventArgs args)
-			{
-				listPresenter.SetMasterFocusedMessage(viewerPresenter.GetFocusedMessageBookmark());
-			};
 			listPresenter.Click += (s, bmk) =>
 			{
 				IPresenter myPublicIntf = this;
@@ -91,7 +87,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			{
 				tracer.Info("----> User Command: Clear Bookmarks.");
 
-				if (bookmarks.Count == 0)
+				if (bookmarks.Items.Count == 0)
 				{
 					tracer.Info("Nothing to clear");
 					return;
@@ -99,7 +95,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 				if (alerts.ShowPopup(
 					"Delete bookmarks",
-					string.Format("Are you sure you to delete {0} bookmarks", bookmarks.Count),
+					string.Format("Are you sure you to delete {0} bookmarks", bookmarks.Items.Count),
 					AlertFlags.YesNoCancel | AlertFlags.WarningIcon
 				) != AlertFlags.Yes)
 				{
@@ -139,7 +135,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		async Task NextBookmarkInternal(bool forward)
 		{
-			var firstBmk = bookmarks.GetNext(viewerPresenter.GetFocusedMessageBookmark(), forward);
+			var firstBmk = bookmarks.GetNext(viewerPresenter.FocusedMessageBookmark, forward);
 			if (firstBmk == null)
 			{
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Bookmarks",
@@ -200,7 +196,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		private void DoBookmarkAction(bool? targetState)
 		{
 			IBookmark l = (searchResultPresenter != null && searchResultPresenter.LogViewerPresenter.HasInputFocus) ? 
-				searchResultPresenter.GetFocusedMessageBookmark() : viewerPresenter.GetFocusedMessageBookmark();
+				searchResultPresenter.FocusedMessageBookmark : viewerPresenter.FocusedMessageBookmark;
 			if (l == null)
 				return;
 			var bmks = bookmarks;

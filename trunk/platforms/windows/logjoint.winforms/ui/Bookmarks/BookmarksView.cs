@@ -30,67 +30,66 @@ namespace LogJoint.UI
 			listBox.ItemHeight = UIUtils.Dpi.Scale(15);
 		}
 
-		void IView.SetPresenter(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.presenter = presenter;
-			this.presentationDataAccess = presenter as IPresentationDataAccess;
+			this.presenter = viewModel;
 
-			if (presentationDataAccess.FontName != null && (LogJoint.Properties.Settings.Default.MonospaceBookmarks ?? "") == "1")
+			if (viewModel.FontName != null && (LogJoint.Properties.Settings.Default.MonospaceBookmarks ?? "") == "1")
 			{
 				linkDisplayFont.Dispose();
-				linkDisplayFont = new Font(presentationDataAccess.FontName, 8f, FontStyle.Underline);
+				linkDisplayFont = new Font(viewModel.FontName, 8f, FontStyle.Underline);
 			}
-		}
 
-		void IView.UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags)
-		{
-			metrics = null;
-			isUpdating = true;
-			listBox.BeginUpdate();
-			if ((flags & ViewUpdateFlags.ItemsCountDidNotChange) != 0 && (flags & ViewUpdateFlags.SelectionDidNotChange) != 0)
-			{
-				var itemIdx = 0;
-				foreach (var i in items)
-					listBox.Items[itemIdx++] = new BookmarkItem(i);
-			}
-			else
-			{
-				listBox.Items.Clear();
-				foreach (var i in items)
+			var itemsUpdater = Updaters.Create(
+				() => viewModel.Items,
+				(items) =>
 				{
-					var itemIdx = listBox.Items.Add(new BookmarkItem(i));
-					if (i.IsSelected)
-						listBox.SelectedIndices.Add(itemIdx);
+					metrics = null;
+					isUpdating = true;
+					listBox.BeginUpdate();
+					listBox.SelectedIndices.Clear();
+					if (items.Count == listBox.Items.Count) // special case optimization
+					{
+						var itemIdx = 0;
+						foreach (var i in items)
+						{
+							listBox.Items[itemIdx] = new BookmarkItem(i);
+							if (i.IsSelected)
+								listBox.SelectedIndices.Add(itemIdx);
+							++itemIdx;
+						}
+					}
+					else
+					{
+						listBox.Items.Clear();
+						foreach (var i in items)
+						{
+							var itemIdx = listBox.Items.Add(new BookmarkItem(i));
+							if (i.IsSelected)
+								listBox.SelectedIndices.Add(itemIdx);
+						}
+					}
+					listBox.EndUpdate();
+					isUpdating = false;
 				}
-			}
-			listBox.EndUpdate();
-			isUpdating = false;
-		}
-
-		IBookmark IView.SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
-
-		IEnumerable<IBookmark> IView.SelectedBookmarks
-		{
-			get
+			);
+			var focusedMessageMarkUpdater = Updaters.Create(
+				() => viewModel.FocusedMessagePosition,
+				_ =>
+				{
+					var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
+					listBox.Invalidate(new Rectangle(
+						GetMetrics().FocusedMessageMarkX + (int)focusedItemMarkBounds.Left,
+						0,
+						(int)focusedItemMarkBounds.Width,
+						ClientSize.Height));
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription(() =>
 			{
-				foreach (int i in listBox.SelectedIndices)
-					yield return Get(i);
-			}
-		}
-
-		void IView.RefreshFocusedMessageMark()
-		{
-			var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
-			listBox.Invalidate(new Rectangle(
-				GetMetrics().FocusedMessageMarkX + (int)focusedItemMarkBounds.Left,
-				0,
-				(int)focusedItemMarkBounds.Width,
-				ClientSize.Height));
-		}
-
-		void IView.Invalidate()
-		{
-			this.listBox.Invalidate();
+				itemsUpdater();
+				focusedMessageMarkUpdater();
+			});
 		}
 
 		protected override CreateParams CreateParams
@@ -124,7 +123,7 @@ namespace LogJoint.UI
 			var item = GetItem(idx);
 			if (item == null)
 				return null;
-			if (enabledOnly && !item.IsEnabled)
+			if (enabledOnly && !item.Data.IsEnabled)
 				return null;
 			return idx;
 		}
@@ -155,8 +154,8 @@ namespace LogJoint.UI
 				m.DeltaStringWidth = (int)
 					 EnumItems()
 					.Select(i => Math.Max(
-						g.MeasureString(i.Delta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width,
-						g.MeasureString(i.AltDelta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width
+						g.MeasureString(i.Data.Delta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width,
+						g.MeasureString(i.Data.AltDelta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width
 					))
 					.Union(Enumerable.Repeat(0f, 1))
 					.Max() + 2;
@@ -192,14 +191,8 @@ namespace LogJoint.UI
 				}
 				else
 				{
-					var coloring = presentationDataAccess.Coloring;
-					var thread = item.Bookmark.Thread;
-					if (coloring == Settings.Appearance.ColoringMode.Threads)
-						if (!thread.IsDisposed)
-							bkBrush = UIUtils.GetPaletteColorBrush(thread.ThreadColor);
-					if (coloring == Settings.Appearance.ColoringMode.Sources)
-						if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
-							bkBrush = UIUtils.GetPaletteColorBrush(thread.LogSource.Color);
+					if (item.Data.ContextColor != null)
+						bkBrush = UIUtils.GetPaletteColorBrush(item.Data.ContextColor.Value);
 				}
 
 				g.FillRectangle(bkBrush, e.Bounds);
@@ -210,7 +203,7 @@ namespace LogJoint.UI
 				r.X = m.DeltaStringX;
 				r.Width = m.DeltaStringWidth;
 
-				var deltaStr = item.Delta;
+				var deltaStr = item.Data.Delta;
 				if (deltaStr != null)
 				{
 					g.DrawString(
@@ -231,14 +224,13 @@ namespace LogJoint.UI
 
 				r.X = m.TextX;
 				r.Width = ClientSize.Width - m.TextX;
-				g.DrawString(item.Bookmark.ToString(), linkDisplayFont,
-					item.IsEnabled ? Brushes.Blue : Brushes.Gray, r, displayStringFormat);
+				g.DrawString(item.Data.Text, linkDisplayFont,
+					item.Data.IsEnabled ? Brushes.Blue : Brushes.Gray, r, displayStringFormat);
 				if ((e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.Focus) != 0)
 				{
 					ControlPaint.DrawFocusRectangle(g, r, Color.Black, Color.White);
 				}
-				Tuple<int, int> focused;
-				presenter.OnFocusedMessagePositionRequired(out focused);
+				Tuple<int, int> focused = presenter.FocusedMessagePosition;
 				if (focused != null)
 				{
 					float y;
@@ -279,7 +271,9 @@ namespace LogJoint.UI
 			{
 				if (leftClick)
 				{
-					presenter.OnBookmarkLeftClicked(Get(linkUnderMouse.Value));
+					var item = Get(linkUnderMouse.Value);
+					if (item != null)
+						presenter.OnBookmarkLeftClicked(item.Value);
 				}
 				else if (rightClick)
 				{
@@ -306,12 +300,9 @@ namespace LogJoint.UI
 			return null;
 		}
 
-		IBookmark Get(int index)
+		ViewItem? Get(int index)
 		{
-			var item = GetItem(index);
-			if (item != null)
-				return item.Bookmark;
-			return null;
+			return GetItem(index)?.Data;
 		}
 
 		private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -346,26 +337,25 @@ namespace LogJoint.UI
 		{
 			if (isUpdating)
 				return;
-			presenter.OnSelectionChanged();
+			var first = listBox.SelectedIndex;
+			var selected = new[] { Get(first) }.Union(
+				listBox.SelectedIndices.OfType<int>().Where(i => i != first).Select(Get)
+			).Where(i => i.HasValue).Select(i => i.Value).ToArray();
+			presenter.OnChangeSelection(selected);
 		}
 
 		class BookmarkItem
 		{
-			readonly public IBookmark Bookmark;
-			readonly public string Delta, AltDelta;
-			readonly public bool IsEnabled;
+			readonly public ViewItem Data;
 
 			public BookmarkItem(ViewItem item)
 			{
-				Bookmark = item.Bookmark;
-				Delta = item.Delta;
-				AltDelta = item.AltDelta;
-				IsEnabled = item.IsEnabled;
+				Data = item;
 			}
 
 			public override string ToString()
 			{
-				return Bookmark.ToString();
+				return Data.Text;
 			}
 		};
 
@@ -376,8 +366,7 @@ namespace LogJoint.UI
 			return metrics;
 		}
 
-		private IViewEvents presenter;
-		private IPresentationDataAccess presentationDataAccess;
+		private IViewModel presenter;
 		private Font timeDeltaDisplayFont;
 		private Font linkDisplayFont;
 		private StringFormat displayStringFormat;

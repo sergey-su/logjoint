@@ -182,8 +182,14 @@ namespace LogJoint.Drawing
 
 		public static GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
 		{
-			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);
 			var path = new GraphicsPath();
+			roundRadius = Math.Min(roundRadius, Math.Min(rectangle.Width / 2, rectangle.Height / 2));
+			if (roundRadius <= 1)
+			{
+				path.AddRectangle(rectangle);
+				return path;
+			}
+			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);
 			path.StartFigure();
 			path.AddArc(RoundBounds(innerRect.Right - 1, innerRect.Bottom - 1, roundRadius), 0, 90);
 			path.AddArc(RoundBounds(innerRect.Left, innerRect.Bottom - 1, roundRadius), 90, 90);

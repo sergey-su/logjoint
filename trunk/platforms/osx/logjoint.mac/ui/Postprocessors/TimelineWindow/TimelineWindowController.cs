@@ -62,6 +62,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			var sysFont = NSFont.SystemFontOfSize (NSFont.SystemFontSize);
 			res = new Lazy<GraphicsResources>(() => new GraphicsResources (
+				model,
 				sysFont.FamilyName,
 				(float)NSFont.SystemFontSize,
 				(float)NSFont.SmallSystemFontSize,
@@ -71,8 +72,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				new LJD.Image (NSImage.ImageNamed ("TimelineBookmark.png")),
 				new LJD.Image (NSImage.ImageNamed ("FocusedMsgSlaveVert.png")),
 				1f,
-				new LJD.Brush (Color.FromArgb (235, 235, 235)),
-				0.5f
+				new LJD.Brush (Color.FromArgb (235, 235, 235))
 			));
 			drawing = new Lazy<ControlDrawing>(() => new ControlDrawing (res.Value));
 
@@ -83,7 +83,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			PlaceToastNotificationsView(toastNotifications.View, activitiesView);
 
-			activitiesView.BackgroundColor = NSColor.White;
+			activitiesView.BackgroundColor = NSColor.TextBackground;
 			activitiesView.CanBeFirstResponder = true;
 			activitiesView.OnPaint = DrawActivitiesView;
 			activitiesView.OnScrollWheel = ActivitiesViewScrollWheel;
@@ -395,10 +395,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 							attrString.AddAttribute (NSStringAttributeKey.ForegroundColor, NSColor.Red,
 								new NSRange (0, captionText.Length));
 						}
+						else
+						{
+							attrString.AddAttribute (NSStringAttributeKey.ForegroundColor, NSColor.Text,
+								new NSRange (0, captionText.Length));
+						}
 						if (highlightLen > 0 && highlightBegin >= 0 && (highlightBegin + highlightLen <= captionText.Length))
 						{
-							attrString.AddAttribute(NSStringAttributeKey.BackgroundColor, NSColor.FindHighlightColor, 
-								new NSRange (highlightBegin, highlightLen));
+							var r = new NSRange (highlightBegin, highlightLen);
+							attrString.AddAttribute(NSStringAttributeKey.BackgroundColor, NSColor.Yellow, r);
+							attrString.AddAttribute (NSStringAttributeKey.ForegroundColor, NSColor.Black, r);
 						}
 						attrString.DrawString (LJD.Extensions.ToCGRect (captionRect));
 					}

@@ -10,6 +10,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		readonly ILogSourcesManager logSources;
 		readonly List<Tuple<FilterAction, string, ModelColor?>> actionsOptions;
 		readonly bool scopeSupported;
+		readonly IColorTable highlightColorsTable;
 		List<ScopeItem> scopeItems;
 		bool clickLock;
 		bool userDefinedNameSet;
@@ -26,12 +27,14 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		public Presenter(
 			ILogSourcesManager logSources, 
 			IFiltersList filtersList, 
-			IView view
+			IView view,
+			IColorTable highlightColorsTable
 		)
 		{
 			this.logSources = logSources;
 			this.view = view;
-			this.actionsOptions = MakeActionsOptions(filtersList.Purpose);
+			this.highlightColorsTable = highlightColorsTable;
+			this.actionsOptions = MakeActionsOptions(filtersList.Purpose, highlightColorsTable);
 			this.scopeSupported = filtersList.Purpose == FiltersListPurpose.Highlighting;
 			view.SetEventsHandler(this);
 		}
@@ -378,7 +381,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			return f;
 		}
 
-		static List<Tuple<FilterAction, string, ModelColor?>> MakeActionsOptions(FiltersListPurpose purpose)
+		static List<Tuple<FilterAction, string, ModelColor?>> MakeActionsOptions(FiltersListPurpose purpose, IColorTable highlightColorsTable)
 		{
 			var actionOptions = new List<Tuple<FilterAction, string, ModelColor?>>();
 
@@ -408,7 +411,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			{
 				actionOptions.Add(Tuple.Create(a, 
 					string.Format(includeAndColorizeFormat, a - FilterAction.IncludeAndColorizeFirst + 1), 
-					a.GetBackgroundColor()));
+					a.ToColor(highlightColorsTable.Items)));
 			}
 
 			return actionOptions;

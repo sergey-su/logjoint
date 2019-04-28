@@ -4,11 +4,11 @@ namespace System.Windows.Forms
 {
 	public class MyDataGridView : DataGridView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 
-		public void Init(IViewEvents eventsHandler)
+		public void Init(IViewModel eventsHandler)
 		{
-			this.eventsHandler = eventsHandler;
+			this.viewModel = eventsHandler;
 		}
 
 		public override DataObject GetClipboardContent()
@@ -18,11 +18,11 @@ namespace System.Windows.Forms
 			var row = SelectedRows[0];
 			if (row.Cells.Count < 2)
 				return null;
-			if (eventsHandler != null)
+			if (viewModel != null)
 			{
 				// hack: 
 				// set clipboard manually and return null to suppress clipboard modification by DataGridView
-				eventsHandler.OnCopyShortcutPressed();
+				viewModel.OnCopyShortcutPressed();
 				return null;
 			}
 			else

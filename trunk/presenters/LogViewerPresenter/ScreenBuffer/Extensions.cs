@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +17,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SelectionInfo normalizedSelection,
 			bool isBookmarked,
 			Settings.Appearance.ColoringMode coloring,
+			ImmutableArray<ModelColor> threadColors,
 			int? cursorCharIndex,
 			IHighlightingHandler searchResultHighlightingHandler,
 			IHighlightingHandler selectionHighlightingHandler,
@@ -37,10 +40,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 					msg.Severity == SeverityFlag.Error ? SeverityIcon.Error :
 					msg.Severity == SeverityFlag.Warning ? SeverityIcon.Warning :
 					SeverityIcon.None,
-				BackgroundColor =
+				ContextColor =
 					coloring == Settings.Appearance.ColoringMode.None || msg.Thread == null || msg.Thread.IsDisposed ? new ModelColor?() :
-					coloring == Settings.Appearance.ColoringMode.Threads ? msg.Thread.ThreadColor :
-					coloring == Settings.Appearance.ColoringMode.Sources && msg.TryGetLogSource(out var ls) ? ls.Color :
+					coloring == Settings.Appearance.ColoringMode.Threads ? threadColors.GetByIndex(msg.Thread.ThreadColorIndex) :
+					coloring == Settings.Appearance.ColoringMode.Sources && msg.TryGetLogSource(out var ls) ? threadColors.GetByIndex(ls.ColorIndex) :
 					new ModelColor?(),
 				IsBookmarked = isBookmarked,
 				HasMessageSeparator = text.IsMultiline && text.GetLinesCount() == e.TextLineIndex + 1,

@@ -8,7 +8,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 {
 	public partial class InspectedObjectEventsHistoryControl : UserControl
 	{
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 		bool isUpdating;
 		int topIndexBeforeUpdate;
 		StringFormat strFormat;
@@ -23,9 +23,9 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			bookmarkAndFocusedMarkAreaWidth = UIUtils.Dpi.Scale(13);
 		}
 
-		public void Init(IViewEvents viewEvents)
+		public void Init(IViewModel viewEvents)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewEvents;
 		}
 
 		public ExtendedToolStrip Header { get { return toolStrip1; } }
@@ -116,13 +116,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		{
 			listBox.Capture = false;
 			if (PrimarySelectedItem != null)
-				viewEvents.OnChangeHistoryItemClicked(PrimarySelectedItem);
+				viewModel.OnChangeHistoryItemClicked(PrimarySelectedItem);
 		}
 
 		void listBox_SelectedIndexChanged(object sender, System.EventArgs e)
 		{
 			if (!isUpdating)
-				viewEvents.OnChangeHistorySelectionChanged();
+				viewModel.OnChangeHistorySelectionChanged();
 		}
 
 		private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
@@ -145,7 +145,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 						var bmkImg = StateInspectorResources.Bookmark;
 						var bmkImgSz = bmkImg.GetSize(width: UIUtils.Dpi.Scale(9));
 
-						bool isBookmarked = viewEvents.OnGetHistoryItemBookmarked(li.evt);
+						bool isBookmarked = viewModel.OnGetHistoryItemBookmarked(li.evt);
 						if (isBookmarked)
 						{
 							var r = listBox.GetItemRectangle(e.Index);
@@ -153,7 +153,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 							g.DrawImage(bmkImg, new RectangleF(1, r.Y + (r.Height - bmkImgSz.Height) / 2, bmkImgSz.Width, bmkImgSz.Height));
 						}
 
-						var focusedMessage = viewEvents.OnDrawFocusedMessageMark();
+						var focusedMessage = viewModel.OnDrawFocusedMessageMark();
 						if (focusedMessage != null && listBox.Items.Count != 0 && Math.Abs(focusedMessage.Item1 - e.Index) <= 1)
 						{
 							var imgsz = UIUtils.FocusedItemMarkBounds.Size;
@@ -196,7 +196,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 					k = Key.BookmarkShortcut;
 				if (k != Key.None)
 				{
-					viewEvents.OnChangeHistoryItemKeyEvent(PrimarySelectedItem, k);
+					viewModel.OnChangeHistoryItemKeyEvent(PrimarySelectedItem, k);
 					return false;
 				}
 			}

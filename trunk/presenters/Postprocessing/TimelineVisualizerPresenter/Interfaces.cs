@@ -60,6 +60,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void OnNoContentLinkClicked(bool searchLeft);
 
+		ColorThemeMode ColorTheme { get; }
 		IEnumerable<ActivityDrawInfo> OnDrawActivities();
 		IEnumerable<RulerMark> OnDrawRulers(DrawScope scope, int totalRulerSize, int minAllowedDistnanceBetweenMarks);
 		IEnumerable<EventDrawInfo> OnDrawEvents(DrawScope scope);

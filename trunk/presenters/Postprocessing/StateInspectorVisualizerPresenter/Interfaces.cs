@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents eventsHandler);
+		void SetEventsHandler(IViewModel eventsHandler);
 		bool Visible { get; }
 		NodesCollectionInfo RootNodesCollection { get; }
 		void Clear(NodesCollectionInfo nodesCollection);
@@ -84,8 +84,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		BookmarkShortcut,
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		ColorThemeMode ColorTheme { get; }
 		void OnVisibleChanged();
 		void OnSelectedNodesChanged();
 		void OnPropertiesRowDoubleClicked();

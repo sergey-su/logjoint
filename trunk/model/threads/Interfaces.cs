@@ -13,7 +13,7 @@ namespace LogJoint
 		string Description { get; }
 		string DisplayName { get; }
 		bool ThreadMessagesAreVisible { get; }
-		ModelColor ThreadColor { get; }
+		int ThreadColorIndex { get; }
 		IBookmark FirstKnownMessage { get; }
 		IBookmark LastKnownMessage { get; }
 		/// <summary>
@@ -38,7 +38,6 @@ namespace LogJoint
 		event EventHandler OnPropertiesChanged;
 		IEnumerable<IThread> Items { get; }
 		IThreadsBulkProcessing StartBulkProcessing();
-		IColorTable ColorTable { get; }
 
 		IThread RegisterThread(string id, ILogSource logSource);
 	};

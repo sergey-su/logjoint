@@ -19,6 +19,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		readonly IView view;
 		readonly ITimeSeriesVisualizerModel model;
 		readonly IColorTable colorsTable;
+		readonly IColorLease colorLease;
 		IConfigDialogView configDialogView;
 		bool configDialogIsUpToDate;
 		readonly HashSet<ITimeSeriesPostprocessorOutput> handledOutputs = new HashSet<ITimeSeriesPostprocessorOutput>();
@@ -52,7 +53,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			this.model = model;
 			this.view = view;
 			this.axisParams.Add(xAxisKey, new AxisParams());
-			this.colorsTable = new ForegroundColorsGenerator();
+			this.colorsTable = new TimeSeriesColorsTable();
+			this.colorLease = new ColorLease(this.colorsTable.Items.Length);
 			this.presentersFacade = presentersFacade;
 			this.bookmarks = bookmarks;
 			this.logViewerPresenter = logViewerPresenter;
@@ -83,7 +85,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				UpdateNotificationsIcon();
 			};
 			view.SetEventsHandler(this);
-			HandleOutputsChange(); // handle any changes hapenned before this presenter is created
+			HandleOutputsChange(); // handle any changes happened before this presenter is created
 			UpdateEventLikeObjectsCache();
 		}
 
@@ -284,14 +286,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			UpdateSelectedNodeProperties();
 		}
 
-		void IConfigDialogEventsHandler.OnColorChanged(ModelColor cl)
+		void IConfigDialogEventsHandler.OnColorChanged(ModelColor clValue)
 		{
+			var cl = colorsTable.Items.IndexOf(clValue);
 			var p = GetSelectedTSPresentation();
-			if (p == null || p.ColorTableEntry.Color.Argb == cl.Argb)
+			if (p == null || cl == -1 || p.ColorIndex == cl)
 				return;
-			colorsTable.ReleaseColor(p.ColorTableEntry.ID);
-			p.ColorTableEntry = colorsTable.GetNextColor(true, cl);
-			p.LegendItem.Color = p.ColorTableEntry.Color;
+			colorLease.ReleaseColor(p.ColorIndex);
+			p.ColorIndex = colorLease.GetNextColor(cl);
+			p.LegendItem.Color = colorsTable.GetByIndex(p.ColorIndex);
 			UpdateLegend();
 			view.Invalidate();
 			SaveSelectedObjectForLogSource(p.Output);
@@ -359,7 +362,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				configDialogView.UpdateNodePropertiesControls(new NodeProperties()
 				{
 					Description = string.Format("{0} [{1}]", ts.Descriptor.Description, GetUnitDisplayName(ts.Unit)),
-					Color = tsPresentation != null ? tsPresentation.ColorTableEntry.Color : new ModelColor?(),
+					Color = tsPresentation != null ? colorsTable.GetByIndex(tsPresentation.ColorIndex) : new ModelColor?(),
 					Palette = colorsTable.Items,
 					Examples = ts.Descriptor.ExampleLogLines,
 					Marker = tsPresentation != null ? tsPresentation.LegendItem.Marker : new MarkerType?(),
@@ -372,7 +375,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		{
 			this.axisParams =
 				visibleTimeSeries
-				.Select(s => s.Key.Unit ?? "")
+				.Select(s => s.Key.Unit)
 				.Distinct()
 				.Union(new[] { xAxisKey })
 				.ToDictionary(
@@ -694,7 +697,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		struct VisibilityModificationArg
 		{
 			public TimeSeriesData ts;
-			public ModelColor? preferredColor;
+			public int? preferredColor;
 			public MarkerType? preferredMarker;
 			public bool? drawLine;
 		};
@@ -718,7 +721,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 							output,
 							arg.ts,
 							string.Format("{0} [{1}]", arg.ts.Name, GetUnitDisplayName(arg.ts.Unit)),
-							colorsTable.GetNextColor(true, arg.preferredColor),
+							colorLease.GetNextColor(arg.preferredColor),
+							colorsTable,
 							arg.preferredMarker,
 							arg.drawLine,
 							string.Format(
@@ -732,7 +736,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					}
 					else
 					{
-						colorsTable.ReleaseColor(existingEntry.ColorTableEntry.ID);
+						colorLease.ReleaseColor(existingEntry.ColorIndex);
 						visibleTimeSeries.Remove(arg.ts);
 						if (IsEmpty())
 							ResetAxis();
@@ -786,14 +790,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				UpdateEventLikeObjectsCache();
 				view.Invalidate();
 			}
-			return updated;			
+			return updated;
 		}
 
 		void UpdateEventLikeObjectsCache()
 		{
 			eventLikeObjectsCache.Clear();
 			eventLikeObjectsCache.Capacity = visibleEvents.Select(
-				evts => evts.Value.Evts.Count).Sum() + bookmarks.Count;
+				evts => evts.Value.Evts.Count).Sum() + bookmarks.Items.Count;
 			var evtsUnums = visibleEvents.Select(
 				evts => evts.Value.Evts.Select(e => new EventLikeObject(e, evts.Value.Output))).ToList();
 			var bookmarksEnum = bookmarks.Items.Select(b => new EventLikeObject(b));
@@ -804,16 +808,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void LoadSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
 		{
-			Func<string, ModelColor?> parseColor = s =>
+			int? parseColor(string s)
 			{
-				uint argb;
-				return uint.TryParse(s, NumberStyles.HexNumber, null, out argb) ? new ModelColor(argb) : new ModelColor?();
-			};
-			Func<string, MarkerType?> parseMarker = s =>
+				return int.TryParse(s, NumberStyles.HexNumber, null, out var value) ? value : new int();
+			}
+			MarkerType? parseMarker(string s)
 			{
-				MarkerType mt;
-				return Enum.TryParse<MarkerType>(s, out mt) ? mt : new MarkerType?();
-			};
+				return Enum.TryParse<MarkerType>(s, out var mt) ? mt : new MarkerType?();
+			}
 
 			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
 				persistenceSectionName,
@@ -828,7 +830,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						tsLookup[new EntityKey(tsNode)].Take(1).Select(ts => new VisibilityModificationArg()
 						{
 							ts = ts,
-							preferredColor = parseColor(tsNode.AttributeValue(PersistenceKeys.Color)),
+							preferredColor = parseColor(tsNode.AttributeValue(PersistenceKeys.ColorIndex)),
 							preferredMarker = parseMarker(tsNode.AttributeValue(PersistenceKeys.Marker)),
 							drawLine = tsNode.AttributeValue(PersistenceKeys.DrawLine, null)?.Equals("1")
 						})
@@ -858,7 +860,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					GetVisibleTS(output).Select(ts => new XElement(
 						PersistenceKeys.TimeSeriesNode, 
 						new EntityKey(ts.Key).GetXMLAttrs(),
-						new XAttribute(PersistenceKeys.Color, ts.Value.ColorTableEntry.Color.Argb.ToString("x")),
+						new XAttribute(PersistenceKeys.ColorIndex, ts.Value.ColorIndex.ToString("x")),
 						new XAttribute(PersistenceKeys.Marker, ts.Value.LegendItem.Marker.ToString()),
 						new XAttribute(PersistenceKeys.DrawLine, ts.Value.LegendItem.DrawLine ? "1" : "0")
 					)).Union(GetVisibleEvts(output).Select(evtsGroup => new XElement(
@@ -901,16 +903,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		class TimeSeriesPresentationData
 		{
 			public readonly ITimeSeriesPostprocessorOutput Output;
-			public ColorTableEntry ColorTableEntry;
+			public int ColorIndex;
 			public readonly LegendItemInfo LegendItem;
 
-			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, TimeSeriesData data, string label, ColorTableEntry colorTableEntry, MarkerType? marker, bool? drawLine, string tooltip)
+			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, TimeSeriesData data, string label,
+				int colorIndex, IColorTable colorTable, MarkerType? marker, bool? drawLine, string tooltip)
 			{
 				this.Output = output;
-				this.ColorTableEntry = colorTableEntry;
+				this.ColorIndex = colorIndex;
 				this.LegendItem = new LegendItemInfo()
 				{
-					Color = this.ColorTableEntry.Color,
+					Color = colorTable.GetByIndex(this.ColorIndex),
 					Label = label,
 					Marker = marker.GetValueOrDefault(MarkerType.Plus),
 					data = data,
@@ -1036,7 +1039,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public static readonly string ObjectType = "objectType";
 			public static readonly string ObjectId = "objectId";
 			public static readonly string ObjectName = "name";
-			public static readonly string Color = "color";
+			public static readonly string ColorIndex = "colorIdx";
 			public static readonly string Marker = "marker";
 			public static readonly string DrawLine = "line";
 		};
@@ -1160,7 +1163,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			int CountBookmarksInTimestampsRange(DateTime t1, DateTime t2)
 			{
 				var bookmarksList = new ListUtils.VirtualList<IBookmark>(
-					owner.bookmarks.Count, bmkIdx => owner.bookmarks[bmkIdx]);
+					owner.bookmarks.Items.Count, bmkIdx => owner.bookmarks.Items[bmkIdx]);
 				var i1 = bookmarksList.BinarySearch(0, bookmarksList.Count,
 					b => new EventLikeObject(b).Timestamp < t1);
 				var i2 = bookmarksList.BinarySearch(i1, bookmarksList.Count,
@@ -1242,7 +1245,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				{
 					TimeSeries = owner.visibleTimeSeries.Select(s => new TimeSeriesDrawingData()
 					{
-						Color = s.Value.ColorTableEntry.Color,
+						Color = owner.colorsTable.GetByIndex(s.Value.ColorIndex),
 						Marker = s.Value.LegendItem.Marker,
 						DrawLine = s.Value.LegendItem.EffectiveDrawLine,
 						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Unit), s.Value.Output).Select(p => p.Value)

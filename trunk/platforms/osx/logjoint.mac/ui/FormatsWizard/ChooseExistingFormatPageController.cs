@@ -105,6 +105,11 @@ namespace LogJoint.UI
 				};
 				return ret;
 			}
+
+			public override NSTableRowView CoreGetRowView (NSTableView tableView, nint row)
+			{
+				return new NSCustomTableRowView { InvalidateSubviewsOnSelectionChange = true };
+			}
 		};
 	}
 }

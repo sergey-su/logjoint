@@ -6,6 +6,7 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.ThreadsList;
+using LogJoint.UI.Presenters;
 
 namespace LogJoint.UI
 {
@@ -55,7 +56,7 @@ namespace LogJoint.UI
 
 		public IViewItem Add(IThread thread)
 		{
-			return new ViewItem(list, thread);
+			return new ViewItem(list, thread, presenter.Theme);
 		}
 
 		public IViewItem TopItem 
@@ -117,7 +118,7 @@ namespace LogJoint.UI
 				IThread thread = Get(e.ItemIndex).Thread;
 				if (thread.IsDisposed)
 					return;
-				e.Graphics.FillRectangle(UIUtils.GetPaletteColorBrush(thread.ThreadColor), e.Bounds);
+				e.Graphics.FillRectangle(UIUtils.GetPaletteColorBrush(presenter.Theme.ThreadColors.GetByIndex(thread.ThreadColorIndex)), e.Bounds);
 				e.DrawText(TextFormatFlags.Left);
 			}
 		}
@@ -261,7 +262,7 @@ namespace LogJoint.UI
 
 		class ViewItem : IViewItem
 		{
-			public ViewItem(ListView lv, IThread thread)
+			public ViewItem(ListView lv, IThread thread, Presenters.IColorTheme theme)
 			{
 				var lvi = new ListViewItem();
 
@@ -273,7 +274,7 @@ namespace LogJoint.UI
 				lvi.SubItems.Add("");
 				lvi.SubItems.Add("");
 
-				lvi.BackColor = thread.ThreadColor.ToColor();
+				lvi.BackColor = theme.ThreadColors.GetByIndex(thread.ThreadColorIndex).ToColor();
 				lvi.UseItemStyleForSubItems = true;
 
 				lv.Items.Add(lvi);
