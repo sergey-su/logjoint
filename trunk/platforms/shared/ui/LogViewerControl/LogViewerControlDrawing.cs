@@ -119,9 +119,9 @@ namespace LogJoint.UI
 			Brush b = null;
 			Brush tmpBrush = null;
 
-			if (msg.BackgroundColor != null)
+			/*if (msg.BackgroundColor != null)
 				b = tmpBrush = new Brush (msg.BackgroundColor.Value.ToColor ());
-			else
+			else*/
 				b = dc.DefaultBackgroundBrush;
 			dc.Canvas.FillRectangle(b, r);
 
@@ -204,7 +204,19 @@ namespace LogJoint.UI
 			DoInplaceHighlighting(lineValue, location, msg.HighlightingFiltersHighlightingRanges, null, null);
 
 			if (drawText)
-				ctx.Canvas.DrawString(lineValue, ctx.Font, brush, location, ctx.TextFormat);
+			{
+				Brush tmpBrush = null;
+				Brush b;
+
+				if (msg.BackgroundColor != null)
+					b = tmpBrush = new Brush(msg.BackgroundColor.Value.ToColor());
+				else
+					b = ctx.DefaultBackgroundBrush;
+
+				ctx.Canvas.DrawString(lineValue, ctx.Font, b, location, ctx.TextFormat);
+
+				tmpBrush?.Dispose();
+			}
 		}
 
 		private void DoInplaceHighlighting(
@@ -262,13 +274,13 @@ namespace LogJoint.UI
 		public float DpiScale = 1f;
 		public Brush InfoMessagesBrush;
 		public Font Font => fontDependentData().font;
-		public Brush CommentsBrush;
+		public Brush CommentsBrush; // todo: delete
 		public Brush DefaultBackgroundBrush;
 		public Brush SelectedBkBrush;
-		public Brush SelectedFocuslessBkBrush;
-		public Brush SelectedTextBrush;
-		public Brush SelectedFocuslessTextBrush;
-		public Brush FocusedMessageBkBrush;
+		public Brush SelectedFocuslessBkBrush; // todo: delete
+		public Brush SelectedTextBrush; // todo: delete
+		public Brush SelectedFocuslessTextBrush; // todo: delete
+		public Brush FocusedMessageBkBrush; // todo: delete
 		public Image ErrorIcon, WarnIcon, BookmarkIcon, SmallBookmarkIcon, FocusedMessageIcon, FocusedMessageSlaveIcon;
 		public Pen CursorPen;
 		public Pen TimeSeparatorLine;

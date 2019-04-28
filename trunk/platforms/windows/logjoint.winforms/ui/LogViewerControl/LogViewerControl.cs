@@ -56,7 +56,7 @@ namespace LogJoint.UI
 			drawContext.CommentsBrush = new LJD.Brush(SystemColors.GrayText);
 
 			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.FromArgb(30, 30, 30));
-			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
+			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(40, 80, 120)); // new LJD.Brush(Color.FromArgb(167, 176, 201));
 			drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
 
 			drawContext.FocusedMessageBkBrush = new LJD.Brush(Color.FromArgb(167 + 30, 176 + 30, 201 + 30));
@@ -67,7 +67,7 @@ namespace LogJoint.UI
 			drawContext.FocusedMessageIcon = new LJD.Image(Properties.Resources.FocusedMsg);
 			drawContext.FocusedMessageSlaveIcon = new LJD.Image(Properties.Resources.FocusedMsgSlave);
 
-			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
+			drawContext.CursorPen = new LJD.Pen(Color.White, 2); // new LJD.Pen(Color.Black, 2);
 
 			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 

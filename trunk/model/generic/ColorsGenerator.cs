@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
@@ -39,9 +41,9 @@ namespace LogJoint
 		public IEnumerable<ModelColor> Items
 		{
 			get
-			{ 
+			{
 				foreach (int i in colors)
-					yield return FromRGB(i); 
+					yield return FromRGB(i);
 			}
 		}
 
@@ -126,21 +128,53 @@ namespace LogJoint
 		readonly int[] refCounters;
 	}
 
+	static class AA
+	{
+		internal static double saturation = 0.45;
+		internal static double lightness = 0.75;
+		internal static int numHues = 16;
+		internal static readonly Func<int[]> getColors;
+		[DllImport("shlwapi.dll")]
+		public static extern int ColorHLSToRGB(int H, int L, int S);
+
+		static AA()
+		{
+			getColors = Selectors.Create(
+				() => saturation,
+				() => lightness,
+				() => numHues,
+				(s, l, nh) =>
+				{
+					int toInt(double d) => (int)(d * 240d);
+					var rnd = new Random(23848);
+					return
+						new[] { 0xdcdcdc }.Union(
+							Enumerable.Range(0, nh)
+							.Select(hidx => (double)hidx / (double)nh)
+							.Select(h => (color: ColorHLSToRGB(toInt(h), toInt(l), toInt(s)), order: rnd.Next()))
+							.OrderBy(x => x.order)
+							.Select(x => x.color)
+						).ToArray();
+				}
+			);
+		}
+	};
+
 	public class DarkColorsGenerator : ColorTableBase
 	{
 		protected override int[] GetColors()
 		{
-			return pastelColors;
+			return AA.getColors();
 		}
 
-		static readonly int[] pastelColors = { 
+		/*static readonly int[] pastelColors = { 
 			0xdcdcdc,
 			0x569cd6,
 			0x4ec9b0,
 			0xb8d77a,
 			0x2691af,
 			0xf0ca95,
-		};
+		};*/
 	}
 
 	public class PastelColorsGenerator : ColorTableBase
