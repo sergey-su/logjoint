@@ -108,6 +108,8 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			stateHistoryView.DoubleClick += (sender, e) => eventsHandler.OnChangeHistoryItemClicked(
 				item: stateHistoryDataSource.data.ElementAtOrDefault((int)stateHistoryView.ClickedRow));
 			((StateHistoryTableView)stateHistoryView).owner = this;
+
+			findCurrentPositionInStateHistoryButton.Image.Template = true;
 		}
 
 		void IView.SetEventsHandler (IViewEvents eventsHandler)

@@ -150,6 +150,13 @@ namespace LogJoint.UI
 			public override nint GetRowCount (NSTableView tableView) => Items.Count;
 		};
 
+		public static NSImage GetNamedTemplateImage (string name)
+		{
+			var img = NSImage.ImageNamed (name);
+			img.Template = true;
+			return img;
+		}
+
 		[Register("ReadonlyFormatter")]
 		public class ReadonlyFormatter: NSFormatter
 		{

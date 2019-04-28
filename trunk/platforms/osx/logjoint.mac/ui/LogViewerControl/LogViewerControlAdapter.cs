@@ -340,7 +340,7 @@ namespace LogJoint.UI
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
 			drawContext.SelectionHighlightingBackground =
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
-			
+
 			drawContext.ErrorIcon = new LJD.Image(NSImage.ImageNamed("ErrorLogSeverity.png"));
 			drawContext.WarnIcon = new LJD.Image(NSImage.ImageNamed("WarnLogSeverity.png"));
 			drawContext.BookmarkIcon = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));

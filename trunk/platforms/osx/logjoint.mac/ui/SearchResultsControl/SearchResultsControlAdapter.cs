@@ -67,6 +67,7 @@ namespace LogJoint.UI
 			logViewerControlAdapter.View.MoveToPlaceholder(this.logViewerPlaceholder);
 
 			selectCurrentTimeButton.ToolTip = "Find current time in search results";
+			selectCurrentTimeButton.Image.Template = true;
 
 			tableView.DataSource = dataSource;
 			tableView.Delegate = new Delegate() { owner = this };
@@ -245,8 +246,8 @@ namespace LogJoint.UI
 					view.Target = item;
 					view.State = item.Data.PinControlChecked ? NSCellStateValue.On : NSCellStateValue.Off;
 					view.Image = item.Data.PinControlChecked ?
-						(pinnedImage ?? (pinnedImage = NSImage.ImageNamed("Pinned.png"))) :
-						(pinImage ?? (pinImage = NSImage.ImageNamed("Pin.png")));
+						(pinnedImage ?? (pinnedImage = UIUtils.GetNamedTemplateImage ("Pinned.png"))) :
+						(pinImage ?? (pinImage = UIUtils.GetNamedTemplateImage ("Pin.png")));
 					return view;
 				}
 				else if (tableColumn == owner.textColumn)

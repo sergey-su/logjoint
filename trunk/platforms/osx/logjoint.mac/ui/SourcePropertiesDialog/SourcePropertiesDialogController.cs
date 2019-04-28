@@ -125,10 +125,18 @@ namespace LogJoint.UI
 			foreach (var opt in options)
 			{
 				var item = new NSMenuItem();
-				var dict = new NSMutableDictionary();
-				dict.SetValueForKey(opt.ToColor().ToNSColor(), NSStringAttributeKey.BackgroundColor);
-				var attrStr = new NSAttributedString("                  ", dict);
-				item.AttributedTitle = attrStr;
+				var imgSize = new CoreGraphics.CGSize (50, 12);
+				var img = new NSImage (imgSize);
+				img.LockFocus ();
+				using (var path = NSBezierPath.FromRect (
+					new CoreGraphics.CGRect (0, 0, imgSize.Width, imgSize.Height)))
+				using (var cl = opt.ToColor().ToNSColor()) {
+					cl.SetFill ();
+					path.Fill ();
+				}
+				img.UnlockFocus ();
+				item.Image = img;
+				item.Title = "";
 				item.Action = new Selector("OnColorMenuItemClicked:");
 				item.Target = this;
 				item.Tag = unchecked ((int)opt.Argb);
@@ -165,6 +173,8 @@ namespace LogJoint.UI
 			controls[ControlFlag.TimeOffsetTextBox] = timeShiftTextField;
 			controls[ControlFlag.CopyPathButton] = copyPathButton;
 			controls[ControlFlag.OpenContainingFolderButton] = openContainingFolderButton;
+
+			copyPathButton.Image.Template = true;
 
 			Window.WillClose += (object sender, EventArgs e) =>
 			{

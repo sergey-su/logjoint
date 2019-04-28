@@ -39,6 +39,12 @@ namespace LogJoint.UI
 			get { return sourcesListControlAdapter; }
 		}
 
+		public override void AwakeFromNib ()
+		{
+			base.AwakeFromNib ();
+			recentSourcesButton.Image.Template = true;
+		}
+
 
 		#region IView implementation
 

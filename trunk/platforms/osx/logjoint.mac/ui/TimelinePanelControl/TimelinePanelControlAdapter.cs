@@ -75,6 +75,11 @@ namespace LogJoint.UI
 			base.AwakeFromNib();
 
 			timelineControlAdapter.View.MoveToPlaceholder(timelineControlPlaceholder);
+			zoomInButton.Image.Template = true;
+			zoomOutButton.Image.Template = true;
+			resetZoomButton.Image.Template = true;
+			moveDownButton.Image.Template = true;
+			moveUpButton.Image.Template = true;
 		}
 
 		partial void OnMoveDownClicked (Foundation.NSObject sender)
