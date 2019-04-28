@@ -63,7 +63,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var retLines = new List<StringSlice>();
 			var retLinesMap = new List<int>();
 			int originalTextLineIdx = 0;
-			foreach (var m in FindSearchMatches(msg, originalTextGetter, filters))
+			foreach (var m in FindSearchMatches(msg, originalTextGetter, filters, skipWholeLines: false))
 			{
 				for (int stage = 0; originalTextLineIdx < originalText.GetLinesCount() && stage != 2; ++originalTextLineIdx)
 				{
@@ -102,7 +102,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			};
 		}
 
-		private static IEnumerable<(int b, int e)> FindSearchMatches(IMessage msg, MessageTextGetter textGetter, IFiltersList filters) // todo: merge with GetSearchResultsHighlightingRanges
+		private static IEnumerable<(int b, int e, FilterAction a)> FindSearchMatches(
+			IMessage msg, MessageTextGetter textGetter, IFiltersList filters,
+			bool skipWholeLines)
 		{
 			IFiltersListBulkProcessing processing;
 			try
@@ -121,9 +123,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (rslt.Action == FilterAction.Exclude || rslt.MatchedRange == null)
 						yield break;
 					var r = rslt.MatchedRange.Value;
+					if (skipWholeLines && r.WholeTextMatched)
+						yield break;
 					if (r.MatchBegin == r.MatchEnd)
 						yield break;
-					yield return (r.MatchBegin, r.MatchEnd);
+					yield return (r.MatchBegin, r.MatchEnd, rslt.Action);
 					startPos = r.MatchEnd;
 				}
 			}
@@ -167,31 +171,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		private static IEnumerable<(int, int, FilterAction)> GetSearchResultsHighlightingRanges(
 			IMessage msg, IFiltersList filters, MessageTextGetter displayTextGetter)
 		{
-			IFiltersListBulkProcessing processing;
-			try
-			{
-				processing = filters.StartBulkProcessing(displayTextGetter, reverseMatchDirection: false);
-			}
-			catch (Search.TemplateException)
-			{
-				yield break;
-			}
-			using (processing)
-			{
-				for (int? startPos = null; ;)
-				{
-					var rslt = processing.ProcessMessage(msg, startPos);
-					if (rslt.Action == FilterAction.Exclude || rslt.MatchedRange == null)
-						yield break;
-					var r = rslt.MatchedRange.Value;
-					if (r.WholeTextMatched)
-						yield break;
-					if (r.MatchBegin == r.MatchEnd)
-						yield break;
-					yield return (r.MatchBegin, r.MatchEnd, rslt.Action);
-					startPos = r.MatchEnd;
-				}
-			}
+			return FindSearchMatches(msg, displayTextGetter, filters, skipWholeLines: true);
 		}
 
 		private static IHighlightingHandler MakeSelectionInplaceHighlightingHander(
