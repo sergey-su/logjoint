@@ -20,21 +20,9 @@ namespace LogJoint
 				f == null || f.Options.Scope.ContainsAnythingFromSource(s)));
 		}
 
-		static readonly ModelColor[] actionColors = MakeActionColors();
-
-		static ModelColor[] MakeActionColors()
+		public static ModelColor ToColor(this FilterAction a, IReadOnlyList<ModelColor> colors)
 		{
-			var ret = (new HighlightBackgroundColorsGenerator()).Items.ToArray();
-			if (ret.Length < (FilterAction.IncludeAndColorizeLast - FilterAction.IncludeAndColorizeFirst + 1))
-				throw new Exception("bad highlighting colors table");
-			return ret;
-		}
-
-		public static ModelColor? GetBackgroundColor(this FilterAction a)
-		{
-			if (a < FilterAction.IncludeAndColorizeFirst || a > FilterAction.IncludeAndColorizeLast)
-				return null;
-			return actionColors[a - FilterAction.IncludeAndColorizeFirst];
+			return colors[a - FilterAction.IncludeAndColorizeFirst];
 		}
 	};
 }

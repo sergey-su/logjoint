@@ -11,7 +11,7 @@ namespace LogJoint
 			this.colors = colors;
 		}
 		public ModelThreads()
-			: this(new PastelColorsGenerator())
+			: this(new HTMLColorsGenerator())
 		{
 		}
 

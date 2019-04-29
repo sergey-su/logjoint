@@ -9,12 +9,14 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		public Presenter(
 			IFiltersList filtersList, 
 			IView view, 
-			FilterDialog.IPresenter filtersDialogPresenter
+			FilterDialog.IPresenter filtersDialogPresenter,
+			IColorTable highlightColorsTable
 		)
 		{
 			this.filtersList = filtersList;
 			this.view = view;
 			this.filtersDialogPresenter = filtersDialogPresenter;
+			this.highlightColorsTable = highlightColorsTable;
 			view.SetPresenter(this);
 		}
 
@@ -70,7 +72,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					if (!f.IsDisposed)
 					{
 						lvi.Text = f.Name;
-						lvi.Color = f.Action.GetBackgroundColor();
+						lvi.Color = f.Action.ToColor(highlightColorsTable.Items);
 						lvi.Checked = f.Enabled;
 						if (f.Enabled)
 							lvi.CheckboxTooltip = "Uncheck to disable rule without deleting it";
@@ -270,6 +272,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		readonly IFiltersList filtersList;
 		readonly IView view;
 		readonly FilterDialog.IPresenter filtersDialogPresenter;
+		readonly IColorTable highlightColorsTable;
 		int updateLock;
 
 		#endregion

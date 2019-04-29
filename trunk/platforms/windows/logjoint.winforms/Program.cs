@@ -71,10 +71,8 @@ namespace LogJoint
 				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
-				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
-					new DarkColorsGenerator(),
-					globalSettingsAccessor.Appearance.ColoringBrightness
-				);
+				IColorThemeAccess colorThemeAccess = new StaticLightColorThemeAccess();
+				IAdjustableColorTable colorGenerator = new LogThreadsColorsTable(colorThemeAccess, changeNotification, globalSettingsAccessor.Appearance.ColoringBrightness);
 
 				IModelThreads modelThreads = new ModelThreads(colorGenerator);
 
@@ -232,13 +230,14 @@ namespace LogJoint
 
 				tracer.Info("model creation completed");
 
-
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
 
 				UI.Presenters.IClipboardAccess clipboardAccess = new ClipboardAccess(telemetryCollector);
 
 				UI.Presenters.IShellOpen shellOpen = new ShellOpen();
+
+				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorThemeAccess);
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					changeNotification,
@@ -254,7 +253,8 @@ namespace LogJoint
 					bookmarks,
 					globalSettingsAccessor,
 					searchManager,
-					filtersFactory
+					filtersFactory,
+					highlightColorsTable
 				);
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;
@@ -331,7 +331,8 @@ namespace LogJoint
 						UI.Presenters.FilterDialog.IPresenter filterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
 							null,
 							filtersList,
-							new UI.FilterDialogView()
+							new UI.FilterDialogView(),
+							highlightColorsTable
 						);
 						return new UI.Presenters.FiltersManager.Presenter(
 							filtersList,
@@ -339,7 +340,8 @@ namespace LogJoint
 							new UI.Presenters.FiltersListBox.Presenter(
 								filtersList,
 								dialogView.FiltersManagerView.FiltersListView,
-								filterDialogPresenter
+								filterDialogPresenter,
+								highlightColorsTable
 							),
 							filterDialogPresenter,
 							null,
@@ -551,8 +553,8 @@ namespace LogJoint
 
 				Func<IFiltersList, UI.Presenters.FiltersManager.IView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
 				{
-					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView());
-					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter);
+					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView(), highlightColorsTable);
+					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter, highlightColorsTable);
 					UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
 						filters, 
 						view, 
@@ -610,7 +612,7 @@ namespace LogJoint
 				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
 					new OptionsDialogView(),
 					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(globalSettingsAccessor, recentlyUsedLogs, searchHistory, pageView),
-					pageView => new UI.Presenters.Options.Appearance.Presenter(globalSettingsAccessor, pageView, logViewerPresenterFactory),
+					pageView => new UI.Presenters.Options.Appearance.Presenter(globalSettingsAccessor, pageView, logViewerPresenterFactory, changeNotification),
 					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, globalSettingsAccessor, pageView)
 				);
 

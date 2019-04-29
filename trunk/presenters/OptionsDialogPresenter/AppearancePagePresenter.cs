@@ -13,13 +13,14 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		public Presenter(
 			Settings.IGlobalSettingsAccessor settings,
 			IView view,
-			LogViewer.IPresenterFactory logViewerPresenterFactory)
+			LogViewer.IPresenterFactory logViewerPresenterFactory,
+			IChangeNotification changeNotification)
 		{
 			this.view = view;
 			this.settingsAccessor = settings;
 
 			this.sampleMessagesBaseTime = DateTime.UtcNow;
-			this.colorTable = new AdjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Normal);
+			this.colorTable = new LogThreadsColorsTable(new StaticLightColorThemeAccess() /* todo */, changeNotification, PaletteBrightness.Normal);
 			this.sampleThreads = new ModelThreads(colorTable);
 			this.dummyModel = new LogViewer.DummyModel(threads: sampleThreads);
 			this.sampleLogViewerPresenter = logViewerPresenterFactory.Create(
@@ -164,7 +165,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly IGlobalSettingsAccessor settingsAccessor;
 		readonly LogViewer.IViewFonts viewFonts;
 		readonly LogViewer.IPresenter sampleLogViewerPresenter;
-		readonly IAdjustingColorsGenerator colorTable;
+		readonly IAdjustableColorTable colorTable;
 		readonly IModelThreads sampleThreads;
 		LogViewer.DummyModel dummyModel;
 		readonly DateTime sampleMessagesBaseTime;

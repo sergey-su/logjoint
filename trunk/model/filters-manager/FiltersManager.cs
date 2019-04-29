@@ -10,7 +10,7 @@ namespace LogJoint
 			IFiltersFactory filtersFactory,
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor,
 			ILogSourcesManager logSourcesManager,
-			IAdjustingColorsGenerator threadColors,
+			IAdjustableColorTable threadColors,
 			IShutdown shutdown
 		)
 		{

@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 		readonly IView dialog;
 		readonly Help.IPresenter help;
 		readonly IAlertPopup alerts;
-		static HTMLColorsGenerator colors = new HTMLColorsGenerator();
+		static IColorTable colors = new HTMLColorsGenerator();
 		const int sampleLogTextLength = 1024 * 4;
 		bool updateSampleEditLock = false;
 		bool headerReMode;

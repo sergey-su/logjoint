@@ -199,9 +199,9 @@ namespace LogJoint.UI
 			PointF location = m.OffsetTextRect.Location;
 			var lineValue = msg.TextLineValue;
 
-			DoInplaceHighlighting(lineValue, location, msg.SearchResultHighlightingRanges, null, ctx.SearchResultHighlightingBackground);
-			DoInplaceHighlighting(lineValue, location, msg.SelectionHighlightingRanges, ctx.SelectionHighlightingBackground, null);
-			DoInplaceHighlighting(lineValue, location, msg.HighlightingFiltersHighlightingRanges, null, null);
+			DoInplaceHighlighting(lineValue, location, msg.SearchResultHighlightingRanges, ctx.SearchResultHighlightingBackground);
+			DoInplaceHighlighting(lineValue, location, msg.SelectionHighlightingRanges, ctx.SelectionHighlightingBackground);
+			DoInplaceHighlighting(lineValue, location, msg.HighlightingFiltersHighlightingRanges, null);
 
 			if (drawText)
 			{
@@ -222,9 +222,8 @@ namespace LogJoint.UI
 		private void DoInplaceHighlighting(
 			string lineValue,
 			PointF location,
-			IEnumerable<(int, int, FilterAction)> ranges,
-			Brush forcedBrush,
-			Brush defaultBrush)
+			IEnumerable<(int, int, ModelColor)> ranges,
+			Brush forcedBrush)
 		{
 			if (ranges != null)
 			{
@@ -241,17 +240,9 @@ namespace LogJoint.UI
 					tmp.Inflate(0, -1);
 					if (forcedBrush == null)
 					{
-						var cl = hlRange.Item3.GetBackgroundColor();
-						if (cl != null)
+						using (var tmpBrush = new Brush(hlRange.Item3.ToColor()))
 						{
-							using (var tmpBrush = new Brush(cl.Value.ToColor()))
-							{
-								FillInplaceHightlightRectangle(ctx, tmp, tmpBrush);
-							}
-						}
-						else if (defaultBrush != null)
-						{
-							FillInplaceHightlightRectangle(ctx, tmp, defaultBrush);
+							FillInplaceHightlightRectangle(ctx, tmp, tmpBrush);
 						}
 					}
 					else

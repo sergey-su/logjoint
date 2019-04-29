@@ -137,9 +137,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public (int, int)? SelectedBackground;
 		public int? CursorCharIndex;
 		public bool HasMessageSeparator;
-		public IEnumerable<(int, int, FilterAction)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
-		public IEnumerable<(int, int, FilterAction)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
-		public IEnumerable<(int, int, FilterAction)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, ModelColor)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, ModelColor)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, ModelColor)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
 
 		internal IMessage Message;
 		internal int TextLineIndex;

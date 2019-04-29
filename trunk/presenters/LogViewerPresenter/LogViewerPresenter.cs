@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IBookmarksFactory bookmarksFactory,
 			Telemetry.ITelemetryCollector telemetry,
 			IScreenBufferFactory screenBufferFactory,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			IColorTable highlightColorsTable
 		)
 		{
 			this.model = model;
@@ -43,7 +44,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				tracer, telemetry);
 			this.highlightingManager = new HighlightingManager(
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
-				model.HighlightFilters, this.selectionManager, wordSelection
+				model.HighlightFilters, this.selectionManager, wordSelection, highlightColorsTable
 			);
 			this.displayTextGetterSelector = MakeDisplayTextGetterSelector();
 
