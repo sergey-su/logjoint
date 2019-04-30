@@ -135,9 +135,30 @@ namespace LogJoint
 	static class HSLColorsGenerator
 	{
 #if MONOMAC
+		static int MakeColor(double h, double s, double l)
+		{
+			// https://www.rapidtables.com/convert/color/hsl-to-rgb.html
+			h *= 360d;
+			var C = (1d - Math.Abs(2d*l - 1d)) * s;
+			var X = C * (1d - Math.Abs((h / 60d) % 2d - 1d));
+			var m = l - C/2d;
+			var (rp, gp, bp) =
+				h < 60  ? (C, X, 0d) :
+				h < 120 ? (X, C, 0d) :
+				h < 180 ? (0d, C, X) :
+				h < 240 ? (0d, X, C) :
+				h < 300 ? (X, 0d, C) :
+				(C, 0, X);
+			return unchecked((int)(new ModelColor(
+				0, 
+				(byte) ((rp + m) * 255),
+				(byte) ((gp + m) * 255),
+				(byte) ((bp + m) * 255)
+			)).Argb);
+		}
 #else
 		[DllImport("shlwapi.dll")]
-		public static extern int ColorHLSToRGB(int H, int L, int S);
+		public static extern int ColorHLSToRGB(int H, int L, int S); // todo: check that generic impl gives same result and drop it
 
 		static int MakeColor(double h, double s, double l)
 		{
@@ -162,9 +183,12 @@ namespace LogJoint
 	public class LogThreadsColorsTable : ColorTableBase, IAdjustableColorTable
 	{
 		PaletteBrightness paletteBrightness = PaletteBrightness.Normal; // todo: do not have independent state here
-		IChangeNotification changeNotification;
+		readonly IChangeNotification changeNotification;
 
-		public LogThreadsColorsTable(IColorThemeAccess colorTheme, IChangeNotification changeNotification, PaletteBrightness initialBrightness)
+		public LogThreadsColorsTable(
+			IColorThemeAccess colorTheme,
+			IChangeNotification changeNotification,
+			PaletteBrightness initialBrightness)
 		{
 			this.paletteBrightness = initialBrightness;
 			this.changeNotification = changeNotification;
@@ -257,7 +281,9 @@ namespace LogJoint
 
 	public class HighlightBackgroundColorsGenerator : ColorTableBase
 	{
-		public HighlightBackgroundColorsGenerator(IColorThemeAccess colorTheme)
+		public HighlightBackgroundColorsGenerator(
+			IColorThemeAccess colorTheme
+		)
 		{
 			var numColors = FilterAction.IncludeAndColorizeLast - FilterAction.IncludeAndColorizeFirst + 1;
 			if (lightThemeColors.Length != numColors)
@@ -298,7 +324,7 @@ namespace LogJoint
 #if MONOMAC
 	public class OSXThemeAccess : IColorThemeAccess
 	{
-		ColorTheme IColorThemeAccess.Theme => ???;
+		ColorTheme IColorThemeAccess.Theme => ColorTheme.Dark;
 	};
 #endif
 }

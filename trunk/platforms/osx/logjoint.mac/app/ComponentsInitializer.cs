@@ -62,8 +62,8 @@ namespace LogJoint.UI
 				Progress.IProgressAggregatorFactory progressAggregatorsFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorsFactory.CreateProgressAggregator();
 
-				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
-					new PastelColorsGenerator(),
+				IColorThemeAccess colorThemeAccess = new StaticLightColorThemeAccess(); // todo: https://stackoverflow.com/questions/51672124/how-can-dark-mode-be-detected-on-macos-10-14
+				IAdjustableColorTable colorGenerator = new LogThreadsColorsTable(colorThemeAccess, changeNotification,
 					globalSettingsAccessor.Appearance.ColoringBrightness
 				);
 
@@ -238,6 +238,8 @@ namespace LogJoint.UI
 				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
 				UI.Presenters.IFileDialogs fileDialogs = new UI.FileDialogs();
 
+				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorThemeAccess);
+
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					changeNotification,
 					heartBeatTimer,
@@ -252,7 +254,8 @@ namespace LogJoint.UI
 					bookmarks,
 					globalSettingsAccessor,
 					searchManager,
-					filtersFactory
+					filtersFactory,
+					highlightColorsTable
 				);
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
@@ -324,7 +327,8 @@ namespace LogJoint.UI
 						UI.Presenters.FilterDialog.IPresenter filterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
 							null, // logSources is not required. Scope is not supported by search.
 							filtersList,
-							new UI.FilterDialogController((AppKit.NSWindowController)dialogView)
+							new UI.FilterDialogController((AppKit.NSWindowController)dialogView),
+							highlightColorsTable
 						);
 						return new UI.Presenters.FiltersManager.Presenter(
 							filtersList,
@@ -332,7 +336,8 @@ namespace LogJoint.UI
 							new UI.Presenters.FiltersListBox.Presenter(
 								filtersList,
 								dialogView.FiltersManagerView.FiltersListView,
-								filterDialogPresenter
+								filterDialogPresenter,
+								highlightColorsTable
 							),
 							filterDialogPresenter,
 							null, // log viewer is not required
@@ -505,13 +510,15 @@ namespace LogJoint.UI
 				UI.Presenters.FilterDialog.IPresenter hlFilterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
 					logSourcesManager,
 					filtersManager.HighlightFilters,
-					new UI.FilterDialogController(mainWindow)
+					new UI.FilterDialogController(mainWindow),
+					highlightColorsTable
 				);
 
 				UI.Presenters.FiltersListBox.IPresenter hlFiltersListPresenter = new UI.Presenters.FiltersListBox.Presenter(
 					filtersManager.HighlightFilters,
 					mainWindow.HighlightingFiltersManagerControlAdapter.FiltersList,
-					hlFilterDialogPresenter
+					hlFilterDialogPresenter,
+					highlightColorsTable
 				);
 
 				UI.Presenters.FiltersManager.IPresenter hlFiltersManagerPresenter = new UI.Presenters.FiltersManager.Presenter(

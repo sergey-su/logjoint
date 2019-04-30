@@ -250,7 +250,7 @@ namespace LogJoint.UI
 
 				int maxRight;
 				DrawingUtils.PaintControl (drawContext, viewModel, isFocused,
-					dirtyRect.ToRectangle (), out maxRight);
+					dirtyRect.ToRectangle (), out maxRight, drawViewLinesAggregaredText: false /* todo: check theme */);
 
 				if (maxRight > viewWidth) {
 					viewWidth = maxRight;
@@ -328,9 +328,8 @@ namespace LogJoint.UI
 				}
 			);
 			drawContext.Canvas = new LJD.Graphics ();
-			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.White);
+			drawContext.DefaultBackgroundBrush = Brushes.Black; // new LJD.Brush(Color.White);
 			drawContext.InfoMessagesBrush = new LJD.Brush(Color.Black);
-			drawContext.CommentsBrush = new LJD.Brush(Color.Gray);
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
 			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
 			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);

@@ -265,13 +265,8 @@ namespace LogJoint.UI
 		public float DpiScale = 1f;
 		public Brush InfoMessagesBrush;
 		public Font Font => fontDependentData().font;
-		public Brush CommentsBrush; // todo: delete
 		public Brush DefaultBackgroundBrush;
 		public Brush SelectedBkBrush;
-		public Brush SelectedFocuslessBkBrush; // todo: delete
-		public Brush SelectedTextBrush; // todo: delete
-		public Brush SelectedFocuslessTextBrush; // todo: delete
-		public Brush FocusedMessageBkBrush; // todo: delete
 		public Image ErrorIcon, WarnIcon, BookmarkIcon, SmallBookmarkIcon, FocusedMessageIcon, FocusedMessageSlaveIcon;
 		public Pen CursorPen;
 		public Pen TimeSeparatorLine;
