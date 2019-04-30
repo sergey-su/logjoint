@@ -174,7 +174,7 @@ namespace LogJoint
 
 			Node(Token tok)
 			{
-				if (!Regex.IsMatch(tok.value, @"^[\w\.\-_\#\@\/\\]+$"))
+				if (!Regex.IsMatch(tok.value, @"^[\w\.\-_\#\@\/\\\:]+$"))
 					throw new SyntaxError(SyntaxError.BadTagName, tok.pos);
 				this.type = Type.Tag;
 				this.children = new List<Node>();
