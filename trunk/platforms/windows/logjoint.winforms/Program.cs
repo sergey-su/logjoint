@@ -36,7 +36,7 @@ namespace LogJoint
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
-				ISynchronizationContext modelSynchronizationContext = new ComponentModelSynchronizationContext(mainForm, () => mainForm.IsHandleCreated);
+				ISynchronizationContext modelSynchronizationContext = new WinFormsSynchronizationContext(mainForm);
 				ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 				IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
@@ -71,10 +71,9 @@ namespace LogJoint
 				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
-				IColorThemeAccess colorThemeAccess = new StaticLightColorThemeAccess();
-				IAdjustableColorTable colorGenerator = new LogThreadsColorsTable(colorThemeAccess, changeNotification, globalSettingsAccessor.Appearance.ColoringBrightness);
+				IColorTheme colorTheme = new ColorTheme(new StaticSystemThemeDetector(ColorThemeMode.Dark), globalSettingsAccessor);
 
-				IModelThreads modelThreads = new ModelThreads(colorGenerator);
+				IModelThreads modelThreads = new ModelThreads(new ColorLease(colorTheme.ThreadColors.Length));
 
 				ILogSourcesManager logSourcesManager = new LogSourcesManager(
 					heartBeatTimer,
@@ -201,7 +200,6 @@ namespace LogJoint
 					filtersFactory,
 					globalSettingsAccessor,
 					logSourcesManager,
-					colorGenerator,
 					shutdown
 				);
 
@@ -237,7 +235,7 @@ namespace LogJoint
 
 				UI.Presenters.IShellOpen shellOpen = new ShellOpen();
 
-				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorThemeAccess);
+				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorTheme);
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					changeNotification,
@@ -254,7 +252,7 @@ namespace LogJoint
 					globalSettingsAccessor,
 					searchManager,
 					filtersFactory,
-					highlightColorsTable
+					colorTheme
 				);
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;
@@ -290,7 +288,8 @@ namespace LogJoint
 					viewerPresenter,
 					statusReportFactory,
 					tabUsageTracker,
-					heartBeatTimer);
+					heartBeatTimer,
+					colorTheme);
 
 				UI.Presenters.TimelinePanel.IPresenter timelinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
 					mainForm.timeLinePanel,
@@ -316,7 +315,8 @@ namespace LogJoint
 					viewerPresenter,
 					navHandler,
 					viewUpdates,
-					heartBeatTimer);
+					heartBeatTimer,
+					colorTheme);
 				tracer.Info("threads list presenter created");
 
 				var dialogs = new Alerts();
@@ -388,7 +388,8 @@ namespace LogJoint
 						navHandler,
 						alertPopup,
 						clipboardAccess,
-						shellOpen
+						shellOpen,
+						colorTheme
 					);
 
 				UI.Presenters.SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter = new UI.Presenters.SaveJointLogInteractionPresenter.Presenter(
@@ -411,7 +412,8 @@ namespace LogJoint
 					fileDialogs,
 					clipboardAccess,
 					shellOpen,
-					saveJointLogInteractionPresenter
+					saveJointLogInteractionPresenter,
+					colorTheme
 				);
 
 
@@ -548,7 +550,8 @@ namespace LogJoint
 					filtersManager.HighlightFilters,
 					new MessagePropertiesDialogView(mainForm, changeNotification),
 					viewerPresenter,
-					navHandler);
+					navHandler,
+					colorTheme);
 
 
 				Func<IFiltersList, UI.Presenters.FiltersManager.IView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
@@ -579,7 +582,8 @@ namespace LogJoint
 					mainForm.bookmarksManagerView.ListView,
 					heartBeatTimer,
 					loadedMessagesPresenter,
-					clipboardAccess);
+					clipboardAccess,
+					colorTheme);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
 					bookmarks,
@@ -612,7 +616,7 @@ namespace LogJoint
 				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
 					new OptionsDialogView(),
 					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(globalSettingsAccessor, recentlyUsedLogs, searchHistory, pageView),
-					pageView => new UI.Presenters.Options.Appearance.Presenter(globalSettingsAccessor, pageView, logViewerPresenterFactory, changeNotification),
+					pageView => new UI.Presenters.Options.Appearance.Presenter(globalSettingsAccessor, pageView, logViewerPresenterFactory, changeNotification, colorTheme),
 					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, globalSettingsAccessor, pageView)
 				);
 
@@ -665,7 +669,8 @@ namespace LogJoint
 					alertPopup,
 					sharingDialogPresenter,
 					issueReportDialogPresenter,
-					shutdown
+					shutdown,
+					colorTheme
 				);
 				tracer.Info("main form presenter created");
 
@@ -729,7 +734,8 @@ namespace LogJoint
 						promptDialog,
 						mainFormPresenter,
 						postprocessingTabPagePresenter,
-						postprocessingViewsFactory
+						postprocessingViewsFactory,
+						colorTheme
 					),
 					new Extensibility.View(
 						mainForm

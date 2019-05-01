@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		readonly IModelThreads threads;
 		readonly IFiltersList hlFilters;
-		readonly DummySource dummySource;
+		DummySource dummySource;
 
 		public DummyModel(IModelThreads threads = null, Settings.IGlobalSettingsAccessor settings = null)
 		{
@@ -21,11 +21,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void SetMessages(IEnumerable<IMessage> msgs)
 		{
-			dummySource.messages.Clear();
+			dummySource = new DummySource();
 			foreach (var m in msgs)
 				dummySource.messages.Add(m);
 			OnSourcesChanged?.Invoke(this, EventArgs.Empty);
-			OnSourceMessagesChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		public event EventHandler OnSourceMessagesChanged;

@@ -21,6 +21,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;
+		readonly IColorTheme theme;
 		readonly LazyUpdateFlag gapsUpdateFlag = new LazyUpdateFlag();
 		readonly LazyUpdateFlag viewUpdateFlag = new LazyUpdateFlag();
 
@@ -49,7 +50,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			LogViewer.IPresenter viewerPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			ITabUsageTracker tabUsageTracker,
-			IHeartBeatTimer heartbeat)
+			IHeartBeatTimer heartbeat,
+			IColorTheme theme
+		)
 		{
 			this.sourcesManager = sourcesManager;
 			this.preprocMgr = preprocMgr;
@@ -60,6 +63,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			this.statusReportFactory = statusReportFactory;
 			this.tabUsageTracker = tabUsageTracker;
 			this.heartbeat = heartbeat;
+			this.theme = theme;
 
 			viewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -795,7 +799,7 @@ namespace LogJoint.UI.Presenters.Timeline
 					}
 					else
 					{
-						// toutch the container to keep it's state in the cache
+						// touch the container to keep it's state in the cache
 						containers.Get(containerGroup.Key, cnt => new ContainerDataSource(cnt));
 						pd.Sources.AddRange(visibleGroupSources);
 					}
@@ -813,7 +817,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			sourcesCache1.MarkAllInvalid();
 			sourcesCache2.MarkAllInvalid();
 			foreach (ILogSource s in sourcesManager.Items)
-				yield return sourcesCache1.Get(s, ls => new LogTimelineDataSource(ls, preprocMgr));
+				yield return sourcesCache1.Get(s, ls => new LogTimelineDataSource(ls, preprocMgr, theme));
 			foreach (ISearchResult sr in searchManager.Results)
 				yield return sourcesCache2.Get(sr, arg => new SearchResultDataSource(arg));
 			sourcesCache1.Cleanup();
@@ -1300,11 +1304,13 @@ namespace LogJoint.UI.Presenters.Timeline
 	class LogTimelineDataSource : ITimeLineDataSource
 	{
 		readonly ILogSource logSource;
+		readonly IColorTheme theme;
 		readonly string containerName;
 
-		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc)
+		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc, IColorTheme theme)
 		{
 			this.logSource = logSource;
+			this.theme = theme;
 			this.containerName = preproc.ExtractContentsContainerNameFromConnectionParams(
 				logSource.Provider.ConnectionParams);
 		}
@@ -1321,7 +1327,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		ModelColor ITimeLineDataSource.Color
 		{
-			get { return logSource.Color; }
+			get { return theme.ThreadColors.GetByIndex(logSource.ColorIndex); }
 		}
 
 		string ITimeLineDataSource.DisplayName

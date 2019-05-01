@@ -27,7 +27,7 @@ namespace LogJoint
 		readonly ISynchronizationContext invoker;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
-		ModelColor? color;
+		int? color;
 
 		public LogSource(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
@@ -284,7 +284,7 @@ namespace LogJoint
 			get { return !this.provider.IsDisposed ? this.provider.Stats.LoadedTime : new DateRange(); }
 		}
 
-		ModelColor ILogSource.Color
+		int ILogSource.ColorIndex
 		{
 			get
 			{
@@ -294,17 +294,17 @@ namespace LogJoint
 				{
 					foreach (IThread t in provider.Threads)
 					{
-						color = t.ThreadColor;
+						color = t.ThreadColorIndex;
 						break;
 					}
 				}
 				if (color.HasValue)
 					return color.Value;
-				return new ModelColor(0xffffffff);
+				return 0;
 			}
 			set
 			{
-				if (color.HasValue && value.Argb == color.Value.Argb)
+				if (color.HasValue && value == color.Value)
 					return;
 				color = value;
 				owner.OnSourceColorChanged(this);

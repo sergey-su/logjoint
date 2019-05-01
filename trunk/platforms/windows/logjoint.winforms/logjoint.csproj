@@ -146,8 +146,14 @@
     <Compile Include="..\..\shared\settings\WebContentConfig.cs">
       <Link>Properties\WebContentConfig.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\LogViewerControl\GraphicsResource.cs">
+      <Link>ui\LogViewerControl\GraphicsResource.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
       <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\LogViewerControl\MessageDrawing.cs">
+      <Link>ui\LogViewerControl\MessageDrawing.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\ui\Postprocessing\PostprocessorOutputFormFactoryBase.cs">
       <Link>ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactoryBase.cs</Link>
@@ -193,6 +199,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="threading\WinFormsSynchronizationContext.cs" />
     <Compile Include="ui\About\AboutBox.cs">
       <SubType>Form</SubType>
     </Compile>

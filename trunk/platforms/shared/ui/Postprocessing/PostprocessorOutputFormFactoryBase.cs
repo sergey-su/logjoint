@@ -125,7 +125,8 @@ namespace LogJoint.UI.Postprocessing
 				app.Model.StorageManager,
 				app.Presentation.Facade,
 				app.Model.Postprocessing.ShortNames,
-				app.Model.ChangeNotification
+				app.Model.ChangeNotification,
+				app.Presentation.Theme
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Timeline, timelineForm, timelinePresenter));
 		}

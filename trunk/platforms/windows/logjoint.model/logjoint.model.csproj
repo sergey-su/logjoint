@@ -323,9 +323,6 @@
     <Compile Include="..\..\..\model\generic\StringUtils.cs">
       <Link>generic\StringUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\synchronization\ComponentModelSynchronizationContext.cs">
-      <Link>generic\synchronization\ComponentModelSynchronizationContext.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\synchronization\Interfaces.cs">
       <Link>generic\synchronization\Interfaces.cs</Link>
     </Compile>

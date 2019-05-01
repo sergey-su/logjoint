@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Telemetry.ITelemetryCollector telemetry,
 			IScreenBufferFactory screenBufferFactory,
 			IChangeNotification changeNotification,
-			IColorTable highlightColorsTable
+			IColorTheme theme
 		)
 		{
 			this.model = model;
@@ -33,18 +33,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.bookmarksFactory = bookmarksFactory;
 			this.telemetry = telemetry;
 			this.screenBufferFactory = screenBufferFactory;
+			this.theme = theme;
 
 			this.tracer = new LJTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			var wordSelection = new WordSelection();
 			this.selectionManager = new SelectionManager(
-				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection);
+				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection, theme);
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry);
 			this.highlightingManager = new HighlightingManager(
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
-				model.HighlightFilters, this.selectionManager, wordSelection, highlightColorsTable
+				model.HighlightFilters, this.selectionManager, wordSelection, theme
 			);
 			this.displayTextGetterSelector = MakeDisplayTextGetterSelector();
 
@@ -84,10 +85,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (viewTailMode)
 						ThisIntf.GoToEnd();
+					else
+						Refresh().IgnoreCancellation();
 				}
 			};
 
-			model.GlobalSettings.Changed += (sender, e) =>
+			model.GlobalSettings.Changed += (sender, e) => // todo: read directly from config
 			{
 				if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
 				{
@@ -718,6 +721,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		LJTraceSource IViewModel.Trace => tracer;
 
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
+
 		double? IViewModel.VerticalScrollerPosition => screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?();
 
 		string IViewModel.EmptyViewMessage => screenBuffer.Messages.Count == 0 ? model.MessageToDisplayWhenMessagesCollectionIsEmpty : null;
@@ -930,6 +935,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 					return;
 				cancellation.ThrowIfCancellationRequested();
 				await MoveSelectionCore(selectionDelta, selFlags, cancellation);
+			});
+		}
+
+		Task Refresh()
+		{
+			return navigationManager.NavigateView(async cancellation =>
+			{
+				await screenBuffer.Refresh(cancellation);
 			});
 		}
 
@@ -1280,7 +1293,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, model.Bookmarks?.Items),
-				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring, logSourceColorsRevision),
+				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
@@ -1301,6 +1314,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 								isBookmarked: !screenBufferEntry.Message.Thread.IsDisposed && bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(
 									screenBufferEntry.Message, screenBufferEntry.TextLineIndex),
 								coloring: displayProps.coloring,
+								threadColors: displayProps.threadColors,
 								cursorCharIndex: selectionProps.CursorState && selectionProps.CursorViewLine == screenBufferEntry.Index ? selectionProps.Selection?.First?.LineCharIndex : new int?(),
 								searchResultHighlightingHandler: highlightingProps.SearchResultHandler,
 								selectionHighlightingHandler: highlightingProps.SelectionHandler,
@@ -1388,6 +1402,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly INavigationManager navigationManager;
 		readonly ISelectionManager selectionManager;
 		readonly IHighlightingManager highlightingManager;
+		readonly IColorTheme theme;
 
 		IBookmark slaveModeFocusedMessage;
 		string defaultFocusedMessageActionCaption;

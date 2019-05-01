@@ -19,12 +19,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			IView view, 
 			IHeartBeatTimer heartbeat,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
-			IClipboardAccess clipboardAccess)
+			IClipboardAccess clipboardAccess,
+			IColorTheme colorTheme)
 		{
 			this.bookmarks = bookmarks;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.clipboardAccess = clipboardAccess;
+			this.colorTheme = colorTheme;
 			this.trace = new LJTraceSource("UI", "bmks");
 
 			bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
@@ -66,9 +68,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			ClickSelectedLink(focusMessagesView: true, actionName: "dblclick");
 		}
 
-		void IViewEvents.OnBookmarkLeftClicked(IBookmark bmk)
+		void IViewEvents.OnBookmarkLeftClicked(ViewItem bmk)
 		{
-			NavigateTo(bmk, "click");
+			NavigateTo(bmk.Bookmark, "click");
 		}
 
 		void IViewEvents.OnMenuItemClicked(ContextMenuItem item)
@@ -147,7 +149,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			var bmk = view.SelectedBookmark;
 			if (bmk != null)
 			{
-				NavigateTo(bmk, actionName);
+				NavigateTo(bmk.Value.Bookmark, actionName);
 				if (focusMessagesView)
 					loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 			}
@@ -163,7 +165,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void UpdateViewInternal(IEnumerable<IBookmark> newSelection, ViewUpdateFlags flags)
 		{
 			view.UpdateItems(EnumBookmarkForView(
-				newSelection != null ? newSelection.ToLookup(b => b) : view.SelectedBookmarks.ToLookup(b => b)), flags);
+				newSelection != null ? newSelection.ToLookup(b => b) : view.SelectedBookmarks.ToLookup(b => b.Bookmark, b => b.Bookmark)), flags);
 			UpdateFocusedMessagePosition();
 		}
 
@@ -172,7 +174,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return EnumBookmarkForView(bookmarks.Items, selected);
 		}
 
-		static IEnumerable<ViewItem> EnumBookmarkForView(IEnumerable<IBookmark> bookmarks, ILookup<IBookmark, IBookmark> selected)
+		IEnumerable<ViewItem> EnumBookmarkForView(IEnumerable<IBookmark> bookmarks, ILookup<IBookmark, IBookmark> selected)
 		{
 			DateTime? prevTimestamp = null;
 			DateTime? prevSelectedTimestamp = null;
@@ -186,13 +188,24 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				var deltaBase = multiSelection ? (isSelected ? prevSelectedTimestamp : null) : prevTimestamp;
 				var delta = deltaBase != null ? ts - deltaBase.Value : new TimeSpan?();
 				var altDelta = prevTimestamp != null ? ts - prevTimestamp.Value : new TimeSpan?();
+				int? colorIndex = null;
+				var thread = bmk.Thread;
+				var coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
+				if (coloring == Settings.Appearance.ColoringMode.Threads)
+					if (!thread.IsDisposed)
+						colorIndex = thread.ThreadColorIndex;
+				if (coloring == Settings.Appearance.ColoringMode.Sources)
+					if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
+						colorIndex = thread.LogSource.ColorIndex;
 				yield return new ViewItem()
 				{
 					Bookmark = bmk,
+					Text = bmk.ToString(),
 					Delta = TimeUtils.TimeDeltaToString(delta),
 					AltDelta = TimeUtils.TimeDeltaToString(altDelta),
 					IsSelected = isSelected,
-					IsEnabled = isEnabled
+					IsEnabled = isEnabled,
+					ContextColor = colorTheme.ThreadColors.GetByIndex(colorIndex)
 				};
 				prevTimestamp = ts;
 				if (isSelected)
@@ -218,7 +231,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		private void DeleteSelectedBookmarks()
 		{
-			var selectedBmks = view.SelectedBookmarks.ToLookup(b => b);
+			var selectedBmks = view.SelectedBookmarks.ToLookup(b => b.Bookmark);
 			if (selectedBmks.Count == 0)
 				return;
 			IBookmark newSelectionCandidate2 = null;
@@ -234,7 +247,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					newSelectionCandidate1 = b;
 			}
 			foreach (var bmk in selectedBmks.SelectMany(g => g))
-				bookmarks.ToggleBookmark(bmk);
+				bookmarks.ToggleBookmark(bmk.Bookmark);
 			UpdateViewInternal(new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null), ViewUpdateFlags.None);
 		}
 
@@ -251,7 +264,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		private void CopyToClipboard(bool copyTimeDeltas)
 		{
 			var texts = 
-				EnumBookmarkForView(view.SelectedBookmarks, new IBookmark[0].ToLookup(b => b))
+				EnumBookmarkForView(view.SelectedBookmarks.Select(b => b.Bookmark), new IBookmark[0].ToLookup(b => b))
 				.Select((b, i) => new 
 				{ 
 					Index = i,
@@ -300,13 +313,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			{
 				var t = b.GetSafeThread();
 				if (t != null)
-					cl = t.ThreadColor.ToHtmlColor();
+					cl = colorTheme.ThreadColors.GetByIndex(t.ThreadColorIndex).ToHtmlColor();
 			}
 			else if (coloring == Settings.Appearance.ColoringMode.Sources)
 			{
 				var ls = b.GetSafeLogSource();
 				if (ls != null)
-					cl = ls.Color.ToHtmlColor();
+					cl = colorTheme.ThreadColors.GetByIndex(ls.ColorIndex).ToHtmlColor();
 			}
 			return cl;
 		}
@@ -316,6 +329,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		readonly LJTraceSource trace;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IClipboardAccess clipboardAccess;
+		readonly IColorTheme colorTheme;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		IBookmark focusedMessage;
 		Tuple<int, int> focusedMessagePosition;

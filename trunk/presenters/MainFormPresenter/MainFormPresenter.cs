@@ -31,7 +31,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			IAlertPopup alerts,
 			SharingDialog.IPresenter sharingDialogPresenter,
 			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter,
-			IShutdown shutdown
+			IShutdown shutdown,
+			IColorTheme theme
 		)
 		{
 			this.tracer = new LJTraceSource("UI", "ui.main");
@@ -53,6 +54,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.issueReportDialogPresenter = issueReportDialogPresenter;
 			this.shutdown = shutdown;
 			this.statusRepors = statusReportFactory;
+			this.theme = theme;
 
 			view.SetPresenter(this);
 
@@ -162,7 +164,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IPresenter.ExecuteThreadPropertiesDialog(IThread thread)
 		{
-			view.ExecuteThreadPropertiesDialog(thread, presentersFacade);
+			view.ExecuteThreadPropertiesDialog(thread, presentersFacade, theme);
 		}
 
 		void IPresenter.ActivateTab(string tabId)
@@ -419,6 +421,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IShutdown shutdown;
 		readonly StatusReports.IPresenter statusRepors;
 		readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;
+		readonly IColorTheme theme;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalyzing;

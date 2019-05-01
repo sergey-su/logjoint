@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IFiltersList highlightFilters,
 			ISelectionManager selectionManager,
 			IWordSelection wordSelection,
-			IColorTable highlightColorsTable
+			IColorTheme theme
 		)
 		{
 			var viewSizeQuantizedSelector = Selectors.Create(
@@ -29,7 +29,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => (highlightFilters?.FilteringEnabled, highlightFilters?.Items, highlightFilters?.FiltersVersion),
 				displayTextGetterSelector,
 				viewSizeQuantizedSelector,
-				() => highlightColorsTable.Items,
+				() => theme.HighlightingColors,
 				(filtersData, displayTextGetter, viewSize, hlColors) => filtersData.FilteringEnabled == true ? 
 					  new CachingHighlightingHandler(msg => GetHlHighlightingRanges(msg, filtersData.Items, displayTextGetter, hlColors), ViewSizeToCacheSize(viewSize))
 					: (IHighlightingHandler)new DummyHandler()

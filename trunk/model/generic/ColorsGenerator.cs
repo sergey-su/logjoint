@@ -1,28 +1,51 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
-	public interface IColorTable
+	public interface IColorTable // todo: consider moving to presentation layer
 	{
-		ImmutableArray<ModelColor> Items { get; }
-		ColorTableEntry GetNextColor(bool addRef, ModelColor? preferredColor = null);
-		void ReleaseColor(int id);
+		ImmutableArray<ModelColor> Items { get; } // todo: make it a part of theme?
+	};
+
+	public static class ColorTableExtensions // todo: move to separate file
+	{
+		public static ModelColor GetByIndex(this IColorTable table, int index)
+		{
+			return GetByIndex(table.Items, index);
+		}
+
+		public static ModelColor GetByIndex(this ImmutableArray<ModelColor> table, int index)
+		{
+			return table[index % table.Length];
+		}
+
+		public static ModelColor? GetByIndex(this ImmutableArray<ModelColor> table, int? index)
+		{
+			return index != null ? table[index.Value % table.Length] : new ModelColor?();
+		}
+	};
+
+	public interface IColorLease
+	{
+		int GetNextColor(int? preferredColor = null);
+		void ReleaseColor(int index);
 		void Reset();
 	};
 
-	public interface IAdjustableColorTable : IColorTable
+	public interface IColorTheme
 	{
-		PaletteBrightness Brightness { get; set; }
+		ColorThemeMode Mode { get; }
+		ImmutableArray<ModelColor> ThreadColors { get; }
+		ImmutableArray<ModelColor> HighlightingColors{ get; }
 	};
 
-	public interface IColorThemeAccess
+	public interface ISystemThemeDetector
 	{
-		ColorTheme Theme { get; }
+		ColorThemeMode Mode { get; }
 	};
+
 
 	public enum PaletteBrightness
 	{
@@ -33,7 +56,7 @@ namespace LogJoint
 		Maximum = Increased
 	};
 
-	public enum ColorTheme
+	public enum ColorThemeMode
 	{
 		Light,
 		Dark
@@ -52,7 +75,61 @@ namespace LogJoint
 	};
 
 
-	public class ColorTableBase : IColorTable
+	public class ColorLease : IColorLease
+	{
+		public ColorLease(int colorsCount)
+		{
+			this.refCounters = new int[colorsCount];
+		}
+
+		int IColorLease.GetNextColor(int? preferredColor)
+		{
+			int retIdx = 0;
+			lock (sync)
+			{
+				int minRefcounter = int.MaxValue;
+				for (int idx = 0; idx < refCounters.Length; ++idx)
+				{
+					if (preferredColor != null && preferredColor.Value == idx)
+					{
+						retIdx = idx;
+						break;
+					}
+					int refCount = refCounters[idx];
+					if (refCount < minRefcounter)
+					{
+						minRefcounter = refCounters[idx];
+						retIdx = idx;
+					}
+				}
+				++refCounters[retIdx];
+				return retIdx;
+			}
+		}
+
+		void IColorLease.ReleaseColor(int index)
+		{
+			lock (sync)
+			{
+				if (refCounters[index] > 0)
+					--refCounters[index];
+			}
+		}
+
+		void IColorLease.Reset()
+		{
+			lock (sync)
+			{
+				for (int idx = 0; idx < refCounters.Length; ++idx)
+					refCounters[idx] = 0;
+			}		
+		}
+
+		readonly object sync = new object();
+		readonly int[] refCounters;
+	};
+
+	public class ColorTableBase : IColorTable // todo: delete this base class
 	{
 		protected void Init(Func<int[]> colorsSelector)
 		{
@@ -65,57 +142,9 @@ namespace LogJoint
 		protected void Init(Func<ImmutableArray<ModelColor>> colorsSelector)
 		{
 			this.colorsSelector = colorsSelector;
-			this.refCounters = new int[colorsSelector().Length];
 		}
 
 		ImmutableArray<ModelColor> IColorTable.Items => colorsSelector();
-
-		ColorTableEntry IColorTable.GetNextColor(bool addRef, ModelColor? preferredColor)
-		{
-			int retIdx = 0;
-			lock (sync)
-			{
-				var colors = colorsSelector();
-				int minRefcounter = int.MaxValue;
-				for (int idx = 0; idx < colors.Length; ++idx)
-				{
-					if (preferredColor != null && preferredColor.Value.Argb == colors[idx].Argb)
-					{
-						retIdx = idx;
-						break;
-					}
-					int refCount = refCounters[idx];
-					if (refCount < minRefcounter)
-					{
-						minRefcounter = refCounters[idx];
-						retIdx = idx;
-					}
-				}
-				if (addRef)
-				{
-					++refCounters[retIdx];
-				}
-				return new ColorTableEntry(retIdx, colors[retIdx % colors.Length]);
-			}
-		}
-
-		void IColorTable.ReleaseColor(int id)
-		{
-			lock (sync)
-			{
-				if (refCounters[id] > 0)
-					--refCounters[id];
-			}
-		}
-
-		void IColorTable.Reset()
-		{
-			lock (sync)
-			{
-				for (int idx = 0; idx < refCounters.Length; ++idx)
-					refCounters[idx] = 0;
-			}
-		}
 
 		protected static ModelColor FromRGB(int rgb)
 		{
@@ -127,14 +156,11 @@ namespace LogJoint
 			return new ModelColor(color);
 		}
 
-		readonly object sync = new object();
 		Func<ImmutableArray<ModelColor>> colorsSelector;
-		int[] refCounters;
 	}
 
 	static class HSLColorsGenerator
 	{
-#if MONOMAC
 		static int MakeColor(double h, double s, double l)
 		{
 			// https://www.rapidtables.com/convert/color/hsl-to-rgb.html
@@ -156,16 +182,6 @@ namespace LogJoint
 				(byte) ((bp + m) * 255)
 			)).Argb);
 		}
-#else
-		[DllImport("shlwapi.dll")]
-		public static extern int ColorHLSToRGB(int H, int L, int S); // todo: check that generic impl gives same result and drop it
-
-		static int MakeColor(double h, double s, double l)
-		{
-			int toInt(double d) => (int)(d * 240d);
-			return ColorHLSToRGB(toInt(h), toInt(l), toInt(s));
-		}
-#endif
 
 		public static int[] Generate(int numHues, double saturation, double lightness)
 		{
@@ -180,43 +196,27 @@ namespace LogJoint
 		}
 	};
 
-	public class LogThreadsColorsTable : ColorTableBase, IAdjustableColorTable
+	public class LogThreadsColorsTable : ColorTableBase
 	{
-		PaletteBrightness paletteBrightness = PaletteBrightness.Normal; // todo: do not have independent state here
-		readonly IChangeNotification changeNotification;
-
 		public LogThreadsColorsTable(
-			IColorThemeAccess colorTheme,
-			IChangeNotification changeNotification,
-			PaletteBrightness initialBrightness)
+			IColorTheme colorTheme,
+			Func<PaletteBrightness> brightnessSelector)
 		{
-			this.paletteBrightness = initialBrightness;
-			this.changeNotification = changeNotification;
 			Init(Selectors.Create(
-				() => colorTheme.Theme,
-				() => paletteBrightness,
+				() => colorTheme.Mode,
+				brightnessSelector,
 				(theme, brightness) =>
 				{
-					if (theme == ColorTheme.Light)
+					if (theme == ColorThemeMode.Light)
 						return ImmutableArray.CreateRange(lightThemeBaseColors.Select(FromRGB).Select(cl => AdjustLightColor(cl, brightness)));
 					else
 						return ImmutableArray.CreateRange(
 							new[] { 0xdcdcdc }
-							.Union(HSLColorsGenerator.Generate(numHues: 16, saturation: 0.45, lightness: 0.75 /* todo: use brightness */))
+							.Union(HSLColorsGenerator.Generate(numHues: 16, saturation: 0.45, lightness: 0.65 + GetLightnessCorrection(brightness)))
 							.Select(FromRGB)
 						);
 				}
 			));
-		}
-
-		PaletteBrightness IAdjustableColorTable.Brightness
-		{
-			get => paletteBrightness;
-			set
-			{
-				paletteBrightness = value;
-				changeNotification.Post();
-			}
 		}
 
 		static readonly int[] lightThemeBaseColors = { 
@@ -242,6 +242,19 @@ namespace LogJoint
 					return color.MakeDarker(16);
 				default:
 					return color;
+			}
+		}
+
+		static double GetLightnessCorrection(PaletteBrightness brightness)
+		{
+			switch (brightness)
+			{
+				case PaletteBrightness.Increased:
+					return +0.1;
+				case PaletteBrightness.Decreased:
+					return -0.1;
+				default:
+					return 0;
 			}
 		}
 	};
@@ -282,15 +295,15 @@ namespace LogJoint
 	public class HighlightBackgroundColorsGenerator : ColorTableBase
 	{
 		public HighlightBackgroundColorsGenerator(
-			IColorThemeAccess colorTheme
+			IColorTheme colorTheme
 		)
 		{
 			var numColors = FilterAction.IncludeAndColorizeLast - FilterAction.IncludeAndColorizeFirst + 1;
 			if (lightThemeColors.Length != numColors)
 				throw new Exception("inconsistent constants");
 			Init(Selectors.Create(
-				() => colorTheme.Theme,
-				theme => theme == ColorTheme.Light ?
+				() => colorTheme.Mode,
+				theme => theme == ColorThemeMode.Light ?
 					lightThemeColors
 				  : HSLColorsGenerator.Generate(numHues: numColors, saturation: 0.80, lightness: 0.30)
 			));
@@ -316,15 +329,36 @@ namespace LogJoint
 		};
 	};
 
-	public class StaticLightColorThemeAccess : IColorThemeAccess
+	public class ColorTheme : IColorTheme
 	{
-		ColorTheme IColorThemeAccess.Theme => ColorTheme.Dark;
+		readonly ISystemThemeDetector systemThemeDetector;
+		readonly IColorTable threadColors;
+		readonly IColorTable highlightingColors;
+
+		public ColorTheme(
+			ISystemThemeDetector systemThemeDetector,
+			LogJoint.Settings.IGlobalSettingsAccessor settings
+		)
+		{
+			this.systemThemeDetector = systemThemeDetector;
+			this.threadColors = new LogThreadsColorsTable(this, () => settings.Appearance.ColoringBrightness);
+			this.highlightingColors = new HighlightBackgroundColorsGenerator(this);
+		}
+
+		ColorThemeMode IColorTheme.Mode => systemThemeDetector.Mode;
+
+		ImmutableArray<ModelColor> IColorTheme.ThreadColors => threadColors.Items;
+
+		ImmutableArray<ModelColor> IColorTheme.HighlightingColors => highlightingColors.Items;
 	};
 
-#if MONOMAC
-	public class OSXThemeAccess : IColorThemeAccess
+	public class StaticSystemThemeDetector : ISystemThemeDetector
 	{
-		ColorTheme IColorThemeAccess.Theme => ColorTheme.Dark;
+		public StaticSystemThemeDetector(ColorThemeMode mode)
+		{
+			Mode = mode;
+		}
+
+		public ColorThemeMode Mode { get; private set; }
 	};
-#endif
 }

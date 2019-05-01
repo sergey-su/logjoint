@@ -117,6 +117,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			double bufferPosition,
 			CancellationToken cancellation
 		);
+
+		Task Refresh(CancellationToken cancellation);
 	};
 
 	public interface IScreenBufferFactory

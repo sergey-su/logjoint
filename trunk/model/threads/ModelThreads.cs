@@ -6,12 +6,12 @@ namespace LogJoint
 {
 	public class ModelThreads : IModelThreads
 	{
-		public ModelThreads(IColorTable colors)
+		public ModelThreads(IColorLease colors)
 		{
 			this.colors = colors;
 		}
 		public ModelThreads()
-			: this(new HTMLColorsGenerator())
+			: this(new ColorLease(16))
 		{
 		}
 
@@ -41,11 +41,6 @@ namespace LogJoint
 			return new ThreadsBulkProcessing(this);
 		}
 
-		IColorTable IModelThreads.ColorTable
-		{
-			get { return colors; }
-		}
-
 		internal class Thread : IThread, IDisposable
 		{
 			public bool IsDisposed
@@ -60,9 +55,9 @@ namespace LogJoint
 			{
 				get { return id; }
 			}
-			public ModelColor ThreadColor
+			public int ThreadColorIndex
 			{
-				get { return color.Color; }
+				get { return color; }
 			}
 			public ILogSource LogSource
 			{
@@ -172,7 +167,7 @@ namespace LogJoint
 								next.prev = prev;
 						}
 					}
-					owner.colors.ReleaseColor(color.ID);
+					owner.colors.ReleaseColor(color);
 					ModelThreads tmp = owner;
 					EventHandler tmpEvt = tmp.OnThreadListChanged;
 					owner = null;
@@ -191,7 +186,7 @@ namespace LogJoint
 				this.id = id;
 				this.visible = true;
 				this.owner = owner;
-				this.color = owner.colors.GetNextColor(true);
+				this.color = owner.colors.GetNextColor();
 				this.logSource = logSource;
 
 				lock (owner.sync)
@@ -224,7 +219,7 @@ namespace LogJoint
 			string id;
 			bool visible;
 			string description;
-			ColorTableEntry color;
+			int color;
 			IBookmark firstMessageBmk;
 			MessageTimestamp lastMessageTime;
 			IMessage lastMessageBmkMessage;
@@ -278,6 +273,6 @@ namespace LogJoint
 
 		object sync = new object();
 		Thread threads;
-		IColorTable colors;
+		IColorLease colors;
 	}
 }

@@ -16,13 +16,15 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			Presenters.LogViewer.IPresenter viewerPresenter,
 			IPresentersFacade navHandler,
 			IViewUpdates viewUpdates,
-			IHeartBeatTimer heartbeat)
+			IHeartBeatTimer heartbeat,
+			IColorTheme theme)
 		{
 			this.threads = threads;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
 			this.viewUpdates = viewUpdates;
+			this.theme = theme;
 
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{
@@ -52,6 +54,8 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 			view.SetPresenter(this);
 		}
+
+		public IColorTheme Theme => theme;
 
 		void IPresenter.Select(IThread thread)
 		{
@@ -212,6 +216,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		readonly Presenters.LogViewer.IPresenter viewerPresenter;
 		readonly IPresentersFacade navHandler;
 		readonly IViewUpdates viewUpdates;
+		readonly IColorTheme theme;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		int updateLock = 0;
 		int sortColumn = -1;

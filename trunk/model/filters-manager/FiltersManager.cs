@@ -10,7 +10,6 @@ namespace LogJoint
 			IFiltersFactory filtersFactory,
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor,
 			ILogSourcesManager logSourcesManager,
-			IAdjustableColorTable threadColors,
 			IShutdown shutdown
 		)
 		{
@@ -18,14 +17,6 @@ namespace LogJoint
 			this.logSources = logSourcesManager;
 
 			this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting);
-
-			this.globalSettings.Changed += (sender, args) =>
-			{
-				if ((args.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
-				{
-					threadColors.Brightness = globalSettings.Appearance.ColoringBrightness;
-				}
-			};
 
 			this.logSources.OnLogSourceRemoved += (s, e) =>
 			{

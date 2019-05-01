@@ -13,11 +13,13 @@ namespace LogJoint.UI
 	{
 		IThread thread;
 		IPresentersFacade handler;
+		IColorTheme theme;
 
-		public ThreadPropertiesForm(IThread thread, IPresentersFacade handler)
+		public ThreadPropertiesForm(IThread thread, IPresentersFacade handler, IColorTheme theme)
 		{
 			this.thread = thread;
 			this.handler = handler;
+			this.theme = theme;
 			InitializeComponent();
 			UpdateView();
 		}
@@ -42,7 +44,7 @@ namespace LogJoint.UI
 			idTextBox.Text = thread.ID;
 			idTextBox.Select(0, 0);
 			nameTextBox.Text = thread.Description;
-			colorPanel.BackColor = thread.ThreadColor.ToColor();
+			colorPanel.BackColor = theme.ThreadColors.GetByIndex(thread.ThreadColorIndex).ToColor();
 			SetBookmark(firstMessageLinkLabel, thread.FirstKnownMessage);
 			SetBookmark(lastMessageLinkLabel, thread.LastKnownMessage);
 			logSourceLink.Text = thread.LogSource.DisplayName;

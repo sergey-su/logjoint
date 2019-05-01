@@ -33,7 +33,7 @@ namespace LogJoint
 		string ConnectionId { get; }
 
 		ILogSourceThreads Threads { get; }
-		ModelColor Color { get; set; }
+		int ColorIndex { get; set; }
 		DateRange AvailableTime { get; }
 		DateRange LoadedTime { get; }
 		bool Visible { get; set; }
