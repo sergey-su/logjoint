@@ -14,8 +14,7 @@ namespace LogJoint.UI
 	public partial class BookmarksListControlAdapter : NSViewController, IView
 	{
 		readonly DataSource dataSource = new DataSource();
-		IViewEvents viewEvents;
-		IPresentationDataAccess presentationDataAccess;
+		IViewModel viewEvents;
 		bool isUpdating;
 
 		#region Constructors
@@ -63,15 +62,14 @@ namespace LogJoint.UI
 			get { return (BookmarksListControl)base.View; }
 		}
 
-		internal IViewEvents ViewEvents
+		internal IViewModel ViewEvents
 		{
 			get { return viewEvents; }
 		}
 
-		void IView.SetPresenter(IViewEvents viewEvents)
+		void IView.SetPresenter(IViewModel viewEvents)
 		{
 			this.viewEvents = viewEvents;
-			this.presentationDataAccess = (IPresentationDataAccess)viewEvents;
 		}
 
 		void IView.UpdateItems(IEnumerable<ViewItem> viewItems, ViewUpdateFlags flags)
@@ -99,23 +97,22 @@ namespace LogJoint.UI
 			InvalidateTable();
 		}
 
-		LogJoint.IBookmark IView.SelectedBookmark
+		ViewItem? IView.SelectedBookmark
 		{
 			get
 			{
-				return GetBookmark(GetItem((int)tableView.SelectedRow));
+				return GetItem((int)tableView.SelectedRow)?.Data;
 			}
 		}
 
-		IEnumerable<LogJoint.IBookmark> IView.SelectedBookmarks
+		IEnumerable<ViewItem> IView.SelectedBookmarks
 		{
 			get
 			{
 				return 
 					dataSource.items
 					.Where(i => tableView.IsRowSelected((int)i.Index))
-					.Select(i => GetBookmark(i))
-					.Where(b => b != null);
+					.Select(i => i.Data);
 			}
 		}
 
@@ -136,15 +133,10 @@ namespace LogJoint.UI
 			return row >= 0 && row < dataSource.items.Count ? dataSource.items[row] : null;
 		}
 
-		IBookmark GetBookmark(Item item)
-		{
-			return item != null ? item.Data.Bookmark : null;
-		}
-
 		void OnItemClicked(Item item, NSEvent evt)
 		{
 			if (evt.ClickCount == 1)
-				viewEvents.OnBookmarkLeftClicked(item.Data.Bookmark);
+				viewEvents.OnBookmarkLeftClicked(item.Data);
 			else if (evt.ClickCount == 2)
 				viewEvents.OnViewDoubleClicked();
 		}
@@ -242,8 +234,10 @@ namespace LogJoint.UI
 					if (view == null)
 						view = new NSLinkLabel();
 
-					view.StringValue = item.Data.Bookmark.DisplayName;
+					view.StringValue = item.Data.Text;
 					view.LinkClicked = (s, e) => owner.OnItemClicked(item, e.NativeEvent);
+					if (owner.viewEvents.Theme == ColorThemeMode.Dark && item.Data.ContextColor.HasValue)
+						view.LinksColor = item.Data.ContextColor.Value.ToColor().ToNSColor();
 
 					return view;
 				}
@@ -277,30 +271,15 @@ namespace LogJoint.UI
 
 				if (row < 0 || row >= owner.dataSource.items.Count)
 					return;
-				var bmk = owner.dataSource.items[row].Data.Bookmark;
 
-				ModelColor? cl = null;
-
-				switch (owner.presentationDataAccess.Coloring)
+				if (owner.viewEvents.Theme == ColorThemeMode.Light)
 				{
-					case Settings.Appearance.ColoringMode.None:
-						break;
-					case Settings.Appearance.ColoringMode.Sources:
-						var ls = bmk.GetSafeLogSource();
-						if (ls != null)
-							cl = ls.Color;
-						break;
-					case Settings.Appearance.ColoringMode.Threads:
-						var t = bmk.GetSafeThread();
-						if (t != null)
-							cl = t.ThreadColor;
-						break;
-				}
-
-				if (cl != null)
-				{
-					cl.Value.ToColor().ToNSColor().SetFill();
-					NSBezierPath.FillRect(dirtyRect);
+					ModelColor? cl = owner.dataSource.items[row].Data.ContextColor;
+					if (cl != null)
+					{
+						cl.Value.ToColor().ToNSColor().SetFill();
+						NSBezierPath.FillRect(dirtyRect);
+					}
 				}
 
 				DrawFocusedMessage();

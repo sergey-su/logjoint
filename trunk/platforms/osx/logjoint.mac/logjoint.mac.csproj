@@ -660,6 +660,12 @@
       <Link>ui\Postprocessors\TimelineWindow\PlatformIndependent\GraphicsResources.cs</Link>
     </Compile>
     <Compile Include="app\MonoChecker.cs" />
+    <Compile Include="..\..\shared\ui\LogViewerControl\GraphicsResource.cs">
+      <Link>ui\LogViewerControl\GraphicsResource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\LogViewerControl\MessageDrawing.cs">
+      <Link>ui\LogViewerControl\MessageDrawing.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

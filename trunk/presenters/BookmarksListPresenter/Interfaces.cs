@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 	public interface IView
 	{
-		void SetPresenter(IViewEvents presenter);
+		void SetPresenter(IViewModel presenter);
 		void UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags);
 		void RefreshFocusedMessageMark();
 		ViewItem? SelectedBookmark { get; }
@@ -34,8 +34,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		internal IBookmark Bookmark;
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		string FontName { get; }
+		ColorThemeMode Theme { get; }
+
 		void OnEnterKeyPressed();
 		void OnViewDoubleClicked();
 		void OnBookmarkLeftClicked(ViewItem item);
@@ -46,12 +49,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void OnDeleteButtonPressed();
 		void OnSelectAllShortcutPressed();
 		void OnSelectionChanged();
-	};
-
-	public interface IPresentationDataAccess
-	{
-		Appearance.ColoringMode Coloring { get; }
-		string FontName { get; }
 	};
 
 	[Flags]

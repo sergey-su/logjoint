@@ -18,7 +18,7 @@ namespace LogJoint.UI.LogViewer
 		private readonly Func<int> timeAreaSize;
 		private readonly Func<(SizeF charSize, double charWidth, int lineHeight)> fontDependentData;
 		private readonly Func<int> scrollPosXSelector;
-		private readonly Func<int> viewViewWidthSelector;
+		private readonly Func<int> viewWidthSelector;
 
 		public int TimeAreaSize => timeAreaSize();
 		public SizeF CharSize => fontDependentData().charSize;
@@ -28,21 +28,21 @@ namespace LogJoint.UI.LogViewer
 		public float DpiScale { get; private set; }
 		public int ScrollPosY => (int)(viewModel.FirstDisplayMessageScrolledLines * LineHeight);
 		public int ScrollPosX => scrollPosXSelector();
-		public int ViewWidth => viewViewWidthSelector();
+		public int ViewWidth => viewWidthSelector();
 
 		public ViewDrawing(
 			IViewModel viewModel,
 			GraphicsResources graphicsResources,
 			float dpiScale,
 			Func<int> scrollPosXSelector,
-			Func<int> viewViewWidthSelector
+			Func<int> viewWidthSelector
 		)
 		{
 			this.viewModel = viewModel;
 			this.graphicsResources = graphicsResources;
 			this.DpiScale = dpiScale;
 			this.scrollPosXSelector = scrollPosXSelector;
-			this.viewViewWidthSelector = viewViewWidthSelector;
+			this.viewWidthSelector = viewWidthSelector;
 			this.ServiceInformationAreaSize = (int)(25f * dpiScale);
 			timeAreaSize = Selectors.Create(
 				() => viewModel.TimeMaxLength,

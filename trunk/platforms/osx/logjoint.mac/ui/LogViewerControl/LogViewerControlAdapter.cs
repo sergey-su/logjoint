@@ -16,6 +16,7 @@ using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using System.Linq;
 using System.Threading.Tasks;
 using ObjCRuntime;
+using LogJoint.UI.LogViewer;
 
 namespace LogJoint.UI
 {
@@ -30,6 +31,10 @@ namespace LogJoint.UI
 		Profiling.Counters.CounterDescriptor controlPaintTimeCounter;
 		Profiling.Counters.CounterDescriptor controlPaintWidthCounter;
 		Profiling.Counters.CounterDescriptor controlPaintHeightCounter;
+		GraphicsResources graphicsResources;
+		ViewDrawing viewDrawing;
+		Graphics graphicsForMeasurment = new Graphics();
+		int viewWidth = 2000;
 
 		[Export ("innerView")]
 		public LogViewerControl InnerView { get; set;}
@@ -52,7 +57,6 @@ namespace LogJoint.UI
 			NSBundle.LoadNib ("LogViewerControl", this);
 			InnerView.Init(this);
 			InitScrollView();
-			InitDrawingContext();
 			InnerView.Menu = new NSMenu()
 			{
 				Delegate = new ContextMenuDelegate()
@@ -114,12 +118,31 @@ namespace LogJoint.UI
 			}
 		}
 
-		#region IView implementation
+		internal ViewDrawing ViewDrawing => viewDrawing;
 
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
-			this.drawContext.ViewModel = viewModel;
+
+			this.graphicsResources = new GraphicsResources(
+				viewModel,
+				(fontData) => new LJD.Font(fontData.Name ?? "monaco",
+					(float)NSFont.SystemFontSizeForControlSize(NSControlSize.Small)),
+				textFormat: null,
+				images: (
+					error: new LJD.Image(NSImage.ImageNamed("ErrorLogSeverity.png")),
+					warn: new LJD.Image(NSImage.ImageNamed("WarnLogSeverity.png")),
+					bookmark: new LJD.Image(NSImage.ImageNamed("Bookmark.png")),
+					focusedMark: new LJD.Image(NSImage.ImageNamed("FocusedMsg.png"))
+				),
+				graphicsForMeasurmentFactory: () => graphicsForMeasurment
+			);
+			this.viewDrawing = new ViewDrawing(viewModel,
+				graphicsResources,
+				1f,
+				() => 0,
+				() => viewWidth
+			);
 			this.drawingPerfCounters = new Profiling.Counters (viewModel.Trace, "drawing");
 			this.graphicsCounters = LJD.Graphics.CreateCounters (drawingPerfCounters);
 			this.controlPaintTimeCounter = this.drawingPerfCounters.AddCounter ("paint", unit: "ms");
@@ -154,8 +177,8 @@ namespace LogJoint.UI
 
 		void IView.HScrollToSelectedText(int charIndex)
 		{
-			int pixelThatMustBeVisible = (int)(charIndex * drawContext.CharSize.Width);
-			pixelThatMustBeVisible += drawContext.TimeAreaSize;
+			int pixelThatMustBeVisible = (int)(charIndex * viewDrawing.CharSize.Width);
+			pixelThatMustBeVisible += viewDrawing.TimeAreaSize;
 
 			var pos = ScrollView.ContentView.Bounds.Location.ToPointF().ToPoint ();
 
@@ -185,7 +208,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		float IView.DisplayLinesPerPage { get { return (float)ScrollView.Frame.Height / (float)drawContext.LineHeight; } }
+		float IView.DisplayLinesPerPage => viewDrawing != null ? (float)ScrollView.Frame.Height / (float)viewDrawing.LineHeight : 10;
 
 		bool IView.HasInputFocus
 		{
@@ -196,10 +219,6 @@ namespace LogJoint.UI
 		{
 			InnerView.Window.MakeFirstResponder(InnerView);
 		}
-
-		#endregion
-
-		#region IViewFonts implementation
 
 		string[] IViewFonts.AvailablePreferredFamilies
 		{
@@ -220,8 +239,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		#endregion
-
 		void UpdateInnerViewSize()
 		{
 			InnerView.Frame = new CoreGraphics.CGRect(0, 0, viewWidth, ScrollView.Frame.Height);
@@ -241,20 +258,16 @@ namespace LogJoint.UI
 					perfCountersWriter.Increment (controlPaintHeightCounter, (long)sz.Height);
 				}
 
-				drawContext.Canvas.SetCurrentContext();
-				drawContext.Canvas.ConfigureProfiling (this.graphicsCounters, perfCountersWriter);
-				drawContext.ViewWidth = viewWidth;
-				drawContext.ScrollPos = new Point (0,
-					(int)(viewModel.FirstDisplayMessageScrolledLines * (double)drawContext.LineHeight));
-				drawContext.Canvas.EnableTextAntialiasing(false);
+				graphicsForMeasurment.SetCurrentContext();
+				using (var g = new LJD.Graphics()) {
+					g.ConfigureProfiling (this.graphicsCounters, perfCountersWriter);
+					g.EnableTextAntialiasing(false);
 
-				int maxRight;
-				DrawingUtils.PaintControl (drawContext, viewModel, isFocused,
-					dirtyRect.ToRectangle (), out maxRight, drawViewLinesAggregaredText: false /* todo: check theme */);
-
-				if (maxRight > viewWidth) {
-					viewWidth = maxRight;
-					UpdateInnerViewSize ();
+					viewDrawing.PaintControl(g, dirtyRect.ToRectangle (), isFocused, out var maxRight);
+					if (maxRight > viewWidth) {
+						viewWidth = maxRight;
+						UpdateInnerViewSize ();
+					}
 				}
 			}
 			if (!perfCountersWriter.IsNull) {
@@ -267,7 +280,7 @@ namespace LogJoint.UI
 		{
 			bool isRegularMouseScroll = !e.HasPreciseScrollingDeltas;
 			nfloat multiplier = isRegularMouseScroll ? 20 : 1;
-			viewModel.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
+			viewModel.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / viewDrawing.LineHeight));
 
 			var pos = ScrollView.ContentView.Bounds.Location;
 			InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
@@ -289,9 +302,7 @@ namespace LogJoint.UI
 			else
 				flags |= MessageMouseEventFlag.SingleClick;
 
-			DrawingUtils.MouseDownHelper(
-				viewModel,
-				drawContext,
+			viewDrawing?.HandleMouseDown(
 				ClientRectangle,
 				InnerView.ConvertPointFromView (e.LocationInWindow, null).ToPoint(),
 				flags,
@@ -301,51 +312,12 @@ namespace LogJoint.UI
 
 		internal void OnMouseMove(NSEvent e, bool dragging)
 		{
-			DrawingUtils.MouseMoveHelper(
-				viewModel,
-				drawContext,
+			viewDrawing?.HandleMouseMove(
 				ClientRectangle,
 				InnerView.ConvertPointFromView(e.LocationInWindow, null).ToPoint(),
 				dragging,
 				out var _
 			);
-		}
-
-		void InitDrawingContext()
-		{
-			drawContext = new DrawContext(
-				fontData => {
-					var font = new LJD.Font(fontData.Name ?? "monaco",
-						(float)NSFont.SystemFontSizeForControlSize(NSControlSize.Small));
-					using (var tmp = new LJD.Graphics())
-					{
-						int count = 8 * 1024;
-						var charSize = tmp.MeasureString(new string('0', count), font);
-						double charWidth = (double)charSize.Width / (double)count;
-						charSize.Width /= (float)count;
-						return (font, charSize, charWidth);
-					}
-				}
-			);
-			drawContext.Canvas = new LJD.Graphics ();
-			drawContext.DefaultBackgroundBrush = Brushes.Black; // new LJD.Brush(Color.White);
-			drawContext.InfoMessagesBrush = new LJD.Brush(Color.Black);
-			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
-			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
-			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
-
-			int hightlightingAlpha = 170;
-			drawContext.SearchResultHighlightingBackground =
-				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
-			drawContext.SelectionHighlightingBackground =
-				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
-
-			drawContext.ErrorIcon = new LJD.Image(NSImage.ImageNamed("ErrorLogSeverity.png"));
-			drawContext.WarnIcon = new LJD.Image(NSImage.ImageNamed("WarnLogSeverity.png"));
-			drawContext.BookmarkIcon = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
-			drawContext.SmallBookmarkIcon = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
-			drawContext.FocusedMessageIcon = new LJD.Image(NSImage.ImageNamed("FocusedMsg.png"));
-			drawContext.FocusedMessageSlaveIcon = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
 		}
 
 		[Export("OnVertScrollChanged")]
@@ -358,8 +330,6 @@ namespace LogJoint.UI
 		{
 			get { return ScrollView.ContentView.DocumentVisibleRect().ToRectangle(); }
 		}
-
-		internal DrawContext DrawContext { get { return drawContext; } }
 
 		class ContextMenuDelegate : NSMenuDelegate
 		{
@@ -405,9 +375,6 @@ namespace LogJoint.UI
 				return item;
 			}
 		};
-
-		DrawContext drawContext;
-		int viewWidth = 2000;
 	}
 }
 

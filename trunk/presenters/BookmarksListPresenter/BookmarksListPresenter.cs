@@ -9,7 +9,7 @@ using LogJoint.Profiling;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
-	public class Presenter : IPresenter, IViewEvents, IPresentationDataAccess
+	public class Presenter : IPresenter, IViewModel
 	{
 		#region Public interface
 
@@ -36,7 +36,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					UpdateViewInternal(null, ViewUpdateFlags.None);
 			};
 			sourcesManager.OnLogSourceVisiblityChanged += (sender, evt) => updateTracker.Invalidate();
-			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, evt) => view.Invalidate();
+			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, evt) =>
+			{
+				var flags = ViewUpdateFlags.ItemsCountDidNotChange | ViewUpdateFlags.SelectionDidNotChange;
+				UpdateViewInternal(null, flags);
+			};
 
 			view.SetPresenter(this);
 		}
@@ -58,22 +62,22 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			DeleteSelectedBookmarks();
 		}
 
-		void IViewEvents.OnEnterKeyPressed()
+		void IViewModel.OnEnterKeyPressed()
 		{
 			ClickSelectedLink(focusMessagesView: false, actionName: "ENTER");
 		}
 
-		void IViewEvents.OnViewDoubleClicked()
+		void IViewModel.OnViewDoubleClicked()
 		{
 			ClickSelectedLink(focusMessagesView: true, actionName: "dblclick");
 		}
 
-		void IViewEvents.OnBookmarkLeftClicked(ViewItem bmk)
+		void IViewModel.OnBookmarkLeftClicked(ViewItem bmk)
 		{
 			NavigateTo(bmk.Bookmark, "click");
 		}
 
-		void IViewEvents.OnMenuItemClicked(ContextMenuItem item)
+		void IViewModel.OnMenuItemClicked(ContextMenuItem item)
 		{
 			if (item == ContextMenuItem.Delete)
 				DeleteSelectedBookmarks();
@@ -83,7 +87,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				CopyToClipboard(copyTimeDeltas: true);
 		}
 
-		ContextMenuItem IViewEvents.OnContextMenu()
+		ContextMenuItem IViewModel.OnContextMenu()
 		{
 			var ret = ContextMenuItem.None;
 			var selectedCount = view.SelectedBookmarks.Count();
@@ -94,28 +98,28 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return ret;
 		}
 
-		void IViewEvents.OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition)
+		void IViewModel.OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition)
 		{
 			focusedMessagePosition = this.focusedMessagePosition;
 		}
 
-		void IViewEvents.OnCopyShortcutPressed()
+		void IViewModel.OnCopyShortcutPressed()
 		{
 			CopyToClipboard(copyTimeDeltas: false);
 		}
 
-		void IViewEvents.OnDeleteButtonPressed()
+		void IViewModel.OnDeleteButtonPressed()
 		{
 			DeleteSelectedBookmarks();
 		}
 
-		void IViewEvents.OnSelectAllShortcutPressed()
+		void IViewModel.OnSelectAllShortcutPressed()
 		{
 			view.UpdateItems(EnumBookmarkForView(bookmarks.Items.ToLookup(b => b)), 
 				ViewUpdateFlags.ItemsCountDidNotChange);
 		}
 
-		void IViewEvents.OnSelectionChanged()
+		void IViewModel.OnSelectionChanged()
 		{
 			var flags = 
 				ViewUpdateFlags.ItemsCountDidNotChange 
@@ -123,15 +127,12 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			UpdateViewInternal(null, flags);
 		}
 
-		Appearance.ColoringMode IPresentationDataAccess.Coloring
-		{
-			get { return loadedMessagesPresenter.LogViewerPresenter.Coloring; }
-		}
-
-		string IPresentationDataAccess.FontName
+		string IViewModel.FontName
 		{
 			get { return loadedMessagesPresenter.LogViewerPresenter.FontName; }
 		}
+
+		ColorThemeMode IViewModel.Theme => colorTheme.Mode;
 
 		#endregion
 

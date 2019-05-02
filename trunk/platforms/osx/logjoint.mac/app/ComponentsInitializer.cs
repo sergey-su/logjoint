@@ -62,12 +62,11 @@ namespace LogJoint.UI
 				Progress.IProgressAggregatorFactory progressAggregatorsFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorsFactory.CreateProgressAggregator();
 
-				IColorThemeAccess colorThemeAccess = new StaticLightColorThemeAccess(); // todo: https://stackoverflow.com/questions/51672124/how-can-dark-mode-be-detected-on-macos-10-14
-				IAdjustableColorTable colorGenerator = new LogThreadsColorsTable(colorThemeAccess, changeNotification,
-					globalSettingsAccessor.Appearance.ColoringBrightness
-				);
+				// todo: https://stackoverflow.com/questions/51672124/how-can-dark-mode-be-detected-on-macos-10-14
+				ISystemThemeDetector systemThemeDetector = new StaticSystemThemeDetector(ColorThemeMode.Dark);
+				IColorTheme colorTheme = new ColorTheme(systemThemeDetector, globalSettingsAccessor);
 
-				IModelThreads modelThreads = new ModelThreads(colorGenerator);
+				IModelThreads modelThreads = new ModelThreads(new ColorLease(colorTheme.ThreadColors.Length));
 
 				ILogSourcesManager logSourcesManager = new LogSourcesManager(
 					heartBeatTimer,
@@ -190,7 +189,6 @@ namespace LogJoint.UI
 					filtersFactory,
 					globalSettingsAccessor,
 					logSourcesManager,
-					colorGenerator,
 					shutdown
 				);
 
@@ -238,7 +236,7 @@ namespace LogJoint.UI
 				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
 				UI.Presenters.IFileDialogs fileDialogs = new UI.FileDialogs();
 
-				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorThemeAccess);
+				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorTheme);
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					changeNotification,
@@ -255,7 +253,7 @@ namespace LogJoint.UI
 					globalSettingsAccessor,
 					searchManager,
 					filtersFactory,
-					highlightColorsTable
+					colorTheme
 				);
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
@@ -280,7 +278,8 @@ namespace LogJoint.UI
 					navHandler,
 					alerts,
 					clipboardAccess,
-					shellOpen
+					shellOpen,
+					colorTheme
 				);
 
 				UI.Presenters.SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter = new UI.Presenters.SaveJointLogInteractionPresenter.Presenter(
@@ -303,7 +302,8 @@ namespace LogJoint.UI
 					fileDialogs,
 					clipboardAccess,
 					shellOpen,
-					saveJointLogInteractionPresenter
+					saveJointLogInteractionPresenter,
+					colorTheme
 				);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
@@ -492,7 +492,8 @@ namespace LogJoint.UI
 					mainWindow.BookmarksManagementControlAdapter.ListView,
 					heartBeatTimer,
 					loadedMessagesPresenter,
-					clipboardAccess
+					clipboardAccess,
+					colorTheme
 				);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
@@ -561,7 +562,8 @@ namespace LogJoint.UI
 					viewerPresenter,
 					statusReportPresenter,
 					null, // tabUsageTracker
-					heartBeatTimer
+					heartBeatTimer,
+					colorTheme
 				);
 
 				var timeLinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
@@ -590,7 +592,8 @@ namespace LogJoint.UI
 						bookmarks, filtersManager.HighlightFilters,
 						new LogJoint.UI.MessagePropertiesDialogView(changeNotification),
 						loadedMessagesPresenter.LogViewerPresenter,
-						navHandler);
+						navHandler,
+						colorTheme);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					logSourcesManager,
@@ -614,7 +617,8 @@ namespace LogJoint.UI
 					alerts,
 					sharingDialogPresenter,
 					issueReportDialogPresenter,
-					shutdown
+					shutdown,
+					colorTheme
 				);
 				mainWindow.InstancesCounter = instancesCounter;
 				tracer.Info("main form presenter created");
@@ -701,7 +705,8 @@ namespace LogJoint.UI
 						promptDialog,
 						mainFormPresenter,
 						postprocessingTabPagePresenter,
-						postprocessingViewsFactory
+						postprocessingViewsFactory,
+						colorTheme
 					),
 					new Extensibility.View(
 					)

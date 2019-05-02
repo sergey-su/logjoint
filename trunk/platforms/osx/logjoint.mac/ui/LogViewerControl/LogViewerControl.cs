@@ -319,10 +319,10 @@ namespace LogJoint.UI
 
 		public override void ResetCursorRects()
 		{
-			if (owner?.EnableCursor == true)
+			if (owner?.EnableCursor == true && owner?.ViewDrawing != null)
 			{
 				var r = Bounds; 
-				r.Offset(owner.DrawContext.CollapseBoxesAreaSize, 0);
+				r.Offset(owner.ViewDrawing.ServiceInformationAreaSize, 0);
 				var visiblePart = this.ConvertRectFromView(Superview.Bounds, Superview);
 				r.Intersect(visiblePart);
 				AddCursorRect(r, NSCursor.IBeamCursor);
