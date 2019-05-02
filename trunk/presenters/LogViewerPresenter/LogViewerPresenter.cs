@@ -60,7 +60,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			viewLinesText = Selectors.Create(viewLines, lines => lines.Aggregate(
 				new StringBuilder(), (sb, vl) => sb.AppendLine(vl.TextLineValue)).ToString());
 
-			ReadGlobalSettings(model);
+			ReadGlobalSettings();
 
 			AttachToView(view);
 
@@ -90,11 +90,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			};
 
-			model.GlobalSettings.Changed += (sender, e) => // todo: read directly from config
+			model.GlobalSettings.Changed += (sender, e) =>
 			{
 				if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
 				{
-					ReadGlobalSettings(model);
+					ReadGlobalSettings();
 				}
 			};
 
@@ -1005,7 +1005,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.SetViewModel(this);
 		}
 
-		private void ReadGlobalSettings(IModel model)
+		private void ReadGlobalSettings()
 		{
 			this.coloring = model.GlobalSettings.Appearance.Coloring;
 			this.font = new FontData(model.GlobalSettings.Appearance.FontFamily, model.GlobalSettings.Appearance.FontSize);
