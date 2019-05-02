@@ -16,7 +16,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents presenter);
+		void SetViewModel(IViewModel viewModel);
 
 		void Invalidate();
 		void RepaintNow();
@@ -158,8 +158,9 @@ namespace LogJoint.UI.Presenters.Timeline
 		public int Y;
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		ColorThemeMode ColorTheme { get; }
 		DrawInfo OnDraw();
 		DragAreaDrawInfo OnDrawDragArea(DateTime dt);
 		ContextMenuInfo OnContextMenu(int x, int y);

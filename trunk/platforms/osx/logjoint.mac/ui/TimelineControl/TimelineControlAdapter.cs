@@ -12,7 +12,7 @@ namespace LogJoint.UI
 {
 	public partial class TimelineControlAdapter : NSViewController, IView
 	{
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 		ControlDrawing drawing;
 		Lazy<int> dateAreaHeight;
 
@@ -43,21 +43,6 @@ namespace LogJoint.UI
 		// Shared initialization code
 		void Initialize()
 		{
-			drawing = new ControlDrawing(
-				new GraphicsResources(
-					NSFont.SystemFontOfSize(NSFont.SystemFontSize).FontName,
-					(float)NSFont.SystemFontSize,
-					(float)NSFont.SystemFontSize * 0.6f,
-					LJD.Extensions.ToColor(NSColor.ControlBackground),
-					LJD.Extensions.ToColor(NSColor.ControlText),
-					new LJD.Image(NSImage.ImageNamed("TimelineBookmark.png"))
-				)
-			);
-			dateAreaHeight = new Lazy<int>(() =>
-			{
-				using (var g = new LJD.Graphics())
-					return drawing.MeasureDatesAreaHeight(g);
-			});
 		}
 
 		#endregion
@@ -86,9 +71,23 @@ namespace LogJoint.UI
 			
 		}
 
-		void IView.SetEventsHandler(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
+
+			drawing = new ControlDrawing (
+				new GraphicsResources (
+					viewModel,
+					NSFont.SystemFontOfSize (NSFont.SystemFontSize).FontName,
+					(float)NSFont.SystemFontSize,
+					(float)NSFont.SystemFontSize * 0.6f,
+					new LJD.Image (NSImage.ImageNamed ("TimelineBookmark.png"))
+				)
+			);
+			dateAreaHeight = new Lazy<int> (() => {
+				using (var g = new LJD.Graphics ())
+					return drawing.MeasureDatesAreaHeight (g);
+			});
 		}
 
 		void IView.Invalidate()
@@ -138,13 +137,15 @@ namespace LogJoint.UI
 
 		void TimelinePaint(RectangleF dirtyRect)
 		{
+			if (drawing == null)
+				return;
 			using (var g = new LJD.Graphics())
 			{
 				drawing.FillBackground(g, dirtyRect);
 
 				Metrics m = GetMetrics();
 
-				var drawInfo = viewEvents.OnDraw();
+				var drawInfo = viewModel.OnDraw();
 				if (drawInfo == null)
 					return;
 
@@ -163,9 +164,9 @@ namespace LogJoint.UI
 		{
 			var pt = timelineView.GetEventLocation(e);
 			if (e.ClickCount >= 2)
-				viewEvents.OnMouseDblClick((int)pt.X, (int)pt.Y);
+				viewModel.OnMouseDblClick((int)pt.X, (int)pt.Y);
 			else
-				viewEvents.OnLeftMouseDown((int)pt.X, (int)pt.Y);
+				viewModel.OnLeftMouseDown((int)pt.X, (int)pt.Y);
 		}
 
 		void TimelineMouseWheel(NSEvent e)
@@ -173,32 +174,32 @@ namespace LogJoint.UI
 			var pt = timelineView.GetEventLocation(e);
 			bool zoom = (e.ModifierFlags & NSEventModifierMask.ControlKeyMask) != 0;
 			if (zoom)
-				viewEvents.OnMouseWheel((int)pt.X, (int)pt.Y, e.DeltaY / 20d, true);
+				viewModel.OnMouseWheel((int)pt.X, (int)pt.Y, e.DeltaY / 20d, true);
 			else
-				viewEvents.OnMouseWheel((int)pt.X, (int)pt.Y, -e.DeltaY / 20d, false);
+				viewModel.OnMouseWheel((int)pt.X, (int)pt.Y, -e.DeltaY / 20d, false);
 		}
 
 		void TimelineMagnify(NSEvent e)
 		{
 			var pt = timelineView.GetEventLocation(e);
-			viewEvents.OnMagnify((int)pt.X, (int)pt.Y, -e.Magnification);
+			viewModel.OnMagnify((int)pt.X, (int)pt.Y, -e.Magnification);
 		}
 
 		void TimelineMouseMove(NSEvent e)
 		{
 			var pt = timelineView.GetEventLocation(e);
-			viewEvents.OnMouseMove((int)pt.X, (int)pt.Y);
+			viewModel.OnMouseMove((int)pt.X, (int)pt.Y);
 		}
 
 		void TimelineMouseLeave(NSEvent e)
 		{
-			viewEvents.OnMouseLeave();
+			viewModel.OnMouseLeave();
 		}
 
 		void TimelineResized()
 		{
-			if (viewEvents != null)
-				viewEvents.OnTimelineClientSizeChanged();
+			if (viewModel != null)
+				viewModel.OnTimelineClientSizeChanged();
 		}
 
 		Metrics GetMetrics()

@@ -1,12 +1,7 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.MainForm;
-using ObjCRuntime;
-using System.Diagnostics;
 using LogJoint.MultiInstance;
 using LogJoint.UI.Presenters;
 
@@ -29,6 +24,7 @@ namespace LogJoint.UI
 		bool closing;
 		AppDelegate appDelegate;
 		ColorThemeMode colorThemeMode = ColorThemeMode.Light;
+		IDisposable effectiveAppearanceObserver;
 
 		#region Constructors
 
@@ -371,21 +367,27 @@ namespace LogJoint.UI
 				new NSOperatingSystemVersion(10, 14, 0)))
 			{
 				DetectTheme();
-				NSDistributedNotificationCenter.GetDefaultCenter().AddObserver (
-					new NSString("AppleInterfaceThemeChangedNotification"), 
-					ns => DetectTheme(), Window);
+				effectiveAppearanceObserver = Window.ContentView.AddObserver (
+					new NSString ("effectiveAppearance"),
+					NSKeyValueObservingOptions.New,
+					_ => DetectTheme()
+				);
 			}
 		}
 
 		void DetectTheme()
 		{
-			NSAppearance appearance = Window.Appearance;
+			NSAppearance appearance = Window.ContentView.EffectiveAppearance;
 			string basicAppearance = appearance?.FindBestMatch (new [] {
 				NSAppearance.NameAqua.ToString(),
 				NSAppearance.NameDarkAqua.ToString()
 			});
-			colorThemeMode = NSAppearance.NameDarkAqua == basicAppearance ?
-				ColorThemeMode.Dark : ColorThemeMode.Light;
+			var value = NSAppearance.NameDarkAqua == basicAppearance ?
+				ColorThemeMode.Dark : ColorThemeMode.Light; ;
+			if (value != colorThemeMode) {
+				colorThemeMode = value;
+				viewEvents?.ChangeNotification.Post ();
+			}
 		}
 
 		class InputFocusState: IInputFocusState

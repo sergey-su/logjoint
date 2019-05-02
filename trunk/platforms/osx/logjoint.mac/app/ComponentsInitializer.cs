@@ -618,7 +618,8 @@ namespace LogJoint.UI
 					sharingDialogPresenter,
 					issueReportDialogPresenter,
 					shutdown,
-					colorTheme
+					colorTheme,
+					changeNotification
 				);
 				mainWindow.InstancesCounter = instancesCounter;
 				tracer.Info("main form presenter created");

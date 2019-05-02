@@ -32,7 +32,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			SharingDialog.IPresenter sharingDialogPresenter,
 			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter,
 			IShutdown shutdown,
-			IColorTheme theme
+			IColorTheme theme,
+			IChangeNotification changeNotification
 		)
 		{
 			this.tracer = new LJTraceSource("UI", "ui.main");
@@ -55,6 +56,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.shutdown = shutdown;
 			this.statusRepors = statusReportFactory;
 			this.theme = theme;
+			this.changeNotification = changeNotification;
 
 			view.SetPresenter(this);
 
@@ -183,6 +185,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.AddTab(tabId, caption, uiControl, tag);
 			return tabId;
 		}
+
+		IChangeNotification IViewEvents.ChangeNotification => changeNotification;
 
 		async void IViewEvents.OnClosing()
 		{
@@ -422,6 +426,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly StatusReports.IPresenter statusRepors;
 		readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;
 		readonly IColorTheme theme;
+		readonly IChangeNotification changeNotification;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalyzing;

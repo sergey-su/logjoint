@@ -78,6 +78,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 	public interface IViewEvents
 	{
+		IChangeNotification ChangeNotification { get; }
 		void OnClosing();
 		void OnLoad();
 		void OnTabPressed();

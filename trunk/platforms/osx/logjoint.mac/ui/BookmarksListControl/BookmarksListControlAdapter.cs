@@ -16,6 +16,7 @@ namespace LogJoint.UI
 		readonly DataSource dataSource = new DataSource();
 		IViewModel viewModel;
 		bool isUpdating;
+		Func<NSColor> selectedBkColor;
 
 		#region Constructors
 
@@ -70,6 +71,13 @@ namespace LogJoint.UI
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+
+			selectedBkColor = Selectors.Create (
+				() => viewModel.Theme,
+				theme => theme == Presenters.ColorThemeMode.Light ?
+					NSColor.FromDeviceRgba (.77f, .80f, .90f, 1f) :
+					NSColor.FromDeviceRgba (.37f, .40f, .60f, 1f)
+			);
 
 			var updateItems = Updaters.Create(
 				() => viewModel.Items,
@@ -254,7 +262,6 @@ namespace LogJoint.UI
 		{
 			public BookmarksListControlAdapter owner;
 			public int row;
-			static NSColor selectedBkColor = NSColor.FromDeviceRgba(.77f, .80f, .90f, 1f);
 
 			public override NSBackgroundStyle InteriorBackgroundStyle
 			{
@@ -286,7 +293,7 @@ namespace LogJoint.UI
 
 			public override void DrawSelection(CGRect dirtyRect)
 			{
-				selectedBkColor.SetFill();
+				owner.selectedBkColor().SetFill();
 				NSBezierPath.FillRect(dirtyRect);
 				DrawFocusedMessage();
 			}

@@ -3,12 +3,13 @@ using LogJoint.Drawing;
 using System.Drawing.Drawing2D;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
+using LogJoint.UI.Presenters.Timeline;
 
 namespace LogJoint.UI.Timeline
 {
 	class GraphicsResources
 	{
-		public readonly Brush Background;
+		public Brush Background => backgroundSelector ();
 		public readonly Font MainFont;
 		public readonly DrawShadowRect SourcesShadow = new DrawShadowRect(Color.Gray);
 		public readonly Pen SourcesBorderPen;
@@ -30,13 +31,20 @@ namespace LogJoint.UI.Timeline
 		public readonly Brush DragAreaBackgroundBrush;
 		public readonly Brush DragAreaTextBrush;
 
+		private readonly Func<Brush> backgroundSelector;
+
 		public GraphicsResources(
+			IViewModel viewModel,
 			string mainFontName, float mainFontSize, float smallFontSize,
-			Color systemControlColor,
-			Color systemControlTextColor,
 			Image bookmarkImage)
 		{
-			Background = new Brush(Color.White);
+			bool isDark() => viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
+			backgroundSelector = Selectors.Create (
+				isDark,
+				dark => dark ?
+					new Brush (Color.FromArgb (255, 134, 134, 134)) :
+					new Brush (Color.White)
+			);
 			MainFont = new Font(mainFontName, mainFontSize);
 
 			SourcesBorderPen = new Pen(Color.DimGray, 1);
@@ -45,8 +53,12 @@ namespace LogJoint.UI.Timeline
 
 			RulersPen1 = new Pen(Color.Gray, 1, new float[] { 1, 3 });
 			RulersPen2 = new Pen(Color.Gray, 1, new float[] { 4, 1 });
-			RulersBrush1 = new Brush(Color.White);
-			RulersBrush2 = new Brush(Color.Gray);
+
+			//RulersBrush1 = new Brush(Color.White);
+			//RulersBrush2 = new Brush(Color.Gray);
+			RulersBrush1 = new Brush (Color.Black); // todo
+			RulersBrush2 = new Brush (Color.White);
+
 			RulersFont = new Font(mainFontName, smallFontSize);
 
 			var bmkPenColor = Color.FromArgb(0x5b, 0x87, 0xe0);
@@ -66,8 +78,8 @@ namespace LogJoint.UI.Timeline
 
 			CenteredFormat = new StringFormat(System.Drawing.StringAlignment.Center, System.Drawing.StringAlignment.Near);
 
-			DragAreaBackgroundBrush = new Brush(systemControlColor);
-			DragAreaTextBrush = new Brush(systemControlTextColor);
+			DragAreaBackgroundBrush = Brushes.TextBackground;
+			DragAreaTextBrush = Brushes.Text;
 		}
 	};
 }

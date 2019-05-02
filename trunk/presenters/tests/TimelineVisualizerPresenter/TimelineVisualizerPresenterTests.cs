@@ -27,6 +27,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		IUserNamesProvider userNamesProvider;
 		QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 		IChangeNotification changeNotification;
+		IColorTheme theme;
 
 		[SetUp] 
 		public void Init()
@@ -40,6 +41,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			view.When(v => v.SetViewModel(Arg.Any<IViewModel>())).Do(x => viewModel = x.Arg<IViewModel>());
 			quickSearchTextBoxPresenter = Substitute.For<QuickSearchTextBox.IPresenter>();
 			changeNotification = Substitute.For<IChangeNotification>();
+			theme = Substitute.For<IColorTheme>();
 			presentationObjectsFactory.CreateQuickSearch(Arg.Any<QuickSearchTextBox.IView>()).Returns(quickSearchTextBoxPresenter);
 		}
 
@@ -55,7 +57,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				storageManager,
 				presentersFacade,
 				userNamesProvider,
-				changeNotification
+				changeNotification,
+				theme
 			);
 		}
 
