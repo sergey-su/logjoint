@@ -261,7 +261,7 @@ namespace LogJoint.UI
 
 		class ViewItem : IViewItem
 		{
-			public ViewItem(ListView lv, IThread thread, IColorTheme theme)
+			public ViewItem(ListView lv, IThread thread, Presenters.IColorTheme theme)
 			{
 				var lvi = new ListViewItem();
 

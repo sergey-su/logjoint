@@ -30,16 +30,17 @@ namespace LogJoint.UI
 			listBox.ItemHeight = UIUtils.Dpi.Scale(15);
 		}
 
-		void IView.SetPresenter(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.presenter = presenter;
-			this.presentationDataAccess = presenter as IPresentationDataAccess;
+			this.presenter = viewModel;
 
-			if (presentationDataAccess.FontName != null && (LogJoint.Properties.Settings.Default.MonospaceBookmarks ?? "") == "1")
+			if (viewModel.FontName != null && (LogJoint.Properties.Settings.Default.MonospaceBookmarks ?? "") == "1")
 			{
 				linkDisplayFont.Dispose();
-				linkDisplayFont = new Font(presentationDataAccess.FontName, 8f, FontStyle.Underline);
+				linkDisplayFont = new Font(viewModel.FontName, 8f, FontStyle.Underline);
 			}
+
+
 		}
 
 		void IView.UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags)
@@ -364,8 +365,7 @@ namespace LogJoint.UI
 			return metrics;
 		}
 
-		private IViewEvents presenter;
-		private IPresentationDataAccess presentationDataAccess;
+		private IViewModel presenter;
 		private Font timeDeltaDisplayFont;
 		private Font linkDisplayFont;
 		private StringFormat displayStringFormat;
