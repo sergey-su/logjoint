@@ -125,7 +125,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.ExecuteThreadPropertiesDialog(LogJoint.IThread thread, Presenters.IPresentersFacade navHandler, IColorTheme theme)
+		void IView.ExecuteThreadPropertiesDialog(LogJoint.IThread thread, Presenters.IPresentersFacade navHandler, UI.Presenters.IColorTheme theme)
 		{
 			// todo
 		}

@@ -63,8 +63,8 @@ namespace LogJoint.UI
 				Progress.IProgressAggregator progressAggregator = progressAggregatorsFactory.CreateProgressAggregator();
 
 				// todo: https://stackoverflow.com/questions/51672124/how-can-dark-mode-be-detected-on-macos-10-14
-				ISystemThemeDetector systemThemeDetector = new StaticSystemThemeDetector(ColorThemeMode.Dark);
-				IColorTheme colorTheme = new ColorTheme(systemThemeDetector, globalSettingsAccessor);
+				Presenters.ISystemThemeDetector systemThemeDetector = new Presenters.StaticSystemThemeDetector(Presenters.ColorThemeMode.Dark);
+				Presenters.IColorTheme colorTheme = new Presenters.ColorTheme(systemThemeDetector, globalSettingsAccessor);
 
 				IModelThreads modelThreads = new ModelThreads(new ColorLease(colorTheme.ThreadColors.Length));
 
@@ -236,7 +236,7 @@ namespace LogJoint.UI
 				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
 				UI.Presenters.IFileDialogs fileDialogs = new UI.FileDialogs();
 
-				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorTheme);
+				var highlightColorsTable = new Presenters.HighlightBackgroundColorsTable(colorTheme);
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					changeNotification,

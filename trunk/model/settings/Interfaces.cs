@@ -111,4 +111,13 @@ namespace LogJoint.Settings
 			CleanupPeriod = 24 * 3
 		};
 	};
+
+	public enum PaletteBrightness
+	{
+		Decreased,
+		Normal,
+		Increased,
+		Minimum = Decreased,
+		Maximum = Increased
+	};
 }

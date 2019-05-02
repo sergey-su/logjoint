@@ -17,6 +17,6 @@ namespace LogJoint.Extensibility
 		UI.Presenters.MainForm.IPresenter MainFormPresenter { get; }
 		UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter PostprocessorsTabPage { get; }
 		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; }
-		IColorTheme Theme { get; }
+		UI.Presenters.IColorTheme Theme { get; }
 	};
 }

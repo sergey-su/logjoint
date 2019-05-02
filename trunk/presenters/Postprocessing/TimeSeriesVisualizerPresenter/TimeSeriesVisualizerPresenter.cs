@@ -53,7 +53,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			this.model = model;
 			this.view = view;
 			this.axisParams.Add(xAxisKey, new AxisParams());
-			this.colorsTable = new ForegroundColorsGenerator();
+			this.colorsTable = new TimeSeriesColorsTable();
 			this.colorLease = new ColorLease(this.colorsTable.Items.Length);
 			this.presentersFacade = presentersFacade;
 			this.bookmarks = bookmarks;

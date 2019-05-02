@@ -154,7 +154,7 @@ namespace LogJoint.UI.LogViewer
 			bool controlIsFocused,
 			out int maxRight)
 		{
-			var darkMode = viewModel.ColorTheme == ColorThemeMode.Dark;
+			var darkMode = viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
 			bool drawViewLinesAggregaredText;
 #if MONOMAC
 			drawViewLinesAggregaredText = true;

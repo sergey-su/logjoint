@@ -562,6 +562,18 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\Extensions.cs">
       <Link>LogViewerPresenter\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\Theming\Extensions.cs">
+      <Link>Common\Theming\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\Theming\Interfaces.cs">
+      <Link>Common\Theming\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\Theming\ColorTables.cs">
+      <Link>Common\Theming\ColorTables.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\Theming\ColorTheme.cs">
+      <Link>Common\Theming\ColorTheme.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -611,6 +623,7 @@
     <Folder Include="LogViewerPresenter\Highlighting\" />
     <Folder Include="LogViewerPresenter\Selection\" />
     <Folder Include="LogViewerPresenter\Navigation\" />
+    <Folder Include="Common\Theming\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

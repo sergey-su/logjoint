@@ -34,7 +34,7 @@ namespace LogJoint.UI.LogViewer
 				() => viewModel.Font,
 				fontFactory
 			);
-			bool dark = viewModel.ColorTheme == ColorThemeMode.Dark;
+			bool dark = viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
 			DefaultForegroundBrush = dark ? Brushes.White : Brushes.Black;
 			DefaultBackgroundBrush = dark ? new Brush(Color.FromArgb(30, 30, 30)) : Brushes.White;
 			SelectedBkBrush = dark ? new Brush(Color.FromArgb(40, 80, 120)) : new Brush(Color.FromArgb(167, 176, 201));

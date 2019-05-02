@@ -14,7 +14,7 @@
 			UI.Presenters.MainForm.IPresenter mainFormPresenter,
 			UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessorsTabPage,
 			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorsFormFactory,
-			IColorTheme theme
+			UI.Presenters.IColorTheme theme
 		)
 		{
 			this.LoadedMessages = loadedMessagesPresenter;
@@ -43,7 +43,7 @@
 		public UI.Presenters.MainForm.IPresenter MainFormPresenter { get; private set; }
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter PostprocessorsTabPage { get; private set; }
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; private set; }
-		public IColorTheme Theme { get; private set; }
+		public UI.Presenters.IColorTheme Theme { get; private set; }
 	};
 
 }

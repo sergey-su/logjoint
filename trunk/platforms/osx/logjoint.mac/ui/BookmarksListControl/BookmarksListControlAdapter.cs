@@ -235,7 +235,7 @@ namespace LogJoint.UI
 
 					view.StringValue = item.Data.Text;
 					view.LinkClicked = (s, e) => owner.OnItemClicked(item, e.NativeEvent);
-					if (owner.viewModel.Theme == ColorThemeMode.Dark && item.Data.ContextColor.HasValue)
+					if (owner.viewModel.Theme == Presenters.ColorThemeMode.Dark && item.Data.ContextColor.HasValue)
 						view.LinksColor = item.Data.ContextColor.Value.ToColor().ToNSColor();
 
 					return view;
@@ -271,7 +271,7 @@ namespace LogJoint.UI
 				if (row < 0 || row >= owner.dataSource.items.Count)
 					return;
 
-				if (owner.viewModel.Theme == ColorThemeMode.Light)
+				if (owner.viewModel.Theme == Presenters.ColorThemeMode.Light)
 				{
 					ModelColor? cl = owner.dataSource.items[row].Data.ContextColor;
 					if (cl != null)
