@@ -46,11 +46,8 @@ namespace LogJoint
 		void Clear();
 		IBookmark GetNext(IBookmark current, bool forward);
 		IReadOnlyList<IBookmark> Items { get; }
-		int Count { get; }
-		IBookmark this[int idx] { get; }
 		IBookmarksHandler CreateHandler();
 		void PurgeBookmarksForDisposedThreads();
-		Tuple<int, int> FindBookmark(IBookmark bmk);
 
 		event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
 

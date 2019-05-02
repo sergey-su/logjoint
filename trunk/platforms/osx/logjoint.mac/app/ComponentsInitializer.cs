@@ -493,7 +493,8 @@ namespace LogJoint.UI
 					heartBeatTimer,
 					loadedMessagesPresenter,
 					clipboardAccess,
-					colorTheme
+					colorTheme,
+					changeNotification
 				);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(

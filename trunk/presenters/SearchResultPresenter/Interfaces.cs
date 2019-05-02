@@ -32,7 +32,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		Task<IMessage> Search(LogViewer.SearchOptions opts);
 		void ReceiveInputFocus();
 		IMessage FocusedMessage { get; }
-		IBookmark GetFocusedMessageBookmark();
+		IBookmark FocusedMessageBookmark { get; }
 		IBookmark MasterFocusedMessage { get; set; }
 		void FindCurrentTime();
 		Presenters.LogViewer.IPresenter LogViewerPresenter { get; }

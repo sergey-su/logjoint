@@ -69,7 +69,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			viewerPresenter.FocusedMessageBookmarkChanged += delegate(object sender, EventArgs args)
 			{
 				if (searchResultPresenter != null)
-					searchResultPresenter.MasterFocusedMessage = viewerPresenter.GetFocusedMessageBookmark();
+					searchResultPresenter.MasterFocusedMessage = viewerPresenter.FocusedMessageBookmark;
 			};
 			if (messagePropertiesDialogPresenter != null)
 			{

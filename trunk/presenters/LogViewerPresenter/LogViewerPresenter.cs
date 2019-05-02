@@ -181,10 +181,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			get { return selectionManager.Selection?.First.Message; }
 		}
 
-		IBookmark IPresenter.GetFocusedMessageBookmark()
-		{
-			return selectionManager.GetFocusedMessageBookmark();
-		}
+		IBookmark IPresenter.FocusedMessageBookmark => selectionManager.FocusedMessageBookmark;
 
 		bool IPresenter.NavigationIsInProgress
 		{
@@ -296,7 +293,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return null;
 			var tmp = screenBufferFactory.CreateScreenBuffer(1);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
-			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
+			await tmp.MoveToBookmark(ThisIntf.FocusedMessageBookmark, BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
 		}
 
@@ -619,7 +616,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else if (menuItem == ContextMenuItem.DefaultAction)
 				PerformDefaultFocusedMessageAction();
 			else if (menuItem == ContextMenuItem.ToggleBmk)
-				model.Bookmarks.ToggleBookmark(ThisIntf.GetFocusedMessageBookmark());
+				model.Bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
 			else if (menuItem == ContextMenuItem.GotoNextMessageInTheThread)
 				ThisIntf.GoToNextMessageInThread();
 			else if (menuItem == ContextMenuItem.GotoPrevMessageInTheThread)
@@ -777,7 +774,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
 				else if (k == Key.BookmarkShortcut)
-					model.Bookmarks.ToggleBookmark(ThisIntf.GetFocusedMessageBookmark());
+					model.Bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
 			}
 			if (k == Key.Copy)
 			{

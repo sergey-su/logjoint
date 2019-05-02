@@ -797,7 +797,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		{
 			eventLikeObjectsCache.Clear();
 			eventLikeObjectsCache.Capacity = visibleEvents.Select(
-				evts => evts.Value.Evts.Count).Sum() + bookmarks.Count;
+				evts => evts.Value.Evts.Count).Sum() + bookmarks.Items.Count;
 			var evtsUnums = visibleEvents.Select(
 				evts => evts.Value.Evts.Select(e => new EventLikeObject(e, evts.Value.Output))).ToList();
 			var bookmarksEnum = bookmarks.Items.Select(b => new EventLikeObject(b));
@@ -1163,7 +1163,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			int CountBookmarksInTimestampsRange(DateTime t1, DateTime t2)
 			{
 				var bookmarksList = new ListUtils.VirtualList<IBookmark>(
-					owner.bookmarks.Count, bmkIdx => owner.bookmarks[bmkIdx]);
+					owner.bookmarks.Items.Count, bmkIdx => owner.bookmarks.Items[bmkIdx]);
 				var i1 = bookmarksList.BinarySearch(0, bookmarksList.Count,
 					b => new EventLikeObject(b).Timestamp < t1);
 				var i2 = bookmarksList.BinarySearch(i1, bookmarksList.Count,

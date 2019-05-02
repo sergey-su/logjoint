@@ -25,7 +25,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool SelectWordBoundaries(ViewLine viewLine, int charIndex);
 		Task CopySelectionToClipboard();
 		Task<string> GetSelectedText();
-		IBookmark GetFocusedMessageBookmark();
+		IBookmark FocusedMessageBookmark { get; }
 		bool CursorState { get; }
 
 		event EventHandler SelectionChanged;

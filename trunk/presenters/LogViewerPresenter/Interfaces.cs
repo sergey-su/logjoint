@@ -44,7 +44,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void MakeFirstLineFullyVisible();
 
 		IMessage FocusedMessage { get; }
-		IBookmark GetFocusedMessageBookmark();
+		IBookmark FocusedMessageBookmark { get; }
 		Task<Dictionary<IMessagesSource, long>> GetCurrentPositions(CancellationToken cancellation);
 		IBookmark SlaveModeFocusedMessage { get; set; }
 		Task SelectSlaveModeFocusedMessage();

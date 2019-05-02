@@ -23,16 +23,6 @@ namespace LogJoint
 			return null;
 		}
 
-		int IBookmarks.Count
-		{
-			get { return items.Count; }
-		}
-
-		IBookmark IBookmarks.this[int idx]
-		{
-			get { return items[idx]; }
-		}
-
 		void IBookmarks.Clear()
 		{
 			if (items.Count == 0)
@@ -59,13 +49,6 @@ namespace LogJoint
 			if (i == items.Count || i == -1)
 				return null;
 			return items[i];
-		}
-
-		Tuple<int, int> IBookmarks.FindBookmark(IBookmark bmk)
-		{
-			if (bmk == null)
-				return null;
-			return FindBookmarkInternal(bmk, 0, items.Count);
 		}
 
 		IBookmarksFactory IBookmarks.Factory
@@ -177,14 +160,6 @@ namespace LogJoint
 			itemsRef = ImmutableArray.CreateRange(items);
 			changeNotification.Post();
 			OnBookmarksChanged?.Invoke(this, args);
-		}
-
-		private Tuple<int, int> FindBookmarkInternal(IBookmark bmk, int index, int count)
-		{
-			int idx = items.BinarySearch(index, count, bmk, cmp);
-			if (idx >= 0)
-				return new Tuple<int, int>(idx, idx + 1);
-			return new Tuple<int, int>(~idx, ~idx);
 		}
 
 		readonly IBookmarksFactory factory;

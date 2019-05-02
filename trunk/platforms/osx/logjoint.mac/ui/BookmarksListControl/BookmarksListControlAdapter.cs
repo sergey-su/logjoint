@@ -14,7 +14,7 @@ namespace LogJoint.UI
 	public partial class BookmarksListControlAdapter : NSViewController, IView
 	{
 		readonly DataSource dataSource = new DataSource();
-		IViewModel viewEvents;
+		IViewModel viewModel;
 		bool isUpdating;
 
 		#region Constructors
@@ -64,56 +64,42 @@ namespace LogJoint.UI
 
 		internal IViewModel ViewEvents
 		{
-			get { return viewEvents; }
+			get { return viewModel; }
 		}
 
-		void IView.SetPresenter(IViewModel viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
-		}
+			this.viewModel = viewModel;
 
-		void IView.UpdateItems(IEnumerable<ViewItem> viewItems, ViewUpdateFlags flags)
-		{
-			isUpdating = true;
-			var items = dataSource.items;
-			items.Clear();
-			items.AddRange(viewItems.Select((d, i) => new Item(this, d, i)));
-			tableView.ReloadData();
-			tableView.SelectRows(
-				NSIndexSet.FromArray(items.Where(i => i.Data.IsSelected).Select(i => i.Index).ToArray()),
-				byExtendingSelection: false
+			var updateItems = Updaters.Create(
+				() => viewModel.Items,
+				viewItems =>
+				{
+					isUpdating = true;
+					var items = dataSource.items;
+					items.Clear();
+					items.AddRange(viewItems.Select((d, i) => new Item(this, d, i)));
+					tableView.ReloadData();
+					tableView.SelectRows(
+						NSIndexSet.FromArray(items.Where(i => i.Data.IsSelected).Select(i => i.Index).ToArray()),
+						byExtendingSelection: false
+					);
+					UpdateTimeDeltasColumn();
+					isUpdating = false;
+				}
 			);
-			UpdateTimeDeltasColumn();
-			isUpdating = false;
-		}
 
-		void IView.RefreshFocusedMessageMark()
-		{
-			InvalidateTable();
-		}
+			var updateFocusedMessageMark = Updaters.Create(
+				() => viewModel.FocusedMessagePosition,
+				(_) => {
+					InvalidateTable();
+				}
+			);
 
-		void IView.Invalidate()
-		{
-			InvalidateTable();
-		}
-
-		ViewItem? IView.SelectedBookmark
-		{
-			get
-			{
-				return GetItem((int)tableView.SelectedRow)?.Data;
-			}
-		}
-
-		IEnumerable<ViewItem> IView.SelectedBookmarks
-		{
-			get
-			{
-				return 
-					dataSource.items
-					.Where(i => tableView.IsRowSelected((int)i.Index))
-					.Select(i => i.Data);
-			}
+			viewModel.ChangeNotification.CreateSubscription(() => {
+				updateItems();
+				updateFocusedMessageMark();
+			});
 		}
 
 		void UpdateTimeDeltasColumn()
@@ -136,9 +122,9 @@ namespace LogJoint.UI
 		void OnItemClicked(Item item, NSEvent evt)
 		{
 			if (evt.ClickCount == 1)
-				viewEvents.OnBookmarkLeftClicked(item.Data);
+				viewModel.OnBookmarkLeftClicked(item.Data);
 			else if (evt.ClickCount == 2)
-				viewEvents.OnViewDoubleClicked();
+				viewModel.OnViewDoubleClicked();
 		}
 
 		void InvalidateTable()
@@ -149,6 +135,19 @@ namespace LogJoint.UI
 				if (v != null)
 					v.NeedsDisplay = true;
 			}
+		}
+
+		IEnumerable<ViewItem> GetSelectedItems()
+		{
+			var selectedRow = (int)tableView.SelectedRow;
+			var selectedItem = GetItem(selectedRow)?.Data;
+			if (!selectedItem.HasValue)
+				return Enumerable.Empty<ViewItem>();
+			return (new [] { selectedItem.Value }).Union(
+				dataSource.items
+				.Where(i => tableView.IsRowSelected((int)i.Index) && i.Index != selectedRow)
+				.Select(i => i.Data)
+			);
 		}
 
 		class Item: NSObject
@@ -236,7 +235,7 @@ namespace LogJoint.UI
 
 					view.StringValue = item.Data.Text;
 					view.LinkClicked = (s, e) => owner.OnItemClicked(item, e.NativeEvent);
-					if (owner.viewEvents.Theme == ColorThemeMode.Dark && item.Data.ContextColor.HasValue)
+					if (owner.viewModel.Theme == ColorThemeMode.Dark && item.Data.ContextColor.HasValue)
 						view.LinksColor = item.Data.ContextColor.Value.ToColor().ToNSColor();
 
 					return view;
@@ -247,7 +246,7 @@ namespace LogJoint.UI
 			public override void SelectionDidChange(NSNotification notification)
 			{
 				if (!owner.isUpdating)
-					owner.viewEvents.OnSelectionChanged();
+					owner.viewModel.OnChangeSelection(owner.GetSelectedItems());
 			}
 		};
 
@@ -272,7 +271,7 @@ namespace LogJoint.UI
 				if (row < 0 || row >= owner.dataSource.items.Count)
 					return;
 
-				if (owner.viewEvents.Theme == ColorThemeMode.Light)
+				if (owner.viewModel.Theme == ColorThemeMode.Light)
 				{
 					ModelColor? cl = owner.dataSource.items[row].Data.ContextColor;
 					if (cl != null)
@@ -294,8 +293,7 @@ namespace LogJoint.UI
 
 			void DrawFocusedMessage()
 			{
-				Tuple<int, int> focused;
-				owner.viewEvents.OnFocusedMessagePositionRequired(out focused);
+				Tuple<int, int> focused = owner.viewModel.FocusedMessagePosition;
 				if (focused != null)
 				{
 					var frame = this.Frame;

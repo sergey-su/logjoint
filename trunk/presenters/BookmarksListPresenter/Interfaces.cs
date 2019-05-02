@@ -9,18 +9,12 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public interface IPresenter
 	{
 		event BookmarkEvent Click;
-		void SetMasterFocusedMessage(IBookmark focusedMessageBookmark);
 		void DeleteSelectedBookmarks();
 	};
 
 	public interface IView
 	{
-		void SetPresenter(IViewModel presenter);
-		void UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags);
-		void RefreshFocusedMessageMark();
-		ViewItem? SelectedBookmark { get; }
-		IEnumerable<ViewItem> SelectedBookmarks { get; }
-		void Invalidate();
+		void SetViewModel(IViewModel viewModel);
 	};
 
 	public struct ViewItem
@@ -36,19 +30,21 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
 		string FontName { get; }
 		ColorThemeMode Theme { get; }
+		IReadOnlyList<ViewItem> Items { get; }
+		Tuple<int, int> FocusedMessagePosition { get; }
 
 		void OnEnterKeyPressed();
 		void OnViewDoubleClicked();
 		void OnBookmarkLeftClicked(ViewItem item);
 		void OnMenuItemClicked(ContextMenuItem item);
 		ContextMenuItem OnContextMenu();
-		void OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition);
 		void OnCopyShortcutPressed();
 		void OnDeleteButtonPressed();
 		void OnSelectAllShortcutPressed();
-		void OnSelectionChanged();
+		void OnChangeSelection(IEnumerable<ViewItem> selected);
 	};
 
 	[Flags]

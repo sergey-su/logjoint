@@ -6,6 +6,8 @@ using System.Text;
 using LogJoint;
 using LogJoint.Settings;
 using LogJoint.Profiling;
+using System.Collections.Immutable;
+using static LogJoint.Settings.Appearance;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -20,42 +22,34 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			IHeartBeatTimer heartbeat,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IClipboardAccess clipboardAccess,
-			IColorTheme colorTheme)
+			IColorTheme colorTheme,
+			IChangeNotification changeNotification)
 		{
 			this.bookmarks = bookmarks;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.clipboardAccess = clipboardAccess;
 			this.colorTheme = colorTheme;
+			this.changeNotification = changeNotification;
 			this.trace = new LJTraceSource("UI", "bmks");
 
-			bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
-			heartbeat.OnTimer += (sender, evt) =>
-			{
-				if (evt.IsNormalUpdate && updateTracker.Validate())
-					UpdateViewInternal(null, ViewUpdateFlags.None);
-			};
-			sourcesManager.OnLogSourceVisiblityChanged += (sender, evt) => updateTracker.Invalidate();
-			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, evt) =>
-			{
-				var flags = ViewUpdateFlags.ItemsCountDidNotChange | ViewUpdateFlags.SelectionDidNotChange;
-				UpdateViewInternal(null, flags);
-			};
+			itemsSelector = Selectors.Create(
+				() => bookmarks.Items,
+				() => selectedBookmarks,
+				() => colorTheme.ThreadColors,
+				() => loadedMessagesPresenter.LogViewerPresenter.Coloring,
+				CreateViewItems
+			);
+			focusedMessagePositionSelector = Selectors.Create(
+				() => loadedMessagesPresenter.LogViewerPresenter.FocusedMessageBookmark,
+				() => bookmarks.Items,
+				FindFocusedMessagePosition
+			);
 
-			view.SetPresenter(this);
+			view.SetViewModel(this);
 		}
 
 		public event BookmarkEvent Click;
-
-		void IPresenter.SetMasterFocusedMessage(IBookmark value)
-		{
-			if (focusedMessage == value)
-				return;
-			if (focusedMessage != null && value != null && MessagesComparer.Compare(focusedMessage, value) == 0)
-				return;
-			focusedMessage = value;
-			UpdateFocusedMessagePosition();
-		}
 
 		void IPresenter.DeleteSelectedBookmarks()
 		{
@@ -90,7 +84,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		ContextMenuItem IViewModel.OnContextMenu()
 		{
 			var ret = ContextMenuItem.None;
-			var selectedCount = view.SelectedBookmarks.Count();
+			var selectedCount = GetValidSelectedBookmarks().Count();
 			if (selectedCount > 0)
 				ret |= (ContextMenuItem.Delete | ContextMenuItem.Copy);
 			if (selectedCount > 1)
@@ -98,10 +92,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return ret;
 		}
 
-		void IViewModel.OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition)
-		{
-			focusedMessagePosition = this.focusedMessagePosition;
-		}
+		Tuple<int, int> IViewModel.FocusedMessagePosition => focusedMessagePositionSelector();
 
 		void IViewModel.OnCopyShortcutPressed()
 		{
@@ -113,26 +104,26 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			DeleteSelectedBookmarks();
 		}
 
+		IReadOnlyList<ViewItem> IViewModel.Items => itemsSelector();
+
 		void IViewModel.OnSelectAllShortcutPressed()
 		{
-			view.UpdateItems(EnumBookmarkForView(bookmarks.Items.ToLookup(b => b)), 
-				ViewUpdateFlags.ItemsCountDidNotChange);
+			selectedBookmarks = ImmutableHashSet.CreateRange(bookmarks.Items);
+			changeNotification.Post();
 		}
 
-		void IViewModel.OnSelectionChanged()
+		void IViewModel.OnChangeSelection(IEnumerable<ViewItem> selected)
 		{
-			var flags = 
-				ViewUpdateFlags.ItemsCountDidNotChange 
-				| ViewUpdateFlags.SelectionDidNotChange; // items already selected in view did not change their selection
-			UpdateViewInternal(null, flags);
+			var lookup = selected.ToLookup(v => v.Bookmark);
+			selectedBookmarks = ImmutableHashSet.CreateRange(bookmarks.Items.Where(lookup.Contains));
+			changeNotification.Post();
 		}
 
-		string IViewModel.FontName
-		{
-			get { return loadedMessagesPresenter.LogViewerPresenter.FontName; }
-		}
+		string IViewModel.FontName => loadedMessagesPresenter.LogViewerPresenter.FontName;
 
 		ColorThemeMode IViewModel.Theme => colorTheme.Mode;
+
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
 		#endregion
 
@@ -141,42 +132,38 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void NavigateTo(IBookmark bmk, string actionName)
 		{
 			trace.LogUserAction(actionName);
-			if (Click != null)
-				Click(this, bmk);
+			Click?.Invoke(this, bmk);
 		}
 
 		void ClickSelectedLink(bool focusMessagesView, string actionName)
 		{
-			var bmk = view.SelectedBookmark;
+			var bmk = GetValidSelectedBookmarks().FirstOrDefault();
 			if (bmk != null)
 			{
-				NavigateTo(bmk.Value.Bookmark, actionName);
+				NavigateTo(bmk, actionName);
 				if (focusMessagesView)
 					loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 			}
 		}
 
-		Tuple<int, int> FindFocusedMessagePosition()
+		static Tuple<int, int> FindFocusedMessagePosition(
+			IBookmark focusedMessage,
+			IReadOnlyList<IBookmark> bookmarks
+		)
 		{
 			if (focusedMessage == null)
 				return null;
 			return bookmarks.FindBookmark(focusedMessage);
 		}
 
-		void UpdateViewInternal(IEnumerable<IBookmark> newSelection, ViewUpdateFlags flags)
+		static ImmutableArray<ViewItem> CreateViewItems(
+			IEnumerable<IBookmark> bookmarks,
+			IImmutableSet<IBookmark> selected,
+			ImmutableArray<ModelColor> threadColors,
+			ColoringMode coloring
+		)
 		{
-			view.UpdateItems(EnumBookmarkForView(
-				newSelection != null ? newSelection.ToLookup(b => b) : view.SelectedBookmarks.ToLookup(b => b.Bookmark, b => b.Bookmark)), flags);
-			UpdateFocusedMessagePosition();
-		}
-
-		IEnumerable<ViewItem> EnumBookmarkForView(ILookup<IBookmark, IBookmark> selected)
-		{
-			return EnumBookmarkForView(bookmarks.Items, selected);
-		}
-
-		IEnumerable<ViewItem> EnumBookmarkForView(IEnumerable<IBookmark> bookmarks, ILookup<IBookmark, IBookmark> selected)
-		{
+			var resultBuilder = ImmutableArray.CreateBuilder<ViewItem>();
 			DateTime? prevTimestamp = null;
 			DateTime? prevSelectedTimestamp = null;
 			bool multiSelection = selected.Count >= 2;
@@ -191,14 +178,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				var altDelta = prevTimestamp != null ? ts - prevTimestamp.Value : new TimeSpan?();
 				int? colorIndex = null;
 				var thread = bmk.Thread;
-				var coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
 				if (coloring == Settings.Appearance.ColoringMode.Threads)
 					if (!thread.IsDisposed)
 						colorIndex = thread.ThreadColorIndex;
 				if (coloring == Settings.Appearance.ColoringMode.Sources)
 					if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
 						colorIndex = thread.LogSource.ColorIndex;
-				yield return new ViewItem()
+				resultBuilder.Add(new ViewItem()
 				{
 					Bookmark = bmk,
 					Text = bmk.ToString(),
@@ -206,33 +192,18 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					AltDelta = TimeUtils.TimeDeltaToString(altDelta),
 					IsSelected = isSelected,
 					IsEnabled = isEnabled,
-					ContextColor = colorTheme.ThreadColors.GetByIndex(colorIndex)
-				};
+					ContextColor = threadColors.GetByIndex(colorIndex)
+				});
 				prevTimestamp = ts;
 				if (isSelected)
 					prevSelectedTimestamp = ts;
 			}
-		}
-
-		private void UpdateFocusedMessagePosition()
-		{
-			var newFocusedMessagePosition = FindFocusedMessagePosition();
-			bool updateFocusedMessagePosition = false;
-			if ((newFocusedMessagePosition != null) != (focusedMessagePosition != null))
-				updateFocusedMessagePosition = true;
-			else if (newFocusedMessagePosition != null && focusedMessagePosition != null)
-				if (newFocusedMessagePosition.Item1 != focusedMessagePosition.Item1 || newFocusedMessagePosition.Item2 != focusedMessagePosition.Item2)
-					updateFocusedMessagePosition = true;
-			if (updateFocusedMessagePosition)
-			{
-				focusedMessagePosition = newFocusedMessagePosition;
-				view.RefreshFocusedMessageMark();
-			}
+			return resultBuilder.ToImmutable();
 		}
 
 		private void DeleteSelectedBookmarks()
 		{
-			var selectedBmks = view.SelectedBookmarks.ToLookup(b => b.Bookmark);
+			var selectedBmks = GetValidSelectedBookmarks().ToLookup(b => b);
 			if (selectedBmks.Count == 0)
 				return;
 			IBookmark newSelectionCandidate2 = null;
@@ -248,8 +219,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					newSelectionCandidate1 = b;
 			}
 			foreach (var bmk in selectedBmks.SelectMany(g => g))
-				bookmarks.ToggleBookmark(bmk.Bookmark);
-			UpdateViewInternal(new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null), ViewUpdateFlags.None);
+				bookmarks.ToggleBookmark(bmk);
+			selectedBookmarks = ImmutableHashSet.CreateRange(
+				new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null)
+			);
+			changeNotification.Post();
 		}
 
 		static string GetText(IBookmark b)
@@ -265,7 +239,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		private void CopyToClipboard(bool copyTimeDeltas)
 		{
 			var texts = 
-				EnumBookmarkForView(view.SelectedBookmarks.Select(b => b.Bookmark), new IBookmark[0].ToLookup(b => b))
+				CreateViewItems(
+					GetValidSelectedBookmarks(), ImmutableHashSet.Create<IBookmark>(),
+					colorTheme.ThreadColors, loadedMessagesPresenter.LogViewerPresenter.Coloring)
 				.Select((b, i) => new 
 				{ 
 					Index = i,
@@ -325,15 +301,21 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return cl;
 		}
 
+		IEnumerable<IBookmark> GetValidSelectedBookmarks()
+		{
+			return bookmarks.Items.Where(selectedBookmarks.Contains);
+		}
+
 		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LJTraceSource trace;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IClipboardAccess clipboardAccess;
 		readonly IColorTheme colorTheme;
-		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
-		IBookmark focusedMessage;
-		Tuple<int, int> focusedMessagePosition;
+		readonly IChangeNotification changeNotification;
+		ImmutableHashSet<IBookmark> selectedBookmarks = ImmutableHashSet.Create<IBookmark>();
+		readonly Func<ImmutableArray<ViewItem>> itemsSelector;
+		readonly Func<Tuple<int, int>> focusedMessagePositionSelector;
 
 		#endregion
 	};

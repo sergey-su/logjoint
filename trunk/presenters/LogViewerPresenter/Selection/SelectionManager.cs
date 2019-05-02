@@ -177,20 +177,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IBookmark ISelectionManager.GetFocusedMessageBookmark()
+		IBookmark ISelectionManager.FocusedMessageBookmark
 		{
-			if (focusedMessageBookmark == null)
+			get
 			{
-				if (selection() != null)
+				if (focusedMessageBookmark == null)
 				{
-					var f = selection().First;
-					focusedMessageBookmark = bookmarksFactory.CreateBookmark(
-						f.Message,
-						presentationProperties.GetDisplayTextLinesMapper(f.Message)(f.TextLineIndex),
-						useRawText: presentationProperties.RawMessageViewMode);
+					if (selection() != null)
+					{
+						var f = selection().First;
+						focusedMessageBookmark = bookmarksFactory.CreateBookmark(
+							f.Message,
+							presentationProperties.GetDisplayTextLinesMapper(f.Message)(f.TextLineIndex),
+							useRawText: presentationProperties.RawMessageViewMode);
+					}
 				}
+				return focusedMessageBookmark;
 			}
-			return focusedMessageBookmark;
 		}
 
 		bool ISelectionManager.CursorState => cursorState && view.HasInputFocus;
