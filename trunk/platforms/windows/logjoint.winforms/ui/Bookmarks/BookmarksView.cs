@@ -40,58 +40,56 @@ namespace LogJoint.UI
 				linkDisplayFont = new Font(viewModel.FontName, 8f, FontStyle.Underline);
 			}
 
-
-		}
-
-		void IView.UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags)
-		{
-			metrics = null;
-			isUpdating = true;
-			listBox.BeginUpdate();
-			if ((flags & ViewUpdateFlags.ItemsCountDidNotChange) != 0 && (flags & ViewUpdateFlags.SelectionDidNotChange) != 0)
-			{
-				var itemIdx = 0;
-				foreach (var i in items)
-					listBox.Items[itemIdx++] = new BookmarkItem(i);
-			}
-			else
-			{
-				listBox.Items.Clear();
-				foreach (var i in items)
+			var itemsUpdater = Updaters.Create(
+				() => viewModel.Items,
+				(items) =>
 				{
-					var itemIdx = listBox.Items.Add(new BookmarkItem(i));
-					if (i.IsSelected)
-						listBox.SelectedIndices.Add(itemIdx);
+					metrics = null;
+					isUpdating = true;
+					listBox.BeginUpdate();
+					listBox.SelectedIndices.Clear();
+					if (items.Count == listBox.Items.Count) // special case optimization
+					{
+						var itemIdx = 0;
+						foreach (var i in items)
+						{
+							listBox.Items[itemIdx] = new BookmarkItem(i);
+							if (i.IsSelected)
+								listBox.SelectedIndices.Add(itemIdx);
+							++itemIdx;
+						}
+					}
+					else
+					{
+						listBox.Items.Clear();
+						foreach (var i in items)
+						{
+							var itemIdx = listBox.Items.Add(new BookmarkItem(i));
+							if (i.IsSelected)
+								listBox.SelectedIndices.Add(itemIdx);
+						}
+					}
+					listBox.EndUpdate();
+					isUpdating = false;
 				}
-			}
-			listBox.EndUpdate();
-			isUpdating = false;
-		}
-
-		ViewItem? IView.SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
-
-		IEnumerable<ViewItem> IView.SelectedBookmarks
-		{
-			get
+			);
+			var focusedMessageMarkUpdater = Updaters.Create(
+				() => viewModel.FocusedMessagePosition,
+				_ =>
+				{
+					var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
+					listBox.Invalidate(new Rectangle(
+						GetMetrics().FocusedMessageMarkX + (int)focusedItemMarkBounds.Left,
+						0,
+						(int)focusedItemMarkBounds.Width,
+						ClientSize.Height));
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription(() =>
 			{
-				foreach (int i in listBox.SelectedIndices)
-					yield return Get(i).Value;
-			}
-		}
-
-		void IView.RefreshFocusedMessageMark()
-		{
-			var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
-			listBox.Invalidate(new Rectangle(
-				GetMetrics().FocusedMessageMarkX + (int)focusedItemMarkBounds.Left,
-				0,
-				(int)focusedItemMarkBounds.Width,
-				ClientSize.Height));
-		}
-
-		void IView.Invalidate()
-		{
-			this.listBox.Invalidate();
+				itemsUpdater();
+				focusedMessageMarkUpdater();
+			});
 		}
 
 		protected override CreateParams CreateParams
@@ -232,8 +230,7 @@ namespace LogJoint.UI
 				{
 					ControlPaint.DrawFocusRectangle(g, r, Color.Black, Color.White);
 				}
-				Tuple<int, int> focused;
-				presenter.OnFocusedMessagePositionRequired(out focused);
+				Tuple<int, int> focused = presenter.FocusedMessagePosition;
 				if (focused != null)
 				{
 					float y;
@@ -340,7 +337,11 @@ namespace LogJoint.UI
 		{
 			if (isUpdating)
 				return;
-			presenter.OnSelectionChanged();
+			var first = listBox.SelectedIndex;
+			var selected = new[] { Get(first) }.Union(
+				listBox.SelectedIndices.OfType<int>().Where(i => i != first).Select(Get)
+			).Where(i => i.HasValue).Select(i => i.Value).ToArray();
+			presenter.OnChangeSelection(selected);
 		}
 
 		class BookmarkItem

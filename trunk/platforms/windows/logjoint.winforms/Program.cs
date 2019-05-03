@@ -71,7 +71,7 @@ namespace LogJoint
 				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
-				IColorTheme colorTheme = new ColorTheme(new StaticSystemThemeDetector(ColorThemeMode.Dark), globalSettingsAccessor);
+				UI.Presenters.IColorTheme colorTheme = new UI.Presenters.ColorTheme(new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Dark), globalSettingsAccessor);
 
 				IModelThreads modelThreads = new ModelThreads(new ColorLease(colorTheme.ThreadColors.Length));
 
@@ -235,7 +235,7 @@ namespace LogJoint
 
 				UI.Presenters.IShellOpen shellOpen = new ShellOpen();
 
-				var highlightColorsTable = new HighlightBackgroundColorsGenerator(colorTheme);
+				var highlightColorsTable = new UI.Presenters.HighlightBackgroundColorsTable(colorTheme);
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					changeNotification,
@@ -583,7 +583,8 @@ namespace LogJoint
 					heartBeatTimer,
 					loadedMessagesPresenter,
 					clipboardAccess,
-					colorTheme);
+					colorTheme,
+					changeNotification);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
 					bookmarks,
@@ -670,7 +671,8 @@ namespace LogJoint
 					sharingDialogPresenter,
 					issueReportDialogPresenter,
 					shutdown,
-					colorTheme
+					colorTheme,
+					changeNotification
 				);
 				tracer.Info("main form presenter created");
 

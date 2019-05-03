@@ -13,8 +13,9 @@ namespace LogJoint.UI
 	{
 		#region Data
 
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 
+		ControlDrawing drawing;
 		Lazy<int> datesSize;
 		int minMarkHeight;
 		int containersHeaderAreaHeight;
@@ -28,8 +29,6 @@ namespace LogJoint.UI
 
 		readonly UIUtils.FocuslessMouseWheelMessagingFilter focuslessMouseWheelMessagingFilter;
 
-		readonly ControlDrawing drawing;
-
 		#endregion
 
 		public TimeLineControl()
@@ -41,16 +40,6 @@ namespace LogJoint.UI
 			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 
 			this.focuslessMouseWheelMessagingFilter = new UIUtils.FocuslessMouseWheelMessagingFilter(this);
-
-			this.drawing = new ControlDrawing(new GraphicsResources(
-				"Tahoma", Font.Size, 6, System.Drawing.SystemColors.ButtonFace, SystemColors.ControlText, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
-
-			this.datesSize = new Lazy<int>(() =>
-			{
-				using (LJD.Graphics g = new LJD.Graphics(this.CreateGraphics(), true))
-					return drawing.MeasureDatesAreaHeight(g);
-			});
-
 
 			this.minMarkHeight = UI.UIUtils.Dpi.ScaleUp(25, 120);
 
@@ -71,9 +60,18 @@ namespace LogJoint.UI
 
 		#region IView
 
-		void IView.SetEventsHandler(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = presenter;
+			this.viewModel = viewModel;
+
+			this.drawing = new ControlDrawing(new GraphicsResources(viewModel,
+				"Tahoma", Font.Size, 6, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
+
+			this.datesSize = new Lazy<int>(() =>
+			{
+				using (LJD.Graphics g = new LJD.Graphics(this.CreateGraphics(), true))
+					return drawing.MeasureDatesAreaHeight(g);
+			});
 		}
 
 		void IView.Invalidate()
@@ -94,7 +92,7 @@ namespace LogJoint.UI
 		void IView.TryBeginDrag(int x, int y)
 		{
 			dragPoint = new Point(x, y);
-			viewEvents.OnBeginTimeRangeDrag();
+			viewModel.OnBeginTimeRangeDrag();
 		}
 
 		void IView.ResetToolTipPoint(int x, int y)
@@ -142,7 +140,7 @@ namespace LogJoint.UI
 
 		protected override void OnPaint(PaintEventArgs pe)
 		{
-			if (viewEvents == null)
+			if (viewModel == null)
 				return;
 			using (var g = new LJD.Graphics(pe.Graphics))
 			{
@@ -150,7 +148,7 @@ namespace LogJoint.UI
 
 				Metrics m = GetMetrics();
 
-				var drawInfo = viewEvents.OnDraw();
+				var drawInfo = viewModel.OnDraw();
 				if (drawInfo == null)
 					return;
 
@@ -186,13 +184,13 @@ namespace LogJoint.UI
 			this.Focus();
 
 			if (e.Button == MouseButtons.Left)
-				viewEvents.OnLeftMouseDown(e.X, e.Y);
+				viewModel.OnLeftMouseDown(e.X, e.Y);
 		}
 
 		protected override void OnDoubleClick(EventArgs e)
 		{
 			Point pt = this.PointToClient(Control.MousePosition);
-			viewEvents.OnMouseDblClick(pt.X, pt.Y);
+			viewModel.OnMouseDblClick(pt.X, pt.Y);
 		}
 
 		protected override void OnMouseMove(MouseEventArgs e)
@@ -200,7 +198,7 @@ namespace LogJoint.UI
 			if (!this.Capture)
 				StopDragging(false);
 
-			if (viewEvents == null)
+			if (viewModel == null)
 			{
 				this.Cursor = Cursors.Default;
 				return;
@@ -217,7 +215,7 @@ namespace LogJoint.UI
 				ViewArea area = m.TopDrag.Contains(dragPoint.Value) ? ViewArea.TopDrag : ViewArea.BottomDrag;
 				dragForm.Area = area;
 
-				var rslt = viewEvents.OnDragging(
+				var rslt = viewModel.OnDragging(
 					area,
 					e.Y - dragPoint.Value.Y +
 						(area == ViewArea.TopDrag ? m.TimeLine.Top : m.TimeLine.Bottom)
@@ -244,7 +242,7 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				var cursor = viewEvents.OnMouseMove(e.X, e.Y);
+				var cursor = viewModel.OnMouseMove(e.X, e.Y);
 
 				if (cursor == CursorShape.SizeNS)
 					this.Cursor = Cursors.SizeNS;
@@ -258,9 +256,9 @@ namespace LogJoint.UI
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
 			if (Control.ModifierKeys == Keys.Control)
-				viewEvents.OnMouseWheel(e.X, e.Y, -(double)e.Delta / 400, true);
+				viewModel.OnMouseWheel(e.X, e.Y, -(double)e.Delta / 400, true);
 			else
-				viewEvents.OnMouseWheel(e.X, e.Y, -(double)e.Delta / (2d * (double)Height), false);
+				viewModel.OnMouseWheel(e.X, e.Y, -(double)e.Delta / (2d * (double)Height), false);
 		}
 
 		protected override void OnMouseUp(MouseEventArgs e)
@@ -301,7 +299,7 @@ namespace LogJoint.UI
 
 		protected override void OnMouseLeave(EventArgs e)
 		{
-			viewEvents.OnMouseLeave();
+			viewModel.OnMouseLeave();
 			base.OnMouseLeave(e);
 		}
 
@@ -312,7 +310,7 @@ namespace LogJoint.UI
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
 			var pt = PointToClient(Control.MousePosition);
-			var menuData = viewEvents.OnContextMenu(pt.X, pt.Y);
+			var menuData = viewModel.OnContextMenu(pt.X, pt.Y);
 
 			if (menuData == null)
 			{
@@ -331,11 +329,11 @@ namespace LogJoint.UI
 		{
 			if (e.ClickedItem == resetTimeLineMenuItem)
 			{
-				viewEvents.OnResetTimeLineMenuItemClicked();
+				viewModel.OnResetTimeLineMenuItemClicked();
 			}
 			else if (e.ClickedItem == zoomToMenuItem)
 			{
-				viewEvents.OnZoomToMenuItemClicked(zoomToMenuItem.Tag);
+				viewModel.OnZoomToMenuItemClicked(zoomToMenuItem.Tag);
 			}
 		}
 
@@ -347,7 +345,7 @@ namespace LogJoint.UI
 
 		private void contextMenu_Closed(object sender, ToolStripDropDownClosedEventArgs e)
 		{
-			viewEvents.OnContextMenuClosed();
+			viewModel.OnContextMenuClosed();
 		}
 
 		#endregion
@@ -357,7 +355,7 @@ namespace LogJoint.UI
 		public void DrawDragArea(Graphics g, DateTime timestamp, int x1, int x2, int y)
 		{
 			using (var gg = new LJD.Graphics(g))
-				drawing.DrawDragArea(gg, viewEvents.OnDrawDragArea(timestamp), x1, x2, y);
+				drawing?.DrawDragArea(gg, viewModel.OnDrawDragArea(timestamp), x1, x2, y);
 		}
 
 		void DrawFocusRect(Graphics g, DrawInfo di)
@@ -391,7 +389,7 @@ namespace LogJoint.UI
 					}
 				}
 				dragPoint = new Point?();
-				viewEvents.OnEndTimeRangeDrag(date, isFromTopDragArea);
+				viewModel.OnEndTimeRangeDrag(date, isFromTopDragArea);
 			}
 			if (dragForm != null && dragForm.Visible)
 			{
@@ -424,7 +422,7 @@ namespace LogJoint.UI
 			Point clientPt = PointToClient(pt);
 			if (!ClientRectangle.Contains(clientPt))
 				return;
-			var tooltip = viewEvents.OnTooltip(clientPt.X, clientPt.Y);
+			var tooltip = viewModel.OnTooltip(clientPt.X, clientPt.Y);
 			if (tooltip == null)
 				return;
 			lastToolTipPoint = clientPt;

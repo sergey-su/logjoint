@@ -78,7 +78,7 @@ namespace LogJoint.UI
 				graphicsResources,
 				dpiScale: UIUtils.Dpi.Scale(1f),
 				scrollPosXSelector: () => scrollPosXCache,
-				viewViewWidthSelector: () => viewWidthCache
+				viewWidthSelector: () => viewWidthCache
 			);
 
 			viewWidthCache = this.ClientRectangle.Width;

@@ -478,14 +478,12 @@ namespace LogJoint.Drawing
 	{
 		public static Color Text { get { return SystemColorsImpl.instance.text(); } }
 		public static Color TextBackground { get { return SystemColorsImpl.instance.textBackground(); } }
-		public static Color LightGray { get { return SystemColorsImpl.instance.lightGray (); } }
 	};
 
 	internal partial class SystemColorsImpl
 	{
 		public Func<Color> text;
 		public Func<Color> textBackground;
-		public Func<Color> lightGray;
 
 		public SystemColorsImpl ()
 		{
@@ -506,7 +504,6 @@ namespace LogJoint.Drawing
 		public static readonly Brush Transparent = new Brush(Color.Transparent);
 		public static readonly Brush Text = new Brush(SystemColorsImpl.instance.text);
 		public static readonly Brush TextBackground = new Brush(SystemColorsImpl.instance.textBackground);
-		public static readonly Brush SystemLightGray = new Brush (SystemColorsImpl.instance.lightGray);
 	};
 
 	public static class Pens
