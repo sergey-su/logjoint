@@ -65,7 +65,7 @@ namespace LogJoint.UI
 			this.viewModel = viewModel;
 
 			this.drawing = new ControlDrawing(new GraphicsResources(viewModel,
-				"Tahoma", Font.Size, 6, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
+				"Tahoma", Font.Size, 6, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)), viewModel);
 
 			this.datesSize = new Lazy<int>(() =>
 			{

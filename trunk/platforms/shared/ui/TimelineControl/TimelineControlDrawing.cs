@@ -41,8 +41,8 @@ namespace LogJoint.UI.Timeline
 			BottomDrag = new Rectangle(dragAreaHeight / 2, 
 				Client.Height - dragAreaHeight, Client.Width - dragAreaHeight, dragAreaHeight);
 			BottomDate = new Rectangle(0, BottomDrag.Top - dateAreaHeight, Client.Width, dateAreaHeight);
-			TimeLine = new Rectangle(0, TopDate.Bottom, Client.Width,
-				BottomDate.Top - TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - StaticMetrics.SourcesBottomPadding);
+			TimeLine = new Rectangle(0, TopDate.Bottom + StaticMetrics.SourcesVerticalPadding, Client.Width,
+				BottomDate.Top - TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - 2*StaticMetrics.SourcesVerticalPadding);
 			
 			MinMarkHeight = minMarkHeight;
 			ContainersHeaderAreaHeight = containersHeaderAreaHeight;
@@ -82,11 +82,13 @@ namespace LogJoint.UI.Timeline
 
 	class ControlDrawing
 	{
-		GraphicsResources res;
+		readonly GraphicsResources res;
+		readonly IViewModel viewModel;
 
-		public ControlDrawing(GraphicsResources res)
+		public ControlDrawing(GraphicsResources res, IViewModel viewModel)
 		{
 			this.res = res;
+			this.viewModel = viewModel;
 		}
 
 		public int MeasureDatesAreaHeight(Graphics g)
@@ -102,6 +104,7 @@ namespace LogJoint.UI.Timeline
 
 		public void DrawSources(Graphics g, DrawInfo drawInfo)
 		{
+			bool darkMode = viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
 			foreach (var src in drawInfo.Sources)
 			{
 				int srcX = src.X;
@@ -122,35 +125,19 @@ namespace LogJoint.UI.Timeline
 
 				int sourceBarWidth = GetSourceBarWidth(srcX, srcRight);
 
-				Rectangle shadowOuterRect = new Rectangle(
-					srcX + StaticMetrics.SourceShadowSize.Width,
-					y1 + StaticMetrics.SourceShadowSize.Height,
-					sourceBarWidth + 1, // +1 because DrawShadowRect works with rect bounds similarly to FillRectange: it doesn't fill Left+Width row of pixels.
-					y2 - y1 + endCoordCorrection + 1
-				);
-
-				if (DrawShadowRect.IsValidRectToDrawShadow(shadowOuterRect))
+				if (darkMode)
 				{
-					/*res.SourcesShadow.Draw(
-						g,
-						shadowOuterRect,
-						ShadowSide.All
-					);*/
+					var p = new Pen(src.Color.ToColor(), 2);
+					DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, res.DarkModeSourceFillBrush, p);
 				}
-
-				// Draw the source with its native color
-				using (Brush sb = new Brush(src.Color.ToColor()))
+				else
 				{
-					Pen pp = new Pen(src.Color.ToColor(), 2); // todo
-					DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
+					using (Brush b = new Brush(src.Color.ToColor())) // Draw the source with its native color
+						DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, b, res.LightModeSourcesBorderPen);
+					using (Brush sb = new Brush(src.Color.MakeDarker(16).ToColor())) // Draw the loaded range with a bit darker color
+						if (y3 != y4)
+							DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.LightModeSourcesBorderPen);
 				}
-
-				// Draw the loaded range with a bit darker color
-				/*using (Brush sb = new Brush(src.Color.MakeDarker(16).ToColor())) todo
-				{
-					if (y3 != y4)
-						DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
-				}*/
 
 
 				foreach (var gap in src.Gaps)
@@ -169,21 +156,11 @@ namespace LogJoint.UI.Timeline
 						gy2 - gy1 + endCoordCorrection + 1
 					);
 
-					int tempRectHeight = DrawShadowRect.MinimumRectSize.Height + 1;
-					Rectangle shadowTmp = new Rectangle(
-						shadowOuterRect.X,
-						gy1 - tempRectHeight + StaticMetrics.SourceShadowSize.Height + 1,
-						shadowOuterRect.Width,
-						tempRectHeight
-					);
-
-					if (DrawShadowRect.IsValidRectToDrawShadow(shadowTmp))
-					{
-						// res.SourcesShadow.Draw(g, shadowTmp, ShadowSide.Bottom | ShadowSide.Middle | ShadowSide.Right);
-					}
-
-					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, res);
-					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, res);
+					var cutLinePen = darkMode ?
+						  new Pen(src.Color.ToColor(), 1f, res.CutLinePenPattern)
+						: res.LightModeCutLinePen;
+					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, cutLinePen);
+					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, cutLinePen);
 				}
 			}
 		}
@@ -214,19 +191,19 @@ namespace LogJoint.UI.Timeline
 						RectangleF.FromLTRB(ccBoxRect.Left - 1, ccBoxRect.Top, ccBoxRect.Right + 2, ccBoxRect.Bottom));
 				}
 				g.FillRectangle(res.Background, ccBoxRect);
-				g.DrawRectangle(res.SourcesBorderPen, ccBoxRect);
+				g.DrawRectangle(res.LightModeSourcesBorderPen, ccBoxRect);
 				var midY = (ccBoxRect.Top + ccBoxRect.Bottom) / 2;
 				var midX = (ccBoxRect.Left + ccBoxRect.Right) / 2;
 				var pad = (float)Math.Ceiling(ccBoxRect.Width / 6);
 				g.DrawLine(
-					res.SourcesBorderPen,
+					res.LightModeSourcesBorderPen,
 					ccBoxRect.Left + pad, midY,
 					ccBoxRect.Right - pad, midY
 				);
 				if (!cc.ControlBox.IsExpanded)
 				{
 					g.DrawLine(
-						res.SourcesBorderPen,
+						res.LightModeSourcesBorderPen,
 						midX, ccBoxRect.Top + pad,
 						midX, ccBoxRect.Bottom - pad
 					);
@@ -245,8 +222,9 @@ namespace LogJoint.UI.Timeline
 				g.DrawLine(rm.IsMajor ? res.RulersPen2 : res.RulersPen1, 0, y, m.Client.Width, y);
 				if (rm.Label != null)
 				{
-					g.DrawString(rm.Label, res.RulersFont, res.RulersBrush1, 3 + 1, y + 1);
-					g.DrawString(rm.Label, res.RulersFont, res.RulersBrush2, 3, y);
+					int x = 6;
+					g.DrawString(rm.Label, res.RulersFont, res.RulersBrush1, x + 1, y + 1);
+					g.DrawString(rm.Label, res.RulersFont, res.RulersBrush2, x, y);
 				}
 			}
 
@@ -366,7 +344,7 @@ namespace LogJoint.UI.Timeline
 		{
 			ApplyMinDispayHeight(ref y1, ref y2);
 
-			int radius = 7;
+			int radius = 10;
 
 			if (y2 - y1 < radius * 2
 			 || width < radius * 2)
@@ -395,10 +373,10 @@ namespace LogJoint.UI.Timeline
 			}
 		}
 
-		static void DrawCutLine(Graphics g, int x1, int x2, int y, GraphicsResources res)
+		static void DrawCutLine(Graphics g, int x1, int x2, int y, Pen pen)
 		{
-			g.DrawLine(res.CutLinePen, x1, y - 1, x2, y - 1);
-			g.DrawLine(res.CutLinePen, x1 + 2, y, x2 + 1, y);
+			g.DrawLine(pen, x1, y - 1, x2, y - 1);
+			g.DrawLine(pen, x1 + 2, y, x2 + 1, y);
 		}
 	};
 }

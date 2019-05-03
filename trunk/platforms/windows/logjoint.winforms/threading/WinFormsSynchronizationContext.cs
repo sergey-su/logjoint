@@ -13,13 +13,17 @@ namespace LogJoint
 			this.isReady = form.IsHandleCreated;
 			if (!isReady)
 			{
-				void handler(object s, EventArgs e)
+				void createHandler(object s, EventArgs e)
 				{
 					isReady = true;
-					form.HandleCreated -= handler;
 					Post(() => { });
 				}
-				form.HandleCreated += handler;
+				form.HandleCreated += createHandler;
+				void destroyHandler(object s, EventArgs e)
+				{
+					isReady = false;
+				}
+				form.HandleDestroyed += destroyHandler;
 			}
 		}
 

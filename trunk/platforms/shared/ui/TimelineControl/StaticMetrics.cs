@@ -5,17 +5,17 @@ namespace LogJoint.UI.Timeline
 	static class StaticMetrics
 	{
 		/// <summary>
-		/// distace between the borders of the control and the bars showing sources
+		/// distance between the borders of the control and the bars showing sources
 		/// </summary>
-		public const int SourcesHorizontalPadding = 2;
+		public const int SourcesHorizontalPadding = 4;
 		/// <summary>
-		/// distace between the bottom border of the control and the bars showing sources
+		/// distance between the bottom border of the control and the bars showing sources
 		/// </summary>
-		public const int SourcesBottomPadding = 1;
+		public const int SourcesVerticalPadding = 3;
 		/// <summary>
 		/// distance between sources' bars (when there are more than one source)
 		/// </summary>
-		public const int DistanceBetweenSources = 2;
+		public const int DistanceBetweenSources = 4;
 		/// <summary>
 		/// px. Size of the shadow that log source bars drop.
 		/// </summary>
@@ -26,7 +26,7 @@ namespace LogJoint.UI.Timeline
 		public const int CutLineHeight = 2;
 		/// <summary>
 		/// Minimum height (px) that a time span may have. Time span is a range between time gaps.
-		/// We have to limit the miminum size because of usability problems. User must be able to
+		/// We have to limit the minimum size because of usability problems. User must be able to
 		/// see and click on any time span even if it very small.
 		/// </summary>
 		public const int MinimumTimeSpanHeight = 6;
