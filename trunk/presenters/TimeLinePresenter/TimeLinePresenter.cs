@@ -1214,10 +1214,11 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				this.X = m.SourcesArea.X + m.Metrics.SourcesHorizontalPadding;
 				this.DistanceBetweenSources = m.Metrics.DistanceBetweenSources;
-				this.Width = m.SourcesArea.Width + 2*m.Metrics.SourcesHorizontalPadding;
+				this.Width = m.SourcesArea.Width - 2*m.Metrics.SourcesHorizontalPadding;
 				this.sourcesCount = m.Sources.Count;
 				int minSourceWidth = 7;
-				this.sourceWidth = sourcesCount != 0 ? Math.Max(Width / sourcesCount, minSourceWidth) : 1;
+				this.sourceWidth = sourcesCount == 0 ? 1 :
+					Math.Max((Width - (sourcesCount - 1) * DistanceBetweenSources) / sourcesCount, minSourceWidth);
 			}
 
 			public bool NeedsDrawing
@@ -1238,27 +1239,19 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			public int GetSourceLeft(int sourceIdx)
 			{
-				return X + sourceIdx * sourceWidth;
+				return X + sourceIdx * (sourceWidth + DistanceBetweenSources);
 			}
 
 			public int GetSourceRight(int sourceIdx)
 			{
-				// Left-coord of the next source (sourceIdx + 1)
-				int nextSrcLeft = GetSourceLeft(sourceIdx + 1);
-
-				// Right coord of the source
-				int srcRight = nextSrcLeft - 1;
-				if (sourceIdx != sourcesCount - 1)
-					srcRight -= DistanceBetweenSources;
-
-				return srcRight;
+				return GetSourceLeft(sourceIdx) + sourceWidth;
 			}
 
 			public int? XCoordToSourceIndex(int x)
 			{
 				if (x < X)
 					return null;
-				int tmp = (x - X) / sourceWidth;
+				int tmp = (x - X) / (sourceWidth + DistanceBetweenSources);
 				if (x >= GetSourceRight(tmp))
 					return null;
 				if (tmp >= sourcesCount)

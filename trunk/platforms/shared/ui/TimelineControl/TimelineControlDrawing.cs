@@ -131,25 +131,26 @@ namespace LogJoint.UI.Timeline
 
 				if (DrawShadowRect.IsValidRectToDrawShadow(shadowOuterRect))
 				{
-					res.SourcesShadow.Draw(
+					/*res.SourcesShadow.Draw(
 						g,
 						shadowOuterRect,
 						ShadowSide.All
-					);
+					);*/
 				}
 
 				// Draw the source with its native color
 				using (Brush sb = new Brush(src.Color.ToColor()))
 				{
+					Pen pp = new Pen(src.Color.ToColor(), 2); // todo
 					DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
 				}
 
 				// Draw the loaded range with a bit darker color
-				using (Brush sb = new Brush(src.Color.MakeDarker(16).ToColor()))
+				/*using (Brush sb = new Brush(src.Color.MakeDarker(16).ToColor())) todo
 				{
 					if (y3 != y4)
 						DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
-				}
+				}*/
 
 
 				foreach (var gap in src.Gaps)
@@ -178,7 +179,7 @@ namespace LogJoint.UI.Timeline
 
 					if (DrawShadowRect.IsValidRectToDrawShadow(shadowTmp))
 					{
-						res.SourcesShadow.Draw(g, shadowTmp, ShadowSide.Bottom | ShadowSide.Middle | ShadowSide.Right);
+						// res.SourcesShadow.Draw(g, shadowTmp, ShadowSide.Bottom | ShadowSide.Middle | ShadowSide.Right);
 					}
 
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, res);
@@ -365,7 +366,7 @@ namespace LogJoint.UI.Timeline
 		{
 			ApplyMinDispayHeight(ref y1, ref y2);
 
-			int radius = 3;
+			int radius = 7;
 
 			if (y2 - y1 < radius * 2
 			 || width < radius * 2)

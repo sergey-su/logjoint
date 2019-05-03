@@ -42,12 +42,12 @@ namespace LogJoint.UI.Timeline
 			backgroundSelector = Selectors.Create (
 				isDark,
 				dark => dark ?
-					new Brush (Color.FromArgb (255, 134, 134, 134)) :
-					new Brush (Color.White)
+					new Brush(Color.FromArgb (80, 80, 80)) :
+					new Brush(Color.White)
 			);
 			MainFont = new Font(mainFontName, mainFontSize);
 
-			SourcesBorderPen = new Pen(Color.DimGray, 1);
+			SourcesBorderPen = new Pen(Color.Black, 1);
 			ContainerControlHintPen = new Pen(Color.LightGray, 1);
 			CutLinePen = new Pen(Color.DimGray, 1, new float[] { 2, 2 });
 

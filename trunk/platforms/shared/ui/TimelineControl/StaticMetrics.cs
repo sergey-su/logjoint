@@ -7,7 +7,7 @@ namespace LogJoint.UI.Timeline
 		/// <summary>
 		/// distace between the borders of the control and the bars showing sources
 		/// </summary>
-		public const int SourcesHorizontalPadding = 1;
+		public const int SourcesHorizontalPadding = 2;
 		/// <summary>
 		/// distace between the bottom border of the control and the bars showing sources
 		/// </summary>
@@ -15,11 +15,11 @@ namespace LogJoint.UI.Timeline
 		/// <summary>
 		/// distance between sources' bars (when there are more than one source)
 		/// </summary>
-		public const int DistanceBetweenSources = 1;
+		public const int DistanceBetweenSources = 2;
 		/// <summary>
 		/// px. Size of the shadow that log source bars drop.
 		/// </summary>
-		public static readonly Size SourceShadowSize = new Size(2, 2);
+		public static readonly Size SourceShadowSize = new Size(0, 0);
 		/// <summary>
 		/// The height of the line that is drawn to show the gaps in messages (see DrawCutLine())
 		/// </summary>
