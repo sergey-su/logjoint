@@ -11,7 +11,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 {
 	public partial class StateInspectorForm : ToolForm, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		bool expandingProgrammatically;
 
 		public StateInspectorForm()
@@ -22,17 +22,17 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			this.splitContainer1.SplitterWidth = Math.Max(4, UIUtils.Dpi.Scale(4, 120));
 			this.splitContainer3.SplitterDistance = UIUtils.Dpi.Scale(260, 120);
 			this.ClientSize = new System.Drawing.Size(UIUtils.Dpi.Scale(800, 120), UIUtils.Dpi.Scale(500, 120));
-			this.objectsTreeView.BeforeExpand += (s, e) => { if (!expandingProgrammatically) eventsHandler.OnNodeExpanding(GetNodeInternal(e.Node)); };
+			this.objectsTreeView.BeforeExpand += (s, e) => { if (!expandingProgrammatically) viewModel.OnNodeExpanding(GetNodeInternal(e.Node)); };
 
 			selectedObjectStateHistoryControl.Header.ResizingStarted += (s, e) => splitContainer3.BeginSplitting();
 
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		void IView.SetEventsHandler(IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
-			selectedObjectStateHistoryControl.Init(eventsHandler);
-			propertiesDataGridView.Init(eventsHandler);
+			this.viewModel = viewModel;
+			selectedObjectStateHistoryControl.Init(viewModel);
+			propertiesDataGridView.Init(viewModel);
 		}
 
 		NodesCollectionInfo IView.RootNodesCollection
@@ -202,20 +202,20 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		void objectsTreeView_SelectedNodesChanged(object sender, EventArgs e)
 		{
-			eventsHandler.OnSelectedNodesChanged();
+			viewModel.OnSelectedNodesChanged();
 		}
 
 		private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
 		{
 			propertiesDataGridView.Capture = false;
-			eventsHandler.OnPropertiesRowDoubleClicked();
+			viewModel.OnPropertiesRowDoubleClicked();
 		}
 
 		private void propertiesDataGridView_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
 		{
 			foreach (DataGridViewRow r in propertiesDataGridView.Rows)
 			{
-				var paintInfo = eventsHandler.OnPropertyCellPaint(r.Index);
+				var paintInfo = viewModel.OnPropertyCellPaint(r.Index);
 				if (paintInfo.PaintAsLink)
 				{
 					r.Cells[1] = new DataGridViewLinkCell();
@@ -233,23 +233,23 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		private void propertiesDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
 		{
 			if (e.ColumnIndex == 1)
-				eventsHandler.OnPropertyCellClicked(e.RowIndex);
+				viewModel.OnPropertyCellClicked(e.RowIndex);
 		}
 
 		private void CallObjectsForm_VisibleChanged(object sender, EventArgs e)
 		{
-			if (eventsHandler != null)
-				eventsHandler.OnVisibleChanged();
+			if (viewModel != null)
+				viewModel.OnVisibleChanged();
 		}
 
 		private void objectsTreeView_DrawNode(object sender, DrawTreeNodeEventArgs e)
 		{
-			if (eventsHandler == null)
+			if (viewModel == null)
 				return;
 
 
 			int spaceAvailableForDefaultPropValue = objectsTreeView.ClientSize.Width - e.Node.Bounds.Right;
-			var paintInfo = eventsHandler.OnPaintNode(GetNodeInternal(e.Node), spaceAvailableForDefaultPropValue > 30);
+			var paintInfo = viewModel.OnPaintNode(GetNodeInternal(e.Node), spaceAvailableForDefaultPropValue > 30);
 
 			if (!paintInfo.DrawingEnabled)
 				return;
@@ -280,13 +280,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		{
 			if (e.KeyCode == Keys.Delete)
 			{
-				eventsHandler.OnDeleteKeyPressed();
+				viewModel.OnDeleteKeyPressed();
 			}
 		}
 
 		private void contextMenuStrip_Opening(object sender, CancelEventArgs e)
 		{
-			var menuData = eventsHandler.OnMenuOpening();
+			var menuData = viewModel.OnMenuOpening();
 			if (menuData.Items.Count == 0)
 			{
 				e.Cancel = true;

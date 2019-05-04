@@ -71,7 +71,7 @@ namespace LogJoint
 				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
-				UI.Presenters.IColorTheme colorTheme = new UI.Presenters.ColorTheme(new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Dark), globalSettingsAccessor);
+				UI.Presenters.IColorTheme colorTheme = new UI.Presenters.ColorTheme(new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Light), globalSettingsAccessor);
 
 				IModelThreads modelThreads = new ModelThreads(new ColorLease(colorTheme.ThreadColors.Length));
 

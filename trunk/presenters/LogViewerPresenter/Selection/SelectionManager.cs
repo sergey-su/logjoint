@@ -379,7 +379,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		async Task<List<SelectedTextLine>> GetSelectedTextLines(bool includeTime)
 		{
 			var ret = new List<SelectedTextLine>();
-			var normSelection = selection().Normalize();
+			var normSelection = selection()?.Normalize();
 			if (normSelection?.IsEmpty != false)
 				return ret;
 			var showMilliseconds = presentationProperties.ShowMilliseconds;

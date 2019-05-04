@@ -12,8 +12,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		IViewModel viewModel;
 		readonly Font activitesCaptionsFont;
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
-		readonly GraphicsResources res;
-		readonly ControlDrawing drawing;
+		GraphicsResources res;
+		ControlDrawing drawing;
 		CaptionsMarginMetrics captionsMarginMetrics;
 		IChangeNotification changeNotification;
 		ISubscription changeNotificationSubscription;
@@ -31,39 +31,17 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			zoomOutButton.Image = UIUtils.DownscaleUIImage(TimelineVisualizerControlResources.ZoomOut, toolboxIconsSize);
 			notificationsButton.Image = UIUtils.DownscaleUIImage(TimelineVisualizerControlResources.Warning, toolboxIconsSize);
 
-			res = new GraphicsResources(
-				Font.FontFamily.Name,
-				Font.Size,
-				8f,
-				6f,
-				new LJD.Image(TimelineVisualizerControlResources.UserAction),
-				new LJD.Image(TimelineVisualizerControlResources.APICall),
-				new LJD.Image(TimelineVisualizerControlResources.TimelineBookmark),
-				new LJD.Image(TimelineVisualizerControlResources.FocusedMsgSlaveVert),
-				UIUtils.Dpi.ScaleUp(1, 120),
-				new LJD.Brush(SystemColors.Control),
-				1f
-			);
-			drawing = new ControlDrawing(res);
 
 			activitesCaptionsFont = Font;
-
-			var vm = GetUpToDateViewMetrics();
-
-			var rulersPanelHeight = vm.RulersPanelHeight;
 
 			activitiesContainer.SplitterDistance = UIUtils.Dpi.Scale(260, 120);
 			activitiesContainer.SplitterWidth = UIUtils.Dpi.ScaleUp(3, 120);
 
-			activitiesScrollBar.SmallChange = vm.LineHeight;
-			activitiesScrollBar.Top = rulersPanelHeight;
 			activitiesScrollBar.Height = activitiesScrollBar.Parent.Height - activitiesScrollBar.Top;
 
 			activitiesViewPanel.MouseWheel += activitiesViewPanel_MouseWheel;
 			activitesCaptionsPanel.MouseWheel += activitesCaptionsPanel_MouseWheel;
 
-			quickSearchEditBox.Top = rulersPanelHeight - quickSearchEditBox.Height;
-			panel5.Height = rulersPanelHeight;
 			this.quickSearchEditBox.InnerTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.quickSearchEditBox_KeyDown);
 
 			currentActivityCaptionLabel.Font = new Font(currentActivityCaptionLabel.Font, FontStyle.Bold);
@@ -80,6 +58,28 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+
+			res = new GraphicsResources(
+				viewModel,
+				Font.FontFamily.Name,
+				Font.Size,
+				8f,
+				6f,
+				new LJD.Image(TimelineVisualizerControlResources.UserAction),
+				new LJD.Image(TimelineVisualizerControlResources.APICall),
+				new LJD.Image(TimelineVisualizerControlResources.TimelineBookmark),
+				new LJD.Image(TimelineVisualizerControlResources.FocusedMsgSlaveVert),
+				UIUtils.Dpi.ScaleUp(1, 120),
+				new LJD.Brush(SystemColors.Control)
+			);
+			drawing = new ControlDrawing(res);
+			var vm = GetUpToDateViewMetrics();
+
+			var rulersPanelHeight = vm.RulersPanelHeight;
+			activitiesScrollBar.SmallChange = vm.LineHeight;
+			activitiesScrollBar.Top = rulersPanelHeight;
+			quickSearchEditBox.Top = rulersPanelHeight - quickSearchEditBox.Height;
+			panel5.Height = rulersPanelHeight;
 
 			this.changeNotification = viewModel.ChangeNotification;
 			var updateNotificationsButton = Updaters.Create(() => viewModel.NotificationsIconVisibile, v => notificationsButton.Visible = v);

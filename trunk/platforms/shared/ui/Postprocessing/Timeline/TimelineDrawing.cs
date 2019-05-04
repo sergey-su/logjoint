@@ -276,6 +276,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			ViewMetrics viewMetrics,
 			IViewModel eventsHandler)
 		{
+			g.PushState();
+			g.EnableTextAntialiasing(true);
+
 			var panelClientRect = new Rectangle (0, 0, viewMetrics.NavigationPanelWidth, viewMetrics.NavigationPanelHeight);
 			g.FillRectangle(res.NavigationPanel_InvisibleBackground, panelClientRect);
 
@@ -311,6 +314,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			Rectangle visibleRangeBox = m.VisibleRangeBox;
 			visibleRangeBox.Width = Math.Max(visibleRangeBox.Width, 1);
 			g.DrawRectangle(res.VisibleRangePen, visibleRangeBox);
+
+			g.PopState();
 		}
 
 		public static LJD.Brush MakeBrush(ModelColor c)
