@@ -17,10 +17,6 @@ namespace LogJoint.UI.Timeline
 		/// </summary>
 		public const int DistanceBetweenSources = 4;
 		/// <summary>
-		/// px. Size of the shadow that log source bars drop.
-		/// </summary>
-		public static readonly Size SourceShadowSize = new Size(0, 0);
-		/// <summary>
 		/// The height of the line that is drawn to show the gaps in messages (see DrawCutLine())
 		/// </summary>
 		public const int CutLineHeight = 2;

@@ -16,6 +16,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 			p.Reader.ReadStartElement();
 			events = (List<TSBlocks.EventBase>)timeSeriesTypesAccess.GetEventsSerializer().Deserialize(p.Reader);
 			timeSeries = (List<TSBlocks.TimeSeriesData>)timeSeriesTypesAccess.GetSeriesSerializer().Deserialize(p.Reader);
+			timeSeries.ForEach(Sanitize);
 		}
 
 		public static void SerializePostprocessorOutput(
@@ -49,6 +50,12 @@ namespace LogJoint.Postprocessing.TimeSeries
 		IEnumerable<TSBlocks.EventBase> ITimeSeriesPostprocessorOutput.Events
 		{
 			get { return events; }
+		}
+
+		static void Sanitize(TSBlocks.TimeSeriesData ts)
+		{
+			if (ts.Unit == null)
+				ts.Unit = "";
 		}
 
 		readonly ILogSource logSource;

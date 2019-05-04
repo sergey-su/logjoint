@@ -42,7 +42,7 @@ namespace LogJoint.UI.Timeline
 				Client.Height - dragAreaHeight, Client.Width - dragAreaHeight, dragAreaHeight);
 			BottomDate = new Rectangle(0, BottomDrag.Top - dateAreaHeight, Client.Width, dateAreaHeight);
 			TimeLine = new Rectangle(0, TopDate.Bottom + StaticMetrics.SourcesVerticalPadding, Client.Width,
-				BottomDate.Top - TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - 2*StaticMetrics.SourcesVerticalPadding);
+				BottomDate.Top - TopDate.Bottom - 2*StaticMetrics.SourcesVerticalPadding);
 			
 			MinMarkHeight = minMarkHeight;
 			ContainersHeaderAreaHeight = containersHeaderAreaHeight;
@@ -191,19 +191,19 @@ namespace LogJoint.UI.Timeline
 						RectangleF.FromLTRB(ccBoxRect.Left - 1, ccBoxRect.Top, ccBoxRect.Right + 2, ccBoxRect.Bottom));
 				}
 				g.FillRectangle(res.Background, ccBoxRect);
-				g.DrawRectangle(res.LightModeSourcesBorderPen, ccBoxRect);
+				g.DrawRectangle(res.ContainerControlHintPen, ccBoxRect);
 				var midY = (ccBoxRect.Top + ccBoxRect.Bottom) / 2;
 				var midX = (ccBoxRect.Left + ccBoxRect.Right) / 2;
 				var pad = (float)Math.Ceiling(ccBoxRect.Width / 6);
 				g.DrawLine(
-					res.LightModeSourcesBorderPen,
+					res.ContainerControlHintPen,
 					ccBoxRect.Left + pad, midY,
 					ccBoxRect.Right - pad, midY
 				);
 				if (!cc.ControlBox.IsExpanded)
 				{
 					g.DrawLine(
-						res.LightModeSourcesBorderPen,
+						res.ContainerControlHintPen,
 						midX, ccBoxRect.Top + pad,
 						midX, ccBoxRect.Bottom - pad
 					);
@@ -336,7 +336,7 @@ namespace LogJoint.UI.Timeline
 
 		static int GetSourceBarWidth(int srcLeft, int srcRight)
 		{
-			int sourceBarWidth = srcRight - srcLeft - StaticMetrics.SourceShadowSize.Width;
+			int sourceBarWidth = srcRight - srcLeft;
 			return sourceBarWidth;
 		}
 

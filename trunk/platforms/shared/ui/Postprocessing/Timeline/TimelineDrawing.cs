@@ -26,6 +26,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.CaptionsPanel);
 
 			int availableHeight = viewMetrics.ActivitiesViewHeight;
+			bool darkMode = eventsHandler.ColorTheme == Presenters.ColorThemeMode.Dark;
 
 			foreach (var a in eventsHandler.OnDrawActivities())
 			{
@@ -43,8 +44,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					foldingAreaRect.Right + 3 /* text padding */, y, viewMetrics.ActivitesCaptionsViewWidth - foldingAreaRect.Right, h);
 				var lineRect = new Rectangle(0, y, viewMetrics.ActivitesCaptionsViewWidth, h);
 				if (a.IsSelected)
-					g.FillRectangle(res.SelectedLineBrush, lineRect);
-				else if (a.Color.HasValue)
+					g.FillRectangle(res.SelectedActivityBackgroundBrush, lineRect);
+				else if (!darkMode && a.Color.HasValue)
 					using (var bgBrush = MakeBrush(a.Color.Value))
 						g.FillRectangle(bgBrush, lineRect);
 				if (!string.IsNullOrEmpty(a.SequenceDiagramText))
@@ -90,11 +91,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.ActivitiesPanel);
+			var darkMode = eventsHandler.ColorTheme == Presenters.ColorThemeMode.Dark;
 			foreach (var a in viewMetrics.GetActivitiesMetrics(eventsHandler))
 			{
 				if (a.Activity.IsSelected)
-					g.FillRectangle(res.SelectedLineBrush, a.ActivityLineRect);
-				else if (a.Activity.Color.HasValue)
+					g.FillRectangle(res.SelectedActivityBackgroundBrush, a.ActivityLineRect);
+				else if (!darkMode && a.Activity.Color.HasValue)
 					using (var bgBrush = MakeBrush(a.Activity.Color.Value))
 						g.FillRectangle(bgBrush, a.ActivityLineRect);
 			}
@@ -127,7 +129,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawActivities(LJD.Graphics g, ViewMetrics viewMetrics, IViewModel eventsHandler)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.ActivitiesPanel);
-
+			var darkMode = eventsHandler.ColorTheme == Presenters.ColorThemeMode.Dark;
 			foreach (var a in viewMetrics.GetActivitiesMetrics(eventsHandler))
 			{
 				if (a.Activity.Type == ActivityDrawType.Group)
@@ -145,7 +147,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				foreach (var ms in a.Milestones)
 					g.DrawLine(res.MilestonePen, ms.X, a.ActivityBarRect.Top, ms.X, a.ActivityBarRect.Bottom);
 
-				g.DrawRectangle(res.ActivityBarBoundsPen, a.ActivityBarRect);
+				g.DrawRectangle (res.ActivityBarBoundsPen, a.ActivityBarRect);
 
 				if (a.PairedActivityConnectorBounds != null)
 				{

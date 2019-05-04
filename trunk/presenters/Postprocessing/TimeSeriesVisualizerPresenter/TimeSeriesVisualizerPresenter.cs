@@ -375,7 +375,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		{
 			this.axisParams =
 				visibleTimeSeries
-				.Select(s => s.Key.Unit ?? "")
+				.Select(s => s.Key.Unit)
 				.Distinct()
 				.Union(new[] { xAxisKey })
 				.ToDictionary(

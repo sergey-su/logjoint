@@ -82,7 +82,8 @@ namespace LogJoint.UI
 					(float)NSFont.SystemFontSize,
 					(float)NSFont.SystemFontSize * 0.6f,
 					new LJD.Image (NSImage.ImageNamed ("TimelineBookmark.png"))
-				)
+				),
+				viewModel
 			);
 			dateAreaHeight = new Lazy<int> (() => {
 				using (var g = new LJD.Graphics ())

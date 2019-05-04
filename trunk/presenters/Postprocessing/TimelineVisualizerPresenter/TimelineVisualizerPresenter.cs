@@ -112,6 +112,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
+
 		void IViewModel.OnWindowShown()
 		{
 			changeNotification.Active = true;
