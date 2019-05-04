@@ -54,7 +54,7 @@ namespace LogJoint
 			{
 				for (int idx = 0; idx < refCounters.Length; ++idx)
 					refCounters[idx] = 0;
-			}		
+			}
 		}
 
 		readonly object sync = new object();
