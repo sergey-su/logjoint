@@ -1629,7 +1629,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void UpdateTags()
 		{
-			availableTags = ImmutableHashSet.CreateRange(arrows.SelectMany(a => a.Tags));
+			var tmp = ImmutableHashSet.CreateRange(arrows.SelectMany(a => a.Tags));
+			if (!availableTags.SetEquals(tmp))
+			{
+				availableTags = tmp;
+			}
 		}
 
 		private void RemoveHiddenArrows()
