@@ -70,7 +70,7 @@ namespace LogJoint.UI
 				warn: new LJD.Image(Properties.Resources.WarnLogSeverity),
 				bookmark: new LJD.Image(Properties.Resources.Bookmark),
 				focusedMark: new LJD.Image(Properties.Resources.FocusedMsg)),
-				() => new LJD.Graphics(backBufferCanvas.Graphics, ownsGraphics: false)
+				() => new LJD.Graphics(this.CreateGraphics(), ownsGraphics: true)
 			);
 
 			viewDrawing = new ViewDrawing(
