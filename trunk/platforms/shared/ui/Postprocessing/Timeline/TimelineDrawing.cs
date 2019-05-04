@@ -135,7 +135,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				if (a.Activity.Type == ActivityDrawType.Group)
 					continue;
 
-				g.FillRectangle(GetActivityBrush(a.Activity.Type), a.ActivityBarRect);
+				float round = 2;
+				g.FillRoundRectangle(GetActivityBrush(a.Activity.Type), a.ActivityBarRect, round);
 
 				foreach (var ph in a.Phases)
 				{
@@ -147,7 +148,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				foreach (var ms in a.Milestones)
 					g.DrawLine(res.MilestonePen, ms.X, a.ActivityBarRect.Top, ms.X, a.ActivityBarRect.Bottom);
 
-				g.DrawRectangle (res.ActivityBarBoundsPen, a.ActivityBarRect);
+				g.DrawRoundRectangle (res.ActivityBarBoundsPen, a.ActivityBarRect, round);
 
 				if (a.PairedActivityConnectorBounds != null)
 				{

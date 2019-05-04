@@ -97,7 +97,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				new LJD.Pen(dark ? Color.DarkGray : Color.LightGray, 1));
 
 			Color adjust (Color cl, bool dark) =>
-				dark ? new ModelColor(cl.ToArgb()).MakeDarker (20).ToColor() : cl;
+				dark ? new ModelColor(cl.ToArgb()).MakeDarker (60).ToColor() : cl;
 			procedureBrush = Selectors.Create(isDark, dark => new LJD.Brush(adjust(Color.LightBlue, dark)));
 			lifetimeBrush = Selectors.Create (isDark, dark => new LJD.Brush(adjust(Color.LightGreen, dark)));
 			networkMessageBrush = Selectors.Create(isDark, dark => new LJD.Brush(adjust(Color.LightSalmon, dark)));
