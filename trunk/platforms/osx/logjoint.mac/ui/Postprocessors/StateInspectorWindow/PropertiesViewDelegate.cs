@@ -9,7 +9,6 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	{
 		public StateInspectorWindowController owner;
 		public NSTableView table;
-		nint selectedRow = -1;
 
 		public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 		{
@@ -65,20 +64,9 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			return ret;
 		}
 
-		void InvalidateValueCell (nint row)
+		public override NSTableRowView CoreGetRowView (NSTableView tableView, nint row)
 		{
-			if (row >= 0 && row < table.RowCount) {
-				var v = table.GetView (1, row, false);
-				if (v != null)
-					v.NeedsDisplay = true;
-			}
-		}
-
-		public override void SelectionDidChange (NSNotification notification)
-		{
-			InvalidateValueCell (table.SelectedRow);
-			InvalidateValueCell (selectedRow);
-			selectedRow = table.SelectedRow;
+			return new NSCustomTableRowView { InvalidateSubviewsOnSelectionChange = true };
 		}
 	};
 }

@@ -102,6 +102,11 @@ namespace LogJoint.UI
 			}
 		}
 
+		public override NSTableRowView RowViewForItem (NSOutlineView outlineView, NSObject item)
+		{
+			return new NSCustomTableRowView { InvalidateSubviewsOnSelectionChange = true };
+		}
+
 		public override NSView GetView (NSOutlineView outlineView, NSTableColumn tableColumn, NSObject item) 
 		{
 			var sourceItem = item as SourcesListItem;

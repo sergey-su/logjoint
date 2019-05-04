@@ -146,27 +146,38 @@ namespace LogJoint.UI.Presenters.LogViewer
 				.Where(f => f.Enabled)
 				.Select(filter => (filter.StartBulkProcessing(displayTextGetter, false), filter))
 				.ToArray();
-
-			for (int i = 0; i < filtersState.Length; ++i)
+			try
 			{
-				var filterState = filtersState[i];
-				for (int? startPos = null; ;)
-				{
-					var rslt = filterState.Item1.Match(msg, startPos);
-					if (rslt == null)
-						break;
-					var r = rslt.Value;
-					if (r.MatchBegin == r.MatchEnd)
-						break;
-					yield return (r.MatchBegin, r.MatchEnd, filterState.filter.Action.ToColor(hlColors));
-					if (r.WholeTextMatched)
-						break;
-					startPos = r.MatchEnd;
-				}
-			}
+				var ret = new List<(int, int, ModelColor)>();
 
-			foreach (var f in filtersState)
-				f.Item1.Dispose();
+				for (int i = 0; i < filtersState.Length; ++i)
+				{
+					var filterState = filtersState[i];
+					for (int? startPos = null; ;)
+					{
+						var rslt = filterState.Item1.Match(msg, startPos);
+						if (rslt == null)
+							break;
+						var r = rslt.Value;
+						if (r.MatchBegin == r.MatchEnd)
+							break;
+						if (filterState.filter.Action == FilterAction.Exclude)
+							return Enumerable.Empty<(int, int, ModelColor)>();
+						ret.Add((r.MatchBegin, r.MatchEnd,
+							filterState.filter.Action.ToColor(hlColors).GetValueOrDefault()));
+						if (r.WholeTextMatched)
+							break;
+						startPos = r.MatchEnd;
+					}
+				}
+
+				return ret;
+			}
+			finally
+			{
+				foreach (var f in filtersState)
+					f.Item1.Dispose();
+			}
 		}
 
 		private static IEnumerable<(int, int, ModelColor)> GetSearchResultsHighlightingRanges(

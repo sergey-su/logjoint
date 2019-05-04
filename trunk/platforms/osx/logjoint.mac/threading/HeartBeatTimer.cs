@@ -12,6 +12,11 @@ namespace LogJoint.UI
 			this.worker = Worker();
 		}
 
+		public void SetTelemetryCollector (Telemetry.ITelemetryCollector collector)
+		{
+			this.collector = collector;
+		}
+
 		public event EventHandler<HeartBeatEventArgs> OnTimer;
 
 		void IHeartBeatTimer.Suspend()
@@ -64,12 +69,17 @@ namespace LogJoint.UI
 			for (;;)
 			{
 				await Task.Delay(TimeSpan.FromMilliseconds(400)); // this works even if there is open modal dialog
-				timerTickHandler(null, null);
+				try {
+					timerTickHandler (null, null);
+				} catch (Exception e) {
+					collector?.ReportException (e, "periodic timer");
+				}
 			}
 		}
 
 		int suspended = 0;
 		int timerEventsCounter = 0;
 		Task worker;
+		Telemetry.ITelemetryCollector collector;
 	}
 }

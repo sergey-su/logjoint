@@ -411,7 +411,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			{
 				actionOptions.Add(Tuple.Create(a, 
 					string.Format(includeAndColorizeFormat, a - FilterAction.IncludeAndColorizeFirst + 1), 
-					new ModelColor?(a.ToColor(highlightColorsTable.Items))));
+					a.ToColor(highlightColorsTable.Items)));
 			}
 
 			return actionOptions;

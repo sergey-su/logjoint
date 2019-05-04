@@ -20,9 +20,11 @@ namespace LogJoint
 				f == null || f.Options.Scope.ContainsAnythingFromSource(s)));
 		}
 
-		public static ModelColor ToColor(this FilterAction a, IReadOnlyList<ModelColor> colors)
+		public static ModelColor? ToColor(this FilterAction a, IReadOnlyList<ModelColor> colors)
 		{
-			return colors[a - FilterAction.IncludeAndColorizeFirst];
+			if (a >= FilterAction.IncludeAndColorizeFirst && a <= FilterAction.IncludeAndColorizeLast)
+				return colors[a - FilterAction.IncludeAndColorizeFirst];
+			return null;
 		}
 	};
 }

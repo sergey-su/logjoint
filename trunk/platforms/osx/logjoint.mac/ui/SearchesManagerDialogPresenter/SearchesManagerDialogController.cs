@@ -191,6 +191,11 @@ namespace LogJoint.UI
 			{
 				owner.eventsHandler.OnSelectionChanged();
 			}
+
+			public override NSTableRowView RowViewForItem (NSOutlineView outlineView, NSObject item)
+			{
+				return new NSCustomTableRowView { InvalidateSubviewsOnSelectionChange = true };
+			}
 		};
 	}
 
