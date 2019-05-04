@@ -17,7 +17,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		IView,
 		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
 	{
-		IViewEvents eventsHandler;
+		IViewModel eventsHandler;
 		readonly TreeDataSource treeDataSource = new TreeDataSource ();
 		StateInspectorWindow windowRef;
 		bool updatingTree;
@@ -55,7 +55,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		#endregion
 
-		internal IViewEvents EventsHandler { get { return eventsHandler; } }
+		internal IViewModel ViewModel { get { return eventsHandler; } }
 
 		internal PropertiesViewDataSource PropsDataSource { get { return propsDataSource; } }
 
@@ -112,7 +112,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			findCurrentPositionInStateHistoryButton.Image.Template = true;
 		}
 
-		void IView.SetEventsHandler (IViewEvents eventsHandler)
+		void IView.SetEventsHandler (IViewModel eventsHandler)
 		{
 			this.eventsHandler = eventsHandler;
 		}
@@ -426,7 +426,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 	class ContextMenuDelegate : NSMenuDelegate
 	{
-		public IViewEvents eventsHandler;
+		public IViewModel eventsHandler;
 
 		public override void MenuWillHighlightItem (NSMenu menu, NSMenuItem item)
 		{

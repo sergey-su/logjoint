@@ -31,7 +31,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		void DrawFocusedMessage()
 		{
-			Tuple<int, int> focused = owner.EventsHandler.OnDrawFocusedMessageMark();
+			Tuple<int, int> focused = owner.ViewModel.OnDrawFocusedMessageMark();
 			if (focused != null)
 			{
 				var frame = this.Frame.ToRectangleF ();
@@ -55,7 +55,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		void DrawBookmark()
 		{
-			bool bookmarked = owner.EventsHandler.OnGetHistoryItemBookmarked(owner.StateHistoryDataSource.data[row]);
+			bool bookmarked = owner.ViewModel.OnGetHistoryItemBookmarked(owner.StateHistoryDataSource.data[row]);
 			if (bookmarked)
 			{
 				var frame = this.Frame.ToRectangleF ();

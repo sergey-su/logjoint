@@ -19,20 +19,27 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		public override void DrawRect (CGRect dirtyRect)
 		{
 			bool isSelected = owner.TreeView.IsRowSelected (owner.TreeView.RowForItem (node));
-			var paintInfo = owner.EventsHandler.OnPaintNode(node.ToNodeInfo(), false);
+			bool isDarkMode = owner.ViewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
+			var paintInfo = owner.ViewModel.OnPaintNode(node.ToNodeInfo(), false);
 			if (isSelected) {
 				NSColor.SelectedMenuItem.SetFill ();
 			}
 			else {
 				switch (paintInfo.Coloring) {
 				case NodeColoring.Alive:
-					NSColor.FromDeviceRgba (0.74f, 0.93f, 0.74f, 1f).SetFill ();
+					if (isDarkMode)
+						NSColor.FromDeviceRgba (0.0f, 0.20f, 0.0f, 1f).SetFill ();
+					else
+						NSColor.FromDeviceRgba (0.74f, 0.93f, 0.74f, 1f).SetFill ();
 					break;
 				case NodeColoring.Deleted:
-					NSColor.FromDeviceRgba (0.90f, 0.90f, 0.98f, 1f).SetFill ();
+					if (isDarkMode)
+						NSColor.FromDeviceRgba (0.30f, 0.30f, 0.30f, 1f).SetFill ();
+					else
+						NSColor.FromDeviceRgba (0.90f, 0.90f, 0.98f, 1f).SetFill ();
 					break;
 				default:
-					NSColor.White.SetFill ();
+					NSColor.TextBackground.SetFill ();
 					break;
 				}
 			}

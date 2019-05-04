@@ -13,7 +13,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 		{
 			var data = owner.PropsDataSource.data [(int)row];
-			var paintInfo = owner.EventsHandler.OnPropertyCellPaint ((int)row);
+			var paintInfo = owner.ViewModel.OnPropertyCellPaint ((int)row);
 
 			if (tableColumn == owner.PropKeyColumn) {
 				var viewId = "name";
@@ -36,7 +36,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 						};
 					view.StringValue = data.Value.ToString();
 					view.LinkClicked = (s, e) => 
-						owner.EventsHandler.OnPropertyCellClicked((int)row);
+						owner.ViewModel.OnPropertyCellClicked((int)row);
 					return view;
 				} else {
 					var viewId = "val";
