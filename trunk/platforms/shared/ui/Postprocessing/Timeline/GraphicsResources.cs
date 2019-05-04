@@ -48,7 +48,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public readonly LJD.Brush SystemControlBrush;
 		public readonly LJD.Pen VisibleRangePen;
 
-		public readonly LJD.Pen FoldingSignPen;
+		public LJD.Pen FoldingSignPen => foldingSignPen();
 
 		private readonly Func<LJD.Brush> selectedActivityBackgroundBrush;
 		private readonly Func<LJD.Brush> procedureBrush;
@@ -62,6 +62,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		private readonly Func<LJD.Brush> navigationPanel_VisibleBackground;
 
 		private readonly Func<LJD.Pen> rulerLinePen;
+		private readonly Func<LJD.Pen> foldingSignPen;
 
 		public GraphicsResources (
 			IViewModel viewModel,
@@ -142,7 +143,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			SystemControlBrush = systemControlBrush;
 			VisibleRangePen = new LJD.Pen(Color.Gray, 1f);
 
-			FoldingSignPen = LJD.Pens.Black; // todo: dark
+			foldingSignPen = Selectors.Create (isDark,
+				dark => dark? LJD.Pens.White : LJD.Pens.Black);
 		}
 	};
 }
