@@ -305,7 +305,9 @@ namespace LogJoint
 					heartBeatTimer,
 					modelSynchronizationContext,
 					statusReportFactory,
-					logViewerPresenterFactory
+					logViewerPresenterFactory,
+					colorTheme,
+					changeNotification
 				);
 
 				UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(

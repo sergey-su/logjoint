@@ -13,7 +13,7 @@ namespace LogJoint.UI
 {
 	public partial class SearchResultView : UserControl, IView
 	{
-		IViewEvents events;
+		IViewModel viewModel;
 		Image pinImage, pinnedImage, dropdownImage, hideDropdownImage, emptyImage;
 		ToolStripControls mainToolStripControls;
 		bool updateLock;
@@ -27,9 +27,9 @@ namespace LogJoint.UI
 
 			mainToolStrip.ImageScalingSize = new Size(UIUtils.Dpi.Scale(16), UIUtils.Dpi.Scale(16));
 			mainToolStrip.ResizingEnabled = true;
-			mainToolStrip.ResizingStarted += (sender, args) => events.OnResizingStarted();
-			mainToolStrip.ResizingFinished += (sender, args) => events.OnResizingFinished();
-			mainToolStrip.Resizing += (sender, args) => events.OnResizing(args.Delta);
+			mainToolStrip.ResizingStarted += (sender, args) => viewModel.OnResizingStarted();
+			mainToolStrip.ResizingFinished += (sender, args) => viewModel.OnResizingFinished();
+			mainToolStrip.Resizing += (sender, args) => viewModel.OnResizing(args.Delta);
 
 			findCurrentTimeButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.FindCurrentTime, mainToolStrip.ImageScalingSize);
 			toggleBookmarkButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.Bookmark, mainToolStrip.ImageScalingSize);
@@ -47,64 +47,71 @@ namespace LogJoint.UI
 			UpdateToolStripControls(mainToolStripControls, null);
 		}
 
-		void IView.SetEventsHandler(IViewEvents events)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.events = events;
+			this.viewModel = viewModel;
+
+			var itemsUpdater = Updaters.Create(
+				() => viewModel.Items,
+				items =>
+				{
+					using (new ScopedGuard(
+						() => {
+							dropDownPanel.SuspendLayout();
+							updateLock = true;
+						},
+						() => {
+							dropDownPanel.ResumeLayout();
+							updateLock = false;
+						}
+					))
+					{
+						UpdateToolStripControls(mainToolStripControls, items.FirstOrDefault());
+
+						var existingControls = dropDownPanel.Controls.OfType<ExtendedToolStrip>().ToList();
+
+						int idx = 0;
+						foreach (var item in items)
+						{
+							var row = existingControls.LastOrDefault();
+							if (row != null)
+							{
+								existingControls.RemoveAt(existingControls.Count - 1);
+							}
+							else
+							{
+								row = new ExtendedToolStrip()
+								{
+									GripStyle = ToolStripGripStyle.Hidden,
+									ImageScalingSize = mainToolStrip.ImageScalingSize,
+									Font = mainToolStrip.Font,
+									TabStop = true,
+								};
+								row.Tag = AddToolStripControls(row);
+								dropDownPanel.Controls.Add(row);
+								dropDownPanel.Controls.SetChildIndex(row, 0);
+							}
+
+							var ctrls = (ToolStripControls)row.Tag;
+							ctrls.dropdownBtnShowsList = (idx == 0) ? false : new bool?();
+							UpdateToolStripControls(ctrls, item);
+
+							++idx;
+						}
+
+						existingControls.ForEach(c => c.Dispose());
+
+						UpdateToolStripTextSizes();
+					}
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				itemsUpdater();
+			});
 		}
 
 		Presenters.LogViewer.IView IView.MessagesView { get { return searchResultViewer; } }
-		
-		void IView.UpdateItems(IList<ViewItem> items)
-		{
-			using (new ScopedGuard(
-				() => {
-					dropDownPanel.SuspendLayout();
-					updateLock = true;
-				},
-				() => {
-					dropDownPanel.ResumeLayout();
-					updateLock = false;
-				}
-			))
-			{
-				UpdateToolStripControls(mainToolStripControls, items.FirstOrDefault());
-
-				var existingControls = dropDownPanel.Controls.OfType<ExtendedToolStrip>().ToList();
-
-				int idx = 0;
-				foreach (var item in items)
-				{
-					var row = existingControls.LastOrDefault();
-					if (row != null)
-					{
-						existingControls.RemoveAt(existingControls.Count - 1);
-					}
-					else
-					{
-						row = new ExtendedToolStrip()
-						{
-							GripStyle = ToolStripGripStyle.Hidden,
-							ImageScalingSize = mainToolStrip.ImageScalingSize,
-							Font = mainToolStrip.Font,
-							TabStop = true,
-						};
-						row.Tag = AddToolStripControls(row);
-						dropDownPanel.Controls.Add(row);
-						dropDownPanel.Controls.SetChildIndex(row, 0);
-					}
-
-					var ctrls = (ToolStripControls)row.Tag;
-					ctrls.dropdownBtnShowsList = (idx == 0) ? false : new bool?();
-					UpdateToolStripControls(ctrls, item);
-
-					++idx;
-				}
-
-				existingControls.ForEach(c => c.Dispose());
-
-				UpdateToolStripTextSizes();
-			}
-		}
 
 		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
 		{
@@ -139,16 +146,16 @@ namespace LogJoint.UI
 					ctrls.dropdownBtnShowsList == true ? expandButtonHint :
 					unexpandButtonHint;
 				if (ctrls.dropdownBtnShowsList != null)
-					ctrls.dropdownBtn.Click += (s, e) => events.OnExpandSearchesListClicked();
+					ctrls.dropdownBtn.Click += (s, e) => viewModel.OnExpandSearchesListClicked();
 				ctrls.visibleCbHost.ToolTipText = item.VisiblityControlHint;
-				ctrls.visibleCb.CheckedChanged += (s, e) => { if (!updateLock) events.OnVisibilityCheckboxClicked(ctrls.currentItem); };
+				ctrls.visibleCb.CheckedChanged += (s, e) => { if (!updateLock) viewModel.OnVisibilityCheckboxClicked(ctrls.currentItem); };
 				ctrls.pinnedBtn.ToolTipText = item.PinControlHint;
-				ctrls.pinnedBtn.Click += (s, e) => { if (!updateLock) events.OnPinCheckboxClicked(ctrls.currentItem); };
+				ctrls.pinnedBtn.Click += (s, e) => { if (!updateLock) viewModel.OnPinCheckboxClicked(ctrls.currentItem); };
 				if (ctrls.dropdownBtnShowsList != null)
-					ctrls.textLabel.Click += (s, e) => events.OnDropdownTextClicked();
+					ctrls.textLabel.Click += (s, e) => viewModel.OnDropdownTextClicked();
 				ctrls.toolStrip.ContextMenu.Popup += (s, e) =>
 				{
-					var menuData = events.OnContextMenuPopup(ctrls.currentItem);
+					var menuData = viewModel.OnContextMenuPopup(ctrls.currentItem);
 					Action<MenuItem, MenuItemId> updateItem = (menuItem, id) =>
 					{
 						menuItem.Visible = (menuData.VisibleItems & id) != 0;
@@ -220,46 +227,46 @@ namespace LogJoint.UI
 			});
 			toolstrip.ContextMenu = new ContextMenu(new[]
 			{
-				ctrls.visibleMenuItem = new MenuItem("Visible", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Visible)),
-				ctrls.pinnedMenuItem = new MenuItem("Pinned", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Pinned)),
-				ctrls.visibleOnTimelineMenuItem = new MenuItem("Display on timeline", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.VisibleOnTimeline)),
+				ctrls.visibleMenuItem = new MenuItem("Visible", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Visible)),
+				ctrls.pinnedMenuItem = new MenuItem("Pinned", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Pinned)),
+				ctrls.visibleOnTimelineMenuItem = new MenuItem("Display on timeline", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.VisibleOnTimeline)),
 				ctrls.deleteSeparatorMenuItem = new MenuItem("-"),
-				ctrls.deleteMenuItem = new MenuItem("Delete", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Delete)),
+				ctrls.deleteMenuItem = new MenuItem("Delete", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Delete)),
 			});
 			return ctrls;
 		}
 
 		private void closeSearchResultButton_Click(object sender, EventArgs e)
 		{
-			events.OnCloseSearchResultsButtonClicked();
+			viewModel.OnCloseSearchResultsButtonClicked();
 		}
 
 		private void toggleBookmarkButton_Click(object sender, EventArgs e)
 		{
-			events.OnToggleBookmarkButtonClicked();
+			viewModel.OnToggleBookmarkButtonClicked();
 		}
 
 		private void findCurrentTimeButton_Click(object sender, EventArgs e)
 		{
-			events.OnFindCurrentTimeButtonClicked();
+			viewModel.OnFindCurrentTimeButtonClicked();
 		}
 
 		private void refreshToolStripButton_Click(object sender, EventArgs e)
 		{
-			events.OnRefreshButtonClicked();
+			viewModel.OnRefreshButtonClicked();
 		}
 
 		private void dropDownPanel_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
 		{
 			if (e.KeyCode == Keys.Escape)
 			{
-				events.OnDropdownEscape();
+				viewModel.OnDropdownEscape();
 			}
 		}
 
 		private void dropDownPanel_Leave(object sender, EventArgs e)
 		{
-			events.OnDropdownContainerLostFocus();
+			viewModel.OnDropdownContainerLostFocus();
 		}
 
 		class ToolStripControls
