@@ -180,6 +180,13 @@ namespace LogJoint.UI.LogViewer
 			DrawFocusedMessageMark(canvas);
 		}
 
+		public int MeasureView ()
+		{
+			var charCount = viewModel.ViewLines.Aggregate (
+				0, (agg, vl) => Math.Max (vl.TextLineValue.Length, agg));
+			return (int)((double)charCount * CharWidthDblPrecision) + GetTextOffset (0).X;
+		}
+
 		public void HandleMouseDown(
 			Rectangle clientRectangle,
 			Point pt,

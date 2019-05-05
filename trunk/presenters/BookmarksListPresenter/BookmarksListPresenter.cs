@@ -226,16 +226,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			changeNotification.Post();
 		}
 
-		static string GetText(IBookmark b)
-		{
-			string ret = null;
-			if (b.LineIndex > 0)
-				ret = b.DisplayName;
-			else 
-				ret = b.MessageText ?? b.DisplayName;
-			return ret ?? "";
-		}
-
 		private void CopyToClipboard(bool copyTimeDeltas)
 		{
 			var texts = 
@@ -246,7 +236,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				{ 
 					Index = i,
 					Delta = copyTimeDeltas ? b.Delta : "",
-					Text = GetText(b.Bookmark),
+					Text = b.Text,
 					Bookmark = b.Bookmark
 				})
 				.ToArray();
