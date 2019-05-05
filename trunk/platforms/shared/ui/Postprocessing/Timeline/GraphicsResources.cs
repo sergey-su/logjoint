@@ -20,7 +20,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public LJD.Brush LifetimeBrush => lifetimeBrush ();
 		public LJD.Brush NetworkMessageBrush => networkMessageBrush ();
 		public LJD.Brush UnknownActivityBrush => unknownActivityBrush ();
-		public readonly LJD.Pen ActivitiesTopBoundPen, MilestonePen, ActivitiesConnectorPen;
+		public readonly LJD.Pen ActivitiesTopBoundPen, ActivitiesConnectorPen;
+		public LJD.Pen MilestonePen => milestonePen();
 		public LJD.Pen ActivityBarBoundsPen => activityBarBoundsPen ();
 		public readonly LJD.Brush[] PhaseBrushes;
 
@@ -63,6 +64,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private readonly Func<LJD.Pen> rulerLinePen;
 		private readonly Func<LJD.Pen> foldingSignPen;
+		private readonly Func<LJD.Pen> milestonePen;
 
 		public GraphicsResources (
 			IViewModel viewModel,
@@ -104,7 +106,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			unknownActivityBrush = Selectors.Create (isDark, dark => new LJD.Brush(adjust(Color.LightGray, dark)));
 			ActivitiesTopBoundPen = new LJD.Pen(Color.Gray, 1);
 
-			MilestonePen = new LJD.Pen(Color.FromArgb(180, Color.SteelBlue), pensScale * 3f);
+			milestonePen = Selectors.Create(isDark,
+				dark => new LJD.Pen(dark ? Color.FromArgb (0, 67, 175) : Color.FromArgb(180, Color.SteelBlue), pensScale * 3f));
 			activityBarBoundsPen = Selectors.Create(isDark,
 				dark => new LJD.Pen(dark ? Color.White : Color.Gray, 1f));
 			ActivitiesConnectorPen = new LJD.Pen(Color.DarkGray, pensScale * 1f, new[] { 1f, 1f });
