@@ -8,9 +8,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 {
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents presenter);
+		void SetViewModel(IViewModel presenter);
 		Presenters.LogViewer.IView MessagesView { get; }
-		void UpdateItems(IList<ViewItem> items);
 		void UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint);
 	};
 
@@ -57,8 +56,13 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public MenuItemId CheckedItems;
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		ColorThemeMode ColorTheme { get; }
+		IReadOnlyList<ViewItem> Items { get; }
+		bool IsCombinedProgressIndicatorVisible { get; }
+
 		void OnResizingStarted();
 		void OnResizingFinished();
 		void OnResizing(int delta);

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -16,6 +16,7 @@
                 <outlet property="dropdownScrollView" destination="MIB-GM-t7K" id="MdK-rn-FC3"/>
                 <outlet property="logViewerPlaceholder" destination="YaW-3s-fHO" id="zYy-jR-DT9"/>
                 <outlet property="pinColumn" destination="blh-IS-fx0" id="ddw-NU-Ayb"/>
+                <outlet property="progressIndicator" destination="1Ap-1A-eI4" id="ONN-eL-zee"/>
                 <outlet property="selectCurrentTimeButton" destination="7XG-Rx-OHD" id="pql-2M-7xl"/>
                 <outlet property="tableView" destination="k2C-GP-apa" id="9Y9-Iq-mPt"/>
                 <outlet property="textColumn" destination="zy8-yf-Bww" id="iNl-gG-Lfu"/>
@@ -57,7 +58,7 @@
                     <rect key="frame" x="0.0" y="0.0" width="443" height="126"/>
                 </customView>
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="ibc-KD-LOq" customClass="NSCustomizableView">
-                    <rect key="frame" x="32" y="48" width="372" height="100"/>
+                    <rect key="frame" x="32" y="48" width="364" height="100"/>
                     <subviews>
                         <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cTh-Hf-UtK">
                             <rect key="frame" x="-2" y="76" width="27" height="26"/>
@@ -70,13 +71,13 @@
                             </connections>
                         </button>
                         <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="21" horizontalPageScroll="10" verticalLineScroll="21" verticalPageScroll="10" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="MIB-GM-t7K" customClass="SearchResultsScrollView">
-                            <rect key="frame" x="24" y="1" width="347" height="98"/>
+                            <rect key="frame" x="24" y="1" width="339" height="98"/>
                             <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="5sM-u3-Aho" userLabel="Dropdown Clip Viewports">
-                                <rect key="frame" x="0.0" y="0.0" width="347" height="98"/>
+                                <rect key="frame" x="0.0" y="0.0" width="339" height="98"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
                                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="19" rowSizeStyle="automatic" viewBased="YES" id="k2C-GP-apa" customClass="SearchResultsDropdownTable">
-                                        <rect key="frame" x="0.0" y="0.0" width="347" height="98"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="339" height="98"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <size key="intercellSpacing" width="3" height="2"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
@@ -148,7 +149,7 @@
                                                     </tableCellView>
                                                 </prototypeCellViews>
                                             </tableColumn>
-                                            <tableColumn width="299" minWidth="30" maxWidth="3.4028234663852886e+38" id="zy8-yf-Bww">
+                                            <tableColumn width="291" minWidth="30" maxWidth="3.4028234663852886e+38" id="zy8-yf-Bww">
                                                 <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                     <font key="font" metaFont="smallSystem"/>
                                                     <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -162,7 +163,7 @@
                                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                 <prototypeCellViews>
                                                     <tableCellView id="2pG-Qi-obV">
-                                                        <rect key="frame" x="46" y="1" width="299" height="19"/>
+                                                        <rect key="frame" x="46" y="1" width="291" height="19"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <subviews>
                                                             <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HAY-ug-ZVK">
@@ -187,7 +188,7 @@
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                             </clipView>
                             <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="v1Z-MM-OMG">
-                                <rect key="frame" x="0.0" y="82" width="347" height="16"/>
+                                <rect key="frame" x="0.0" y="82" width="333" height="16"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </scroller>
                             <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="qOe-ym-hVf">
@@ -205,18 +206,23 @@
                         <constraint firstItem="MIB-GM-t7K" firstAttribute="leading" secondItem="cTh-Hf-UtK" secondAttribute="trailing" constant="2" id="tBN-o4-0l5"/>
                     </constraints>
                 </customView>
+                <progressIndicator hidden="YES" wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="1Ap-1A-eI4">
+                    <rect key="frame" x="400" y="129" width="16" height="16"/>
+                </progressIndicator>
             </subviews>
             <constraints>
                 <constraint firstItem="gk0-5S-i2f" firstAttribute="top" secondItem="4" secondAttribute="top" id="6yq-BG-tJQ"/>
                 <constraint firstItem="YaW-3s-fHO" firstAttribute="top" relation="lessThanOrEqual" secondItem="ibc-KD-LOq" secondAttribute="bottom" id="CmV-WO-laj"/>
                 <constraint firstItem="ibc-KD-LOq" firstAttribute="leading" secondItem="7XG-Rx-OHD" secondAttribute="trailing" constant="3" id="DrD-he-0bD"/>
+                <constraint firstItem="gk0-5S-i2f" firstAttribute="leading" secondItem="1Ap-1A-eI4" secondAttribute="trailing" constant="4" id="Ev9-vw-Fnw"/>
                 <constraint firstItem="YaW-3s-fHO" firstAttribute="top" secondItem="4" secondAttribute="top" constant="23" id="J7G-x7-UXg"/>
                 <constraint firstItem="ibc-KD-LOq" firstAttribute="top" secondItem="4" secondAttribute="top" constant="1" id="LSY-IN-RHY"/>
                 <constraint firstAttribute="bottom" secondItem="YaW-3s-fHO" secondAttribute="bottom" id="SJu-za-cg4"/>
                 <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="ibc-KD-LOq" secondAttribute="bottom" id="TEd-JY-uoF"/>
+                <constraint firstItem="1Ap-1A-eI4" firstAttribute="centerY" secondItem="gk0-5S-i2f" secondAttribute="centerY" constant="2" id="WmH-9T-PuN"/>
                 <constraint firstItem="cTh-Hf-UtK" firstAttribute="centerY" secondItem="7XG-Rx-OHD" secondAttribute="centerY" id="XGh-1i-2N8"/>
                 <constraint firstItem="7XG-Rx-OHD" firstAttribute="top" secondItem="4" secondAttribute="top" id="a7M-bR-xFi"/>
-                <constraint firstItem="gk0-5S-i2f" firstAttribute="leading" secondItem="ibc-KD-LOq" secondAttribute="trailing" constant="16" id="cEv-vP-XdL"/>
+                <constraint firstItem="1Ap-1A-eI4" firstAttribute="leading" secondItem="ibc-KD-LOq" secondAttribute="trailing" constant="4" id="cwH-Bu-WmT"/>
                 <constraint firstItem="7XG-Rx-OHD" firstAttribute="leading" secondItem="4" secondAttribute="leading" constant="5" id="mhI-Id-yqv"/>
                 <constraint firstAttribute="trailing" secondItem="gk0-5S-i2f" secondAttribute="trailing" constant="2" id="tVU-Sv-oVr"/>
                 <constraint firstAttribute="trailing" secondItem="YaW-3s-fHO" secondAttribute="trailing" id="vqL-rq-CcP"/>

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Immutable;
 
 namespace LogJoint
 {
@@ -10,7 +11,7 @@ namespace LogJoint
 	{
 		readonly ILogSourcesManager sources;
 		readonly ISearchObjectsFactory factory;
-		readonly List<ISearchResultInternal> results = new List<ISearchResultInternal>();
+		ImmutableList<ISearchResultInternal> results = ImmutableList.Create<ISearchResultInternal>();
 		readonly AsyncInvokeHelper combinedResultUpdateInvoker;
 		readonly LazyUpdateFlag combinedResultNeedsLazyUpdateFlag;
 		readonly IChangeNotification changeNotification;
@@ -99,7 +100,7 @@ namespace LogJoint
 			var currentTop = GetTopSearch();
 			results.ForEach(r => r.Cancel()); // cancel all active searches, canceling of finished searches has no effect
 			RemoveSameOlderSearches(newSearchResults);
-			results.AddRange(newSearchResults);
+			results = results.AddRange(newSearchResults);
 			EnforceSearchesListLengthLimit(lastId - newSearchResults.Count + 1);
 
 			if (currentTop != null && !currentTop.Pinned)
@@ -116,7 +117,7 @@ namespace LogJoint
 			get { return combinedSearchResult; }
 		}
 
-		IEnumerable<ISearchResult> ISearchManager.Results
+		IReadOnlyList<ISearchResult> ISearchManager.Results
 		{
 			get { return results; }
 		}
@@ -208,7 +209,8 @@ namespace LogJoint
 		{
 			foreach (var r in rslts)
 				r.Dispose();
-			return results.RemoveAll(rslts.Contains);
+			results = results.RemoveAll(rslts.Contains);
+			return rslts.Count;
 		}
 
 		class SearchResultComparer : IEqualityComparer<ISearchResultInternal>

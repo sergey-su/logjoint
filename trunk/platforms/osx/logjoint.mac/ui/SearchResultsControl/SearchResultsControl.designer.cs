@@ -1,6 +1,6 @@
-﻿// WARNING
+// WARNING
 //
-// This file has been generated automatically by Xamarin Studio Community to store outlets and
+// This file has been generated automatically by Visual Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
@@ -37,6 +37,9 @@ namespace LogJoint.UI
 		AppKit.NSTableColumn pinColumn { get; set; }
 
 		[Outlet]
+		AppKit.NSProgressIndicator progressIndicator { get; set; }
+
+		[Outlet]
 		AppKit.NSButton selectCurrentTimeButton { get; set; }
 
 		[Outlet]
@@ -62,11 +65,6 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (dropdownContainerView != null) {
-				dropdownContainerView.Dispose ();
-				dropdownContainerView = null;
-			}
-
 			if (closeSearchResultsButton != null) {
 				closeSearchResultsButton.Dispose ();
 				closeSearchResultsButton = null;
@@ -77,9 +75,24 @@ namespace LogJoint.UI
 				dropdownButton = null;
 			}
 
+			if (dropdownClipView != null) {
+				dropdownClipView.Dispose ();
+				dropdownClipView = null;
+			}
+
+			if (dropdownContainerView != null) {
+				dropdownContainerView.Dispose ();
+				dropdownContainerView = null;
+			}
+
 			if (dropdownHeightConstraint != null) {
 				dropdownHeightConstraint.Dispose ();
 				dropdownHeightConstraint = null;
+			}
+
+			if (dropdownScrollView != null) {
+				dropdownScrollView.Dispose ();
+				dropdownScrollView = null;
 			}
 
 			if (logViewerPlaceholder != null) {
@@ -97,6 +110,11 @@ namespace LogJoint.UI
 				selectCurrentTimeButton = null;
 			}
 
+			if (statusColumn != null) {
+				statusColumn.Dispose ();
+				statusColumn = null;
+			}
+
 			if (tableView != null) {
 				tableView.Dispose ();
 				tableView = null;
@@ -107,24 +125,14 @@ namespace LogJoint.UI
 				textColumn = null;
 			}
 
-			if (statusColumn != null) {
-				statusColumn.Dispose ();
-				statusColumn = null;
-			}
-
 			if (visiblityColumn != null) {
 				visiblityColumn.Dispose ();
 				visiblityColumn = null;
 			}
 
-			if (dropdownScrollView != null) {
-				dropdownScrollView.Dispose ();
-				dropdownScrollView = null;
-			}
-
-			if (dropdownClipView != null) {
-				dropdownClipView.Dispose ();
-				dropdownClipView = null;
+			if (progressIndicator != null) {
+				progressIndicator.Dispose ();
+				progressIndicator = null;
 			}
 		}
 	}

@@ -315,7 +315,9 @@ namespace LogJoint.UI
 					heartBeatTimer,
 					invokingSynchronization,
 					statusReportPresenter,
-					logViewerPresenterFactory
+					logViewerPresenterFactory,
+					colorTheme,
+					changeNotification
 				);
 
 				UI.Presenters.SearchEditorDialog.IPresenter searchEditorDialog = new UI.Presenters.SearchEditorDialog.Presenter(

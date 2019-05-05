@@ -9,13 +9,14 @@ using ObjCRuntime;
 using System.Drawing;
 using CoreGraphics;
 using LogJoint.Drawing;
+using LogJoint.UI.Presenters;
 
 namespace LogJoint.UI
 {
 	public partial class SearchResultsControlAdapter : NSViewController, IView
 	{
 		LogViewerControlAdapter logViewerControlAdapter;
-		internal IViewEvents viewEvents;
+		internal IViewModel viewModel;
 		readonly DataSource dataSource = new DataSource();
 		internal bool? dropdownExpanded;
 
@@ -84,24 +85,42 @@ namespace LogJoint.UI
 				NSColor.WindowFrame.SetStroke();
 				NSBezierPath.StrokeRect(dropdownContainerView.Bounds);
 			};
-			dropdownContainerView.OnResignFirstResponder = () => viewEvents.OnDropdownContainerLostFocus();;
+			dropdownContainerView.OnResignFirstResponder = () => viewModel.OnDropdownContainerLostFocus();;
 		}
 
-		void IView.SetEventsHandler(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
+
+			var updateItems = Updaters.Create (
+				() => viewModel.Items,
+				items => {
+					dataSource.items.Clear ();
+					dataSource.items.AddRange(items.Select(d => new Item(this, d)));
+					tableView.ReloadData ();
+				}
+			);
+
+			var updateSearchInProgressIndicator = Updaters.Create (
+				() => viewModel.IsCombinedProgressIndicatorVisible,
+				value => {
+					progressIndicator.Hidden = !value;
+					if (value)
+						progressIndicator.StartAnimation (null);
+					else
+						progressIndicator.StopAnimation (null);
+				}
+			);
+
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				updateItems ();
+				updateSearchInProgressIndicator ();
+			});
 		}
 
 		Presenters.LogViewer.IView IView.MessagesView
 		{
 			get { return logViewerControlAdapter; }
-		}
-
-		void IView.UpdateItems(IList<ViewItem> items)
-		{
-			dataSource.items.Clear();
-			dataSource.items.AddRange(items.Select(d => new Item(this, d)));
-			tableView.ReloadData();
 		}
 
 		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, 
@@ -134,17 +153,17 @@ namespace LogJoint.UI
 		partial void OnCloseSearchResultsButtonClicked (NSObject sender)
 		{
 			closeSearchResultsButton.State = NSCellStateValue.Off;
-			viewEvents.OnCloseSearchResultsButtonClicked();
+			viewModel.OnCloseSearchResultsButtonClicked();
 		}
 
 		partial void OnSelectCurrentTimeClicked (NSObject sender)
 		{
-			viewEvents.OnFindCurrentTimeButtonClicked();
+			viewModel.OnFindCurrentTimeButtonClicked();
 		}
 
 		partial void OnDropdownButtonClicked (NSObject sender)
 		{
-			viewEvents.OnExpandSearchesListClicked();
+			viewModel.OnExpandSearchesListClicked();
 		}
 
 		class DataSource: NSTableViewDataSource
@@ -176,13 +195,13 @@ namespace LogJoint.UI
 			[Export("OnPinButtonClicked:")]
 			void OnPinButtonClicked(NSButton sender)
 			{
-				owner.viewEvents.OnPinCheckboxClicked(data);
+				owner.viewModel.OnPinCheckboxClicked(data);
 			}
 
 			[Export("OnVisiblitityButtonClicked:")]
 			void OnVisiblitityButtonClicked(NSButton sender)
 			{
-				owner.viewEvents.OnVisibilityCheckboxClicked(data);
+				owner.viewModel.OnVisibilityCheckboxClicked(data);
 			}
 		};
 
@@ -264,12 +283,13 @@ namespace LogJoint.UI
 							Editable = false,
 						};
 						view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
-						view.Clicked = (s, e) => owner.viewEvents.OnDropdownTextClicked();
+						view.Clicked = (s, e) => owner.viewModel.OnDropdownTextClicked();
 					}
 
 					view.StringValue = item.Data.Text;
 					view.TextColor = item.Data.IsWarningText ? 
 						NSColor.Red : NSColor.ControlText;
+					view.ColorTheme = owner.viewModel.ColorTheme;
 					view.ProgressValue = item.Data.ProgressVisible ? 
 						item.Data.ProgressValue : new double?();
 
@@ -296,16 +316,16 @@ namespace LogJoint.UI
 
 		public override bool ResignFirstResponder()
 		{
-			if (owner != null && owner.viewEvents != null)
-				owner.viewEvents.OnDropdownContainerLostFocus();
+			if (owner != null && owner.viewModel != null)
+				owner.viewModel.OnDropdownContainerLostFocus();
 			return base.ResignFirstResponder();
 		}
 
 		[Export ("cancelOperation:")]
 		void OnCancelOp (NSObject theEvent)
 		{
-			if (owner != null && owner.viewEvents != null)
-				owner.viewEvents.OnDropdownEscape();
+			if (owner != null && owner.viewModel != null)
+				owner.viewModel.OnDropdownEscape();
 		}
 	}
 
@@ -348,6 +368,8 @@ namespace LogJoint.UI
 		{
 		}
 
+		public ColorThemeMode ColorTheme;
+
 		public double? ProgressValue
 		{
 			get 
@@ -370,7 +392,9 @@ namespace LogJoint.UI
 				var r = Bounds;
 				r.Inflate(-0.5f, -0.5f);
 
-				var cl = NSColor.FromDeviceRgba(0f, 0.3f, 1f, 0.20f);
+				var cl = ColorTheme == ColorThemeMode.Light ?
+					NSColor.FromDeviceRgba(0f, 0.3f, 1f, 0.20f) :
+					NSColor.FromDeviceRgba (0.1f, 0.3f, 1f, 0.80f);
 				cl.SetStroke();
 				NSBezierPath.StrokeRect(r);
 
@@ -383,8 +407,7 @@ namespace LogJoint.UI
 
 		public override void MouseDown(NSEvent theEvent)
 		{
-			if (Clicked != null)
-				Clicked(this, EventArgs.Empty);
+			Clicked?.Invoke (this, EventArgs.Empty);
 			base.MouseDown(theEvent);
 		}
 	};
