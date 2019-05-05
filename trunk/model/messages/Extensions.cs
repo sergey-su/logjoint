@@ -2,12 +2,12 @@ namespace LogJoint
 {
 	public static class MessageExtentions
 	{
-		public static StringUtils.MultilineText GetText(this IMessage msg)
+		public static MultilineText GetText(this IMessage msg)
 		{
 			return msg.TextAsMultilineText;
 		}
 
-		public static StringUtils.MultilineText GetRawText(this IMessage msg)
+		public static MultilineText GetRawText(this IMessage msg)
 		{
 			var r = msg.RawTextAsMultilineText;
 			if (r.Text.IsInitialized)

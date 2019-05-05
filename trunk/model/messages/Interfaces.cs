@@ -16,10 +16,10 @@ namespace LogJoint
 		int GetHashCode(bool ignoreMessageTime);
 
 		StringSlice Text { get; }
-		StringUtils.MultilineText TextAsMultilineText { get; }
+		MultilineText TextAsMultilineText { get; }
 
 		StringSlice RawText { get; }
-		StringUtils.MultilineText RawTextAsMultilineText { get; }
+		MultilineText RawTextAsMultilineText { get; }
 
 		void SetPosition(long position, long endPosition);
 		void ReallocateTextBuffer(IStringSliceReallocator alloc);
@@ -56,7 +56,7 @@ namespace LogJoint
 		}
 	};
 
-	public delegate StringUtils.MultilineText MessageTextGetter(IMessage message);
+	public delegate MultilineText MessageTextGetter(IMessage message);
 
 	public static class MessageTextGetters
 	{

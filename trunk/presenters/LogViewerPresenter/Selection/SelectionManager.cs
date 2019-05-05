@@ -131,19 +131,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var anchor = screenBuffer.Messages[messageDisplayIndex];
 			var mtxt = screenBuffer.DisplayTextGetter(anchor.Message);
 			var txt = mtxt.Text;
-			mtxt.EnumLines((line, lineIdx) =>
+			foreach (var (line, lineIdx) in mtxt.Lines)
 			{
 				var lineDisplayIndex = messageDisplayIndex + lineIdx - anchor.TextLineIndex;
 				if (lineDisplayIndex >= screenBuffer.Messages.Count)
-					return false;
+					break;
 				var lineBegin = line.StartIndex - txt.StartIndex;
 				var lineEnd = lineBegin + line.Length;
 				if (textCharIndex1 >= lineBegin && textCharIndex1 <= lineEnd)
 					SetSelection(lineDisplayIndex, SelectionFlag.None, textCharIndex1 - lineBegin);
 				if (textCharIndex2 >= lineBegin && textCharIndex2 <= lineEnd)
 					SetSelection(lineDisplayIndex, SelectionFlag.PreserveSelectionEnd, textCharIndex2 - lineBegin);
-				return true;
-			});
+			};
 		}
 
 		static SelectionInfo ComputeSelection(SelectionInfo setSelection, IReadOnlyList<ScreenBufferEntry> viewLines, IReadOnlyList<SourceScreenBuffer> sources, MessageTextGetter dessageTextGetter)

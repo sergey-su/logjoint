@@ -90,7 +90,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			return new MessageDisplayTextInfo()
 			{
-				DisplayText = new StringUtils.MultilineText(new StringSlice(string.Join("\n", retLines))),
+				DisplayText = new MultilineText(new StringSlice(string.Join("\n", retLines))),
 				LinesMapper = i => retLinesMap.ElementAtOrDefault(i),
 				ReverseLinesMapper = i =>
 				{

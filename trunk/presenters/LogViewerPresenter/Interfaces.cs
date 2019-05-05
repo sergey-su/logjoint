@@ -143,7 +143,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		internal IMessage Message;
 		internal int TextLineIndex;
-		internal StringUtils.MultilineText Text;
+		internal MultilineText Text;
 		internal IHighlightingHandler searchResultHighlightingHandler;
 		internal IHighlightingHandler selectionHighlightingHandler;
 		internal IHighlightingHandler highlightingFiltersHandler;

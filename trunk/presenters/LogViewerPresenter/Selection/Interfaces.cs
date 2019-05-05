@@ -42,7 +42,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	/// </summary>
 	internal struct MessageDisplayTextInfo
 	{
-		public StringUtils.MultilineText DisplayText;
+		public MultilineText DisplayText;
 		/// <summary>
 		/// Maps <see cref="DisplayText"/>'s line indexes to that of original text.
 		/// </summary>
