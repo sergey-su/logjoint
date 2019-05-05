@@ -22,6 +22,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 		IMessage msg1, msg2;
 		IMessage msgWithMultilineText;
 		IMessagesSource messagesSource;
+		IColorTheme colorTheme;
 
 		[SetUp]
 		public void BeforeEach()
@@ -30,10 +31,15 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			highlightFilters = Substitute.For<IFiltersList>();
 			selectionManager = Substitute.For<ISelectionManager>();
 			messagesSource = Substitute.For<IMessagesSource>();
+			colorTheme = Substitute.For<IColorTheme>();
 			wordSelection = new WordSelection();
 			isRawMessagesMode = false;
 			viewSize = 3;
 			highlightFilters.FilteringEnabled.Returns(true);
+			colorTheme.HighlightingColors.Returns(ImmutableArray.CreateRange(Enumerable.Range(
+				(int)FilterAction.IncludeAndColorizeFirst, FilterAction.IncludeAndColorizeLast - FilterAction.IncludeAndColorizeFirst + 1)
+				.Select(i => MakeHightlightingColor((FilterAction)i))
+			));
 			msg1 = new Message(0, 1, null, new MessageTimestamp(), new StringSlice("test message 1"), SeverityFlag.Info);
 			msg2 = new Message(0, 1, null, new MessageTimestamp(), new StringSlice("test message 2"), SeverityFlag.Info);
 			msgWithMultilineText = new Message(0, 1, null, new MessageTimestamp(), new StringSlice(
@@ -69,10 +75,15 @@ describe('MeetingV2', () => {
 ), SeverityFlag.Info);
 		}
 
+		static ModelColor MakeHightlightingColor(FilterAction a)
+		{
+			return new ModelColor((int)a);
+		}
+
 		void CreateHighlightingManager()
 		{
 			highlightingManager = new HighlightingManager(searchResultModel,
-				() => MessageTextGetters.Get(isRawMessagesMode), () => viewSize, highlightFilters, selectionManager, wordSelection);
+				() => MessageTextGetters.Get(isRawMessagesMode), () => viewSize, highlightFilters, selectionManager, wordSelection, colorTheme);
 		}
 
 		IFilter CreateFilter(FilterAction action, bool expectRawMessagesMode, bool enabed,
@@ -95,7 +106,7 @@ describe('MeetingV2', () => {
 			return new ViewLine()
 			{
 				Message = msg1,
-				Text = new StringUtils.MultilineText(new StringSlice("test message 1")),
+				Text = new MultilineText(new StringSlice("test message 1")),
 				TextLineIndex = 0,
 				LineIndex = 10
 			};
@@ -103,26 +114,33 @@ describe('MeetingV2', () => {
 
 		void VerifyRanges(IEnumerable<(int, int, ModelColor)> actual, params (int, int, ModelColor)[] expected)
 		{
-			CollectionAssert.AreEqual(expected.OrderBy(x => x), actual.OrderBy(x => x));
+			CollectionAssert.AreEqual(expected.OrderBy(x => x.Item1), actual.OrderBy(x => x.Item1));
 		}
 
 		[TestFixture]
 		public class HighlightingFiltersTests : HighlightingManagerTests
 		{
-			[SetUp]
-			public new void BeforeEach()
-			{
-				var f1 = CreateFilter(FilterAction.Include, false, true, (msg1, null, new Search.MatchedTextRange(StringSlice.Empty, 3, 4, true)));
-				highlightFilters.Items.Returns(ImmutableList.Create(f1));
-			}
-
 			[Test]
 			public void HappyPath()
 			{
+				var f1 = CreateFilter(FilterAction.IncludeAndColorize11, false, true, (msg1, null, new Search.MatchedTextRange(StringSlice.Empty, 3, 4, true)));
+				highlightFilters.Items.Returns(ImmutableList.Create(f1));
 				CreateHighlightingManager();
 				VerifyRanges(
 					highlightingManager.HighlightingFiltersHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
-					(3, 4, FilterAction.Include)
+					(3, 4, MakeHightlightingColor(FilterAction.IncludeAndColorize11))
+				);
+			}
+
+			[Test]
+			public void ExclusionFromHighlighting()
+			{
+				var f1 = CreateFilter(FilterAction.IncludeAndColorize11, false, true, (msg1, null, new Search.MatchedTextRange(StringSlice.Empty, 3, 4, true)));
+				var f2 = CreateFilter(FilterAction.Exclude, false, true, (msg1, null, new Search.MatchedTextRange(StringSlice.Empty, 7, 8, true)));
+				highlightFilters.Items.Returns(ImmutableList.Create(f1, f2));
+				CreateHighlightingManager();
+				VerifyRanges(
+					highlightingManager.HighlightingFiltersHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10))
 				);
 			}
 		};
@@ -157,7 +175,7 @@ describe('MeetingV2', () => {
 				));
 				CreateHighlightingManager();
 				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
-					(6, 8, FilterAction.Include) // two matches "es" but first original one is not highlighted
+					(6, 8, new ModelColor()) // two matches "es" but first original one is not highlighted
 				);
 			}
 
@@ -171,8 +189,8 @@ describe('MeetingV2', () => {
 				));
 				CreateHighlightingManager();
 				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
-					(11, 12, FilterAction.Include),
-					(6, 7, FilterAction.Include)
+					(11, 12, new ModelColor()),
+					(6, 7, new ModelColor())
 				);
 			}
 		};

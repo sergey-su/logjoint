@@ -260,6 +260,9 @@
     <Compile Include="..\..\..\model\generic\LRUCache.cs">
       <Link>generic\LRUCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\MultilineText.cs">
+      <Link>generic\MultilineText.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\MutexLock.cs">
       <Link>generic\MutexLock.cs</Link>
     </Compile>

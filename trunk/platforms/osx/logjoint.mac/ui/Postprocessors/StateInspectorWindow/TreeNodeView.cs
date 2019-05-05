@@ -32,7 +32,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			mainTextPara.TighteningFactorForTruncation = 0;
 			mainTextAttrs.Add (NSStringAttributeKey.ParagraphStyle, mainTextPara);
 			if (isSelected)
-				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.SelectedText);
+				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.SelectedMenuItemText);
 			else
 				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.Text);
 

@@ -48,9 +48,9 @@ namespace LogJoint
 		IThread IMessage.Thread => thread;
 		MessageTimestamp IMessage.Time => time;
 		StringSlice IMessage.Text => text;
-		StringUtils.MultilineText IMessage.TextAsMultilineText => textML ?? (textML = new StringUtils.MultilineText(text));
+		MultilineText IMessage.TextAsMultilineText => textML ?? (textML = new MultilineText(text));
 		StringSlice IMessage.RawText => rawText;
-		StringUtils.MultilineText IMessage.RawTextAsMultilineText => rawTextML ?? (rawTextML = new StringUtils.MultilineText(rawText));
+		MultilineText IMessage.RawTextAsMultilineText => rawTextML ?? (rawTextML = new MultilineText(rawText));
 		SeverityFlag IMessage.Severity => (SeverityFlag) (flags & MessageFlag.ContentTypeMask);
 
 		IMessage IMessage.Clone()
@@ -113,9 +113,9 @@ namespace LogJoint
 		readonly MessageFlag flags;
 		long position, endPosition;
 		StringSlice text;
-		StringUtils.MultilineText textML;
+		MultilineText textML;
 		StringSlice rawText;
-		StringUtils.MultilineText rawTextML;
+		MultilineText rawTextML;
 
 		#endregion
 	};
