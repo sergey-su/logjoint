@@ -4,10 +4,11 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.SearchResult
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		public Presenter(
 			ISearchManager searchManager,
@@ -19,7 +20,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 			IHeartBeatTimer heartbeat,
 			ISynchronizationContext uiThreadSynchronization,
 			StatusReports.IPresenter statusReports,
-			LogViewer.IPresenterFactory logViewerPresenterFactory
+			LogViewer.IPresenterFactory logViewerPresenterFactory,
+			IColorTheme theme,
+			IChangeNotification changeNotification
 		)
 		{
 			this.searchManager = searchManager;
@@ -28,6 +31,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.statusReports = statusReports;
+			this.theme = theme;
+			this.changeNotification = changeNotification;
 			var messagesModel = logViewerPresenterFactory.CreateSearchResultsModel();
 			this.messagesPresenter = logViewerPresenterFactory.Create(
 				messagesModel,
@@ -108,7 +113,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 				UpdateColoringMode();
 			};
 
-			view.SetEventsHandler(this);
+			view.SetViewModel(this);
 			UpdateExpandedState();
 		}
 
@@ -145,41 +150,44 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public event EventHandler<ResizingEventArgs> OnResizing;
 		public event EventHandler OnResizingFinished;
 
-		void IViewEvents.OnCloseSearchResultsButtonClicked()
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
+
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		IReadOnlyList<ViewItem> IViewModel.Items => items;
+		bool IViewModel.IsCombinedProgressIndicatorVisible => anySearchIsActive;
+
+		void IViewModel.OnCloseSearchResultsButtonClicked()
 		{
-			if (OnClose != null)
-				OnClose(this, EventArgs.Empty);
+			OnClose?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IViewEvents.OnResizingFinished()
+		void IViewModel.OnResizingFinished()
 		{
-			if (OnResizingFinished != null)
-				OnResizingFinished(this, EventArgs.Empty);
+			OnResizingFinished?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IViewEvents.OnResizing(int delta)
+		void IViewModel.OnResizing(int delta)
 		{
-			if (OnResizing != null)
-				OnResizing(this, new ResizingEventArgs() { Delta = delta });
+			OnResizing?.Invoke(this, new ResizingEventArgs() { Delta = delta });
 		}
 
-		void IViewEvents.OnResizingStarted()
+		void IViewModel.OnResizingStarted()
 		{
-			if (OnResizingStarted != null)
-				OnResizingStarted(this, EventArgs.Empty);
+			OnResizingStarted?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IViewEvents.OnToggleBookmarkButtonClicked()
+		void IViewModel.OnToggleBookmarkButtonClicked()
 		{
 			bookmarks.ToggleBookmark(messagesPresenter.FocusedMessageBookmark);
 		}
 
-		void IViewEvents.OnFindCurrentTimeButtonClicked()
+		void IViewModel.OnFindCurrentTimeButtonClicked()
 		{
 			FindCurrentTime();
 		}
 
-		void IViewEvents.OnRefreshButtonClicked()
+		void IViewModel.OnRefreshButtonClicked()
 		{
 			var r = searchManager.Results.FirstOrDefault();
 			if (r == null)
@@ -187,38 +195,38 @@ namespace LogJoint.UI.Presenters.SearchResult
 			searchManager.SubmitSearch(r.Options);
 		}
 
-		void IViewEvents.OnExpandSearchesListClicked()
+		void IViewModel.OnExpandSearchesListClicked()
 		{
 			SetDropdownListState(!isSearchesListExpanded);
 		}
 
-		void IViewEvents.OnVisibilityCheckboxClicked(ViewItem item)
+		void IViewModel.OnVisibilityCheckboxClicked(ViewItem item)
 		{
 			ToggleVisibleProperty(item);
 		}
 
-		void IViewEvents.OnPinCheckboxClicked(ViewItem item)
+		void IViewModel.OnPinCheckboxClicked(ViewItem item)
 		{
 			TogglePinnedProperty(item);
 		}
 
-		void IViewEvents.OnDropdownContainerLostFocus()
+		void IViewModel.OnDropdownContainerLostFocus()
 		{
 			SetDropdownListState(isExpanded: false);
 		}
 
-		void IViewEvents.OnDropdownEscape()
+		void IViewModel.OnDropdownEscape()
 		{
 			if (SetDropdownListState(isExpanded: false))
 				loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 		}
 
-		void IViewEvents.OnDropdownTextClicked()
+		void IViewModel.OnDropdownTextClicked()
 		{
 			SetDropdownListState(!isSearchesListExpanded);
 		}
 
-		ContextMenuViewData IViewEvents.OnContextMenuPopup(ViewItem viewItem)
+		ContextMenuViewData IViewModel.OnContextMenuPopup(ViewItem viewItem)
 		{
 			var ret = new ContextMenuViewData();
 			var rslt = ToSearchResult(viewItem);
@@ -235,7 +243,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			return ret;
 		}
 
-		void IViewEvents.OnMenuItemClicked(ViewItem viewItem, MenuItemId menuItemId)
+		void IViewModel.OnMenuItemClicked(ViewItem viewItem, MenuItemId menuItemId)
 		{
 			switch (menuItemId)
 			{
@@ -287,7 +295,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void UpdateView()
 		{
-			var items = new List<ViewItem>();
+			var itemsBuilder = ImmutableArray.CreateBuilder<ViewItem>();
 			bool searchIsActive = false;
 
 			foreach (var rslt in searchManager.Results.OrderByDescending(r => r.Id))
@@ -313,7 +321,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 				double? progress = rslt.Progress;
 
-				items.Add(new ViewItem()
+				itemsBuilder.Add(new ViewItem()
 				{
 					Data = new WeakReference(rslt),
 					IsWarningText = warningText != null,
@@ -327,7 +335,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 				});
 			}
 
-			view.UpdateItems(items);
+			items = itemsBuilder.ToImmutable();
+			anySearchIsActive = searchIsActive;
+			changeNotification.Post();
 			UpdateExpandedState();
 
 			if (searchIsActive != (searchingStatusReport != null))
@@ -423,7 +433,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly StatusReports.IPresenter statusReports;
+		readonly IColorTheme theme;
+		readonly IChangeNotification changeNotification;
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
+		ImmutableArray<ViewItem> items = ImmutableArray.Create<ViewItem>();
+		bool anySearchIsActive;
 		LogViewer.IPresenter messagesPresenter;
 		StatusReports.IReport searchingStatusReport;
 		bool isSearchesListExpanded;

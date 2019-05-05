@@ -18,7 +18,7 @@ namespace LogJoint
 		/// Lists active and historical search results.
 		/// Must be called from model thread.
 		/// </summary>
-		IEnumerable<ISearchResult> Results { get; }
+		IReadOnlyList<ISearchResult> Results { get; }
 		/// <summary>
 		/// Get current snapshot of merged search results.
 		/// Only visible search results from visible log sources
