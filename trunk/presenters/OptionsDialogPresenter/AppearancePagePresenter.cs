@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using LogJoint.Drawing;
 using LogJoint.Settings;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
@@ -168,9 +169,9 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
 			ColorThemeMode IColorTheme.Mode => appTheme.Mode;
 
-			ImmutableArray<ModelColor> IColorTheme.ThreadColors => threadsColorTable.Items;
+			ImmutableArray<Color> IColorTheme.ThreadColors => threadsColorTable.Items;
 
-			ImmutableArray<ModelColor> IColorTheme.HighlightingColors => appTheme.HighlightingColors;
+			ImmutableArray<Color> IColorTheme.HighlightingColors => appTheme.HighlightingColors;
 
 			public int ThreadColorsCount => threadsColorTable.Items.Length;
 
@@ -183,7 +184,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
 		readonly string[] coloringModes = new[] 
 		{
-			"White backgound",
+			"White background",
 			"Background color represents message thread", // todo: dark mode
 			"Background color represents message log source",
 		};

@@ -1,4 +1,5 @@
-﻿using LogJoint.Postprocessing.Timeline;
+﻿using LogJoint.Drawing;
+using LogJoint.Postprocessing.Timeline;
 using System;
 using System.Collections.Generic;
 
@@ -113,7 +114,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public IEnumerable<ActivityMilestoneDrawInfo> Milestones;
 		public int PhasesCount;
 		public IEnumerable<ActivityPhaseDrawInfo> Phases;
-		public ModelColor? Color;
+		public Color? Color;
 		public int? PairedActivityIndex;
 		/// <summary>
 		/// True is the activity should colored as error

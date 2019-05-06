@@ -1,6 +1,6 @@
 ﻿﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using LogJoint.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -286,7 +286,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			UpdateSelectedNodeProperties();
 		}
 
-		void IConfigDialogEventsHandler.OnColorChanged(ModelColor clValue)
+		void IConfigDialogEventsHandler.OnColorChanged(Color clValue)
 		{
 			var cl = colorsTable.Items.IndexOf(clValue);
 			var p = GetSelectedTSPresentation();
@@ -362,7 +362,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				configDialogView.UpdateNodePropertiesControls(new NodeProperties()
 				{
 					Description = string.Format("{0} [{1}]", ts.Descriptor.Description, GetUnitDisplayName(ts.Unit)),
-					Color = tsPresentation != null ? colorsTable.GetByIndex(tsPresentation.ColorIndex) : new ModelColor?(),
+					Color = tsPresentation != null ? colorsTable.GetByIndex(tsPresentation.ColorIndex) : new Color?(),
 					Palette = colorsTable.Items,
 					Examples = ts.Descriptor.ExampleLogLines,
 					Marker = tsPresentation != null ? tsPresentation.LegendItem.Marker : new MarkerType?(),

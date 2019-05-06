@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters
@@ -20,9 +21,9 @@ namespace LogJoint.UI.Presenters
 
 		ColorThemeMode IColorTheme.Mode => systemThemeDetector.Mode;
 
-		ImmutableArray<ModelColor> IColorTheme.ThreadColors => threadColors.Items;
+		ImmutableArray<Color> IColorTheme.ThreadColors => threadColors.Items;
 
-		ImmutableArray<ModelColor> IColorTheme.HighlightingColors => highlightingColors.Items;
+		ImmutableArray<Color> IColorTheme.HighlightingColors => highlightingColors.Items;
 	};
 
 	public class StaticSystemThemeDetector : ISystemThemeDetector

@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -102,7 +103,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			};
 		}
 
-		private static IEnumerable<(int b, int e, ModelColor a)> FindSearchMatches(
+		private static IEnumerable<(int b, int e, Color a)> FindSearchMatches(
 			IMessage msg, MessageTextGetter textGetter, IFiltersList filters,
 			bool skipWholeLines)
 		{
@@ -127,7 +128,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						yield break;
 					if (r.MatchBegin == r.MatchEnd)
 						yield break;
-					yield return (r.MatchBegin, r.MatchEnd, new ModelColor());
+					yield return (r.MatchBegin, r.MatchEnd, new Color());
 					startPos = r.MatchEnd;
 				}
 			}
@@ -138,9 +139,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return Math.Max(viewSize, 1);
 		}
 
-		private static IEnumerable<(int, int, ModelColor)> GetHlHighlightingRanges(
+		private static IEnumerable<(int, int, Color)> GetHlHighlightingRanges(
 			IMessage msg, ImmutableList<IFilter> hlFilters, MessageTextGetter displayTextGetter,
-			ImmutableArray<ModelColor> hlColors)
+			ImmutableArray<Color> hlColors)
 		{
 			var filtersState = hlFilters
 				.Where(f => f.Enabled)
@@ -148,7 +149,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				.ToArray();
 			try
 			{
-				var ret = new List<(int, int, ModelColor)>();
+				var ret = new List<(int, int, Color)>();
 
 				for (int i = 0; i < filtersState.Length; ++i)
 				{
@@ -162,7 +163,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						if (r.MatchBegin == r.MatchEnd)
 							break;
 						if (filterState.filter.Action == FilterAction.Exclude)
-							return Enumerable.Empty<(int, int, ModelColor)>();
+							return Enumerable.Empty<(int, int, Color)>();
 						ret.Add((r.MatchBegin, r.MatchEnd,
 							filterState.filter.Action.ToColor(hlColors).GetValueOrDefault()));
 						if (r.WholeTextMatched)
@@ -180,7 +181,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		private static IEnumerable<(int, int, ModelColor)> GetSearchResultsHighlightingRanges(
+		private static IEnumerable<(int, int, Color)> GetSearchResultsHighlightingRanges(
 			IMessage msg, IFiltersList filters, MessageTextGetter displayTextGetter)
 		{
 			return FindSearchMatches(msg, displayTextGetter, filters, skipWholeLines: true);
@@ -215,7 +216,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return newHandler;
 		}
 
-		private static IEnumerable<(int, int, ModelColor)> GetSelectionHighlightingRanges(
+		private static IEnumerable<(int, int, Color)> GetSelectionHighlightingRanges(
 			IMessage msg, Search.SearchState searchOpts, IWordSelection wordSelection, (IMessage msg, int charIdx) originalSelection)
 		{
 			for (int? startPos = null; ;)
@@ -229,7 +230,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (r.MatchBegin == r.MatchEnd)
 					yield break;
 				if (!(msg == originalSelection.msg && r.MatchBegin == originalSelection.charIdx))
-					yield return (r.MatchBegin, r.MatchEnd, new ModelColor());
+					yield return (r.MatchBegin, r.MatchEnd, new Color());
 				startPos = r.MatchEnd;
 			}
 		}
@@ -237,7 +238,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private class DummyHandler : IHighlightingHandler
 		{
-			IEnumerable<(int, int, ModelColor)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
+			IEnumerable<(int, int, Color)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
 			{
 				yield break;
 			}

@@ -4,7 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Drawing;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
@@ -1320,7 +1320,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			get { return logSource.LoadedTime; }
 		}
 
-		ModelColor ITimeLineDataSource.Color
+		Color ITimeLineDataSource.Color
 		{
 			get { return theme.ThreadColors.GetByIndex(logSource.ColorIndex); }
 		}
@@ -1375,9 +1375,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			get { return searchResult.CoveredTime; }
 		}
 
-		ModelColor ITimeLineDataSource.Color
+		Color ITimeLineDataSource.Color
 		{
-			get { return new ModelColor(255, 230, 230, 230); }
+			get { return Color.FromArgb(255, 230, 230, 230); }
 		}
 
 		string ITimeLineDataSource.DisplayName
@@ -1459,7 +1459,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			get { return DateRange.MakeEmpty(); }
 		}
 
-		ModelColor ITimeLineDataSource.Color
+		Color ITimeLineDataSource.Color
 		{
 			get { return sources[0].Color; }
 		}

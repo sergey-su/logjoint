@@ -4,12 +4,6 @@ using System.Linq;
 using System.Text;
 using LogJoint.UI.Presenters.Timeline;
 using LogJoint.Drawing;
-using RectangleF = System.Drawing.RectangleF;
-using Rectangle = System.Drawing.Rectangle;
-using PointF = System.Drawing.PointF;
-using Point = System.Drawing.Point;
-using SizeF = System.Drawing.SizeF;
-using Size = System.Drawing.Size;
 
 namespace LogJoint.UI.Timeline
 {
@@ -127,14 +121,14 @@ namespace LogJoint.UI.Timeline
 
 				if (darkMode)
 				{
-					var p = new Pen(src.Color.ToColor(), 2);
+					var p = new Pen(src.Color, 2);
 					DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, res.DarkModeSourceFillBrush, p);
 				}
 				else
 				{
-					using (Brush b = new Brush(src.Color.ToColor())) // Draw the source with its native color
+					using (Brush b = new Brush(src.Color)) // Draw the source with its native color
 						DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, b, res.LightModeSourcesBorderPen);
-					using (Brush sb = new Brush(src.Color.MakeDarker(16).ToColor())) // Draw the loaded range with a bit darker color
+					using (Brush sb = new Brush(src.Color.MakeDarker(16))) // Draw the loaded range with a bit darker color
 						if (y3 != y4)
 							DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.LightModeSourcesBorderPen);
 				}
@@ -157,7 +151,7 @@ namespace LogJoint.UI.Timeline
 					);
 
 					var cutLinePen = darkMode ?
-						  new Pen(src.Color.ToColor(), 1f, res.CutLinePenPattern)
+						  new Pen(src.Color, 1f, res.CutLinePenPattern)
 						: res.LightModeCutLinePen;
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, cutLinePen);
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, cutLinePen);

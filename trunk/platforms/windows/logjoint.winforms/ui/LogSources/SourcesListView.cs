@@ -469,7 +469,7 @@ namespace LogJoint.UI
 				base.Text = value;
 			}
 
-			void IViewItem.SetBackColor(ModelColor color, bool isErrorColor)
+			void IViewItem.SetBackColor(LogJoint.Drawing.Color color, bool isErrorColor)
 			{
 				base.BackColor = color.ToColor();
 			}

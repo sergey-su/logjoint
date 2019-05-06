@@ -5,6 +5,7 @@ using System.Linq;
 using LogJoint.Preprocessing;
 using LogJoint;
 using System.Threading.Tasks;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.SourcesList
 {
@@ -312,7 +313,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		{
 			public bool? Checked;
 			public string Description;
-			public ModelColor ItemColor;
+			public Color ItemColor;
 			public bool IsFailed;
 			public SourcesContainerItemData Parent;
 		};
@@ -552,8 +553,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		int updateLock;
 
-		static readonly ModelColor successfulSourceColor = new ModelColor(255, 255, 255, 255);
-		static readonly ModelColor failedSourceColor = new ModelColor(255, 255, 128, 128);
+		static readonly Color successfulSourceColor = Color.FromArgb(255, 255, 255, 255);
+		static readonly Color failedSourceColor = Color.FromArgb(255, 255, 128, 128);
 
 		#endregion
 	};

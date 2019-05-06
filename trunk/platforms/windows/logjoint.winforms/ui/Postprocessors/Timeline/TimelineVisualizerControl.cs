@@ -70,7 +70,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				new LJD.Image(TimelineVisualizerControlResources.TimelineBookmark),
 				new LJD.Image(TimelineVisualizerControlResources.FocusedMsgSlaveVert),
 				UIUtils.Dpi.ScaleUp(1, 120),
-				new LJD.Brush(SystemColors.Control)
+				new LJD.Brush(new LJD.Color(SystemColors.Control.ToArgb()))
 			);
 			drawing = new ControlDrawing(res);
 			var vm = GetUpToDateViewMetrics();
@@ -163,7 +163,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			var htToken = hitTestToken as HitTestToken;
 			if (htToken == null)
 				return new HitTestResult();
-			return GetUpToDateViewMetrics().HitTest(htToken.Pt, viewModel, 
+			return GetUpToDateViewMetrics().HitTest(new LJD.Point(htToken.Pt.X, htToken.Pt.Y), viewModel, 
 				htToken.Control == activitesCaptionsPanel ? HitTestResult.AreaCode.CaptionsPanel :
 				htToken.Control == navigationPanel ? HitTestResult.AreaCode.NavigationPanel :
 				HitTestResult.AreaCode.ActivitiesPanel,
@@ -260,7 +260,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 								TextFormatFlags.NoPadding).Width;
 							e.Graphics.FillRectangle(Brushes.Yellow, new RectangleF(highlightLeft, textRect.Y, highlightWidth, textRect.Height));
 						}
-						TextRenderer.DrawText(e.Graphics, text, activitesCaptionsFont, textRect,
+						TextRenderer.DrawText(e.Graphics, text, activitesCaptionsFont, new Rectangle(textRect.X, textRect.Y, textRect.Width, textRect.Height),
 							isFailure ? Color.Red : Color.Black,
 							TextFormatFlags.EndEllipsis | TextFormatFlags.VerticalCenter |
 							TextFormatFlags.SingleLine | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.NoPadding);
@@ -269,7 +269,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		static Brush MakeBrush(ModelColor c)
+		static Brush MakeBrush(LJD.Color c)
 		{
 			return new SolidBrush(Color.FromArgb(c.R, c.G, c.B));
 		}
@@ -401,7 +401,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		private void navigationPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
 			if (viewModel != null)
-				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetNavigationPanelCursor(e.Location, viewModel), e);
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetNavigationPanelCursor(new LJD.Point(e.Location), viewModel), e);
 		}
 
 		private void navigationPanel_MouseDown(object sender, MouseEventArgs e)
@@ -422,7 +422,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		private void activitiesViewPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
 			if (viewModel != null)
-				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetActivitiesPanelCursor(e.Location, viewModel, 
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetActivitiesPanelCursor(new LJD.Point(e.Location), viewModel, 
 					() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true)), e);
 		}
 

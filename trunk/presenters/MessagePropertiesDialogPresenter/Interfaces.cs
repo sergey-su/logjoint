@@ -1,3 +1,5 @@
+using LogJoint.Drawing;
+
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
 	public interface IPresenter
@@ -37,11 +39,11 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		public bool ThreadLinkEnabled;
 		public string ThreadLinkValue;
-		public ModelColor? ThreadLinkBkColor;
+		public Color? ThreadLinkBkColor;
 
 		public bool SourceLinkEnabled;
 		public string SourceLinkValue;
-		public ModelColor? SourceLinkBkColor;
+		public Color? SourceLinkBkColor;
 
 		public string BookmarkedStatusText;
 		public string BookmarkActionLinkText;

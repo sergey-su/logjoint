@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using LogJoint.Drawing;
 using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
 
 namespace LogJoint.UI
@@ -18,7 +19,7 @@ namespace LogJoint.UI
 			this.viewEvents = eventsHandler;
 		}
 
-		void IView.SetLabelProps(ControlId labelId, string text, ModelColor color)
+		void IView.SetLabelProps(ControlId labelId, string text, Color color)
 		{
 			var ctrl = GetCtrl(labelId);
 			ctrl.Text = text;

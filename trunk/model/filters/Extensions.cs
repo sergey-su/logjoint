@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LogJoint.Drawing;
 
 namespace LogJoint
 {
@@ -20,7 +21,7 @@ namespace LogJoint
 				f == null || f.Options.Scope.ContainsAnythingFromSource(s)));
 		}
 
-		public static ModelColor? ToColor(this FilterAction a, IReadOnlyList<ModelColor> colors)
+		public static Color? ToColor(this FilterAction a, IReadOnlyList<Color> colors)
 		{
 			if (a >= FilterAction.IncludeAndColorizeFirst && a <= FilterAction.IncludeAndColorizeLast)
 				return colors[a - FilterAction.IncludeAndColorizeFirst];

@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System;
 
 namespace LogJoint.UI.Presenters.SourcePropertiesWindow
@@ -21,7 +22,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void Close();
 		void WriteControl(ControlFlag flags, string value);
 		string ReadControl(ControlFlag flags);
-		void ShowColorSelector(ModelColor[] options);
+		void ShowColorSelector(Color[] options);
 	};
 
 	[Flags]
@@ -65,7 +66,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void OnClosingDialog();
 		void OnLoadedMessagesWarningIconClicked();
 		void OnChangeColorLinkClicked();
-		void OnColorSelected(ModelColor color);
+		void OnColorSelected(Color color);
 		void OnCopyButtonClicked();
 		void OnOpenContainingFolderButtonClicked();
 	};

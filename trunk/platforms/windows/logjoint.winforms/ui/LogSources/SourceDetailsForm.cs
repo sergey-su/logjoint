@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Drawing;
+using LogJoint.Drawing;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
 
@@ -63,9 +63,9 @@ namespace LogJoint.UI
 			else if ((flags & ControlFlag.Visibility) != 0)
 				ctrl.Visible = value != null;
 			else if ((flags & ControlFlag.BackColor) != 0)
-				ctrl.BackColor = new ModelColor(uint.Parse(value)).ToColor();
+				ctrl.BackColor = new Color(uint.Parse(value)).ToColor();
 			else if ((flags & ControlFlag.ForeColor) != 0)
-				ctrl.ForeColor = new ModelColor(uint.Parse(value)).ToColor();
+				ctrl.ForeColor = new Color(uint.Parse(value)).ToColor();
 			else if ((flags & ControlFlag.Enabled) != 0)
 				ctrl.Enabled = value != null;
 		}
@@ -83,7 +83,7 @@ namespace LogJoint.UI
 				return null;
 		}
 
-		void IWindow.ShowColorSelector(ModelColor[] options)
+		void IWindow.ShowColorSelector(Color[] options)
 		{
 			var menu = new ContextMenuStrip();
 			foreach (var cl in options)
@@ -93,13 +93,13 @@ namespace LogJoint.UI
 					DisplayStyle = ToolStripItemDisplayStyle.None,
 					BackColor = cl.ToColor(),
 					AutoSize = false,
-					Size = new Size(300, (int)UIUtils.Dpi.Scale(15f))
+					Size = new System.Drawing.Size(300, (int)UIUtils.Dpi.Scale(15f))
 				};
 				mi.Paint += colorOptionMenuItemPaint;
 				mi.Click += (s, e) => viewEvents.OnColorSelected(cl);
 				menu.Items.Add(mi);
 			}
-			menu.Show(changeColorLinkLabel, new Point(0, changeColorLinkLabel.Height));
+			menu.Show(changeColorLinkLabel, new System.Drawing.Point(0, changeColorLinkLabel.Height));
 		}
 
 		private void colorOptionMenuItemPaint(object sender, PaintEventArgs e)
@@ -107,9 +107,9 @@ namespace LogJoint.UI
 			var mi = sender as ToolStripMenuItem;
 			if (mi == null)
 				return;
-			using (var b = new SolidBrush(mi.BackColor))
+			using (var b = new System.Drawing.SolidBrush(mi.BackColor))
 				e.Graphics.FillRectangle(b, e.ClipRectangle);
-			e.Graphics.DrawLine(Pens.LightGray, 0, 0, e.ClipRectangle.Right, 0);
+			e.Graphics.DrawLine(System.Drawing.Pens.LightGray, 0, 0, e.ClipRectangle.Right, 0);
 		}
 
 		private void visibleCheckBox_Click(object sender, EventArgs e)
@@ -176,7 +176,7 @@ namespace LogJoint.UI
 
 		uint IView.DefaultControlForeColor
 		{
-			get { return new ModelColor(SystemColors.ControlText.ToArgb()).Argb; }
+			get { return new Color(System.Drawing.SystemColors.ControlText.ToArgb()).ToUnsignedArgb(); }
 		}
 	};
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Drawing;
+using LogJoint.Drawing;
 using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 using LJD = LogJoint.Drawing;
 
@@ -98,8 +98,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			rulerLinePen = Selectors.Create(isDark, dark =>
 				new LJD.Pen(dark ? Color.DarkGray : Color.LightGray, 1));
 
-			Color adjust (Color cl, bool dark) =>
-				dark ? new ModelColor(cl.ToArgb()).MakeDarker (60).ToColor() : cl;
+			Color adjust (Color cl, bool dark) => dark ? cl.MakeDarker(60) : cl;
 			procedureBrush = Selectors.Create(isDark, dark => new LJD.Brush(adjust(Color.LightBlue, dark)));
 			lifetimeBrush = Selectors.Create (isDark, dark => new LJD.Brush(adjust(Color.LightGreen, dark)));
 			networkMessageBrush = Selectors.Create(isDark, dark => new LJD.Brush(adjust(Color.LightSalmon, dark)));

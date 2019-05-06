@@ -1,4 +1,5 @@
-﻿namespace System.Drawing
+﻿
+namespace LogJoint.Drawing
 {
 	public struct RectangleF
 	{
@@ -23,6 +24,17 @@
 		public RectangleF (PointF pt, SizeF sz) : this (pt.X, pt.Y, sz.Width, sz.Height)
 		{
 		}
+
+#if WIN
+		public System.Drawing.RectangleF ToSystemDrawingObject()
+		{
+			return new System.Drawing.RectangleF(X, Y, Width, Height);
+		}
+
+		public RectangleF(System.Drawing.RectangleF r): this(r.X, r.Y, r.Width, r.Height)
+		{
+		}
+#endif
 
 		public static RectangleF FromLTRB (float l, float t, float r, float b)
 		{
@@ -67,6 +79,8 @@
 		public int Top { get { return Y; } }
 		public int Right { get { return X + Width; } }
 		public int Bottom { get { return Y + Height; } }
+		public int MidX() => (Left + Right) / 2;
+		public int MidY() => (Top + Bottom) / 2;
 
 		public Point Location { get { return new Point (X, Y); } }
 		public Size Size { get { return new Size (Width, Height); } }
@@ -82,6 +96,12 @@
 		public Rectangle (Point pt, Size sz) : this (pt.X, pt.Y, sz.Width, sz.Height)
 		{
 		}
+
+#if WIN
+		public Rectangle(System.Drawing.Rectangle r) : this(r.X, r.Y, r.Width, r.Height)
+		{
+		}
+#endif
 
 		public static Rectangle FromLTRB (int l, int t, int r, int b)
 		{
@@ -106,6 +126,12 @@
 			Height += dy * 2;
 		}
 
+		static public Rectangle Inflate(Rectangle r, int dx, int dy)
+		{
+			r.Inflate(dx, dy);
+			return r;
+		}
+
 		public void Offset (int dx, int dy)
 		{
 			X += dx;
@@ -123,6 +149,18 @@
 			Y = y;
 		}
 
+#if WIN
+		public Point(System.Drawing.Point p)
+		{
+			X = p.X;
+			Y = p.Y;
+		}
+		public System.Drawing.Point ToSystemDrawingObject()
+		{
+			return new System.Drawing.Point(X, Y);
+		}
+#endif
+
 		public static implicit operator PointF (Point p)
 		{
 			return new PointF (p.X, p.Y);
@@ -138,6 +176,13 @@
 			X = x;
 			Y = y;
 		}
+
+#if WIN
+		public System.Drawing.PointF ToSystemDrawingObject()
+		{
+			return new System.Drawing.PointF(X, Y);
+		}
+#endif
 	};
 
 	public struct Size
@@ -149,6 +194,12 @@
 			Width = w;
 			Height = h;
 		}
+
+#if WIN
+		public Size(System.Drawing.Size s): this(s.Width, s.Height)
+		{
+		}
+#endif
 
 		public Size (Point pt)
 		{
@@ -181,6 +232,9 @@
 	public struct Color
 	{
 		int v;
+
+		public Color(uint argb) { unchecked { this.v = (int)argb; } }
+		public Color(int argb) { this.v = argb; }
 
 		public byte A { get { return (byte)((v >> 24) & 0xff); } }
 		public byte R { get { return (byte)((v >> 16) & 0xff); } }
@@ -224,9 +278,40 @@
 			return v;
 		}
 
-		Color (int v)
+		public uint ToUnsignedArgb()
 		{
-			this.v = v;
+			return (uint)v;
+		}
+
+#if WIN
+		System.Drawing.Color ToColor() // todo: rename to ToSystemDrawingObject
+		{
+			return System.Drawing.Color.FromArgb(ToArgb());
+		}
+#endif
+
+		public override string ToString()
+		{
+			return string.Format("[Color: A={0}, R={1}, G={2}, B={3}]", A, R, G, B);
+		}
+
+		public override bool Equals(object o)
+		{
+			return ((Color)o).v == this.v;
+		}
+
+		public override int GetHashCode()
+		{
+			return v;
+		}
+
+		public static bool operator ==(Color c1, Color c2)
+		{
+			return c1.v == c2.v;
+		}
+		public static bool operator !=(Color c1, Color c2)
+		{
+			return c1.v != c2.v;
 		}
 
 		public static Color Red = FromArgb (0xffff0000);
@@ -247,92 +332,4 @@
 		public static Color DarkGreen = FromArgb (0xFF006400);
 		public static Color Transparent = FromArgb(0x00000000);
 	};
-
-	public struct CharacterRange
-	{
-		public int First, Length;
-
-		public CharacterRange (int f, int l)
-		{
-			First = f;
-			Length = l;
-		}
-	};
-
-	[Flags]
-	public enum FontStyle
-	{
-		Bold = 1,
-		Italic = 2,
-		Regular = 4,
-		Strikeout = 8,
-		Underline = 16
-	};
-
-	public enum StringAlignment
-	{
-		Center,
-		Far,
-		Near
-	};
-
-	namespace Drawing2D
-	{
-		public enum MatrixOrder
-		{
-			Prepend,
-			Append
-		};
-
-		public class Matrix
-		{
-			CoreGraphics.CGAffineTransform t = CoreGraphics.CGAffineTransform.MakeIdentity ();
-
-			public void Translate (float dx, float dy, MatrixOrder order = MatrixOrder.Prepend)
-			{
-				if (order == MatrixOrder.Append) 
-					t = t * CoreGraphics.CGAffineTransform.MakeTranslation (dx, dy);
-				else
-					t = CoreGraphics.CGAffineTransform.MakeTranslation (dx, dy) * t;
-			}
-
-			public void Scale (float sx, float sy)
-			{
-				t.Scale (sx, sy);
-			}
-
-			public void TransformVectors (PointF [] pts)
-			{
-				var tmp = t;
-				tmp.x0 = 0;
-				tmp.y0 = 0;
-				TransformPoints(tmp, pts);
-			}
-
-			public void TransformPoints (PointF [] pts)
-			{
-				TransformPoints(t, pts);
-			}
-
-			public void Invert ()
-			{
-				t = t.Invert ();
-			}
-
-			public Matrix Clone ()
-			{
-				return new Matrix () { t = this.t };
-			}
-
-			static void TransformPoints (CoreGraphics.CGAffineTransform t, PointF [] pts)
-			{
-				for (int i = 0; i < pts.Length; ++i) {
-					var p = pts [i];
-					var cgp = t.TransformPoint (new CoreGraphics.CGPoint (p.X, p.Y));
-					pts [i] = new PointF ((float)cgp.X, (float)cgp.Y);
-				}
-			}
-		};
-	};
 }
-

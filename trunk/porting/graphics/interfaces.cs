@@ -246,6 +246,34 @@ namespace LogJoint.Drawing
 		partial void Init(string familyName, float emSize, FontStyle style);
 	};
 
+	public struct CharacterRange
+	{
+		public int First, Length;
+
+		public CharacterRange(int f, int l)
+		{
+			First = f;
+			Length = l;
+		}
+	};
+
+	[Flags]
+	public enum FontStyle
+	{
+		Bold = 1,
+		Italic = 2,
+		Regular = 4,
+		Strikeout = 8,
+		Underline = 16
+	};
+
+	public enum StringAlignment
+	{
+		Center,
+		Far,
+		Near
+	};
+
 	public partial class Image: IDisposable
 	{
 #if WIN

@@ -1,6 +1,5 @@
 ﻿using System;
 using LJD = LogJoint.Drawing;
-using System.Drawing;
 using System.Linq;
 using LogJoint.Drawing;
 using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
@@ -13,11 +12,11 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		public class Resources
 		{
 			public readonly LJD.Pen GridPen = new LJD.Pen(Color.LightGray, 1);
-			public LJD.Pen GetTimeSeriesPen(ModelColor color)
+			public LJD.Pen GetTimeSeriesPen(Color color)
 			{
 				LJD.Pen ret;
 				if (!pensCache.TryGetValue(color, out ret))
-					pensCache.Add(color, ret = new LJD.Pen(color.ToColor(), 1));
+					pensCache.Add(color, ret = new LJD.Pen(color, 1));
 				return ret;
 			}
 			public readonly LJD.Font AxesFont;
@@ -69,7 +68,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			}
 
 
-			private readonly Dictionary<ModelColor, LJD.Pen> pensCache = new Dictionary<ModelColor, LJD.Pen>();
+			private readonly Dictionary<Color, LJD.Pen> pensCache = new Dictionary<Color, LJD.Pen>();
 		};
 
 		public static void DrawPlotsArea(
@@ -172,7 +171,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		public static void DrawLegendSample(
 			LJD.Graphics g,
 			Resources resources,
-			ModelColor color,
+			Color color,
 			MarkerType markerType,
 			RectangleF rect
 		)

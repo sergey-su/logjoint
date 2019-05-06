@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
@@ -42,7 +42,7 @@ namespace LogJoint.UI.Presenters.Timeline
 	{
 		public int X, Right, AvaTimeY1, AvaTimeY2, LoadedTimeY1, LoadedTimeY2;
 		public IEnumerable<GapDrawInfo> Gaps;
-		public ModelColor Color;
+		public Color Color;
 	};
 
 	public struct GapDrawInfo
@@ -184,7 +184,7 @@ namespace LogJoint.UI.Presenters.Timeline
 	{
 		DateRange AvailableTime { get; }
 		DateRange LoadedTime { get; }
-		ModelColor Color { get; }
+		Color Color { get; }
 		string DisplayName { get; }
 		ITimeGapsDetector TimeGaps { get; }
 		ILogSource[] GetPreferredNavigationTargets(DateTime dt);

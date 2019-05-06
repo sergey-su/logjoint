@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using LogJoint.Settings;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		public bool IsSelected;
 		public bool IsEnabled;
 		public string Text;
-		public ModelColor? ContextColor;
+		public Color? ContextColor;
 
 		internal IBookmark Bookmark;
 	};

@@ -3,6 +3,7 @@ using System.Xml;
 using System.Text.RegularExpressions;
 using System;
 using System.Linq;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 {
@@ -159,8 +160,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 				{
 					RangeBegin = 0,
 					RangeEnd = sample.Length,
-					BackColor = new ModelColor(0xffffffff),
-					ForeColor = new ModelColor(0xff000000),
+					BackColor = new Color(0xffffffff),
+					ForeColor = new Color(0xff000000),
 					Bold = false
 				});
 
@@ -172,8 +173,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 						{
 							RangeBegin = loc.Begin,
 							RangeEnd = loc.Begin + loc.HeaderLength,
-							BackColor = new ModelColor(0xFFDCDCDC),
-							ForeColor = new ModelColor(0xFF696969)
+							BackColor = new Color(0xFFDCDCDC),
+							ForeColor = new Color(0xFF696969)
 						});
 					}
 				}

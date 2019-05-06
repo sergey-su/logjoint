@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using LogJoint.Drawing;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 
 namespace LogJoint.UI.Presenters.LogViewer

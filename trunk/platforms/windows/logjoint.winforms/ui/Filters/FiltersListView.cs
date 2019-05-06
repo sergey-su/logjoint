@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
+using LogJoint.Drawing;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.FiltersListBox;
 
@@ -144,14 +144,14 @@ namespace LogJoint.UI
 		class Item : ListViewItem, IViewItem
 		{
 			public bool IsCheckable = true;
-			ModelColor? color;
+			Color? color;
 
 			public Item(IFilter filter, string key)
 			{
 				this.filter = filter;
 				Name = key;
 				if (filter == null)
-					this.ForeColor = SystemColors.GrayText;
+					this.ForeColor = System.Drawing.SystemColors.GrayText;
 			}
 
 			IFilter IViewItem.Filter { get { return filter; } }
@@ -171,13 +171,13 @@ namespace LogJoint.UI
 				set { base.Checked = value.GetValueOrDefault(true); IsCheckable = value != null; }
 			}
 
-			ModelColor? IViewItem.Color
+			Color? IViewItem.Color
 			{
 				get { return color; }
 				set
 				{
 					color = value;
-					BackColor = color != null ? color.Value.ToColor() : Color.Empty;
+					BackColor = color != null ? color.Value.ToColor() : System.Drawing.Color.Empty;
 				}
 			}
 

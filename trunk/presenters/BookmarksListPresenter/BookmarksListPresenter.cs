@@ -8,6 +8,7 @@ using LogJoint.Settings;
 using LogJoint.Profiling;
 using System.Collections.Immutable;
 using static LogJoint.Settings.Appearance;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -159,7 +160,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		static ImmutableArray<ViewItem> CreateViewItems(
 			IEnumerable<IBookmark> bookmarks,
 			IImmutableSet<IBookmark> selected,
-			ImmutableArray<ModelColor> threadColors,
+			ImmutableArray<Color> threadColors,
 			ColoringMode coloring
 		)
 		{
