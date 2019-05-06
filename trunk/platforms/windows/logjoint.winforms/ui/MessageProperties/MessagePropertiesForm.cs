@@ -67,9 +67,9 @@ namespace LogJoint
 			return SingleNRe.Replace(str, "${ch}\r\n", str.Length, 0);
 		}
 
-		static Color ResolveLinkColor(ModelColor? cl)
+		static Color ResolveLinkColor(LogJoint.Drawing.Color? cl)
 		{
-			return cl != null ? cl.Value.ToColor() : SystemColors.ButtonFace;
+			return cl != null ? Drawing.PrimitivesExtensions.ToSystemDrawingObject(cl.Value) : SystemColors.ButtonFace;
 		}
 
 		void UpdateView(DialogData viewData)

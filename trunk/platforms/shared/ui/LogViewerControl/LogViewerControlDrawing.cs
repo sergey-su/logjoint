@@ -4,10 +4,6 @@ using System.Linq;
 using System.Text;
 using LogJoint.UI.Presenters.LogViewer;
 using LogJoint.Drawing;
-using RectangleF = System.Drawing.RectangleF;
-using Rectangle = System.Drawing.Rectangle;
-using Point = System.Drawing.Point;
-using SizeF = System.Drawing.SizeF;
 
 namespace LogJoint.UI.LogViewer
 {
@@ -120,7 +116,7 @@ namespace LogJoint.UI.LogViewer
 			var lineValue = msg.TextLineValue;
 			int lineCharIdx = ListUtils.BinarySearch(new ListUtils.VirtualList<int>(lineValue.Length, i => i), 0, lineValue.Length, i =>
 			{
-				var charBounds = g.MeasureCharacterRange(lineValue, font, format, new System.Drawing.CharacterRange(i, 1));
+				var charBounds = g.MeasureCharacterRange(lineValue, font, format, new CharacterRange(i, 1));
 				return ((charBounds.Left + charBounds.Right) / 2) < screenPosition;
 			});
 			//return (line.StartIndex + lineCharIdx) - txt.StartIndex;

@@ -4,7 +4,6 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
-using System.Drawing;
 using LJD = LogJoint.Drawing;
 using ObjCRuntime;
 using LogJoint.Drawing;

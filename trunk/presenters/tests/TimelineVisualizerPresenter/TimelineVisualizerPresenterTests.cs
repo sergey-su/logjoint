@@ -10,6 +10,7 @@ using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
 using System.Collections.Immutable;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 {
@@ -43,7 +44,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			quickSearchTextBoxPresenter = Substitute.For<QuickSearchTextBox.IPresenter>();
 			changeNotification = Substitute.For<IChangeNotification>();
 			theme = Substitute.For<IColorTheme>();
-			theme.ThreadColors.Returns(ImmutableArray.Create(new ModelColor(1), new ModelColor(2)));
+			theme.ThreadColors.Returns(ImmutableArray.Create(new Color(1), new Color(2)));
 			presentationObjectsFactory.CreateQuickSearch(Arg.Any<QuickSearchTextBox.IView>()).Returns(quickSearchTextBoxPresenter);
 		}
 

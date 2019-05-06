@@ -1,7 +1,7 @@
-﻿using System.Drawing;
-using System.Linq;
+﻿using System.Linq;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
+using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 using System.Collections.Generic;
 using System;
@@ -158,7 +158,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			return base.ProcessCmdKey(ref msg, keyData);
 		}
 
-		ViewPart GetViewPart(object sender, Point pt)
+		ViewPart GetViewPart(object sender, System.Drawing.Point pt)
 		{
 			if (sender == plotsPanel)
 				return new ViewPart()
@@ -223,13 +223,13 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			eventsHandler.OnActiveNotificationButtonClicked();
 		}
 
-		UIUtils.ToolTipInfo GetPlotsToolTipInfo(Point pt)
+		UIUtils.ToolTipInfo GetPlotsToolTipInfo(System.Drawing.Point pt)
 		{
 			if (eventsHandler == null)
 				return null;
 			if (plotsPanel.Capture)
 				return null; // don't show tooltip during dragging
-			var toolTip = eventsHandler.OnTooltip(new PointF(pt.X, pt.Y));
+			var toolTip = eventsHandler.OnTooltip(pt.ToPoint());
 			if (toolTip == null)
 				return null;
 			var ret = new UIUtils.ToolTipInfo()

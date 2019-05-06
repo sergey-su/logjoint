@@ -9,6 +9,7 @@ using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -133,13 +134,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public string TextLineValue;
 		public bool IsBookmarked;
 		public SeverityIcon Severity;
-		public ModelColor? ContextColor;
+		public Color? ContextColor;
 		public (int, int)? SelectedBackground;
 		public int? CursorCharIndex;
 		public bool HasMessageSeparator;
-		public IEnumerable<(int, int, ModelColor)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
-		public IEnumerable<(int, int, ModelColor)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
-		public IEnumerable<(int, int, ModelColor)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, Color)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, Color)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
+		public IEnumerable<(int, int, Color)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
 
 		internal IMessage Message;
 		internal int TextLineIndex;

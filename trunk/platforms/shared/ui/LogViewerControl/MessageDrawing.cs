@@ -4,9 +4,6 @@ using System.Linq;
 using System.Text;
 using LogJoint.UI.Presenters.LogViewer;
 using LogJoint.Drawing;
-using RectangleF = System.Drawing.RectangleF;
-using Rectangle = System.Drawing.Rectangle;
-using PointF = System.Drawing.PointF;
 
 
 namespace LogJoint.UI.LogViewer
@@ -121,7 +118,7 @@ namespace LogJoint.UI.LogViewer
 			Brush tmpBrush = null;
 
 			if (!darkMode && msg.ContextColor != null)
-				b = tmpBrush = new Brush (msg.ContextColor.Value.ToColor ());
+				b = tmpBrush = new Brush (msg.ContextColor.Value);
 			else
 				b = resources.DefaultBackgroundBrush;
 			canvas.FillRectangle(b, r);
@@ -180,7 +177,7 @@ namespace LogJoint.UI.LogViewer
 			RectangleF messageRect, float textDrawingXPosition
 		)
 		{
-			var bounds = g.MeasureCharacterRange(line, font, format, new System.Drawing.CharacterRange(lineSubstringBegin, lineSubstringEnd - lineSubstringBegin));
+			var bounds = g.MeasureCharacterRange(line, font, format, new CharacterRange(lineSubstringBegin, lineSubstringEnd - lineSubstringBegin));
 
 			return new RectangleF(textDrawingXPosition + bounds.X, messageRect.Top, bounds.Width, messageRect.Height);
 		}
@@ -208,7 +205,7 @@ namespace LogJoint.UI.LogViewer
 				Brush b;
 
 				if (darkMode && msg.ContextColor != null)
-					b = tmpBrush = new Brush(msg.ContextColor.Value.ToColor());
+					b = tmpBrush = new Brush(msg.ContextColor.Value);
 				else
 					b = resources.DefaultForegroundBrush;
 
@@ -221,7 +218,7 @@ namespace LogJoint.UI.LogViewer
 		private void DoInplaceHighlighting(
 			string lineValue,
 			PointF location,
-			IEnumerable<(int, int, ModelColor)> ranges,
+			IEnumerable<(int, int, Color)> ranges,
 			Brush forcedBrush)
 		{
 			if (ranges != null)
@@ -239,7 +236,7 @@ namespace LogJoint.UI.LogViewer
 					tmp.Inflate(0, -1);
 					if (forcedBrush == null)
 					{
-						using (var tmpBrush = new Brush(hlRange.Item3.ToColor()))
+						using (var tmpBrush = new Brush(hlRange.Item3))
 						{
 							FillInplaceHightlightRectangle(canvas, tmp, tmpBrush);
 						}

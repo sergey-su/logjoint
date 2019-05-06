@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.FilterDialog
@@ -7,7 +8,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		void SetEventsHandler(IViewEvents handler);
 		void SetData(
 			string title,
-			KeyValuePair<string, ModelColor?>[] actionComboBoxOptions, 
+			KeyValuePair<string, Color?>[] actionComboBoxOptions, 
 			string[] typesOptions,
 			DialogValues values
 		);

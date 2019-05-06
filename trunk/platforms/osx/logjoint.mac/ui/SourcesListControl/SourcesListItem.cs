@@ -3,6 +3,7 @@ using Foundation;
 using LogJoint.UI.Presenters.SourcesList;
 using AppKit;
 using System.Collections.Generic;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -12,7 +13,7 @@ namespace LogJoint.UI
 		public object datum;
 		public bool isSelected;
 		public bool? isChecked;
-		public ModelColor? color;
+		public Color? color;
 		public Action<SourcesListItem> updater;
 		public IViewEvents viewEvents;
 		public List<SourcesListItem> items = new List<SourcesListItem>();
@@ -24,9 +25,9 @@ namespace LogJoint.UI
 			Update();
 		}
 
-		void IViewItem.SetBackColor(ModelColor color, bool isFailureColor)
+		void IViewItem.SetBackColor(Color color, bool isFailureColor)
 		{
-			this.color = isFailureColor ? color : new ModelColor?();
+			this.color = isFailureColor ? color : new Color?();
 			Update();
 		}
 

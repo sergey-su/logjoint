@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using LogJoint.Drawing;
 using System.Windows.Forms;
-using System.Drawing.Drawing2D;
 using LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer;
 using LJD = LogJoint.Drawing;
 
@@ -152,11 +151,11 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		private void InitializeArrowEndShapePoints()
 		{
 			this.resources.ArrowEndShapePoints = new[] {
-				new PointF (-7, -4),
-				new PointF (-7, +4),
-				new PointF (0, 0)
+				new LJD.PointF (-7, -4),
+				new LJD.PointF (-7, +4),
+				new LJD.PointF (0, 0)
 			};
-			using (var mtx = new Matrix())
+			using (var mtx = new LJD.Matrix())
 			{
 				var scale = UIUtils.Dpi.Scale(1f, 120);
 				mtx.Scale(scale, scale);
@@ -178,7 +177,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				return;
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
 			{
-				var cursor = drawingUtils.GetRoleCaptionsCursor(g, e.Location);
+				var cursor = drawingUtils.GetRoleCaptionsCursor(g, e.Location.ToPoint());
 				if (cursor == CursorKind.Hand)
 				{
 					Cursor.Current = Cursors.Hand;
@@ -190,7 +189,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		private void rolesCaptionsPanel_MouseDown(object sender, MouseEventArgs e)
 		{
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
-				drawingUtils.HandleRoleCaptionsMouseDown(g, e.Location);
+				drawingUtils.HandleRoleCaptionsMouseDown(g, e.Location.ToPoint());
 		}
 
 		private void arrowsPanel_Paint(object sender, PaintEventArgs e)
@@ -202,8 +201,8 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			{
 				drawingUtils.DrawArrowsView(
 					g,
-					arrowsPanel.ClientSize,
-					r => ControlPaint.DrawFocusRectangle(e.Graphics, r)
+					arrowsPanel.ClientSize.ToSize(),
+					r => ControlPaint.DrawFocusRectangle(e.Graphics, r.ToSystemDrawingObject())
 				);
 			}
 		}
@@ -277,22 +276,22 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		{
 			var ctrl = (Control)sender;
 			ctrl.Focus();
-			eventsHandler.OnArrowsAreaMouseDown(e.Location, e.Clicks >= 2);
+			eventsHandler.OnArrowsAreaMouseDown(e.Location.ToPoint(), e.Clicks >= 2);
 		}
 
 		private void arrowsPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseUp(e.Location, GetModifiers());
+			eventsHandler.OnArrowsAreaMouseUp(e.Location.ToPoint(), GetModifiers());
 		}
 
 		private void arrowsPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseMove(e.Location);
+			eventsHandler.OnArrowsAreaMouseMove(e.Location.ToPoint());
 		}
 
 		private void arrowsPanel_MouseWheel(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseWheel(e.Location, e.Delta, GetModifiers());
+			eventsHandler.OnArrowsAreaMouseWheel(e.Location.ToPoint(), e.Delta, GetModifiers());
 		}
 
 		private void currentArrowDescription_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -308,7 +307,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			if (drawingUtils == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
-				drawingUtils.DrawLeftPanelView(g, leftPanel.PointToClient(arrowsPanel.PointToScreen(new Point())), leftPanel.ClientSize);
+				drawingUtils.DrawLeftPanelView(g, leftPanel.PointToClient(arrowsPanel.PointToScreen(new System.Drawing.Point())).ToPoint(), leftPanel.ClientSize.ToSize());
 		}
 
 		private void arrowsPanel_Resize(object sender, EventArgs e)
@@ -356,7 +355,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		private void leftPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnLeftPanelMouseDown(arrowsPanel.PointToClient(leftPanel.PointToScreen(e.Location)), e.Clicks >= 2, GetModifiers());
+			eventsHandler.OnLeftPanelMouseDown(arrowsPanel.PointToClient(leftPanel.PointToScreen(e.Location)).ToPoint(), e.Clicks >= 2, GetModifiers());
 		}
 
 		protected override bool ProcessCmdKey(ref System.Windows.Forms.Message msg, Keys keyData)

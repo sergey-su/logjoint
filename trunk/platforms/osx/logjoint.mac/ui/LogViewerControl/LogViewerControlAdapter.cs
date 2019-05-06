@@ -1,9 +1,6 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 
-using System.Drawing;
-
-
 using Foundation;
 using AppKit;
 using CoreText;

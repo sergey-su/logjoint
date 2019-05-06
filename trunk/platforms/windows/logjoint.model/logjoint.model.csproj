@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin\debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WIN</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -30,7 +30,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin\release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;WIN</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -215,9 +215,6 @@
     <Compile Include="..\..\..\model\generic\CircularBuffer.cs">
       <Link>generic\CircularBuffer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\Color.cs">
-      <Link>generic\Color.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\ColorLease.cs">
       <Link>generic\ColorLease.cs</Link>
     </Compile>
@@ -229,6 +226,18 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\Diagnostics.cs">
       <Link>generic\Diagnostics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\Extensions.cs">
+      <Link>generic\drawing\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\Matrix.cs">
+      <Link>generic\drawing\Matrix.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\platform-specific\win\MatrixImpl.cs">
+      <Link>generic\drawing\MatrixImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\Primitives.cs">
+      <Link>generic\drawing\Primitives.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\EncodingUtils.cs">
       <Link>generic\EncodingUtils.cs</Link>

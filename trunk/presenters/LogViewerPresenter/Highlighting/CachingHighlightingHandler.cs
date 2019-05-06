@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +8,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 	class CachingHighlightingHandler : IHighlightingHandler
 	{
 		readonly LRUCache<IMessage, RangeTree.IRangeTree<int, HighlightRange>> cache;
-		readonly Func<IMessage, IEnumerable<(int, int, ModelColor)>> getRangesForMessage;
+		readonly Func<IMessage, IEnumerable<(int, int, Color)>> getRangesForMessage;
 
 		public CachingHighlightingHandler(
-			Func<IMessage, IEnumerable<(int, int, ModelColor)>> getRangesForMessage,
+			Func<IMessage, IEnumerable<(int, int, Color)>> getRangesForMessage,
 			int cacheSize
 		)
 		{
@@ -18,7 +19,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.cache = new LRUCache<IMessage, RangeTree.IRangeTree<int, HighlightRange>>(cacheSize);
 		}
 
-		IEnumerable<(int, int, ModelColor)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
+		IEnumerable<(int, int, Color)> IHighlightingHandler.GetHighlightingRanges(ViewLine vl)
 		{
 			if (!cache.TryGetValue(vl.Message, out var item))
 			{
@@ -57,7 +58,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		class HighlightRange : RangeTree.IRangeProvider<int>
 		{
 			public RangeTree.Range<int> Range { get; set; }
-			public ModelColor Color { get; set; }
+			public Color Color { get; set; }
 
 			public class Comparer : IComparer<HighlightRange>
 			{

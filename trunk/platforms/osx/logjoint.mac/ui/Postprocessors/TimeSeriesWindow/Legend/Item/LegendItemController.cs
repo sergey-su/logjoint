@@ -4,7 +4,6 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.Drawing;
-using System.Drawing;
 using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
 
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using LogJoint.Drawing;
 using LogJoint.Preprocessing;
 
 namespace LogJoint.UI.Presenters.SourcesList
@@ -38,7 +39,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		bool Selected { get; set; }
 		bool? Checked { get; set; }
 		void SetText(string value);
-		void SetBackColor(ModelColor color, bool isFailureColor);
+		void SetBackColor(Color color, bool isFailureColor);
 	};
 
 	[Flags]

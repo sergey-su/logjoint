@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 	{
 		readonly IView view;
 		readonly ILogSourcesManager logSources;
-		readonly List<Tuple<FilterAction, string, ModelColor?>> actionsOptions;
+		readonly List<Tuple<FilterAction, string, Color?>> actionsOptions;
 		readonly bool scopeSupported;
 		readonly IColorTable highlightColorsTable;
 		List<ScopeItem> scopeItems;
@@ -258,7 +259,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 			view.SetData(
 				"Filter rule",
-				actionsOptions.Select(a => new KeyValuePair<string, ModelColor?>(a.Item2, a.Item3)).ToArray(),
+				actionsOptions.Select(a => new KeyValuePair<string, Color?>(a.Item2, a.Item3)).ToArray(),
 				new[]
 				{
 						"Errors",
@@ -381,9 +382,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			return f;
 		}
 
-		static List<Tuple<FilterAction, string, ModelColor?>> MakeActionsOptions(FiltersListPurpose purpose, IColorTable highlightColorsTable)
+		static List<Tuple<FilterAction, string, Color?>> MakeActionsOptions(FiltersListPurpose purpose, IColorTable highlightColorsTable)
 		{
-			var actionOptions = new List<Tuple<FilterAction, string, ModelColor?>>();
+			var actionOptions = new List<Tuple<FilterAction, string, Color?>>();
 
 			string excludeDescription;
 			if (purpose == FiltersListPurpose.Highlighting)
@@ -392,11 +393,11 @@ namespace LogJoint.UI.Presenters.FilterDialog
 				excludeDescription = "Exclude from search results";
 			else
 				excludeDescription = "Exclude";
-			actionOptions.Add(Tuple.Create(FilterAction.Exclude, excludeDescription, new ModelColor?()));
+			actionOptions.Add(Tuple.Create(FilterAction.Exclude, excludeDescription, new Color?()));
 
 			if (purpose == FiltersListPurpose.Search)
 			{
-				actionOptions.Add(Tuple.Create(FilterAction.Include, "Include to search result", new ModelColor?()));
+				actionOptions.Add(Tuple.Create(FilterAction.Include, "Include to search result", new Color?()));
 			}
 
 			string includeAndColorizeFormat;

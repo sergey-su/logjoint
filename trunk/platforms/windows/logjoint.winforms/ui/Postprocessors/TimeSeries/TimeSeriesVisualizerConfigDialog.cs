@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
+using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -50,7 +50,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			{
 				if (colorComboBox.Items.Count == 0)
 					colorComboBox.Items.AddRange(props.Palette.Select(c => (object)c).ToArray());
-				colorComboBox.SelectedIndex = props.Palette.IndexOf(c => c.Argb == props.Color.Value.Argb).GetValueOrDefault(-1);
+				colorComboBox.SelectedIndex = props.Palette.IndexOf(c => c == props.Color.Value).GetValueOrDefault(-1);
 			}
 			if ((markerComboBox.Enabled = props != null && props.Marker != null) == true)
 			{
@@ -184,14 +184,14 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			if (e.Index < 0 || (e.State & DrawItemState.Disabled) != 0)
 				return;
 			e.DrawBackground();
-			using (var sb = new SolidBrush(((ModelColor)colorComboBox.Items[e.Index]).ToColor()))
-				e.Graphics.FillRectangle(sb, Rectangle.Inflate(e.Bounds, -5, -2));
+			using (var sb = new System.Drawing.SolidBrush(((LJD.Color)colorComboBox.Items[e.Index]).ToSystemDrawingObject()))
+				e.Graphics.FillRectangle(sb, System.Drawing.Rectangle.Inflate(e.Bounds, -5, -2));
 		}
 
 		private void colorComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			if (!updateLocked && colorComboBox.SelectedItem is ModelColor)
-				evts.OnColorChanged((ModelColor)colorComboBox.SelectedItem);
+			if (!updateLocked && colorComboBox.SelectedItem is LJD.Color)
+				evts.OnColorChanged((LJD.Color)colorComboBox.SelectedItem);
 		}
 
 		private void markerComboBox_DrawItem(object sender, DrawItemEventArgs e)
@@ -203,9 +203,9 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			{
 				Drawing.DrawLegendSample(
 					g, resources,
-					new ModelColor(Color.Blue.ToArgb()),
+					LJD.Color.Blue,
 					(MarkerType)markerComboBox.Items[e.Index],
-					Rectangle.Inflate(e.Bounds, -3, 0)
+					LJD.Rectangle.Inflate(e.Bounds.ToRectangle(), -3, 0)
 				);
 			}
 		}

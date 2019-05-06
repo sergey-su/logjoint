@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Foundation;
 using AppKit;
-using System.Drawing;
 using CoreText;
 using CoreGraphics;
 using LogJoint.Drawing;

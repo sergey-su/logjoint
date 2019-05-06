@@ -5,14 +5,14 @@ using System.Data;
 using System.Windows.Forms;
 using System.Threading;
 using LogJoint.UI.Presenters.FilterDialog;
-using System.Drawing;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
 	public partial class FilterDialog : Form
 	{
 		public IViewEvents eventsHandler;
-		public KeyValuePair<string, ModelColor?>[] actionComboBoxOptions;
+		public KeyValuePair<string, Color?>[] actionComboBoxOptions;
 
 		public FilterDialog()
 		{
@@ -47,7 +47,7 @@ namespace LogJoint.UI
 			var option = actionComboBoxOptions.ElementAtOrDefault(e.Index);
 			if (option.Value != null)
 			{
-				using (var b = new SolidBrush(option.Value.Value.ToColor()))
+				using (var b = new System.Drawing.SolidBrush(option.Value.Value.ToSystemDrawingObject()))
 				{
 					e.Graphics.FillRectangle(b, e.Bounds);
 				}
@@ -55,16 +55,16 @@ namespace LogJoint.UI
 				{
 					var r = e.Bounds;
 					r.Width = 3;
-					e.Graphics.FillRectangle(Brushes.Blue, r);
+					e.Graphics.FillRectangle(System.Drawing.Brushes.Blue, r);
 					r.X = e.Bounds.Right - r.Width;
-					e.Graphics.FillRectangle(Brushes.Blue, r);
+					e.Graphics.FillRectangle(System.Drawing.Brushes.Blue, r);
 				}
-				e.Graphics.DrawString(option.Key, e.Font, Brushes.Black, e.Bounds);
+				e.Graphics.DrawString(option.Key, e.Font, System.Drawing.Brushes.Black, e.Bounds);
 			}
 			else
 			{
 				e.DrawBackground();
-				using (var b = new SolidBrush(e.ForeColor))
+				using (var b = new System.Drawing.SolidBrush(e.ForeColor))
 					e.Graphics.DrawString(option.Key ?? "", e.Font, b, e.Bounds);
 			}
 		}
@@ -91,7 +91,7 @@ namespace LogJoint.UI
 
 		void IView.SetData(
 			string title,
-			KeyValuePair<string, ModelColor?>[] actionComboBoxOptions,
+			KeyValuePair<string, Color?>[] actionComboBoxOptions,
 			string[] typesOptions,
 			DialogValues values
 		)

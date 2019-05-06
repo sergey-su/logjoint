@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System;
 using System.Collections.Generic;
 
@@ -48,7 +49,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		string Text { get; set; }
 		bool? Checked { get; set; }
 		bool Selected { get; set; }
-		ModelColor? Color { get; set; }
+		Color? Color { get; set; }
 		string CheckboxTooltip { get; set; }
 		string ActionTooltip { get; set; }
 		void SetImageType(ViewItemImageType imageType);

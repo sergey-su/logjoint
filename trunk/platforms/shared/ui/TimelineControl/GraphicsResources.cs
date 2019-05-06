@@ -1,8 +1,5 @@
 using System;
 using LogJoint.Drawing;
-using System.Drawing.Drawing2D;
-using Color = System.Drawing.Color;
-using Point = System.Drawing.Point;
 using LogJoint.UI.Presenters.Timeline;
 
 namespace LogJoint.UI.Timeline
@@ -83,7 +80,7 @@ namespace LogJoint.UI.Timeline
 
 			HotTrackRangeBrush = new Brush(Color.FromArgb(20, Color.Red));
 
-			CenteredFormat = new StringFormat(System.Drawing.StringAlignment.Center, System.Drawing.StringAlignment.Near);
+			CenteredFormat = new StringFormat(StringAlignment.Center, StringAlignment.Near);
 
 			DragAreaBackgroundBrush = Brushes.TextBackground;
 			DragAreaTextBrush = Brushes.Text;

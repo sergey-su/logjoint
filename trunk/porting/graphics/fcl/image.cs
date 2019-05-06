@@ -1,4 +1,3 @@
-using System.Drawing;
 
 namespace LogJoint.Drawing
 {
@@ -18,7 +17,7 @@ namespace LogJoint.Drawing
 
 		partial void SizeImp(ref Size ret)
 		{
-			ret = image.Size;
+			ret = image.Size.ToSize();
 		}
 	};
 }

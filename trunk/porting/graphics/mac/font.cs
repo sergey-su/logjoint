@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using CoreText;
+﻿using CoreText;
 using AppKit;
 
 namespace LogJoint.Drawing

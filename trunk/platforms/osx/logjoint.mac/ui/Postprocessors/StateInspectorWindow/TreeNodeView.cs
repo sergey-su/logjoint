@@ -1,7 +1,6 @@
 ﻿using System;
 using AppKit;
 using Foundation;
-using System.Drawing;
 using CoreGraphics;
 using LogJoint.Drawing;
 

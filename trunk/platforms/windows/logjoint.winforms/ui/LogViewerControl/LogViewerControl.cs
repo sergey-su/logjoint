@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using LogJoint.UI.Presenters.LogViewer;
@@ -147,11 +146,11 @@ namespace LogJoint.UI
 
 		void IView.PopupContextMenu(object contextMenuPopupData)
 		{
-			Point pt;
-			if (contextMenuPopupData is Point)
-				pt = (Point)contextMenuPopupData;
+			LJD.Point pt;
+			if (contextMenuPopupData is LJD.Point)
+				pt = (LJD.Point)contextMenuPopupData;
 			else
-				pt = new Point();
+				pt = new LJD.Point();
 			DoContextMenu(pt.X, pt.Y);
 		}
 
@@ -160,8 +159,8 @@ namespace LogJoint.UI
 		object IView.GetContextMenuPopupData(int? viewLineIndex)
 		{
 			if (viewLineIndex.HasValue)
-				return new Point(0, viewDrawing.GetMessageRect(viewModel.ViewLines[viewLineIndex.Value]).Bottom);
-			return new Point();
+				return new LJD.Point(0, viewDrawing.GetMessageRect(viewModel.ViewLines[viewLineIndex.Value]).Bottom);
+			return new LJD.Point();
 		}
 
 		string[] IViewFonts.AvailablePreferredFamilies
@@ -236,7 +235,7 @@ namespace LogJoint.UI
 			else
 				flags |= MessageMouseEventFlag.SingleClick;
 
-			viewDrawing.HandleMouseDown(ClientRectangle, e.Location, flags, out captureTheMouse);
+			viewDrawing.HandleMouseDown(LJD.PrimitivesExtensions.ToRectangle(ClientRectangle), LJD.PrimitivesExtensions.ToPoint(e.Location), flags, out captureTheMouse);
 
 			base.OnMouseDown(e);
 			
@@ -247,7 +246,7 @@ namespace LogJoint.UI
 		{
 			if (viewDrawing == null)
 				return;
-			viewDrawing.HandleMouseMove(ClientRectangle, e.Location,
+			viewDrawing.HandleMouseMove(LJD.PrimitivesExtensions.ToRectangle(ClientRectangle), LJD.PrimitivesExtensions.ToPoint(e.Location),
 				e.Button == MouseButtons.Left && this.Capture, out var newCursor);
 
 			Cursor newNativeCursor = Cursors.Arrow;
@@ -363,12 +362,12 @@ namespace LogJoint.UI
 			{
 				using (var g = new LJD.Graphics(backBufferCanvas.Graphics, ownsGraphics: false))
 				{
-					g.FillRectangle(graphicsResources.DefaultBackgroundBrush, pe.ClipRectangle);
+					g.FillRectangle(graphicsResources.DefaultBackgroundBrush, LJD.PrimitivesExtensions.ToRectangle(pe.ClipRectangle));
 
 					UpdateDrawContextScrollPos();
 
 					int maxRight;
-					viewDrawing.PaintControl(g, pe.ClipRectangle, this.Focused, out maxRight);
+					viewDrawing.PaintControl(g, LJD.PrimitivesExtensions.ToRectangle(pe.ClipRectangle), this.Focused, out maxRight);
 
 					backBufferCanvas.Render(pe.Graphics);
 

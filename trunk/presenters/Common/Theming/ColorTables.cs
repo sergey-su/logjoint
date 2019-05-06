@@ -2,19 +2,20 @@ using System;
 using System.Linq;
 using System.Collections.Immutable;
 using LogJoint.Settings;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters
 {
 	static class ColorTableUtils
 	{
-		public static ModelColor FromRGB(int rgb)
+		public static Color FromRGB(int rgb)
 		{
 			uint color;
 			unchecked
 			{
 				color = (uint)0xff000000 | (uint)rgb;
 			};
-			return new ModelColor(color);
+			return new Color(color);
 		}
 	}
 
@@ -34,12 +35,12 @@ namespace LogJoint.UI.Presenters
 				h < 240 ? (0d, X, C) :
 				h < 300 ? (X, 0d, C) :
 				(C, 0, X);
-			return unchecked((int)(new ModelColor(
+			return Color.FromArgb(
 				0, 
 				(byte) ((rp + m) * 255),
 				(byte) ((gp + m) * 255),
 				(byte) ((bp + m) * 255)
-			)).Argb);
+			).ToArgb();
 		}
 
 		public static int[] Generate(int numHues, double saturation, double lightness)
@@ -57,7 +58,7 @@ namespace LogJoint.UI.Presenters
 
 	public class HighlightBackgroundColorsTable : IColorTable
 	{
-		readonly Func<ImmutableArray<ModelColor>> colorsSelector;
+		readonly Func<ImmutableArray<Color>> colorsSelector;
 
 		public HighlightBackgroundColorsTable(
 			IColorTheme colorTheme
@@ -76,7 +77,7 @@ namespace LogJoint.UI.Presenters
 			);
 		}
 
-		ImmutableArray<ModelColor> IColorTable.Items => colorsSelector();
+		ImmutableArray<Color> IColorTable.Items => colorsSelector();
 
 		static readonly int[] lightThemeColors = {
 			0x00ffff,
@@ -105,7 +106,7 @@ namespace LogJoint.UI.Presenters
 			Items = ImmutableArray.CreateRange(htmlColors.Select(ColorTableUtils.FromRGB));
 		}
 
-		public ImmutableArray<ModelColor> Items { get; private set; }
+		public ImmutableArray<Color> Items { get; private set; }
 
 		static readonly int[] htmlColors = {
 			0x7FFF00, 0xD2691E, 0xDC143C,
@@ -125,7 +126,7 @@ namespace LogJoint.UI.Presenters
 			Items = ImmutableArray.CreateRange(colors.Select(ColorTableUtils.FromRGB));
 		}
 
-		public ImmutableArray<ModelColor> Items { get; private set; }
+		public ImmutableArray<Color> Items { get; private set; }
 
 		static readonly int[] colors = {
 			0x4E15406,
@@ -143,7 +144,7 @@ namespace LogJoint.UI.Presenters
 
 	public class LogThreadsColorsTable : IColorTable
 	{
-		readonly Func<ImmutableArray<ModelColor>> colorsSelector;
+		readonly Func<ImmutableArray<Color>> colorsSelector;
 
 		public LogThreadsColorsTable(
 			IColorTheme colorTheme,
@@ -166,7 +167,7 @@ namespace LogJoint.UI.Presenters
 			);
 		}
 
-		ImmutableArray<ModelColor> IColorTable.Items => colorsSelector();
+		ImmutableArray<Color> IColorTable.Items => colorsSelector();
 
 		static readonly int[] lightThemeBaseColors = { 
 			  0xDDEEEE, 0xEEDDEE, 0xEEEEDD
@@ -181,7 +182,7 @@ namespace LogJoint.UI.Presenters
 			, 0xCCCCFF, 0xCCFFCC, 0xFFCCCC
 		};
 
-		static ModelColor AdjustLightColor(ModelColor color, PaletteBrightness brightness)
+		static Color AdjustLightColor(Color color, PaletteBrightness brightness)
 		{
 			switch (brightness)
 			{

@@ -1,10 +1,9 @@
 using System;
 using System.ComponentModel;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.Timeline;
 using LogJoint.UI.Timeline;
+using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI
@@ -111,11 +110,11 @@ namespace LogJoint.UI
 			{
 				if (topView)
 				{
-					dragForm.Top = this.PointToScreen(new Point(0, y)).Y - dragForm.Height;
+					dragForm.Top = this.PointToScreen(new System.Drawing.Point(0, y)).Y - dragForm.Height;
 				}
 				else
 				{
-					dragForm.Top = this.PointToScreen(new Point(0, y)).Y;
+					dragForm.Top = this.PointToScreen(new System.Drawing.Point(0, y)).Y;
 				}
 			}
 		}
@@ -144,7 +143,7 @@ namespace LogJoint.UI
 				return;
 			using (var g = new LJD.Graphics(pe.Graphics))
 			{
-				drawing.FillBackground(g, LJD.Extensions.ToRectangleF(pe.ClipRectangle));
+				drawing.FillBackground(g, pe.ClipRectangle.ToRectangle());
 
 				Metrics m = GetMetrics();
 
@@ -189,7 +188,7 @@ namespace LogJoint.UI
 
 		protected override void OnDoubleClick(EventArgs e)
 		{
-			Point pt = this.PointToClient(Control.MousePosition);
+			var pt = this.PointToClient(Control.MousePosition);
 			viewModel.OnMouseDblClick(pt.X, pt.Y);
 		}
 
@@ -207,7 +206,7 @@ namespace LogJoint.UI
 			Metrics m = GetMetrics();
 			if (dragPoint.HasValue)
 			{
-				Point mousePt = this.PointToScreen(new Point(dragPoint.Value.X, e.Y));
+				var mousePt = this.PointToScreen(new System.Drawing.Point(dragPoint.Value.X, e.Y));
 
 				if (dragForm == null)
 					dragForm = new TimeLineDragForm(this);
@@ -223,8 +222,8 @@ namespace LogJoint.UI
 				DateTime d = rslt.D;
 				dragForm.Date = d;
 
-				Point pt1 = this.PointToScreen(new Point());
-				Point pt2 = this.PointToScreen(new Point(ClientSize.Width, 0));
+				var pt1 = this.PointToScreen(new System.Drawing.Point());
+				var pt2 = this.PointToScreen(new System.Drawing.Point(ClientSize.Width, 0));
 				int formHeight = datesSize.Value + StaticMetrics.DragAreaHeight;
 				dragForm.SetBounds(
 					pt1.X,
@@ -352,13 +351,13 @@ namespace LogJoint.UI
 
 		#region Implementation
 
-		public void DrawDragArea(Graphics g, DateTime timestamp, int x1, int x2, int y)
+		public void DrawDragArea(System.Drawing.Graphics g, DateTime timestamp, int x1, int x2, int y)
 		{
 			using (var gg = new LJD.Graphics(g))
 				drawing?.DrawDragArea(gg, viewModel.OnDrawDragArea(timestamp), x1, x2, y);
 		}
 
-		void DrawFocusRect(Graphics g, DrawInfo di)
+		void DrawFocusRect(System.Drawing.Graphics g, DrawInfo di)
 		{
 			if (Focused && di.FocusRectIsRequired)
 				ControlPaint.DrawFocusRectangle(g, this.ClientRectangle);
@@ -399,7 +398,7 @@ namespace LogJoint.UI
 
 		Metrics GetMetrics()
 		{
-			return new Metrics(this.ClientRectangle, datesSize.Value, StaticMetrics.DragAreaHeight, 
+			return new Metrics(this.ClientRectangle.ToRectangle(), datesSize.Value, StaticMetrics.DragAreaHeight, 
 				minMarkHeight, containersHeaderAreaHeight, containerControlSize);
 		}
 
@@ -418,14 +417,14 @@ namespace LogJoint.UI
 				return;
 			if (this.contextMenu.Visible)
 				return;
-			Point pt = Cursor.Position;
-			Point clientPt = PointToClient(pt);
+			var pt = Cursor.Position;
+			var clientPt = PointToClient(pt);
 			if (!ClientRectangle.Contains(clientPt))
 				return;
 			var tooltip = viewModel.OnTooltip(clientPt.X, clientPt.Y);
 			if (tooltip == null)
 				return;
-			lastToolTipPoint = clientPt;
+			lastToolTipPoint = clientPt.ToPoint();
 			Cursor cursor = this.Cursor;
 			if (cursor != null)
 			{

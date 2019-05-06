@@ -4,8 +4,7 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.Timeline;
-using System.Drawing;
-using LJD = LogJoint.Drawing;
+using LogJoint.Drawing;
 using LogJoint.UI.Timeline;
 
 namespace LogJoint.UI
@@ -81,12 +80,12 @@ namespace LogJoint.UI
 					NSFont.SystemFontOfSize (NSFont.SystemFontSize).FontName,
 					(float)NSFont.SystemFontSize,
 					(float)NSFont.SystemFontSize * 0.6f,
-					new LJD.Image (NSImage.ImageNamed ("TimelineBookmark.png"))
+					new Image (NSImage.ImageNamed ("TimelineBookmark.png"))
 				),
 				viewModel
 			);
 			dateAreaHeight = new Lazy<int> (() => {
-				using (var g = new LJD.Graphics ())
+				using (var g = new Graphics ())
 					return drawing.MeasureDatesAreaHeight (g);
 			});
 		}
@@ -140,7 +139,7 @@ namespace LogJoint.UI
 		{
 			if (drawing == null)
 				return;
-			using (var g = new LJD.Graphics())
+			using (var g = new Graphics())
 			{
 				drawing.FillBackground(g, dirtyRect);
 
@@ -206,7 +205,7 @@ namespace LogJoint.UI
 		Metrics GetMetrics()
 		{
 			return new Metrics(
-				LJD.Extensions.ToRectangle(timelineView.Frame),
+				timelineView.Frame.ToRectangle(),
 				dateAreaHeight.Value,
 				0,
 				40

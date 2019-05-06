@@ -274,7 +274,7 @@ namespace LogJoint.UI
 				lvi.SubItems.Add("");
 				lvi.SubItems.Add("");
 
-				lvi.BackColor = theme.ThreadColors.GetByIndex(thread.ThreadColorIndex).ToColor();
+				lvi.BackColor = Drawing.PrimitivesExtensions.ToSystemDrawingObject(theme.ThreadColors.GetByIndex(thread.ThreadColorIndex));
 				lvi.UseItemStyleForSubItems = true;
 
 				lv.Items.Add(lvi);

@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 
 namespace LogJoint.Drawing
 {
@@ -9,7 +8,7 @@ namespace LogJoint.Drawing
 
 		partial void Init(Color color)
 		{
-			b = new System.Drawing.SolidBrush(color);
+			b = new System.Drawing.SolidBrush(color.ToSystemDrawingObject());
 		}
 
 		partial void Init(Func<Color> color)

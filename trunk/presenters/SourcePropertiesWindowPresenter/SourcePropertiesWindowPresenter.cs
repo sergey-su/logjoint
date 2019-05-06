@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using LogJoint.Drawing;
 using LogJoint.Preprocessing;
 
 namespace LogJoint.UI.Presenters.SourcePropertiesWindow
@@ -154,7 +155,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 				theme.ThreadColors.ZipWithIndex().Where(x => x.Key != source.ColorIndex).Select(x => x.Value).ToArray());
 		}
 
-		void IViewEvents.OnColorSelected(ModelColor color)
+		void IViewEvents.OnColorSelected(Color color)
 		{
 			var cl = theme.ThreadColors.IndexOf(color);
 			if (cl != -1)
@@ -205,7 +206,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 
 		private void UpdateColorPanel()
 		{
-			WriteControl(ControlFlag.ColorPanel | ControlFlag.BackColor, theme.ThreadColors.GetByIndex(source.ColorIndex).Argb.ToString());
+			WriteControl(ControlFlag.ColorPanel | ControlFlag.BackColor, theme.ThreadColors.GetByIndex(source.ColorIndex).ToUnsignedArgb().ToString());
 		}
 
 		void WriteControl(ControlFlag flags, string value)

@@ -1,6 +1,5 @@
 ﻿using System;
 using LJD = LogJoint.Drawing;
-using System.Drawing;
 using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 using LogJoint.Drawing;
 using LogJoint.Postprocessing.Timeline;
@@ -313,7 +312,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			g.DrawRectangle(res.VisibleRangePen, visibleRangeBox);
 		}
 
-		public static LJD.Brush MakeBrush(ModelColor c)
+		public static LJD.Brush MakeBrush(Color c)
 		{
 			return new LJD.Brush(Color.FromArgb(c.R, c.G, c.B));
 		}

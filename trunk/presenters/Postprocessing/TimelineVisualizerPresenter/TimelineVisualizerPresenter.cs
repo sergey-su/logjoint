@@ -6,6 +6,7 @@ using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
 using System.Collections.Immutable;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 {
@@ -200,7 +201,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 							a.Type == ActivityType.Procedure ? ActivityDrawType.Procedure :
 							a.Type == ActivityType.IncomingNetworking || a.Type == ActivityType.OutgoingNetworking ? ActivityDrawType.Networking :
 							ActivityDrawType.Unknown,
-						Color = !a.BeginOwner.LogSource.IsDisposed ? theme.ThreadColors.GetByIndex(a.BeginOwner.LogSource.ColorIndex) : new ModelColor?(),
+						Color = !a.BeginOwner.LogSource.IsDisposed ? theme.ThreadColors.GetByIndex(a.BeginOwner.LogSource.ColorIndex) : new Color?(),
 						BeginTrigger = new TriggerData(a, a.BeginOwner, a.BeginTrigger),
 						EndTrigger = new TriggerData(a, a.EndOwner, a.EndTrigger),
 						MilestonesCount = a.Milestones.Count,
@@ -232,7 +233,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 						Caption = string.Format("started and never finished ({0})", unfinishedActivities.Count),
 						IsSelected = i == selectedActivity,
 						Type = ActivityDrawType.Group,
-						Color = new ModelColor(0xffffffff),
+						Color = new Color(0xffffffff),
 						Milestones = Enumerable.Empty<ActivityMilestoneDrawInfo>(),
 						Phases = Enumerable.Empty<ActivityPhaseDrawInfo>(),
 						IsFolded = unfinishedActivities.IsFolded

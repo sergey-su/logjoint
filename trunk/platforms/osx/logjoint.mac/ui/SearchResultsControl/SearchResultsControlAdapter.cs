@@ -6,7 +6,6 @@ using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.SearchResult;
 using ObjCRuntime;
-using System.Drawing;
 using CoreGraphics;
 using LogJoint.Drawing;
 using LogJoint.UI.Presenters;

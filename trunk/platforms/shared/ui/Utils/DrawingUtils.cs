@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Text;
 using LogJoint.Drawing;
-using Color = System.Drawing.Color;
-using Rectangle = System.Drawing.Rectangle;
-using Size = System.Drawing.Size;
-using Point = System.Drawing.Point;
 
 namespace LogJoint.Drawing
 {

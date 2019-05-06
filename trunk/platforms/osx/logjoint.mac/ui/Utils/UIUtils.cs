@@ -1,7 +1,6 @@
 ﻿using System;
 using AppKit;
-using System.Drawing;
-using LJD = LogJoint.Drawing;
+using LogJoint.Drawing;
 using Foundation;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +37,7 @@ namespace LogJoint.UI
 
 		public static PointF GetEventLocation(this NSView view, NSEvent e)
 		{
-			return LJD.Extensions.ToPointF(view.ConvertPointFromView(e.LocationInWindow, null));
+			return view.ConvertPointFromView(e.LocationInWindow, null).ToPointF();
 		}
 
 		public static RectangleF FocusedItemMarkFrame
@@ -58,12 +57,12 @@ namespace LogJoint.UI
 			}
 		}
 
-		public static void DrawDebugLine(LJD.Graphics g, float x, float y)
+		public static void DrawDebugLine(Graphics g, float x, float y)
 		{
 			g.DrawLine(red, new PointF(x, y - 5), new PointF(x, y + 5));
 		}
 
-		public static void DrawFocusedItemMark(LJD.Graphics g, float x, float y, bool drawOuterFrame = false)
+		public static void DrawFocusedItemMark(Graphics g, float x, float y, bool drawOuterFrame = false)
 		{
 			if (drawOuterFrame)
 			{
@@ -84,7 +83,7 @@ namespace LogJoint.UI
 			return focusedItemMarkPoints;
 		}
 
-		public static void DrawBookmark(LJD.Graphics g, float x, float y)
+		public static void DrawBookmark(Graphics g, float x, float y)
 		{
 			// todo: stub. impl properly.
 			g.FillRoundRectangle(blue, new RectangleF(x, y - 3, 8, 6), 2);
@@ -182,9 +181,9 @@ namespace LogJoint.UI
 			}
 		};
 
-		static LJD.Brush blue = new LJD.Brush(Color.Blue);
-		static LJD.Brush white = new LJD.Brush(Color.White);
-		static LJD.Pen red = new LJD.Pen(Color.Red, 1);
+		static Brush blue = new Brush(Color.Blue);
+		static Brush white = new Brush(Color.White);
+		static Pen red = new Pen(Color.Red, 1);
 	}
 }
 

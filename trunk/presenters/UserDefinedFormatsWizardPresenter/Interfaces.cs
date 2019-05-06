@@ -1,4 +1,5 @@
 
+using LogJoint.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -437,15 +438,15 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		public class CapturesListBoxItem
 		{
 			public string Text { get; internal set; }
-			public ModelColor Color { get; internal set; }
+			public Color Color { get; internal set; }
 		};
 
 		public struct TextPatch
 		{
 			public int RangeBegin { get; internal set; }
 			public int RangeEnd { get; internal set; }
-			public ModelColor? BackColor { get; internal set; }
-			public ModelColor? ForeColor { get; internal set; }
+			public Color? BackColor { get; internal set; }
+			public Color? ForeColor { get; internal set; }
 			public bool? Bold { get; internal set; }
 		};
 
@@ -536,7 +537,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		public interface IView
 		{
 			void SetEventsHandler(IViewEvents eventsHandler);
-			void SetLabelProps(ControlId labelId, string text, ModelColor color);
+			void SetLabelProps(ControlId labelId, string text, Color color);
 		};
 
 		public enum ControlId
@@ -580,7 +581,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		public interface IView
 		{
 			void SetEventsHandler(IViewEvents eventsHandler);
-			void SetLabelProps(ControlId labelId, string text, ModelColor? color);
+			void SetLabelProps(ControlId labelId, string text, Color? color);
 		};
 
 		public interface IViewEvents

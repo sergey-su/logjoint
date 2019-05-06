@@ -1,5 +1,5 @@
 using System;
-using System.Drawing;
+using LogJoint.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog;
@@ -15,7 +15,7 @@ namespace LogJoint.UI
 		{
 			InitializeComponent();
 
-			using (Graphics g = this.CreateGraphics())
+			using (var g = this.CreateGraphics())
 				capturesListBox.ItemHeight = (int)(14.0 * g.DpiY / 96.0);
 
 			this.tomDoc = GetTextDocument();
@@ -65,9 +65,9 @@ namespace LogJoint.UI
 			CapturesListBoxItem c = capturesListBox.Items[e.Index] as CapturesListBoxItem;
 			if (c == null)
 				return;
-			using (SolidBrush b = new SolidBrush(c.Color.ToColor()))
+			using (var b = new System.Drawing.SolidBrush(c.Color.ToSystemDrawingObject()))
 				e.Graphics.FillRectangle(b, e.Bounds);
-			e.Graphics.DrawString(c.Text, this.Font, Brushes.Black, e.Bounds);
+			e.Graphics.DrawString(c.Text, this.Font, System.Drawing.Brushes.Black, e.Bounds);
 		}
 
 		private void sampleLogTextBox_TextChanged(object sender, EventArgs e)
@@ -97,7 +97,7 @@ namespace LogJoint.UI
 
 		private void panel1_Layout(object sender, LayoutEventArgs e)
 		{
-			emptyReLabel.Location = new Point(
+			emptyReLabel.Location = new System.Drawing.Point(
 				(panel1.Size.Width - emptyReLabel.Size.Width) / 2,
 				(panel1.Size.Height - SystemInformation.HorizontalScrollBarHeight - emptyReLabel.Size.Height) / 2
 			);
@@ -179,7 +179,7 @@ namespace LogJoint.UI
 		void IView.PatchLogSample(TextPatch p)
 		{
 			tom.ITextFont fnt = tomDoc.Range(p.RangeBegin, p.RangeEnd).Font;
-			Func<ModelColor?, int> translatorColor = cl => ColorTranslator.ToWin32(cl.Value.ToColor());
+			Func<Color?, int> translatorColor = cl => System.Drawing.ColorTranslator.ToWin32(cl.Value.ToSystemDrawingObject());
 			if (p.BackColor != null)
 				fnt.BackColor = translatorColor(p.BackColor);
 			if (p.ForeColor != null)

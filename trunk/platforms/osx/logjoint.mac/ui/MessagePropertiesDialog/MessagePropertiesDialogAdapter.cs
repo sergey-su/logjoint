@@ -21,8 +21,8 @@ namespace LogJoint.UI
 			this.changeNotification = changeNotification;
 			this.viewModel = viewModel;
 
-			NSColor resolveColor (ModelColor? cl) =>
-				cl.HasValue ? cl.Value.ToColor().ToNSColor() : null;
+			NSColor resolveColor (Color? cl) =>
+				cl.HasValue ? cl.Value.ToNSColor() : null;
 
 			var update = Updaters.Create (() => viewModel.Data, viewData =>
 			{

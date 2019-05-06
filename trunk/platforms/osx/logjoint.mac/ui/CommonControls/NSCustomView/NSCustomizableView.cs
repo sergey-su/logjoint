@@ -47,7 +47,7 @@ namespace LogJoint.UI
 
 		public NSColor BackgroundColor;
 		public bool CanBeFirstResponder;
-		public Action<System.Drawing.RectangleF> OnPaint;
+		public Action<RectangleF> OnPaint;
 		public Action<NSEvent> OnScrollWheel;
 		public Action<NSEvent> OnMagnify;
 		public Action<NSEvent> OnMouseDown;

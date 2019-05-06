@@ -1,3 +1,4 @@
+using LogJoint.Drawing;
 using System;
 using System.IO;
 using System.Text;
@@ -16,9 +17,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			return passed ? "Passed" : "";
 		}
-		public static ModelColor GetLabelColor(bool statusOk)
+		public static Color GetLabelColor(bool statusOk)
 		{
-			return statusOk ? new ModelColor(0xFF008000) : new ModelColor(0xFF000000);
+			return statusOk ? new Color(0xFF008000) : new Color(0xFF000000);
 		}
 
 		public static string GetFormatFileNameBasis(IUserDefinedFactory factory)

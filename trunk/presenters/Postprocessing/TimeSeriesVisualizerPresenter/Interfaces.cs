@@ -2,7 +2,7 @@
 using LogJoint.Postprocessing.TimeSeries;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using LogJoint.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -71,7 +71,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		bool IsNodeChecked(TreeNodeData n);
 		void OnNodesChecked(IEnumerable<TreeNodeData> nodes, bool value);
 		void OnSelectedNodeChanged();
-		void OnColorChanged(ModelColor cl);
+		void OnColorChanged(Color cl);
 		void OnMarkerChanged(MarkerType markerType);
 		void OnDrawLineChanged(bool value);
 	};
@@ -92,8 +92,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	{
 		public string Description { get; internal set; }
 		public IEnumerable<string> Examples { get; internal set; }
-		public ModelColor? Color { get; internal set; }
-		public IEnumerable<ModelColor> Palette { get; internal set; }
+		public Color? Color { get; internal set; }
+		public IEnumerable<Color> Palette { get; internal set; }
 		public MarkerType? Marker { get; internal set; }
 		public bool? DrawLine { get; internal set; }
 	};
@@ -179,7 +179,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public class TimeSeriesDrawingData
 	{
 		public IEnumerable<PointF> Points;
-		public ModelColor Color;
+		public Color Color;
 		public MarkerType Marker;
 		public bool DrawLine;
 	};
@@ -187,7 +187,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public class LegendItemInfo
 	{
 		public string Label { get; internal set; }
-		public ModelColor Color { get; internal set; }
+		public Color Color { get; internal set; }
 		public MarkerType Marker { get; internal set; }
 		public string Tooltip { get; internal set; }
 		public bool DrawLine { get; internal set; }

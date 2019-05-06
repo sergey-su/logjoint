@@ -1,5 +1,3 @@
-using System.Drawing;
-using System.Drawing.Drawing2D;
 
 namespace LogJoint.Drawing
 {
@@ -11,10 +9,10 @@ namespace LogJoint.Drawing
 
 		partial void Init(Color color, float width, float[] dashPattern)
 		{
-			this.pen = new System.Drawing.Pen(color, width);
+			this.pen = new System.Drawing.Pen(color.ToSystemDrawingObject(), width);
 			if (dashPattern != null)
 			{
-				this.pen.DashStyle = DashStyle.Custom;
+				this.pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Custom;
 				this.pen.DashPattern = dashPattern;
 			}
 		}

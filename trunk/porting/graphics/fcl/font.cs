@@ -1,4 +1,3 @@
-using System.Drawing;
 
 namespace LogJoint.Drawing
 {
@@ -13,7 +12,7 @@ namespace LogJoint.Drawing
 
 		partial void Init(string familyName, float emSize, FontStyle style)
 		{
-			this.font = new System.Drawing.Font(familyName, emSize, style);
+			this.font = new System.Drawing.Font(familyName, emSize, (System.Drawing.FontStyle)style);
 		}
 	};
 }

@@ -6,7 +6,6 @@ using LogJoint.UI.Presenters.FilterDialog;
 using System.Collections.Generic;
 using System.Linq;
 using LogJoint.Drawing;
-using System.Diagnostics.Contracts;
 
 namespace LogJoint.UI
 {
@@ -47,7 +46,7 @@ namespace LogJoint.UI
 			this.eventsHandler = handler;
 		}
 
-		void IView.SetData (string title, KeyValuePair<string, ModelColor?>[] actionComboBoxOptions, 
+		void IView.SetData (string title, KeyValuePair<string, Color?>[] actionComboBoxOptions, 
 			string [] typesOptions, DialogValues values)
 		{
 			Window.Title = title;
@@ -62,7 +61,7 @@ namespace LogJoint.UI
 				if (opt.Value == null)
 					continue;
 				var dict = new NSMutableDictionary();
-				dict.SetValueForKey(opt.Value.Value.ToColor().ToNSColor(), NSStringAttributeKey.BackgroundColor);
+				dict.SetValueForKey(opt.Value.Value.ToNSColor(), NSStringAttributeKey.BackgroundColor);
 				var attrStr = new NSAttributedString(opt.Key, dict);
 				i.Value.AttributedTitle = attrStr;
 			}

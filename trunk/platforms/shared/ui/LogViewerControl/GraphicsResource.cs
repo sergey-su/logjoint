@@ -1,7 +1,6 @@
 using System;
 using LogJoint.UI.Presenters.LogViewer;
 using LogJoint.Drawing;
-using Color = System.Drawing.Color;
 
 namespace LogJoint.UI.LogViewer
 {

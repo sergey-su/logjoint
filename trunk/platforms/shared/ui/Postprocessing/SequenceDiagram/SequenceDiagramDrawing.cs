@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using LJD = LogJoint.Drawing;
-using System.Drawing;
 using LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer;
 using LogJoint.Drawing;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 	{
 		public LJD.Pen RequestPen, ResponsePen;
 		public LJD.Pen HighlightedRequestPen, HighlightedResponsePen;
-		public Color SelectedLineColor;
+		public LJD.Color SelectedLineColor;
 		public LJD.Brush SelectedLineBrush;
 		public LJD.Brush ControlBackgroundBrush;
 		public LJD.StringFormat RoleCaptionFormat;

@@ -1,4 +1,3 @@
-using System.Drawing;
 
 namespace LogJoint.UI.Timeline
 {

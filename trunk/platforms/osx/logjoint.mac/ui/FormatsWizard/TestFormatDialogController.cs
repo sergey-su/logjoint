@@ -49,12 +49,12 @@ namespace LogJoint.UI
 			if (testOutcome == TestOutcome.Success)
 			{
 				iconLabel.StringValue =  "✔";
-				iconLabel.TextColor = System.Drawing.Color.FromArgb(255, 53, 204, 75).ToNSColor();
+				iconLabel.TextColor = Color.FromArgb(255, 53, 204, 75).ToNSColor();
 			}
 			else if (testOutcome == TestOutcome.Failure)
 			{
 				iconLabel.StringValue =  "✘";
-				iconLabel.TextColor = System.Drawing.Color.Red.ToNSColor();
+				iconLabel.TextColor = Color.Red.ToNSColor();
 			}
 			else
 			{

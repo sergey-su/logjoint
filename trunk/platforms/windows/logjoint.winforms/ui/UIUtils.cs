@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Text;
-using LogJoint.Drawing;
 using Color = System.Drawing.Color;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
@@ -302,20 +301,20 @@ namespace LogJoint.UI
 			static float? primaryScreenDpi;
 		}
 
-		static Dictionary<uint, System.Drawing.Brush> paletteColorBrushes = new Dictionary<uint, System.Drawing.Brush>();
+		static Dictionary<uint, Brush> paletteColorBrushes = new Dictionary<uint, Brush>();
 
-		public static System.Drawing.Brush GetPaletteColorBrush(ModelColor color)
+		public static Brush GetPaletteColorBrush(LogJoint.Drawing.Color color)
 		{
-			System.Drawing.Brush b;
-			if (paletteColorBrushes.TryGetValue(color.Argb, out b))
+			Brush b;
+			if (paletteColorBrushes.TryGetValue(color.ToUnsignedArgb(), out b))
 				return b;
-			paletteColorBrushes.Add(color.Argb, b = new SolidBrush(color.ToColor()));
+			paletteColorBrushes.Add(color.ToUnsignedArgb(), b = new SolidBrush(Drawing.PrimitivesExtensions.ToSystemDrawingObject(color)));
 			return b;
 		}
 
-		public static SizeF GetSize(this System.Drawing.Image image, float? width = null, float? height = null)
+		public static LogJoint.Drawing.SizeF GetSize(this System.Drawing.Image image, float? width = null, float? height = null)
 		{
-			return LogJoint.Drawing.Extensions.GetImageSize(new SizeF(image.Width, image.Height), width, height);
+			return LogJoint.Drawing.Extensions.GetImageSize(new LogJoint.Drawing.SizeF(image.Width, image.Height), width, height);
 		}
 
 		public static System.Drawing.Image DownscaleUIImage(System.Drawing.Image src, int targetWidthAndHeight)

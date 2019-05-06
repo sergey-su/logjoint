@@ -133,9 +133,9 @@ namespace LogJoint.UI
 		{
 			var dict = new NSMutableDictionary();
 			if (p.BackColor != null)
-				dict[NSStringAttributeKey.BackgroundColor] = p.BackColor.Value.ToColor().ToNSColor();
+				dict[NSStringAttributeKey.BackgroundColor] = p.BackColor.Value.ToNSColor();
 			if (p.ForeColor != null)
-				dict[NSStringAttributeKey.ForegroundColor] = p.ForeColor.Value.ToColor().ToNSColor();
+				dict[NSStringAttributeKey.ForegroundColor] = p.ForeColor.Value.ToNSColor();
 			dict[NSStringAttributeKey.Font] = p.Bold == true ? monoBoldFont : monoFont;
 			sampleLogTextBox.TextStorage.SetAttributes(dict, new NSRange(p.RangeBegin, p.RangeEnd - p.RangeBegin));
 		}
@@ -170,7 +170,7 @@ namespace LogJoint.UI
 			{
 				var item = owner.capturesDataSource.items[(int)row];
 				var lbl = NSLinkLabel.CreateLabel(item.Text);
-				lbl.BackgroundColor = item.Color.ToColor().ToNSColor();
+				lbl.BackgroundColor = item.Color.ToNSColor();
 				return lbl;
 			}
 		};

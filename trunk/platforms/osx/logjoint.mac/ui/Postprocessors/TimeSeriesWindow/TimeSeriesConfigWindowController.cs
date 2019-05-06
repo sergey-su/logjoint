@@ -7,7 +7,6 @@ using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
 using System.Collections.Generic;
 using CoreGraphics;
 using LogJoint.Drawing;
-using System.Drawing;
 
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 {
@@ -132,9 +131,9 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			{
 				foreach (var c in props.Palette)
 				{
-					colorPopup.Menu.AddItem(colorItems[c.Argb] = CreateGraphicsMenuItem((g, r) => 
+					colorPopup.Menu.AddItem(colorItems[c.ToUnsignedArgb()] = CreateGraphicsMenuItem((g, r) => 
 					{
-						using (var b = new Brush(c.ToColor()))
+						using (var b = new Brush(c))
 							g.FillRectangle(b, r);
 					}, () => evts.OnColorChanged(c)));
 				}
@@ -146,14 +145,13 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					markerPopup.Menu.AddItem(markerItems[(MarkerType)m] = CreateGraphicsMenuItem((g, r) => 
 					{
 						var cl = NSColor.Text.ToColor ();
-						Drawing.DrawLegendSample(g, resources,
-							new ModelColor(cl.A, cl.R, cl.G, cl.B), (MarkerType)m, r);
+						Drawing.DrawLegendSample(g, resources, cl, (MarkerType)m, r);
 					}, () => evts.OnMarkerChanged((MarkerType)m)));
 				}
 			}
 
 			if ((colorPopup.Enabled = (props != null && props.Color != null)) == true)
-				colorPopup.SelectItem(colorItems[props.Color.Value.Argb]);
+				colorPopup.SelectItem(colorItems[props.Color.Value.ToUnsignedArgb()]);
 			else
 				colorPopup.SelectItem((NSMenuItem)null);
 			if ((markerPopup.Enabled = (props != null && props.Marker != null)) == true)

@@ -1,7 +1,8 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+using SD = System.Drawing;
+using SD2D = System.Drawing.Drawing2D;
 
 namespace LogJoint.Drawing
 {
@@ -9,7 +10,7 @@ namespace LogJoint.Drawing
 	{
 		internal System.Drawing.Graphics g;
 		bool ownsGraphics;
-		Stack<GraphicsState> stateStack = new Stack<GraphicsState>();
+		Stack<SD2D.GraphicsState> stateStack = new Stack<SD2D.GraphicsState>();
 
 
 		public void Dispose()
@@ -18,7 +19,7 @@ namespace LogJoint.Drawing
 				g.Dispose();
 		}
 
-		partial void Init(System.Drawing.Graphics g, bool ownsGraphics)
+		partial void Init(SD.Graphics g, bool ownsGraphics)
 		{
 			this.g = g;
 			this.ownsGraphics = ownsGraphics;
@@ -26,16 +27,16 @@ namespace LogJoint.Drawing
 
 		partial void FillRectangleImp(Brush brush, RectangleF rect)
 		{
-			g.FillRectangle(brush.b, rect);
+			g.FillRectangle(brush.b, rect.ToSystemDrawingObject());
 		}
 
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format)
 		{
 			FixGdiPlusStringSize(ref s);
 			if (format != null)
-				g.DrawString(s, font.font, brush.b, pt, format.format);
+				g.DrawString(s, font.font, brush.b, pt.ToSystemDrawingObject(), format.format);
 			else
-				g.DrawString(s, font.font, brush.b, pt);
+				g.DrawString(s, font.font, brush.b, pt.ToSystemDrawingObject());
 		}
 
 		private static bool FixGdiPlusStringSize(ref string s)
@@ -49,9 +50,9 @@ namespace LogJoint.Drawing
 		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format)
 		{
 			if (format != null)
-				g.DrawString(s, font.font, brush.b, frame, format.format);
+				g.DrawString(s, font.font, brush.b, frame.ToSystemDrawingObject(), format.format);
 			else
-				g.DrawString(s, font.font, brush.b, frame);
+				g.DrawString(s, font.font, brush.b, frame.ToSystemDrawingObject());
 		}
 
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret)
@@ -68,13 +69,13 @@ namespace LogJoint.Drawing
 					range.Length = str.Length - range.First;
 				}
 			}
-			format.format.SetMeasurableCharacterRanges(new CharacterRange[] { 
-				range
+			format.format.SetMeasurableCharacterRanges(new SD.CharacterRange[] { 
+				new SD.CharacterRange(range.First, range.Length)
 			});
-			var regions = g.MeasureCharacterRanges(str, font.font, new RectangleF(0, 0, 100500, 100000), format.format);
+			var regions = g.MeasureCharacterRanges(str, font.font, new SD.RectangleF(0, 0, 100500, 100000), format.format);
 			var bounds = regions[0].GetBounds(g);
 			regions[0].Dispose();
-			ret = bounds;
+			ret = bounds.ToRectangleF();
 		}
 
 		partial void DrawRectangleImp (Pen pen, RectangleF rect)
@@ -84,30 +85,30 @@ namespace LogJoint.Drawing
 
 		partial void DrawEllipseImp(Pen pen, RectangleF rect)
 		{
-			g.DrawEllipse(pen.pen, rect);
+			g.DrawEllipse(pen.pen, rect.ToSystemDrawingObject());
 		}
 
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2)
 		{
-			g.DrawLine(pen.pen, pt1, pt2);
+			g.DrawLine(pen.pen, pt1.ToSystemDrawingObject(), pt2.ToSystemDrawingObject());
 		}
 
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret)
 		{
-			ret = g.MeasureString(text, font.font);
+			ret = g.MeasureString(text, font.font).ToSizeF();
 		}
 
 		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret)
 		{
-			ret = g.MeasureString(text, font.font, frameSz, format.format);
+			ret = g.MeasureString(text, font.font, frameSz.ToSystemDrawingObject(), format.format).ToSizeF();
 		}
 
 		partial void DrawImageImp(Image image, RectangleF bounds)
 		{
 			try
 			{
-				g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-				g.DrawImage(image.image, bounds);
+				g.InterpolationMode = SD2D.InterpolationMode.HighQualityBicubic;
+				g.DrawImage(image.image, bounds.ToSystemDrawingObject());
 			}
 			catch (OutOfMemoryException)
 			{
@@ -119,12 +120,12 @@ namespace LogJoint.Drawing
 
 		partial void DrawLinesImp(Pen pen, PointF[] points)
 		{
-			g.DrawLines(pen.pen, points);
+			g.DrawLines(pen.pen, points.Select(p => p.ToSystemDrawingObject()).ToArray());
 		}
 
 		partial void FillPolygonImp(Brush brush, PointF[] points)
 		{
-			g.FillPolygon(brush.b, points);
+			g.FillPolygon(brush.b, points.Select(p => p.ToSystemDrawingObject()).ToArray());
 		}
 
 		partial void PushStateImp()
@@ -140,17 +141,17 @@ namespace LogJoint.Drawing
 
 		partial void EnableAntialiasingImp(bool value)
 		{
-			g.SmoothingMode = value ? SmoothingMode.AntiAlias : SmoothingMode.None;
+			g.SmoothingMode = value ? SD2D.SmoothingMode.AntiAlias : SD2D.SmoothingMode.None;
 		}
 
 		partial void EnableTextAntialiasingImp(bool value)
 		{
-			g.TextRenderingHint = value ? System.Drawing.Text.TextRenderingHint.AntiAlias : System.Drawing.Text.TextRenderingHint.SystemDefault;
+			g.TextRenderingHint = value ? SD.Text.TextRenderingHint.AntiAlias : SD.Text.TextRenderingHint.SystemDefault;
 		}
 
 		partial void IntersectClipImp(RectangleF r)
 		{
-			g.IntersectClip(r);
+			g.IntersectClip(r.ToSystemDrawingObject());
 		}
 
 		partial void TranslateTransformImp(float x, float y)
@@ -180,13 +181,13 @@ namespace LogJoint.Drawing
 				g.FillPath(brush.b, gp);
 		}
 
-		public static GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
+		public static SD2D.GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
 		{
-			var path = new GraphicsPath();
+			var path = new SD2D.GraphicsPath();
 			roundRadius = Math.Min(roundRadius, Math.Min(rectangle.Width / 2, rectangle.Height / 2));
 			if (roundRadius <= 1)
 			{
-				path.AddRectangle(rectangle);
+				path.AddRectangle(rectangle.ToSystemDrawingObject());
 				return path;
 			}
 			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);
@@ -199,9 +200,9 @@ namespace LogJoint.Drawing
 			return path;
 		}
 
-		private static RectangleF RoundBounds(float x, float y, float rounding)
+		private static SD.RectangleF RoundBounds(float x, float y, float rounding)
 		{
-			return new RectangleF(x - rounding, y - rounding, 2 * rounding, 2 * rounding);
+			return new SD.RectangleF(x - rounding, y - rounding, 2 * rounding, 2 * rounding);
 		}
 	};
 }
