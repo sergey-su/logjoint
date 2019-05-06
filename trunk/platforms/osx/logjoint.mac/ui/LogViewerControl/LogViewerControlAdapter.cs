@@ -33,9 +33,9 @@ namespace LogJoint.UI
 		Profiling.Counters.CounterDescriptor controlPaintHeightCounter;
 		GraphicsResources graphicsResources;
 		ViewDrawing viewDrawing;
-		Graphics graphicsForMeasurment = new Graphics();
+		readonly Graphics graphicsForMeasurment = new Graphics();
 		int viewWidth = 2000;
-		SizeF scrollViewSize;
+		SizeF scrollClientAreaSize;
 
 		[Export ("innerView")]
 		public LogViewerControl InnerView { get; set;}
@@ -115,7 +115,14 @@ namespace LogJoint.UI
 		void ReadScrollViewSize ()
 		{
 			var f = ScrollView.Frame;
-			this.scrollViewSize = new SizeF ((float)f.Width, (float)f.Height);
+			nfloat testSz = 100;
+			var sz = NSScrollView.GetFrameSizeForContent(
+				new CoreGraphics.CGSize (testSz, testSz), null, null,
+				ScrollView.BorderType, NSControlSize.Regular, ScrollView.ScrollerStyle);
+			this.scrollClientAreaSize = new SizeF (
+				(float)(f.Width - (sz.Width - testSz)),
+				(float)(f.Height - (sz.Height - testSz))
+			);
 		}
 
 		public bool EnableCursor
@@ -218,7 +225,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		float IView.DisplayLinesPerPage => viewDrawing != null ? (float)scrollViewSize.Height / (float)viewDrawing.LineHeight : 10;
+		float IView.DisplayLinesPerPage => viewDrawing != null ? (float)scrollClientAreaSize.Height / (float)viewDrawing.LineHeight : 10;
 
 		bool IView.HasInputFocus
 		{
@@ -251,7 +258,7 @@ namespace LogJoint.UI
 
 		void UpdateInnerViewSize()
 		{
-			InnerView.Frame = new CoreGraphics.CGRect(0, 0, viewWidth, scrollViewSize.Height);
+			InnerView.Frame = new CoreGraphics.CGRect(0, 0, viewWidth, scrollClientAreaSize.Height);
 		}
 
 		internal void OnPaint(RectangleF dirtyRect)
@@ -263,8 +270,8 @@ namespace LogJoint.UI
 				atMostOncePer: TimeSpan.FromMilliseconds (500));
 			using (perfCountersWriter.IncrementTicks (controlPaintTimeCounter)) {
 				if (!perfCountersWriter.IsNull) {
-					perfCountersWriter.Increment (controlPaintWidthCounter, (long)scrollViewSize.Width);
-					perfCountersWriter.Increment (controlPaintHeightCounter, (long)scrollViewSize.Height);
+					perfCountersWriter.Increment (controlPaintWidthCounter, (long)scrollClientAreaSize.Width);
+					perfCountersWriter.Increment (controlPaintHeightCounter, (long)scrollClientAreaSize.Height);
 				}
 
 				graphicsForMeasurment.SetCurrentContext();
@@ -274,7 +281,7 @@ namespace LogJoint.UI
 
 					viewDrawing.PaintControl(g, dirtyRect.ToRectangle (), isFocused, out var _);
 
-					int maxRight = Math.Max (viewDrawing.MeasureView(), (int)scrollViewSize.Width);
+					int maxRight = Math.Max (viewDrawing.MeasureView(), (int)scrollClientAreaSize.Width);
 					if (maxRight > viewWidth || maxRight < 2*viewWidth/3) {
 						viewWidth = maxRight;
 						UpdateInnerViewSize ();

@@ -1022,6 +1022,9 @@
     <Compile Include="..\..\..\model\generic\ColorLease.cs">
       <Link>generic\ColorLease.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\MultilineText.cs">
+      <Link>generic\MultilineText.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
