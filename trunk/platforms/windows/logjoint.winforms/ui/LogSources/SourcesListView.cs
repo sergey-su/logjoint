@@ -471,7 +471,7 @@ namespace LogJoint.UI
 
 			void IViewItem.SetBackColor(LogJoint.Drawing.Color color, bool isErrorColor)
 			{
-				base.BackColor = color.ToColor();
+				base.BackColor = Drawing.PrimitivesExtensions.ToSystemDrawingObject(color);
 			}
 
 			bool IViewItem.Selected

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
+using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
@@ -10,7 +9,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 	public partial class TimelineVisualizerControl : UserControl, IView
 	{
 		IViewModel viewModel;
-		readonly Font activitesCaptionsFont;
+		readonly System.Drawing.Font activitesCaptionsFont;
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
 		GraphicsResources res;
 		ControlDrawing drawing;
@@ -44,7 +43,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			this.quickSearchEditBox.InnerTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.quickSearchEditBox_KeyDown);
 
-			currentActivityCaptionLabel.Font = new Font(currentActivityCaptionLabel.Font, FontStyle.Bold);
+			currentActivityCaptionLabel.Font = new System.Drawing.Font(currentActivityCaptionLabel.Font, System.Drawing.FontStyle.Bold);
 
 			activitiesPanelToolTipHelper = new UIUtils.ToolTipHelper(activitiesViewPanel, GetActivitiesToolTipInfo, 150);
 
@@ -52,7 +51,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			currentActivityDescription.Height = UIUtils.Dpi.ScaleUp(18, 120);
 			currentActivitySourceLinkLabel.Height = UIUtils.Dpi.ScaleUp(18, 120);
 
-			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size);
+			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size.ToSize());
 		}
 
 		void IView.SetViewModel(IViewModel viewModel)
@@ -70,7 +69,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				new LJD.Image(TimelineVisualizerControlResources.TimelineBookmark),
 				new LJD.Image(TimelineVisualizerControlResources.FocusedMsgSlaveVert),
 				UIUtils.Dpi.ScaleUp(1, 120),
-				new LJD.Brush(new LJD.Color(SystemColors.Control.ToArgb()))
+				new LJD.Brush(System.Drawing.SystemColors.Control.ToColor())
 			);
 			drawing = new ControlDrawing(res);
 			var vm = GetUpToDateViewMetrics();
@@ -245,7 +244,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					{
 						if (hllen > 0 && hlbegin >= 0)
 						{
-							var bogusSz = new Size(10000, 10000);
+							var bogusSz = new System.Drawing.Size(10000, 10000);
 							var highlightLeft = textRect.X + TextRenderer.MeasureText(
 								e.Graphics,
 								text.Substring(0, hlbegin),
@@ -258,10 +257,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 								activitesCaptionsFont,
 								bogusSz,
 								TextFormatFlags.NoPadding).Width;
-							e.Graphics.FillRectangle(Brushes.Yellow, new RectangleF(highlightLeft, textRect.Y, highlightWidth, textRect.Height));
+							e.Graphics.FillRectangle(System.Drawing.Brushes.Yellow, new System.Drawing.RectangleF(highlightLeft, textRect.Y, highlightWidth, textRect.Height));
 						}
-						TextRenderer.DrawText(e.Graphics, text, activitesCaptionsFont, new Rectangle(textRect.X, textRect.Y, textRect.Width, textRect.Height),
-							isFailure ? Color.Red : Color.Black,
+						TextRenderer.DrawText(e.Graphics, text, activitesCaptionsFont, textRect.ToSystemDrawingObject(),
+							isFailure ? System.Drawing.Color.Red : System.Drawing.Color.Black,
 							TextFormatFlags.EndEllipsis | TextFormatFlags.VerticalCenter |
 							TextFormatFlags.SingleLine | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.NoPadding);
 					}
@@ -269,14 +268,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		static Brush MakeBrush(LJD.Color c)
+		static System.Drawing.Brush MakeBrush(LJD.Color c)
 		{
-			return new SolidBrush(Color.FromArgb(c.R, c.G, c.B));
+			return new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(c.R, c.G, c.B));
 		}
 
 		private void activitiesViewPanel_Paint(object sender, PaintEventArgs e)
 		{
-			e.Graphics.FillRectangle(Brushes.White, e.ClipRectangle);
+			e.Graphics.FillRectangle(System.Drawing.Brushes.White, e.ClipRectangle);
 			if (viewModel == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
@@ -386,7 +385,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void activitiesViewPanel_Resize(object sender, EventArgs e)
 		{
-			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size);
+			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size.ToSize());
 			changeNotification?.Post();
 		}
 
@@ -401,7 +400,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		private void navigationPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
 			if (viewModel != null)
-				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetNavigationPanelCursor(new LJD.Point(e.Location), viewModel), e);
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetNavigationPanelCursor(e.Location.ToPoint(), viewModel), e);
 		}
 
 		private void navigationPanel_MouseDown(object sender, MouseEventArgs e)
@@ -422,7 +421,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		private void activitiesViewPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
 			if (viewModel != null)
-				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetActivitiesPanelCursor(new LJD.Point(e.Location), viewModel, 
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetActivitiesPanelCursor(e.Location.ToPoint(), viewModel, 
 					() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true)), e);
 		}
 
@@ -481,11 +480,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			((IView)this).UpdateSequenceDiagramAreaMetrics();
 		}
 
-		LogJoint.UI.UIUtils.ToolTipInfo GetActivitiesToolTipInfo(Point pt)
+		LogJoint.UI.UIUtils.ToolTipInfo GetActivitiesToolTipInfo(System.Drawing.Point pt)
 		{
 			if (viewModel == null)
 				return null;
-			var toolTip = viewModel.OnToolTip(new HitTestToken(activitiesViewPanel, pt)) ?? "";
+			var toolTip = viewModel.OnToolTip(new HitTestToken(activitiesViewPanel, pt.ToPoint())) ?? "";
 			if (string.IsNullOrEmpty(toolTip))
 				return null;
 			var ret = new UIUtils.ToolTipInfo()
@@ -596,7 +595,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				Control = ctrl;
 				Pt = pt;
 			}
-			public HitTestToken(Control ctrl, MouseEventArgs e) : this(ctrl, e.Location) { }
+			public HitTestToken(Control ctrl, MouseEventArgs e) : this(ctrl, e.Location.ToPoint()) { }
 		};
 	}
 }

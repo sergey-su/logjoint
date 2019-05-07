@@ -1,10 +1,5 @@
 using LogJoint.UI.Presenters;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
+using LogJoint.Drawing;
 using System.Windows.Forms;
 
 namespace LogJoint.UI
@@ -44,7 +39,7 @@ namespace LogJoint.UI
 			idTextBox.Text = thread.ID;
 			idTextBox.Select(0, 0);
 			nameTextBox.Text = thread.Description;
-			colorPanel.BackColor = theme.ThreadColors.GetByIndex(thread.ThreadColorIndex).ToColor();
+			colorPanel.BackColor = theme.ThreadColors.GetByIndex(thread.ThreadColorIndex).ToSystemDrawingObject();
 			SetBookmark(firstMessageLinkLabel, thread.FirstKnownMessage);
 			SetBookmark(lastMessageLinkLabel, thread.LastKnownMessage);
 			logSourceLink.Text = thread.LogSource.DisplayName;

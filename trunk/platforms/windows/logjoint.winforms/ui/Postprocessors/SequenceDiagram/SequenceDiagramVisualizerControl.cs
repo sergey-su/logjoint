@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using LogJoint.Drawing;
 using System.Windows.Forms;
-using System.Drawing.Drawing2D;
 using LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer;
 using LJD = LogJoint.Drawing;
 
@@ -178,7 +177,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				return;
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
 			{
-				var cursor = drawingUtils.GetRoleCaptionsCursor(g, new LJD.Point(e.Location));
+				var cursor = drawingUtils.GetRoleCaptionsCursor(g, e.Location.ToPoint());
 				if (cursor == CursorKind.Hand)
 				{
 					Cursor.Current = Cursors.Hand;
@@ -190,7 +189,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		private void rolesCaptionsPanel_MouseDown(object sender, MouseEventArgs e)
 		{
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
-				drawingUtils.HandleRoleCaptionsMouseDown(g, new LJD.Point(e.Location));
+				drawingUtils.HandleRoleCaptionsMouseDown(g, e.Location.ToPoint());
 		}
 
 		private void arrowsPanel_Paint(object sender, PaintEventArgs e)
@@ -202,8 +201,8 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			{
 				drawingUtils.DrawArrowsView(
 					g,
-					arrowsPanel.ClientSize,
-					r => ControlPaint.DrawFocusRectangle(e.Graphics, r)
+					arrowsPanel.ClientSize.ToSize(),
+					r => ControlPaint.DrawFocusRectangle(e.Graphics, r.ToSystemDrawingObject())
 				);
 			}
 		}
@@ -277,22 +276,22 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		{
 			var ctrl = (Control)sender;
 			ctrl.Focus();
-			eventsHandler.OnArrowsAreaMouseDown(new LJD.Point(e.Location), e.Clicks >= 2);
+			eventsHandler.OnArrowsAreaMouseDown(e.Location.ToPoint(), e.Clicks >= 2);
 		}
 
 		private void arrowsPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseUp(new LJD.Point(e.Location), GetModifiers());
+			eventsHandler.OnArrowsAreaMouseUp(e.Location.ToPoint(), GetModifiers());
 		}
 
 		private void arrowsPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseMove(new LJD.Point(e.Location));
+			eventsHandler.OnArrowsAreaMouseMove(e.Location.ToPoint());
 		}
 
 		private void arrowsPanel_MouseWheel(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseWheel(new LJD.Point(e.Location), e.Delta, GetModifiers());
+			eventsHandler.OnArrowsAreaMouseWheel(e.Location.ToPoint(), e.Delta, GetModifiers());
 		}
 
 		private void currentArrowDescription_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -308,7 +307,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			if (drawingUtils == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
-				drawingUtils.DrawLeftPanelView(g, new LJD.Point(leftPanel.PointToClient(arrowsPanel.PointToScreen(new Point()))), new LJD.Size(leftPanel.ClientSize));
+				drawingUtils.DrawLeftPanelView(g, leftPanel.PointToClient(arrowsPanel.PointToScreen(new System.Drawing.Point())).ToPoint(), leftPanel.ClientSize.ToSize());
 		}
 
 		private void arrowsPanel_Resize(object sender, EventArgs e)
@@ -356,7 +355,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		private void leftPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnLeftPanelMouseDown(new LJD.Point(arrowsPanel.PointToClient(leftPanel.PointToScreen(e.Location))), e.Clicks >= 2, GetModifiers());
+			eventsHandler.OnLeftPanelMouseDown(arrowsPanel.PointToClient(leftPanel.PointToScreen(e.Location)).ToPoint(), e.Clicks >= 2, GetModifiers());
 		}
 
 		protected override bool ProcessCmdKey(ref System.Windows.Forms.Message msg, Keys keyData)

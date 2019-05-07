@@ -23,7 +23,7 @@ namespace LogJoint.UI
 		{
 			var ctrl = GetCtrl(labelId);
 			ctrl.Text = text;
-			ctrl.ForeColor = color.ToColor();
+			ctrl.ForeColor = color.ToSystemDrawingObject();
 		}
 
 		private void selectSampleButton_Click(object sender, EventArgs e)

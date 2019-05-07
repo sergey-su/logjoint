@@ -24,7 +24,7 @@ namespace LogJoint.UI
 			var ctrl = GetCtrl(labelId);
 			ctrl.Text = text;
 			if (color != null)
-				ctrl.ForeColor = color.Value.ToColor();
+				ctrl.ForeColor = color.Value.ToSystemDrawingObject();
 		}
 
 		private void selectSampleButton_Click(object sender, EventArgs e)

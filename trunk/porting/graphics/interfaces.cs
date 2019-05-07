@@ -259,18 +259,18 @@ namespace LogJoint.Drawing
 	[Flags]
 	public enum FontStyle
 	{
+		Regular = 0,
 		Bold = 1,
 		Italic = 2,
-		Regular = 4,
+		Underline = 4,
 		Strikeout = 8,
-		Underline = 16
 	};
 
 	public enum StringAlignment
 	{
+		Near,
 		Center,
 		Far,
-		Near
 	};
 
 	public partial class Image: IDisposable
@@ -433,7 +433,7 @@ namespace LogJoint.Drawing
 			return GetImageSize(img.Size, width, height);
 		}
 
-		#if MONOMAC
+#if MONOMAC
 		public static Color ToColor(this AppKit.NSColor cl)
 		{
 			cl = cl.UsingColorSpace(AppKit.NSColorSpace.GenericRGBColorSpace);
@@ -498,7 +498,14 @@ namespace LogJoint.Drawing
 		{
 			return new CoreGraphics.CGSize (s.Width, s.Height);
 		}
-		#endif
+#endif
+
+#if WIN
+		public static System.Drawing.CharacterRange ToSystemDrawingObject(this CharacterRange cr)
+		{
+			return new System.Drawing.CharacterRange(cr.First, cr.Length);
+		}
+#endif
 	};
 
 	public static class SystemColors

@@ -63,9 +63,9 @@ namespace LogJoint.UI
 			else if ((flags & ControlFlag.Visibility) != 0)
 				ctrl.Visible = value != null;
 			else if ((flags & ControlFlag.BackColor) != 0)
-				ctrl.BackColor = new Color(uint.Parse(value)).ToColor();
+				ctrl.BackColor = new Color(uint.Parse(value)).ToSystemDrawingObject();
 			else if ((flags & ControlFlag.ForeColor) != 0)
-				ctrl.ForeColor = new Color(uint.Parse(value)).ToColor();
+				ctrl.ForeColor = new Color(uint.Parse(value)).ToSystemDrawingObject();
 			else if ((flags & ControlFlag.Enabled) != 0)
 				ctrl.Enabled = value != null;
 		}
@@ -91,7 +91,7 @@ namespace LogJoint.UI
 				var mi = new ToolStripMenuItem()
 				{
 					DisplayStyle = ToolStripItemDisplayStyle.None,
-					BackColor = cl.ToColor(),
+					BackColor = cl.ToSystemDrawingObject(),
 					AutoSize = false,
 					Size = new System.Drawing.Size(300, (int)UIUtils.Dpi.Scale(15f))
 				};

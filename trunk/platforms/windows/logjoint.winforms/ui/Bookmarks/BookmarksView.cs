@@ -19,7 +19,7 @@ namespace LogJoint.UI
 			timeDeltaDisplayFont = listBox.Font;
 
 			bookmarkIcon = Properties.Resources.Bookmark;
-			bookmarkIconSize = bookmarkIcon.GetSize(width: UIUtils.Dpi.Scale(13f));
+			bookmarkIconSize = Drawing.PrimitivesExtensions.ToSystemDrawingObject(bookmarkIcon.GetSize(width: UIUtils.Dpi.Scale(13f)));
 
 			displayStringFormat = new StringFormat();
 			displayStringFormat.Alignment = StringAlignment.Near;

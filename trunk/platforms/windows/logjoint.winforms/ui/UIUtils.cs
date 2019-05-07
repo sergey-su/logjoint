@@ -301,14 +301,14 @@ namespace LogJoint.UI
 			static float? primaryScreenDpi;
 		}
 
-		static Dictionary<uint, System.Drawing.Brush> paletteColorBrushes = new Dictionary<uint, System.Drawing.Brush>();
+		static Dictionary<uint, Brush> paletteColorBrushes = new Dictionary<uint, Brush>();
 
-		public static System.Drawing.Brush GetPaletteColorBrush(LogJoint.Drawing.Color color)
+		public static Brush GetPaletteColorBrush(LogJoint.Drawing.Color color)
 		{
-			System.Drawing.Brush b;
+			Brush b;
 			if (paletteColorBrushes.TryGetValue(color.ToUnsignedArgb(), out b))
 				return b;
-			paletteColorBrushes.Add(color.ToUnsignedArgb(), b = new SolidBrush(color.ToColor()));
+			paletteColorBrushes.Add(color.ToUnsignedArgb(), b = new SolidBrush(Drawing.PrimitivesExtensions.ToSystemDrawingObject(color)));
 			return b;
 		}
 

@@ -6,7 +6,7 @@ namespace LogJoint.Drawing
 	{
 		partial void Init()
 		{
-			text = () => System.Drawing.SystemColors.ControlText;
+			text = () => System.Drawing.SystemColors.ControlText.ToColor();
 			textBackground = () => Color.White;
 		}
 	};

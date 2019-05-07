@@ -25,17 +25,6 @@ namespace LogJoint.Drawing
 		{
 		}
 
-#if WIN
-		public System.Drawing.RectangleF ToSystemDrawingObject() // todo: move to extension methods
-		{
-			return new System.Drawing.RectangleF(X, Y, Width, Height);
-		}
-
-		public RectangleF(System.Drawing.RectangleF r): this(r.X, r.Y, r.Width, r.Height)
-		{
-		}
-#endif
-
 		public static RectangleF FromLTRB (float l, float t, float r, float b)
 		{
 			return new RectangleF (l, t, r - l, b - t);
@@ -97,12 +86,6 @@ namespace LogJoint.Drawing
 		{
 		}
 
-#if WIN
-		public Rectangle(System.Drawing.Rectangle r) : this(r.X, r.Y, r.Width, r.Height)
-		{
-		}
-#endif
-
 		public static Rectangle FromLTRB (int l, int t, int r, int b)
 		{
 			return new Rectangle (l, t, r - l, b - t);
@@ -149,18 +132,6 @@ namespace LogJoint.Drawing
 			Y = y;
 		}
 
-#if WIN
-		public Point(System.Drawing.Point p)
-		{
-			X = p.X;
-			Y = p.Y;
-		}
-		public System.Drawing.Point ToSystemDrawingObject()
-		{
-			return new System.Drawing.Point(X, Y);
-		}
-#endif
-
 		public static implicit operator PointF (Point p)
 		{
 			return new PointF (p.X, p.Y);
@@ -176,13 +147,6 @@ namespace LogJoint.Drawing
 			X = x;
 			Y = y;
 		}
-
-#if WIN
-		public System.Drawing.PointF ToSystemDrawingObject()
-		{
-			return new System.Drawing.PointF(X, Y);
-		}
-#endif
 	};
 
 	public struct Size
@@ -194,12 +158,6 @@ namespace LogJoint.Drawing
 			Width = w;
 			Height = h;
 		}
-
-#if WIN
-		public Size(System.Drawing.Size s): this(s.Width, s.Height)
-		{
-		}
-#endif
 
 		public Size (Point pt)
 		{
@@ -283,13 +241,6 @@ namespace LogJoint.Drawing
 			return (uint)v;
 		}
 
-#if WIN
-		System.Drawing.Color ToColor() // todo: rename to ToSystemDrawingObject
-		{
-			return System.Drawing.Color.FromArgb(ToArgb());
-		}
-#endif
-
 		public override string ToString()
 		{
 			return string.Format("[Color: A={0}, R={1}, G={2}, B={3}]", A, R, G, B);
@@ -297,7 +248,9 @@ namespace LogJoint.Drawing
 
 		public override bool Equals(object o)
 		{
-			return ((Color)o).v == this.v;
+			if (o is Color c)
+				return c.v == this.v;
+			return false;
 		}
 
 		public override int GetHashCode()
@@ -332,4 +285,74 @@ namespace LogJoint.Drawing
 		public static Color DarkGreen = FromArgb (0xFF006400);
 		public static Color Transparent = FromArgb(0x00000000);
 	};
+
+#if WIN
+	public static class PrimitivesExtensions
+	{
+		public static RectangleF ToRectangleF(this System.Drawing.RectangleF r)
+		{
+			return new RectangleF(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static System.Drawing.RectangleF ToSystemDrawingObject(this RectangleF r)
+		{
+			return new System.Drawing.RectangleF(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static Rectangle ToRectangle(this System.Drawing.Rectangle r)
+		{
+			return new Rectangle(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static System.Drawing.Rectangle ToSystemDrawingObject(this Rectangle r)
+		{
+			return new System.Drawing.Rectangle(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static Point ToPoint(this System.Drawing.Point p)
+		{
+			return new Point(p.X, p.Y);
+		}
+
+		public static System.Drawing.Point ToSystemDrawingObject(this Point p)
+		{
+			return new System.Drawing.Point(p.X, p.Y);
+		}
+
+		public static System.Drawing.PointF ToSystemDrawingObject(this PointF p)
+		{
+			return new System.Drawing.PointF(p.X, p.Y);
+		}
+
+		public static Size ToSize(this System.Drawing.Size s)
+		{
+			return new Size(s.Width, s.Height);
+		}
+
+		public static System.Drawing.Size ToSystemDrawingObject(this Size sz)
+		{
+			return new System.Drawing.Size(sz.Width, sz.Height);
+		}
+
+		public static SizeF ToSizeF(this System.Drawing.SizeF s)
+		{
+			return new SizeF(s.Width, s.Height);
+		}
+
+		public static System.Drawing.SizeF ToSystemDrawingObject(this SizeF sz)
+		{
+			return new System.Drawing.SizeF(sz.Width, sz.Height);
+		}
+
+		public static System.Drawing.Color ToSystemDrawingObject(this Color cl)
+		{
+			return System.Drawing.Color.FromArgb(cl.ToArgb());
+		}
+
+		public static Color ToColor(this System.Drawing.Color cl)
+		{
+			return Color.FromArgb(cl.ToArgb());
+		}
+	};
+#endif
 }

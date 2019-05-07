@@ -177,7 +177,7 @@ namespace LogJoint.UI
 				set
 				{
 					color = value;
-					BackColor = color != null ? color.Value.ToColor() : System.Drawing.Color.Empty;
+					BackColor = color != null ? color.Value.ToSystemDrawingObject() : System.Drawing.Color.Empty;
 				}
 			}
 

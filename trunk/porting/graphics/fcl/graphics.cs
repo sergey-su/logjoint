@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using SD = System.Drawing;
 using SD2D = System.Drawing.Drawing2D;
@@ -68,13 +69,13 @@ namespace LogJoint.Drawing
 					range.Length = str.Length - range.First;
 				}
 			}
-			format.format.SetMeasurableCharacterRanges(new CharacterRange[] { 
-				range
+			format.format.SetMeasurableCharacterRanges(new SD.CharacterRange[] { 
+				range.ToSystemDrawingObject()
 			});
 			var regions = g.MeasureCharacterRanges(str, font.font, new SD.RectangleF(0, 0, 100500, 100000), format.format);
 			var bounds = regions[0].GetBounds(g);
 			regions[0].Dispose();
-			ret = new RectangleF(bounds);
+			ret = bounds.ToRectangleF();
 		}
 
 		partial void DrawRectangleImp (Pen pen, RectangleF rect)
@@ -89,17 +90,17 @@ namespace LogJoint.Drawing
 
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2)
 		{
-			g.DrawLine(pen.pen, pt1, pt2);
+			g.DrawLine(pen.pen, pt1.ToSystemDrawingObject(), pt2.ToSystemDrawingObject());
 		}
 
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret)
 		{
-			ret = g.MeasureString(text, font.font);
+			ret = g.MeasureString(text, font.font).ToSizeF();
 		}
 
 		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret)
 		{
-			ret = g.MeasureString(text, font.font, frameSz, format.format);
+			ret = g.MeasureString(text, font.font, frameSz.ToSystemDrawingObject(), format.format).ToSizeF();
 		}
 
 		partial void DrawImageImp(Image image, RectangleF bounds)
@@ -119,12 +120,12 @@ namespace LogJoint.Drawing
 
 		partial void DrawLinesImp(Pen pen, PointF[] points)
 		{
-			g.DrawLines(pen.pen, points);
+			g.DrawLines(pen.pen, points.Select(p => p.ToSystemDrawingObject()).ToArray());
 		}
 
 		partial void FillPolygonImp(Brush brush, PointF[] points)
 		{
-			g.FillPolygon(brush.b, points);
+			g.FillPolygon(brush.b, points.Select(p => p.ToSystemDrawingObject()).ToArray());
 		}
 
 		partial void PushStateImp()

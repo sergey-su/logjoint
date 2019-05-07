@@ -47,7 +47,7 @@ namespace LogJoint.UI
 			var option = actionComboBoxOptions.ElementAtOrDefault(e.Index);
 			if (option.Value != null)
 			{
-				using (var b = new System.Drawing.SolidBrush(option.Value.Value.ToColor()))
+				using (var b = new System.Drawing.SolidBrush(option.Value.Value.ToSystemDrawingObject()))
 				{
 					e.Graphics.FillRectangle(b, e.Bounds);
 				}

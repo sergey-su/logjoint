@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
+using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -184,8 +184,8 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			if (e.Index < 0 || (e.State & DrawItemState.Disabled) != 0)
 				return;
 			e.DrawBackground();
-			using (var sb = new SolidBrush(((LJD.Color)colorComboBox.Items[e.Index]).ToColor()))
-				e.Graphics.FillRectangle(sb, Rectangle.Inflate(e.Bounds, -5, -2));
+			using (var sb = new System.Drawing.SolidBrush(((LJD.Color)colorComboBox.Items[e.Index]).ToSystemDrawingObject()))
+				e.Graphics.FillRectangle(sb, System.Drawing.Rectangle.Inflate(e.Bounds, -5, -2));
 		}
 
 		private void colorComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -205,7 +205,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					g, resources,
 					LJD.Color.Blue,
 					(MarkerType)markerComboBox.Items[e.Index],
-					LJD.Rectangle.Inflate(new LJD.Rectangle(e.Bounds), -3, 0)
+					LJD.Rectangle.Inflate(e.Bounds.ToRectangle(), -3, 0)
 				);
 			}
 		}
