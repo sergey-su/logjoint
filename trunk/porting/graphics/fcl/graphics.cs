@@ -70,7 +70,7 @@ namespace LogJoint.Drawing
 				}
 			}
 			format.format.SetMeasurableCharacterRanges(new SD.CharacterRange[] { 
-				range.ToSystemDrawingObject()
+				new SD.CharacterRange(range.First, range.Length)
 			});
 			var regions = g.MeasureCharacterRanges(str, font.font, new SD.RectangleF(0, 0, 100500, 100000), format.format);
 			var bounds = regions[0].GetBounds(g);

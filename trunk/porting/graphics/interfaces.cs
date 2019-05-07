@@ -432,8 +432,123 @@ namespace LogJoint.Drawing
 		{
 			return GetImageSize(img.Size, width, height);
 		}
+	};
+
+	public static class SystemColors
+	{
+		public static Color Text { get { return SystemColorsImpl.instance.text(); } }
+		public static Color TextBackground { get { return SystemColorsImpl.instance.textBackground(); } }
+	};
+
+	internal partial class SystemColorsImpl
+	{
+		public Func<Color> text;
+		public Func<Color> textBackground;
+
+		public SystemColorsImpl ()
+		{
+			Init ();
+		}
+		partial void Init ();
+		internal static SystemColorsImpl instance = new SystemColorsImpl ();
+	};
+
+	public static class Brushes
+	{
+		public static readonly Brush White = new Brush(Color.White);
+		public static readonly Brush Red = new Brush(Color.Red);
+		public static readonly Brush Green = new Brush(Color.Green);
+		public static readonly Brush Blue = new Brush(Color.Blue);
+		public static readonly Brush DarkGray = new Brush(Color.DarkGray);
+		public static readonly Brush Black = new Brush(Color.Black);
+		public static readonly Brush Transparent = new Brush(Color.Transparent);
+		public static readonly Brush Text = new Brush(SystemColorsImpl.instance.text);
+		public static readonly Brush TextBackground = new Brush(SystemColorsImpl.instance.textBackground);
+	};
+
+	public static class Pens
+	{
+		public static readonly Pen Red = new Pen(Color.Red, 1);
+		public static readonly Pen Green = new Pen(Color.Green, 1);
+		public static readonly Pen Blue = new Pen(Color.Blue, 1);
+		public static readonly Pen White = new Pen(Color.White, 1);
+		public static readonly Pen Black = new Pen(Color.Black, 1);
+		public static readonly Pen DarkGray = new Pen(Color.DarkGray, 1);
+	};
+
+#if WIN
+	public static class PrimitivesExtensions
+	{
+		public static RectangleF ToRectangleF(this System.Drawing.RectangleF r)
+		{
+			return new RectangleF(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static System.Drawing.RectangleF ToSystemDrawingObject(this RectangleF r)
+		{
+			return new System.Drawing.RectangleF(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static Rectangle ToRectangle(this System.Drawing.Rectangle r)
+		{
+			return new Rectangle(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static System.Drawing.Rectangle ToSystemDrawingObject(this Rectangle r)
+		{
+			return new System.Drawing.Rectangle(r.X, r.Y, r.Width, r.Height);
+		}
+
+		public static Point ToPoint(this System.Drawing.Point p)
+		{
+			return new Point(p.X, p.Y);
+		}
+
+		public static System.Drawing.Point ToSystemDrawingObject(this Point p)
+		{
+			return new System.Drawing.Point(p.X, p.Y);
+		}
+
+		public static System.Drawing.PointF ToSystemDrawingObject(this PointF p)
+		{
+			return new System.Drawing.PointF(p.X, p.Y);
+		}
+
+		public static Size ToSize(this System.Drawing.Size s)
+		{
+			return new Size(s.Width, s.Height);
+		}
+
+		public static System.Drawing.Size ToSystemDrawingObject(this Size sz)
+		{
+			return new System.Drawing.Size(sz.Width, sz.Height);
+		}
+
+		public static SizeF ToSizeF(this System.Drawing.SizeF s)
+		{
+			return new SizeF(s.Width, s.Height);
+		}
+
+		public static System.Drawing.SizeF ToSystemDrawingObject(this SizeF sz)
+		{
+			return new System.Drawing.SizeF(sz.Width, sz.Height);
+		}
+
+		public static System.Drawing.Color ToSystemDrawingObject(this Color cl)
+		{
+			return System.Drawing.Color.FromArgb(cl.ToArgb());
+		}
+
+		public static Color ToColor(this System.Drawing.Color cl)
+		{
+			return Color.FromArgb(cl.ToArgb());
+		}
+	};
+#endif
 
 #if MONOMAC
+	public static class PrimitivesExtensions
+	{
 		public static Color ToColor(this AppKit.NSColor cl)
 		{
 			cl = cl.UsingColorSpace(AppKit.NSColorSpace.GenericRGBColorSpace);
@@ -498,55 +613,6 @@ namespace LogJoint.Drawing
 		{
 			return new CoreGraphics.CGSize (s.Width, s.Height);
 		}
+	}
 #endif
-
-#if WIN
-		public static System.Drawing.CharacterRange ToSystemDrawingObject(this CharacterRange cr)
-		{
-			return new System.Drawing.CharacterRange(cr.First, cr.Length);
-		}
-#endif
-	};
-
-	public static class SystemColors
-	{
-		public static Color Text { get { return SystemColorsImpl.instance.text(); } }
-		public static Color TextBackground { get { return SystemColorsImpl.instance.textBackground(); } }
-	};
-
-	internal partial class SystemColorsImpl
-	{
-		public Func<Color> text;
-		public Func<Color> textBackground;
-
-		public SystemColorsImpl ()
-		{
-			Init ();
-		}
-		partial void Init ();
-		internal static SystemColorsImpl instance = new SystemColorsImpl ();
-	};
-
-	public static class Brushes
-	{
-		public static readonly Brush White = new Brush(Color.White);
-		public static readonly Brush Red = new Brush(Color.Red);
-		public static readonly Brush Green = new Brush(Color.Green);
-		public static readonly Brush Blue = new Brush(Color.Blue);
-		public static readonly Brush DarkGray = new Brush(Color.DarkGray);
-		public static readonly Brush Black = new Brush(Color.Black);
-		public static readonly Brush Transparent = new Brush(Color.Transparent);
-		public static readonly Brush Text = new Brush(SystemColorsImpl.instance.text);
-		public static readonly Brush TextBackground = new Brush(SystemColorsImpl.instance.textBackground);
-	};
-
-	public static class Pens
-	{
-		public static readonly Pen Red = new Pen(Color.Red, 1);
-		public static readonly Pen Green = new Pen(Color.Green, 1);
-		public static readonly Pen Blue = new Pen(Color.Blue, 1);
-		public static readonly Pen White = new Pen(Color.White, 1);
-		public static readonly Pen Black = new Pen(Color.Black, 1);
-		public static readonly Pen DarkGray = new Pen(Color.DarkGray, 1);
-	};
 }
