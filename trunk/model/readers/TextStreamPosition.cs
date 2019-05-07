@@ -124,7 +124,7 @@ namespace LogJoint
 	public class TextStreamPositioningParams
 	{
 		public const int MinimumAlignmentBlockSize = 16 * 1024;
-		public const int MaximiumAlignmentBlockSize = 2048 * 1024;
+		public const int MaximiumAlignmentBlockSize = 128 * 1048 * 1024;
 		/// <summary>
 		/// Value chosen so that (new char[AlignmentBlockSize]) doesn't get to LOH
 		/// </summary>

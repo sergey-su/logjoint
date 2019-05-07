@@ -2,11 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using LogJoint.Analytics;
+using LogJoint.RegularExpressions;
 
 namespace LogJoint.Wireshark.Dpml
 {
@@ -19,7 +21,8 @@ namespace LogJoint.Wireshark.Dpml
 			ITShark tshark,
 			CancellationToken cancellation,
 			Action<string> reportStatus,
-			LJTraceSource trace
+			LJTraceSource trace,
+			ITempFilesManager tempFiles
 		)
 		{
 			var tsharkArgs = new StringBuilder();
@@ -29,9 +32,9 @@ namespace LogJoint.Wireshark.Dpml
 			{
 				tsharkArgs.Append($" -o \"ssl.desegment_ssl_records: TRUE\" -o \"ssl.desegment_ssl_application_data: TRUE\" -o \"ssl.keylog_file:{keyFile}\"");
 			}
+			var tmpFile = tempFiles.GenerateNewName();
 			using (var process = tshark.Start(tsharkArgs.ToString()))
-			using (var xmlReader = XmlReader.Create(process.StandardOutput))
-			using (var writer = new StreamWriter(outputFile, false, new UTF8Encoding(false)))
+			using (var writer = new StreamWriter(tmpFile, false, new UTF8Encoding(false)))
 			{
 				var packetsRead = new Ref<int>();
 				var processTask = process.GetExitCodeAsync(TimeSpan.FromMinutes(5));
@@ -41,7 +44,7 @@ namespace LogJoint.Wireshark.Dpml
 				{
 					await Task.WhenAll(
 						processTask,
-						Task.Run(() => Convert(xmlReader, writer, cancellation, packetsRead))
+						Task.Run(() => Convert(process.StandardOutput, writer, cancellation, packetsRead))
 					);
 				}
 				if (processTask.Result != 0)
@@ -92,11 +95,8 @@ namespace LogJoint.Wireshark.Dpml
 			return "<packet>";
 		}
 
-		private static void Convert(XmlReader xmlReader, TextWriter writer, CancellationToken cancellation, Ref<int> packetsRead)
+		private static void Convert(StreamReader reader, TextWriter writer, CancellationToken cancellation, Ref<int> packetsRead)
 		{
-			if (!xmlReader.ReadToFollowing("pdml"))
-				throw new Exception("bad pdml");
-
 			var maxElementSize = 1 * 1024 * 512;
 			var reductionMethods = new Action<XElement>[]
 			{
@@ -109,7 +109,65 @@ namespace LogJoint.Wireshark.Dpml
 				(e) => DeleteProto(e, "eth"),
 			};
 
+			void reduceSize(XElement packet)
+			{
+				for (int reductionMethodIdx = 0; ; ++reductionMethodIdx)
+				{
+					int packetLen = packet.ToString().Length;
+					if (packetLen <= maxElementSize)
+						break;
+					if (reductionMethodIdx >= reductionMethods.Length)
+						throw new Exception($"packet is too large: {GetPacketDisplayName(packet)}");
+					reductionMethods[reductionMethodIdx](packet);
+				}
+			};
+
+
+			ITextAccess ta = new StreamTextAccess(reader.BaseStream, reader.CurrentEncoding, new TextStreamPositioningParams(32*1024*1024));
+			IMessagesSplitter splitter = new MessagesSplitter(ta, RegexFactory.Instance.Create(@"\<packet\>", ReOptions.None));
+			splitter.BeginSplittingSession(new FileRange.Range(0, 1*1024*1024*1024 /*todo*/), 0, MessagesParserDirection.Forward);
+
 			writer.WriteLine("<pdml>");
+
+			var capture = new TextMessageCapture();
+			var sb = new StringBuilder();
+			while (splitter.GetCurrentMessageAndMoveToNextOne(capture))
+			{
+				capture.MessageHeaderSlice.Append(sb);
+				capture.MessageBodySlice.Append(sb);
+				if (sb.Length < maxElementSize)
+				{
+					writer.Write(sb.ToString());
+				}
+				else
+				{
+					var packet = XElement.Parse(sb.ToString(), LoadOptions.PreserveWhitespace);
+					reduceSize(packet);
+					using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings
+					{
+						Indent = true,
+						CloseOutput = false,
+						ConformanceLevel = ConformanceLevel.Fragment,
+						OmitXmlDeclaration = true
+					}))
+					{
+						packet.WriteTo(xmlWriter);
+					}
+				}
+				sb.Clear();
+				++packetsRead.Value;
+				cancellation.ThrowIfCancellationRequested();
+			}
+
+			writer.WriteLine("</pdml>");
+
+			splitter.EndSplittingSession();
+
+
+
+			/*
+			writer.WriteLine("<pdml>");
+			using (var xmlReader = XmlReader.Create(reader))
 			using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings
 			{
 				Indent = true,
@@ -124,15 +182,7 @@ namespace LogJoint.Wireshark.Dpml
 					if (packet.Name != "packet")
 						throw new Exception($"unexpected node in pdml: {packet.Name}");
 
-					for (int reductionMethodIdx = 0;;++reductionMethodIdx)
-					{
-						int packetLen = packet.ToString().Length;
-						if (packetLen <= maxElementSize)
-							break;
-						if (reductionMethodIdx >= reductionMethods.Length)
-							throw new Exception($"packet is too large: {GetPacketDisplayName(packet)}");
-						reductionMethods[reductionMethodIdx](packet);
-					}
+					reduceSize(packet);
 
 					packet.WriteTo(xmlWriter);
 
@@ -141,7 +191,7 @@ namespace LogJoint.Wireshark.Dpml
 			}
 			writer.WriteLine();
 			writer.WriteLine();
-			writer.WriteLine("</pdml>");
+			writer.WriteLine("</pdml>");*/
 		}
 	};
 }

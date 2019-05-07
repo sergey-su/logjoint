@@ -42,7 +42,7 @@ namespace LogJoint.Wireshark.Dpml
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
-			await Converters.PcapToPdmp(sourceFile.Uri, keyFile, tmpFileName, tshark, callback.Cancellation, callback.SetStepDescription, callback.Trace);
+			await Converters.PcapToPdmp(sourceFile.Uri, keyFile, tmpFileName, tshark, callback.Cancellation, callback.SetStepDescription, callback.Trace, callback.TempFilesManager);
 
 			onNext(new PreprocessingStepParams(
 				tmpFileName,
