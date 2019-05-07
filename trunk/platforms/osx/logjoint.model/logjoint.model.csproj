@@ -193,9 +193,6 @@
     <Compile Include="..\..\..\model\generic\CircularBuffer.cs">
       <Link>generic\CircularBuffer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\Color.cs">
-      <Link>generic\Color.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\DateParsing.cs">
       <Link>generic\DateParsing.cs</Link>
     </Compile>
@@ -881,9 +878,6 @@
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
       <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\SystemDrawingShim.cs">
-      <Link>generic\SystemDrawingShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
       <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>
     </Compile>
@@ -1025,6 +1019,18 @@
     <Compile Include="..\..\..\model\generic\MultilineText.cs">
       <Link>generic\MultilineText.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\Extensions.cs">
+      <Link>generic\drawing\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\Matrix.cs">
+      <Link>generic\drawing\Matrix.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\Primitives.cs">
+      <Link>generic\drawing\Primitives.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\drawing\platform-specific\mac\MatrixImpl.cs">
+      <Link>generic\drawing\MatrixImpl.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -1059,6 +1065,7 @@
     <Folder Include="change-notification\" />
     <Folder Include="postprocessing\manager\states\" />
     <Folder Include="generic\synchronization\" />
+    <Folder Include="generic\drawing\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

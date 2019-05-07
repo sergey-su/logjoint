@@ -6,6 +6,7 @@ using NUnit.Framework;
 using NSubstitute;
 using System.Collections.Immutable;
 using System.Collections.Generic;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 {
@@ -75,9 +76,9 @@ describe('MeetingV2', () => {
 ), SeverityFlag.Info);
 		}
 
-		static ModelColor MakeHightlightingColor(FilterAction a)
+		static Color MakeHightlightingColor(FilterAction a)
 		{
-			return new ModelColor((int)a);
+			return new Color((int)a);
 		}
 
 		void CreateHighlightingManager()
@@ -112,7 +113,7 @@ describe('MeetingV2', () => {
 			};
 		}
 
-		void VerifyRanges(IEnumerable<(int, int, ModelColor)> actual, params (int, int, ModelColor)[] expected)
+		void VerifyRanges(IEnumerable<(int, int, Color)> actual, params (int, int, Color)[] expected)
 		{
 			CollectionAssert.AreEqual(expected.OrderBy(x => x.Item1), actual.OrderBy(x => x.Item1));
 		}
@@ -175,7 +176,7 @@ describe('MeetingV2', () => {
 				));
 				CreateHighlightingManager();
 				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
-					(6, 8, new ModelColor()) // two matches "es" but first original one is not highlighted
+					(6, 8, new Color()) // two matches "es" but first original one is not highlighted
 				);
 			}
 
@@ -189,8 +190,8 @@ describe('MeetingV2', () => {
 				));
 				CreateHighlightingManager();
 				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
-					(11, 12, new ModelColor()),
-					(6, 7, new ModelColor())
+					(11, 12, new Color()),
+					(6, 7, new Color())
 				);
 			}
 		};

@@ -26,7 +26,7 @@ namespace LogJoint.Drawing
 		}
 
 #if WIN
-		public System.Drawing.RectangleF ToSystemDrawingObject()
+		public System.Drawing.RectangleF ToSystemDrawingObject() // todo: move to extension methods
 		{
 			return new System.Drawing.RectangleF(X, Y, Width, Height);
 		}

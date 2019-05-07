@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using CoreGraphics;
+﻿using CoreGraphics;
 using AppKit;
 using Foundation;
 using CoreText;

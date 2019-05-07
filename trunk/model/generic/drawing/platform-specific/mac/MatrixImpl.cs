@@ -9,7 +9,7 @@
 			t = other != null ? other.t : CoreGraphics.CGAffineTransform.MakeIdentity();
 		}
 
-		partial void TranslateImpl (float dx, float dy, MatrixOrder order = MatrixOrder.Prepend)
+		partial void TranslateImpl (float dx, float dy, MatrixOrder order)
 		{
 			if (order == MatrixOrder.Append) 
 				t = t * CoreGraphics.CGAffineTransform.MakeTranslation (dx, dy);

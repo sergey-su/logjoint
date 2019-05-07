@@ -124,9 +124,9 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			case ControlData.StatusColor.Error:
 				return NSColor.Red;
 			case ControlData.StatusColor.Warning:
-				return LogJoint.Drawing.Extensions.ToNSColor(System.Drawing.Color.Salmon);
+				return LogJoint.Drawing.Extensions.ToNSColor(LJD.Color.Salmon);
 			case ControlData.StatusColor.Success:
-				return LogJoint.Drawing.Extensions.ToNSColor(System.Drawing.Color.FromArgb (0, 176, 80));
+				return LogJoint.Drawing.Extensions.ToNSColor(LJD.Color.FromArgb (0, 176, 80));
 			default:
 				return NSColor.Text;
 			}

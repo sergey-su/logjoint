@@ -52,14 +52,14 @@ namespace LogJoint.UI
 			this.eventsHandler = eventsHandler;
 		}
 
-		void IView.SetLabelProps (ControlId labelId, string text, ModelColor? color)
+		void IView.SetLabelProps (ControlId labelId, string text, Color? color)
 		{
 			var ctrl = GetControl(labelId);
 			if (ctrl == null)
 				return;
 			ctrl.StringValue = text;
 			if (color != null)
-				ctrl.TextColor = color.Value.ToColor().ToNSColor();
+				ctrl.TextColor = color.Value.ToNSColor();
 		}
 
 		partial void OnEditHeaderReClicked (Foundation.NSObject sender)

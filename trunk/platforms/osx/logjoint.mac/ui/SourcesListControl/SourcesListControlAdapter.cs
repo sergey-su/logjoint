@@ -151,7 +151,7 @@ namespace LogJoint.UI
 				}
 
 				view.BackgroundColor = sourceItem.color != null ?
-					sourceItem.color.Value.ToColor().ToNSColor() : NSColor.Clear;
+					sourceItem.color.Value.ToNSColor() : NSColor.Clear;
 				view.StringValue = sourceItem.text;
 				view.Menu = outlineView.Menu;
 				return view;

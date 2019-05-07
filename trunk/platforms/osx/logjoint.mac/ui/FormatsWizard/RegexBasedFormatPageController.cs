@@ -73,13 +73,13 @@ namespace LogJoint.UI
 			View.EnsureCreated();
 		}
 
-		void IView.SetLabelProps (ControlId labelId, string text, ModelColor color)
+		void IView.SetLabelProps (ControlId labelId, string text, Color color)
 		{
 			var ctrl = GetControl(labelId);
 			if (ctrl == null)
 				return;
 			ctrl.StringValue = text;
-			ctrl.TextColor = color.ToColor().ToNSColor();
+			ctrl.TextColor = color.ToNSColor();
 		}
 
 		NSTextField GetControl(ControlId id)

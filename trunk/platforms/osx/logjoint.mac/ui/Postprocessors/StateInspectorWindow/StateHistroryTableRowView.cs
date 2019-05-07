@@ -1,6 +1,5 @@
 ﻿using System;
 using AppKit;
-using System.Drawing;
 using LogJoint.UI;
 using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;

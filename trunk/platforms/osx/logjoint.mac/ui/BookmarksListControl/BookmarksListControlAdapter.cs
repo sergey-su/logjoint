@@ -4,9 +4,7 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using CoreGraphics;
-using System.Drawing;
 using LogJoint.UI.Presenters.BookmarksList;
-using LogJoint.Settings;
 using LogJoint.Drawing;
 
 namespace LogJoint.UI
@@ -244,7 +242,7 @@ namespace LogJoint.UI
 					view.StringValue = item.Data.Text;
 					view.LinkClicked = (s, e) => owner.OnItemClicked(item, e.NativeEvent);
 					if (owner.viewModel.Theme == Presenters.ColorThemeMode.Dark && item.Data.ContextColor.HasValue)
-						view.LinksColor = item.Data.ContextColor.Value.ToColor().ToNSColor();
+						view.LinksColor = item.Data.ContextColor.Value.ToNSColor();
 
 					return view;
 				}
@@ -280,10 +278,10 @@ namespace LogJoint.UI
 
 				if (owner.viewModel.Theme == Presenters.ColorThemeMode.Light)
 				{
-					ModelColor? cl = owner.dataSource.items[row].Data.ContextColor;
+					Color? cl = owner.dataSource.items[row].Data.ContextColor;
 					if (cl != null)
 					{
-						cl.Value.ToColor().ToNSColor().SetFill();
+						cl.Value.ToNSColor().SetFill();
 						NSBezierPath.FillRect(dirtyRect);
 					}
 				}

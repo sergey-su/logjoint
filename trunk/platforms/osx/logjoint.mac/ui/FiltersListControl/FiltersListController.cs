@@ -151,7 +151,7 @@ namespace LogJoint.UI
 			public string text;
 			public bool? isChecked;
 			public bool isSelected;
-			public ModelColor? color;
+			public Color? color;
 			public ViewItemImageType image;
 			public string checkboxTooltip;
 			public string actionTooltip;
@@ -161,7 +161,7 @@ namespace LogJoint.UI
 			string IViewItem.Text { get => text; set { text = value; update?.Invoke(this); } }
 			bool? IViewItem.Checked { get => isChecked; set { isChecked = value; update?.Invoke(this); } }
 			bool IViewItem.Selected { get => isSelected; set { isSelected = value; update?.Invoke(this); } }
-			ModelColor? IViewItem.Color { get => color; set { color = value; update?.Invoke(this); } }
+			Color? IViewItem.Color { get => color; set { color = value; update?.Invoke(this); } }
 			string IViewItem.CheckboxTooltip { get => checkboxTooltip; set { checkboxTooltip = value; update?.Invoke(this); } }
 			string IViewItem.ActionTooltip { get => actionTooltip; set { actionTooltip = value; update?.Invoke(this); } }
 
@@ -253,7 +253,7 @@ namespace LogJoint.UI
 						view.TextColor = NSColor.Black;
 						view.StringValue = "✓";
 						view.BackgroundColor = item.color != null ? 
-							item.color.Value.ToColor().ToNSColor() : NSColor.Clear;
+							item.color.Value.ToNSColor() : NSColor.Clear;
 					}
 					else
 					{

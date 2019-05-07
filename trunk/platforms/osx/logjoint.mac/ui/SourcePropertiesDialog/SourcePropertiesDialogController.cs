@@ -81,14 +81,14 @@ namespace LogJoint.UI
 			{
 				if ((txt = view as NSTextField) != null)
 				{
-					txt.BackgroundColor = new ModelColor(uint.Parse(value)).ToColor().ToNSColor();
+					txt.BackgroundColor = new Color(uint.Parse(value)).ToNSColor();
 				}
 			}
 			else if ((flags & ControlFlag.ForeColor) != 0)
 			{
 				if ((ll = view as NSLinkLabel) != null)
 				{
-					ll.TextColor = new ModelColor(uint.Parse(value)).ToColor().ToNSColor();
+					ll.TextColor = new Color(uint.Parse(value)).ToNSColor();
 				}
 			}
 			else if ((flags & ControlFlag.Enabled) != 0)
@@ -117,7 +117,7 @@ namespace LogJoint.UI
 				return null;
 		}
 
-		void IWindow.ShowColorSelector(ModelColor[] options)
+		void IWindow.ShowColorSelector(Color[] options)
 		{
 			if (changeColorNSEvent == null)
 				return;
@@ -130,7 +130,7 @@ namespace LogJoint.UI
 				img.LockFocus ();
 				using (var path = NSBezierPath.FromRect (
 					new CoreGraphics.CGRect (0, 0, imgSize.Width, imgSize.Height)))
-				using (var cl = opt.ToColor().ToNSColor()) {
+				using (var cl = opt.ToNSColor()) {
 					cl.SetFill ();
 					path.Fill ();
 				}
@@ -139,7 +139,7 @@ namespace LogJoint.UI
 				item.Title = "";
 				item.Action = new Selector("OnColorMenuItemClicked:");
 				item.Target = this;
-				item.Tag = unchecked ((int)opt.Argb);
+				item.Tag = unchecked ((int)opt.ToUnsignedArgb());
 				menu.AddItem(item);
 			}
 			NSMenu.PopUpContextMenu(menu, changeColorNSEvent, changeColorLinkLabel);
@@ -148,7 +148,7 @@ namespace LogJoint.UI
 		[Export("OnColorMenuItemClicked:")]
 		public void OnColorMenuItemClicked(NSMenuItem sender)
 		{
-			viewEvents.OnColorSelected(new ModelColor(unchecked ((uint) sender.Tag)));
+			viewEvents.OnColorSelected(new Color(unchecked ((uint) sender.Tag)));
 		}
 
 		public override void AwakeFromNib()

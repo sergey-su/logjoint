@@ -1,6 +1,5 @@
 ﻿using System;
 using AppKit;
-using System.Drawing;
 using CoreGraphics;
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 
