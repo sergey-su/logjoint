@@ -405,7 +405,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 							attrString.AddAttribute(NSStringAttributeKey.BackgroundColor, NSColor.Yellow, r);
 							attrString.AddAttribute (NSStringAttributeKey.ForegroundColor, NSColor.Black, r);
 						}
-						attrString.DrawString (LJD.Extensions.ToCGRect (captionRect));
+						attrString.DrawString (captionRect.ToCGRect());
 					}
 				);
 			}

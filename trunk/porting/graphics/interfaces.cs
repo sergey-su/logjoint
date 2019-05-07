@@ -605,6 +605,10 @@ namespace LogJoint.Drawing
 		{
 			return new CoreGraphics.CGRect (r.X, r.Y, r.Width, r.Height);
 		}
+		public static CoreGraphics.CGRect ToCGRect (this Rectangle r)
+		{
+			return new CoreGraphics.CGRect (r.X, r.Y, r.Width, r.Height);
+		}
 		public static CoreGraphics.CGPoint ToCGPoint (this PointF p)
 		{
 			return new CoreGraphics.CGPoint (p.X, p.Y);

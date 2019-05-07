@@ -5,12 +5,7 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
-using ObjCRuntime;
-using System.Text;
-using LogJoint.UI;
-using System.Text.RegularExpressions;
-using CoreAnimation;
-using CoreGraphics;
+using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI.Postprocessing.MainWindowTabPage
@@ -124,9 +119,9 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			case ControlData.StatusColor.Error:
 				return NSColor.Red;
 			case ControlData.StatusColor.Warning:
-				return LogJoint.Drawing.Extensions.ToNSColor(LJD.Color.Salmon);
+				return Color.Salmon.ToNSColor();
 			case ControlData.StatusColor.Success:
-				return LogJoint.Drawing.Extensions.ToNSColor(LJD.Color.FromArgb (0, 176, 80));
+				return Color.FromArgb (0, 176, 80).ToNSColor();
 			default:
 				return NSColor.Text;
 			}
