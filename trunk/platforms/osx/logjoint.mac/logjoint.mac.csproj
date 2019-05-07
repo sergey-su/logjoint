@@ -145,6 +145,7 @@
     <Folder Include="help\" />
     <Folder Include="help\images\" />
     <Folder Include="ui\CommonControls\NSCustomTableRowView\" />
+    <Folder Include="ui\CommonControls\NSDragDropTextField\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -668,6 +669,7 @@
       <Link>ui\LogViewerControl\MessageDrawing.cs</Link>
     </Compile>
     <Compile Include="ui\CommonControls\NSCustomTableRowView\CustomTableRowView.cs" />
+    <Compile Include="ui\CommonControls\NSDragDropTextField\NSDragDropTextField.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
