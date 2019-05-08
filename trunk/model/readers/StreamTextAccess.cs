@@ -15,7 +15,7 @@ namespace LogJoint
 	/// Usually StreamTextAccess reads data from the stream at positions aligned to TextStreamPosition.AlignmentBlockSize  
 	/// by blocks of size TextStreamPosition.AlignmentBlockSize. However if the encoding requires more than 1 byte per 
 	/// character extra bytes are read from the beginning of a block. By that StreamTextAccess implements the following rule:
-	///    If a (multibyte) characher starts at block i and has at least one byte at block block i+1 - the character belongs to block i+1.
+	///    If a (multibyte) character starts at block i and has at least one byte at block i+1 - the character belongs to block i+1.
 	/// </remarks>
 	public class StreamTextAccess: ITextAccess
 	{
@@ -33,6 +33,7 @@ namespace LogJoint
 
 			this.stream = stream;
 			this.encoding = streamEncoding;
+			this.streamCanSeek = stream.CanSeek;
 			this.decoder = this.encoding.GetDecoder();
 			this.maxBytesPerChar = GetMaxBytesPerChar(this.encoding);
 			this.binaryBuffer = new byte[binaryBufferSize];
@@ -237,6 +238,8 @@ namespace LogJoint
 		{
 			if (readingStarted)
 				throw new InvalidOperationException("Another iterator already exists. Dispose it first.");
+			if (direction == TextAccessDirection.Backward && !streamCanSeek)
+				throw new InvalidOperationException("Can not read non-random access stream backward");
 			BeginReading(initialPosition, direction);
 			iterator.Open();
 			return iterator;
@@ -312,10 +315,10 @@ namespace LogJoint
 				}
 			}
 
-			// Stream.Position may have unifficient implementation. Check to avoid unneded work.
+			// Stream.Position may have inefficient implementation. Check to avoid unneeded work.
 			// Note: normally when reading forward the position is updated automatically to correct value by Stream.Read()
-			//if (stream.Position != streamPositionToReadFromNextTime) todo
-			//	stream.Position = streamPositionToReadFromNextTime;
+			if (streamCanSeek && stream.Position != streamPositionToReadFromNextTime)
+				stream.Position = streamPositionToReadFromNextTime;
 		}
 
 		int ReadAndDecodeNextBinaryBlock()
@@ -532,6 +535,7 @@ namespace LogJoint
 
 		readonly Stream stream; // underling stream
 		readonly Encoding encoding; // stream encoding
+		readonly bool streamCanSeek;
 		readonly Decoder decoder; // converts byte array to characters array
 		readonly int maxBytesPerChar; // encoding specific max char size in bytes
 		readonly byte[] binaryBuffer; // raw bytes are read here
