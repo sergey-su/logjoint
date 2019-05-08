@@ -314,13 +314,22 @@ namespace LogJoint
 
 			// Stream.Position may have unifficient implementation. Check to avoid unneded work.
 			// Note: normally when reading forward the position is updated automatically to correct value by Stream.Read()
-			if (stream.Position != streamPositionToReadFromNextTime)
-				stream.Position = streamPositionToReadFromNextTime;
+			//if (stream.Position != streamPositionToReadFromNextTime) todo
+			//	stream.Position = streamPositionToReadFromNextTime;
 		}
 
 		int ReadAndDecodeNextBinaryBlock()
 		{
-			int bytesRead = stream.Read(binaryBuffer, 0, binaryBufferSize);
+			int bytesRead = 0;
+			for (;;)
+			{
+				int read = stream.Read(binaryBuffer, bytesRead, binaryBufferSize - bytesRead);
+				if (read == 0)
+					break;
+				bytesRead += read;
+				if (bytesRead == binaryBufferSize)
+					break;
+			}
 			int charsDecoded = decoder.GetChars(binaryBuffer, 0, bytesRead, charBuffer, 0);
 
 			return charsDecoded;

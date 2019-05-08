@@ -32,9 +32,8 @@ namespace LogJoint.Wireshark.Dpml
 			{
 				tsharkArgs.Append($" -o \"ssl.desegment_ssl_records: TRUE\" -o \"ssl.desegment_ssl_application_data: TRUE\" -o \"ssl.keylog_file:{keyFile}\"");
 			}
-			var tmpFile = tempFiles.GenerateNewName();
 			using (var process = tshark.Start(tsharkArgs.ToString()))
-			using (var writer = new StreamWriter(tmpFile, false, new UTF8Encoding(false)))
+			using (var writer = new StreamWriter(outputFile, false, new UTF8Encoding(false)))
 			{
 				var packetsRead = new Ref<int>();
 				var processTask = process.GetExitCodeAsync(TimeSpan.FromMinutes(5));
@@ -156,6 +155,8 @@ namespace LogJoint.Wireshark.Dpml
 				}
 				sb.Clear();
 				++packetsRead.Value;
+				if (packetsRead.Value == 6)
+					sb.ToString();
 				cancellation.ThrowIfCancellationRequested();
 			}
 
