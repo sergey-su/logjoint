@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,7 +42,7 @@ namespace LogJoint.Wireshark.Dpml
 				{
 					await Task.WhenAll(
 						processTask,
-						Task.Run(() => Convert(xmlReader, writer, cancellation, packetsRead))
+						Convert(xmlReader, writer, cancellation, packetsRead, trace)
 					);
 				}
 				if (processTask.Result != 0)
@@ -92,7 +93,7 @@ namespace LogJoint.Wireshark.Dpml
 			return "<packet>";
 		}
 
-		private static void Convert(XmlReader xmlReader, TextWriter writer, CancellationToken cancellation, Ref<int> packetsRead)
+		private static async Task Convert(XmlReader xmlReader, TextWriter writer, CancellationToken cancellation, Ref<int> packetsRead, LJTraceSource trace)
 		{
 			if (!xmlReader.ReadToFollowing("pdml"))
 				throw new Exception("bad pdml");
@@ -109,39 +110,66 @@ namespace LogJoint.Wireshark.Dpml
 				(e) => DeleteProto(e, "eth"),
 			};
 
-			writer.WriteLine("<pdml>");
-			using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings
-			{
-				Indent = true,
-				CloseOutput = false,
-				ConformanceLevel = ConformanceLevel.Fragment,
-				OmitXmlDeclaration = true
-			}))
+			BlockingCollection<XElement> queue = new BlockingCollection<XElement>(1024);
+
+			var producer = Task.Factory.StartNew(() => 
 			{
 				foreach (var packet in xmlReader.ReadChildrenElements())
 				{
-					cancellation.ThrowIfCancellationRequested();
-					if (packet.Name != "packet")
-						throw new Exception($"unexpected node in pdml: {packet.Name}");
-
-					for (int reductionMethodIdx = 0;;++reductionMethodIdx)
-					{
-						int packetLen = packet.ToString().Length;
-						if (packetLen <= maxElementSize)
-							break;
-						if (reductionMethodIdx >= reductionMethods.Length)
-							throw new Exception($"packet is too large: {GetPacketDisplayName(packet)}");
-						reductionMethods[reductionMethodIdx](packet);
-					}
-
-					packet.WriteTo(xmlWriter);
-
-					++packetsRead.Value;
+					queue.Add(packet);
+					if (cancellation.IsCancellationRequested)
+						break;
 				}
-			}
-			writer.WriteLine();
-			writer.WriteLine();
-			writer.WriteLine("</pdml>");
+				queue.CompleteAdding();
+			});
+
+			var consumer = Task.Factory.StartNew(() => 
+			{
+				int packetsCompressed = 0;
+
+				writer.WriteLine("<pdml>");
+				using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings
+				{
+					Indent = true,
+					CloseOutput = false,
+					ConformanceLevel = ConformanceLevel.Fragment,
+					OmitXmlDeclaration = true
+				}))
+				{
+					foreach (var packet in queue.GetConsumingEnumerable())
+					{
+						cancellation.ThrowIfCancellationRequested();
+						if (packet.Name != "packet")
+							throw new Exception($"unexpected node in pdml: {packet.Name}");
+
+						bool reductionUsed = false;
+						for (int reductionMethodIdx = 0;;++reductionMethodIdx)
+						{
+							int packetLen = packet.ToString().Length;
+							if (packetLen <= maxElementSize)
+								break;
+							if (reductionMethodIdx >= reductionMethods.Length)
+								throw new Exception($"packet is too large: {GetPacketDisplayName(packet)}");
+							reductionMethods[reductionMethodIdx](packet);
+							reductionUsed = true;
+						}
+						if (reductionUsed)
+							++packetsCompressed;
+
+						packet.WriteTo(xmlWriter);
+
+						++packetsRead.Value;
+					}
+				}
+				writer.WriteLine();
+				writer.WriteLine();
+				writer.WriteLine("</pdml>");
+
+				trace.Info("PCAP conversion finished. Total packets read: {0}, packets compressed: {1}", 
+					packetsRead.Value, packetsCompressed);
+			});
+
+			await Task.WhenAll(producer, consumer);
 		}
 	};
 }
