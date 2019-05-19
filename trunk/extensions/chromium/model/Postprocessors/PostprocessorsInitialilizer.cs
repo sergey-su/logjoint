@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using LogJoint.Postprocessing;
 using System;
-using UDF = LogJoint.RegularGrammar.UserDefinedFormatFactory;
 
 namespace LogJoint.Chromium
 {
@@ -15,8 +14,8 @@ namespace LogJoint.Chromium
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly UDF chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, symRtcLogFormat, httpArchiveFormat;
-		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, symRtcLogMeta, httpArchiveMeta;
+		private readonly IUserDefinedFactory chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, httpArchiveFormat;
+		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, httpArchiveMeta;
 
 
 		public PostprocessorsInitializer(
@@ -29,10 +28,10 @@ namespace LogJoint.Chromium
 			SequenceDiagram.IPostprocessorsFactory sequenceDiagramPostprocessorsFactory
 		)
 		{
-			Func<string, string, UDF> findFormat = (company, formatName) =>
+			Func<string, string, IUserDefinedFactory> findFormat = (company, formatName) =>
 			{
 				var ret = userDefinedFormatsManager.Items.FirstOrDefault(
-					f => f.CompanyName == company && f.FormatName == formatName) as UDF;
+					f => f.CompanyName == company && f.FormatName == formatName);
 				if (ret == null)
 					throw new Exception(string.Format("Log format {0} is not registered in LogJoint", formatName));
 				return ret;
@@ -41,7 +40,6 @@ namespace LogJoint.Chromium
 			this.chromeDebugLogFormat = findFormat("Google", "Chrome debug log");
 			this.webRtcInternalsDumpFormat = findFormat("Google", "Chrome WebRTC internals dump as log");
 			this.chromeDriverLogFormat = findFormat("Google", "chromedriver");
-			this.symRtcLogFormat  = findFormat("Symphony", "RTC log");
 			this.httpArchiveFormat = findFormat("W3C", "HTTP Archive (HAR)");
 
 			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
@@ -70,14 +68,6 @@ namespace LogJoint.Chromium
 				correlatorPostprocessorType
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDriverLogMeta);
-
-			this.symRtcLogMeta = new LogSourceMetadata(
-				symRtcLogFormat,
-				stateInspectorPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
-				timeSeriesPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
-				timelinePostprocessorsFactory.CreateSymRtcPostprocessor()
-			);
-			postprocessorsManager.RegisterLogType(this.symRtcLogMeta);
 
 			this.httpArchiveMeta = new LogSourceMetadata(
 				httpArchiveFormat,

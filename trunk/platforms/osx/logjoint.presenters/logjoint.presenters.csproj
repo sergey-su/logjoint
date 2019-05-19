@@ -123,9 +123,6 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\DummyModel.cs">
       <Link>LogViewerPresenter\DummyModel.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\Interfaces.cs">
-      <Link>LogViewerPresenter\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenter.cs">
       <Link>LogViewerPresenter\LogViewerPresenter.cs</Link>
     </Compile>
@@ -562,14 +559,17 @@
     <Compile Include="..\..\..\presenters\Common\Theming\Extensions.cs">
       <Link>Common\Theming\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\Common\Theming\Interfaces.cs">
-      <Link>Common\Theming\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\Common\Theming\ColorTables.cs">
       <Link>Common\Theming\ColorTables.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\Common\Theming\ColorTheme.cs">
       <Link>Common\Theming\ColorTheme.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Interfaces.cs">
+      <Link>LogViewerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Extensibility\Presentation.cs">
+      <Link>Extensibility\Presentation.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -577,9 +577,13 @@
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
-      <Name>logjoint.analytics</Name>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
+      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
+      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
@@ -621,6 +625,7 @@
     <Folder Include="LogViewerPresenter\Selection\" />
     <Folder Include="LogViewerPresenter\Navigation\" />
     <Folder Include="Common\Theming\" />
+    <Folder Include="Extensibility\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

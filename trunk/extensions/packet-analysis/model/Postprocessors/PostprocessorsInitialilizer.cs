@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using LogJoint.Postprocessing;
 using System;
-using UDF = LogJoint.UserDefinedFactoryBase;
 
 namespace LogJoint.PacketAnalysis
 {
@@ -12,7 +11,7 @@ namespace LogJoint.PacketAnalysis
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly UDF wiresharkPdmlFormat;
+		private readonly IUserDefinedFactory wiresharkPdmlFormat;
 		private readonly LogSourceMetadata wiresharkPdml;
 
 
@@ -22,10 +21,10 @@ namespace LogJoint.PacketAnalysis
 			Timeline.IPostprocessorsFactory timelinePostprocessorsFactory
 		)
 		{
-			UDF findFormat(string company, string formatName)
+			IUserDefinedFactory findFormat(string company, string formatName)
 			{
 				var ret = userDefinedFormatsManager.Items.FirstOrDefault(
-					f => f.CompanyName == company && f.FormatName == formatName) as UDF;
+					f => f.CompanyName == company && f.FormatName == formatName);
 				if (ret == null)
 					throw new Exception(string.Format("Log format {0} is not registered in LogJoint", formatName));
 				return ret;

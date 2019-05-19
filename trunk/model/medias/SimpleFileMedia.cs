@@ -8,7 +8,7 @@ namespace LogJoint
 {
 	public class SimpleFileMedia : ILogMedia
 	{
-		static readonly string fileNameParam = ConnectionParamsUtils.PathConnectionParam;
+		static readonly string fileNameParam = ConnectionParamsKeys.PathConnectionParam;
 		static readonly MemoryStream emptyMemoryStream = new MemoryStream();
 		readonly IFileSystem fileSystem;
 		readonly DelegatingStream stream = new DelegatingStream();

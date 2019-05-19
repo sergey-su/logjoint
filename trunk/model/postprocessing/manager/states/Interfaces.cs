@@ -17,6 +17,7 @@ namespace LogJoint.Postprocessing
 			public Telemetry.ITelemetryCollector telemetry;
 			public ISynchronizationContext modelSyncContext;
 			public ISynchronizationContext threadPoolSyncContext;
+			public IOutputDataDeserializer outputDataDeserializer;
 		};
 
 		internal readonly Context ctx;

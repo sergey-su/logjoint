@@ -191,7 +191,7 @@ namespace LogJoint.DebugOutput
 		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
 			var ret = new ConnectionParams();
-			ret[ConnectionParamsUtils.IdentityConnectionParam] = connectionIdentity;
+			ret[ConnectionParamsKeys.IdentityConnectionParam] = connectionIdentity;
 			return ret;
 		}
 

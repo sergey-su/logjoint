@@ -1,6 +1,4 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.Timeline;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -159,8 +157,8 @@ namespace LogJoint.Postprocessing.Timeline
 			internal EventInfo begin;
 			internal ITimelinePostprocessorOutput beginOwner;
 			internal string activityMatchingId;
-			internal List<ActivityMilestone> milestones;
-			internal List<ActivityPhase> phases;
+			internal List<ActivityMilestoneInfo> milestones;
+			internal List<ActivityPhaseInfo> phases;
 			internal ActivityType type;
 			internal bool mayLackEnd;
 			internal ActivityStatus status;
@@ -178,8 +176,8 @@ namespace LogJoint.Postprocessing.Timeline
 					beginOwner = currentPostprocessorOutput,
 					type = type,
 					activityMatchingId = activityMatchingId,
-					milestones = new List<ActivityMilestone>(),
-					phases = new List<ActivityPhase>(),
+					milestones = new List<ActivityMilestoneInfo>(),
+					phases = new List<ActivityPhaseInfo>(),
 					mayLackEnd = evt.Type == ActivityEventType.PotentialBegin
 				};
 				startedActivities[evt.ActivityId] = activity;
@@ -202,7 +200,7 @@ namespace LogJoint.Postprocessing.Timeline
 				StartedActivity startedActivity;
 				if (startedActivities.TryGetValue(evt.ActivityId, out startedActivity))
 				{
-					startedActivity.milestones.Add(new ActivityMilestone(
+					startedActivity.milestones.Add(new ActivityMilestoneInfo(
 						null,
 						currentPostprocessorOutput,
 						eventInfo.timestamp - origin,
@@ -231,7 +229,7 @@ namespace LogJoint.Postprocessing.Timeline
 		{
 			if (evt.Phases != null && evt.Phases.Count > 0 && startedActivity.phases.Count == 0)
 			{
-				startedActivity.phases.AddRange(evt.Phases.Select(ph => new ActivityPhase(
+				startedActivity.phases.AddRange(evt.Phases.Select(ph => new ActivityPhaseInfo(
 					null,
 					currentPostprocessorOutput,
 					startedActivity.begin.timestamp - origin + ph.Begin,

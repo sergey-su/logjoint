@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.UI.Presenters.QuickSearchTextBox
 {

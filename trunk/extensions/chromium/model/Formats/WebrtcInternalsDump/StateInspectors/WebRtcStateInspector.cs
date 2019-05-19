@@ -1,5 +1,5 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.StateInspector;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -23,15 +23,15 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		{
 		}
 
-		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool ShouldBePresentedCollapsed(Event creationEvent)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = creationEvent?.ObjectType?.TypeName;
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 
-		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool HasTimeSeries(Event creationEvent)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = creationEvent?.ObjectType?.TypeName;
 			return objectType == ssrcTypeInfo.TypeName || objectType == connectionTypeInfo.TypeName;
 		}
 
@@ -152,11 +152,11 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 					objectType.TypeInfo, objectType.GetParentObjectId(peerConnectionState)));
 				peerConnectionState.ReportedObjects.Add(message.ObjectId, obj);
 			}
-			Analytics.StateInspector.ValueType? propValueType = null;
+			Postprocessing.StateInspector.ValueType? propValueType = null;
 			if (objectType.ScalarProperties.Contains(message.PropName))
-				propValueType = Analytics.StateInspector.ValueType.Scalar;
+				propValueType = Postprocessing.StateInspector.ValueType.Scalar;
 			else if (objectType.ReferenceProperties.Contains(message.PropName))
-				propValueType = Analytics.StateInspector.ValueType.Reference;
+				propValueType = Postprocessing.StateInspector.ValueType.Reference;
 			if (propValueType != null)
 			{
 				string propValue = message.PropValue;
@@ -243,11 +243,11 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 
 		readonly Regex objectIdRegex = new Regex(@"^(?<type>\w+?)[-_].+$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
-		static readonly HashSet<string> defaultCollapsedNodesTypes = new [] 
+		static readonly HashSet<string> defaultCollapsedNodesTypes = new HashSet<string>(new [] 
 		{
 			tracksRootTypeInfo, candidatesRootTypeInfo,
 			channelsRootTypeInfo, certsRootTypeInfo
-		}.Select(i => i.TypeName).ToHashSet();
+		}.Select(i => i.TypeName));
 
 		static readonly Dictionary<string, ObjectType> objectTypes = new []
 		{

@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using M = LogJoint.Analytics.Messaging;
-using TL = LogJoint.Analytics.Timeline;
-using SI = LogJoint.Analytics.StateInspector;
+using M = LogJoint.Postprocessing.Messaging;
+using TL = LogJoint.Postprocessing.Timeline;
+using SI = LogJoint.Postprocessing.StateInspector;
 using System.Diagnostics;
-using LogJoint.Analytics;
+using System.Collections.Generic;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {
-	public interface ISequenceDiagramPostprocessorOutput: IPostprocessorOutputETag
+	public interface ISequenceDiagramPostprocessorOutput : IPostprocessorOutputETag
 	{
 		ILogSource LogSource { get; }
 		IEnumerable<M.Event> Events { get; }

@@ -175,7 +175,7 @@ namespace LogJoint.Preprocessing
 
 				return new PreprocessingStepParams(
 					tmpFileName, sourceFile.FullPath,
-					Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep));
+					sourceFile.PreprocessingSteps.Concat(new[] { preprocessingStep }));
 			}
 		}
 

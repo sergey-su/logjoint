@@ -146,7 +146,7 @@ namespace LogJoint.Azure
 			Assert.AreEqual("2|1|3|4|5", str);
 		}
 
-		static void FindDateBoundTest(ListUtils.ValueBound bound, long dateTicks, 
+		static void FindDateBoundTest(ValueBound bound, long dateTicks, 
 			string expectedMessage, EntryPartition? searchRangeBegin = null, EntryPartition? searchRangeEnd = null)
 		{
 			var entry = AzureDiagnosticsUtils.FindDateBound(
@@ -183,28 +183,28 @@ namespace LogJoint.Azure
 		[TestMethod]
 		public void FindDateBound_LowerBound()
 		{
-			FindDateBoundTest(ListUtils.ValueBound.Lower, TestEventTimestampFromMinutes(0), "1");
-			FindDateBoundTest(ListUtils.ValueBound.Lower, TestEventTimestampFromMinutes(1) + 3, "1+3");
-			FindDateBoundTest(ListUtils.ValueBound.Lower, TestEventTimestampFromMinutes(1) + 4, "1+10");
-			FindDateBoundTest(ListUtils.ValueBound.Lower, TestEventTimestampFromMinutes(3) + 300, "3+300");
-			FindDateBoundTest(ListUtils.ValueBound.Lower, TestEventTimestampFromMinutes(3) + 301, "1000+10");
-			FindDateBoundTest(ListUtils.ValueBound.Lower, TestEventTimestampFromMinutes(1000) + 50, "100000");
-			FindDateBoundTest(ListUtils.ValueBound.Lower, TestEventTimestampFromMinutes(300000), null);
+			FindDateBoundTest(ValueBound.Lower, TestEventTimestampFromMinutes(0), "1");
+			FindDateBoundTest(ValueBound.Lower, TestEventTimestampFromMinutes(1) + 3, "1+3");
+			FindDateBoundTest(ValueBound.Lower, TestEventTimestampFromMinutes(1) + 4, "1+10");
+			FindDateBoundTest(ValueBound.Lower, TestEventTimestampFromMinutes(3) + 300, "3+300");
+			FindDateBoundTest(ValueBound.Lower, TestEventTimestampFromMinutes(3) + 301, "1000+10");
+			FindDateBoundTest(ValueBound.Lower, TestEventTimestampFromMinutes(1000) + 50, "100000");
+			FindDateBoundTest(ValueBound.Lower, TestEventTimestampFromMinutes(300000), null);
 		}
 
 		[TestMethod]
 		public void FindDateBound_LowerReversedBound()
 		{
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(300000), "100000+100");
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(100000) + 101, "100000+100");
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(100000) + 100, "100000+100");
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(100000) + 99, "100000");
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(3) + 300, "3+300.2");
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(3) + 400, "3+300.2");
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(1), "1");
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(0), null);
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(300000), "100000+100");
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(100000) + 101, "100000+100");
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(100000) + 100, "100000+100");
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(100000) + 99, "100000");
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(3) + 300, "3+300.2");
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(3) + 400, "3+300.2");
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(1), "1");
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(0), null);
 
-			FindDateBoundTest(ListUtils.ValueBound.LowerReversed, TestEventTimestampFromMinutes(3) + 150, "3+100", 
+			FindDateBoundTest(ValueBound.LowerReversed, TestEventTimestampFromMinutes(3) + 150, "3+100", 
 				new EntryTimestamp(TestEventTimestampFromMinutes(3)).Partition);
 		}
 
@@ -217,7 +217,7 @@ namespace LogJoint.Azure
 					.Add(634929034680972605, "3")
 					.Add(634931678260882377, "4");
 			var bound = AzureDiagnosticsUtils.FindDateBound(tableMock,
-				new DateTime(634929210892764926, DateTimeKind.Utc), ListUtils.ValueBound.LowerReversed,
+				new DateTime(634929210892764926, DateTimeKind.Utc), ValueBound.LowerReversed,
 				new EntryPartition(0634929031800000000), new EntryPartition(0634932574800000000), CancellationToken.None);
 			Assert.IsTrue(bound.HasValue && (bound.Value.Entry as WADLogsTableEntry).Message == "3");
 		}
@@ -231,7 +231,7 @@ namespace LogJoint.Azure
 					.Add(634929034680972605, "3")
 					.Add(634931678260882377, "4");
 			var bound = AzureDiagnosticsUtils.FindDateBound(tableMock, new DateTime(634929213420972605, DateTimeKind.Utc),
-				ListUtils.ValueBound.Lower,
+				ValueBound.Lower,
 				new EntryPartition(0634929031800000000), new EntryPartition(0634932574800000000), CancellationToken.None);
 			Assert.IsTrue(bound.HasValue && (bound.Value.Entry as WADLogsTableEntry).Message == "4");
 		}

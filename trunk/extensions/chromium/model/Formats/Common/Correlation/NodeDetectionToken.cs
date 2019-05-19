@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics.Correlation;
+﻿using LogJoint.Postprocessing.Correlation;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace LogJoint.Chromium.Correlation
 			IEnumerable<ConsoleLogEntry> uniqueLogEntries = null
 		)
 		{
-			this.processIds = processIds.ToHashSet();
+			this.processIds = new HashSet<uint>(processIds);
 			this.iceCandidates = (iceCandidates ?? Enumerable.Empty<ICECandidateInfo>()).ToDictionary(c => c.Id);
 			this.logEntries = (uniqueLogEntries ?? Enumerable.Empty<ConsoleLogEntry>()).ToDictionary(l => l.LogText);
 		}

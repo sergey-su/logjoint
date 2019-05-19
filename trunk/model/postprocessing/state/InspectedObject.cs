@@ -1,7 +1,5 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
 
 namespace LogJoint.Postprocessing.StateInspector
 {

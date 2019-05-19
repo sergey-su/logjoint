@@ -15,8 +15,8 @@ namespace LogJoint.Postprocessing.Timeline
 		readonly ActivityType type;
 		readonly object beginTrigger;
 		readonly object endTrigger;
-		readonly IReadOnlyList<ActivityMilestone> milestones;
-		readonly IReadOnlyList<ActivityPhase> phases;
+		readonly IReadOnlyList<ActivityMilestoneInfo> milestones;
+		readonly IReadOnlyList<ActivityPhaseInfo> phases;
 		readonly HashSet<string> tags;
 		readonly bool isError;
 		readonly bool isEndedForcefully;
@@ -28,8 +28,8 @@ namespace LogJoint.Postprocessing.Timeline
 			string displayName, string activityMatchingId,
 			ActivityType type, 
 			object beginTrigger, object endTrigger, 
-			IEnumerable<ActivityMilestone> detachedMilestones,
-			IEnumerable<ActivityPhase> detachedPhases,
+			IEnumerable<ActivityMilestoneInfo> detachedMilestones,
+			IEnumerable<ActivityPhaseInfo> detachedPhases,
 			IEnumerable<string> tags,
 			bool isError,
 			bool isEndedForcefully)
@@ -44,9 +44,9 @@ namespace LogJoint.Postprocessing.Timeline
 			this.beginTrigger = beginTrigger;
 			this.endTrigger = endTrigger;
 			this.milestones = detachedMilestones.Select(
-				ms => new ActivityMilestone(this, ms.Owner, ms.Time, ms.DisplayName, ms.Trigger)).ToList().AsReadOnly();
+				ms => new ActivityMilestoneInfo(this, ms.Owner, ms.Time, ms.DisplayName, ms.Trigger)).ToList().AsReadOnly();
 			this.phases = detachedPhases.Select(
-				ph => new ActivityPhase(this, ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
+				ph => new ActivityPhaseInfo(this, ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
 			this.tags = new HashSet<string>(tags);
 			this.isError = isError;
 			this.isEndedForcefully = isEndedForcefully;
@@ -71,9 +71,9 @@ namespace LogJoint.Postprocessing.Timeline
 		object IActivity.EndTrigger { get { return endTrigger; } }
 
 
-		IReadOnlyList<ActivityMilestone> IActivity.Milestones { get { return milestones; } }
+		IReadOnlyList<ActivityMilestoneInfo> IActivity.Milestones { get { return milestones; } }
 
-		IReadOnlyList<ActivityPhase> IActivity.Phases { get { return phases; } }
+		IReadOnlyList<ActivityPhaseInfo> IActivity.Phases { get { return phases; } }
 		
 		ISet<string> IActivity.Tags { get { return tags; } }
 

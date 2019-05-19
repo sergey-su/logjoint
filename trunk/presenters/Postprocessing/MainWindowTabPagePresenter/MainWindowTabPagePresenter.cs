@@ -82,11 +82,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				RefreshView();
 			};
 
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.StateInspector, pm, outputFormsFactory, PostprocessorIds.StateInspector);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Timeline, pm, outputFormsFactory, PostprocessorIds.Timeline);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Sequence, pm, outputFormsFactory, PostprocessorIds.SequenceDiagram);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Correlate, pm, outputFormsFactory, PostprocessorIds.Correlator);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.TimeSeries, pm, outputFormsFactory, PostprocessorIds.TimeSeries);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.StateInspector, pm, outputFormsFactory, PostprocessorKind.StateInspector);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Timeline, pm, outputFormsFactory, PostprocessorKind.Timeline);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Sequence, pm, outputFormsFactory, PostprocessorKind.SequenceDiagram);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Correlate, pm, outputFormsFactory, PostprocessorKind.Correlator);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.TimeSeries, pm, outputFormsFactory, PostprocessorKind.TimeSeries);
 
 			foreach (var h in 
 				(logsCollectionControlHandlers.Count == 0 ? new IViewControlHandler[] { new GenericLogsOpenerControlHandler(newLogSourceDialog) } : logsCollectionControlHandlers.ToArray())
@@ -103,7 +103,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			ViewControlId postprocessorViewId,
 			IPostprocessorsManager postprocessorsManager,
 			IPostprocessorOutputFormFactory outputFormsFactory,
-			string postprocessorId
+			PostprocessorKind postprocessorKind
 		)
 		{
 			IViewControlHandler handler;
@@ -116,7 +116,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			else
 				handler = new LogSourcePostprocessorControlHandler(
 					postprocessorsManager,
-					postprocessorId,
+					postprocessorKind,
 					() => outputFormsFactory.GetPostprocessorOutputForm(postprocessorViewId),
 					shellOpen,
 					tempFiles

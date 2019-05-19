@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using LogJoint.Analytics;
 
 namespace LogJoint.Postprocessing.StateInspector
 {

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using UDF = LogJoint.RegularGrammar.UserDefinedFormatFactory;
 using System.Threading.Tasks;
-using LogJoint.Postprocessing.Timeline;
-using LJT = LogJoint.Analytics.InternalTrace;
-using LogJoint.Analytics;
-using System.Xml;
-using System.Threading;
-using LogJoint.Analytics.TimeSeries;
+using LJT = LogJoint.Postprocessing.InternalTrace;
+using LogJoint.Postprocessing;
 using LogJoint.Postprocessing.TimeSeries;
 
 namespace LogJoint.Postprocessing
@@ -17,21 +12,19 @@ namespace LogJoint.Postprocessing
 		public static void Register(
 			IPostprocessorsManager postprocessorsManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
-			ITempFilesManager tempFiles,
-			ITimeSeriesTypesAccess timeSeriesTypesAccess)
+			ITimeSeriesTypesAccess timeSeriesTypesAccess,
+			IModel postprocessingModel)
 		{
 			var fac = userDefinedFormatsManager.Items.FirstOrDefault(f => f.FormatName == "LogJoint debug trace") as UDF;
 			if (fac == null)
 				return;
-			var timeline = new LogSourcePostprocessorImpl(
-				PostprocessorIds.Timeline, "Timeline", // todo: avoid copy/pasing of the strings
-				p => new TimelinePostprocessorOutput(p, null),
-				input => RunTimelinePostprocessor(input, tempFiles)
+			var timeline = new LogSourcePostprocessor(
+				PostprocessorKind.Timeline,
+				input => RunTimelinePostprocessor(input, postprocessingModel)
 			);
-			var timeSeries = new LogSourcePostprocessorImpl(
-				PostprocessorIds.TimeSeries, "Time series", // todo: avoid copy/pasing of the strings
-				p => new TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess),
-				input => RunTimeSeriesPostprocessor(input, timeSeriesTypesAccess)
+			var timeSeries = new LogSourcePostprocessor(
+				PostprocessorKind.TimeSeries,
+				input => RunTimeSeriesPostprocessor(input, postprocessingModel)
 			);
 			timeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(typeof(LJT.ProfilingSeries).Assembly);
 			postprocessorsManager.RegisterLogType(new LogSourceMetadata(fac, new[]
@@ -42,11 +35,11 @@ namespace LogJoint.Postprocessing
 		}
 
 		static async Task RunTimelinePostprocessor(
-			LogSourcePostprocessorInput input, ITempFilesManager tempFiles)
+			LogSourcePostprocessorInput input, IModel postprocessingModel)
 		{
 			string outputFileName = input.OutputFileName;
-			var logProducer = LJT.Extensions.Read(new LJT.Reader(), input.LogFileName,
-				null, input.ProgressHandler).Multiplex();
+			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
+				input.ProgressHandler).Multiplex();
 
 			var profilingEvents = (new LJT.ProfilingTimelineEventsSource()).GetEvents(logProducer);
 
@@ -54,14 +47,11 @@ namespace LogJoint.Postprocessing
 				profilingEvents
 			);
 
-			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessingModel.Timeline.SavePostprocessorOutput(
 				lister,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((LJT.Message)evtTrigger),
-				input.InputContentsEtag,
-				outputFileName,
-				tempFiles,
-				input.CancellationToken
+				input
 			);
 
 			await Task.WhenAll(serialize, logProducer.Open());
@@ -69,16 +59,14 @@ namespace LogJoint.Postprocessing
 
 		static async Task RunTimeSeriesPostprocessor(
 			LogSourcePostprocessorInput input,
-			ITimeSeriesTypesAccess timeSeriesTypesAccess
+			IModel postprocessingModel
 		)
 		{
-			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
-
 			string outputFileName = input.OutputFileName;
-			var logProducer = LJT.Extensions.Read(new LJT.Reader(), input.LogFileName,
-				null, input.ProgressHandler).Multiplex();
+			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
+				input.ProgressHandler).Multiplex();
 
-			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
+			ICombinedParser parser = postprocessingModel.TimeSeries.CreateParser();
 
 			var events = parser.FeedLogMessages(logProducer, m => m.Text, m => m.Text);
 
@@ -86,14 +74,10 @@ namespace LogJoint.Postprocessing
 
 			foreach (var ts in parser.GetParsedTimeSeries())
 			{
-				ts.DataPoints = Analytics.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
+				ts.DataPoints = TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
 			}
 
-			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
-				parser.GetParsedTimeSeries(),
-				parser.GetParsedEvents(),
-				outputFileName,
-				timeSeriesTypesAccess);
+			await postprocessingModel.TimeSeries.SavePostprocessorOutput(parser, input);
 		}
 	}
 }

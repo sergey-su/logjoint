@@ -8,16 +8,6 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
-	public interface IPresenter
-	{
-		bool IsObjectEventPresented(ILogSource source, TextLogEventTrigger eventTrigger);
-		bool TrySelectObject(ILogSource source, TextLogEventTrigger objectEvent, Func<IInspectedObject, int> disambiguationFunction);
-		void Show();
-		IInspectedObject SelectedObject { get; }
-		event EventHandler<MenuData> OnMenu;
-		event EventHandler<NodeCreatedEventArgs> OnNodeCreated;
-	};
-
 	public interface IView
 	{
 		void SetEventsHandler(IViewModel eventsHandler);
@@ -123,22 +113,5 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		public string Time;
 		public string Message;
 		public object Data;
-	};
-
-	public class MenuData
-	{
-		public class Item
-		{
-			public string Text;
-			public Action Click;
-		};
-		public List<Item> Items;
-	};
-
-	public class NodeCreatedEventArgs
-	{
-		public IInspectedObject NodeObject { get; internal set; }
-		public bool? CreateCollapsed { get; set; }
-		public bool? CreateLazilyLoaded { get; set; }
 	};
 }

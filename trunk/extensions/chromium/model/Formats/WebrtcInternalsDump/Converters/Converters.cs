@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics;
+﻿using LogJoint.Postprocessing;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;

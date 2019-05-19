@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using M = LogJoint.Analytics.Messaging;
-using TLBlock = LogJoint.Analytics.Timeline;
-using SIBlock = LogJoint.Analytics.StateInspector;
+using M = LogJoint.Postprocessing.Messaging;
+using TLBlock = LogJoint.Postprocessing.Timeline;
+using SIBlock = LogJoint.Postprocessing.StateInspector;
 using System.Xml.Linq;
-using LogJoint.Analytics;
 using System.Xml;
 using System.Threading.Tasks;
 using System.Threading;

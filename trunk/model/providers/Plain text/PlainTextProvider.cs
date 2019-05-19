@@ -17,7 +17,7 @@ namespace LogJoint.PlainText
 			:
 			base(host, factory, connectParams)
 		{
-			this.fileName = connectParams[ConnectionParamsUtils.PathConnectionParam];
+			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
 		}
 
@@ -85,7 +85,7 @@ namespace LogJoint.PlainText
 							XmlWriter writer = output.BeginWriteMessage(false);
 							writer.WriteStartElement("m");
 							writer.WriteAttributeString("d", Listener.FormatDate(lastModified));
-							writer.WriteString(Analytics.XmlUtils.RemoveInvalidXMLChars(capture.MessageHeader));
+							writer.WriteString(XmlUtils.RemoveInvalidXMLChars(capture.MessageHeader));
 							writer.WriteEndElement();
 							output.EndWriteMessage();
 						}

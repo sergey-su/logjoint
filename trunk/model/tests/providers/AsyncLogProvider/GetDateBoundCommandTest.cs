@@ -164,14 +164,14 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 			return d1.AddTicks((d2 - d1).Ticks / 2);
 		}
 
-		static string ToString(ListUtils.ValueBound bound)
+		static string ToString(ValueBound bound)
 		{
 			switch (bound)
 			{
-				case LogJoint.ListUtils.ValueBound.Lower: return "L";
-				case LogJoint.ListUtils.ValueBound.LowerReversed: return "LR";
-				case LogJoint.ListUtils.ValueBound.Upper: return "U";
-				case LogJoint.ListUtils.ValueBound.UpperReversed: return "UR";
+				case LogJoint.ValueBound.Lower: return "L";
+				case LogJoint.ValueBound.LowerReversed: return "LR";
+				case LogJoint.ValueBound.Upper: return "U";
+				case LogJoint.ValueBound.UpperReversed: return "UR";
 				default: Assert.Fail(); return "";
 			}
 		}
@@ -206,7 +206,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 			int dateIdx = 0;
 			foreach (var dateToTest in datesToTest)
 			{
-				foreach (var bound in new[] { ListUtils.ValueBound.Lower, ListUtils.ValueBound.LowerReversed, ListUtils.ValueBound.Upper, ListUtils.ValueBound.UpperReversed })
+				foreach (var bound in new[] { ValueBound.Lower, ValueBound.LowerReversed, ValueBound.Upper, ValueBound.UpperReversed })
 				{
 					var testId = string.Format("{0}{1}", dateIdx, ToString(bound));
 

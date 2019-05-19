@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
-using LogJoint.RegularExpressions;
 using System.Threading;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
@@ -288,7 +284,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,
-			ListUtils.ValueBound bound,
+			ValueBound bound,
 			LogProviderCommandPriority priority,
 			CancellationToken cancellation
 		);

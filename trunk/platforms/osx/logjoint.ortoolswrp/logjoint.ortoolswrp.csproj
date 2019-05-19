@@ -15,7 +15,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\Debug</OutputPath>
+    <OutputPath>..\bin\Debug\logjoint.app\Contents\MonoBundle</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Release</OutputPath>
+    <OutputPath>..\bin\Release\logjoint.app\Contents\MonoBundle</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ExternalConsole>true</ExternalConsole>
@@ -47,13 +47,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\..\..\analytics\ortoolswpr\Program.cs">
+    <Compile Include="..\..\..\model\postprocessing\correlator\ortoolswpr\Program.cs">
       <Link>Program.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
       <Link>Protocol.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs">
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs">
       <Link>OrToolsSolverCore.cs</Link>
     </Compile>
   </ItemGroup>
@@ -62,6 +62,28 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="prebuilt\libcvrptw_lib.dylib">
+      <Link>ortools\libcvrptw_lib.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="prebuilt\libdimacs.dylib">
+      <Link>ortools\libdimacs.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="prebuilt\libfap.dylib">
+      <Link>ortools\libfap.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="prebuilt\libGoogle.OrTools.so">
+      <Link>ortools\libGoogle.OrTools.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="prebuilt\libortools.dylib">
+      <Link>ortools\libortools.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

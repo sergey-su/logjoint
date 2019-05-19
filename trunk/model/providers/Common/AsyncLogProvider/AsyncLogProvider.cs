@@ -85,7 +85,7 @@ namespace LogJoint
 		}
 
 		Task<DateBoundPositionResponseData> ILogProvider.GetDateBoundPosition(
-			DateTime d, ListUtils.ValueBound bound, bool getDate,
+			DateTime d, ValueBound bound, bool getDate,
 			LogProviderCommandPriority priority, CancellationToken cancellation)
 		{
 			CheckDisposed();

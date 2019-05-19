@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer
@@ -460,7 +460,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						foreach (var b in tmp)
 						{
 							var dateBound = await b.Source.GetDateBoundPosition(
-								d, ListUtils.ValueBound.Upper, LogProviderCommandPriority.RealtimeUserAction, cancellation);
+								d, ValueBound.Upper, LogProviderCommandPriority.RealtimeUserAction, cancellation);
 							cancellation.ThrowIfCancellationRequested();
 							datePosition += b.Source.MapPositionToScrollPosition(dateBound.Position);
 						}

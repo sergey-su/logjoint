@@ -122,7 +122,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		{
 			public ILogSource ls;
 
-			Task<DateBoundPositionResponseData> IMessagesSource.GetDateBoundPosition (DateTime d, ListUtils.ValueBound bound, 
+			Task<DateBoundPositionResponseData> IMessagesSource.GetDateBoundPosition (DateTime d, ValueBound bound, 
 				LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
 				return ls.Provider.GetDateBoundPosition(d, bound, false, priority, cancellation);

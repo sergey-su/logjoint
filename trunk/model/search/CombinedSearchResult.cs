@@ -72,7 +72,7 @@ namespace LogJoint
 			get { return logSource; }
 		}
 
-		DateBoundPositionResponseData ICombinedSourceSearchResult.GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound)
+		DateBoundPositionResponseData ICombinedSourceSearchResult.GetDateBoundPosition(DateTime d, ValueBound bound)
 		{
 			return messages.GetDateBoundPosition(d, bound);
 		}
@@ -89,7 +89,7 @@ namespace LogJoint
 
 		long ICombinedSourceSearchResult.MapMessagePositionToSequentialPosition(long pos)
 		{
-			var idx = ListUtils.GetBound(messages.Items, null, ListUtils.ValueBound.Lower, new PositionsComparer(pos));
+			var idx = ListUtils.GetBound(messages.Items, null, ValueBound.Lower, new PositionsComparer(pos));
 			if (idx == messages.Count)
 				return lastSequentialPosition;
 			return sequentialMessagesPositions[idx];

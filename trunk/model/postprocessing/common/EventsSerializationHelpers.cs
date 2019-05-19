@@ -7,7 +7,7 @@ using System.Xml;
 using System.Xml.Linq;
 using LogJoint.Postprocessing;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	internal static class EventsSerializationHelpers
 	{
@@ -39,7 +39,7 @@ namespace LogJoint.Analytics
 						ConformanceLevel = ConformanceLevel.Fragment
 					}))
 					{
-						foreach (var e in serializer.Output.OrderBy(e => e.AttributeValue(sortKeyAttr)))
+						foreach (var e in serializer.Output.OrderBy(e => e.Attribute(sortKeyAttr).Value))
 							e.WriteTo(writer);
 					}
 				}
@@ -80,9 +80,9 @@ namespace LogJoint.Analytics
 				var readers = chunks.Select(chunkFileName => XmlReader.Create(chunkFileName, readersSettings)).ToList();
 				try
 				{
-					var q = new VCSKicksCollection.PriorityQueue<KeyValuePair<XmlReader, XElement>>(new ListUtils.LambdaComparer<KeyValuePair<XmlReader, XElement>>((item1, item2) =>
+					var q = new VCSKicksCollection.PriorityQueue<KeyValuePair<XmlReader, XElement>>(Comparer<KeyValuePair<XmlReader, XElement>>.Create((item1, item2) =>
 					{
-						return string.CompareOrdinal(item1.Value.AttributeValue(sortKeyAttr), item2.Value.AttributeValue(sortKeyAttr));
+						return string.CompareOrdinal(item1.Value.Attribute(sortKeyAttr).Value, item2.Value.Attribute(sortKeyAttr).Value);
 					}));
 					Action<XmlReader> enqueueReader = reader =>
 					{

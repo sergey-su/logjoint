@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using LogJoint.UI.Presenters.MainForm;
 using LogJoint.UI.Presenters.NewLogSourceDialog;
 using LogJoint.Wireshark.Dpml;
 

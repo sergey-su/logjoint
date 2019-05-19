@@ -39,9 +39,9 @@ namespace LogJoint.Postprocessing
 							ctx.heartbeat.OnTimer += updateProgress;
 							try
 							{
-								using (var perfop = new Profiling.Operation(ctx.tracer, "load output " + ctx.owner.metadata.TypeID))
+								using (var perfop = new Profiling.Operation(ctx.tracer, "load output " + ctx.owner.metadata.Kind.ToString()))
 								{
-									return await ctx.threadPoolSyncContext.Invoke(() => ctx.owner.metadata.DeserializeOutputData(new LogSourcePostprocessorDeserializationParams()
+									return await ctx.threadPoolSyncContext.Invoke(() => ctx.outputDataDeserializer.Deserialize(ctx.owner.metadata.Kind, new LogSourcePostprocessorDeserializationParams()
 									{
 										Reader = existingSection.Reader,
 										LogSource = ctx.owner.logSourceRecord.logSource,
@@ -76,7 +76,7 @@ namespace LogJoint.Postprocessing
 				if (task.IsFaulted)
 				{
 					ctx.tracer.Error(task.Exception, "Failed to load postproc output {0} {1}",
-						ctx.owner.logSourceRecord.metadata.LogProviderFactory, ctx.owner.metadata.TypeID);
+						ctx.owner.logSourceRecord.metadata.LogProviderFactory, ctx.owner.metadata.Kind);
 					// If reading a file throws exception assume that cached format is old and unsupported.
 					return new NeverRunState(ctx);
 				}

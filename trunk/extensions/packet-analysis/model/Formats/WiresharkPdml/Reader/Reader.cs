@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics;
+﻿using LogJoint.Postprocessing;
 using System;
 using System.Linq;
 using System.Globalization;
@@ -10,32 +10,30 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Xml;
 using System.Collections.Immutable;
+using LogJoint.PacketAnalysis;
 
 namespace LogJoint.Wireshark.Dpml
 {
 	public class Reader : IReader
 	{
+		readonly ITextLogParser textLogParser;
 		readonly CancellationToken cancellation;
 
-		public Reader(CancellationToken cancellation)
+		public Reader(ITextLogParser textLogParser, CancellationToken cancellation)
 		{
+			this.textLogParser = textLogParser;
 			this.cancellation = cancellation;
 		}
 
-		public Reader()
-			: this(CancellationToken.None)
+		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler = null)
 		{
+			return Read(() => new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), s => s.Dispose(), progressHandler);
 		}
 
-		public IEnumerableAsync<Message[]> Read(string dataFileName, string logFileNameHint = null, Action<double> progressHandler = null)
-		{
-			return Read(() => new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), s => s.Dispose(), logFileNameHint ?? dataFileName, progressHandler);
-		}
-
-		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, string logFileNameHint = null, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())
-				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, logFileNameHint, cancellation, progressHandler), false);
+				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler, textLogParser), false);
 		}
 
 		class Context : IDisposable
@@ -51,16 +49,16 @@ namespace LogJoint.Wireshark.Dpml
 			public async Task Read(
 				IYieldAsync<Message[]> yieldAsync,
 				Func<Stream> getStream, Action<Stream> releaseStream,
-				string fileNameHint,
 				CancellationToken cancellation,
-				Action<double> progressHandler)
+				Action<double> progressHandler,
+				ITextLogParser textLogParser)
 			{
 				var inputStream = getStream();
 				try
 				{
-					await TextLogParser.ParseStream(
+					await textLogParser.ParseStream(
 						inputStream,
-						new RegexHeaderMatcher(logMessageRegex),
+						textLogParser.CreateRegexHeaderMatcher(logMessageRegex),
 						async messagesInfo =>
 						{
 							var outMessages = new List<Message>();
@@ -92,7 +90,7 @@ namespace LogJoint.Wireshark.Dpml
 										{
 											var tsAttrValue = protoElement.Elements("field").Where(f => f.AttributeValue("name") == "timestamp").Select(f => f.AttributeValue("value")).FirstOrDefault();
 											if (tsAttrValue != null && double.TryParse(tsAttrValue, out var tsParsed))
-												timestamp = TimeUtils.UnixTimestampMillisToDateTime(tsParsed * 1000);
+												timestamp = Utils.UnixTimestampMillisToDateTime(tsParsed * 1000);
 											var frameNumberAttrValue = protoElement.Elements("field").Where(f => f.AttributeValue("name") == "num").Select(f => f.AttributeValue("value")).FirstOrDefault();
 											if (frameNumberAttrValue != null && long.TryParse(frameNumberAttrValue, NumberStyles.HexNumber, null, out var frameNumberParsed))
 												frameNumber = frameNumberParsed;
@@ -133,7 +131,10 @@ namespace LogJoint.Wireshark.Dpml
 								return false;
 
 							return await yieldAsync.YieldAsync(outMessages.ToArray());
-						}, progressHandler, rawBufferSize: 16 * 1024 * 1024);
+						}, new TextLogParserOptions(progressHandler)
+						{
+							RawBufferSize = 16 * 1024 * 1024
+						});
 				}
 				finally
 				{

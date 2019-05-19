@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
+using LogJoint.PacketAnalysis;
+using System.Collections.Generic;
 
 namespace LogJoint.Wireshark.Dpml
 {
@@ -34,15 +36,15 @@ namespace LogJoint.Wireshark.Dpml
 			using (var xmlReader = XmlReader.Create(process.StandardOutput))
 			using (var writer = new StreamWriter(outputFile, false, new UTF8Encoding(false)))
 			{
-				var packetsRead = new Ref<int>();
+				var packetsRead = 0;
 				var processTask = process.GetExitCodeAsync(TimeSpan.FromMinutes(5));
 				using (var statusReportTimer = new Timer(
-					_ => reportStatus($"scanning: {packetsRead.Value} packets"), null,
+					_ => reportStatus($"scanning: {packetsRead} packets"), null,
 					TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1)))
 				{
 					await Task.WhenAll(
 						processTask,
-						Convert(xmlReader, writer, cancellation, packetsRead, trace)
+						Convert(xmlReader, writer, cancellation, val => packetsRead = val, trace)
 					);
 				}
 				if (processTask.Result != 0)
@@ -93,7 +95,7 @@ namespace LogJoint.Wireshark.Dpml
 			return "<packet>";
 		}
 
-		private static async Task Convert(XmlReader xmlReader, TextWriter writer, CancellationToken cancellation, Ref<int> packetsRead, LJTraceSource trace)
+		private static async Task Convert(XmlReader xmlReader, TextWriter writer, CancellationToken cancellation, Action<int> reportPacketsRead, LJTraceSource trace)
 		{
 			if (!xmlReader.ReadToFollowing("pdml"))
 				throw new Exception("bad pdml");
@@ -110,11 +112,13 @@ namespace LogJoint.Wireshark.Dpml
 				(e) => DeleteProto(e, "eth"),
 			};
 
+			int packetsRead = 0;
+
 			BlockingCollection<XElement> queue = new BlockingCollection<XElement>(1024);
 
 			var producer = Task.Factory.StartNew(() => 
 			{
-				foreach (var packet in xmlReader.ReadChildrenElements())
+				foreach (var packet in ReadChildrenElements(xmlReader))
 				{
 					queue.Add(packet);
 					if (cancellation.IsCancellationRequested)
@@ -158,7 +162,8 @@ namespace LogJoint.Wireshark.Dpml
 
 						packet.WriteTo(xmlWriter);
 
-						++packetsRead.Value;
+						++packetsRead;
+						reportPacketsRead(packetsRead);
 					}
 				}
 				writer.WriteLine();
@@ -166,10 +171,30 @@ namespace LogJoint.Wireshark.Dpml
 				writer.WriteLine("</pdml>");
 
 				trace.Info("PCAP conversion finished. Total packets read: {0}, packets compressed: {1}", 
-					packetsRead.Value, packetsCompressed);
+					packetsRead, packetsCompressed);
 			});
 
 			await Task.WhenAll(producer, consumer);
 		}
+
+		public static IEnumerable<XElement> ReadChildrenElements(XmlReader inputReader)
+		{
+			var reader = XmlReader.Create(inputReader, new XmlReaderSettings
+			{
+				IgnoreWhitespace = true,
+				IgnoreComments = true
+			});
+			if (reader.NodeType != XmlNodeType.Element)
+			{
+				throw new InvalidOperationException("can not read children of non-element " + reader.NodeType.ToString());
+			}
+			reader.ReadStartElement();
+			for (; reader.Read() && reader.NodeType == XmlNodeType.Element;)
+			{
+				using (var elementReader = reader.ReadSubtree())
+					yield return XElement.Load(elementReader);
+			}
+		}
+
 	};
 }

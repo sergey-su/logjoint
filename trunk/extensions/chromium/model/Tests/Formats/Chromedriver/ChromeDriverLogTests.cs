@@ -1,21 +1,22 @@
 ﻿using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.Threading.Tasks;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
+using System.Threading;
 
 namespace LogJoint.Chromium.ChromeDriver
 {
-	[TestClass]
+	[TestFixture]
 	public class ChromeDriverLogTests
 	{
-		[TestMethod, TestCategory("SplitAndCompose")]
+		[Test, Category("SplitAndCompose")]
 		public async Task ChromeDriver_SplitAndComposeTest()
 		{
 			var testStream = Utils.GetResourceStream("chromedriver_2019_01_23");
 
 			var actualContent = new MemoryStream();
 
-			var reader = new Reader();
+			var reader = new Reader(new TextLogParser(), CancellationToken.None);
 			var writer = new Writer();
 
 			await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));
@@ -26,14 +27,14 @@ namespace LogJoint.Chromium.ChromeDriver
 			);
 		}
 
-		[TestMethod, TestCategory("SplitAndCompose")]
+		[Test, Category("SplitAndCompose")]
 		public async Task ChromeDriver_SplitAndCompose_WithForeignLogging()
 		{
 			var testStream = Utils.GetResourceStream("chromedriver_2019_01_22");
 
 			var actualContent = new MemoryStream();
 
-			var reader = new Reader();
+			var reader = new Reader(new TextLogParser(), CancellationToken.None);
 			var writer = new Writer();
 
 			await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));
@@ -44,11 +45,11 @@ namespace LogJoint.Chromium.ChromeDriver
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task ForeignLoggingAtEndOfMssagesIsIgnored()
 		{
 			var testStream = Utils.GetResourceStream("chromedriver_2019_01_22");
-			var messages = await (new Reader()).Read(() => testStream, _ => { }).ToFlatList();
+			var messages = await (new Reader(new TextLogParser(), CancellationToken.None)).Read(() => testStream, _ => { }).ToFlatList();
 
 			var parsedMessage = DevTools.Events.LogMessage.Parse(messages[1].Text);
 			Assert.AreEqual("loadingFinished", parsedMessage.EventType);

@@ -71,7 +71,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			public MessagesContainers.ListBasedCollection messages = new MessagesContainers.ListBasedCollection();
 			public ILogSource logSourceHint = null;
 
-			Task<DateBoundPositionResponseData> IMessagesSource.GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound, LogProviderCommandPriority priority, System.Threading.CancellationToken cancellation)
+			Task<DateBoundPositionResponseData> IMessagesSource.GetDateBoundPosition(DateTime d, ValueBound bound, LogProviderCommandPriority priority, System.Threading.CancellationToken cancellation)
 			{
 				return Task.FromResult(messages.GetDateBoundPosition(d, bound));
 			}

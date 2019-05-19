@@ -101,39 +101,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\extensibility\Application.cs">
-      <Link>extensibility\Application.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IApplication.cs">
-      <Link>extensibility\IApplication.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IModel.cs">
-      <Link>extensibility\IModel.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IPresentation.cs">
-      <Link>extensibility\IPresentation.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\Model.cs">
-      <Link>extensibility\Model.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\windows\IMainFormTabExtension.cs">
-      <Link>extensibility\IMainFormTabExtension.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\windows\IView.cs">
-      <Link>extensibility\IView.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\windows\View.cs">
-      <Link>extensibility\View.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\PluginBase.cs">
-      <Link>extensibility\PluginBase.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\PluginsManager.cs">
-      <Link>extensibility\PluginsManager.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\Presentation.cs">
-      <Link>extensibility\Presentation.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
       <Link>workspaces\AzureWorkspacesBackend.cs</Link>
     </Compile>
@@ -190,6 +157,8 @@
     <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
+    <Compile Include="extensibility\Application.cs" />
+    <Compile Include="extensibility\View.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="progress\TaskbarProgress.cs" />
@@ -995,10 +964,6 @@
     <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\analytics\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{13757F5D-5BC1-40AD-95BF-65C63549CDCC}</Project>
-      <Name>logjoint.analytics</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
@@ -1010,6 +975,18 @@
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
+      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
+      <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
+      <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
+      <Name>logjoint.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

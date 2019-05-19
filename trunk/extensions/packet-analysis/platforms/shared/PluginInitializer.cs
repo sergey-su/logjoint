@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using LogJoint.Extensibility;
+using LogJoint;
 
 namespace LogJoint.PacketAnalysis
 {
@@ -12,9 +12,9 @@ namespace LogJoint.PacketAnalysis
 		)
 		{
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
-				app.Model.Postprocessing.PostprocessorsManager, 
+				app.Model.Postprocessing.Manager, 
 				app.Model.UserDefinedFormatsManager, 
-				new Timeline.PostprocessorsFactory(app.Model.TempFilesManager)
+				new Timeline.PostprocessorsFactory(app.Model.Postprocessing)
 			);
 
 			var tshark = new Wireshark.Dpml.TShark();

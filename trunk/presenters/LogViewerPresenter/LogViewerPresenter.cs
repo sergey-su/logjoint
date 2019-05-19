@@ -339,12 +339,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var candidates = (await Task.WhenAll(preferredSources.Select(async preferredSource =>  
 					{
 						var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
-							date, ListUtils.ValueBound.Lower, 
+							date, ValueBound.Lower, 
 							getMessage: true,
 							priority: LogProviderCommandPriority.RealtimeUserAction, 
 							cancellation: cancellation);
 						var upperDatePos = await preferredSource.Provider.GetDateBoundPosition(
-							date, ListUtils.ValueBound.UpperReversed, 
+							date, ValueBound.UpperReversed, 
 							getMessage: true,
 							priority: LogProviderCommandPriority.RealtimeUserAction, 
 							cancellation: cancellation);

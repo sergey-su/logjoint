@@ -1,11 +1,9 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
+﻿using System.Collections.Generic;
 using System;
-using System.Collections.Generic;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
-	public interface IStateInspectorOutput: IPostprocessorOutputETag
+	public interface IStateInspectorOutput : IPostprocessorOutputETag
 	{
 		ILogSource LogSource { get; }
 		IList<Event> Events { get; }

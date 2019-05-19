@@ -194,7 +194,7 @@ namespace LogJoint
 					process.Kill();
 				throw new TimeoutException(string.Format("Process {0} {1} did not exit in time",
 					process.Id,
-					process.StartInfo != null ? Path.GetFileName(process.StartInfo.FileName) : "<uknown image>"));
+					process.StartInfo != null ? Path.GetFileName(process.StartInfo.FileName) : "<unknown image>"));
 			}
 			finally
 			{

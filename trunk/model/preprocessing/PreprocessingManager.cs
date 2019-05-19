@@ -53,7 +53,7 @@ namespace LogJoint.Preprocessing
 		}
 
 		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
-			RecentLogEntry recentLogEntry,
+			IRecentlyUsedEntity recentLogEntry,
 			PreprocessingOptions options)
 		{
 			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry, options));
@@ -97,7 +97,7 @@ namespace LogJoint.Preprocessing
 			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
 			if (getStep != null)
 				return getStep.GetContentsUrl(steps[0].Param);
-			var path = connectParams[ConnectionParamsUtils.PathConnectionParam];
+			var path = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			if (!tempFilesManager.IsTemporaryFile(path))
 				return path;
 			return null;
@@ -119,7 +119,7 @@ namespace LogJoint.Preprocessing
 			}
 			else
 			{
-				fileName = connectParams[ConnectionParamsUtils.PathConnectionParam];
+				fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			}
 			if (!string.IsNullOrEmpty(fileName) && !tempFilesManager.IsTemporaryFile(fileName))
 			{
@@ -134,7 +134,7 @@ namespace LogJoint.Preprocessing
 			var steps = LoadStepsFromConnectionParams(connectParams).ToList();
 			if (steps.Count == 0)
 			{
-				var path = connectParams[ConnectionParamsUtils.PathConnectionParam];
+				var path = connectParams[ConnectionParamsKeys.PathConnectionParam];
 				if (path == null)
 					return null;
 				steps.Add(new LoadedPreprocessingStep(GetPreprocessingStep.name, path));
@@ -144,7 +144,7 @@ namespace LogJoint.Preprocessing
 			int stepIdx = 0;
 			foreach (var step in steps)
 			{
-				retVal[string.Format("{0}{1}", ConnectionParamsUtils.PreprocessingStepParamPrefix, stepIdx)] = 
+				retVal[string.Format("{0}{1}", ConnectionParamsKeys.PreprocessingStepParamPrefix, stepIdx)] = 
 					string.Format(string.IsNullOrEmpty(step.Param) ? "{0}" : "{0} {1}", step.Action, step.Param);
 				++stepIdx;
 			}
@@ -189,7 +189,7 @@ namespace LogJoint.Preprocessing
 				LogSourcesPreprocessingManager owner,
 				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback,
-				RecentLogEntry recentLogEntry,
+				IRecentlyUsedEntity recentLogEntry,
 				PreprocessingOptions options 
 			) :
 				this(owner, userRequests, providerYieldedCallback)
@@ -377,7 +377,7 @@ namespace LogJoint.Preprocessing
 				yieldedProviders.Add(provider);
 			}
 
-			void IPreprocessingStepCallback.YieldChildPreprocessing(RecentLogEntry recentLogEntry, bool isHiddenLog)
+			void IPreprocessingStepCallback.YieldChildPreprocessing(IRecentlyUsedEntity recentLogEntry, bool isHiddenLog)
 			{
 				childPreprocessings.Add(new ChildPreprocessingParams() { Param = recentLogEntry, MakeHiddenLog = isHiddenLog } );
 			}
@@ -503,7 +503,7 @@ namespace LogJoint.Preprocessing
 				if (steps.Length == 1 && steps[0].Action == GetPreprocessingStep.name)
 				{
 					providerConnectionParams = providerConnectionParams.Clone();
-					providerConnectionParams[ConnectionParamsUtils.PreprocessingStepParamPrefix + "0"] = null;
+					providerConnectionParams[ConnectionParamsKeys.PreprocessingStepParamPrefix + "0"] = null;
 					return providerConnectionParams;
 				}
 
@@ -547,7 +547,7 @@ namespace LogJoint.Preprocessing
 
 		struct ChildPreprocessingParams
 		{
-			public RecentLogEntry Param;
+			public IRecentlyUsedEntity Param;
 			public bool MakeHiddenLog;
 		};
 
@@ -575,7 +575,7 @@ namespace LogJoint.Preprocessing
 		{
 			for (int stepIdx = 0; ; ++stepIdx)
 			{
-				string stepStr = connectParams[string.Format("{0}{1}", ConnectionParamsUtils.PreprocessingStepParamPrefix, stepIdx)];
+				string stepStr = connectParams[string.Format("{0}{1}", ConnectionParamsKeys.PreprocessingStepParamPrefix, stepIdx)];
 				if (stepStr == null)
 					break;
 				stepStr = stepStr.Trim();
@@ -692,17 +692,5 @@ namespace LogJoint.Preprocessing
 		int lastPreprocId;
 
 		#endregion
-	};
-
-	public class LogSourcePreprocessingEventArg : EventArgs
-	{
-		public ILogSourcePreprocessing LogSourcePreprocessing { get { return lsp; } }
-
-		public LogSourcePreprocessingEventArg(ILogSourcePreprocessing lsp)
-		{
-			this.lsp = lsp;
-		}
-
-		ILogSourcePreprocessing lsp;
 	};
 }

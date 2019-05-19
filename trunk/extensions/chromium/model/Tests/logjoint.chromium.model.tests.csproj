@@ -36,10 +36,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\platforms\windows\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\platforms\windows\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -59,22 +61,23 @@
     <Compile Include="Formats\Chromedriver\ChromeDriverLogTests.cs" />
     <Compile Include="Formats\Chromedebug\ChromeDebugLogTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LogSamples\chrome_debug_2017_06_26.log" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\platforms\windows\analytics\logjoint.analytics.tests\logjoint.analytics.tests.csproj">
-      <Project>{f70a6488-2e6c-4464-b94b-bf34b92c0388}</Project>
-      <Name>logjoint.analytics.tests</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\platforms\windows\analytics\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
-      <Name>logjoint.analytics</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
       <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
       <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\platforms\windows\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
+      <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
+      <Name>logjoint.chromium.plugin.model.sdk</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\platforms\windows\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj">
       <Project>{5c3545db-36b8-4de2-a2ca-b816910d389b}</Project>
@@ -88,6 +91,7 @@
   <ItemGroup>
     <EmbeddedResource Include="LogSamples\chromedriver_2019_01_23.log" />
     <EmbeddedResource Include="LogSamples\chromedriver_2019_01_22.log" />
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

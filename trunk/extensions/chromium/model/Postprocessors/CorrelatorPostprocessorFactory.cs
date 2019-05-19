@@ -1,15 +1,13 @@
 ﻿using System.Threading.Tasks;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
 using CD = LogJoint.Chromium.ChromeDriver;
-using LogJoint.Postprocessing.Correlator;
-using LogJoint.Analytics.Correlation;
-using M = LogJoint.Analytics.Messaging;
+using LogJoint.Postprocessing.Correlation;
+using M = LogJoint.Postprocessing.Messaging;
 using System.Collections.Generic;
-using LogJoint.Analytics.Messaging.Analisys;
+using LogJoint.Postprocessing.Messaging.Analisys;
 using System.Text;
 using System;
 
@@ -22,22 +20,21 @@ namespace LogJoint.Chromium.Correlator
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly Extensibility.IModel ljModel;
+		readonly IModel ljModel;
 		readonly ISynchronizationContext modelThreadSync;
 		readonly IPostprocessorsManager postprocessorsManager;
 
-		public PostprocessorsFactory(Extensibility.IModel ljModel)
+		public PostprocessorsFactory(IModel ljModel)
 		{
 			this.ljModel = ljModel;
 			this.modelThreadSync = ljModel.ModelThreadSynchronization;
-			this.postprocessorsManager = ljModel.Postprocessing.PostprocessorsManager;
+			this.postprocessorsManager = ljModel.Postprocessing.Manager;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)
 		{
-			return new LogSourcePostprocessorImpl(
-				PostprocessorIds.Correlator, "Logs correlation",
-				(p) => CorrelatorPostprocessorOutput.Parse(p.Reader),
+			return new LogSourcePostprocessor(
+				PostprocessorKind.Correlator,
 				inputFiles => Run(inputFiles, postprocessorsRegistry)
 			);
 		}
@@ -68,8 +65,8 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.ChromeDebugLog.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new CDL.Reader(inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.GetLogFileNameHint(), inputFile.ProgressHandler);
-						IPrefixMatcher prefixMatcher = new PrefixMatcher();
+						var reader = (new CDL.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("chrome-debug", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = CDL.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
 						var webRtcStateInspector = new CDL.WebRtcStateInspector(prefixMatcher);
@@ -94,8 +91,8 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.WebRtcInternalsDump.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new WRD.Reader(inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.GetLogFileNameHint(), inputFile.ProgressHandler);
-						IPrefixMatcher prefixMatcher = new PrefixMatcher();
+						var reader = (new WRD.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("webrtc-int", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = WRD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
 						var webRtcStateInspector = new WRD.WebRtcStateInspector(prefixMatcher);
@@ -119,8 +116,8 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.ChromeDriver.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new CD.Reader(inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.GetLogFileNameHint(), inputFile.ProgressHandler);
-						IPrefixMatcher prefixMatcher = new PrefixMatcher();
+						var reader = (new CD.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("webrtc-int", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = CD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
 						var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
@@ -165,10 +162,7 @@ namespace LogJoint.Chromium.Correlator
 
 			var allowInstacesMergingForRoles = new HashSet<string>();
 
-			ICorrelator correlator = new LogJoint.Analytics.Correlation.Correlator(
-				new M.Analisys.InternodeMessagesDetector(),
-				SolverFactory.Create()
-			);
+			ICorrelator correlator = ljModel.Postprocessing.CreateCorrelator();
 			var correlatorSolution = await correlator.Correlate(
 				allLogs.ToDictionary(i => i.NodeId, i => (IEnumerable<M.Event>)i.MessagesTask.Result),
 				fixedConstraints,
@@ -208,7 +202,7 @@ namespace LogJoint.Chromium.Correlator
 					NodeSolution sln;
 					if (timeOffsets.TryGetValue(ls, out sln))
 					{
-						ITimeOffsetsBuilder builder = new TimeOffsets.Builder();
+						ITimeOffsetsBuilder builder = ljModel.SourcesManager.CreateTimeOffsetsBuilder();
 						builder.SetBaseOffset(sln.BaseDelta);
 						if (sln.TimeDeltas != null)
 							foreach (var d in sln.TimeDeltas)

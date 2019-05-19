@@ -119,7 +119,7 @@ namespace LogJoint.Preprocessing
 					string preprocessingStep = string.Format("{0} {1}", name, entry.FileName);
 
 					if (!onNext(new PreprocessingStepParams(tmpFileName, entryFullPath,
-							Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep))))
+							sourceFile.PreprocessingSteps.Concat(new[] { preprocessingStep }))))
 					{
 						break;
 					}

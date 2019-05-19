@@ -1,5 +1,5 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.Correlation;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Correlation;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text.RegularExpressions;

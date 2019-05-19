@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics;
+﻿using LogJoint.Postprocessing;
 using System;
 using System.Linq;
 using System.Globalization;
@@ -11,27 +11,24 @@ namespace LogJoint.Chromium.ChromeDebugLog
 {
 	public class Reader : IReader
 	{
-		CancellationToken cancellation;
+		readonly CancellationToken cancellation;
+		readonly ITextLogParser textLogParser;
 
-		public Reader(CancellationToken cancellation)
+		public Reader(ITextLogParser textLogParser, CancellationToken cancellation)
 		{
 			this.cancellation = cancellation;
+			this.textLogParser = textLogParser;
 		}
 
-		public Reader()
-			: this(CancellationToken.None)
+		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler = null)
 		{
+			return Read(() => new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), s => s.Dispose(), progressHandler);
 		}
 
-		public IEnumerableAsync<Message[]> Read(string dataFileName, string logFileNameHint = null, Action<double> progressHandler = null)
-		{
-			return Read(() => new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), s => s.Dispose(), logFileNameHint ?? dataFileName, progressHandler);
-		}
-
-		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, string logFileNameHint = null, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())
-				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, logFileNameHint, cancellation, progressHandler), false);
+				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler, textLogParser), false);
 		}
 
 		class Context : IDisposable
@@ -54,23 +51,23 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			public async Task Read(
 				IYieldAsync<Message[]> yieldAsync,
 				Func<Stream> getStream, Action<Stream> releaseStream,
-				string fileNameHint,
 				CancellationToken cancellation,
-				Action<double> progressHandler)
+				Action<double> progressHandler,
+				ITextLogParser textLogParser)
 			{
 				var inputStream = getStream();
 				try
 				{
-					await TextLogParser.ParseStream(
+					await textLogParser.ParseStream(
 						inputStream,
-						new RegexHeaderMatcher(logMessageRegex),
+						textLogParser.CreateRegexHeaderMatcher(logMessageRegex),
 						async messagesInfo =>
 						{
 							var outMessages = new Message[messagesInfo.Count];
 							for (int i = 0; i < messagesInfo.Count; ++i)
 							{
 								var mi = messagesInfo[i];
-								var headerMatch = ((RegexHeaderMatch)mi.HeaderMatch).Match;
+								var headerMatch = ((IRegexHeaderMatch)mi.HeaderMatch).Match;
 								var body = mi.MessageBoby;
 								outMessages[i] = new Message(
 									mi.MessageIndex,
@@ -89,7 +86,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 								return false;
 
 							return await yieldAsync.YieldAsync(outMessages.ToArray());
-						}, progressHandler);
+						}, new TextLogParserOptions(progressHandler));
 				}
 				finally
 				{

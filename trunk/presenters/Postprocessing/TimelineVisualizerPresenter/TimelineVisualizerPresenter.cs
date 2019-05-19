@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using System.Collections.Immutable;
 using LogJoint.Drawing;
 
@@ -87,7 +86,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.Timeline));
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.Timeline));
 
 			getSelectedActivity = Selectors.Create(() => selectedActivity, idx =>
 			{
@@ -1212,7 +1211,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 					}
 					else
 					{
-						Func<LogJoint.Postprocessing.StateInspector.IInspectedObject, int> disambiguationFunction = io =>
+						Func<StateInspectorVisualizer.IVisualizerNode, int> disambiguationFunction = io =>
 							triggerData.Activity != null && triggerData.Activity.DisplayName.Contains(io.Id) ? 1 : 0;
 						if (stateInspectorVisualizer != null && stateInspectorVisualizer.TrySelectObject(triggerData.Source, slTrigger, disambiguationFunction))
 							stateInspectorVisualizer.Show();

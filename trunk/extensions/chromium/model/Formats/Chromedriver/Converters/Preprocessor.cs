@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using LogJoint.Preprocessing;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 using System.Threading;
 
 namespace LogJoint.Chromium.ChromeDriver
@@ -15,16 +15,19 @@ namespace LogJoint.Chromium.ChromeDriver
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly PreprocessingStepParams sourceFile;
 		readonly ILogProviderFactory chromeDriverLogsFactory;
+		readonly ITextLogParser textLogParser;
 
 		internal TimeFixerPreprocessingStep(
 			IPreprocessingStepsFactory preprocessingStepsFactory,
 			ILogProviderFactory chromeDriverLogsFactory,
-			PreprocessingStepParams srcFile
+			PreprocessingStepParams srcFile,
+			ITextLogParser textLogParser
 		)
 		{
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.sourceFile = srcFile;
 			this.chromeDriverLogsFactory = chromeDriverLogsFactory;
+			this.textLogParser = textLogParser;
 		}
 
 		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
@@ -59,7 +62,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			await (new Writer()).Write(
 				() => new FileStream(tmpFileName, FileMode.Create),
 				s => s.Dispose(), 
-				FixTimestamps((new Reader(callback.Cancellation)).Read(
+				FixTimestamps((new Reader(textLogParser, callback.Cancellation)).Read(
 					sourceFile.Uri,
 					progressHandler: prct => callback.SetStepDescription(
 						string.Format("{0}: fixing timestamps {1}%", sourceFile.FullPath, (int)(prct * 100)))
@@ -67,7 +70,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\with_fixed_timestamps", sourceFile.FullPath),
-				Utils.Concat(sourceFile.PreprocessingSteps, stepName)));
+				sourceFile.PreprocessingSteps.Concat(new[] { stepName })));
 		}
 
 		class MessageEntry

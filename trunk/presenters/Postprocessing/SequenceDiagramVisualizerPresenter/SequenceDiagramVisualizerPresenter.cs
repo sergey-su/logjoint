@@ -1,6 +1,6 @@
-﻿using M = LogJoint.Analytics.Messaging;
-using TL = LogJoint.Analytics.Timeline;
-using SI = LogJoint.Analytics.StateInspector;
+﻿using M = LogJoint.Postprocessing.Messaging;
+using TL = LogJoint.Postprocessing.Timeline;
+using SI = LogJoint.Postprocessing.StateInspector;
 using System;
 using System.Collections.Generic;
 using LogJoint.Drawing;
@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using LogJoint.Postprocessing.SequenceDiagram;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
@@ -128,7 +127,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.SequenceDiagram));
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.SequenceDiagram));
 			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
 			{
 				UpdateNotificationsIcon();
@@ -253,7 +252,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				{
 					if (isSelected)
 					{
-						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrows.Keys.AsReadOnly(), arrow.Index, ListUtils.ValueBound.UpperReversed, Comparer<int>.Default);
+						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrows.Keys.AsReadOnly(), arrow.Index, ValueBound.UpperReversed, Comparer<int>.Default);
 						if (prevSelectedArrowIdxIdx >= 0)
 						{
 							var prevSelectedArrowIdx = selectedArrows.Keys[prevSelectedArrowIdxIdx];
@@ -1595,7 +1594,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				}
 				else
 				{
-					Func<LogJoint.Postprocessing.StateInspector.IInspectedObject, int> disambiguationFunction = io =>
+					Func<StateInspectorVisualizer.IVisualizerNode, int> disambiguationFunction = io =>
 						triggerData.StateInspectorChange.ObjectId.Contains(io.Id) ? 1 : 0;
 					if (stateInspectorPresenter.TrySelectObject(triggerData.Source, triggerData.Trigger, disambiguationFunction))
 						stateInspectorPresenter.Show();

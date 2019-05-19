@@ -32,7 +32,7 @@ namespace LogJoint.UI
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 
-				IShutdown shutdown = new Shutdown();
+				IShutdownSource shutdown = new Shutdown();
 
 				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(
@@ -194,8 +194,8 @@ namespace LogJoint.UI
 				LogJoint.Postprocessing.IUserNamesProvider analyticsShortNames = new LogJoint.Postprocessing.CodenameUserNamesProvider(
 					logSourcesManager
 				);
-				
-				Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Analytics.TimeSeries.TimeSeriesTypesLoader();
+
+				LogJoint.Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new LogJoint.Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 				
 				LogJoint.Postprocessing.IPostprocessorsManager postprocessorsManager = new LogJoint.Postprocessing.PostprocessorsManager(
 					logSourcesManager,
@@ -204,14 +204,24 @@ namespace LogJoint.UI
 					threadPoolSynchronizationContext,
 					heartBeatTimer,
 					progressAggregator,
-					globalSettingsAccessor
+					globalSettingsAccessor,
+					new LogJoint.Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess)
 				);
-				
+
+				LogJoint.Postprocessing.IModel postprocessingModel = new LogJoint.Postprocessing.Model(
+                       postprocessorsManager,
+                       timeSeriesTypesAccess,
+                       new LogJoint.Postprocessing.StateInspector.Model(tempFilesManager),
+                       new LogJoint.Postprocessing.Timeline.Model(tempFilesManager),
+                       new LogJoint.Postprocessing.SequenceDiagram.Model(tempFilesManager),
+                       new LogJoint.Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
+               );
+
 				LogJoint.Postprocessing.InternalTracePostprocessors.Register(
 					postprocessorsManager, 
 					userDefinedFormatsManager,
-					tempFilesManager,
-					timeSeriesTypesAccess
+					timeSeriesTypesAccess,
+					postprocessingModel
 				);
 
 				tracer.Info("model creation finished");
@@ -667,37 +677,33 @@ namespace LogJoint.UI
 				
 				LogJoint.Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new LogJoint.Postprocessing.AggregatingLogSourceNamesProvider();
 
-				var extensibilityEntryPoint = new Extensibility.Application(
-					new Extensibility.Model(
-						invokingSynchronization,
-						changeNotification,
-						telemetryCollector,
-						webContentCache,
-						contentCache,
-						storageManager,
-						bookmarks,
-						logSourcesManager,
-						modelThreads,
-						tempFilesManager,
-						preprocessingManagerExtensionsRegistry,
-						logSourcesPreprocessings,
-						preprocessingStepsFactory,
-						progressAggregator,
-						logProviderFactoryRegistry,
-						userDefinedFormatsManager,
-						recentlyUsedLogs,
-						progressAggregatorsFactory,
-						heartBeatTimer,
-						logSourcesController,
-						shutdown,
-						webBrowserDownloader,
-						commandLineHandler,
-						postprocessorsManager,
-						analyticsShortNames,
-						timeSeriesTypesAccess,
-						logSourceNamesProvider
-					),
-					new Extensibility.Presentation(
+
+				var extensibilityModel = new Model (
+					invokingSynchronization,
+					changeNotification,
+					webContentCache,
+					contentCache,
+					storageManager,
+					bookmarks,
+					logSourcesManager,
+					modelThreads,
+					tempFilesManager,
+					preprocessingManagerExtensionsRegistry,
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					progressAggregator,
+					logProviderFactoryRegistry,
+					userDefinedFormatsManager,
+					recentlyUsedLogs,
+					progressAggregatorsFactory,
+					logSourcesController,
+					shutdown,
+					webBrowserDownloader,
+					postprocessingModel
+				);
+				var extensibilityEntryPoint = new Application(
+					extensibilityModel,
+					new UI.Presenters.Presentation(
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
@@ -710,18 +716,25 @@ namespace LogJoint.UI
 						postprocessingTabPagePresenter,
 						postprocessingViewsFactory,
 						colorTheme
-					),
-					new Extensibility.View(
 					)
 				);
 
-				postprocessingViewsFactory.Init(extensibilityEntryPoint);
+				postprocessingViewsFactory.Init(
+					extensibilityEntryPoint,
+					logSourceNamesProvider,
+					analyticsShortNames,
+					sourcesManagerPresenter,
+					loadedMessagesPresenter,
+					clipboardAccess,
+					presentersFacade,
+					alerts
+				);
 
 				new Extensibility.PluginsManager(
 					extensibilityEntryPoint,
-					mainFormPresenter,
 					telemetryCollector,
-					shutdown
+					shutdown,
+					extensibilityModel
 				);
 			}
 		}

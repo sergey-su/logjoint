@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using MTR = LogJoint.Search.MatchedTextRange;
+using LogJoint.Search;
 
 namespace LogJoint.Tests
 {
@@ -15,7 +16,7 @@ namespace LogJoint.Tests
 				WholeWord = wholeWord,
 				ReverseSearch = reverse
 			};
-			var actual = Search.SearchInText(new StringSlice(text), opts.BeginSearch(), startPosition);
+			var actual = opts.BeginSearch().SearchInText(new StringSlice(text) , startPosition);
 			if (expectation != null)
 			{
 				Assert.IsTrue(actual != null);

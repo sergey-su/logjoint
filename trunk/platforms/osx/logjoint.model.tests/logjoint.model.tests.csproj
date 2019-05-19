@@ -189,6 +189,18 @@
     <Compile Include="..\..\..\model\tests\LRUCacheTests.cs">
       <Link>LRUCacheTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\tests\EnumerableAsync\EnumerableAsyncTests.cs">
+      <Link>EnumerableAsync\EnumerableAsyncTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\PrefixMatcher\PrefixMatcherTest.cs">
+      <Link>PrefixMatcher\PrefixMatcherTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\TimeSeries\DynamicLoaderTest.cs">
+      <Link>TimeSeries\DynamicLoaderTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\Utils\Utils.cs">
+      <Link>Utils\Utils.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
@@ -202,6 +214,10 @@
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -218,6 +234,10 @@
     <Folder Include="log4net\1.2\" />
     <Folder Include="log4net\2.0\" />
     <Folder Include="postprocessing\" />
+    <Folder Include="EnumerableAsync\" />
+    <Folder Include="PrefixMatcher\" />
+    <Folder Include="TimeSeries\" />
+    <Folder Include="Utils\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\model\tests\nlog\1.0\NLog.dll">
@@ -267,6 +287,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\model\tests\log4net\2.0\log4net.dll">
       <Link>log4net\2.0\log4net.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\TimeSeries\TestParserConfig.cs">
+      <Link>TimeSeries\TestParserConfig.cs</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

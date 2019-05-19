@@ -10,18 +10,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 	public class UnprocessedLogsToastNotification: IToastNotificationItem
 	{
 		IPostprocessorsManager ppm;
-		string postprocessorId;
+		PostprocessorKind postprocessorKind;
 		int nrOfUnprocessed;
 		double? progress;
 
 		public UnprocessedLogsToastNotification(
 			IPostprocessorsManager ppm,
 			ILogSourcesManager lsm,
-			string postprocessorId
+			PostprocessorKind postprocessorKind
 		)
 		{
 			this.ppm = ppm;
-			this.postprocessorId = postprocessorId;
+			this.postprocessorKind = postprocessorKind;
 			ppm.Changed += (s, e) => Update();
 			Update();
 		}
@@ -31,7 +31,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		void IToastNotificationItem.PerformAction (string actionId)
 		{
 			ppm.RunPostprocessor(
-				ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorId)
+				ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)
 				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
 				.ToArray()
 			);
@@ -61,7 +61,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		void Update()
 		{
-			var outputs = ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorId);
+			var outputs = ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
 
 			int oldNrOfUnprocessed = nrOfUnprocessed;
 

@@ -188,18 +188,6 @@ namespace LogJoint
 		PostprocessedMessage ReadNextAndPostprocess();
 	};
 
-	public struct SearchResultMessage
-	{
-		public readonly IMessage Message;
-		public readonly MessageFilteringResult FilteringResult;
-
-		public SearchResultMessage(IMessage msg, MessageFilteringResult filteringResult)
-		{
-			Message = msg;
-			FilteringResult = filteringResult;
-		}
-	};
-
 	public interface ISearchingParser : IDisposable
 	{
 		SearchResultMessage GetNext();

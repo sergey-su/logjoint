@@ -2,8 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using LogJoint.Analytics;
-using LogJoint.Postprocessing.Correlator;
+using LogJoint.Postprocessing.Correlation;
 
 namespace LogJoint.Postprocessing
 {
@@ -55,19 +54,6 @@ namespace LogJoint.Postprocessing
 			return dict;
 		}
 
-		public static string GetLogFileNameHint(this ILogProvider provider)
-		{
-			var saveAs = provider as ISaveAs;
-			if (saveAs == null || !saveAs.IsSavableAs)
-				return null;
-			return saveAs.SuggestedFileName;
-		}
-
-		public static string GetLogFileNameHint(this LogSourcePostprocessorInput input)
-		{
-			return GetLogFileNameHint(input.LogSource.Provider);
-		}
-
 		public static LogSourcePostprocessorInput AttachProgressHandler(this LogSourcePostprocessorInput input,
 			Progress.IProgressAggregator progressAggregator, List<Progress.IProgressEventsSink> progressSinks)
 		{
@@ -85,29 +71,29 @@ namespace LogJoint.Postprocessing
 			return input;
 		}
 	
-		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IPostprocessorsManager postprocessorsManager, string postprocessorId)
+		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IPostprocessorsManager postprocessorsManager, PostprocessorKind postprocessorKind)
 		{
 			return postprocessorsManager
 				.LogSourcePostprocessorsOutputs
-				.Where(output => output.PostprocessorMetadata.TypeID == postprocessorId)
+				.Where(output => output.PostprocessorMetadata.Kind == postprocessorKind)
 				.ToArray();
 		}
 
 		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IPostprocessorsManager postprocessorsManager)
 		{
-			bool isRelevantPostprocessor(string id)
+			bool isRelevantPostprocessor(PostprocessorKind id)
 			{
 				return
-					   id == PostprocessorIds.StateInspector
-					|| id == PostprocessorIds.Timeline
-					|| id == PostprocessorIds.SequenceDiagram
-					|| id == PostprocessorIds.TimeSeries
-					|| id == PostprocessorIds.Correlator;
+					   id == PostprocessorKind.StateInspector
+					|| id == PostprocessorKind.Timeline
+					|| id == PostprocessorKind.SequenceDiagram
+					|| id == PostprocessorKind.TimeSeries
+					|| id == PostprocessorKind.Correlator;
 			}
 
 			bool isStatusOk(LogSourcePostprocessorOutput output)
 			{
-				if (output.PostprocessorMetadata.TypeID == PostprocessorIds.Correlator)
+				if (output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
 				{
 					var status = postprocessorsManager.GetCorrelatorStateSummary().Status;
 					return
@@ -128,12 +114,12 @@ namespace LogJoint.Postprocessing
 			return
 				postprocessorsManager
 				.LogSourcePostprocessorsOutputs
-				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.TypeID) && isStatusOk(output));
+				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.Kind) && isStatusOk(output));
 		}
 
 		internal static string MakePostprocessorOutputFileName(this ILogSourcePostprocessor pp)
 		{
-			return string.Format("postproc-{0}.xml", pp.TypeID.ToLower());
+			return string.Format("postproc-{0}.xml", pp.Kind.ToString().ToLower());
 		}
 
 		internal static bool IsOutputOutdated(this ILogSource logSource, object outputData)
@@ -151,6 +137,90 @@ namespace LogJoint.Postprocessing
 				}
 			}
 			return false;
+		}
+
+		public static CorrelatorStateSummary GetCorrelatorStateSummary(this IPostprocessorsManager postprocessorsManager)
+		{
+			var correlationOutputs =
+				postprocessorsManager
+					.LogSourcePostprocessorsOutputs
+					.Where(output => output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
+					.ToArray();
+			if (correlationOutputs.Length < 2)
+			{
+				return new CorrelatorStateSummary() { Status = CorrelatorStateSummary.StatusCode.PostprocessingUnavailable };
+			}
+			var correlatableLogsIds = postprocessorsManager.GetCorrelatableLogsConnectionIds();
+			int numMissingOutput = 0;
+			int numProgressing = 0;
+			int numFailed = 0;
+			int numCorrelationContextMismatches = 0;
+			int numCorrelationResultMismatches = 0;
+			double? progress = null;
+			foreach (var i in correlationOutputs)
+			{
+				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.InProgress)
+				{
+					numProgressing++;
+					if (progress == null && i.Progress != null)
+						progress = i.Progress;
+				}
+				var typedOutput = i.OutputData as ICorrelatorPostprocessorOutput;
+				if (typedOutput == null)
+				{
+					++numMissingOutput;
+				}
+				else
+				{
+					if (!typedOutput.CorrelatedLogsConnectionIds.IsSupersetOf(correlatableLogsIds))
+						++numCorrelationContextMismatches;
+					var actualOffsets = i.LogSource.IsDisposed ? TimeOffsets.Empty : i.LogSource.Provider.TimeOffsets;
+					if (typedOutput.Solution.BaseDelta != actualOffsets.BaseOffset)
+						++numCorrelationResultMismatches;
+				}
+				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.Failed)
+				{
+					++numFailed;
+				}
+			}
+			if (numProgressing != 0)
+			{
+				return new CorrelatorStateSummary()
+				{
+					Status = CorrelatorStateSummary.StatusCode.ProcessingInProgress,
+					Progress = progress
+				};
+			}
+			IPostprocessorRunSummary reportObject = correlationOutputs.First().LastRunSummary;
+			string report = reportObject != null ? reportObject.Report : null;
+			if (numMissingOutput != 0 || numCorrelationContextMismatches != 0 || numCorrelationResultMismatches != 0)
+			{
+				if (reportObject != null && reportObject.HasErrors)
+				{
+					return new CorrelatorStateSummary()
+					{
+						Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
+						Report = report
+					};
+				}
+				return new CorrelatorStateSummary()
+				{
+					Status = CorrelatorStateSummary.StatusCode.NeedsProcessing
+				};
+			}
+			if (numFailed != 0)
+			{
+				return new CorrelatorStateSummary()
+				{
+					Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
+					Report = report
+				};
+			}
+			return new CorrelatorStateSummary()
+			{
+				Status = CorrelatorStateSummary.StatusCode.Processed,
+				Report = report
+			};
 		}
 	};
 }

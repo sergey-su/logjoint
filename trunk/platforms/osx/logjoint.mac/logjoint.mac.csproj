@@ -33,6 +33,16 @@
     <I18n>west</I18n>
     <CodeSigningKey>Mac Developer</CodeSigningKey>
     <PackageSigningKey>3rd Party Mac Developer Installer</PackageSigningKey>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>AfterBuild</type>
+          <command>cp -rf Formats help logjoint.app/Contents/MonoBundle</command>
+          <workingdir>${TargetDir}</workingdir>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
+    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -53,6 +63,7 @@
     <HttpClientHandler>HttpClientHandler</HttpClientHandler>
     <PackageSigningKey>3rd Party Mac Developer Installer</PackageSigningKey>
     <I18n>west</I18n>
+    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -230,9 +241,6 @@
     <Compile Include="ui\Preprocessing\FilesSelectionDialog.designer.cs">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="..\..\..\extensibility\PluginsManager.cs">
-      <Link>extensibility\impl\PluginsManager.cs</Link>
-    </Compile>
     <Compile Include="telemetry\ConfiguredAzureTelemetryUploader.cs" />
     <Compile Include="threading\SynchronizeInvoke.cs" />
     <Compile Include="threading\HeartBeatTimer.cs" />
@@ -246,15 +254,6 @@
     <Compile Include="drag-n-drop\DragDropHandler.cs" />
     <Compile Include="ui\CommonControls\NSLinkLabel\NSLinkLabel.cs" />
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomizableView.cs" />
-    <Compile Include="..\..\..\extensibility\IPresentation.cs">
-      <Link>extensibility\interfaces\IPresentation.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IModel.cs">
-      <Link>extensibility\interfaces\IModel.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\Presentation.cs">
-      <Link>extensibility\impl\Presentation.cs</Link>
-    </Compile>
     <Compile Include="ui\AboutDialog\AboutDialog.cs" />
     <Compile Include="ui\AboutDialog\AboutDialog.designer.cs">
       <DependentUpon>AboutDialog.cs</DependentUpon>
@@ -272,27 +271,6 @@
       <DependentUpon>StatusPopupControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\StatusReporting\StatusPopupControlAdapter.cs" />
-    <Compile Include="..\..\..\extensibility\Model.cs">
-      <Link>extensibility\impl\Model.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IApplication.cs">
-      <Link>extensibility\interfaces\IApplication.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\PluginBase.cs">
-      <Link>extensibility\impl\PluginBase.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\mac\IMainFormTabExtension.cs">
-      <Link>extensibility\interfaces\IMainFormTabExtension.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\mac\IView.cs">
-      <Link>extensibility\interfaces\IView.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\mac\View.cs">
-      <Link>extensibility\impl\View.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\Application.cs">
-      <Link>extensibility\impl\Application.cs</Link>
-    </Compile>
     <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
       <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
     </Compile>
@@ -667,6 +645,7 @@
     </Compile>
     <Compile Include="ui\CommonControls\NSCustomTableRowView\CustomTableRowView.cs" />
     <Compile Include="ui\CommonControls\NSDragDropTextField\NSDragDropTextField.cs" />
+    <Compile Include="extensibility\Application.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -766,13 +745,17 @@
       <Project>{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}</Project>
       <Name>logjoint.updater</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
-      <Name>logjoint.analytics</Name>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.ortoolswrp\logjoint.ortoolswrp.csproj">
-      <Project>{31964146-885E-482E-A50D-FB719E4D6EE1}</Project>
-      <Name>logjoint.ortoolswrp</Name>
+    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
+      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
+      <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
+      <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
+      <Name>logjoint.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

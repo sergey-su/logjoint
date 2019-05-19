@@ -1,5 +1,5 @@
 ﻿using LogJoint.Postprocessing;
-using LogJoint.Postprocessing.Correlator;
+using LogJoint.Postprocessing.Correlation;
 using System;
 using System.IO;
 
@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	{
 		readonly IPostprocessorsManager postprocessorsManager;
 		readonly ITempFilesManager tempFilesManager;
-		readonly string postprocessorId;
+		readonly PostprocessorKind postprocessorKind;
 		readonly IShellOpen shellOpen;
 
 		public CorrelatorPostprocessorControlHandler(
@@ -20,7 +20,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		{
 			this.postprocessorsManager = postprocessorsManager;
 			this.tempFilesManager = tempFilesManager;
-			this.postprocessorId = PostprocessorIds.Correlator;
+			this.postprocessorKind = PostprocessorKind.Correlator;
 			this.shellOpen = shellOpen;
 		}
 
@@ -90,7 +90,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						case CorrelatorStateSummary.StatusCode.Processed:
 						case CorrelatorStateSummary.StatusCode.ProcessingFailed:
 							await this.postprocessorsManager.RunPostprocessors(
-								postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId));
+								postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind));
 							break;
 					}
 					break;

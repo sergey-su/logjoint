@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics.Correlation;
+﻿using LogJoint.Postprocessing.Correlation;
 using System.Collections.Generic;
 
 namespace LogJoint.Postprocessing.Correlator
@@ -7,11 +7,5 @@ namespace LogJoint.Postprocessing.Correlator
 	{
 		void Init(IPostprocessorsManager postprocessorsManager);
 		ILogSourcePostprocessor CreatePostprocessor();
-	};
-
-	public interface ICorrelatorPostprocessorOutput 
-	{
-		HashSet<string> CorrelatedLogsConnectionIds { get; }
-		NodeSolution Solution { get; }
 	};
 }

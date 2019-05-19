@@ -2,13 +2,9 @@
 using System.Threading;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
-using LogJoint.Analytics.TimeSeries;
 using LogJoint.Postprocessing.TimeSeries;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using DMP = LogJoint.Chromium.WebrtcInternalsDump;
-using Sym = LogJoint.Symphony.Rtc;
-using System.Xml;
 
 namespace LogJoint.Chromium.TimeSeries
 {
@@ -16,133 +12,76 @@ namespace LogJoint.Chromium.TimeSeries
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
-		ILogSourcePostprocessor CreateSymphonyRtcPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.TimeSeries;
-		readonly static string caption = "Time Series";
-		readonly ITimeSeriesTypesAccess timeSeriesTypesAccess;
+		readonly Postprocessing.IModel postprocessing;
+		readonly PluginModel pluginModel;
 
-		public PostprocessorsFactory(ITimeSeriesTypesAccess timeSeriesTypesAccess)
+		public PostprocessorsFactory(
+			Postprocessing.IModel postprocessing,
+			PluginModel pluginModel
+		)
 		{
-			this.timeSeriesTypesAccess = timeSeriesTypesAccess;
+			this.postprocessing = postprocessing;
+			this.pluginModel = pluginModel;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
-				typeId, caption, 
-				DeserializeOutput,
-				i => RunForWebRtcNativeLogMessages(new CDL.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag)
+			return new LogSourcePostprocessor(
+				PostprocessorKind.TimeSeries,
+				i => RunForChromeDebug(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
-				i => RunForWebRtcInternalsDump(new DMP.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag)
+			return new LogSourcePostprocessor(
+				PostprocessorKind.TimeSeries,
+				i => RunForWebRtcInternalsDump(new DMP.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
-		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
-		{
-			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
-				i => RunForSymphonyRtc(new Sym.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag)
-			);
-		}
-
-		TimeSeriesPostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
-		{
-			return new TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess);
-		}
-
-		async Task RunForWebRtcNativeLogMessages(
+		async Task RunForChromeDebug(
 			IEnumerableAsync<CDL.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
-
 			var inputMultiplexed = input.Multiplex();
-			var symMessages = (new Sym.Reader()).FromChromeDebugLog(inputMultiplexed);
 
-			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
+			ICombinedParser parser = postprocessing.TimeSeries.CreateParser();
 
 			var feedNativeEvents = parser.FeedLogMessages(inputMultiplexed);
-			var feedSymEvents = parser.FeedLogMessages(symMessages, m => m.Logger, m => string.Format("{0}.{1}", m.Logger, m.Text));
 
-			await Task.WhenAll(feedNativeEvents, feedSymEvents, inputMultiplexed.Open());
+			var extensionSources = pluginModel.ChromeDebugTimeSeriesSources.Select(
+				src => src(inputMultiplexed, parser)).ToList();
+			var tasks = extensionSources.Select(s => s.Task).ToList();
+			tasks.Add(feedNativeEvents);
+			tasks.AddRange(extensionSources.SelectMany(s => s.MultiplexingEnumerables.Select(e => e.Open())));
+			tasks.Add(inputMultiplexed.Open());
+
+			await Task.WhenAll(tasks);
 
 			foreach (var ts in parser.GetParsedTimeSeries())
 			{
-				ts.DataPoints = Analytics.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
+				ts.DataPoints = Postprocessing.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
 			}
 
-			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
-				parser.GetParsedTimeSeries(),
-				parser.GetParsedEvents(),
-				outputFileName,
-				timeSeriesTypesAccess);
+			await postprocessing.TimeSeries.SavePostprocessorOutput(parser, postprocessorInput);
 		}
 
 		async Task RunForWebRtcInternalsDump(
 			IEnumerableAsync<DMP.Message[]> input,
-			string outputFileName,
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
-
-			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
+			ICombinedParser parser = postprocessing.TimeSeries.CreateParser();
 
 			await parser.FeedLogMessages(input, m => m.ObjectId, m => m.Text);
 
-			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
-				parser.GetParsedTimeSeries(),
-				parser.GetParsedEvents(),
-				outputFileName,
-				timeSeriesTypesAccess);
-		}
-
-		async Task RunForSymphonyRtc(
-			IEnumerableAsync<Sym.Message[]> input,
-			string outputFileName,
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
-		)
-		{
-			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
-
-			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
-
-			await parser.FeedLogMessages(input, m => m.Logger, m => string.Format("{0}.{1}", m.Logger, m.Text));
-
-			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
-				parser.GetParsedTimeSeries(),
-				parser.GetParsedEvents(),
-				outputFileName,
-				timeSeriesTypesAccess);
+			await postprocessing.TimeSeries.SavePostprocessorOutput(parser, postprocessorInput);
 		}
 	};
 }

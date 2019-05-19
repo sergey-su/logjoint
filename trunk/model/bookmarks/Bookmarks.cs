@@ -45,7 +45,7 @@ namespace LogJoint
 		IBookmark IBookmarks.GetNext(IBookmark current, bool forward)
 		{
 			var i = items.GetBound(0, items.Count, current, 
-				forward ? ListUtils.ValueBound.Upper : ListUtils.ValueBound.UpperReversed, cmp);
+				forward ? ValueBound.Upper : ValueBound.UpperReversed, cmp);
 			if (i == items.Count || i == -1)
 				return null;
 			return items[i];

@@ -312,6 +312,7 @@ namespace LogJoint
 				}
 				List<string> resolvedRefs = new List<string>();
 				resolvedRefs.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
+				resolvedRefs.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
 				foreach (string refAsm in refs)
 					resolvedRefs.Add(assemblyLocationResolver(refAsm));
 

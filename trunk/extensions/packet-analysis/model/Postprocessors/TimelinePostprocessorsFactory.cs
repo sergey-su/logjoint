@@ -3,9 +3,7 @@ using System.Threading;
 using System.Xml.Linq;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using Pdml = LogJoint.Wireshark.Dpml;
-using LogJoint.Analytics.Timeline;
 using LogJoint.Postprocessing.Timeline;
 using System.Xml;
 
@@ -18,39 +16,29 @@ namespace LogJoint.PacketAnalysis.Timeline
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.Timeline;
-		readonly static string caption = PostprocessorIds.Timeline;
-		readonly ITempFilesManager tempFiles;
+		readonly Postprocessing.IModel postprocessing;
 
-		public PostprocessorsFactory(ITempFilesManager tempFiles)
+		public PostprocessorsFactory(Postprocessing.IModel postprocessing)
 		{
-			this.tempFiles = tempFiles;
+			this.postprocessing = postprocessing;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWiresharkDpmlPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
-				typeId, caption, 
-				p => new TimelinePostprocessorOutput(p, null),
-				i => RunForWiresharkDpmlMessages(new Pdml.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag, tempFiles)
+			return new LogSourcePostprocessor(
+				PostprocessorKind.Timeline,
+				i => RunForWiresharkDpmlMessages(new Pdml.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
-		async static Task RunForWiresharkDpmlMessages(
+		async Task RunForWiresharkDpmlMessages(
 			IEnumerableAsync<Pdml.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			var logMessages = input.Multiplex();
 			Pdml.ITimelineEvents networkEvents = new Pdml.TimelineEvents();
-			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<Pdml.Message>();
+			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<Pdml.Message>();
 
 			var networkEvts = networkEvents.GetEvents(logMessages);
 			var eofEvts = endOfTimelineEventSource.GetEvents(logMessages);
@@ -60,14 +48,11 @@ namespace LogJoint.PacketAnalysis.Timeline
 				eofEvts
 			);
 
-			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((Pdml.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 
 			await Task.WhenAll(serialize, logMessages.Open());

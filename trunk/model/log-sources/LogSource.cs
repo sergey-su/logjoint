@@ -6,7 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Globalization;
 using System.Threading.Tasks;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 
 namespace LogJoint
 {
@@ -268,7 +268,7 @@ namespace LogJoint
 					ITimeOffsets timeOffset;
 					if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out timeOffset) && !timeOffset.IsEmpty)
 					{
-						extendedConnectionParams[ConnectionParamsUtils.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
+						extendedConnectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
 					}
 				}
 			}

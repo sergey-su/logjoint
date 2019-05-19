@@ -1,16 +1,6 @@
 ﻿using System.Threading.Tasks;
-using System.Threading;
-using System.Xml.Linq;
-using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
-using CD = LogJoint.Chromium.ChromeDriver;
-using CDL = LogJoint.Chromium.ChromeDebugLog;
-using Sym = LogJoint.Symphony.Rtc;
 using HAR = LogJoint.Chromium.HttpArchive;
-using LogJoint.Analytics.Messaging;
-using LogJoint.Postprocessing.SequenceDiagram;
-using System.Xml;
 
 namespace LogJoint.Chromium.SequenceDiagram
 {
@@ -21,40 +11,24 @@ namespace LogJoint.Chromium.SequenceDiagram
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.SequenceDiagram;
-		readonly static string caption = PostprocessorIds.SequenceDiagram;
-		readonly ITempFilesManager tempFiles;
+		readonly Postprocessing.IModel postprocessing;
 
-		public PostprocessorsFactory(ITempFilesManager tempFiles)
+		public PostprocessorsFactory(Postprocessing.IModel postprocessing)
 		{
-			this.tempFiles = tempFiles;
+			this.postprocessing = postprocessing;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateHttpArchivePostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
-				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag, tempFiles)
+			return new LogSourcePostprocessor(
+				PostprocessorKind.SequenceDiagram,
+				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
-
-		ISequenceDiagramPostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
-		{
-			return new SequenceDiagramPostprocessorOutput(p, null);
-		}
-
-		async static Task RunForHttpArchive(
+		async Task RunForHttpArchive(
 			IEnumerableAsync<HAR.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			HAR.IMessagingEvents messagingEvents = new HAR.MessagingEvents();
@@ -63,16 +37,13 @@ namespace LogJoint.Chromium.SequenceDiagram
 				messagingEvents.GetEvents(input)
 			);
 
-			await SequenceDiagramPostprocessorOutput.SerializePostprocessorOutput(
+			await postprocessing.SequenceDiagram.SavePostprocessorOutput(
 				events,
 				null,
 				null,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 		}
 	};

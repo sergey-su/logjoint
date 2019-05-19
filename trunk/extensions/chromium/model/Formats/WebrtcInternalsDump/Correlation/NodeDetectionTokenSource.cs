@@ -1,10 +1,11 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.Correlation;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Correlation;
 using System.Threading.Tasks;
 using System.Linq;
 using LogJoint.Chromium.Correlation;
-using SI = LogJoint.Analytics.StateInspector;
+using SI = LogJoint.Postprocessing.StateInspector;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace LogJoint.Chromium.WebrtcInternalsDump
 {
@@ -43,14 +44,15 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			if (iceCandidates.Count == 0)
 				return new NullNodeDetectionToken();
 
-			var processIds = eventsTask.Result
+			var processIds = new HashSet<uint>(
+				eventsTask.Result
 				.Where(e => e.ObjectType == peerConnectionTypeInfo)
 				.GroupBy(e => e.ObjectId)
 				.Select(g => g.First())
 				.Select(e => Regex.Match(e.ObjectId, @"^(\d+)-"))
 				.Where(m => m.Success)
 				.Select(m => uint.Parse(m.Groups[1].Value))
-				.ToHashSet();
+			);
 			if (processIds.Count == 0)
 				return new NullNodeDetectionToken();
 

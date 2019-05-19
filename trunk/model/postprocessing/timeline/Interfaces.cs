@@ -1,13 +1,9 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.Timeline;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace LogJoint.Postprocessing.Timeline
 {
-	public interface ITimelinePostprocessorOutput: IPostprocessorOutputETag
+	public interface ITimelinePostprocessorOutput : IPostprocessorOutputETag
 	{
 		ILogSource LogSource { get; }
 		IList<Event> TimelineEvents { get; }
@@ -56,8 +52,8 @@ namespace LogJoint.Postprocessing.Timeline
 		string ActivityMatchingId { get; }
 		object BeginTrigger { get; }
 		object EndTrigger { get; }
-		IReadOnlyList<ActivityMilestone> Milestones { get; }
-		IReadOnlyList<ActivityPhase> Phases { get; }
+		IReadOnlyList<ActivityMilestoneInfo> Milestones { get; }
+		IReadOnlyList<ActivityPhaseInfo> Phases { get; }
 		ISet<string> Tags { get; }
 		bool IsError { get; }
 		/// <summary>
@@ -67,7 +63,7 @@ namespace LogJoint.Postprocessing.Timeline
 		bool IsEndedForcefully { get; }
 	};
 
-	public struct ActivityMilestone
+	public struct ActivityMilestoneInfo
 	{
 		public readonly IActivity Activity;
 		public readonly ITimelinePostprocessorOutput Owner;
@@ -75,7 +71,7 @@ namespace LogJoint.Postprocessing.Timeline
 		public readonly string DisplayName;
 		public readonly object Trigger;
 
-		public ActivityMilestone(IActivity a, ITimelinePostprocessorOutput owner, TimeSpan t, string displayName, object trigger)
+		public ActivityMilestoneInfo(IActivity a, ITimelinePostprocessorOutput owner, TimeSpan t, string displayName, object trigger)
 		{
 			Activity = a;
 			Owner = owner;
@@ -85,7 +81,7 @@ namespace LogJoint.Postprocessing.Timeline
 		}
 	};
 
-	public struct ActivityPhase
+	public struct ActivityPhaseInfo
 	{
 		public readonly IActivity Activity;
 		public readonly ITimelinePostprocessorOutput Owner;
@@ -98,7 +94,7 @@ namespace LogJoint.Postprocessing.Timeline
 		public readonly int Type;
 		public readonly string DisplayName;
 
-		public ActivityPhase(IActivity a, ITimelinePostprocessorOutput owner,
+		public ActivityPhaseInfo(IActivity a, ITimelinePostprocessorOutput owner,
 			TimeSpan b, TimeSpan e, int type, string displayName)
 		{
 			Activity = a;

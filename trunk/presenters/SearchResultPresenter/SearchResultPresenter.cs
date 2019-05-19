@@ -574,7 +574,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			}
 
 			Task<DateBoundPositionResponseData> LogViewer.IMessagesSource.GetDateBoundPosition (
-				DateTime d, ListUtils.ValueBound bound, 
+				DateTime d, ValueBound bound, 
 				LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
 				return Task.FromResult(ssr.GetDateBoundPosition(d, bound));

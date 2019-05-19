@@ -1,5 +1,4 @@
-﻿﻿using LogJoint.Analytics.TimeSeries;
-using LogJoint.Postprocessing.TimeSeries;
+﻿using LogJoint.Postprocessing.TimeSeries;
 using System;
 using System.Collections.Generic;
 using LogJoint.Drawing;
@@ -9,22 +8,6 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
-	public interface IPresenter
-	{
-		void OpenConfigDialog();
-		bool SelectConfigNode(Predicate<TreeNodeData> predicate);
-		bool ConfigNodeExists(Predicate<TreeNodeData> predicate);
-	};
-
-	public enum ConfigDialogNodeType
-	{
-		Log,
-		ObjectTypeGroup,
-		ObjectIdGroup,
-		TimeSeries,
-		Events
-	};
-
 	public interface IView
 	{
 		void SetEventsHandler(IViewEvents eventsHandler);
@@ -96,20 +79,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public IEnumerable<Color> Palette { get; internal set; }
 		public MarkerType? Marker { get; internal set; }
 		public bool? DrawLine { get; internal set; }
-	};
-
-	public class TreeNodeData
-	{
-		public ConfigDialogNodeType Type { get; internal set; }
-		public string Caption { get; internal set; }
-		public int? Counter { get; internal set; }
-		public bool Checkable { get; internal set; }
-		public IEnumerable<TreeNodeData> Children { get; internal set; }
-		public ITimeSeriesPostprocessorOutput Owner { get { return output; } }
-
-		internal ITimeSeriesPostprocessorOutput output;
-		internal TimeSeriesData ts;
-		internal EventBase evt;
 	};
 
 	public enum KeyCode
@@ -193,5 +162,20 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public bool DrawLine { get; internal set; }
 		internal object data;
 		internal bool EffectiveDrawLine { get { return this.DrawLine || Marker == MarkerType.None; } }
+	};
+
+	public class TreeNodeData: ITreeNodeData
+	{
+		public ConfigDialogNodeType Type { get; internal set; }
+		public string Caption { get; internal set; }
+		public int? Counter { get; internal set; }
+		public bool Checkable { get; internal set; }
+		public IEnumerable<TreeNodeData> Children { get; internal set; }
+		public ITimeSeriesPostprocessorOutput Owner { get { return output; } }
+		public ILogSource LogSource => Owner.LogSource;
+
+		internal ITimeSeriesPostprocessorOutput output;
+		internal TimeSeriesData ts;
+		internal EventBase evt;
 	};
 }

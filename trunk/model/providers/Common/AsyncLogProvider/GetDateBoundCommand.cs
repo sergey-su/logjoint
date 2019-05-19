@@ -15,7 +15,7 @@ namespace LogJoint
 	/// </summary>
 	internal class GetDateBoundCommand : IAsyncLogProviderCommandHandler
 	{
-		public GetDateBoundCommand(DateTime date, bool getMessage, ListUtils.ValueBound bound, IDateBoundsCache dateBoundsCache)
+		public GetDateBoundCommand(DateTime date, bool getMessage, ValueBound bound, IDateBoundsCache dateBoundsCache)
 		{
 			this.date = date;
 			this.bound = bound;
@@ -43,8 +43,8 @@ namespace LogJoint
 
 			var cache = ctx.Cache;
 
-			if ((date < ctx.Stats.AvailableTime.Begin && (bound == ListUtils.ValueBound.LowerReversed || bound == ListUtils.ValueBound.UpperReversed))
-			 || date == ctx.Stats.AvailableTime.Begin && (bound == ListUtils.ValueBound.UpperReversed))
+			if ((date < ctx.Stats.AvailableTime.Begin && (bound == ValueBound.LowerReversed || bound == ValueBound.UpperReversed))
+			 || date == ctx.Stats.AvailableTime.Begin && (bound == ValueBound.UpperReversed))
 			{
 				result = new DateBoundPositionResponseData()
 				{
@@ -53,7 +53,7 @@ namespace LogJoint
 				};
 				return true;
 			}
-			if ((date >= ctx.Stats.AvailableTime.End && (bound == ListUtils.ValueBound.Lower || bound == ListUtils.ValueBound.Upper)))
+			if ((date >= ctx.Stats.AvailableTime.End && (bound == ValueBound.Lower || bound == ValueBound.Upper)))
 			{
 				result = new DateBoundPositionResponseData()
 				{
@@ -66,7 +66,7 @@ namespace LogJoint
 			if (result.Index == 0)
 			{
 				if (cache.MessagesRange.Begin != ctx.Stats.PositionsRange.Begin
-					&& (bound == ListUtils.ValueBound.Lower || bound == ListUtils.ValueBound.Upper))
+					&& (bound == ValueBound.Lower || bound == ValueBound.Upper))
 				{
 					return false;
 				}
@@ -81,7 +81,7 @@ namespace LogJoint
 			if (result.Index == cache.Messages.Count - 1)
 			{
 				if (cache.MessagesRange.End != ctx.Stats.PositionsRange.End
-					&& (bound == ListUtils.ValueBound.LowerReversed || bound == ListUtils.ValueBound.UpperReversed))
+					&& (bound == ValueBound.LowerReversed || bound == ValueBound.UpperReversed))
 				{
 					return false;
 				}
@@ -136,7 +136,7 @@ namespace LogJoint
 
 		readonly TaskCompletionSource<DateBoundPositionResponseData> task = new TaskCompletionSource<DateBoundPositionResponseData>();
 		readonly DateTime date;
-		readonly ListUtils.ValueBound bound;
+		readonly ValueBound bound;
 		readonly bool messageRequested;
 		readonly IDateBoundsCache dateBoundsCache;
 

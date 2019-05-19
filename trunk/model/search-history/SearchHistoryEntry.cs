@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Xml.Linq;
+using LogJoint.Search;
 
 namespace LogJoint
 {

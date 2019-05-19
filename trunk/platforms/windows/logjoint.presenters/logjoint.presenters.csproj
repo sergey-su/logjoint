@@ -121,8 +121,8 @@
     <Compile Include="..\..\..\presenters\Common\Theming\Extensions.cs">
       <Link>Common\Theming\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\Common\Theming\Interfaces.cs">
-      <Link>Common\Theming\Interfaces.cs</Link>
+    <Compile Include="..\..\..\presenters\Extensibility\Presentation.cs">
+      <Link>Extensibility\Presentation.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
       <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
@@ -580,13 +580,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\analytics\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
-      <Name>logjoint.analytics</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
+      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
+      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

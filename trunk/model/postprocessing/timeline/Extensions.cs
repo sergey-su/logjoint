@@ -25,7 +25,7 @@ namespace LogJoint.Postprocessing.Timeline
 			return e.Time + e.Owner.TimelineOffset;
 		}
 
-		public static TimeSpan GetTimelineTime(this ActivityMilestone ms)
+		public static TimeSpan GetTimelineTime(this ActivityMilestoneInfo ms)
 		{
 			return ms.Time + ms.Owner.TimelineOffset;
 		}
@@ -35,12 +35,12 @@ namespace LogJoint.Postprocessing.Timeline
 			return bmk.Time.ToUnspecifiedTime() - model.Origin;
 		}
 
-		public static TimeSpan GetTimelineBegin(this ActivityPhase ph)
+		public static TimeSpan GetTimelineBegin(this ActivityPhaseInfo ph)
 		{
 			return ph.Begin + ph.Owner.TimelineOffset;
 		}
 
-		public static TimeSpan GetTimelineEnd(this ActivityPhase ph)
+		public static TimeSpan GetTimelineEnd(this ActivityPhaseInfo ph)
 		{
 			return ph.End + ph.Owner.TimelineOffset;
 		}

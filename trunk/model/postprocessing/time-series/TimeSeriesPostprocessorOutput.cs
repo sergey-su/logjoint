@@ -1,8 +1,7 @@
-﻿using LogJoint.Analytics;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using TSBlocks = LogJoint.Analytics.TimeSeries;
+using TSBlocks = LogJoint.Postprocessing.TimeSeries;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {

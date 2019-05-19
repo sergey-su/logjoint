@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using SI = LogJoint.Analytics.StateInspector;
+using SI = LogJoint.Postprocessing.StateInspector;
 using LogJoint.Postprocessing.StateInspector;
-using LogJoint.Analytics;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics.StateInspector;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
@@ -80,15 +78,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				.Any(e => objectEvent.CompareTo(e.Trigger) == 0);
 		}
 
-		IInspectedObject IPresenter.SelectedObject
+		IVisualizerNode IPresenter.SelectedObject
 		{
 			get 
 			{
-				return GetSelectedInspectedObjects().FirstOrDefault();
+				return VisualizerNode.FromObject(GetSelectedInspectedObjects().FirstOrDefault());
 			}
 		}
 
-		bool IPresenter.TrySelectObject(ILogSource source, TextLogEventTrigger creationTrigger, Func<IInspectedObject, int> disambiguationFunction)
+		bool IPresenter.TrySelectObject(ILogSource source, TextLogEventTrigger creationTrigger, Func<IVisualizerNode, int> disambiguationFunction)
 		{
 			EnsureTreeView();
 
@@ -107,7 +105,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 					obj = candidates[0];
 				else
 					obj = candidates
-						.Select(c => new { Obj = c, Rating = disambiguationFunction(c) })
+						.Select(c => new { Obj = c, Rating = disambiguationFunction(VisualizerNode.FromObject(c)) })
 						.OrderByDescending(x => x.Rating)
 						.First().Obj;
 				var n = FindOrCreateNode(obj);
@@ -563,7 +561,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			{
 				if (OnNodeCreated != null)
 				{
-					var args = new NodeCreatedEventArgs() { NodeObject = modelNode };
+					var args = new NodeCreatedEventArgs() { NodeObject = VisualizerNode.FromObject(modelNode) };
 					OnNodeCreated(this, args);
 					createCollapsed = args.CreateCollapsed.GetValueOrDefault(createCollapsed);
 					createLazilyLoaded = args.CreateLazilyLoaded.GetValueOrDefault(createLazilyLoaded);
@@ -983,6 +981,27 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 			void IEventsVisitor.Visit (ParentChildRelationChange parentChildRelationChange)
 			{
+			}
+		};
+
+		class VisualizerNode : IVisualizerNode
+		{
+			IInspectedObject obj;
+
+			public static VisualizerNode FromObject(IInspectedObject obj)
+			{
+				return obj != null ? new VisualizerNode() { obj = obj } : null;
+			}
+
+			string IVisualizerNode.Id => obj.Id;
+
+			Event IVisualizerNode.CreationEvent => obj.CreationEvent?.OriginalEvent;
+
+			IVisualizerNode IVisualizerNode.Parent => FromObject(obj.Parent);
+
+			bool IVisualizerNode.BelongsToSource(ILogSource logSource)
+			{
+				return obj.Owner.Outputs.Any(x => x.LogSource == logSource);
 			}
 		};
 

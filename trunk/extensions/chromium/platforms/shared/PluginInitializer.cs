@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using LogJoint.Extensibility;
 
 namespace LogJoint.Chromium
 {
@@ -8,18 +6,21 @@ namespace LogJoint.Chromium
 	{
 		public static void Init(IApplication app)
 		{
-			app.Model.Postprocessing.TimeSeriesTypes.RegisterTimeSeriesTypesAssembly(typeof(Chromium.TimeSeries.PostprocessorsFactory).Assembly);
+			app.Model.Postprocessing.TimeSeries.RegisterTimeSeriesTypesAssembly(typeof(TimeSeries.PostprocessorsFactory).Assembly);
+
+			var pluginModel = new PluginModel();
 
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
-				app.Model.Postprocessing.PostprocessorsManager, 
+				app.Model.Postprocessing.Manager, 
 				app.Model.UserDefinedFormatsManager, 
-				new Chromium.StateInspector.PostprocessorsFactory(app.Model.TempFilesManager),
-				new Chromium.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeriesTypes),
-				new Chromium.Correlator.PostprocessorsFactory(app.Model),
-				new Chromium.Timeline.PostprocessorsFactory(app.Model.TempFilesManager),
-				new Chromium.SequenceDiagram.PostprocessorsFactory(app.Model.TempFilesManager)
+				new StateInspector.PostprocessorsFactory(app.Model.Postprocessing, pluginModel),
+				new TimeSeries.PostprocessorsFactory(app.Model.Postprocessing, pluginModel),
+				new Correlator.PostprocessorsFactory(app.Model),
+				new Timeline.PostprocessorsFactory(app.Model.Postprocessing, pluginModel),
+				new SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)
 			);
 
+			app.Model.PluginsManager.Register<IPluginModel>(pluginModel);
 
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
 			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timeSeriesForm = null;
@@ -32,28 +33,23 @@ namespace LogJoint.Chromium
 					{
 						stateInspectorPresenter.OnNodeCreated += (senderPresenter, arg) =>
 						{
-							if (Chromium.ChromeDebugLog.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
+							if (ChromeDebugLog.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject?.CreationEvent, arg.NodeObject?.Id, arg.NodeObject?.Parent?.Id))
 								arg.CreateCollapsed = true;
-							else if (Chromium.WebrtcInternalsDump.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
-								arg.CreateCollapsed = true;
-							else if (Symphony.Rtc.MeetingsStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
-								arg.CreateCollapsed = true;
-							else if (Symphony.Rtc.MediaStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
+							else if (WebrtcInternalsDump.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject?.CreationEvent))
 								arg.CreateCollapsed = true;
 						};
 						stateInspectorPresenter.OnMenu += (senderPresenter, arg) =>
 						{
 							if (stateInspectorPresenter.SelectedObject != null)
 							{
-								if (WebrtcInternalsDump.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject)
-								 || ChromeDebugLog.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject)
-								 || Symphony.Rtc.MediaStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject))
+								if (WebrtcInternalsDump.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject.CreationEvent)
+								 || ChromeDebugLog.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject.CreationEvent))
 								{
 									app.Presentation.PostprocessorsFormFactory.GetPostprocessorOutputForm(UI.Presenters.Postprocessing.MainWindowTabPage.ViewControlId.TimeSeries);
-									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.TreeNodeData> predicate = node =>
+									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.ITreeNodeData> predicate = node =>
 										node.Type == UI.Presenters.Postprocessing.TimeSeriesVisualizer.ConfigDialogNodeType.ObjectIdGroup
 										&& node.Caption.Contains(stateInspectorPresenter.SelectedObject.Id)
-										&& stateInspectorPresenter.SelectedObject.Owner.Outputs.Any(x => x.LogSource == node.Owner.LogSource);
+										&& stateInspectorPresenter.SelectedObject.BelongsToSource(node.LogSource);
 									if (timeSeriesPresenter != null && timeSeriesPresenter.ConfigNodeExists(predicate))
 									{
 										arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
@@ -83,7 +79,7 @@ namespace LogJoint.Chromium
 				new WebrtcInternalsDump.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory)
 			);
 			app.Model.PreprocessingManagerExtensionsRegistry.Register(
-				new ChromeDriver.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory)
+				new ChromeDriver.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory, app.Model.Postprocessing.TextLogParser)
 			);
 			app.Model.PreprocessingManagerExtensionsRegistry.Register(
 				new HttpArchive.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.HttpArchive.LogProviderFactory)

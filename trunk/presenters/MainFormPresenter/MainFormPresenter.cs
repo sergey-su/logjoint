@@ -31,7 +31,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			IAlertPopup alerts,
 			SharingDialog.IPresenter sharingDialogPresenter,
 			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter,
-			IShutdown shutdown,
+			IShutdownSource shutdown,
 			IColorTheme theme,
 			IChangeNotification changeNotification
 		)
@@ -422,7 +422,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly IAlertPopup alerts;
 		readonly SharingDialog.IPresenter sharingDialogPresenter;
-		readonly IShutdown shutdown;
+		readonly IShutdownSource shutdown;
 		readonly StatusReports.IPresenter statusRepors;
 		readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;
 		readonly IColorTheme theme;

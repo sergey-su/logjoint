@@ -46,7 +46,7 @@ namespace LogJoint
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
-				IShutdown shutdown = new Shutdown();
+				IShutdownSource shutdown = new Shutdown();
 				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage, shutdown);
 				Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 				userDataStorage.Init(
@@ -207,7 +207,7 @@ namespace LogJoint
 					logSourcesManager
 				);
 
-				Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Analytics.TimeSeries.TimeSeriesTypesLoader();
+				Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 
 				Postprocessing.IPostprocessorsManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
 					logSourcesManager,
@@ -216,14 +216,24 @@ namespace LogJoint
 					threadPoolSynchronizationContext,
 					heartBeatTimer,
 					progressAggregator,
-					globalSettingsAccessor
+					globalSettingsAccessor,
+					new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess)
+				);
+
+				Postprocessing.IModel postprocessingModel = new Postprocessing.Model(
+					postprocessorsManager,
+					timeSeriesTypesAccess,
+					new Postprocessing.StateInspector.Model(tempFilesManager),
+					new Postprocessing.Timeline.Model(tempFilesManager),
+					new Postprocessing.SequenceDiagram.Model(tempFilesManager),
+					new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
 				);
 
 				Postprocessing.InternalTracePostprocessors.Register(
 					postprocessorsManager,
 					userDefinedFormatsManager,
-					tempFilesManager,
-					timeSeriesTypesAccess
+					timeSeriesTypesAccess,
+					postprocessingModel
 				);
 
 				tracer.Info("model creation completed");
@@ -503,7 +513,7 @@ namespace LogJoint
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
 					StdProviderFactoryUIs.FileBasedProviderUIKey,
 					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
-						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(), 
+						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(),
 						(IFileBasedLogProviderFactory)f,
 						logSourcesController,
 						alertPopup,
@@ -511,7 +521,7 @@ namespace LogJoint
 					)
 				);
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-					StdProviderFactoryUIs.DebugOutputProviderUIKey, 
+					StdProviderFactoryUIs.DebugOutputProviderUIKey,
 					f => new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.Presenter(
 						new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.DebugOutputFactoryUI(),
 						f,
@@ -561,13 +571,13 @@ namespace LogJoint
 					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView(), highlightColorsTable);
 					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter, highlightColorsTable);
 					UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
-						filters, 
-						view, 
-						listPresenter, 
-						dialogPresenter, 
-						viewerPresenter, 
-						viewUpdates, 
-						heartBeatTimer, 
+						filters,
+						view,
+						listPresenter,
+						dialogPresenter,
+						viewerPresenter,
+						viewUpdates,
+						heartBeatTimer,
 						filtersFactory,
 						alertPopup
 					);
@@ -625,7 +635,7 @@ namespace LogJoint
 
 				DragDropHandler dragDropHandler = new DragDropHandler(
 					logSourcesController,
-					logSourcesPreprocessings, 
+					logSourcesPreprocessings,
 					preprocessingStepsFactory
 				);
 
@@ -697,37 +707,33 @@ namespace LogJoint
 
 				Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new Postprocessing.AggregatingLogSourceNamesProvider();
 
-				Extensibility.IApplication pluginEntryPoint = new Extensibility.Application(
-					new Extensibility.Model(
-						modelSynchronizationContext,
-						changeNotification,
-						telemetryCollector,
-						webContentCache,
-						contentCache,
-						storageManager,
-						bookmarks,
-						logSourcesManager,
-						modelThreads,
-						tempFilesManager,
-						preprocessingManagerExtensionsRegistry,
-						logSourcesPreprocessings,
-						preprocessingStepsFactory,
-						progressAggregator,
-						logProviderFactoryRegistry,
-						userDefinedFormatsManager,
-						recentlyUsedLogs,
-						progressAggregatorFactory,
-						heartBeatTimer,
-						logSourcesController,
-						shutdown,
-						webBrowserDownloader,
-						commandLineHandler,
-						postprocessorsManager,
-						analyticsShortNames,
-						timeSeriesTypesAccess,
-						logSourceNamesProvider
-					),
-					new Extensibility.Presentation(
+				var expensibilityModel = new Model(
+					modelSynchronizationContext,
+					changeNotification,
+					webContentCache,
+					contentCache,
+					storageManager,
+					bookmarks,
+					logSourcesManager,
+					modelThreads,
+					tempFilesManager,
+					preprocessingManagerExtensionsRegistry,
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					progressAggregator,
+					logProviderFactoryRegistry,
+					userDefinedFormatsManager,
+					recentlyUsedLogs,
+					progressAggregatorFactory,
+					logSourcesController,
+					shutdown,
+					webBrowserDownloader,
+					postprocessingModel
+				);
+
+				var pluginEntryPoint = new Extensibility.Application(
+					expensibilityModel,
+					new LogJoint.UI.Presenters.Presentation(
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
@@ -748,14 +754,23 @@ namespace LogJoint
 
 				var pluginsManager = new Extensibility.PluginsManager(
 					pluginEntryPoint,
-					mainFormPresenter,
 					telemetryCollector,
-					shutdown
+					shutdown,
+					expensibilityModel
 				);
 				tracer.Info("plugin manager created");
 
 				appInitializer.WireUpCommandLineHandler(mainFormPresenter, commandLineHandler);
-				postprocessingViewsFactory.Init(pluginEntryPoint);
+				postprocessingViewsFactory.Init(
+					pluginEntryPoint,
+					logSourceNamesProvider,
+					analyticsShortNames,
+					sourcesManagerPresenter,
+					loadedMessagesPresenter,
+					clipboardAccess,
+					presentersFacade,
+					alertPopup
+				);
 
 				presentersFacade.Init(
 					messagePropertiesDialogPresenter,

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {

@@ -4,9 +4,9 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using LogJoint.Preprocessing;
-using LogJoint.Analytics;
 using HarSharp;
 using System.Threading;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.Chromium.HttpArchive
 {
@@ -69,7 +69,7 @@ namespace LogJoint.Chromium.HttpArchive
 					throw new Exception(string.Format("HTTP archive is broken"), e);
 				}
 			});
-			if (await Task.WhenAny(callback.Cancellation.ToTask(), harTask) != harTask)
+			if (await Task.WhenAny(ToTask(callback.Cancellation), harTask) != harTask)
 				return;
 
 			await (new Writer()).Write(
@@ -79,7 +79,18 @@ namespace LogJoint.Chromium.HttpArchive
 			);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\text", sourceFile.FullPath),
-				Utils.Concat(sourceFile.PreprocessingSteps, stepName), sourceFile.FullPath));
+				sourceFile.PreprocessingSteps.Concat(new[] { stepName }), sourceFile.FullPath));
+		}
+
+		static async Task ToTask(CancellationToken cancellation)
+		{
+			var taskSource = new TaskCompletionSource<int>();
+			using (var cancellationRegistration = cancellation.Register(() => taskSource.TrySetResult(1)))
+			{
+				if (cancellation.IsCancellationRequested)
+					taskSource.TrySetResult(1);
+				await taskSource.Task;
+			}
 		}
 
 		IEnumerableAsync<Message[]> ToText(Har har, CancellationToken cancellation)

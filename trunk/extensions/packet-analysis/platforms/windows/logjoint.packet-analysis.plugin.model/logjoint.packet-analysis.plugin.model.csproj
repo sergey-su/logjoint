@@ -84,25 +84,10 @@
     <Compile Include="..\..\..\model\Postprocessors\TimelinePostprocessorsFactory.cs">
       <Link>Postprocessors\TimelinePostprocessorsFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Utils\Utils.cs">
+      <Link>Utils\Utils.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\analytics\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
-      <Name>logjoint.analytics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
-      <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
-      <Name>logjoint.presenters</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
-      <Project>{929f7c79-e2bb-4e6c-af17-f21e5025265a}</Project>
-      <Name>logjoint</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -113,7 +98,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

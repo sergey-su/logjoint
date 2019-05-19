@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using LogJoint.Postprocessing.TimeSeries;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
-using LogJoint.Analytics.TimeSeries;
 using System.Xml.Linq;
 using System.Globalization;
 using System.Diagnostics;
@@ -79,7 +77,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(throttlingToastNotificationItem);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.TimeSeries));
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.TimeSeries));
 			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
 			{
 				UpdateNotificationsIcon();
@@ -95,7 +93,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			ShowConfigDialog();
 		}
 
-		bool IPresenter.SelectConfigNode(Predicate<TreeNodeData> predicate)
+		bool IPresenter.SelectConfigNode(Predicate<ITreeNodeData> predicate)
 		{
 			EnsureConfigDialog();
 			UpdateConfigDialogViewIfNeeded();
@@ -112,7 +110,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			return false;
 		}
 
-		bool IPresenter.ConfigNodeExists(Predicate<TreeNodeData> predicate)
+		bool IPresenter.ConfigNodeExists(Predicate<ITreeNodeData> predicate)
 		{
 			foreach (var log in model.Outputs)
 				if (Find(CreateConfigDialogRoot(log), predicate) != null)

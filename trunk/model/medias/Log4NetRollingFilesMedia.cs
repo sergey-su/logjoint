@@ -12,7 +12,7 @@ namespace LogJoint.Log4net
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(baseFileName);
 		}
 
-		static readonly string fileNameParam = ConnectionParamsUtils.PathConnectionParam;
+		static readonly string fileNameParam = ConnectionParamsKeys.PathConnectionParam;
 
 		readonly string baseFileName;
 		readonly char baseFileNameFirstChar;

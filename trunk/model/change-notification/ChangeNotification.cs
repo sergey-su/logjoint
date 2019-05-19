@@ -26,5 +26,15 @@ namespace LogJoint
 		}
 
 		public event EventHandler OnChange;
+
+		ISubscription IChangeNotification.CreateSubscription(Action sideEffect, bool initiallyActive)
+		{
+			return new Subscription(this, sideEffect, initiallyActive);
+		}
+
+		IChainedChangeNotification IChangeNotification.CreateChainedChangeNotification(bool initiallyActive)
+		{
+			return new ChainedChangeNotification(this, initiallyActive);
+		}
 	};
 }

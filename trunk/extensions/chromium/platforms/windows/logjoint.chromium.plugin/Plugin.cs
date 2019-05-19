@@ -1,21 +1,12 @@
-using LogJoint.Extensibility;
 using LogJoint.Chromium;
 
 namespace LogJoint
 {
-	public class Plugin : PluginBase
+	public class Plugin
 	{
-		public Plugin()
-		{
-		}
-
-		public override void Init(IApplication app)
+		public Plugin(IApplication app)
 		{
 			PluginInitializer.Init(app);
-		}
-
-		public override void Dispose()
-		{
 		}
 	}
 }
