@@ -243,20 +243,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
-      <Name>logjoint.analytics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.mac\logjoint.mac.csproj">
-      <Project>{9F528C3D-D79B-4394-A6C2-7FF3AB7F91C3}</Project>
-      <Name>logjoint.mac</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Formats\ChromeDebugLog\TimeSeries\" />
     <Folder Include="Formats\ChromeDebugLog\Utils\" />
     <Folder Include="Formats\WebrtcInternalsDump\" />
@@ -293,6 +279,12 @@
       <Link>Formats\Chromium-webrtc_internals_dump.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

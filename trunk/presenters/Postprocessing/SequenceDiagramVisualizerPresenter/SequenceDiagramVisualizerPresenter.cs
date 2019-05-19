@@ -253,7 +253,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				{
 					if (isSelected)
 					{
-						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrows.Keys.AsReadOnly(), arrow.Index, ListUtils.ValueBound.UpperReversed, Comparer<int>.Default);
+						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrows.Keys.AsReadOnly(), arrow.Index, ValueBound.UpperReversed, Comparer<int>.Default);
 						if (prevSelectedArrowIdxIdx >= 0)
 						{
 							var prevSelectedArrowIdx = selectedArrows.Keys[prevSelectedArrowIdxIdx];

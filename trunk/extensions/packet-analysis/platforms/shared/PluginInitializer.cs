@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using LogJoint.Extensibility;
 
 namespace LogJoint.PacketAnalysis
 {

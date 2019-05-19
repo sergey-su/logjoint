@@ -53,7 +53,7 @@ namespace LogJoint.Preprocessing
 		}
 
 		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
-			RecentLogEntry recentLogEntry,
+			IRecentlyUsedEntity recentLogEntry,
 			PreprocessingOptions options)
 		{
 			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry, options));
@@ -189,7 +189,7 @@ namespace LogJoint.Preprocessing
 				LogSourcesPreprocessingManager owner,
 				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback,
-				RecentLogEntry recentLogEntry,
+				IRecentlyUsedEntity recentLogEntry,
 				PreprocessingOptions options 
 			) :
 				this(owner, userRequests, providerYieldedCallback)
@@ -377,7 +377,7 @@ namespace LogJoint.Preprocessing
 				yieldedProviders.Add(provider);
 			}
 
-			void IPreprocessingStepCallback.YieldChildPreprocessing(RecentLogEntry recentLogEntry, bool isHiddenLog)
+			void IPreprocessingStepCallback.YieldChildPreprocessing(IRecentlyUsedEntity recentLogEntry, bool isHiddenLog)
 			{
 				childPreprocessings.Add(new ChildPreprocessingParams() { Param = recentLogEntry, MakeHiddenLog = isHiddenLog } );
 			}
@@ -547,7 +547,7 @@ namespace LogJoint.Preprocessing
 
 		struct ChildPreprocessingParams
 		{
-			public RecentLogEntry Param;
+			public IRecentlyUsedEntity Param;
 			public bool MakeHiddenLog;
 		};
 
@@ -692,17 +692,5 @@ namespace LogJoint.Preprocessing
 		int lastPreprocId;
 
 		#endregion
-	};
-
-	public class LogSourcePreprocessingEventArg : EventArgs
-	{
-		public ILogSourcePreprocessing LogSourcePreprocessing { get { return lsp; } }
-
-		public LogSourcePreprocessingEventArg(ILogSourcePreprocessing lsp)
-		{
-			this.lsp = lsp;
-		}
-
-		ILogSourcePreprocessing lsp;
 	};
 }

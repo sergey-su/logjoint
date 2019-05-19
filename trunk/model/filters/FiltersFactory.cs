@@ -8,7 +8,7 @@ namespace LogJoint
 	{
 		readonly IChangeNotification changeNotification;
 
-		public static readonly IFilterScope DefaultScope = new FilterScope();
+		public static readonly IFilterScope DefaultScope = FilterScope.DefaultScope;
 
 		public FiltersFactory(IChangeNotification changeNotification)
 		{

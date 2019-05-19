@@ -13,7 +13,7 @@ namespace LogJoint.Analytics.Correlation
         public readonly IDecision Decision;
         public TimeSpan TimeDelta { get { return new TimeSpan((long)Decision.Value); } }
 
-		public DecisionBase(IModel model, string decisionName)
+		public DecisionBase(Solver.IModel model, string decisionName)
         {
 			this.Decision = model.CreateDecision(SolverUtils.MakeValidSolverIdentifierFromString(decisionName));
         }
@@ -24,7 +24,7 @@ namespace LogJoint.Analytics.Correlation
         public readonly Node Node;
         public int NrOnConstraints { get; private set; }
 
-		public NodeDecision(IModel model, Node n) : base(model, "NodeDecision_" + n.NodeId.ToString()) { this.Node = n; }
+		public NodeDecision(Solver.IModel model, Node n) : base(model, "NodeDecision_" + n.NodeId.ToString()) { this.Node = n; }
 
         public void UsedInConstraint()
         {
@@ -36,6 +36,6 @@ namespace LogJoint.Analytics.Correlation
     {
         public readonly Message Message;
 
-		public MessageDecision(IModel model, Message m) : base(model, "MessageDecision_" + m.Key.ToString()) { this.Message = m; }
+		public MessageDecision(Solver.IModel model, Message m) : base(model, "MessageDecision_" + m.Key.ToString()) { this.Message = m; }
     };
 }

@@ -3,11 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
-	public interface IStringSliceReallocator : IDisposable
-	{
-		StringSlice Reallocate(StringSlice value);
-	};
-
 	unsafe public class StringSliceReallocator : IStringSliceReallocator, IDisposable
 	{
 		char* bufPtr;

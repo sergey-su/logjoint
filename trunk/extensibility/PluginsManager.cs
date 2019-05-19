@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Reflection;
-using LogJoint.UI;
 using System.Diagnostics;
 
 namespace LogJoint.Extensibility
 {
 	class PluginsManager: IDisposable
 	{
-		readonly List<PluginBase> plugins = new List<PluginBase>();
+		readonly List<object> plugins = new List<object> ();
 		readonly LJTraceSource tracer;
-		readonly IApplication entryPoint;
+		readonly LogJoint.IApplication entryPoint;
 		readonly UI.Presenters.MainForm.IPresenter mainFormPresenter;
 
 		public PluginsManager(
-			IApplication entryPoint,
+			LogJoint.IApplication entryPoint,
 			UI.Presenters.MainForm.IPresenter mainFormPresenter,
 			Telemetry.ITelemetryCollector telemetry,
 			IShutdown shutdown)
@@ -28,12 +27,10 @@ namespace LogJoint.Extensibility
 
 			InitPlugins(telemetry);
 			RegisterInteropClasses();
-			LoadTabExtensions();
 
 			mainFormPresenter.TabChanging += (sender, e) => 
 			{
-				var ext = e.CustomTabTag as IMainFormTabExtension;
-				if (ext == null)
+				if (!(e.CustomTabTag is IMainFormTabExtension ext))
 					return;
 				try
 				{
@@ -71,22 +68,35 @@ namespace LogJoint.Extensibility
 						continue;
 					}
 					var loadTime = sw.Elapsed;
-					Type pluginType = pluginAsm.GetType("LogJoint.Plugin");
+					sw.Restart ();
+					Type pluginType;
+					try
+					{
+						pluginType = pluginAsm.GetType ("LogJoint.Plugin");
+					}
+					catch (Exception e)
+					{
+						tracer.Error (e, "failed to load plugin type");
+						telemetry.ReportException (e, "loading pluging " + pluginPath);
+						continue;
+					}
+					var typeLoadTime = sw.Elapsed;
 					if (pluginType == null)
 					{
 						tracer.Warning("plugin class not found in plugin assembly");
 						continue;
 					}
-					if (!typeof(PluginBase).IsAssignableFrom(pluginType))
+					var ctr = pluginType.GetConstructor (new [] { typeof (LogJoint.IApplication) });
+					if (ctr == null)
 					{
-						tracer.Warning("plugin class doesn't inherit PluginBase");
+						tracer.Warning ("plugin class does not implement ctr with LogJoint.IApplication argument");
 						continue;
 					}
 					sw.Restart();
-					PluginBase plugin;
+					object plugin;
 					try
 					{
-						plugin = (PluginBase)Activator.CreateInstance(pluginType);
+						plugin = ctr.Invoke (new [] { entryPoint });
 					}
 					catch (Exception e)
 					{
@@ -95,37 +105,9 @@ namespace LogJoint.Extensibility
 						continue;
 					}
 					var instantiationTime = sw.Elapsed;
-					sw.Restart();
-					try
-					{
-						plugin.Init(entryPoint);
-					}
-					catch (Exception e)
-					{
-						plugin.Dispose();
-						tracer.Error(e, "failed to init an instance of plugin");
-						telemetry.ReportException(e, "initializtion of plugin " + pluginPath);
-						continue;
-					}
-					var initTime = sw.Elapsed;
-					tracer.Info("plugin {0} accepted. times: loading={1}, instantiation={2}, initialization={3}", 
-						Path.GetFileName(pluginPath), loadTime, instantiationTime, initTime);
+					tracer.Info("plugin {0} accepted. times: loading dll={1}, type loading={2}, instantiation={3}", 
+						Path.GetFileName(pluginPath), loadTime, typeLoadTime, instantiationTime);
 					plugins.Add(plugin);
-				}
-			}
-		}
-
-		void LoadTabExtensions()
-		{
-			foreach (PluginBase plugin in plugins)
-			{
-				foreach (IMainFormTabExtension ext in plugin.MainFormTabExtensions)
-				{
-					mainFormPresenter.AddCustomTab(
-						ext.PageControl,
-						ext.Caption,
-						ext
-					);
 				}
 			}
 		}
@@ -133,16 +115,17 @@ namespace LogJoint.Extensibility
 		void RegisterInteropClasses()
 		{
 			#if MONOMAC
-			foreach (PluginBase plugin in plugins)
+			foreach (var plugin in plugins)
 				ObjCRuntime.Runtime.RegisterAssembly (plugin.GetType().Assembly);
 			#endif
 		}
 
 		public void Dispose()
 		{
-			foreach (PluginBase plugin in plugins)
+			foreach (var plugin in plugins)
 			{
-				plugin.Dispose();
+				if (plugin is IDisposable disposable)
+					disposable.Dispose();
 			}
 			plugins.Clear();
 		}

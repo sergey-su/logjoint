@@ -43,6 +43,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin", "..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin\logjoint.packet-analysis.plugin.csproj", "{C04BD9F7-2731-4BE7-A980-7719E789EF91}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sdk", "sdk", "{255420E4-67A9-441B-8DA0-67A77DE25034}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.model.sdk", "sdk\logjoint.model.sdk\logjoint.model.sdk.csproj", "{04F5EC7D-B83F-44C9-97C0-08173A620CA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.presentation.sdk", "sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj", "{50400C8A-004A-4162-8D98-5DC0152BF2A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.sdk", "logjoint.sdk\logjoint.sdk.csproj", "{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -179,6 +187,30 @@ Global
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Debug|x86.Build.0 = Debug|Any CPU
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Release|x86.ActiveCfg = Release|Any CPU
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Release|x86.Build.0 = Release|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Debug|x86.Build.0 = Debug|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Release|x86.ActiveCfg = Release|Any CPU
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9}.Release|x86.Build.0 = Release|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Debug|x86.Build.0 = Debug|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Release|x86.ActiveCfg = Release|Any CPU
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7}.Release|x86.Build.0 = Release|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Debug|x86.Build.0 = Debug|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|x86.ActiveCfg = Release|Any CPU
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -227,5 +259,8 @@ Global
 		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
 		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
+		{04F5EC7D-B83F-44C9-97C0-08173A620CA9} = {255420E4-67A9-441B-8DA0-67A77DE25034}
+		{50400C8A-004A-4162-8D98-5DC0152BF2A7} = {255420E4-67A9-441B-8DA0-67A77DE25034}
+		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340} = {255420E4-67A9-441B-8DA0-67A77DE25034}
 	EndGlobalSection
 EndGlobal

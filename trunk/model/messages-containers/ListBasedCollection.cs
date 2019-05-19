@@ -101,7 +101,7 @@ namespace LogJoint.MessagesContainers
 		{
 			var forward = (flags & EnumMessagesFlag.Forward) != 0;
 			var idx = ListUtils.GetBound(messages, null,
-				forward ? ListUtils.ValueBound.Lower : ListUtils.ValueBound.UpperReversed,
+				forward ? ValueBound.Lower : ValueBound.UpperReversed,
 				new PositionsComparer(fromPosition));
 			if (forward)
 			{
@@ -117,7 +117,7 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		public DateBoundPositionResponseData GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound)
+		public DateBoundPositionResponseData GetDateBoundPosition(DateTime d, ValueBound bound)
 		{
 			var idx = ListUtils.GetBound(messages, (IMessage)null, bound, new DatesComparer(d));
 			if (idx < 0)

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using LogJoint.Search;
 
 namespace LogJoint
 {
@@ -473,7 +474,7 @@ namespace LogJoint
 			{
 				foreach (var i in opts)
 				{
-					var tmp = Search.SearchInText(s, i, startIndex);
+					var tmp = i.SearchInText(s, startIndex);
 					if (tmp != null)
 						return tmp;
 				}

@@ -126,7 +126,7 @@ namespace LogJoint
 		);
 		DateBoundPositionResponseData GetDateBoundPosition(
 			DateTime d,
-			ListUtils.ValueBound bound
+			ValueBound bound
 		);
 
 		FileRange.Range SequentialPositionsRange { get; }

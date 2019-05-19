@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Xml;
 using System.Collections.Immutable;
+using LogJoint.PacketAnalysis;
 
 namespace LogJoint.Wireshark.Dpml
 {
@@ -92,7 +93,7 @@ namespace LogJoint.Wireshark.Dpml
 										{
 											var tsAttrValue = protoElement.Elements("field").Where(f => f.AttributeValue("name") == "timestamp").Select(f => f.AttributeValue("value")).FirstOrDefault();
 											if (tsAttrValue != null && double.TryParse(tsAttrValue, out var tsParsed))
-												timestamp = TimeUtils.UnixTimestampMillisToDateTime(tsParsed * 1000);
+												timestamp = Utils.UnixTimestampMillisToDateTime(tsParsed * 1000);
 											var frameNumberAttrValue = protoElement.Elements("field").Where(f => f.AttributeValue("name") == "num").Select(f => f.AttributeValue("value")).FirstOrDefault();
 											if (frameNumberAttrValue != null && long.TryParse(frameNumberAttrValue, NumberStyles.HexNumber, null, out var frameNumberParsed))
 												frameNumber = frameNumberParsed;

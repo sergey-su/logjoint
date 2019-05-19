@@ -254,7 +254,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Diagnostics diag,
 			CancellationToken cancellation)
 		{
-			var startFrom = await src.GetDateBoundPosition(dt, ListUtils.ValueBound.Lower,
+			var startFrom = await src.GetDateBoundPosition(dt, ValueBound.Lower,
 				LogProviderCommandPriority.RealtimeUserAction, cancellation);
 			cancellation.ThrowIfCancellationRequested();
 			var lines = new List<DisplayLine>();

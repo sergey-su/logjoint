@@ -262,7 +262,7 @@ namespace LogJoint
 								}
 								trace.Info("the reader is idling. Getting date bound.");
 								return source.GetDateBoundPosition(d, 
-									reversedMode ?  ListUtils.ValueBound.LowerReversed : ListUtils.ValueBound.Lower, 
+									reversedMode ?  ValueBound.LowerReversed : ValueBound.Lower, 
 									CancellationToken.None
 								); // todo: cancellation
 							}
@@ -530,7 +530,7 @@ namespace LogJoint
 
 		Task<DateBoundPositionResponseData> ITimeGapsSource.GetDateBoundPosition(
 			DateTime d, 
-			ListUtils.ValueBound bound, 
+			ValueBound bound, 
 			CancellationToken cancellation
 		)
 		{

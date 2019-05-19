@@ -6,23 +6,7 @@ using System.Text;
 
 namespace LogJoint
 {
-	public interface ITimeOffsets: IEquatable<ITimeOffsets>
-	{
-		DateTime Get(DateTime dateTime);
-		bool IsEmpty { get; }
-		TimeSpan BaseOffset { get; }
-		ITimeOffsets Inverse();
-	};
-
-	public interface ITimeOffsetsBuilder
-	{
-		void SetBaseOffset(TimeSpan value);
-		void AddOffset(DateTime at, TimeSpan offset);
-		ITimeOffsets ToTimeOffsets();
-	};
-
-
-
+	// todo: move next to sources
 	public class TimeOffsets : ITimeOffsets, IEquatable<ITimeOffsets>
 	{
 		public class Builder : ITimeOffsetsBuilder

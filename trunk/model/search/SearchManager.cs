@@ -220,7 +220,7 @@ namespace LogJoint
 				if ((x.OptionsFilter != null) != (y.OptionsFilter != null))
 					return false;
 				if (x.OptionsFilter != null)
-					return Search.Options.EqualityComparer.Equals(x.OptionsFilter.Options, y.OptionsFilter.Options);
+					return Search.EqualityComparer.Instance.Equals(x.OptionsFilter.Options, y.OptionsFilter.Options);
 				else
 					return x.Options.SearchName == y.Options.SearchName;
 			}
@@ -228,7 +228,7 @@ namespace LogJoint
 			int IEqualityComparer<ISearchResultInternal>.GetHashCode(ISearchResultInternal obj)
 			{
 				if (obj.OptionsFilter != null)
-					return Search.Options.EqualityComparer.GetHashCode(obj.OptionsFilter.Options);
+					return Search.EqualityComparer.Instance.GetHashCode(obj.OptionsFilter.Options);
 				else
 					return obj.Options.SearchName?.GetHashCode() ?? 0;
 			}

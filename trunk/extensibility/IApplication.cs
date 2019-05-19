@@ -1,6 +1,6 @@
 ﻿namespace LogJoint.Extensibility
 {
-	public interface IApplication
+	public interface IApplication // todo: remove
 	{
 		Extensibility.IModel Model { get; }
 		Extensibility.IPresentation Presentation { get; }

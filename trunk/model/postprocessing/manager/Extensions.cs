@@ -55,19 +55,6 @@ namespace LogJoint.Postprocessing
 			return dict;
 		}
 
-		public static string GetLogFileNameHint(this ILogProvider provider)
-		{
-			var saveAs = provider as ISaveAs;
-			if (saveAs == null || !saveAs.IsSavableAs)
-				return null;
-			return saveAs.SuggestedFileName;
-		}
-
-		public static string GetLogFileNameHint(this LogSourcePostprocessorInput input)
-		{
-			return GetLogFileNameHint(input.LogSource.Provider);
-		}
-
 		public static LogSourcePostprocessorInput AttachProgressHandler(this LogSourcePostprocessorInput input,
 			Progress.IProgressAggregator progressAggregator, List<Progress.IProgressEventsSink> progressSinks)
 		{

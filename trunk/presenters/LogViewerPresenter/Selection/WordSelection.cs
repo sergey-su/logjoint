@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using LogJoint.RegularExpressions;
-using System.Text.RegularExpressions;
+using LogJoint.Search;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {

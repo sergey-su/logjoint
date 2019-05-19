@@ -25,6 +25,8 @@ namespace LogJoint.MRU
 			get { return "Workspace " + Name; }
 		}
 
+		ILogProviderFactory IRecentlyUsedEntity.Factory => null;
+
 		string IRecentlyUsedEntity.Annotation
 		{
 			get { return Annotation; }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using LogJoint.Search;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -221,7 +222,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			for (int? startPos = null; ;)
 			{
-				var matchedTextRangle = Search.SearchInMessageText(msg, searchOpts, startPos);
+				var matchedTextRangle = searchOpts.SearchInMessageText(msg, startPos);
 				if (!matchedTextRangle.HasValue)
 					yield break;
 				var r = matchedTextRangle.Value;

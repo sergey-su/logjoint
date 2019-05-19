@@ -199,7 +199,7 @@ namespace LogJoint
 			get { return false; }
 		}
 
-		Task<DateBoundPositionResponseData> ITimeGapsSource.GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound, CancellationToken cancellation)
+		Task<DateBoundPositionResponseData> ITimeGapsSource.GetDateBoundPosition(DateTime d, ValueBound bound, CancellationToken cancellation)
 		{
 			var ret = new DateBoundPositionResponseData()
 			{
@@ -207,7 +207,7 @@ namespace LogJoint
 				IsBeforeBeginPosition = true
 			};
 
-			bool findSmallestDate = bound == ListUtils.ValueBound.Lower || bound == ListUtils.ValueBound.Upper;
+			bool findSmallestDate = bound == ValueBound.Lower || bound == ValueBound.Upper;
 
 			foreach (var r in EnumVisibleResults().Select(r => r.GetLastSnapshot()).Where(s => s != null))
 			{

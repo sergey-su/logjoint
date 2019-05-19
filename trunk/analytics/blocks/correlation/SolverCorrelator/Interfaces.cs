@@ -12,7 +12,7 @@ namespace LogJoint.Analytics.Correlation.Solver
 	{
 		//var solverContext = new SolverContext();
 		//var solverModel = solverContext.CreateModel();
-		IModel CreateModel();
+		Solver.IModel CreateModel();
 	};
 
 	public interface IModel: IDisposable

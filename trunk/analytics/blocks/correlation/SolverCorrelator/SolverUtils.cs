@@ -15,7 +15,7 @@ namespace LogJoint.Analytics.Correlation
 			return '_' + new string(str.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
 		}
 
-		public static void AddFixedConstraints(List<NodesConstraint> fixedConstraints, IDictionary<NodeId, NodeDecision> nodeDecisions, IModel solverModel)
+		public static void AddFixedConstraints(List<NodesConstraint> fixedConstraints, IDictionary<NodeId, NodeDecision> nodeDecisions, Solver.IModel solverModel)
 		{
 			foreach (var constraint in fixedConstraints)
 			{
@@ -43,7 +43,7 @@ namespace LogJoint.Analytics.Correlation
 		public static void AddUnboundNodesConstraints(
 			InternodeMessagesMap map,
 			IDictionary<NodeId, NodeDecision> nodeDecisions,
-			IModel solverModel)
+			Solver.IModel solverModel)
 		{
 			for (int i = 0; i < map.NodeIndexes.Count; ++i)
 			{
@@ -95,7 +95,7 @@ namespace LogJoint.Analytics.Correlation
 			InternodeMessagesMap map,
 			IDictionary<NodeId, NodeDecision> nodeDecisions,
 			HashSet<string> allowedRoles,
-			IModel solverModel)
+			Solver.IModel solverModel)
 		{
 			var handledBadDomains = new HashSet<ISet<int>>();
 			foreach (var roleGroup in map.NodeIndexes

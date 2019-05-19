@@ -47,7 +47,8 @@ namespace LogJoint.Wireshark.Dpml
 			onNext(new PreprocessingStepParams(
 				tmpFileName,
 				$"{sourceFile.FullPath}\\as_pdml",
-				Utils.Concat(sourceFile.PreprocessingSteps, string.Format(keyFile != null ? "{0} {1}" : "{0}", stepName, keyFile)),
+				sourceFile.PreprocessingSteps.Concat(
+					new[] { string.Format(keyFile != null ? "{0} {1}" : "{0}", stepName, keyFile) }),
 				$"{sourceFile.FullPath} (converted to PDML)")
 			);
 		}

@@ -100,6 +100,8 @@ namespace LogJoint.MRU
 			get { return this.UseTimestampUtc; }
 		}
 
+		ILogProviderFactory IRecentlyUsedEntity.Factory => Factory;
+
 		IConnectionParams IRecentlyUsedEntity.ConnectionParams
 		{
 			get { return this.ConnectionParams; }

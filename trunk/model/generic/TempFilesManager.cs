@@ -5,13 +5,7 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public interface ITempFilesManager
-	{
-		string GenerateNewName();
-		bool IsTemporaryFile(string filePath);
-	};
-
-	public class TempFilesManager: ITempFilesManager
+	public class TempFilesManager: ITempFilesManager // todo: to separate folder
 	{
 		public TempFilesManager()
 		{
@@ -77,11 +71,6 @@ namespace LogJoint
 		static TempFilesManager instance;
 	}
 
-	public interface ITempFilesCleanupList: IDisposable
-	{
-		void Add(string fileName);
-	};
-
 	public class TempFilesCleanupList : ITempFilesCleanupList
 	{
 		readonly ITempFilesManager tempFiles;
@@ -116,22 +105,6 @@ namespace LogJoint
 			}
 			files.ForEach(f => File.Delete(f));
 			files.Clear();
-		}
-	};
-
-	public static class Extensions
-	{
-		public static void DeleteIfTemporary(this ITempFilesManager tempFiles, string fileName)
-		{
-			if (tempFiles.IsTemporaryFile(fileName))
-				File.Delete(fileName);
-		}
-
-		public static string CreateEmptyFile(this ITempFilesManager tempFiles)
-		{
-			string fname = tempFiles.GenerateNewName();
-			File.Create(fname).Close();
-			return fname;
 		}
 	};
 }

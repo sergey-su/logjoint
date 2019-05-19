@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
+using LogJoint.Search;
 
 namespace LogJoint
 {
@@ -320,7 +321,7 @@ namespace LogJoint
 
 			Search.MatchedTextRange? IFilterBulkProcessing.Match(IMessage message, int? startFromChar)
 			{
-				return Search.SearchInMessageText(message, searchState, startFromChar);
+				return searchState.SearchInMessageText(message, startFromChar);
 			}
 		};
 	};

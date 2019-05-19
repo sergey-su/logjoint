@@ -117,12 +117,12 @@ namespace LogJoint
 			}
 		}
 
-		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ListUtils.ValueBound bound)
+		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound)
 		{
 			return LocateDateBound(reader, date, bound, CancellationToken.None);
 		}
 		
-		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ListUtils.ValueBound bound, CancellationToken cancellation)
+		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound, CancellationToken cancellation)
 		{
 			var d = new MessageTimestamp(date);
 
@@ -140,12 +140,12 @@ namespace LogJoint
 				bool moveRight = false;
 				switch (bound)
 				{
-					case ListUtils.ValueBound.Lower:
-					case ListUtils.ValueBound.UpperReversed:
+					case ValueBound.Lower:
+					case ValueBound.UpperReversed:
 						moveRight = d2 < d;
 						break;
-					case ListUtils.ValueBound.Upper:
-					case ListUtils.ValueBound.LowerReversed:
+					case ValueBound.Upper:
+					case ValueBound.LowerReversed:
 						moveRight = d2 <= d;
 						break;
 				}
@@ -162,7 +162,7 @@ namespace LogJoint
 				cancellation.ThrowIfCancellationRequested();
 			}
 
-			if (bound == ListUtils.ValueBound.LowerReversed || bound == ListUtils.ValueBound.UpperReversed)
+			if (bound == ValueBound.LowerReversed || bound == ValueBound.UpperReversed)
 			{
 				long? tmp = FindPrevMessagePosition(reader, pos);
 				if (tmp == null)

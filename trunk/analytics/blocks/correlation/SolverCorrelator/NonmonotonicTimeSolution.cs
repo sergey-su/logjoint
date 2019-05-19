@@ -61,7 +61,7 @@ namespace LogJoint.Analytics.Correlation
 			}
 		}
 
-		private static void AddMessagingConstraints(List<InternodeMessage> messages, IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions, Dictionary<NodeId, NodeDecision> nodeDecisions)
+		private static void AddMessagingConstraints(List<InternodeMessage> messages, Solver.IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions, Dictionary<NodeId, NodeDecision> nodeDecisions)
 		{
 			Func<Message, Expr> getTerm = m =>
 			{
@@ -119,7 +119,7 @@ namespace LogJoint.Analytics.Correlation
 			return ret;
 		}
 
-		private static void AddGoals(IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions)
+		private static void AddGoals(Solver.IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions)
 		{
 			solverModel.SetMinimizeGoal(
 				msgDecisions.Values.Select(d => d.Decision).ToArray()

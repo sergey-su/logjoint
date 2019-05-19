@@ -82,27 +82,22 @@
     <Compile Include="..\..\..\model\Formats\WiresharkPdml\Converters\PreprocessingStepsFactory.cs">
       <Link>Formats\WiresharkPdml\Converters\PreprocessingStepsFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Utils\Utils.cs">
+      <Link>Utils\Utils.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
-      <Name>logjoint.analytics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.mac\logjoint.mac.csproj">
-      <Project>{9F528C3D-D79B-4394-A6C2-7FF3AB7F91C3}</Project>
-      <Name>logjoint.mac</Name>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Formats\WiresharkPdml\Reader\" />
     <Folder Include="Formats\WiresharkPdml\Timeline\" />
-    <Folder Include="Formats\WiresharkPdml\Utils\" />
     <Folder Include="Formats\WiresharkPdml\Converters\" />
+    <Folder Include="Utils\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

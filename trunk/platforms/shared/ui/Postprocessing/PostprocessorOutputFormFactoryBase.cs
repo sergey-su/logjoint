@@ -1,5 +1,4 @@
-﻿using LogJoint.Extensibility;
-using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
+﻿using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
 using System;
 using System.Collections.Generic;
 
@@ -7,7 +6,7 @@ namespace LogJoint.UI.Postprocessing
 {
 	public abstract class PostprocessorOutputFormFactoryBase : IPostprocessorOutputFormFactory
 	{
-		protected IApplication app;
+		protected LogJoint.Extensibility.IApplication app;
 
 		LogJoint.Postprocessing.StateInspector.IStateInspectorVisualizerModel stateInspectorModel;
 		UI.Presenters.Postprocessing.StateInspectorVisualizer.IPresenter stateInspectorPresenter;
@@ -32,7 +31,7 @@ namespace LogJoint.UI.Postprocessing
 		{
 		}
 
-		public void Init(IApplication app)
+		public void Init (LogJoint.Extensibility.IApplication app)
 		{
 			this.app = app;
 		}

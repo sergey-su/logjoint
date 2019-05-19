@@ -159,26 +159,6 @@ namespace LogJoint
 				yield return sortedList[i];
 		}
 
-		public enum ValueBound
-		{
-			/// <summary>
-			/// Finds the index of the FIRST element that has a value GREATER than OR EQUIVALENT to a specified value
-			/// </summary>
-			Lower,
-			/// <summary>
-			/// Finds the index of the FIRST element that has a value that is GREATER than a specified value
-			/// </summary>
-			Upper,
-			/// <summary>
-			/// Finds the index of the LAST element that has a value LESS than OR EQUIVALENT to a specified value
-			/// </summary>
-			LowerReversed,
-			/// <summary>
-			/// Finds the index of the LAST element that has a value LESS than a specified value
-			/// </summary>
-			UpperReversed
-		};
-
 		public static int GetBound<T>(this IReadOnlyList<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
 		{
 			Predicate<T> pred;
@@ -299,7 +279,7 @@ namespace LogJoint
 			TestBound(20, ValueBound.UpperReversed, 9);
 		}
 
-		public static void Tests()
+		public static void Tests() // todo: move where they belong
 		{
 			TestLowerBound();
 			TestUpperBound();

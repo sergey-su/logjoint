@@ -14,7 +14,7 @@ namespace LogJoint.Analytics.Correlation.ExternalSolver
 	{
 		protected abstract Protocol.Response Solve(Protocol.Request request, CancellationToken cancellation);
 
-		IModel ISolver.CreateModel()
+		LogJoint.Analytics.Correlation.Solver.IModel ISolver.CreateModel()
 		{
 			return new Model() { owner = this };
 		}
@@ -35,7 +35,7 @@ namespace LogJoint.Analytics.Correlation.ExternalSolver
 			bool ISolution.IsInfeasible => status == Protocol.Response.Infeasible;
 		};
 
-		class Model : IModel
+		class Model : Solver.IModel
 		{
 			internal ExternalSolverBase owner;
 			List<Expr> constraints = new List<Expr>();
@@ -47,17 +47,17 @@ namespace LogJoint.Analytics.Correlation.ExternalSolver
 			{
 			}
 
-			void IModel.AddConstraints(string name, Expr expr)
+			void Solver.IModel.AddConstraints(string name, Expr expr)
 			{
 				constraints.Add(expr);
 			}
 
-			void IModel.SetMinimizeGoal(IDecision[] variables)
+			void Solver.IModel.SetMinimizeGoal(IDecision[] variables)
 			{
 				minimize = variables.OfType<Decision>().ToList();
 			}
 
-			IDecision IModel.CreateDecision(string name)
+			IDecision Solver.IModel.CreateDecision(string name)
 			{
 				var d = new Decision() 
 				{
@@ -68,7 +68,7 @@ namespace LogJoint.Analytics.Correlation.ExternalSolver
 				return d;
 			}
 
-			ISolution IModel.Solve(CancellationToken cancellation)
+			ISolution Solver.IModel.Solve(CancellationToken cancellation)
 			{
 				var rq = new Protocol.Request()
 				{

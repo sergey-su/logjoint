@@ -48,7 +48,7 @@ namespace LogJoint.Analytics.Correlation
 			}
 		}
 
-		private static void AddMessagingConstraints(List<InternodeMessage> messages, IDictionary<NodeId, NodeDecision> nodeDecisions, IModel solverModel)
+		private static void AddMessagingConstraints(List<InternodeMessage> messages, IDictionary<NodeId, NodeDecision> nodeDecisions, Solver.IModel solverModel)
 		{
 			foreach (var message in messages)
 			{
@@ -82,7 +82,7 @@ namespace LogJoint.Analytics.Correlation
 			}
 		}
 
-		private static void AddGoals(IDictionary<NodeId, NodeDecision> nodeDecisions, IModel solverModel)
+		private static void AddGoals(IDictionary<NodeId, NodeDecision> nodeDecisions, Solver.IModel solverModel)
 		{
 			foreach (var nodeDecision in nodeDecisions.Values)
 			{

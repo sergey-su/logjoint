@@ -89,6 +89,7 @@ namespace LogJoint.Extensibility
 		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
 		public AppLaunch.ICommandLineHandler CommandLineHandler { get; private set; }
 		public IPostprocessingModel Postprocessing { get { return this; } }
+		LogJoint.IPostprocessingModel LogJoint.IModel.Postprocessing { get { return this; } }
 
 		#region IPostprocessingModel
 		public Postprocessing.IPostprocessorsManager PostprocessorsManager { get; private set; }

@@ -288,7 +288,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,
-			ListUtils.ValueBound bound,
+			ValueBound bound,
 			LogProviderCommandPriority priority,
 			CancellationToken cancellation
 		);

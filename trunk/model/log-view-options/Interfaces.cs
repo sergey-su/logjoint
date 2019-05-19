@@ -6,17 +6,4 @@ using System.Linq;
 
 namespace LogJoint
 {
-	public enum PreferredViewMode
-	{
-		Normal,
-		Raw
-	};
-
-	public interface IFormatViewOptions
-	{
-		PreferredViewMode PreferredView { get; }
-		bool RawViewAllowed { get; }
-		bool AlwaysShowMilliseconds { get; }
-		int? WrapLineLength { get; }
-	}
 }

@@ -46,29 +46,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\..\..\analytics\infra\EnumerableAsync\EnumerableAsync.cs">
-      <Link>infra\EnumerableAsync\EnumerableAsync.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\EnumerableAsync\Interfaces.cs">
-      <Link>infra\EnumerableAsync\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\EnumerableAsync\MultiplexingEnumerable.cs">
-      <Link>infra\EnumerableAsync\MultiplexingEnumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\EnumerableAsync\ProducingEnumerable.cs">
-      <Link>infra\EnumerableAsync\ProducingEnumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\Utils\BitUtils.cs">
-      <Link>infra\Utils\BitUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\analytics\infra\Utils\CustomJsonConvert.cs">
       <Link>infra\Utils\CustomJsonConvert.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\Utils\DataInterning.cs">
-      <Link>infra\Utils\DataInterning.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\Utils\LinqUtils.cs">
-      <Link>infra\Utils\LinqUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\analytics\infra\Utils\PrefixMatcher.cs">
       <Link>infra\Utils\PrefixMatcher.cs</Link>
@@ -78,33 +57,6 @@
     </Compile>
     <Compile Include="..\..\..\analytics\infra\Utils\StringSlice.cs">
       <Link>infra\Utils\StringSlice.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\Utils\TextLogParser.cs">
-      <Link>infra\Utils\TextLogParser.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\infra\Utils\XmlUtils.cs">
-      <Link>infra\Utils\XmlUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\CodepathTrackers.cs">
-      <Link>blocks\common\CodepathTrackers.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\CodepathTrackingInterfaces.cs">
-      <Link>blocks\common\CodepathTrackingInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\LogRotationExtensions.cs">
-      <Link>blocks\common\LogRotationExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\LogRotationInterfaces.cs">
-      <Link>blocks\common\LogRotationInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\TaggingExtensions.cs">
-      <Link>blocks\common\TaggingExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\TaggingInterfaces.cs">
-      <Link>blocks\common\TaggingInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\TriggersInterfaces.cs">
-      <Link>blocks\common\TriggersInterfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\analytics\blocks\correlation\Interfaces.cs">
       <Link>blocks\correlation\Interfaces.cs</Link>
@@ -178,26 +130,11 @@
     <Compile Include="..\..\..\analytics\blocks\state\SerializationCommon.cs">
       <Link>blocks\state\SerializationCommon.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\blocks\timeline\EventsDeserializer.cs">
-      <Link>blocks\timeline\EventsDeserializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\timeline\EventsSerializer.cs">
-      <Link>blocks\timeline\EventsSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\timeline\EventsStringifier.cs">
-      <Link>blocks\timeline\EventsStringifier.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\analytics\blocks\timeline\InspectedObjectsLifetimeEventsSource.cs">
       <Link>blocks\timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\blocks\timeline\Interfaces.cs">
-      <Link>blocks\timeline\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\analytics\blocks\timeline\MessagingTimelineEventsSource.cs">
       <Link>blocks\timeline\MessagingTimelineEventsSource.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\timeline\SerializationCommon.cs">
-      <Link>blocks\timeline\SerializationCommon.cs</Link>
     </Compile>
     <Compile Include="..\..\..\analytics\blocks\timeseries\Attributes.cs">
       <Link>blocks\timeseries\Attributes.cs</Link>
@@ -268,12 +205,6 @@
     <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\SolverFactory.cs">
       <Link>blocks\correlation\SolverCorrelator\SolverFactory.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\blocks\timeline\GenericEndOfTimelineEventSource.cs">
-      <Link>blocks\timeline\GenericEndOfTimelineEventSource.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\analytics\blocks\common\EventsSerializationInterfaces.cs">
-      <Link>blocks\common\EventsSerializationInterfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\analytics\blocks\state\Extensions.cs">
       <Link>blocks\state\Extensions.cs</Link>
     </Compile>
@@ -284,7 +215,6 @@
   <ItemGroup>
     <Folder Include="blocks\" />
     <Folder Include="infra\" />
-    <Folder Include="infra\EnumerableAsync\" />
     <Folder Include="infra\Utils\" />
     <Folder Include="blocks\common\" />
     <Folder Include="blocks\correlation\" />
@@ -326,6 +256,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

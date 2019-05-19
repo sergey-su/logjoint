@@ -460,7 +460,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						foreach (var b in tmp)
 						{
 							var dateBound = await b.Source.GetDateBoundPosition(
-								d, ListUtils.ValueBound.Upper, LogProviderCommandPriority.RealtimeUserAction, cancellation);
+								d, ValueBound.Upper, LogProviderCommandPriority.RealtimeUserAction, cancellation);
 							cancellation.ThrowIfCancellationRequested();
 							datePosition += b.Source.MapPositionToScrollPosition(dateBound.Position);
 						}

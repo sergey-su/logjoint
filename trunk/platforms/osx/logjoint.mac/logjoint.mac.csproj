@@ -278,9 +278,6 @@
     <Compile Include="..\..\..\extensibility\IApplication.cs">
       <Link>extensibility\interfaces\IApplication.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\extensibility\PluginBase.cs">
-      <Link>extensibility\impl\PluginBase.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\extensibility\platforms\mac\IMainFormTabExtension.cs">
       <Link>extensibility\interfaces\IMainFormTabExtension.cs</Link>
     </Compile>
@@ -773,6 +770,18 @@
     <ProjectReference Include="..\logjoint.ortoolswrp\logjoint.ortoolswrp.csproj">
       <Project>{31964146-885E-482E-A50D-FB719E4D6EE1}</Project>
       <Name>logjoint.ortoolswrp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
+      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
+      <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.sdk\logjoint.sdk.csproj">
+      <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
+      <Name>logjoint.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
