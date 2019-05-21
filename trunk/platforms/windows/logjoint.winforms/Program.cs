@@ -697,7 +697,7 @@ namespace LogJoint
 
 				Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new Postprocessing.AggregatingLogSourceNamesProvider();
 
-				Extensibility.IApplication pluginEntryPoint = new Extensibility.Application(
+				Extensibility.Application pluginEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
 						modelSynchronizationContext,
 						changeNotification,

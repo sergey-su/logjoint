@@ -57,36 +57,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\analytics\blocks\common\CodepathTrackers.cs">
-      <Link>Blocks\Common\CodepathTrackers.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\CodepathTrackingInterfaces.cs">
-      <Link>Blocks\Common\CodepathTrackingInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\EventsSerializationInterfaces.cs">
-      <Link>Blocks\Common\EventsSerializationInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\LogRotationExtensions.cs">
-      <Link>Blocks\Common\LogRotationExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\LogRotationInterfaces.cs">
-      <Link>Blocks\Common\LogRotationInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\PostprocessorOutputETag.cs">
-      <Link>Blocks\Common\PostprocessorOutputETag.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\TaggingExtensions.cs">
-      <Link>Blocks\Common\TaggingExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\TaggingInterfaces.cs">
-      <Link>Blocks\Common\TaggingInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\common\TriggersInterfaces.cs">
-      <Link>Blocks\Common\TriggersInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\Interfaces.cs">
-      <Link>Blocks\Correlation\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\correlation\NullNodeDetectionToken.cs">
       <Link>Blocks\Correlation\NullNodeDetectionToken.cs</Link>
     </Compile>
@@ -165,29 +135,14 @@
     <Compile Include="..\..\..\..\analytics\blocks\messaging\Analisys\Message.cs">
       <Link>Blocks\Messaging\Analisys\Message.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\Analisys\MessageKey.cs">
-      <Link>Blocks\Messaging\Analisys\MessageKey.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\messaging\Analisys\Node.cs">
       <Link>Blocks\Messaging\Analisys\Node.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\Analisys\NodeId.cs">
-      <Link>Blocks\Messaging\Analisys\NodeId.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\messaging\EventsDeserializer.cs">
       <Link>Blocks\Messaging\EventsDeserializer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\messaging\EventsSerializer.cs">
       <Link>Blocks\Messaging\EventsSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\EventsStringifier.cs">
-      <Link>Blocks\Messaging\EventsStringifier.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\Extensions.cs">
-      <Link>Blocks\Messaging\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\Interfaces.cs">
-      <Link>Blocks\Messaging\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\messaging\SerializationCommon.cs">
       <Link>Blocks\Messaging\SerializationCommon.cs</Link>
@@ -198,44 +153,17 @@
     <Compile Include="..\..\..\..\analytics\blocks\state\EventsSerializer.cs">
       <Link>Blocks\State\EventsSerializer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\state\EventsStringifier.cs">
-      <Link>Blocks\State\EventsStringifier.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\state\Extensions.cs">
       <Link>Blocks\State\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\state\Interfaces.cs">
-      <Link>Blocks\State\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\state\SerializationCommon.cs">
       <Link>Blocks\State\SerializationCommon.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeline\EventsDeserializer.cs">
-      <Link>Blocks\Timeline\EventsDeserializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeline\EventsSerializer.cs">
-      <Link>Blocks\Timeline\EventsSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeline\EventsStringifier.cs">
-      <Link>Blocks\Timeline\EventsStringifier.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeline\GenericEndOfTimelineEventSource.cs">
-      <Link>Blocks\Timeline\GenericEndOfTimelineEventSource.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeline\InspectedObjectsLifetimeEventsSource.cs">
       <Link>Blocks\Timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeline\Interfaces.cs">
-      <Link>Blocks\Timeline\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeline\MessagingTimelineEventsSource.cs">
       <Link>Blocks\Timeline\MessagingTimelineEventsSource.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeline\SerializationCommon.cs">
-      <Link>Blocks\Timeline\SerializationCommon.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeseries\Attributes.cs">
-      <Link>Blocks\TimeSeries\Attributes.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\EventParser.cs">
       <Link>Blocks\TimeSeries\EventParser.cs</Link>
@@ -261,32 +189,11 @@
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\TimeSeriesTypesLoader.cs">
       <Link>Blocks\TimeSeries\TimeSeriesTypesLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\EnumerableAsync\EnumerableAsync.cs">
-      <Link>Infra\EnumerableAsync\EnumerableAsync.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\EnumerableAsync\Interfaces.cs">
-      <Link>Infra\EnumerableAsync\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\EnumerableAsync\MultiplexingEnumerable.cs">
-      <Link>Infra\EnumerableAsync\MultiplexingEnumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\EnumerableAsync\ProducingEnumerable.cs">
-      <Link>Infra\EnumerableAsync\ProducingEnumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\Utils\BitUtils.cs">
-      <Link>infra\Utils\BitUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\infra\Utils\CustomJsonConvert.cs">
       <Link>infra\Utils\CustomJsonConvert.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\Utils\DataInterning.cs">
-      <Link>infra\Utils\DataInterning.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\Utils\LinqUtils.cs">
-      <Link>infra\Utils\LinqUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\infra\Utils\PrefixMatcher.cs">
-      <Link>infra\Utils\PrefixMatcher.cs</Link>
+      <Link>Infra\Utils\PrefixMatcher.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\infra\Utils\RegexBuilder.cs">
       <Link>infra\Utils\RegexBuilder.cs</Link>
@@ -294,16 +201,19 @@
     <Compile Include="..\..\..\..\analytics\infra\Utils\StringSlice.cs">
       <Link>infra\Utils\StringSlice.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\Utils\TextLogParser.cs">
-      <Link>infra\Utils\TextLogParser.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\Utils\XmlUtils.cs">
-      <Link>infra\Utils\XmlUtils.cs</Link>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Blocks\Common\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

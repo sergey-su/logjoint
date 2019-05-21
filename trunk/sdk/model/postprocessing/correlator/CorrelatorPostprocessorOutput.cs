@@ -30,7 +30,7 @@ namespace LogJoint.Postprocessing.Correlator
 			if (slnNode == null)
 				return null;
 			var solution = new NodeSolution(slnNode);
-			var correlatedConnectionIds = doc.Root.Elements("context").Elements("conn-id").Select(e => e.Value).ToHashSet();
+			var correlatedConnectionIds = new HashSet<string>(doc.Root.Elements("context").Elements("conn-id").Select(e => e.Value));
 			return new CorrelatorPostprocessorOutput(solution, correlatedConnectionIds);
 		}
 

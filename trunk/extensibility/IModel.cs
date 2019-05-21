@@ -2,7 +2,6 @@
 {
 	public interface IModel: LogJoint.IModel // todo: remove in favor of SDK's one
 	{
-		ISynchronizationContext ModelThreadSynchronization { get; }
 		IChangeNotification ChangeNotification { get; }
 		Telemetry.ITelemetryCollector Telemetry { get; }
 		IHeartBeatTimer Heartbeat { get; }

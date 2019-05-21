@@ -6,19 +6,6 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Analytics
 {
-	public interface IPrefixMatcher
-	{
-		int RegisterPrefix(string prefix);
-		void Freeze();
-		IMatchedPrefixesCollection Match(string str);
-	};
-
-
-	public interface IMatchedPrefixesCollection: IEnumerable<int>
-	{
-		bool Contains(int prefixId);
-	};
-
 	public class PrefixMatcher : IPrefixMatcher
 	{
 		public int RegisterPrefix(string prefix)

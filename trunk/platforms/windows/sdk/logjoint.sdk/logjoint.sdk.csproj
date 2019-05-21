@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{654565EA-946E-4244-BF23-518DBDD65221}</ProjectGuid>
+    <ProjectGuid>{4726350D-E0C1-43A2-A491-6C4558115A62}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LogJoint.PacketAnalysis.Presenters</RootNamespace>
-    <AssemblyName>logjoint.packet-analysis.plugin.presenters</AssemblyName>
+    <RootNamespace>LogJoint</RootNamespace>
+    <AssemblyName>logjoint.sdk</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -18,8 +18,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;</DefineConstants>
+    <OutputPath>..\..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -27,53 +27,36 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
-    <DefineConstants>TRACE;</DefineConstants>
+    <OutputPath>..\..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\platforms\windows\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\platforms\windows\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
-    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\presentation\NewLogLogSourcePage\Interfaces.cs">
-      <Link>NewLogLogSourcePage\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\presentation\NewLogLogSourcePage\NewLogLogSourcePagePresenter.cs">
-      <Link>NewLogLogSourcePage\NewLogLogSourcePagePresenter.cs</Link>
-    </Compile>
+    <Compile Include="Application\Interfaces.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+    <ProjectReference Include="..\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
       <Name>logjoint.model.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
+    <ProjectReference Include="..\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
       <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
       <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
-      <Project>{3c4aabd0-7bd7-4403-b7d5-210cc4409f0b}</Project>
-      <Name>logjoint.packet-analysis.plugin.model</Name>
-    </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

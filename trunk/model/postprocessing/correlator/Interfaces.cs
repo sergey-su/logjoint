@@ -8,10 +8,4 @@ namespace LogJoint.Postprocessing.Correlator
 		void Init(IPostprocessorsManager postprocessorsManager);
 		ILogSourcePostprocessor CreatePostprocessor();
 	};
-
-	public interface ICorrelatorPostprocessorOutput 
-	{
-		HashSet<string> CorrelatedLogsConnectionIds { get; }
-		NodeSolution Solution { get; }
-	};
 }

@@ -2,7 +2,7 @@ namespace LogJoint
 {
 	public interface IModel // todo: fix commented out members
 	{
-		// ISynchronizationContext ModelThreadSynchronization { get; }
+		ISynchronizationContext ModelThreadSynchronization { get; }
 		// IChangeNotification ChangeNotification { get; }
 		// Telemetry.ITelemetryCollector Telemetry { get; }
 		Persistence.IWebContentCache WebContentCache { get; }
@@ -27,11 +27,12 @@ namespace LogJoint
 		IPostprocessingModel Postprocessing { get; }
 	};
 
-	public interface IPostprocessingModel // todo: move to appropritae folder
+	public interface IPostprocessingModel // todo: move to appropriate folder
 	{
 		Postprocessing.IPostprocessorsManager PostprocessorsManager { get; }
 		// Postprocessing.IUserNamesProvider ShortNames { get; }
 		// Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
 		// Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; }
+		Analytics.IPrefixMatcher CreatePrefixMatcher();
 	};
 }

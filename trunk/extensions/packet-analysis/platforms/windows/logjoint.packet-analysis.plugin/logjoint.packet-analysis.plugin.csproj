@@ -57,21 +57,17 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\analytics\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
-      <Name>logjoint.analytics</Name>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+      <Name>logjoint.model.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
-      <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
-      <Name>logjoint.model</Name>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
+      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
+      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
-      <Name>logjoint.presenters</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
-      <Project>{929F7C79-E2BB-4E6C-AF17-F21E5025265A}</Project>
-      <Name>logjoint</Name>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
+      <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
+      <Name>logjoint.sdk</Name>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
       <Project>{3c4aabd0-7bd7-4403-b7d5-210cc4409f0b}</Project>

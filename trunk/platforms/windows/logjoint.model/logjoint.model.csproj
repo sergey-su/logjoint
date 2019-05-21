@@ -110,9 +110,6 @@
     <Compile Include="..\..\..\model\bookmarks\FakeBookmarksHandler.cs">
       <Link>bookmarks\FakeBookmarksHandler.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\bookmarks\Interfaces.cs">
-      <Link>bookmarks\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\change-notification\ChangeNotification.cs">
       <Link>change-notification\ChangeNotification.cs</Link>
     </Compile>
@@ -130,9 +127,6 @@
     </Compile>
     <Compile Include="..\..\..\model\connection-params\ConnectionParamsUtils.cs">
       <Link>connection-params\ConnectionParamsUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\connection-params\Interfaces.cs">
-      <Link>connection-params\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\extensibility\IMessagesReaderExtension.cs">
       <Link>extensibility\IMessagesReaderExtension.cs</Link>
@@ -173,23 +167,11 @@
     <Compile Include="..\..\..\model\filters\FiltersList.cs">
       <Link>filters\FiltersList.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\filters\FilterTarget.cs">
-      <Link>filters\FilterTarget.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\filters\Interfaces.cs">
-      <Link>filters\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\format-detection\FormatAutodetect.cs">
       <Link>format-detection\FormatAutodetect.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\format-detection\Interfaces.cs">
-      <Link>format-detection\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\formats-management\DirectoryFormatsRepository.cs">
       <Link>formats-management\DirectoryFormatsRepository.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\formats-management\Interfaces.cs">
-      <Link>formats-management\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\formats-management\LogProviderFactoryRegistry.cs">
       <Link>formats-management\LogProviderFactoryRegistry.cs</Link>
@@ -221,9 +203,6 @@
     <Compile Include="..\..\..\model\generic\DateParsing.cs">
       <Link>generic\DateParsing.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\DateRange.cs">
-      <Link>generic\DateRange.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\Diagnostics.cs">
       <Link>generic\Diagnostics.cs</Link>
     </Compile>
@@ -245,12 +224,6 @@
     <Compile Include="..\..\..\model\generic\EnumUtils.cs">
       <Link>generic\EnumUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\FileRange.cs">
-      <Link>generic\FileRange.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\Hashing.cs">
-      <Link>generic\Hashing.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\HttpUtils.cs">
       <Link>generic\HttpUtils.cs</Link>
     </Compile>
@@ -263,14 +236,8 @@
     <Compile Include="..\..\..\model\generic\ListUtils.cs">
       <Link>generic\ListUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\LogJointTraceSource.cs">
-      <Link>generic\LogJointTraceSource.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\LRUCache.cs">
       <Link>generic\LRUCache.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\MultilineText.cs">
-      <Link>generic\MultilineText.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\MutexLock.cs">
       <Link>generic\MutexLock.cs</Link>
@@ -280,12 +247,6 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\NumUtils.cs">
       <Link>generic\NumUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\PriorityQueue.cs">
-      <Link>generic\PriorityQueue.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\RangeUtils.cs">
-      <Link>generic\RangeUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\regexps\FCLRegex.cs">
       <Link>generic\regexps\FCLRegex.cs</Link>
@@ -326,17 +287,11 @@
     <Compile Include="..\..\..\model\generic\streams\GeneratingStream.cs">
       <Link>generic\streams\GeneratingStream.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\StringSlice.cs">
-      <Link>generic\StringSlice.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\StringSliceReallocator.cs">
       <Link>generic\StringSliceReallocator.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\StringUtils.cs">
       <Link>generic\StringUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\synchronization\Interfaces.cs">
-      <Link>generic\synchronization\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\synchronization\InvokeHelper.cs">
       <Link>generic\synchronization\InvokeHelper.cs</Link>
@@ -382,9 +337,6 @@
     </Compile>
     <Compile Include="..\..\..\model\log-sources-controller\LogSourcesController.cs">
       <Link>log-sources-controller\LogSourcesController.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\log-sources\Extensions.cs">
-      <Link>log-sources\Extensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\log-sources\Interfaces.cs">
       <Link>log-sources\Interfaces.cs</Link>
@@ -452,29 +404,11 @@
     <Compile Include="..\..\..\model\messages-containers\RangesManagingCollection.cs">
       <Link>messages-containers\RangesManagingCollection.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\messages\Extensions.cs">
-      <Link>messages\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\messages\Interfaces.cs">
-      <Link>messages\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\messages\Message.cs">
       <Link>messages\Message.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\messages\MessagesComparer.cs">
-      <Link>messages\MessagesComparer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\messages\MessageTimestamp.cs">
-      <Link>messages\MessageTimestamp.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\messages\Utils.cs">
       <Link>messages\Utils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\mru\Extensions.cs">
-      <Link>mru\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\mru\Interfaces.cs">
-      <Link>mru\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\mru\MRU.cs">
       <Link>mru\MRU.cs</Link>
@@ -554,32 +488,14 @@
     <Compile Include="..\..\..\model\persistence\WebContentCache.cs">
       <Link>persistence\WebContentCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\common\AggregatedRunSummary.cs">
-      <Link>postprocessing\common\AggregatedRunSummary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\common\EventsSerializationHelpers.cs">
-      <Link>postprocessing\common\EventsSerializationHelpers.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\common\Interfaces.cs">
-      <Link>postprocessing\common\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\common\LogSourcePostprocessorImpl.cs">
-      <Link>postprocessing\common\LogSourcePostprocessorImpl.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\LogSourcesNaming.cs">
       <Link>postprocessing\common\LogSourcesNaming.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\PostprocessorRunSummary.cs">
       <Link>postprocessing\common\PostprocessorRunSummary.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\common\TextLogEventTrigger.cs">
-      <Link>postprocessing\common\TextLogEventTrigger.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\UsersNaming.cs">
       <Link>postprocessing\common\UsersNaming.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\correlator\CorrelatorPostprocessorOutput.cs">
-      <Link>postprocessing\correlator\CorrelatorPostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs">
       <Link>postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs</Link>
@@ -598,9 +514,6 @@
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\FailedRunSummary.cs">
       <Link>postprocessing\manager\FailedRunSummary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\manager\Interfaces.cs">
-      <Link>postprocessing\manager\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\LogSourceRecord.cs">
       <Link>postprocessing\manager\LogSourceRecord.cs</Link>
@@ -631,9 +544,6 @@
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\states\RunningState.cs">
       <Link>postprocessing\manager\states\RunningState.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\sequence\Interfaces.cs">
-      <Link>postprocessing\sequence\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs">
       <Link>postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs</Link>
@@ -689,20 +599,8 @@
     <Compile Include="..\..\..\model\postprocessing\timeline\EventImpl.cs">
       <Link>postprocessing\timeline\EventImpl.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\timeline\Extensions.cs">
-      <Link>postprocessing\timeline\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\timeline\Interfaces.cs">
-      <Link>postprocessing\timeline\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\TimelineBuilder.cs">
       <Link>postprocessing\timeline\TimelineBuilder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\timeline\TimelineEntitiesComparer.cs">
-      <Link>postprocessing\timeline\TimelineEntitiesComparer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\timeline\TimelinePostprocessorOutput.cs">
-      <Link>postprocessing\timeline\TimelinePostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\TimelineVisualizerModel.cs">
       <Link>postprocessing\timeline\TimelineVisualizerModel.cs</Link>
@@ -731,9 +629,6 @@
     <Compile Include="..\..\..\model\preprocessing\OpenWorkspaceStep.cs">
       <Link>preprocessing\OpenWorkspaceStep.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\preprocessing\PreprocessingInterfaces.cs">
-      <Link>preprocessing\PreprocessingInterfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\preprocessing\PreprocessingManager.cs">
       <Link>preprocessing\PreprocessingManager.cs</Link>
     </Compile>
@@ -751,9 +646,6 @@
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\URLTypeDetectionStep.cs">
       <Link>preprocessing\URLTypeDetectionStep.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\progress\Interfaces.cs">
-      <Link>progress\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\progress\MultiplexingProgressEventsSink.cs">
       <Link>progress\MultiplexingProgressEventsSink.cs</Link>
@@ -802,9 +694,6 @@
     </Compile>
     <Compile Include="..\..\..\model\providers\EventLog\EventLogProvider.cs">
       <Link>providers\EventLog\EventLogProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\providers\Interfaces.cs">
-      <Link>providers\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\providers\Plain text\PlainTextProvider.cs">
       <Link>providers\Plain text\PlainTextProvider.cs</Link>
@@ -914,9 +803,6 @@
     <Compile Include="..\..\..\model\settings\GlobalSettings.cs">
       <Link>settings\GlobalSettings.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\settings\Interfaces.cs">
-      <Link>settings\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\shutdown\Interfaces.cs">
       <Link>shutdown\Interfaces.cs</Link>
     </Compile>
@@ -935,17 +821,11 @@
     <Compile Include="..\..\..\model\telemetry\UnhandledExceptionsReporter.cs">
       <Link>telemetry\UnhandledExceptionsReporter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\threads\Interfaces.cs">
-      <Link>threads\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\threads\LogSourceThreads.cs">
       <Link>threads\LogSourceThreads.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\threads\ModelThreads.cs">
       <Link>threads\ModelThreads.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\timegaps\Interfaces.cs">
-      <Link>timegaps\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\timegaps\TimeGaps.cs">
       <Link>timegaps\TimeGaps.cs</Link>
@@ -1023,6 +903,10 @@
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+      <Name>logjoint.model.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
