@@ -12,6 +12,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("logjoint.model")]
 [assembly: InternalsVisibleTo("logjoint.analytics")]
+[assembly: InternalsVisibleTo("logjoint.model.tests")]
+[assembly: InternalsVisibleTo("logjoint.presenters.tests")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("2.0.0.0")]
 [assembly: AssemblyFileVersion("2.0.0.0")]

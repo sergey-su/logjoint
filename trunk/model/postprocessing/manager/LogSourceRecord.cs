@@ -19,7 +19,7 @@ namespace LogJoint.Postprocessing
 		{
 			this.logSource = logSource;
 			this.metadata = metadata;
-			this.logFileName = logSource.Provider.ConnectionParams[ConnectionParamsUtils.PathConnectionParam];
+			this.logFileName = logSource.Provider.ConnectionParams[ConnectionParamsKeys.PathConnectionParam];
 			this.cancellation = new CancellationTokenSource();
 		}
 

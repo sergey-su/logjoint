@@ -233,9 +233,6 @@
     <Compile Include="..\..\..\model\generic\LazyUpdateFlag.cs">
       <Link>generic\LazyUpdateFlag.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\ListUtils.cs">
-      <Link>generic\ListUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\LRUCache.cs">
       <Link>generic\LRUCache.cs</Link>
     </Compile>
@@ -305,20 +302,11 @@
     <Compile Include="..\..\..\model\generic\TagsPredicate.cs">
       <Link>generic\TagsPredicate.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\TaskUtils.cs">
-      <Link>generic\TaskUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\TempFilesManager.cs">
       <Link>generic\TempFilesManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\TimeOffsets.cs">
-      <Link>generic\TimeOffsets.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\TimeUtils.cs">
-      <Link>generic\TimeUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\WebBrowserDownloaderInterface.cs">
       <Link>generic\WebBrowserDownloaderInterface.cs</Link>
@@ -497,12 +485,6 @@
     <Compile Include="..\..\..\model\postprocessing\common\UsersNaming.cs">
       <Link>postprocessing\common\UsersNaming.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs">
-      <Link>postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\correlator\CorrelatorStateSummary.cs">
-      <Link>postprocessing\correlator\CorrelatorStateSummary.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\correlator\Interfaces.cs">
       <Link>postprocessing\correlator\Interfaces.cs</Link>
     </Compile>
@@ -545,9 +527,6 @@
     <Compile Include="..\..\..\model\postprocessing\manager\states\RunningState.cs">
       <Link>postprocessing\manager\states\RunningState.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs">
-      <Link>postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramVisualizerModel.cs">
       <Link>postprocessing\sequence\SequenceDiagramVisualizerModel.cs</Link>
     </Compile>
@@ -557,38 +536,14 @@
     <Compile Include="..\..\..\model\postprocessing\state\Extensions.cs">
       <Link>postprocessing\state\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageEventsRange.cs">
-      <Link>postprocessing\state\FocusedMessageEventsRange.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageInfo.cs">
-      <Link>postprocessing\state\FocusedMessageInfo.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\InspectedObject.cs">
       <Link>postprocessing\state\InspectedObject.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\Interfaces.cs">
-      <Link>postprocessing\state\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\PropertyViews.cs">
-      <Link>postprocessing\state\PropertyViews.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\StateInspectorEvent.cs">
-      <Link>postprocessing\state\StateInspectorEvent.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\StateInspectorOutput.cs">
-      <Link>postprocessing\state\StateInspectorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\StateInspectorVisualizerModel.cs">
       <Link>postprocessing\state\StateInspectorVisualizerModel.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\TreeBuilder.cs">
       <Link>postprocessing\state\TreeBuilder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\time-series\Interfaces.cs">
-      <Link>postprocessing\time-series\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
-      <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
       <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>

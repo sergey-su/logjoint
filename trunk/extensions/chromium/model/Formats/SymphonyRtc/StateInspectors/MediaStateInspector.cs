@@ -307,12 +307,12 @@ namespace LogJoint.Symphony.Rtc
 				}
 				Action<string, string, Dictionary<string, RemoteWebRTCStreamInfo.TrackInfo>> handleList = (list, modalityName, dict) =>
 				{
-					HashSet<string> newTrackIds =
+					HashSet<string> newTrackIds = new HashSet<string>(
 						remoteMediaStreamReceivedTrackRegex
 							.Matches(list)
 							.OfType<Match>()
 							.Select(x => x.Groups["id"].Value)
-							.ToHashSet();
+						);
 					bool changed = false;
 					foreach (var newTrackId in newTrackIds.Except(dict.Keys.ToArray()))
 					{
@@ -784,10 +784,10 @@ namespace LogJoint.Symphony.Rtc
 			{ "candidate-pair", new [] { "type", "writable", "nominated", "priority", "state", "lc:transportId", "lc:localCandidateId", "lc:remoteCandidateId" } },
 			{ "certificate", new [] { "type", "fingerprint", "fingerprintAlgorithm", "base64Certificate" } }
 		};
-		readonly static HashSet<string> webRtcStatsObjectAllAllowedProps = webRtcStatsObjectTypesMeta
+		readonly static HashSet<string> webRtcStatsObjectAllAllowedProps = new HashSet<string>(
+				webRtcStatsObjectTypesMeta
 				.SelectMany(t => t.Value)
-				.Select(p => new WebRTCStatsObjectPropertyMeta(p).name)
-				.ToHashSet();
+				.Select(p => new WebRTCStatsObjectPropertyMeta(p).name));
 
 		struct WebRTCStatsObjectPropertyMeta
 		{
@@ -856,9 +856,9 @@ namespace LogJoint.Symphony.Rtc
 
 		readonly HashSet<string> tags = new HashSet<string>() { "meetings", "media" };
 
-		static readonly HashSet<string> defaultCollapsedNodesTypes = new [] 
+		static readonly HashSet<string> defaultCollapsedNodesTypes = new HashSet<string>(new [] 
 		{
 			remoteMediaObjectType, localMediaTypeInfo, testSessionObjectType, statsObjectContainerObjectType
-		}.Select(i => i.TypeName).ToHashSet();
+		}.Select(i => i.TypeName));
 	}
 }

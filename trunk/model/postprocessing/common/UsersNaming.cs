@@ -4,27 +4,10 @@ using System.Linq;
 
 namespace LogJoint.Postprocessing
 {
-	public interface IUserNamesProvider
-	{
-		string ResolveObfuscatedUserName(string value);
-	}
-
 	public static class UsersNamingExtensions
 	{
 		static readonly Regex re = new Regex(@"\<uh\>(?<val>[\w]+)\<\/uh\>", RegexOptions.ExplicitCapture);
 
-		public static string AddShortNameToUserHash(this IUserNamesProvider shortNames, string hash)
-		{
-			var resolvedName = shortNames.ResolveObfuscatedUserName(hash);
-			if (resolvedName != null)
-				return string.Format("{0} ({1})", resolvedName, hash);
-			return hash;
-		}
-
-		public static string GetShortNameForUserHash(this IUserNamesProvider shortNames, string hash)
-		{
-			return shortNames.ResolveObfuscatedUserName(hash) ?? hash;
-		}
 
 		public static string ResolveShortNamesMurkup(this IUserNamesProvider shortNames, string str)
 		{

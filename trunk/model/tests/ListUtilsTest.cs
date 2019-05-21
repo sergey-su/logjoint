@@ -59,7 +59,7 @@ namespace LogJoint.Tests
 				delegate(int x) { return x <= 2; }));
 		}
 
-		static void TestBound(int value, ListUtils.ValueBound bound, int expectedIdx)
+		static void TestBound(int value, ValueBound bound, int expectedIdx)
 		{
 			List<int> lst = new List<int>(new int[] { 0, 2, 2, 2, 3, 5, 7, 8, 8, 10 });
 			int actual = ListUtils.GetBound(lst, value, bound, Comparer<int>.Default);
@@ -69,37 +69,37 @@ namespace LogJoint.Tests
 		[Test]
 		public void TestLowerBound()
 		{
-			TestBound(2, ListUtils.ValueBound.Lower, 1);
-			TestBound(1, ListUtils.ValueBound.Lower, 1);
-			TestBound(-2, ListUtils.ValueBound.Lower, 0);
-			TestBound(20, ListUtils.ValueBound.Lower, 10);
+			TestBound(2, ValueBound.Lower, 1);
+			TestBound(1, ValueBound.Lower, 1);
+			TestBound(-2, ValueBound.Lower, 0);
+			TestBound(20, ValueBound.Lower, 10);
 		}
 
 		[Test]
 		public void TestUpperBound()
 		{
-			TestBound(2, ListUtils.ValueBound.Upper, 4);
-			TestBound(1, ListUtils.ValueBound.Upper, 1);
-			TestBound(-2, ListUtils.ValueBound.Upper, 0);
-			TestBound(20, ListUtils.ValueBound.Upper, 10);
+			TestBound(2, ValueBound.Upper, 4);
+			TestBound(1, ValueBound.Upper, 1);
+			TestBound(-2, ValueBound.Upper, 0);
+			TestBound(20, ValueBound.Upper, 10);
 		}
 
 		[Test]
 		public void TestLowerRevBound()
 		{
-			TestBound(2, ListUtils.ValueBound.LowerReversed, 3);
-			TestBound(1, ListUtils.ValueBound.LowerReversed, 0);
-			TestBound(-2, ListUtils.ValueBound.LowerReversed, -1);
-			TestBound(20, ListUtils.ValueBound.LowerReversed, 9);
+			TestBound(2, ValueBound.LowerReversed, 3);
+			TestBound(1, ValueBound.LowerReversed, 0);
+			TestBound(-2, ValueBound.LowerReversed, -1);
+			TestBound(20, ValueBound.LowerReversed, 9);
 		}
 
 		[Test]
 		public void TestUpperRevBound()
 		{
-			TestBound(2, ListUtils.ValueBound.UpperReversed, 0);
-			TestBound(1, ListUtils.ValueBound.UpperReversed, 0);
-			TestBound(-2, ListUtils.ValueBound.UpperReversed, -1);
-			TestBound(20, ListUtils.ValueBound.UpperReversed, 9);
+			TestBound(2, ValueBound.UpperReversed, 0);
+			TestBound(1, ValueBound.UpperReversed, 0);
+			TestBound(-2, ValueBound.UpperReversed, -1);
+			TestBound(20, ValueBound.UpperReversed, 9);
 		}
 	}
 

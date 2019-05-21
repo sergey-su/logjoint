@@ -1,17 +1,8 @@
-using LogJoint.Extensibility;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace LogJoint
 {
-	public class Plugin: PluginBase
+	public class Plugin
 	{
-		public Plugin()
-		{
-		}
-
-		public override void Dispose()
+		public Plugin(IApplication app)
 		{
 		}
 	}

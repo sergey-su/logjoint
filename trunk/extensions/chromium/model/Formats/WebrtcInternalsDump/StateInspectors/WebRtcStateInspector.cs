@@ -243,11 +243,11 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 
 		readonly Regex objectIdRegex = new Regex(@"^(?<type>\w+?)[-_].+$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
-		static readonly HashSet<string> defaultCollapsedNodesTypes = new [] 
+		static readonly HashSet<string> defaultCollapsedNodesTypes = new HashSet<string>(new [] 
 		{
 			tracksRootTypeInfo, candidatesRootTypeInfo,
 			channelsRootTypeInfo, certsRootTypeInfo
-		}.Select(i => i.TypeName).ToHashSet();
+		}.Select(i => i.TypeName));
 
 		static readonly Dictionary<string, ObjectType> objectTypes = new []
 		{

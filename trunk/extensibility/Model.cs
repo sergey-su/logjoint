@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LogJoint.Extensibility
 {
@@ -96,6 +94,14 @@ namespace LogJoint.Extensibility
 		public Postprocessing.IUserNamesProvider ShortNames { get; private set; }
 		public Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
 		public Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; private set; }
+
+		public Analytics.Correlation.ICorrelator CreateCorrelator()
+		{
+			return new Analytics.Correlation.Correlator(
+				new Analytics.Messaging.Analisys.InternodeMessagesDetector(),
+				Analytics.Correlation.SolverFactory.Create());
+		}
+		public Analytics.IPrefixMatcher CreatePrefixMatcher() => new Analytics.PrefixMatcher();
 		#endregion
 	};
 }

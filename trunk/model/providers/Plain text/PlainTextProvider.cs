@@ -17,7 +17,7 @@ namespace LogJoint.PlainText
 			:
 			base(host, factory, connectParams)
 		{
-			this.fileName = connectParams[ConnectionParamsUtils.PathConnectionParam];
+			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
 		}
 

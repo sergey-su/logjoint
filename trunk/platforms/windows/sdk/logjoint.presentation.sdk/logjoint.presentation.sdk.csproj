@@ -59,6 +59,15 @@
     <Compile Include="..\..\..\..\sdk\presentation\NewLogSourceDialogPresenter\Interfaces.cs">
       <Link>NewLogSourceDialogPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Postprocessing\MainWindowTabPagePresenter\Interfaces.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Postprocessing\StateInspectorVisualizerPresenter\Interfaces.cs">
+      <Link>Postprocessing\StateInspectorVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Postprocessing\TimeSeriesVisualizerPresenter\Interfaces.cs">
+      <Link>TimeSeriesVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\presentation\presentation\Interfaces.cs">
       <Link>presentation\Interfaces.cs</Link>
     </Compile>

@@ -28,12 +28,12 @@ namespace LogJoint.Postprocessing.Correlator
 				postprocessorsManager
 				.KnownLogTypes.Where(t => t.SupportedPostprocessors.Any(pp => pp.TypeID == PostprocessorIds.Correlator))
 				.ToLookup(t => t.LogProviderFactory);
-			return
+			return new HashSet<string>(
 				logs
 				.Where(i => !i.IsDisposed)
 				.Where(i => correlatableLogSourceTypes.Contains(i.Provider.Factory))
 				.Select(i => i.ConnectionId)
-				.ToHashSet();
+			);
 		}
 
 		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IPostprocessorsManager postprocessorsManager)

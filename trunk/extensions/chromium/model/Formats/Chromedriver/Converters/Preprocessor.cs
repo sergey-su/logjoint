@@ -67,7 +67,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\with_fixed_timestamps", sourceFile.FullPath),
-				Utils.Concat(sourceFile.PreprocessingSteps, stepName)));
+				sourceFile.PreprocessingSteps.Concat(new[] { stepName })));
 		}
 
 		class MessageEntry

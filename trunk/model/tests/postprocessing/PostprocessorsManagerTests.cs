@@ -40,7 +40,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			logSource1 = Substitute.For<ILogSource>();
 			logProviderFac1 = Substitute.For<ILogProviderFactory>();
 			logSource1.Provider.Factory.Returns(logProviderFac1);
-			logSource1.Provider.ConnectionParams.Returns(new ConnectionParams($"{ConnectionParamsUtils.PathConnectionParam}=/log.txt"));
+			logSource1.Provider.ConnectionParams.Returns(new ConnectionParams($"{ConnectionParamsKeys.PathConnectionParam}=/log.txt"));
 			logSource1.Provider.Stats.Returns(new LogProviderStats()
 			{
 				ContentsEtag = null

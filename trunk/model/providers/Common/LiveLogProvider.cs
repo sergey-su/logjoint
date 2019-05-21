@@ -140,7 +140,7 @@ namespace LogJoint
 		{
 			ConnectionParams connectParams = new ConnectionParams();
 			connectParams.AssignFrom(originalConnectionParams);
-			connectParams[ConnectionParamsUtils.PathConnectionParam] = tempFilesManager.CreateEmptyFile();
+			connectParams[ConnectionParamsKeys.PathConnectionParam] = tempFilesManager.CreateEmptyFile();
 			return connectParams;
 		}
 
@@ -160,7 +160,7 @@ namespace LogJoint
 			{
 				try
 				{
-					string fileName = base.connectionParamsReadonlyView[ConnectionParamsUtils.PathConnectionParam];
+					string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
 
 					XmlWriterSettings xmlSettings = new XmlWriterSettings();
 					xmlSettings.CloseOutput = true;

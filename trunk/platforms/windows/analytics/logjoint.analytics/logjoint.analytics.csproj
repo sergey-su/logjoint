@@ -57,12 +57,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\NullNodeDetectionToken.cs">
-      <Link>Blocks\Correlation\NullNodeDetectionToken.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\SameNodeEqualityComparer.cs">
-      <Link>Blocks\Correlation\SameNodeEqualityComparer.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\correlation\SolutionResult.cs">
       <Link>Blocks\Correlation\SolutionResult.cs</Link>
     </Compile>
@@ -138,65 +132,17 @@
     <Compile Include="..\..\..\..\analytics\blocks\messaging\Analisys\Node.cs">
       <Link>Blocks\Messaging\Analisys\Node.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\EventsDeserializer.cs">
-      <Link>Blocks\Messaging\EventsDeserializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\EventsSerializer.cs">
-      <Link>Blocks\Messaging\EventsSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\messaging\SerializationCommon.cs">
-      <Link>Blocks\Messaging\SerializationCommon.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\state\EventsDeserializer.cs">
-      <Link>Blocks\State\EventsDeserializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\state\EventsSerializer.cs">
-      <Link>Blocks\State\EventsSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\state\Extensions.cs">
-      <Link>Blocks\State\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\state\SerializationCommon.cs">
-      <Link>Blocks\State\SerializationCommon.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeline\InspectedObjectsLifetimeEventsSource.cs">
-      <Link>Blocks\Timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeline\MessagingTimelineEventsSource.cs">
       <Link>Blocks\Timeline\MessagingTimelineEventsSource.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeseries\EventParser.cs">
-      <Link>Blocks\TimeSeries\EventParser.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeseries\filters\RepeatedValuesFilter.cs">
-      <Link>Blocks\TimeSeries\Filters\RepeatedValuesFilter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeseries\Interfaces.cs">
-      <Link>Blocks\TimeSeries\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeseries\MetadataHelper.cs">
-      <Link>Blocks\TimeSeries\MetadataHelper.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\RegexGenerator.cs">
       <Link>Blocks\TimeSeries\RegexGenerator.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeseries\TimeSeriesCombinedParser.cs">
-      <Link>Blocks\TimeSeries\TimeSeriesCombinedParser.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\timeseries\TimeSeriesParser.cs">
-      <Link>Blocks\TimeSeries\TimeSeriesParser.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\TimeSeriesTypesLoader.cs">
       <Link>Blocks\TimeSeries\TimeSeriesTypesLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\infra\Utils\CustomJsonConvert.cs">
       <Link>infra\Utils\CustomJsonConvert.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\Utils\PrefixMatcher.cs">
-      <Link>Infra\Utils\PrefixMatcher.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\infra\Utils\RegexBuilder.cs">
-      <Link>infra\Utils\RegexBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\infra\Utils\StringSlice.cs">
       <Link>infra\Utils\StringSlice.cs</Link>
@@ -214,6 +160,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Blocks\Common\" />
+    <Folder Include="Blocks\State\" />
+    <Folder Include="Blocks\TimeSeries\Filters\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

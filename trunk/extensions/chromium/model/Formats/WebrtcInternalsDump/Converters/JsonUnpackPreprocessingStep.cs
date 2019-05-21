@@ -40,7 +40,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			await Converters.JsonToLog(sourceFile.Uri, tmpFileName);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\converted_to_log", sourceFile.FullPath),
-					Utils.Concat(sourceFile.PreprocessingSteps, stepName)));
+					sourceFile.PreprocessingSteps.Concat(new[] { stepName })));
 		}
 	};
 }

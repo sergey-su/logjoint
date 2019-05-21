@@ -361,9 +361,9 @@ namespace LogJoint.Symphony.Rtc
 
 		readonly HashSet<string> tags = new HashSet<string>() { "meetings" };
 
-		static readonly HashSet<string> defaultCollapsedNodesTypes = new [] 
+		static readonly HashSet<string> defaultCollapsedNodesTypes = new HashSet<string>(new [] 
 		{
 			meetingSessionTypeInfo, psessionTypeInfo, 
-		}.Select(i => i.TypeName).ToHashSet();
+		}.Select(i => i.TypeName));
 	}
 }

@@ -15,7 +15,6 @@ namespace LogJoint.Extensibility
 		UI.Presenters.IPromptDialog Prompt { get; }
 		UI.Presenters.MainForm.IPresenter MainFormPresenter { get; }
 		UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter PostprocessorsTabPage { get; }
-		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; }
 		UI.Presenters.IColorTheme Theme { get; }
 	};
 }

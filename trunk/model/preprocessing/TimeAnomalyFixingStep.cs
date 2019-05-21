@@ -112,7 +112,7 @@ namespace LogJoint.Preprocessing
 			return new PreprocessingStepParams(
 				tmpFileName, 
 				sourceFile.FullPath + " (reordered)",
-				Utils.Concat(sourceFile.PreprocessingSteps, string.Format("{0} {1}", name, factoryName))
+				sourceFile.PreprocessingSteps.Concat(new[] { string.Format("{0} {1}", name, factoryName) })
 			);
 		}
 

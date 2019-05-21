@@ -3,57 +3,18 @@ namespace LogJoint
 {
 	public static class ConnectionParamsUtils
 	{
-		/// <summary>
-		/// A mandatory IConnectionParams key.
-		/// Specifies the identity of the log source. IConnectionParams having equal identities 
-		/// are considered to be referencing to the same log source.
-		/// </summary>
-		public static readonly string IdentityConnectionParam = "id";
-		/// <summary>
-		/// An IConnectionParams key.
-		/// Specifies a path to the file that will be open to read log content. It could be a path 
-		/// to actual log file in the local file system or on a network drive. Or it could be 
-		/// a temporary file written by logjoint.
-		/// If connection parameters doesn't contain PathConnectionParam usually
-		/// preprocessing steps are specified. <see cref="PreprocessingStepParamPrefix"/>.
-		/// </summary>
-		public static readonly string PathConnectionParam = "path";
-		/// <summary>
-		/// A prefix of a group of IConnectionParams keys.
-		/// Each key in the goup specifies a preprocessing step that must be taken to obtian actual log. 
-		/// Complete keys are composed this way: [prefix][zero-based-index]. 
-		/// Example: prep-step0 = 'get http://example.com/log.zip'; prep-step1 = download; prep-step2 = 'unzip f/mylog.txt'
-		/// </summary>
-		public static readonly string PreprocessingStepParamPrefix = "prep-step";
-		/// <summary>
-		/// An optional IConnectionParams key.
-		/// Specifies user-friendly string representing the log source.
-		/// </summary>
-		public static readonly string DisplayNameConnectionParam = "display-as";
-		/// <summary>
-		/// An IConnectionParams key.
-		/// Specifies a path to folder that will be monitored for parts of rotated log.
-		/// </summary>
-		public static readonly string RotatedLogFolderPathConnectionParam = "rotated-log-folder-path";
-		/// <summary>
-		/// An IConnectionParams key.
-		/// When specified defines an initial time offset of a provider.
-		/// Value is a TimeSpan formatted by loseless format specifier "c".
-		/// </summary>
-		public static readonly string TimeOffsetConnectionParam = "time-offset";
-
 		public static string GetFileOrFolderBasedUserFriendlyConnectionName(IConnectionParams cp)
 		{
-			string displayName = cp[DisplayNameConnectionParam];
+			string displayName = cp[ConnectionParamsKeys.DisplayNameConnectionParam];
 			if (!string.IsNullOrEmpty(displayName))
 				return displayName;
-			string id = cp[IdentityConnectionParam];
+			string id = cp[ConnectionParamsKeys.IdentityConnectionParam];
 			if (!string.IsNullOrEmpty(id))
 				return id;
-			string rotatedLogFolder = cp[RotatedLogFolderPathConnectionParam];
+			string rotatedLogFolder = cp[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam];
 			if (!string.IsNullOrEmpty(rotatedLogFolder))
 				return rotatedLogFolder;
-			return cp[PathConnectionParam] ?? "";
+			return cp[ConnectionParamsKeys.PathConnectionParam] ?? "";
 		}
 		public static string CreateFileBasedConnectionIdentityFromFileName(string fileName)
 		{
@@ -66,20 +27,20 @@ namespace LogJoint
 		public static IConnectionParams CreateFileBasedConnectionParamsFromFileName(string fileName)
 		{
 			ConnectionParams p = new ConnectionParams();
-			p[ConnectionParamsUtils.PathConnectionParam] = fileName;
-			p[ConnectionParamsUtils.IdentityConnectionParam] = CreateFileBasedConnectionIdentityFromFileName(fileName);
+			p[ConnectionParamsKeys.PathConnectionParam] = fileName;
+			p[ConnectionParamsKeys.IdentityConnectionParam] = CreateFileBasedConnectionIdentityFromFileName(fileName);
 			return p;
 		}
 		public static IConnectionParams CreateRotatedLogConnectionParamsFromFolderPath(string folder)
 		{
 			ConnectionParams p = new ConnectionParams();
-			p[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam] = folder;
-			p[ConnectionParamsUtils.IdentityConnectionParam] = CreateFolderBasedConnectionIdentityFromFolderPath(folder);
+			p[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] = folder;
+			p[ConnectionParamsKeys.IdentityConnectionParam] = CreateFolderBasedConnectionIdentityFromFolderPath(folder);
 			return p;
 		}
 		public static string GetConnectionIdentity(IConnectionParams cp)
 		{
-			var ret = cp[IdentityConnectionParam];
+			var ret = cp[ConnectionParamsKeys.IdentityConnectionParam];
 			if (string.IsNullOrWhiteSpace(ret))
 				return null;
 			return ret;
@@ -96,15 +57,15 @@ namespace LogJoint
 		public static void ValidateConnectionParams(IConnectionParams cp, ILogProviderFactory againstFactory)
 		{
 			if (GetConnectionIdentity(cp) == null)
-				throw new InvalidConnectionParamsException("no connection identity in connectino params");
+				throw new InvalidConnectionParamsException("no connection identity in connection params");
 		}
 
 		public static IConnectionParams RemovePathParamIfItRefersToTemporaryFile(IConnectionParams cp, ITempFilesManager mgr)
 		{
-			string fileName = cp[PathConnectionParam];
+			string fileName = cp[ConnectionParamsKeys.PathConnectionParam];
 			if (!string.IsNullOrEmpty(fileName))
 				if (mgr.IsTemporaryFile(fileName))
-					cp[PathConnectionParam] = null;
+					cp[ConnectionParamsKeys.PathConnectionParam] = null;
 			return cp;
 		}
 
@@ -117,15 +78,15 @@ namespace LogJoint
 
 		public static IConnectionParams RemoveInitialTimeOffset(IConnectionParams cp)
 		{
-			if (!string.IsNullOrEmpty(cp[TimeOffsetConnectionParam]))
-				cp[TimeOffsetConnectionParam] = null;
+			if (!string.IsNullOrEmpty(cp[ConnectionParamsKeys.TimeOffsetConnectionParam]))
+				cp[ConnectionParamsKeys.TimeOffsetConnectionParam] = null;
 			return cp;
 		}
 
 		public static ConnectionParams CreateConnectionParamsWithIdentity(string identity)
 		{
 			var ret = new ConnectionParams();
-			ret[IdentityConnectionParam] = identity;
+			ret[ConnectionParamsKeys.IdentityConnectionParam] = identity;
 			return ret;
 		}
 

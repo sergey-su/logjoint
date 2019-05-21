@@ -165,10 +165,7 @@ namespace LogJoint.Chromium.Correlator
 
 			var allowInstacesMergingForRoles = new HashSet<string>();
 
-			ICorrelator correlator = new LogJoint.Analytics.Correlation.Correlator(
-				new M.Analisys.InternodeMessagesDetector(),
-				SolverFactory.Create()
-			);
+			ICorrelator correlator = ljModel.Postprocessing.CreateCorrelator();
 			var correlatorSolution = await correlator.Correlate(
 				allLogs.ToDictionary(i => i.NodeId, i => (IEnumerable<M.Event>)i.MessagesTask.Result),
 				fixedConstraints,

@@ -49,13 +49,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
-      <Project>{929F7C79-E2BB-4E6C-AF17-F21E5025265A}</Project>
-      <Name>logjoint</Name>
-    </ProjectReference>
+    <Folder Include="Formats\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Formats\" />
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
+      <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
+      <Name>logjoint.sdk</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

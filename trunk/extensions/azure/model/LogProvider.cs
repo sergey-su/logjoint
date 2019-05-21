@@ -288,7 +288,7 @@ namespace LogJoint.Azure
 				Account.SaveToConnectionParams(ret);
 				var fromStr = ret[ConnectionParamsConsts.FromConnectionParam] = From.ToString(ConnectionParamsConsts.DateConnectionParamFormat);
 				var tillStr = ret[ConnectionParamsConsts.TillConnectionParam] = Till.ToString(ConnectionParamsConsts.DateConnectionParamFormat);
-				ret[ConnectionParamsUtils.IdentityConnectionParam] = string.Format(
+				ret[ConnectionParamsKeys.IdentityConnectionParam] = string.Format(
 					"wad-{0}-from:{1}-fill:{2}", Account.AccountName, fromStr, tillStr);
 			}
 			else if (Mode == LoadMode.Recent)
@@ -297,7 +297,7 @@ namespace LogJoint.Azure
 				var timeSpanStr = ret[ConnectionParamsConsts.RecentConnectionParam] =
 					Period.ToString(ConnectionParamsConsts.TimespanConnectionParamFormat);
 				var liveStr = ret[ConnectionParamsConsts.LiveConnectionParam] = Live.ToString();
-				ret[ConnectionParamsUtils.IdentityConnectionParam] = string.Format(
+				ret[ConnectionParamsKeys.IdentityConnectionParam] = string.Format(
 					"wad-{0}-recent:{1}-live:{2}", Account.AccountName, timeSpanStr, liveStr);
 			}
 			return ret;

@@ -167,7 +167,7 @@ namespace LogJoint.Chromium.ChromeDriver
 				{
 					using (StringReader sr = new StringReader(Payload.Buffer))
 					{
-						IOUtils.Skip(sr, Payload.StartIndex);
+						Skip(sr, Payload.StartIndex);
 						using (JsonReader reader = new JsonTextReader(sr))
 						{
 							return JsonSerializer.CreateDefault(payloadParserSettings).Deserialize<T>(reader);
@@ -191,6 +191,16 @@ namespace LogJoint.Chromium.ChromeDriver
 					EventType = new StringSlice(str, m.Groups[2]),
 					Payload = new StringSlice(str, m.Length),
 				};
+			}
+
+			static readonly char[] skipBuffer = new char[1024];
+
+			private static void Skip(TextReader tr, int count)
+			{
+				for (int pos = 0; pos < count; pos += skipBuffer.Length)
+				{
+					tr.Read(skipBuffer, 0, Math.Min(skipBuffer.Length, count - pos));
+				}
 			}
 		}
 	};

@@ -503,7 +503,7 @@ namespace LogJoint
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
 					StdProviderFactoryUIs.FileBasedProviderUIKey,
 					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
-						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(), 
+						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(),
 						(IFileBasedLogProviderFactory)f,
 						logSourcesController,
 						alertPopup,
@@ -511,7 +511,7 @@ namespace LogJoint
 					)
 				);
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-					StdProviderFactoryUIs.DebugOutputProviderUIKey, 
+					StdProviderFactoryUIs.DebugOutputProviderUIKey,
 					f => new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.Presenter(
 						new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.DebugOutputFactoryUI(),
 						f,
@@ -561,13 +561,13 @@ namespace LogJoint
 					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView(), highlightColorsTable);
 					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter, highlightColorsTable);
 					UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
-						filters, 
-						view, 
-						listPresenter, 
-						dialogPresenter, 
-						viewerPresenter, 
-						viewUpdates, 
-						heartBeatTimer, 
+						filters,
+						view,
+						listPresenter,
+						dialogPresenter,
+						viewerPresenter,
+						viewUpdates,
+						heartBeatTimer,
 						filtersFactory,
 						alertPopup
 					);
@@ -625,7 +625,7 @@ namespace LogJoint
 
 				DragDropHandler dragDropHandler = new DragDropHandler(
 					logSourcesController,
-					logSourcesPreprocessings, 
+					logSourcesPreprocessings,
 					preprocessingStepsFactory
 				);
 

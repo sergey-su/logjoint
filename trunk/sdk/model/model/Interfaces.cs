@@ -30,9 +30,11 @@ namespace LogJoint
 	public interface IPostprocessingModel // todo: move to appropriate folder
 	{
 		Postprocessing.IPostprocessorsManager PostprocessorsManager { get; }
-		// Postprocessing.IUserNamesProvider ShortNames { get; }
-		// Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
+		Postprocessing.IUserNamesProvider ShortNames { get; }
+		Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
 		// Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; }
 		Analytics.IPrefixMatcher CreatePrefixMatcher();
+		Analytics.Correlation.ICorrelator CreateCorrelator();
+
 	};
 }

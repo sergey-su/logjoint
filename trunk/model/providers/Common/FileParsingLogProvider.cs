@@ -36,13 +36,13 @@ namespace LogJoint
 			{
 				tracer.Info("readerType={0}", readerType);
 
-				if (connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam] != null)
+				if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 					media = new RollingFilesMedia(
 						LogMedia.FileSystemImpl.Instance,
 						readerType, 
 						formatInfo,
 						tracer,
-						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam]),
+						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam]),
 						host.TempFilesManager
 					);
 				else
@@ -54,7 +54,7 @@ namespace LogJoint
 
 				ITimeOffsets initialTimeOffset;
 				if (LogJoint.TimeOffsets.TryParse(
-					connectionParams[ConnectionParamsUtils.TimeOffsetConnectionParam] ?? "", out initialTimeOffset))
+					connectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] ?? "", out initialTimeOffset))
 				{
 					reader.TimeOffsets = initialTimeOffset;
 				}
@@ -69,7 +69,7 @@ namespace LogJoint
 		{
 			if (IsDisposed)
 				return;
-			string tmpFileName = connectionParamsReadonlyView[ConnectionParamsUtils.PathConnectionParam];
+			string tmpFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
 			if (tmpFileName != null && !host.TempFilesManager.IsTemporaryFile(tmpFileName))
 				tmpFileName = null;
 			await base.Dispose();
@@ -94,7 +94,7 @@ namespace LogJoint
 		void ISaveAs.SaveAs(string fileName)
 		{
 			CheckDisposed();
-			string srcFileName = connectionParamsReadonlyView[ConnectionParamsUtils.PathConnectionParam];
+			string srcFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
 			if (srcFileName == null)
 				return;
 			System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fileName));
@@ -108,13 +108,13 @@ namespace LogJoint
 			bool isTempFile = false;
 			string guessedFileName = null;
 
-			string fname = connectParams[ConnectionParamsUtils.PathConnectionParam];
+			string fname = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			if (fname != null)
 			{
 				isTempFile = host.TempFilesManager.IsTemporaryFile(fname);
 				isSavableAs = isTempFile;
 			}
-			string connectionIdentity = connectParams[ConnectionParamsUtils.IdentityConnectionParam];
+			string connectionIdentity = connectParams[ConnectionParamsKeys.IdentityConnectionParam];
 			if (connectionIdentity != null)
 				guessedFileName = ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(connectionIdentity);
 			if (isSavableAs)

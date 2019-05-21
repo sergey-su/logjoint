@@ -192,7 +192,7 @@ namespace LogJoint.WindowsEventLog
 
 		public static EventLogIdentity FromConnectionParams(IConnectionParams connectParams)
 		{
-			return ParseIdentityString(connectParams[ConnectionParamsUtils.IdentityConnectionParam]);
+			return ParseIdentityString(connectParams[ConnectionParamsKeys.IdentityConnectionParam]);
 		}
 
 		public static EventLogIdentity FromLiveLogParams(string machineName, string logName)
@@ -272,7 +272,7 @@ namespace LogJoint.WindowsEventLog
 		public IConnectionParams CreateParamsFromIdentity(EventLogIdentity identity)
 		{
 			ConnectionParams p = new ConnectionParams();
-			p[ConnectionParamsUtils.IdentityConnectionParam] = identity.ToIdentityString();
+			p[ConnectionParamsKeys.IdentityConnectionParam] = identity.ToIdentityString();
 			return p;
 		}
 
@@ -316,7 +316,7 @@ namespace LogJoint.WindowsEventLog
 		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
 			var cp = originalConnectionParams.Clone(true);
-			cp[ConnectionParamsUtils.PathConnectionParam] = null;
+			cp[ConnectionParamsKeys.PathConnectionParam] = null;
 			ConnectionParamsUtils.RemoveInitialTimeOffset(cp);
 			return cp;
 		}

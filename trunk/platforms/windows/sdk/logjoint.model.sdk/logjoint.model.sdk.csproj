@@ -86,6 +86,12 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\correlation\Interfaces.cs">
       <Link>correlation\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\correlation\NullNodeDetectionToken.cs">
+      <Link>analytics\correlation\NullNodeDetectionToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\correlation\SameNodeEqualityComparer.cs">
+      <Link>analytics\correlation\SameNodeEqualityComparer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\infra\EnumerableAsync\EnumerableAsync.cs">
       <Link>analytics\infra\EnumerableAsync\EnumerableAsync.cs</Link>
     </Compile>
@@ -101,6 +107,9 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\infra\PrefixMatcher\Interfaces.cs">
       <Link>analytics\infra\PrefixMatcher\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\infra\PrefixMatcher\PrefixMatcher.cs">
+      <Link>analytics\infra\PrefixMatcher\PrefixMatcher.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\BitUtils.cs">
       <Link>analytics\infra\Utils\BitUtils.cs</Link>
     </Compile>
@@ -109,6 +118,9 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\LinqUtils.cs">
       <Link>analytics\infra\Utils\LinqUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\RegexBuilder.cs">
+      <Link>analytics\infra\Utils\RegexBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\TextLogParser.cs">
       <Link>analytics\infra\Utils\TextLogParser.cs</Link>
@@ -122,6 +134,12 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Analisys\NodeId.cs">
       <Link>analytics\messaging\Analisys\NodeId.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\EventsDeserializer.cs">
+      <Link>analytics\messaging\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\EventsSerializer.cs">
+      <Link>analytics\messaging\EventsSerializer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\messaging\EventsStringifier.cs">
       <Link>analytics\messaging\EventsStringifier.cs</Link>
     </Compile>
@@ -131,11 +149,26 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Interfaces.cs">
       <Link>messaging\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\SerializationCommon.cs">
+      <Link>analytics\messaging\SerializationCommon.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\state\EventsDeserializer.cs">
+      <Link>analytics\state\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\state\EventsSerializer.cs">
+      <Link>analytics\state\EventsSerializer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\state\EventsStringifier.cs">
       <Link>analytics\state\EventsStringifier.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\state\Extensions.cs">
+      <Link>analytics\state\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\state\Interfaces.cs">
       <Link>analytics\state\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\state\SerializationCommon.cs">
+      <Link>analytics\state\SerializationCommon.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\timeline\EventsDeserializer.cs">
       <Link>analytics\timeline\EventsDeserializer.cs</Link>
@@ -149,6 +182,9 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\timeline\GenericEndOfTimelineEventSource.cs">
       <Link>analytics\timeline\GenericEndOfTimelineEventSource.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\InspectedObjectsLifetimeEventsSource.cs">
+      <Link>analytics\timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\timeline\Interfaces.cs">
       <Link>analytics\timeline\Interfaces.cs</Link>
     </Compile>
@@ -158,8 +194,23 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\Attributes.cs">
       <Link>analytics\timeseries\Attributes.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\EventParser.cs">
+      <Link>analytics\timeseries\EventParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\filters\RepeatedValuesFilter.cs">
+      <Link>analytics\timeseries\filters\RepeatedValuesFilter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\Interfaces.cs">
       <Link>analytics\timeseries\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\MetadataHelper.cs">
+      <Link>analytics\timeseries\MetadataHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\TimeSeriesCombinedParser.cs">
+      <Link>analytics\timeseries\TimeSeriesCombinedParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\TimeSeriesParser.cs">
+      <Link>analytics\timeseries\TimeSeriesParser.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\bookmarks\Interfaces.cs">
       <Link>bookmarks\Interfaces.cs</Link>
@@ -209,6 +260,15 @@
     <Compile Include="..\..\..\..\sdk\model\generic\synchronization\Interfaces.cs">
       <Link>generic\synchronization\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\TaskUtils.cs">
+      <Link>generic\TaskUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\TimeOffsets.cs">
+      <Link>generic\TimeOffsets.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\TimeUtils.cs">
+      <Link>generic\TimeUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\log-sources\Extensions.cs">
       <Link>log-sources\Extensions.cs</Link>
     </Compile>
@@ -251,8 +311,17 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\TextLogEventTrigger.cs">
       <Link>postprocessing\common\TextLogEventTrigger.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\UsersNaming.cs">
+      <Link>postprocessing\common\UsersNaming.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\CorrelatorPostprocessorOutput.cs">
       <Link>postprocessing\correlator\CorrelatorPostprocessorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs">
+      <Link>postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\CorrelatorStateSummary.cs">
+      <Link>postprocessing\correlator\CorrelatorStateSummary.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\Interfaces.cs">
       <Link>postprocessing\correlator\Interfaces.cs</Link>
@@ -269,6 +338,36 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\sequence\Interfaces.cs">
       <Link>postprocessing\sequence\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs">
+      <Link>postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\Extensions.cs">
+      <Link>postprocessing\state\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\FocusedMessageEventsRange.cs">
+      <Link>postprocessing\state\FocusedMessageEventsRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\FocusedMessageInfo.cs">
+      <Link>postprocessing\state\FocusedMessageInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\Interfaces.cs">
+      <Link>postprocessing\state\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\PropertyViews.cs">
+      <Link>postprocessing\state\PropertyViews.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\StateInspectorEvent.cs">
+      <Link>postprocessing\state\StateInspectorEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\StateInspectorOutput.cs">
+      <Link>postprocessing\state\StateInspectorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\Interfaces.cs">
+      <Link>postprocessing\time-series\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
+      <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Extensions.cs">
       <Link>postprocessing\timeline\Extensions.cs</Link>
     </Compile>
@@ -280,6 +379,9 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\TimelinePostprocessorOutput.cs">
       <Link>postprocessing\timeline\TimelinePostprocessorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\preprocessing\Extensions.cs">
+      <Link>preprocessing\Extensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\preprocessing\PreprocessingInterfaces.cs">
       <Link>preprocessing\PreprocessingInterfaces.cs</Link>
@@ -310,9 +412,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="postprocessing\state\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
   </PropertyGroup>

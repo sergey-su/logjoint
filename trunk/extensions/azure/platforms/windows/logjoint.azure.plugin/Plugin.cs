@@ -1,22 +1,17 @@
-﻿using LogJoint.Extensibility;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace LogJoint
 {
-	public class Plugin : PluginBase
+	public class Plugin
 	{
-		public Plugin()
-		{
-		}
-
-		public override void Init(IApplication app)
+		public Plugin(IApplication app)
 		{
 			Azure.Factory.RegisterFactories(app.Model.LogProviderFactoryRegistry, app.Model.TempFilesManager);
 			app.Presentation.NewLogSourceDialog.PagesRegistry.RegisterPagePresenterFactory(
-				Azure.Factory.uiTypeKey, 
+				Azure.Factory.uiTypeKey,
 				factory => new UI.Azure.FactoryUI((Azure.Factory)factory, app.Model.SourcesManager, app.Model.MRU)
 			);
 		}

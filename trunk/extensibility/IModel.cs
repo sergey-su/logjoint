@@ -14,8 +14,6 @@
 
 	public interface IPostprocessingModel: LogJoint.IPostprocessingModel // todo: remove in favor of SDK's one
 	{
-		Postprocessing.IUserNamesProvider ShortNames { get; }
-		Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
 		Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; }
 	};
 }
