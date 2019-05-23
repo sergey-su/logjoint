@@ -59,10 +59,6 @@
       <Project>{5C3545DB-36B8-4DE2-A2CA-B816910D389B}</Project>
       <Name>logjoint.chromium.plugin.model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
-      <Name>logjoint.presenters</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
       <Name>logjoint.sdk</Name>
