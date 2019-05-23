@@ -101,9 +101,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\extensibility\Application.cs">
-      <Link>extensibility\Application.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\extensibility\Model.cs">
       <Link>extensibility\Model.cs</Link>
     </Compile>
@@ -175,6 +172,7 @@
     <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
+    <Compile Include="extensibility\Application.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="progress\TaskbarProgress.cs" />

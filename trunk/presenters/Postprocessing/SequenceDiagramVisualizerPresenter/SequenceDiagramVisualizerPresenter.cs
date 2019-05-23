@@ -128,7 +128,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.SequenceDiagram));
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.SequenceDiagram));
 			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
 			{
 				UpdateNotificationsIcon();

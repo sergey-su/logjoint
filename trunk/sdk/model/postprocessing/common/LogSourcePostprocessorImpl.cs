@@ -6,64 +6,40 @@ using System.Xml;
 
 namespace LogJoint.Postprocessing
 {
-	public class LogSourcePostprocessorImpl : ILogSourcePostprocessor // todo: should it be in SDK?
+	public class LogSourcePostprocessorImpl : ILogSourcePostprocessor // todo: should this class be in SDK?
 	{
-		readonly string typeId;
-		readonly string caption;
-		readonly Func<LogSourcePostprocessorDeserializationParams, object> deserializeOutputData;
+		readonly PostprocessorKind kind;
 		readonly Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run;
 
 		public LogSourcePostprocessorImpl(
-			string typeId,
-			string caption,
-			Func<LogSourcePostprocessorDeserializationParams, object> deserializeOutputData,
+			PostprocessorKind kind,
 			Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run
 		)
 		{
-			this.typeId = typeId;
-			this.caption = caption;
-			this.deserializeOutputData = deserializeOutputData;
+			this.kind = kind;
 			this.run = run;
 		}
 
 		public LogSourcePostprocessorImpl(
-			string typeId,
-			string caption,
-			Func<LogSourcePostprocessorDeserializationParams, object> deserializeOutputData,
+			PostprocessorKind kind,
 			Func<LogSourcePostprocessorInput, Task> run
-		): this(typeId, caption, deserializeOutputData, MakeRunAdapter(run))
+		): this(kind, MakeRunAdapter(run))
 		{
 		}
 
 		public LogSourcePostprocessorImpl(
-			string typeId,
-			string caption,
-			Func<LogSourcePostprocessorDeserializationParams, object> deserializeOutputData,
+			PostprocessorKind kind,
 			Func<LogSourcePostprocessorInput, Task<IPostprocessorRunSummary>> run
-		): this(typeId, caption, deserializeOutputData, MakeRunAdapter(run))
+		): this(kind, MakeRunAdapter(run))
 		{
 		}
 
-		string ILogSourcePostprocessor.TypeID
-		{
-			get { return typeId; }
-		}
-
-		string ILogSourcePostprocessor.Caption
-		{
-			get { return caption; }
-		}
-
-		object ILogSourcePostprocessor.DeserializeOutputData(LogSourcePostprocessorDeserializationParams p)
-		{
-			return deserializeOutputData(p);
-		}
+		PostprocessorKind ILogSourcePostprocessor.Kind => kind;
 
 		Task<IPostprocessorRunSummary> ILogSourcePostprocessor.Run(LogSourcePostprocessorInput[] forLogs)
 		{
 			return run(forLogs);
 		}
-
 
 		static Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> MakeRunAdapter(Func<LogSourcePostprocessorInput, Task> postprocessor)
 		{

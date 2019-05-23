@@ -216,7 +216,8 @@ namespace LogJoint
 					threadPoolSynchronizationContext,
 					heartBeatTimer,
 					progressAggregator,
-					globalSettingsAccessor
+					globalSettingsAccessor,
+					new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess)
 				);
 
 				Postprocessing.InternalTracePostprocessors.Register(

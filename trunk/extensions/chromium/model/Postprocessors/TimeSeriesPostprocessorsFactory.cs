@@ -21,8 +21,6 @@ namespace LogJoint.Chromium.TimeSeries
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.TimeSeries;
-		readonly static string caption = "Time Series";
 		readonly ITimeSeriesTypesAccess timeSeriesTypesAccess;
 
 		public PostprocessorsFactory(ITimeSeriesTypesAccess timeSeriesTypesAccess)
@@ -33,8 +31,7 @@ namespace LogJoint.Chromium.TimeSeries
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption, 
-				DeserializeOutput,
+				PostprocessorKind.TimeSeries,
 				i => RunForWebRtcNativeLogMessages(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -45,8 +42,7 @@ namespace LogJoint.Chromium.TimeSeries
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.TimeSeries,
 				i => RunForWebRtcInternalsDump(new DMP.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -57,18 +53,12 @@ namespace LogJoint.Chromium.TimeSeries
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.TimeSeries,
 				i => RunForSymphonyRtc(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
 					i.InputContentsEtag)
 			);
-		}
-
-		TimeSeriesPostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
-		{
-			return new TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess);
 		}
 
 		async Task RunForWebRtcNativeLogMessages(

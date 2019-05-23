@@ -24,13 +24,11 @@ namespace LogJoint.Postprocessing
 			if (fac == null)
 				return;
 			var timeline = new LogSourcePostprocessorImpl(
-				PostprocessorIds.Timeline, "Timeline", // todo: avoid copy/pasing of the strings
-				p => new TimelinePostprocessorOutput(p, null),
+				PostprocessorKind.Timeline,
 				input => RunTimelinePostprocessor(input, tempFiles)
 			);
 			var timeSeries = new LogSourcePostprocessorImpl(
-				PostprocessorIds.TimeSeries, "Time series", // todo: avoid copy/pasing of the strings
-				p => new TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess),
+				PostprocessorKind.TimeSeries,
 				input => RunTimeSeriesPostprocessor(input, timeSeriesTypesAccess)
 			);
 			timeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(typeof(LJT.ProfilingSeries).Assembly);

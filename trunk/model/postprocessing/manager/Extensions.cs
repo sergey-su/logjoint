@@ -72,29 +72,29 @@ namespace LogJoint.Postprocessing
 			return input;
 		}
 	
-		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IPostprocessorsManager postprocessorsManager, string postprocessorId)
+		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IPostprocessorsManager postprocessorsManager, PostprocessorKind postprocessorKind)
 		{
 			return postprocessorsManager
 				.LogSourcePostprocessorsOutputs
-				.Where(output => output.PostprocessorMetadata.TypeID == postprocessorId)
+				.Where(output => output.PostprocessorMetadata.Kind == postprocessorKind)
 				.ToArray();
 		}
 
 		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IPostprocessorsManager postprocessorsManager)
 		{
-			bool isRelevantPostprocessor(string id)
+			bool isRelevantPostprocessor(PostprocessorKind id)
 			{
 				return
-					   id == PostprocessorIds.StateInspector
-					|| id == PostprocessorIds.Timeline
-					|| id == PostprocessorIds.SequenceDiagram
-					|| id == PostprocessorIds.TimeSeries
-					|| id == PostprocessorIds.Correlator;
+					   id == PostprocessorKind.StateInspector
+					|| id == PostprocessorKind.Timeline
+					|| id == PostprocessorKind.SequenceDiagram
+					|| id == PostprocessorKind.TimeSeries
+					|| id == PostprocessorKind.Correlator;
 			}
 
 			bool isStatusOk(LogSourcePostprocessorOutput output)
 			{
-				if (output.PostprocessorMetadata.TypeID == PostprocessorIds.Correlator)
+				if (output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
 				{
 					var status = postprocessorsManager.GetCorrelatorStateSummary().Status;
 					return
@@ -115,12 +115,12 @@ namespace LogJoint.Postprocessing
 			return
 				postprocessorsManager
 				.LogSourcePostprocessorsOutputs
-				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.TypeID) && isStatusOk(output));
+				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.Kind) && isStatusOk(output));
 		}
 
 		internal static string MakePostprocessorOutputFileName(this ILogSourcePostprocessor pp)
 		{
-			return string.Format("postproc-{0}.xml", pp.TypeID.ToLower());
+			return string.Format("postproc-{0}.xml", pp.Kind.ToString().ToLower());
 		}
 
 		internal static bool IsOutputOutdated(this ILogSource logSource, object outputData)

@@ -36,8 +36,7 @@ namespace LogJoint.Chromium.Correlator
 		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)
 		{
 			return new LogSourcePostprocessorImpl(
-				PostprocessorIds.Correlator, "Logs correlation",
-				(p) => CorrelatorPostprocessorOutput.Parse(p.Reader),
+				PostprocessorKind.Correlator,
 				inputFiles => Run(inputFiles, postprocessorsRegistry)
 			);
 		}

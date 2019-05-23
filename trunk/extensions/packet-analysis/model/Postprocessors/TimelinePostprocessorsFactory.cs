@@ -18,8 +18,6 @@ namespace LogJoint.PacketAnalysis.Timeline
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.Timeline;
-		readonly static string caption = PostprocessorIds.Timeline;
 		readonly ITempFilesManager tempFiles;
 
 		public PostprocessorsFactory(ITempFilesManager tempFiles)
@@ -30,8 +28,7 @@ namespace LogJoint.PacketAnalysis.Timeline
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWiresharkDpmlPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption, 
-				p => new TimelinePostprocessorOutput(p, null),
+				PostprocessorKind.Timeline,
 				i => RunForWiresharkDpmlMessages(new Pdml.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 

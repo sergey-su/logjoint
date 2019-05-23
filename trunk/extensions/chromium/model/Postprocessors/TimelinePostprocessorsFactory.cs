@@ -24,8 +24,6 @@ namespace LogJoint.Chromium.Timeline
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.Timeline;
-		readonly static string caption = PostprocessorIds.Timeline;
 		readonly ITempFilesManager tempFiles;
 		readonly Postprocessing.IModel postprocessing;
 
@@ -40,8 +38,7 @@ namespace LogJoint.Chromium.Timeline
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDriverPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption, 
-				DeserializeOutput,
+				PostprocessorKind.Timeline,
 				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -52,8 +49,7 @@ namespace LogJoint.Chromium.Timeline
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption, 
-				DeserializeOutput,
+				PostprocessorKind.Timeline,
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -64,8 +60,7 @@ namespace LogJoint.Chromium.Timeline
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateHttpArchivePostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.Timeline,
 				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -76,18 +71,12 @@ namespace LogJoint.Chromium.Timeline
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymRtcPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.Timeline,
 				i => RunForSymLog(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
 					i.InputContentsEtag)
 			);
-		}
-
-		ITimelinePostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
-		{
-			return new TimelinePostprocessorOutput(p, null);
 		}
 
 		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]>  events, ICodepathTracker codepathTracker)

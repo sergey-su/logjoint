@@ -87,7 +87,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.Timeline));
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.Timeline));
 
 			getSelectedActivity = Selectors.Create(() => selectedActivity, idx =>
 			{

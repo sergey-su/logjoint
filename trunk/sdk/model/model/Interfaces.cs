@@ -40,24 +40,18 @@ namespace LogJoint
 			Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
 			Analytics.IPrefixMatcher CreatePrefixMatcher();
 			Analytics.Correlation.ICorrelator CreateCorrelator();
+			// StateInspector.IModel StateInspector { get; }
 		};
 
 		namespace StateInspector
 		{
-
 			public interface IModel
 			{
-				Task SerializePostprocessorOutput(
+				Task SavePostprocessorOutput(
 					IEnumerableAsync<Event[]> events,
 					Task<ILogPartToken> rotatedLogPartToken,
 					Func<object, TextLogEventTrigger> triggersConverter,
-					string contentsEtagAttr,
-					string outputFileName,
-					CancellationToken cancellation
-				);
-				IStateInspectorOutput Load(
-					LogSourcePostprocessorDeserializationParams p,
-					ILogPartTokenFactory rotatedLogPartFactory = null
+					LogSourcePostprocessorInput postprocessorInput
 				);
 			};
 		}

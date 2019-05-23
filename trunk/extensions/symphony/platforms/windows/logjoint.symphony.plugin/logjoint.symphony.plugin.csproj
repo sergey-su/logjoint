@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.Symphony</RootNamespace>
-    <AssemblyName>logjoint.chromium.plugin</AssemblyName>
+    <AssemblyName>logjoint.symphony.plugin</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -61,6 +61,10 @@
     <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
       <Name>logjoint.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.symphony.plugin.model\logjoint.symphony.plugin.model.csproj">
+      <Project>{4bd42113-f5da-46bc-ad12-66509397d97d}</Project>
+      <Name>logjoint.symphony.plugin.model</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

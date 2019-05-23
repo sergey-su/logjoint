@@ -20,8 +20,6 @@ namespace LogJoint.Chromium.StateInspector
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.StateInspector;
-		readonly static string caption = PostprocessorIds.StateInspector;
 		private readonly ITempFilesManager tempFiles;
 		private readonly Postprocessing.IModel postprocessing;
 
@@ -36,8 +34,7 @@ namespace LogJoint.Chromium.StateInspector
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption, 
-				DeserializeOutput,
+				PostprocessorKind.StateInspector,
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -48,8 +45,7 @@ namespace LogJoint.Chromium.StateInspector
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.StateInspector,
 				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -60,18 +56,12 @@ namespace LogJoint.Chromium.StateInspector
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.StateInspector,
 				i => RunForSymRTC(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
 					i.InputContentsEtag)
 			);
-		}
-
-		IStateInspectorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
-		{
-			return new StateInspectorOutput(p);
 		}
 
 		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker)

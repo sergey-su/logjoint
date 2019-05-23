@@ -18,8 +18,6 @@ namespace LogJoint.Symphony.SequenceDiagram
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.SequenceDiagram;
-		readonly static string caption = PostprocessorIds.SequenceDiagram;
 		readonly ITempFilesManager tempFiles;
 
 		public PostprocessorsFactory(ITempFilesManager tempFiles)
@@ -30,19 +28,12 @@ namespace LogJoint.Symphony.SequenceDiagram
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSpringServiceLogPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.SequenceDiagram,
 				i => RunForHttpArchive(new SpringServiceLog.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
 					i.InputContentsEtag)
 			);
-		}
-
-
-		ISequenceDiagramPostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
-		{
-			return new SequenceDiagramPostprocessorOutput(p, null);
 		}
 
 		async Task RunForHttpArchive(

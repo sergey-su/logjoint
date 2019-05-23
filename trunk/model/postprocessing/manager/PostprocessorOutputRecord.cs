@@ -17,7 +17,8 @@ namespace LogJoint.Postprocessing
 			IHeartBeatTimer heartbeat,
 			ISynchronizationContext modelSyncContext,
 			ISynchronizationContext threadPoolSyncContext,
-			Telemetry.ITelemetryCollector telemetry)
+			Telemetry.ITelemetryCollector telemetry,
+			IOutputDataDeserializer outputDataDeserializer)
 		{
 			this.metadata = metadata;
 			this.logSourceRecord = logSourceRecord;
@@ -30,7 +31,8 @@ namespace LogJoint.Postprocessing
 				telemetry = telemetry,
 				heartbeat = heartbeat,
 				modelSyncContext = modelSyncContext,
-				threadPoolSyncContext = threadPoolSyncContext
+				threadPoolSyncContext = threadPoolSyncContext,
+				outputDataDeserializer = outputDataDeserializer
 			}, null, null);
 		}
 

@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		TL.IPresenter CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification);
 		TN.IPresenter CreateToastNotifications(TN.IView view, IChangeNotification changeNotification);
 		TN.IToastNotificationItem CreateCorrelatorToastNotificationItem();
-		TN.IToastNotificationItem CreateUnprocessedLogsToastNotification(string postprocessorId);
+		TN.IToastNotificationItem CreateUnprocessedLogsToastNotification(PostprocessorKind postprocessorKind);
 	};
 
 	public class PresentationObjectsFactory: IPresentationObjectsFactory
@@ -41,9 +41,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			return new CorrelatorToastNotification(ppm, lsm);
 		}
 
-		TN.IToastNotificationItem IPresentationObjectsFactory.CreateUnprocessedLogsToastNotification (string postprocessorId)
+		TN.IToastNotificationItem IPresentationObjectsFactory.CreateUnprocessedLogsToastNotification (PostprocessorKind postprocessorKind)
 		{
-			return new UnprocessedLogsToastNotification(ppm, lsm, postprocessorId);
+			return new UnprocessedLogsToastNotification(ppm, lsm, postprocessorKind);
 		}
 
 		TL.IPresenter IPresentationObjectsFactory.CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification)

@@ -26,7 +26,7 @@ namespace LogJoint.Postprocessing.Correlator
 		{
 			var correlatableLogSourceTypes = 
 				postprocessorsManager
-				.KnownLogTypes.Where(t => t.SupportedPostprocessors.Any(pp => pp.TypeID == PostprocessorIds.Correlator))
+				.KnownLogTypes.Where(t => t.SupportedPostprocessors.Any(pp => pp.Kind == PostprocessorKind.Correlator))
 				.ToLookup(t => t.LogProviderFactory);
 			return new HashSet<string>(
 				logs
@@ -46,7 +46,7 @@ namespace LogJoint.Postprocessing.Correlator
 			var correlationOutputs =
 				postprocessorsManager
 					.LogSourcePostprocessorsOutputs
-					.Where(output => output.PostprocessorMetadata.TypeID == PostprocessorIds.Correlator)
+					.Where(output => output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
 					.ToArray();
 			if (correlationOutputs.Length < 2)
 			{

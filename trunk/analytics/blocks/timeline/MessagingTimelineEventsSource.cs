@@ -51,7 +51,7 @@ namespace LogJoint.Analytics.Timeline
 			{
 				Timeline.Event netEvt = new Timeline.NetworkMessageEvent(
 					evt.Trigger,
-					"Cancelled: " + cancellation.DisplayName,
+					"Canceled: " + cancellation.DisplayName,
 					cancellation.RequestMessageId,
 					ActivityEventType.End,
 					NetworkMessageDirection.Unknown

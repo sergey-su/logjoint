@@ -79,7 +79,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(throttlingToastNotificationItem);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.TimeSeries));
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.TimeSeries));
 			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
 			{
 				UpdateNotificationsIcon();

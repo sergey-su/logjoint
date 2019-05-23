@@ -16,7 +16,8 @@ namespace LogJoint.Postprocessing
 			ISynchronizationContext threadPoolSyncContext,
 			IHeartBeatTimer heartbeat,
 			Progress.IProgressAggregator progressAggregator,
-			Settings.IGlobalSettingsAccessor settingsAccessor
+			Settings.IGlobalSettingsAccessor settingsAccessor,
+			IOutputDataDeserializer outputDataDeserializer
 		)
 		{
 			this.logSources = logSources;
@@ -26,6 +27,7 @@ namespace LogJoint.Postprocessing
 			this.modelSyncContext = modelSyncContext;
 			this.threadPoolSyncContext = threadPoolSyncContext;
 			this.heartbeat = heartbeat;
+			this.outputDataDeserializer = outputDataDeserializer;
 			this.tracer = new LJTraceSource("App", "ppm");
 			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh)
 			{
@@ -84,7 +86,7 @@ namespace LogJoint.Postprocessing
 
 				var postprocessorRecord = logSourceRecord.PostprocessorsOutputs.SingleOrDefault(parserRec => parserRec.metadata == outputType);
 				if (postprocessorRecord == null)
-					throw new ArgumentException("Bad Postprocessor output type: " + outputType.TypeID);
+					throw new ArgumentException("Bad Postprocessor output type: " + outputType.Kind.ToString());
 
 				if (postprocessorRecord.state.PostprocessorNeedsRunning == null)
 					throw new InvalidOperationException("Can not start postprocessor in this state");
@@ -187,7 +189,7 @@ namespace LogJoint.Postprocessing
 						rec.PostprocessorsOutputs.Add(new PostprocessorOutputRecord(
 							postprocessorType, rec, updater.Invoke,
 							FireChangedEvent, tracer,
-							heartbeat, modelSyncContext, threadPoolSyncContext, telemetry));
+							heartbeat, modelSyncContext, threadPoolSyncContext, telemetry, outputDataDeserializer));
 
 					knownLogSources.Add(src.Key, rec);
 					somethingChanged = true;
@@ -219,7 +221,7 @@ namespace LogJoint.Postprocessing
 			if (somethingChanged && settingsAccessor.EnableAutoPostprocessing)
 			{
 				var outputs = this.GetAutoPostprocessingCapableOutputs()
-					.Where(x => x.PostprocessorMetadata.TypeID != PostprocessorIds.Correlator)
+					.Where(x => x.PostprocessorMetadata.Kind != PostprocessorKind.Correlator)
 					.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
 					.ToArray();
 				if (outputs.Length > 0)
@@ -260,7 +262,7 @@ namespace LogJoint.Postprocessing
 		static string MakeLogSourcePostprocessorFeatureId(LogSourceMetadata logSource, ILogSourcePostprocessor postproc)
 		{
 			return string.Format(@"postprocessor\{0}\{1}\{2}",
-				logSource.LogProviderFactory.CompanyName, logSource.LogProviderFactory.FormatName, postproc.TypeID);
+				logSource.LogProviderFactory.CompanyName, logSource.LogProviderFactory.FormatName, postproc.Kind.ToString());
 		}
 
 		class ProgressSinksCollection: IDisposable
@@ -285,5 +287,6 @@ namespace LogJoint.Postprocessing
 		private readonly AsyncInvokeHelper updater;
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		private readonly LJTraceSource tracer;
+		private readonly IOutputDataDeserializer outputDataDeserializer;
 	}
 }

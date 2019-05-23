@@ -110,8 +110,14 @@
     <Compile Include="..\..\..\model\bookmarks\FakeBookmarksHandler.cs">
       <Link>bookmarks\FakeBookmarksHandler.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\change-notification\ChainedChangeNotification.cs">
+      <Link>change-notification\ChainedChangeNotification.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\change-notification\ChangeNotification.cs">
       <Link>change-notification\ChangeNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\change-notification\Subscription.cs">
+      <Link>change-notification\Subscription.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\connection-params\ConnectionParams.cs">
       <Link>connection-params\ConnectionParams.cs</Link>
@@ -482,8 +488,14 @@
     <Compile Include="..\..\..\model\postprocessing\manager\FailedRunSummary.cs">
       <Link>postprocessing\manager\FailedRunSummary.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\Interfaces.cs">
+      <Link>postprocessing\manager\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\LogSourceRecord.cs">
       <Link>postprocessing\manager\LogSourceRecord.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\OutputDataDeserializer.cs">
+      <Link>postprocessing\manager\OutputDataDeserializer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\PostprocessorOutputRecord.cs">
       <Link>postprocessing\manager\PostprocessorOutputRecord.cs</Link>
@@ -833,8 +845,6 @@
     <Compile Include="..\..\..\model\writers\NativeLogWriter.cs">
       <Link>writers\NativeLogWriter.cs</Link>
     </Compile>
-    <Compile Include="change-notification\ChainedChangeNotification.cs" />
-    <Compile Include="change-notification\Subscription.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

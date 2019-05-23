@@ -27,6 +27,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 		Persistence.ISaxXMLStorageSection pp1outputXmlSection;
 		IPostprocessorOutputETag pp1PostprocessorOutput;
 		IPostprocessorRunSummary pp1RunSummary;
+		IOutputDataDeserializer outputDataDeserializer;
 
 		[SetUp]
 		public void BeforeEach()
@@ -46,18 +47,19 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 				ContentsEtag = null
 			});
 			logSourcePP1 = Substitute.For<ILogSourcePostprocessor>();
-			logSourcePP1.TypeID.Returns("pp1type");
+			logSourcePP1.Kind.Returns(PostprocessorKind.SequenceDiagram);
 			pp1outputXmlSection = Substitute.For<Persistence.ISaxXMLStorageSection>();
-			logSource1.LogSourceSpecificStorageEntry.OpenSaxXMLSection("postproc-pp1type.xml", Persistence.StorageSectionOpenFlag.ReadOnly).Returns(pp1outputXmlSection);
+			logSource1.LogSourceSpecificStorageEntry.OpenSaxXMLSection("postproc-sequencediagram.xml", Persistence.StorageSectionOpenFlag.ReadOnly).Returns(pp1outputXmlSection);
 			pp1outputXmlSection.Reader.Returns(Substitute.For<XmlReader>());
 			pp1PostprocessorOutput = Substitute.For<IPostprocessorOutputETag>();
-			logSourcePP1.DeserializeOutputData(Arg.Any<LogSourcePostprocessorDeserializationParams>()).Returns(pp1PostprocessorOutput);
+			outputDataDeserializer = Substitute.For<IOutputDataDeserializer>();
+			outputDataDeserializer.Deserialize(PostprocessorKind.SequenceDiagram, Arg.Any<LogSourcePostprocessorDeserializationParams>()).Returns(pp1PostprocessorOutput);
 			pp1RunSummary = Substitute.For<IPostprocessorRunSummary>();
 			logSourcePP1.Run(null).ReturnsForAnyArgs(Task.FromResult(pp1RunSummary));
 			pp1RunSummary.GetLogSpecificSummary(null).ReturnsForAnyArgs((IPostprocessorRunSummary)null);
 
 			manager = new LogJoint.Postprocessing.PostprocessorsManager(
-				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor);
+				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor, outputDataDeserializer);
 
 			manager.RegisterLogType(new LogSourceMetadata(logProviderFac1, logSourcePP1));
 		}
@@ -131,7 +133,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			logSources.OnLogSourceStatsChanged += Raise.EventWith(logSource1, new LogSourceStatsEventArgs(LogProviderStatsFlag.ContentsEtag));
 			mockedSyncContext.Deplete();
 
-			logSourcePP1.Received(1).DeserializeOutputData(Arg.Any<LogSourcePostprocessorDeserializationParams>());
+			outputDataDeserializer.Received(1).Deserialize(PostprocessorKind.SequenceDiagram, Arg.Any<LogSourcePostprocessorDeserializationParams>());
 		}
 	}
 }

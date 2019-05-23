@@ -14,8 +14,6 @@ namespace LogJoint.Symphony.StateInspector
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.StateInspector;
-		readonly static string caption = PostprocessorIds.StateInspector;
 		private readonly ITempFilesManager tempFiles;
 		private readonly Postprocessing.IModel postprocessing;
 

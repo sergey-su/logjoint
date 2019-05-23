@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			case CorrelatorStateSummary.StatusCode.ProcessingFailed:
 
 				await this.ppm.RunPostprocessor(
-					ppm.GetPostprocessorOutputsByPostprocessorId(PostprocessorIds.Correlator)
+					ppm.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator)
 						.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
 						.ToArray()
 				);

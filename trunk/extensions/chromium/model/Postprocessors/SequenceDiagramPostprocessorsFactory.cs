@@ -21,8 +21,6 @@ namespace LogJoint.Chromium.SequenceDiagram
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.SequenceDiagram;
-		readonly static string caption = PostprocessorIds.SequenceDiagram;
 		readonly ITempFilesManager tempFiles;
 
 		public PostprocessorsFactory(ITempFilesManager tempFiles)
@@ -33,19 +31,12 @@ namespace LogJoint.Chromium.SequenceDiagram
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateHttpArchivePostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
-				typeId, caption,
-				DeserializeOutput,
+				PostprocessorKind.SequenceDiagram,
 				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
 					i.InputContentsEtag, tempFiles)
 			);
-		}
-
-
-		ISequenceDiagramPostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
-		{
-			return new SequenceDiagramPostprocessorOutput(p, null);
 		}
 
 		async static Task RunForHttpArchive(

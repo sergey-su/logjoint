@@ -15,8 +15,6 @@ namespace LogJoint.Symphony.TimeSeries
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly static string typeId = PostprocessorIds.TimeSeries;
-		readonly static string caption = "Time Series";
 		readonly ITimeSeriesTypesAccess timeSeriesTypesAccess;
 
 		public PostprocessorsFactory(ITimeSeriesTypesAccess timeSeriesTypesAccess)

@@ -10,21 +10,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	class LogSourcePostprocessorControlHandler : IViewControlHandler
 	{
 		readonly IPostprocessorsManager postprocessorsManager;
-		readonly string postprocessorId;
+		readonly PostprocessorKind postprocessorKind;
 		readonly Func<IPostprocessorOutputForm> lazyOutputForm;
 		readonly LogJoint.UI.Presenters.IShellOpen shellOpen;
 		readonly ITempFilesManager tempFiles;
 
 		public LogSourcePostprocessorControlHandler(
 			IPostprocessorsManager postprocessorsManager,
-			string postprocessorId,
+			PostprocessorKind postprocessorKind,
 			Func<IPostprocessorOutputForm> lazyOutputForm,
 			LogJoint.UI.Presenters.IShellOpen shellOpen,
 			ITempFilesManager tempFiles
 		)
 		{
 			this.postprocessorsManager = postprocessorsManager;
-			this.postprocessorId = postprocessorId;
+			this.postprocessorKind = postprocessorKind;
 			this.lazyOutputForm = lazyOutputForm;
 			this.shellOpen = shellOpen;
 			this.tempFiles = tempFiles;
@@ -32,19 +32,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		ControlData IViewControlHandler.GetCurrentData()
 		{
-			var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId);
+			var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
 
 			if (outputs.Length == 0)
 			{
 				return new ControlData()
 				{
 					Disabled = true,
-					Content = 
-						postprocessorsManager.KnownLogTypes
-						.SelectMany(x => x.SupportedPostprocessors)
-						.Where(p => p.TypeID == postprocessorId)
-						.Select(p => p.Caption)
-						.FirstOrDefault(postprocessorId) + ": N/A"
+					Content = postprocessorKind.ToDisplayString() + ": N/A"
 				};
 			}
 
@@ -140,9 +135,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 			var contentBuilder = new StringBuilder();
 			if (isClickableCaption)
-				contentBuilder.AppendFormat("*show {0}:*", outputs[0].PostprocessorMetadata.Caption);
+				contentBuilder.AppendFormat("*show {0}:*", outputs[0].PostprocessorMetadata.Kind.ToDisplayString());
 			else
-				contentBuilder.AppendFormat("{0}:", outputs[0].PostprocessorMetadata.Caption);
+				contentBuilder.AppendFormat("{0}:", outputs[0].PostprocessorMetadata.Kind.ToDisplayString());
 			if (statusText != null)
 				contentBuilder.AppendFormat("  {0}", statusText);
 			if (action != null)
@@ -163,13 +158,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					}
 					break;
 				case "action":
-					if (!await this.postprocessorsManager.RunPostprocessors(postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId)))
+					if (!await this.postprocessorsManager.RunPostprocessors(postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)))
 					{
 						return;
 					}
 					if (lazyOutputForm != null)
 					{
-						var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId);
+						var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
 						if (outputs.Any(x => x.OutputStatus == LogSourcePostprocessorOutput.Status.Finished))
 						{
 							lazyOutputForm().Show();
@@ -178,7 +173,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					break;
 				case "report":
 					{
-						var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId);
+						var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
 						var summaries = 
 							outputs
 								.Select(output => output.LastRunSummary)

@@ -22,14 +22,13 @@ namespace LogJoint.Postprocessing
 		IEnumerable<ILogSource> KnownLogSources { get; }
 		IEnumerable<LogSourceMetadata> KnownLogTypes { get; }
 		Task<bool> RunPostprocessor(
-			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources, 
+			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources,
 			object customData = null
 		);
 	};
 
 	/// <summary>
 	/// Contains postprocessing-related meta information for a given log source type.
-	/// "Deobfuscated corelib log" is one of possible source types.
 	/// </summary>
 	public class LogSourceMetadata
 	{
@@ -49,15 +48,7 @@ namespace LogJoint.Postprocessing
 	/// </summary>
 	public interface ILogSourcePostprocessor
 	{
-		/// <summary>
-		/// Unique id of postprocessor type
-		/// </summary>
-		string TypeID { get; }
-		/// <summary>
-		/// User-friendly name of postprocessor 
-		/// </summary>
-		string Caption { get; }
-		object DeserializeOutputData(LogSourcePostprocessorDeserializationParams p);
+		PostprocessorKind Kind { get; }
 		Task<IPostprocessorRunSummary> Run(LogSourcePostprocessorInput[] forLogs);
 	};
 
@@ -104,13 +95,13 @@ namespace LogJoint.Postprocessing
 		public CancellationToken Cancellation;
 	};
 
-	public static class PostprocessorIds
+	public enum PostprocessorKind
 	{
-		public static readonly string StateInspector = "StateInspector";
-		public static readonly string Timeline = "Timeline";
-		public static readonly string SequenceDiagram = "SequenceDiagram";
-		public static readonly string Correlator = "Correlator";
-		public static readonly string TimeSeries = "TimeSeries";
+		StateInspector,
+		Timeline,
+		SequenceDiagram,
+		Correlator,
+		TimeSeries,
 	};
 
 	public interface IPostprocessorOutputETag
