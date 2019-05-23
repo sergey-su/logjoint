@@ -32,7 +32,7 @@ namespace LogJoint.UI
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 
-				IShutdown shutdown = new Shutdown();
+				IShutdownSource shutdown = new Shutdown();
 
 				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(
@@ -671,7 +671,6 @@ namespace LogJoint.UI
 					new Extensibility.Model(
 						invokingSynchronization,
 						changeNotification,
-						telemetryCollector,
 						webContentCache,
 						contentCache,
 						storageManager,
@@ -687,15 +686,11 @@ namespace LogJoint.UI
 						userDefinedFormatsManager,
 						recentlyUsedLogs,
 						progressAggregatorsFactory,
-						heartBeatTimer,
 						logSourcesController,
 						shutdown,
 						webBrowserDownloader,
-						commandLineHandler,
 						postprocessorsManager,
-						analyticsShortNames,
-						timeSeriesTypesAccess,
-						logSourceNamesProvider
+						timeSeriesTypesAccess
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
@@ -710,12 +705,19 @@ namespace LogJoint.UI
 						postprocessingTabPagePresenter,
 						postprocessingViewsFactory,
 						colorTheme
-					),
-					new Extensibility.View(
 					)
 				);
 
-				postprocessingViewsFactory.Init(extensibilityEntryPoint);
+				postprocessingViewsFactory.Init(
+					extensibilityEntryPoint,
+					logSourceNamesProvider,
+					analyticsShortNames,
+					sourcesManagerPresenter,
+					loadedMessagesPresenter,
+					clipboardAccess,
+					presentersFacade,
+					alerts
+				);
 
 				new Extensibility.PluginsManager(
 					extensibilityEntryPoint,

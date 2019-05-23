@@ -14,6 +14,7 @@
     <ProjectGuid>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</ProjectGuid>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <BaseDirectory>..\..\bin\debug\</BaseDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -83,12 +84,30 @@
     <Compile Include="..\..\..\..\sdk\presentation\NewLogSourceDialogPresenter\Interfaces.cs">
       <Link>NewLogSourceDialogPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Common\Theming\Interfaces.cs">
+      <Link>Common\Theming\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Postprocessing\MainWindowTabPagePresenter\Interfaces.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Postprocessing\StateInspectorVisualizerPresenter\Interfaces.cs">
+      <Link>Postprocessing\StateInspectorVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Postprocessing\TimeSeriesVisualizerPresenter\Interfaces.cs">
+      <Link>Postprocessing\TimeSeriesVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="presentation\" />
     <Folder Include="NewLogSourceDialogPresenter\" />
+    <Folder Include="Common\" />
+    <Folder Include="Common\Theming\" />
+    <Folder Include="Postprocessing\" />
+    <Folder Include="Postprocessing\MainWindowTabPagePresenter\" />
+    <Folder Include="Postprocessing\StateInspectorVisualizerPresenter\" />
+    <Folder Include="Postprocessing\TimeSeriesVisualizerPresenter\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model.sdk\logjoint.model.sdk.csproj">

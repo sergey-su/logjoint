@@ -203,6 +203,10 @@
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
     </ProjectReference>
+    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
+      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="nlog\" />

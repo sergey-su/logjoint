@@ -193,9 +193,6 @@
     <Compile Include="..\..\..\model\generic\LazyUpdateFlag.cs">
       <Link>generic\LazyUpdateFlag.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\ListUtils.cs">
-      <Link>generic\ListUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\MutexLock.cs">
       <Link>generic\MutexLock.cs</Link>
     </Compile>
@@ -244,17 +241,11 @@
     <Compile Include="..\..\..\model\generic\StringUtils.cs">
       <Link>generic\StringUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\TaskUtils.cs">
-      <Link>generic\TaskUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\TempFilesManager.cs">
       <Link>generic\TempFilesManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\TimeUtils.cs">
-      <Link>generic\TimeUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
@@ -563,9 +554,6 @@
     <Compile Include="..\..\..\model\tracing\TraceListener.cs">
       <Link>tracing\TraceListener.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\TimeOffsets.cs">
-      <Link>generic\TimeOffsets.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\preprocessing\BuiltInStepsExtension.cs">
       <Link>preprocessing\BuiltInStepsExtension.cs</Link>
     </Compile>
@@ -635,9 +623,6 @@
     <Compile Include="..\..\..\model\preprocessing\TimeAnomalyFixingStep.cs">
       <Link>preprocessing\TimeAnomalyFixingStep.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\log-sources-controller\Interfaces.cs">
-      <Link>log-sources-controller\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\log-sources-controller\LogSourcesController.cs">
       <Link>log-sources-controller\LogSourcesController.cs</Link>
     </Compile>
@@ -668,9 +653,6 @@
     <Compile Include="..\..\..\model\timegaps\TimeGapsDetector.cs">
       <Link>timegaps\TimeGapsDetector.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\WebBrowserDownloaderInterface.cs">
-      <Link>generic\WebBrowserDownloaderInterface.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\tracing\MemBufferTraceAccess.cs">
       <Link>tracing\MemBufferTraceAccess.cs</Link>
     </Compile>
@@ -685,15 +667,6 @@
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\UsersNaming.cs">
       <Link>postprocessing\common\UsersNaming.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\correlator\CorrelatorPostprocessorOutput.cs">
-      <Link>postprocessing\correlator\CorrelatorPostprocessorOutput.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs">
-      <Link>postprocessing\correlator\CorrelatorPostprocessorRunSummary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\correlator\CorrelatorStateSummary.cs">
-      <Link>postprocessing\correlator\CorrelatorStateSummary.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\correlator\Interfaces.cs">
       <Link>postprocessing\correlator\Interfaces.cs</Link>
@@ -710,12 +683,6 @@
     <Compile Include="..\..\..\model\postprocessing\manager\PostprocessorsManager.cs">
       <Link>postprocessing\manager\PostprocessorsManager.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\sequence\Interfaces.cs">
-      <Link>postprocessing\sequence\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs">
-      <Link>postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramVisualizerModel.cs">
       <Link>postprocessing\sequence\SequenceDiagramVisualizerModel.cs</Link>
     </Compile>
@@ -725,26 +692,8 @@
     <Compile Include="..\..\..\model\postprocessing\state\Extensions.cs">
       <Link>postprocessing\state\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageEventsRange.cs">
-      <Link>postprocessing\state\FocusedMessageEventsRange.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageInfo.cs">
-      <Link>postprocessing\state\FocusedMessageInfo.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\InspectedObject.cs">
       <Link>postprocessing\state\InspectedObject.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\Interfaces.cs">
-      <Link>postprocessing\state\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\PropertyViews.cs">
-      <Link>postprocessing\state\PropertyViews.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\StateInspectorEvent.cs">
-      <Link>postprocessing\state\StateInspectorEvent.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\StateInspectorOutput.cs">
-      <Link>postprocessing\state\StateInspectorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\StateInspectorVisualizerModel.cs">
       <Link>postprocessing\state\StateInspectorVisualizerModel.cs</Link>
@@ -763,12 +712,6 @@
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\TimelineVisualizerModel.cs">
       <Link>postprocessing\timeline\TimelineVisualizerModel.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\time-series\Interfaces.cs">
-      <Link>postprocessing\time-series\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
-      <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
       <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>
@@ -836,14 +779,8 @@
     <Compile Include="..\..\..\model\change-notification\ChangeNotification.cs">
       <Link>change-notification\ChangeNotification.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\change-notification\Interfaces.cs">
-      <Link>change-notification\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\Selector.cs">
       <Link>generic\Selector.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\change-notification\Extensions.cs">
-      <Link>change-notification\Extensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\states\ErrorState.cs">
       <Link>postprocessing\manager\states\ErrorState.cs</Link>
@@ -871,9 +808,6 @@
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\PostprocessorOutputRecord.cs">
       <Link>postprocessing\manager\PostprocessorOutputRecord.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\synchronization\Interfaces.cs">
-      <Link>generic\synchronization\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\synchronization\InvokeHelper.cs">
       <Link>generic\synchronization\InvokeHelper.cs</Link>
@@ -908,14 +842,17 @@
     <Compile Include="..\..\..\model\generic\drawing\Matrix.cs">
       <Link>generic\drawing\Matrix.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\drawing\Primitives.cs">
-      <Link>generic\drawing\Primitives.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\drawing\platform-specific\mac\MatrixImpl.cs">
       <Link>generic\drawing\MatrixImpl.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\Extensions.cs">
       <Link>preprocessing\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\change-notification\ChainedChangeNotification.cs">
+      <Link>change-notification\ChainedChangeNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\change-notification\Subscription.cs">
+      <Link>change-notification\Subscription.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

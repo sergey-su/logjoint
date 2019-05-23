@@ -246,12 +246,6 @@
     <Compile Include="drag-n-drop\DragDropHandler.cs" />
     <Compile Include="ui\CommonControls\NSLinkLabel\NSLinkLabel.cs" />
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomizableView.cs" />
-    <Compile Include="..\..\..\extensibility\IPresentation.cs">
-      <Link>extensibility\interfaces\IPresentation.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IModel.cs">
-      <Link>extensibility\interfaces\IModel.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\extensibility\Presentation.cs">
       <Link>extensibility\impl\Presentation.cs</Link>
     </Compile>
@@ -275,9 +269,6 @@
     <Compile Include="..\..\..\extensibility\Model.cs">
       <Link>extensibility\impl\Model.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\extensibility\IApplication.cs">
-      <Link>extensibility\interfaces\IApplication.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\extensibility\platforms\mac\IMainFormTabExtension.cs">
       <Link>extensibility\interfaces\IMainFormTabExtension.cs</Link>
     </Compile>
@@ -286,9 +277,6 @@
     </Compile>
     <Compile Include="..\..\..\extensibility\platforms\mac\View.cs">
       <Link>extensibility\impl\View.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\Application.cs">
-      <Link>extensibility\impl\Application.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
       <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
@@ -664,6 +652,7 @@
     </Compile>
     <Compile Include="ui\CommonControls\NSCustomTableRowView\CustomTableRowView.cs" />
     <Compile Include="ui\CommonControls\NSDragDropTextField\NSDragDropTextField.cs" />
+    <Compile Include="extensibility\impl\Application.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -779,7 +768,7 @@
       <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
       <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.sdk\logjoint.sdk.csproj">
+    <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
       <Name>logjoint.sdk</Name>
     </ProjectReference>

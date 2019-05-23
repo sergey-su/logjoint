@@ -49,7 +49,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.model.sdk", "sdk\l
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.presentation.sdk", "sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj", "{50400C8A-004A-4162-8D98-5DC0152BF2A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.sdk", "logjoint.sdk\logjoint.sdk.csproj", "{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.sdk", "sdk\logjoint.sdk\logjoint.sdk.csproj", "{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
