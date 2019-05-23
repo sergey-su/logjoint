@@ -215,6 +215,9 @@
     <Compile Include="..\..\..\..\sdk\model\bookmarks\Interfaces.cs">
       <Link>bookmarks\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\change-notification\Interfaces.cs">
+      <Link>change-notification\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\connection-params\Interfaces.cs">
       <Link>connection-params\Interfaces.cs</Link>
     </Compile>
@@ -232,6 +235,9 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\DateRange.cs">
       <Link>generic\DateRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\drawing\Primitives.cs">
+      <Link>generic\drawing\Primitives.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\FileRange.cs">
       <Link>generic\FileRange.cs</Link>
@@ -268,6 +274,12 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\TimeUtils.cs">
       <Link>generic\TimeUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\WebBrowserDownloaderInterface.cs">
+      <Link>generic\WebBrowserDownloaderInterface.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\log-sources-controller\Interfaces.cs">
+      <Link>log-sources-controller\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\log-sources\Extensions.cs">
       <Link>log-sources\Extensions.cs</Link>
@@ -397,6 +409,9 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\settings\Interfaces.cs">
       <Link>settings\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\shutdown\Interfaces.cs">
+      <Link>shutdown\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\temp-files\Interfaces.cs">
       <Link>temp-files\Interfaces.cs</Link>

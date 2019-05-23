@@ -1,11 +1,11 @@
 ﻿namespace LogJoint.Extensibility
 {
-	class Application: IApplication, LogJoint.IApplication
+	class Application: IApplication
 	{
 		public Application(
 			IModel model,
-			IPresentation presentation,
-			IView view
+			UI.Presenters.IPresentation presentation,
+			UI.Windows.IView view
 		)
 		{
 			this.presentation = presentation;
@@ -13,16 +13,14 @@
 			this.view = view;
 		}
 
-		IPresentation IApplication.Presentation { get { return presentation; } }
-		LogJoint.UI.Presenters.IPresentation LogJoint.IApplication.Presentation { get { return presentation; } }
+		UI.Presenters.IPresentation IApplication.Presentation { get { return presentation; } }
 
 		IModel IApplication.Model { get { return model; } }
-		LogJoint.IModel LogJoint.IApplication.Model { get { return model; } }
 
-		IView IApplication.View { get { return view; } }
+		UI.Windows.IView IApplication.View { get { return view; } }
 
 		readonly IModel model;
-		readonly IPresentation presentation;
-		readonly IView view;
+		readonly UI.Presenters.IPresentation presentation;
+		readonly UI.Windows.IView view;
 	}
 }

@@ -2,12 +2,11 @@
 
 namespace LogJoint.Extensibility
 {
-	public class Model : IModel, IPostprocessingModel
+	public class Model : IModel, Postprocessing.IModel
 	{
 		public Model(
 			ISynchronizationContext threadSync,
 			IChangeNotification changeNotification,
-			Telemetry.ITelemetryCollector telemetryCollector,
 			Persistence.IWebContentCache webCache,
 			Persistence.IContentCache contentCache,
 			Persistence.IStorageManager storageManager,
@@ -23,20 +22,15 @@ namespace LogJoint.Extensibility
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			MRU.IRecentlyUsedEntities mru,
 			Progress.IProgressAggregatorFactory progressAggregatorsFactory,
-			IHeartBeatTimer heartbeat,
 			ILogSourcesController logSourcesController,
 			IShutdown shutdown,
 			WebBrowserDownloader.IDownloader webBrowserDownloader,
-			AppLaunch.ICommandLineHandler commandLineHandler,
 			Postprocessing.IPostprocessorsManager postprocessorsManager,
-			Postprocessing.IUserNamesProvider analyticsShortNames,
-			Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes,
-			Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider
+			Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
 			this.ChangeNotification = changeNotification;
-			this.Telemetry = telemetryCollector;
 			this.WebContentCache = webCache;
 			this.ContentCache = contentCache;
 			this.StorageManager = storageManager;
@@ -52,20 +46,15 @@ namespace LogJoint.Extensibility
 			this.UserDefinedFormatsManager = userDefinedFormatsManager;
 			this.ProgressAggregatorsFactory = progressAggregatorsFactory;
 			this.MRU = mru;
-			this.Heartbeat = heartbeat;
 			this.LogSourcesController = logSourcesController;
 			this.Shutdown = shutdown;
 			this.WebBrowserDownloader = webBrowserDownloader;
-			this.CommandLineHandler = commandLineHandler;
 			this.PostprocessorsManager = postprocessorsManager;
-			this.ShortNames = analyticsShortNames;
 			this.TimeSeriesTypes = timeSeriesTypes;
-			this.LogSourceNamesProvider = logSourceNamesProvider;
 		}
 
 		public ISynchronizationContext ModelThreadSynchronization { get; private set; }
 		public IChangeNotification ChangeNotification { get; private set; }
-		public Telemetry.ITelemetryCollector Telemetry { get; private set; }
 		public Persistence.IWebContentCache WebContentCache { get; private set; }
 		public Persistence.IContentCache ContentCache { get; private set; }
 		public Persistence.IStorageManager StorageManager { get; private set; }
@@ -81,19 +70,14 @@ namespace LogJoint.Extensibility
 		public IUserDefinedFormatsManager UserDefinedFormatsManager { get; private set; }
 		public MRU.IRecentlyUsedEntities MRU { get; private set; }
 		public Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; private set; }
-		public IHeartBeatTimer Heartbeat { get; private set; }
 		public ILogSourcesController LogSourcesController { get; private set; }
 		public IShutdown Shutdown { get; private set; }
 		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
-		public AppLaunch.ICommandLineHandler CommandLineHandler { get; private set; }
-		public IPostprocessingModel Postprocessing { get { return this; } }
-		LogJoint.IPostprocessingModel LogJoint.IModel.Postprocessing { get { return this; } }
+		public Postprocessing.IModel Postprocessing { get { return this; } }
 
 		#region IPostprocessingModel
 		public Postprocessing.IPostprocessorsManager PostprocessorsManager { get; private set; }
-		public Postprocessing.IUserNamesProvider ShortNames { get; private set; }
 		public Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
-		public Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; private set; }
 
 		public Analytics.Correlation.ICorrelator CreateCorrelator()
 		{

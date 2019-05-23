@@ -12,18 +12,18 @@ namespace LogJoint.Postprocessing
 	{
 		/// <summary>
 		/// Name of the business role that the log producer plays. For example if the log in question is from a service
-		/// the value contains user-fiendly name of the whole service such as "Invoices service".
+		/// the value contains user-friendly name of the whole service such as "Invoices service".
 		/// </summary>
 		public string RoleName;
 		/// <summary>
-		/// If the log producer runs on multiple machines (instances) this field conatins the user-friendly name of the instance.
+		/// If the log producer runs on multiple machines (instances) this field contains the user-friendly name of the instance.
 		/// Example: "InvoicesService.2"
 		/// </summary>
 		public string RoleInstanceName;
 	}
 
 	/// <summary>
-	/// Provides user-fieldny log sources' names to postprocessors views
+	/// Provides user-friendly log sources' names to postprocessors views
 	/// </summary>
 	public interface ILogSourceNamesProvider
 	{

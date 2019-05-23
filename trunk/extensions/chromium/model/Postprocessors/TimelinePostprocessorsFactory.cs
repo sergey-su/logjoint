@@ -27,10 +27,14 @@ namespace LogJoint.Chromium.Timeline
 		readonly static string typeId = PostprocessorIds.Timeline;
 		readonly static string caption = PostprocessorIds.Timeline;
 		readonly ITempFilesManager tempFiles;
+		readonly Postprocessing.IModel postprocessing;
 
-		public PostprocessorsFactory(ITempFilesManager tempFiles)
+		public PostprocessorsFactory(
+			ITempFilesManager tempFiles,
+			Postprocessing.IModel postprocessing)
 		{
 			this.tempFiles = tempFiles;
+			this.postprocessing = postprocessing;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDriverPostprocessor()
@@ -41,7 +45,7 @@ namespace LogJoint.Chromium.Timeline
 				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag, tempFiles)
+					i.InputContentsEtag)
 			);
 		}
 
@@ -53,7 +57,7 @@ namespace LogJoint.Chromium.Timeline
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag, tempFiles)
+					i.InputContentsEtag)
 			);
 		}
 
@@ -65,7 +69,7 @@ namespace LogJoint.Chromium.Timeline
 				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag, tempFiles)
+					i.InputContentsEtag)
 			);
 		}
 
@@ -77,7 +81,7 @@ namespace LogJoint.Chromium.Timeline
 				i => RunForSymLog(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag, tempFiles)
+					i.InputContentsEtag)
 			);
 		}
 
@@ -97,16 +101,15 @@ namespace LogJoint.Chromium.Timeline
 			});
 		}
 
-		async static Task RunForChromeDriver(
+		async Task RunForChromeDriver(
 			IEnumerableAsync<CD.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			string contentsEtagAttr
 		)
 		{
-			IPrefixMatcher matcher = new PrefixMatcher();
+			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var logMessages = CD.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			CD.ITimelineEvents networkEvents = new CD.TimelineEvents(matcher);
@@ -179,17 +182,16 @@ namespace LogJoint.Chromium.Timeline
 			return events;
 		}
 
-		async static Task RunForChromeDebug(
+		async Task RunForChromeDebug(
 			IEnumerableAsync<CDL.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			string contentsEtagAttr
 		)
 		{
 			var multiplexedInput = input.Multiplex();
-			IPrefixMatcher matcher = new PrefixMatcher();
+			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			Sym.ICITimelineEvents symCI = new Sym.CITimelineEvents(matcher);
 
 			var symEvents = RunForSymMessages(
@@ -220,13 +222,12 @@ namespace LogJoint.Chromium.Timeline
 			await Task.WhenAll(serialize, symLog.Open(), multiplexedInput.Open());
 		}
 
-		async static Task RunForHttpArchive(
+		async Task RunForHttpArchive(
 			IEnumerableAsync<HAR.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			string contentsEtagAttr
 		)
 		{
 			HAR.ITimelineEvents timelineEvents = new HAR.TimelineEvents();
@@ -246,16 +247,15 @@ namespace LogJoint.Chromium.Timeline
 			);
 		}
 
-		async static Task RunForSymLog(
+		async Task RunForSymLog(
 			IEnumerableAsync<Sym.Message[]> input,
 			string outputFileName,
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			string contentsEtagAttr
 		)
 		{
-			IPrefixMatcher matcher = new PrefixMatcher();
+			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var inputMultiplexed = input.Multiplex();
 			var symEvents = RunForSymMessages(matcher, inputMultiplexed, templatesTracker, out var symLog);
 			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<Sym.Message>();

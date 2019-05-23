@@ -12,10 +12,10 @@ namespace LogJoint.Chromium
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
 				app.Model.Postprocessing.PostprocessorsManager, 
 				app.Model.UserDefinedFormatsManager, 
-				new Chromium.StateInspector.PostprocessorsFactory(app.Model.TempFilesManager),
+				new Chromium.StateInspector.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
 				new Chromium.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeriesTypes),
 				new Chromium.Correlator.PostprocessorsFactory(app.Model),
-				new Chromium.Timeline.PostprocessorsFactory(app.Model.TempFilesManager),
+				new Chromium.Timeline.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
 				new Chromium.SequenceDiagram.PostprocessorsFactory(app.Model.TempFilesManager)
 			);
 

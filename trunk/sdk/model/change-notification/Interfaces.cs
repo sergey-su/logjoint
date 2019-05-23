@@ -6,6 +6,8 @@ namespace LogJoint
 	{
 		void Post();
 		event EventHandler OnChange;
+		ISubscription CreateSubscription(Action sideEffect, bool initiallyActive = true);
+		IChainedChangeNotification CreateChainedChangeNotification(bool initiallyActive = true);
 	};
 
 	public interface ISubscription : IDisposable

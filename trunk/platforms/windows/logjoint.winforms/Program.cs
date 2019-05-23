@@ -46,7 +46,7 @@ namespace LogJoint
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
-				IShutdown shutdown = new Shutdown();
+				IShutdownSource shutdown = new Shutdown();
 				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage, shutdown);
 				Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 				userDataStorage.Init(
@@ -701,7 +701,6 @@ namespace LogJoint
 					new Extensibility.Model(
 						modelSynchronizationContext,
 						changeNotification,
-						telemetryCollector,
 						webContentCache,
 						contentCache,
 						storageManager,
@@ -717,15 +716,11 @@ namespace LogJoint
 						userDefinedFormatsManager,
 						recentlyUsedLogs,
 						progressAggregatorFactory,
-						heartBeatTimer,
 						logSourcesController,
 						shutdown,
 						webBrowserDownloader,
-						commandLineHandler,
 						postprocessorsManager,
-						analyticsShortNames,
-						timeSeriesTypesAccess,
-						logSourceNamesProvider
+						timeSeriesTypesAccess
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
@@ -755,7 +750,16 @@ namespace LogJoint
 				tracer.Info("plugin manager created");
 
 				appInitializer.WireUpCommandLineHandler(mainFormPresenter, commandLineHandler);
-				postprocessingViewsFactory.Init(pluginEntryPoint);
+				postprocessingViewsFactory.Init(
+					pluginEntryPoint,
+					logSourceNamesProvider,
+					analyticsShortNames,
+					sourcesManagerPresenter,
+					loadedMessagesPresenter,
+					clipboardAccess,
+					presentersFacade,
+					alertPopup
+				);
 
 				presentersFacade.Init(
 					messagePropertiesDialogPresenter,

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogJoint.Analytics
 {
-	public class PrefixMatcher : IPrefixMatcher
+	internal class PrefixMatcher : IPrefixMatcher
 	{
 		public int RegisterPrefix(string prefix)
 		{

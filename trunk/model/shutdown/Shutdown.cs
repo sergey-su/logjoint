@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public class Shutdown : IShutdown
+	public class Shutdown : IShutdown, IShutdownSource
 	{
 		readonly CancellationTokenSource tokenSource;
 		readonly List<Task> cleanupTasks = new List<Task>();
@@ -23,11 +23,10 @@ namespace LogJoint
 			cleanupTasks.Add(task);
 		}
 
-		async Task IShutdown.Shutdown()
+		async Task IShutdownSource.Shutdown()
 		{
 			tokenSource.Cancel();
-			if (Cleanup != null)
-				Cleanup(this, EventArgs.Empty);
+			Cleanup?.Invoke(this, EventArgs.Empty);
 			await Task.WhenAll(cleanupTasks.Select(IgnoreTimeout));
 		}
 

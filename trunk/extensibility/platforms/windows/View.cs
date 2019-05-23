@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace LogJoint.Extensibility
 {
-	class View: IView
+	class View: UI.Windows.IView
 	{
 		public View(
 			IWinFormsComponentsInitializer winFormsComponentsInitializer
@@ -12,11 +12,11 @@ namespace LogJoint.Extensibility
 			this.winFormsComponentsInitializer = winFormsComponentsInitializer;
 		}
 
-		void IView.RegisterToolForm(Form f)
+		void UI.Windows.IView.RegisterToolForm(Form f)
 		{
 			winFormsComponentsInitializer.InitOwnedForm(f, false);
 		}
 
-		IWinFormsComponentsInitializer winFormsComponentsInitializer;
+		readonly IWinFormsComponentsInitializer winFormsComponentsInitializer;
 	};
 }

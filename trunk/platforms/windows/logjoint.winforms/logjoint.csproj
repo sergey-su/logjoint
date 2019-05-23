@@ -104,23 +104,11 @@
     <Compile Include="..\..\..\extensibility\Application.cs">
       <Link>extensibility\Application.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\extensibility\IApplication.cs">
-      <Link>extensibility\IApplication.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IModel.cs">
-      <Link>extensibility\IModel.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\IPresentation.cs">
-      <Link>extensibility\IPresentation.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\extensibility\Model.cs">
       <Link>extensibility\Model.cs</Link>
     </Compile>
     <Compile Include="..\..\..\extensibility\platforms\windows\IMainFormTabExtension.cs">
       <Link>extensibility\IMainFormTabExtension.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\windows\IView.cs">
-      <Link>extensibility\IView.cs</Link>
     </Compile>
     <Compile Include="..\..\..\extensibility\platforms\windows\View.cs">
       <Link>extensibility\View.cs</Link>

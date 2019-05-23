@@ -8,7 +8,6 @@ using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
 using Sym = LogJoint.Symphony.Rtc;
 using LogJoint.Analytics.StateInspector;
-using System.Xml;
 
 namespace LogJoint.Chromium.StateInspector
 {
@@ -24,10 +23,14 @@ namespace LogJoint.Chromium.StateInspector
 		readonly static string typeId = PostprocessorIds.StateInspector;
 		readonly static string caption = PostprocessorIds.StateInspector;
 		private readonly ITempFilesManager tempFiles;
+		private readonly Postprocessing.IModel postprocessing;
 
-		public PostprocessorsFactory(ITempFilesManager tempFiles)
+		public PostprocessorsFactory(
+			ITempFilesManager tempFiles,
+			Postprocessing.IModel postprocessing)
 		{
 			this.tempFiles = tempFiles;
+			this.postprocessing = postprocessing;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
@@ -38,7 +41,7 @@ namespace LogJoint.Chromium.StateInspector
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag, tempFiles)
+					i.InputContentsEtag)
 			);
 		}
 
@@ -50,7 +53,7 @@ namespace LogJoint.Chromium.StateInspector
 				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag, tempFiles)
+					i.InputContentsEtag)
 			);
 		}
 
@@ -62,7 +65,7 @@ namespace LogJoint.Chromium.StateInspector
 				i => RunForSymRTC(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag, tempFiles)
+					i.InputContentsEtag)
 			);
 		}
 
@@ -82,18 +85,17 @@ namespace LogJoint.Chromium.StateInspector
 			});
 		}
 
-		async static Task RunForChromeDebug(
+		async Task RunForChromeDebug(
 			IEnumerableAsync<CDL.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			string contentsEtagAttr
 		)
 		{
 			var inputMultiplexed = input.Multiplex();
 
-			IPrefixMatcher matcher = new PrefixMatcher();
+			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var logMessages = CDL.Helpers.MatchPrefixes(inputMultiplexed, matcher).Multiplex();
 
 			CDL.IWebRtcStateInspector webRtcStateInspector = new CDL.WebRtcStateInspector(matcher);
@@ -127,16 +129,15 @@ namespace LogJoint.Chromium.StateInspector
 			await Task.WhenAll(serialize, symMessages.Open(), logMessages.Open(), inputMultiplexed.Open());
 		}
 
-		async static Task RunForWebRTCDump(
+		async Task RunForWebRTCDump(
 			IEnumerableAsync<WRD.Message[]> input,
 			string outputFileName,
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			string contentsEtagAttr
 		)
 		{
-			IPrefixMatcher matcher = new PrefixMatcher();
+			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var logMessages = WRD.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			WRD.IWebRtcStateInspector webRtcStateInspector = new WRD.WebRtcStateInspector(matcher);
@@ -160,16 +161,15 @@ namespace LogJoint.Chromium.StateInspector
 			await Task.WhenAll(serialize, logMessages.Open());
 		}
 
-		async static Task RunForSymRTC(
+		async Task RunForSymRTC(
 			IEnumerableAsync<Sym.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			string contentsEtagAttr,
-			ITempFilesManager tempFiles
+			string contentsEtagAttr
 		)
 		{
-			IPrefixMatcher matcher = new PrefixMatcher();
+			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var logMessages = Sym.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);

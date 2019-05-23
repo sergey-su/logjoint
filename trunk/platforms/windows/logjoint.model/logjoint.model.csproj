@@ -113,12 +113,6 @@
     <Compile Include="..\..\..\model\change-notification\ChangeNotification.cs">
       <Link>change-notification\ChangeNotification.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\change-notification\Extensions.cs">
-      <Link>change-notification\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\change-notification\Interfaces.cs">
-      <Link>change-notification\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\connection-params\ConnectionParams.cs">
       <Link>connection-params\ConnectionParams.cs</Link>
     </Compile>
@@ -215,9 +209,6 @@
     <Compile Include="..\..\..\model\generic\drawing\platform-specific\win\MatrixImpl.cs">
       <Link>generic\drawing\MatrixImpl.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\drawing\Primitives.cs">
-      <Link>generic\drawing\Primitives.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\EncodingUtils.cs">
       <Link>generic\EncodingUtils.cs</Link>
     </Compile>
@@ -308,9 +299,6 @@
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\WebBrowserDownloaderInterface.cs">
-      <Link>generic\WebBrowserDownloaderInterface.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
     </Compile>
@@ -319,9 +307,6 @@
     </Compile>
     <Compile Include="..\..\..\model\log-bounds\LogBounds.cs">
       <Link>log-bounds\LogBounds.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\log-sources-controller\Interfaces.cs">
-      <Link>log-sources-controller\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\log-sources-controller\LogSourcesController.cs">
       <Link>log-sources-controller\LogSourcesController.cs</Link>
@@ -848,6 +833,8 @@
     <Compile Include="..\..\..\model\writers\NativeLogWriter.cs">
       <Link>writers\NativeLogWriter.cs</Link>
     </Compile>
+    <Compile Include="change-notification\ChainedChangeNotification.cs" />
+    <Compile Include="change-notification\Subscription.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

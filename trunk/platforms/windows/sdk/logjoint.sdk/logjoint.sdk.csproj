@@ -44,6 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\..\extensibility\platforms\windows\IView.cs">
+      <Link>Application\IView.cs</Link>
+    </Compile>
     <Compile Include="Application\Interfaces.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

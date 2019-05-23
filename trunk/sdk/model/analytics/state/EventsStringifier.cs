@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Analytics.StateInspector
 {
-	public class EventsStringifier: IEventsVisitor
+	internal class EventsStringifier: IEventsVisitor
 	{
 		public readonly StringBuilder Output = new StringBuilder();
 
