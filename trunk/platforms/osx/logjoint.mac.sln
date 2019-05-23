@@ -51,6 +51,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.presentation.sdk",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.sdk", "sdk\logjoint.sdk\logjoint.sdk.csproj", "{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "symphony", "symphony", "{55FE35E5-2464-4D55-AA52-04DFF1107DE1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin.model", "..\..\extensions\symphony\platforms\osx\logjoint.symphony.plugin.model\logjoint.symphony.plugin.model.csproj", "{90AE0C80-3E44-4513-AA75-26C7FADA24EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin", "..\..\extensions\symphony\platforms\osx\logjoint.symphony.plugin\logjoint.symphony.plugin.csproj", "{0130D440-6425-41AE-9310-9BB9814BF0BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -211,6 +217,22 @@ Global
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Debug|x86.Build.0 = Debug|Any CPU
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|x86.ActiveCfg = Release|Any CPU
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|x86.Build.0 = Release|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|x86.Build.0 = Debug|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|x86.ActiveCfg = Release|Any CPU
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|x86.Build.0 = Release|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|x86.Build.0 = Debug|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|x86.ActiveCfg = Release|Any CPU
+		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -262,5 +284,8 @@ Global
 		{04F5EC7D-B83F-44C9-97C0-08173A620CA9} = {255420E4-67A9-441B-8DA0-67A77DE25034}
 		{50400C8A-004A-4162-8D98-5DC0152BF2A7} = {255420E4-67A9-441B-8DA0-67A77DE25034}
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340} = {255420E4-67A9-441B-8DA0-67A77DE25034}
+		{55FE35E5-2464-4D55-AA52-04DFF1107DE1} = {68F58D7E-4D53-4F62-9338-E965AE399D8A}
+		{90AE0C80-3E44-4513-AA75-26C7FADA24EC} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
+		{0130D440-6425-41AE-9310-9BB9814BF0BE} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 	EndGlobalSection
 EndGlobal
