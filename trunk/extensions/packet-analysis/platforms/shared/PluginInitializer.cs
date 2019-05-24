@@ -14,7 +14,7 @@ namespace LogJoint.PacketAnalysis
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
 				app.Model.Postprocessing.PostprocessorsManager, 
 				app.Model.UserDefinedFormatsManager, 
-				new Timeline.PostprocessorsFactory(app.Model.TempFilesManager)
+				new Timeline.PostprocessorsFactory(app.Model.Postprocessing)
 			);
 
 			var tshark = new Wireshark.Dpml.TShark();

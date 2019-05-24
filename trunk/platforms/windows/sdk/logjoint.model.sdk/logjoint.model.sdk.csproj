@@ -107,9 +107,6 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\infra\PrefixMatcher\Interfaces.cs">
       <Link>analytics\infra\PrefixMatcher\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\PrefixMatcher\PrefixMatcher.cs">
-      <Link>analytics\infra\PrefixMatcher\PrefixMatcher.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\BitUtils.cs">
       <Link>analytics\infra\Utils\BitUtils.cs</Link>
     </Compile>
@@ -134,12 +131,6 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Analisys\NodeId.cs">
       <Link>analytics\messaging\Analisys\NodeId.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\EventsDeserializer.cs">
-      <Link>analytics\messaging\EventsDeserializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\EventsSerializer.cs">
-      <Link>analytics\messaging\EventsSerializer.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\messaging\EventsStringifier.cs">
       <Link>analytics\messaging\EventsStringifier.cs</Link>
     </Compile>
@@ -149,15 +140,6 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Interfaces.cs">
       <Link>messaging\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\SerializationCommon.cs">
-      <Link>analytics\messaging\SerializationCommon.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\state\EventsDeserializer.cs">
-      <Link>analytics\state\EventsDeserializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\state\EventsSerializer.cs">
-      <Link>analytics\state\EventsSerializer.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\state\EventsStringifier.cs">
       <Link>analytics\state\EventsStringifier.cs</Link>
     </Compile>
@@ -166,15 +148,6 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\state\Interfaces.cs">
       <Link>analytics\state\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\state\SerializationCommon.cs">
-      <Link>analytics\state\SerializationCommon.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\EventsDeserializer.cs">
-      <Link>analytics\timeline\EventsDeserializer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\EventsSerializer.cs">
-      <Link>analytics\timeline\EventsSerializer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\timeline\EventsStringifier.cs">
       <Link>analytics\timeline\EventsStringifier.cs</Link>
@@ -188,29 +161,14 @@
     <Compile Include="..\..\..\..\sdk\model\analytics\timeline\Interfaces.cs">
       <Link>analytics\timeline\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\SerializationCommon.cs">
-      <Link>analytics\timeline\SerializationCommon.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\Attributes.cs">
       <Link>analytics\timeseries\Attributes.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\EventParser.cs">
-      <Link>analytics\timeseries\EventParser.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\filters\RepeatedValuesFilter.cs">
       <Link>analytics\timeseries\filters\RepeatedValuesFilter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\Interfaces.cs">
       <Link>analytics\timeseries\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\MetadataHelper.cs">
-      <Link>analytics\timeseries\MetadataHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\TimeSeriesCombinedParser.cs">
-      <Link>analytics\timeseries\TimeSeriesCombinedParser.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\TimeSeriesParser.cs">
-      <Link>analytics\timeseries\TimeSeriesParser.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\bookmarks\Interfaces.cs">
       <Link>bookmarks\Interfaces.cs</Link>
@@ -265,9 +223,6 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\synchronization\Interfaces.cs">
       <Link>generic\synchronization\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\generic\TaskUtils.cs">
-      <Link>generic\TaskUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\TimeOffsets.cs">
       <Link>generic\TimeOffsets.cs</Link>
@@ -338,6 +293,9 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\Interfaces.cs">
       <Link>postprocessing\correlator\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\Interfaces.cs">
+      <Link>postprocessing\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\manager\Extensions.cs">
       <Link>postprocessing\manager\Extensions.cs</Link>
     </Compile>
@@ -349,9 +307,6 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\sequence\Interfaces.cs">
       <Link>postprocessing\sequence\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs">
-      <Link>postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\state\Extensions.cs">
       <Link>postprocessing\state\Extensions.cs</Link>
@@ -371,14 +326,8 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\state\StateInspectorEvent.cs">
       <Link>postprocessing\state\StateInspectorEvent.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\StateInspectorOutput.cs">
-      <Link>postprocessing\state\StateInspectorOutput.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\Interfaces.cs">
       <Link>postprocessing\time-series\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
-      <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Extensions.cs">
       <Link>postprocessing\timeline\Extensions.cs</Link>
@@ -388,9 +337,6 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\TimelineEntitiesComparer.cs">
       <Link>postprocessing\timeline\TimelineEntitiesComparer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\TimelinePostprocessorOutput.cs">
-      <Link>postprocessing\timeline\TimelinePostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\preprocessing\Extensions.cs">
       <Link>preprocessing\Extensions.cs</Link>

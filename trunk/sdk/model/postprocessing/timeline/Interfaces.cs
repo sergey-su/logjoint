@@ -125,4 +125,14 @@ namespace LogJoint.Postprocessing.Timeline
 		EventType Type { get; }
 		object Trigger { get; }
 	};
+
+	public interface IModel
+	{
+		Task SavePostprocessorOutput(
+			IEnumerableAsync<Event[]> events,
+			Task<ILogPartToken> rotatedLogPartToken,
+			Func<object, TextLogEventTrigger> triggersConverter,
+			LogSourcePostprocessorInput postprocessorInput
+		);
+	};
 }

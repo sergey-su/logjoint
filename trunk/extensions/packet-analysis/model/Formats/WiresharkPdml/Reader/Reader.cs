@@ -28,15 +28,15 @@ namespace LogJoint.Wireshark.Dpml
 		{
 		}
 
-		public IEnumerableAsync<Message[]> Read(string dataFileName, string logFileNameHint = null, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler = null)
 		{
-			return Read(() => new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), s => s.Dispose(), logFileNameHint ?? dataFileName, progressHandler);
+			return Read(() => new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), s => s.Dispose(), progressHandler);
 		}
 
-		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, string logFileNameHint = null, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())
-				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, logFileNameHint, cancellation, progressHandler), false);
+				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler), false);
 		}
 
 		class Context : IDisposable
@@ -52,7 +52,6 @@ namespace LogJoint.Wireshark.Dpml
 			public async Task Read(
 				IYieldAsync<Message[]> yieldAsync,
 				Func<Stream> getStream, Action<Stream> releaseStream,
-				string fileNameHint,
 				CancellationToken cancellation,
 				Action<double> progressHandler)
 			{

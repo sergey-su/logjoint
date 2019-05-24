@@ -8,8 +8,8 @@ namespace LogJoint.Chromium.HttpArchive
 {
 	public interface IReader
 	{
-		IEnumerableAsync<Message[]> Read(string fileName, string logFileNameHint = null, Action<double> progressHandler = null);
-		IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, string logFileNameHint = null, Action<double> progressHandler = null);
+		IEnumerableAsync<Message[]> Read(string fileName, Action<double> progressHandler = null);
+		IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null);
 	}
 
 	public interface IWriter

@@ -2,7 +2,7 @@
 
 namespace LogJoint.Extensibility
 {
-	public class Model : IModel, Postprocessing.IModel
+	public class Model : IModel
 	{
 		public Model(
 			ISynchronizationContext threadSync,
@@ -25,8 +25,7 @@ namespace LogJoint.Extensibility
 			ILogSourcesController logSourcesController,
 			IShutdown shutdown,
 			WebBrowserDownloader.IDownloader webBrowserDownloader,
-			Postprocessing.IPostprocessorsManager postprocessorsManager,
-			Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes
+			Postprocessing.IModel postprocessingModel
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
@@ -49,8 +48,7 @@ namespace LogJoint.Extensibility
 			this.LogSourcesController = logSourcesController;
 			this.Shutdown = shutdown;
 			this.WebBrowserDownloader = webBrowserDownloader;
-			this.PostprocessorsManager = postprocessorsManager;
-			this.TimeSeriesTypes = timeSeriesTypes;
+			this.Postprocessing = postprocessingModel;
 		}
 
 		public ISynchronizationContext ModelThreadSynchronization { get; private set; }
@@ -73,19 +71,6 @@ namespace LogJoint.Extensibility
 		public ILogSourcesController LogSourcesController { get; private set; }
 		public IShutdown Shutdown { get; private set; }
 		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
-		public Postprocessing.IModel Postprocessing { get { return this; } }
-
-		#region IPostprocessingModel
-		public Postprocessing.IPostprocessorsManager PostprocessorsManager { get; private set; }
-		public Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
-
-		public Analytics.Correlation.ICorrelator CreateCorrelator()
-		{
-			return new Analytics.Correlation.Correlator(
-				new Analytics.Messaging.Analisys.InternodeMessagesDetector(),
-				Analytics.Correlation.SolverFactory.Create());
-		}
-		public Analytics.IPrefixMatcher CreatePrefixMatcher() => new Analytics.PrefixMatcher();
-		#endregion
+		public Postprocessing.IModel Postprocessing { get; private set; }
 	};
 }

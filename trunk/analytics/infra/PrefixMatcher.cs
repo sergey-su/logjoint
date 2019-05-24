@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LogJoint.Analytics
 {
-	internal class PrefixMatcher : IPrefixMatcher
+	public class PrefixMatcher : IPrefixMatcher
 	{
 		public int RegisterPrefix(string prefix)
 		{

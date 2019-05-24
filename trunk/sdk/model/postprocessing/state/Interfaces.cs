@@ -2,6 +2,7 @@
 using LogJoint.Analytics.StateInspector;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
@@ -56,5 +57,15 @@ namespace LogJoint.Postprocessing.StateInspector
 		IEnumerable<IInspectedObject> Roots { get; }
 		IReadOnlyList<StateInspectorEvent> Events { get; }
 		IEnumerable<IStateInspectorOutput> Outputs { get; }
+	};
+
+	public interface IModel
+	{
+		Task SavePostprocessorOutput(
+			IEnumerableAsync<Event[]> events,
+			Task<ILogPartToken> rotatedLogPartToken,
+			Func<object, TextLogEventTrigger> triggersConverter,
+			LogSourcePostprocessorInput postprocessorInput
+		);
 	};
 }

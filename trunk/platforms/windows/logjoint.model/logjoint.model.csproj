@@ -299,6 +299,9 @@
     <Compile Include="..\..\..\model\generic\TagsPredicate.cs">
       <Link>generic\TagsPredicate.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\TaskUtils.cs">
+      <Link>generic\TaskUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\TempFilesManager.cs">
       <Link>generic\TempFilesManager.cs</Link>
     </Compile>
@@ -524,6 +527,15 @@
     <Compile Include="..\..\..\model\postprocessing\manager\states\RunningState.cs">
       <Link>postprocessing\manager\states\RunningState.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\Model.cs">
+      <Link>postprocessing\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\sequence\Model.cs">
+      <Link>postprocessing\sequence\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs">
+      <Link>postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramVisualizerModel.cs">
       <Link>postprocessing\sequence\SequenceDiagramVisualizerModel.cs</Link>
     </Compile>
@@ -536,11 +548,23 @@
     <Compile Include="..\..\..\model\postprocessing\state\InspectedObject.cs">
       <Link>postprocessing\state\InspectedObject.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\Model.cs">
+      <Link>postprocessing\state\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\StateInspectorOutput.cs">
+      <Link>postprocessing\state\StateInspectorOutput.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\StateInspectorVisualizerModel.cs">
       <Link>postprocessing\state\StateInspectorVisualizerModel.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\TreeBuilder.cs">
       <Link>postprocessing\state\TreeBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\Model.cs">
+      <Link>postprocessing\time-series\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
+      <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
       <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>
@@ -551,8 +575,14 @@
     <Compile Include="..\..\..\model\postprocessing\timeline\EventImpl.cs">
       <Link>postprocessing\timeline\EventImpl.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\Model.cs">
+      <Link>postprocessing\timeline\Model.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\TimelineBuilder.cs">
       <Link>postprocessing\timeline\TimelineBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\TimelinePostprocessorOutput.cs">
+      <Link>postprocessing\timeline\TimelinePostprocessorOutput.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\TimelineVisualizerModel.cs">
       <Link>postprocessing\timeline\TimelineVisualizerModel.cs</Link>

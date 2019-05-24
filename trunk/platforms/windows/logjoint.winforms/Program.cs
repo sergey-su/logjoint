@@ -220,11 +220,20 @@ namespace LogJoint
 					new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess)
 				);
 
+				Postprocessing.IModel postprocessingModel = new Postprocessing.Model(
+					postprocessorsManager,
+					timeSeriesTypesAccess,
+					new Postprocessing.StateInspector.Model(tempFilesManager),
+					new Postprocessing.Timeline.Model(tempFilesManager),
+					new Postprocessing.SequenceDiagram.Model(tempFilesManager),
+					new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
+				);
+
 				Postprocessing.InternalTracePostprocessors.Register(
 					postprocessorsManager,
 					userDefinedFormatsManager,
-					tempFilesManager,
-					timeSeriesTypesAccess
+					timeSeriesTypesAccess,
+					postprocessingModel
 				);
 
 				tracer.Info("model creation completed");
@@ -720,8 +729,7 @@ namespace LogJoint
 						logSourcesController,
 						shutdown,
 						webBrowserDownloader,
-						postprocessorsManager,
-						timeSeriesTypesAccess
+						postprocessingModel
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,

@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using System.Threading;
-using System.Xml.Linq;
 using System.Linq;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
@@ -10,7 +9,6 @@ using Sym = LogJoint.Symphony.Rtc;
 using HAR = LogJoint.Chromium.HttpArchive;
 using LogJoint.Analytics.Timeline;
 using LogJoint.Postprocessing.Timeline;
-using System.Xml;
 
 namespace LogJoint.Chromium.Timeline
 {
@@ -24,14 +22,10 @@ namespace LogJoint.Chromium.Timeline
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly ITempFilesManager tempFiles;
 		readonly Postprocessing.IModel postprocessing;
 
-		public PostprocessorsFactory(
-			ITempFilesManager tempFiles,
-			Postprocessing.IModel postprocessing)
+		public PostprocessorsFactory(Postprocessing.IModel postprocessing)
 		{
-			this.tempFiles = tempFiles;
 			this.postprocessing = postprocessing;
 		}
 
@@ -39,10 +33,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag)
+				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -50,10 +41,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag)
+				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -61,10 +49,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag)
+				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -72,10 +57,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForSymLog(new Sym.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag)
+				i => RunForSymLog(new Sym.Reader(i.CancellationToken).Read(i.LogFileName,i.ProgressHandler), i)
 			);
 		}
 
@@ -92,10 +74,7 @@ namespace LogJoint.Chromium.Timeline
 
 		async Task RunForChromeDriver(
 			IEnumerableAsync<CD.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
@@ -115,16 +94,13 @@ namespace LogJoint.Chromium.Timeline
 				networkEvts,
 				eofEvts,
 				symCIEvts
-			), templatesTracker);
+			), postprocessorInput.TemplatesTracker);
 
-			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 
 			await Task.WhenAll(serialize, logMessages.Open());
@@ -173,10 +149,7 @@ namespace LogJoint.Chromium.Timeline
 
 		async Task RunForChromeDebug(
 			IEnumerableAsync<CDL.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			var multiplexedInput = input.Multiplex();
@@ -186,7 +159,7 @@ namespace LogJoint.Chromium.Timeline
 			var symEvents = RunForSymMessages(
 				matcher,
 				(new Sym.Reader()).FromChromeDebugLog(multiplexedInput),
-				templatesTracker,
+				postprocessorInput.TemplatesTracker,
 				out var symLog
 			);
 			var ciEvents = symCI.GetEvents(multiplexedInput);
@@ -198,14 +171,11 @@ namespace LogJoint.Chromium.Timeline
 
 			matcher.Freeze();
 
-			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 
 			await Task.WhenAll(serialize, symLog.Open(), multiplexedInput.Open());
@@ -213,40 +183,31 @@ namespace LogJoint.Chromium.Timeline
 
 		async Task RunForHttpArchive(
 			IEnumerableAsync<HAR.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			HAR.ITimelineEvents timelineEvents = new HAR.TimelineEvents();
 
 			var events = TrackTemplates(EnumerableAsync.Merge(
 				timelineEvents.GetEvents(input)
-			), templatesTracker);
+			), postprocessorInput.TemplatesTracker);
 
-			await TimelinePostprocessorOutput.SerializePostprocessorOutput(
+			await postprocessing.Timeline.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 		}
 
 		async Task RunForSymLog(
 			IEnumerableAsync<Sym.Message[]> input,
-			string outputFileName,
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var inputMultiplexed = input.Multiplex();
-			var symEvents = RunForSymMessages(matcher, inputMultiplexed, templatesTracker, out var symLog);
+			var symEvents = RunForSymMessages(matcher, inputMultiplexed, postprocessorInput.TemplatesTracker, out var symLog);
 			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<Sym.Message>();
 			var eofEvts = endOfTimelineEventSource.GetEvents(inputMultiplexed);
 
@@ -257,14 +218,11 @@ namespace LogJoint.Chromium.Timeline
 				eofEvts
 			);
 
-			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((Sym.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 
 			await Task.WhenAll(serialize, symLog.Open(), inputMultiplexed.Open());

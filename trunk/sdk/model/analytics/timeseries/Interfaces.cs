@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace LogJoint.Analytics.TimeSeries
@@ -269,26 +270,35 @@ namespace LogJoint.Analytics.TimeSeries
 		}
 	}
 	
-	#region Internal parsing interfaces
-
-	public interface ILineParser
+	public class ParserCounter
 	{
-		string GetPrefix();
-		UInt32 GetNumericId();
+		public int Calls { get; set; }
 
-		void Parse(string text, ILineParserVisitor visitor, string objectAddress);
+		public int Matches { get; set; }
 
-		Type GetMetadataSource();
+		public TimeSpan Total { get; set; }
+
+		internal Stopwatch Sw;
 	}
 
-	public interface ILineParserVisitor
+	public interface ICombinedParser
 	{
-		void VisitTimeSeries(TimeSeriesDescriptor descriptor, string objectId,
-			string dynamicName, string dynamicUnit, double value);
+		/// <summary>
+		/// If set to true the calls to regex functions will be measured and
+		/// it is possible to get a performance report.
+		/// </summary>
+		bool ProfilingEnabled { get; set; }
+		/// <summary>
+		/// If profiling was enabled before parsing this function returns data for all parsers
+		/// </summary>
+		IDictionary<Type, ParserCounter> GetPerformanceReport();
+		IEnumerable<TimeSeriesData> GetParsedTimeSeries();
+		IEnumerable<EventBase> GetParsedEvents();
+		Task FeedLogMessages<M>(IEnumerableAsync<M[]> messages)
+			where M : ITriggerStreamPosition, ITriggerTime, ITriggerText;
+		Task FeedLogMessages<M>(IEnumerableAsync<M[]> messages,
+			Func<M, string> getPrefix, Func<M, string> getText)
+				where M : ITriggerStreamPosition, ITriggerTime;
+	};
 
-		void VisitEvent(EventBase e);
-	}
-
-	#endregion
-	
 }

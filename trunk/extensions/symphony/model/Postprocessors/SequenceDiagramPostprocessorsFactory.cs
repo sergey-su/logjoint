@@ -18,30 +18,24 @@ namespace LogJoint.Symphony.SequenceDiagram
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly ITempFilesManager tempFiles;
+		readonly Postprocessing.IModel postprocessing;
 
-		public PostprocessorsFactory(ITempFilesManager tempFiles)
+		public PostprocessorsFactory(Postprocessing.IModel postprocessing)
 		{
-			this.tempFiles = tempFiles;
+			this.postprocessing = postprocessing;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSpringServiceLogPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.SequenceDiagram,
-				i => RunForHttpArchive(new SpringServiceLog.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
-					i.InputContentsEtag)
+				i => RunForHttpArchive(new SpringServiceLog.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
 		async Task RunForHttpArchive(
 			IEnumerableAsync<SpringServiceLog.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			SVC.IMessagingEvents messagingEvents = new SVC.MessagingEvents();
@@ -50,16 +44,13 @@ namespace LogJoint.Symphony.SequenceDiagram
 				messagingEvents.GetEvents(input)
 			);
 
-			await SequenceDiagramPostprocessorOutput.SerializePostprocessorOutput(
+			await postprocessing.SequenceDiagram.SavePostprocessorOutput(
 				events,
 				null,
 				null,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((SVC.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 		}
 	};

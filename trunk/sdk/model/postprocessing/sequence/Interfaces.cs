@@ -5,6 +5,7 @@ using TL = LogJoint.Analytics.Timeline;
 using SI = LogJoint.Analytics.StateInspector;
 using System.Diagnostics;
 using LogJoint.Analytics;
+using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {
@@ -77,5 +78,17 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		public IList<ILogSource> LogSources;
 		public string RoleInstanceName;
 		public string RoleName;
+	};
+
+	public interface IModel
+	{
+		Task SavePostprocessorOutput(
+			IEnumerableAsync<M.Event[]> events,
+			IEnumerableAsync<TL.Event[]> timelineComments,
+			IEnumerableAsync<SI.Event[]> stateInspectorComments,
+			Task<ILogPartToken> logPartToken,
+			Func<object, TextLogEventTrigger> triggersConverter,
+			LogSourcePostprocessorInput postprocessorInput
+		);
 	};
 }

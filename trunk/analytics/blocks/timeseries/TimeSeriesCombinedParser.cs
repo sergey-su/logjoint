@@ -10,37 +10,6 @@ using TS = LogJoint.Analytics.TimeSeries.TimeSeriesData;
 
 namespace LogJoint.Analytics.TimeSeries
 {
-	public class ParserCounter
-	{
-		public int Calls { get; set; }
-
-		public int Matches { get; set; }
-
-		public TimeSpan Total { get; set; }
-
-		internal Stopwatch Sw;
-	}
-
-	public interface ICombinedParser
-	{
-		/// <summary>
-		/// If set to true the calls to regex functions will be measured and
-		/// it is possible to get a performance report.
-		/// </summary>
-		bool ProfilingEnabled { get; set; }
-		/// <summary>
-		/// If profiling was enabled before parsing this function returns data for all parsers
-		/// </summary>
-		IDictionary<Type, ParserCounter> GetPerformanceReport();
-		IEnumerable<TimeSeriesData> GetParsedTimeSeries();
-		IEnumerable<EventBase> GetParsedEvents();
-		Task FeedLogMessages<M>(IEnumerableAsync<M[]> messages) 
-			where M: ITriggerStreamPosition, ITriggerTime, ITriggerText;
-		Task FeedLogMessages<M>(IEnumerableAsync<M[]> messages,
-			Func<M, string> getPrefix, Func<M, string> getText)
-				where M : ITriggerStreamPosition, ITriggerTime;
-	};
-
 
 	public class TimeSeriesCombinedParser : TSA.ILineParserVisitor, ICombinedParser
 	{

@@ -11,10 +11,10 @@ namespace LogJoint.Symphony
 				app.Model.Postprocessing.PostprocessorsManager, 
 				app.Model.UserDefinedFormatsManager, 
 				new Symphony.StateInspector.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
-				new Symphony.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeriesTypes),
+				new Symphony.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeries.TimeSeriesTypes),
 				new Symphony.Correlator.PostprocessorsFactory(app.Model),
 				new Symphony.Timeline.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
-				new Symphony.SequenceDiagram.PostprocessorsFactory(app.Model.TempFilesManager)
+				new Symphony.SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)
 			);
 		}
 	}

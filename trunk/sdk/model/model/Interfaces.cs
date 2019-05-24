@@ -30,30 +30,4 @@ namespace LogJoint
 		WebBrowserDownloader.IDownloader WebBrowserDownloader { get; }
 		Postprocessing.IModel Postprocessing { get; }
 	};
-
-	namespace Postprocessing
-	{
-
-		public interface IModel // todo: move to appropriate folder
-		{
-			Postprocessing.IPostprocessorsManager PostprocessorsManager { get; }
-			Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
-			Analytics.IPrefixMatcher CreatePrefixMatcher();
-			Analytics.Correlation.ICorrelator CreateCorrelator();
-			// StateInspector.IModel StateInspector { get; }
-		};
-
-		namespace StateInspector
-		{
-			public interface IModel
-			{
-				Task SavePostprocessorOutput(
-					IEnumerableAsync<Event[]> events,
-					Task<ILogPartToken> rotatedLogPartToken,
-					Func<object, TextLogEventTrigger> triggersConverter,
-					LogSourcePostprocessorInput postprocessorInput
-				);
-			};
-		}
-	}
 }

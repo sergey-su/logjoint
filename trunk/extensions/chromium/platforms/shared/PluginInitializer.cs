@@ -7,16 +7,16 @@ namespace LogJoint.Chromium
 	{
 		public static void Init(IApplication app)
 		{
-			app.Model.Postprocessing.TimeSeriesTypes.RegisterTimeSeriesTypesAssembly(typeof(Chromium.TimeSeries.PostprocessorsFactory).Assembly);
+			app.Model.Postprocessing.TimeSeries.TimeSeriesTypes.RegisterTimeSeriesTypesAssembly(typeof(Chromium.TimeSeries.PostprocessorsFactory).Assembly);
 
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
 				app.Model.Postprocessing.PostprocessorsManager, 
 				app.Model.UserDefinedFormatsManager, 
 				new Chromium.StateInspector.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
-				new Chromium.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeriesTypes),
+				new Chromium.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing),
 				new Chromium.Correlator.PostprocessorsFactory(app.Model),
-				new Chromium.Timeline.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
-				new Chromium.SequenceDiagram.PostprocessorsFactory(app.Model.TempFilesManager)
+				new Chromium.Timeline.PostprocessorsFactory(app.Model.Postprocessing),
+				new Chromium.SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)
 			);
 
 

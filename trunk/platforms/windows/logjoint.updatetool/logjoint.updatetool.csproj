@@ -78,7 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\analytics\blocks\common\CodepathTrackingInterfaces.cs">
+    <Compile Include="..\..\..\sdk\model\analytics\common\CodepathTrackingInterfaces.cs">
       <Link>ModelRefs\CodepathTrackingInterfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\updatetool\Program.cs">

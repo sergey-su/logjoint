@@ -30,7 +30,7 @@ namespace LogJoint.Symphony.Timeline
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
 				i => RunForSpringServiceLog(new SVC.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
+					i.LogFileName, i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
 					i.InputContentsEtag)
 			);

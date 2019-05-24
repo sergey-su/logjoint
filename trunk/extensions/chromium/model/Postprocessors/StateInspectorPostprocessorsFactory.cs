@@ -1,9 +1,7 @@
 ﻿using System.Threading.Tasks;
-using System.Threading;
 using System.Linq;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
-using LogJoint.Postprocessing.StateInspector;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
 using Sym = LogJoint.Symphony.Rtc;
@@ -35,10 +33,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.StateInspector,
-				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag)
+				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -46,10 +41,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.StateInspector,
-				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag)
+				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -57,10 +49,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.StateInspector,
-				i => RunForSymRTC(new Sym.Reader(i.CancellationToken).Read(
-					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag)
+				i => RunForSymRTC(new Sym.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -76,14 +65,11 @@ namespace LogJoint.Chromium.StateInspector
 		}
 
 		async Task RunForChromeDebug(
-			IEnumerableAsync<CDL.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			IEnumerableAsync<CDL.Message[]> inputMessages,
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-			var inputMultiplexed = input.Multiplex();
+			var inputMultiplexed = inputMessages.Multiplex();
 
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var logMessages = CDL.Helpers.MatchPrefixes(inputMultiplexed, matcher).Multiplex();
@@ -105,30 +91,25 @@ namespace LogJoint.Chromium.StateInspector
 				webRtcEvts,
 				symMeetingEvents,
 				symMediaEvents
-			), templatesTracker);
+			), postprocessorInput.TemplatesTracker);
 
-			var serialize = StateInspectorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation);
+				postprocessorInput
+			);
 
 			await Task.WhenAll(serialize, symMessages.Open(), logMessages.Open(), inputMultiplexed.Open());
 		}
 
 		async Task RunForWebRTCDump(
-			IEnumerableAsync<WRD.Message[]> input,
-			string outputFileName,
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			IEnumerableAsync<WRD.Message[]> inputMessages,
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
-			var logMessages = WRD.Helpers.MatchPrefixes(input, matcher).Multiplex();
+			var logMessages = WRD.Helpers.MatchPrefixes(inputMessages, matcher).Multiplex();
 
 			WRD.IWebRtcStateInspector webRtcStateInspector = new WRD.WebRtcStateInspector(matcher);
 
@@ -138,29 +119,24 @@ namespace LogJoint.Chromium.StateInspector
 
 			var events = TrackTemplates(EnumerableAsync.Merge(
 				webRtcEvts
-			), templatesTracker);
+			), postprocessorInput.TemplatesTracker);
 
-			var serialize = StateInspectorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation);
+				postprocessorInput
+			);
 			await Task.WhenAll(serialize, logMessages.Open());
 		}
 
 		async Task RunForSymRTC(
-			IEnumerableAsync<Sym.Message[]> input,
-			string outputFileName, 
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			IEnumerableAsync<Sym.Message[]> messages,
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
-			var logMessages = Sym.Helpers.MatchPrefixes(input, matcher).Multiplex();
+			var logMessages = Sym.Helpers.MatchPrefixes(messages, matcher).Multiplex();
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
 			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
@@ -173,16 +149,13 @@ namespace LogJoint.Chromium.StateInspector
 			var events = TrackTemplates(EnumerableAsync.Merge(
 				symMeetingEvents,
 				symMediagEvents
-			), templatesTracker);
+			), postprocessorInput.TemplatesTracker);
 
-			var serialize = StateInspectorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
 				events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((Sym.Message)evtTrigger),
-				contentsEtagAttr, 
-				outputFileName,
-				tempFiles,
-				cancellation
+				postprocessorInput
 			);
 
 			await Task.WhenAll(serialize, logMessages.Open());

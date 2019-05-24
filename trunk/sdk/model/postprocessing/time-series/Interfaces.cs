@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using TSBlocks = LogJoint.Analytics.TimeSeries;
 
@@ -25,5 +26,15 @@ namespace LogJoint.Postprocessing.TimeSeries
 		ICollection<ITimeSeriesPostprocessorOutput> Outputs { get; }
 
 		event EventHandler Changed;
+	};
+
+	public interface IModel
+	{
+		TSBlocks.ICombinedParser CreateParser();
+		Task SavePostprocessorOutput(
+			TSBlocks.ICombinedParser parser,
+			LogSourcePostprocessorInput postprocessorInput
+		);
+		TSBlocks.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
 	};
 }
