@@ -56,120 +56,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\CodepathTrackers.cs">
-      <Link>analytics\common\CodepathTrackers.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\CodepathTrackingInterfaces.cs">
-      <Link>analytics\common\CodepathTrackingInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\EventsSerializationInterfaces.cs">
-      <Link>analytics\common\EventsSerializationInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\LogRotationExtensions.cs">
-      <Link>analytics\common\LogRotationExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\LogRotationInterfaces.cs">
-      <Link>analytics\common\LogRotationInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\PostprocessorOutputETag.cs">
-      <Link>analytics\common\PostprocessorOutputETag.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\TaggingExtensions.cs">
-      <Link>analytics\common\TaggingExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\TaggingInterfaces.cs">
-      <Link>analytics\common\TaggingInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\common\TriggersInterfaces.cs">
-      <Link>analytics\common\TriggersInterfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\correlation\Interfaces.cs">
-      <Link>correlation\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\correlation\NullNodeDetectionToken.cs">
-      <Link>analytics\correlation\NullNodeDetectionToken.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\correlation\SameNodeEqualityComparer.cs">
-      <Link>analytics\correlation\SameNodeEqualityComparer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\EnumerableAsync\EnumerableAsync.cs">
-      <Link>analytics\infra\EnumerableAsync\EnumerableAsync.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\EnumerableAsync\Interfaces.cs">
-      <Link>analytics\infra\EnumerableAsync\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\EnumerableAsync\MultiplexingEnumerable.cs">
-      <Link>analytics\infra\EnumerableAsync\MultiplexingEnumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\EnumerableAsync\ProducingEnumerable.cs">
-      <Link>analytics\infra\EnumerableAsync\ProducingEnumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\PrefixMatcher\Interfaces.cs">
-      <Link>analytics\infra\PrefixMatcher\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\BitUtils.cs">
-      <Link>analytics\infra\Utils\BitUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\DataInterning.cs">
-      <Link>analytics\infra\Utils\DataInterning.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\LinqUtils.cs">
-      <Link>analytics\infra\Utils\LinqUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\RegexBuilder.cs">
-      <Link>analytics\infra\Utils\RegexBuilder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\TextLogParser.cs">
-      <Link>analytics\infra\Utils\TextLogParser.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\infra\Utils\XmlUtils.cs">
-      <Link>analytics\infra\Utils\XmlUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Analisys\MessageKey.cs">
-      <Link>analytics\messaging\Analisys\MessageKey.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Analisys\NodeId.cs">
-      <Link>analytics\messaging\Analisys\NodeId.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\EventsStringifier.cs">
-      <Link>analytics\messaging\EventsStringifier.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Extensions.cs">
-      <Link>messaging\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\messaging\Interfaces.cs">
-      <Link>messaging\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\state\EventsStringifier.cs">
-      <Link>analytics\state\EventsStringifier.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\state\Extensions.cs">
-      <Link>analytics\state\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\state\Interfaces.cs">
-      <Link>analytics\state\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\EventsStringifier.cs">
-      <Link>analytics\timeline\EventsStringifier.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\GenericEndOfTimelineEventSource.cs">
-      <Link>analytics\timeline\GenericEndOfTimelineEventSource.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\InspectedObjectsLifetimeEventsSource.cs">
-      <Link>analytics\timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeline\Interfaces.cs">
-      <Link>analytics\timeline\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\Attributes.cs">
-      <Link>analytics\timeseries\Attributes.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\filters\RepeatedValuesFilter.cs">
-      <Link>analytics\timeseries\filters\RepeatedValuesFilter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\analytics\timeseries\Interfaces.cs">
-      <Link>analytics\timeseries\Interfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\bookmarks\Interfaces.cs">
       <Link>bookmarks\Interfaces.cs</Link>
     </Compile>
@@ -269,17 +155,65 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\AggregatedRunSummary.cs">
       <Link>postprocessing\common\AggregatedRunSummary.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\EventsSerializationHelpers.cs">
-      <Link>postprocessing\common\EventsSerializationHelpers.cs</Link>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\CodepathTrackingInterfaces.cs">
+      <Link>postprocessing\common\CodepathTrackingInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\EnumerableAsync\EnumerableAsync.cs">
+      <Link>postprocessing\common\EnumerableAsync\EnumerableAsync.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\EnumerableAsync\Interfaces.cs">
+      <Link>postprocessing\common\EnumerableAsync\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\EnumerableAsync\MultiplexingEnumerable.cs">
+      <Link>postprocessing\common\EnumerableAsync\MultiplexingEnumerable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\EnumerableAsync\ProducingEnumerable.cs">
+      <Link>postprocessing\common\EnumerableAsync\ProducingEnumerable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\EventsSerializationInterfaces.cs">
+      <Link>postprocessing\common\EventsSerializationInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\LogRotationExtensions.cs">
+      <Link>postprocessing\common\LogRotationExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\LogRotationInterfaces.cs">
+      <Link>postprocessing\common\LogRotationInterfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\LogSourcePostprocessorImpl.cs">
       <Link>postprocessing\common\LogSourcePostprocessorImpl.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\PrefixMatcherInterfaces.cs">
+      <Link>postprocessing\common\PrefixMatcherInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\TaggingExtensions.cs">
+      <Link>postprocessing\common\TaggingExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\TaggingInterfaces.cs">
+      <Link>postprocessing\common\TaggingInterfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\TextLogEventTrigger.cs">
       <Link>postprocessing\common\TextLogEventTrigger.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\TriggersInterfaces.cs">
+      <Link>postprocessing\common\TriggersInterfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\UsersNaming.cs">
       <Link>postprocessing\common\UsersNaming.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\BitUtils.cs">
+      <Link>postprocessing\common\Utils\BitUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\DataInterning.cs">
+      <Link>postprocessing\common\Utils\DataInterning.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\LinqUtils.cs">
+      <Link>postprocessing\common\Utils\LinqUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\TextLogParser.cs">
+      <Link>postprocessing\common\Utils\TextLogParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\XmlUtils.cs">
+      <Link>postprocessing\common\Utils\XmlUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\CorrelatorPostprocessorOutput.cs">
       <Link>postprocessing\correlator\CorrelatorPostprocessorOutput.cs</Link>
@@ -293,6 +227,12 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\Interfaces.cs">
       <Link>postprocessing\correlator\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\NullNodeDetectionToken.cs">
+      <Link>postprocessing\correlator\NullNodeDetectionToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\SameNodeEqualityComparer.cs">
+      <Link>postprocessing\correlator\SameNodeEqualityComparer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\Interfaces.cs">
       <Link>postprocessing\Interfaces.cs</Link>
     </Compile>
@@ -305,8 +245,26 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\manager\Interfaces2.cs">
       <Link>postprocessing\manager\Interfaces2.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\messaging\Analisys\MessageKey.cs">
+      <Link>postprocessing\messaging\Analisys\MessageKey.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\messaging\Analisys\NodeId.cs">
+      <Link>postprocessing\messaging\Analisys\NodeId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\messaging\EventsStringifier.cs">
+      <Link>postprocessing\messaging\EventsStringifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\messaging\Extensions.cs">
+      <Link>postprocessing\messaging\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\messaging\Interfaces.cs">
+      <Link>postprocessing\messaging\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\sequence\Interfaces.cs">
       <Link>postprocessing\sequence\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\EventsStringifier.cs">
+      <Link>postprocessing\state\EventsStringifier.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\state\Extensions.cs">
       <Link>postprocessing\state\Extensions.cs</Link>
@@ -326,17 +284,26 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\state\StateInspectorEvent.cs">
       <Link>postprocessing\state\StateInspectorEvent.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\Attributes.cs">
+      <Link>postprocessing\time-series\Attributes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\filters\RepeatedValuesFilter.cs">
+      <Link>postprocessing\time-series\filters\RepeatedValuesFilter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\Interfaces.cs">
       <Link>postprocessing\time-series\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Extensions.cs">
-      <Link>postprocessing\timeline\Extensions.cs</Link>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\EventsStringifier.cs">
+      <Link>postprocessing\timeline\EventsStringifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\GenericEndOfTimelineEventSource.cs">
+      <Link>postprocessing\timeline\GenericEndOfTimelineEventSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\InspectedObjectsLifetimeEventsSource.cs">
+      <Link>postprocessing\timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Interfaces.cs">
       <Link>postprocessing\timeline\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\TimelineEntitiesComparer.cs">
-      <Link>postprocessing\timeline\TimelineEntitiesComparer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\preprocessing\Extensions.cs">
       <Link>preprocessing\Extensions.cs</Link>

@@ -38,6 +38,14 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Google.OrTools, Version=6.0.4217.18304, Culture=neutral, PublicKeyToken=e5e5a4177ad79658, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ortools\Google.OrTools.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf, Version=3.0.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ortools\Google.Protobuf.dll</HintPath>
+    </Reference>
     <Reference Include="Ionic.Zip.Reduced">
       <HintPath>..\..\..\unpacking\platforms\windows\Ionic.Zip.Reduced.dll</HintPath>
     </Reference>
@@ -470,11 +478,35 @@
     <Compile Include="..\..\..\model\persistence\WebContentCache.cs">
       <Link>persistence\WebContentCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\CodepathTrackers.cs">
+      <Link>postprocessing\common\CodepathTrackers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\CustomJsonConvert.cs">
+      <Link>postprocessing\common\CustomJsonConvert.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\EventsSerializationHelpers.cs">
+      <Link>postprocessing\common\EventsSerializationHelpers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\EventsSerializationInterfaces.cs">
+      <Link>postprocessing\common\EventsSerializationInterfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\LogSourcesNaming.cs">
       <Link>postprocessing\common\LogSourcesNaming.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\PostprocessorOutputETag.cs">
+      <Link>postprocessing\common\PostprocessorOutputETag.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\PostprocessorRunSummary.cs">
       <Link>postprocessing\common\PostprocessorRunSummary.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\PrefixMatcher.cs">
+      <Link>postprocessing\common\PrefixMatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\RegexBuilder.cs">
+      <Link>postprocessing\common\RegexBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\ShortNamesManager.cs">
+      <Link>postprocessing\common\ShortNamesManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\UsersNaming.cs">
       <Link>postprocessing\common\UsersNaming.cs</Link>
@@ -482,8 +514,62 @@
     <Compile Include="..\..\..\model\postprocessing\correlator\Interfaces.cs">
       <Link>postprocessing\correlator\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolutionResult.cs">
+      <Link>postprocessing\correlator\SolutionResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Correlator.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Correlator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Decisions.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Decisions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Interfaces.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\MonotonicTimeSolution.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\MonotonicTimeSolution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\NonmonotonicTimeSolution.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\NonmonotonicTimeSolution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\SolutionTroubleshooting.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\SolutionTroubleshooting.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\EmbeddedSolver\EmbeddedSolver.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Solvers\EmbeddedSolver\EmbeddedSolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\ExternalSolver\ExternalSolverBase.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Solvers\ExternalSolver\ExternalSolverBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\SolverFactory.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\Solvers\SolverFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\SolverUtils.cs">
+      <Link>postprocessing\correlator\SolverCorrelator\SolverUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\internal-trace\InternalTracePostprocessors.cs">
       <Link>postprocessing\internal-trace\InternalTracePostprocessors.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\internal-trace\Reader\Extensions.cs">
+      <Link>postprocessing\internal-trace\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\internal-trace\Reader\Interfaces.cs">
+      <Link>postprocessing\internal-trace\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\internal-trace\Reader\Reader.cs">
+      <Link>postprocessing\internal-trace\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\internal-trace\TimelineEventsSources\ProfilingTimelineEventsSource.cs">
+      <Link>postprocessing\internal-trace\TimelineEventsSources\ProfilingTimelineEventsSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\internal-trace\TimeSeriesEventsSources\ProfilingTimeSeriesEventsSource.cs">
+      <Link>postprocessing\internal-trace\TimeSeriesEventsSources\ProfilingTimeSeriesEventsSource.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\Extensions.cs">
       <Link>postprocessing\manager\Extensions.cs</Link>
@@ -527,8 +613,38 @@
     <Compile Include="..\..\..\model\postprocessing\manager\states\RunningState.cs">
       <Link>postprocessing\manager\states\RunningState.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\Analisys\Interfaces.cs">
+      <Link>postprocessing\messaging\Analisys\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\Analisys\InternodeMessage.cs">
+      <Link>postprocessing\messaging\Analisys\InternodeMessage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\Analisys\InternodeMessagesDetector.cs">
+      <Link>postprocessing\messaging\Analisys\InternodeMessagesDetector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\Analisys\InternodeMessagesMap.cs">
+      <Link>postprocessing\messaging\Analisys\InternodeMessagesMap.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\Analisys\Message.cs">
+      <Link>postprocessing\messaging\Analisys\Message.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\Analisys\Node.cs">
+      <Link>postprocessing\messaging\Analisys\Node.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\EventsDeserializer.cs">
+      <Link>postprocessing\messaging\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\EventsSerializer.cs">
+      <Link>postprocessing\messaging\EventsSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\messaging\SerializationCommon.cs">
+      <Link>postprocessing\messaging\SerializationCommon.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\Model.cs">
       <Link>postprocessing\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\sequence\Interfaces.cs">
+      <Link>postprocessing\sequence\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\sequence\Model.cs">
       <Link>postprocessing\sequence\Model.cs</Link>
@@ -542,6 +658,12 @@
     <Compile Include="..\..\..\model\postprocessing\state\EventsComparer.cs">
       <Link>postprocessing\state\EventsComparer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\EventsDeserializer.cs">
+      <Link>postprocessing\state\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\EventsSerializer.cs">
+      <Link>postprocessing\state\EventsSerializer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\Extensions.cs">
       <Link>postprocessing\state\Extensions.cs</Link>
     </Compile>
@@ -550,6 +672,9 @@
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\Model.cs">
       <Link>postprocessing\state\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\SerializationCommon.cs">
+      <Link>postprocessing\state\SerializationCommon.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\StateInspectorOutput.cs">
       <Link>postprocessing\state\StateInspectorOutput.cs</Link>
@@ -560,11 +685,32 @@
     <Compile Include="..\..\..\model\postprocessing\state\TreeBuilder.cs">
       <Link>postprocessing\state\TreeBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\EventParser.cs">
+      <Link>postprocessing\time-series\EventParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\Interfaces.cs">
+      <Link>postprocessing\time-series\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\MetadataHelper.cs">
+      <Link>postprocessing\time-series\MetadataHelper.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\time-series\Model.cs">
       <Link>postprocessing\time-series\Model.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\RegexGenerator.cs">
+      <Link>postprocessing\time-series\RegexGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesCombinedParser.cs">
+      <Link>postprocessing\time-series\TimeSeriesCombinedParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesParser.cs">
+      <Link>postprocessing\time-series\TimeSeriesParser.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
       <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesTypesLoader.cs">
+      <Link>postprocessing\time-series\TimeSeriesTypesLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
       <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>
@@ -575,11 +721,32 @@
     <Compile Include="..\..\..\model\postprocessing\timeline\EventImpl.cs">
       <Link>postprocessing\timeline\EventImpl.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\EventsDeserializer.cs">
+      <Link>postprocessing\timeline\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\EventsSerializer.cs">
+      <Link>postprocessing\timeline\EventsSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\Extensions.cs">
+      <Link>postprocessing\timeline\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\Interfaces.cs">
+      <Link>postprocessing\timeline\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\MessagingTimelineEventsSource.cs">
+      <Link>postprocessing\timeline\MessagingTimelineEventsSource.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\Model.cs">
       <Link>postprocessing\timeline\Model.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\SerializationCommon.cs">
+      <Link>postprocessing\timeline\SerializationCommon.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\TimelineBuilder.cs">
       <Link>postprocessing\timeline\TimelineBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\TimelineEntitiesComparer.cs">
+      <Link>postprocessing\timeline\TimelineEntitiesComparer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\TimelinePostprocessorOutput.cs">
       <Link>postprocessing\timeline\TimelinePostprocessorOutput.cs</Link>
@@ -878,10 +1045,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\analytics\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
-      <Name>logjoint.analytics</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
@@ -900,6 +1063,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Google.OrTools.dll" />
+    <Content Include="Google.Protobuf.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

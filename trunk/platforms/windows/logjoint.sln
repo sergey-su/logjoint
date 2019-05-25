@@ -11,12 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sysinternals", "Sysinternal
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{62459631-E182-4541-9C9E-FEBA1F619A18}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "analytics", "analytics", "{E4AFD1A9-9A9B-4025-9968-92CE4B2B3826}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.analytics", "analytics\logjoint.analytics\logjoint.analytics.csproj", "{13757F5D-5BC1-40AD-95BF-65C63549CDCC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.analytics.tests", "analytics\logjoint.analytics.tests\logjoint.analytics.tests.csproj", "{F70A6488-2E6C-4464-B94B-BF34B92C0388}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.regex", "logjoint.regex\logjoint.regex.csproj", "{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.model", "logjoint.model\logjoint.model.csproj", "{A1048F3E-CB94-4217-890E-14E1037D8510}"
@@ -87,22 +81,6 @@ Global
 		Release|Mixed Platforms = Release|Mixed Platforms
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -318,8 +296,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{BD16F09F-0A5F-4280-889C-A2DC9C03F823} = {73B4E9E2-4534-4F37-940F-CD74CE8229D6}
 		{62459631-E182-4541-9C9E-FEBA1F619A18} = {73B4E9E2-4534-4F37-940F-CD74CE8229D6}
-		{13757F5D-5BC1-40AD-95BF-65C63549CDCC} = {E4AFD1A9-9A9B-4025-9968-92CE4B2B3826}
-		{F70A6488-2E6C-4464-B94B-BF34B92C0388} = {E4AFD1A9-9A9B-4025-9968-92CE4B2B3826}
 		{57872D23-1C9A-4185-8FC7-823EDC17523D} = {62459631-E182-4541-9C9E-FEBA1F619A18}
 		{09F1AEF4-B2F1-4E79-A138-D3E54C5EA561} = {62459631-E182-4541-9C9E-FEBA1F619A18}
 		{1BA8AC55-DFD6-4184-8E2D-A63133CEA115} = {62459631-E182-4541-9C9E-FEBA1F619A18}

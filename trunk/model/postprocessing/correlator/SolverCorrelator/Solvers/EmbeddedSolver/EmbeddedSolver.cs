@@ -1,7 +1,7 @@
 ﻿using System.Threading;
-using LogJoint.Analytics.Correlation.ExternalSolver.Protocol;
+using LogJoint.Postprocessing.Correlation.ExternalSolver.Protocol;
 
-namespace LogJoint.Analytics.Correlation.EmbeddedSolver
+namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 {
 	public class EmbeddedSolver : ExternalSolver.ExternalSolverBase
 	{

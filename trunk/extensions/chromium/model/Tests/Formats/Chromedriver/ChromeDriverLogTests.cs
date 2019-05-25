@@ -1,14 +1,14 @@
 ﻿using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.Threading.Tasks;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.Chromium.ChromeDriver
 {
-	[TestClass]
+	[TestFixture]
 	public class ChromeDriverLogTests
 	{
-		[TestMethod, TestCategory("SplitAndCompose")]
+		[Test, Category("SplitAndCompose")]
 		public async Task ChromeDriver_SplitAndComposeTest()
 		{
 			var testStream = Utils.GetResourceStream("chromedriver_2019_01_23");
@@ -26,7 +26,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			);
 		}
 
-		[TestMethod, TestCategory("SplitAndCompose")]
+		[Test, Category("SplitAndCompose")]
 		public async Task ChromeDriver_SplitAndCompose_WithForeignLogging()
 		{
 			var testStream = Utils.GetResourceStream("chromedriver_2019_01_22");
@@ -44,7 +44,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task ForeignLoggingAtEndOfMssagesIsIgnored()
 		{
 			var testStream = Utils.GetResourceStream("chromedriver_2019_01_22");
