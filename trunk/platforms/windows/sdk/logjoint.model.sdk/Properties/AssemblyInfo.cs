@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("logjoint.model")]
-[assembly: InternalsVisibleTo("logjoint.analytics")]
+[assembly: InternalsVisibleTo("logjoint.presenters")]
 [assembly: InternalsVisibleTo("logjoint")]
 [assembly: InternalsVisibleTo("logjoint.model.tests")]
 [assembly: InternalsVisibleTo("logjoint.presenters.tests")]

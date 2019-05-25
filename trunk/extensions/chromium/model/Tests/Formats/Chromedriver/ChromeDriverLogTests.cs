@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
 using LogJoint.Postprocessing;
+using System.Threading;
 
 namespace LogJoint.Chromium.ChromeDriver
 {
@@ -15,7 +16,7 @@ namespace LogJoint.Chromium.ChromeDriver
 
 			var actualContent = new MemoryStream();
 
-			var reader = new Reader();
+			var reader = new Reader(new TextLogParser(), CancellationToken.None);
 			var writer = new Writer();
 
 			await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));
@@ -33,7 +34,7 @@ namespace LogJoint.Chromium.ChromeDriver
 
 			var actualContent = new MemoryStream();
 
-			var reader = new Reader();
+			var reader = new Reader(new TextLogParser(), CancellationToken.None);
 			var writer = new Writer();
 
 			await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));
@@ -48,7 +49,7 @@ namespace LogJoint.Chromium.ChromeDriver
 		public async Task ForeignLoggingAtEndOfMssagesIsIgnored()
 		{
 			var testStream = Utils.GetResourceStream("chromedriver_2019_01_22");
-			var messages = await (new Reader()).Read(() => testStream, _ => { }).ToFlatList();
+			var messages = await (new Reader(new TextLogParser(), CancellationToken.None)).Read(() => testStream, _ => { }).ToFlatList();
 
 			var parsedMessage = DevTools.Events.LogMessage.Parse(messages[1].Text);
 			Assert.AreEqual("loadingFinished", parsedMessage.EventType);

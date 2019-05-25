@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
 using LogJoint.Postprocessing;
+using System.Threading;
 
 namespace LogJoint.Chromium.ChromeDebugLog
 {
@@ -15,7 +16,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 
 			var actualContent = new MemoryStream();
 
-			var reader = new Reader();
+			var reader = new Reader(new TextLogParser(), CancellationToken.None);
 			var writer = new Writer();
 
 			await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));

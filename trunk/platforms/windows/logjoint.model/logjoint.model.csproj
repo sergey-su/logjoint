@@ -310,9 +310,6 @@
     <Compile Include="..\..\..\model\generic\TaskUtils.cs">
       <Link>generic\TaskUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\TempFilesManager.cs">
-      <Link>generic\TempFilesManager.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
     </Compile>
@@ -339,6 +336,9 @@
     </Compile>
     <Compile Include="..\..\..\model\log-sources\LogSourcesManager.cs">
       <Link>log-sources\LogSourcesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\TimeOffsets.cs">
+      <Link>log-sources\TimeOffsets.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\log-view-options\FormatViewOptions.cs">
       <Link>log-view-options\FormatViewOptions.cs</Link>
@@ -508,6 +508,9 @@
     <Compile Include="..\..\..\model\postprocessing\common\ShortNamesManager.cs">
       <Link>postprocessing\common\ShortNamesManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\TextLogParser.cs">
+      <Link>postprocessing\common\TextLogParser.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\UsersNaming.cs">
       <Link>postprocessing\common\UsersNaming.cs</Link>
     </Compile>
@@ -667,14 +670,29 @@
     <Compile Include="..\..\..\model\postprocessing\state\Extensions.cs">
       <Link>postprocessing\state\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageEventsRange.cs">
+      <Link>postprocessing\state\FocusedMessageEventsRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageInfo.cs">
+      <Link>postprocessing\state\FocusedMessageInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\InspectedObject.cs">
       <Link>postprocessing\state\InspectedObject.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\Interfaces.cs">
+      <Link>postprocessing\state\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\Model.cs">
       <Link>postprocessing\state\Model.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\PropertyViews.cs">
+      <Link>postprocessing\state\PropertyViews.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\SerializationCommon.cs">
       <Link>postprocessing\state\SerializationCommon.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\StateInspectorEvent.cs">
+      <Link>postprocessing\state\StateInspectorEvent.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\StateInspectorOutput.cs">
       <Link>postprocessing\state\StateInspectorOutput.cs</Link>
@@ -729,6 +747,12 @@
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\Extensions.cs">
       <Link>postprocessing\timeline\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\GenericEndOfTimelineEventSource.cs">
+      <Link>postprocessing\timeline\GenericEndOfTimelineEventSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\InspectedObjectsLifetimeEventsSource.cs">
+      <Link>postprocessing\timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\Interfaces.cs">
       <Link>postprocessing\timeline\Interfaces.cs</Link>
@@ -969,6 +993,9 @@
     </Compile>
     <Compile Include="..\..\..\model\telemetry\UnhandledExceptionsReporter.cs">
       <Link>telemetry\UnhandledExceptionsReporter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\temp-files\TempFilesManager.cs">
+      <Link>temp-files\TempFilesManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\threads\LogSourceThreads.cs">
       <Link>threads\LogSourceThreads.cs</Link>
