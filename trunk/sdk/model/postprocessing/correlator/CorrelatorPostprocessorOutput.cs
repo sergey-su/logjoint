@@ -1,10 +1,9 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using LogJoint.Analytics.Correlation;
 using System.Xml;
 
-namespace LogJoint.Postprocessing.Correlator
+namespace LogJoint.Postprocessing.Correlation
 {
 	public class CorrelatorPostprocessorOutput : ICorrelatorPostprocessorOutput
 	{

@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics.Messaging.Analisys;
+﻿using LogJoint.Postprocessing.Messaging.Analisys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace LogJoint.Analytics.Correlation.Solver
+namespace LogJoint.Postprocessing.Correlation.Solver
 {
 	public interface ISolver
 	{

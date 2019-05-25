@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace LogJoint.Analytics.InternalTrace
+namespace LogJoint.Postprocessing.InternalTrace
 {
 	public static class Extensions
 	{

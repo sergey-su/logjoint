@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 using LogJoint.PacketAnalysis;
 
 namespace LogJoint.Wireshark.Dpml

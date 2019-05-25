@@ -1,5 +1,5 @@
 ﻿
-namespace LogJoint.Analytics.Messaging
+namespace LogJoint.Postprocessing.Messaging
 {
 	internal static class SerializationCommon
 	{

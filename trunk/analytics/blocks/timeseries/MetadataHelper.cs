@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
     public static class MetadataHelper
     {

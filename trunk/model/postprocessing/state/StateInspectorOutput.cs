@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
 using System.Xml;
 using System.Threading;
 using System.Threading.Tasks;

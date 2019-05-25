@@ -1,5 +1,5 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.StateInspector;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -152,11 +152,11 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 					objectType.TypeInfo, objectType.GetParentObjectId(peerConnectionState)));
 				peerConnectionState.ReportedObjects.Add(message.ObjectId, obj);
 			}
-			Analytics.StateInspector.ValueType? propValueType = null;
+			Postprocessing.StateInspector.ValueType? propValueType = null;
 			if (objectType.ScalarProperties.Contains(message.PropName))
-				propValueType = Analytics.StateInspector.ValueType.Scalar;
+				propValueType = Postprocessing.StateInspector.ValueType.Scalar;
 			else if (objectType.ReferenceProperties.Contains(message.PropName))
-				propValueType = Analytics.StateInspector.ValueType.Reference;
+				propValueType = Postprocessing.StateInspector.ValueType.Reference;
 			if (propValueType != null)
 			{
 				string propValue = message.PropValue;

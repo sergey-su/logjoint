@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics.Correlation;
+﻿using LogJoint.Postprocessing.Correlation;
 using System.Collections.Generic;
 
 namespace LogJoint.Postprocessing.Correlator

@@ -7,7 +7,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	// Force lists to be serialized on a single line (more readable, less disk space spent on spaces)
 	internal class SingleLineConverter : JsonConverter

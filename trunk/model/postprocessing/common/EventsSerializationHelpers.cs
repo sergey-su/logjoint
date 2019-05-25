@@ -7,7 +7,7 @@ using System.Xml;
 using System.Xml.Linq;
 using LogJoint.Postprocessing;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	internal static class EventsSerializationHelpers
 	{

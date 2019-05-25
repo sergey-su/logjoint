@@ -1,6 +1,4 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.Timeline;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.Timeline

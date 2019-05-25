@@ -4,11 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using TSA = LogJoint.Analytics.TimeSeries;
-using LogJoint.Analytics;
-using TS = LogJoint.Analytics.TimeSeries.TimeSeriesData;
+using TSA = LogJoint.Postprocessing.TimeSeries;
+using TS = LogJoint.Postprocessing.TimeSeries.TimeSeriesData;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
 
 	public class TimeSeriesCombinedParser : TSA.ILineParserVisitor, ICombinedParser

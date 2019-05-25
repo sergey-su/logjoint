@@ -1,15 +1,13 @@
 ﻿using System.Threading.Tasks;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
 using CD = LogJoint.Chromium.ChromeDriver;
-using LogJoint.Postprocessing.Correlator;
-using LogJoint.Analytics.Correlation;
-using M = LogJoint.Analytics.Messaging;
+using LogJoint.Postprocessing.Correlation;
+using M = LogJoint.Postprocessing.Messaging;
 using System.Collections.Generic;
-using LogJoint.Analytics.Messaging.Analisys;
+using LogJoint.Postprocessing.Messaging.Analisys;
 using System.Text;
 using System;
 

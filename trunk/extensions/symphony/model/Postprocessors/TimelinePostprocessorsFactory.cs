@@ -1,5 +1,4 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Postprocessing;
+﻿using LogJoint.Postprocessing;
 using LogJoint.Postprocessing.Timeline;
 using System.Threading;
 using System.Threading.Tasks;

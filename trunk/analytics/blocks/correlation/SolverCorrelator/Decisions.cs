@@ -1,12 +1,12 @@
-﻿using LogJoint.Analytics.Messaging.Analisys;
-using LogJoint.Analytics.Correlation.Solver;
+﻿using LogJoint.Postprocessing.Messaging.Analisys;
+using LogJoint.Postprocessing.Correlation.Solver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogJoint.Analytics.Correlation
+namespace LogJoint.Postprocessing.Correlation
 {
     class DecisionBase
     {

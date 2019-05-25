@@ -1,5 +1,4 @@
-﻿﻿using LogJoint.Analytics.TimeSeries;
-using LogJoint.Postprocessing.TimeSeries;
+﻿using LogJoint.Postprocessing.TimeSeries;
 using System;
 using System.Collections.Generic;
 using LogJoint.Drawing;

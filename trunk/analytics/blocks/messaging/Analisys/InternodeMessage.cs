@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace LogJoint.Analytics.Messaging.Analisys
+namespace LogJoint.Postprocessing.Messaging.Analisys
 {
 	[DebuggerDisplay("{Id}")]
 	public class InternodeMessage

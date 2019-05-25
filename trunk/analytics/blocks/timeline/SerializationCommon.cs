@@ -1,5 +1,5 @@
 ﻿
-namespace LogJoint.Analytics.Timeline
+namespace LogJoint.Postprocessing.Timeline
 {
 	internal static class SerializationCommon
 	{

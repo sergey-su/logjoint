@@ -1,6 +1,4 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.StateInspector

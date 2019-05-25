@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LogJoint.Analytics.Messaging.Analisys
+namespace LogJoint.Postprocessing.Messaging.Analisys
 {
 	public class Message
 	{

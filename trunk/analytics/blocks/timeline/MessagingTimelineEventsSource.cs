@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LogJoint.Analytics.Timeline
+namespace LogJoint.Postprocessing.Timeline
 {
 	public class MessagingTimelineEventsSource
 	{

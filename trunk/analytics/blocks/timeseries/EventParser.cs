@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
     internal class EventDescriptor
     {

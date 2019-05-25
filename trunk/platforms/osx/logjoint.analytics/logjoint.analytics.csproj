@@ -197,28 +197,6 @@
     <Folder Include="blocks\ljtrace\TimeSeriesEventsSources\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\logjoint.ortoolswrp\prebuilt\libcvrptw_lib.dylib">
-      <Link>ortools\libcvrptw_lib.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\logjoint.ortoolswrp\prebuilt\libdimacs.dylib">
-      <Link>ortools\libdimacs.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\logjoint.ortoolswrp\prebuilt\libfap.dylib">
-      <Link>ortools\libfap.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\logjoint.ortoolswrp\prebuilt\libGoogle.OrTools.so">
-      <Link>ortools\libGoogle.OrTools.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\logjoint.ortoolswrp\prebuilt\libortools.dylib">
-      <Link>ortools\libortools.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

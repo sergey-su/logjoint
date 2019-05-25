@@ -1,5 +1,5 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.Messaging;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Messaging;
 using System.Collections.Generic;
 using System.Linq;
 using System;

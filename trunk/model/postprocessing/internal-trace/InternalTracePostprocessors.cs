@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using UDF = LogJoint.RegularGrammar.UserDefinedFormatFactory;
 using System.Threading.Tasks;
-using LJT = LogJoint.Analytics.InternalTrace;
-using LogJoint.Analytics;
-using LogJoint.Analytics.TimeSeries;
+using LJT = LogJoint.Postprocessing.InternalTrace;
+using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.TimeSeries;
 
 namespace LogJoint.Postprocessing
 {
@@ -74,7 +74,7 @@ namespace LogJoint.Postprocessing
 
 			foreach (var ts in parser.GetParsedTimeSeries())
 			{
-				ts.DataPoints = Analytics.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
+				ts.DataPoints = TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
 			}
 
 			await postprocessingModel.TimeSeries.SavePostprocessorOutput(parser, input);

@@ -1,15 +1,15 @@
-﻿using LogJoint.Analytics.Correlation.Solver;
+﻿using LogJoint.Postprocessing.Correlation.Solver;
 
-namespace LogJoint.Analytics.Correlation
+namespace LogJoint.Postprocessing.Correlation
 {
 	public static class SolverFactory
 	{
 		public static ISolver Create()
 		{
 #if WIN
-			return new Analytics.Correlation.EmbeddedSolver.EmbeddedSolver();
+			return new Postprocessing.Correlation.EmbeddedSolver.EmbeddedSolver();
 #elif MONOMAC
-			return new Analytics.Correlation.ExternalSolver.CmdLineToolProxy();
+			return new Postprocessing.Correlation.ExternalSolver.CmdLineToolProxy();
 #else
 			#error "Unsupported platform"
 #endif

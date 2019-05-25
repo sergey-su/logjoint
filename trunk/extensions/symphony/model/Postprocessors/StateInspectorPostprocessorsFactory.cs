@@ -2,9 +2,7 @@
 using System.Threading;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using LogJoint.Postprocessing.StateInspector;
-using LogJoint.Analytics.StateInspector;
 
 namespace LogJoint.Symphony.StateInspector
 {

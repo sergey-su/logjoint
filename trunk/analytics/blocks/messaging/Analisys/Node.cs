@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace LogJoint.Analytics.Messaging.Analisys
+namespace LogJoint.Postprocessing.Messaging.Analisys
 {
 	[DebuggerDisplay("{NodeId}")]
 	public class Node

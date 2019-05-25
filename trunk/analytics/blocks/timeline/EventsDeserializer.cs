@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
-using SC = LogJoint.Analytics.Timeline.SerializationCommon;
+using SC = LogJoint.Postprocessing.Timeline.SerializationCommon;
 
-namespace LogJoint.Analytics.Timeline
+namespace LogJoint.Postprocessing.Timeline
 {
 	public class EventsDeserializer
 	{

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using System.Collections.Immutable;
 using LogJoint.Drawing;
 

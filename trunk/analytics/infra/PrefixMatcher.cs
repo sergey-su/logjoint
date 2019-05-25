@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public class PrefixMatcher : IPrefixMatcher
 	{

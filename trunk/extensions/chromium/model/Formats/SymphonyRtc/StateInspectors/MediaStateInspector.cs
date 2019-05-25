@@ -1,5 +1,5 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.StateInspector;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -108,7 +108,7 @@ namespace LogJoint.Symphony.Rtc
 						localScreenObjectType;
 					buffer.Enqueue(new ParentChildRelationChange(msg, symTrackId, trackObjectType, loggableId));
 					buffer.Enqueue(new PropertyChange(
-						msg, loggableId, localMediaTypeInfo, trackType + " track", symTrackId, Analytics.StateInspector.ValueType.Reference));
+						msg, loggableId, localMediaTypeInfo, trackType + " track", symTrackId, Postprocessing.StateInspector.ValueType.Reference));
 				}
 				else
 				{
@@ -391,7 +391,7 @@ namespace LogJoint.Symphony.Rtc
 					buffer.Enqueue(new PropertyChange(
 						msg, loggableId, remoteTrackObjectType,
 						"stream", RemoteWebRTCStreamInfo.MakeStateInspectorObjectId(webRtcStreamId, sessionId),
-						Analytics.StateInspector.ValueType.Reference));
+						Postprocessing.StateInspector.ValueType.Reference));
 				}
 				var remoteTracksIdAndMediaType = $"{remoteTracksId}.{m.Groups["type"].Value}";
 				if (remoteTracksIdAndMediaTypeToRemoteTrackId.TryGetValue(remoteTracksIdAndMediaType, out var oldRemoteTrackId))
@@ -518,7 +518,7 @@ namespace LogJoint.Symphony.Rtc
 								buffer.Enqueue(new PropertyChange(
 									i.Value.added, remoteStream.Value.stateInspectorObjectId, remoteWebRTCStreamObjectType,
 									webRtcStatsObjectLinkPropName, objInfo.stateInspectorObjectId,
-									Analytics.StateInspector.ValueType.Reference));
+									Postprocessing.StateInspector.ValueType.Reference));
 							}
 							if (i.Value.removed != null)
 							{
@@ -601,8 +601,8 @@ namespace LogJoint.Symphony.Rtc
 									 WebRtcStatsObjectInfo.MakeStateInspectorObjectId(value, statsObj.statsId) :
 									 value,
 							meta[prop].isLink ?
-								Analytics.StateInspector.ValueType.Reference :
-								Analytics.StateInspector.ValueType.Scalar
+								Postprocessing.StateInspector.ValueType.Reference :
+								Postprocessing.StateInspector.ValueType.Scalar
 						));
 						if (meta[prop].isCluster)
 						{

@@ -194,8 +194,8 @@ namespace LogJoint.UI
 				LogJoint.Postprocessing.IUserNamesProvider analyticsShortNames = new LogJoint.Postprocessing.CodenameUserNamesProvider(
 					logSourcesManager
 				);
-				
-				Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Analytics.TimeSeries.TimeSeriesTypesLoader();
+
+				LogJoint.Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new LogJoint.Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 				
 				LogJoint.Postprocessing.IPostprocessorsManager postprocessorsManager = new LogJoint.Postprocessing.PostprocessorsManager(
 					logSourcesManager,

@@ -5,16 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using LogJoint.Analytics.Correlation.Solver;
+using LogJoint.Postprocessing.Correlation.Solver;
 using Newtonsoft.Json;
 
-namespace LogJoint.Analytics.Correlation.ExternalSolver
+namespace LogJoint.Postprocessing.Correlation.ExternalSolver
 {
 	public abstract class ExternalSolverBase : ISolver
 	{
 		protected abstract Protocol.Response Solve(Protocol.Request request, CancellationToken cancellation);
 
-		LogJoint.Analytics.Correlation.Solver.IModel ISolver.CreateModel()
+		LogJoint.Postprocessing.Correlation.Solver.IModel ISolver.CreateModel()
 		{
 			return new Model() { owner = this };
 		}

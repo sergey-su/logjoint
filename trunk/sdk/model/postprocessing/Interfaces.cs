@@ -3,8 +3,8 @@
 	public interface IModel
 	{
 		IPostprocessorsManager PostprocessorsManager { get; } // todo: rename to managet
-		Analytics.IPrefixMatcher CreatePrefixMatcher();
-		Analytics.Correlation.ICorrelator CreateCorrelator(); // todo: have Correlation ns
+		IPrefixMatcher CreatePrefixMatcher();
+		Correlation.ICorrelator CreateCorrelator(); // todo: have Correlation ns
 		StateInspector.IModel StateInspector { get; }
 		Timeline.IModel Timeline { get; }
 		SequenceDiagram.IModel SequenceDiagram { get; }

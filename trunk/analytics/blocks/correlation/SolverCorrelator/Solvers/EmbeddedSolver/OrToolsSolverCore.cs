@@ -1,11 +1,11 @@
 ﻿using GLS = Google.OrTools.LinearSolver;
 using Google.OrTools.LinearSolver;
-using LogJoint.Analytics.Correlation.ExternalSolver.Protocol;
+using LogJoint.Postprocessing.Correlation.ExternalSolver.Protocol;
 using System.Collections.Generic;
 using System;
 using System.Linq;
 
-namespace LogJoint.Analytics.Correlation.EmbeddedSolver
+namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 {
 	public static class OrToolsSolverCore
 	{

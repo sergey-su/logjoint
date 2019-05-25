@@ -1,9 +1,8 @@
-﻿using LogJoint.Analytics;
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using M = LogJoint.Analytics.Messaging;
-using TL = LogJoint.Analytics.Timeline;
-using SI = LogJoint.Analytics.StateInspector;
+using M = LogJoint.Postprocessing.Messaging;
+using TL = LogJoint.Postprocessing.Timeline;
+using SI = LogJoint.Postprocessing.StateInspector;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {

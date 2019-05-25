@@ -1,6 +1,6 @@
-﻿using M = LogJoint.Analytics.Messaging;
-using TL = LogJoint.Analytics.Timeline;
-using SI = LogJoint.Analytics.StateInspector;
+﻿using M = LogJoint.Postprocessing.Messaging;
+using TL = LogJoint.Postprocessing.Timeline;
+using SI = LogJoint.Postprocessing.StateInspector;
 using System;
 using System.Collections.Generic;
 using LogJoint.Drawing;
@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using LogJoint.Postprocessing.SequenceDiagram;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer

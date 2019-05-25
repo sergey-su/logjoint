@@ -2,8 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using LogJoint.Analytics;
-using LogJoint.Postprocessing.Correlator;
+using LogJoint.Postprocessing.Correlation;
 
 namespace LogJoint.Postprocessing
 {

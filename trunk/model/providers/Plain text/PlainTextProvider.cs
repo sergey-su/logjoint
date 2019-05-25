@@ -85,7 +85,7 @@ namespace LogJoint.PlainText
 							XmlWriter writer = output.BeginWriteMessage(false);
 							writer.WriteStartElement("m");
 							writer.WriteAttributeString("d", Listener.FormatDate(lastModified));
-							writer.WriteString(Analytics.XmlUtils.RemoveInvalidXMLChars(capture.MessageHeader));
+							writer.WriteString(Postprocessing.XmlUtils.RemoveInvalidXMLChars(capture.MessageHeader));
 							writer.WriteEndElement();
 							output.EndWriteMessage();
 						}

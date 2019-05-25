@@ -1,5 +1,5 @@
 ﻿using LogJoint.Postprocessing;
-using LogJoint.Postprocessing.Correlator;
+using LogJoint.Postprocessing.Correlation;
 using System;
 using System.IO;
 

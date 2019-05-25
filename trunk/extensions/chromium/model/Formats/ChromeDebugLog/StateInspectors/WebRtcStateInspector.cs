@@ -1,5 +1,5 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.StateInspector;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -162,8 +162,8 @@ namespace LogJoint.Chromium.ChromeDebugLog
 						getValueType: propName =>
 						{
 							if (propName == "local_ssrc")
-								return Analytics.StateInspector.ValueType.Reference;
-							return Analytics.StateInspector.ValueType.Scalar;
+								return Postprocessing.StateInspector.ValueType.Reference;
+							return Postprocessing.StateInspector.ValueType.Scalar;
 						}
 					);
 				}
@@ -174,7 +174,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			}
 		}
 
-		static void PrintJson(JToken json, Queue<Event> buffer, Message trigger, string objId, ObjectTypeInfo objType, string propName, Func<JToken, string, JToken> converter, Func<string, Analytics.StateInspector.ValueType> getValueType)
+		static void PrintJson(JToken json, Queue<Event> buffer, Message trigger, string objId, ObjectTypeInfo objType, string propName, Func<JToken, string, JToken> converter, Func<string, Postprocessing.StateInspector.ValueType> getValueType)
 		{
 			if (converter != null)
 				json = converter(json, propName);
@@ -231,7 +231,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			{
 				var name = prop.Key;
 				var val = prop.Value;
-				var valType = Analytics.StateInspector.ValueType.Scalar;
+				var valType = Postprocessing.StateInspector.ValueType.Scalar;
 				switch (prop.Key)
 				{
 					case "connected": val = val == "C" ? "connected" : "not connected"; break;
@@ -253,11 +253,11 @@ namespace LogJoint.Chromium.ChromeDebugLog
 							val;
 						break;
 					case "remote_id":
-						valType = Analytics.StateInspector.ValueType.Reference;
+						valType = Postprocessing.StateInspector.ValueType.Reference;
 						name = "remote candidate";
 						break;
 					case "local_id":
-						valType = Analytics.StateInspector.ValueType.Reference;
+						valType = Postprocessing.StateInspector.ValueType.Reference;
 						name = "local candidate";
 						break;
 					default:
@@ -298,7 +298,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 				reportedCandidateConnectionRelations.Add(objId, reportedRelations = new HashSet<string>());
 			if (reportedRelations.Add(connId))
 				buffer.Enqueue(new PropertyChange(msg, objId, candidateTypeInfo, 
-					string.Format("connection #{0}", reportedRelations.Count), connId, Analytics.StateInspector.ValueType.Reference));
+					string.Format("connection #{0}", reportedRelations.Count), connId, Postprocessing.StateInspector.ValueType.Reference));
 			return objId;
 		}
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
     public class GeneratedRegex
     {

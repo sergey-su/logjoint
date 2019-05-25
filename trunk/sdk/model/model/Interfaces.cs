@@ -1,8 +1,3 @@
-using LogJoint.Analytics;
-using LogJoint.Analytics.StateInspector;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace LogJoint
 {

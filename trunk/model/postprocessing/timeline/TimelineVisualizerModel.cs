@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.Postprocessing.Timeline
 {

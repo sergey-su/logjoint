@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 
-namespace LogJoint.Analytics.Messaging.Analisys
+namespace LogJoint.Postprocessing.Messaging.Analisys
 {
 	public class InternodeMessagesMap
 	{

@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using SI = LogJoint.Analytics.StateInspector;
+using SI = LogJoint.Postprocessing.StateInspector;
 using LogJoint.Postprocessing.StateInspector;
-using LogJoint.Analytics;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics.StateInspector;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {

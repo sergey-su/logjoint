@@ -1,12 +1,12 @@
-﻿using LogJoint.Analytics.Messaging.Analisys;
+﻿using LogJoint.Postprocessing.Messaging.Analisys;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using LogJoint.Analytics.Correlation.Solver;
+using LogJoint.Postprocessing.Correlation.Solver;
 
-namespace LogJoint.Analytics.Correlation
+namespace LogJoint.Postprocessing.Correlation
 {
 	class MonotonicTimeSolution
 	{

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using A = LogJoint.Analytics.Messaging.Analisys;
-using M = LogJoint.Analytics.Messaging;
-using TL = LogJoint.Analytics.Timeline;
-using LogJoint.Analytics;
+using A = LogJoint.Postprocessing.Messaging.Analisys;
+using M = LogJoint.Postprocessing.Messaging;
+using TL = LogJoint.Postprocessing.Timeline;
+using LogJoint.Postprocessing;
 using System.Collections.Immutable;
 
 namespace LogJoint.Postprocessing.SequenceDiagram

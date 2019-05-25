@@ -1,12 +1,11 @@
-﻿using LogJoint.Analytics.TimeSeries;
-
+﻿
 namespace LogJoint.Postprocessing
 {
 	public class OutputDataDeserializer: IOutputDataDeserializer
 	{
-		readonly ITimeSeriesTypesAccess timeSeriesTypesAccess;
+		readonly TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess;
 
-		public OutputDataDeserializer(ITimeSeriesTypesAccess timeSeriesTypesAccess)
+		public OutputDataDeserializer(TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess)
 		{
 			this.timeSeriesTypesAccess = timeSeriesTypesAccess;
 		}
@@ -24,7 +23,7 @@ namespace LogJoint.Postprocessing
 				case PostprocessorKind.TimeSeries:
 					return new TimeSeries.TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess);
 				case PostprocessorKind.Correlator:
-					return Correlator.CorrelatorPostprocessorOutput.Parse(p.Reader);
+					return Correlation.CorrelatorPostprocessorOutput.Parse(p.Reader);
 				default:
 					return null;
 			}

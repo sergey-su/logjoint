@@ -1,9 +1,9 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Analytics.Correlation;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Correlation;
 using System.Threading.Tasks;
 using System.Linq;
 using LogJoint.Chromium.Correlation;
-using SI = LogJoint.Analytics.StateInspector;
+using SI = LogJoint.Postprocessing.StateInspector;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Globalization;
 using System.Threading.Tasks;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 
 namespace LogJoint
 {

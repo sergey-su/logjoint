@@ -2,8 +2,6 @@
 using System.Threading;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
-using LogJoint.Analytics.TimeSeries;
 using LogJoint.Postprocessing.TimeSeries;
 using System.Xml;
 

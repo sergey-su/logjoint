@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LogJoint.Analytics.Correlation.ExternalSolver.Protocol
+namespace LogJoint.Postprocessing.Correlation.ExternalSolver.Protocol
 {
 	public class Request
 	{

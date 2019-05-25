@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
-using SC = LogJoint.Analytics.StateInspector.SerializationCommon;
+using SC = LogJoint.Postprocessing.StateInspector.SerializationCommon;
 
-namespace LogJoint.Analytics.StateInspector
+namespace LogJoint.Postprocessing.StateInspector
 {
 	public class EventsSerializer: IEventsVisitor, IEventsSerializer
 	{

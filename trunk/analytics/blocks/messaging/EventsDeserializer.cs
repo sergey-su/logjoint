@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
-using SC = LogJoint.Analytics.Messaging.SerializationCommon;
+using SC = LogJoint.Postprocessing.Messaging.SerializationCommon;
 
-namespace LogJoint.Analytics.Messaging
+namespace LogJoint.Postprocessing.Messaging
 {
 	public class EventsDeserializer
 	{

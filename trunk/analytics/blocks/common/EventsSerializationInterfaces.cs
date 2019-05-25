@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public interface IEventsSerializer
 	{

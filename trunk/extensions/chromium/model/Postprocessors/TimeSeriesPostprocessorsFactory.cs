@@ -2,8 +2,6 @@
 using System.Threading;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
-using LogJoint.Analytics.TimeSeries;
 using LogJoint.Postprocessing.TimeSeries;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using DMP = LogJoint.Chromium.WebrtcInternalsDump;
@@ -68,7 +66,7 @@ namespace LogJoint.Chromium.TimeSeries
 
 			foreach (var ts in parser.GetParsedTimeSeries())
 			{
-				ts.DataPoints = Analytics.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
+				ts.DataPoints = Postprocessing.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
 			}
 
 			await postprocessing.TimeSeries.SavePostprocessorOutput(parser, postprocessorInput);

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace LogJoint.Postprocessing.Correlator
+namespace LogJoint.Postprocessing.Correlation
 {
 	public struct CorrelatorStateSummary
 	{

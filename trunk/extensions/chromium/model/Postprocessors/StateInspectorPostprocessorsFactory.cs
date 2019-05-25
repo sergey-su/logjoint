@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
 using Sym = LogJoint.Symphony.Rtc;
-using LogJoint.Analytics.StateInspector;
+using LogJoint.Postprocessing.StateInspector;
 
 namespace LogJoint.Chromium.StateInspector
 {

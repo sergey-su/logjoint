@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using LogJoint.Postprocessing.TimeSeries;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
-using LogJoint.Analytics.TimeSeries;
 using System.Xml.Linq;
 using System.Globalization;
 using System.Diagnostics;

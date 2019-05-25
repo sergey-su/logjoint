@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace LogJoint.Analytics.Messaging.Analisys
+namespace LogJoint.Postprocessing.Messaging.Analisys
 {
 	public class InternodeMessagesDetector : IInternodeMessagesDetector
 	{

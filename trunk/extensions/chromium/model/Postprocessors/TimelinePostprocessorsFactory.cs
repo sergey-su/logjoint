@@ -2,12 +2,10 @@
 using System.Threading;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using CD = LogJoint.Chromium.ChromeDriver;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using Sym = LogJoint.Symphony.Rtc;
 using HAR = LogJoint.Chromium.HttpArchive;
-using LogJoint.Analytics.Timeline;
 using LogJoint.Postprocessing.Timeline;
 
 namespace LogJoint.Chromium.Timeline

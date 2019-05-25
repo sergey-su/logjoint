@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogJoint.Analytics.InternalTrace
+namespace LogJoint.Postprocessing.InternalTrace
 {
 	public interface IReader
 	{

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using System.Linq;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.NLog
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using LogJoint.Analytics;
+using LogJoint.Postprocessing;
 using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer

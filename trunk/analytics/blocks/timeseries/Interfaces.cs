@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
 
 	#region Internal parsing interfaces

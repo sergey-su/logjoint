@@ -1,11 +1,4 @@
-﻿using LogJoint.Analytics;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-
+﻿
 namespace LogJoint.Postprocessing
 {
 	public static class Extensions

@@ -1,12 +1,11 @@
-﻿using LogJoint.Analytics;
-
+﻿
 namespace LogJoint.Postprocessing
 {
 	public class Model : IModel
 	{
 		public Model(
 			IPostprocessorsManager postprocessorsManager,
-			Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes,
+			TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes,
 			StateInspector.IModel stateInspector,
 			Timeline.IModel timeline,
 			SequenceDiagram.IModel sequenceDiagram,
@@ -23,7 +22,7 @@ namespace LogJoint.Postprocessing
 
 		public IPostprocessorsManager PostprocessorsManager { get; private set; }
 
-		public Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
+		public TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
 
 		public StateInspector.IModel StateInspector { get; private set; }
 
@@ -33,11 +32,11 @@ namespace LogJoint.Postprocessing
 
 		public TimeSeries.IModel TimeSeries { get; private set; }
 
-		Analytics.Correlation.ICorrelator IModel.CreateCorrelator()
+		Correlation.ICorrelator IModel.CreateCorrelator()
 		{
-			return new Analytics.Correlation.Correlator(
-				new Analytics.Messaging.Analisys.InternodeMessagesDetector(),
-				Analytics.Correlation.SolverFactory.Create());
+			return new Correlation.Correlator(
+				new Messaging.Analisys.InternodeMessagesDetector(),
+				Correlation.SolverFactory.Create());
 		}
 
 		IPrefixMatcher IModel.CreatePrefixMatcher()

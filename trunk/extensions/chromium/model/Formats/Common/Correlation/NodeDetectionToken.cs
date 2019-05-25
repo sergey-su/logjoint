@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics.Correlation;
+﻿using LogJoint.Postprocessing.Correlation;
 using System;
 using System.Diagnostics;
 using System.Linq;

@@ -16,7 +16,7 @@ namespace LogJoint.Postprocessing.Timeline
 		readonly object beginTrigger;
 		readonly object endTrigger;
 		readonly IReadOnlyList<ActivityMilestone> milestones;
-		readonly IReadOnlyList<ActivityPhase> phases;
+		readonly IReadOnlyList<ActivityPhaseInfo> phases;
 		readonly HashSet<string> tags;
 		readonly bool isError;
 		readonly bool isEndedForcefully;
@@ -29,7 +29,7 @@ namespace LogJoint.Postprocessing.Timeline
 			ActivityType type, 
 			object beginTrigger, object endTrigger, 
 			IEnumerable<ActivityMilestone> detachedMilestones,
-			IEnumerable<ActivityPhase> detachedPhases,
+			IEnumerable<ActivityPhaseInfo> detachedPhases,
 			IEnumerable<string> tags,
 			bool isError,
 			bool isEndedForcefully)
@@ -46,7 +46,7 @@ namespace LogJoint.Postprocessing.Timeline
 			this.milestones = detachedMilestones.Select(
 				ms => new ActivityMilestone(this, ms.Owner, ms.Time, ms.DisplayName, ms.Trigger)).ToList().AsReadOnly();
 			this.phases = detachedPhases.Select(
-				ph => new ActivityPhase(this, ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
+				ph => new ActivityPhaseInfo(this, ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
 			this.tags = new HashSet<string>(tags);
 			this.isError = isError;
 			this.isEndedForcefully = isEndedForcefully;
@@ -73,7 +73,7 @@ namespace LogJoint.Postprocessing.Timeline
 
 		IReadOnlyList<ActivityMilestone> IActivity.Milestones { get { return milestones; } }
 
-		IReadOnlyList<ActivityPhase> IActivity.Phases { get { return phases; } }
+		IReadOnlyList<ActivityPhaseInfo> IActivity.Phases { get { return phases; } }
 		
 		ISet<string> IActivity.Tags { get { return tags; } }
 

@@ -1,10 +1,10 @@
-﻿using LogJoint.Analytics.Timeline;
+﻿using LogJoint.Postprocessing.Timeline;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Text;
 
-namespace LogJoint.Analytics.InternalTrace
+namespace LogJoint.Postprocessing.InternalTrace
 {
 	public class ProfilingTimelineEventsSource
 	{

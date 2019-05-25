@@ -1,4 +1,4 @@
-﻿namespace LogJoint.Analytics.StateInspector
+﻿namespace LogJoint.Postprocessing.StateInspector
 {
 	internal static class SerializationCommon
 	{

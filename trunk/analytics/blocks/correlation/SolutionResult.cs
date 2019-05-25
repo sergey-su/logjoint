@@ -1,11 +1,11 @@
-﻿using LogJoint.Analytics.Messaging.Analisys;
+﻿using LogJoint.Postprocessing.Messaging.Analisys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace LogJoint.Analytics.Correlation
+namespace LogJoint.Postprocessing.Correlation
 {
 	public class SolutionResult : ISolutionResult
 	{

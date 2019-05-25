@@ -1,4 +1,4 @@
-﻿namespace LogJoint.Postprocessing.Correlator
+﻿namespace LogJoint.Postprocessing.Correlation
 {
 	public class CorrelatorPostprocessorRunSummary : IPostprocessorRunSummary
 	{

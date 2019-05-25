@@ -35,12 +35,12 @@ namespace LogJoint.Postprocessing.Timeline
 			return bmk.Time.ToUnspecifiedTime() - model.Origin;
 		}
 
-		public static TimeSpan GetTimelineBegin(this ActivityPhase ph)
+		public static TimeSpan GetTimelineBegin(this ActivityPhaseInfo ph)
 		{
 			return ph.Begin + ph.Owner.TimelineOffset;
 		}
 
-		public static TimeSpan GetTimelineEnd(this ActivityPhase ph)
+		public static TimeSpan GetTimelineEnd(this ActivityPhaseInfo ph)
 		{
 			return ph.End + ph.Owner.TimelineOffset;
 		}

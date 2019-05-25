@@ -1,6 +1,6 @@
-﻿using LogJoint.Analytics.TimeSeries;
+﻿using LogJoint.Postprocessing.TimeSeries;
 
-namespace LogJoint.Analytics.InternalTrace
+namespace LogJoint.Postprocessing.InternalTrace
 {
 	[TimeSeriesEvent(Type = "Profiling")]
 	[Expression(@"^cntrs (?<id>[\w\#\-\.]+) (?<name>[^\=]+)\=<value:double>( (?<unit>\w+))?$", Prefix = "cntrs")]

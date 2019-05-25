@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Globalization;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
     public class TimeSeriesEventParser : ILineParser
     {

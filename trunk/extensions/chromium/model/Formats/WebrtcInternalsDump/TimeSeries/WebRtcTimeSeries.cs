@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics.TimeSeries;
+﻿using LogJoint.Postprocessing.TimeSeries;
 
 namespace LogJoint.Chromium.WebrtcInternalsDump
 {

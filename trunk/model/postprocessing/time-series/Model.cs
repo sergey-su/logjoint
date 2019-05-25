@@ -1,5 +1,4 @@
-﻿using LogJoint.Analytics.TimeSeries;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {

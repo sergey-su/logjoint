@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using HAR = LogJoint.Chromium.HttpArchive;
 
 namespace LogJoint.Chromium.SequenceDiagram

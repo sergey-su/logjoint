@@ -4,9 +4,9 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using LogJoint.Preprocessing;
-using LogJoint.Analytics;
 using HarSharp;
 using System.Threading;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.Chromium.HttpArchive
 {

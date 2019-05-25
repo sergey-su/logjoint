@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
 	public class TimeSeriesTypesLoader : ITimeSeriesTypesAccess
 	{

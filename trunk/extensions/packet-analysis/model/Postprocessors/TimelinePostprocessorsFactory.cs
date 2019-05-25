@@ -3,9 +3,7 @@ using System.Threading;
 using System.Xml.Linq;
 using System.Linq;
 using LogJoint.Postprocessing;
-using LogJoint.Analytics;
 using Pdml = LogJoint.Wireshark.Dpml;
-using LogJoint.Analytics.Timeline;
 using LogJoint.Postprocessing.Timeline;
 using System.Xml;
 

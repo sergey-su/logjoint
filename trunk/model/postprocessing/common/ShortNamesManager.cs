@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics;
+﻿using LogJoint.Postprocessing;
 using System.Collections.Generic;
 using System.Linq;
 

@@ -1,6 +1,4 @@
-﻿using LogJoint.Analytics.StateInspector;
-
-namespace LogJoint.Postprocessing.StateInspector
+﻿namespace LogJoint.Postprocessing.StateInspector
 {
 	public class StateInspectorEvent
 	{
