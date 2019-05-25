@@ -4,47 +4,23 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using TSBlocks = LogJoint.Postprocessing.TimeSeries;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {
-	public interface ITimeSeriesPostprocessorOutput
-	{
-		ILogSource LogSource { get; }
-
-		/// <summary>
-		/// Log display name as a separate property because LogSource may be disposed while
-		/// Display name is still required.
-		/// </summary>
-		string LogDisplayName { get; }
-
-		IEnumerable<TSBlocks.TimeSeriesData> TimeSeries { get; }
-
-		IEnumerable<TSBlocks.EventBase> Events { get; }
-	}
-
-	public interface ITimeSeriesVisualizerModel
-	{
-		ICollection<ITimeSeriesPostprocessorOutput> Outputs { get; }
-
-		event EventHandler Changed;
-	};
-
 	public interface IModel
 	{
-		TSBlocks.ICombinedParser CreateParser();
+		ICombinedParser CreateParser();
 		Task SavePostprocessorOutput(
-			TSBlocks.ICombinedParser parser,
+			ICombinedParser parser,
 			LogSourcePostprocessorInput postprocessorInput
 		);
-		TSBlocks.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
+		ITimeSeriesTypesAccess TimeSeriesTypes { get; }
 	};
-
 
 	/// <summary>
 	/// Encapsulates loading and updating of time-series metadata
 	/// </summary>
-	public interface ITimeSeriesTypesAccess
+	public interface ITimeSeriesTypesAccess // todo: split to API and private part
 	{
 		void RegisterTimeSeriesTypesAssembly(Assembly asm);
 		void CheckForCustomConfigUpdate();

@@ -1,4 +1,5 @@
 ﻿using LogJoint.Postprocessing.Messaging.Analisys;
+using A = LogJoint.Postprocessing.Messaging.Analisys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace LogJoint.Postprocessing.Correlation
 			var log = new StringBuilder();
 			var nodes = input.ToDictionary(i => i.Key, i => new Node(i.Key));
 
-			List<Message> unpairedMessages = new List<Message>();
+			var unpairedMessages = new List<A.Message>();
 
 			var internodeMessagesDetectorInput = input.ToDictionary(i => nodes[i.Key], i => i.Value);
 			var internodeMessages = internodeMessagesDetector.DiscoverInternodeMessages(internodeMessagesDetectorInput, internodeMessagesLimit, unpairedMessages);
@@ -78,7 +79,7 @@ namespace LogJoint.Postprocessing.Correlation
 								currentInternodeMessagesLimit = currentInternodeMessagesLimit * 3 / 4;
 								if (currentInternodeMessagesLimit < nodes.Count)
 									throw;
-								internodeMessages = internodeMessagesDetector.DiscoverInternodeMessages(internodeMessagesDetectorInput, currentInternodeMessagesLimit, new List<Message>());
+								internodeMessages = internodeMessagesDetector.DiscoverInternodeMessages(internodeMessagesDetectorInput, currentInternodeMessagesLimit, new List<A.Message>());
 								continue;
 							}
 							throw;
@@ -178,7 +179,7 @@ namespace LogJoint.Postprocessing.Correlation
 			}
 		}
 
-		private void ReportUnpairedMessages(List<Message> unpairedMessages, StringBuilder log)
+		private void ReportUnpairedMessages(List<A.Message> unpairedMessages, StringBuilder log)
 		{
 			if (unpairedMessages.Count > 0)
 			{

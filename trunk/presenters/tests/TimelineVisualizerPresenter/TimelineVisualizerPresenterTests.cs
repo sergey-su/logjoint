@@ -78,7 +78,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			a.Begin.Returns(TimeSpan.FromMilliseconds(b));
 			a.End.Returns(TimeSpan.FromMilliseconds(e));
 			a.Type.Returns(type);
-			a.Milestones.Returns(new ActivityMilestone[0]);
+			a.Milestones.Returns(new ActivityMilestoneInfo[0]);
 			a.Phases.Returns(new ActivityPhaseInfo[0]);
 			a.Tags.Returns(new HashSet<string>());
 			a.IsEndedForcefully.Returns(isEndedForcefully);

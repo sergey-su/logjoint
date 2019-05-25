@@ -1,12 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
-	[TestClass]
+	[TestFixture]
 	public class EnumerableAsyncTests
 	{
-		[TestMethod]
+		[Test]
 		public async Task EnumerableAsyncProduceTest()
 		{
 			int sequenceLen = 10000;

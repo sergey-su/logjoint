@@ -15,7 +15,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\Debug</OutputPath>
+    <OutputPath>..\bin\Debug\logjoint.app\Contents\MonoBundle</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Release</OutputPath>
+    <OutputPath>..\bin\Release\logjoint.app\Contents\MonoBundle</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ExternalConsole>true</ExternalConsole>
@@ -47,13 +47,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\..\..\analytics\ortoolswpr\Program.cs">
+    <Compile Include="..\..\..\model\postprocessing\correlator\ortoolswpr\Program.cs">
       <Link>Program.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
       <Link>Protocol.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs">
+    <Compile Include="..\..\..\model\postprocessing\correlator\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs">
       <Link>OrToolsSolverCore.cs</Link>
     </Compile>
   </ItemGroup>

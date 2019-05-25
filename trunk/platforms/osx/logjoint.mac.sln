@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.mac", "logjoint.ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.updater", "logjoint.updater\logjoint.updater.csproj", "{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.analytics", "logjoint.analytics\logjoint.analytics.csproj", "{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "plugins", "plugins", "{68F58D7E-4D53-4F62-9338-E965AE399D8A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "chromium", "chromium", "{BBD959F6-F28F-40E4-B007-4F32AD177CAB}"
@@ -105,14 +103,6 @@ Global
 		{DBB4D413-3A1F-4595-864C-B534BC756284}.Debug|x86.Build.0 = Debug|Any CPU
 		{DBB4D413-3A1F-4595-864C-B534BC756284}.Release|x86.ActiveCfg = Release|Any CPU
 		{DBB4D413-3A1F-4595-864C-B534BC756284}.Release|x86.Build.0 = Release|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Debug|x86.Build.0 = Debug|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Release|x86.ActiveCfg = Release|Any CPU
-		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Release|x86.Build.0 = Release|Any CPU
 		{5C3545DB-36B8-4DE2-A2CA-B816910D389B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5C3545DB-36B8-4DE2-A2CA-B816910D389B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C3545DB-36B8-4DE2-A2CA-B816910D389B}.Release|Any CPU.ActiveCfg = Release|Any CPU

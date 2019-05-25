@@ -1,17 +1,13 @@
 ﻿using LogJoint.Postprocessing.TimeSeries;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
 	public interface IPresenter
 	{
 		void OpenConfigDialog();
-		bool SelectConfigNode(Predicate<TreeNodeData> predicate);
-		bool ConfigNodeExists(Predicate<TreeNodeData> predicate);
+		bool SelectConfigNode(Predicate<ITreeNodeData> predicate);
+		bool ConfigNodeExists(Predicate<ITreeNodeData> predicate);
 	};
 
 	public enum ConfigDialogNodeType
@@ -23,17 +19,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		Events
 	};
 
-	public class TreeNodeData
+	public interface ITreeNodeData
 	{
-		public ConfigDialogNodeType Type { get; internal set; }
-		public string Caption { get; internal set; }
-		public int? Counter { get; internal set; }
-		public bool Checkable { get; internal set; }
-		public IEnumerable<TreeNodeData> Children { get; internal set; }
-		public ITimeSeriesPostprocessorOutput Owner { get { return output; } }
-
-		internal ITimeSeriesPostprocessorOutput output;
-		internal TimeSeriesData ts;
-		internal EventBase evt;
+		ConfigDialogNodeType Type { get; }
+		ILogSource LogSource { get; }
+		string Caption { get; }
 	};
 }

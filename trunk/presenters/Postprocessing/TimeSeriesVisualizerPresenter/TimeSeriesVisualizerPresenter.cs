@@ -93,7 +93,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			ShowConfigDialog();
 		}
 
-		bool IPresenter.SelectConfigNode(Predicate<TreeNodeData> predicate)
+		bool IPresenter.SelectConfigNode(Predicate<ITreeNodeData> predicate)
 		{
 			EnsureConfigDialog();
 			UpdateConfigDialogViewIfNeeded();
@@ -110,7 +110,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			return false;
 		}
 
-		bool IPresenter.ConfigNodeExists(Predicate<TreeNodeData> predicate)
+		bool IPresenter.ConfigNodeExists(Predicate<ITreeNodeData> predicate)
 		{
 			foreach (var log in model.Outputs)
 				if (Find(CreateConfigDialogRoot(log), predicate) != null)

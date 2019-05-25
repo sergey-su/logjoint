@@ -5,6 +5,7 @@ using SI = LogJoint.Postprocessing.StateInspector;
 
 namespace LogJoint.Postprocessing.Timeline
 {
+	// todo: remove from sdk
 	public class InspectedObjectsLifetimeEventsSource : StateInspector.IEventsVisitor
 	{
 		public InspectedObjectsLifetimeEventsSource(Predicate<SI.Event> inspectedObjectsFilter = null)

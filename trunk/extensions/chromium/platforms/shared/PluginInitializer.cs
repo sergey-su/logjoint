@@ -49,10 +49,10 @@ namespace LogJoint.Chromium
 								 || Symphony.Rtc.MediaStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject))
 								{
 									app.Presentation.PostprocessorsFormFactory.GetPostprocessorOutputForm(UI.Presenters.Postprocessing.MainWindowTabPage.ViewControlId.TimeSeries);
-									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.TreeNodeData> predicate = node =>
+									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.ITreeNodeData> predicate = node =>
 										node.Type == UI.Presenters.Postprocessing.TimeSeriesVisualizer.ConfigDialogNodeType.ObjectIdGroup
 										&& node.Caption.Contains(stateInspectorPresenter.SelectedObject.Id)
-										&& stateInspectorPresenter.SelectedObject.Owner.Outputs.Any(x => x.LogSource == node.Owner.LogSource);
+										&& stateInspectorPresenter.SelectedObject.Owner.Outputs.Any(x => x.LogSource == node.LogSource);
 									if (timeSeriesPresenter != null && timeSeriesPresenter.ConfigNodeExists(predicate))
 									{
 										arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()

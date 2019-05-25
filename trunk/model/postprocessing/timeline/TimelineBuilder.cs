@@ -157,7 +157,7 @@ namespace LogJoint.Postprocessing.Timeline
 			internal EventInfo begin;
 			internal ITimelinePostprocessorOutput beginOwner;
 			internal string activityMatchingId;
-			internal List<ActivityMilestone> milestones;
+			internal List<ActivityMilestoneInfo> milestones;
 			internal List<ActivityPhaseInfo> phases;
 			internal ActivityType type;
 			internal bool mayLackEnd;
@@ -176,7 +176,7 @@ namespace LogJoint.Postprocessing.Timeline
 					beginOwner = currentPostprocessorOutput,
 					type = type,
 					activityMatchingId = activityMatchingId,
-					milestones = new List<ActivityMilestone>(),
+					milestones = new List<ActivityMilestoneInfo>(),
 					phases = new List<ActivityPhaseInfo>(),
 					mayLackEnd = evt.Type == ActivityEventType.PotentialBegin
 				};
@@ -200,7 +200,7 @@ namespace LogJoint.Postprocessing.Timeline
 				StartedActivity startedActivity;
 				if (startedActivities.TryGetValue(evt.ActivityId, out startedActivity))
 				{
-					startedActivity.milestones.Add(new ActivityMilestone(
+					startedActivity.milestones.Add(new ActivityMilestoneInfo(
 						null,
 						currentPostprocessorOutput,
 						eventInfo.timestamp - origin,

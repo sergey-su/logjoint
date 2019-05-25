@@ -163,4 +163,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		internal object data;
 		internal bool EffectiveDrawLine { get { return this.DrawLine || Marker == MarkerType.None; } }
 	};
+
+	public class TreeNodeData: ITreeNodeData
+	{
+		public ConfigDialogNodeType Type { get; internal set; }
+		public string Caption { get; internal set; }
+		public int? Counter { get; internal set; }
+		public bool Checkable { get; internal set; }
+		public IEnumerable<TreeNodeData> Children { get; internal set; }
+		public ITimeSeriesPostprocessorOutput Owner { get { return output; } }
+		public ILogSource LogSource => Owner.LogSource;
+
+		internal ITimeSeriesPostprocessorOutput output;
+		internal TimeSeriesData ts;
+		internal EventBase evt;
+	};
 }

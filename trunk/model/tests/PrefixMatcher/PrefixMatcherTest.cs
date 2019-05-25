@@ -1,9 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
-	[TestClass]
+	[TestFixture]
 	public class PrefixMatcherTest
 	{
 		static void AssertAreEqual(IMatchedPrefixesCollection actual, params int[] expected)
@@ -14,7 +14,7 @@ namespace LogJoint.Analytics
 			Assert.AreEqual("", diff);
 		}
 
-		[TestMethod]
+		[Test]
 		public void PrefixMatcherSmokeTest()
 		{
 			PrefixMatcher matcher = new PrefixMatcher();
@@ -54,7 +54,7 @@ namespace LogJoint.Analytics
 			AssertAreEqual(matcher.Match("fget"), p12);
 		}
 
-		[TestMethod]
+		[Test]
 		public void DuplicatedRegistrationTest()
 		{
 			PrefixMatcher matcher = new PrefixMatcher();

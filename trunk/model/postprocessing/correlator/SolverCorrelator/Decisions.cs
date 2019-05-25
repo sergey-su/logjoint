@@ -1,4 +1,5 @@
 ﻿using LogJoint.Postprocessing.Messaging.Analisys;
+using A = LogJoint.Postprocessing.Messaging.Analisys;
 using LogJoint.Postprocessing.Correlation.Solver;
 using System;
 using System.Collections.Generic;
@@ -34,8 +35,8 @@ namespace LogJoint.Postprocessing.Correlation
 
     class MessageDecision : DecisionBase
     {
-        public readonly Message Message;
+        public readonly A.Message Message;
 
-		public MessageDecision(Solver.IModel model, Message m) : base(model, "MessageDecision_" + m.Key.ToString()) { this.Message = m; }
+		public MessageDecision(Solver.IModel model, A.Message m) : base(model, "MessageDecision_" + m.Key.ToString()) { this.Message = m; }
     };
 }

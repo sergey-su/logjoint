@@ -90,7 +90,7 @@
     <Compile Include="..\..\shared\updatetool\Telemetry\StorageDTO.cs">
       <Link>Telemetry\StorageDTO.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\sdk\model\analytics\common\CodepathTrackingInterfaces.cs">
+    <Compile Include="..\..\..\sdk\model\postprocessing\common\CodepathTrackingInterfaces.cs">
       <Link>CodepathTrackingInterfaces.cs</Link>
     </Compile>
   </ItemGroup>

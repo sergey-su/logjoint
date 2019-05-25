@@ -255,9 +255,6 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\AggregatedRunSummary.cs">
       <Link>postprocessing\common\AggregatedRunSummary.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\CodepathTrackers.cs">
-      <Link>postprocessing\common\CodepathTrackers.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\CodepathTrackingInterfaces.cs">
       <Link>postprocessing\common\CodepathTrackingInterfaces.cs</Link>
     </Compile>
@@ -272,9 +269,6 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\LogSourcePostprocessorImpl.cs">
       <Link>postprocessing\common\LogSourcePostprocessorImpl.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\PostprocessorOutputETag.cs">
-      <Link>postprocessing\common\PostprocessorOutputETag.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\PrefixMatcherInterfaces.cs">
       <Link>postprocessing\common\PrefixMatcherInterfaces.cs</Link>
@@ -315,9 +309,6 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\LinqUtils.cs">
       <Link>postprocessing\common\Utils\LinqUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\RegexBuilder.cs">
-      <Link>postprocessing\common\Utils\RegexBuilder.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\TextLogParser.cs">
       <Link>postprocessing\common\Utils\TextLogParser.cs</Link>
     </Compile>
@@ -348,9 +339,6 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\EventsStringifier.cs">
       <Link>postprocessing\timeline\EventsStringifier.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Extensions.cs">
-      <Link>postprocessing\timeline\Extensions.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\GenericEndOfTimelineEventSource.cs">
       <Link>postprocessing\timeline\GenericEndOfTimelineEventSource.cs</Link>
     </Compile>
@@ -359,9 +347,6 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Interfaces.cs">
       <Link>postprocessing\timeline\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\TimelineEntitiesComparer.cs">
-      <Link>postprocessing\timeline\TimelineEntitiesComparer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\Attributes.cs">
       <Link>postprocessing\time-series\Attributes.cs</Link>

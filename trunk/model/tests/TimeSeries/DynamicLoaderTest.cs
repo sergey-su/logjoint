@@ -1,15 +1,15 @@
 using System.IO;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System;
 
-namespace LogJoint.Analytics.TimeSeries
+namespace LogJoint.Postprocessing.TimeSeries
 {
 
-	[TestClass]
+	[TestFixture]
 	public class DynamicScriptLoaderTest
 	{
-		[TestMethod]
+		[Test]
 		public void LoadsSampleScript()
 		{
 			ITimeSeriesTypesAccess tsTypes = new TimeSeriesTypesLoader();

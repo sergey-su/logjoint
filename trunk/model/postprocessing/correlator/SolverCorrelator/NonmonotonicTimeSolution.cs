@@ -1,4 +1,5 @@
 ﻿using LogJoint.Postprocessing.Messaging.Analisys;
+using A = LogJoint.Postprocessing.Messaging.Analisys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,9 +62,9 @@ namespace LogJoint.Postprocessing.Correlation
 			}
 		}
 
-		private static void AddMessagingConstraints(List<InternodeMessage> messages, Solver.IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions, Dictionary<NodeId, NodeDecision> nodeDecisions)
+		private static void AddMessagingConstraints(List<InternodeMessage> messages, Solver.IModel solverModel, Dictionary<A.Message, MessageDecision> msgDecisions, Dictionary<NodeId, NodeDecision> nodeDecisions)
 		{
-			Func<Message, Expr> getTerm = m =>
+			Func<A.Message, Expr> getTerm = m =>
 			{
 				Expr ret = new TermExpr() { Variable = nodeDecisions[m.Node.NodeId].Decision };
 				for (; m != null; m = m.Prev)
@@ -107,7 +108,7 @@ namespace LogJoint.Postprocessing.Correlation
 			}
 		}
 
-		private static List<TimeDeltaEntry> GetNonmonotonicTimeDeltasForNode(Dictionary<Message, MessageDecision> msgDecisions, NodeDecision node)
+		private static List<TimeDeltaEntry> GetNonmonotonicTimeDeltasForNode(Dictionary<A.Message, MessageDecision> msgDecisions, NodeDecision node)
 		{
 			var ret = msgDecisions
 				.Where(m => m.Key.Node == node.Node)
@@ -119,7 +120,7 @@ namespace LogJoint.Postprocessing.Correlation
 			return ret;
 		}
 
-		private static void AddGoals(Solver.IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions)
+		private static void AddGoals(Solver.IModel solverModel, Dictionary<A.Message, MessageDecision> msgDecisions)
 		{
 			solverModel.SetMinimizeGoal(
 				msgDecisions.Values.Select(d => d.Decision).ToArray()

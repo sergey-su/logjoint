@@ -25,7 +25,7 @@ namespace LogJoint.Postprocessing.Timeline
 			return e.Time + e.Owner.TimelineOffset;
 		}
 
-		public static TimeSpan GetTimelineTime(this ActivityMilestone ms)
+		public static TimeSpan GetTimelineTime(this ActivityMilestoneInfo ms)
 		{
 			return ms.Time + ms.Owner.TimelineOffset;
 		}

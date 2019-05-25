@@ -2,13 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public static class Utils
 	{
