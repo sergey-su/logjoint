@@ -49,9 +49,6 @@
     <Compile Include="..\..\..\analytics\infra\Utils\CustomJsonConvert.cs">
       <Link>infra\Utils\CustomJsonConvert.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\analytics\infra\Utils\StringSlice.cs">
-      <Link>infra\Utils\StringSlice.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\analytics\blocks\ljtrace\Reader\Extensions.cs">
       <Link>blocks\ljtrace\Reader\Extensions.cs</Link>
     </Compile>
@@ -129,6 +126,54 @@
     </Compile>
     <Compile Include="..\..\..\analytics\blocks\ljtrace\TimeSeriesEventsSources\ProfilingTimeSeriesEventsSource.cs">
       <Link>blocks\ljtrace\TimeSeriesEventsSources\ProfilingTimeSeriesEventsSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\messaging\EventsDeserializer.cs">
+      <Link>blocks\messaging\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\messaging\EventsSerializer.cs">
+      <Link>blocks\messaging\EventsSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\messaging\SerializationCommon.cs">
+      <Link>blocks\messaging\SerializationCommon.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\state\EventsDeserializer.cs">
+      <Link>blocks\state\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\state\EventsSerializer.cs">
+      <Link>blocks\state\EventsSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\state\SerializationCommon.cs">
+      <Link>blocks\state\SerializationCommon.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeline\EventsDeserializer.cs">
+      <Link>blocks\timeline\EventsDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeline\EventsSerializer.cs">
+      <Link>blocks\timeline\EventsSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeline\SerializationCommon.cs">
+      <Link>blocks\timeline\SerializationCommon.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeseries\EventParser.cs">
+      <Link>blocks\timeseries\EventParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeseries\MetadataHelper.cs">
+      <Link>blocks\timeseries\MetadataHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeseries\TimeSeriesCombinedParser.cs">
+      <Link>blocks\timeseries\TimeSeriesCombinedParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeseries\TimeSeriesParser.cs">
+      <Link>blocks\timeseries\TimeSeriesParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\infra\PrefixMatcher.cs">
+      <Link>infra\PrefixMatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeseries\Interfaces.cs">
+      <Link>blocks\timeseries\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\common\EventsSerializationInterfaces.cs">
+      <Link>blocks\common\EventsSerializationInterfaces.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

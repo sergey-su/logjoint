@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using SI = LogJoint.Analytics.StateInspector;
+using SI = LogJoint.Postprocessing.StateInspector;
 
 namespace LogJoint.Analytics.Timeline
 {

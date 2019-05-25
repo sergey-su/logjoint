@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public class NullCodepathTracker: ICodepathTracker
 	{

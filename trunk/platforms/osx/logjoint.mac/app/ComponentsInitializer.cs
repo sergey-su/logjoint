@@ -204,14 +204,24 @@ namespace LogJoint.UI
 					threadPoolSynchronizationContext,
 					heartBeatTimer,
 					progressAggregator,
-					globalSettingsAccessor
+					globalSettingsAccessor,
+					new LogJoint.Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess)
 				);
-				
+
+				LogJoint.Postprocessing.IModel postprocessingModel = new LogJoint.Postprocessing.Model(
+                       postprocessorsManager,
+                       timeSeriesTypesAccess,
+                       new LogJoint.Postprocessing.StateInspector.Model(tempFilesManager),
+                       new LogJoint.Postprocessing.Timeline.Model(tempFilesManager),
+                       new LogJoint.Postprocessing.SequenceDiagram.Model(tempFilesManager),
+                       new LogJoint.Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
+               );
+
 				LogJoint.Postprocessing.InternalTracePostprocessors.Register(
 					postprocessorsManager, 
 					userDefinedFormatsManager,
-					tempFilesManager,
-					timeSeriesTypesAccess
+					timeSeriesTypesAccess,
+					postprocessingModel
 				);
 
 				tracer.Info("model creation finished");
@@ -689,8 +699,7 @@ namespace LogJoint.UI
 						logSourcesController,
 						shutdown,
 						webBrowserDownloader,
-						postprocessorsManager,
-						timeSeriesTypesAccess
+						postprocessingModel
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,

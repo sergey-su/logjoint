@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public struct PostprocessorOutputETag
 	{

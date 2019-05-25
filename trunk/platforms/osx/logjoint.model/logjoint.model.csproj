@@ -854,6 +854,45 @@
     <Compile Include="..\..\..\model\change-notification\Subscription.cs">
       <Link>change-notification\Subscription.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\TaskUtils.cs">
+      <Link>generic\TaskUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\Model.cs">
+      <Link>postprocessing\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\sequence\Model.cs">
+      <Link>postprocessing\sequence\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs">
+      <Link>postprocessing\sequence\SequenceDiagramPostprocessorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\Model.cs">
+      <Link>postprocessing\state\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\state\StateInspectorOutput.cs">
+      <Link>postprocessing\state\StateInspectorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\Model.cs">
+      <Link>postprocessing\timeline\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\timeline\TimelinePostprocessorOutput.cs">
+      <Link>postprocessing\timeline\TimelinePostprocessorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\Model.cs">
+      <Link>postprocessing\time-series\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
+      <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\OutputDataDeserializer.cs">
+      <Link>postprocessing\manager\OutputDataDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\Interfaces.cs">
+      <Link>postprocessing\manager\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\EventsSerializationHelpers.cs">
+      <Link>postprocessing\common\EventsSerializationHelpers.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

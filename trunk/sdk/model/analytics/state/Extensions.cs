@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace LogJoint.Analytics.StateInspector
+namespace LogJoint.Postprocessing.StateInspector
 {
 	public static class Extensions
 	{

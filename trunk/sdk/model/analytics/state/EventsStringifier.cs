@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogJoint.Analytics.StateInspector
+namespace LogJoint.Postprocessing.StateInspector
 {
 	internal class EventsStringifier: IEventsVisitor
 	{

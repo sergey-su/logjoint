@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public interface ICodepathTracker
 	{

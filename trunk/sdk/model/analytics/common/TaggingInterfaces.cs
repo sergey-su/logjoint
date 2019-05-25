@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public interface ITagged
 	{

@@ -13,7 +13,7 @@ namespace LogJoint.Postprocessing.StateInspector
 		ILogPartToken RotatedLogPartToken { get; }
 	};
 
-	public interface IInspectedObject
+	public interface IInspectedObject // todo: remove from SDK
 	{
 		IStateInspectorOutputsGroup Owner { get; }
 		string Id { get; }

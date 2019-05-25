@@ -2,7 +2,7 @@
 using System.Xml;
 using System.Xml.Linq;
 
-namespace LogJoint.Analytics
+namespace LogJoint.Postprocessing
 {
 	public static class LogRotationExtensions
 	{
