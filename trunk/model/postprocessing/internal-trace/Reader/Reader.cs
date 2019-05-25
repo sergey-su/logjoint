@@ -12,20 +12,22 @@ namespace LogJoint.Postprocessing.InternalTrace
 	public class Reader : IReader
 	{
 		readonly CancellationToken cancellation;
+		readonly ITextLogParser textLogParser;
 
-		public Reader(CancellationToken cancellation)
+		public Reader(CancellationToken cancellation, ITextLogParser textLogParser)
 		{
 			this.cancellation = cancellation;
+			this.textLogParser = textLogParser;
 		}
 
-		public Reader(): this(CancellationToken.None)
+		public Reader(ITextLogParser textLogParser) : this(CancellationToken.None, textLogParser)
 		{ }
 
 
-		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, string fileNameHint = null, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())
-				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, fileNameHint, cancellation, progressHandler), false);
+				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, textLogParser, cancellation, progressHandler), false);
 		}
 
 		class Context : IDisposable
@@ -46,15 +48,15 @@ namespace LogJoint.Postprocessing.InternalTrace
 			{
 			}
 
-			public async Task Read(IYieldAsync<Message[]> yieldAsync, Func<Stream> getStream, Action<Stream> releaseStream, string fileNameHint, 
+			public async Task Read(IYieldAsync<Message[]> yieldAsync, Func<Stream> getStream, Action<Stream> releaseStream, ITextLogParser textLogParser, 
 				CancellationToken cancellation, Action<double> progressHandler)
 			{
 				var inputStream = getStream();
 				try
 				{
-					await TextLogParser.ParseStream(
+					await textLogParser.ParseStream(
 						inputStream,
-						new RegexHeaderMatcher(logMessageRegex), 
+						textLogParser.CreateRegexHeaderMatcher(logMessageRegex), 
 						async messagesInfo =>
 					{
 						var outMessages = new Message[messagesInfo.Count];
@@ -78,7 +80,7 @@ namespace LogJoint.Postprocessing.InternalTrace
 							return false;
 
 						return await yieldAsync.YieldAsync(outMessages.ToArray());
-					}, progressHandler);
+					}, new TextLogParserOptions(progressHandler));
 				}
 				finally
 				{

@@ -28,7 +28,7 @@ namespace LogJoint.Symphony.SequenceDiagram
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.SequenceDiagram,
-				i => RunForHttpArchive(new SpringServiceLog.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForHttpArchive(new SpringServiceLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 

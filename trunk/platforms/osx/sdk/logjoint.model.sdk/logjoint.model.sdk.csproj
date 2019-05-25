@@ -309,9 +309,6 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\LinqUtils.cs">
       <Link>postprocessing\common\Utils\LinqUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\TextLogParser.cs">
-      <Link>postprocessing\common\Utils\TextLogParser.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\XmlUtils.cs">
       <Link>postprocessing\common\Utils\XmlUtils.cs</Link>
     </Compile>
@@ -356,6 +353,9 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\state\EventsStringifier.cs">
       <Link>postprocessing\state\EventsStringifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\TextLogParsingInterfaces.cs">
+      <Link>postprocessing\common\TextLogParsingInterfaces.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

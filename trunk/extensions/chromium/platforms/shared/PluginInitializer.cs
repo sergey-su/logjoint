@@ -82,7 +82,7 @@ namespace LogJoint.Chromium
 				new WebrtcInternalsDump.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory)
 			);
 			app.Model.PreprocessingManagerExtensionsRegistry.Register(
-				new ChromeDriver.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory)
+				new ChromeDriver.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory, app.Model.Postprocessing.TextLogParser)
 			);
 			app.Model.PreprocessingManagerExtensionsRegistry.Register(
 				new HttpArchive.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.HttpArchive.LogProviderFactory)

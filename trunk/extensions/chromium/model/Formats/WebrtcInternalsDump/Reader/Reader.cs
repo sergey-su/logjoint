@@ -11,16 +11,13 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 {
 	public class Reader : IReader
 	{
-		CancellationToken cancellation;
+		readonly ITextLogParser textLogParser;
+		readonly CancellationToken cancellation;
 
-		public Reader(CancellationToken cancellation)
+		public Reader(ITextLogParser textLogParser, CancellationToken cancellation)
 		{
+			this.textLogParser = textLogParser;
 			this.cancellation = cancellation;
-		}
-
-		public Reader()
-			: this(CancellationToken.None)
-		{
 		}
 
 		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler = null)
@@ -31,7 +28,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())
-				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler), false);
+				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler, textLogParser), false);
 		}
 
 		class Context : IDisposable
@@ -58,21 +55,22 @@ $", regexOptions | RegexOptions.Multiline);
 				IYieldAsync<Message[]> yieldAsync,
 				Func<Stream> getStream, Action<Stream> releaseStream,
 				CancellationToken cancellation,
-				Action<double> progressHandler)
+				Action<double> progressHandler,
+				ITextLogParser textLogParser)
 			{
 				var inputStream = getStream();
 				try
 				{
-					await TextLogParser.ParseStream(
+					await textLogParser.ParseStream(
 						inputStream,
-						new RegexHeaderMatcher(logMessageRegex),
+						textLogParser.CreateRegexHeaderMatcher(logMessageRegex),
 						async messagesInfo =>
 						{
 							var outMessages = new Message[messagesInfo.Count];
 							for (int i = 0; i < messagesInfo.Count; ++i)
 							{
 								var mi = messagesInfo[i];
-								var headerMatch = ((RegexHeaderMatch)mi.HeaderMatch).Match;
+								var headerMatch = ((IRegexHeaderMatch)mi.HeaderMatch).Match;
 								var body = mi.MessageBoby;
 								outMessages[i] = new Message(
 									mi.MessageIndex,
@@ -91,7 +89,7 @@ $", regexOptions | RegexOptions.Multiline);
 								return false;
 
 							return await yieldAsync.YieldAsync(outMessages.ToArray());
-						}, progressHandler);
+						}, new TextLogParserOptions(progressHandler));
 				}
 				finally
 				{

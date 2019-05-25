@@ -1043,6 +1043,9 @@
     <Compile Include="..\..\..\model\postprocessing\common\RegexBuilder.cs">
       <Link>postprocessing\common\RegexBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\TextLogParser.cs">
+      <Link>postprocessing\common\TextLogParser.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

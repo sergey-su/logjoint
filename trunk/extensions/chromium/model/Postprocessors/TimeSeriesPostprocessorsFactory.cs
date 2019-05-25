@@ -29,7 +29,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.TimeSeries,
-				i => RunForWebRtcNativeLogMessages(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForWebRtcNativeLogMessages(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -37,7 +37,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.TimeSeries,
-				i => RunForWebRtcInternalsDump(new DMP.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForWebRtcInternalsDump(new DMP.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -45,7 +45,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.TimeSeries,
-				i => RunForSymphonyRtc(new Sym.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForSymphonyRtc(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -55,7 +55,7 @@ namespace LogJoint.Chromium.TimeSeries
 		)
 		{
 			var inputMultiplexed = input.Multiplex();
-			var symMessages = (new Sym.Reader()).FromChromeDebugLog(inputMultiplexed);
+			var symMessages = (new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None)).FromChromeDebugLog(inputMultiplexed);
 
 			ICombinedParser parser = postprocessing.TimeSeries.CreateParser();
 

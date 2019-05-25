@@ -22,7 +22,7 @@ namespace LogJoint.Chromium.SequenceDiagram
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.SequenceDiagram,
-				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 

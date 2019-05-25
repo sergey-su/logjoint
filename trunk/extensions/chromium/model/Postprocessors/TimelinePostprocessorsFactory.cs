@@ -31,7 +31,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForChromeDriver(new CD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -39,7 +39,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForChromeDebug(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -47,7 +47,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -55,7 +55,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForSymLog(new Sym.Reader(i.CancellationToken).Read(i.LogFileName,i.ProgressHandler), i)
+				i => RunForSymLog(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName,i.ProgressHandler), i)
 			);
 		}
 
@@ -156,7 +156,7 @@ namespace LogJoint.Chromium.Timeline
 
 			var symEvents = RunForSymMessages(
 				matcher,
-				(new Sym.Reader()).FromChromeDebugLog(multiplexedInput),
+				(new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None)).FromChromeDebugLog(multiplexedInput),
 				postprocessorInput.TemplatesTracker,
 				out var symLog
 			);

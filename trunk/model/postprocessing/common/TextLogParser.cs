@@ -7,79 +7,55 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing
 {
-	public interface IHeaderMatch
+	public class TextLogParser: ITextLogParser
 	{
-		int Index { get; }
-		int Length { get; }
-	};
-
-	public interface IHeaderMatcher
-	{
-		unsafe IHeaderMatch Match(char* pBuffer, int length, int startFrom, string buffer);
-	};
-
-	public class TextLogParser // todo: hide behind interfaces
-	{
-		public static async Task ParseStream(
+		async Task ITextLogParser.ParseStream(
 			Stream inputStream,
 			IHeaderMatcher headerMatcher,
 			Func<List<MessageInfo>, Task<bool>> messagesSink,
-			Action<double> progressHandler = null,
-			Flags flags = Flags.None,
-			int rawBufferSize = 1024 * 512
+			TextLogParserOptions options
 		)
 		{
 			inputStream.Position = 0;
 			var totalLen = inputStream.Length;
+			var progressHandler = options.ProgressHandler;
 			if (totalLen == 0)
 				progressHandler = null;
 			int bufferUnderflowThreshold = 1024 * 4;
-			byte[] rawBytesBuffer = new byte[rawBufferSize];
-			char[] rawCharsBuffer = new char[rawBufferSize];
+			byte[] rawBytesBuffer = new byte[options.RawBufferSize];
+			char[] rawCharsBuffer = new char[options.RawBufferSize];
 			var messages = new List<MessageInfo>(5000);
 			var buffer = new SlidingBuffer();
 			int currentMessageIndex = 0;
-			if ((flags & Flags.SkipDoubleBytePeamble) != 0)
+			if ((options.Flags & TextLogParserFlags.SkipDoubleBytePeamble) != 0)
 				await inputStream.ReadAsync(rawBytesBuffer, 0, 2);
 			for (; ; )
 			{
-				int bytesRead = await inputStream.ReadAsync(rawBytesBuffer, 0, rawBufferSize);
+				int bytesRead = await inputStream.ReadAsync(rawBytesBuffer, 0, options.RawBufferSize);
 				if (bytesRead == 0)
 					break;
-				int charsCount = ((flags & Flags.UCS2) == 0) ?
+				int charsCount = ((options.Flags & TextLogParserFlags.UCS2) == 0) ?
 					GetChars(rawBytesBuffer, bytesRead, rawCharsBuffer) :
 					Encoding.Unicode.GetChars(rawBytesBuffer, 0, bytesRead, rawCharsBuffer, 0);
 				buffer.Push(rawCharsBuffer, charsCount);
 				int endOfProcessedTextPosition = HandleBufferContent(headerMatcher, buffer, messages,
-					bufferUnderflowThreshold, ref currentMessageIndex, flags);
+					bufferUnderflowThreshold, ref currentMessageIndex, options.Flags);
 				buffer.Pop(endOfProcessedTextPosition);
 				if (!await messagesSink(messages))
 					break;
 				messages.Clear();
 				progressHandler?.Invoke((double)inputStream.Position / (double)totalLen);
 			}
-			buffer.Pop(HandleBufferContent(headerMatcher, buffer, messages, 0, ref currentMessageIndex, flags));
+			buffer.Pop(HandleBufferContent(headerMatcher, buffer, messages, 0, ref currentMessageIndex, options.Flags));
 			YieldMessage(buffer, buffer.CurrentContent.Length, messages, ref currentMessageIndex);
 			if (messages.Count != 0)
 				await messagesSink(messages);
 		}
 
-		[Flags]
-		public enum Flags
+		IHeaderMatcher ITextLogParser.CreateRegexHeaderMatcher(Regex regex)
 		{
-			None = 0,
-			UCS2 = 1,
-			SkipDoubleBytePeamble = 2
-		};
-
-		public struct MessageInfo
-		{
-			public IHeaderMatch HeaderMatch;
-			public int MessageIndex;
-			public long StreamPosition;
-			public string MessageBoby;
-			public string Buffer;
-		};
+			return new RegexHeaderMatcher(regex);
+		}
 
 		static unsafe int GetChars(byte[] bytes, int byteCount, char[] chars)
 		{
@@ -100,7 +76,7 @@ namespace LogJoint.Postprocessing
 
 		unsafe static int HandleBufferContent(IHeaderMatcher headerMatcher, SlidingBuffer buffer,
 			List<MessageInfo> messages, int bufferUnderflowThreshold, ref int currentMessageIndex,
-			Flags flags)
+			TextLogParserFlags flags)
 		{
 			string content = buffer.CurrentContent;
 			int contentLen = content.Length;
@@ -125,11 +101,11 @@ namespace LogJoint.Postprocessing
 					h.Buffer = content;
 					buffer.CurrentMessageHeader = h;
 
-					if ((flags & Flags.UCS2) != 0)
+					if ((flags & TextLogParserFlags.UCS2) != 0)
 					{
 						int DefaultAlignmentBlockSize = 32 * 1024;
 						var realStreamPos = h.StreamPosition * 2;
-						if ((flags & Flags.SkipDoubleBytePeamble) != 0)
+						if ((flags & TextLogParserFlags.SkipDoubleBytePeamble) != 0)
 							realStreamPos += 2;
 						h.StreamPosition =
 							  (realStreamPos / DefaultAlignmentBlockSize) * DefaultAlignmentBlockSize
@@ -249,7 +225,7 @@ namespace LogJoint.Postprocessing
 		}
 	};
 
-	public class RegexHeaderMatch : IHeaderMatch
+	public class RegexHeaderMatch : IHeaderMatch, IRegexHeaderMatch
 	{
 		readonly Match m;
 

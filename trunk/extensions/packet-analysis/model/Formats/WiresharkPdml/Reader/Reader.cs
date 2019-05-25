@@ -16,16 +16,13 @@ namespace LogJoint.Wireshark.Dpml
 {
 	public class Reader : IReader
 	{
+		readonly ITextLogParser textLogParser;
 		readonly CancellationToken cancellation;
 
-		public Reader(CancellationToken cancellation)
+		public Reader(ITextLogParser textLogParser, CancellationToken cancellation)
 		{
+			this.textLogParser = textLogParser;
 			this.cancellation = cancellation;
-		}
-
-		public Reader()
-			: this(CancellationToken.None)
-		{
 		}
 
 		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler = null)
@@ -36,7 +33,7 @@ namespace LogJoint.Wireshark.Dpml
 		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())
-				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler), false);
+				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler, textLogParser), false);
 		}
 
 		class Context : IDisposable
@@ -53,14 +50,15 @@ namespace LogJoint.Wireshark.Dpml
 				IYieldAsync<Message[]> yieldAsync,
 				Func<Stream> getStream, Action<Stream> releaseStream,
 				CancellationToken cancellation,
-				Action<double> progressHandler)
+				Action<double> progressHandler,
+				ITextLogParser textLogParser)
 			{
 				var inputStream = getStream();
 				try
 				{
-					await TextLogParser.ParseStream(
+					await textLogParser.ParseStream(
 						inputStream,
-						new RegexHeaderMatcher(logMessageRegex),
+						textLogParser.CreateRegexHeaderMatcher(logMessageRegex),
 						async messagesInfo =>
 						{
 							var outMessages = new List<Message>();
@@ -133,7 +131,10 @@ namespace LogJoint.Wireshark.Dpml
 								return false;
 
 							return await yieldAsync.YieldAsync(outMessages.ToArray());
-						}, progressHandler, rawBufferSize: 16 * 1024 * 1024);
+						}, new TextLogParserOptions(progressHandler)
+						{
+							RawBufferSize = 16 * 1024 * 1024
+						});
 				}
 				finally
 				{

@@ -65,7 +65,7 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.ChromeDebugLog.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new CDL.Reader(inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						var reader = (new CDL.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
 						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("chrome-debug", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = CDL.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
@@ -91,7 +91,7 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.WebRtcInternalsDump.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new WRD.Reader(inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						var reader = (new WRD.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
 						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("webrtc-int", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = WRD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
@@ -116,7 +116,7 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.ChromeDriver.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new CD.Reader(inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						var reader = (new CD.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
 						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("webrtc-int", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = CD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();

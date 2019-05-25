@@ -5,6 +5,7 @@ using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
 using Sym = LogJoint.Symphony.Rtc;
 using LogJoint.Postprocessing.StateInspector;
+using System.Threading;
 
 namespace LogJoint.Chromium.StateInspector
 {
@@ -32,7 +33,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.StateInspector,
-				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForChromeDebug(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -40,7 +41,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.StateInspector,
-				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForWebRTCDump(new WRD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -48,7 +49,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.StateInspector,
-				i => RunForSymRTC(new Sym.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForSymRTC(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -79,7 +80,7 @@ namespace LogJoint.Chromium.StateInspector
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
 			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
-			var symMessages = Sym.Helpers.MatchPrefixes((new Sym.Reader()).FromChromeDebugLog(inputMultiplexed), matcher).Multiplex();
+			var symMessages = Sym.Helpers.MatchPrefixes((new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None)).FromChromeDebugLog(inputMultiplexed), matcher).Multiplex();
 
 			var symMeetingEvents = symMeetingsStateInspector.GetEvents(symMessages);
 			var symMediaEvents = symMediaStateInspector.GetEvents(symMessages);

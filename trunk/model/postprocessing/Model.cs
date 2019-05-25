@@ -3,6 +3,8 @@ namespace LogJoint.Postprocessing
 {
 	public class Model : IModel
 	{
+		readonly ITextLogParser textLogParser = new TextLogParser();
+
 		public Model(
 			IPostprocessorsManager postprocessorsManager,
 			TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes,
@@ -39,9 +41,8 @@ namespace LogJoint.Postprocessing
 				Correlation.SolverFactory.Create());
 		}
 
-		IPrefixMatcher IModel.CreatePrefixMatcher()
-		{
-			return new PrefixMatcher();
-		}
+		IPrefixMatcher IModel.CreatePrefixMatcher() => new PrefixMatcher();
+
+		ITextLogParser IModel.TextLogParser => textLogParser;
 	}
 }

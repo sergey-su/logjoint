@@ -27,7 +27,7 @@ namespace LogJoint.PacketAnalysis.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorKind.Timeline,
-				i => RunForWiresharkDpmlMessages(new Pdml.Reader(i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForWiresharkDpmlMessages(new Pdml.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 

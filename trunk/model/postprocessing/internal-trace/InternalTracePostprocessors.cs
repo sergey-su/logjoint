@@ -38,8 +38,8 @@ namespace LogJoint.Postprocessing
 			LogSourcePostprocessorInput input, IModel postprocessingModel)
 		{
 			string outputFileName = input.OutputFileName;
-			var logProducer = LJT.Extensions.Read(new LJT.Reader(), input.LogFileName,
-				null, input.ProgressHandler).Multiplex();
+			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
+				input.ProgressHandler).Multiplex();
 
 			var profilingEvents = (new LJT.ProfilingTimelineEventsSource()).GetEvents(logProducer);
 
@@ -63,8 +63,8 @@ namespace LogJoint.Postprocessing
 		)
 		{
 			string outputFileName = input.OutputFileName;
-			var logProducer = LJT.Extensions.Read(new LJT.Reader(), input.LogFileName,
-				null, input.ProgressHandler).Multiplex();
+			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
+				input.ProgressHandler).Multiplex();
 
 			ICombinedParser parser = postprocessingModel.TimeSeries.CreateParser();
 
