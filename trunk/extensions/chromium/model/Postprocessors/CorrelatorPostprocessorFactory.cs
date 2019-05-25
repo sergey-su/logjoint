@@ -33,7 +33,7 @@ namespace LogJoint.Chromium.Correlator
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.Correlator,
 				inputFiles => Run(inputFiles, postprocessorsRegistry)
 			);
@@ -202,7 +202,7 @@ namespace LogJoint.Chromium.Correlator
 					NodeSolution sln;
 					if (timeOffsets.TryGetValue(ls, out sln))
 					{
-						ITimeOffsetsBuilder builder = new TimeOffsets.Builder();
+						ITimeOffsetsBuilder builder = ljModel.SourcesManager.CreateTimeOffsetsBuilder();
 						builder.SetBaseOffset(sln.BaseDelta);
 						if (sln.TimeDeltas != null)
 							foreach (var d in sln.TimeDeltas)

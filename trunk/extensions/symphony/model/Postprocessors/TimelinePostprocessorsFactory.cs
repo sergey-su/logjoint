@@ -26,7 +26,7 @@ namespace LogJoint.Symphony.Timeline
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSpringServiceLogPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				i => RunForSpringServiceLog(new SVC.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(
 					i.LogFileName, i.ProgressHandler),

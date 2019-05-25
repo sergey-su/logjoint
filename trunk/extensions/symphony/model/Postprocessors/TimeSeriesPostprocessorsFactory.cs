@@ -13,11 +13,8 @@ namespace LogJoint.Symphony.TimeSeries
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly ITimeSeriesTypesAccess timeSeriesTypesAccess;
-
-		public PostprocessorsFactory(ITimeSeriesTypesAccess timeSeriesTypesAccess)
+		public PostprocessorsFactory()
 		{
-			this.timeSeriesTypesAccess = timeSeriesTypesAccess;
 		}
 	};
 }

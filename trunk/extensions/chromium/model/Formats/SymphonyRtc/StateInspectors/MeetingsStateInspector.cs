@@ -36,9 +36,9 @@ namespace LogJoint.Symphony.Rtc
 		public static ObjectTypeInfo ProbeSessionTypeInfo { get { return psessionTypeInfo; } }
 		public static ObjectTypeInfo InvitationTypeInfo { get { return invitationTypeInfo; } }
 
-		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool ShouldBePresentedCollapsed(Event stateInspectorSelectedNode)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = stateInspectorSelectedNode?.ObjectType?.TypeName;
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 

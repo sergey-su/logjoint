@@ -11,7 +11,7 @@ namespace LogJoint.Symphony
 				app.Model.Postprocessing.Manager, 
 				app.Model.UserDefinedFormatsManager, 
 				new Symphony.StateInspector.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
-				new Symphony.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeries.TimeSeriesTypes),
+				new Symphony.TimeSeries.PostprocessorsFactory(),
 				new Symphony.Correlator.PostprocessorsFactory(app.Model),
 				new Symphony.Timeline.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
 				new Symphony.SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)

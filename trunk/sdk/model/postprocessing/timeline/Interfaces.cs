@@ -12,7 +12,21 @@ namespace LogJoint.Postprocessing.Timeline
 			Func<object, TextLogEventTrigger> triggersConverter,
 			LogSourcePostprocessorInput postprocessorInput
 		);
+		IEndOfTimelineEventSource<Message> CreateEndOfTimelineEventSource<Message>(
+			Func<Message, object> triggetSelector = null);
+		IInspectedObjectsLifetimeEventsSource CreateInspectedObjectsLifetimeEventsSource(
+			Predicate<StateInspector.Event> inspectedObjectsFilter = null);
 	};
+
+	public interface IEndOfTimelineEventSource<Message>
+	{
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<Message[]> input);
+	}
+
+	public interface IInspectedObjectsLifetimeEventsSource
+	{
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<StateInspector.Event[]> input);
+	}
 
 	public abstract class Event: ITagged, IVisitable<IEventsVisitor>
 	{

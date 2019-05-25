@@ -53,6 +53,7 @@ namespace LogJoint
 		IEnumerable<ILogSource> Items { get; }
 		ILogSource Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
+		ITimeOffsetsBuilder CreateTimeOffsetsBuilder();
 
 		void Refresh();
 

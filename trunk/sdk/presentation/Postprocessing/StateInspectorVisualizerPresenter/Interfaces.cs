@@ -11,9 +11,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 	public interface IPresenter
 	{
 		bool IsObjectEventPresented(ILogSource source, TextLogEventTrigger eventTrigger);
-		bool TrySelectObject(ILogSource source, TextLogEventTrigger objectEvent, Func<IInspectedObject, int> disambiguationFunction);
+		bool TrySelectObject(ILogSource source, TextLogEventTrigger objectEvent, Func<IVisualizerNode, int> disambiguationFunction);
 		void Show();
-		IInspectedObject SelectedObject { get; }
+		IVisualizerNode SelectedObject { get; }
 		event EventHandler<MenuData> OnMenu;
 		event EventHandler<NodeCreatedEventArgs> OnNodeCreated;
 	};
@@ -30,8 +30,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 	public class NodeCreatedEventArgs
 	{
-		public IInspectedObject NodeObject { get; internal set; }
+		public IVisualizerNode NodeObject { get; internal set; }
 		public bool? CreateCollapsed { get; set; }
 		public bool? CreateLazilyLoaded { get; set; }
+	};
+
+	public interface IVisualizerNode
+	{
+		string Id { get; }
+		Event CreationEvent { get; }
+		IVisualizerNode Parent { get; }
+		bool BelongsToSource(ILogSource logSource);
 	};
 }

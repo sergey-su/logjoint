@@ -29,5 +29,18 @@ namespace LogJoint.Postprocessing.Timeline
 				postprocessorInput.CancellationToken
 			);
 		}
+
+		IEndOfTimelineEventSource<Message> IModel.CreateEndOfTimelineEventSource<Message>(
+			Func<Message, object> triggetSelector)
+		{
+			return new GenericEndOfTimelineEventSource<Message>(triggetSelector);
+		}
+
+		IInspectedObjectsLifetimeEventsSource IModel.CreateInspectedObjectsLifetimeEventsSource(
+			Predicate<StateInspector.Event> inspectedObjectsFilter)
+		{
+			return new InspectedObjectsLifetimeEventsSource(inspectedObjectsFilter);
+		}
+
 	};
 }

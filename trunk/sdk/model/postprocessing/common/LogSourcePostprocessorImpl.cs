@@ -6,12 +6,12 @@ using System.Xml;
 
 namespace LogJoint.Postprocessing
 {
-	public class LogSourcePostprocessorImpl : ILogSourcePostprocessor // todo: should this class be in SDK?
+	public class LogSourcePostprocessor : ILogSourcePostprocessor
 	{
 		readonly PostprocessorKind kind;
 		readonly Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run;
 
-		public LogSourcePostprocessorImpl(
+		public LogSourcePostprocessor(
 			PostprocessorKind kind,
 			Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run
 		)
@@ -20,14 +20,14 @@ namespace LogJoint.Postprocessing
 			this.run = run;
 		}
 
-		public LogSourcePostprocessorImpl(
+		public LogSourcePostprocessor(
 			PostprocessorKind kind,
 			Func<LogSourcePostprocessorInput, Task> run
 		): this(kind, MakeRunAdapter(run))
 		{
 		}
 
-		public LogSourcePostprocessorImpl(
+		public LogSourcePostprocessor(
 			PostprocessorKind kind,
 			Func<LogSourcePostprocessorInput, Task<IPostprocessorRunSummary>> run
 		): this(kind, MakeRunAdapter(run))

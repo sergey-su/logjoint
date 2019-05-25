@@ -20,7 +20,7 @@ namespace LogJoint.Chromium.SequenceDiagram
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateHttpArchivePostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
 				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);

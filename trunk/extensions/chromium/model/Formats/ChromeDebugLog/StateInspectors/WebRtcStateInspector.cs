@@ -49,19 +49,19 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			get { return candidateTypeInfo; }
 		}
 
-		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool ShouldBePresentedCollapsed(Event creationEvent, string id, string parentId)
 		{
-			if (obj.Id == portsRootObjectId && obj.Parent?.Id == rootObjectId)
+			if (id == portsRootObjectId && parentId == rootObjectId)
 				return true;
-			var typeName = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
-			if (typeName == streamTypeInfo.TypeName && obj.Parent?.Id == streamsRootObjectId)
+			var typeName = creationEvent?.ObjectType?.TypeName;
+			if (typeName == streamTypeInfo.TypeName && parentId == streamsRootObjectId)
 				return true;
 			return false;
 		}
 
-		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool HasTimeSeries(Event creationEvent)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = creationEvent?.ObjectType?.TypeName;
 			return objectType == streamTypeInfo.TypeName;
 		}
 

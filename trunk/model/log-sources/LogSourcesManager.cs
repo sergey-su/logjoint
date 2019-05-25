@@ -72,6 +72,11 @@ namespace LogJoint
 			}
 		}
 
+		ITimeOffsetsBuilder ILogSourcesManager.CreateTimeOffsetsBuilder()
+		{
+			return new TimeOffsets.Builder();
+		}
+
 		List<ILogSource> ILogSourcesManagerInternal.Container { get { return logSources; }}
 
 		void ILogSourcesManagerInternal.FireOnLogSourceAdded(ILogSource sender)

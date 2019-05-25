@@ -2,8 +2,7 @@
 
 namespace LogJoint.Postprocessing.Timeline
 {
-	// todo: remove from sdk
-	public class GenericEndOfTimelineEventSource<Message>
+	public class GenericEndOfTimelineEventSource<Message>: IEndOfTimelineEventSource<Message>
 	{
 		public GenericEndOfTimelineEventSource(Func<Message, object> triggetSelector = null)
 		{

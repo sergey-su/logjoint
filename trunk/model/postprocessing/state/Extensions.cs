@@ -34,5 +34,15 @@ namespace LogJoint.Postprocessing.StateInspector
 				obj = p;
 			}
 		}
+
+		public static ILogSource GetPrimarySource(this IInspectedObject obj)
+		{
+			if (obj.CreationEvent != null)
+				return obj.CreationEvent.Output.LogSource;
+			var firstHistoryEvt = obj.StateChangeHistory.Select(h => h.Output.LogSource).FirstOrDefault();
+			if (firstHistoryEvt != null)
+				return firstHistoryEvt;
+			return obj.Owner.Outputs.Select(x => x.LogSource).FirstOrDefault();
+		}
 	};
 }

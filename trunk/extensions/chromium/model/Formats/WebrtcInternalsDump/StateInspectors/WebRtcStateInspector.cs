@@ -23,15 +23,15 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		{
 		}
 
-		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool ShouldBePresentedCollapsed(Event creationEvent)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = creationEvent?.ObjectType?.TypeName;
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 
-		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool HasTimeSeries(Event creationEvent)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = creationEvent?.ObjectType?.TypeName;
 			return objectType == ssrcTypeInfo.TypeName || objectType == connectionTypeInfo.TypeName;
 		}
 

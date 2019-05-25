@@ -29,7 +29,7 @@ namespace LogJoint.Chromium.Timeline
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDriverPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				i => RunForChromeDriver(new CD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
@@ -37,7 +37,7 @@ namespace LogJoint.Chromium.Timeline
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				i => RunForChromeDebug(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
@@ -45,7 +45,7 @@ namespace LogJoint.Chromium.Timeline
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateHttpArchivePostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
@@ -53,7 +53,7 @@ namespace LogJoint.Chromium.Timeline
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymRtcPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				i => RunForSymLog(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName,i.ProgressHandler), i)
 			);
@@ -80,7 +80,7 @@ namespace LogJoint.Chromium.Timeline
 
 			CD.ITimelineEvents networkEvents = new CD.TimelineEvents(matcher);
 			Sym.ICITimelineEvents symCIEvents = new Sym.CITimelineEvents(matcher);
-			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<CD.MessagePrefixesPair>(m => m.Message);
+			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<CD.MessagePrefixesPair>(m => m.Message);
 
 			var networkEvts = networkEvents.GetEvents(logMessages);
 			var eofEvts = endOfTimelineEventSource.GetEvents(logMessages);
@@ -104,7 +104,7 @@ namespace LogJoint.Chromium.Timeline
 			await Task.WhenAll(serialize, logMessages.Open());
 		}
 
-		private static IEnumerableAsync<Event[]> RunForSymMessages(
+		private IEnumerableAsync<Event[]> RunForSymMessages(
 			IPrefixMatcher matcher,
 			IEnumerableAsync<Sym.Message[]> messages,
 			ICodepathTracker templatesTracker,
@@ -120,20 +120,20 @@ namespace LogJoint.Chromium.Timeline
 			var symMeetingStateEvents = symMeetingsStateInspector.GetEvents(symLog);
 			var symMediaStateEvents = symMediaStateInsector.GetEvents(symLog);
 
-			var symMeetingEvents = (new InspectedObjectsLifetimeEventsSource(e =>
+			var symMeetingEvents = postprocessing.Timeline.CreateInspectedObjectsLifetimeEventsSource(e =>
 			    e.ObjectType == Sym.MeetingsStateInspector.MeetingTypeInfo
 			 || e.ObjectType == Sym.MeetingsStateInspector.MeetingSessionTypeInfo
 			 || e.ObjectType == Sym.MeetingsStateInspector.MeetingRemoteParticipantTypeInfo
 			 || e.ObjectType == Sym.MeetingsStateInspector.ProbeSessionTypeInfo
 			 || e.ObjectType == Sym.MeetingsStateInspector.InvitationTypeInfo
-			)).GetEvents(symMeetingStateEvents);
+			).GetEvents(symMeetingStateEvents);
 
-			var symMediaEvents = (new InspectedObjectsLifetimeEventsSource(e =>
+			var symMediaEvents = postprocessing.Timeline.CreateInspectedObjectsLifetimeEventsSource(e =>
 			   	e.ObjectType == Sym.MediaStateInspector.LocalScreenTypeInfo
 			 || e.ObjectType == Sym.MediaStateInspector.LocalAudioTypeInfo
 			 || e.ObjectType == Sym.MediaStateInspector.LocalVideoTypeInfo
 			 || e.ObjectType == Sym.MediaStateInspector.TestSessionTypeInfo
-			)).GetEvents(symMediaStateEvents);
+			).GetEvents(symMediaStateEvents);
 
 			var events = TrackTemplates(EnumerableAsync.Merge(
 				symMeetingEvents,
@@ -206,7 +206,7 @@ namespace LogJoint.Chromium.Timeline
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var inputMultiplexed = input.Multiplex();
 			var symEvents = RunForSymMessages(matcher, inputMultiplexed, postprocessorInput.TemplatesTracker, out var symLog);
-			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<Sym.Message>();
+			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<Sym.Message>();
 			var eofEvts = endOfTimelineEventSource.GetEvents(inputMultiplexed);
 
 			matcher.Freeze();

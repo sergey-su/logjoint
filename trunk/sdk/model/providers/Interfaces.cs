@@ -285,7 +285,7 @@ namespace LogJoint
 	/// Log provider supports this interface if it allows
 	/// saving the log to a file
 	/// </summary>
-	public interface ISaveAs // todo: remove
+	public interface ISaveAs
 	{
 		bool IsSavableAs { get; }
 		string SuggestedFileName { get; }

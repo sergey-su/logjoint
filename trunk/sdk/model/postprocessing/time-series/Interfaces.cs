@@ -3,33 +3,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {
 	public interface IModel
 	{
+		void RegisterTimeSeriesTypesAssembly(Assembly asm);
 		ICombinedParser CreateParser();
 		Task SavePostprocessorOutput(
 			ICombinedParser parser,
 			LogSourcePostprocessorInput postprocessorInput
 		);
-		ITimeSeriesTypesAccess TimeSeriesTypes { get; }
-	};
-
-	/// <summary>
-	/// Encapsulates loading and updating of time-series metadata
-	/// </summary>
-	public interface ITimeSeriesTypesAccess // todo: split to API and private part
-	{
-		void RegisterTimeSeriesTypesAssembly(Assembly asm);
-		void CheckForCustomConfigUpdate();
-		IEnumerable<Type> GetMetadataTypes();
-		XmlSerializer GetEventsSerializer();
-		XmlSerializer GetSeriesSerializer();
-		string UserDefinedParserConfigPath { get; }
-		string CustomConfigLoadingError { get; }
-		string CustomConfigEnvVar { get; set; }
 	};
 
 	/// <summary>

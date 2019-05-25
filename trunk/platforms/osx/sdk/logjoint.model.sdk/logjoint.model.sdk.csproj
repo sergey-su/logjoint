@@ -162,9 +162,6 @@
     <Compile Include="..\..\..\..\sdk\model\change-notification\Interfaces.cs">
       <Link>change-notification\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\generic\TimeOffsets.cs">
-      <Link>generic\TimeOffsets.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\TimeUtils.cs">
       <Link>generic\TimeUtils.cs</Link>
     </Compile>
@@ -222,20 +219,8 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\state\Extensions.cs">
       <Link>postprocessing\state\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\FocusedMessageEventsRange.cs">
-      <Link>postprocessing\state\FocusedMessageEventsRange.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\FocusedMessageInfo.cs">
-      <Link>postprocessing\state\FocusedMessageInfo.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\state\Interfaces.cs">
       <Link>postprocessing\state\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\PropertyViews.cs">
-      <Link>postprocessing\state\PropertyViews.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\state\StateInspectorEvent.cs">
-      <Link>postprocessing\state\StateInspectorEvent.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\time-series\Interfaces.cs">
       <Link>postprocessing\time-series\Interfaces.cs</Link>
@@ -306,9 +291,6 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\LinqUtils.cs">
       <Link>postprocessing\common\Utils\LinqUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\Utils\XmlUtils.cs">
-      <Link>postprocessing\common\Utils\XmlUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\correlator\NullNodeDetectionToken.cs">
       <Link>postprocessing\correlator\NullNodeDetectionToken.cs</Link>
     </Compile>
@@ -332,12 +314,6 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\EventsStringifier.cs">
       <Link>postprocessing\timeline\EventsStringifier.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\GenericEndOfTimelineEventSource.cs">
-      <Link>postprocessing\timeline\GenericEndOfTimelineEventSource.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\InspectedObjectsLifetimeEventsSource.cs">
-      <Link>postprocessing\timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Interfaces.cs">
       <Link>postprocessing\timeline\Interfaces.cs</Link>

@@ -8,6 +8,20 @@ using TSBlocks = LogJoint.Postprocessing.TimeSeries;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {
+	/// <summary>
+	/// Encapsulates loading and updating of time-series metadata
+	/// </summary>
+	public interface ITimeSeriesTypesAccess
+	{
+		void RegisterTimeSeriesTypesAssembly(Assembly asm);
+		void CheckForCustomConfigUpdate();
+		IEnumerable<Type> GetMetadataTypes();
+		XmlSerializer GetEventsSerializer();
+		XmlSerializer GetSeriesSerializer();
+		string UserDefinedParserConfigPath { get; }
+		string CustomConfigLoadingError { get; }
+		string CustomConfigEnvVar { get; set; }
+	};
 
 	public interface ITimeSeriesPostprocessorOutput
 	{

@@ -25,7 +25,7 @@ namespace LogJoint.PacketAnalysis.Timeline
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWiresharkDpmlPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				i => RunForWiresharkDpmlMessages(new Pdml.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
@@ -38,7 +38,7 @@ namespace LogJoint.PacketAnalysis.Timeline
 		{
 			var logMessages = input.Multiplex();
 			Pdml.ITimelineEvents networkEvents = new Pdml.TimelineEvents();
-			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<Pdml.Message>();
+			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<Pdml.Message>();
 
 			var networkEvts = networkEvents.GetEvents(logMessages);
 			var eofEvts = endOfTimelineEventSource.GetEvents(logMessages);

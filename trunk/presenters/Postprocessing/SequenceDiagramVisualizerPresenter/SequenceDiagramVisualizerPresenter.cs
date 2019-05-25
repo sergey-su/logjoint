@@ -1594,7 +1594,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				}
 				else
 				{
-					Func<LogJoint.Postprocessing.StateInspector.IInspectedObject, int> disambiguationFunction = io =>
+					Func<StateInspectorVisualizer.IVisualizerNode, int> disambiguationFunction = io =>
 						triggerData.StateInspectorChange.ObjectId.Contains(io.Id) ? 1 : 0;
 					if (stateInspectorPresenter.TrySelectObject(triggerData.Source, triggerData.Trigger, disambiguationFunction))
 						stateInspectorPresenter.Show();

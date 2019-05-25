@@ -30,6 +30,9 @@ namespace LogJoint.Postprocessing.TimeSeries
 			return Task.FromResult(0);
 		}
 
-		ITimeSeriesTypesAccess IModel.TimeSeriesTypes => timeSeriesTypesAccess;
+		void IModel.RegisterTimeSeriesTypesAssembly(System.Reflection.Assembly asm)
+		{
+			timeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(asm);
+		}
 	};
 }

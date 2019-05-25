@@ -36,15 +36,15 @@ namespace LogJoint.Symphony.Rtc
 		public static ObjectTypeInfo LocalVideoTypeInfo { get { return localVideoObjectType; } }
 		public static ObjectTypeInfo TestSessionTypeInfo { get { return testSessionObjectType; } }
 
-		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool HasTimeSeries(Event stateInspectorSelectedNode)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = stateInspectorSelectedNode?.ObjectType?.TypeName;
 			return objectType == webRtcStatsObjectObjectType.TypeName;
 		}
 
-		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		public static bool ShouldBePresentedCollapsed(Event stateInspectorSelectedNode)
 		{
-			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			var objectType = stateInspectorSelectedNode?.ObjectType?.TypeName;
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 

@@ -18,11 +18,11 @@ namespace LogJoint.Postprocessing
 			var fac = userDefinedFormatsManager.Items.FirstOrDefault(f => f.FormatName == "LogJoint debug trace") as UDF;
 			if (fac == null)
 				return;
-			var timeline = new LogSourcePostprocessorImpl(
+			var timeline = new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				input => RunTimelinePostprocessor(input, postprocessingModel)
 			);
-			var timeSeries = new LogSourcePostprocessorImpl(
+			var timeSeries = new LogSourcePostprocessor(
 				PostprocessorKind.TimeSeries,
 				input => RunTimeSeriesPostprocessor(input, postprocessingModel)
 			);

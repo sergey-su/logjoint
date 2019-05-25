@@ -138,5 +138,89 @@ namespace LogJoint.Postprocessing
 			}
 			return false;
 		}
+
+		public static CorrelatorStateSummary GetCorrelatorStateSummary(this IPostprocessorsManager postprocessorsManager)
+		{
+			var correlationOutputs =
+				postprocessorsManager
+					.LogSourcePostprocessorsOutputs
+					.Where(output => output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
+					.ToArray();
+			if (correlationOutputs.Length < 2)
+			{
+				return new CorrelatorStateSummary() { Status = CorrelatorStateSummary.StatusCode.PostprocessingUnavailable };
+			}
+			var correlatableLogsIds = postprocessorsManager.GetCorrelatableLogsConnectionIds();
+			int numMissingOutput = 0;
+			int numProgressing = 0;
+			int numFailed = 0;
+			int numCorrelationContextMismatches = 0;
+			int numCorrelationResultMismatches = 0;
+			double? progress = null;
+			foreach (var i in correlationOutputs)
+			{
+				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.InProgress)
+				{
+					numProgressing++;
+					if (progress == null && i.Progress != null)
+						progress = i.Progress;
+				}
+				var typedOutput = i.OutputData as ICorrelatorPostprocessorOutput;
+				if (typedOutput == null)
+				{
+					++numMissingOutput;
+				}
+				else
+				{
+					if (!typedOutput.CorrelatedLogsConnectionIds.IsSupersetOf(correlatableLogsIds))
+						++numCorrelationContextMismatches;
+					var actualOffsets = i.LogSource.IsDisposed ? TimeOffsets.Empty : i.LogSource.Provider.TimeOffsets;
+					if (typedOutput.Solution.BaseDelta != actualOffsets.BaseOffset)
+						++numCorrelationResultMismatches;
+				}
+				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.Failed)
+				{
+					++numFailed;
+				}
+			}
+			if (numProgressing != 0)
+			{
+				return new CorrelatorStateSummary()
+				{
+					Status = CorrelatorStateSummary.StatusCode.ProcessingInProgress,
+					Progress = progress
+				};
+			}
+			IPostprocessorRunSummary reportObject = correlationOutputs.First().LastRunSummary;
+			string report = reportObject != null ? reportObject.Report : null;
+			if (numMissingOutput != 0 || numCorrelationContextMismatches != 0 || numCorrelationResultMismatches != 0)
+			{
+				if (reportObject != null && reportObject.HasErrors)
+				{
+					return new CorrelatorStateSummary()
+					{
+						Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
+						Report = report
+					};
+				}
+				return new CorrelatorStateSummary()
+				{
+					Status = CorrelatorStateSummary.StatusCode.NeedsProcessing
+				};
+			}
+			if (numFailed != 0)
+			{
+				return new CorrelatorStateSummary()
+				{
+					Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
+					Report = report
+				};
+			}
+			return new CorrelatorStateSummary()
+			{
+				Status = CorrelatorStateSummary.StatusCode.Processed,
+				Report = report
+			};
+		}
 	};
 }

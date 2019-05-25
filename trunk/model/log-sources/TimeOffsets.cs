@@ -6,7 +6,6 @@ using System.Text;
 
 namespace LogJoint
 {
-	// todo: move next to sources
 	public class TimeOffsets : ITimeOffsets, IEquatable<ITimeOffsets>
 	{
 		public class Builder : ITimeOffsetsBuilder

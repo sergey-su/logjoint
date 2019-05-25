@@ -26,7 +26,7 @@ namespace LogJoint.Symphony.SequenceDiagram
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSpringServiceLogPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
 				i => RunForHttpArchive(new SpringServiceLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);

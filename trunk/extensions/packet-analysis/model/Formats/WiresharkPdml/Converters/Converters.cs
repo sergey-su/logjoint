@@ -9,6 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using LogJoint.Postprocessing;
 using LogJoint.PacketAnalysis;
+using System.Collections.Generic;
 
 namespace LogJoint.Wireshark.Dpml
 {
@@ -117,7 +118,7 @@ namespace LogJoint.Wireshark.Dpml
 
 			var producer = Task.Factory.StartNew(() => 
 			{
-				foreach (var packet in xmlReader.ReadChildrenElements())
+				foreach (var packet in ReadChildrenElements(xmlReader))
 				{
 					queue.Add(packet);
 					if (cancellation.IsCancellationRequested)
@@ -175,5 +176,25 @@ namespace LogJoint.Wireshark.Dpml
 
 			await Task.WhenAll(producer, consumer);
 		}
+
+		public static IEnumerable<XElement> ReadChildrenElements(XmlReader inputReader)
+		{
+			var reader = XmlReader.Create(inputReader, new XmlReaderSettings
+			{
+				IgnoreWhitespace = true,
+				IgnoreComments = true
+			});
+			if (reader.NodeType != XmlNodeType.Element)
+			{
+				throw new InvalidOperationException("can not read children of non-element " + reader.NodeType.ToString());
+			}
+			reader.ReadStartElement();
+			for (; reader.Read() && reader.NodeType == XmlNodeType.Element;)
+			{
+				using (var elementReader = reader.ReadSubtree())
+					yield return XElement.Load(elementReader);
+			}
+		}
+
 	};
 }

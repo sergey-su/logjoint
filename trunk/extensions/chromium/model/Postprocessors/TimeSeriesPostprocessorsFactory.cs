@@ -27,7 +27,7 @@ namespace LogJoint.Chromium.TimeSeries
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.TimeSeries,
 				i => RunForWebRtcNativeLogMessages(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
@@ -35,7 +35,7 @@ namespace LogJoint.Chromium.TimeSeries
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.TimeSeries,
 				i => RunForWebRtcInternalsDump(new DMP.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
@@ -43,7 +43,7 @@ namespace LogJoint.Chromium.TimeSeries
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
 		{
-			return new LogSourcePostprocessorImpl(
+			return new LogSourcePostprocessor(
 				PostprocessorKind.TimeSeries,
 				i => RunForSymphonyRtc(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
