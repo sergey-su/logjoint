@@ -189,9 +189,6 @@
     <Compile Include="..\..\..\..\sdk\model\generic\PriorityQueue.cs">
       <Link>generic\PriorityQueue.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\generic\RangeUtils.cs">
-      <Link>generic\RangeUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\StringSlice.cs">
       <Link>generic\StringSlice.cs</Link>
     </Compile>
@@ -356,6 +353,12 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\TextLogParsingInterfaces.cs">
       <Link>postprocessing\common\TextLogParsingInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\temp-files\Extensions.cs">
+      <Link>temp-files\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\RangeUtils.cs">
+      <Link>generic\RangeUtils.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

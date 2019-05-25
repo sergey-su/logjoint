@@ -12,7 +12,7 @@ namespace LogJoint.PacketAnalysis
 		)
 		{
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
-				app.Model.Postprocessing.PostprocessorsManager, 
+				app.Model.Postprocessing.Manager, 
 				app.Model.UserDefinedFormatsManager, 
 				new Timeline.PostprocessorsFactory(app.Model.Postprocessing)
 			);

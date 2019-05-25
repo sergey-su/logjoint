@@ -10,7 +10,7 @@ namespace LogJoint.Chromium
 			app.Model.Postprocessing.TimeSeries.TimeSeriesTypes.RegisterTimeSeriesTypesAssembly(typeof(Chromium.TimeSeries.PostprocessorsFactory).Assembly);
 
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
-				app.Model.Postprocessing.PostprocessorsManager, 
+				app.Model.Postprocessing.Manager, 
 				app.Model.UserDefinedFormatsManager, 
 				new Chromium.StateInspector.PostprocessorsFactory(app.Model.TempFilesManager, app.Model.Postprocessing),
 				new Chromium.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing),

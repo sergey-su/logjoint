@@ -259,52 +259,5 @@ namespace LogJoint
 			for (int i = beginIdx; i > endIdx; --i)
 				yield return list[i];
 		}
-
-		static void TestBound(int value, ValueBound bound, int expectedIdx)
-		{
-			List<int> lst = new List<int>(new int[] {0, 2, 2, 2, 3, 5, 7, 8, 8, 10 });
-			int actual = GetBound(lst, value, bound, Comparer<int>.Default);
-			System.Diagnostics.Debug.Assert(actual == expectedIdx);
-		}
-
-		static void TestLowerBound()
-		{
-			TestBound(2, ValueBound.Lower, 1);
-			TestBound(1, ValueBound.Lower, 1);
-			TestBound(-2, ValueBound.Lower, 0);
-			TestBound(20, ValueBound.Lower, 10);
-		}
-
-		static void TestUpperBound()
-		{
-			TestBound(2, ValueBound.Upper, 4);
-			TestBound(1, ValueBound.Upper, 1);
-			TestBound(-2, ValueBound.Upper, 0);
-			TestBound(20, ValueBound.Upper, 10);
-		}
-
-		static void TestLowerRevBound()
-		{
-			TestBound(2, ValueBound.LowerReversed, 3);
-			TestBound(1, ValueBound.LowerReversed, 0);
-			TestBound(-2, ValueBound.LowerReversed, -1);
-			TestBound(20, ValueBound.LowerReversed, 9);
-		}
-
-		static void TestUpperRevBound()
-		{
-			TestBound(2, ValueBound.UpperReversed, 0);
-			TestBound(1, ValueBound.UpperReversed, 0);
-			TestBound(-2, ValueBound.UpperReversed, -1);
-			TestBound(20, ValueBound.UpperReversed, 9);
-		}
-
-		public static void Tests() // todo: move where they belong
-		{
-			TestLowerBound();
-			TestUpperBound();
-			TestLowerRevBound();
-			TestUpperRevBound();
-		}		
 	}
 }

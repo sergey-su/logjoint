@@ -241,9 +241,6 @@
     <Compile Include="..\..\..\model\generic\StringUtils.cs">
       <Link>generic\StringUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\TempFilesManager.cs">
-      <Link>generic\TempFilesManager.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
     </Compile>
@@ -1046,6 +1043,9 @@
     <Compile Include="..\..\..\model\postprocessing\common\TextLogParser.cs">
       <Link>postprocessing\common\TextLogParser.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\temp-files\TempFilesManager.cs">
+      <Link>temp-files\TempFilesManager.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -1090,6 +1090,7 @@
     <Folder Include="postprocessing\messaging\" />
     <Folder Include="postprocessing\messaging\Analisys\" />
     <Folder Include="postprocessing\timeline\" />
+    <Folder Include="temp-files\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

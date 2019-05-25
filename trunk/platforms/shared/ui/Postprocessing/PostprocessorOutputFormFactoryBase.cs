@@ -104,7 +104,7 @@ namespace LogJoint.UI.Postprocessing
 			stateInspectorForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			stateInspectorModel = new LogJoint.Postprocessing.StateInspector.StateInspectorVisualizerModel(
-				app.Model.Postprocessing.PostprocessorsManager,
+				app.Model.Postprocessing.Manager,
 				app.Model.SourcesManager,
 				app.Model.ModelThreadSynchronization,
 				shortNames
@@ -134,7 +134,7 @@ namespace LogJoint.UI.Postprocessing
 			timelineForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			timelineModel = new LogJoint.Postprocessing.Timeline.TimelineVisualizerModel(
-				app.Model.Postprocessing.PostprocessorsManager,
+				app.Model.Postprocessing.Manager,
 				app.Model.SourcesManager,
 				shortNames,
 				logSourceNamesProvider
@@ -143,7 +143,7 @@ namespace LogJoint.UI.Postprocessing
 				timelineModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.Manager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
 				loadedMessagesPresenter,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
@@ -166,7 +166,7 @@ namespace LogJoint.UI.Postprocessing
 			sequenceDiagramForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			sequenceDiagramModel = new LogJoint.Postprocessing.SequenceDiagram.SequenceDiagramVisualizerModel(
-				app.Model.Postprocessing.PostprocessorsManager,
+				app.Model.Postprocessing.Manager,
 				app.Model.SourcesManager,
 				shortNames,
 				logSourceNamesProvider
@@ -175,7 +175,7 @@ namespace LogJoint.UI.Postprocessing
 				sequenceDiagramModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.Manager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
 				loadedMessagesPresenter,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
@@ -195,7 +195,7 @@ namespace LogJoint.UI.Postprocessing
 			timeSeriesForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			timeSeriesModel = new LogJoint.Postprocessing.TimeSeries.TimelineVisualizerModel(
-				app.Model.Postprocessing.PostprocessorsManager,
+				app.Model.Postprocessing.Manager,
 				app.Model.SourcesManager,
 				shortNames,
 				logSourceNamesProvider
@@ -203,7 +203,7 @@ namespace LogJoint.UI.Postprocessing
 			timeSeriesPresenter = new Presenters.Postprocessing.TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
 				timeSeriesModel,
 				view,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.Manager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
 				loadedMessagesPresenter.LogViewerPresenter,
 				app.Model.Bookmarks,
 				presentersFacade,

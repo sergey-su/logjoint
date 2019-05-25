@@ -133,7 +133,7 @@ namespace LogJoint.Search
 				e.SetAttributeValue("messages-types", (int)options.ContentTypes);
 		}
 
-		public static Options Load(this Options options, XElement e) // todo: review signature
+		public static Options Load(this Options options, XElement e)
 		{
 			options.Template = e.Value;
 			options.Regexp = e.AttributeValue("regex") == "1";

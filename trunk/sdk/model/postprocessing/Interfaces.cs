@@ -2,10 +2,10 @@
 {
 	public interface IModel
 	{
-		IPostprocessorsManager PostprocessorsManager { get; } // todo: rename to managet
+		IPostprocessorsManager Manager { get; }
 		IPrefixMatcher CreatePrefixMatcher();
 		ITextLogParser TextLogParser { get; }
-		Correlation.ICorrelator CreateCorrelator(); // todo: have Correlation ns
+		Correlation.ICorrelator CreateCorrelator();
 		StateInspector.IModel StateInspector { get; }
 		Timeline.IModel Timeline { get; }
 		SequenceDiagram.IModel SequenceDiagram { get; }

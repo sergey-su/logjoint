@@ -25,7 +25,7 @@ namespace LogJoint.Symphony.Correlator
 		{
 			this.ljModel = ljModel;
 			this.modelThreadSync = ljModel.ModelThreadSynchronization;
-			this.postprocessorsManager = ljModel.Postprocessing.PostprocessorsManager;
+			this.postprocessorsManager = ljModel.Postprocessing.Manager;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)

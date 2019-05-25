@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace LogJoint.Postprocessing
 {
-	public static class XmlUtils // todo: move to anoyher ns
+	public static class XmlUtils // todo: move to another ns
 	{
 		public static string RemoveInvalidXMLChars(string text)
 		{

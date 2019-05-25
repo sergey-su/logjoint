@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Collections;
-using System.Linq;
-using System.IO;
 
 namespace LogJoint
 {
-	public static class RangeUtils // todo: remove from SDK
+	internal static class RangeUtils
 	{
 		public static int PutInRange(int min, int max, int x)
 		{

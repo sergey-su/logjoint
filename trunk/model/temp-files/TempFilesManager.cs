@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class TempFilesManager: ITempFilesManager // todo: to separate folder
+	public class TempFilesManager: ITempFilesManager
 	{
 		public TempFilesManager()
 		{

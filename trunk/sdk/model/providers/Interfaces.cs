@@ -52,7 +52,7 @@ namespace LogJoint
 
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,
-			ValueBound bound, // todo: remove ns ListUtils
+			ValueBound bound,
 			bool getMessage,
 			LogProviderCommandPriority priority,
 			CancellationToken cancellation

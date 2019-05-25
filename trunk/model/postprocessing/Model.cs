@@ -14,7 +14,7 @@ namespace LogJoint.Postprocessing
 			TimeSeries.IModel timeSeries
 		)
 		{
-			PostprocessorsManager = postprocessorsManager;
+			Manager = postprocessorsManager;
 			TimeSeriesTypes = timeSeriesTypes;
 			StateInspector = stateInspector;
 			Timeline = timeline;
@@ -22,7 +22,7 @@ namespace LogJoint.Postprocessing
 			TimeSeries = timeSeries;
 		}
 
-		public IPostprocessorsManager PostprocessorsManager { get; private set; }
+		public IPostprocessorsManager Manager { get; private set; }
 
 		public TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
 

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace LogJoint
 {
-	public class FilterScope : IFilterScope // todo: make internal + internalsVisibeTo
+	internal class FilterScope : IFilterScope
 	{
 		public FilterScope()
 		{
