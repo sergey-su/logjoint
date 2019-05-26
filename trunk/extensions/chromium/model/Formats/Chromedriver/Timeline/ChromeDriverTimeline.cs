@@ -17,7 +17,8 @@ namespace LogJoint.Chromium.ChromeDriver
 			IPrefixMatcher matcher
 		)
 		{
-			devToolsNetworkEventPrefix = matcher.RegisterPrefix(DevTools.Events.Network.Base.Prefix);
+			devToolsNetworkEventPrefix1 = matcher.RegisterPrefix(DevTools.Events.Network.Base.Prefix1);
+			devToolsNetworkEventPrefix2 = matcher.RegisterPrefix(DevTools.Events.Network.Base.Prefix2);
 		}
 
 
@@ -29,7 +30,7 @@ namespace LogJoint.Chromium.ChromeDriver
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
 		{
 			var msg = msgPfx.Message;
-			if (msgPfx.Prefixes.Contains(devToolsNetworkEventPrefix))
+			if (msgPfx.Prefixes.Contains(devToolsNetworkEventPrefix1) || msgPfx.Prefixes.Contains(devToolsNetworkEventPrefix2))
 			{
 				var m = DevTools.Events.LogMessage.Parse(msg.Text);
 				if (m != null)
@@ -221,7 +222,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			return ret;
 		}
 
-		readonly int devToolsNetworkEventPrefix;
+		readonly int devToolsNetworkEventPrefix1, devToolsNetworkEventPrefix2;
 		readonly Dictionary<string, NetworkMessageEvent> requestEnds = new Dictionary<string, NetworkMessageEvent>();
 		static readonly Dictionary<string, HashSet<string>> tagsCache = new Dictionary<string, HashSet<string>>();
 		static readonly Dictionary<string, string> frameAliases = new Dictionary<string, string>();

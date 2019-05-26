@@ -11,7 +11,8 @@ namespace LogJoint.Chromium.ChromeDriver
 		{
 			public class Base
 			{
-				public readonly static string Prefix = "DEVTOOLS EVENT Network.";
+				public readonly static string Prefix1 = "DEVTOOLS EVENT Network.";
+				public readonly static string Prefix2 = "DevTools WebSocket Event: Network.";
 
 				public string requestId;
 				public string frameId;
@@ -86,7 +87,7 @@ namespace LogJoint.Chromium.ChromeDriver
 
 			public class WebSocketBase: Base
 			{
-				public readonly static new string Prefix = Base.Prefix + "webSocket";
+				public readonly static new string Prefix = Base.Prefix1 + "webSocket";
 			};
 
 			public class WebSocketCreated: WebSocketBase
@@ -154,7 +155,9 @@ namespace LogJoint.Chromium.ChromeDriver
 		public class LogMessage
 		{
 			readonly static JsonSerializerSettings payloadParserSettings = new JsonSerializerSettings() { CheckAdditionalContent = false };
-			readonly static Regex regex = new Regex(@"^DEVTOOLS EVENT (?<ns>\w+)\.(?<evt>\w+) ",
+			readonly static Regex regex1 = new Regex(@"^DEVTOOLS EVENT (?<ns>\w+)\.(?<evt>\w+) ",
+				RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+			readonly static Regex regex2 = new Regex(@"^DevTools WebSocket Event\: (?<ns>\w+)\.(?<evt>\w+) \w+ ",
 				RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 			public StringSlice EventNamespace { get; private set; }
@@ -182,7 +185,9 @@ namespace LogJoint.Chromium.ChromeDriver
 
 			public static LogMessage Parse(string str)
 			{
-				var m = regex.Match(str);
+				var m = regex1.Match(str);
+				if (!m.Success)
+					m = regex2.Match(str);
 				if (!m.Success)
 					return null;
 				return new LogMessage()
