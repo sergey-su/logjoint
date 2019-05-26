@@ -114,17 +114,6 @@ namespace LogJoint.Symphony.Timeline
 			await Task.WhenAll(serialize, symLog.Open(), inputMultiplexed.Open());*/
 		}
 
-		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker)
-		{
-			return events.Select(batch =>
-			{
-				if (codepathTracker != null)
-					foreach (var e in batch)
-						codepathTracker.RegisterUsage(e.TemplateId);
-				return batch;
-			});
-		}
-
 		async Task RunForSymLog(
 			IEnumerableAsync<Sym.Message[]> input,
 			LogSourcePostprocessorInput postprocessorInput
@@ -184,12 +173,12 @@ namespace LogJoint.Symphony.Timeline
 			 || e.ObjectType == Sym.MediaStateInspector.TestSessionTypeInfo
 			).GetEvents(symMediaStateEvents);
 
-			var events = TrackTemplates(EnumerableAsync.Merge(
+			var events = templatesTracker.TrackTemplates(EnumerableAsync.Merge(
 				symMeetingEvents,
 				symMediaEvents,
 				symTimelineEvents.GetEvents(symLog),
 				diagTimelineEvents.GetEvents(symLog)
-			), templatesTracker);
+			));
 
 			return events;
 		}

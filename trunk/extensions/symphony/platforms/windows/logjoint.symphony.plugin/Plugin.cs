@@ -2,11 +2,18 @@ using LogJoint.Symphony;
 
 namespace LogJoint
 {
-	public class Plugin
+	public class Plugin: IPluginStartup
 	{
+		readonly PluginImpl impl;
+
 		public Plugin(IApplication app)
 		{
-			PluginInitializer.Init(app);
+			impl = new PluginImpl(app);
+		}
+
+		public void Start()
+		{
+			impl.Start();
 		}
 	}
 }

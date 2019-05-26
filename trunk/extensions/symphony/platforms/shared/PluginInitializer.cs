@@ -3,9 +3,11 @@ using System.Linq;
 
 namespace LogJoint.Symphony
 {
-	public static class PluginInitializer
+	public class PluginImpl
 	{
-		public static void Init(IApplication app)
+		public Action Start;
+
+		public PluginImpl(IApplication app)
 		{
 			app.Model.Postprocessing.TimeSeries.RegisterTimeSeriesTypesAssembly(typeof(TimeSeries.PostprocessorsFactory).Assembly);
 
@@ -33,14 +35,17 @@ namespace LogJoint.Symphony
 				new SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)
 			);
 
-			var chromiumPlugin = app.Model.PluginsManager.Get<Chromium.IPluginModel>();
-			if (chromiumPlugin != null) // todo: plugin init order
+			Start = () =>
 			{
-				chromiumPlugin.RegisterSource(statePostprocessors.CreateChromeDebugSourceFactory());
-				chromiumPlugin.RegisterSource(timeSeriesPostprocessors.CreateChromeDebugSourceFactory());
-				chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDebugLogEventsSourceFactory());
-				chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDriverEventsSourceFactory());
-			}
+				var chromiumPlugin = app.Model.PluginsManager.Get<Chromium.IPluginModel>();
+				if (chromiumPlugin != null)
+				{
+					chromiumPlugin.RegisterSource(statePostprocessors.CreateChromeDebugSourceFactory());
+					chromiumPlugin.RegisterSource(timeSeriesPostprocessors.CreateChromeDebugSourceFactory());
+					chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDebugLogEventsSourceFactory());
+					chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDriverEventsSourceFactory());
+				}
+			};
 
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
 			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timeSeriesForm = null;

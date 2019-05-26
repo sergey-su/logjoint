@@ -41,6 +41,5 @@ namespace LogJoint.Postprocessing.Timeline
 		{
 			return new InspectedObjectsLifetimeEventsSource(inspectedObjectsFilter);
 		}
-
 	};
 }

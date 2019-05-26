@@ -55,18 +55,6 @@ namespace LogJoint.Symphony.StateInspector
 			};
 		}
 
-		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker)
-		{
-			return events.Select(batch =>
-			{
-				if (codepathTracker != null)
-					foreach (var e in batch)
-						codepathTracker.RegisterUsage(e.TemplateId);
-				return batch;
-			});
-		}
-
-
 		async Task RunForSymRTC(
 			IEnumerableAsync<Sym.Message[]> messages,
 			LogSourcePostprocessorInput postprocessorInput
@@ -83,10 +71,10 @@ namespace LogJoint.Symphony.StateInspector
 
 			matcher.Freeze();
 
-			var events = TrackTemplates(EnumerableAsync.Merge(
+			var events = postprocessorInput.TemplatesTracker.TrackTemplates(EnumerableAsync.Merge(
 				symMeetingEvents,
 				symMediagEvents
-			), postprocessorInput.TemplatesTracker);
+			));
 
 			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
 				events,

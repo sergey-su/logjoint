@@ -106,6 +106,10 @@ namespace LogJoint.Extensibility
 						Path.GetFileName(pluginPath), loadTime, typeLoadTime, instantiationTime);
 					plugins.Add(plugin);
 				}
+				foreach (var plugin in plugins.OfType<IPluginStartup>())
+				{
+					plugin.Start();
+				}
 			}
 		}
 

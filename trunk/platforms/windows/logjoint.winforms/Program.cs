@@ -224,7 +224,7 @@ namespace LogJoint
 					postprocessorsManager,
 					timeSeriesTypesAccess,
 					new Postprocessing.StateInspector.Model(tempFilesManager),
-					new Postprocessing.Timeline.Model(tempFilesManager, codepa),
+					new Postprocessing.Timeline.Model(tempFilesManager),
 					new Postprocessing.SequenceDiagram.Model(tempFilesManager),
 					new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
 				);

@@ -104,7 +104,7 @@ namespace LogJoint.Chromium.Timeline
 			var extensionSources = pluginModel.ChromeDebugLogTimeLineEventSources.Select(src => src(
 				matcher, multiplexedInput, postprocessorInput.TemplatesTracker)).ToArray();
 
-			var events = EnumerableAsync.Merge(extensionSources.Select(s => s.Events).ToArray());
+			var events = postprocessorInput.TemplatesTracker.TrackTemplates(EnumerableAsync.Merge(extensionSources.Select(s => s.Events).ToArray()));
 
 			matcher.Freeze();
 
@@ -130,7 +130,7 @@ namespace LogJoint.Chromium.Timeline
 			HAR.ITimelineEvents timelineEvents = new HAR.TimelineEvents();
 
 			var events = EnumerableAsync.Merge(
-				timelineEvents.GetEvents(input)
+				postprocessorInput.TemplatesTracker.TrackTemplates(timelineEvents.GetEvents(input))
 			);
 
 			await postprocessing.Timeline.SavePostprocessorOutput(
