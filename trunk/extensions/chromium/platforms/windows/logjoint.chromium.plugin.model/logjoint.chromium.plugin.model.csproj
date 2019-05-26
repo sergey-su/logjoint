@@ -55,6 +55,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\Extensibility\Model.cs">
+      <Link>Extensibility\Model.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs">
       <Link>Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs</Link>
     </Compile>
@@ -109,9 +112,6 @@
     <Compile Include="..\..\..\model\Formats\Chromedriver\Utils\ProcessIdDetector.cs">
       <Link>Formats\Chromedriver\Utils\ProcessIdDetector.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\Formats\Chromedriver\Utils\Schemas.cs">
-      <Link>Formats\Chromedriver\Utils\Schemas.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\Formats\Common\Correlation\NodeDetectionToken.cs">
       <Link>Formats\Common\Correlation\NodeDetectionToken.cs</Link>
     </Compile>
@@ -138,36 +138,6 @@
     </Compile>
     <Compile Include="..\..\..\model\Formats\HTTPArchive\Timeline\HarTimeline.cs">
       <Link>Formats\HTTPArchive\Timeline\HarTimeline.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
-      <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Interfaces.cs">
-      <Link>Formats\SymphonyRtc\Reader\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Reader.cs">
-      <Link>Formats\SymphonyRtc\Reader\Reader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs">
-      <Link>Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs">
-      <Link>Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\CITimeline.cs">
-      <Link>Formats\SymphonyRtc\Timeline\CITimeline.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\DiagTimeline.cs">
-      <Link>Formats\SymphonyRtc\Timeline\DiagTimeline.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
-      <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs">
-      <Link>Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
-      <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\Converters.cs">
       <Link>Formats\WebrtcInternalsDump\Converters\Converters.cs</Link>
@@ -236,10 +206,6 @@
       <Link>Formats\Chromium-webrtc_internals_dump.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
-      <Link>Formats\Symphony - RTC log.format.xml</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\..\..\model\Formats\W3C - HTTP Archive.format.xml">
       <Link>Formats\W3C - HTTP Archive.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -253,13 +219,9 @@
       <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
       <Name>logjoint.model.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
-      <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
-      <Name>logjoint.sdk</Name>
+    <ProjectReference Include="..\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
+      <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
+      <Name>logjoint.chromium.plugin.model.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

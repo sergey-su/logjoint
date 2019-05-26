@@ -12,7 +12,7 @@ namespace LogJoint.Chromium
 		void RegisterSource(
 			TimeSeriesDataSource<ChromeDebugLog.Message>.Factory source);
 		void RegisterSource(
-			EventsSource<Postprocessing.Timeline.Event, ChromeDriver.Message>.Factory source);
+			EventsSource<Postprocessing.Timeline.Event, ChromeDriver.MessagePrefixesPair>.Factory source);
 		void RegisterSource(
 			EventsSource<Postprocessing.Timeline.Event, ChromeDebugLog.Message>.Factory source);
 	};
@@ -33,7 +33,8 @@ namespace LogJoint.Chromium
 
 		public delegate EventsSource<EventType, MessageType> Factory(
 			IPrefixMatcher matcher,
-			IEnumerableAsync<MessageType[]> input
+			IEnumerableAsync<MessageType[]> input,
+			ICodepathTracker codepathTracker // todo: structure for args
 		);
 	};
 

@@ -62,6 +62,36 @@
     <Compile Include="..\..\..\model\Formats\SpringServiceLog\Reader\Writer.cs">
       <Link>Formats\SpringServiceLog\Reader\Writer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
+      <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Interfaces.cs">
+      <Link>Formats\SymphonyRtc\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Reader.cs">
+      <Link>Formats\SymphonyRtc\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\CITimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\CITimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\DiagTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\DiagTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs">
+      <Link>Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
+      <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Postprocessors\CorrelatorPostprocessorFactory.cs">
       <Link>Postprocessors\CorrelatorPostprocessorFactory.cs</Link>
     </Compile>
@@ -98,8 +128,16 @@
       <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
       <Name>logjoint.sdk</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\chromium\platforms\windows\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
+      <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
+      <Name>logjoint.chromium.plugin.model.sdk</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
+      <Link>Formats\Symphony - RTC log.format.xml</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\..\model\Formats\Symphony-SpringServiceLog.format.xml">
       <Link>Formats\Symphony-SpringServiceLog.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -55,17 +55,6 @@ namespace LogJoint.Chromium.Timeline
 			);
 		}
 
-		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker)
-		{
-			return events.Select(batch =>
-			{
-				if (codepathTracker != null)
-					foreach (var e in batch)
-						codepathTracker.RegisterUsage(e.TemplateId);
-				return batch;
-			});
-		}
-
 		async Task RunForChromeDriver(
 			IEnumerableAsync<CD.Message[]> input,
 			LogSourcePostprocessorInput postprocessorInput
@@ -75,29 +64,33 @@ namespace LogJoint.Chromium.Timeline
 			var logMessages = CD.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			CD.ITimelineEvents networkEvents = new CD.TimelineEvents(matcher);
-			// Sym.ICITimelineEvents symCIEvents = new Sym.CITimelineEvents(matcher); todo
 			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<CD.MessagePrefixesPair>(m => m.Message);
+
+			var extensionSources = pluginModel.ChromeDriverTimeLineEventSources.Select(src => src(
+				matcher, logMessages, postprocessorInput.TemplatesTracker)).ToArray();
 
 			var networkEvts = networkEvents.GetEvents(logMessages);
 			var eofEvts = endOfTimelineEventSource.GetEvents(logMessages);
-			// var symCIEvts = symCIEvents.GetEvents(logMessages); todo
 
 			matcher.Freeze();
 
-			var events = TrackTemplates(EnumerableAsync.Merge(
-				networkEvts,
-				eofEvts
-				// , symCIEvts todo
-			), postprocessorInput.TemplatesTracker);
+			var events = extensionSources.Select(s => s.Events).ToList();
+			events.Add(networkEvts);
+			events.Add(eofEvts);
 
 			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
-				events,
+				EnumerableAsync.Merge(events.ToArray()),
 				null,
 				evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger),
 				postprocessorInput
 			);
 
-			await Task.WhenAll(serialize, logMessages.Open());
+			var tasks = new List<Task>();
+			tasks.Add(serialize);
+			tasks.AddRange(extensionSources.SelectMany(s => s.MultiplexingEnumerables.Select(e => e.Open())));
+			tasks.Add(logMessages.Open());
+
+			await Task.WhenAll(tasks);
 		}
 
 		async Task RunForChromeDebug(
@@ -109,21 +102,7 @@ namespace LogJoint.Chromium.Timeline
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 
 			var extensionSources = pluginModel.ChromeDebugLogTimeLineEventSources.Select(src => src(
-				matcher, multiplexedInput)).ToArray();
-			// Sym.ICITimelineEvents symCI = new Sym.CITimelineEvents(matcher); todo
-
-			/*var symEvents = RunForSymMessages(
-				matcher,
-				(new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None)).FromChromeDebugLog(multiplexedInput),
-				postprocessorInput.TemplatesTracker,
-				out var symLog
-			);
-			var ciEvents = symCI.GetEvents(multiplexedInput);
-
-			var events = EnumerableAsync.Merge(
-				symEvents,
-				ciEvents
-			);*/
+				matcher, multiplexedInput, postprocessorInput.TemplatesTracker)).ToArray();
 
 			var events = EnumerableAsync.Merge(extensionSources.Select(s => s.Events).ToArray());
 
@@ -150,9 +129,9 @@ namespace LogJoint.Chromium.Timeline
 		{
 			HAR.ITimelineEvents timelineEvents = new HAR.TimelineEvents();
 
-			var events = TrackTemplates(EnumerableAsync.Merge(
+			var events = EnumerableAsync.Merge(
 				timelineEvents.GetEvents(input)
-			), postprocessorInput.TemplatesTracker);
+			);
 
 			await postprocessing.Timeline.SavePostprocessorOutput(
 				events,
@@ -161,6 +140,5 @@ namespace LogJoint.Chromium.Timeline
 				postprocessorInput
 			);
 		}
-
 	};
 }

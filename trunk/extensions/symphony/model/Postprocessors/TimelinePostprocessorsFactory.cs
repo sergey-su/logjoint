@@ -11,6 +11,8 @@ namespace LogJoint.Symphony.Timeline
 	{
 		ILogSourcePostprocessor CreateSpringServiceLogPostprocessor();
 		ILogSourcePostprocessor CreateSymRtcPostprocessor();
+		Chromium.EventsSource<Event, Chromium.ChromeDriver.MessagePrefixesPair>.Factory CreateChromeDriverEventsSourceFactory();
+		Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>.Factory CreateChromeDebugLogEventsSourceFactory();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -43,6 +45,39 @@ namespace LogJoint.Symphony.Timeline
 				PostprocessorKind.Timeline,
 				i => RunForSymLog(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
+		}
+
+		Chromium.EventsSource<Event, Chromium.ChromeDriver.MessagePrefixesPair>.Factory IPostprocessorsFactory.CreateChromeDriverEventsSourceFactory()
+		{
+			return (matcher, messages, tracker) =>
+			{
+				Sym.ICITimelineEvents symCIEvents = new Sym.CITimelineEvents(matcher);
+
+				return new Chromium.EventsSource<Event, Chromium.ChromeDriver.MessagePrefixesPair>(symCIEvents.GetEvents(messages));
+			};
+		}
+
+		Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>.Factory IPostprocessorsFactory.CreateChromeDebugLogEventsSourceFactory()
+		{
+			return (matcher, messages, tracker) =>
+			{
+				Sym.ICITimelineEvents symCI = new Sym.CITimelineEvents(matcher);
+
+				var symEvents = RunForSymMessages(
+					matcher,
+					(new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None)).FromChromeDebugLog(messages),
+					tracker,
+					out var symLog
+				);
+				var ciEvents = symCI.GetEvents(messages);
+
+				var events = EnumerableAsync.Merge(
+					symEvents,
+					ciEvents
+				);
+
+				return new Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>(events, symLog);
+			};
 		}
 
 		async Task RunForSpringServiceLog(

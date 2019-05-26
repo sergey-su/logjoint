@@ -224,7 +224,7 @@ namespace LogJoint
 					postprocessorsManager,
 					timeSeriesTypesAccess,
 					new Postprocessing.StateInspector.Model(tempFilesManager),
-					new Postprocessing.Timeline.Model(tempFilesManager),
+					new Postprocessing.Timeline.Model(tempFilesManager, codepa),
 					new Postprocessing.SequenceDiagram.Model(tempFilesManager),
 					new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
 				);
@@ -707,31 +707,33 @@ namespace LogJoint
 
 				Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new Postprocessing.AggregatingLogSourceNamesProvider();
 
-				Extensibility.Application pluginEntryPoint = new Extensibility.Application(
-					new Extensibility.Model(
-						modelSynchronizationContext,
-						changeNotification,
-						webContentCache,
-						contentCache,
-						storageManager,
-						bookmarks,
-						logSourcesManager,
-						modelThreads,
-						tempFilesManager,
-						preprocessingManagerExtensionsRegistry,
-						logSourcesPreprocessings,
-						preprocessingStepsFactory,
-						progressAggregator,
-						logProviderFactoryRegistry,
-						userDefinedFormatsManager,
-						recentlyUsedLogs,
-						progressAggregatorFactory,
-						logSourcesController,
-						shutdown,
-						webBrowserDownloader,
-						postprocessingModel
-					),
-					new Extensibility.Presentation(
+				var expensibilityModel = new Model(
+					modelSynchronizationContext,
+					changeNotification,
+					webContentCache,
+					contentCache,
+					storageManager,
+					bookmarks,
+					logSourcesManager,
+					modelThreads,
+					tempFilesManager,
+					preprocessingManagerExtensionsRegistry,
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					progressAggregator,
+					logProviderFactoryRegistry,
+					userDefinedFormatsManager,
+					recentlyUsedLogs,
+					progressAggregatorFactory,
+					logSourcesController,
+					shutdown,
+					webBrowserDownloader,
+					postprocessingModel
+				);
+
+				var pluginEntryPoint = new Extensibility.Application(
+					expensibilityModel,
+					new LogJoint.UI.Presenters.Presentation(
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
@@ -752,9 +754,9 @@ namespace LogJoint
 
 				var pluginsManager = new Extensibility.PluginsManager(
 					pluginEntryPoint,
-					mainFormPresenter,
 					telemetryCollector,
-					shutdown
+					shutdown,
+					expensibilityModel
 				);
 				tracer.Info("plugin manager created");
 

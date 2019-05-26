@@ -139,6 +139,12 @@
     <Compile Include="..\..\..\model\extensibility\IMessagesReaderExtension.cs">
       <Link>extensibility\IMessagesReaderExtension.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\extensibility\Model.cs">
+      <Link>extensibility\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\extensibility\PluginsManager.cs">
+      <Link>extensibility\PluginsManager.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\fields\BadUserCodeException.cs">
       <Link>fields\BadUserCodeException.cs</Link>
     </Compile>

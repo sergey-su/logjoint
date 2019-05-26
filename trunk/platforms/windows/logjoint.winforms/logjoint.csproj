@@ -101,21 +101,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\extensibility\Model.cs">
-      <Link>extensibility\Model.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\windows\IMainFormTabExtension.cs">
-      <Link>extensibility\IMainFormTabExtension.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\windows\View.cs">
-      <Link>extensibility\View.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\PluginsManager.cs">
-      <Link>extensibility\PluginsManager.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\Presentation.cs">
-      <Link>extensibility\Presentation.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
       <Link>workspaces\AzureWorkspacesBackend.cs</Link>
     </Compile>
@@ -173,6 +158,7 @@
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
     <Compile Include="extensibility\Application.cs" />
+    <Compile Include="extensibility\View.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="progress\TaskbarProgress.cs" />

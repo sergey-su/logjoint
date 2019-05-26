@@ -121,6 +121,9 @@
     <Compile Include="..\..\..\presenters\Common\Theming\Extensions.cs">
       <Link>Common\Theming\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Extensibility\Presentation.cs">
+      <Link>Extensibility\Presentation.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
       <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
     </Compile>

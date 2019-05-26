@@ -44,17 +44,6 @@ namespace LogJoint.Chromium.StateInspector
 			);
 		}
 
-		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker) // todo: have extesnion in sdk
-		{
-			return events.Select(batch =>
-			{
-				if (codepathTracker != null)
-					foreach (var e in batch)
-						codepathTracker.RegisterUsage(e.TemplateId);
-				return batch;
-			});
-		}
-
 		async Task RunForChromeDebug(
 			IEnumerableAsync<CDL.Message[]> inputMessages,
 			LogSourcePostprocessorInput postprocessorInput
@@ -71,7 +60,7 @@ namespace LogJoint.Chromium.StateInspector
 
 			var extensionSources = pluginModel
 				.ChromeDebugStateEventSources.Select(
-					source => source(matcher, inputMultiplexed)
+					source => source(matcher, inputMultiplexed, postprocessorInput.TemplatesTracker)
 				)
 				.ToArray();
 
@@ -83,10 +72,7 @@ namespace LogJoint.Chromium.StateInspector
 
 			matcher.Freeze();
 
-			var events = TrackTemplates(
-				EnumerableAsync.Merge(eventSources.ToArray()),
-				postprocessorInput.TemplatesTracker
-			);
+			var events = postprocessorInput.TemplatesTracker.TrackTemplates(EnumerableAsync.Merge(eventSources.ToArray()));
 
 			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
 				events,
@@ -117,9 +103,9 @@ namespace LogJoint.Chromium.StateInspector
 
 			matcher.Freeze();
 
-			var events = TrackTemplates(EnumerableAsync.Merge(
+			var events = postprocessorInput.TemplatesTracker.TrackTemplates(EnumerableAsync.Merge(
 				webRtcEvts
-			), postprocessorInput.TemplatesTracker);
+			));
 
 			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
 				events,

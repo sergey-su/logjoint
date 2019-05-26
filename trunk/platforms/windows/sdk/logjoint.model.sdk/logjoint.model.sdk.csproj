@@ -65,6 +65,9 @@
     <Compile Include="..\..\..\..\sdk\model\connection-params\Interfaces.cs">
       <Link>connection-params\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\extensibility\Interfaces.cs">
+      <Link>extensibility\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\filters\FilterTarget.cs">
       <Link>filters\FilterTarget.cs</Link>
     </Compile>
@@ -277,6 +280,9 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\EventsStringifier.cs">
       <Link>postprocessing\timeline\EventsStringifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Extensions.cs">
+      <Link>postprocessing\timeline\Extensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Interfaces.cs">
       <Link>postprocessing\timeline\Interfaces.cs</Link>

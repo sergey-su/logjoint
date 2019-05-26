@@ -36,7 +36,7 @@ namespace LogJoint.Symphony.StateInspector
 
 		Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>.Factory IPostprocessorsFactory.CreateChromeDebugSourceFactory()
 		{
-			return (matcher, inputMultiplexed) =>
+			return (matcher, inputMultiplexed, tracker) =>
 			{
 				Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
 				Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
