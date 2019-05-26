@@ -568,6 +568,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\Interfaces.cs">
       <Link>LogViewerPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Extensibility\Presentation.cs">
+      <Link>Extensibility\Presentation.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -622,6 +625,7 @@
     <Folder Include="LogViewerPresenter\Selection\" />
     <Folder Include="LogViewerPresenter\Navigation\" />
     <Folder Include="Common\Theming\" />
+    <Folder Include="Extensibility\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

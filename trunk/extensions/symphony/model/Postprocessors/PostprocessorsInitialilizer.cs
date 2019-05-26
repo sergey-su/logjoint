@@ -7,12 +7,13 @@ namespace LogJoint.Symphony
 	public interface IPostprocessorsRegistry
 	{
 		LogSourceMetadata SpringServiceLog { get; }
+		LogSourceMetadata RtcLog { get; }
 	};
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly IUserDefinedFactory springServiceLogFormat;
-		private readonly LogSourceMetadata springServiceLogMeta;
+		private readonly IUserDefinedFactory symRtcLogFormat, springServiceLogFormat;
+		private readonly LogSourceMetadata symRtcLogMeta, springServiceLogMeta;
 
 
 		public PostprocessorsInitializer(
@@ -34,6 +35,7 @@ namespace LogJoint.Symphony
 				return ret;
 			};
 
+			this.symRtcLogFormat = findFormat("Symphony", "RTC log");
 			this.springServiceLogFormat = findFormat("Symphony", "RTC Java Spring Service log");
 
 			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
@@ -44,11 +46,18 @@ namespace LogJoint.Symphony
 				sequenceDiagramPostprocessorsFactory.CreateSpringServiceLogPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.springServiceLogMeta);
+
+			this.symRtcLogMeta = new LogSourceMetadata(
+				symRtcLogFormat,
+				stateInspectorPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
+				timeSeriesPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
+				timelinePostprocessorsFactory.CreateSymRtcPostprocessor()
+			);
+			postprocessorsManager.RegisterLogType(this.symRtcLogMeta);
 		}
 
-		LogSourceMetadata IPostprocessorsRegistry.SpringServiceLog
-		{
-			get { return springServiceLogMeta; }
-		}
+		LogSourceMetadata IPostprocessorsRegistry.SpringServiceLog => springServiceLogMeta;
+
+		LogSourceMetadata IPostprocessorsRegistry.RtcLog => symRtcLogMeta;
 	};
 }

@@ -336,6 +336,9 @@
     <Compile Include="..\..\..\..\sdk\model\generic\RangeUtils.cs">
       <Link>generic\RangeUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\extensibility\Interfaces.cs">
+      <Link>extensibility\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="analytics\infra\" />
@@ -395,5 +398,6 @@
     <Folder Include="..\..\bin\debug\postprocessing\timeline\" />
     <Folder Include="..\..\bin\debug\postprocessing\timeline\" />
     <Folder Include="..\..\bin\debug\postprocessing\time-series\filters\" />
+    <Folder Include="..\..\bin\debug\extensibility\" />
   </ItemGroup>
 </Project>

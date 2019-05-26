@@ -24,5 +24,6 @@ namespace LogJoint
 		IShutdown Shutdown { get; }
 		WebBrowserDownloader.IDownloader WebBrowserDownloader { get; }
 		Postprocessing.IModel Postprocessing { get; }
+		IPluginsManager PluginsManager { get; }
 	};
 }

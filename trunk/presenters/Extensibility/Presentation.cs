@@ -1,6 +1,6 @@
-﻿namespace LogJoint.Extensibility
+﻿namespace LogJoint.UI.Presenters
 {
-	class Presentation: UI.Presenters.IPresentation
+	public class Presentation: UI.Presenters.IPresentation
 	{
 		public Presentation(
 			UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter,

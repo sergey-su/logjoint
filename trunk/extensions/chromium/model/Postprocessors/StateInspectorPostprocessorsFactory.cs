@@ -3,9 +3,9 @@ using System.Linq;
 using LogJoint.Postprocessing;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
-using Sym = LogJoint.Symphony.Rtc;
 using LogJoint.Postprocessing.StateInspector;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace LogJoint.Chromium.StateInspector
 {
@@ -13,20 +13,19 @@ namespace LogJoint.Chromium.StateInspector
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
-		ILogSourcePostprocessor CreateSymphonyRtcPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		private readonly ITempFilesManager tempFiles;
 		private readonly Postprocessing.IModel postprocessing;
+		private readonly PluginModel pluginModel;
 
 		public PostprocessorsFactory(
-			ITempFilesManager tempFiles,
-			Postprocessing.IModel postprocessing)
+			Postprocessing.IModel postprocessing,
+			PluginModel pluginModel)
 		{
-			this.tempFiles = tempFiles;
 			this.postprocessing = postprocessing;
+			this.pluginModel = pluginModel;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
@@ -45,15 +44,7 @@ namespace LogJoint.Chromium.StateInspector
 			);
 		}
 
-		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
-		{
-			return new LogSourcePostprocessor(
-				PostprocessorKind.StateInspector,
-				i => RunForSymRTC(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
-			);
-		}
-
-		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker)
+		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker) // todo: have extesnion in sdk
 		{
 			return events.Select(batch =>
 			{
@@ -78,20 +69,24 @@ namespace LogJoint.Chromium.StateInspector
 
 			var webRtcEvts = webRtcStateInspector.GetEvents(logMessages);
 
-			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
-			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
-			var symMessages = Sym.Helpers.MatchPrefixes((new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None)).FromChromeDebugLog(inputMultiplexed), matcher).Multiplex();
+			var extensionSources = pluginModel
+				.ChromeDebugStateEventSources.Select(
+					source => source(matcher, inputMultiplexed)
+				)
+				.ToArray();
 
-			var symMeetingEvents = symMeetingsStateInspector.GetEvents(symMessages);
-			var symMediaEvents = symMediaStateInspector.GetEvents(symMessages);
+			var eventSources = new List<IEnumerableAsync<Event[]>>
+			{
+				webRtcEvts
+			};
+			eventSources.AddRange(extensionSources.Select(s => s.Events));
 
 			matcher.Freeze();
 
-			var events = TrackTemplates(EnumerableAsync.Merge(
-				webRtcEvts,
-				symMeetingEvents,
-				symMediaEvents
-			), postprocessorInput.TemplatesTracker);
+			var events = TrackTemplates(
+				EnumerableAsync.Merge(eventSources.ToArray()),
+				postprocessorInput.TemplatesTracker
+			);
 
 			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
 				events,
@@ -100,7 +95,12 @@ namespace LogJoint.Chromium.StateInspector
 				postprocessorInput
 			);
 
-			await Task.WhenAll(serialize, symMessages.Open(), logMessages.Open(), inputMultiplexed.Open());
+			var tasks = new List<Task>();
+			tasks.Add(serialize);
+			tasks.AddRange(extensionSources.SelectMany(s => s.MultiplexingEnumerables.Select(e => e.Open())));
+			tasks.Add(logMessages.Open());
+			tasks.Add(inputMultiplexed.Open());
+			await Task.WhenAll(tasks);
 		}
 
 		async Task RunForWebRTCDump(
@@ -127,37 +127,6 @@ namespace LogJoint.Chromium.StateInspector
 				evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger),
 				postprocessorInput
 			);
-			await Task.WhenAll(serialize, logMessages.Open());
-		}
-
-		async Task RunForSymRTC(
-			IEnumerableAsync<Sym.Message[]> messages,
-			LogSourcePostprocessorInput postprocessorInput
-		)
-		{
-			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
-			var logMessages = Sym.Helpers.MatchPrefixes(messages, matcher).Multiplex();
-
-			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
-			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
-
-			var symMeetingEvents = symMeetingsStateInspector.GetEvents(logMessages);
-			var symMediagEvents = symMediaStateInspector.GetEvents(logMessages);
-
-			matcher.Freeze();
-
-			var events = TrackTemplates(EnumerableAsync.Merge(
-				symMeetingEvents,
-				symMediagEvents
-			), postprocessorInput.TemplatesTracker);
-
-			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
-				events,
-				null,
-				evtTrigger => TextLogEventTrigger.Make((Sym.Message)evtTrigger),
-				postprocessorInput
-			);
-
 			await Task.WhenAll(serialize, logMessages.Open());
 		}
 	};

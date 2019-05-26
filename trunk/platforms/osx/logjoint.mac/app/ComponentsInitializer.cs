@@ -677,31 +677,33 @@ namespace LogJoint.UI
 				
 				LogJoint.Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new LogJoint.Postprocessing.AggregatingLogSourceNamesProvider();
 
-				var extensibilityEntryPoint = new Extensibility.Application(
-					new Extensibility.Model(
-						invokingSynchronization,
-						changeNotification,
-						webContentCache,
-						contentCache,
-						storageManager,
-						bookmarks,
-						logSourcesManager,
-						modelThreads,
-						tempFilesManager,
-						preprocessingManagerExtensionsRegistry,
-						logSourcesPreprocessings,
-						preprocessingStepsFactory,
-						progressAggregator,
-						logProviderFactoryRegistry,
-						userDefinedFormatsManager,
-						recentlyUsedLogs,
-						progressAggregatorsFactory,
-						logSourcesController,
-						shutdown,
-						webBrowserDownloader,
-						postprocessingModel
-					),
-					new Extensibility.Presentation(
+
+				var extensibilityModel = new Model (
+					invokingSynchronization,
+					changeNotification,
+					webContentCache,
+					contentCache,
+					storageManager,
+					bookmarks,
+					logSourcesManager,
+					modelThreads,
+					tempFilesManager,
+					preprocessingManagerExtensionsRegistry,
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					progressAggregator,
+					logProviderFactoryRegistry,
+					userDefinedFormatsManager,
+					recentlyUsedLogs,
+					progressAggregatorsFactory,
+					logSourcesController,
+					shutdown,
+					webBrowserDownloader,
+					postprocessingModel
+				);
+				var extensibilityEntryPoint = new Application(
+					extensibilityModel,
+					new UI.Presenters.Presentation(
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
@@ -730,9 +732,9 @@ namespace LogJoint.UI
 
 				new Extensibility.PluginsManager(
 					extensibilityEntryPoint,
-					mainFormPresenter,
 					telemetryCollector,
-					shutdown
+					shutdown,
+					extensibilityModel
 				);
 			}
 		}

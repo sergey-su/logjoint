@@ -14,8 +14,8 @@ namespace LogJoint.Chromium
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly IUserDefinedFactory chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, symRtcLogFormat, httpArchiveFormat;
-		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, symRtcLogMeta, httpArchiveMeta;
+		private readonly IUserDefinedFactory chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, httpArchiveFormat;
+		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, httpArchiveMeta;
 
 
 		public PostprocessorsInitializer(
@@ -40,7 +40,6 @@ namespace LogJoint.Chromium
 			this.chromeDebugLogFormat = findFormat("Google", "Chrome debug log");
 			this.webRtcInternalsDumpFormat = findFormat("Google", "Chrome WebRTC internals dump as log");
 			this.chromeDriverLogFormat = findFormat("Google", "chromedriver");
-			this.symRtcLogFormat  = findFormat("Symphony", "RTC log");
 			this.httpArchiveFormat = findFormat("W3C", "HTTP Archive (HAR)");
 
 			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
@@ -69,14 +68,6 @@ namespace LogJoint.Chromium
 				correlatorPostprocessorType
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDriverLogMeta);
-
-			this.symRtcLogMeta = new LogSourceMetadata(
-				symRtcLogFormat,
-				stateInspectorPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
-				timeSeriesPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
-				timelinePostprocessorsFactory.CreateSymRtcPostprocessor()
-			);
-			postprocessorsManager.RegisterLogType(this.symRtcLogMeta);
 
 			this.httpArchiveMeta = new LogSourceMetadata(
 				httpArchiveFormat,

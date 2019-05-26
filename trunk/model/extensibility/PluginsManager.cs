@@ -8,42 +8,39 @@ using System.Diagnostics;
 
 namespace LogJoint.Extensibility
 {
-	class PluginsManager: IDisposable
+	public class PluginsManager: IDisposable, IPluginsManager
 	{
 		readonly List<object> plugins = new List<object> ();
 		readonly LJTraceSource tracer;
-		readonly LogJoint.IApplication entryPoint;
-		readonly UI.Presenters.MainForm.IPresenter mainFormPresenter;
+		readonly object entryPoint;
+		readonly Dictionary<Type, object> types = new Dictionary<Type, object>();
 
 		public PluginsManager(
-			LogJoint.IApplication entryPoint,
-			UI.Presenters.MainForm.IPresenter mainFormPresenter,
+			object entryPoint,
 			Telemetry.ITelemetryCollector telemetry,
-			IShutdown shutdown)
+			IShutdown shutdown,
+			Model model)
 		{
 			this.tracer = new LJTraceSource("Extensibility", "plugins-mgr");
 			this.entryPoint = entryPoint;
-			this.mainFormPresenter = mainFormPresenter;
+			model.PluginsManager = this;
 
 			InitPlugins(telemetry);
 			RegisterInteropClasses();
 
-			mainFormPresenter.TabChanging += (sender, e) => 
-			{
-				if (!(e.CustomTabTag is IMainFormTabExtension ext))
-					return;
-				try
-				{
-					ext.OnTabPageSelected();
-				}
-				catch (Exception ex)
-				{
-					telemetry.ReportException(ex, "activation of plugin tab: " + ext.Caption);
-					tracer.Error(ex, "Failed to activate extension tab");
-				}
-			};
-
 			shutdown.Cleanup += (s, e) => Dispose();
+		}
+
+		void IPluginsManager.Register<PluginType>(PluginType plugin)
+		{
+			types[typeof(PluginType)] = plugin;
+		}
+
+		PluginType IPluginsManager.Get<PluginType>()
+		{
+			if (!types.TryGetValue(typeof(PluginType), out var plugin))
+				return null;
+			return plugin as PluginType;
 		}
 
 		private void InitPlugins(Telemetry.ITelemetryCollector telemetry)
@@ -86,7 +83,7 @@ namespace LogJoint.Extensibility
 						tracer.Warning("plugin class not found in plugin assembly");
 						continue;
 					}
-					var ctr = pluginType.GetConstructor (new [] { typeof (LogJoint.IApplication) });
+					var ctr = pluginType.GetConstructor (new [] { entryPoint.GetType() });
 					if (ctr == null)
 					{
 						tracer.Warning ("plugin class does not implement ctr with LogJoint.IApplication argument");

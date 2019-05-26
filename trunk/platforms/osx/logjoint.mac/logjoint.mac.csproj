@@ -241,9 +241,6 @@
     <Compile Include="ui\Preprocessing\FilesSelectionDialog.designer.cs">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="..\..\..\extensibility\PluginsManager.cs">
-      <Link>extensibility\impl\PluginsManager.cs</Link>
-    </Compile>
     <Compile Include="telemetry\ConfiguredAzureTelemetryUploader.cs" />
     <Compile Include="threading\SynchronizeInvoke.cs" />
     <Compile Include="threading\HeartBeatTimer.cs" />
@@ -257,9 +254,6 @@
     <Compile Include="drag-n-drop\DragDropHandler.cs" />
     <Compile Include="ui\CommonControls\NSLinkLabel\NSLinkLabel.cs" />
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomizableView.cs" />
-    <Compile Include="..\..\..\extensibility\Presentation.cs">
-      <Link>extensibility\impl\Presentation.cs</Link>
-    </Compile>
     <Compile Include="ui\AboutDialog\AboutDialog.cs" />
     <Compile Include="ui\AboutDialog\AboutDialog.designer.cs">
       <DependentUpon>AboutDialog.cs</DependentUpon>
@@ -277,18 +271,6 @@
       <DependentUpon>StatusPopupControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\StatusReporting\StatusPopupControlAdapter.cs" />
-    <Compile Include="..\..\..\extensibility\Model.cs">
-      <Link>extensibility\impl\Model.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\mac\IMainFormTabExtension.cs">
-      <Link>extensibility\interfaces\IMainFormTabExtension.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\mac\IView.cs">
-      <Link>extensibility\interfaces\IView.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\platforms\mac\View.cs">
-      <Link>extensibility\impl\View.cs</Link>
-    </Compile>
     <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
       <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
     </Compile>
@@ -663,7 +645,7 @@
     </Compile>
     <Compile Include="ui\CommonControls\NSCustomTableRowView\CustomTableRowView.cs" />
     <Compile Include="ui\CommonControls\NSDragDropTextField\NSDragDropTextField.cs" />
-    <Compile Include="extensibility\impl\Application.cs" />
+    <Compile Include="extensibility\Application.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

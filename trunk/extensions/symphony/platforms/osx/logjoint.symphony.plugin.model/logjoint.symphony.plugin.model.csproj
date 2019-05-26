@@ -83,27 +83,71 @@
     <Compile Include="..\..\..\model\Formats\SpringServiceLog\Messagnig\HttpMessaging.cs">
       <Link>Formats\SpringServiceLog\Messagnig\HttpMessaging.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
+      <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Interfaces.cs">
+      <Link>Formats\SymphonyRtc\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Reader.cs">
+      <Link>Formats\SymphonyRtc\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\CITimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\CITimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\DiagTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\DiagTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs">
+      <Link>Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
+      <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
       <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\chromium\platforms\osx\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
+      <Project>{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}</Project>
+      <Name>logjoint.chromium.plugin.model.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Formats\SpringServiceLog\" />
     <Folder Include="Formats\SpringServiceLog\Reader\" />
     <Folder Include="Formats\SpringServiceLog\Messagnig\" />
+    <Folder Include="Formats\SymphonyRtc\" />
+    <Folder Include="Formats\SymphonyRtc\Reader\" />
+    <Folder Include="Formats\SymphonyRtc\StateInspectors\" />
+    <Folder Include="Formats\SymphonyRtc\Timeline\" />
+    <Folder Include="Formats\SymphonyRtc\TimeSeries\" />
+    <Folder Include="Formats\SymphonyRtc\Utils\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Symphony-SpringServiceLog.format.xml">
       <Link>Formats\Symphony-SpringServiceLog.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
+      <Link>Formats\Symphony - RTC log.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

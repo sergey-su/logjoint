@@ -5,22 +5,20 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}</ProjectGuid>
+    <ProjectGuid>{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.Chromium</RootNamespace>
-    <AssemblyName>logjoint.chromium.plugin</AssemblyName>
+    <AssemblyName>logjoint.chromium.plugin.model.sdk</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\osx\bin\Debug\logjoint.app\Contents\MonoBundle</OutputPath>
-    <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin</BaseIntermediateOutputPath>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Release\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -29,8 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\osx\bin\Release\logjoint.app\Contents\MonoBundle</OutputPath>
-    <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin</BaseIntermediateOutputPath>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -40,44 +37,41 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\platforms\osx\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Plugin.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\..\shared\PluginInitializer.cs">
-      <Link>PluginInitializer.cs</Link>
-    </Compile>
+    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj">
-      <Project>{5C3545DB-36B8-4DE2-A2CA-B816910D389B}</Project>
-      <Name>logjoint.chromium.plugin.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.sdk\logjoint.sdk.csproj">
-      <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
-      <Name>logjoint.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
       <Name>logjoint.model.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
-      <Project>{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}</Project>
-      <Name>logjoint.chromium.plugin.model.sdk</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <Folder Include="Formats\" />
+    <Folder Include="Formats\ChromeDebugLog\" />
+    <Folder Include="Formats\Chromedriver\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\model\sdk\Formats\ChromeDebugLog\Interfaces.cs">
+      <Link>Formats\ChromeDebugLog\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\sdk\Interfaces.cs">
+      <Link>Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\sdk\Formats\Chromedriver\Interfaces.cs">
+      <Link>Formats\Chromedriver\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\sdk\Formats\Chromedriver\Schemas.cs">
+      <Link>Formats\Chromedriver\Schemas.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

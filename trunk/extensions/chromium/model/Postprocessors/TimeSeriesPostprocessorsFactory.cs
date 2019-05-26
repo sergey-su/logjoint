@@ -5,7 +5,6 @@ using LogJoint.Postprocessing;
 using LogJoint.Postprocessing.TimeSeries;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using DMP = LogJoint.Chromium.WebrtcInternalsDump;
-using Sym = LogJoint.Symphony.Rtc;
 
 namespace LogJoint.Chromium.TimeSeries
 {
@@ -13,23 +12,27 @@ namespace LogJoint.Chromium.TimeSeries
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
-		ILogSourcePostprocessor CreateSymphonyRtcPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
 		readonly Postprocessing.IModel postprocessing;
+		readonly PluginModel pluginModel;
 
-		public PostprocessorsFactory(Postprocessing.IModel postprocessing)
+		public PostprocessorsFactory(
+			Postprocessing.IModel postprocessing,
+			PluginModel pluginModel
+		)
 		{
 			this.postprocessing = postprocessing;
+			this.pluginModel = pluginModel;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.TimeSeries,
-				i => RunForWebRtcNativeLogMessages(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForChromeDebug(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -41,28 +44,25 @@ namespace LogJoint.Chromium.TimeSeries
 			);
 		}
 
-		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
-		{
-			return new LogSourcePostprocessor(
-				PostprocessorKind.TimeSeries,
-				i => RunForSymphonyRtc(new Sym.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
-			);
-		}
-
-		async Task RunForWebRtcNativeLogMessages(
+		async Task RunForChromeDebug(
 			IEnumerableAsync<CDL.Message[]> input,
 			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
 			var inputMultiplexed = input.Multiplex();
-			var symMessages = (new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None)).FromChromeDebugLog(inputMultiplexed);
 
 			ICombinedParser parser = postprocessing.TimeSeries.CreateParser();
 
 			var feedNativeEvents = parser.FeedLogMessages(inputMultiplexed);
-			var feedSymEvents = parser.FeedLogMessages(symMessages, m => m.Logger, m => string.Format("{0}.{1}", m.Logger, m.Text));
 
-			await Task.WhenAll(feedNativeEvents, feedSymEvents, inputMultiplexed.Open());
+			var extensionSources = pluginModel.ChromeDebugTimeSeriesSources.Select(
+				src => src(inputMultiplexed, parser)).ToList();
+			var tasks = extensionSources.Select(s => s.Task).ToList();
+			tasks.Add(feedNativeEvents);
+			tasks.AddRange(extensionSources.SelectMany(s => s.MultiplexingEnumerables.Select(e => e.Open())));
+			tasks.Add(inputMultiplexed.Open());
+
+			await Task.WhenAll(tasks);
 
 			foreach (var ts in parser.GetParsedTimeSeries())
 			{
@@ -80,18 +80,6 @@ namespace LogJoint.Chromium.TimeSeries
 			ICombinedParser parser = postprocessing.TimeSeries.CreateParser();
 
 			await parser.FeedLogMessages(input, m => m.ObjectId, m => m.Text);
-
-			await postprocessing.TimeSeries.SavePostprocessorOutput(parser, postprocessorInput);
-		}
-
-		async Task RunForSymphonyRtc(
-			IEnumerableAsync<Sym.Message[]> input,
-			LogSourcePostprocessorInput postprocessorInput
-		)
-		{
-			ICombinedParser parser = postprocessing.TimeSeries.CreateParser();
-
-			await parser.FeedLogMessages(input, m => m.Logger, m => string.Format("{0}.{1}", m.Logger, m.Text));
 
 			await postprocessing.TimeSeries.SavePostprocessorOutput(parser, postprocessorInput);
 		}

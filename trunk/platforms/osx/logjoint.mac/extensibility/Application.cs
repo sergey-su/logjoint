@@ -1,6 +1,6 @@
 ﻿using LogJoint;
 
-namespace LogJoint.Extensibility
+namespace LogJoint
 {
 	public class Application: IApplication
 	{

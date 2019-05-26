@@ -1,6 +1,5 @@
-﻿using System;
-
-namespace LogJoint.Extensibility
+﻿
+namespace LogJoint
 {
 	public class Model : IModel
 	{
@@ -72,5 +71,6 @@ namespace LogJoint.Extensibility
 		public IShutdown Shutdown { get; private set; }
 		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
 		public Postprocessing.IModel Postprocessing { get; private set; }
+		public IPluginsManager PluginsManager { get; internal set; }
 	};
 }
