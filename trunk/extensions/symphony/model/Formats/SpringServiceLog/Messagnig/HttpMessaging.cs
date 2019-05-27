@@ -29,7 +29,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				string requestId = match.Groups["id"].Value;
 				string requestName = match.Groups["name"].Value;
 				string rest = match.Groups["rest"].Value;
-				string remoteSideId = DetectRemoteId(rest);
+				string remoteSideId = DetectRemoteId(requestName, rest);
 				if (type == MessageType.Request)
 				{
 					requests[requestId] = new PendingRequest()
@@ -52,17 +52,17 @@ namespace LogJoint.Symphony.SpringServiceLog
 		{
 		}
 
-		string DetectRemoteId(string rest)
+		string DetectRemoteId(string requestName, string rest)
 		{
+			if (requestName.StartsWith("mixer"))
+				return "mixer";
 			var m = restMatch.Match(rest);
 			if (m.Success)
-			{
 				return m.Groups["sessionid"].Value;
-			}
 			return null;
 		}
 
-		readonly Regex regex = new Regex(@"^(?<dir>Incoming|Outgoing) (?<type>request|response) \[(?<id>[^\]]+)\] (?<name>\S+)(?<rest>.*)$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		readonly Regex regex = new Regex(@"^(?<dir>Incoming|Outgoing) (?<type>request|response) \[(?<id>[^\]]+)\] (?<name>\S+)(?<rest>.*)$", RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.Singleline);
 		readonly Regex restMatch = new Regex(@"session id (?<sessionid>[\w\-_]+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
 		class PendingRequest
