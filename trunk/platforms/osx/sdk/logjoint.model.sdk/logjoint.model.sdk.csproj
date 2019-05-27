@@ -339,6 +339,9 @@
     <Compile Include="..\..\..\..\sdk\model\extensibility\Interfaces.cs">
       <Link>extensibility\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Extensions.cs">
+      <Link>postprocessing\timeline\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="analytics\infra\" />
