@@ -28,8 +28,23 @@ namespace LogJoint.Symphony.SpringServiceLog
 				MessageType type = match.Groups["type"].Value == "request" ? MessageType.Request : MessageType.Response;
 				string requestId = match.Groups["id"].Value;
 				string requestName = match.Groups["name"].Value;
+				string rest = match.Groups["rest"].Value;
+				string remoteSideId = DetectRemoteId(rest);
+				if (type == MessageType.Request)
+				{
+					requests[requestId] = new PendingRequest()
+					{
+						RemoteSideId = remoteSideId
+					};
+				}
+				else if (requests.TryGetValue(requestId, out var pendingRequest))
+				{
+					if (remoteSideId == null) 
+						remoteSideId = pendingRequest.RemoteSideId;
+					requests.Remove(requestId);
+				}
 				buffer.Enqueue(new NetworkMessageEvent(
-					msg, requestName, dir, type, "", requestId, null, DetectTargetIdHint(requestName, requestId)));
+					msg, requestName, dir, type, "", requestId, null, remoteSideId));
 			}
 		}
 
@@ -37,19 +52,24 @@ namespace LogJoint.Symphony.SpringServiceLog
 		{
 		}
 
-		string DetectTargetIdHint(string name, string id)
+		string DetectRemoteId(string rest)
 		{
-			if (name.StartsWith("client/", StringComparison.OrdinalIgnoreCase)
-			 || name.StartsWith("mbr/", StringComparison.OrdinalIgnoreCase)
-			 || name.StartsWith("sip/", StringComparison.OrdinalIgnoreCase))
+			var m = restMatch.Match(rest);
+			if (m.Success)
 			{
-				var split = id.Split('/');
-				if (split.Length > 1)
-					return split[0]; // session id
+				return m.Groups["sessionid"].Value;
 			}
 			return null;
 		}
 
-		readonly Regex regex = new Regex(@"^(?<dir>Incoming|Outgoing) (?<type>request|response) \[(?<id>[^\]]+)\] (?<name>\S+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		readonly Regex regex = new Regex(@"^(?<dir>Incoming|Outgoing) (?<type>request|response) \[(?<id>[^\]]+)\] (?<name>\S+)(?<rest>.*)$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		readonly Regex restMatch = new Regex(@"session id (?<sessionid>[\w\-_]+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+
+		class PendingRequest
+		{
+			public string RemoteSideId;
+		};
+
+		readonly Dictionary<string, PendingRequest> requests = new Dictionary<string, PendingRequest>();
 	}
 }
