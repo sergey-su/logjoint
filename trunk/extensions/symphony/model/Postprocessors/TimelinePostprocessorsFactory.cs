@@ -33,9 +33,7 @@ namespace LogJoint.Symphony.Timeline
 			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
 				i => RunForSpringServiceLog(new SVC.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(
-					i.LogFileName, i.ProgressHandler),
-					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
-					i.InputContentsEtag)
+					i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -82,36 +80,30 @@ namespace LogJoint.Symphony.Timeline
 
 		async Task RunForSpringServiceLog(
 			IEnumerableAsync<SVC.Message[]> input,
-			string outputFileName,
-			CancellationToken cancellation,
-			ICodepathTracker templatesTracker,
-			string contentsEtagAttr
+			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-/*			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
 			var inputMultiplexed = input.Multiplex();
-			var symEvents = RunForSymMessages(matcher, inputMultiplexed, templatesTracker, out var symLog);
-			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<Sym.Message>();
-			var eofEvts = endOfTimelineEventSource.GetEvents(inputMultiplexed);
 
-			matcher.Freeze();
-
+			var messagingEventsSource = postprocessing.Timeline.CreateMessagingEventsSource();
+			var messagingEvents = messagingEventsSource.GetEvents(
+				((SVC.IMessagingEvents)new SVC.MessagingEvents()).GetEvents(inputMultiplexed));
+			var eofEvents = postprocessing.Timeline.CreateEndOfTimelineEventSource<SVC.Message>()
+				.GetEvents(inputMultiplexed);
+				
 			var events = EnumerableAsync.Merge(
-				symEvents,
-				eofEvts
+				messagingEvents,
+				eofEvents
 			);
 
-			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
+			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
 				events,
 				null,
-				evtTrigger => TextLogEventTrigger.Make((Sym.Message)evtTrigger),
-				contentsEtagAttr,
-				outputFileName,
-				tempFiles,
-				cancellation
+				evtTrigger => TextLogEventTrigger.Make((SVC.Message)evtTrigger),
+				postprocessorInput
 			);
 
-			await Task.WhenAll(serialize, symLog.Open(), inputMultiplexed.Open());*/
+			await Task.WhenAll(serialize, inputMultiplexed.Open());
 		}
 
 		async Task RunForSymLog(

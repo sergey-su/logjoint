@@ -43,7 +43,8 @@ namespace LogJoint
 				if (active)
 				{
 					changeNotification.OnChange += this.changeHandler;
-					this.changeHandler(this, EventArgs.Empty);
+					if (changeNotification.IsEmittingEvents)
+						this.changeHandler(this, EventArgs.Empty);
 				}
 				else
 				{

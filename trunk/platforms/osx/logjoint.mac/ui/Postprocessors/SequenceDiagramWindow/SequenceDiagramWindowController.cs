@@ -18,10 +18,11 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		readonly TagsListViewController tagsListController;
 		readonly QuickSearchTextBoxAdapter quickSearchTextBox;
 		readonly ToastNotificationsViewAdapter toastNotifications;
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		Resources resources;
 		DrawingUtils drawingUtils;
 		SizeF scrollMaxValues;
+		ReadonlyRef<Size> arrowsAreaSize = new ReadonlyRef<Size>();
 
 		public SequenceDiagramWindowController () :
 			base ("SequenceDiagramWindow")
@@ -77,7 +78,11 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			arrowsView.OnMouseDragged = ArrowsViewMouseDrag;
 			arrowsView.OnScrollWheel = ArrowsViewScrollWheel;
 			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, 
-				ns => { if (eventsHandler != null) eventsHandler.OnResized(); }, arrowsView);
+				ns => {
+					arrowsAreaSize = new ReadonlyRef<Size>(
+						arrowsView.Frame.Size.ToSizeF().ToSize());
+					viewModel?.ChangeNotification?.Post();
+				}, arrowsView);
 
 			leftPanelView.BackgroundColor = NSColor.White;
 			leftPanelView.OnPaint = PaintLeftPanel;
@@ -88,18 +93,69 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			horzScroller.Action = new Selector ("OnHorzScrollChanged");
 			horzScroller.Target = this;
 
-			arrowDetailsLink.LinkClicked = (s, e) => eventsHandler.OnTriggerClicked (e.Link.Tag);
+			arrowDetailsLink.LinkClicked = (s, e) => viewModel.OnTriggerClicked (e.Link.Tag);
 			arrowDetailsLink.BackgroundColor = NSColor.White;
 
 			Window.InitialFirstResponder = arrowsView;
 
-			Window.WillClose += (s, e) => eventsHandler.OnWindowHidden ();
+			Window.WillClose += (s, e) => viewModel.OnWindowHidden ();
 		}
 
-		void IView.SetEventsHandler (IViewEvents eventsHandler)
+		void IView.SetViewModel (IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
-			this.drawingUtils = new DrawingUtils(eventsHandler, resources);
+			this.EnsureCreated();
+
+			this.viewModel = viewModel;
+			this.drawingUtils = new DrawingUtils(viewModel, resources);
+
+			var notificationsIconUpdater = Updaters.Create(
+				() => viewModel.IsNotificationsIconVisibile,
+				value => activeNotificationsButton.Hidden = !value
+			);
+
+			var updateCurrentArrowControls = Updaters.Create(
+				() => viewModel.CurrentArrowInfo,
+				value => {
+					arrowNameTextField.StringValue = value.Caption;
+					arrowDetailsLink.StringValue = value.DescriptionText;
+					arrowDetailsLink.Links = (value.DescriptionLinks ?? Enumerable.Empty<Tuple<object, int, int>>())
+						.Select(l => new NSLinkLabel.Link(l.Item2, l.Item3, l.Item1)).ToArray();
+				}
+			);
+
+			var updateCollapseResponsesCheckbox = Updaters.Create (
+				() => viewModel.IsCollapseResponsesChecked,
+				value => collapseResponsesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off
+			);
+
+			var updateCollapseRoleInstancesCheckbox = Updaters.Create(
+				() => viewModel.IsCollapseRoleInstancesChecked,
+				value => collapseRoleInstancesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off);
+
+			var scrollBarsUpdater = Updaters.Create (
+				() => viewModel.ScrollInfo,
+				value => UpdateScrollBars (value.vMax, value.vChange, value.vValue,
+					value.hMax, value.hChange, value.hValue)
+			);
+
+			var invalidateViews = Updaters.Create (
+				() => viewModel.RolesDrawInfo,
+				() => viewModel.ArrowsDrawInfo,
+				(_1, _2) => {
+					rolesCaptionsView.NeedsDisplay = true;
+					arrowsView.NeedsDisplay = true;
+					leftPanelView.NeedsDisplay = true;
+				}
+			);
+
+			viewModel.ChangeNotification.CreateSubscription(() => {
+				notificationsIconUpdater();
+				updateCurrentArrowControls();
+				updateCollapseResponsesCheckbox ();
+				updateCollapseRoleInstancesCheckbox ();
+				scrollBarsUpdater ();
+				invalidateViews ();
+			});
 		}
 
 		ViewMetrics IView.GetMetrics ()
@@ -115,22 +171,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			};
 		}
 
-		void IView.Invalidate ()
-		{
-			rolesCaptionsView.NeedsDisplay = true;
-			arrowsView.NeedsDisplay = true;
-			leftPanelView.NeedsDisplay = true;
-		}
-
-		void IView.UpdateCurrentArrowControls (string caption, string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks)
-		{
-			arrowNameTextField.StringValue = caption;
-			arrowDetailsLink.StringValue = descriptionText;
-			arrowDetailsLink.Links = (descriptionLinks ?? Enumerable.Empty<Tuple<object, int, int>>())
-				.Select(l => new NSLinkLabel.Link(l.Item2, l.Item3, l.Item1)).ToArray();
-		}
-
-		void IView.UpdateScrollBars (int vMax, int vChange, int vValue, int hMax, int hChange, int hValue)
+		void UpdateScrollBars (int vMax, int vChange, int vValue, int hMax, int hChange, int hValue)
 		{
 			Action<NSScroller, int, int, int> set = (scroll, max, change, value) =>
 			{
@@ -163,17 +204,9 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			scrollMaxValues = new SizeF (hMax - hChange, vMax - vChange);
 		}
 
-		int IView.ArrowsAreaWidth 
-		{
-			get { return (int) arrowsView.Frame.Width; }
-		}
+		ReadonlyRef<Size> IView.ArrowsAreaSize => arrowsAreaSize;
 
-		int IView.ArrowsAreaHeight 
-		{
-			get { return (int) arrowsView.Frame.Height; }
-		}
-
-		int IView.RolesCaptionsAreaHeight 
+		int IView.RolesCaptionsAreaHeight
 		{
 			get { return (int) rolesCaptionsView.Frame.Height; }
 		}
@@ -193,31 +226,14 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			arrowsView.Window.MakeFirstResponder(arrowsView);
 		}
 
-		bool IView.IsCollapseResponsesChecked
-		{
-			get { return collapseResponsesCheckbox.State == NSCellStateValue.On; }
-			set { collapseResponsesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off; }
-		}
-
-		bool IView.IsCollapseRoleInstancesChecked
-		{
-			get { return collapseRoleInstancesCheckbox.State == NSCellStateValue.On; }
-			set { collapseRoleInstancesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off; }
-		}
-
 		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
 		{
 			get { return toastNotifications; }
 		}
 
-		void IView.SetNotificationsIconVisibility(bool value)
-		{
-			activeNotificationsButton.Hidden = !value;
-		}
-
 		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
 		{
-			eventsHandler.OnWindowShown ();
+			viewModel.OnWindowShown ();
 			Window.MakeKeyAndOrderFront (null);
 		}
 
@@ -258,64 +274,64 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		[Export("OnVertScrollChanged")]
 		void OnVertScrollChanged()
 		{
-			eventsHandler.OnScrolled(null, (int)(vertScroller.DoubleValue * scrollMaxValues.Height));
+			viewModel.OnScrolled(null, (int)(vertScroller.DoubleValue * scrollMaxValues.Height));
 		}
 
 		[Export("OnHorzScrollChanged")]
 		void OnHorzScrollChanged()
 		{
-			eventsHandler.OnScrolled((int)(horzScroller.DoubleValue * scrollMaxValues.Width), null);
+			viewModel.OnScrolled((int)(horzScroller.DoubleValue * scrollMaxValues.Width), null);
 		}
 
 		[Export ("performFindPanelAction:")]
 		void OnPerformFindPanelAction (NSObject sender)
 		{
-			eventsHandler.OnKeyDown (Key.Find);
+			viewModel.OnKeyDown (Key.Find);
 		}
 
 		partial void OnActiveNotificationButtonClicked (NSObject sender)
 		{
-			eventsHandler.OnActiveNotificationButtonClicked();
+			viewModel.OnActiveNotificationButtonClicked();
 		}
 
 		partial void OnCurrentTimeClicked (NSObject sender)
 		{
-			eventsHandler.OnFindCurrentTimeButtonClicked();
+			viewModel.OnFindCurrentTimeButtonClicked();
 		}
 
 		partial void OnNextBookmarkClicked (NSObject sender)
 		{
-			eventsHandler.OnNextBookmarkButtonClicked();
+			viewModel.OnNextBookmarkButtonClicked();
 		}
 
 		partial void OnNextUserActionClicked (NSObject sender)
 		{
-			eventsHandler.OnNextUserEventButtonClicked();
+			viewModel.OnNextUserEventButtonClicked();
 		}
 
 		partial void OnPrevBookmarkClicked (NSObject sender)
 		{
-			eventsHandler.OnPrevBookmarkButtonClicked();
+			viewModel.OnPrevBookmarkButtonClicked();
 		}
 
 		partial void OnPrevUserActionClicked (NSObject sender)
 		{
-			eventsHandler.OnPrevUserEventButtonClicked();
+			viewModel.OnPrevUserEventButtonClicked();
 		}
 
 		partial void OnCollapseResponsesClicked (NSObject sender)
 		{
-			eventsHandler.OnCollapseResponsesChanged();
+			viewModel.OnCollapseResponsesChange(collapseResponsesCheckbox.State == NSCellStateValue.On);
 		}
 
 		partial void OnCollapseRoleInstancesClicked (NSObject sender)
 		{
-			eventsHandler.OnCollapseRoleInstancesChanged();
+			viewModel.OnCollapseRoleInstancesChange(collapseRoleInstancesCheckbox.State == NSCellStateValue.On);
 		}
 
 		internal void OnKeyEvent(Key key)
 		{
-			eventsHandler.OnKeyDown (key);
+			viewModel.OnKeyDown (key);
 		}
 
 		internal void OnCancelOperation()
@@ -340,37 +356,37 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 					vertScroller.DoubleValue -= (Math.Sign(evt.ScrollingDeltaY) * 30d / scrollMaxValues.Height);
 				scrolledY = (int)(vertScroller.DoubleValue * scrollMaxValues.Height);
 			}
-			eventsHandler.OnScrolled(scrolledX, scrolledY);
+			viewModel.OnScrolled(scrolledX, scrolledY);
 		}
 
 		void ArrowsViewMagnify(NSEvent evt)
 		{
 			var pt = arrowsView.ConvertPointFromView(evt.LocationInWindow, null).ToPoint();
-			eventsHandler.OnGestureZoom(pt, (float) evt.Magnification);
+			viewModel.OnGestureZoom(pt, (float) evt.Magnification);
 		}
 
 		void ArrowsViewMouseDown(NSEvent evt)
 		{
 			var pt = arrowsView.ConvertPointFromView(evt.LocationInWindow, null).ToPoint();
-			eventsHandler.OnArrowsAreaMouseDown(pt, evt.ClickCount == 2);
+			viewModel.OnArrowsAreaMouseDown(pt, evt.ClickCount == 2);
 		}
 
 		void ArrowsViewMouseUp(NSEvent evt)
 		{
 			var pt = arrowsView.ConvertPointFromView(evt.LocationInWindow, null).ToPoint();
-			eventsHandler.OnArrowsAreaMouseUp(pt, GetModifiers(evt));
+			viewModel.OnArrowsAreaMouseUp(pt, GetModifiers(evt));
 		}
 
 		void ArrowsViewMouseDrag(NSEvent evt)
 		{
 			var pt = arrowsView.ConvertPointFromView(evt.LocationInWindow, null).ToPoint();
-			eventsHandler.OnArrowsAreaMouseMove(pt);
+			viewModel.OnArrowsAreaMouseMove(pt);
 		}
 
 		void LeftPanelMouseDown(NSEvent evt)
 		{
 			var pt = leftPanelView.ConvertPointFromView(evt.LocationInWindow, null).ToPoint();
-			eventsHandler.OnLeftPanelMouseDown(pt, evt.ClickCount == 2, GetModifiers(evt));
+			viewModel.OnLeftPanelMouseDown(pt, evt.ClickCount == 2, GetModifiers(evt));
 		}
 
 		static Key GetModifiers(NSEvent evt)

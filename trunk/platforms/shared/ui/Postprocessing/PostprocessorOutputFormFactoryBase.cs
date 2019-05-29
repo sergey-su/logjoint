@@ -169,7 +169,8 @@ namespace LogJoint.UI.Postprocessing
 				app.Model.Postprocessing.Manager,
 				app.Model.SourcesManager,
 				shortNames,
-				logSourceNamesProvider
+				logSourceNamesProvider,
+				app.Model.ChangeNotification
 			);
 			sequenceDiagramPresenter = new Presenters.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramVisualizerPresenter(
 				sequenceDiagramModel,

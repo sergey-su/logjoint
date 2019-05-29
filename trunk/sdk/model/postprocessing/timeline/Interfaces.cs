@@ -16,6 +16,7 @@ namespace LogJoint.Postprocessing.Timeline
 			Func<Message, object> triggetSelector = null);
 		IInspectedObjectsLifetimeEventsSource CreateInspectedObjectsLifetimeEventsSource(
 			Predicate<StateInspector.Event> inspectedObjectsFilter = null);
+		IMessagingEventsSource CreateMessagingEventsSource();
 	};
 
 	public interface IEndOfTimelineEventSource<Message>
@@ -26,6 +27,11 @@ namespace LogJoint.Postprocessing.Timeline
 	public interface IInspectedObjectsLifetimeEventsSource
 	{
 		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<StateInspector.Event[]> input);
+	}
+
+	public interface IMessagingEventsSource
+	{
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<Messaging.Event[]> input);
 	}
 
 	public abstract class Event: ITagged, IVisitable<IEventsVisitor>

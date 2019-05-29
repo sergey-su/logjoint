@@ -41,5 +41,10 @@ namespace LogJoint.Postprocessing.Timeline
 		{
 			return new InspectedObjectsLifetimeEventsSource(inspectedObjectsFilter);
 		}
+
+		IMessagingEventsSource IModel.CreateMessagingEventsSource()
+		{
+			return new MessagingTimelineEventsSource();
+		}
 	};
 }

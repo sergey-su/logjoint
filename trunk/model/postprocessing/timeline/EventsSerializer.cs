@@ -57,7 +57,7 @@ namespace LogJoint.Postprocessing.Timeline
 		{
 			var element = new XElement(name, attrs.Concat(new[] { 
 				MakeNullableAttr(SC.Attr_DisplayName, evt.DisplayName),
-				new XAttribute(SC.Attr_Tags, string.Join(" ", evt.Tags))
+				new XAttribute(SC.Attr_Tags, evt.Tags != null ? string.Join(" ", evt.Tags) : "")
 			}).Where(a => a != null).ToArray());
 			if (evt.Trigger != null && triggerSerializer != null)
 				triggerSerializer(evt.Trigger, element);

@@ -14,34 +14,29 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents eventsHandler);
+		void SetViewModel(IViewModel eventsHandler);
 		ViewMetrics GetMetrics();
-		void Invalidate();
-		int ArrowsAreaWidth { get; }
-		int ArrowsAreaHeight { get; }
+		ReadonlyRef<Size> ArrowsAreaSize { get; }
 		int RolesCaptionsAreaHeight { get; }
-		void UpdateCurrentArrowControls(
-			string caption,
-			string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks);
-		void UpdateScrollBars(
-			int vMax, int vChange, int vValue,
-			int hMax, int hChange, int hValue
-		);
 		TagsList.IView TagsListView { get; }
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
 		ToastNotificationPresenter.IView ToastNotificationsView { get; }
 		void PutInputFocusToArrowsArea();
-		bool IsCollapseResponsesChecked { get; set; }
-		bool IsCollapseRoleInstancesChecked { get; set; }
-		void SetNotificationsIconVisibility(bool value);
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		bool IsNotificationsIconVisibile { get; }
+		CurrentArrowInfo CurrentArrowInfo { get; }
+		bool IsCollapseResponsesChecked { get; }
+		bool IsCollapseRoleInstancesChecked { get; }
+		ScrollInfo ScrollInfo { get; }
+		IReadOnlyList<RoleDrawInfo> RolesDrawInfo { get; }
+		IReadOnlyList<ArrowDrawInfo> ArrowsDrawInfo { get; }
+
 		void OnWindowShown();
 		void OnWindowHidden();
-		IEnumerable<RoleDrawInfo> OnDrawRoles();
-		IEnumerable<ArrowDrawInfo> OnDrawArrows();
 		void OnKeyDown(Key key);
 		void OnArrowsAreaMouseDown(Point pt, bool doubleClick);
 		void OnArrowsAreaMouseMove(Point pt);
@@ -50,7 +45,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		void OnGestureZoom(Point pt, float magnification);
 		void OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers);
 		void OnTriggerClicked(object trigger);
-		void OnResized();
 		void OnPrevUserEventButtonClicked();
 		void OnNextUserEventButtonClicked();
 		void OnNextBookmarkButtonClicked();
@@ -60,8 +54,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		void OnZoomOutButtonClicked();
 		void OnScrolled(int? hScrollValue, int? vScrollValue);
 		bool OnEscapeCmdKey();
-		void OnCollapseResponsesChanged();
-		void OnCollapseRoleInstancesChanged();
+		void OnCollapseResponsesChange(bool value);
+		void OnCollapseRoleInstancesChange(bool value);
 		void OnActiveNotificationButtonClicked();
 	};
 
@@ -174,4 +168,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		public int ParallelNonHorizontalArrowsOffset;
 		public int VScrollOffset;
 	}
+
+	public class CurrentArrowInfo
+	{
+		public string Caption { get; internal set; }
+		public string DescriptionText { get; internal set; }
+		public IEnumerable<Tuple<object, int, int>> DescriptionLinks { get; internal set; }
+	};
+
+	public class ScrollInfo
+	{
+		public int vMax { get; internal set; }
+		public int vChange { get; internal set; }
+		public int vValue { get; internal set; }
+		public int hMax { get; internal set; }
+		public int hChange { get; internal set; }
+		public int hValue { get; internal set; }
+	};
 }

@@ -43,7 +43,8 @@ namespace LogJoint.Symphony
 
 			this.springServiceLogMeta = new LogSourceMetadata(
 				springServiceLogFormat,
-				sequenceDiagramPostprocessorsFactory.CreateSpringServiceLogPostprocessor()
+				sequenceDiagramPostprocessorsFactory.CreateSpringServiceLogPostprocessor(),
+				timelinePostprocessorsFactory.CreateSpringServiceLogPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.springServiceLogMeta);
 

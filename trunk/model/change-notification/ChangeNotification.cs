@@ -27,6 +27,8 @@ namespace LogJoint
 
 		public event EventHandler OnChange;
 
+		bool IChangeNotification.IsEmittingEvents => true;
+
 		ISubscription IChangeNotification.CreateSubscription(Action sideEffect, bool initiallyActive)
 		{
 			return new Subscription(this, sideEffect, initiallyActive);

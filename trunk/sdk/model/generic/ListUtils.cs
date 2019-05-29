@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -237,11 +238,25 @@ namespace LogJoint
 		{
 			int i = RemoveIf(list, 0, list.Count, pred);
 			int count = list.Count - i;
+			FinalizeRemovedElements(list, preRemoveAction, i, count);
+			list.RemoveRange(i, count);
+			return count;
+		}
+
+		public static int RemoveAll<T>(this ImmutableArray<T>.Builder list, Predicate<T> pred, Action<T> preRemoveAction = null)
+		{
+			int i = RemoveIf(list, 0, list.Count, pred);
+			int count = list.Count - i;
+			FinalizeRemovedElements(list, preRemoveAction, i, count);
+			list.Count = i;
+			return count;
+		}
+
+		private static void FinalizeRemovedElements<T>(IList<T> list, Action<T> preRemoveAction, int i, int count)
+		{
 			if (preRemoveAction != null)
 				for (int j = 0; j < count; ++j)
 					preRemoveAction(list[i + j]);
-			list.RemoveRange(i, count);
-			return count;
 		}
 
 		public static IEnumerable<T> EnumForward<T>(this IList<T> list, int beginIdx, int endIdx)

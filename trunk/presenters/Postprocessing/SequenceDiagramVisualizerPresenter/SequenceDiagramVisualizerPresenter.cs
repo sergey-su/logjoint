@@ -1,6 +1,7 @@
 ﻿using M = LogJoint.Postprocessing.Messaging;
 using TL = LogJoint.Postprocessing.Timeline;
 using SI = LogJoint.Postprocessing.StateInspector;
+using SD = LogJoint.Postprocessing.SequenceDiagram;
 using System;
 using System.Collections.Generic;
 using LogJoint.Drawing;
@@ -16,7 +17,7 @@ using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 {
-	public class SequenceDiagramVisualizerPresenter: IPresenter, IViewEvents
+	public class SequenceDiagramVisualizerPresenter: IPresenter, IViewModel
 	{
 		readonly IView view;
 		readonly ISequenceDiagramVisualizerModel model;
@@ -24,35 +25,38 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		readonly StateInspectorVisualizer.IPresenter stateInspectorPresenter;
 		readonly TagsList.IPresenter tagsListPresenter;
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
-		readonly Dictionary<string, Role> roles = new Dictionary<string, Role>();
-		readonly List<Arrow> arrows = new List<Arrow>();
-		readonly Dictionary<string, Arrow> hiddenLinkableResponses = new Dictionary<string, Arrow>();
-		readonly IComparer<Arrow> arrowComparer;
+		readonly static IComparer<Arrow> arrowComparer = new ArrowComparer();
 		readonly Common.PresenterPersistentState persistentState;
 		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
 		readonly IBookmarks bookmarks;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IPresentersFacade presentersFacade;
 		readonly IUserNamesProvider userNamesProvider;
-		Dictionary<string, ExternalRolesProperties> externalRolesProperties;
-		ImmutableHashSet<string> availableTags = ImmutableHashSet.Create<string>();
-		SortedList<int, bool> selectedArrows = new SortedList<int, bool>();
-		int focusedSelectedArrow;
+		readonly Func<StateCache> state;
+		ImmutableSortedSet<Arrow> lastSelectedArrows = ImmutableSortedSet.Create<Arrow>(ArrowIndexComparer.Instance);
+		Arrow lastFocusedSelectedArrow = null;
+		readonly Func<SelectedArrowsCache> effectiveSelectedArrows;
+		readonly Func<Arrow> selectedArrow;
+		readonly Func<CurrentArrowInfo> currentArrowInfo;
 		bool hideResponses = false;
 		bool collapseRoleInstances = false;
-		readonly int nodeWidth;
-		readonly int messageHeight;
-		readonly int executionOccurrenceWidth;
-		readonly int executionOccurrenceLevelOffset = 6;
-		readonly int parallelNonHorizontalArrowsOffset = 4;
-		readonly int vScrollOffset;
-		readonly int arrowTextPadding;
+		readonly MetricsCache metrics;
+		readonly Func<IMessage> focusedMessage;
+
+		int quickSearchVersion;
 
 		Point? capturedMousePt;
 		Matrix capturedMouseTransform;
 		bool viewMovedAfterCapturing;
 
+		readonly Func<ReadonlyRef<Rectangle>> viewRect;
+		readonly Func<ReadonlyRef<Rectangle>> sceneRect;
 		Matrix transform = new Matrix();
+		readonly Func<Matrix> effectiveTransform;
+		readonly Func<ScrollInfo> scrollInfo;
+
+		readonly Func<ImmutableArray<RoleDrawInfo>> rolesDrawInfo;
+		readonly Func<ImmutableArray<ArrowDrawInfo>> drawArrowsInfo;
 
 		public SequenceDiagramVisualizerPresenter(
 			ISequenceDiagramVisualizerModel model, 
@@ -77,88 +81,178 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			this.presentersFacade = presentersFacade;
 			this.userNamesProvider = userNamesProvider;
 
-			this.arrowComparer = new ArrowComparer();
+			view.SetViewModel(this);
 
-			view.SetEventsHandler(this);
+			this.metrics = new MetricsCache(view.GetMetrics());
 
-			var viewMetrics = view.GetMetrics();
-			this.messageHeight = viewMetrics.MessageHeight;
-			this.nodeWidth = viewMetrics.NodeWidth;
-			this.executionOccurrenceWidth = viewMetrics.ExecutionOccurrenceWidth;
-			this.executionOccurrenceLevelOffset = viewMetrics.ExecutionOccurrenceLevelOffset;
-			this.parallelNonHorizontalArrowsOffset = viewMetrics.ParallelNonHorizontalArrowsOffset;
-			this.vScrollOffset = viewMetrics.VScrollOffset;
-			this.arrowTextPadding = this.executionOccurrenceWidth / 2 + 1;
-
-			transform.Translate(nodeWidth, messageHeight);
-
-			model.Changed += (s, e) => Update();
-			loadedMessagesPresenter.LogViewerPresenter.FocusedMessageChanged += (s, e) => view.Invalidate();
-			bookmarks.OnBookmarksChanged += (s, e) => Update();
+			transform.Translate(metrics.nodeWidth, metrics.messageHeight);
 
 			var sourcesSelector = Selectors.Create(() => model.Outputs, outputs => outputs.Select(output => output.LogSource));
+			var availableTagsSelector = Selectors.Create(
+				() => model.InternodeMessages,
+				() => model.UnpairedMessages,
+				() => model.TimelineComments,
+				() => model.StateComments,
+				() => model.MetadataEntries,
+				GetAvailableTags
+			);
 			this.persistentState = new Common.PresenterPersistentState(
 				storageManager, "postproc.sequence-diagram", "postproc.sequence.view-state.xml",
-				changeNotification, () => availableTags, sourcesSelector);
+				changeNotification, availableTagsSelector, sourcesSelector);
 			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(persistentState, view.TagsListView, changeNotification);
 			this.tagsListPresenter.SetIsSingleLine(false);
 
-			// todo: get rid of this updater - make rendering reactive
-			changeNotification.CreateSubscription(Updaters.Create(() => persistentState.TagsPredicate, _ => Update()));
-
-			view.IsCollapseRoleInstancesChecked = collapseRoleInstances = true;
+			collapseRoleInstances = true;
 
 			quickSearchPresenter.OnRealtimeSearch += (sender, args) =>
 			{
-				Update();
+				++quickSearchVersion;
+				changeNotification.Post();
 			};
 
 			quickSearchPresenter.OnSearchNow += (sender, args) =>
 			{
-				Update();
+				++quickSearchVersion;
+				changeNotification.Post();
 				view.PutInputFocusToArrowsArea();
 			};
 
 			quickSearchPresenter.OnCancelled += (sender, args) =>
 			{
-				Update();
+				++quickSearchVersion;
+				changeNotification.Post();
 				view.PutInputFocusToArrowsArea();
 			};
 
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.SequenceDiagram));
-			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
-			{
-				UpdateNotificationsIcon();
-			};
 
+			state = Selectors.Create(
+				() => (model.InternodeMessages, model.UnpairedMessages, model.TimelineComments, model.StateComments, model.MetadataEntries),
+				() => (collapseRoleInstances, hideResponses),
+				() => (quickSearchVersion, persistentState.TagsPredicate),
+				() => bookmarks.Items,
+				(modelData, flags, filters, bookmarkItems) => ComputeState(
+					modelData.InternodeMessages, modelData.UnpairedMessages, modelData.TimelineComments, modelData.StateComments, modelData.MetadataEntries,
+					flags.collapseRoleInstances, flags.hideResponses,
+					quickSearchPresenter.Text, filters.TagsPredicate, bookmarkItems, metrics)
+			);
 
-			Update();
+			effectiveSelectedArrows = Selectors.Create(
+				() => lastSelectedArrows,
+				() => lastFocusedSelectedArrow,
+				state,
+				GetEffectiveSelectedArrows
+			);
+
+			selectedArrow = Selectors.Create(
+				() => effectiveSelectedArrows().FocusedArrowIndex,
+				state,
+				(idx, state) => idx != null ? state.arrows[idx.Value] : null
+			);
+
+			currentArrowInfo = Selectors.Create(
+				selectedArrow,
+				arrow => MakeCurrentArrowInfo(arrow, stateInspectorPresenter)
+			);
+
+			changeNotification.CreateSubscription(Updaters.Create(
+				selectedArrow,
+				EnsureArrowVisible
+			));
+
+			viewRect = Selectors.Create(() => view.ArrowsAreaSize,
+				sz => new ReadonlyRef<Rectangle>(new Rectangle(new Point(), sz.Value)));
+
+			effectiveTransform = Selectors.Create(
+				() => transform,
+				() => metrics,
+				viewRect,
+				() => state().roles.Count,
+				() => state().arrows.Length,
+				GetEffectiveTransform
+			);
+
+			sceneRect = Selectors.Create(
+				effectiveTransform,
+				() => metrics,
+				() => state().roles.Count,
+				() => state().arrows.Length,
+				GetSceneRect
+			);
+
+			scrollInfo = Selectors.Create(
+				viewRect,
+				sceneRect,
+				GetScrollInfo
+			);
+
+			focusedMessage = () => loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
+
+			rolesDrawInfo = Selectors.Create(
+				state,
+				focusedMessage,
+				effectiveTransform,
+				() => effectiveSelectedArrows().IndicesSet,
+				() => (view.ArrowsAreaSize, view.RolesCaptionsAreaHeight),
+				(state, focusedMsg, transform, selectedArrows, viewSizes) =>
+					GetRolesDrawInfo(state, focusedMsg, metrics, transform,
+						selectedArrows, viewSizes.ArrowsAreaSize, viewSizes.RolesCaptionsAreaHeight)
+			);
+
+			drawArrowsInfo = Selectors.Create(
+				state,
+				focusedMessage,
+				effectiveSelectedArrows,
+				effectiveTransform,
+				() => (view.ArrowsAreaSize, hideResponses),
+				(state, focusedMsg, selectedArrows, transform, props) =>
+					GetArrowsDrawInfo(state, focusedMsg, selectedArrows, metrics, transform, props.ArrowsAreaSize, props.hideResponses)
+			);
 		}
 
-		void IViewEvents.OnWindowShown()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		bool IViewModel.IsNotificationsIconVisibile => toastNotificationsPresenter.HasSuppressedNotifications;
+
+		CurrentArrowInfo IViewModel.CurrentArrowInfo => currentArrowInfo();
+
+		ScrollInfo IViewModel.ScrollInfo => scrollInfo();
+
+		void IViewModel.OnWindowShown()
 		{
 			changeNotification.Active = true;
 		}
 
-		void IViewEvents.OnWindowHidden()
+		void IViewModel.OnWindowHidden()
 		{
 			changeNotification.Active = false;
 		}
 
-		IEnumerable<RoleDrawInfo> IViewEvents.OnDrawRoles()
+		IReadOnlyList<RoleDrawInfo> IViewModel.RolesDrawInfo => rolesDrawInfo();
+
+		static ImmutableArray<RoleDrawInfo> GetRolesDrawInfo(
+			StateCache state,
+			IMessage msg,
+			MetricsCache metrics,
+			Matrix transform,
+			ImmutableHashSet<int> selectedArrows,
+			ReadonlyRef<Size> arrowsAreaSize,
+			int rolesCaptionsAreaHeight
+		)
 		{
-			var msg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
-			var focusedLogSource = msg != null ? msg.GetLogSource() : null;
-			int w = Math.Max(0, Transform(nodeWidth, 0, transformVector: true).X - 10);
-			int h = view.RolesCaptionsAreaHeight - 3;
-			int firstArrowIdx = Math.Max(GetMessageIndex(0), 0);
-			int lastArrowIdx = GetMessageIndex(view.ArrowsAreaHeight) + 1;
-			foreach (var role in roles.Values)
+			var result = ImmutableArray.CreateBuilder<RoleDrawInfo>();
+			var focusedLogSource = msg?.GetLogSource();
+			int w = Math.Max(0, Transform(transform, metrics.nodeWidth, 0, transformVector: true).X - 10);
+			int h = rolesCaptionsAreaHeight - 3;
+			var metricsUtils = new MetricsUtils(metrics, transform);
+			int firstArrowIdx = Math.Max(metricsUtils.GetMessageIndex(0), 0);
+			int lastArrowIdx = metricsUtils.GetMessageIndex(arrowsAreaSize.Value.Height) + 1;
+			foreach (var role in state.roles.Values)
 			{
-				var x = GetRoleX(role.DisplayIndex);
-				yield return new RoleDrawInfo()
+				var x = metricsUtils.GetRoleX(role.DisplayIndex);
+				result.Add(new RoleDrawInfo()
 				{
 					X = x,
 					DisplayName = role.DisplayName,
@@ -168,31 +262,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 						.Where(eo => Math.Max(firstArrowIdx, eo.Begin.Index) <= Math.Min(lastArrowIdx, eo.End.Index))
 						.Select(eo => 
 					{
-						var beginY = GetArrowY(eo.Begin.Index);
-						var endY = GetArrowY(eo.End.Index);
+						var beginY = metricsUtils.GetArrowY(eo.Begin.Index);
+						var endY = metricsUtils.GetArrowY(eo.End.Index);
 						var yDelta = 0;
 						var drawMode = ExecutionOccurrenceDrawMode.Normal;
 						if (eo.Begin.Type == ArrowType.ActivityBegin)
 						{
 							// move activity box up to hide its ends under activity begin/end labels
-				 			yDelta = -messageHeight / 2;
+							yDelta = -metrics.messageHeight / 2;
 				 			drawMode = ExecutionOccurrenceDrawMode.Activity;
 				 		}
 						return new ExecutionOccurrenceDrawInfo()
 						{
 							Bounds = new Rectangle(
-								x - executionOccurrenceWidth / 2 + eo.Level * executionOccurrenceLevelOffset,
+								x - metrics.executionOccurrenceWidth / 2 + eo.Level * metrics.executionOccurrenceLevelOffset,
 								beginY + yDelta,
-								executionOccurrenceWidth,
+								metrics.executionOccurrenceWidth,
 								endY - beginY
 							),
-							IsHighlighted = IsHighlightedArrow(eo.Begin),
+							IsHighlighted = IsHighlightedArrow(eo.Begin, selectedArrows),
 							DrawMode = drawMode,
 						};
 					}),
 					ContainsFocusedMessage = focusedLogSource != null && role.LogSources.Contains(focusedLogSource)
-				};
+				});
 			}
+			return result.ToImmutable();
 		}
 
 		static Point Transform(Matrix m, int x, int y, bool transformVector = false)
@@ -205,32 +300,39 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return new Point((int)pts[0].X, (int)pts[0].Y);
 		}
 
-		Point Transform(int x, int y, bool transformVector = false)
-		{
-			return Transform(transform, x, y, transformVector);
-		}
+		IReadOnlyList<ArrowDrawInfo> IViewModel.ArrowsDrawInfo => drawArrowsInfo();
 
-		IEnumerable<ArrowDrawInfo> IViewEvents.OnDrawArrows()
+		static ImmutableArray<ArrowDrawInfo> GetArrowsDrawInfo(
+			StateCache state,
+			IMessage focusedMessage,
+			SelectedArrowsCache selectedArrowsCache,
+			MetricsCache metrics,
+			Matrix transform,
+			ReadonlyRef<Size> arrowsAreaSize,
+			bool hideResponses
+		)
 		{
-			int maxY = view.ArrowsAreaHeight + messageHeight;
-			int w = Transform(nodeWidth, 0, true).X;
-			var fmr = GetFocusedMessageRange();
-			int minX = GetRoleX(0);
-			int maxX = GetRoleX(Math.Max(roles.Count - 1, 0));
+			var result = ImmutableArray.CreateBuilder<ArrowDrawInfo>();
+			int maxY = arrowsAreaSize.Value.Height + metrics.messageHeight;
+			var metricsUtils = new MetricsUtils(metrics, transform);
+			int w = Transform(transform, metrics.nodeWidth, 0, true).X;
+			var fmr = GetFocusedMessageRange(focusedMessage, state);
+			int minX = metricsUtils.GetRoleX(0);
+			int maxX = metricsUtils.GetRoleX(Math.Max(state.roles.Count - 1, 0));
 
-			Func<Arrow, bool, ArrowDrawInfo> makeDrawInfo = (arrow, isFullyVisible) =>
+			ArrowDrawInfo makeDrawInfo(Arrow arrow, bool isFullyVisible)
 			{
 				var ret = new ArrowDrawInfo()
 				{
 					Mode = ToDrawMode(arrow.Type),
-					Y = GetArrowY(arrow.Index),
+					Y = metricsUtils.GetArrowY(arrow.Index),
 					DisplayName = arrow.ShortDisplayName,
-					FromX = GetRoleX(arrow.From.DisplayIndex) + arrow.FromOffset,
-					ToX = GetRoleX(arrow.To.DisplayIndex) + arrow.ToOffset,
+					FromX = metricsUtils.GetRoleX(arrow.From.DisplayIndex) + arrow.FromOffset,
+					ToX = metricsUtils.GetRoleX(arrow.To.DisplayIndex) + arrow.ToOffset,
 					IsBookmarked = arrow.IsBookmarked,
-					Height = messageHeight,
+					Height = metrics.messageHeight,
 					Width = w,
-					TextPadding = arrowTextPadding,
+					TextPadding = metrics.arrowTextPadding,
 					Delta = "",
 					MinX = minX,
 					MaxX = maxX,
@@ -238,27 +340,27 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					IsFullyVisible = isFullyVisible
 				};
 
-				bool isSelected = selectedArrows.ContainsKey(arrow.Index);
-				if (arrow.Index == focusedSelectedArrow)
+				bool isSelected = selectedArrowsCache.IndicesSet.Contains(arrow.Index);
+				if (arrow.Index == selectedArrowsCache.FocusedArrowIndex)
 					ret.SelectionState = ArrowSelectionState.FocusedSelectedArrow;
 				else if (isSelected)
 					ret.SelectionState = ArrowSelectionState.SelectedArrow;
 				else
 					ret.SelectionState = ArrowSelectionState.NotSelected;
 
-				ret.IsHighlighted = IsHighlightedArrow(arrow);
+				ret.IsHighlighted = IsHighlightedArrow(arrow, selectedArrowsCache.IndicesSet);
 
-				if (selectedArrows.Count > 1)
+				if (selectedArrowsCache.OrderedIndices.Length > 1)
 				{
 					if (isSelected)
 					{
-						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrows.Keys.AsReadOnly(), arrow.Index, ValueBound.UpperReversed, Comparer<int>.Default);
+						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrowsCache.OrderedIndices, arrow.Index, ValueBound.UpperReversed, Comparer<int>.Default);
 						if (prevSelectedArrowIdxIdx >= 0)
 						{
-							var prevSelectedArrowIdx = selectedArrows.Keys[prevSelectedArrowIdxIdx];
-							if (IsValidArrowIndex(prevSelectedArrowIdx))
+							var prevSelectedArrowIdx = selectedArrowsCache.OrderedIndices[prevSelectedArrowIdxIdx];
+							if (state.IsValidArrowIndex(prevSelectedArrowIdx))
 							{
-								ret.Delta = TimeUtils.TimeDeltaToString(arrow.FromTimestamp - arrows[prevSelectedArrowIdx].FromTimestamp);
+								ret.Delta = TimeUtils.TimeDeltaToString(arrow.FromTimestamp - state.arrows[prevSelectedArrowIdx].FromTimestamp);
 							}
 						}
 					}
@@ -275,7 +377,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 							ret.CurrentTimePosition = -1;
 						else
 							ret.CurrentTimePosition = 0;
-					else if (fmr.Item1 > arrow.Index && arrow.Index == arrows.Count - 1)
+					else if (fmr.Item1 > arrow.Index && arrow.Index == state.arrows.Length - 1)
 						ret.CurrentTimePosition = 1;
 				}
 
@@ -288,16 +390,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				{
 					ret.NonHorizontalDrawingData = new NonHorizontalArrowDrawInfo()
 					{
-						ToX = GetRoleX(arrow.To.DisplayIndex) + arrow.NonHorizontalConnectedArrow.ToOffset,
-						Y = GetArrowY(arrow.NonHorizontalConnectedArrow.Index),
-						VerticalLineX = GetRoleX(arrow.To.DisplayIndex) + arrow.NonHorizontalConnectorOffset
+						ToX = metricsUtils.GetRoleX(arrow.To.DisplayIndex) + arrow.NonHorizontalConnectedArrow.ToOffset,
+						Y = metricsUtils.GetArrowY(arrow.NonHorizontalConnectedArrow.Index),
+						VerticalLineX = metricsUtils.GetRoleX(arrow.To.DisplayIndex) + arrow.NonHorizontalConnectorOffset
 					};
 				}
 
 				if (hideResponses && arrow.LinkedArrowId != null)
 				{
-					Arrow hiddenResponse;
-					if (hiddenLinkableResponses.TryGetValue(arrow.LinkedArrowId, out hiddenResponse) && hiddenResponse.Color != ArrowColor.Normal)
+					if (state.hiddenLinkableResponses.TryGetValue(arrow.LinkedArrowId, out var hiddenResponse) && hiddenResponse.Color != ArrowColor.Normal)
 					{
 						// highlight abnormal responses: take color and display text (with status code inside) from the response
 						ret.DisplayName = hiddenResponse.ShortDisplayName;
@@ -306,12 +407,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				}
 
 				return ret;
-			};
+			}
 
-			int firstArrowIdx = Math.Max(GetMessageIndex(0), 0);
-			foreach (var arrow in arrows.Skip(firstArrowIdx))
+			int firstArrowIdx = Math.Max(metricsUtils.GetMessageIndex(0), 0);
+			foreach (var arrow in state.arrows.Skip(firstArrowIdx))
 			{
-				int y = GetArrowY(arrow.Index);
+				int y = metricsUtils.GetArrowY(arrow.Index);
 				if (y < 0)
 					continue;
 				if (y > maxY)
@@ -319,13 +420,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				if (arrow.Index == firstArrowIdx && arrow.OverlappingNonHorizontalArrows != null)
 				{
 					foreach (var overlappingNonHorizontalArrow in arrow.OverlappingNonHorizontalArrows)
-						yield return makeDrawInfo(overlappingNonHorizontalArrow, false);
+						result.Add(makeDrawInfo(overlappingNonHorizontalArrow, false));
 				}
-				yield return makeDrawInfo(arrow, true);
+				result.Add(makeDrawInfo(arrow, true));
 			}
+
+			return result.ToImmutable();
 		}
 
-		void IViewEvents.OnArrowsAreaMouseDown(Point pt, bool doubleClick)
+		void IViewModel.OnArrowsAreaMouseDown(Point pt, bool doubleClick)
 		{
 			if (doubleClick)
 			{
@@ -334,12 +437,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			else
 			{
 				capturedMousePt = pt;
-				capturedMouseTransform = transform.Clone();
+				capturedMouseTransform = effectiveTransform().Clone();
 				viewMovedAfterCapturing = false;
 			}
 		}
 
-		void IViewEvents.OnArrowsAreaMouseMove(Point pt)
+		void IViewModel.OnArrowsAreaMouseMove(Point pt)
 		{
 			if (capturedMousePt != null)
 			{
@@ -356,7 +459,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void IViewEvents.OnArrowsAreaMouseUp(Point pt, Key modifiers)
+		void IViewModel.OnArrowsAreaMouseUp(Point pt, Key modifiers)
 		{
 			bool selectArrow = false;
 			if (capturedMousePt != null)
@@ -368,11 +471,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			if (selectArrow)
 			{
-				SetSelectedArrowIndex(GetMessageIndex(pt.Y), multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
+				SetSelectedArrowIndex(new MetricsUtils(metrics, effectiveTransform()).GetMessageIndex(pt.Y),
+					multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
 			}
 		}
 
-		void IViewEvents.OnArrowsAreaMouseWheel(Point pt, int delta, Key modifiers)
+		void IViewModel.OnArrowsAreaMouseWheel(Point pt, int delta, Key modifiers)
 		{
 			if ((modifiers & Key.WheelZoomModifier) != 0)
 			{
@@ -380,19 +484,20 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else
 			{
-				ModifyTransform(m => m.Translate(0, delta > 0 ? vScrollOffset : -vScrollOffset, MatrixOrder.Append));
+				ModifyTransform(m => m.Translate(0, delta > 0 ? metrics.vScrollOffset : -metrics.vScrollOffset, MatrixOrder.Append));
 			}
 		}
 
 
-		void IViewEvents.OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers)
+		void IViewModel.OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers)
 		{
-			SetSelectedArrowIndex(GetMessageIndex(pt.Y), multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
+			SetSelectedArrowIndex(new MetricsUtils(metrics, effectiveTransform()).GetMessageIndex(pt.Y),
+				multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
 			if (doubleClick)
 				ShowSelectedArrow();
 		}
 
-		void IViewEvents.OnKeyDown(Key code)
+		void IViewModel.OnKeyDown(Key code)
 		{
 			if (code == Key.Left)
 			{
@@ -404,7 +509,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else if (code == Key.MoveSelectionUp)
 			{
-				SetSelectedArrowIndex(focusedSelectedArrow - 1);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex.GetValueOrDefault(-1) - 1);
 			}
 			else if (code == Key.ScrollLineUp)
 			{
@@ -412,7 +517,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else if (code == Key.MoveSelectionDown)
 			{
-				SetSelectedArrowIndex(focusedSelectedArrow + 1);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex.GetValueOrDefault(-1) + 1);
 			}
 			else if (code == Key.ScrollLineDown)
 			{
@@ -420,19 +525,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else if (code == Key.Plus)
 			{
-				ScaleTransform(view.ArrowsAreaWidth / 2, 1.1f);
+				ScaleTransform(view.ArrowsAreaSize.Value.Width / 2, 1.1f);
 			}
 			else if (code == Key.Minus)
 			{
-				ScaleTransform(view.ArrowsAreaWidth / 2, 0.9f);
+				ScaleTransform(view.ArrowsAreaSize.Value.Width / 2, 0.9f);
 			}
 			else if (code == Key.PageDown)
 			{
-				SetSelectedArrowIndex(focusedSelectedArrow + 10);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex.GetValueOrDefault(-1) + 10);
 			}
 			else if (code == Key.PageUp)
 			{
-				SetSelectedArrowIndex(focusedSelectedArrow - 10);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex.GetValueOrDefault(-1) - 10);
 			}
 			else if (code == Key.Home)
 			{
@@ -440,7 +545,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else if (code == Key.End)
 			{
-				SetSelectedArrowIndex(arrows.Count - 1);
+				SetSelectedArrowIndex(state().arrows.Length - 1);
 			}
 			else if (code == Key.Enter)
 			{
@@ -468,68 +573,62 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void IViewEvents.OnTriggerClicked(object trigger)
+		void IViewModel.OnTriggerClicked(object trigger)
 		{
 			ShowTrigger(trigger);
 		}
 
-		void IViewEvents.OnResized()
-		{
-			AdjustTransformToFitViewFrame();
-			UpdateViewScrollBars();
-		}
-
-		void IViewEvents.OnPrevUserEventButtonClicked()
+		void IViewModel.OnPrevUserEventButtonClicked()
 		{
 			SelectPrevArrowByPredicate(a => a.Type == ArrowType.UserAction);
 		}
 
-		void IViewEvents.OnNextUserEventButtonClicked()
+		void IViewModel.OnNextUserEventButtonClicked()
 		{
 			SelectNextArrowByPredicate(a => a.Type == ArrowType.UserAction);
 		}
 
-		void IViewEvents.OnNextBookmarkButtonClicked()
+		void IViewModel.OnNextBookmarkButtonClicked()
 		{
 			SelectNextArrowByPredicate(a => a.IsBookmarked);
 		}
 
-		void IViewEvents.OnPrevBookmarkButtonClicked()
+		void IViewModel.OnPrevBookmarkButtonClicked()
 		{
 			SelectPrevArrowByPredicate(a => a.IsBookmarked);
 		}
 
-		void IViewEvents.OnFindCurrentTimeButtonClicked()
+		void IViewModel.OnFindCurrentTimeButtonClicked()
 		{
 			FindCurrentTime();
 		}
 
-		void IViewEvents.OnZoomInButtonClicked()
+		void IViewModel.OnZoomInButtonClicked()
 		{
-			ScaleTransform(view.ArrowsAreaWidth / 2, 1.2f);
+			ScaleTransform(view.ArrowsAreaSize.Value.Width / 2, 1.2f);
 		}
 
-		void IViewEvents.OnZoomOutButtonClicked()
+		void IViewModel.OnZoomOutButtonClicked()
 		{
-			ScaleTransform(view.ArrowsAreaWidth / 2, 0.83f);
+			ScaleTransform(view.ArrowsAreaSize.Value.Width / 2, 0.83f);
 		}
 
-		void IViewEvents.OnScrolled(int? hScrollValue, int? vScrollValue)
+		void IViewModel.OnScrolled(int? hScrollValue, int? vScrollValue)
 		{
-			var sceneRect = GetSceneRect();
+			var sr = sceneRect().Value;
 			ModifyTransform(m => m.Translate(
-				-(hScrollValue.GetValueOrDefault(-sceneRect.X) + sceneRect.X),
-				-(vScrollValue.GetValueOrDefault(-sceneRect.Y) + sceneRect.Y),
+				-(hScrollValue.GetValueOrDefault(-sr.X) + sr.X),
+				-(vScrollValue.GetValueOrDefault(-sr.Y) + sr.Y),
 				MatrixOrder.Append
 			));
 		}
 
-		void IViewEvents.OnGestureZoom(Point pt, float magnification)
+		void IViewModel.OnGestureZoom(Point pt, float magnification)
 		{
 			ScaleTransform(pt.X, 1f + magnification);
 		}
 
-		bool IViewEvents.OnEscapeCmdKey()
+		bool IViewModel.OnEscapeCmdKey()
 		{
 			if (quickSearchPresenter.Text != "")
 			{
@@ -539,72 +638,107 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return false;
 		}
 
-		void IViewEvents.OnCollapseResponsesChanged()
+		bool IViewModel.IsCollapseResponsesChecked => hideResponses;
+
+		void IViewModel.OnCollapseResponsesChange(bool value)
 		{
-			hideResponses = view.IsCollapseResponsesChecked;
-			Update();
+			if (value != hideResponses)
+			{
+				hideResponses = value;
+				changeNotification.Post();
+			}
 		}
 
-		void IViewEvents.OnCollapseRoleInstancesChanged()
+		bool IViewModel.IsCollapseRoleInstancesChecked => collapseRoleInstances;
+
+		void IViewModel.OnCollapseRoleInstancesChange(bool value)
 		{
-			collapseRoleInstances = view.IsCollapseRoleInstancesChecked;
-			Update();
+			if (value != collapseRoleInstances)
+			{
+				collapseRoleInstances = value;
+				changeNotification.Post();
+			}
 		}
 
-		void IViewEvents.OnActiveNotificationButtonClicked()
+		void IViewModel.OnActiveNotificationButtonClicked()
 		{
 			toastNotificationsPresenter.UnsuppressNotifications();
 		}
 
-		int GetMessageIndex(int y)
+		static SelectedArrowsCache GetEffectiveSelectedArrows(
+			ImmutableSortedSet<Arrow> lastSelectedArrows,
+			Arrow lastFocusedArrow,
+			StateCache state)
 		{
-			var logicalY = Transform(InvertTransform(), 0, y).Y + messageHeight;
-			return logicalY / messageHeight;
+			var arrows = state.arrows;
+			var result = ImmutableHashSet.CreateBuilder<int>();
+			foreach (var idx in lastSelectedArrows.Select(
+					a => arrows.LowerBound(a, arrowComparer)).Where(i => i < arrows.Length))
+				result.Add(idx);
+			if (result.Count == 0 && arrows.Length > 0)
+				result.Add(0);
+
+			int? focusedArrowIdx = lastFocusedArrow != null ?
+					arrows.BinarySearch(lastFocusedArrow, arrowComparer) : new int?();
+			if (focusedArrowIdx != null && !state.IsValidArrowIndex(focusedArrowIdx.Value))
+				focusedArrowIdx = null;
+			if (focusedArrowIdx == null && arrows.Length > 0)
+				focusedArrowIdx = 0;
+
+			return new SelectedArrowsCache()
+			{
+				OrderedIndices = ImmutableArray.CreateRange(result.OrderBy(x => x)),
+				IndicesSet = result.ToImmutable(),
+				FocusedArrowIndex = focusedArrowIdx,
+			};
 		}
 
 		void SetSelectedArrowIndex(int value, bool multiselectionMode = false)
 		{
-			value = Math.Max(0, Math.Min(value, arrows.Count - 1));
-			if (multiselectionMode)
+			value = Math.Max(0, Math.Min(value, state().arrows.Length - 1));
+			var arrow = state().arrows.ElementAtOrDefault(value);
+			if (arrow == null)
 			{
-				if (selectedArrows.ContainsKey(value))
+				lastFocusedSelectedArrow = null;
+				lastSelectedArrows = lastSelectedArrows.Clear();
+			}
+			else if (multiselectionMode)
+			{
+				if (lastSelectedArrows.Contains(arrow))
 				{
-					if (selectedArrows.Count == 1)
+					if (lastSelectedArrows.Count == 1)
 					{
 						return; // preserve the last selected line
 					}
 					else
 					{
-						selectedArrows.Remove(value);
-						if (focusedSelectedArrow == value)
-							focusedSelectedArrow = selectedArrows.Keys.FirstOrDefault(-1);
+						lastSelectedArrows = lastSelectedArrows.Remove(arrow);
+						if (lastFocusedSelectedArrow == arrow)
+							lastFocusedSelectedArrow = lastSelectedArrows.FirstOrDefault();
 					}
 				}
 				else
 				{
-					selectedArrows.Add(value, true);
-					focusedSelectedArrow = value;
+					lastSelectedArrows = lastSelectedArrows.Add(arrow);
+					lastFocusedSelectedArrow = arrow;
 				}
 			}
 			else
 			{
-				focusedSelectedArrow = value;
-				selectedArrows.Clear();
-				selectedArrows.Add(value, true);
+				lastFocusedSelectedArrow = arrow;
+				lastSelectedArrows = ImmutableSortedSet.Create(ArrowIndexComparer.Instance, arrow);
 			}
-			EnsureArrowVisible(focusedSelectedArrow);
-			view.Invalidate();
-			UpdateCurrentArrowControls();
+			changeNotification.Post();
 		}
 
-		private void UpdateCurrentArrowControls()
+		private static CurrentArrowInfo MakeCurrentArrowInfo(
+			Arrow arrow, StateInspectorVisualizer.IPresenter stateInspectorPresenter)
 		{
-			var arrow = GetSelectedArrow();
+			var links = new List<Tuple<object, int, int>>();
 			if (arrow != null)
 			{
 				int linkBegin;
 				var txt = new StringBuilder();
-				var links = new List<Tuple<object, int, int>>();
 				var arrowTypeStr = "";
 				if (arrow.Type == ArrowType.Request || arrow.Type == ArrowType.Response)
 				{
@@ -706,14 +840,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 				string durationStr = GetResponseLatencyString(arrow);
 
-				view.UpdateCurrentArrowControls(
-					arrowTypeStr + arrow.FullDisplayName + durationStr,
-					txt.ToString(),
-					links);
+				return new CurrentArrowInfo()
+				{
+					Caption = arrowTypeStr + arrow.FullDisplayName + durationStr,
+					DescriptionText = txt.ToString(),
+					DescriptionLinks = links
+				};
 			}
 			else
 			{
-				view.UpdateCurrentArrowControls("", "", null);
+				return new CurrentArrowInfo()
+				{
+					Caption = "",
+					DescriptionText = "",
+					DescriptionLinks = links
+				};
 			}
 		}
 
@@ -732,105 +873,93 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return durationStr;
 		}
 
-		void EnsureArrowVisible(int arrowIdx)
+		void EnsureArrowVisible(Arrow arrow)
 		{
-			var y = GetArrowY(arrowIdx);
+			if (arrow == null)
+				return;
+			var arrowIdx = arrow.Index;
+			var y = new MetricsUtils(metrics, effectiveTransform()).GetArrowY(arrowIdx);
+			var sz = view.ArrowsAreaSize.Value;
 			if (y <= 0)
 			{
-				ModifyTransform(m => m.Translate(0, -y + view.ArrowsAreaHeight / 3));
+				ModifyTransform(m => m.Translate(0, -y + sz.Height / 3));
 			}
-			else if (y >= view.ArrowsAreaHeight)
+			else if (y >= sz.Height)
 			{
-				ModifyTransform(m => m.Translate(0, view.ArrowsAreaHeight - y - view.ArrowsAreaHeight / 3));
+				ModifyTransform(m => m.Translate(0, sz.Height - y - sz.Height / 3));
 			}
 		}
 
-		int GetRoleX(int roleIndex)
+		static StateCache ComputeState(
+			IEnumerable<InternodeMessage> internodeMessages,
+			IEnumerable<SD.Message> unpairedMessages,
+			IEnumerable<TimelineComment> timelineComments,
+			IEnumerable<StateComment> stateComments,
+			IEnumerable<MetadataEntry> metadataEntries,
+			bool collapseRoleInstances,
+			bool hideResponses,
+			string filter,
+			TagsPredicate tags,
+			IEnumerable<IBookmark> bookmarks,
+			MetricsCache metrics
+		)
 		{
-			return Transform(roleIndex * nodeWidth, 0).X;
+			var rolesBuilder = ImmutableDictionary.CreateBuilder<string, Role>();
+			var arrowsBuilder = ImmutableArray.CreateBuilder<Arrow>();
+
+			var externalRolesProperties = GetExternalRolesProperties(metadataEntries);
+			Role getRole(Node ni) => GetRole(ni, collapseRoleInstances, rolesBuilder, metadataEntries);
+
+			AddRoles(getRole, internodeMessages, unpairedMessages, stateComments);
+			AddInternodeMessages(getRole, internodeMessages, arrowsBuilder);
+			AddComments(timelineComments, stateComments, getRole, arrowsBuilder);
+
+			// it should follow comments because comments can add new roles used by unpaired messages matcher
+			AddUnpairedMessages(unpairedMessages, arrowsBuilder,
+				externalRolesProperties, getRole, rolesBuilder);
+
+			var hiddenLinkableResponses = CollectHiddenLinkableResponceArrows(arrowsBuilder, hideResponses);
+
+			RemoveHiddenArrows(arrowsBuilder,
+				filter, tags, hideResponses, collapseRoleInstances);
+
+			SortArrows(arrowsBuilder, finalSort: false);
+			if (AddBookmarks(bookmarks, rolesBuilder.Values, arrowsBuilder) > 0)
+				SortArrows(arrowsBuilder, finalSort: false);
+			AddNonhorizontalArrows(arrowsBuilder); // note: bookmarks must be added before this step
+
+			SortArrows(arrowsBuilder, finalSort: false);
+			FindLinkedArrows(arrowsBuilder);
+			FixUnpairedLinkedArrows(arrowsBuilder);
+
+			RemoveHiddenRoles(rolesBuilder, arrowsBuilder);
+
+			SortArrows(arrowsBuilder, finalSort: true);
+			SortRoles(rolesBuilder, arrowsBuilder);
+
+			FindOverlappingNonHorizonalArrows(arrowsBuilder);
+			InitializeOffsets(arrowsBuilder, rolesBuilder.Values, metrics);
+
+			return new StateCache
+			{
+				roles = rolesBuilder.ToImmutable(),
+				arrows = arrowsBuilder.ToImmutable(),
+				hiddenLinkableResponses = hiddenLinkableResponses,
+			};
 		}
 
-		int GetArrowY(int arrowIndex)
+		static ImmutableDictionary<string, Arrow> CollectHiddenLinkableResponceArrows(IEnumerable<Arrow> arrows, bool hideResponses)
 		{
-			return Transform(0, arrowIndex * messageHeight).Y;
-		}
-
-
-		void Update()
-		{
-			var savedSelection = SaveSelectedArrows();
-
-			arrows.Clear();
-			roles.Clear();
-			hiddenLinkableResponses.Clear();
-
-			UpdateExternalRolesProperties();
-			AddRoles();
-			AddInternodeMessages();
-			AddComments();
-			AddUnpairedMessages(); // it should follow comments because comments can new roles used by unpaired messages matcher
-
-			CollectHiddenLinkableResponceArrows();
-
-			UpdateTags();
-			RemoveHiddenArrows();
-
-			SortArrows(finalSort: false);
-			if (AddBookmarks() > 0)
-				SortArrows(finalSort: false);
-			AddNonhorizontalArrows(); // note: bookmarks must be added before this step
-
-			SortArrows(finalSort: false);
-			FindLinkedArrows();
-			FixUnpairedLinkedArrows();
-
-			RemoveHiddenRoles();
-
-			SortArrows(finalSort: true);
-			SortRoles();
-
-			FindOverlappingNonHorizonalArrows();
-			InitializeOffsets();
-			AdjustTransformToFitViewFrame();
-			UpdateViewScrollBars();
-
-			RestoreSelectedArrows(savedSelection);
-
-			view.Invalidate();
-		}
-
-		void UpdateNotificationsIcon()
-		{
-			view.SetNotificationsIconVisibility(toastNotificationsPresenter.HasSuppressedNotifications);
-		}
-
-		List<Arrow> SaveSelectedArrows()
-		{
-			return selectedArrows.Keys.Where(i => i >= 0 && i < arrows.Count).Select(i => arrows[i]).ToList();
-		}
-
-		void RestoreSelectedArrows(List<Arrow> oldSelection)
-		{
-			selectedArrows.Clear();
-			foreach (var idx in oldSelection.Select(a => arrows.LowerBound(a, arrowComparer)).Where(i => i < arrows.Count))
-				selectedArrows.Add(idx, true);
-			if (selectedArrows.Count == 0 && arrows.Count > 0)
-				selectedArrows.Add(0, true);
-			focusedSelectedArrow = selectedArrows.FirstOrDefault().Key;
-			EnsureArrowVisible(focusedSelectedArrow);
-			UpdateCurrentArrowControls();
-		}
-
-		void CollectHiddenLinkableResponceArrows()
-		{
+			var result = ImmutableDictionary.CreateBuilder<string, Arrow>();
 			if (hideResponses)
 			{
 				foreach (var rsp in arrows.Where(a => a.Type == ArrowType.Response && a.LinkedArrowId != null))
-					hiddenLinkableResponses[rsp.LinkedArrowId] = rsp;
+					result[rsp.LinkedArrowId] = rsp;
 			}
+			return result.ToImmutable();
 		}
 
-		void SortRoles()
+		static void SortRoles(ImmutableDictionary<string, Role>.Builder roles, IEnumerable<Arrow> arrows)
 		{
 			int realRoleMaxIndex = 0;
 			int virtualRoleMaxIndex = roles.Values.Count(r => r.LogSources.Count != 0);
@@ -851,7 +980,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				initIndex(r);
 		}
 
-		void SortArrows(bool finalSort)
+		static void SortArrows(ImmutableArray<Arrow>.Builder arrows, bool finalSort)
 		{
 			arrows.Sort(arrowComparer);
 			if (!finalSort)
@@ -872,7 +1001,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void FindLinkedArrows()
+		static void FindLinkedArrows(IEnumerable<Arrow> arrows)
 		{
 			var linkedArrowsMap = new Dictionary<string, Arrow>();
 			foreach (var arrow in arrows.Where(a => a.LinkedArrowId != null))
@@ -894,8 +1023,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void InitializeOffsets()
+		static void InitializeOffsets(
+			IEnumerable<Arrow> arrows,
+			IEnumerable<Role> roles,
+			MetricsCache metrics)
 		{
+			int GetArrowEndOffset(int x)
+			{
+				if (x == 0)
+					return 0;
+				return Math.Sign(x) * (metrics.executionOccurrenceWidth / 2 + (Math.Abs(x) - 1) * metrics.executionOccurrenceLevelOffset);
+			}
+
 			foreach (var arrow in arrows)
 			{
 				if (arrow.From == null || arrow.To == null)
@@ -909,10 +1048,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					arrowDirection = -1;
 				if (arrowDirection != 0)
 				{
-					if (arrow.NonHorizontalConnectedArrow != null && arrow.Index > arrow.NonHorizontalConnectedArrow.Index)
-						EndOffset(arrow, arrow.To.CurrentNonHorizontalArrowsOffsets, arrow.NonHorizontalConnectedArrow, null);
-					if (arrow.LinkedArrow != null && (arrow.Type == ArrowType.Response || arrow.Type == ArrowType.ActivityEnd))
-						EndOffset(arrow, arrow.From.CurrentExecutionOccurencesOffsets, arrow.LinkedArrow, arrow.From.ExecutionOccurrences);
 					if (arrow.LinkedArrow != null && (arrow.Type == ArrowType.Request || arrow.Type == ArrowType.ActivityBegin))
 						BeginOffset(arrow, arrowDirection, arrow.To.CurrentExecutionOccurencesOffsets, true);
 					if (arrow.NonHorizontalConnectedArrow != null && arrow.Index < arrow.NonHorizontalConnectedArrow.Index)
@@ -933,14 +1068,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				}
 				if (arrowDirection != 0)
 				{
-					arrow.FromOffset = GetArrowEndOffset(arrowDirection * arrow.From.CurrentExecutionOccurencesOffsets.Values.Count(
-						eo => eo.TestLevelSign(arrowDirection)));
-					arrow.ToOffset = GetArrowEndOffset(-arrowDirection * arrow.To.CurrentExecutionOccurencesOffsets.Values.Count(
-						eo => eo.TestLevelSign(-arrowDirection)));
+					arrow.FromOffset = GetArrowEndOffset(arrowDirection * arrow.From.CurrentExecutionOccurencesOffsets.Values.Where(
+						eo => eo.TestLevelSign(arrowDirection)).Select(eo => Math.Abs(eo.Level) + 1).DefaultIfEmpty().Max());
+					arrow.ToOffset = GetArrowEndOffset(-arrowDirection * arrow.To.CurrentExecutionOccurencesOffsets.Values.Where(
+						eo => eo.TestLevelSign(-arrowDirection)).Select(eo => Math.Abs(eo.Level) + 1).DefaultIfEmpty().Max());
 					if (GetNonHorizontalArrowRole(arrow) == NonHorizontalArrowRole.Sender)
 					{
 						var x = arrow.To.CurrentNonHorizontalArrowsOffsets.Values.Count(eo => eo.TestLevelSign(-arrowDirection));
-						arrow.NonHorizontalConnectorOffset = -arrowDirection * (executionOccurrenceWidth * 3 + x * parallelNonHorizontalArrowsOffset);
+						arrow.NonHorizontalConnectorOffset = -arrowDirection * (metrics.executionOccurrenceWidth * 3 + x * metrics.parallelNonHorizontalArrowsOffset);
 					}
 				}
 				else
@@ -949,8 +1084,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					arrow.FromOffset = arrow.ToOffset = GetArrowEndOffset(loopDirection * arrow.From.CurrentExecutionOccurencesOffsets.Values.Count(
 						eo => eo.TestLevelSign(loopDirection)));
 				}
+				if (arrowDirection != 0)
+				{
+					if (arrow.NonHorizontalConnectedArrow != null && arrow.Index > arrow.NonHorizontalConnectedArrow.Index)
+						EndOffset(arrow, arrow.To.CurrentNonHorizontalArrowsOffsets, arrow.NonHorizontalConnectedArrow, null);
+					if (arrow.LinkedArrow != null && (arrow.Type == ArrowType.Response || arrow.Type == ArrowType.ActivityEnd))
+						EndOffset(arrow, arrow.From.CurrentExecutionOccurencesOffsets, arrow.LinkedArrow, arrow.From.ExecutionOccurrences);
+				}
 			}
-			foreach (var role in roles.Values)
+			foreach (var role in roles)
 			{
 				role.ExecutionOccurrences.Sort((eo1, eo2) => Math.Abs(eo1.Level) - Math.Abs(eo2.Level));
 			}
@@ -958,8 +1100,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private static void EndOffset(Arrow arrow, Dictionary<Arrow, Offset> offsetsContainer, Arrow endOffsetKey, List<Offset> finalizedOffsetsContainer)
 		{
-			Offset eo;
-			if (offsetsContainer.TryGetValue(endOffsetKey, out eo))
+			if (offsetsContainer.TryGetValue(endOffsetKey, out Offset eo))
 			{
 				eo.End = arrow;
 				offsetsContainer.Remove(endOffsetKey);
@@ -982,20 +1123,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			});
 		}
 
-		int GetArrowEndOffset(int x)
-		{
-			if (x == 0)
-				return 0;
-			return Math.Sign(x) * (executionOccurrenceWidth / 2 + (Math.Abs(x) - 1) * executionOccurrenceLevelOffset);
-		}
-
-		private Role GetUnpairedMessageRemoteRole(M.NetworkMessageEvent messageEvent)
+		static private Role GetUnpairedMessageRemoteRole(
+			M.NetworkMessageEvent messageEvent,
+			ImmutableDictionary<string, ExternalRolesProperties> externalRolesProperties,
+			ImmutableDictionary<string, Role>.Builder roles
+		)
 		{
 			string remoteRoleKey = null;
 			string remoteRoleName = null;
 
-			var http = messageEvent as M.HttpMessage;
-			if (http != null)
+			if (messageEvent is M.HttpMessage http)
 			{
 				if (http.TargetIdHint != null)
 				{
@@ -1005,7 +1142,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					if (existingRoles.Length == 1)
 						return existingRoles[0];
 
-					var externalRole = MakeExternalRoleFromProperties(http.TargetIdHint);
+					var externalRole = MakeExternalRoleFromProperties(http.TargetIdHint, externalRolesProperties, roles);
 					if (externalRole != null)
 						return externalRole;
 				}
@@ -1033,38 +1170,43 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			remoteRoleKey = remoteRoleKey ?? "unknown";
 			remoteRoleName = remoteRoleName ?? "unknown";
 
-			Role remoteRole;
-			if (!roles.TryGetValue(remoteRoleKey, out remoteRole))
+			if (!roles.TryGetValue(remoteRoleKey, out Role remoteRole))
 				roles.Add(remoteRoleKey, remoteRole = new Role(remoteRoleName, null));
 
 			return remoteRole;
 		}
 
-		Role MakeExternalRoleFromProperties (string externalRoleId)
+		static Role MakeExternalRoleFromProperties (
+			string externalRoleId,
+			ImmutableDictionary<string, ExternalRolesProperties> externalRolesProperties,
+			ImmutableDictionary<string, Role>.Builder roles)
 		{
-			ExternalRolesProperties externalRoleProps;
-			if (!externalRolesProperties.TryGetValue (externalRoleId, out externalRoleProps))
+			if (!externalRolesProperties.TryGetValue(externalRoleId, out ExternalRolesProperties externalRoleProps))
 				return null;
 			var roleId = "external.id." + externalRoleId;
-			Role externalRole;
-			if (roles.TryGetValue(roleId, out externalRole))
+			if (roles.TryGetValue(roleId, out Role externalRole))
 				return externalRole;
 			externalRole = new Role(externalRoleProps.DisplayName, externalRoleProps.Ids);
 			roles.Add(roleId, externalRole);
 			return externalRole;
 		}
 
-		private void AddUnpairedMessages()
+		static private void AddUnpairedMessages(
+			IEnumerable<SD.Message> unpairedMessages,
+			ImmutableArray<Arrow>.Builder arrows,
+			ImmutableDictionary<string, ExternalRolesProperties> externalRolesProperties,
+			Func<Node, Role> getRole,
+			ImmutableDictionary<string, Role>.Builder roles
+		)
 		{
-			foreach (var unpairedMessageInfo in model.UnpairedMessages)
+			foreach (var unpairedMessageInfo in unpairedMessages)
 			{
 				var messageEvent = unpairedMessageInfo.Event;
-				var networkEvt = messageEvent as M.NetworkMessageEvent;
-				if (networkEvt == null)
+				if (!(messageEvent is M.NetworkMessageEvent networkEvt))
 					continue;
 
-				Role messageRole = GetRole(unpairedMessageInfo.Node);
-				Role remoteRole = GetUnpairedMessageRemoteRole(networkEvt);
+				Role messageRole = getRole(unpairedMessageInfo.Node);
+				Role remoteRole = GetUnpairedMessageRemoteRole(networkEvt, externalRolesProperties, roles);
 				if (remoteRole == null)
 					continue;
 
@@ -1106,19 +1248,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		private static string GetUnpairedMessageShortDisplayName(M.Event messageEvent)
 		{
 			string shortDisplayName = messageEvent.DisplayName;
-			var http = messageEvent as M.HttpMessage;
-			if (http != null)
+			if (messageEvent is M.HttpMessage http)
 			{
 				shortDisplayName = MakeDisplayName(http);
 			}
 			return shortDisplayName;
 		}
 
-		void AddComments()
+		static void AddComments(
+			IEnumerable<TimelineComment> timelineComments,
+			IEnumerable<StateComment> stateComments,
+			Func<Node, Role> getRole,
+			ImmutableArray<Arrow>.Builder arrows
+		)
 		{
-			foreach (var comment in model.TimelineComments)
+			foreach (var comment in timelineComments)
 			{
-				var role = GetRole(comment.Node);
+				var role = getRole(comment.Node);
 				var trigger = MakeTriggerData(comment);
 				var ts = comment.Timestamp;
 				ArrowType arrowType;
@@ -1155,12 +1301,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				};
 				arrows.Add(arrow);
 			}
-			foreach (var comment in model.StateComments)
+			foreach (var comment in stateComments)
 			{
-				var propChange = comment.Event as SI.PropertyChange;
-				if (propChange == null)
+				if (!(comment.Event is SI.PropertyChange propChange))
 					continue;
-				var role = GetRole(comment.Node);
+				var role = getRole(comment.Node);
 				var trigger = MakeTriggerData(comment);
 				var ts = comment.Timestamp;
 				var arrow = new Arrow()
@@ -1184,7 +1329,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		int FixUnpairedLinkedArrows()
+		static int FixUnpairedLinkedArrows(IEnumerable<Arrow> arrows)
 		{
 			int fixedCount = 0;
 			foreach (var a in arrows.Where(a => a.LinkedArrow != null && a.LinkedArrow.FromLogSource != null && a.ToLogSource != null))
@@ -1203,15 +1348,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return fixedCount;
 		}
 
-		int AddBookmarks()
+		static int AddBookmarks(
+			IEnumerable<IBookmark> bookmarks,
+			IEnumerable<Role> roles,
+			ImmutableArray<Arrow>.Builder arrows
+		)
 		{
 			int bookmarksAdded = 0;
 			var lsToRole =
 				roles
-				.Values
 				.SelectMany(r => r.LogSources.Select(ls => new { Role = r, LogSource = ls }))
 				.ToLookup(x => x.LogSource, x => x.Role);
-			foreach (var bmk in bookmarks.Items)
+			foreach (var bmk in bookmarks)
 			{
 				if (bmk.Thread.IsDisposed)
 					continue;
@@ -1253,10 +1401,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return bookmarksAdded;
 		}
 
-		TriggerData MakeTriggerData(LogJoint.Postprocessing.SequenceDiagram.Message msgInfo)
+		static TriggerData MakeTriggerData(SD.Message msgInfo)
 		{
-			TextLogEventTrigger textLogTrigger = msgInfo.Event.Trigger as TextLogEventTrigger;
-			if (textLogTrigger == null)
+			if (!(msgInfo.Event.Trigger is TextLogEventTrigger textLogTrigger))
 				return null;
 			var logSource = msgInfo.LogSource;
 			if (logSource == null)
@@ -1264,10 +1411,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return new TriggerData(logSource, textLogTrigger);
 		}
 
-		TriggerData MakeTriggerData(TimelineComment comment)
+		static TriggerData MakeTriggerData(TimelineComment comment)
 		{
-			TextLogEventTrigger textLogTrigger = comment.Event.Trigger as TextLogEventTrigger;
-			if (textLogTrigger == null)
+			if (!(comment.Event.Trigger is TextLogEventTrigger textLogTrigger))
 				return null;
 			var logSource = comment.LogSource;
 			if (logSource == null)
@@ -1275,10 +1421,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return new TriggerData(logSource, textLogTrigger);
 		}
 
-		TriggerData MakeTriggerData(StateComment comment)
+		static TriggerData MakeTriggerData(StateComment comment)
 		{
-			TextLogEventTrigger textLogTrigger = comment.Event.Trigger as TextLogEventTrigger;
-			if (textLogTrigger == null)
+			if (!(comment.Event.Trigger is TextLogEventTrigger textLogTrigger))
 				return null;
 			var logSource = comment.LogSource;
 			if (logSource == null)
@@ -1286,35 +1431,39 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return new TriggerData(logSource, textLogTrigger);
 		}
 
-		TriggerData MakeTriggerData(IBookmark bmk)
+		static TriggerData MakeTriggerData(IBookmark bmk)
 		{
 			TextLogEventTrigger textLogTrigger = new TextLogEventTrigger(bmk);
 			return new TriggerData(bmk.GetLogSource(), textLogTrigger);
 		}
 
-		void AddRoles()
+		static void AddRoles(
+			Func<Node, Role> getRole,
+			IEnumerable<InternodeMessage> internodeMessages,
+			IEnumerable<SD.Message> unpairedMessages,
+			IEnumerable<StateComment> stateComments)
 		{
-			// make sure roles are precreated to make searching by TargetIdHint possible
+			// make sure roles are pre-created to make searching by TargetIdHint possible
 
-			foreach (var internodeMsg in model.InternodeMessages)
+			foreach (var internodeMsg in internodeMessages)
 			{
-				GetRole(internodeMsg.OutgoingMessage.Node);
-				GetRole(internodeMsg.IncomingMessage.Node);
+				getRole(internodeMsg.OutgoingMessage.Node);
+				getRole(internodeMsg.IncomingMessage.Node);
 			}
-			foreach (var unpairedMessageInfo in model.UnpairedMessages)
+			foreach (var unpairedMessageInfo in unpairedMessages)
 			{
-				GetRole(unpairedMessageInfo.Node); 
+				getRole(unpairedMessageInfo.Node); 
 			}
-			foreach (var comment in model.StateComments)
+			foreach (var comment in stateComments)
 			{
-				GetRole(comment.Node);
+				getRole(comment.Node);
 			}
 		}
 
-		void UpdateExternalRolesProperties()
+		static ImmutableDictionary<string, ExternalRolesProperties> GetExternalRolesProperties(IEnumerable<MetadataEntry> metadataEntries)
 		{
-			externalRolesProperties =
-				model.MetadataEntries
+			return ImmutableDictionary.CreateRange(
+				metadataEntries
 				.Select(e => new { e = e, match = Regex.Match(e.Event.Key, "^" + M.MetadataKeys.ExternalRolePropertyPrefix + @"\/(?<k>([^\/]|\/\/)+)\/(?<val>\w+)$", RegexOptions.ExplicitCapture) })
 				.Where(x => x.match.Success)
 				.Select(x => new { roleId = x.match.Groups[1].Value.Replace("//", "/"), prop = x.match.Groups[2].Value, value = x.e.Event.Value })
@@ -1322,20 +1471,25 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				.Select(x => new ExternalRolesProperties(x.Select(p => new KeyValuePair<string, string>(p.prop, p.value))))
 				.Where(p => p.IsGood)
 				.SelectMany(p => p.Ids.Select(id => new { id = id, value = p}))
-				.ToDictionarySafe(x => x.id, x => x.value, (p1, p2) => { p1.Ids.UnionWith(p2.Ids); return p1; });
+				.ToDictionarySafe(x => x.id, x => x.value, (p1, p2) => { p1.Ids.UnionWith(p2.Ids); return p1; })
+			);
 		}
 
-		private void AddInternodeMessages()
+		static private void AddInternodeMessages(
+			Func<Node, Role> getRole,
+			IEnumerable<InternodeMessage> internodeMessages,
+			ImmutableArray<Arrow>.Builder arrows
+		)
 		{
-			foreach (var internodeMsg in model.InternodeMessages)
+			foreach (var internodeMsg in internodeMessages)
 			{
 				arrows.Add(new Arrow()
 				{
 					Type = internodeMsg.OutgoingMessageType == M.MessageType.Response ? ArrowType.Response : ArrowType.Request,
 					FromTimestamp = internodeMsg.OutgoingMessage.Timestamp,
 					ToTimestamp = internodeMsg.IncomingMessage.Timestamp,
-					From = GetRole(internodeMsg.OutgoingMessage.Node),
-					To = GetRole(internodeMsg.IncomingMessage.Node),
+					From = getRole(internodeMsg.OutgoingMessage.Node),
+					To = getRole(internodeMsg.IncomingMessage.Node),
 					FromTrigger = MakeTriggerData(internodeMsg.OutgoingMessage),
 					ToTrigger = MakeTriggerData(internodeMsg.IncomingMessage),
 					FromLogSource = internodeMsg.OutgoingMessage.LogSource,
@@ -1349,18 +1503,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		static ArrowColor GetArrowColor(params LogJoint.Postprocessing.SequenceDiagram.Message[] msgs)
+		static ArrowColor GetArrowColor(params SD.Message[] msgs)
 		{
 			foreach (var m in msgs)
 			{
-				var http = m.Event as M.HttpMessage;
-				if (http != null && http.StatusCode.GetValueOrDefault(200) >= 400)
+				if (m.Event is M.HttpMessage http && http.StatusCode.GetValueOrDefault(200) >= 400)
 					return ArrowColor.Error;
 			}
 			return ArrowColor.Normal;
 		}
 
-		int AddNonhorizontalArrows()
+		static int AddNonhorizontalArrows(ImmutableArray<Arrow>.Builder arrows)
 		{
 			var nonhorizontalArrows = new List<Arrow>();
 			var arrowsToRemove = new List<int>();
@@ -1410,7 +1563,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return nonhorizontalArrows.Count + arrowsToRemove.Count;
 		}
 
-		private void FindOverlappingNonHorizonalArrows()
+		static private void FindOverlappingNonHorizonalArrows(IReadOnlyList<Arrow> arrows)
 		{
 			foreach (var arrow in arrows)
 			{
@@ -1443,8 +1596,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		static string MakeDisplayName(InternodeMessage msg)
 		{
-			var http = msg.OutgoingMessage.Event as M.HttpMessage;
-			if (http != null)
+			if (msg.OutgoingMessage.Event is M.HttpMessage http)
 			{
 				return MakeDisplayName(http);
 			}
@@ -1453,15 +1605,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		static string ShortenUri(string uriStr)
 		{
-			Uri uri;
-			if (!Uri.TryCreate(uriStr, UriKind.RelativeOrAbsolute, out uri))
+			if (!Uri.TryCreate(uriStr, UriKind.RelativeOrAbsolute, out Uri uri))
 				return uriStr;
 			if (!uri.IsAbsoluteUri)
 				return uriStr;
 			return string.Format("{0}...{1}", uri.Host, uri.Segments.LastOrDefault());
 		}
 
-		Role GetRole(Node ni)
+		static Role GetRole(
+			Node ni,
+			bool collapseRoleInstances,
+			ImmutableDictionary<string, Role>.Builder roles,
+			IEnumerable<MetadataEntry> metadataEntries
+		)
 		{
 			string key;
 			string displayName;
@@ -1475,11 +1631,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				key = ni.Id;
 				displayName = ni.RoleInstanceName;
 			}
-			Role role, existingRole;
-			if (!roles.TryGetValue(key, out existingRole))
+			Role role;
+			if (!roles.TryGetValue(key, out Role existingRole))
 			{
 				var unpairedMessagesTargetIds = new HashSet<string>(
-					model.MetadataEntries
+					metadataEntries
 					.Where(m => m.Node == ni && m.Event.Key == M.MetadataKeys.TargetRoleIdHint && !string.IsNullOrEmpty(m.Event.Value))
 					.Select(m => m.Event.Value)
 				);
@@ -1501,7 +1657,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void ScaleTransform(int centerX, float factor)
 		{
-			var pt = Transform(InvertTransform(), centerX, 0);
+			var pt = Transform(InvertTransform(effectiveTransform()), centerX, 0);
 			ModifyTransform(m =>
 			{
 				m.Translate(pt.X, 0);
@@ -1510,26 +1666,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			});
 		}
 
-		Matrix InvertTransform()
+		static Matrix InvertTransform(Matrix matrix)
 		{
-			var tmp = transform.Clone();
+			var tmp = matrix.Clone();
 			tmp.Invert();
 			return tmp;
 		}
 
-		bool IsValidArrowIndex(int value)
-		{
-			return value >= 0 && value < arrows.Count;
-		}
-
-		Arrow GetSelectedArrow()
-		{
-			return IsValidArrowIndex(focusedSelectedArrow) ? arrows[focusedSelectedArrow] : null;
-		}
-
 		void ShowSelectedArrow()
 		{
-			Arrow a = GetSelectedArrow();
+			Arrow a = selectedArrow();
 			if (a != null)
 			{
 				ShowTrigger(a.FromTrigger ?? a.ToTrigger);
@@ -1539,7 +1685,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		async Task ToggleBookmark()
 		{
-			Arrow a = GetSelectedArrow();
+			Arrow a = selectedArrow();
 			if (a != null)
 			{
 				var trigger = a.FromTrigger ?? a.ToTrigger;
@@ -1559,8 +1705,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		void ShowTrigger(object triggerData)
 		{
-			var data = triggerData as TriggerData;
-			if (data != null)
+			if (triggerData is TriggerData data)
 				ShowTrigger(data);
 		}
 
@@ -1606,18 +1751,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		private Tuple<int, int> GetFocusedMessageRange()
+		static private Tuple<int, int> GetFocusedMessageRange(IMessage focusedMessage, StateCache state)
 		{
-			var msg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
+			var msg = focusedMessage;
 			if (msg != null)
 			{
 				var ls = msg.GetLogSource();
 				if (ls != null)
 				{
 					var t = msg.Time.ToUnspecifiedTime();
-					var p1 = ListUtils.BinarySearch(arrows, 0, arrows.Count,
+					var p1 = ListUtils.BinarySearch(state.arrows, 0, state.arrows.Length,
 						a => ArrowComparer.Compare(a, t, ls, msg.Position) < 0);
-					var p2 = ListUtils.BinarySearch(arrows, 0, arrows.Count,
+					var p2 = ListUtils.BinarySearch(state.arrows, 0, state.arrows.Length,
 						a => ArrowComparer.Compare(a, t, ls, msg.Position) <= 0);
 					return Tuple.Create(p1, p2);
 				}
@@ -1625,21 +1770,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return null;
 		}
 
-		private void UpdateTags()
+		static private ImmutableHashSet<string> GetAvailableTags(
+			IEnumerable<InternodeMessage> internodeMessages,
+			IEnumerable<SD.Message> unpairedMessages,
+			IEnumerable<TimelineComment> timelineComments,
+			IEnumerable<StateComment> stateComments,
+			IEnumerable<MetadataEntry> metadataEntries
+		)
 		{
-			var tmp = ImmutableHashSet.CreateRange(arrows.SelectMany(a => a.Tags));
-			if (!availableTags.SetEquals(tmp))
-			{
-				availableTags = tmp;
-			}
+			var tags = internodeMessages.SelectMany(m => new[] { m.IncomingMessage.Event.Tags, m.OutgoingMessage.Event.Tags });
+			tags = tags.Union(unpairedMessages.Select(m => m.Event.Tags));
+			tags = tags.Union(timelineComments.Select(c => c.Event.Tags));
+			tags = tags.Union(stateComments.Select(c => c.Event.Tags));
+			tags = tags.Union(metadataEntries.Select(e => e.Event.Tags));
+			var empty = new HashSet<string>();
+			return ImmutableHashSet.CreateRange(tags.SelectMany(t => t ?? empty));
 		}
 
-		private void RemoveHiddenArrows()
+		static private void RemoveHiddenArrows(ImmutableArray<Arrow>.Builder arrows,
+			string filter,
+			TagsPredicate tags,
+			bool hideResponses,
+			bool collapseRoleInstances)
 		{
-			var filter = quickSearchPresenter.Text;
 			foreach (var a in arrows)
 			{
-				a.Visible = a.Tags.Count == 0 || persistentState.TagsPredicate.IsMatch(a.Tags);
+				a.Visible = a.Tags.Count == 0 || tags.IsMatch(a.Tags);
 				if (a.Visible && !string.IsNullOrEmpty(filter))
 				{
 					a.Visible = 
@@ -1658,7 +1814,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			arrows.RemoveAll(a => !a.Visible);
 		}
 
-		private void RemoveHiddenRoles()
+		private static void RemoveHiddenRoles(ImmutableDictionary<string, Role>.Builder roles, IEnumerable<Arrow> arrows)
 		{
 			foreach (var a in arrows)
 			{
@@ -1694,18 +1850,24 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		void ModifyTransform(Action<Matrix> action)
 		{
-			action(transform);
-			AdjustTransformToFitViewFrame();
-			UpdateViewScrollBars();
-			view.Invalidate();
+			var tmp = effectiveTransform().Clone();
+			action(tmp);
+			transform = tmp;
+			changeNotification.Post();
 		}
 
-		void AdjustTransformToFitViewFrame()
+		static Matrix GetEffectiveTransform(
+			Matrix transform,
+			MetricsCache metrics,
+			ReadonlyRef<Rectangle> viewRectRef,
+			int rolesCount,
+			int arrowsCount
+		)
 		{
-			var viewRect = GetViewRect();
-			var sceneRect = GetSceneRect();
+			var viewRect = viewRectRef.Value;
+			var sceneRect = GetSceneRect(transform, metrics, rolesCount, arrowsCount).Value;
 
-			Func<int, int, int, int, int> getDelta = (viewX1, viewX2, sceneX1, sceneX2) =>
+			int getDelta(int viewX1, int viewX2, int sceneX1, int sceneX2)
 			{
 				if ((sceneX2 - sceneX1) > (viewX2 - viewX1))
 				{
@@ -1722,64 +1884,68 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 						return viewX2 - sceneX2;
 				}
 				return 0;
-			};
+			}
 
 			int deltaX = getDelta(viewRect.X, viewRect.Right, sceneRect.X, sceneRect.Right);
 			int deltaY = getDelta(viewRect.Y, viewRect.Bottom, sceneRect.Y, sceneRect.Bottom);
 
 			if (deltaX != 0 || deltaY != 0)
-				transform.Translate(deltaX, deltaY, MatrixOrder.Append);
+			{
+				var result = transform.Clone();
+				result.Translate(deltaX, deltaY, MatrixOrder.Append);
+				return result;
+			}
+
+			return transform;
 		}
 
 		private void FindCurrentTime()
 		{
-			var fmr = GetFocusedMessageRange();
+			var fmr = GetFocusedMessageRange(focusedMessage(), state());
 			if (fmr == null)
 				return;
 			var i = fmr.Item1;
-			if (i == arrows.Count)
+			if (i == state().arrows.Length)
 				--i;
-			if (!IsValidArrowIndex(i))
+			if (!state().IsValidArrowIndex(i))
 				return;
 			SetSelectedArrowIndex(i);
-			EnsureArrowVisible(i);
 		}
 
-		private void UpdateViewScrollBars()
+		static ScrollInfo GetScrollInfo(ReadonlyRef<Rectangle> viewRect,
+			ReadonlyRef<Rectangle> sceneRect)
 		{
-			var sceneRect = GetSceneRect();
-			var viewRect = GetViewRect();
-			view.UpdateScrollBars(
-				sceneRect.Height, viewRect.Height, -sceneRect.Y,
-				sceneRect.Width, viewRect.Width, -sceneRect.X
-			);
+			return new ScrollInfo()
+			{
+				vMax = sceneRect.Value.Height,
+				vChange = viewRect.Value.Height,
+				vValue = -sceneRect.Value.Y,
+				hMax = sceneRect.Value.Width,
+				hChange = viewRect.Value.Width,
+				hValue = -sceneRect.Value.X
+			};
 		}
 
-		private Rectangle GetViewRect()
-		{
-			var viewRect = new Rectangle(0, 0, view.ArrowsAreaWidth, view.ArrowsAreaHeight);
-			return viewRect;
-		}
-
-		private Rectangle GetSceneRect()
+		private static ReadonlyRef<Rectangle> GetSceneRect(
+			Matrix matrix, MetricsCache metrics, int rolesCount, int arrowsCount)
 		{
 			var sceneRect = new Rectangle(
-				Transform(-nodeWidth, -messageHeight),
-				new Size(Transform(nodeWidth * (roles.Count + 1), messageHeight * arrows.Count, transformVector: true))
+				Transform(matrix, -metrics.nodeWidth, -metrics.messageHeight),
+				new Size(Transform(matrix, metrics.nodeWidth * (rolesCount + 1), metrics.messageHeight * arrowsCount, transformVector: true))
 			);
 			sceneRect.Inflate(0, 10);
-			return sceneRect;
+			return new ReadonlyRef<Rectangle>(sceneRect);
 		}
 
 		private void SelectNextArrowByPredicate(Predicate<Arrow> test)
 		{
-			int startIndex = IsValidArrowIndex(focusedSelectedArrow) ? (focusedSelectedArrow + 1) : 0;
-			for (int i = startIndex; i < arrows.Count; ++i)
+			var focusedSelectedArrow = effectiveSelectedArrows().FocusedArrowIndex;
+			int startIndex = focusedSelectedArrow != null ? (focusedSelectedArrow.Value + 1) : 0;
+			for (int i = startIndex; i < state().arrows.Length; ++i)
 			{
-				if (test(arrows[i]))
+				if (test(state().arrows[i]))
 				{
 					SetSelectedArrowIndex(i);
-					EnsureArrowVisible(i);
 					break;
 				}
 			}
@@ -1787,13 +1953,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void SelectPrevArrowByPredicate(Predicate<Arrow> test)
 		{
-			int startIndex = IsValidArrowIndex(focusedSelectedArrow) ? (focusedSelectedArrow - 1) : arrows.Count - 1;
+			var focusedSelectedArrow = effectiveSelectedArrows().FocusedArrowIndex;
+			int startIndex = focusedSelectedArrow != null ? (focusedSelectedArrow.Value - 1) : state().arrows.Length - 1;
 			for (int i = startIndex; i >= 0; --i)
 			{
-				if (test(arrows[i]))
+				if (test(state().arrows[i]))
 				{
 					SetSelectedArrowIndex(i);
-					EnsureArrowVisible(i);
 					break;
 				}
 			}
@@ -1808,7 +1974,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return NonHorizontalArrowRole.Receiver;
 		}
 
-		bool IsHighlightedArrow(Arrow arrow)
+		static bool IsHighlightedArrow(Arrow arrow, ImmutableHashSet<int> selectedArrows)
 		{
 			Arrow a1, nh1, a2, nh2;
 
@@ -1837,10 +2003,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			nh2 = a2.NonHorizontalConnectedArrow;
 
-			if ((selectedArrows.ContainsKey(a1.Index))
-			||  (nh1 != null && selectedArrows.ContainsKey(nh1.Index))
-			||  (selectedArrows.ContainsKey(a2.Index))
-			||  (nh2 != null && selectedArrows.ContainsKey(nh2.Index)))
+			if ((selectedArrows.Contains(a1.Index))
+			||  (nh1 != null && selectedArrows.Contains(nh1.Index))
+			||  (selectedArrows.Contains(a2.Index))
+			||  (nh2 != null && selectedArrows.Contains(nh2.Index)))
 			{
 				return true;
 			}
@@ -1953,6 +2119,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		};
 
+		class ArrowIndexComparer : IComparer<Arrow>
+		{
+			public static ArrowIndexComparer Instance = new ArrowIndexComparer();
+
+			public int Compare(Arrow a1, Arrow a2)
+			{
+				return Math.Sign(a1.Index - a2.Index);
+			}
+		};
+
 		class ArrowComparer : IComparer<Arrow>
 		{
 			public int Compare(Arrow a1, Arrow a2)
@@ -2038,6 +2214,72 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 
 			public bool IsGood { get { return !string.IsNullOrEmpty(DisplayName) && Ids.Count > 0; } }
+		};
+
+		class MetricsCache
+		{
+			public readonly int nodeWidth;
+			public readonly int messageHeight;
+			public readonly int executionOccurrenceWidth;
+			public readonly int executionOccurrenceLevelOffset = 6;
+			public readonly int parallelNonHorizontalArrowsOffset = 4;
+			public readonly int vScrollOffset;
+			public readonly int arrowTextPadding;
+
+			public MetricsCache(ViewMetrics viewMetrics)
+			{
+				this.messageHeight = viewMetrics.MessageHeight;
+				this.nodeWidth = viewMetrics.NodeWidth;
+				this.executionOccurrenceWidth = viewMetrics.ExecutionOccurrenceWidth;
+				this.executionOccurrenceLevelOffset = viewMetrics.ExecutionOccurrenceLevelOffset;
+				this.parallelNonHorizontalArrowsOffset = viewMetrics.ParallelNonHorizontalArrowsOffset;
+				this.vScrollOffset = viewMetrics.VScrollOffset;
+				this.arrowTextPadding = this.executionOccurrenceWidth / 2 + 1;
+			}
+		};
+
+		struct MetricsUtils
+		{
+			readonly MetricsCache metrics;
+			readonly Matrix transform;
+
+			public MetricsUtils(MetricsCache metrics, Matrix transform)
+			{
+				this.metrics = metrics;
+				this.transform = transform;
+			}
+
+			public int GetMessageIndex(int y)
+			{
+				var logicalY = Transform(InvertTransform(transform), 0, y).Y + metrics.messageHeight;
+				return logicalY / metrics.messageHeight;
+			}
+
+			public int GetRoleX(int roleIndex)
+			{
+				return Transform(transform, roleIndex * metrics.nodeWidth, 0).X;
+			}
+
+			public int GetArrowY(int arrowIndex)
+			{
+				return Transform(transform, 0, arrowIndex * metrics.messageHeight).Y;
+			}
+		};
+
+		class StateCache
+		{
+			public ImmutableDictionary<string, Role> roles = ImmutableDictionary.Create<string, Role>();
+			public ImmutableArray<Arrow> arrows = ImmutableArray.Create<Arrow>();
+			public ImmutableDictionary<string, Arrow> hiddenLinkableResponses = ImmutableDictionary.Create<string, Arrow>();
+
+			public bool IsValidArrowIndex(int value) => value >= 0 && value < arrows.Length;
+		};
+
+		class SelectedArrowsCache
+		{
+			public ImmutableArray<int> OrderedIndices; // indexes of selected arrows in ascending order
+			public ImmutableHashSet<int> IndicesSet; // indexes of selected arrows as a set
+			public int? FocusedArrowIndex; // "focused" is one of selected arrows. User input is on this arrow.
 		};
 	}
 }

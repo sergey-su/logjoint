@@ -27,6 +27,8 @@ namespace LogJoint
 			parentChangeNotification.Post();
 		}
 
+		bool IChangeNotification.IsEmittingEvents => subscription.Active && parentChangeNotification.IsEmittingEvents;
+
 		ISubscription IChangeNotification.CreateSubscription(Action sideEffect, bool initiallyActive)
 		{
 			return new Subscription(this, sideEffect, initiallyActive);

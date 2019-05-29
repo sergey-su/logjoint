@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.Timeline
 {
-	public class MessagingTimelineEventsSource
+	public class MessagingTimelineEventsSource: IMessagingEventsSource
 	{
 		public MessagingTimelineEventsSource()
 		{

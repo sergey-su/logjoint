@@ -35,11 +35,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			this.changeNotification = changeNotification;
 			this.stateEntry = storageManager.GetEntry(globalStateStorageEntryName);
 			this.logSourceStateSectionName = logSourceSpecificStateSectionName;
-			this.availableTagsSelector = availableTagsSelector;
+			this.availableTagsSelector = CreateAvailableTagsSelectorAdapter(availableTagsSelector);
 			this.sourcesSelector = sourcesSelector;
 
 			this.getDefaultPredicate = Selectors.Create(
-				availableTagsSelector,
+				this.availableTagsSelector,
 				availableTags => TagsPredicate.MakeMatchAnyPredicate(availableTags)
 			);
 
@@ -99,6 +99,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 			++savedTagsRevision;
 			changeNotification.Post();
+		}
+
+		static Func<ImmutableHashSet<string>> CreateAvailableTagsSelectorAdapter(Func<ImmutableHashSet<string>> inner)
+		{
+			ImmutableHashSet<string> cachedResult = null;
+			ImmutableHashSet<string> prevInner = null;
+			return () =>
+			{
+				var tmp = inner();
+				if (tmp != prevInner)
+				{
+					if (cachedResult?.SetEquals(tmp) != true)
+						cachedResult = tmp;
+					prevInner = tmp;
+				}
+				return cachedResult;
+			};
 		}
 
 		static class Constants
