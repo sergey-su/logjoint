@@ -44,7 +44,8 @@ namespace LogJoint.Symphony.SpringServiceLog
 					requests.Remove(requestId);
 				}
 				buffer.Enqueue(new NetworkMessageEvent(
-					msg, requestName, dir, type, "", requestId, null, remoteSideId));
+					msg, requestName, dir, type, "", requestId, null, remoteSideId)
+						.SetTags(GetTags(requestName)));
 			}
 		}
 
@@ -62,8 +63,20 @@ namespace LogJoint.Symphony.SpringServiceLog
 			return null;
 		}
 
+		HashSet<string> GetTags(string requestName)
+		{
+			var hashSet = new HashSet<string> ();
+			var m = requestNameRegex.Match(requestName);
+			if (m.Success)
+			{
+				hashSet.Add(m.Groups["ns"].Value);
+			}
+			return tagsPool.Intern(hashSet);
+		}
+
 		readonly Regex regex = new Regex(@"^(?<dir>Incoming|Outgoing) (?<type>request|response) \[(?<id>[^\]]+)\] (?<name>\S+)(?<rest>.*)$", RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.Singleline);
 		readonly Regex restMatch = new Regex(@"session id (?<sessionid>[\w\-_]+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		readonly Regex requestNameRegex = new Regex(@"^(?<ns>\w+)\/.+", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
 		class PendingRequest
 		{
@@ -71,5 +84,6 @@ namespace LogJoint.Symphony.SpringServiceLog
 		};
 
 		readonly Dictionary<string, PendingRequest> requests = new Dictionary<string, PendingRequest>();
+		readonly HashSetInternPool<string> tagsPool = new HashSetInternPool<string>();
 	}
 }

@@ -909,10 +909,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					arrowDirection = -1;
 				if (arrowDirection != 0)
 				{
-					if (arrow.NonHorizontalConnectedArrow != null && arrow.Index > arrow.NonHorizontalConnectedArrow.Index)
-						EndOffset(arrow, arrow.To.CurrentNonHorizontalArrowsOffsets, arrow.NonHorizontalConnectedArrow, null);
-					if (arrow.LinkedArrow != null && (arrow.Type == ArrowType.Response || arrow.Type == ArrowType.ActivityEnd))
-						EndOffset(arrow, arrow.From.CurrentExecutionOccurencesOffsets, arrow.LinkedArrow, arrow.From.ExecutionOccurrences);
 					if (arrow.LinkedArrow != null && (arrow.Type == ArrowType.Request || arrow.Type == ArrowType.ActivityBegin))
 						BeginOffset(arrow, arrowDirection, arrow.To.CurrentExecutionOccurencesOffsets, true);
 					if (arrow.NonHorizontalConnectedArrow != null && arrow.Index < arrow.NonHorizontalConnectedArrow.Index)
@@ -933,10 +929,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				}
 				if (arrowDirection != 0)
 				{
-					arrow.FromOffset = GetArrowEndOffset(arrowDirection * arrow.From.CurrentExecutionOccurencesOffsets.Values.Count(
-						eo => eo.TestLevelSign(arrowDirection)));
-					arrow.ToOffset = GetArrowEndOffset(-arrowDirection * arrow.To.CurrentExecutionOccurencesOffsets.Values.Count(
-						eo => eo.TestLevelSign(-arrowDirection)));
+					arrow.FromOffset = GetArrowEndOffset(arrowDirection * arrow.From.CurrentExecutionOccurencesOffsets.Values.Where(
+						eo => eo.TestLevelSign(arrowDirection)).Select(eo => Math.Abs(eo.Level) + 1).DefaultIfEmpty().Max());
+					arrow.ToOffset = GetArrowEndOffset(-arrowDirection * arrow.To.CurrentExecutionOccurencesOffsets.Values.Where(
+						eo => eo.TestLevelSign(-arrowDirection)).Select(eo => Math.Abs(eo.Level) + 1).DefaultIfEmpty().Max());
 					if (GetNonHorizontalArrowRole(arrow) == NonHorizontalArrowRole.Sender)
 					{
 						var x = arrow.To.CurrentNonHorizontalArrowsOffsets.Values.Count(eo => eo.TestLevelSign(-arrowDirection));
@@ -948,6 +944,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					var loopDirection = 1;
 					arrow.FromOffset = arrow.ToOffset = GetArrowEndOffset(loopDirection * arrow.From.CurrentExecutionOccurencesOffsets.Values.Count(
 						eo => eo.TestLevelSign(loopDirection)));
+				}
+				if (arrowDirection != 0)
+				{
+					if (arrow.NonHorizontalConnectedArrow != null && arrow.Index > arrow.NonHorizontalConnectedArrow.Index)
+						EndOffset(arrow, arrow.To.CurrentNonHorizontalArrowsOffsets, arrow.NonHorizontalConnectedArrow, null);
+					if (arrow.LinkedArrow != null && (arrow.Type == ArrowType.Response || arrow.Type == ArrowType.ActivityEnd))
+						EndOffset(arrow, arrow.From.CurrentExecutionOccurencesOffsets, arrow.LinkedArrow, arrow.From.ExecutionOccurrences);
 				}
 			}
 			foreach (var role in roles.Values)

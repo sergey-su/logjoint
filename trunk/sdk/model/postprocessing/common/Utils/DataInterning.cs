@@ -29,7 +29,7 @@ namespace LogJoint.Postprocessing
 		}
 	}
 
-	public class HashSetInternPool<T>
+	public class HashSetInternPool<T> // todo: better name
 	{
 		readonly InternPool<HashSet<T>> pool;
 
