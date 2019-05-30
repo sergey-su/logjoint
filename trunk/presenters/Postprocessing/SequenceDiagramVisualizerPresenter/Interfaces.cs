@@ -28,8 +28,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
 		ToastNotificationPresenter.IView ToastNotificationsView { get; }
 		void PutInputFocusToArrowsArea();
-		bool IsCollapseResponsesChecked { get; set; }
-		bool IsCollapseRoleInstancesChecked { get; set; }
 	};
 
 	public interface IViewModel
@@ -37,6 +35,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		IChangeNotification ChangeNotification { get; }
 		bool IsNotificationsIconVisibile { get; }
 		CurrentArrowInfo CurrentArrowInfo { get; }
+		bool IsCollapseResponsesChecked { get; }
+		bool IsCollapseRoleInstancesChecked { get; }
 
 		void OnWindowShown();
 		void OnWindowHidden();
@@ -60,8 +60,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		void OnZoomOutButtonClicked();
 		void OnScrolled(int? hScrollValue, int? vScrollValue);
 		bool OnEscapeCmdKey();
-		void OnCollapseResponsesChanged();
-		void OnCollapseRoleInstancesChanged();
+		void OnCollapseResponsesChange(bool value);
+		void OnCollapseRoleInstancesChange(bool value);
 		void OnActiveNotificationButtonClicked();
 	};
 

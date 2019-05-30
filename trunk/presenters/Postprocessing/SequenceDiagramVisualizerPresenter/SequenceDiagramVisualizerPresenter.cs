@@ -107,7 +107,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			// todo: get rid of this updater - make rendering reactive
 			changeNotification.CreateSubscription(Updaters.Create(() => persistentState.TagsPredicate, _ => Update()));
 
-			view.IsCollapseRoleInstancesChecked = collapseRoleInstances = true;
+			collapseRoleInstances = true;
 
 			quickSearchPresenter.OnRealtimeSearch += (sender, args) =>
 			{
@@ -546,16 +546,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return false;
 		}
 
-		void IViewModel.OnCollapseResponsesChanged()
+		bool IViewModel.IsCollapseResponsesChecked => hideResponses;
+
+		void IViewModel.OnCollapseResponsesChange(bool value)
 		{
-			hideResponses = view.IsCollapseResponsesChecked;
-			Update();
+			if (value != hideResponses)
+			{
+				hideResponses = value;
+				Update();
+				changeNotification.Post();
+			}
 		}
 
-		void IViewModel.OnCollapseRoleInstancesChanged()
+		bool IViewModel.IsCollapseRoleInstancesChecked => collapseRoleInstances;
+
+		void IViewModel.OnCollapseRoleInstancesChange(bool value)
 		{
-			collapseRoleInstances = view.IsCollapseRoleInstancesChecked;
-			Update();
+			if (value != collapseRoleInstances)
+			{
+				collapseRoleInstances = value;
+				Update();
+				changeNotification.Post();
+			}
 		}
 
 		void IViewModel.OnActiveNotificationButtonClicked()
@@ -607,11 +619,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		private static CurrentArrowInfo MakeCurrentArrowInfo(
 			Arrow arrow, StateInspectorVisualizer.IPresenter stateInspectorPresenter)
 		{
+			var links = new List<Tuple<object, int, int>>();
 			if (arrow != null)
 			{
 				int linkBegin;
 				var txt = new StringBuilder();
-				var links = new List<Tuple<object, int, int>>();
 				var arrowTypeStr = "";
 				if (arrow.Type == ArrowType.Request || arrow.Type == ArrowType.Response)
 				{
@@ -726,7 +738,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				{
 					Caption = "",
 					DescriptionText = "",
-					DescriptionLinks = null
+					DescriptionLinks = links
 				};
 			}
 		}

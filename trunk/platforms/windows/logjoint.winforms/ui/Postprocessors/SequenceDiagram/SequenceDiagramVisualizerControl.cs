@@ -9,7 +9,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 {
 	public partial class SequenceDiagramVisualizerControl : UserControl, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		Resources resources;
 		DrawingUtils drawingUtils;
 
@@ -37,15 +37,48 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			rolesCaptionsPanel.Height = tagsListContainerPanel.Height = UIUtils.Dpi.Scale(50);
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
-			this.drawingUtils = new DrawingUtils(eventsHandler, resources);
+			this.viewModel = viewModel;
+			this.drawingUtils = new DrawingUtils(viewModel, resources);
 			this.ParentForm.VisibleChanged += (s, e) =>
 			{
-				if (this.ParentForm.Visible) eventsHandler.OnWindowShown();
-				else eventsHandler.OnWindowHidden();
+				if (this.ParentForm.Visible) viewModel.OnWindowShown();
+				else viewModel.OnWindowHidden();
 			};
+
+			var notificationsIconUpdater = Updaters.Create(() => viewModel.IsNotificationsIconVisibile,
+				value => notificationsButton.Visible = value);
+
+			var updateCurrentArrowControls = Updaters.Create(() => viewModel.CurrentArrowInfo,
+				value =>
+				{
+					currentArrowCaptionLabel.Text = value.Caption;
+					currentArrowDescription.Text = value.DescriptionText;
+					currentArrowDescription.Links.Clear();
+					foreach (var l in value.DescriptionLinks)
+						currentArrowDescription.Links.Add(new LinkLabel.Link()
+						{
+							LinkData = l.Item1,
+							Start = l.Item2,
+							Length = l.Item3
+						});
+				}
+			);
+
+			var collapseResponsesCheckedUpdater = Updaters.Create(() => viewModel.IsCollapseResponsesChecked,
+				value => collapseResponsesCheckbox.Checked = value);
+
+			var collapseRoleInstancesChecked = Updaters.Create(() => viewModel.IsCollapseRoleInstancesChecked,
+				value => collapseRoleInstancesCheckbox.Checked = value);
+
+			viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				notificationsIconUpdater();
+				updateCurrentArrowControls();
+				collapseResponsesCheckedUpdater();
+				collapseRoleInstancesChecked();
+			});
 		}
 
 		ViewMetrics IView.GetMetrics()
@@ -73,25 +106,6 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		int IView.ArrowsAreaHeight { get { return arrowsPanel.Height; } }
 
 		int IView.RolesCaptionsAreaHeight { get { return rolesCaptionsPanel.Height; } }
-
-		void IView.UpdateCurrentArrowControls(
-			string caption,
-			string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks)
-		{
-			currentArrowCaptionLabel.Text = caption;
-			currentArrowDescription.Text = descriptionText;
-			currentArrowDescription.Links.Clear();
-			if (descriptionLinks != null)
-			{
-				foreach (var l in descriptionLinks)
-					currentArrowDescription.Links.Add(new LinkLabel.Link()
-					{
-						LinkData = l.Item1,
-						Start = l.Item2,
-						Length = l.Item3
-					});
-			}
-		}
 
 		void IView.UpdateScrollBars(
 			int vMax, int vChange, int vValue,
@@ -126,26 +140,9 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				arrowsPanel.Focus();
 		}
 
-		bool IView.IsCollapseResponsesChecked
-		{
-			get { return collapseResponsesCheckbox.Checked; }
-			set { collapseResponsesCheckbox.Checked = value; }
-		}
-
-		bool IView.IsCollapseRoleInstancesChecked
-		{
-			get { return collapseRoleInstancesCheckbox.Checked; }
-			set { collapseRoleInstancesCheckbox.Checked = value; }
-		}
-
 		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
 		{
 			get { return toastNotificationsListControl; }
-		}
-
-		void IView.SetNotificationsIconVisibility(bool value)
-		{
-			notificationsButton.Visible = value;
 		}
 
 		private void InitializeArrowEndShapePoints()
@@ -214,53 +211,53 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			if (e.KeyCode == Keys.Left)
 			{
 				e.IsInputKey = true;
-				eventsHandler.OnKeyDown(Key.Left);
+				viewModel.OnKeyDown(Key.Left);
 			}
 			else if (e.KeyCode == Keys.Right)
 			{
 				e.IsInputKey = true;
-				eventsHandler.OnKeyDown(Key.Right);
+				viewModel.OnKeyDown(Key.Right);
 			}
 			else if (e.KeyCode == Keys.Up)
 			{
 				e.IsInputKey = true;
 				if (ctrl)
-					eventsHandler.OnKeyDown(Key.ScrollLineUp);
+					viewModel.OnKeyDown(Key.ScrollLineUp);
 				else
-					eventsHandler.OnKeyDown(Key.MoveSelectionUp);
+					viewModel.OnKeyDown(Key.MoveSelectionUp);
 			}
 			else if (e.KeyCode == Keys.Down)
 			{
 				e.IsInputKey = true;
 				if (ctrl)
-					eventsHandler.OnKeyDown(Key.ScrollLineDown);
+					viewModel.OnKeyDown(Key.ScrollLineDown);
 				else
-					eventsHandler.OnKeyDown(Key.MoveSelectionDown);
+					viewModel.OnKeyDown(Key.MoveSelectionDown);
 			}
 			else if (e.KeyValue == 187)
-				eventsHandler.OnKeyDown(Key.Plus);
+				viewModel.OnKeyDown(Key.Plus);
 			else if (e.KeyValue == 189)
-				eventsHandler.OnKeyDown(Key.Minus);
+				viewModel.OnKeyDown(Key.Minus);
 			else if (e.KeyCode == Keys.PageDown)
-				eventsHandler.OnKeyDown(Key.PageDown);
+				viewModel.OnKeyDown(Key.PageDown);
 			else if (e.KeyCode == Keys.PageUp)
-				eventsHandler.OnKeyDown(Key.PageUp);
+				viewModel.OnKeyDown(Key.PageUp);
 			else if (e.KeyCode == Keys.End)
-				eventsHandler.OnKeyDown(Key.End);
+				viewModel.OnKeyDown(Key.End);
 			else if (e.KeyCode == Keys.Home)
-				eventsHandler.OnKeyDown(Key.Home);
+				viewModel.OnKeyDown(Key.Home);
 			else if (e.KeyCode == Keys.Enter)
-				eventsHandler.OnKeyDown(Key.Enter);
+				viewModel.OnKeyDown(Key.Enter);
 			else if (e.KeyCode == Keys.F && e.Control)
-				eventsHandler.OnKeyDown(Key.Find);
+				viewModel.OnKeyDown(Key.Find);
 			else if (e.KeyCode == Keys.B)
-				eventsHandler.OnKeyDown(Key.Bookmark);
+				viewModel.OnKeyDown(Key.Bookmark);
 			else if (e.KeyCode == Keys.F6)
-				eventsHandler.OnKeyDown(Key.FindCurrentTimeShortcut);
+				viewModel.OnKeyDown(Key.FindCurrentTimeShortcut);
 			else if (e.KeyCode == Keys.F2 && !shift)
-				eventsHandler.OnKeyDown(Key.NextBookmarkShortcut);
+				viewModel.OnKeyDown(Key.NextBookmarkShortcut);
 			else if (e.KeyCode == Keys.F2 && shift)
-				eventsHandler.OnKeyDown(Key.PrevNextBookmarkShortcut);
+				viewModel.OnKeyDown(Key.PrevNextBookmarkShortcut);
 		}
 
 		static Key GetModifiers()
@@ -276,29 +273,29 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		{
 			var ctrl = (Control)sender;
 			ctrl.Focus();
-			eventsHandler.OnArrowsAreaMouseDown(e.Location.ToPoint(), e.Clicks >= 2);
+			viewModel.OnArrowsAreaMouseDown(e.Location.ToPoint(), e.Clicks >= 2);
 		}
 
 		private void arrowsPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseUp(e.Location.ToPoint(), GetModifiers());
+			viewModel.OnArrowsAreaMouseUp(e.Location.ToPoint(), GetModifiers());
 		}
 
 		private void arrowsPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseMove(e.Location.ToPoint());
+			viewModel.OnArrowsAreaMouseMove(e.Location.ToPoint());
 		}
 
 		private void arrowsPanel_MouseWheel(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnArrowsAreaMouseWheel(e.Location.ToPoint(), e.Delta, GetModifiers());
+			viewModel.OnArrowsAreaMouseWheel(e.Location.ToPoint(), e.Delta, GetModifiers());
 		}
 
 		private void currentArrowDescription_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
 			if (e.Link.LinkData != null)
 			{
-				eventsHandler.OnTriggerClicked(e.Link.LinkData);
+				viewModel.OnTriggerClicked(e.Link.LinkData);
 			}
 		}
 
@@ -312,8 +309,8 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		private void arrowsPanel_Resize(object sender, EventArgs e)
 		{
-			if (eventsHandler != null)
-				eventsHandler.OnResized();
+			if (viewModel != null)
+				viewModel.OnResized();
 		}
 
 		private void toolPanelLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -324,19 +321,19 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		void HandleMouseClick(object sender)
 		{
 			if (sender == prevUserActionButton)
-				eventsHandler.OnPrevUserEventButtonClicked();
+				viewModel.OnPrevUserEventButtonClicked();
 			else if (sender == nextUserActionButton)
-				eventsHandler.OnNextUserEventButtonClicked();
+				viewModel.OnNextUserEventButtonClicked();
 			else if (sender == prevBookmarkButton)
-				eventsHandler.OnPrevBookmarkButtonClicked();
+				viewModel.OnPrevBookmarkButtonClicked();
 			else if (sender == nextBookmarkButton)
-				eventsHandler.OnNextBookmarkButtonClicked();
+				viewModel.OnNextBookmarkButtonClicked();
 			else if (sender == findCurrentTimeButton)
-				eventsHandler.OnFindCurrentTimeButtonClicked();
+				viewModel.OnFindCurrentTimeButtonClicked();
 			else if (sender == zoomInButton)
-				eventsHandler.OnZoomInButtonClicked();
+				viewModel.OnZoomInButtonClicked();
 			else if (sender == zoomOutButton)
-				eventsHandler.OnZoomOutButtonClicked();
+				viewModel.OnZoomOutButtonClicked();
 		}
 
 		private void toolPanelLinkMouseDoubleClick(object sender, MouseEventArgs e)
@@ -346,23 +343,23 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		private void ScrollBar_Scroll(object sender, ScrollEventArgs e)
 		{
-			if (eventsHandler != null)
+			if (viewModel != null)
 				if (e.ScrollOrientation == ScrollOrientation.VerticalScroll)
-					eventsHandler.OnScrolled(null, e.NewValue);
+					viewModel.OnScrolled(null, e.NewValue);
 				else
-					eventsHandler.OnScrolled(e.NewValue, null);
+					viewModel.OnScrolled(e.NewValue, null);
 		}
 
 		private void leftPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnLeftPanelMouseDown(arrowsPanel.PointToClient(leftPanel.PointToScreen(e.Location)).ToPoint(), e.Clicks >= 2, GetModifiers());
+			viewModel.OnLeftPanelMouseDown(arrowsPanel.PointToClient(leftPanel.PointToScreen(e.Location)).ToPoint(), e.Clicks >= 2, GetModifiers());
 		}
 
 		protected override bool ProcessCmdKey(ref System.Windows.Forms.Message msg, Keys keyData)
 		{
 			if (keyData == Keys.Escape)
 			{
-				if (eventsHandler.OnEscapeCmdKey())
+				if (viewModel.OnEscapeCmdKey())
 					return true;
 			}
 			return base.ProcessCmdKey(ref msg, keyData);
@@ -370,16 +367,16 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		void collapseResponsesCheckbox_Click(object sender, System.EventArgs e)
 		{
-			eventsHandler.OnCollapseResponsesChanged();
+			viewModel.OnCollapseResponsesChange(collapseResponsesCheckbox.Checked);
 		}
 
 		void collapseRoleInstancesCheckbox_Click(object sender, System.EventArgs e)
 		{
-			eventsHandler.OnCollapseRoleInstancesChanged();
+			viewModel.OnCollapseRoleInstancesChange(collapseRoleInstancesCheckbox.Checked);
 		}
 		void notificationsButton_Click(object sender, System.EventArgs e)
 		{
-			eventsHandler.OnActiveNotificationButtonClicked();
+			viewModel.OnActiveNotificationButtonClicked();
 		}
 	}
 }
