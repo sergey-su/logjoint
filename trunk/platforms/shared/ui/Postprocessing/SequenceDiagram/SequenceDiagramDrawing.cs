@@ -101,10 +101,10 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 	public class DrawingUtils
 	{
-		readonly IViewEvents eventsHandler;
+		readonly IViewModel eventsHandler;
 		readonly Resources resources;
 
-		public DrawingUtils(IViewEvents eventsHandler, Resources resources)
+		public DrawingUtils(IViewModel eventsHandler, Resources resources)
 		{
 			this.eventsHandler = eventsHandler;
 			this.resources = resources;

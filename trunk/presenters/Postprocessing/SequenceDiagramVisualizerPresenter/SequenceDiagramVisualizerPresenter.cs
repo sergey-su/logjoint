@@ -16,7 +16,7 @@ using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 {
-	public class SequenceDiagramVisualizerPresenter: IPresenter, IViewEvents
+	public class SequenceDiagramVisualizerPresenter: IPresenter, IViewModel
 	{
 		readonly IView view;
 		readonly ISequenceDiagramVisualizerModel model;
@@ -38,6 +38,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		ImmutableHashSet<string> availableTags = ImmutableHashSet.Create<string>();
 		SortedList<int, bool> selectedArrows = new SortedList<int, bool>();
 		int focusedSelectedArrow;
+		readonly Func<CurrentArrowInfo> currentArrowInfo;
 		bool hideResponses = false;
 		bool collapseRoleInstances = false;
 		readonly int nodeWidth;
@@ -79,7 +80,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			this.arrowComparer = new ArrowComparer();
 
-			view.SetEventsHandler(this);
+			view.SetViewModel(this);
 
 			var viewMetrics = view.GetMetrics();
 			this.messageHeight = viewMetrics.MessageHeight;
@@ -128,26 +129,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.SequenceDiagram));
-			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
-			{
-				UpdateNotificationsIcon();
-			};
 
+			currentArrowInfo = Selectors.Create(
+				() => focusedSelectedArrow,
+				arrowIdx => MakeCurrentArrowInfo(GetSelectedArrow(), stateInspectorPresenter)
+			);
 
 			Update();
 		}
 
-		void IViewEvents.OnWindowShown()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		bool IViewModel.IsNotificationsIconVisibile => toastNotificationsPresenter.HasSuppressedNotifications;
+
+		CurrentArrowInfo IViewModel.CurrentArrowInfo => currentArrowInfo();
+
+		void IViewModel.OnWindowShown()
 		{
 			changeNotification.Active = true;
 		}
 
-		void IViewEvents.OnWindowHidden()
+		void IViewModel.OnWindowHidden()
 		{
 			changeNotification.Active = false;
 		}
 
-		IEnumerable<RoleDrawInfo> IViewEvents.OnDrawRoles()
+		IEnumerable<RoleDrawInfo> IViewModel.OnDrawRoles()
 		{
 			var msg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
 			var focusedLogSource = msg != null ? msg.GetLogSource() : null;
@@ -210,7 +217,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return Transform(transform, x, y, transformVector);
 		}
 
-		IEnumerable<ArrowDrawInfo> IViewEvents.OnDrawArrows()
+		IEnumerable<ArrowDrawInfo> IViewModel.OnDrawArrows()
 		{
 			int maxY = view.ArrowsAreaHeight + messageHeight;
 			int w = Transform(nodeWidth, 0, true).X;
@@ -325,7 +332,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void IViewEvents.OnArrowsAreaMouseDown(Point pt, bool doubleClick)
+		void IViewModel.OnArrowsAreaMouseDown(Point pt, bool doubleClick)
 		{
 			if (doubleClick)
 			{
@@ -339,7 +346,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void IViewEvents.OnArrowsAreaMouseMove(Point pt)
+		void IViewModel.OnArrowsAreaMouseMove(Point pt)
 		{
 			if (capturedMousePt != null)
 			{
@@ -356,7 +363,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void IViewEvents.OnArrowsAreaMouseUp(Point pt, Key modifiers)
+		void IViewModel.OnArrowsAreaMouseUp(Point pt, Key modifiers)
 		{
 			bool selectArrow = false;
 			if (capturedMousePt != null)
@@ -372,7 +379,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void IViewEvents.OnArrowsAreaMouseWheel(Point pt, int delta, Key modifiers)
+		void IViewModel.OnArrowsAreaMouseWheel(Point pt, int delta, Key modifiers)
 		{
 			if ((modifiers & Key.WheelZoomModifier) != 0)
 			{
@@ -385,14 +392,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		}
 
 
-		void IViewEvents.OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers)
+		void IViewModel.OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers)
 		{
 			SetSelectedArrowIndex(GetMessageIndex(pt.Y), multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
 			if (doubleClick)
 				ShowSelectedArrow();
 		}
 
-		void IViewEvents.OnKeyDown(Key code)
+		void IViewModel.OnKeyDown(Key code)
 		{
 			if (code == Key.Left)
 			{
@@ -468,53 +475,53 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void IViewEvents.OnTriggerClicked(object trigger)
+		void IViewModel.OnTriggerClicked(object trigger)
 		{
 			ShowTrigger(trigger);
 		}
 
-		void IViewEvents.OnResized()
+		void IViewModel.OnResized()
 		{
 			AdjustTransformToFitViewFrame();
 			UpdateViewScrollBars();
 		}
 
-		void IViewEvents.OnPrevUserEventButtonClicked()
+		void IViewModel.OnPrevUserEventButtonClicked()
 		{
 			SelectPrevArrowByPredicate(a => a.Type == ArrowType.UserAction);
 		}
 
-		void IViewEvents.OnNextUserEventButtonClicked()
+		void IViewModel.OnNextUserEventButtonClicked()
 		{
 			SelectNextArrowByPredicate(a => a.Type == ArrowType.UserAction);
 		}
 
-		void IViewEvents.OnNextBookmarkButtonClicked()
+		void IViewModel.OnNextBookmarkButtonClicked()
 		{
 			SelectNextArrowByPredicate(a => a.IsBookmarked);
 		}
 
-		void IViewEvents.OnPrevBookmarkButtonClicked()
+		void IViewModel.OnPrevBookmarkButtonClicked()
 		{
 			SelectPrevArrowByPredicate(a => a.IsBookmarked);
 		}
 
-		void IViewEvents.OnFindCurrentTimeButtonClicked()
+		void IViewModel.OnFindCurrentTimeButtonClicked()
 		{
 			FindCurrentTime();
 		}
 
-		void IViewEvents.OnZoomInButtonClicked()
+		void IViewModel.OnZoomInButtonClicked()
 		{
 			ScaleTransform(view.ArrowsAreaWidth / 2, 1.2f);
 		}
 
-		void IViewEvents.OnZoomOutButtonClicked()
+		void IViewModel.OnZoomOutButtonClicked()
 		{
 			ScaleTransform(view.ArrowsAreaWidth / 2, 0.83f);
 		}
 
-		void IViewEvents.OnScrolled(int? hScrollValue, int? vScrollValue)
+		void IViewModel.OnScrolled(int? hScrollValue, int? vScrollValue)
 		{
 			var sceneRect = GetSceneRect();
 			ModifyTransform(m => m.Translate(
@@ -524,12 +531,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			));
 		}
 
-		void IViewEvents.OnGestureZoom(Point pt, float magnification)
+		void IViewModel.OnGestureZoom(Point pt, float magnification)
 		{
 			ScaleTransform(pt.X, 1f + magnification);
 		}
 
-		bool IViewEvents.OnEscapeCmdKey()
+		bool IViewModel.OnEscapeCmdKey()
 		{
 			if (quickSearchPresenter.Text != "")
 			{
@@ -539,19 +546,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return false;
 		}
 
-		void IViewEvents.OnCollapseResponsesChanged()
+		void IViewModel.OnCollapseResponsesChanged()
 		{
 			hideResponses = view.IsCollapseResponsesChecked;
 			Update();
 		}
 
-		void IViewEvents.OnCollapseRoleInstancesChanged()
+		void IViewModel.OnCollapseRoleInstancesChanged()
 		{
 			collapseRoleInstances = view.IsCollapseRoleInstancesChecked;
 			Update();
 		}
 
-		void IViewEvents.OnActiveNotificationButtonClicked()
+		void IViewModel.OnActiveNotificationButtonClicked()
 		{
 			toastNotificationsPresenter.UnsuppressNotifications();
 		}
@@ -593,13 +600,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				selectedArrows.Add(value, true);
 			}
 			EnsureArrowVisible(focusedSelectedArrow);
+			changeNotification.Post();
 			view.Invalidate();
-			UpdateCurrentArrowControls();
 		}
 
-		private void UpdateCurrentArrowControls()
+		private static CurrentArrowInfo MakeCurrentArrowInfo(
+			Arrow arrow, StateInspectorVisualizer.IPresenter stateInspectorPresenter)
 		{
-			var arrow = GetSelectedArrow();
 			if (arrow != null)
 			{
 				int linkBegin;
@@ -706,14 +713,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 				string durationStr = GetResponseLatencyString(arrow);
 
-				view.UpdateCurrentArrowControls(
-					arrowTypeStr + arrow.FullDisplayName + durationStr,
-					txt.ToString(),
-					links);
+				return new CurrentArrowInfo()
+				{
+					Caption = arrowTypeStr + arrow.FullDisplayName + durationStr,
+					DescriptionText = txt.ToString(),
+					DescriptionLinks = links
+				};
 			}
 			else
 			{
-				view.UpdateCurrentArrowControls("", "", null);
+				return new CurrentArrowInfo()
+				{
+					Caption = "",
+					DescriptionText = "",
+					DescriptionLinks = null
+				};
 			}
 		}
 
@@ -799,11 +813,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			view.Invalidate();
 		}
 
-		void UpdateNotificationsIcon()
-		{
-			view.SetNotificationsIconVisibility(toastNotificationsPresenter.HasSuppressedNotifications);
-		}
-
 		List<Arrow> SaveSelectedArrows()
 		{
 			return selectedArrows.Keys.Where(i => i >= 0 && i < arrows.Count).Select(i => arrows[i]).ToList();
@@ -818,7 +827,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				selectedArrows.Add(0, true);
 			focusedSelectedArrow = selectedArrows.FirstOrDefault().Key;
 			EnsureArrowVisible(focusedSelectedArrow);
-			UpdateCurrentArrowControls();
+			changeNotification.Post();
 		}
 
 		void CollectHiddenLinkableResponceArrows()

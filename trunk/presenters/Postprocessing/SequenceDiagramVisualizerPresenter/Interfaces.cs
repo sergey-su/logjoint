@@ -14,15 +14,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents eventsHandler);
+		void SetViewModel(IViewModel eventsHandler);
 		ViewMetrics GetMetrics();
 		void Invalidate();
 		int ArrowsAreaWidth { get; }
 		int ArrowsAreaHeight { get; }
 		int RolesCaptionsAreaHeight { get; }
-		void UpdateCurrentArrowControls(
-			string caption,
-			string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks);
 		void UpdateScrollBars(
 			int vMax, int vChange, int vValue,
 			int hMax, int hChange, int hValue
@@ -33,11 +30,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		void PutInputFocusToArrowsArea();
 		bool IsCollapseResponsesChecked { get; set; }
 		bool IsCollapseRoleInstancesChecked { get; set; }
-		void SetNotificationsIconVisibility(bool value);
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		bool IsNotificationsIconVisibile { get; }
+		CurrentArrowInfo CurrentArrowInfo { get; }
+
 		void OnWindowShown();
 		void OnWindowHidden();
 		IEnumerable<RoleDrawInfo> OnDrawRoles();
@@ -174,4 +174,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		public int ParallelNonHorizontalArrowsOffset;
 		public int VScrollOffset;
 	}
+
+	public class CurrentArrowInfo
+	{
+		public string Caption { get; internal set; }
+		public string DescriptionText { get; internal set; }
+		public IEnumerable<Tuple<object, int, int>> DescriptionLinks { get; internal set; }
+	};
 }
