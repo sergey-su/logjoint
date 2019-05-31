@@ -15,11 +15,11 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
 		ImmutableHashSet<ISequenceDiagramPostprocessorOutput> outputs = ImmutableHashSet.Create<ISequenceDiagramPostprocessorOutput>();
-		readonly List<InternodeMessage> internodeMessages = new List<InternodeMessage>();
-		readonly List<Message> unpairedMessages = new List<Message>();
-		readonly List<TimelineComment> timelineComments = new List<TimelineComment>();
-		readonly List<StateComment> stateComments = new List<StateComment>();
-		readonly List<MetadataEntry> metadataEntries = new List<MetadataEntry>();
+		ImmutableArray<InternodeMessage> internodeMessages = new ImmutableArray<InternodeMessage>();
+		ImmutableArray<Message> unpairedMessages = new ImmutableArray<Message>();
+		ImmutableArray<TimelineComment> timelineComments = new ImmutableArray<TimelineComment>();
+		ImmutableArray<StateComment> stateComments = new ImmutableArray<StateComment>();
+		ImmutableArray<MetadataEntry> metadataEntries = new ImmutableArray<MetadataEntry>();
 
 		public SequenceDiagramVisualizerModel(
 			IPostprocessorsManager postprocessorsManager,
@@ -42,27 +42,27 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
 		public event EventHandler Changed;
 
-		IEnumerable<InternodeMessage> ISequenceDiagramVisualizerModel.InternodeMessages
+		IReadOnlyCollection<InternodeMessage> ISequenceDiagramVisualizerModel.InternodeMessages
 		{
 			get { return internodeMessages; }
 		}
 
-		IEnumerable<Message> ISequenceDiagramVisualizerModel.UnpairedMessages
+		IReadOnlyCollection<Message> ISequenceDiagramVisualizerModel.UnpairedMessages
 		{
 			get { return unpairedMessages; }
 		}
 
-		IEnumerable<TimelineComment> ISequenceDiagramVisualizerModel.TimelineComments
+		IReadOnlyCollection<TimelineComment> ISequenceDiagramVisualizerModel.TimelineComments
 		{
 			get { return timelineComments; }
 		}
 
-		IEnumerable<StateComment> ISequenceDiagramVisualizerModel.StateComments
+		IReadOnlyCollection<StateComment> ISequenceDiagramVisualizerModel.StateComments
 		{
 			get { return stateComments; }
 		}
 
-		IEnumerable<MetadataEntry> ISequenceDiagramVisualizerModel.MetadataEntries
+		IReadOnlyCollection<MetadataEntry> ISequenceDiagramVisualizerModel.MetadataEntries
 		{
 			get { return metadataEntries; }
 		}
@@ -185,8 +185,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 			var detectedInternodeMessages = internodeMessagesDetector.DiscoverInternodeMessages(
 				messagingEvents, int.MaxValue, detectedUnpairedMessages);
 
-			internodeMessages.Clear();
-			internodeMessages.AddRange(detectedInternodeMessages.Select(m => new InternodeMessage()
+			internodeMessages = ImmutableArray.CreateRange(detectedInternodeMessages.Select(m => new InternodeMessage()
 			{
 				IncomingMessage = makeMessageInfo(m.IncomingMessage),
 				OutgoingMessage = makeMessageInfo(m.OutgoingMessage),
@@ -194,11 +193,9 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				OutgoingMessageType = m.OutgoingMessage.Key.Type
 			}));
 
-			unpairedMessages.Clear();
-			unpairedMessages.AddRange(detectedUnpairedMessages.Select(makeMessageInfo));
+			unpairedMessages = ImmutableArray.CreateRange(detectedUnpairedMessages.Select(makeMessageInfo));
 
-			timelineComments.Clear();
-			timelineComments.AddRange(
+			timelineComments = ImmutableArray.CreateRange(
 				from g in groups
 				from output in g.Outputs
 				from commentEvt in output.TimelineComments
@@ -213,8 +210,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				}
 			);
 
-			stateComments.Clear();
-			stateComments.AddRange(
+			stateComments = ImmutableArray.CreateRange(
 				from g in groups
 				from output in g.Outputs
 				from commentEvt in output.StateComments
@@ -229,8 +225,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				}
 			);
 
-			metadataEntries.Clear();
-			metadataEntries.AddRange(
+			metadataEntries = ImmutableArray.CreateRange(
 				from g in groups
 				from output in g.Outputs
 				from metaEvent in output.Events.OfType<M.MetadataEvent>()
@@ -242,8 +237,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				}
 			);
 
-			if (Changed != null)
-				Changed(this, EventArgs.Empty);
+			Changed?.Invoke(this, EventArgs.Empty);
 		}
 	};
 }

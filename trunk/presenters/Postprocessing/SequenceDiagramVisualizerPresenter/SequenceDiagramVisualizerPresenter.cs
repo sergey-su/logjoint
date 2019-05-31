@@ -34,7 +34,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IPresentersFacade presentersFacade;
 		readonly IUserNamesProvider userNamesProvider;
-		Dictionary<string, ExternalRolesProperties> externalRolesProperties;
 		ImmutableHashSet<string> availableTags = ImmutableHashSet.Create<string>();
 		SortedList<int, bool> selectedArrows = new SortedList<int, bool>();
 		int focusedSelectedArrow;
@@ -790,11 +789,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			roles.Clear();
 			hiddenLinkableResponses.Clear();
 
-			UpdateExternalRolesProperties();
+			var externalRolesProperties = GetExternalRolesProperties();
 			AddRoles();
 			AddInternodeMessages();
 			AddComments();
-			AddUnpairedMessages(); // it should follow comments because comments can new roles used by unpaired messages matcher
+			AddUnpairedMessages(externalRolesProperties); // it should follow comments because comments can new roles used by unpaired messages matcher
 
 			CollectHiddenLinkableResponceArrows();
 
@@ -1013,7 +1012,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return Math.Sign(x) * (executionOccurrenceWidth / 2 + (Math.Abs(x) - 1) * executionOccurrenceLevelOffset);
 		}
 
-		private Role GetUnpairedMessageRemoteRole(M.NetworkMessageEvent messageEvent)
+		private Role GetUnpairedMessageRemoteRole(M.NetworkMessageEvent messageEvent, ImmutableDictionary<string, ExternalRolesProperties> externalRolesProperties)
 		{
 			string remoteRoleKey = null;
 			string remoteRoleName = null;
@@ -1029,7 +1028,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					if (existingRoles.Length == 1)
 						return existingRoles[0];
 
-					var externalRole = MakeExternalRoleFromProperties(http.TargetIdHint);
+					var externalRole = MakeExternalRoleFromProperties(http.TargetIdHint, externalRolesProperties);
 					if (externalRole != null)
 						return externalRole;
 				}
@@ -1064,7 +1063,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return remoteRole;
 		}
 
-		Role MakeExternalRoleFromProperties (string externalRoleId)
+		Role MakeExternalRoleFromProperties (string externalRoleId, ImmutableDictionary<string, ExternalRolesProperties> externalRolesProperties)
 		{
 			ExternalRolesProperties externalRoleProps;
 			if (!externalRolesProperties.TryGetValue (externalRoleId, out externalRoleProps))
@@ -1078,7 +1077,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return externalRole;
 		}
 
-		private void AddUnpairedMessages()
+		private void AddUnpairedMessages(ImmutableDictionary<string, ExternalRolesProperties> externalRolesProperties)
 		{
 			foreach (var unpairedMessageInfo in model.UnpairedMessages)
 			{
@@ -1088,7 +1087,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					continue;
 
 				Role messageRole = GetRole(unpairedMessageInfo.Node);
-				Role remoteRole = GetUnpairedMessageRemoteRole(networkEvt);
+				Role remoteRole = GetUnpairedMessageRemoteRole(networkEvt, externalRolesProperties);
 				if (remoteRole == null)
 					continue;
 
@@ -1335,9 +1334,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void UpdateExternalRolesProperties()
+		ImmutableDictionary<string, ExternalRolesProperties> GetExternalRolesProperties()
 		{
-			externalRolesProperties =
+			return ImmutableDictionary.CreateRange(
 				model.MetadataEntries
 				.Select(e => new { e = e, match = Regex.Match(e.Event.Key, "^" + M.MetadataKeys.ExternalRolePropertyPrefix + @"\/(?<k>([^\/]|\/\/)+)\/(?<val>\w+)$", RegexOptions.ExplicitCapture) })
 				.Where(x => x.match.Success)
@@ -1346,7 +1345,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				.Select(x => new ExternalRolesProperties(x.Select(p => new KeyValuePair<string, string>(p.prop, p.value))))
 				.Where(p => p.IsGood)
 				.SelectMany(p => p.Ids.Select(id => new { id = id, value = p}))
-				.ToDictionarySafe(x => x.id, x => x.value, (p1, p2) => { p1.Ids.UnionWith(p2.Ids); return p1; });
+				.ToDictionarySafe(x => x.id, x => x.value, (p1, p2) => { p1.Ids.UnionWith(p2.Ids); return p1; })
+			);
 		}
 
 		private void AddInternodeMessages()

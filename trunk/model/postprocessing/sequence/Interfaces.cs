@@ -18,11 +18,11 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
 	public interface ISequenceDiagramVisualizerModel
 	{
-		IEnumerable<InternodeMessage> InternodeMessages { get; }
-		IEnumerable<Message> UnpairedMessages { get; }
-		IEnumerable<TimelineComment> TimelineComments { get; }
-		IEnumerable<StateComment> StateComments { get; }
-		IEnumerable<MetadataEntry> MetadataEntries { get; }
+		IReadOnlyCollection<InternodeMessage> InternodeMessages { get; }
+		IReadOnlyCollection<Message> UnpairedMessages { get; }
+		IReadOnlyCollection<TimelineComment> TimelineComments { get; }
+		IReadOnlyCollection<StateComment> StateComments { get; }
+		IReadOnlyCollection<MetadataEntry> MetadataEntries { get; }
 		IReadOnlyCollection<ISequenceDiagramPostprocessorOutput> Outputs { get; }
 
 		event EventHandler Changed;
