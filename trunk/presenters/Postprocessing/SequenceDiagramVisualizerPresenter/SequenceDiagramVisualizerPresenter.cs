@@ -766,33 +766,47 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return Transform(0, arrowIndex * metrics.messageHeight).Y;
 		}
 
-
-		void Update()
+		static (
+			ImmutableDictionary<string, Role> roles,
+			ImmutableArray<Arrow> arrows,
+			ImmutableDictionary<string, Arrow> hiddenLinkableResponses,
+			ImmutableHashSet<string> availableTags
+		) ComputeState(
+			IEnumerable<InternodeMessage> internodeMessages,
+			IEnumerable<SD.Message> unpairedMessages,
+			IEnumerable<TimelineComment> timelineComments,
+			IEnumerable<StateComment> stateComments,
+			IEnumerable<MetadataEntry> metadataEntries,
+			bool collapseRoleInstances,
+			bool hideResponses,
+			string filter,
+			TagsPredicate tags,
+			IEnumerable<IBookmark> bookmarks,
+			MetricsCache metrics
+		)
 		{
-			var savedSelection = SaveSelectedArrows();
-
 			var rolesBuilder = ImmutableDictionary.CreateBuilder<string, Role>();
 			var arrowsBuilder = ImmutableArray.CreateBuilder<Arrow>();
 
-			var externalRolesProperties = GetExternalRolesProperties(model.MetadataEntries);
-			Role getRole(Node ni) => GetRole(ni, collapseRoleInstances, rolesBuilder, model.MetadataEntries);
+			var externalRolesProperties = GetExternalRolesProperties(metadataEntries);
+			Role getRole(Node ni) => GetRole(ni, collapseRoleInstances, rolesBuilder, metadataEntries);
 
-			AddRoles(getRole, model.InternodeMessages, model.UnpairedMessages, model.StateComments);
-			AddInternodeMessages(getRole, model.InternodeMessages, arrowsBuilder);
-			AddComments(model.TimelineComments, model.StateComments, getRole, arrowsBuilder);
+			AddRoles(getRole, internodeMessages, unpairedMessages, stateComments);
+			AddInternodeMessages(getRole, internodeMessages, arrowsBuilder);
+			AddComments(timelineComments, stateComments, getRole, arrowsBuilder);
 
 			// it should follow comments because comments can add new roles used by unpaired messages matcher
-			AddUnpairedMessages(model.UnpairedMessages, arrowsBuilder,
+			AddUnpairedMessages(unpairedMessages, arrowsBuilder,
 				externalRolesProperties, getRole, rolesBuilder);
 
-			this.hiddenLinkableResponses = CollectHiddenLinkableResponceArrows(arrowsBuilder, hideResponses);
+			var hiddenLinkableResponses = CollectHiddenLinkableResponceArrows(arrowsBuilder, hideResponses);
 
-			UpdateTags(arrowsBuilder);
-			RemoveHiddenArrows(arrowsBuilder, 
-				quickSearchPresenter.Text, persistentState.TagsPredicate, hideResponses, collapseRoleInstances);
+			var availableTags = GetAvailableTags(arrowsBuilder);
+			RemoveHiddenArrows(arrowsBuilder,
+				filter, tags, hideResponses, collapseRoleInstances);
 
 			SortArrows(arrowsBuilder, finalSort: false);
-			if (AddBookmarks(bookmarks.Items, rolesBuilder.Values, arrowsBuilder) > 0)
+			if (AddBookmarks(bookmarks, rolesBuilder.Values, arrowsBuilder) > 0)
 				SortArrows(arrowsBuilder, finalSort: false);
 			AddNonhorizontalArrows(arrowsBuilder); // note: bookmarks must be added before this step
 
@@ -808,8 +822,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			FindOverlappingNonHorizonalArrows(arrowsBuilder);
 			InitializeOffsets(arrowsBuilder, rolesBuilder.Values, metrics);
 
-			this.arrows = arrowsBuilder.ToImmutable();
-			this.roles = rolesBuilder.ToImmutable();
+			return (
+				rolesBuilder.ToImmutable(),
+				arrowsBuilder.ToImmutable(),
+				hiddenLinkableResponses,
+				availableTags
+			);
+		}
+
+		void Update()
+		{
+			var savedSelection = SaveSelectedArrows();
+
+			ImmutableHashSet<string> tempAvailableTags;
+			(roles, arrows, hiddenLinkableResponses, tempAvailableTags) = ComputeState(
+				model.InternodeMessages, model.UnpairedMessages, model.TimelineComments, model.StateComments, model.MetadataEntries,
+				collapseRoleInstances, hideResponses, quickSearchPresenter.Text, persistentState.TagsPredicate,
+				bookmarks.Items, metrics);
+
+			if (!availableTags.SetEquals(tempAvailableTags))
+			{
+				availableTags = tempAvailableTags;
+			}
 
 			AdjustTransformToFitViewFrame();
 			UpdateViewScrollBars();
@@ -1359,7 +1393,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		static ImmutableDictionary<string, ExternalRolesProperties> GetExternalRolesProperties(IReadOnlyCollection<MetadataEntry> metadataEntries)
+		static ImmutableDictionary<string, ExternalRolesProperties> GetExternalRolesProperties(IEnumerable<MetadataEntry> metadataEntries)
 		{
 			return ImmutableDictionary.CreateRange(
 				metadataEntries
@@ -1683,13 +1717,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return null;
 		}
 
-		private void UpdateTags(IEnumerable<Arrow> arrows)
+		static private ImmutableHashSet<string> GetAvailableTags(IEnumerable<Arrow> arrows)
 		{
-			var tmp = ImmutableHashSet.CreateRange(arrows.SelectMany(a => a.Tags));
-			if (!availableTags.SetEquals(tmp))
-			{
-				availableTags = tmp;
-			}
+			return ImmutableHashSet.CreateRange(arrows.SelectMany(a => a.Tags));
 		}
 
 		static private void RemoveHiddenArrows(ImmutableArray<Arrow>.Builder arrows,
