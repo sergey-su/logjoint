@@ -787,7 +787,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			this.hiddenLinkableResponses = CollectHiddenLinkableResponceArrows(arrowsBuilder, hideResponses);
 
-			UpdateTags();
+			UpdateTags(arrowsBuilder);
 			RemoveHiddenArrows(arrowsBuilder, 
 				quickSearchPresenter.Text, persistentState.TagsPredicate, hideResponses, collapseRoleInstances);
 
@@ -1683,7 +1683,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return null;
 		}
 
-		private void UpdateTags()
+		private void UpdateTags(IEnumerable<Arrow> arrows)
 		{
 			var tmp = ImmutableHashSet.CreateRange(arrows.SelectMany(a => a.Tags));
 			if (!availableTags.SetEquals(tmp))
