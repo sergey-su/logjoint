@@ -14,6 +14,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		readonly IPostprocessorsManager postprocessorsManager;
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
+		readonly IChangeNotification changeNotification;
 		ImmutableHashSet<ISequenceDiagramPostprocessorOutput> outputs = ImmutableHashSet.Create<ISequenceDiagramPostprocessorOutput>();
 		ImmutableArray<InternodeMessage> internodeMessages = new ImmutableArray<InternodeMessage>();
 		ImmutableArray<Message> unpairedMessages = new ImmutableArray<Message>();
@@ -25,11 +26,13 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 			IPostprocessorsManager postprocessorsManager,
 			ILogSourcesManager logSourceManager,
 			IUserNamesProvider shortNames,
-			ILogSourceNamesProvider logSourceNamesProvider)
+			ILogSourceNamesProvider logSourceNamesProvider,
+			IChangeNotification changeNotification)
 		{
 			this.postprocessorsManager = postprocessorsManager;
 			this.shortNames = shortNames;
 			this.logSourceNamesProvider = logSourceNamesProvider;
+			this.changeNotification = changeNotification;
 
 			postprocessorsManager.Changed += (sender, args) => UpdateOutputs();
 			logSourceManager.OnLogSourceTimeOffsetChanged += (s, e) => UpdateCachedContent();
@@ -39,8 +42,6 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
 			UpdateOutputs();
 		}
-
-		public event EventHandler Changed;
 
 		IReadOnlyCollection<InternodeMessage> ISequenceDiagramVisualizerModel.InternodeMessages
 		{
@@ -237,7 +238,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				}
 			);
 
-			Changed?.Invoke(this, EventArgs.Empty);
+			changeNotification.Post();
 		}
 	};
 }

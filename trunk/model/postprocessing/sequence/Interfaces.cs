@@ -24,8 +24,6 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		IReadOnlyCollection<StateComment> StateComments { get; }
 		IReadOnlyCollection<MetadataEntry> MetadataEntries { get; }
 		IReadOnlyCollection<ISequenceDiagramPostprocessorOutput> Outputs { get; }
-
-		event EventHandler Changed;
 	};
 
 	public class InternodeMessage

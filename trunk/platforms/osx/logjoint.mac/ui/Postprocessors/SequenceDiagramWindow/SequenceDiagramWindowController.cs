@@ -22,6 +22,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		Resources resources;
 		DrawingUtils drawingUtils;
 		SizeF scrollMaxValues;
+		ReadonlyRef<Size> arrowsAreaSize = new ReadonlyRef<Size>();
 
 		public SequenceDiagramWindowController () :
 			base ("SequenceDiagramWindow")
@@ -77,7 +78,11 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			arrowsView.OnMouseDragged = ArrowsViewMouseDrag;
 			arrowsView.OnScrollWheel = ArrowsViewScrollWheel;
 			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, 
-				ns => { if (viewModel != null) viewModel.OnResized(); }, arrowsView);
+				ns => {
+					arrowsAreaSize = new ReadonlyRef<Size>(
+						arrowsView.Frame.Size.ToSizeF().ToSize());
+					viewModel?.ChangeNotification?.Post();
+				}, arrowsView);
 
 			leftPanelView.BackgroundColor = NSColor.White;
 			leftPanelView.OnPaint = PaintLeftPanel;
@@ -127,11 +132,18 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				() => viewModel.IsCollapseRoleInstancesChecked,
 				value => collapseRoleInstancesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off);
 
+			var scrollBarsUpdater = Updaters.Create (
+				() => viewModel.ScrollInfo,
+				value => UpdateScrollBars (value.vMax, value.vChange, value.vValue,
+					value.hMax, value.hChange, value.hValue)
+			);
+
 			viewModel.ChangeNotification.CreateSubscription(() => {
 				notificationsIconUpdater();
 				updateCurrentArrowControls();
 				updateCollapseResponsesCheckbox ();
 				updateCollapseRoleInstancesCheckbox ();
+				scrollBarsUpdater ();
 			});
 		}
 
@@ -155,7 +167,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			leftPanelView.NeedsDisplay = true;
 		}
 
-		void IView.UpdateScrollBars (int vMax, int vChange, int vValue, int hMax, int hChange, int hValue)
+		void UpdateScrollBars (int vMax, int vChange, int vValue, int hMax, int hChange, int hValue)
 		{
 			Action<NSScroller, int, int, int> set = (scroll, max, change, value) =>
 			{
@@ -188,17 +200,9 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			scrollMaxValues = new SizeF (hMax - hChange, vMax - vChange);
 		}
 
-		int IView.ArrowsAreaWidth 
-		{
-			get { return (int) arrowsView.Frame.Width; }
-		}
+		ReadonlyRef<Size> IView.ArrowsAreaSize => arrowsAreaSize;
 
-		int IView.ArrowsAreaHeight 
-		{
-			get { return (int) arrowsView.Frame.Height; }
-		}
-
-		int IView.RolesCaptionsAreaHeight 
+		int IView.RolesCaptionsAreaHeight
 		{
 			get { return (int) rolesCaptionsView.Frame.Height; }
 		}

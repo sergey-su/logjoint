@@ -17,13 +17,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		void SetViewModel(IViewModel eventsHandler);
 		ViewMetrics GetMetrics();
 		void Invalidate();
-		int ArrowsAreaWidth { get; }
-		int ArrowsAreaHeight { get; }
+		ReadonlyRef<Size> ArrowsAreaSize { get; }
 		int RolesCaptionsAreaHeight { get; }
-		void UpdateScrollBars(
-			int vMax, int vChange, int vValue,
-			int hMax, int hChange, int hValue
-		);
 		TagsList.IView TagsListView { get; }
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
 		ToastNotificationPresenter.IView ToastNotificationsView { get; }
@@ -37,6 +32,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		CurrentArrowInfo CurrentArrowInfo { get; }
 		bool IsCollapseResponsesChecked { get; }
 		bool IsCollapseRoleInstancesChecked { get; }
+		ScrollInfo ScrollInfo { get; }
 
 		void OnWindowShown();
 		void OnWindowHidden();
@@ -50,7 +46,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		void OnGestureZoom(Point pt, float magnification);
 		void OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers);
 		void OnTriggerClicked(object trigger);
-		void OnResized();
 		void OnPrevUserEventButtonClicked();
 		void OnNextUserEventButtonClicked();
 		void OnNextBookmarkButtonClicked();
@@ -180,5 +175,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		public string Caption { get; internal set; }
 		public string DescriptionText { get; internal set; }
 		public IEnumerable<Tuple<object, int, int>> DescriptionLinks { get; internal set; }
+	};
+
+	public class ScrollInfo
+	{
+		public int vMax { get; internal set; }
+		public int vChange { get; internal set; }
+		public int vValue { get; internal set; }
+		public int hMax { get; internal set; }
+		public int hChange { get; internal set; }
+		public int hValue { get; internal set; }
 	};
 }
