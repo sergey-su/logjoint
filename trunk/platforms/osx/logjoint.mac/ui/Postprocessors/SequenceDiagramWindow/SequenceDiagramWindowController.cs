@@ -117,10 +117,21 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 						.Select(l => new NSLinkLabel.Link(l.Item2, l.Item3, l.Item1)).ToArray();
 				}
 			);
-				
+
+			var updateCollapseResponsesCheckbox = Updaters.Create (
+				() => viewModel.IsCollapseResponsesChecked,
+				value => collapseResponsesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off
+			);
+
+			var updateCollapseRoleInstancesCheckbox = Updaters.Create(
+				() => viewModel.IsCollapseRoleInstancesChecked,
+				value => collapseRoleInstancesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off);
+
 			viewModel.ChangeNotification.CreateSubscription(() => {
 				notificationsIconUpdater();
 				updateCurrentArrowControls();
+				updateCollapseResponsesCheckbox ();
+				updateCollapseRoleInstancesCheckbox ();
 			});
 		}
 
@@ -205,18 +216,6 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		void IView.PutInputFocusToArrowsArea()
 		{
 			arrowsView.Window.MakeFirstResponder(arrowsView);
-		}
-
-		bool IView.IsCollapseResponsesChecked
-		{
-			get { return collapseResponsesCheckbox.State == NSCellStateValue.On; }
-			set { collapseResponsesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off; }
-		}
-
-		bool IView.IsCollapseRoleInstancesChecked
-		{
-			get { return collapseRoleInstancesCheckbox.State == NSCellStateValue.On; }
-			set { collapseRoleInstancesCheckbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off; }
 		}
 
 		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
@@ -314,12 +313,12 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		partial void OnCollapseResponsesClicked (NSObject sender)
 		{
-			viewModel.OnCollapseResponsesChanged();
+			viewModel.OnCollapseResponsesChange(collapseResponsesCheckbox.State == NSCellStateValue.On);
 		}
 
 		partial void OnCollapseRoleInstancesClicked (NSObject sender)
 		{
-			viewModel.OnCollapseRoleInstancesChanged();
+			viewModel.OnCollapseRoleInstancesChange(collapseRoleInstancesCheckbox.State == NSCellStateValue.On);
 		}
 
 		internal void OnKeyEvent(Key key)
