@@ -16,7 +16,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 	{
 		void SetViewModel(IViewModel eventsHandler);
 		ViewMetrics GetMetrics();
-		void Invalidate();
 		ReadonlyRef<Size> ArrowsAreaSize { get; }
 		int RolesCaptionsAreaHeight { get; }
 		TagsList.IView TagsListView { get; }
@@ -33,11 +32,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		bool IsCollapseResponsesChecked { get; }
 		bool IsCollapseRoleInstancesChecked { get; }
 		ScrollInfo ScrollInfo { get; }
+		IReadOnlyList<RoleDrawInfo> RolesDrawInfo { get; }
+		IReadOnlyList<ArrowDrawInfo> ArrowsDrawInfo { get; }
 
 		void OnWindowShown();
 		void OnWindowHidden();
-		IEnumerable<RoleDrawInfo> OnDrawRoles();
-		IEnumerable<ArrowDrawInfo> OnDrawArrows();
 		void OnKeyDown(Key key);
 		void OnArrowsAreaMouseDown(Point pt, bool doubleClick);
 		void OnArrowsAreaMouseMove(Point pt);

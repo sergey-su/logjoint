@@ -35,16 +35,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		readonly Func<StateCache> state;
 		ImmutableSortedSet<Arrow> lastSelectedArrows = ImmutableSortedSet.Create<Arrow>(ArrowIndexComparer.Instance);
 		Arrow lastFocusedSelectedArrow = null;
-		readonly Func<(
-			ImmutableArray<int> indices,
-			ImmutableHashSet<int> set,
-			int focusedIndex
-		)> effectiveSelectedArrows;
+		readonly Func<SelectedArrowsCache> effectiveSelectedArrows;
 		readonly Func<Arrow> selectedArrow;
 		readonly Func<CurrentArrowInfo> currentArrowInfo;
 		bool hideResponses = false;
 		bool collapseRoleInstances = false;
 		readonly MetricsCache metrics;
+		readonly Func<IMessage> focusedMessage;
 
 		int quickSearchVersion;
 
@@ -59,6 +56,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		readonly Func<ScrollInfo> scrollInfo;
 
 		readonly Func<ImmutableArray<RoleDrawInfo>> rolesDrawInfo;
+		readonly Func<ImmutableArray<ArrowDrawInfo>> drawArrowsInfo;
 
 		public SequenceDiagramVisualizerPresenter(
 			ISequenceDiagramVisualizerModel model, 
@@ -88,8 +86,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			this.metrics = new MetricsCache(view.GetMetrics());
 
 			transform.Translate(metrics.nodeWidth, metrics.messageHeight);
-
-			loadedMessagesPresenter.LogViewerPresenter.FocusedMessageChanged += (s, e) => view.Invalidate();
 
 			var sourcesSelector = Selectors.Create(() => model.Outputs, outputs => outputs.Select(output => output.LogSource));
 			var availableTagsSelector = CreateAvailableTagsSelector(
@@ -152,8 +148,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			);
 
 			selectedArrow = Selectors.Create(
-				() => effectiveSelectedArrows().focusedIndex,
-				idx => IsValidArrowIndex(idx) ? state().arrows[idx] : null
+				() => effectiveSelectedArrows().FocusedArrowIndex,
+				idx => IsValidArrowIndex(state(), idx) ? state().arrows[idx] : null
 			);
 
 			currentArrowInfo = Selectors.Create(
@@ -195,15 +191,27 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				GetScrollInfo
 			);
 
+			focusedMessage = () => loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
+
 			rolesDrawInfo = Selectors.Create(
 				state,
-				() => loadedMessagesPresenter.LogViewerPresenter.FocusedMessage,
+				focusedMessage,
 				effectiveTransform,
-				() => effectiveSelectedArrows().set,
+				() => effectiveSelectedArrows().IndicesSet,
 				() => (view.ArrowsAreaSize, view.RolesCaptionsAreaHeight),
 				(state, focusedMsg, transform, selectedArrows, viewSizes) =>
 					GetRolesDrawInfo(state, focusedMsg, metrics, transform,
 						selectedArrows, viewSizes.ArrowsAreaSize, viewSizes.RolesCaptionsAreaHeight)
+			);
+
+			drawArrowsInfo = Selectors.Create(
+				state,
+				focusedMessage,
+				effectiveSelectedArrows,
+				effectiveTransform,
+				() => (view.ArrowsAreaSize, hideResponses),
+				(state, focusedMsg, selectedArrows, transform, props) =>
+					GetArrowsDrawInfo(state, focusedMsg, selectedArrows, metrics, transform, props.ArrowsAreaSize, props.hideResponses)
 			);
 		}
 
@@ -225,10 +233,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			changeNotification.Active = false;
 		}
 
-		IEnumerable<RoleDrawInfo> IViewModel.OnDrawRoles()
-		{
-			return rolesDrawInfo();
-		}
+		IReadOnlyList<RoleDrawInfo> IViewModel.RolesDrawInfo => rolesDrawInfo();
 
 		static ImmutableArray<RoleDrawInfo> GetRolesDrawInfo(
 			StateCache state,
@@ -284,7 +289,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					ContainsFocusedMessage = focusedLogSource != null && role.LogSources.Contains(focusedLogSource)
 				});
 			}
-			return result.MoveToImmutable();
+			return result.ToImmutable();
 		}
 
 		static Point Transform(Matrix m, int x, int y, bool transformVector = false)
@@ -302,24 +307,34 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return Transform(effectiveTransform(), x, y, transformVector);
 		}
 
-		IEnumerable<ArrowDrawInfo> IViewModel.OnDrawArrows()
+		IReadOnlyList<ArrowDrawInfo> IViewModel.ArrowsDrawInfo => drawArrowsInfo();
+
+		static ImmutableArray<ArrowDrawInfo> GetArrowsDrawInfo(
+			StateCache state,
+			IMessage focusedMessage,
+			SelectedArrowsCache selectedArrowsCache,
+			MetricsCache metrics,
+			Matrix transform,
+			ReadonlyRef<Size> arrowsAreaSize,
+			bool hideResponses
+		)
 		{
-			int maxY = view.ArrowsAreaSize.Value.Height + metrics.messageHeight;
-			int w = Transform(metrics.nodeWidth, 0, true).X;
-			var fmr = GetFocusedMessageRange();
-			int minX = GetRoleX(0);
-			int maxX = GetRoleX(Math.Max(state().roles.Count - 1, 0));
-			var (selectedArrowsIndices, selectedArrowsSet, focusedIndex) = effectiveSelectedArrows();
+			var result = ImmutableArray.CreateBuilder<ArrowDrawInfo>();
+			int maxY = arrowsAreaSize.Value.Height + metrics.messageHeight;
+			int w = Transform(transform, metrics.nodeWidth, 0, true).X;
+			var fmr = GetFocusedMessageRange(focusedMessage, state);
+			int minX = GetRoleX(transform, metrics, 0);
+			int maxX = GetRoleX(transform, metrics, Math.Max(state.roles.Count - 1, 0));
 
 			Func<Arrow, bool, ArrowDrawInfo> makeDrawInfo = (arrow, isFullyVisible) =>
 			{
 				var ret = new ArrowDrawInfo()
 				{
 					Mode = ToDrawMode(arrow.Type),
-					Y = GetArrowY(arrow.Index),
+					Y = GetArrowY(transform, metrics, arrow.Index),
 					DisplayName = arrow.ShortDisplayName,
-					FromX = GetRoleX(arrow.From.DisplayIndex) + arrow.FromOffset,
-					ToX = GetRoleX(arrow.To.DisplayIndex) + arrow.ToOffset,
+					FromX = GetRoleX(transform, metrics, arrow.From.DisplayIndex) + arrow.FromOffset,
+					ToX = GetRoleX(transform, metrics, arrow.To.DisplayIndex) + arrow.ToOffset,
 					IsBookmarked = arrow.IsBookmarked,
 					Height = metrics.messageHeight,
 					Width = w,
@@ -331,27 +346,27 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					IsFullyVisible = isFullyVisible
 				};
 
-				bool isSelected = selectedArrowsSet.Contains(arrow.Index);
-				if (arrow.Index == focusedIndex)
+				bool isSelected = selectedArrowsCache.IndicesSet.Contains(arrow.Index);
+				if (arrow.Index == selectedArrowsCache.FocusedArrowIndex)
 					ret.SelectionState = ArrowSelectionState.FocusedSelectedArrow;
 				else if (isSelected)
 					ret.SelectionState = ArrowSelectionState.SelectedArrow;
 				else
 					ret.SelectionState = ArrowSelectionState.NotSelected;
 
-				ret.IsHighlighted = IsHighlightedArrow(arrow);
+				ret.IsHighlighted = IsHighlightedArrow(arrow, selectedArrowsCache.IndicesSet);
 
-				if (selectedArrowsIndices.Length > 1)
+				if (selectedArrowsCache.OrderedIndices.Length > 1)
 				{
 					if (isSelected)
 					{
-						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrowsIndices, arrow.Index, ValueBound.UpperReversed, Comparer<int>.Default);
+						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrowsCache.OrderedIndices, arrow.Index, ValueBound.UpperReversed, Comparer<int>.Default);
 						if (prevSelectedArrowIdxIdx >= 0)
 						{
-							var prevSelectedArrowIdx = selectedArrowsIndices[prevSelectedArrowIdxIdx];
-							if (IsValidArrowIndex(prevSelectedArrowIdx))
+							var prevSelectedArrowIdx = selectedArrowsCache.OrderedIndices[prevSelectedArrowIdxIdx];
+							if (IsValidArrowIndex(state, prevSelectedArrowIdx))
 							{
-								ret.Delta = TimeUtils.TimeDeltaToString(arrow.FromTimestamp - state().arrows[prevSelectedArrowIdx].FromTimestamp);
+								ret.Delta = TimeUtils.TimeDeltaToString(arrow.FromTimestamp - state.arrows[prevSelectedArrowIdx].FromTimestamp);
 							}
 						}
 					}
@@ -368,7 +383,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 							ret.CurrentTimePosition = -1;
 						else
 							ret.CurrentTimePosition = 0;
-					else if (fmr.Item1 > arrow.Index && arrow.Index == state().arrows.Length - 1)
+					else if (fmr.Item1 > arrow.Index && arrow.Index == state.arrows.Length - 1)
 						ret.CurrentTimePosition = 1;
 				}
 
@@ -381,16 +396,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				{
 					ret.NonHorizontalDrawingData = new NonHorizontalArrowDrawInfo()
 					{
-						ToX = GetRoleX(arrow.To.DisplayIndex) + arrow.NonHorizontalConnectedArrow.ToOffset,
-						Y = GetArrowY(arrow.NonHorizontalConnectedArrow.Index),
-						VerticalLineX = GetRoleX(arrow.To.DisplayIndex) + arrow.NonHorizontalConnectorOffset
+						ToX = GetRoleX(transform, metrics, arrow.To.DisplayIndex) + arrow.NonHorizontalConnectedArrow.ToOffset,
+						Y = GetArrowY(transform, metrics, arrow.NonHorizontalConnectedArrow.Index),
+						VerticalLineX = GetRoleX(transform, metrics, arrow.To.DisplayIndex) + arrow.NonHorizontalConnectorOffset
 					};
 				}
 
 				if (hideResponses && arrow.LinkedArrowId != null)
 				{
-					Arrow hiddenResponse;
-					if (state().hiddenLinkableResponses.TryGetValue(arrow.LinkedArrowId, out hiddenResponse) && hiddenResponse.Color != ArrowColor.Normal)
+					if (state.hiddenLinkableResponses.TryGetValue(arrow.LinkedArrowId, out var hiddenResponse) && hiddenResponse.Color != ArrowColor.Normal)
 					{
 						// highlight abnormal responses: take color and display text (with status code inside) from the response
 						ret.DisplayName = hiddenResponse.ShortDisplayName;
@@ -401,10 +415,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				return ret;
 			};
 
-			int firstArrowIdx = Math.Max(GetMessageIndex(0), 0);
-			foreach (var arrow in state().arrows.Skip(firstArrowIdx))
+			int firstArrowIdx = Math.Max(GetMessageIndex(transform, metrics, 0), 0);
+			foreach (var arrow in state.arrows.Skip(firstArrowIdx))
 			{
-				int y = GetArrowY(arrow.Index);
+				int y = GetArrowY(transform, metrics, arrow.Index);
 				if (y < 0)
 					continue;
 				if (y > maxY)
@@ -412,10 +426,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				if (arrow.Index == firstArrowIdx && arrow.OverlappingNonHorizontalArrows != null)
 				{
 					foreach (var overlappingNonHorizontalArrow in arrow.OverlappingNonHorizontalArrows)
-						yield return makeDrawInfo(overlappingNonHorizontalArrow, false);
+						result.Add(makeDrawInfo(overlappingNonHorizontalArrow, false));
 				}
-				yield return makeDrawInfo(arrow, true);
+				result.Add(makeDrawInfo(arrow, true));
 			}
+
+			return result.ToImmutable();
 		}
 
 		void IViewModel.OnArrowsAreaMouseDown(Point pt, bool doubleClick)
@@ -461,7 +477,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			if (selectArrow)
 			{
-				SetSelectedArrowIndex(GetMessageIndex(pt.Y), multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
+				SetSelectedArrowIndex(GetMessageIndex(effectiveTransform(), metrics, pt.Y), multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
 			}
 		}
 
@@ -480,7 +496,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		void IViewModel.OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers)
 		{
-			SetSelectedArrowIndex(GetMessageIndex(pt.Y), multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
+			SetSelectedArrowIndex(GetMessageIndex(effectiveTransform(), metrics, pt.Y), multiselectionMode: (modifiers & Key.MultipleSelectionModifier) != 0);
 			if (doubleClick)
 				ShowSelectedArrow();
 		}
@@ -497,7 +513,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else if (code == Key.MoveSelectionUp)
 			{
-				SetSelectedArrowIndex(effectiveSelectedArrows().focusedIndex - 1);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex - 1);
 			}
 			else if (code == Key.ScrollLineUp)
 			{
@@ -505,7 +521,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else if (code == Key.MoveSelectionDown)
 			{
-				SetSelectedArrowIndex(effectiveSelectedArrows().focusedIndex + 1);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex + 1);
 			}
 			else if (code == Key.ScrollLineDown)
 			{
@@ -521,11 +537,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 			else if (code == Key.PageDown)
 			{
-				SetSelectedArrowIndex(effectiveSelectedArrows().focusedIndex + 10);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex + 10);
 			}
 			else if (code == Key.PageUp)
 			{
-				SetSelectedArrowIndex(effectiveSelectedArrows().focusedIndex - 10);
+				SetSelectedArrowIndex(effectiveSelectedArrows().FocusedArrowIndex - 10);
 			}
 			else if (code == Key.Home)
 			{
@@ -565,12 +581,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		{
 			ShowTrigger(trigger);
 		}
-
-		/*void IViewModel.OnResized() todo
-		{
-			AdjustTransformToFitViewFrame();
-			UpdateViewScrollBars();
-		} */
 
 		void IViewModel.OnPrevUserEventButtonClicked()
 		{
@@ -665,7 +675,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return logicalY / metrics.messageHeight;
 		}
 
-		static (ImmutableArray<int>, ImmutableHashSet<int>, int) GetEffectiveSelectedArrows(
+		static SelectedArrowsCache GetEffectiveSelectedArrows(
 			ImmutableSortedSet<Arrow> lastSelectedArrows,
 			Arrow lastFocusedArrow,
 			ImmutableArray<Arrow> arrows)
@@ -683,11 +693,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			if (focusedArrowIdx < 0 && arrows.Length > 0)
 				focusedArrowIdx = 0;
 
-			return (
-				ImmutableArray.CreateRange(result.OrderBy(x => x)),
-				result.ToImmutable(),
-				focusedArrowIdx
-			);
+			return new SelectedArrowsCache()
+			{
+				OrderedIndices = ImmutableArray.CreateRange(result.OrderBy(x => x)),
+				IndicesSet = result.ToImmutable(),
+				FocusedArrowIndex = focusedArrowIdx,
+			};
 		}
 
 		void SetSelectedArrowIndex(int value, bool multiselectionMode = false)
@@ -726,7 +737,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				lastSelectedArrows = ImmutableSortedSet.Create(ArrowIndexComparer.Instance, arrow);
 			}
 			changeNotification.Post();
-			view.Invalidate();
 		}
 
 		private static CurrentArrowInfo MakeCurrentArrowInfo(
@@ -873,7 +883,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		void EnsureArrowVisible(int arrowIdx)
 		{
-			var y = GetArrowY(arrowIdx);
+			var y = GetArrowY(effectiveTransform(), metrics, arrowIdx);
 			var sz = view.ArrowsAreaSize.Value;
 			if (y <= 0)
 			{
@@ -885,12 +895,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		static int GetRoleX(Matrix transform, MetricsCache metrics, int roleIndex) // todo: make part of metric
+		static int GetRoleX(Matrix transform, MetricsCache metrics, int roleIndex) // todo: move to helpers class
 		{
 			return Transform(transform, roleIndex * metrics.nodeWidth, 0).X;
 		}
 
-		static int GetArrowY(Matrix transform, MetricsCache metrics, int arrowIndex) // todo: make part of metric
+		static int GetArrowY(Matrix transform, MetricsCache metrics, int arrowIndex)
 		{
 			return Transform(transform, 0, arrowIndex * metrics.messageHeight).Y;
 		}
@@ -948,7 +958,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return new StateCache
 			{
 				roles = rolesBuilder.ToImmutable(),
-				arrows = arrowsBuilder.MoveToImmutable(),
+				arrows = arrowsBuilder.ToImmutable(),
 				hiddenLinkableResponses = hiddenLinkableResponses,
 			};
 		}
@@ -1676,7 +1686,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void ScaleTransform(int centerX, float factor)
 		{
-			var pt = Transform(InvertTransform(), centerX, 0);
+			var pt = Transform(InvertTransform(effectiveTransform()), centerX, 0);
 			ModifyTransform(m =>
 			{
 				m.Translate(pt.X, 0);
@@ -1692,9 +1702,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return tmp;
 		}
 
-		bool IsValidArrowIndex(int value)
+		static bool IsValidArrowIndex(StateCache state, int value)
 		{
-			return value >= 0 && value < state().arrows.Length;
+			return value >= 0 && value < state.arrows.Length;
 		}
 
 		void ShowSelectedArrow()
@@ -1776,18 +1786,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		private Tuple<int, int> GetFocusedMessageRange()
+		static private Tuple<int, int> GetFocusedMessageRange(IMessage focusedMessage, StateCache state)
 		{
-			var msg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
+			var msg = focusedMessage;
 			if (msg != null)
 			{
 				var ls = msg.GetLogSource();
 				if (ls != null)
 				{
 					var t = msg.Time.ToUnspecifiedTime();
-					var p1 = ListUtils.BinarySearch(state().arrows, 0, state().arrows.Length,
+					var p1 = ListUtils.BinarySearch(state.arrows, 0, state.arrows.Length,
 						a => ArrowComparer.Compare(a, t, ls, msg.Position) < 0);
-					var p2 = ListUtils.BinarySearch(state().arrows, 0, state().arrows.Length,
+					var p2 = ListUtils.BinarySearch(state.arrows, 0, state.arrows.Length,
 						a => ArrowComparer.Compare(a, t, ls, msg.Position) <= 0);
 					return Tuple.Create(p1, p2);
 				}
@@ -1879,8 +1889,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			action(tmp);
 			transform = tmp;
 			changeNotification.Post();
-
-			view.Invalidate();
 		}
 
 		static Matrix GetEffectiveTransform(
@@ -1928,13 +1936,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void FindCurrentTime()
 		{
-			var fmr = GetFocusedMessageRange();
+			var fmr = GetFocusedMessageRange(focusedMessage(), state());
 			if (fmr == null)
 				return;
 			var i = fmr.Item1;
 			if (i == state().arrows.Length)
 				--i;
-			if (!IsValidArrowIndex(i))
+			if (!IsValidArrowIndex(state(), i))
 				return;
 			SetSelectedArrowIndex(i);
 		}
@@ -1966,8 +1974,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void SelectNextArrowByPredicate(Predicate<Arrow> test)
 		{
-			var focusedSelectedArrow = effectiveSelectedArrows().focusedIndex;
-			int startIndex = IsValidArrowIndex(focusedSelectedArrow) ? (focusedSelectedArrow + 1) : 0;
+			var focusedSelectedArrow = effectiveSelectedArrows().FocusedArrowIndex;
+			int startIndex = IsValidArrowIndex(state(), focusedSelectedArrow) ? (focusedSelectedArrow + 1) : 0;
 			for (int i = startIndex; i < state().arrows.Length; ++i)
 			{
 				if (test(state().arrows[i]))
@@ -1980,8 +1988,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void SelectPrevArrowByPredicate(Predicate<Arrow> test)
 		{
-			var focusedSelectedArrow = effectiveSelectedArrows().focusedIndex;
-			int startIndex = IsValidArrowIndex(focusedSelectedArrow) ? (focusedSelectedArrow - 1) : state().arrows.Length - 1;
+			var focusedSelectedArrow = effectiveSelectedArrows().FocusedArrowIndex;
+			int startIndex = IsValidArrowIndex(state(), focusedSelectedArrow) ? (focusedSelectedArrow - 1) : state().arrows.Length - 1;
 			for (int i = startIndex; i >= 0; --i)
 			{
 				if (test(state().arrows[i]))
@@ -2288,6 +2296,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			public ImmutableDictionary<string, Role> roles = ImmutableDictionary.Create<string, Role>();
 			public ImmutableArray<Arrow> arrows = ImmutableArray.Create<Arrow>();
 			public ImmutableDictionary<string, Arrow> hiddenLinkableResponses = ImmutableDictionary.Create<string, Arrow>();
+		};
+
+		class SelectedArrowsCache // todo: comments
+		{
+			public ImmutableArray<int> OrderedIndices;
+			public ImmutableHashSet<int> IndicesSet;
+			public int FocusedArrowIndex;
 		};
 	}
 }

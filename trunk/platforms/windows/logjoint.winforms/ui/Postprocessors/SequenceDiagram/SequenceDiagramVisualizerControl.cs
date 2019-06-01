@@ -12,6 +12,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		IViewModel viewModel;
 		Resources resources;
 		DrawingUtils drawingUtils;
+		ReadonlyRef<Size> arrowsAreaSize = new ReadonlyRef<Size>();
 
 		public SequenceDiagramVisualizerControl()
 		{
@@ -72,12 +73,24 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			var collapseRoleInstancesChecked = Updaters.Create(() => viewModel.IsCollapseRoleInstancesChecked,
 				value => collapseRoleInstancesCheckbox.Checked = value);
 
+			var updateScrollBars = Updaters.Create(() => viewModel.ScrollInfo,
+				value => UpdateScrollBars(value.vMax, value.vChange, value.vValue, value.hMax, value.hChange, value.hValue));
+
+			var invalidateViews = Updaters.Create(() => viewModel.ArrowsDrawInfo, () => viewModel.RolesDrawInfo, (_1, _2) =>
+			{
+				rolesCaptionsPanel.Invalidate();
+				arrowsPanel.Invalidate();
+				leftPanel.Invalidate();
+			});
+
 			viewModel.ChangeNotification.CreateSubscription(() =>
 			{
 				notificationsIconUpdater();
 				updateCurrentArrowControls();
 				collapseResponsesCheckedUpdater();
 				collapseRoleInstancesChecked();
+				updateScrollBars();
+				invalidateViews();
 			});
 		}
 
@@ -94,32 +107,23 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			};
 		}
 
-		void IView.Invalidate()
-		{
-			rolesCaptionsPanel.Invalidate();
-			arrowsPanel.Invalidate();
-			leftPanel.Invalidate();
-		}
-
-		int IView.ArrowsAreaWidth { get { return arrowsPanel.Width; } }
-
-		int IView.ArrowsAreaHeight { get { return arrowsPanel.Height; } }
+		ReadonlyRef<Size> IView.ArrowsAreaSize => arrowsAreaSize;
 
 		int IView.RolesCaptionsAreaHeight { get { return rolesCaptionsPanel.Height; } }
 
-		void IView.UpdateScrollBars(
+		void UpdateScrollBars(
 			int vMax, int vChange, int vValue,
 			int hMax, int hChange, int hValue
 		)
 		{
-			Action<ScrollBar, int, int, int> set = (scroll, max, change, value) =>
+			void set(ScrollBar scroll, int max, int change, int value)
 			{
 				scroll.Enabled = change < max;
 				scroll.Maximum = max;
 				scroll.LargeChange = change;
 				value = Math.Max(0, value);
 				scroll.Value = value;
-			};
+			}
 			set(hScrollBar, hMax, hChange, hValue);
 			set(vScrollBar, vMax, vChange, vValue);
 		}
@@ -309,8 +313,9 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		private void arrowsPanel_Resize(object sender, EventArgs e)
 		{
+			arrowsAreaSize = new ReadonlyRef<Size>(arrowsPanel.ClientSize.ToSize());
 			if (viewModel != null)
-				viewModel.OnResized();
+				viewModel.ChangeNotification.Post();
 		}
 
 		private void toolPanelLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

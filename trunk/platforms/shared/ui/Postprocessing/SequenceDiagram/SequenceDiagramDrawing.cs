@@ -115,7 +115,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			if (eventsHandler == null)
 				yield break;
 
-			foreach (var role in eventsHandler.OnDrawRoles())
+			foreach (var role in eventsHandler.RolesDrawInfo)
 			{
 				if (role.Bounds.Width < 2)
 					continue;
@@ -189,7 +189,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		public void DrawArrowsView(LJD.Graphics g, Size viewSize, Action<Rectangle> drawFocusRect)
 		{
-			foreach (var message in eventsHandler.OnDrawArrows())
+			foreach (var message in eventsHandler.ArrowsDrawInfo)
 			{
 				if (!message.IsFullyVisible)
 					continue;
@@ -209,7 +209,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				}
 			}
 
-			foreach (var role in eventsHandler.OnDrawRoles())
+			foreach (var role in eventsHandler.RolesDrawInfo)
 			{
 				var x = role.X;
 				g.DrawLine(resources.RolePen, x, 0, x, viewSize.Height);
@@ -246,7 +246,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				g.FillPolygon(resources.NormalArrowTextBrush, pts.ToArray());
 			};
 
-			foreach (var message in eventsHandler.OnDrawArrows())
+			foreach (var message in eventsHandler.ArrowsDrawInfo)
 			{
 				int y = message.Y;
 				int x1 = message.FromX;
@@ -460,7 +460,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		public void DrawLeftPanelView(LJD.Graphics g, Point origin, Size viewSize)
 		{
 			var w = viewSize.Width;
-			foreach (var message in eventsHandler.OnDrawArrows())
+			foreach (var message in eventsHandler.ArrowsDrawInfo)
 			{
 				int y = origin.Y + message.Y;
 
