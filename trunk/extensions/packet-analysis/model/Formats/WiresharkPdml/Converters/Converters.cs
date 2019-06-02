@@ -37,9 +37,9 @@ namespace LogJoint.Wireshark.Dpml
 			using (var writer = new StreamWriter(outputFile, false, new UTF8Encoding(false)))
 			{
 				var packetsRead = 0;
-				var processTask = process.GetExitCodeAsync(TimeSpan.FromMinutes(5));
+				var processTask = process.GetExitCodeAsync(Timeout.InfiniteTimeSpan);
 				using (var statusReportTimer = new Timer(
-					_ => reportStatus($"scanning: {packetsRead} packets"), null,
+					_ => reportStatus($"converting to text: {packetsRead} packets"), null,
 					TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1)))
 				{
 					await Task.WhenAll(
