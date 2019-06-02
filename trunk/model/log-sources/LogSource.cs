@@ -197,8 +197,6 @@ namespace LogJoint
 							new XAttribute("display-name", XmlUtils.RemoveInvalidXMLChars(b.DisplayName)),
 							new XAttribute("line-index", b.LineIndex),
 						};
-						if (b.MessageText != null)
-							attrs.Add(new XAttribute("message-text", XmlUtils.RemoveInvalidXMLChars(b.MessageText)));
 						return new XElement("bookmark", attrs);
 					}).ToArray()
 				));
@@ -237,7 +235,6 @@ namespace LogJoint
 					var time = elt.Attribute("time");
 					var thread = elt.Attribute("thread-id");
 					var name = elt.Attribute("display-name");
-					var text = elt.Attribute("message-text");
 					var position = elt.Attribute("position");
 					var lineIndex = elt.Attribute("line-index");
 					if (time != null && thread != null && name != null && position != null)
@@ -246,7 +243,6 @@ namespace LogJoint
 							MessageTimestamp.ParseFromLoselessFormat(time.Value),
 							logSourceThreads.GetThread(new StringSlice(thread.Value)),
 							name.Value,
-							(text != null) ? text.Value : null,
 							long.Parse(position.Value),
 							(lineIndex != null) ? int.Parse(lineIndex.Value) : 0
 						));
@@ -368,7 +364,6 @@ namespace LogJoint
 					newBmkTime,
 					logSourceThreads.GetThread(new StringSlice(b.threadId)),
 					b.bmk.DisplayName,
-					b.bmk.MessageText,
 					b.bmk.Position,
 					b.bmk.LineIndex));
 			}

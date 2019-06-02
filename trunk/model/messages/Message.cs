@@ -33,7 +33,9 @@ namespace LogJoint
 
 		public override int GetHashCode()
 		{
-			return GetHashCodeInternal(false);
+			if (hashCodeCache == null)
+				hashCodeCache = GetHashCodeInternal(false);
+			return hashCodeCache.Value;
 		}
 
 		public override string ToString()
@@ -73,6 +75,7 @@ namespace LogJoint
 				throw new ArgumentException("bad message positions");
 			this.position = position;
 			this.endPosition = endPosition;
+			this.hashCodeCache = null;
 		}
 
 		int IMessage.GetHashCode(bool ignoreMessageTime)
@@ -116,6 +119,7 @@ namespace LogJoint
 		MultilineText textML;
 		StringSlice rawText;
 		MultilineText rawTextML;
+		int? hashCodeCache;
 
 		#endregion
 	};

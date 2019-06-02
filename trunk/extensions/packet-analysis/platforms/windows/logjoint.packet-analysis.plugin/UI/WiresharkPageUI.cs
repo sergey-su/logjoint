@@ -46,7 +46,7 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.NewLogSourceDialog.Pages.Wiresha
 
 		bool TryGetFile(IDataObject obj, out string fileName)
 		{
-			fileName = (obj.GetData(DataFormats.FileDrop) as string[])?.FirstOrDefault(null);
+			fileName = (obj.GetData(DataFormats.FileDrop) as string[])?.DefaultIfEmpty().FirstOrDefault();
 			return fileName != null;
 		}
 

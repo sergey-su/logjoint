@@ -227,8 +227,8 @@ namespace LogJoint.MessagesContainers
 			// That is done to handle this situation: 
 			//   - We've read an incomplete log. The last message was written (and has been read) partially.
 			//   - The log grows, the last message gets written completely. We start reading from the last
-			//     position an read this last message agian. This time this message is read completely.
-			//     We want to replace the partially loaded message with the completly loaded one.
+			//     position an read this last message again. This time this message is read completely.
+			//     We want to replace the partially loaded message with the completely loaded one.
 			if (messagePosition == lastReadPosition)
 			{
 				if (last.Last.GetHashCode(ignoreMessageTime) != msg.GetHashCode(ignoreMessageTime))

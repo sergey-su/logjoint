@@ -10,16 +10,15 @@ namespace LogJoint
 	[DebuggerDisplay("Time={Time}, Position={Position}")]
 	public class Bookmark : IBookmark
 	{
-		public Bookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex) :
-			this(time, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.Provider.ConnectionId : "", displayName, messageText, position, lineIndex)
+		public Bookmark(MessageTimestamp time, IThread thread, string displayName, long position, int lineIndex) :
+			this(time, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.Provider.ConnectionId : "", displayName, position, lineIndex)
 		{ }
 		public Bookmark(MessageTimestamp time, string sourceConnectionId, long position, int lineIndex) :
-			this(time, null, sourceConnectionId, "", "", position, lineIndex)
+			this(time, null, sourceConnectionId, "", position, lineIndex)
 		{ }
 		public Bookmark(IMessage msg, int lineIndex, bool useRawText)
 			: this(msg.Time, msg.Thread,
-				MakeDisplayName(msg, lineIndex, useRawText),
-				(useRawText && msg.RawText.IsInitialized) ? msg.RawText.Value : msg.Text.Value, msg.Position, lineIndex)
+				MakeDisplayName(msg, lineIndex, useRawText), msg.Position, lineIndex)
 		{ }
 
 		MessageTimestamp IBookmark.Time { get { return time; } }
@@ -28,10 +27,9 @@ namespace LogJoint
 		long IBookmark.Position { get { return position; } }
 		int IBookmark.LineIndex { get { return lineIndex; } }
 		string IBookmark.DisplayName { get { return displayName; } }
-		string IBookmark.MessageText { get { return messageText; } }
 		IBookmark IBookmark.Clone()
 		{
-			return new Bookmark(time, thread, logSourceConnectionId, displayName, messageText, position, lineIndex);
+			return new Bookmark(time, thread, logSourceConnectionId, displayName, position, lineIndex);
 		}
 
 		public override string ToString()
@@ -40,12 +38,11 @@ namespace LogJoint
 		}
 
 		internal Bookmark(MessageTimestamp time, IThread thread, string logSourceConnectionId,
-			string displayName, string messageText, long position, int lineIndex)
+			string displayName, long position, int lineIndex)
 		{
 			this.time = time;
 			this.thread = thread;
 			this.displayName = displayName;
-			this.messageText = messageText;
 			this.position = position;
 			this.logSourceConnectionId = logSourceConnectionId;
 			this.lineIndex = lineIndex;
@@ -60,12 +57,11 @@ namespace LogJoint
 			return txt.Text.Value;
 		}
 
-		MessageTimestamp time;
-		IThread thread;
-		string logSourceConnectionId;
-		long position;
-		int lineIndex;
-		string displayName;
-		string messageText;
+		readonly MessageTimestamp time;
+		readonly IThread thread;
+		readonly string logSourceConnectionId;
+		readonly long position;
+		readonly int lineIndex;
+		readonly string displayName;
 	}
 }
