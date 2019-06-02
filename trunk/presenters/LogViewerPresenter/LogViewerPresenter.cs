@@ -1290,7 +1290,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, model.Bookmarks?.Items),
-				() => (screenBuffer.DisplayTextGetter, showTime, showMilliseconds, coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
+				() => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
@@ -1302,14 +1302,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 						foreach (var screenBufferEntry in data.Messages)
 						{
+							var displayTextInfo = displayProps.displayTextGetter(screenBufferEntry.Message);
 							list.Add(screenBufferEntry.ToViewLine(
-								displayProps.DisplayTextGetter,
+								displayTextInfo.DisplayText,
 								displayProps.showTime,
 								displayProps.showMilliseconds,
 								selectionViewLinesRange: selectionProps.ViewLinesRange,
 								normalizedSelection: normalizedSelection,
 								isBookmarked: !screenBufferEntry.Message.Thread.IsDisposed && bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(
-									screenBufferEntry.Message, screenBufferEntry.TextLineIndex),
+									screenBufferEntry.Message, displayTextInfo.LinesMapper(screenBufferEntry.TextLineIndex)),
 								coloring: displayProps.coloring,
 								threadColors: displayProps.threadColors,
 								cursorCharIndex: selectionProps.CursorState && selectionProps.CursorViewLine == screenBufferEntry.Index ? selectionProps.Selection?.First?.LineCharIndex : new int?(),
