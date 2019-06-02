@@ -8,6 +8,7 @@ namespace LogJoint.Drawing
 		{
 			text = NSColor.Text.ToColor;
 			textBackground = NSColor.TextBackground.ToColor;
+			link = NSColor.LinkColor.ToColor;
 		}
 	};
 }

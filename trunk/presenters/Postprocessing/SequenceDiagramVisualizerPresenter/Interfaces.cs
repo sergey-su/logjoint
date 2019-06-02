@@ -34,6 +34,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		ScrollInfo ScrollInfo { get; }
 		IReadOnlyList<RoleDrawInfo> RolesDrawInfo { get; }
 		IReadOnlyList<ArrowDrawInfo> ArrowsDrawInfo { get; }
+		ColorThemeMode ColorTheme { get; }
 
 		void OnWindowShown();
 		void OnWindowHidden();

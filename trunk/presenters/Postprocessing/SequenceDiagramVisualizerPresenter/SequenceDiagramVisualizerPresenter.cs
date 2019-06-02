@@ -32,6 +32,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IPresentersFacade presentersFacade;
 		readonly IUserNamesProvider userNamesProvider;
+		readonly IColorTheme theme;
 		readonly Func<StateCache> state;
 		ImmutableSortedSet<Arrow> lastSelectedArrows = ImmutableSortedSet.Create<Arrow>(ArrowIndexComparer.Instance);
 		Arrow lastFocusedSelectedArrow = null;
@@ -68,7 +69,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			Persistence.IStorageManager storageManager,
 			IPresentersFacade presentersFacade,
 			IUserNamesProvider userNamesProvider,
-			IChangeNotification parentChangeNotification
+			IChangeNotification parentChangeNotification,
+			IColorTheme theme
 		)
 		{
 			this.model = model;
@@ -80,6 +82,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			this.bookmarks = bookmarks;
 			this.presentersFacade = presentersFacade;
 			this.userNamesProvider = userNamesProvider;
+			this.theme = theme;
 
 			view.SetViewModel(this);
 
@@ -229,6 +232,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		{
 			changeNotification.Active = false;
 		}
+
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 
 		IReadOnlyList<RoleDrawInfo> IViewModel.RolesDrawInfo => rolesDrawInfo();
 

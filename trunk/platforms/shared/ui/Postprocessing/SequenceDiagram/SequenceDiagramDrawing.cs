@@ -11,15 +11,16 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 	{
 		public LJD.Pen RequestPen, ResponsePen;
 		public LJD.Pen HighlightedRequestPen, HighlightedResponsePen;
-		public LJD.Color SelectedLineColor;
-		public LJD.Brush SelectedLineBrush;
+		public LJD.Brush SelectedLineBrush => selectedLineBrushSelector();
 		public LJD.Brush ControlBackgroundBrush;
 		public LJD.StringFormat RoleCaptionFormat;
 		public LJD.Brush UserActionBrush;
 		public LJD.Brush StateChangeBrush;
 		public LJD.Pen UserActionFramePen;
-		public LJD.Brush BookmarkArrowBackgroundBrush;
-		public LJD.Pen BookmarkArrowPen;
+		public LJD.Brush BookmarkArrowBackgroundBrush => bookmarkArrowBackgroundBrush ();
+		private readonly Func<LJD.Brush> bookmarkArrowBackgroundBrush;
+		public LJD.Pen BookmarkArrowPen => bookmarkArrowPen ();
+		public readonly Func<LJD.Pen> bookmarkArrowPen;
 		public LJD.Font Font;
 		public LJD.Font UnderlinedFont;
 		public LJD.Pen RolePen;
@@ -28,7 +29,9 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		public LJD.Brush NoLinkCaptionBrush;
 		public LJD.Image FocusedMsgSlaveVert;
 		public LJD.Pen ExecutionOccurrencePen, HighlightedExecutionOccurrencePen;
-		public LJD.Brush NormalExecutionOccurrenceBrush, NormalHighlightedExecutionOccurrenceBrush;
+		public LJD.Brush NormalExecutionOccurrenceBrush => normalExecutionOccurrenceBrush ();
+		public LJD.Brush NormalHighlightedExecutionOccurrenceBrush => normalHighlightedExecutionOccurrenceBrush ();
+		private readonly Func<LJD.Brush> normalExecutionOccurrenceBrush, normalHighlightedExecutionOccurrenceBrush;
 		public LJD.Brush ActivityExecutionOccurrenceBrush, ActivityHighlightedExecutionOccurrenceBrush;
 		public LJD.Brush NormalArrowTextBrush;
 		public LJD.Brush ErrorArrowTextBrush;
@@ -42,36 +45,58 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		public readonly float DpiScale;
 
-		public Resources(string fontFamily, float fontSize, float dpiSensitivePensScale = 1f)
+		private readonly Func<Brush> selectedLineBrushSelector;
+
+		public Resources(
+			IViewModel viewModel,
+			string fontFamily,
+			float fontSize,
+			float dpiSensitivePensScale = 1f)
 		{
+			bool isDark () => viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
+
 			this.UserActionBrush = new LJD.Brush(Color.LightSalmon);
 			this.StateChangeBrush = new LJD.Brush(Color.FromArgb(0xff, Color.FromArgb(0xC8F6C8)));
 			this.UserActionFramePen = new LJD.Pen(Color.Gray, 1);
-			this.BookmarkArrowBackgroundBrush = new LJD.Brush(Color.FromArgb(0xff, Color.FromArgb(0xE3EDFF)));
-			this.BookmarkArrowPen = new LJD.Pen(Color.Gray, 1);
-			this.SelectedLineColor = Color.FromArgb(187, 196, 221);
-			this.SelectedLineBrush = new LJD.Brush(SelectedLineColor);
-			this.ControlBackgroundBrush = new LJD.Brush(Color.White);
+			this.bookmarkArrowBackgroundBrush = Selectors.Create(
+				isDark,
+				dark => new LJD.Brush(dark ? Color.FromArgb(0, 31, 39) : Color.FromArgb(0xff, Color.FromArgb(0xE3EDFF)))
+			);
+			this.bookmarkArrowPen = Selectors.Create(
+				isDark,
+				dark => new LJD.Pen(dark ? Color.LightGray : Color.Gray, 1)
+			);
+			this.selectedLineBrushSelector = Selectors.Create (
+				isDark,
+				dark => dark ? new Brush (Color.FromArgb (40, 80, 120)) : new Brush (Color.FromArgb (167, 176, 201))
+			);
+			this.ControlBackgroundBrush = Brushes.TextBackground;
 			this.Font = new LJD.Font(fontFamily, fontSize);
 			this.UnderlinedFont = new LJD.Font(fontFamily, fontSize, FontStyle.Underline);
-			this.RolePen = new LJD.Pen(Color.Black, 2 * dpiSensitivePensScale);
+			this.RolePen = new LJD.Pen(SystemColors.Text, 2 * dpiSensitivePensScale);
 			this.RoleCaptionFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Center, LineBreakMode.WrapChars);
 			float normalLineWidth = 1 * dpiSensitivePensScale;
-			this.RequestPen = new LJD.Pen(Color.Black, normalLineWidth);
-			this.ResponsePen = new LJD.Pen(Color.Black, normalLineWidth, dashPattern: new float[] { 5, 2 });
+			this.RequestPen = new LJD.Pen(SystemColors.Text, normalLineWidth);
+			this.ResponsePen = new LJD.Pen(SystemColors.Text, normalLineWidth, dashPattern: new float[] { 5, 2 });
 			float highlightedLineWidth = (float)Math.Ceiling (2f * dpiSensitivePensScale);
-			this.HighlightedRequestPen = new LJD.Pen(Color.Black, highlightedLineWidth);
-			this.HighlightedResponsePen = new LJD.Pen(Color.Black, highlightedLineWidth, dashPattern: new float[] { 5 * normalLineWidth / highlightedLineWidth, 2 * normalLineWidth / highlightedLineWidth });
-			this.CaptionRectPen = new LJD.Pen(Color.Black, 1);
-			this.LinkCaptionBrush = new LJD.Brush(Color.Blue);
-			this.NoLinkCaptionBrush = new LJD.Brush(Color.Black);
-			this.ExecutionOccurrencePen = new LJD.Pen(Color.Black, 1);
-			this.HighlightedExecutionOccurrencePen = new LJD.Pen(Color.Black, highlightedLineWidth);
-			this.NormalExecutionOccurrenceBrush = new LJD.Brush(Color.LightGray);
-			this.NormalHighlightedExecutionOccurrenceBrush = new LJD.Brush(Color.DarkGray);
+			this.HighlightedRequestPen = new LJD.Pen(SystemColors.Text, highlightedLineWidth);
+			this.HighlightedResponsePen = new LJD.Pen(SystemColors.Text, highlightedLineWidth, dashPattern: new float[] { 5 * normalLineWidth / highlightedLineWidth, 2 * normalLineWidth / highlightedLineWidth });
+			this.CaptionRectPen = new LJD.Pen(SystemColors.Text, 1);
+			this.LinkCaptionBrush = new LJD.Brush(SystemColors.Link);
+			this.NoLinkCaptionBrush = new LJD.Brush(SystemColors.Text);
+			this.ExecutionOccurrencePen = new LJD.Pen(SystemColors.Text, 1);
+			this.HighlightedExecutionOccurrencePen = new LJD.Pen(SystemColors.Text, highlightedLineWidth);
+			this.normalExecutionOccurrenceBrush = Selectors.Create(
+				isDark,
+				dark => new LJD.Brush (dark ? Color.FromArgb(100, 100, 100) : Color.LightGray)
+			);
+			this.normalHighlightedExecutionOccurrenceBrush = Selectors.Create (
+				isDark,
+				dark => new LJD.Brush (dark ? Color.FromArgb (150, 150, 150) : Color.DarkGray)
+			);
 			this.ActivityExecutionOccurrenceBrush = new LJD.Brush(Color.LightBlue);
-			this.ActivityHighlightedExecutionOccurrenceBrush = this.ActivityExecutionOccurrenceBrush;//new LJD.Brush(Color.FromArgb(0xff, Color.FromArgb(0x8DB8C6)));
-			this.NormalArrowTextBrush = new LJD.Brush(Color.Black);
+			this.ActivityHighlightedExecutionOccurrenceBrush = this.ActivityExecutionOccurrenceBrush;
+			this.NormalArrowTextBrush = Brushes.Text;
 			this.ErrorArrowTextBrush = new LJD.Brush(Color.Red);
 			this.ArrowTextFormat = new LJD.StringFormat(StringAlignment.Near, StringAlignment.Far, LineBreakMode.SingleLineEndEllipsis);
 			this.UserActionTextFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far, LineBreakMode.SingleLineEndEllipsis);

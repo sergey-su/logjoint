@@ -5,11 +5,11 @@ namespace LogJoint.Drawing
 {
 	public partial class Pen
 	{
-		internal Color color;
+		internal ColorRef color;
 		internal float width;
 		internal nfloat[] dashPattern;
 
-		partial void Init(Color color, float width, float[] dashPattern)
+		partial void Init(ColorRef color, float width, float[] dashPattern)
 		{
 			this.color = color;
 			this.width = width;

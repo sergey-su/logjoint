@@ -107,7 +107,7 @@ namespace LogJoint.Drawing
 
 			if (brush != null)
 			{
-				var brushColor = brush.color;
+				var brushColor = brush.color.Value;
 				var foregroundColor = NSColor.FromDeviceRgba(brushColor.R / 255f, brushColor.G / 255f, brushColor.B / 255f, brushColor.A / 255f);
 				stringAttrs.AddAttribute(NSStringAttributeKey.ForegroundColor, foregroundColor, range);
 			}
@@ -304,7 +304,7 @@ namespace LogJoint.Drawing
 
 		void SetFill (Brush brush)
 		{
-			var c = brush.color;
+			var c = brush.color.Value;
 			context.SetFillColor (c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
 		}
 
@@ -315,7 +315,7 @@ namespace LogJoint.Drawing
 
 		void StrokePath(Pen pen, Vector? endVector)
 		{
-			var c = pen.color;
+			var c = pen.color.Value;
 			context.SetStrokeColor(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
 			context.SetLineWidth (pen.width == 0 ? 1 : pen.width);
 			if (pen.dashPattern != null)

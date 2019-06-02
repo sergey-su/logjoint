@@ -4,19 +4,11 @@ namespace LogJoint.Drawing
 {
 	partial class Brush
 	{
-		Func<Color> getter;
-		Color value;
+		internal ColorRef color;
 
-		internal Color color { get { return getter != null ? getter () : value; } }
-
-		partial void Init(Color color)
+		partial void Init(ColorRef color)
 		{
-			value = color;
-		}
-
-		partial void Init(Func<Color> color)
-		{
-			getter = color;
+			this.color = color;
 		}
 
 		public void Dispose()
