@@ -26,14 +26,6 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			zoomOutButton.Image = UIUtils.DownscaleUIImage(SequenceDiagramVisualizerControlResources.ZoomOut, toolboxIconsSize);
 			notificationsButton.Image = UIUtils.DownscaleUIImage(SequenceDiagramVisualizerControlResources.Warning, toolboxIconsSize);
 
-			this.resources = new Resources(Font.Name, Font.Size, UIUtils.Dpi.ScaleUp(1, 120));
-			this.resources.FocusedMsgSlaveVert = new LJD.Image(SequenceDiagramVisualizerControlResources.FocusedMsgSlaveVert);
-			this.resources.FocusedMessageImage = new LJD.Image(SequenceDiagramVisualizerControlResources.FocusedMsgSlave);
-			this.resources.BookmarkImage = new LJD.Image(SequenceDiagramVisualizerControlResources.SmallBookmark);
-			this.resources.UserActionImage = new LJD.Image(SequenceDiagramVisualizerControlResources.UserAction);
-
-			InitializeArrowEndShapePoints();
-
 			leftPanel.Width = UIUtils.Dpi.Scale(130);
 			rolesCaptionsPanel.Height = tagsListContainerPanel.Height = UIUtils.Dpi.Scale(50);
 		}
@@ -41,6 +33,18 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+
+			this.resources = new Resources(viewModel, Font.Name, Font.Size, UIUtils.Dpi.ScaleUp(1, 120))
+			{
+				FocusedMsgSlaveVert = new LJD.Image(SequenceDiagramVisualizerControlResources.FocusedMsgSlaveVert),
+				FocusedMessageImage = new LJD.Image(SequenceDiagramVisualizerControlResources.FocusedMsgSlave),
+				BookmarkImage = new LJD.Image(SequenceDiagramVisualizerControlResources.SmallBookmark),
+				UserActionImage = new LJD.Image(SequenceDiagramVisualizerControlResources.UserAction)
+			};
+
+			InitializeArrowEndShapePoints();
+
+
 			this.drawingUtils = new DrawingUtils(viewModel, resources);
 			this.ParentForm.VisibleChanged += (s, e) =>
 			{

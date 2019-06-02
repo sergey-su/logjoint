@@ -7,9 +7,9 @@ namespace LogJoint.Drawing
 
 		public System.Drawing.Pen NativePen { get { return pen; } }
 
-		partial void Init(Color color, float width, float[] dashPattern)
+		partial void Init(ColorRef color, float width, float[] dashPattern)
 		{
-			this.pen = new System.Drawing.Pen(color.ToSystemDrawingObject(), width);
+			this.pen = new System.Drawing.Pen(color.Value.ToSystemDrawingObject(), width);
 			if (dashPattern != null)
 			{
 				this.pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Custom;

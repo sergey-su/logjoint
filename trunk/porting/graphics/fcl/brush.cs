@@ -6,16 +6,10 @@ namespace LogJoint.Drawing
 	{
 		internal System.Drawing.Brush b;
 
-		partial void Init(Color color)
+		partial void Init(ColorRef color)
 		{
-			b = new System.Drawing.SolidBrush(color.ToSystemDrawingObject());
+			b = new System.Drawing.SolidBrush(color.Value.ToSystemDrawingObject());
 		}
-
-		partial void Init(Func<Color> color)
-		{
-			Init(color());
-		}
-
 
 		public void Dispose()
 		{

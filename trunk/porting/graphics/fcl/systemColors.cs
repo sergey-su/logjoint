@@ -8,6 +8,7 @@ namespace LogJoint.Drawing
 		{
 			text = () => System.Drawing.SystemColors.ControlText.ToColor();
 			textBackground = () => Color.White;
+			link = () => Color.Blue;
 		}
 	};
 }

@@ -16,9 +16,9 @@ namespace LogJoint
 			this.changeNotification = changeNotification;
 		}
 
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex)
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, IThread thread, string displayName, long position, int lineIndex)
 		{
-			return new Bookmark(time, thread, displayName, messageText, position, lineIndex);
+			return new Bookmark(time, thread, displayName, position, lineIndex);
 		}
 
 		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, string sourceConnectionId, long position, int lineIndex)
