@@ -138,12 +138,23 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 					value.hMax, value.hChange, value.hValue)
 			);
 
+			var invalidateViews = Updaters.Create (
+				() => viewModel.RolesDrawInfo,
+				() => viewModel.ArrowsDrawInfo,
+				(_1, _2) => {
+					rolesCaptionsView.NeedsDisplay = true;
+					arrowsView.NeedsDisplay = true;
+					leftPanelView.NeedsDisplay = true;
+				}
+			);
+
 			viewModel.ChangeNotification.CreateSubscription(() => {
 				notificationsIconUpdater();
 				updateCurrentArrowControls();
 				updateCollapseResponsesCheckbox ();
 				updateCollapseRoleInstancesCheckbox ();
 				scrollBarsUpdater ();
+				invalidateViews ();
 			});
 		}
 
@@ -158,13 +169,6 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				ParallelNonHorizontalArrowsOffset = 4,
 				VScrollOffset = 60,
 			};
-		}
-
-		void IView.Invalidate ()
-		{
-			rolesCaptionsView.NeedsDisplay = true;
-			arrowsView.NeedsDisplay = true;
-			leftPanelView.NeedsDisplay = true;
 		}
 
 		void UpdateScrollBars (int vMax, int vChange, int vValue, int hMax, int hChange, int hValue)
