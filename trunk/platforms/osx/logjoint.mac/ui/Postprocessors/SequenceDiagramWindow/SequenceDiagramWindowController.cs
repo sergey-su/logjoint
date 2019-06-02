@@ -31,14 +31,6 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			quickSearchTextBox = new QuickSearchTextBoxAdapter ();
 			toastNotifications = new ToastNotificationsViewAdapter ();
 
-			var fontSz = (NSFont.SystemFontSize + NSFont.SmallSystemFontSize) / 2f;
-			this.resources = new Resources (
-				NSFont.SystemFontOfSize(NSFont.SystemFontSize).FamilyName, (float) fontSz);
-			
-			this.resources.BookmarkImage = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
-			this.resources.FocusedMessageImage = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
-			this.resources.FocusedMsgSlaveVert = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlaveVert.png"));
-		
 			Window.owner = this;
 		}
 
@@ -67,10 +59,10 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			quickSearchTextBox.View.MoveToPlaceholder(quickSearchPlaceholder);
 			PlaceToastNotificationsView(toastNotifications.View, arrowsView);
 
-			rolesCaptionsView.BackgroundColor = NSColor.White;
+			rolesCaptionsView.BackgroundColor = NSColor.TextBackground;
 			rolesCaptionsView.OnPaint = PaintRolesCaptionsView;
 
-			arrowsView.BackgroundColor = NSColor.White;
+			arrowsView.BackgroundColor = NSColor.TextBackground;
 			arrowsView.OnPaint = PaintArrowsView;
 			arrowsView.OnMagnify = ArrowsViewMagnify;
 			arrowsView.OnMouseDown = ArrowsViewMouseDown;
@@ -84,7 +76,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 					viewModel?.ChangeNotification?.Post();
 				}, arrowsView);
 
-			leftPanelView.BackgroundColor = NSColor.White;
+			leftPanelView.BackgroundColor = NSColor.TextBackground;
 			leftPanelView.OnPaint = PaintLeftPanel;
 			leftPanelView.OnMouseDown = LeftPanelMouseDown;
 
@@ -94,7 +86,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			horzScroller.Target = this;
 
 			arrowDetailsLink.LinkClicked = (s, e) => viewModel.OnTriggerClicked (e.Link.Tag);
-			arrowDetailsLink.BackgroundColor = NSColor.White;
+			arrowDetailsLink.BackgroundColor = NSColor.TextBackground;
 
 			Window.InitialFirstResponder = arrowsView;
 
@@ -106,6 +98,18 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			this.EnsureCreated();
 
 			this.viewModel = viewModel;
+
+			var fontSz = (NSFont.SystemFontSize + NSFont.SmallSystemFontSize) / 2f;
+			this.resources = new Resources (
+				viewModel,
+				NSFont.SystemFontOfSize (NSFont.SystemFontSize).FamilyName,
+				(float)fontSz)
+			{
+				BookmarkImage = new LJD.Image (NSImage.ImageNamed ("Bookmark.png")),
+				FocusedMessageImage = new LJD.Image (NSImage.ImageNamed ("FocusedMsgSlave.png")),
+				FocusedMsgSlaveVert = new LJD.Image (NSImage.ImageNamed ("FocusedMsgSlaveVert.png"))
+			};
+
 			this.drawingUtils = new DrawingUtils(viewModel, resources);
 
 			var notificationsIconUpdater = Updaters.Create(

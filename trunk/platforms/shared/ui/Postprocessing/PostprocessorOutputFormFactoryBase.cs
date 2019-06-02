@@ -182,7 +182,8 @@ namespace LogJoint.UI.Postprocessing
 				app.Model.StorageManager,
 				presentersFacade,
 				shortNames,
-				app.Model.ChangeNotification
+				app.Model.ChangeNotification,
+				app.Presentation.Theme
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Sequence, sequenceDiagramForm, sequenceDiagramPresenter));
 		}

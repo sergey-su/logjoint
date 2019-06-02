@@ -213,26 +213,30 @@ namespace LogJoint.Drawing
 	{
 		public Pen(Color color, float width, float[] dashPattern = null)
 		{
-			Init(color, width, dashPattern);
+			Init(new ColorRef(color), width, dashPattern);
 		}
 
-		partial void Init(Color color, float width, float[] dashPattern);
+		public Pen (ColorRef color, float width, float [] dashPattern = null)
+		{
+			Init (color, width, dashPattern);
+		}
+
+		partial void Init(ColorRef color, float width, float [] dashPattern);
 	};
 
 	public partial class Brush: IDisposable
 	{
 		public Brush(Color color)
 		{
-			Init(color);
+			Init(new ColorRef(color));
 		}
 
-		internal Brush (Func<Color> color)
+		public Brush (ColorRef color)
 		{
 			Init(color);
 		}
 
-		partial void Init(Color color);
-		partial void Init(Func<Color> color);
+		partial void Init(ColorRef color);
 	}; 
 
 	public partial class Font: IDisposable
@@ -436,14 +440,32 @@ namespace LogJoint.Drawing
 
 	public static class SystemColors
 	{
-		public static Color Text { get { return SystemColorsImpl.instance.text(); } }
-		public static Color TextBackground { get { return SystemColorsImpl.instance.textBackground(); } }
+		public static ColorRef Text { get { return new ColorRef(SystemColorsImpl.instance.text); } }
+		public static ColorRef TextBackground { get { return new ColorRef(SystemColorsImpl.instance.textBackground); } }
+		public static ColorRef Link { get { return new ColorRef (SystemColorsImpl.instance.link); } }
+	};
+
+	public struct ColorRef
+	{
+		public Color Value => getter ();
+
+		internal ColorRef (Func<Color> value)
+		{
+			getter = value;
+		}
+
+		internal ColorRef (Color value): this(() => value)
+		{
+		}
+
+		internal readonly Func<Color> getter;
 	};
 
 	internal partial class SystemColorsImpl
 	{
 		public Func<Color> text;
 		public Func<Color> textBackground;
+		public Func<Color> link;
 
 		public SystemColorsImpl ()
 		{
@@ -462,8 +484,8 @@ namespace LogJoint.Drawing
 		public static readonly Brush DarkGray = new Brush(Color.DarkGray);
 		public static readonly Brush Black = new Brush(Color.Black);
 		public static readonly Brush Transparent = new Brush(Color.Transparent);
-		public static readonly Brush Text = new Brush(SystemColorsImpl.instance.text);
-		public static readonly Brush TextBackground = new Brush(SystemColorsImpl.instance.textBackground);
+		public static readonly Brush Text = new Brush(SystemColors.Text);
+		public static readonly Brush TextBackground = new Brush(SystemColors.TextBackground);
 	};
 
 	public static class Pens
@@ -551,7 +573,7 @@ namespace LogJoint.Drawing
 	{
 		public static Color ToColor(this AppKit.NSColor cl)
 		{
-			cl = cl.UsingColorSpace(AppKit.NSColorSpace.GenericRGBColorSpace);
+			cl = cl.UsingColorSpace(AppKit.NSColorSpace.DeviceRGBColorSpace);
 			return Color.FromArgb(
 				(int) (cl.AlphaComponent * 255),
 				(int) (cl.RedComponent * 255),
