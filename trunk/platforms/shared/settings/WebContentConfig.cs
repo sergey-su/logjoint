@@ -28,12 +28,11 @@ namespace LogJoint.Properties
 				using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(string.IsNullOrEmpty(Settings.Default.LogDownloaderConfig) ? "{} " : Settings.Default.LogDownloaderConfig)))
 				{
 					var dto = (LogDownloaderConfigDTO)serializer.ReadObject(stream);
-					return (dto.Rules ?? new LogDownloaderConfigDTO.RuleDTO[0]).ToDictionary(x => x.Url, x => new LogDownloaderRule()
-					{
-						ExpectedMimeType = x.ExpectedMimeType,
-						LoginUrls = x.LoginUrls ?? new string[0],
-						UseWebBrowserDownloader = x.UseWebBrowserDownloader
-					});
+					return (dto.Rules ?? new LogDownloaderConfigDTO.RuleDTO[0]).ToDictionary(x => x.Url, x => new LogDownloaderRule(
+						x.UseWebBrowserDownloader,
+						x.LoginUrls ?? new string[0],
+						x.ExpectedMimeType
+					));
 				}
 			}, true);
 		}
@@ -47,6 +46,12 @@ namespace LogJoint.Properties
 		bool IWebContentCacheConfig.IsCachingForcedForHost(string hostName)
 		{
 			return forcedCachingFor.Value.Contains(hostName);
+		}
+
+		void ILogsDownloaderConfig.AddRule(Uri uri, LogDownloaderRule rule)
+		{
+			var uriPath = uri.GetLeftPart(UriPartial.Path);
+			logDownloaderRules.Value.Add(uriPath, rule);
 		}
 
 		[DataContract]

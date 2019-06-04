@@ -132,7 +132,7 @@ namespace LogJoint
 				);
 
 				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry =
-					new Preprocessing.PreprocessingManagerExtentionsRegistry();
+					new Preprocessing.PreprocessingManagerExtentionsRegistry(webContentConfig);
 
 				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new UI.LogsPreprocessorCredentialsCache(
 					modelSynchronizationContext,

@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using LogJoint.MRU;
 using System.Runtime.CompilerServices;
+using System.Collections.Immutable;
 
 namespace LogJoint.Preprocessing
 {
@@ -123,7 +124,7 @@ namespace LogJoint.Preprocessing
 		/// </summary>
 		LJTraceSource Trace { get; }
 		/// <summary>
-		/// Updates user-visible descritpion of your running preprocessing step.
+		/// Updates user-visible description of your running preprocessing step.
 		/// </summary>
 		void SetStepDescription(string desc);
 		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
@@ -217,6 +218,7 @@ namespace LogJoint.Preprocessing
 	{
 		IEnumerable<IPreprocessingManagerExtension> Items { get; }
 		void Register(IPreprocessingManagerExtension detector);
+		void AddLogDownloaderRule(Uri uri, LogDownloaderRule rule);
 	};
 
 	public interface IStreamHeader
@@ -234,15 +236,32 @@ namespace LogJoint.Preprocessing
 		SkipIneffectivePreprocessingMessage = 8,
 	};
 
-	public interface ILogsDownloaderConfig
-	{
-		LogDownloaderRule GetLogDownloaderConfig(Uri forUri);
-	};
-
 	public class LogDownloaderRule
 	{
-		public bool UseWebBrowserDownloader;
-		public string ExpectedMimeType;
-		public string[] LoginUrls;
+		public bool UseWebBrowserDownloader { get; private set; }
+		public string ExpectedMimeType { get; private set; }
+		public IReadOnlyList<string> LoginUrls { get; private set; }
+
+		public static LogDownloaderRule CreateBrowserDownloaderRule(IEnumerable<string> loginUrls, string expectedMimeType = null)
+		{
+			var result = new LogDownloaderRule(true, loginUrls, expectedMimeType);
+			if (result.LoginUrls.Count == 0)
+				throw new ArgumentException("At least one login URL has to be provider", nameof(loginUrls));
+			return result;
+		}
+
+		public static LogDownloaderRule CreatePlainHttpDownloaderRule()
+		{
+			return plainHttpDownloaderRule;
+		}
+
+		internal LogDownloaderRule(bool useWebBrowserDownloader, IEnumerable<string> loginUrls, string expectedMimeType)
+		{
+			UseWebBrowserDownloader = useWebBrowserDownloader;
+			LoginUrls = ImmutableArray.CreateRange(loginUrls);
+			ExpectedMimeType = expectedMimeType;
+		}
+
+		private static readonly LogDownloaderRule plainHttpDownloaderRule = new LogDownloaderRule(false, Enumerable.Empty<string>(), null);
 	};
 }

@@ -47,6 +47,11 @@ namespace LogJoint.Symphony
 				}
 			};
 
+			app.Model.PreprocessingManagerExtensionsRegistry.AddLogDownloaderRule(
+				new Uri("https://perzoinc.atlassian.net/secure/attachment/"),
+				Preprocessing.LogDownloaderRule.CreateBrowserDownloaderRule(new[] { "https://id.atlassian.com/login" })
+			);
+
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
 			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timeSeriesForm = null;
 
