@@ -53,7 +53,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool HasInputFocus { get; }
 		void ReceiveInputFocus();
 
-		event EventHandler SelectionChanged;
 		event EventHandler FocusedMessageChanged;
 		event EventHandler FocusedMessageBookmarkChanged;
 		event EventHandler DefaultFocusedMessageAction;

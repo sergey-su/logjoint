@@ -25,12 +25,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool SelectWordBoundaries(ViewLine viewLine, int charIndex);
 		Task CopySelectionToClipboard();
 		Task<string> GetSelectedText();
-		IBookmark FocusedMessageBookmark { get; }
 		bool CursorState { get; }
-
-		event EventHandler SelectionChanged;
-		event EventHandler FocusedMessageChanged;
-		event EventHandler FocusedMessageBookmarkChanged;
 	};
 
 	internal delegate int MessageTextLinesMapper (int lineIdx);
@@ -58,8 +53,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ShowTime { get; }
 		bool ShowMilliseconds { get; }
 		ColoringMode Coloring { get; }
-		bool RawMessageViewMode { get; }
-		MessageTextLinesMapper GetDisplayTextLinesMapper(IMessage msg);
 	};
 
 	[Flags]

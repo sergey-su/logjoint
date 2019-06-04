@@ -28,7 +28,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly Func<SelectionInfo> selection;
 
 		SelectionInfo setSelection;
-		IBookmark focusedMessageBookmark;
 		bool cursorState;
 
 		public SelectionManager(
@@ -84,10 +83,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			disposed.Cancel();
 		}
-
-		public event EventHandler SelectionChanged;
-		public event EventHandler FocusedMessageChanged;
-		public event EventHandler FocusedMessageBookmarkChanged;
 
 		SelectionInfo ISelectionManager.Selection => selection();
 
@@ -177,25 +172,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IBookmark ISelectionManager.FocusedMessageBookmark
-		{
-			get
-			{
-				if (focusedMessageBookmark == null)
-				{
-					if (selection() != null)
-					{
-						var f = selection().First;
-						focusedMessageBookmark = bookmarksFactory.CreateBookmark(
-							f.Message,
-							presentationProperties.GetDisplayTextLinesMapper(f.Message)(f.TextLineIndex),
-							useRawText: presentationProperties.RawMessageViewMode);
-					}
-				}
-				return focusedMessageBookmark;
-			}
-		}
-
 		bool ISelectionManager.CursorState => cursorState && view.HasInputFocus;
 
 		static int? GetViewLineIndex(CursorPosition pos, IReadOnlyList<ScreenBufferEntry> screenBufferEntries, IBookmarksFactory bookmarksFactory, bool exactMode)
@@ -212,22 +188,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return -1;
 			else
 				return screenBufferEntries.Count;
-		}
-
-		void OnFocusedMessageChanged()
-		{
-			FocusedMessageChanged?.Invoke(this, EventArgs.Empty);
-		}
-
-		void OnFocusedMessageBookmarkChanged()
-		{
-			focusedMessageBookmark = null;
-			FocusedMessageBookmarkChanged?.Invoke(this, EventArgs.Empty);
-		}
-
-		void OnSelectionChanged()
-		{
-			SelectionChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
@@ -278,21 +238,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				setSelection = new SelectionInfo(tmp, resetEnd ? tmp : setSelection.Last, screenBuffer.DisplayTextGetter);
 				changeNotification.Post();
 
-				OnSelectionChanged();
-
 				doScrolling();
-
-				if (selection()?.First?.Message != oldSelection?.First?.Message)
-				{
-					tracer.Info("focused message changed");
-					OnFocusedMessageChanged();
-					OnFocusedMessageBookmarkChanged();
-				}
-				else if (selection()?.First?.TextLineIndex != oldSelection?.First?.TextLineIndex)
-				{
-					tracer.Info("focused message's line changed");
-					OnFocusedMessageBookmarkChanged();
-				}
 			}
 			else if ((flag & SelectionFlag.ScrollToViewEventIfSelectionDidNotChange) != 0)
 			{

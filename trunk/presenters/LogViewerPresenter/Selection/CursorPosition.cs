@@ -35,8 +35,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		internal CursorPosition(IMessage message, IMessagesSource source, int textLineIndex, int lineCharIndex)
 		{
-			Message = message ?? throw new ArgumentNullException("message");
-			Source = source ?? throw new ArgumentNullException("source");
+			Message = message ?? throw new ArgumentNullException(nameof(message));
+			Source = source ?? throw new ArgumentNullException(nameof(source));
 			TextLineIndex = textLineIndex;
 			LineCharIndex = lineCharIndex;
 		}

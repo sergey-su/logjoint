@@ -60,6 +60,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			viewLinesText = Selectors.Create(viewLines, lines => lines.Aggregate(
 				new StringBuilder(), (sb, vl) => sb.AppendLine(vl.TextLineValue)).ToString());
 
+			this.focusedMessageBookmark = Selectors.Create(
+				() => selectionManager.Selection,
+				displayTextGetterSelector,
+				() => rawMessagesViewMode,
+				(sel, displayTextGetter, rawMode) => 
+				{
+					var f = sel?.First;
+					if (f == null)
+						return null;
+					return bookmarksFactory.CreateBookmark(
+							f.Message,
+							displayTextGetter(f.Message).LinesMapper(f.TextLineIndex),
+							useRawText: rawMode);
+				}
+			);
+
 			ReadGlobalSettings();
 
 			AttachToView(view);
@@ -120,11 +136,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 					.IgnoreCancellation()
 			);
 
+			var fireFocusedMessageChanged = Updaters.Create(
+				() => selectionManager.Selection?.First?.Message,
+				(_) => FocusedMessageChanged?.Invoke(this, EventArgs.Empty)
+			);
+
+			var fireFocusedMessageBookmarkChanged = Updaters.Create(
+				focusedMessageBookmark,
+				(_) => FocusedMessageBookmarkChanged?.Invoke(this, EventArgs.Empty)
+			);
+
 			subscription = changeNotification.CreateSubscription(() =>
 			{
 				viewSizeObserver();
 				linesObserver();
 				displayTextGetterObserver();
+				fireFocusedMessageChanged();
+				fireFocusedMessageBookmarkChanged();
 			});
 		}
 
@@ -142,22 +170,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler ViewTailModeChanged;
 		public event EventHandler ColoringModeChanged;
 		public event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
+		public event EventHandler FocusedMessageChanged;
+		public event EventHandler FocusedMessageBookmarkChanged;
 
-		event EventHandler IPresenter.SelectionChanged
-		{
-			add { selectionManager.SelectionChanged += value; }
-			remove { selectionManager.SelectionChanged -= value; }
-		}
-		event EventHandler IPresenter.FocusedMessageChanged
-		{
-			add { selectionManager.FocusedMessageChanged += value; }
-			remove { selectionManager.FocusedMessageChanged -= value; }
-		}
-		event EventHandler IPresenter.FocusedMessageBookmarkChanged
-		{
-			add { selectionManager.FocusedMessageBookmarkChanged += value; }
-			remove { selectionManager.FocusedMessageBookmarkChanged -= value; }
-		}
 		event EventHandler IPresenter.NavigationIsInProgressChanged
 		{
 			add { navigationManager.NavigationIsInProgressChanged += value; }
@@ -178,10 +193,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IMessage IPresenter.FocusedMessage
 		{
-			get { return selectionManager.Selection?.First.Message; }
+			get { return selectionManager.Selection?.First?.Message; }
 		}
 
-		IBookmark IPresenter.FocusedMessageBookmark => selectionManager.FocusedMessageBookmark;
+		IBookmark IPresenter.FocusedMessageBookmark => focusedMessageBookmark();
 
 		bool IPresenter.NavigationIsInProgress
 		{
@@ -727,8 +742,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		ColoringMode IPresentationProperties.Coloring => coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
 		bool IPresentationProperties.ShowTime => showTime;
-		MessageTextLinesMapper IPresentationProperties.GetDisplayTextLinesMapper(IMessage msg) => displayTextGetterSelector()(msg).LinesMapper;
-		bool IPresentationProperties.RawMessageViewMode => rawMessagesViewMode;
 
 		#endregion
 
@@ -1424,5 +1437,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly Func<string> viewLinesText;
 		readonly Func<Func<IMessage, MessageDisplayTextInfo>> displayTextGetterSelector;
 		static readonly MessageTextLinesMapper identityTextLinesMapper = i => i;
+		readonly Func<IBookmark> focusedMessageBookmark;
 	};
 };
