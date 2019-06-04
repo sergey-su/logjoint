@@ -802,6 +802,9 @@
     <Compile Include="..\..\..\model\preprocessing\GunzippingStep.cs">
       <Link>preprocessing\GunzippingStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\Interfaces.cs">
+      <Link>preprocessing\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\preprocessing\LocationTypeDetectionStep.cs">
       <Link>preprocessing\LocationTypeDetectionStep.cs</Link>
     </Compile>

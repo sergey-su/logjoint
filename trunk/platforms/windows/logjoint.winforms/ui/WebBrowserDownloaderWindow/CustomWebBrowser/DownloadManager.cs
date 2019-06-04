@@ -9,9 +9,9 @@ namespace LogJoint.UI.WebBrowserDownloader
 {
 	class DownloadManager : IDownloadManager
 	{
-		private readonly IViewEvents owner;
+		private readonly IViewModel owner;
 
-		public DownloadManager(IViewEvents owner)
+		public DownloadManager(IViewModel owner)
 		{
 			this.owner = owner;
 		}

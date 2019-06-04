@@ -15,13 +15,15 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents handler);
+		void SetViewModel(IViewModel handler);
 		bool Visible { get; set; }
 		void Navigate(Uri uri);
-		void SetTimer(TimeSpan? due);
 	};
 
-	public interface IViewEvents
+	/// <summary>
+	/// Can be called from non-UI threads
+	/// </summary>
+	public interface IViewModel
 	{
 		bool OnStartDownload(Uri uri);
 		bool OnProgress(int currentValue, int totalSize, string statusText);
@@ -29,13 +31,12 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		void OnDownloadCompleted(bool success, string statusText);
 		void OnAborted();
 		void OnBrowserNavigated(Uri url);
-		void OnTimer();
-		CurrentWebDownloadTarget OnGetCurrentTarget();
+		CurrentWebDownloadTarget CurrentTarget { get; }
 	};
 
 	public class CurrentWebDownloadTarget
 	{
-		public Uri Uri;
-		public string MimeType;
+		public Uri Uri { get; internal set; }
+		public string MimeType { get; internal set; }
 	};
 };

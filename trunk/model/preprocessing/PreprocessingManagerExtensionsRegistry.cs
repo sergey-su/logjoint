@@ -9,8 +9,9 @@ namespace LogJoint.Preprocessing
 {
 	public class PreprocessingManagerExtentionsRegistry : IPreprocessingManagerExtensionsRegistry
 	{
-		public PreprocessingManagerExtentionsRegistry()
+		public PreprocessingManagerExtentionsRegistry(ILogsDownloaderConfig logsDownloaderConfig)
 		{
+			this.logsDownloaderConfig = logsDownloaderConfig;
 		}
 
 		IEnumerable<IPreprocessingManagerExtension> IPreprocessingManagerExtensionsRegistry.Items
@@ -23,6 +24,12 @@ namespace LogJoint.Preprocessing
 			items.Add(detector);
 		}
 
+		void IPreprocessingManagerExtensionsRegistry.AddLogDownloaderRule(Uri uri, LogDownloaderRule rule)
+		{
+			logsDownloaderConfig.AddRule(uri, rule);
+		}
+
 		readonly HashSet<IPreprocessingManagerExtension> items = new HashSet<IPreprocessingManagerExtension>();
+		readonly ILogsDownloaderConfig logsDownloaderConfig;
 	};
 }
