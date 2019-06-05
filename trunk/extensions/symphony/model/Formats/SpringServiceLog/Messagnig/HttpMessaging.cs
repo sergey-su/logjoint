@@ -43,8 +43,9 @@ namespace LogJoint.Symphony.SpringServiceLog
 						remoteSideId = pendingRequest.RemoteSideId;
 					requests.Remove(requestId);
 				}
+				string displayName = MakeDisplayName(requestName, rest);
 				buffer.Enqueue(new NetworkMessageEvent(
-					msg, requestName, dir, type, "", requestId, null, remoteSideId)
+					msg, displayName, dir, type, "", requestId, null, remoteSideId)
 						.SetTags(GetTags(requestName)));
 			}
 		}
@@ -63,6 +64,33 @@ namespace LogJoint.Symphony.SpringServiceLog
 			return null;
 		}
 
+		string MakeDisplayName(string requestName, string rest)
+		{
+			if (IsPoll(requestName))
+			{
+				var m = pollRestMatch.Match(rest);
+				if (m.Success)
+				{
+					return requestName + "->" + string.Join(",", m.Groups[1].Value.Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+				}
+				else if (IsPollTimeout(rest))
+				{
+					return requestName + "->timeout";
+				}
+			}
+			return requestName;
+		}
+
+		static bool IsPoll(string requestName)
+		{
+			return requestName.Contains("poll");
+		}
+
+		static bool IsPollTimeout(string rest)
+		{
+			return rest.Contains("timeout");
+		}
+
 		HashSet<string> GetTags(string requestName)
 		{
 			var hashSet = new HashSet<string> ();
@@ -76,6 +104,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 
 		readonly Regex regex = new Regex(@"^(?<dir>Incoming|Outgoing) (?<type>request|response) \[(?<id>[^\]]+)\] (?<name>\S+)(?<rest>.*)$", RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.Singleline);
 		readonly Regex restMatch = new Regex(@"session id (?<sessionid>[\w\-_]+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		readonly Regex pollRestMatch = new Regex(@"polled\: (?<value>[\w\-_\,]+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 		readonly Regex requestNameRegex = new Regex(@"^(?<ns>\w+)\/.+", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
 		class PendingRequest
