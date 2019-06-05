@@ -1076,6 +1076,9 @@
     <Compile Include="..\..\..\model\extensibility\PluginsManager.cs">
       <Link>extensibility\PluginsManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\Interfaces.cs">
+      <Link>preprocessing\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

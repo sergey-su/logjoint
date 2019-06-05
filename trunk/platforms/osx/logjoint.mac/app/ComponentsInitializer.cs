@@ -113,7 +113,7 @@ namespace LogJoint.UI
 				AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
 
 				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry = 
-					new Preprocessing.PreprocessingManagerExtentionsRegistry();
+					new Preprocessing.PreprocessingManagerExtentionsRegistry(webContentConfig);
 
 				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new PreprocessingCredentialsCache(
 					mainWindow.Window,

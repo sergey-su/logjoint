@@ -49,7 +49,7 @@ namespace LogJoint.Symphony
 
 			app.Model.PreprocessingManagerExtensionsRegistry.AddLogDownloaderRule(
 				new Uri("https://perzoinc.atlassian.net/secure/attachment/"),
-				Preprocessing.LogDownloaderRule.CreateBrowserDownloaderRule(new[] { "https://id.atlassian.com/login" })
+				Preprocessing.LogDownloaderRule.CreateBrowserDownloaderRule(new[] { "https://id.atlassian.com/login" }, "text/plain")
 			);
 
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
