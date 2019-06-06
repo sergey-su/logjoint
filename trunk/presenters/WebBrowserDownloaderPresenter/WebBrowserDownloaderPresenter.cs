@@ -9,7 +9,7 @@ using LogJoint.WebBrowserDownloader;
 
 namespace LogJoint.UI.Presenters.WebBrowserDownloader
 {
-	public class Presenter : IPresenter, IViewEvents, IDownloader
+	public class Presenter : IPresenter, IViewModel, IDownloader
 	{
 		#region readonly thread-safe objects, no thread sync required to access or invoke
 		readonly object syncRoot = new object();
@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		readonly Queue<PendingTask> tasks = new Queue<PendingTask>();
 		PendingTask currentTask;
 		BrowserState browserState;
-		Task downloaderFormNavigationTask;
+		Timer timer;
 		#endregion
 
 
@@ -44,7 +44,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 			shutdown.Cleanup += Shutdown;
 
-			downloaderForm.SetEventsHandler(this);
+			downloaderForm.SetViewModel(this);
 		}
 
 		#region IDownloader
@@ -104,46 +104,55 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		#region View events
 
-		bool IViewEvents.OnStartDownload(Uri uri)
-		{
-			bool shouldContinue = ShouldContinueDownloading();
-			tracer.Info("OnStartDownload. will continue? {0}", shouldContinue ? "yes" : "no");
-			if (!shouldContinue)
-				return false;
-			if (browserState == BrowserState.Showing)
-				SetBroswerState(BrowserState.Busy);
-			downloaderForm.Visible = false;
-			return true;
-		}
-
-		bool IViewEvents.OnProgress(int currentValue, int totalSize, string statusText)
-		{
-			bool shouldContinue = ShouldContinueDownloading();
-			tracer.Info("OnProgress {1}/{2} {3}. will continue? {0}", shouldContinue ? "yes" : "no", currentValue, totalSize, statusText);
-			if (!shouldContinue)
-				return false;
-			if (browserState == BrowserState.Showing)
-				SetBroswerState(BrowserState.Busy);
-			if (totalSize > 0 && currentValue <= totalSize)
-				SetProgress((double)currentValue / (double)totalSize);
-			return true;
-		}
-
-		CurrentWebDownloadTarget IViewEvents.OnGetCurrentTarget()
+		bool IViewModel.OnStartDownload(Uri uri)
 		{
 			lock (syncRoot)
 			{
-				if (currentTask == null)
-					return null;
-				return new CurrentWebDownloadTarget ()
-				{
-					Uri = currentTask.location,
-					MimeType = currentTask.expectedMimeType
-				};
+				bool shouldContinue = ShouldContinueDownloading();
+				tracer.Info("OnStartDownload. will continue? {0}", shouldContinue ? "yes" : "no");
+				if (!shouldContinue)
+					return false;
+				if (browserState == BrowserState.Showing)
+					SetBroswerState(BrowserState.Busy);
+				uiInvokeSynchronization.Post(() => downloaderForm.Visible = false);
+				return true;
 			}
 		}
 
-		bool IViewEvents.OnDataAvailable(byte[] buffer, int bytesAvailable)
+		bool IViewModel.OnProgress(int currentValue, int totalSize, string statusText)
+		{
+			lock (syncRoot)
+			{
+				bool shouldContinue = ShouldContinueDownloading();
+				tracer.Info("OnProgress {1}/{2} {3}. will continue? {0}", shouldContinue ? "yes" : "no", currentValue, totalSize, statusText);
+				if (!shouldContinue)
+					return false;
+				if (browserState == BrowserState.Showing)
+					SetBroswerState(BrowserState.Busy);
+				if (totalSize > 0 && currentValue <= totalSize)
+					SetProgress((double)currentValue / (double)totalSize);
+				return true;
+			}
+		}
+
+		CurrentWebDownloadTarget IViewModel.CurrentTarget
+		{
+			get
+			{
+				lock (syncRoot)
+				{
+					if (currentTask == null)
+						return null;
+					return new CurrentWebDownloadTarget()
+					{
+						Uri = currentTask.location,
+						MimeType = currentTask.expectedMimeType
+					};
+				}
+			}
+		}
+
+		bool IViewModel.OnDataAvailable(byte[] buffer, int bytesAvailable)
 		{
 			lock (syncRoot)
 			{
@@ -158,7 +167,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			}
 		}
 
-		void IViewEvents.OnDownloadCompleted(bool success, string statusText)
+		void IViewModel.OnDownloadCompleted(bool success, string statusText)
 		{
 			lock (syncRoot)
 			{
@@ -182,7 +191,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			TryTakeNewTask();
 		}
 
-		void IViewEvents.OnAborted()
+		void IViewModel.OnAborted()
 		{
 			lock (syncRoot)
 			{
@@ -198,7 +207,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			TryTakeNewTask();
 		}
 
-		void IViewEvents.OnBrowserNavigated(Uri url)
+		void IViewModel.OnBrowserNavigated(Uri url)
 		{
 			tracer.Info("OnBrowserNavigated {0}", url);
 			bool setTimer = false;
@@ -219,44 +228,55 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 						SetBroswerState(BrowserState.Busy);
 					}
 				}
+				if (setTimer || clearTimer)
+				{
+					timer?.Dispose();
+					timer = null;
+				}
+				if (setTimer)
+				{
+					timer = new Timer(_ => OnTimer(),
+						null, TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+				}
+				if (clearTimer)
+				{
+					uiInvokeSynchronization.Post(() => downloaderForm.Visible = false);
+				}
 			}
-			if (setTimer)
-			{
-				downloaderForm.SetTimer(TimeSpan.FromSeconds(5));
-			}
-			if (clearTimer)
-			{
-				downloaderForm.SetTimer(null);
-				downloaderForm.Visible = false;
-			}
-		}
-
-		void IViewEvents.OnTimer()
-		{
-			tracer.Info("OnTimer");
-			if (browserState == BrowserState.Showing)
-				downloaderForm.Visible = true;
 		}
 
 		#endregion
 
 		#region Implementation
 
-		bool ShouldContinueDownloading()
+		void OnTimer()
 		{
+			tracer.Info("OnTimer");
 			lock (syncRoot)
 			{
-				return currentTask != null && !currentTask.cancellation.IsCancellationRequested;
+				if (browserState == BrowserState.Showing)
+				{
+					uiInvokeSynchronization.Post(() => downloaderForm.Visible = true);
+				}
 			}
+		}
+
+		bool ShouldContinueDownloading()
+		{
+			return currentTask != null && !currentTask.cancellation.IsCancellationRequested;
 		}
 
 		void ResetBrowser()
 		{
-			downloaderForm.Visible = false;
-			downloaderForm.Navigate(new Uri("about:blank"));
-			downloaderForm.SetTimer(null);
+			uiInvokeSynchronization.Post(() =>
+			{
+				downloaderForm.Visible = false;
+				downloaderForm.Navigate(new Uri("about:blank"));
+			});
 			lock (syncRoot)
 			{
+				timer?.Dispose();
+				timer = null;
 				SetBroswerState(BrowserState.Ready);
 			}
 			tracer.Info("browser reset");
@@ -280,11 +300,11 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 				tracer.Info("taking new task {0}", currentTask);
 				currentTask.cancellationRegistration = currentTask.cancellation.Register(
 					OnTaskCancelled, useSynchronizationContext: false);
-				currentTask.progressSink = currentTask.progress != null ? currentTask.progress.CreateProgressSink() : null;
+				currentTask.progressSink = currentTask.progress?.CreateProgressSink();
 				navigateTo = currentTask.location;
 				SetBroswerState(BrowserState.Busy);
 			}
-			downloaderFormNavigationTask = uiInvokeSynchronization.Invoke(() => downloaderForm.Navigate(navigateTo));
+			uiInvokeSynchronization.Post(() => downloaderForm.Navigate(navigateTo));
 			return true;
 		}
 

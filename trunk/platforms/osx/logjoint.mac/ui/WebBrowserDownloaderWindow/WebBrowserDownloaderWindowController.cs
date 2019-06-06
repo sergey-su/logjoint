@@ -8,13 +8,13 @@ using LogJoint.UI.Presenters.WebBrowserDownloader;
 using WebKit;
 using System.IO;
 using System.Threading.Tasks;
+using ObjCRuntime;
 
 namespace LogJoint.UI
 {
 	public partial class WebBrowserDownloaderWindowController : NSWindowController, IView
 	{
-		IViewEvents eventsHandler;
-		NSTimer timer;
+		IViewModel eventsHandler;
 
 		#region Constructors
 
@@ -56,7 +56,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.SetEventsHandler(IViewEvents handler)
+		void IView.SetViewModel(IViewModel handler)
 		{
 			this.eventsHandler = handler;
 		}
@@ -71,96 +71,114 @@ namespace LogJoint.UI
 		{
 			Window.GetHashCode();
 			string uriStr = uri.AbsoluteUri;
-			webView.MainFrame.LoadRequest(NSUrlRequest.FromUrl(NSUrl.FromString(uriStr)));
-		}
-
-		void IView.SetTimer(TimeSpan? due)
-		{
-			if (timer != null)
-				timer.Dispose();
-			if (due != null)
-				timer = NSTimer.CreateScheduledTimer(due.Value, _ => eventsHandler.OnTimer());
+			webView.LoadRequest(NSUrlRequest.FromUrl(NSUrl.FromString(uriStr)));
 		}
 
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
-			webView.DownloadDelegate = new DownloadDelegate() { owner = this };
-			webView.PolicyDelegate = new MyWebPolicyDelegate() { owner = this };
+			webView.NavigationDelegate = new NavigationDelegate { owner = this };
 			Window.WillClose += (s, e) => eventsHandler.OnAborted();
-			webView.OnSendRequest = (sender, identifier, request, redirectResponse, dataSource) => 
-			{
-				var target = eventsHandler.OnGetCurrentTarget();
-				if (target != null && target.Uri.ToString() == request.Url.ToString())
-				{
-					var mutableRequest = (NSMutableUrlRequest) request.Copy();
-					if (target.MimeType != null)
-						mutableRequest["Accept"] = target.MimeType;
-					return mutableRequest;
-				}
-				return request;
-			};
 		}
 
-		class MyWebPolicyDelegate: WebPolicyDelegate
+		class NavigationDelegate : WKNavigationDelegate
 		{
 			public WebBrowserDownloaderWindowController owner;
 
-			[Export("webView:decidePolicyForMIMEType:request:frame:decisionListener:")]
-			public void DecidePolicyForMIMEType(WebView webView, 
-				string mimeType, NSUrlRequest request, WebFrame frame, NSObject decisionToken)
+			public override void DidFinishNavigation (WKWebView webView, WKNavigation navigation)
 			{
-				owner.eventsHandler.OnBrowserNavigated(new Uri(request.Url.ToString()));
-				var target = owner.eventsHandler.OnGetCurrentTarget();
-				if (target != null 
-				 && request.Url.ToString() == target.Uri.ToString() 
-				 && mimeType == target.MimeType)
-				{
-					WebView.DecideDownload(decisionToken);
+				owner.eventsHandler.OnBrowserNavigated (webView.Url);
+			}
+
+			public override void DecidePolicy (WKWebView webView,
+				WKNavigationResponse navigationResponse,
+				Action<WKNavigationResponsePolicy> decisionHandler)
+			{
+				if (navigationResponse.Response is NSHttpUrlResponse rsp) {
+					var cookie = NSHttpCookie.CookiesWithResponseHeaderFields (rsp.AllHeaderFields, rsp.Url);
+					foreach (var c in cookie) {
+						webView.Configuration.WebsiteDataStore.HttpCookieStore.SetCookieAsync (c);
+					}
+
+					var target = owner.eventsHandler.CurrentTarget;
+					if (target != null) {
+						bool startDownload = false;
+						if (!string.IsNullOrEmpty (target.MimeType)) {
+							startDownload = rsp.AllHeaderFields.TryGetValue (new NSString ("Content-Type"), out var contentType)
+								&& (NSString)contentType == target.MimeType;
+						} else if (rsp.AllHeaderFields.TryGetValue (new NSString ("X-Download-Options"), out var downloadOptions)
+							&& (NSString)downloadOptions == "noopen") {
+							startDownload = true;
+						} else if ((Uri)rsp.Url == target.Uri) {
+							startDownload = true;
+						}
+						if (startDownload) {
+							decisionHandler (WKNavigationResponsePolicy.Cancel);
+							StartDownload (rsp.Url, target);
+							return;
+						}
+					}
 				}
+
+				decisionHandler (WKNavigationResponsePolicy.Allow);
+			}
+
+			void StartDownload (NSUrl url, CurrentWebDownloadTarget target)
+			{
+				if (!owner.eventsHandler.OnStartDownload (url)) {
+					return;
+				}
+				UrlSessionDelegate @delegate = new UrlSessionDelegate () { owner = owner };
+				@delegate.session = NSUrlSession.FromConfiguration (
+					NSUrlSessionConfiguration.DefaultSessionConfiguration,
+					(INSUrlSessionDelegate)@delegate, null);
+				var request = new NSMutableUrlRequest (url);
+				if (target.MimeType != null) {
+					request["Accept"] = target.MimeType;
+				}
+				@delegate.task = @delegate.session.CreateDownloadTask (request);
+				@delegate.task.Resume ();
 			}
 		};
 
-		class DownloadDelegate: WebDownloadDelegate
+		class UrlSessionDelegate : NSUrlSessionDownloadDelegate
 		{
 			public WebBrowserDownloaderWindowController owner;
-			string tempFile;
-			int bytesRecd;
+			public NSUrlSession session;
+			public NSUrlSessionDownloadTask task;
+			bool disposed;
 
-			[Export("download:decideDestinationWithSuggestedFilename:")]
-			public void DecideDestinationWithSuggestedFilename(NSUrlDownload download, String suggestedFilename)
+			public override void DidWriteData (NSUrlSession session, NSUrlSessionDownloadTask downloadTask, long bytesWritten, long totalBytesWritten, long totalBytesExpectedToWrite)
 			{
-				if (!owner.eventsHandler.OnStartDownload(new Uri(download.Request.Url.ToString())))
-				{
-					download.Cancel();
+				if (!disposed)
+					owner.eventsHandler.OnProgress ((int)totalBytesWritten, (int)totalBytesExpectedToWrite, "downloading");
+			}
+
+			public override void DidFinishDownloading (NSUrlSession session, NSUrlSessionDownloadTask downloadTask, NSUrl location)
+			{
+				if (disposed)
 					return;
+				var data = File.ReadAllBytes (new Uri(location.AbsoluteString).LocalPath);
+				owner.eventsHandler.OnDataAvailable (data, data.Length);
+				owner.eventsHandler.OnDownloadCompleted (true, "done");
+				Dispose ();
+			}
+
+			public override void DidCompleteWithError (NSUrlSession session, NSUrlSessionTask task, NSError error)
+			{
+				if (disposed)
+					return;
+				owner.eventsHandler.OnDownloadCompleted (false, error?.Description);
+				Dispose ();
+			}
+
+			public new void Dispose ()
+			{
+				if (!disposed) {
+					disposed = true;
+					session?.Dispose ();
+					task?.Dispose ();
 				}
-
-				bytesRecd = 0;
-				tempFile = Path.GetTempFileName(); // todo: use LJ temp files manager to ensure eventual cleanup
-				download.SetDestination(tempFile, true);
-			}
-
-			[Export("download:didReceiveDataOfLength:")]
-			public void DidReceiveDataOfLength(NSUrlDownload download, int length)
-			{
-				bytesRecd += length;
-				owner.eventsHandler.OnProgress(bytesRecd, bytesRecd, "downloading");
-				// todo: use OnProgress ret val for cancellation
-			}
-
-			[Export("downloadDidFinish:")]
-			public void DownloadDidFinish(NSUrlDownload download)
-			{
-				var data = File.ReadAllBytes(tempFile);
-				owner.eventsHandler.OnDataAvailable(data, data.Length);
-				owner.eventsHandler.OnDownloadCompleted(true, "done");
-			}
-
-			[Export("download:didFailWithError:")]
-			public void DidFailWithError(NSUrlDownload download, NSError error)
-			{
-				owner.eventsHandler.OnDownloadCompleted(false, error.LocalizedDescription);
 			}
 		}
 	}
