@@ -30,7 +30,6 @@
 		{
 			this.components = new System.ComponentModel.Container();
 			this.myWebBrowser = new LogJoint.UI.WebBrowserDownloader.CustomWebBrowser();
-			this.timer1 = new System.Windows.Forms.Timer(this.components);
 			this.SuspendLayout();
 			// 
 			// myWebBrowser
@@ -44,10 +43,6 @@
 			this.myWebBrowser.ScriptErrorsSuppressed = true;
 			this.myWebBrowser.Size = new System.Drawing.Size(1192, 772);
 			this.myWebBrowser.TabIndex = 4;
-			// 
-			// timer1
-			// 
-			this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
 			// 
 			// WebBrowserDownloaderForm
 			// 
@@ -69,7 +64,6 @@
 		#endregion
 
 		public CustomWebBrowser myWebBrowser;
-		private System.Windows.Forms.Timer timer1;
 
 	}
 }

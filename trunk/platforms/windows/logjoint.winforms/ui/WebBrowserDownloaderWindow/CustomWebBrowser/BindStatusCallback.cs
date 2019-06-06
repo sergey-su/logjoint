@@ -11,11 +11,11 @@ namespace LogJoint.UI.WebBrowserDownloader
 	{
 		const int bufferSize = 1024 * 1024;
 		readonly Uri uri;
-		readonly IViewEvents viewEvents;
+		readonly IViewModel viewEvents;
 		IBinding binding;
 		IBindStatusCallback previousCallback;
 
-		public BindStatusCallback(Uri uri, IViewEvents viewEvents)
+		public BindStatusCallback(Uri uri, IViewModel viewEvents)
 		{
 			this.uri = uri;
 			this.viewEvents = viewEvents;

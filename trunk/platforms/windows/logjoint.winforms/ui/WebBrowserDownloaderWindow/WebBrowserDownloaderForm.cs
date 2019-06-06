@@ -13,32 +13,25 @@ namespace LogJoint.UI.WebBrowserDownloader
 {
 	public partial class WebBrowserDownloaderForm : Form, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 
 		public WebBrowserDownloaderForm()
 		{
 			InitializeComponent();
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		void IView.SetViewModel(IViewModel handler)
 		{
-			this.eventsHandler = eventsHandler;
-			myWebBrowser.Init(eventsHandler);
-			myWebBrowser.Navigated += (sender, args) => eventsHandler.OnBrowserNavigated(args.Url);
-			myWebBrowser.Navigating += (sender, args) => eventsHandler.OnBrowserNavigated(args.Url);
+			this.viewModel = handler;
+			myWebBrowser.Init(viewModel);
+			myWebBrowser.Navigated += (sender, args) => viewModel.OnBrowserNavigated(args.Url);
+			myWebBrowser.Navigating += (sender, args) => viewModel.OnBrowserNavigated(args.Url);
 		}
 
 		void IView.Navigate(Uri uri)
 		{
 			Text = "Downloading from " + uri.Host;
 			myWebBrowser.Navigate(uri);
-		}
-
-		void IView.SetTimer(TimeSpan? due)
-		{
-			if (due != null)
-				timer1.Interval = (int)due.Value.TotalMilliseconds;
-			timer1.Enabled = due != null;
 		}
 
 		bool IView.Visible
@@ -51,12 +44,7 @@ namespace LogJoint.UI.WebBrowserDownloader
 		{
 			e.Cancel = true;
 			Visible = false;
-			eventsHandler.OnAborted();
-		}
-
-		private void timer1_Tick(object sender, EventArgs e)
-		{
-			eventsHandler.OnTimer();
+			viewModel.OnAborted();
 		}
 	}
 }

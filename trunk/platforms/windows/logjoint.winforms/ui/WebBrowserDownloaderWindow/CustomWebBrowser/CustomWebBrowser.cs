@@ -14,14 +14,14 @@ namespace LogJoint.UI.WebBrowserDownloader
 {
 	public partial class CustomWebBrowser : WebBrowser
 	{
-		IViewEvents eventsHandler;
+		IViewModel eventsHandler;
 
 		public CustomWebBrowser()
 		{
 			InitializeComponent();
 		}
 
-		internal void Init(IViewEvents eventsHandler)
+		internal void Init(IViewModel eventsHandler)
 		{
 			this.eventsHandler = eventsHandler;
 		}
