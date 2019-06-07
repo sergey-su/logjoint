@@ -95,6 +95,9 @@ namespace LogJoint.UI
 						} else if (rsp.AllHeaderFields.TryGetValue (new NSString ("X-Download-Options"), out var downloadOptions)
 							&& (NSString)downloadOptions == "noopen") {
 							startDownload = true;
+						} else if (rsp.AllHeaderFields.TryGetValue (new NSString ("Content-Disposition"), out var contentDisposition)
+							&& contentDisposition.ToString().StartsWith("attachment;", StringComparison.Ordinal)) {
+							startDownload = true;
 						} else if ((Uri)rsp.Url == target.Uri) {
 							startDownload = true;
 						}
