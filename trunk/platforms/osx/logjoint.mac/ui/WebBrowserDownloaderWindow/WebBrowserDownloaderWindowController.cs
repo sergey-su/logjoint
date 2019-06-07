@@ -18,30 +18,9 @@ namespace LogJoint.UI
 
 		#region Constructors
 
-		// Called when created from unmanaged code
-		public WebBrowserDownloaderWindowController(IntPtr handle)
-			: base(handle)
-		{
-			Initialize();
-		}
-		
-		// Called when created directly from a XIB file
-		[Export("initWithCoder:")]
-		public WebBrowserDownloaderWindowController(NSCoder coder)
-			: base(coder)
-		{
-			Initialize();
-		}
-		
 		// Call to load from the XIB/NIB file
 		public WebBrowserDownloaderWindowController()
 			: base("WebBrowserDownloaderWindow")
-		{
-			Initialize();
-		}
-		
-		// Shared initialization code
-		void Initialize()
 		{
 		}
 
@@ -64,7 +43,14 @@ namespace LogJoint.UI
 		bool IView.Visible
 		{
 			get { return Window.IsVisible; }
-			set { Window.IsVisible = value; }
+			set {
+				if (value) {
+					NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
+					Window.MakeKeyAndOrderFront(this);
+				} else {
+					Window.IsVisible = value;
+				}
+			}
 		}
 
 		void IView.Navigate(Uri uri)

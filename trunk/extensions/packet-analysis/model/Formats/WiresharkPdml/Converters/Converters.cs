@@ -110,13 +110,27 @@ namespace LogJoint.Wireshark.Dpml
 				(e) => ShortenAttrs(e, "value", 64),
 				(e) => DeleteProto(e, "frame"),
 				(e) => DeleteProto(e, "eth"),
+				(e) => DeleteProto(e, "data-text-lines")
 			};
 
 			int packetsRead = 0;
 
+			Action wrapErrors (Action a, string name) => () =>
+			{
+				try
+				{
+					a();
+				}
+				catch (Exception e)
+				{
+					trace.Error(e, "PDML converter failed in " + name);
+					throw;
+				}
+			};
+
 			BlockingCollection<XElement> queue = new BlockingCollection<XElement>(1024);
 
-			var producer = Task.Factory.StartNew(() => 
+			var producer = Task.Factory.StartNew(wrapErrors(() => 
 			{
 				foreach (var packet in ReadChildrenElements(xmlReader))
 				{
@@ -125,9 +139,9 @@ namespace LogJoint.Wireshark.Dpml
 						break;
 				}
 				queue.CompleteAdding();
-			});
+			}, "prodcer"));
 
-			var consumer = Task.Factory.StartNew(() => 
+			var consumer = Task.Factory.StartNew(wrapErrors(() => 
 			{
 				int packetsCompressed = 0;
 
@@ -172,7 +186,7 @@ namespace LogJoint.Wireshark.Dpml
 
 				trace.Info("PCAP conversion finished. Total packets read: {0}, packets compressed: {1}", 
 					packetsRead, packetsCompressed);
-			});
+			}, "consumer"));
 
 			await Task.WhenAll(producer, consumer);
 		}

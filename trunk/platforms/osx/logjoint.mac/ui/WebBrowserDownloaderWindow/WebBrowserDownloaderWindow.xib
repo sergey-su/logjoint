@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
-        <plugIn identifier="com.apple.WebKit2IBPlugin" version="14490.70"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
+        <plugIn identifier="com.apple.WebKit2IBPlugin" version="14460.31"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -17,14 +17,14 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <window title="Downloading..." allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" visibleAtLaunch="NO" animationBehavior="default" id="2" customClass="WebBrowserDownloaderWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
-            <rect key="contentRect" x="50" y="306" width="600" height="400"/>
+            <rect key="contentRect" x="50" y="306" width="600" height="633"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1280" height="778"/>
             <view key="contentView" id="3">
-                <rect key="frame" x="0.0" y="0.0" width="600" height="400"/>
+                <rect key="frame" x="0.0" y="0.0" width="600" height="633"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <wkWebView wantsLayer="YES" id="2Xb-S6-CIr">
-                        <rect key="frame" x="0.0" y="-14" width="600" height="414"/>
+                        <rect key="frame" x="0.0" y="-14" width="600" height="647"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <wkWebViewConfiguration key="configuration">
                             <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
@@ -33,6 +33,7 @@
                     </wkWebView>
                 </subviews>
             </view>
+            <point key="canvasLocation" x="139" y="263.5"/>
         </window>
     </objects>
 </document>
