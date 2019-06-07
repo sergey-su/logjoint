@@ -46,7 +46,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				string displayName = MakeDisplayName(requestName, rest);
 				buffer.Enqueue(new NetworkMessageEvent(
 					msg, displayName, dir, type, "", requestId, null, remoteSideId)
-						.SetTags(GetTags(requestName)));
+						.SetTags(GetTags(requestName, rest)));
 			}
 		}
 
@@ -91,13 +91,17 @@ namespace LogJoint.Symphony.SpringServiceLog
 			return rest.Contains("timeout");
 		}
 
-		HashSet<string> GetTags(string requestName)
+		HashSet<string> GetTags(string requestName, string rest)
 		{
 			var hashSet = new HashSet<string> ();
 			var m = requestNameRegex.Match(requestName);
 			if (m.Success)
 			{
 				hashSet.Add(m.Groups["ns"].Value);
+			}
+			if (IsPoll(requestName) && IsPollTimeout(rest))
+			{
+				hashSet.Add("poll-timeout");
 			}
 			return tagsPool.Intern(hashSet);
 		}
