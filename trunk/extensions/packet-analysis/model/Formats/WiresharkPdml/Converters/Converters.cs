@@ -35,6 +35,7 @@ namespace LogJoint.Wireshark.Dpml
 			using (var process = tshark.Start(tsharkArgs.ToString()))
 			using (var xmlReader = XmlReader.Create(process.StandardOutput))
 			using (var writer = new StreamWriter(outputFile, false, new UTF8Encoding(false)))
+			using (var cancellationSub = cancellation.Register(() => process.Kill()))
 			{
 				var packetsRead = 0;
 				var processTask = process.GetExitCodeAsync(Timeout.InfiniteTimeSpan);
@@ -130,7 +131,7 @@ namespace LogJoint.Wireshark.Dpml
 
 			BlockingCollection<XElement> queue = new BlockingCollection<XElement>(1024);
 
-			var producer = Task.Factory.StartNew(wrapErrors(() => 
+			var producer = Task.Run(wrapErrors(() => 
 			{
 				foreach (var packet in ReadChildrenElements(xmlReader))
 				{
@@ -141,7 +142,7 @@ namespace LogJoint.Wireshark.Dpml
 				queue.CompleteAdding();
 			}, "prodcer"));
 
-			var consumer = Task.Factory.StartNew(wrapErrors(() => 
+			var consumer = Task.Run(wrapErrors(() => 
 			{
 				int packetsCompressed = 0;
 
