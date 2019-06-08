@@ -26,6 +26,8 @@ namespace LogJoint.Preprocessing
 				callback.YieldNextStep(preprocessingStepsFactory.CreateUnpackingStep(sourceFile));
 			else if (IsGzip(sourceFile, header))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateGunzippingStep(sourceFile));
+			else if (IsTar(sourceFile, header))
+				callback.YieldNextStep(preprocessingStepsFactory.CreateUntarStep(sourceFile));
 			else
 				AutodetectFormatAndYield(sourceFile, callback);
 			return Task.FromResult(0);
@@ -79,6 +81,17 @@ namespace LogJoint.Preprocessing
 			}
 		}
 
+		static bool IsTar(PreprocessingStepParams fileInfo, IStreamHeader header)
+		{
+			var tarHeader = new ICSharpCode.SharpZipLib.Tar.TarHeader
+			{
+				Magic = "xxxxx"
+			};
+			tarHeader.ParseBuffer(header.Header);
+			return tarHeader.IsChecksumValid
+				|| tarHeader.Magic?.Contains(ICSharpCode.SharpZipLib.Tar.TarHeader.TMAGIC) == true;
+		}
+
 		static void AutodetectFormatAndYield(PreprocessingStepParams file, IPreprocessingStepCallback callback)
 		{
 			callback.SetStepDescription(string.Format("Detecting format: {0}", file.FullPath));
@@ -129,10 +142,10 @@ namespace LogJoint.Preprocessing
 				{
 					if (header == null)
 					{
-						var tmp = new byte[256];
+						var tmp = new byte[1024];
 						using (var fstm = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256))
 						{
-							int read = fstm.Read(tmp, 0, 256);
+							int read = fstm.Read(tmp, 0, tmp.Length);
 							if (read < tmp.Length)
 								tmp = tmp.Take(read).ToArray();
 						}

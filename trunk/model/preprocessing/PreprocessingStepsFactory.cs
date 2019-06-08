@@ -83,5 +83,10 @@ namespace LogJoint.Preprocessing
 		{
 			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, this);
 		}
+
+		IPreprocessingStep IPreprocessingStepsFactory.CreateUntarStep(PreprocessingStepParams p)
+		{
+			return new UntarStep(p, progressAggregator, this);
+		}
 	}
 }

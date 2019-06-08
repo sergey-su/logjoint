@@ -46,6 +46,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ortools\Google.Protobuf.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.1.0.145, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.1.1.0\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Ionic.Zip.Reduced">
       <HintPath>..\..\..\unpacking\platforms\windows\Ionic.Zip.Reduced.dll</HintPath>
     </Reference>
@@ -825,6 +828,9 @@
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\UnpackingStep.cs">
       <Link>preprocessing\UnpackingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\UntarStep.cs">
+      <Link>preprocessing\UntarStep.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\URLTypeDetectionStep.cs">
       <Link>preprocessing\URLTypeDetectionStep.cs</Link>

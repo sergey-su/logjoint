@@ -205,6 +205,7 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep CreateLocationTypeDetectionStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateGunzippingStep(PreprocessingStepParams sourceFile);
 		IPreprocessingStep CreateTimeAnomalyFixingStep(PreprocessingStepParams p);
+		IPreprocessingStep CreateUntarStep(PreprocessingStepParams p);
 	};
 
 	public interface IPreprocessingManagerExtension
@@ -221,8 +222,16 @@ namespace LogJoint.Preprocessing
 		void AddLogDownloaderRule(Uri uri, LogDownloaderRule rule);
 	};
 
+	/// <summary>
+	/// Provides access to first bytes of the stream.
+	/// Used to detect file format by looking at the header.
+	/// </summary>
 	public interface IStreamHeader
 	{
+		/// <summary>
+		/// First 1024 bytes of the stream.
+		/// Array is smaller is the stream is smaller than 1024.
+		/// </summary>
 		byte[] Header { get; }
 	};
 

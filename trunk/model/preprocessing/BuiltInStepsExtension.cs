@@ -39,6 +39,8 @@ namespace LogJoint.Preprocessing
 					return stepsFactory.CreateGunzippingStep (stepParams);
 				case TimeAnomalyFixingStep.name:
 					return stepsFactory.CreateTimeAnomalyFixingStep (stepParams);
+				case UntarStep.name:
+					return stepsFactory.CreateUntarStep(stepParams);
 				default:
 					return null;
 			}
