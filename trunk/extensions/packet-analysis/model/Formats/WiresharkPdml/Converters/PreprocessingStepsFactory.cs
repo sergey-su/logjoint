@@ -13,14 +13,9 @@ namespace LogJoint.Wireshark.Dpml
 			this.tshark = tshark;
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreatePcapUnpackStep(PreprocessingStepParams fileInfo)
+		IPreprocessingStep IPreprocessingStepsFactory.CreatePcapUnpackStep(PreprocessingStepParams fileInfo, PreprocessingStepParams[] keyInfo)
 		{
-			return new PcapUnpackPreprocessingStep(preprocessingStepsFactory, tshark, fileInfo);
-		}
-
-		IPreprocessingStep IPreprocessingStepsFactory.CreatePcapUnpackStep(string pcapFile, string keyFile)
-		{
-			return new PcapUnpackPreprocessingStep(preprocessingStepsFactory, tshark, new PreprocessingStepParams(pcapFile), keyFile);
+			return new PcapUnpackPreprocessingStep(preprocessingStepsFactory, tshark, fileInfo, keyInfo);
 		}
 	};
 }

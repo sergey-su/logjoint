@@ -32,7 +32,7 @@ namespace LogJoint.Chromium.HttpArchive
 		{
 			await ExecuteInternal(callback, p =>
 			{
-				var cp = ((IFileBasedLogProviderFactory)harLogsFactory).CreateParams(p.Uri);
+				var cp = ((IFileBasedLogProviderFactory)harLogsFactory).CreateParams(p.Location);
 				p.DumpToConnectionParams(cp);
 				callback.YieldLogProvider(new YieldedProvider() {
 					Factory = harLogsFactory,
@@ -42,7 +42,7 @@ namespace LogJoint.Chromium.HttpArchive
 			});
 		}
 
-		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			PreprocessingStepParams ret = null;
 			await ExecuteInternal(callback, x => { ret = x; });
@@ -53,7 +53,7 @@ namespace LogJoint.Chromium.HttpArchive
 		{
 			await callback.BecomeLongRunning();
 
-			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+			callback.TempFilesCleanupList.Add(sourceFile.Location);
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
@@ -62,7 +62,7 @@ namespace LogJoint.Chromium.HttpArchive
 			{
 				try
 				{
-					return HarConvert.DeserializeFromFile(sourceFile.Uri);
+					return HarConvert.DeserializeFromFile(sourceFile.Location);
 				}
 				catch (Newtonsoft.Json.JsonReaderException e)
 				{
@@ -79,7 +79,7 @@ namespace LogJoint.Chromium.HttpArchive
 			);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\text", sourceFile.FullPath),
-				sourceFile.PreprocessingSteps.Concat(new[] { stepName }), sourceFile.FullPath));
+				sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(stepName)), sourceFile.FullPath));
 		}
 
 		static async Task ToTask(CancellationToken cancellation)

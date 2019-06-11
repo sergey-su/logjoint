@@ -10,14 +10,14 @@ namespace LogJoint.Preprocessing
 {
 	public class GetPreprocessingStep : IPreprocessingStep, IGetPreprocessingStep
 	{
-		internal GetPreprocessingStep(PreprocessingStepParams srcFile)
+		internal GetPreprocessingStep(PreprocessingStepParams @params)
 		{
-			this.sourceFile = srcFile;
+			this.@params = @params;
 		}
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
-			return Task.FromResult(new PreprocessingStepParams(param));
+			return Task.FromResult(new PreprocessingStepParams(@params.Argument));
 		}
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
@@ -36,7 +36,7 @@ namespace LogJoint.Preprocessing
 		}
 
 
-		readonly PreprocessingStepParams sourceFile;
+		readonly PreprocessingStepParams @params;
 		internal const string name = PreprocessingStepParams.DefaultStepName;
 	};
 }

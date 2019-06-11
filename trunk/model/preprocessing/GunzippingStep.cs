@@ -19,7 +19,7 @@ namespace LogJoint.Preprocessing
 			this.progressAggregator = progressAggregator;
 		}
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			return ExecuteInternal(callback);
 		}
@@ -33,11 +33,11 @@ namespace LogJoint.Preprocessing
 		{
 			await callback.BecomeLongRunning();
 
-			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+			callback.TempFilesCleanupList.Add(sourceFile.Location);
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
-			var sourceFileInfo = new FileInfo(sourceFile.Uri);
+			var sourceFileInfo = new FileInfo(sourceFile.Location);
 
 			using (var inFileStream = sourceFileInfo.OpenRead())
 			using (var outFileStream = new FileStream(tmpFileName, FileMode.CreateNew))
@@ -55,7 +55,7 @@ namespace LogJoint.Preprocessing
 
 					return
 						new PreprocessingStepParams(tmpFileName, sourceFile.FullPath,
-							sourceFile.PreprocessingSteps.Concat(new[] { name }));
+							sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(name)));
 				}
 			}
 		}

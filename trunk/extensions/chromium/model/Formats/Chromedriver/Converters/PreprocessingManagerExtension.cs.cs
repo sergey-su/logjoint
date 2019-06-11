@@ -3,6 +3,7 @@ using System.Linq;
 using System;
 using LogJoint.Postprocessing;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.Chromium.ChromeDriver
 {
@@ -39,6 +40,11 @@ namespace LogJoint.Chromium.ChromeDriver
 		IPreprocessingStep IPreprocessingManagerExtension.TryParseLaunchUri(Uri url)
 		{
 			return null;
+		}
+
+		Task IPreprocessingManagerExtension.FinalizePreprocessing(IPreprocessingStepCallback callback)
+		{
+			return Task.FromResult(0);
 		}
 
 		bool IsChromeDriverFormat(IStreamHeader header)

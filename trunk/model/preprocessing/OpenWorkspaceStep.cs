@@ -23,11 +23,11 @@ namespace LogJoint.Preprocessing
 			callback.SetStepDescription("Opening workspace " + source.FullPath);
 			callback.SetOption(PreprocessingOptions.SkipLogsSelectionDialog, true);
 
-			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation)).WithCancellation(callback.Cancellation))
+			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Location, callback.Cancellation)).WithCancellation(callback.Cancellation))
 				callback.YieldChildPreprocessing(entry.Log, entry.IsHiddenLog);
 		}
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			throw new NotImplementedException();
 		}

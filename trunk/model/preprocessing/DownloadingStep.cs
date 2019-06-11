@@ -51,7 +51,7 @@ namespace LogJoint.Preprocessing
 			}
 		};
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			return ExecuteInternal(callback);
 		}
@@ -68,7 +68,7 @@ namespace LogJoint.Preprocessing
 			{
 				await callback.BecomeLongRunning();
 
-				trace.Info("Downloading '{0}' from '{1}'", sourceFile.FullPath, sourceFile.Uri);
+				trace.Info("Downloading '{0}' from '{1}'", sourceFile.FullPath, sourceFile.Location);
 				callback.SetStepDescription("Downloading " + sourceFile.FullPath);
 
 				string tmpFileName = callback.TempFilesManager.GenerateNewName();
@@ -89,7 +89,7 @@ namespace LogJoint.Preprocessing
 					}
 				};
 
-				var uri = new Uri(sourceFile.Uri);
+				var uri = new Uri(sourceFile.Location);
 				LogDownloaderRule logDownloaderRule;
 				using (var cachedValue = cache.GetValue(uri))
 				{
@@ -127,11 +127,11 @@ namespace LogJoint.Preprocessing
 								failure = evt.Error;
 								if (failure != null)
 								{
-									trace.Error(failure, "Downloading {0} completed with error", sourceFile.Uri);
+									trace.Error(failure, "Downloading {0} completed with error", sourceFile.Location);
 								}
 								if (failure == null && (evt.Cancelled || callback.Cancellation.IsCancellationRequested))
 								{
-									trace.Warning("Downloading {0} cancelled", sourceFile.Uri);
+									trace.Warning("Downloading {0} cancelled", sourceFile.Location);
 									failure = new Exception("Aborted");
 								}
 								if (failure == null)
@@ -151,7 +151,7 @@ namespace LogJoint.Preprocessing
 								completed.Set();
 							};
 
-							trace.Info("Start downloading {0}", sourceFile.Uri);
+							trace.Info("Start downloading {0}", sourceFile.Location);
 							client.OpenReadAsync(uri);
 
 							if (WaitHandle.WaitAny(new WaitHandle[] { completed, callback.Cancellation.WaitHandle }) == 1)
@@ -165,7 +165,7 @@ namespace LogJoint.Preprocessing
 
 							using (FileStream fs = new FileStream(tmpFileName, FileMode.Open))
 							{
-								cache.SetValue(new Uri(sourceFile.Uri), fs).Wait();
+								cache.SetValue(new Uri(sourceFile.Location), fs).Wait();
 							}
 						}
 					}
@@ -175,7 +175,8 @@ namespace LogJoint.Preprocessing
 
 				return new PreprocessingStepParams(
 					tmpFileName, sourceFile.FullPath,
-					sourceFile.PreprocessingSteps.Concat(new[] { preprocessingStep }));
+					sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(preprocessingStep))
+				);
 			}
 		}
 

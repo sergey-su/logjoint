@@ -1,6 +1,7 @@
 ﻿using LogJoint.Preprocessing;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.Chromium.WebrtcInternalsDump
 {
@@ -30,6 +31,11 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		IPreprocessingStep IPreprocessingManagerExtension.TryParseLaunchUri(Uri url)
 		{
 			return null;
+		}
+
+		Task IPreprocessingManagerExtension.FinalizePreprocessing(IPreprocessingStepCallback callback)
+		{
+			return Task.FromResult(0);
 		}
 
 		static bool IsWebrtcInternalsDump(IStreamHeader header)

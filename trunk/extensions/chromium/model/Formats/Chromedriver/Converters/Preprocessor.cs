@@ -34,7 +34,7 @@ namespace LogJoint.Chromium.ChromeDriver
 		{
 			await ExecuteInternal(callback, p =>
 			{
-				var cp = ((IFileBasedLogProviderFactory)chromeDriverLogsFactory).CreateParams(p.Uri);
+				var cp = ((IFileBasedLogProviderFactory)chromeDriverLogsFactory).CreateParams(p.Location);
 				p.DumpToConnectionParams(cp);
 				callback.YieldLogProvider(new YieldedProvider() {
 					Factory = chromeDriverLogsFactory,
@@ -44,7 +44,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			});
 		}
 
-		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			PreprocessingStepParams ret = null;
 			await ExecuteInternal(callback, x => { ret = x; });
@@ -55,7 +55,7 @@ namespace LogJoint.Chromium.ChromeDriver
 		{
 			await callback.BecomeLongRunning();
 
-			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+			callback.TempFilesCleanupList.Add(sourceFile.Location);
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
@@ -63,14 +63,14 @@ namespace LogJoint.Chromium.ChromeDriver
 				() => new FileStream(tmpFileName, FileMode.Create),
 				s => s.Dispose(), 
 				FixTimestamps((new Reader(textLogParser, callback.Cancellation)).Read(
-					sourceFile.Uri,
+					sourceFile.Location,
 					progressHandler: prct => callback.SetStepDescription(
 						string.Format("{0}: fixing timestamps {1}%", sourceFile.FullPath, (int)(prct * 100)))
 				))
 			);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\with_fixed_timestamps", sourceFile.FullPath),
-				sourceFile.PreprocessingSteps.Concat(new[] { stepName })));
+				sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(stepName))));
 		}
 
 		class MessageEntry

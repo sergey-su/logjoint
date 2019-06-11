@@ -22,7 +22,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			await ExecuteInternal(callback, p => { callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(p)); });
 		}
 
-		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			PreprocessingStepParams ret = null;
 			await ExecuteInternal(callback, x => { ret = x; });
@@ -33,14 +33,14 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		{
 			await callback.BecomeLongRunning();
 
-			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+			callback.TempFilesCleanupList.Add(sourceFile.Location);
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
-			await Converters.JsonToLog(sourceFile.Uri, tmpFileName);
+			await Converters.JsonToLog(sourceFile.Location, tmpFileName);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\converted_to_log", sourceFile.FullPath),
-					sourceFile.PreprocessingSteps.Concat(new[] { stepName })));
+					sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(stepName))));
 		}
 	};
 }

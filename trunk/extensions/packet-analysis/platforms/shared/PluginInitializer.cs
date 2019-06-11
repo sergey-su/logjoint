@@ -31,7 +31,7 @@ namespace LogJoint.PacketAnalysis
 				f => new UI.Presenters.NewLogSourceDialog.Pages.WiresharkPage.Presenter(
 					wiresharkPageView,
 					app.Model.LogSourcesPreprocessingManager,
-					wiresharkPreprocessingStepsFactory,
+					app.Model.PreprocessingStepsFactory,
 					tshark
 				)
 			);

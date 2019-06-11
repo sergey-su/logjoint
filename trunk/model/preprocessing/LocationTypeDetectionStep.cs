@@ -17,14 +17,14 @@ namespace LogJoint.Preprocessing
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			if (Uri.IsWellFormedUriString(sourceFile.Uri, UriKind.Absolute))
+			if (Uri.IsWellFormedUriString(sourceFile.Location, UriKind.Absolute))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateURLTypeDetectionStep(sourceFile));
 			else
 				callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(sourceFile));
 			return Task.FromResult(0);
 		}
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			throw new NotImplementedException();
 		}

@@ -30,14 +30,14 @@ namespace LogJoint.Preprocessing
 		/// <summary>
 		/// Raised when preprocessing object gets disposed and deleted from LogSourcesPreprocessingManager.
 		/// Preprocessing object deletes itself automatically when it finishes. 
-		/// This event is called throught IInvokeSynchronization passed to 
+		/// This event is called through IInvokeSynchronization passed to 
 		/// LogSourcesPreprocessingManager's constructor.
 		/// </summary>
 		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
 		/// <summary>
 		/// Raised when properties of one of ILogSourcePreprocessing objects changed. 
 		/// Note: This event is raised in worker thread.
-		/// That's for optimization purposes: PreprocessingChangedAsync can be raised very often and we we din't 
+		/// That's for optimization purposes: PreprocessingChangedAsync can be raised very often and we didn't 
 		/// want invocation queue to be spammed.
 		/// </summary>
 		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
@@ -106,6 +106,7 @@ namespace LogJoint.Preprocessing
 		void YieldLogProvider(YieldedProvider provider);
 		void YieldChildPreprocessing(IRecentlyUsedEntity log, bool makeHiddenLog);
 		void YieldNextStep(IPreprocessingStep step);
+		Task<PreprocessingStepParams> ReplayHistory(ImmutableArray<PreprocessingHistoryItem> history);
 		/// <summary>
 		/// await on the returned Awaitable to schedule the rest of your IPreprocessingStep's method
 		/// for execution in the thread-pool. All subsequent await-able calls will also be done in
@@ -129,12 +130,13 @@ namespace LogJoint.Preprocessing
 		void SetStepDescription(string desc);
 		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
 		void SetOption(PreprocessingOptions opt, bool value);
+		ILogSourcePreprocessing Owner { get; }
 	};
 
 	public interface IPreprocessingStep
 	{
 		Task Execute(IPreprocessingStepCallback callback);
-		Task<PreprocessingStepParams> ExecuteLoadedStep(IPreprocessingStepCallback callback, string param);
+		Task<PreprocessingStepParams> ExecuteLoadedStep(IPreprocessingStepCallback callback);
 	};
 
 	public interface IGetPreprocessingStep: IPreprocessingStep
@@ -154,27 +156,74 @@ namespace LogJoint.Preprocessing
 
 	public class PreprocessingStepParams
 	{
-		public readonly string Uri;
-		public readonly string FullPath;
-		public readonly string[] PreprocessingSteps;
-		public readonly string DisplayName;
-		public const string DefaultStepName = "get";
+		/// <summary>
+		/// Location where actual input data can be found by a preprocessing step.
+		/// The nature of the location depends on the preprocessing step type.
+		/// Most steps require local file location. Downloading step requires a url.
+		/// </summary>
+		public string Location { get; private set; }
+		public string FullPath { get; private set; }
+		public ImmutableList<PreprocessingHistoryItem> PreprocessingHistory { get; private set; }
+		public string DisplayName { get; private set; }
+		public string Argument { get; private set; }
 
-		public PreprocessingStepParams(string uri, string fullPath, IEnumerable<string> steps = null, string displayName = null)
+		internal const string DefaultStepName = "get";
+
+		public PreprocessingStepParams(
+			string location,
+			string fullPath,
+			ImmutableList<PreprocessingHistoryItem> history = null,
+			string displayName = null,
+			string argument = null
+		)
 		{
-			PreprocessingSteps = (steps ?? Enumerable.Empty<string>()).ToArray();
-			Uri = uri;
+			PreprocessingHistory = history ?? ImmutableList<PreprocessingHistoryItem>.Empty;
+			Location = location;
 			FullPath = fullPath;
 			DisplayName = displayName;
+			Argument = argument;
 		}
+
 		public PreprocessingStepParams(string originalSource)
 		{
-			PreprocessingSteps = new string[] { string.Format("{0} {1}", DefaultStepName, originalSource) };
-			Uri = originalSource;
+			PreprocessingHistory = ImmutableList.Create(new PreprocessingHistoryItem(DefaultStepName, originalSource));
+			Location = originalSource;
 			FullPath = originalSource;
 		}
 	};
 
+	public class PreprocessingHistoryItem
+	{
+		public string StepName { get; private set; }
+		public string Argument { get; private set; }
+
+		public PreprocessingHistoryItem(string name, string argument = null)
+		{
+			StepName = !string.IsNullOrEmpty(name) ? name : throw new ArgumentException(nameof(name));
+			Argument = !string.IsNullOrEmpty(argument) ? argument : null;
+		}
+
+		public static bool TryParse(string str, out PreprocessingHistoryItem ret)
+		{
+			str = str.Trim();
+			if (str.Length != 0)
+			{
+				int idx = str.IndexOf(' ');
+				if (idx == -1)
+					ret = new PreprocessingHistoryItem(str);
+				else
+					ret = new PreprocessingHistoryItem(str.Substring(0, idx), str.Substring(idx + 1));
+				return true;
+			}
+			ret = null;
+			return false;
+		}
+
+		public override string ToString()
+		{
+			return Argument != null ? $"{StepName} {Argument}" : $"{StepName}";
+		}
+	};
 
 	/// <summary>
 	/// When preprocessing step fails with this exception 
@@ -213,6 +262,7 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep DetectFormat(PreprocessingStepParams param, IStreamHeader header);
 		IPreprocessingStep CreateStepByName(string stepName, PreprocessingStepParams stepParams);
 		IPreprocessingStep TryParseLaunchUri(Uri url);
+		Task FinalizePreprocessing(IPreprocessingStepCallback callback);
 	};
 
 	public interface IPreprocessingManagerExtensionsRegistry

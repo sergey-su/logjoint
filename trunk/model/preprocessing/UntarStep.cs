@@ -14,36 +14,36 @@ namespace LogJoint.Preprocessing
 			Progress.IProgressAggregator progressAggregator,
 			IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
-			this.sourceFile = srcFile;
+			this.@params = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAggregator;
 		}
 
-		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			PreprocessingStepParams ret = null;
-			await ExecuteInternal(callback, param, x => { ret = x; });
+			await ExecuteInternal(callback, x => { ret = x; });
 			return ret;
 		}
 
 		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			await ExecuteInternal(callback, null,
+			await ExecuteInternal(callback,
 				r => callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(r)));
 		}
 
 		async Task ExecuteInternal(
 			IPreprocessingStepCallback callback,
-			string filter,
 			Action<PreprocessingStepParams> yieldOutput)
 		{
 			await callback.BecomeLongRunning();
 
-			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+			string filter = @params.Argument;
+			callback.TempFilesCleanupList.Add(@params.Location);
 
 			string tmpDirectory = callback.TempFilesManager.GenerateNewName();
 
-			var sourceFileInfo = new FileInfo(sourceFile.Uri);
+			var sourceFileInfo = new FileInfo(@params.Location);
 
 			using (var inFileStream = sourceFileInfo.OpenRead())
 			// using (var progress = sourceFileInfo.Length != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null)
@@ -63,8 +63,8 @@ namespace LogJoint.Preprocessing
 						if (filter == null || filter == fileNameInArchive)
 						{
 							yieldOutput(new PreprocessingStepParams(f.FullName,
-								$"{sourceFile.FullPath}{Path.DirectorySeparatorChar}{fileNameInArchive}",
-								sourceFile.PreprocessingSteps.Concat(new[] { $"{name} {fileNameInArchive}" })));
+								$"{@params.FullPath}{Path.DirectorySeparatorChar}{fileNameInArchive}",
+								@params.PreprocessingHistory.Add(new PreprocessingHistoryItem(name, fileNameInArchive))));
 						}
 					}
 					foreach (var f in dirInfo.EnumerateDirectories())
@@ -77,7 +77,7 @@ namespace LogJoint.Preprocessing
 			}
 		}
 
-		readonly PreprocessingStepParams sourceFile;
+		readonly PreprocessingStepParams @params;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		internal const string name = "untar";

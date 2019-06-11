@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using LogJoint.MRU;
 using System.Runtime.CompilerServices;
+using System.Collections.Immutable;
 
 namespace LogJoint.Preprocessing
 {
@@ -73,30 +74,30 @@ namespace LogJoint.Preprocessing
 		{
 			return 
 				LoadStepsFromConnectionParams(connectParams)
-				.Any(s => CreateStepByName(s.Action, null) is IDownloadPreprocessingStep);
+				.Any(s => CreateStepByName(s.StepName, null) is IDownloadPreprocessingStep);
 		}
 
 		string ILogSourcesPreprocessingManager.ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams)
 		{
 			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
-			var stepObjects = steps.Select(s => CreateStepByName(s.Action, null));
+			var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
 			if (stepObjects.Any(s => s == null))
 				return null;
 			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
 			if (getStep == null)
 				return null;
 			if (stepObjects.Skip(1).SkipWhile(s => s is IDownloadPreprocessingStep).Any(s => s is IUnpackPreprocessingStep))
-				return getStep.GetContentsContainerName(steps[0].Param);
+				return getStep.GetContentsContainerName(steps[0].Argument);
 			return null;
 		}
 
 		string ILogSourcesPreprocessingManager.ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams)
 		{
 			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
-			var stepObjects = steps.Select(s => CreateStepByName(s.Action, null));
+			var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
 			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
 			if (getStep != null)
-				return getStep.GetContentsUrl(steps[0].Param);
+				return getStep.GetContentsUrl(steps[0].Argument);
 			var path = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			if (!tempFilesManager.IsTemporaryFile(path))
 				return path;
@@ -106,7 +107,7 @@ namespace LogJoint.Preprocessing
 		string ILogSourcesPreprocessingManager.ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams)
 		{
 			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
-			var stepObjects = steps.Select(s => CreateStepByName(s.Action, null));
+			var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
 			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
 			string fileName = null;
 			if (getStep != null)
@@ -114,7 +115,7 @@ namespace LogJoint.Preprocessing
 				var secondStep = stepObjects.Skip(1).FirstOrDefault();
 				if (secondStep == null || secondStep is IUnpackPreprocessingStep)
 				{
-					fileName = steps[0].Param;
+					fileName = steps[0].Argument;
 				}
 			}
 			else
@@ -137,15 +138,15 @@ namespace LogJoint.Preprocessing
 				var path = connectParams[ConnectionParamsKeys.PathConnectionParam];
 				if (path == null)
 					return null;
-				steps.Add(new LoadedPreprocessingStep(GetPreprocessingStep.name, path));
+				steps.Add(new PreprocessingHistoryItem(GetPreprocessingStep.name, path));
 			}
-			steps.Add(new LoadedPreprocessingStep(stepName, stepArgument));
+			steps.Add(new PreprocessingHistoryItem(stepName, stepArgument));
 			var retVal = connectParams.Clone(makeWritebleCopyIfReadonly: true);
 			int stepIdx = 0;
 			foreach (var step in steps)
 			{
 				retVal[string.Format("{0}{1}", ConnectionParamsKeys.PreprocessingStepParamPrefix, stepIdx)] = 
-					string.Format(string.IsNullOrEmpty(step.Param) ? "{0}" : "{0} {1}", step.Action, step.Param);
+					string.Format(string.IsNullOrEmpty(step.Argument) ? "{0}" : "{0} {1}", step.StepName, step.Argument);
 				++stepIdx;
 			}
 			return retVal;
@@ -170,14 +171,25 @@ namespace LogJoint.Preprocessing
 				{
 					using (var perfop = new Profiling.Operation(trace, displayName))
 					{
-						for (var steps = new Queue<IPreprocessingStep>(initialSteps); steps.Count > 0; )
+						for (var steps = new Queue<IPreprocessingStep>(initialSteps); ;)
 						{
 							if (cancellation.IsCancellationRequested)
 								break;
-							IPreprocessingStep currentStep = steps.Dequeue();
 							nextSteps = steps;
-							await currentStep.Execute(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
-							perfop.Milestone("completed " + currentStep.ToString());
+							if (steps.Count > 0)
+							{
+								IPreprocessingStep currentStep = steps.Dequeue();
+								await currentStep.Execute(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+								perfop.Milestone("completed " + currentStep.ToString());
+							}
+							else
+							{
+								foreach (var e in owner.extensions.Items)
+									await e.FinalizePreprocessing(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+								perfop.Milestone("notified extensions about finalization");
+								if (steps.Count == 0)
+									break;
+							}
 							nextSteps = null;
 							currentDescription = genericProcessingDescription;
 						}
@@ -208,7 +220,7 @@ namespace LogJoint.Preprocessing
 							foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
 							{
 								currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
-								perfop.Milestone(string.Format("completed {0} {1}", loadedStep.Action, loadedStep.Param));
+								perfop.Milestone(string.Format("completed {0}", loadedStep));
 								if (currentParams == null)
 								{
 									interrupted = true;
@@ -218,7 +230,7 @@ namespace LogJoint.Preprocessing
 							}
 							if (currentParams != null)
 							{
-								preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Uri);
+								preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Location);
 								currentParams.DumpToConnectionParams(preprocessedConnectParams);
 							}
 						}
@@ -291,11 +303,22 @@ namespace LogJoint.Preprocessing
 				);
 			}
 
-			async Task<PreprocessingStepParams> ProcessLoadedStep(LoadedPreprocessingStep loadedStep, PreprocessingStepParams currentParams)
+			static PreprocessingStepParams SetArgument(PreprocessingStepParams p, string argument)
 			{
-				var step = owner.CreateStepByName(loadedStep.Action, currentParams);
+				return new PreprocessingStepParams(
+					p?.Location,
+					p?.FullPath,
+					p?.PreprocessingHistory,
+					p?.DisplayName,
+					argument
+				);
+			}
+
+			async Task<PreprocessingStepParams> ProcessLoadedStep(PreprocessingHistoryItem loadedStep, PreprocessingStepParams currentParams)
+			{
+				var step = owner.CreateStepByName(loadedStep.StepName, SetArgument(currentParams, loadedStep.Argument));
 				if (step != null)
-					return await step.ExecuteLoadedStep(this, loadedStep.Param);
+					return await step.ExecuteLoadedStep(this);
 				return null;
 			}
 
@@ -367,8 +390,7 @@ namespace LogJoint.Preprocessing
 
 			void FirePreprocessingChanged()
 			{
-				if (owner.PreprocessingChangedAsync != null)
-					owner.PreprocessingChangedAsync(owner, new LogSourcePreprocessingEventArg(this));
+				owner.PreprocessingChangedAsync?.Invoke(owner, new LogSourcePreprocessingEventArg(this));
 			}
 
 			void IPreprocessingStepCallback.YieldLogProvider(YieldedProvider provider)
@@ -387,6 +409,20 @@ namespace LogJoint.Preprocessing
 				if (nextSteps != null)
 					nextSteps.Enqueue(step);
 			}
+
+			async Task<PreprocessingStepParams> IPreprocessingStepCallback.ReplayHistory(ImmutableArray<PreprocessingHistoryItem> history)
+			{
+				PreprocessingStepParams currentParams = null;
+				foreach (var loadedStep in history)
+				{
+					currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+					if (currentParams == null)
+						return null;
+				}
+				return currentParams;
+			}
+
+			ILogSourcePreprocessing IPreprocessingStepCallback.Owner => this;
 
 
 			void IPreprocessingStepCallback.SetOption(PreprocessingOptions opt, bool value)
@@ -500,7 +536,7 @@ namespace LogJoint.Preprocessing
 				var steps = LoadStepsFromConnectionParams(providerConnectionParams).ToArray();
 
 				// Remove the only "get" preprocessing step
-				if (steps.Length == 1 && steps[0].Action == GetPreprocessingStep.name)
+				if (steps.Length == 1 && steps[0].StepName == GetPreprocessingStep.name)
 				{
 					providerConnectionParams = providerConnectionParams.Clone();
 					providerConnectionParams[ConnectionParamsKeys.PreprocessingStepParamPrefix + "0"] = null;
@@ -534,17 +570,6 @@ namespace LogJoint.Preprocessing
 			static readonly string genericProcessingDescription = "Processing...";
 		};
 
-		struct LoadedPreprocessingStep
-		{
-			public readonly string Action;
-			public readonly string Param;
-			public LoadedPreprocessingStep(string action, string param)
-			{
-				Action = action;
-				Param = param;
-			}
-		};
-
 		struct ChildPreprocessingParams
 		{
 			public IRecentlyUsedEntity Param;
@@ -559,33 +584,25 @@ namespace LogJoint.Preprocessing
 			if (ret.IsCompleted)
 				return ret;
 			items.Add(prep);
-			if (PreprocessingAdded != null)
-				PreprocessingAdded(this, new LogSourcePreprocessingEventArg(prep));
+			PreprocessingAdded?.Invoke(this, new LogSourcePreprocessingEventArg(prep));
 			return ret;
 		}
 
 		internal void Remove(ILogSourcePreprocessing prep)
 		{
 			items.Remove(prep);
-			if (PreprocessingDisposed != null)
-				PreprocessingDisposed(this, new LogSourcePreprocessingEventArg(prep));
+			PreprocessingDisposed?.Invoke(this, new LogSourcePreprocessingEventArg(prep));
 		}
 
-		static IEnumerable<LoadedPreprocessingStep> LoadStepsFromConnectionParams(IConnectionParams connectParams)
+		static IEnumerable<PreprocessingHistoryItem> LoadStepsFromConnectionParams(IConnectionParams connectParams)
 		{
 			for (int stepIdx = 0; ; ++stepIdx)
 			{
 				string stepStr = connectParams[string.Format("{0}{1}", ConnectionParamsKeys.PreprocessingStepParamPrefix, stepIdx)];
 				if (stepStr == null)
 					break;
-				stepStr = stepStr.Trim();
-				if (stepStr.Length == 0)
-					break;
-				int idx = stepStr.IndexOf(' ');
-				if (idx == -1)
-					yield return new LoadedPreprocessingStep(stepStr, "");
-				else
-					yield return new LoadedPreprocessingStep(stepStr.Substring(0, idx), stepStr.Substring(idx + 1));
+				if (PreprocessingHistoryItem.TryParse(stepStr, out var step))
+					yield return step;
 			}
 		}
 
