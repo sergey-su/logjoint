@@ -17,7 +17,7 @@ namespace LogJoint.Wireshark.Dpml
 	{
 		public static async Task PcapToPdmp(
 			string pcapFile,
-			string keyFile,
+			string[] keyFiles,
 			string outputFile,
 			ITShark tshark,
 			CancellationToken cancellation,
@@ -28,6 +28,7 @@ namespace LogJoint.Wireshark.Dpml
 			var tsharkArgs = new StringBuilder();
 			tsharkArgs.Append($"-r \"{pcapFile}\"");
 			tsharkArgs.Append($" -T pdml -2");
+			var keyFile = keyFiles.FirstOrDefault(); // todo: support many files
 			if (!string.IsNullOrEmpty(keyFile) && File.Exists(keyFile))
 			{
 				tsharkArgs.Append($" -o \"ssl.desegment_ssl_records: TRUE\" -o \"ssl.desegment_ssl_application_data: TRUE\" -o \"ssl.keylog_file:{keyFile}\"");

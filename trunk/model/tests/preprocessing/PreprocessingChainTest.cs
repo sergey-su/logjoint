@@ -46,7 +46,7 @@ namespace LogJoint.Tests
 				new PreprocessingStepParams(@"c:\foo.bar"), preprocessingStepsFactory));
 
 			preprocessingStepsFactory.Received().CreateFormatDetectionStep(
-				Arg.Is<PreprocessingStepParams>(p => p.Uri == @"c:\foo.bar"));
+				Arg.Is<PreprocessingStepParams>(p => p.Location == @"c:\foo.bar"));
 		}
 
 
@@ -57,7 +57,7 @@ namespace LogJoint.Tests
 				new PreprocessingStepParams(@"https://foo.bar/123"), preprocessingStepsFactory));
 
 			preprocessingStepsFactory.Received().CreateDownloadingStep(
-				Arg.Is<PreprocessingStepParams>(p => p.Uri == @"https://foo.bar/123"));
+				Arg.Is<PreprocessingStepParams>(p => p.Location == @"https://foo.bar/123"));
 		}
 
 		[Test]
@@ -69,7 +69,7 @@ namespace LogJoint.Tests
 				new PreprocessingStepParams(@"https://workspaces/123"), preprocessingStepsFactory));
 
 			preprocessingStepsFactory.Received().CreateOpenWorkspaceStep(
-				Arg.Is<PreprocessingStepParams>(p => p.Uri == @"https://workspaces/123"));
+				Arg.Is<PreprocessingStepParams>(p => p.Location == @"https://workspaces/123"));
 		}
 
 		[Test]
@@ -79,7 +79,7 @@ namespace LogJoint.Tests
 				new PreprocessingStepParams(@"file:///M:/foo.log"), preprocessingStepsFactory));
 
 			preprocessingStepsFactory.Received().CreateFormatDetectionStep(
-				Arg.Is<PreprocessingStepParams>(p => p.Uri == @"M:\foo.log"));
+				Arg.Is<PreprocessingStepParams>(p => p.Location == @"M:\foo.log"));
 		}
 
 		[Test]
@@ -98,7 +98,7 @@ namespace LogJoint.Tests
 				new PreprocessingStepParams(testUri), preprocessingStepsFactory));
 
 			preprocessingStepsFactory.Received().CreateOpenWorkspaceStep(
-				Arg.Is<PreprocessingStepParams>(p => p.Uri == @"https://workspaces/123"));
+				Arg.Is<PreprocessingStepParams>(p => p.Location == @"https://workspaces/123"));
 		}
 
 		[Test]
@@ -117,7 +117,7 @@ namespace LogJoint.Tests
 				new PreprocessingStepParams(testUri), preprocessingStepsFactory));
 
 			preprocessingStepsFactory.Received().CreateDownloadingStep(
-				Arg.Is<PreprocessingStepParams>(p => p.Uri == @"https://logz/123"));
+				Arg.Is<PreprocessingStepParams>(p => p.Location == @"https://logz/123"));
 		}
 	}
 }

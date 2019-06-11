@@ -6,17 +6,12 @@ namespace LogJoint.Preprocessing
 {
 	public static class Utils
 	{
-		public static IEnumerable<TSource> Concat<TSource>(this IEnumerable<TSource> first, TSource value)
-		{
-			return Enumerable.Concat(first, Enumerable.Repeat(value, 1));
-		}
-
 		public static void DumpToConnectionParams(this PreprocessingStepParams prepParams, IConnectionParams connectParams)
 		{
 			int stepIdx = 0;
-			foreach (var step in prepParams.PreprocessingSteps)
+			foreach (var step in prepParams.PreprocessingHistory)
 			{
-				connectParams[string.Format("{0}{1}", ConnectionParamsKeys.PreprocessingStepParamPrefix, stepIdx)] = step;
+				connectParams[$"{ConnectionParamsKeys.PreprocessingStepParamPrefix}{stepIdx}"] = step.ToString();
 				++stepIdx;
 			}
 			connectParams[ConnectionParamsKeys.IdentityConnectionParam] = prepParams.FullPath.ToLower();

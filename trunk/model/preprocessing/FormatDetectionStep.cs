@@ -18,7 +18,7 @@ namespace LogJoint.Preprocessing
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			var header = new StreamHeader(sourceFile.Uri);
+			var header = new StreamHeader(sourceFile.Location);
 			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile, header)).FirstOrDefault(x => x != null);
 			if (detectedFormatStep != null)
 				callback.YieldNextStep(detectedFormatStep);
@@ -33,7 +33,7 @@ namespace LogJoint.Preprocessing
 			return Task.FromResult(0);
 		}
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			throw new NotImplementedException();
 		}
@@ -45,9 +45,9 @@ namespace LogJoint.Preprocessing
 
 		static bool IsZip(PreprocessingStepParams fileInfo, IStreamHeader header)
 		{
-			if (HasZipExtension(fileInfo.Uri) || HasZipExtension(fileInfo.FullPath))
+			if (HasZipExtension(fileInfo.Location) || HasZipExtension(fileInfo.FullPath))
 				if (header.Header.Take(4).SequenceEqual(new byte[] { 0x50, 0x4b, 0x03, 0x04 }))
-					return Ionic.Zip.ZipFile.IsZipFile(fileInfo.Uri, false);
+					return Ionic.Zip.ZipFile.IsZipFile(fileInfo.Location, false);
 			return false;
 		}
 
@@ -58,9 +58,9 @@ namespace LogJoint.Preprocessing
 
 		static bool IsGzip(PreprocessingStepParams fileInfo, IStreamHeader header)
 		{
-			if (HasGzExtension(fileInfo.Uri) || HasGzExtension(fileInfo.FullPath))
+			if (HasGzExtension(fileInfo.Location) || HasGzExtension(fileInfo.FullPath))
 				if (header.Header.Take(2).SequenceEqual(new byte[] { 0x1f, 0x8b }))
-					return IsGzipFile(fileInfo.Uri);
+					return IsGzipFile(fileInfo.Location);
 			return false;
 		}
 
@@ -96,7 +96,7 @@ namespace LogJoint.Preprocessing
 		{
 			callback.SetStepDescription(string.Format("Detecting format: {0}", file.FullPath));
 			var progressHandler = new ProgressHandler() { callback = callback };
-			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Uri, file.FullPath, progressHandler.cancellation.Token, progressHandler);
+			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Location, file.FullPath, progressHandler.cancellation.Token, progressHandler);
 			if (detectedFormat != null)
 			{
 				file.DumpToConnectionParams(detectedFormat.ConnectParams);

@@ -50,5 +50,10 @@ namespace LogJoint.Preprocessing
 		{
 			return null; 
 		}
+
+		Task IPreprocessingManagerExtension.FinalizePreprocessing(IPreprocessingStepCallback callback)
+		{
+			return Task.FromResult(0);
+		}
 	}
 }

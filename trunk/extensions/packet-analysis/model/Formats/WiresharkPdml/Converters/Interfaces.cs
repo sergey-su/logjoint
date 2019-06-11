@@ -6,8 +6,7 @@ namespace LogJoint.Wireshark.Dpml
 {
 	public interface IPreprocessingStepsFactory
 	{
-		IPreprocessingStep CreatePcapUnpackStep(PreprocessingStepParams fileInfo);
-		IPreprocessingStep CreatePcapUnpackStep(string pcapFile, string keyFile);
+		IPreprocessingStep CreatePcapUnpackStep(PreprocessingStepParams fileInfo, PreprocessingStepParams[] keyInfo);
 	};
 
 	public interface ITShark

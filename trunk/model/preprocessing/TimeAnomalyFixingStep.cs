@@ -17,15 +17,15 @@ namespace LogJoint.Preprocessing
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
-			this.sourceFile = srcFile;
+			this.@params = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAggregator;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 		}
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
-			return ExecuteInternal(callback, param);
+			return ExecuteInternal(callback);
 		}
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
@@ -34,15 +34,17 @@ namespace LogJoint.Preprocessing
 			return Task.FromResult (0);
 		}
 
-		async Task<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback, string factoryName)
+		async Task<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback)
 		{
 			await callback.BecomeLongRunning();
 
-			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+			string factoryName = @params.Argument;
+
+			callback.TempFilesCleanupList.Add(@params.Location);
 			Action<double?> setStepDescription = prctComplete =>
 			{
 				var str = new StringBuilder();
-				str.Append(sourceFile.FullPath);
+				str.Append(@params.FullPath);
 				str.Append(": fixing timestamp anomalies...");
 				if (prctComplete != null)
 					str.AppendFormat(" {0}%", (int)(prctComplete.Value * 100));
@@ -62,7 +64,7 @@ namespace LogJoint.Preprocessing
 			if (readerFactory == null)
 				throw new InvalidDataException("bad factory: " + factoryName);
 			using (ILogMedia fileMedia = new SimpleFileMedia(
-				SimpleFileMedia.CreateConnectionParamsFromFileName(sourceFile.Uri)))
+				SimpleFileMedia.CreateConnectionParamsFromFileName(@params.Location)))
 			using (ILogSourceThreads threads = new LogSourceThreads())
 			using (var reader = readerFactory.CreateMessagesReader(
 				new MediaBasedReaderParams(threads, fileMedia, callback.TempFilesManager)))
@@ -111,12 +113,12 @@ namespace LogJoint.Preprocessing
 
 			return new PreprocessingStepParams(
 				tmpFileName, 
-				sourceFile.FullPath + " (reordered)",
-				sourceFile.PreprocessingSteps.Concat(new[] { string.Format("{0} {1}", name, factoryName) })
+				@params.FullPath + " (reordered)",
+				@params.PreprocessingHistory.Add(new PreprocessingHistoryItem(name, factoryName))
 			);
 		}
 
-		readonly PreprocessingStepParams sourceFile;
+		readonly PreprocessingStepParams @params;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;

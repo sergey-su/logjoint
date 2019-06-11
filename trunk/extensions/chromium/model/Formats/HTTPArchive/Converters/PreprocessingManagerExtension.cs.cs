@@ -1,6 +1,7 @@
 ﻿using LogJoint.Preprocessing;
 using System.Linq;
 using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.Chromium.HttpArchive
 {
@@ -32,6 +33,11 @@ namespace LogJoint.Chromium.HttpArchive
 		IPreprocessingStep IPreprocessingManagerExtension.TryParseLaunchUri(Uri url)
 		{
 			return null;
+		}
+
+		Task IPreprocessingManagerExtension.FinalizePreprocessing(IPreprocessingStepCallback callback)
+		{
+			return Task.FromResult(0);
 		}
 
 		static bool IsHttpArchiveFormat(IStreamHeader header)

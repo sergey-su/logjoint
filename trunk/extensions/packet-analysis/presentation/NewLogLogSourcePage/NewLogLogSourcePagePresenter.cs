@@ -9,13 +9,13 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.NewLogSourceDialog.Pages.Wiresha
 	{
 		readonly IView view;
 		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly ITShark tShark;
 
 		public Presenter(
 			IView view,
 			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
-			IPreprocessingStepsFactory preprocessingStepsFactory,
+			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
 			ITShark tShark
 		)
 		{
@@ -33,8 +33,11 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.NewLogSourceDialog.Pages.Wiresha
 				return;
 			view.PcapFileNameValue = "";
 
+			
 			preprocessingManager.Preprocess(
-				new[] { preprocessingStepsFactory.CreatePcapUnpackStep(pcapFile, string.IsNullOrWhiteSpace(keyFile) ? null : keyFile) },
+				(new[] { pcapFile, keyFile })
+					.Where(arg => !string.IsNullOrWhiteSpace(arg))
+					.Select(arg => preprocessingStepsFactory.CreateLocationTypeDetectionStep(new Preprocessing.PreprocessingStepParams(arg))),
 				"Processing selected file"
 			);
 		}

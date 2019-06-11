@@ -23,9 +23,9 @@ namespace LogJoint.Preprocessing
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			if (Uri.IsWellFormedUriString(sourceFile.Uri, UriKind.Absolute))
+			if (Uri.IsWellFormedUriString(sourceFile.Location, UriKind.Absolute))
 			{
-				var uri = new Uri(sourceFile.Uri);
+				var uri = new Uri(sourceFile.Location);
 				string localFilePath;
 				AppLaunch.LaunchUriData launchUriData;
 				IPreprocessingStep extensionStep;
@@ -33,7 +33,7 @@ namespace LogJoint.Preprocessing
 				if ((localFilePath = TryDetectLocalFileUri(uri)) != null)
 				{
 					callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(
-						new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingSteps)));
+						new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingHistory)));
 				}
 				else if (workspacesManager.IsWorkspaceUri(uri))
 				{
@@ -58,7 +58,7 @@ namespace LogJoint.Preprocessing
 			return Task.FromResult(0);
 		}
 
-		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
 			throw new InvalidOperationException();
 		}
