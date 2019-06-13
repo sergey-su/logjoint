@@ -11,7 +11,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void StartDeletionInteraction(ILogSource[] forSources);
 
 		event EventHandler<BusyStateEventArgs> OnBusyState;
-		event EventHandler OnViewUpdated;
 	};
 
 	public interface IView

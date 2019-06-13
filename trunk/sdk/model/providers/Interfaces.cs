@@ -277,7 +277,6 @@ namespace LogJoint
 	{
 		PreferredViewMode PreferredView { get; }
 		bool RawViewAllowed { get; }
-		bool AlwaysShowMilliseconds { get; }
 		int? WrapLineLength { get; }
 	}
 

@@ -1419,7 +1419,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		string defaultFocusedMessageActionCaption;
 		FontData font = new FontData();
 		bool showTime;
-		bool showMilliseconds;
+		bool showMilliseconds = true;
 		bool rawViewAllowed;
 		bool rawMessagesViewMode;
 		UserInteraction disabledUserInteractions = UserInteraction.None;

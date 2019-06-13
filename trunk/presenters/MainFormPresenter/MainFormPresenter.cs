@@ -103,10 +103,6 @@ namespace LogJoint.UI.Presenters.MainForm
 				if (e.IsRareUpdate)
 					SetAnalyzingIndication(logSources.Items.Any(s => s.TimeGaps.IsWorking));
 			};
-			sourcesManagerPresenter.OnViewUpdated += (sender, evt) =>
-			{
-				UpdateMillisecondsDisplayMode();
-			};
 
 			logSources.OnLogSourceAdded += (sender, evt) =>
 			{
@@ -329,12 +325,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		}
 
 		#region Implementation
-
-		void UpdateMillisecondsDisplayMode()
-		{
-			bool atLeastOneSourceWantMillisecondsAlways = logSources.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.AlwaysShowMilliseconds);
-			viewerPresenter.ShowMilliseconds = atLeastOneSourceWantMillisecondsAlways;
-		}
 
 		void UpdateFormCaption()
 		{

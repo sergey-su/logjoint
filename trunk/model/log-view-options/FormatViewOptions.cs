@@ -9,7 +9,6 @@ namespace LogJoint
 	{
 		public PreferredViewMode PreferredView { get { return preferredView; } }
 		public bool RawViewAllowed { get { return rawViewAllowed; } }
-		public bool AlwaysShowMilliseconds { get { return alwaysShowMilliseconds; } }
 		public int? WrapLineLength { get { return wrapLineLength; } }
 
 		public static readonly FormatViewOptions Default = new FormatViewOptions();
@@ -19,7 +18,6 @@ namespace LogJoint
 		{
 			this.preferredView = preferredView;
 			this.rawViewAllowed = rawViewAllowed;
-			this.alwaysShowMilliseconds = false;
 			this.wrapLineLength = wrapLineLength;
 		}
 		public FormatViewOptions(XElement configNode): this()
@@ -37,7 +35,6 @@ namespace LogJoint
 					break;
 			}
 			rawViewAllowed = XmlUtils.XmlValueToBool(configNode.Element("raw-view-allowed").SafeValue()).GetValueOrDefault(RawViewAllowed);
-			alwaysShowMilliseconds = XmlUtils.XmlValueToBool(configNode.Element("always-show-milliseconds").SafeValue()).GetValueOrDefault(AlwaysShowMilliseconds);
 			var str = configNode.Element("wrap-text").SafeValue();
 			if (str != null)
 			{
@@ -49,7 +46,6 @@ namespace LogJoint
 
 		PreferredViewMode preferredView;
 		bool rawViewAllowed;
-		bool alwaysShowMilliseconds;
 		int? wrapLineLength;
 	};
 

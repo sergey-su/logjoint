@@ -128,8 +128,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		}
 
 		public event EventHandler<BusyStateEventArgs> OnBusyState;
-		public event EventHandler OnViewUpdated;
-
 
 		async void IPresenter.StartDeletionInteraction(ILogSource[] forSources)
 		{
@@ -266,8 +264,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			sourcesListPresenter.UpdateView();
 			UpdateTrackChangesCheckBox();
 			ExecurePendingHighlightings();
-			if (OnViewUpdated != null)
-				OnViewUpdated(this, EventArgs.Empty);
 		}
 
 		private void ExecurePendingHighlightings()
