@@ -9,7 +9,7 @@ namespace LogJoint.Chromium.ChromeDriver
 {
 	public interface INodeDetectionTokenSource
 	{
-		Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair[]> input);
+		Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	};
 
 	public class NodeDetectionTokenSource : INodeDetectionTokenSource
@@ -23,7 +23,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			this.consoleApiPrefix = prefixMatcher.RegisterPrefix(DevTools.Events.Runtime.LogAPICalled.Prefix);
 		}
 
-		public async Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair[]> input)
+		public async Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			var processIdTask = processIdDetector.DetectProcessId(input);
 			var logsTask = GetLogs(input);
@@ -42,7 +42,7 @@ namespace LogJoint.Chromium.ChromeDriver
 		}
 
 
-		async Task<List<NodeDetectionToken.ConsoleLogEntry>> GetLogs(IEnumerableAsync<MessagePrefixesPair[]> input)
+		async Task<List<NodeDetectionToken.ConsoleLogEntry>> GetLogs(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			var retVal = new Dictionary<string, NodeDetectionToken.ConsoleLogEntry?>();
 			await input.ForEach(messages =>

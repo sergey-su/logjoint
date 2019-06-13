@@ -11,7 +11,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 {
 	public interface INodeDetectionTokenSource
 	{
-		Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair[]> input);
+		Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	};
 
 	public class NodeDetectionTokenSource : INodeDetectionTokenSource
@@ -23,7 +23,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			this.webRtcStateInspector = webRtcStateInspector;
 		}
 
-		public async Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair[]> input)
+		public async Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			var candidateTypeInfo = webRtcStateInspector.CandidateTypeInfo;
 			var peerConnectionTypeInfo = webRtcStateInspector.PeerConnectionTypeInfo;

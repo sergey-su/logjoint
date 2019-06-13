@@ -12,7 +12,7 @@ namespace LogJoint.Symphony.Rtc
 	public interface ICITimelineEvents
 	{
 		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<CDL.Message[]> input);
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<CD.MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair<CD.Message>[]> input);
 	};
 
 	public class CITimelineEvents : ICITimelineEvents
@@ -27,9 +27,9 @@ namespace LogJoint.Symphony.Rtc
 			return input.Select<CDL.Message, Event>(GetEvents, GetFinalEvents);
 		}
 
-		IEnumerableAsync<Event[]> ICITimelineEvents.GetEvents(IEnumerableAsync<CD.MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> ICITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair<CD.Message>[]> input)
 		{
-			return input.Select<CD.MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
+			return input.Select<MessagePrefixesPair<CD.Message>, Event>(GetEvents, GetFinalEvents);
 		}
 
 		void GetEvents(CDL.Message msg, Queue<Event> buffer)
@@ -42,7 +42,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetEvents(CD.MessagePrefixesPair msg, Queue<Event> buffer)
+		void GetEvents(MessagePrefixesPair<CD.Message> msg, Queue<Event> buffer)
 		{
 			if (msg.Prefixes.Contains(devToolsConsoleEventPrefix))
 			{

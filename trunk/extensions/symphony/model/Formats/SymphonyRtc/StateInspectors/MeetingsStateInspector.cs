@@ -9,7 +9,7 @@ namespace LogJoint.Symphony.Rtc
 {
 	public interface IMeetingsStateInspector
 	{
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 		string EnsureRootObjectCreated(Message trigger, Queue<Event> buffer);
 	};
 
@@ -21,10 +21,10 @@ namespace LogJoint.Symphony.Rtc
 		{
 		}
 
-		IEnumerableAsync<Event[]> IMeetingsStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> IMeetingsStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			return input
-				.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags))
+				.Select<MessagePrefixesPair<Message>, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags))
 				.EnsureParented((creationEvt, buffer) => 
 					creationEvt.ObjectType == rootTypeInfo ? null :
 						EnsureRootReported((Message)creationEvt.Trigger, buffer));
@@ -42,7 +42,7 @@ namespace LogJoint.Symphony.Rtc
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 
-		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
+		void GetEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer)
 		{
 			string id, type;
 			if (logableIdUtils.TryParseLogableId(msgPfx.Message.Logger.Value, out type, out id))
@@ -74,7 +74,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetMeetingEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetMeetingEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			var msg = msgPfx.Message;
 			Match m;
@@ -111,7 +111,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetSessionEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetSessionEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			var msg = msgPfx.Message;
 			Match m;
@@ -169,7 +169,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetProtocolEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetProtocolEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			ProtocolSessionData sessionData;
 			if (!protocolSessionData.TryGetValue(loggableId, out sessionData))
@@ -188,7 +188,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetRemotePartEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetRemotePartEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			var msg = msgPfx.Message;
 			Match m;
@@ -206,7 +206,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetParticipantsEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetParticipantsEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			if ((m = participantsUserLeftRegex.Match(msgPfx.Message.Text)).Success)
@@ -222,7 +222,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetInvitationsEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetInvitationsEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			if ((m = invitationCtrRegex.Match(msgPfx.Message.Text)).Success)
@@ -244,7 +244,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetProbeSessionEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetProbeSessionEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			if ((m = psessionCtrRegex.Match(msgPfx.Message.Text)).Success)
@@ -308,7 +308,7 @@ namespace LogJoint.Symphony.Rtc
 		class ProtocolSessionData
 		{
 			public string meetingSessionId;
-			public List<MessagePrefixesPair> pendingMessages = new List<MessagePrefixesPair>();
+			public List<MessagePrefixesPair<Message>> pendingMessages = new List<MessagePrefixesPair<Message>>();
 		};
 
 		bool rootReported;

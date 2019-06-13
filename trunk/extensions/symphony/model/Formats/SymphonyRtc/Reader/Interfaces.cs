@@ -54,16 +54,4 @@ namespace LogJoint.Symphony.Rtc
 			Logger = logger;
 		}
 	};
-
-	public struct MessagePrefixesPair
-	{
-		public readonly Message Message;
-		public readonly IMatchedPrefixesCollection Prefixes;
-
-		public MessagePrefixesPair(Message m, IMatchedPrefixesCollection prefixes)
-		{
-			Message = m;
-			Prefixes = prefixes;
-		}
-	};
 }

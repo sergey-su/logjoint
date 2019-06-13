@@ -7,7 +7,7 @@ namespace LogJoint.Chromium.ChromeDriver
 {
 	public interface IProcessIdDetector
 	{
-		Task<uint[]> DetectProcessId(IEnumerableAsync<MessagePrefixesPair[]> input);
+		Task<uint[]> DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	}
 
 	public class ProcessIdDetector : IProcessIdDetector
@@ -19,7 +19,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			dataCollectedPrefix = prefixMatcher.RegisterPrefix(DevTools.Events.Tracing.DataCollected.Prefix);
 		}
 
-		async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair[]> input)
+		async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			var retVal = new HashSet<uint>();
 			await input.ForEach(messages =>

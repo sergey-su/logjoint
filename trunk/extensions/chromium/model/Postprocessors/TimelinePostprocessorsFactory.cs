@@ -61,10 +61,10 @@ namespace LogJoint.Chromium.Timeline
 		)
 		{
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
-			var logMessages = CD.Helpers.MatchPrefixes(input, matcher).Multiplex();
+			var logMessages = input.MatchTextPrefixes(matcher).Multiplex();
 
 			CD.ITimelineEvents networkEvents = new CD.TimelineEvents(matcher);
-			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<CD.MessagePrefixesPair>(m => m.Message);
+			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<MessagePrefixesPair<CD.Message>> (m => m.Message);
 
 			var extensionSources = pluginModel.ChromeDriverTimeLineEventSources.Select(src => src(
 				matcher, logMessages, postprocessorInput.TemplatesTracker)).ToArray();

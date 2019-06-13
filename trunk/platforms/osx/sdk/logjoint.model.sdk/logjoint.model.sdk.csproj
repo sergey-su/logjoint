@@ -342,6 +342,9 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\timeline\Extensions.cs">
       <Link>postprocessing\timeline\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\PrefixMatcherExtensions.cs">
+      <Link>postprocessing\common\PrefixMatcherExtensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="analytics\infra\" />

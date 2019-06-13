@@ -10,7 +10,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 {
 	public interface INodeDetectionTokenSource
 	{
-		Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair[]> input);
+		Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	};
 
 	public class NodeDetectionTokenSource : INodeDetectionTokenSource
@@ -25,7 +25,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			this.webRtcStateInspector = webRtcStateInspector;
 		}
 
-		public async Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair[]> input)
+		public async Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			var processIdTask = processIdDetector.DetectProcessId(input);
 			var candidateTypeInfo = webRtcStateInspector.CandidateTypeInfo;
@@ -49,7 +49,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			);
 		}
 
-		async Task<List<NodeDetectionToken.ConsoleLogEntry>> GetLogs(IEnumerableAsync<MessagePrefixesPair[]> input)
+		async Task<List<NodeDetectionToken.ConsoleLogEntry>> GetLogs(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			var retVal = new Dictionary<string, NodeDetectionToken.ConsoleLogEntry?>();
 			await input.ForEach(messages =>

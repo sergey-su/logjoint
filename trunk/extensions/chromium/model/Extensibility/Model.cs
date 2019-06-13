@@ -1,4 +1,5 @@
 ﻿
+using LogJoint.Postprocessing;
 using System.Collections.Generic;
 
 namespace LogJoint.Chromium
@@ -9,8 +10,8 @@ namespace LogJoint.Chromium
 			new List<EventsSource<Postprocessing.StateInspector.Event, ChromeDebugLog.Message>.Factory>();
 		public readonly List<TimeSeriesDataSource<ChromeDebugLog.Message>.Factory> ChromeDebugTimeSeriesSources =
 			new List<TimeSeriesDataSource<ChromeDebugLog.Message>.Factory>();
-		public readonly List<EventsSource<Postprocessing.Timeline.Event, ChromeDriver.MessagePrefixesPair>.Factory> ChromeDriverTimeLineEventSources =
-			new List<EventsSource<Postprocessing.Timeline.Event, ChromeDriver.MessagePrefixesPair>.Factory>();
+		public readonly List<EventsSource<Postprocessing.Timeline.Event, MessagePrefixesPair<ChromeDriver.Message>>.Factory> ChromeDriverTimeLineEventSources =
+			new List<EventsSource<Postprocessing.Timeline.Event, MessagePrefixesPair<ChromeDriver.Message>>.Factory>();
 		public readonly List<EventsSource<Postprocessing.Timeline.Event, ChromeDebugLog.Message>.Factory> ChromeDebugLogTimeLineEventSources =
 			new List<EventsSource<Postprocessing.Timeline.Event, ChromeDebugLog.Message>.Factory>();
 
@@ -24,7 +25,7 @@ namespace LogJoint.Chromium
 			ChromeDebugTimeSeriesSources.Add(source);
 		}
 		void IPluginModel.RegisterSource(
-			EventsSource<Postprocessing.Timeline.Event, ChromeDriver.MessagePrefixesPair>.Factory source)
+			EventsSource<Postprocessing.Timeline.Event, MessagePrefixesPair<ChromeDriver.Message>>.Factory source)
 		{
 			ChromeDriverTimeLineEventSources.Add(source);
 		}

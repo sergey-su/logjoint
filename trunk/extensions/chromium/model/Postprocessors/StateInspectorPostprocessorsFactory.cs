@@ -52,7 +52,7 @@ namespace LogJoint.Chromium.StateInspector
 			var inputMultiplexed = inputMessages.Multiplex();
 
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
-			var logMessages = CDL.Helpers.MatchPrefixes(inputMultiplexed, matcher).Multiplex();
+			var logMessages = inputMultiplexed.MatchTextPrefixes(matcher).Multiplex();
 
 			CDL.IWebRtcStateInspector webRtcStateInspector = new CDL.WebRtcStateInspector(matcher);
 

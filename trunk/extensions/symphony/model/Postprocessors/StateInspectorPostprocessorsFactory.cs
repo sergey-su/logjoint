@@ -40,10 +40,9 @@ namespace LogJoint.Symphony.StateInspector
 			{
 				Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
 				Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
-				var symMessages = Sym.Helpers.MatchPrefixes(
-					new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None).FromChromeDebugLog(inputMultiplexed),
-					matcher
-				).Multiplex();
+				var symMessages = 
+					(new Sym.Reader(postprocessing.TextLogParser, CancellationToken.None).FromChromeDebugLog(inputMultiplexed)).MatchTextPrefixes(matcher)
+					.Multiplex();
 
 				var symMeetingEvents = symMeetingsStateInspector.GetEvents(symMessages);
 				var symMediaEvents = symMediaStateInspector.GetEvents(symMessages);
@@ -61,7 +60,7 @@ namespace LogJoint.Symphony.StateInspector
 		)
 		{
 			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
-			var logMessages = Sym.Helpers.MatchPrefixes(messages, matcher).Multiplex();
+			var logMessages = messages.MatchTextPrefixes(matcher).Multiplex();
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
 			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);

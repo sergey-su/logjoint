@@ -9,7 +9,7 @@ namespace LogJoint.Symphony.Rtc
 {
 	public interface IMediaStateInspector
 	{
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	};
 
 	public class MediaStateInspector : IMediaStateInspector
@@ -22,10 +22,10 @@ namespace LogJoint.Symphony.Rtc
 			this.meetingsStateInspector = meetingsStateInspector;
 		}
 			
-		IEnumerableAsync<Event[]> IMediaStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> IMediaStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			return input
-				.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags))
+				.Select<MessagePrefixesPair<Message>, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags))
 				.EnsureParented((creationEvt, buffer) =>
 					meetingsStateInspector.EnsureRootObjectCreated((Message)creationEvt.Trigger, buffer));
 		}
@@ -48,7 +48,7 @@ namespace LogJoint.Symphony.Rtc
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 
-		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
+		void GetEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer)
 		{
 			string id, type;
 			if (logableIdUtils.TryParseLogableId(msgPfx.Message.Logger.Value, out type, out id))
@@ -92,7 +92,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetLocalMediaEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetLocalMediaEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			var msg = msgPfx.Message;
 			Match m;
@@ -158,7 +158,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetLocalScreenEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetLocalScreenEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			var msg = msgPfx.Message;
 			Match m;
@@ -195,7 +195,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetLocalAudioVideoEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId, ObjectTypeInfo typeInfo)
+		void GetLocalAudioVideoEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId, ObjectTypeInfo typeInfo)
 		{
 			var msg = msgPfx.Message;
 			Match m;
@@ -243,7 +243,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void TryLinkRemotePartToRemoteTracks(MessagePrefixesPair msgPfx, Queue<Event> buffer, string remotePartLoggableId)
+		void TryLinkRemotePartToRemoteTracks(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string remotePartLoggableId)
 		{
 			Match m;
 			if ((m = remotePartCreationRegex.Match(msgPfx.Message.Text)).Success)
@@ -256,7 +256,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetSessionEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string sessionLoggableId)
+		void GetSessionEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string sessionLoggableId)
 		{
 			Match m;
 			if ((m = sessionStatsCtrRegex.Match(msgPfx.Message.Text)).Success)
@@ -276,7 +276,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetRemoteMediaEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetRemoteMediaEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Func<string, string, string, bool, RemoteWebRTCStreamInfo> handleChange = (stmId, a, v, allowCreate) =>
 			{
@@ -373,7 +373,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetRemoteTrackEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetRemoteTrackEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;
@@ -402,7 +402,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetRemoteTracksEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetRemoteTracksEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;
@@ -444,7 +444,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetStatsEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetStatsEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;
@@ -679,7 +679,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetTestSessionEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string testSessionLoggableId)
+		void GetTestSessionEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string testSessionLoggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;

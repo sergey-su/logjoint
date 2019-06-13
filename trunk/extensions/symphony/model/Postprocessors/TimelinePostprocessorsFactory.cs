@@ -11,7 +11,7 @@ namespace LogJoint.Symphony.Timeline
 	{
 		ILogSourcePostprocessor CreateSpringServiceLogPostprocessor();
 		ILogSourcePostprocessor CreateSymRtcPostprocessor();
-		Chromium.EventsSource<Event, Chromium.ChromeDriver.MessagePrefixesPair>.Factory CreateChromeDriverEventsSourceFactory();
+		Chromium.EventsSource<Event, MessagePrefixesPair<Chromium.ChromeDriver.Message>>.Factory CreateChromeDriverEventsSourceFactory();
 		Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>.Factory CreateChromeDebugLogEventsSourceFactory();
 	};
 
@@ -45,13 +45,13 @@ namespace LogJoint.Symphony.Timeline
 			);
 		}
 
-		Chromium.EventsSource<Event, Chromium.ChromeDriver.MessagePrefixesPair>.Factory IPostprocessorsFactory.CreateChromeDriverEventsSourceFactory()
+		Chromium.EventsSource<Event, MessagePrefixesPair<Chromium.ChromeDriver.Message>>.Factory IPostprocessorsFactory.CreateChromeDriverEventsSourceFactory()
 		{
 			return (matcher, messages, tracker) =>
 			{
 				Sym.ICITimelineEvents symCIEvents = new Sym.CITimelineEvents(matcher);
 
-				return new Chromium.EventsSource<Event, Chromium.ChromeDriver.MessagePrefixesPair>(symCIEvents.GetEvents(messages));
+				return new Chromium.EventsSource<Event, MessagePrefixesPair<Chromium.ChromeDriver.Message>>(symCIEvents.GetEvents(messages));
 			};
 		}
 
@@ -138,7 +138,7 @@ namespace LogJoint.Symphony.Timeline
 			IPrefixMatcher matcher,
 			IEnumerableAsync<Sym.Message[]> messages,
 			ICodepathTracker templatesTracker,
-			out IMultiplexingEnumerable<Sym.MessagePrefixesPair[]> symLog
+			out IMultiplexingEnumerable<MessagePrefixesPair<Sym.Message>[]> symLog
 		)
 		{
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
@@ -146,7 +146,7 @@ namespace LogJoint.Symphony.Timeline
 			Sym.ITimelineEvents symTimelineEvents = new Sym.TimelineEvents(matcher);
 			Sym.Diag.ITimelineEvents diagTimelineEvents = new Sym.Diag.TimelineEvents(matcher);
 
-			symLog = Sym.Helpers.MatchPrefixes(messages, matcher).Multiplex();
+			symLog = messages.MatchTextPrefixes(matcher).Multiplex();
 			var symMeetingStateEvents = symMeetingsStateInspector.GetEvents(symLog);
 			var symMediaStateEvents = symMediaStateInsector.GetEvents(symLog);
 

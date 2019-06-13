@@ -9,7 +9,7 @@ namespace LogJoint.Symphony.Rtc
 {
 	public interface ITimelineEvents
 	{
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	};
 
 	public class TimelineEvents : ITimelineEvents
@@ -21,12 +21,12 @@ namespace LogJoint.Symphony.Rtc
 		}
 
 
-		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
+			return input.Select<MessagePrefixesPair<Message>, Event>(GetEvents, GetFinalEvents);
 		}
 
-		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
+		void GetEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer)
 		{
 			string id, type;
 			if (logableIdUtils.TryParseLogableId(msgPfx.Message.Logger.Value, out type, out id))
@@ -50,7 +50,7 @@ namespace LogJoint.Symphony.Rtc
 		{
 		}
 
-		void GetLocalMediaUIEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetLocalMediaUIEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;
@@ -60,7 +60,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetLocalMediaEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetLocalMediaEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;
@@ -75,7 +75,7 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
-		void GetFlowInitiatorEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetFlowInitiatorEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			var msg = msgPfx.Message;
 			if (msg.Text == "leave flow")

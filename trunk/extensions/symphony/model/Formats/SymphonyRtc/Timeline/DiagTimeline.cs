@@ -9,7 +9,7 @@ namespace LogJoint.Symphony.Rtc.Diag
 {
 	public interface ITimelineEvents
 	{
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	};
 
 	public class TimelineEvents : ITimelineEvents
@@ -21,12 +21,12 @@ namespace LogJoint.Symphony.Rtc.Diag
 		}
 
 
-		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
+			return input.Select<MessagePrefixesPair<Message>, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
 		}
 
-		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
+		void GetEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer)
 		{
 			if (logableIdUtils.TryParseLogableId(msgPfx.Message.Logger.Value, out string type, out string id))
 			{
@@ -43,7 +43,7 @@ namespace LogJoint.Symphony.Rtc.Diag
 		{
 		}
 
-		void GetDiagEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetDiagEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;

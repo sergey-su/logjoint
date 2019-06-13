@@ -7,12 +7,12 @@ namespace LogJoint.Chromium.ChromeDebugLog
 {
 	public interface IProcessIdDetector
 	{
-		Task<uint[]> DetectProcessId(IEnumerableAsync<MessagePrefixesPair[]> input);
+		Task<uint[]> DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	}
 
 	public class ProcessIdDetector : IProcessIdDetector
 	{
-		async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair[]> input)
+		async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
 			var retVal = new HashSet<uint>();
 			await input.ForEach(messages =>

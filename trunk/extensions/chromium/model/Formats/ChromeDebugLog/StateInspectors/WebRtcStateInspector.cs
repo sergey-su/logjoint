@@ -10,7 +10,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 {
 	public interface IWebRtcStateInspector
 	{
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 		ObjectTypeInfo CandidateTypeInfo { get; }
 	};
 
@@ -39,9 +39,9 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		}
 
 
-		IEnumerableAsync<Event[]> IWebRtcStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> IWebRtcStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
+			return input.Select<MessagePrefixesPair<Message>, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
 		}
 
 		ObjectTypeInfo IWebRtcStateInspector.CandidateTypeInfo
@@ -65,7 +65,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			return objectType == streamTypeInfo.TypeName;
 		}
 
-		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
+		void GetEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer)
 		{
 			var msg = msgPfx.Message;
 			Match m;

@@ -8,7 +8,7 @@ namespace LogJoint.Chromium.ChromeDriver
 {
 	public interface ITimelineEvents
 	{
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
 	};
 
 	public class TimelineEvents : ITimelineEvents
@@ -22,12 +22,12 @@ namespace LogJoint.Chromium.ChromeDriver
 		}
 
 
-		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
+			return input.Select<MessagePrefixesPair<Message>, Event>(GetEvents, GetFinalEvents);
 		}
 
-		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
+		void GetEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer)
 		{
 			var msg = msgPfx.Message;
 			if (msgPfx.Prefixes.Contains(devToolsNetworkEventPrefix1) || msgPfx.Prefixes.Contains(devToolsNetworkEventPrefix2))

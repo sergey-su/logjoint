@@ -182,6 +182,9 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\LogSourcePostprocessorImpl.cs">
       <Link>postprocessing\common\LogSourcePostprocessorImpl.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\postprocessing\common\PrefixMatcherExtensions.cs">
+      <Link>postprocessing\common\PrefixMatcherExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\PrefixMatcherInterfaces.cs">
       <Link>postprocessing\common\PrefixMatcherInterfaces.cs</Link>
     </Compile>

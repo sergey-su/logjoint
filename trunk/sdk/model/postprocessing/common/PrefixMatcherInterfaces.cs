@@ -14,4 +14,16 @@ namespace LogJoint.Postprocessing
 	{
 		bool Contains(int prefixId);
 	};
+
+	public struct MessagePrefixesPair<M>
+	{
+		public readonly M Message;
+		public readonly IMatchedPrefixesCollection Prefixes;
+
+		public MessagePrefixesPair(M m, IMatchedPrefixesCollection prefixes)
+		{
+			Message = m;
+			Prefixes = prefixes;
+		}
+	};
 }

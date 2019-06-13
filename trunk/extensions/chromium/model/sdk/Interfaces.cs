@@ -12,7 +12,7 @@ namespace LogJoint.Chromium
 		void RegisterSource(
 			TimeSeriesDataSource<ChromeDebugLog.Message>.Factory source);
 		void RegisterSource(
-			EventsSource<Postprocessing.Timeline.Event, ChromeDriver.MessagePrefixesPair>.Factory source);
+			EventsSource<Postprocessing.Timeline.Event, MessagePrefixesPair<ChromeDriver.Message>>.Factory source);
 		void RegisterSource(
 			EventsSource<Postprocessing.Timeline.Event, ChromeDebugLog.Message>.Factory source);
 	};
