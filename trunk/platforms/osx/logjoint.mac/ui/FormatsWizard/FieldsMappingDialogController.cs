@@ -22,6 +22,7 @@ namespace LogJoint.UI
 		public override void AwakeFromNib ()
 		{
 			base.AwakeFromNib ();
+			codeTextBox.AutomaticQuoteSubstitutionEnabled = false;
 			availableInputFieldsContainer.LinkClicked = (sender, e) => (e.Link.Tag as Action)?.Invoke();
 			helpLinkLabel.StringValue = "Help";
 			helpLinkLabel.LinkClicked = (sender, e) => events.OnHelpLinkClicked();

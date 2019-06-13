@@ -19,6 +19,7 @@ namespace LogJoint.UI
 		public override void AwakeFromNib ()
 		{
 			base.AwakeFromNib ();
+			textView.AutomaticQuoteSubstitutionEnabled = false;
 			textView.Font = NSFont.FromFontName("Courier", 11);
 		}
 
