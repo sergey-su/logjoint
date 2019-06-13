@@ -1,0 +1,41 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[2019-06-05 13:41:41.584 DEBUG [0x700001fdb000][Engine] Engine started
+2019-06-05 13:41:41.585 INFO [0x70000205e000][MixerManager] MixerManager thread started
+2019-06-05 13:41:41.586 INFO [0x7fffa0c97380][main] Starting httpd on port 4717
+2019-06-05 14:21:42.561 INFO [0x7fffa0c97380][main] SIGINT
+2019-06-05 14:21:42.579 DEBUG [0x7fffa0c97380][Engine] Engine stopped
+2019-06-05 14:21:42.588 INFO [0x7fffa0c97380][MixerManager] MixerManager thread stopped
+2019-06-05 14:48:08.887 DEBUG [0x70000d298000][Engine] Engine started
+2019-06-05 14:48:08.888 INFO [0x70000d31b000][MixerManager] MixerManager thread started
+2019-06-05 14:48:08.888 INFO [0x7fffa0c97380][main] Starting httpd on port 4717]]></sample-log>
+    <head-re><![CDATA[^(?<date>\d{4}\-\d{2}\-\d{2}\ \d{2}\:\d{2}\:\d{2}.\d{3})
+\ (?<sev>\w+)
+\ \[(?<t>[^\]]+)\]
+]]></head-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(date, "yyyy-MM-dd HH':'mm':'ss'.'fff")]]></field>
+      <field name="Thread"><![CDATA[t]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sev)
+{
+case "WARN": return Severity.Warning;
+case "ERROR": 
+case "FATAL": return Severity.Error;
+default: return Severity.Info;
+}
+]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="Symphony" name="SMB log" />
+  <view-options>
+    <preferred-view>raw</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>	
+  <description>
+  </description>
+</format>
