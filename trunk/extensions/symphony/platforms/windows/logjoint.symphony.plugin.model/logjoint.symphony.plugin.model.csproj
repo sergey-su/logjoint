@@ -47,6 +47,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\Formats\Common\Messaging\HttpMessaging.cs">
+      <Link>Formats\Common\Messaging\HttpMessaging.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Messagnig\HttpMessaging.cs">
+      <Link>Formats\SMB\Messagnig\HttpMessaging.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Extensions.cs">
+      <Link>Formats\SMB\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Interfaces.cs">
+      <Link>Formats\SMB\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Reader.cs">
+      <Link>Formats\SMB\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Writer.cs">
+      <Link>Formats\SMB\Reader\Writer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\SpringServiceLog\Messagnig\HttpMessaging.cs">
       <Link>Formats\SpringServiceLog\Messagnig\HttpMessaging.cs</Link>
     </Compile>
@@ -136,6 +154,10 @@
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
       <Link>Formats\Symphony - RTC log.format.xml</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Symphony - SMB log.format.xml">
+      <Link>Formats\Symphony - SMB log.format.xml</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\model\Formats\Symphony-SpringServiceLog.format.xml">

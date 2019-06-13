@@ -8,12 +8,13 @@ namespace LogJoint.Symphony
 	{
 		LogSourceMetadata SpringServiceLog { get; }
 		LogSourceMetadata RtcLog { get; }
+		LogSourceMetadata SMBLog { get; }
 	};
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly IUserDefinedFactory symRtcLogFormat, springServiceLogFormat;
-		private readonly LogSourceMetadata symRtcLogMeta, springServiceLogMeta;
+		private readonly IUserDefinedFactory symRtcLogFormat, springServiceLogFormat, smbLogFormat;
+		private readonly LogSourceMetadata symRtcLogMeta, springServiceLogMeta, smbLogMeta;
 
 
 		public PostprocessorsInitializer(
@@ -26,17 +27,18 @@ namespace LogJoint.Symphony
 			SequenceDiagram.IPostprocessorsFactory sequenceDiagramPostprocessorsFactory
 		)
 		{
-			Func<string, string, IUserDefinedFactory> findFormat = (company, formatName) =>
+			IUserDefinedFactory findFormat(string company, string formatName)
 			{
 				var ret = userDefinedFormatsManager.Items.FirstOrDefault(
 					f => f.CompanyName == company && f.FormatName == formatName);
 				if (ret == null)
 					throw new Exception(string.Format("Log format {0} is not registered in LogJoint", formatName));
 				return ret;
-			};
+			}
 
 			this.symRtcLogFormat = findFormat("Symphony", "RTC log");
 			this.springServiceLogFormat = findFormat("Symphony", "RTC Java Spring Service log");
+			this.smbLogFormat = findFormat("Symphony", "SMB log");
 
 			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
 			postprocessorsManager.RegisterCrossLogSourcePostprocessor(correlatorPostprocessorType);
@@ -55,10 +57,18 @@ namespace LogJoint.Symphony
 				timelinePostprocessorsFactory.CreateSymRtcPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.symRtcLogMeta);
+
+			this.smbLogMeta = new LogSourceMetadata(
+				smbLogFormat,
+				sequenceDiagramPostprocessorsFactory.CreateSMBPostprocessor()
+			);
+			postprocessorsManager.RegisterLogType(this.smbLogMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.SpringServiceLog => springServiceLogMeta;
 
 		LogSourceMetadata IPostprocessorsRegistry.RtcLog => symRtcLogMeta;
+
+		LogSourceMetadata IPostprocessorsRegistry.SMBLog => smbLogMeta;
 	};
 }

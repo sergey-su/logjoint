@@ -113,6 +113,24 @@
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
       <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Extensions.cs">
+      <Link>Formats\SMB\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Interfaces.cs">
+      <Link>Formats\SMB\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Reader.cs">
+      <Link>Formats\SMB\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Reader\Writer.cs">
+      <Link>Formats\SMB\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SMB\Messagnig\HttpMessaging.cs">
+      <Link>Formats\SMB\Messagnig\HttpMessaging.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Common\Messaging\HttpMessaging.cs">
+      <Link>Formats\Common\Messaging\HttpMessaging.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -135,6 +153,11 @@
     <Folder Include="Formats\SymphonyRtc\Timeline\" />
     <Folder Include="Formats\SymphonyRtc\TimeSeries\" />
     <Folder Include="Formats\SymphonyRtc\Utils\" />
+    <Folder Include="Formats\SMB\" />
+    <Folder Include="Formats\SMB\Reader\" />
+    <Folder Include="Formats\SMB\Messagnig\" />
+    <Folder Include="Formats\Common\" />
+    <Folder Include="Formats\Common\Messaging\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Symphony-SpringServiceLog.format.xml">

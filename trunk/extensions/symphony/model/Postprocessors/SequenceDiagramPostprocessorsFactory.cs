@@ -7,12 +7,14 @@ using LogJoint.Postprocessing.Messaging;
 using LogJoint.Postprocessing.SequenceDiagram;
 using System.Xml;
 using SVC = LogJoint.Symphony.SpringServiceLog;
+using SMB = LogJoint.Symphony.SMB;
 
 namespace LogJoint.Symphony.SequenceDiagram
 {
 	public interface IPostprocessorsFactory
 	{
 		ILogSourcePostprocessor CreateSpringServiceLogPostprocessor();
+		ILogSourcePostprocessor CreateSMBPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -28,11 +30,19 @@ namespace LogJoint.Symphony.SequenceDiagram
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
-				i => RunForHttpArchive(new SpringServiceLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForSpringServiceLog(new SpringServiceLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
-		async Task RunForHttpArchive(
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateSMBPostprocessor()
+		{
+			return new LogSourcePostprocessor(
+				PostprocessorKind.SequenceDiagram,
+				i => RunForSMBLog(new SMB.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+			);
+		}
+
+		async Task RunForSpringServiceLog(
 			IEnumerableAsync<SpringServiceLog.Message[]> input,
 			LogSourcePostprocessorInput postprocessorInput
 		)
@@ -49,6 +59,27 @@ namespace LogJoint.Symphony.SequenceDiagram
 				null,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((SVC.Message)evtTrigger),
+				postprocessorInput
+			);
+		}
+
+		async Task RunForSMBLog(
+			IEnumerableAsync<SMB.Message[]> input,
+			LogSourcePostprocessorInput postprocessorInput
+		)
+		{
+			SMB.IMessagingEvents messagingEvents = new SMB.MessagingEvents();
+
+			var events = EnumerableAsync.Merge(
+				messagingEvents.GetEvents(input)
+			);
+
+			await postprocessing.SequenceDiagram.SavePostprocessorOutput(
+				events,
+				null,
+				null,
+				null,
+				evtTrigger => TextLogEventTrigger.Make((SMB.Message)evtTrigger),
 				postprocessorInput
 			);
 		}

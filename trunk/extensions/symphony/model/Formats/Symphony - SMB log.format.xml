@@ -14,7 +14,7 @@
 \ \[(?<t>[^\]]+)\]
 ]]></head-re>
     <fields-config>
-      <field name="Time"><![CDATA[TO_DATETIME(date, "yyyy-MM-dd HH':'mm':'ss'.'fff")]]></field>
+      <field name="Time"><![CDATA[TO_DATETIME(date, "yyyy'-'MM'-'dd HH':'mm':'ss'.'fff")]]></field>
       <field name="Thread"><![CDATA[t]]></field>
       <field name="Body"><![CDATA[body]]></field>
       <field name="Severity" code-type="function"><![CDATA[switch (sev)

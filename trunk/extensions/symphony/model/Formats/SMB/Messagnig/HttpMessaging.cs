@@ -5,7 +5,7 @@ using System.Linq;
 using System;
 using System.Text.RegularExpressions;
 
-namespace LogJoint.Symphony.SpringServiceLog
+namespace LogJoint.Symphony.SMB
 {
 	public interface IMessagingEvents
 	{
