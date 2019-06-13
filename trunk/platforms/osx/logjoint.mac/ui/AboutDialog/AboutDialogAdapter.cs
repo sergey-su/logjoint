@@ -109,6 +109,8 @@ namespace LogJoint.UI
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
+			copyMacLinkButton.Image.Template = true;
+			copyWinLinkButton.Image.Template = true;
 			Window.DidResignKey += (s, e) =>
 			{
 				this.Close();
