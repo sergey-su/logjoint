@@ -19,6 +19,9 @@ namespace LogJoint.UI
 		AppKit.NSTextField bookmarkStatusLabel { get; set; }
 
 		[Outlet]
+		AppKit.NSSegmentedControl contentModeSegmentedControl { get; set; }
+
+		[Outlet]
 		AppKit.NSButton hlCheckbox { get; set; }
 
 		[Outlet]
@@ -44,6 +47,9 @@ namespace LogJoint.UI
 
 		[Action ("onPrevMessageClicked:")]
 		partial void onPrevMessageClicked (Foundation.NSObject sender);
+
+		[Action ("onViewModeChanged:")]
+		partial void onViewModeChanged (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
@@ -55,6 +61,11 @@ namespace LogJoint.UI
 			if (bookmarkStatusLabel != null) {
 				bookmarkStatusLabel.Dispose ();
 				bookmarkStatusLabel = null;
+			}
+
+			if (contentModeSegmentedControl != null) {
+				contentModeSegmentedControl.Dispose ();
+				contentModeSegmentedControl = null;
 			}
 
 			if (hlCheckbox != null) {
@@ -72,6 +83,11 @@ namespace LogJoint.UI
 				sourceLabel = null;
 			}
 
+			if (textView != null) {
+				textView.Dispose ();
+				textView = null;
+			}
+
 			if (threadLabel != null) {
 				threadLabel.Dispose ();
 				threadLabel = null;
@@ -80,11 +96,6 @@ namespace LogJoint.UI
 			if (timestampLabel != null) {
 				timestampLabel.Dispose ();
 				timestampLabel = null;
-			}
-
-			if (textView != null) {
-				textView.Dispose ();
-				textView = null;
 			}
 		}
 	}

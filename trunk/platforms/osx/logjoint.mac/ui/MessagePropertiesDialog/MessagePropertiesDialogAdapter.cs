@@ -40,6 +40,11 @@ namespace LogJoint.UI
 				severityLabel.StringValue = viewData.SeverityValue;
 				textView.Value = viewData.TextValue;
 				hlCheckbox.Enabled = viewData.HighlightedCheckboxEnabled;
+				contentModeSegmentedControl.SegmentCount = viewData.ContentViewModes.Count;
+				foreach (var i in viewData.ContentViewModes.Select ((lbl, idx) => (lbl, idx)))
+					contentModeSegmentedControl.SetLabel (i.lbl, i.idx);
+				if (viewData.ContentViewModeIndex != null)
+					contentModeSegmentedControl.SelectedSegment = viewData.ContentViewModeIndex.Value; 
 			});
 
 			subscription = changeNotification.CreateSubscription (update, initiallyActive: false);
@@ -83,6 +88,11 @@ namespace LogJoint.UI
 		partial void onCloseClicked (Foundation.NSObject sender)
 		{
 			Window.Close ();
+		}
+
+		partial void onViewModeChanged (Foundation.NSObject sender)
+		{
+			viewModel.OnContentViewModeChange ((int)contentModeSegmentedControl.SelectedSegment);
 		}
 	}
 

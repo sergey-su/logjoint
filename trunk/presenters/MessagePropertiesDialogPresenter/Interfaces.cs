@@ -1,4 +1,5 @@
 using LogJoint.Drawing;
+using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
@@ -31,6 +32,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		void OnThreadLinkClicked();
 
 		void OnSourceLinkClicked();
+
+		void OnContentViewModeChange(int value);
 	};
 
 	public class DialogData
@@ -51,6 +54,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		public string SeverityValue;
 
+		public IReadOnlyList<string> ContentViewModes;
+		public int? ContentViewModeIndex;
 		public string TextValue;
 
 		public bool HighlightedCheckboxEnabled;

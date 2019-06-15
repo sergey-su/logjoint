@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
@@ -11,7 +13,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			IView view,
 			LogViewer.IPresenter viewerPresenter,
 			IPresentersFacade navHandler,
-			IColorTheme theme
+			IColorTheme theme,
+			IChangeNotification changeNotification
 		)
 		{
 			this.hlFilters = hlFilters;
@@ -19,6 +22,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
+			this.changeNotification = changeNotification;
 
 			this.getFocusedMessage = Selectors.Create(() => viewerPresenter.FocusedMessage,
 				message => message?.GetLogSource() == null ? null : message);
@@ -31,10 +35,30 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					return (isBookmarked ? "yes" : "no", isBookmarked ? "clear bookmark" : "set bookmark");
 				});
 			bool getHlFilteringEnabled() => hlFilters.FilteringEnabled && hlFilters.Items.Count > 0;
-			this.getDialogData = Selectors.Create(getFocusedMessage, getBookmarkData, getHlFilteringEnabled, (message, bmk, hlEnabled) =>
+			List<ContentViewMode> getContentViewModes(IMessage msg)
+			{
+				var contentViewModes = new List<ContentViewMode>();
+				if (msg != null)
+				{
+					contentViewModes.Add(ContentViewMode.Summary);
+					if (msg.RawText.IsInitialized)
+						contentViewModes.Add(ContentViewMode.RawText);
+				}
+				return contentViewModes;
+			};
+			this.getDialogData = Selectors.Create(
+				getFocusedMessage,
+				getBookmarkData,
+				getHlFilteringEnabled,
+				() => contentViewMode,
+				(message, bmk, hlEnabled, setContentViewMode) =>
 			{
 				var (bookmarkedStatus, bookmarkAction) = bmk;
 				ILogSource ls = message?.GetLogSource();
+				var contentViewModes = getContentViewModes(message);
+				int? effectiveContentViewMode =
+					contentViewModes.Count == 0 ? new int?() :
+					RangeUtils.PutInRange(0, contentViewModes.Count, setContentViewMode);
 				return new DialogData()
 				{
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
@@ -53,7 +77,10 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 					SeverityValue = (message?.Severity)?.ToString() ?? noSelection,
 
-					TextValue = (message?.Text)?.Value ?? "",
+					ContentViewModes = ImmutableArray.CreateRange(contentViewModes.Select(m => m.Name)),
+					ContentViewModeIndex = effectiveContentViewMode,
+					TextValue = effectiveContentViewMode == null ? "" :
+						contentViewModes[effectiveContentViewMode.Value].TextGetter(message).Text.Value,
 
 					HighlightedCheckboxEnabled = hlEnabled
 				};
@@ -121,6 +148,15 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 				navHandler.ShowLogSource(msg.GetLogSource());
 		}
 
+		void IDialogViewModel.OnContentViewModeChange(int value)
+		{
+			if (value != contentViewMode)
+			{
+				contentViewMode = value;
+				changeNotification.Post();
+			}
+		}
+
 		IDialog GetPropertiesForm()
 		{
 			if (propertiesForm != null)
@@ -129,6 +165,24 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			return propertiesForm;
 		}
 
+		class ContentViewMode
+		{
+			public string Name;
+			public MessageTextGetter TextGetter;
+
+			public static readonly ContentViewMode Summary = new ContentViewMode()
+			{
+				Name = "Summary",
+				TextGetter = MessageTextGetters.SummaryTextGetter,
+			};
+			public static readonly ContentViewMode RawText = new ContentViewMode()
+			{
+				Name = "Raw text",
+				TextGetter = MessageTextGetters.RawTextGetter,
+			};
+		};
+
+		readonly IChangeNotification changeNotification;
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
@@ -136,6 +190,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		readonly IPresentersFacade navHandler;
 		readonly Func<IMessage> getFocusedMessage;
 		readonly Func<DialogData> getDialogData;
+		int contentViewMode;
 		IDialog propertiesForm;
 		static readonly string noSelection = "<no selection>";
 	};

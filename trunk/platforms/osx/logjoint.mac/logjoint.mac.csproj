@@ -43,6 +43,7 @@
       </CustomCommands>
     </CustomCommands>
     <AOTMode>None</AOTMode>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -64,6 +65,7 @@
     <PackageSigningKey>3rd Party Mac Developer Installer</PackageSigningKey>
     <I18n>west</I18n>
     <AOTMode>None</AOTMode>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -605,7 +605,8 @@ namespace LogJoint.UI
 						new LogJoint.UI.MessagePropertiesDialogView(changeNotification),
 						loadedMessagesPresenter.LogViewerPresenter,
 						navHandler,
-						colorTheme);
+						colorTheme,
+						changeNotification);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					logSourcesManager,
