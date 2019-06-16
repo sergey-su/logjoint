@@ -72,6 +72,14 @@
         <DependentUpon>WiresharkPage.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\WiresharkPage\WiresharkPageAdapter.cs" />
+    <Compile Include="UI\MessageContentViewer\MessageContentView.cs" />
+    <Compile Include="UI\MessageContentViewer\MessageContentViewController.cs" />
+    <Compile Include="UI\MessageContentViewer\MessageContentView.designer.cs">
+      <DependentUpon>MessageContentView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageContentViewer\MessageContentViewController.designer.cs">
+      <DependentUpon>MessageContentViewController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -103,10 +111,12 @@
   <ItemGroup>
     <Folder Include="UI\" />
     <Folder Include="UI\WiresharkPage\" />
+    <Folder Include="UI\MessageContentViewer\" />
   </ItemGroup>
   <!--<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />-->
   <ItemGroup>
     <InterfaceDefinition Include="UI\WiresharkPage\WiresharkPage.xib" />
+    <InterfaceDefinition Include="UI\MessageContentViewer\MessageContentView.xib" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

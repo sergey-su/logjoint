@@ -3,12 +3,6 @@ using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
-	public interface IPresenter
-	{
-		void ShowDialog();
-	};
-
-
 	public interface IView
 	{
 		IDialog CreateDialog(IDialogViewModel host);
@@ -22,6 +16,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 	public interface IDialogViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
 		DialogData Data { get; }
 
 		void OnNextClicked(bool highlightedChecked);
@@ -34,6 +29,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		void OnSourceLinkClicked();
 
 		void OnContentViewModeChange(int value);
+
+		void OnClosed();
 	};
 
 	public class DialogData
@@ -57,6 +54,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		public IReadOnlyList<string> ContentViewModes;
 		public int? ContentViewModeIndex;
 		public string TextValue;
+		public object CustomView;
 
 		public bool HighlightedCheckboxEnabled;
 	};

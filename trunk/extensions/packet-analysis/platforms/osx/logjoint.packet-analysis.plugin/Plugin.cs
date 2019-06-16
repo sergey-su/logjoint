@@ -6,7 +6,10 @@ namespace LogJoint
 	{
 		public Plugin(IApplication app)
 		{
-			PluginInitializer.Init(app, new LogJoint.PacketAnalysis.UI.WiresharkPageAdapter());
+			PluginInitializer.Init(app, 
+				new LogJoint.PacketAnalysis.UI.WiresharkPageAdapter(),
+				() => new LogJoint.PacketAnalysis.UI.MessageContentViewController()
+			);
 		}
 	}
 }

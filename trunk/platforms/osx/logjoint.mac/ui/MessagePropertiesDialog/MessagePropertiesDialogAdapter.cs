@@ -13,19 +13,20 @@ namespace LogJoint.UI
 	{
 		private readonly IChangeNotification changeNotification;
 		private readonly IDialogViewModel viewModel;
-		private readonly ISubscription subscription;
 
-		public MessagePropertiesDialogAdapter(IChangeNotification changeNotification, IDialogViewModel viewModel)
+		public MessagePropertiesDialogAdapter(IDialogViewModel viewModel)
 			: base("MessagePropertiesDialog")
 		{
-			this.changeNotification = changeNotification;
+			this.changeNotification = viewModel.ChangeNotification;
 			this.viewModel = viewModel;
 
 			NSColor resolveColor (Color? cl) =>
 				cl.HasValue ? cl.Value.ToNSColor() : null;
 
-			var update = Updaters.Create (() => viewModel.Data, viewData =>
+			var update = Updaters.Create (() => viewModel.Data, (viewData, prevData) =>
 			{
+				this.Window.EnsureCreated ();
+
 				timestampLabel.StringValue = viewData.TimeValue;
 				threadLabel.StringValue = viewData.ThreadLinkValue;
 				threadLabel.BackgroundColor =
@@ -38,7 +39,19 @@ namespace LogJoint.UI
 				bookmarkActionLabel.StringValue = viewData.BookmarkActionLinkText;
 				bookmarkActionLabel.IsEnabled = viewData.BookmarkActionLinkEnabled;
 				severityLabel.StringValue = viewData.SeverityValue;
-				textView.Value = viewData.TextValue;
+				var prevCustomView = prevData?.CustomView as NSView;
+				if (viewData.CustomView is NSView customView) {
+					textContentScrollView.Hidden = true;
+					if (prevCustomView != customView) {
+						prevCustomView?.RemoveFromSuperview();
+						customView.MoveToPlaceholder (messageContentContainerView);
+						customView.Hidden = false;
+					}
+				} else {
+					textContentScrollView.Hidden = false;
+					textView.Value = viewData.TextValue ?? "";
+					prevCustomView?.RemoveFromSuperview ();
+				}
 				hlCheckbox.Enabled = viewData.HighlightedCheckboxEnabled;
 				contentModeSegmentedControl.SegmentCount = viewData.ContentViewModes.Count;
 				foreach (var i in viewData.ContentViewModes.Select ((lbl, idx) => (lbl, idx)))
@@ -47,7 +60,7 @@ namespace LogJoint.UI
 					contentModeSegmentedControl.SelectedSegment = viewData.ContentViewModeIndex.Value; 
 			});
 
-			subscription = changeNotification.CreateSubscription (update, initiallyActive: false);
+			changeNotification.CreateSubscription (update);
 		}
 
 		public new MessagePropertiesDialog Window
@@ -60,14 +73,14 @@ namespace LogJoint.UI
 		void IDialog.Show ()
 		{
 			Window.MakeKeyAndOrderFront (null);
-			subscription.Active = true;
 		}
 
 		public override void AwakeFromNib ()
 		{
 			base.AwakeFromNib ();
 
-			Window.WillClose += (s, e) => subscription.Active = false;
+			Window.owner = this;
+			Window.WillClose += (s, e) => viewModel.OnClosed(); // todo: do same on windows
 			threadLabel.LinkClicked = (s, e) => viewModel.OnThreadLinkClicked ();
 			threadLabel.SingleLine = true;
 			sourceLabel.LinkClicked = (s, e) => viewModel.OnSourceLinkClicked ();
@@ -94,20 +107,18 @@ namespace LogJoint.UI
 		{
 			viewModel.OnContentViewModeChange ((int)contentModeSegmentedControl.SelectedSegment);
 		}
+
+		public void OnCancelOp ()
+		{
+			Window.Close ();
+		}
 	}
 
 	public class MessagePropertiesDialogView: IView
 	{
-		private readonly IChangeNotification changeNotification;
-
-		public MessagePropertiesDialogView (IChangeNotification changeNotification)
-		{
-			this.changeNotification = changeNotification;
-		}
-
 		IDialog IView.CreateDialog (IDialogViewModel viewModel)
 		{
-			return new MessagePropertiesDialogAdapter (changeNotification, viewModel);
+			return new MessagePropertiesDialogAdapter (viewModel);
 		}
 	};
 }

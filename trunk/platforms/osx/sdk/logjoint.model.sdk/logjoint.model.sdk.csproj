@@ -345,6 +345,9 @@
     <Compile Include="..\..\..\..\sdk\model\postprocessing\common\PrefixMatcherExtensions.cs">
       <Link>postprocessing\common\PrefixMatcherExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\Selector.cs">
+      <Link>generic\Selector.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="analytics\infra\" />

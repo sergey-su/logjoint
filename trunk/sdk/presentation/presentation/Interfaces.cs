@@ -5,5 +5,6 @@ namespace LogJoint.UI.Presenters
 		NewLogSourceDialog.IPresenter NewLogSourceDialog { get; }
 		Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; }
 		IColorTheme Theme { get; }
+		MessagePropertiesDialog.IPresenter MessagePropertiesDialog { get; }
 	}
 }

@@ -25,10 +25,19 @@ namespace LogJoint.UI
 		AppKit.NSButton hlCheckbox { get; set; }
 
 		[Outlet]
+		AppKit.NSClipView messageContentClipView { get; set; }
+
+		[Outlet]
+		AppKit.NSView messageContentContainerView { get; set; }
+
+		[Outlet]
 		AppKit.NSTextField severityLabel { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel sourceLabel { get; set; }
+
+		[Outlet]
+		AppKit.NSScrollView textContentScrollView { get; set; }
 
 		[Outlet]
 		AppKit.NSTextView textView { get; set; }
@@ -73,6 +82,11 @@ namespace LogJoint.UI
 				hlCheckbox = null;
 			}
 
+			if (messageContentClipView != null) {
+				messageContentClipView.Dispose ();
+				messageContentClipView = null;
+			}
+
 			if (severityLabel != null) {
 				severityLabel.Dispose ();
 				severityLabel = null;
@@ -96,6 +110,16 @@ namespace LogJoint.UI
 			if (timestampLabel != null) {
 				timestampLabel.Dispose ();
 				timestampLabel = null;
+			}
+
+			if (textContentScrollView != null) {
+				textContentScrollView.Dispose ();
+				textContentScrollView = null;
+			}
+
+			if (messageContentContainerView != null) {
+				messageContentContainerView.Dispose ();
+				messageContentContainerView = null;
 			}
 		}
 	}
