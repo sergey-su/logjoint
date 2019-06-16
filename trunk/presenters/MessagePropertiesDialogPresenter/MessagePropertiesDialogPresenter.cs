@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
-	public class Presenter : IPresenter, IDialogViewModel
+	public class Presenter : IPresenter, IDialogViewModel, IExtensionsRegistry
 	{
 		public Presenter(
 			IBookmarks bookmarks,
@@ -14,7 +14,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			LogViewer.IPresenter viewerPresenter,
 			IPresentersFacade navHandler,
 			IColorTheme theme,
-			IChangeNotification changeNotification
+			IChangeNotification parentChangeNotification,
+			Telemetry.ITelemetryCollector telemetryCollector
 		)
 		{
 			this.hlFilters = hlFilters;
@@ -22,7 +23,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
-			this.changeNotification = changeNotification;
+			this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(false);
 
 			this.getFocusedMessage = Selectors.Create(() => viewerPresenter.FocusedMessage,
 				message => message?.GetLogSource() == null ? null : message);
@@ -45,20 +46,53 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 						contentViewModes.Add(ContentViewMode.RawText);
 				}
 				return contentViewModes;
-			};
+			}
+			var getExtensionViewModes = Selectors.Create(
+				getFocusedMessage,
+				msg => ImmutableArray.CreateRange(extensions.Select(ext =>
+				{
+					if (msg == null)
+						return null;
+					try
+					{
+						var customPresenter = ext.CreateContentPresenter(new ContentPresenterParams
+						{
+							Message = msg,
+							ChangeNotification = changeNotification
+						});
+						if (customPresenter == null)
+							return null;
+						return new ContentViewMode
+						{
+							CustomPresenter = customPresenter,
+							Name = customPresenter.ContentViewModeName
+						};
+					}
+					catch (Exception e)
+					{
+						telemetryCollector.ReportException(e,
+							$"Extension {ext.GetType().Name} failed to create message content presenter");
+						return null;
+					}
+				}).Where(contentPresenter => contentPresenter != null))
+			);
 			this.getDialogData = Selectors.Create(
 				getFocusedMessage,
 				getBookmarkData,
 				getHlFilteringEnabled,
-				() => contentViewMode,
-				(message, bmk, hlEnabled, setContentViewMode) =>
+				getExtensionViewModes,
+				() => lastSetContentViewModeIndex,
+				(message, bmk, hlEnabled, extensionViewModes, setContentViewMode) =>
 			{
 				var (bookmarkedStatus, bookmarkAction) = bmk;
 				ILogSource ls = message?.GetLogSource();
 				var contentViewModes = getContentViewModes(message);
+				contentViewModes.AddRange(extensionViewModes);
 				int? effectiveContentViewMode =
 					contentViewModes.Count == 0 ? new int?() :
 					RangeUtils.PutInRange(0, contentViewModes.Count, setContentViewMode);
+				ContentViewMode contentViewMode = effectiveContentViewMode == null ? null :
+						contentViewModes[effectiveContentViewMode.Value];
 				return new DialogData()
 				{
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
@@ -79,8 +113,11 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 					ContentViewModes = ImmutableArray.CreateRange(contentViewModes.Select(m => m.Name)),
 					ContentViewModeIndex = effectiveContentViewMode,
-					TextValue = effectiveContentViewMode == null ? "" :
-						contentViewModes[effectiveContentViewMode.Value].TextGetter(message).Text.Value,
+					TextValue =
+						contentViewMode == null ? "" :
+						contentViewMode.TextGetter == null ? null :
+						contentViewMode.TextGetter(message).Text.Value,
+					CustomView = contentViewMode?.CustomPresenter?.View,
 
 					HighlightedCheckboxEnabled = hlEnabled
 				};
@@ -93,8 +130,13 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			{
 				propertiesForm = view.CreateDialog(this);
 			}
+			changeNotification.Active = true;
 			propertiesForm.Show();
 		}
+
+		IExtensionsRegistry IPresenter.ExtensionsRegistry => this;
+
+		IChangeNotification IDialogViewModel.ChangeNotification => changeNotification;
 
 		DialogData IDialogViewModel.Data
 		{
@@ -150,11 +192,26 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		void IDialogViewModel.OnContentViewModeChange(int value)
 		{
-			if (value != contentViewMode)
+			if (value != lastSetContentViewModeIndex)
 			{
-				contentViewMode = value;
+				lastSetContentViewModeIndex = value;
 				changeNotification.Post();
 			}
+		}
+
+		void IDialogViewModel.OnClosed()
+		{
+			changeNotification.Active = false;
+		}
+
+		void IExtensionsRegistry.Register(IExtension extension)
+		{
+			extensions.Add(extension);
+		}
+
+		void IExtensionsRegistry.Unregister(IExtension extension)
+		{
+			extensions.Remove(extension);
 		}
 
 		IDialog GetPropertiesForm()
@@ -169,6 +226,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		{
 			public string Name;
 			public MessageTextGetter TextGetter;
+			public IMessageContentPresenter CustomPresenter;
 
 			public static readonly ContentViewMode Summary = new ContentViewMode()
 			{
@@ -182,7 +240,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			};
 		};
 
-		readonly IChangeNotification changeNotification;
+		readonly IChainedChangeNotification changeNotification;
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
@@ -190,7 +248,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		readonly IPresentersFacade navHandler;
 		readonly Func<IMessage> getFocusedMessage;
 		readonly Func<DialogData> getDialogData;
-		int contentViewMode;
+		readonly HashSet<IExtension> extensions = new HashSet<IExtension>();
+		int lastSetContentViewModeIndex;
 		IDialog propertiesForm;
 		static readonly string noSelection = "<no selection>";
 	};

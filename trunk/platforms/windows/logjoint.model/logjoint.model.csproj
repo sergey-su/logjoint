@@ -232,6 +232,9 @@
     <Compile Include="..\..\..\model\generic\drawing\platform-specific\win\MatrixImpl.cs">
       <Link>generic\drawing\MatrixImpl.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\EditDistance.cs">
+      <Link>generic\EditDistance.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\EncodingUtils.cs">
       <Link>generic\EncodingUtils.cs</Link>
     </Compile>
@@ -273,9 +276,6 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\ScopedGuard.cs">
       <Link>generic\ScopedGuard.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\Selector.cs">
-      <Link>generic\Selector.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\SemicolonSeparatedList.cs">
       <Link>generic\SemicolonSeparatedList.cs</Link>

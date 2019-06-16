@@ -1,4 +1,4 @@
-<format>
+﻿<format>
   <xml max-message-size="768">
     <sample-log><![CDATA[<packet>
   <proto name="geninfo" pos="0" showname="General information" size="54">
@@ -129,7 +129,7 @@
           </xsl:for-each>
         </m>
       </xsl:template>
-      <xsl:template match="field[@showname or @show]">
+      <xsl:template match="field[@showname or @show][not(@hide) or @hide != 'yes']">
         <xsl:param name="pad" />
         <xsl:value-of select="$pad" />
         <xsl:choose>

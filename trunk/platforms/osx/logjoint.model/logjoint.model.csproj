@@ -767,9 +767,6 @@
     <Compile Include="..\..\..\model\change-notification\ChangeNotification.cs">
       <Link>change-notification\ChangeNotification.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\Selector.cs">
-      <Link>generic\Selector.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\manager\states\ErrorState.cs">
       <Link>postprocessing\manager\states\ErrorState.cs</Link>
     </Compile>
@@ -1084,6 +1081,9 @@
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\UntarStep.cs">
       <Link>preprocessing\UntarStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\EditDistance.cs">
+      <Link>generic\EditDistance.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

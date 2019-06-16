@@ -648,6 +648,7 @@
     <Compile Include="ui\CommonControls\NSCustomTableRowView\CustomTableRowView.cs" />
     <Compile Include="ui\CommonControls\NSDragDropTextField\NSDragDropTextField.cs" />
     <Compile Include="extensibility\Application.cs" />
+    <Compile Include="ui\CommonControls\Reactive\NSOutlineViewController.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

@@ -25,6 +25,7 @@
     <UseSGen>false</UseSGen>
     <HttpClientHandler>HttpClientHandler</HttpClientHandler>
     <LinkMode>None</LinkMode>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -69,6 +70,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\tests\EditDistanceTests.cs">
+      <Link>EditDistanceTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\tests\EnumerableAsync\EnumerableAsyncTests.cs">
       <Link>EnumerableAsync\EnumerableAsyncTests.cs</Link>
     </Compile>

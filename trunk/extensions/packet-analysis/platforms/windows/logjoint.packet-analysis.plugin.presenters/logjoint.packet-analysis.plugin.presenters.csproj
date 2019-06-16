@@ -48,6 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\presentation\MessagePropertiesDialogContentPresenter\Interfaces.cs">
+      <Link>MessagePropertiesDialogContentPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presentation\MessagePropertiesDialogContentPresenter\MessagePropertiesDialogContentPresenter.cs">
+      <Link>MessagePropertiesDialogContentPresenter\MessagePropertiesDialogContentPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presentation\NewLogLogSourcePage\Interfaces.cs">
       <Link>NewLogLogSourcePage\Interfaces.cs</Link>
     </Compile>

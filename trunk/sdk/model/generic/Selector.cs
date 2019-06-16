@@ -178,8 +178,9 @@ namespace LogJoint
 				if (firstUpdate || !keyComparer.Equals(a1, prevA1))
 				{
 					firstUpdate = false;
+					var savePrevA1 = prevA1;
 					prevA1 = a1;
-					update(a1, prevA1);
+					update(a1, savePrevA1);
 				}
 			};
 		}

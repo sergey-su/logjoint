@@ -22,6 +22,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseSGen>false</UseSGen>
+    <AOTMode>None</AOTMode>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -29,6 +31,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseSGen>false</UseSGen>
+    <AOTMode>None</AOTMode>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -41,6 +45,9 @@
     </Reference>
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -62,12 +69,17 @@
     <Compile Include="..\..\..\presenters\tests\LogViewerPresenter\ExtensionsTests.cs">
       <Link>LogViewerPresenter\ExtensionsTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\tests\Common\Reactive\TreeTests.cs">
+      <Link>Common\Reactive\TreeTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="LogViewerPresenter\" />
     <Folder Include="QuickSearchTextBoxPresenter\" />
     <Folder Include="TimelineVisualizerPresenter\" />
     <Folder Include="TagsListPresenter\" />
+    <Folder Include="Common\" />
+    <Folder Include="Common\Reactive\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
@@ -77,10 +89,6 @@
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
-      <Name>logjoint.analytics</Name>
     </ProjectReference>
     <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>

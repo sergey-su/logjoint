@@ -235,9 +235,6 @@
       <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\..\..\presenters\Common\IClipboardAccess.cs">
-      <Link>Common\IClipboardAccess.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\AboutDialogPresenter\AboutDialogPresenter.cs">
       <Link>AboutDialogPresenter\AboutDialogPresenter.cs</Link>
     </Compile>
@@ -571,6 +568,9 @@
     <Compile Include="..\..\..\presenters\Extensibility\Presentation.cs">
       <Link>Extensibility\Presentation.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\Reactive\Tree.cs">
+      <Link>Common\Reactive\Tree.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -626,6 +626,7 @@
     <Folder Include="LogViewerPresenter\Navigation\" />
     <Folder Include="Common\Theming\" />
     <Folder Include="Extensibility\" />
+    <Folder Include="Common\Reactive\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

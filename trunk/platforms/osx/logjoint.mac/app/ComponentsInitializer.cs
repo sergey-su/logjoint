@@ -602,11 +602,12 @@ namespace LogJoint.UI
 				UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter =
 					new UI.Presenters.MessagePropertiesDialog.Presenter (
 						bookmarks, filtersManager.HighlightFilters,
-						new LogJoint.UI.MessagePropertiesDialogView(changeNotification),
+						new LogJoint.UI.MessagePropertiesDialogView(),
 						loadedMessagesPresenter.LogViewerPresenter,
 						navHandler,
 						colorTheme,
-						changeNotification);
+						changeNotification,
+						telemetryCollector);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					logSourcesManager,
@@ -716,8 +717,10 @@ namespace LogJoint.UI
 						mainFormPresenter,
 						postprocessingTabPagePresenter,
 						postprocessingViewsFactory,
-						colorTheme
-					)
+						colorTheme,
+						messagePropertiesDialogPresenter
+					),
+					telemetryCollector
 				);
 
 				postprocessingViewsFactory.Init(

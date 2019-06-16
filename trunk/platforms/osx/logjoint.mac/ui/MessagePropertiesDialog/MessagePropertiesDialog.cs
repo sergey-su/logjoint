@@ -9,6 +9,8 @@ namespace LogJoint.UI
 {
 	public partial class MessagePropertiesDialog : AppKit.NSWindow
 	{
+		internal MessagePropertiesDialogAdapter owner;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -32,6 +34,12 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+		[Export ("cancelOperation:")]
+		void OnCancelOp (NSObject theEvent)
+		{
+			owner?.OnCancelOp ();
+		}
 	}
 }
 
