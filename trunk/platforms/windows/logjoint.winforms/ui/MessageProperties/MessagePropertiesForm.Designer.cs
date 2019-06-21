@@ -37,6 +37,11 @@ namespace LogJoint
 			this.severityTextBox = new System.Windows.Forms.TextBox();
 			this.threadLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.contentModesFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
+			this.contentModeButton1 = new System.Windows.Forms.RadioButton();
+			this.contentModeButton2 = new System.Windows.Forms.RadioButton();
+			this.contentModeButton3 = new System.Windows.Forms.RadioButton();
+			this.contentLabel = new System.Windows.Forms.Label();
 			this.bookmarkValuePanel = new System.Windows.Forms.FlowLayoutPanel();
 			this.bookmarkedStatusLabel = new System.Windows.Forms.Label();
 			this.bookmarkActionLinkLabel = new System.Windows.Forms.LinkLabel();
@@ -48,19 +53,20 @@ namespace LogJoint
 			this.nextMessageButton = new System.Windows.Forms.Button();
 			this.nextHighlightedCheckBox = new System.Windows.Forms.CheckBox();
 			this.panel1.SuspendLayout();
+			this.contentModesFlowLayoutPanel.SuspendLayout();
 			this.bookmarkValuePanel.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// tableLayoutPanel1
 			// 
-			this.tableLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tableLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tableLayoutPanel1.ColumnCount = 2;
 			this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
 			this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
 			this.tableLayoutPanel1.Location = new System.Drawing.Point(8, 15);
-			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
 			this.tableLayoutPanel1.Name = "tableLayoutPanel1";
 			this.tableLayoutPanel1.RowCount = 1;
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -103,7 +109,7 @@ namespace LogJoint
 			// messagesTextBox
 			// 
 			this.messagesTextBox.Location = new System.Drawing.Point(4, 4);
-			this.messagesTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.messagesTextBox.Margin = new System.Windows.Forms.Padding(4);
 			this.messagesTextBox.Multiline = true;
 			this.messagesTextBox.Name = "messagesTextBox";
 			this.messagesTextBox.ReadOnly = true;
@@ -115,7 +121,7 @@ namespace LogJoint
 			// 
 			this.timeTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
 			this.timeTextBox.Location = new System.Drawing.Point(130, 14);
-			this.timeTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.timeTextBox.Margin = new System.Windows.Forms.Padding(4);
 			this.timeTextBox.Name = "timeTextBox";
 			this.timeTextBox.ReadOnly = true;
 			this.timeTextBox.Size = new System.Drawing.Size(125, 17);
@@ -147,6 +153,8 @@ namespace LogJoint
 			// 
 			// panel1
 			// 
+			this.panel1.Controls.Add(this.contentModesFlowLayoutPanel);
+			this.panel1.Controls.Add(this.contentLabel);
 			this.panel1.Controls.Add(this.bookmarkValuePanel);
 			this.panel1.Controls.Add(this.bookmarkedLabel);
 			this.panel1.Controls.Add(this.messagesTextBox);
@@ -159,11 +167,74 @@ namespace LogJoint
 			this.panel1.Controls.Add(this.timeTextBox);
 			this.panel1.Controls.Add(this.threadLabel);
 			this.panel1.Location = new System.Drawing.Point(30, 128);
-			this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4);
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(410, 252);
 			this.panel1.TabIndex = 7;
 			this.panel1.Visible = false;
+			// 
+			// contentModesFlowLayoutPanel
+			// 
+			this.contentModesFlowLayoutPanel.AutoSize = true;
+			this.contentModesFlowLayoutPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.contentModesFlowLayoutPanel.Controls.Add(this.contentModeButton1);
+			this.contentModesFlowLayoutPanel.Controls.Add(this.contentModeButton2);
+			this.contentModesFlowLayoutPanel.Controls.Add(this.contentModeButton3);
+			this.contentModesFlowLayoutPanel.Location = new System.Drawing.Point(144, 143);
+			this.contentModesFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(0);
+			this.contentModesFlowLayoutPanel.Name = "contentModesFlowLayoutPanel";
+			this.contentModesFlowLayoutPanel.Size = new System.Drawing.Size(183, 27);
+			this.contentModesFlowLayoutPanel.TabIndex = 11;
+			// 
+			// contentModeButton1
+			// 
+			this.contentModeButton1.Appearance = System.Windows.Forms.Appearance.Button;
+			this.contentModeButton1.AutoSize = true;
+			this.contentModeButton1.Location = new System.Drawing.Point(0, 0);
+			this.contentModeButton1.Margin = new System.Windows.Forms.Padding(0);
+			this.contentModeButton1.Name = "contentModeButton1";
+			this.contentModeButton1.Size = new System.Drawing.Size(61, 27);
+			this.contentModeButton1.TabIndex = 12;
+			this.contentModeButton1.TabStop = true;
+			this.contentModeButton1.Text = "mode1";
+			this.contentModeButton1.UseVisualStyleBackColor = true;
+			// 
+			// contentModeButton2
+			// 
+			this.contentModeButton2.Appearance = System.Windows.Forms.Appearance.Button;
+			this.contentModeButton2.AutoSize = true;
+			this.contentModeButton2.Location = new System.Drawing.Point(61, 0);
+			this.contentModeButton2.Margin = new System.Windows.Forms.Padding(0);
+			this.contentModeButton2.Name = "contentModeButton2";
+			this.contentModeButton2.Size = new System.Drawing.Size(61, 27);
+			this.contentModeButton2.TabIndex = 13;
+			this.contentModeButton2.TabStop = true;
+			this.contentModeButton2.Text = "mode2";
+			this.contentModeButton2.UseVisualStyleBackColor = true;
+			// 
+			// contentModeButton3
+			// 
+			this.contentModeButton3.Appearance = System.Windows.Forms.Appearance.Button;
+			this.contentModeButton3.AutoSize = true;
+			this.contentModeButton3.Location = new System.Drawing.Point(122, 0);
+			this.contentModeButton3.Margin = new System.Windows.Forms.Padding(0);
+			this.contentModeButton3.Name = "contentModeButton3";
+			this.contentModeButton3.Size = new System.Drawing.Size(61, 27);
+			this.contentModeButton3.TabIndex = 14;
+			this.contentModeButton3.TabStop = true;
+			this.contentModeButton3.Text = "mode3";
+			this.contentModeButton3.UseVisualStyleBackColor = true;
+			// 
+			// contentLabel
+			// 
+			this.contentLabel.AutoSize = true;
+			this.contentLabel.Location = new System.Drawing.Point(81, 143);
+			this.contentLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.contentLabel.Name = "contentLabel";
+			this.contentLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.contentLabel.Size = new System.Drawing.Size(63, 25);
+			this.contentLabel.TabIndex = 10;
+			this.contentLabel.Text = "Content:";
 			// 
 			// bookmarkValuePanel
 			// 
@@ -239,7 +310,7 @@ namespace LogJoint
 			this.closeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
 			this.closeButton.Location = new System.Drawing.Point(419, 402);
-			this.closeButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.closeButton.Margin = new System.Windows.Forms.Padding(4);
 			this.closeButton.Name = "closeButton";
 			this.closeButton.Size = new System.Drawing.Size(94, 29);
 			this.closeButton.TabIndex = 8;
@@ -251,7 +322,7 @@ namespace LogJoint
 			// 
 			this.prevMessageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.prevMessageButton.Location = new System.Drawing.Point(8, 402);
-			this.prevMessageButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.prevMessageButton.Margin = new System.Windows.Forms.Padding(4);
 			this.prevMessageButton.Name = "prevMessageButton";
 			this.prevMessageButton.Size = new System.Drawing.Size(94, 29);
 			this.prevMessageButton.TabIndex = 9;
@@ -263,7 +334,7 @@ namespace LogJoint
 			// 
 			this.nextMessageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.nextMessageButton.Location = new System.Drawing.Point(110, 402);
-			this.nextMessageButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.nextMessageButton.Margin = new System.Windows.Forms.Padding(4);
 			this.nextMessageButton.Name = "nextMessageButton";
 			this.nextMessageButton.Size = new System.Drawing.Size(94, 29);
 			this.nextMessageButton.TabIndex = 10;
@@ -276,7 +347,7 @@ namespace LogJoint
 			this.nextHighlightedCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.nextHighlightedCheckBox.AutoSize = true;
 			this.nextHighlightedCheckBox.Location = new System.Drawing.Point(209, 408);
-			this.nextHighlightedCheckBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.nextHighlightedCheckBox.Margin = new System.Windows.Forms.Padding(4);
 			this.nextHighlightedCheckBox.Name = "nextHighlightedCheckBox";
 			this.nextHighlightedCheckBox.Size = new System.Drawing.Size(129, 21);
 			this.nextHighlightedCheckBox.TabIndex = 11;
@@ -298,7 +369,7 @@ namespace LogJoint
 			this.Controls.Add(this.tableLayoutPanel1);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
-			this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.Margin = new System.Windows.Forms.Padding(4);
 			this.MinimumSize = new System.Drawing.Size(373, 368);
 			this.Name = "MessagePropertiesForm";
 			this.ShowInTaskbar = false;
@@ -307,6 +378,8 @@ namespace LogJoint
 			this.Load += new System.EventHandler(this.MessagePropertiesForm_Load);
 			this.panel1.ResumeLayout(false);
 			this.panel1.PerformLayout();
+			this.contentModesFlowLayoutPanel.ResumeLayout(false);
+			this.contentModesFlowLayoutPanel.PerformLayout();
 			this.bookmarkValuePanel.ResumeLayout(false);
 			this.bookmarkValuePanel.PerformLayout();
 			this.ResumeLayout(false);
@@ -337,5 +410,10 @@ namespace LogJoint
 		private System.Windows.Forms.Button prevMessageButton;
 		private System.Windows.Forms.Button nextMessageButton;
 		private System.Windows.Forms.CheckBox nextHighlightedCheckBox;
+		private System.Windows.Forms.Label contentLabel;
+		private System.Windows.Forms.FlowLayoutPanel contentModesFlowLayoutPanel;
+		private System.Windows.Forms.RadioButton contentModeButton1;
+		private System.Windows.Forms.RadioButton contentModeButton2;
+		private System.Windows.Forms.RadioButton contentModeButton3;
 	}
 }

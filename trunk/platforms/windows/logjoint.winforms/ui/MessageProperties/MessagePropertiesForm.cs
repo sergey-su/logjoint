@@ -12,17 +12,25 @@ namespace LogJoint
 	public partial class MessagePropertiesForm : Form, IDialog
 	{
 		IDialogViewModel viewModel;
+		RadioButton[] contentModeButtons;
 
 		public MessagePropertiesForm(IDialogViewModel host, IChangeNotification changeNotification)
 		{
 			this.viewModel = host;
 			InitializeComponent();
+			this.contentModeButtons = new[] { contentModeButton1, contentModeButton2, contentModeButton3 };
 			InitializeTable(CreateRows());
 
 			var tableUpdater = Updaters.Create(() => viewModel.Data, UpdateView);
 			changeNotification.CreateSubscription(tableUpdater);
 
 			FormClosed += (s, e) => host.OnClosed();
+
+			for (var i = 0; i < contentModeButtons.Length; ++i)
+			{
+				var scopedIdx = i;
+				contentModeButtons[i].Click += (s, e) => viewModel?.OnContentViewModeChange(scopedIdx);
+			}
 		}
 
 		void IDialog.Show()
@@ -94,6 +102,14 @@ namespace LogJoint
 			nextHighlightedCheckBox.Enabled = hlEnabled;
 			if (!hlEnabled)
 				nextHighlightedCheckBox.Checked = false;
+
+			for (int i = 0; i < contentModeButtons.Length; ++i)
+			{
+				var visible = i < viewData.ContentViewModes.Count;
+				contentModeButtons[i].Visible = visible;
+				contentModeButtons[i].Text = visible ? viewData.ContentViewModes[i] : "";
+				contentModeButtons[i].Checked = visible && i == viewData.ContentViewModeIndex;
+			}
 		}
 
 		List<RowInfo> CreateRows()
@@ -105,6 +121,7 @@ namespace LogJoint
 			rows.Add(new RowInfo(logSourceLabel, logSourceLinkLabel));
 			rows.Add(new RowInfo(bookmarkedLabel, bookmarkValuePanel));
 			rows.Add(new RowInfo(severityLabel, severityTextBox));
+			rows.Add(new RowInfo(contentLabel, contentModesFlowLayoutPanel));
 			rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
 
 			return rows;
