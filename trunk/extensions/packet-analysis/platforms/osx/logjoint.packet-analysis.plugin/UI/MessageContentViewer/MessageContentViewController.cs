@@ -4,47 +4,22 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog;
+using LogJoint.UI;
 
 namespace LogJoint.PacketAnalysis.UI
 {
 	public partial class MessageContentViewController : AppKit.NSViewController, IView
 	{
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public MessageContentViewController(IntPtr handle) : base(handle)
-		{
-			Initialize();
-		}
-
-		// Called when created directly from a XIB file
-		[Export("initWithCoder:")]
-		public MessageContentViewController(NSCoder coder) : base(coder)
-		{
-			Initialize();
-		}
+		private readonly LogJoint.UI.Mac.IView ljView;
+		private LogJoint.UI.Reactive.INSOutlineViewController treeController;
 
 		// Call to load from the XIB/NIB file
-		public MessageContentViewController() : base("MessageContentView", NSBundle.MainBundle)
+		public MessageContentViewController(LogJoint.UI.Mac.IView ljView) : base("MessageContentView", NSBundle.MainBundle)
 		{
-			Initialize();
+			this.ljView = ljView;
 		}
 
-		// Shared initialization code
-		void Initialize()
-		{
-		}
-
-		#endregion
-
-		//strongly typed view accessor
-		public new MessageContentView View
-		{
-			get
-			{
-				return (MessageContentView)base.View;
-			}
-		}
+		public new MessageContentView View => (MessageContentView)base.View;
 
 		object IView.OSView => View;
 
@@ -52,32 +27,17 @@ namespace LogJoint.PacketAnalysis.UI
 		{
 			View.GetHashCode();
 
-			var @delegate = new TreeViewDelegate { viewModel = viewModel };
-			treeView.Delegate = @delegate;
+			treeController = ljView.Reactive.CreateOutlineViewController(treeView);
+			treeController.OnExpand = n => viewModel.OnExpand((IViewTreeNode)n);
+			treeController.OnCollapse = n => viewModel.OnCollapse((IViewTreeNode)n);
+			treeController.OnSelect = n => viewModel.OnSelect((IViewTreeNode)n.FirstOrDefault());
+			treeController.OnView = (column, n) => CreateTreeNodeView((IViewTreeNode)n);
 
 			var updateTree = Updaters.Create(
 				() => viewModel.Root,
-				root =>
-				{
-					@delegate.updating = true;
-					try
-					{
-						var rootNode = new Node(root);
-						treeView.DataSource = new TreeDataSource { root = rootNode };
-						void ApplyNodeState(Node node)
-						{
-							if (node.Reference.IsExpanded)
-								treeView.ExpandItem(node, expandChildren: false);
-							if (node.Reference.IsSelected)
-								treeView.SelectRow(treeView.RowForItem(node), byExtendingSelection: false);
-							node.Children.ForEach(ApplyNodeState);
-						}
-						ApplyNodeState(rootNode);
-					}
-					finally
-					{
-						@delegate.updating = false;
-					}
+				root => {
+					treeController.Update(root);
+					AutoSizeColumn(treeView, 0);
 				}
 			);
 
@@ -85,86 +45,35 @@ namespace LogJoint.PacketAnalysis.UI
 			{
 				updateTree();
 			});
+
+			View.onCopy = viewModel.OnCopy;
 		}
 
-		class TreeDataSource : NSOutlineViewDataSource
+		NSView CreateTreeNodeView(IViewTreeNode node)
 		{
-			public Node root;
-
-			public override nint GetChildrenCount(NSOutlineView outlineView, NSObject item)
+			var view = (NSTextField)treeView.MakeView("view", this);
+			if (view == null)
 			{
-				return GetNode(item).Children.Count;
+				view = NSTextField.CreateLabel("");
+				view.Font = NSFont.SystemFontOfSize(NSFont.SmallSystemFontSize);
 			}
+			view.StringValue = node.Text;
+			return view;
+		}
 
-			public override NSObject GetChild(NSOutlineView outlineView, nint childIndex, NSObject item)
-			{
-				return GetNode(item).Children[(int)childIndex];
-			}
-
-			public override bool ItemExpandable(NSOutlineView outlineView, NSObject item)
-			{
-				return GetNode(item).Children.Count > 0;
-			}
-
-			Node GetNode(NSObject item)
-			{
-				return item == null ? root : (Node)item; ;
-			}
-		};
-
-		class Node : NSObject
+		public static void AutoSizeColumn(NSTableView table, int columnIdx)
 		{
-			public IViewTreeNode Reference { get; private set; }
-			public List<Node> Children { get; private set; }
-
-			public Node(IViewTreeNode n)
+			nfloat width = 0;
+			for (nint rowIdx = 0; rowIdx < table.RowCount; ++rowIdx)
 			{
-				Reference = n ?? throw new ArgumentNullException();
-				Children = n.Children.Select(c => new Node(c)).ToList();
-			}
-		};
-
-		class TreeViewDelegate : NSOutlineViewDelegate
-		{
-			public IViewModel viewModel;
-			public bool updating;
-
-			public override NSView GetView(NSOutlineView outlineView,
-				NSTableColumn tableColumn, NSObject item)
-			{
-				NSTextField view = (NSTextField)outlineView.MakeView("view", this);
+				var view = table.GetView(columnIdx, rowIdx, makeIfNecessary: true);
 				if (view == null)
-				{
-					view = NSTextField.CreateLabel("");
-					view.Font = NSFont.SystemFontOfSize(NSFont.SmallSystemFontSize); // todo: monospace?
-				}
-				view.StringValue = ((Node)item).Reference.Text;
-				return view;
+					continue;
+				var w = view.IntrinsicContentSize.Width;
+				if (w > width)
+					width = w;
 			}
-
-			public override bool ShouldExpandItem(NSOutlineView outlineView, NSObject item)
-			{
-				if (updating)
-					return true;
-				viewModel.OnExpand((item as Node)?.Reference);
-				return false;
-			}
-
-			public override bool ShouldCollapseItem(NSOutlineView outlineView, NSObject item)
-			{
-				if (updating)
-					return true;
-				viewModel.OnCollapse((item as Node)?.Reference);
-				return false;
-			}
-
-			public override bool ShouldSelectItem(NSOutlineView outlineView, NSObject item)
-			{
-				if (updating)
-					return true;
-				viewModel.OnSelect((item as Node)?.Reference);
-				return true;
-			}
-		};
+			table.TableColumns()[columnIdx].Width = width;
+		}
 	}
 }

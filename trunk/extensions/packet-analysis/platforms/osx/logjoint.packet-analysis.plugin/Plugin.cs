@@ -8,7 +8,7 @@ namespace LogJoint
 		{
 			PluginInitializer.Init(app, 
 				new LogJoint.PacketAnalysis.UI.WiresharkPageAdapter(),
-				() => new LogJoint.PacketAnalysis.UI.MessageContentViewController()
+				() => new LogJoint.PacketAnalysis.UI.MessageContentViewController(app.View)
 			);
 		}
 	}

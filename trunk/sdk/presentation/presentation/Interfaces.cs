@@ -6,5 +6,6 @@ namespace LogJoint.UI.Presenters
 		Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; }
 		IColorTheme Theme { get; }
 		MessagePropertiesDialog.IPresenter MessagePropertiesDialog { get; }
+		IClipboardAccess ClipboardAccess { get; }
 	}
 }

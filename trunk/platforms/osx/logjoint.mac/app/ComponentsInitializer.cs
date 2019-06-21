@@ -719,7 +719,8 @@ namespace LogJoint.UI
 						postprocessingViewsFactory,
 						colorTheme,
 						messagePropertiesDialogPresenter
-					)
+					),
+					telemetryCollector
 				);
 
 				postprocessingViewsFactory.Init(

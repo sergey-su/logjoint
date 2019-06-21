@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("logjoint.analytics")]
 [assembly: InternalsVisibleTo("logjoint")]
 [assembly: InternalsVisibleTo("logjoint.presenters")]
+[assembly: InternalsVisibleTo("logjoint.presentation.sdk")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("2.0.0.0")]
 [assembly: AssemblyFileVersion("2.0.0.0")]

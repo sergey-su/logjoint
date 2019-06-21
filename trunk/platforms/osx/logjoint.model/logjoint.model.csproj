@@ -1082,6 +1082,9 @@
     <Compile Include="..\..\..\model\preprocessing\UntarStep.cs">
       <Link>preprocessing\UntarStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\EditDistance.cs">
+      <Link>generic\EditDistance.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

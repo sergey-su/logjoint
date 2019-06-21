@@ -21,13 +21,11 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 		void OnExpand(IViewTreeNode node);
 		void OnCollapse(IViewTreeNode node);
 		void OnSelect(IViewTreeNode node);
+		void OnCopy();
 	};
 
-	public interface IViewTreeNode
+	public interface IViewTreeNode: LogJoint.UI.Presenters.Reactive.ITreeNode
 	{
 		string Text { get; }
-		bool IsSelected { get; }
-		IReadOnlyList<IViewTreeNode> Children { get; }
-		bool IsExpanded { get; }
 	};
 };

@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		public IChangeNotification ChangeNotification { get; internal set; }
 	};
 
-	public interface IMessageContentPresenter // todo: disposable
+	public interface IMessageContentPresenter
 	{
 		string ContentViewModeName { get; }
 		object View { get; }

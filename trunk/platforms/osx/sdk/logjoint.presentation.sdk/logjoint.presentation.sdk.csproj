@@ -99,6 +99,12 @@
     <Compile Include="..\..\..\..\sdk\presentation\MessagePropertiesDialog\Interfaces.cs">
       <Link>MessagePropertiesDialog\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Common\Reactive\Tree.cs">
+      <Link>Common\Reactive\Tree.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Common\IClipboardAccess.cs">
+      <Link>Common\IClipboardAccess.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
@@ -112,6 +118,7 @@
     <Folder Include="Postprocessing\StateInspectorVisualizerPresenter\" />
     <Folder Include="Postprocessing\TimeSeriesVisualizerPresenter\" />
     <Folder Include="..\..\bin\debug\MessagePropertiesDialog\" />
+    <Folder Include="..\..\bin\debug\Common\Reactive\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model.sdk\logjoint.model.sdk.csproj">

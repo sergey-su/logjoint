@@ -42,7 +42,8 @@ namespace LogJoint.PacketAnalysis
 				new MessagePropertiesDialogExtension
 				{
 					postprocessorsRegistry = postprocessorsRegistry,
-					viewFactory = messageContentViewFactory
+					viewFactory = messageContentViewFactory,
+					clipboardAccess = app.Presentation.ClipboardAccess
 				}
 			);
 		}
@@ -51,6 +52,7 @@ namespace LogJoint.PacketAnalysis
 		{
 			internal IPostprocessorsRegistry postprocessorsRegistry;
 			internal Func<UI.Presenters.MessagePropertiesDialog.IView> viewFactory;
+			internal LogJoint.UI.Presenters.IClipboardAccess clipboardAccess;
 			private UI.Presenters.MessagePropertiesDialog.IPresenter presenter;
 
 			MPD.IMessageContentPresenter MPD.IExtension.CreateContentPresenter(MPD.ContentPresenterParams @params)
@@ -63,7 +65,8 @@ namespace LogJoint.PacketAnalysis
 					{
 						presenter = new UI.Presenters.MessagePropertiesDialog.Presenter(
 							viewFactory(),
-							@params.ChangeNotification
+							@params.ChangeNotification,
+							clipboardAccess
 						);
 					}
 					result = presenter;

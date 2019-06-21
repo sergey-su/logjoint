@@ -8,6 +8,8 @@ namespace LogJoint.PacketAnalysis.UI
 {
 	public partial class MessageContentView : AppKit.NSView
 	{
+		public Action onCopy;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -27,6 +29,9 @@ namespace LogJoint.PacketAnalysis.UI
 		void Initialize()
 		{
 		}
+
+		[Export("copy:")]
+		public void OnCopy(NSObject _) => onCopy?.Invoke();
 
 		#endregion
 	}

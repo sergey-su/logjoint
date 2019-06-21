@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using LogJoint.UI.Presenters;
 using LogJoint.UI.Presenters.MessagePropertiesDialog;
 using LogJoint.Wireshark.Dpml;
 
@@ -13,6 +15,7 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 	{
 		readonly IView view;
 		readonly IChangeNotification changeNotification;
+		readonly IClipboardAccess clipboardAccess;
 		readonly Func<Node> getRoot;
 		ImmutableHashSet<string> lastSetExpanded = ImmutableHashSet<string>.Empty;
 		string lastSetSelected = "";
@@ -20,11 +23,13 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 
 		public Presenter(
 			IView view,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			IClipboardAccess clipboardAccess
 		)
 		{
 			this.view = view;
 			this.changeNotification = changeNotification;
+			this.clipboardAccess = clipboardAccess;
 
 			this.getRoot = Selectors.Create(
 				() => message,
@@ -43,18 +48,24 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 					}
 					packetElement = packetElement ?? new XElement("packet");
 
-					Node toNode(XElement element, string parentId, bool isHidden)
+					Node toNode(XElement element, string parentId, bool isHidden, HashSet<string> usedKeys)
 					{
-						// todo: hide attr
-						var show = element.Attribute("showname")?.Value;
+						// todo: handle "response in" by doing binary search inside the file
+						var show =
+							element.Attribute("showname")?.Value ?? element.Attribute("show")?.Value;
 						var name = element.Attribute("name")?.Value;
-						if (show == null || name == null)
+						var hide = element.Attribute("hide")?.Value;
+						if (show == null || name == null || hide == "yes")
 							return null;
-						var id = $"{parentId}/{name}";
+						var key = name;
+						while (!usedKeys.Add(key))
+							key += "+";
+						var id = $"{parentId}/{key}";
 						var isExpanded = setExpanded.Contains(id);
 						return new Node
 						{
 							Text = show,
+							Key = key,
 							Id = id,
 							Children = toNodes(element.Elements(), id, isHidden || !isExpanded),
 							IsExpanded = isExpanded,
@@ -65,14 +76,16 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 					ImmutableArray<Node> toNodes(IEnumerable<XElement> elements,
 						string parentId, bool isHidden)
 					{
+						var usedKeys = new HashSet<string>();
 						return ImmutableArray.CreateRange(elements.Select(
-							e => toNode(e, parentId, isHidden)).Where(n => n != null));
+							e => toNode(e, parentId, isHidden, usedKeys)).Where(n => n != null));
 					}
 
 					return new Node
 					{
 						Text = "",
 						Id = "",
+						Key = "",
 						IsExpanded = true,
 						Children = toNodes(
 							packetElement.Elements("proto")
@@ -98,7 +111,7 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 		{
 			if (node is Node impl)
 			{
-				lastSetExpanded = lastSetExpanded.Add(impl.Id); // todo: sanitize the set
+				lastSetExpanded = lastSetExpanded.Add(impl.Id);
 				changeNotification.Post();
 			}
 		}
@@ -121,6 +134,24 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 			}
 		}
 
+		void IViewModel.OnCopy()
+		{
+			var textBuilder = new StringBuilder();
+			void Traverse(Node node, string outerCopyIndent)
+			{
+				var copyIndent =
+					outerCopyIndent != null ? outerCopyIndent + "    " :
+					node.IsSelected ? "" : null;
+				if (copyIndent != null)
+					textBuilder.AppendLine($"{copyIndent}{node.Text}");
+				foreach (var n in node.Children)
+					Traverse((Node)n, copyIndent);
+			}
+			Traverse(getRoot(), null);
+			var text = textBuilder.ToString();
+			clipboardAccess.SetClipboard(text, $"<pre>{text}</pre>");
+		}
+
 		void IPresenter.SetMessage(IMessage message)
 		{
 			this.message = message;
@@ -129,15 +160,19 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 
 		class Node : IViewTreeNode
 		{
+			public string Key { get; set; }
+
 			public string Text { get; internal set; }
 
 			public bool IsSelected { get; internal set; }
 
-			public IReadOnlyList<IViewTreeNode> Children { get; internal set; }
+			public IReadOnlyList<LogJoint.UI.Presenters.Reactive.ITreeNode> Children { get; internal set; }
 
 			public bool IsExpanded { get; internal set; }
 
 			internal string Id { get; set; }
+
+			public override string ToString() => Text;
 		};
 	};
 };
