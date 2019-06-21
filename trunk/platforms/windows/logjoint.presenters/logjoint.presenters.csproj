@@ -91,9 +91,6 @@
     <Compile Include="..\..\..\presenters\Common\IAlertPopup.cs">
       <Link>Common\IAlertPopup.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\Common\IClipboardAccess.cs">
-      <Link>Common\IClipboardAccess.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\Common\IFileDialogs.cs">
       <Link>Common\IFileDialogs.cs</Link>
     </Compile>
@@ -108,6 +105,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\Common\PromptDialog.cs">
       <Link>Common\PromptDialog.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\Reactive\Tree.cs">
+      <Link>Common\Reactive\Tree.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\Common\ResizingEventArgs.cs">
       <Link>Common\ResizingEventArgs.cs</Link>

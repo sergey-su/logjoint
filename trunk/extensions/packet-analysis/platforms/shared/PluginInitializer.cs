@@ -38,14 +38,17 @@ namespace LogJoint.PacketAnalysis
 				)
 			);
 
-			app.Presentation.MessagePropertiesDialog.ExtensionsRegistry.Register(
-				new MessagePropertiesDialogExtension
-				{
-					postprocessorsRegistry = postprocessorsRegistry,
-					viewFactory = messageContentViewFactory,
-					clipboardAccess = app.Presentation.ClipboardAccess
-				}
-			);
+			if (messageContentViewFactory != null)
+			{
+				app.Presentation.MessagePropertiesDialog.ExtensionsRegistry.Register(
+					new MessagePropertiesDialogExtension
+					{
+						postprocessorsRegistry = postprocessorsRegistry,
+						viewFactory = messageContentViewFactory,
+						clipboardAccess = app.Presentation.ClipboardAccess
+					}
+				);
+			}
 		}
 
 		class MessagePropertiesDialogExtension : MPD.IExtension

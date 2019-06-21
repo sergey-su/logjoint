@@ -107,6 +107,9 @@
     <Compile Include="..\..\..\..\sdk\model\generic\RangeUtils.cs">
       <Link>generic\RangeUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\generic\Selector.cs">
+      <Link>generic\Selector.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\StringSlice.cs">
       <Link>generic\StringSlice.cs</Link>
     </Compile>

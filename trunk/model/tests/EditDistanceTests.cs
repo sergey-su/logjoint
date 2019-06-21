@@ -14,7 +14,7 @@ namespace LogJoint.Tests
 				s2.ToList(),
 				cost
 			);
-			string actual = $"{dist} {string.Join(',', edits.Select(e => e))}";
+			string actual = $"{dist} {string.Join(",", edits.Select(e => e))}";
 			Assert.AreEqual(expected, actual);
 		}
 

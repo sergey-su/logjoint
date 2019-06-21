@@ -563,7 +563,8 @@ namespace LogJoint
 					new MessagePropertiesDialogView(mainForm, changeNotification),
 					viewerPresenter,
 					navHandler,
-					colorTheme);
+					colorTheme,
+					changeNotification, telemetryCollector);
 
 
 				Func<IFiltersList, UI.Presenters.FiltersManager.IView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
@@ -745,7 +746,8 @@ namespace LogJoint
 						mainFormPresenter,
 						postprocessingTabPagePresenter,
 						postprocessingViewsFactory,
-						colorTheme
+						colorTheme,
+						messagePropertiesDialogPresenter
 					),
 					new Extensibility.View(
 						mainForm

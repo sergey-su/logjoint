@@ -12,7 +12,6 @@ namespace LogJoint
 	public partial class MessagePropertiesForm : Form, IDialog
 	{
 		IDialogViewModel viewModel;
-		ISubscription subscription;
 
 		public MessagePropertiesForm(IDialogViewModel host, IChangeNotification changeNotification)
 		{
@@ -21,10 +20,9 @@ namespace LogJoint
 			InitializeTable(CreateRows());
 
 			var tableUpdater = Updaters.Create(() => viewModel.Data, UpdateView);
-			subscription = changeNotification.CreateSubscription(tableUpdater, initiallyActive: false);
+			changeNotification.CreateSubscription(tableUpdater);
 
-			Shown += (s, e) => subscription.Active = true;
-			FormClosed += (s, e) => subscription.Active = false;
+			FormClosed += (s, e) => host.OnClosed();
 		}
 
 		void IDialog.Show()

@@ -56,8 +56,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\..\sdk\presentation\Common\IClipboardAccess.cs">
+      <Link>Common\IClipboardAccess.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Common\Reactive\Tree.cs">
+      <Link>Common\Reactive\Tree.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\presentation\Common\Theming\Interfaces.cs">
       <Link>Common\Theming\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\MessagePropertiesDialog\Interfaces.cs">
+      <Link>MessagePropertiesDialog\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\sdk\presentation\NewLogSourceDialogPresenter\Interfaces.cs">
       <Link>NewLogSourceDialogPresenter\Interfaces.cs</Link>
