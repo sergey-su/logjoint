@@ -80,7 +80,7 @@ namespace LogJoint.UI
 			base.AwakeFromNib ();
 
 			Window.owner = this;
-			Window.WillClose += (s, e) => viewModel.OnClosed(); // todo: do same on windows
+			Window.WillClose += (s, e) => viewModel.OnClosed();
 			threadLabel.LinkClicked = (s, e) => viewModel.OnThreadLinkClicked ();
 			threadLabel.SingleLine = true;
 			sourceLabel.LinkClicked = (s, e) => viewModel.OnSourceLinkClicked ();

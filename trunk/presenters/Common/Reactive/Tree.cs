@@ -34,7 +34,6 @@ namespace LogJoint.UI.Presenters.Reactive
 				return $"({Node}).{Type} ({OldChild})->({NewChild}) at {ChildIndex}";
 		}
 
-		// todo: add tests to win ptoject
 		public static List<TreeEdit> GetTreeEdits(ITreeNode root1, ITreeNode root2)
 		{
 			var result = new List<TreeEdit>();
