@@ -52,9 +52,11 @@ namespace LogJoint
 			this.prevMessageButton = new System.Windows.Forms.Button();
 			this.nextMessageButton = new System.Windows.Forms.Button();
 			this.nextHighlightedCheckBox = new System.Windows.Forms.CheckBox();
+			this.contentsContainer = new System.Windows.Forms.Panel();
 			this.panel1.SuspendLayout();
 			this.contentModesFlowLayoutPanel.SuspendLayout();
 			this.bookmarkValuePanel.SuspendLayout();
+			this.contentsContainer.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// tableLayoutPanel1
@@ -108,13 +110,16 @@ namespace LogJoint
 			// 
 			// messagesTextBox
 			// 
-			this.messagesTextBox.Location = new System.Drawing.Point(4, 4);
-			this.messagesTextBox.Margin = new System.Windows.Forms.Padding(4);
+			this.messagesTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.messagesTextBox.Location = new System.Drawing.Point(0, 0);
+			this.messagesTextBox.Margin = new System.Windows.Forms.Padding(0);
 			this.messagesTextBox.Multiline = true;
 			this.messagesTextBox.Name = "messagesTextBox";
 			this.messagesTextBox.ReadOnly = true;
 			this.messagesTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.messagesTextBox.Size = new System.Drawing.Size(69, 100);
+			this.messagesTextBox.Size = new System.Drawing.Size(68, 107);
 			this.messagesTextBox.TabIndex = 4;
 			// 
 			// timeTextBox
@@ -153,11 +158,11 @@ namespace LogJoint
 			// 
 			// panel1
 			// 
+			this.panel1.Controls.Add(this.contentsContainer);
 			this.panel1.Controls.Add(this.contentModesFlowLayoutPanel);
 			this.panel1.Controls.Add(this.contentLabel);
 			this.panel1.Controls.Add(this.bookmarkValuePanel);
 			this.panel1.Controls.Add(this.bookmarkedLabel);
-			this.panel1.Controls.Add(this.messagesTextBox);
 			this.panel1.Controls.Add(this.logSourceLinkLabel);
 			this.panel1.Controls.Add(this.threadLinkLabel);
 			this.panel1.Controls.Add(this.timeLabel);
@@ -354,6 +359,15 @@ namespace LogJoint
 			this.nextHighlightedCheckBox.Text = "Next highlighted";
 			this.nextHighlightedCheckBox.UseVisualStyleBackColor = true;
 			// 
+			// contentsContainer
+			// 
+			this.contentsContainer.Controls.Add(this.messagesTextBox);
+			this.contentsContainer.Location = new System.Drawing.Point(4, 8);
+			this.contentsContainer.Margin = new System.Windows.Forms.Padding(0);
+			this.contentsContainer.Name = "contentsContainer";
+			this.contentsContainer.Size = new System.Drawing.Size(68, 107);
+			this.contentsContainer.TabIndex = 12;
+			// 
 			// MessagePropertiesForm
 			// 
 			this.AcceptButton = this.closeButton;
@@ -382,6 +396,8 @@ namespace LogJoint
 			this.contentModesFlowLayoutPanel.PerformLayout();
 			this.bookmarkValuePanel.ResumeLayout(false);
 			this.bookmarkValuePanel.PerformLayout();
+			this.contentsContainer.ResumeLayout(false);
+			this.contentsContainer.PerformLayout();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -415,5 +431,6 @@ namespace LogJoint
 		private System.Windows.Forms.RadioButton contentModeButton1;
 		private System.Windows.Forms.RadioButton contentModeButton2;
 		private System.Windows.Forms.RadioButton contentModeButton3;
+		private System.Windows.Forms.Panel contentsContainer;
 	}
 }

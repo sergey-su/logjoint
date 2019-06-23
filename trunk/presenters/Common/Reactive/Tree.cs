@@ -3,7 +3,7 @@
 namespace LogJoint.UI.Presenters.Reactive
 {
 	/// <summary>
-	/// Represents an signle edit action that should be performed on UI tree.
+	/// Represents an single edit action that should be performed on UI tree.
 	/// The actions are imperative commands. The diff between two immutable versions
 	/// of the tree (represented as ITreeNode) can be converted to a series of actions
 	/// that can be performed to transform mutable UI tree from one version to another.
@@ -20,11 +20,11 @@ namespace LogJoint.UI.Presenters.Reactive
 			Select,
 			Deselect
 		};
-		public EditType Type;
-		public ITreeNode Node;
-		public ITreeNode OldChild;
-		public ITreeNode NewChild;
-		public int ChildIndex;
+		public EditType Type { get; internal set; }
+		public ITreeNode Node { get; internal set; }
+		public ITreeNode OldChild { get; internal set; }
+		public ITreeNode NewChild { get; internal set; }
+		public int ChildIndex { get; internal set; }
 
 		public override string ToString()
 		{

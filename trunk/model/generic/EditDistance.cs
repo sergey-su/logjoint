@@ -12,17 +12,17 @@ namespace LogJoint
 		/// </summary>
 		/// <returns>Tuple with total cost of cheapest actions sequence and the sequence itself.
 		/// An action is represented by a tuple with fields cost, i, j - the cost of the action
-		/// and nullable positions in s1 and s2 respectivetly.
-		/// If i or j is null, the action represents the insertion of s2[j] or deletion of s1[i] respectivetly.
+		/// and nullable positions in s1 and s2 respectively.
+		/// If i or j is null, the action represents the insertion of s2[j] or deletion of s1[i] respectively.
 		/// If both i and j are not null, the action represents conversion of s1[i] into s2[j].</returns>
 		/// <remarks>
 		/// The <paramref name="cost"/> function accepts two arguments or type
 		/// <typeparamref name="U"/> and <typeparamref name="V"/>. It can be called in 3 modes.
 		/// If first argument is default(U) the cost of insertion needs to be computed.
 		/// The value to be inserted is passed in second argument.
-		/// If second argument is default(V), the cost of delection needs to be computed.
+		/// If second argument is default(V), the cost of deletion needs to be computed.
 		/// The value to be deleted is passed in first argument.
-		/// If both argments are not default(U) or default(V), the cost of conversion need to be computed.
+		/// If both arguments are not default(U) or default(V), the cost of conversion need to be computed.
 		/// Minimal cost value is 0, that cost function can return when, for example,
 		/// two passed values are equal.
 		/// <paramref name="cost"/> function can return int.MaxValue to disallow certain operation.

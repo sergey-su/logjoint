@@ -45,8 +45,6 @@ namespace LogJoint.UI.Presenters.Reactive.Tests
 				"(root).Reuse (1)->(2) at 0; (2).Delete (11)->() at 0; (2).Delete (12)->() at 0");
 		}
 
-		// root's key, selected, expanded props are ignored
-
 		class TestNode : ITreeNode
 		{
 			public TestNode(string str) : this(JObject.Parse(str))

@@ -49,6 +49,12 @@
     </Compile>
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\MessageContentView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\MessageContentView.Designer.cs">
+      <DependentUpon>MessageContentView.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\WiresharkPageUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -79,6 +85,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="UI\MessageContentView.resx">
+      <DependentUpon>MessageContentView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\WiresharkPageUI.resx">
       <DependentUpon>WiresharkPageUI.cs</DependentUpon>
     </EmbeddedResource>

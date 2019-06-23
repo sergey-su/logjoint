@@ -9,7 +9,7 @@ namespace LogJoint
 			PluginInitializer.Init(
 				app,
 				new PacketAnalysis.UI.Presenters.NewLogSourceDialog.Pages.WiresharkPage.WiresharkPageUI(),
-				null
+				() => new PacketAnalysis.UI.MessageContentView(app.View)
 			);
 		}
 	}

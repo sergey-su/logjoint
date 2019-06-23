@@ -78,7 +78,7 @@ namespace LogJoint
 			return cl != null ? Drawing.PrimitivesExtensions.ToSystemDrawingObject(cl.Value) : SystemColors.ButtonFace;
 		}
 
-		void UpdateView(DialogData viewData)
+		void UpdateView(DialogData viewData, DialogData prevViewData)
 		{
 			timeTextBox.Text = viewData.TimeValue;
 
@@ -96,7 +96,24 @@ namespace LogJoint
 
 			severityTextBox.Text = viewData.SeverityValue;
 
-			messagesTextBox.Text = FixLineBreaks(viewData.TextValue);
+			messagesTextBox.Visible = viewData.TextValue != null;
+			messagesTextBox.Text = FixLineBreaks(viewData.TextValue ?? "");
+
+			var customControl = viewData.CustomView as Control;
+			var prevCustomControl = prevViewData?.CustomView as Control;
+			if (prevCustomControl != customControl)
+			{
+				if (prevCustomControl != null)
+				{
+					contentsContainer.Controls.Remove(prevCustomControl);
+				}
+				if (customControl != null)
+				{
+					contentsContainer.Controls.Add(customControl);
+					customControl.Bounds = contentsContainer.ClientRectangle;
+					customControl.Anchor = messagesTextBox.Anchor;
+				}
+			}
 
 			bool hlEnabled = viewData.HighlightedCheckboxEnabled;
 			nextHighlightedCheckBox.Enabled = hlEnabled;
@@ -122,7 +139,7 @@ namespace LogJoint
 			rows.Add(new RowInfo(bookmarkedLabel, bookmarkValuePanel));
 			rows.Add(new RowInfo(severityLabel, severityTextBox));
 			rows.Add(new RowInfo(contentLabel, contentModesFlowLayoutPanel));
-			rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
+			rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), contentsContainer, null));
 
 			return rows;
 		}
