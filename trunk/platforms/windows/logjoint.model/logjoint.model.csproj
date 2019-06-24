@@ -148,6 +148,9 @@
     <Compile Include="..\..\..\model\extensibility\PluginsManager.cs">
       <Link>extensibility\PluginsManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Factory.cs">
+      <Link>Factory.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\fields\BadUserCodeException.cs">
       <Link>fields\BadUserCodeException.cs</Link>
     </Compile>
@@ -324,6 +327,9 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\heart-beat\HeartBeatTimer.cs">
+      <Link>heart-beat\HeartBeatTimer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\heart-beat\Interfaces.cs">
       <Link>heart-beat\Interfaces.cs</Link>
@@ -1068,6 +1074,9 @@
     </Compile>
     <Compile Include="..\..\..\model\user-defined-searches\UserDefinedSearchesManager.cs">
       <Link>user-defined-searches\UserDefinedSearchesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
+      <Link>workspaces\AzureWorkspacesBackend.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\workspaces\CreatedWorkspaceDTO.cs">
       <Link>workspaces\dto\CreatedWorkspaceDTO.cs</Link>

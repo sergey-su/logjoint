@@ -101,9 +101,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
-      <Link>workspaces\AzureWorkspacesBackend.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\porting\graphics\fcl\systemColors.cs">
       <Link>ui\Drawing\impl\systemColors.cs</Link>
     </Compile>
@@ -153,7 +150,6 @@
       <Link>ui\DrawingUtils.cs</Link>
     </Compile>
     <Compile Include="AppInitializer.cs" />
-    <Compile Include="auto-update\AzureUpdateDownloader.cs" />
     <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
@@ -377,7 +373,6 @@
     <Compile Include="ui\GaugeControl.Designer.cs">
       <DependentUpon>GaugeControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\HeartBeatTimer\HeartBeatTimer.cs" />
     <Compile Include="ui\InfoPopupControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -961,7 +956,6 @@
     <Compile Include="..\..\..\porting\graphics\fcl\image.cs">
       <Link>ui\Drawing\impl\image.cs</Link>
     </Compile>
-    <Compile Include="telemetry\ConfiguredAzureTelemetryUploader.cs" />
     <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>

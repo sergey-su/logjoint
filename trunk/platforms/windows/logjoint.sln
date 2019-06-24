@@ -75,6 +75,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin.model.sdk", "..\..\extensions\chromium\platforms\windows\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj", "{E1FAA540-DD01-4DF3-8697-D97B50D7B929}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.integration.tests", "logjoint.integration.tests\logjoint.integration.tests.csproj", "{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -299,6 +301,14 @@ Global
 		{E1FAA540-DD01-4DF3-8697-D97B50D7B929}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E1FAA540-DD01-4DF3-8697-D97B50D7B929}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E1FAA540-DD01-4DF3-8697-D97B50D7B929}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -329,6 +339,7 @@ Global
 		{4BD42113-F5DA-46BC-AD12-66509397D97D} = {0FCF12A4-38EA-4B09-B5ED-E7037C33A93B}
 		{346CB34B-0307-46BE-B21A-1CCECF3A9209} = {0FCF12A4-38EA-4B09-B5ED-E7037C33A93B}
 		{E1FAA540-DD01-4DF3-8697-D97B50D7B929} = {CEABF9D9-BEF3-4421-ACA7-477BB356197A}
+		{772957CF-1DBF-4D5F-B4DA-A878DE0659EA} = {E5ECBEAD-F934-46D0-8B0A-DFD7921195FE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F60C2567-FE95-48E5-95F5-0AB036505E21}

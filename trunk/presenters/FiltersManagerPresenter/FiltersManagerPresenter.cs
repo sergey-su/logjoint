@@ -15,7 +15,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			FiltersListBox.IPresenter filtersListPresenter,
 			FilterDialog.IPresenter filtersDialogPresenter,
 			LogViewer.IPresenter logViewerPresenter,
-			IViewUpdates viewUpdates,
 			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory,
 			IAlertPopup alerts
@@ -27,7 +26,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			this.filtersListPresenter = filtersListPresenter;
 			this.filtersDialogPresenter = filtersDialogPresenter;
 			this.logViewerPresenter = logViewerPresenter;
-			this.viewUpdates = viewUpdates;
 			this.filtersFactory = filtersFactory;
 			this.alerts = alerts;
 
@@ -38,9 +36,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 			filtersListPresenter.SelectionChanged += delegate (object sender, EventArgs args) {
 				UpdateControls ();
-			};
-			filtersListPresenter.FilterChecked += delegate (object sender, EventArgs args) {
-				NotifyAboutFilteringResultChange ();
 			};
 			filtersListPresenter.DeleteRequested += (s, a) => {
 				DoRemoveSelected ();
@@ -66,7 +61,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		void IViewEvents.OnEnableFilteringChecked(bool value)
 		{
 			filtersList.FilteringEnabled = value;
-			NotifyAboutFilteringResultChange();
 		}
 
 		async void IViewEvents.OnAddFilterClicked()
@@ -96,7 +90,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				}
 				filtersList.Insert(0, f);
 				f = null;
-				NotifyAboutFilteringResultChange();
 			}
 			finally
 			{
@@ -145,17 +138,9 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		{
 			foreach (var f in filtersListPresenter.SelectedFilters)
 			{
-				if (filtersList.Move(f, up))
-				{
-					NotifyAboutFilteringResultChange();
-				}
+				filtersList.Move(f, up);
 				break;
 			}
-		}
-
-		void NotifyAboutFilteringResultChange()
-		{
-			viewUpdates.RequestUpdate();
 		}
 
 		void UpdateView()
@@ -245,7 +230,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		readonly FilterDialog.IPresenter filtersDialogPresenter;
 		readonly FiltersListBox.IPresenter filtersListPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;
-		readonly IViewUpdates viewUpdates;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		readonly IAlertPopup alerts;
 		int lastFilterIndex;

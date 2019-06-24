@@ -16,7 +16,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			BookmarksList.IPresenter listPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			IPresentersFacade navHandler,
-			IViewUpdates viewUpdates,
 			IAlertPopup alerts)
 		{
 			this.bookmarks = bookmarks;
@@ -25,7 +24,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.tracer = new LJTraceSource("UI", "ui.bmkm");
 			this.statusReportFactory = statusReportFactory;
 			this.searchResultPresenter = searchResultPresenter;
-			this.viewUpdates = viewUpdates;
 			this.navHandler = navHandler;
 			this.listPresenter = listPresenter;
 			this.alerts = alerts;
@@ -104,8 +102,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 				}
 
 				bookmarks.Clear();
-
-				UpdateOverallView();
 			}
 		}
 
@@ -122,11 +118,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		}
 
 		#region Implementation
-
-		void UpdateOverallView()
-		{
-			viewUpdates.RequestUpdate();
-		}
 
 		void NextBookmark(bool forward)
 		{
@@ -207,7 +198,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 					return;
 			}
 			bmks.ToggleBookmark(l);
-			UpdateOverallView();
 		}
 
 		readonly IBookmarks bookmarks;
@@ -217,7 +207,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly IPresentersFacade navHandler;
-		readonly IViewUpdates viewUpdates;
 		readonly BookmarksList.IPresenter listPresenter;
 		readonly IAlertPopup alerts;
 

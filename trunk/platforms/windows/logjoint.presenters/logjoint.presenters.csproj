@@ -97,9 +97,6 @@
     <Compile Include="..\..\..\presenters\Common\IShellOpen.cs">
       <Link>Common\IShellOpen.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
-      <Link>Common\IViewUpdates.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\Common\LinkLabelUtils.cs">
       <Link>Common\LinkLabelUtils.cs</Link>
     </Compile>
@@ -123,6 +120,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\Extensibility\Presentation.cs">
       <Link>Extensibility\Presentation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Factory.cs">
+      <Link>Factory.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
       <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>

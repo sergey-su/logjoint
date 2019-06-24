@@ -4,9 +4,9 @@ using System.Windows.Forms;
 
 namespace LogJoint.Telemetry
 {
-	public class WinFormsUnhandledExceptionsReporter: UnhandledExceptionsReporter
+	public class WinFormsUnhandledExceptionsReporter
 	{
-		public WinFormsUnhandledExceptionsReporter(ITelemetryCollector telemetryCollector): base(telemetryCollector)
+		public static void Setup(ITelemetryCollector telemetryCollector)
 		{
 			Application.ThreadException += (sender, e) =>
 			{

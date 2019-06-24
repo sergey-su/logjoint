@@ -9,13 +9,8 @@ namespace LogJoint
 	{
 		public UserDefinedFormatsManager(IFormatDefinitionsRepository repository, ILogProviderFactoryRegistry registry, ITempFilesManager tempFilesManager)
 		{
-			if (repository == null)
-				throw new ArgumentNullException("repository");
-			if (registry == null)
-				throw new ArgumentNullException("registry");
-
-			this.repository = repository;
-			this.registry = registry;
+			this.repository = repository ?? throw new ArgumentNullException("repository");
+			this.registry = registry ?? throw new ArgumentNullException("registry");
 			this.tempFilesManager = tempFilesManager;
 		}
 

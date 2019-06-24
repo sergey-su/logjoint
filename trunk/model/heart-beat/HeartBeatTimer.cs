@@ -1,18 +1,16 @@
-﻿using LogJoint.UI.Presenters;
 using System;
 using System.Threading.Tasks;
-using Foundation;
 
-namespace LogJoint.UI
+namespace LogJoint
 {
-	class HeartBeatTimer : NSObject, IHeartBeatTimer, Presenters.IViewUpdates // todo: refactor to share with win
+	class HeartBeatTimer : IHeartBeatTimer
 	{
 		public HeartBeatTimer()
 		{
 			this.worker = Worker();
 		}
 
-		public void SetTelemetryCollector (Telemetry.ITelemetryCollector collector)
+		public void SetTelemetryCollector(Telemetry.ITelemetryCollector collector)
 		{
 			this.collector = collector;
 		}
@@ -31,13 +29,7 @@ namespace LogJoint.UI
 			--suspended;
 		}
 
-		void IViewUpdates.RequestUpdate()
-		{
-			Tick(HeartBeatEventType.NormalUpdate);
-		}
-
-
-		private void timerTickHandler(object sender, EventArgs e)
+		private void TickHandler()
 		{
 			if (suspended == 0)
 			{
@@ -60,13 +52,16 @@ namespace LogJoint.UI
 
 		async Task Worker()
 		{
-			for (;;)
+			for (; ; )
 			{
 				await Task.Delay(TimeSpan.FromMilliseconds(400)); // this works even if there is open modal dialog
-				try {
-					timerTickHandler (null, null);
-				} catch (Exception e) {
-					collector?.ReportException (e, "periodic timer");
+				try
+				{
+					TickHandler();
+				}
+				catch (Exception e)
+				{
+					collector?.ReportException(e, "periodic timer");
 				}
 			}
 		}
