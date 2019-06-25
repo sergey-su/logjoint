@@ -41,7 +41,7 @@ namespace LogJoint
 				if (!skipWaiting)
 				{
 					await Task.Delay(TimeSpan.FromSeconds(15), cancel).ConfigureAwait(continueOnCapturedContext: false);
-					tracer.Info("waited enought. waking up");
+					tracer.Info("waited enough. waking up");
 				}
 
 				if (!TestRegEntries())

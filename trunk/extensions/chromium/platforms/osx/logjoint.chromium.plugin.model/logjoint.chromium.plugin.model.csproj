@@ -188,6 +188,9 @@
     <Compile Include="..\..\..\model\Extensibility\Model.cs">
       <Link>Extensibility\Model.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Factory.cs">
+      <Link>Factory.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">

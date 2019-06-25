@@ -2,7 +2,7 @@ using System;
 
 namespace LogJoint.UI.Presenters.FormatsWizard
 {
-	public class ObjectsFactory : IObjectFactory
+	public class Factory : IFactory
 	{
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
@@ -12,32 +12,32 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly Help.IPresenter help;
 		readonly ITempFilesManager tempFilesManager;
 		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
-		readonly ViewFactories viewFactories;
+		readonly IViewsFactory viewFactories;
 
-		public struct ViewFactories
+		public interface IViewsFactory
 		{
-			public Func<IView> CreateFormatsWizardView;
-			public Func<ChooseOperationPage.IView> CreateChooseOperationPageView;
-			public Func<ImportLog4NetPage.IView> CreateImportLog4NetPagePageView;
-			public Func<FormatIdentityPage.IView> CreateFormatIdentityPageView;
-			public Func<FormatAdditionalOptionsPage.IView> CreateFormatAdditionalOptionsPage;
-			public Func<SaveFormatPage.IView> CreateSaveFormatPageView;
-			public Func<NLogGenerationLogPage.IView> CreateNLogGenerationLogPageView;
-			public Func<ImportNLogPage.IView> CreateImportNLogPage;
-			public Func<ChooseExistingFormatPage.IView> CreateChooseExistingFormatPageView;
-			public Func<FormatDeleteConfirmPage.IView> CreateFormatDeleteConfirmPageView;
-			public Func<RegexBasedFormatPage.IView> CreateRegexBasedFormatPageView;
-			public Func<EditSampleDialog.IView> CreateEditSampleDialogView;
-			public Func<TestDialog.IView> CreateTestDialogView;
-			public Func<EditRegexDialog.IView> CreateEditRegexDialog;
-			public Func<EditFieldsMapping.IView> CreateEditFieldsMappingDialog;
-			public Func<CustomTransformBasedFormatPage.IView> CreateXmlBasedFormatPageView;
-			public Func<CustomTransformBasedFormatPage.IView> CreateJsonBasedFormatPageView;
-			public Func<CustomCodeEditorDialog.IView> CreateXsltEditorDialog;
-			public Func<CustomCodeEditorDialog.IView> CreateJUSTEditorDialog;
+			IView CreateFormatsWizardView();
+			ChooseOperationPage.IView CreateChooseOperationPageView();
+			ImportLog4NetPage.IView CreateImportLog4NetPagePageView();
+			FormatIdentityPage.IView CreateFormatIdentityPageView();
+			FormatAdditionalOptionsPage.IView CreateFormatAdditionalOptionsPage();
+			SaveFormatPage.IView CreateSaveFormatPageView();
+			NLogGenerationLogPage.IView CreateNLogGenerationLogPageView();
+			ImportNLogPage.IView CreateImportNLogPage();
+			ChooseExistingFormatPage.IView CreateChooseExistingFormatPageView();
+			FormatDeleteConfirmPage.IView CreateFormatDeleteConfirmPageView();
+			RegexBasedFormatPage.IView CreateRegexBasedFormatPageView();
+			EditSampleDialog.IView CreateEditSampleDialogView();
+			TestDialog.IView CreateTestDialogView();
+			EditRegexDialog.IView CreateEditRegexDialog();
+			EditFieldsMapping.IView CreateEditFieldsMappingDialog();
+			CustomTransformBasedFormatPage.IView CreateXmlBasedFormatPageView();
+			CustomTransformBasedFormatPage.IView CreateJsonBasedFormatPageView();
+			CustomCodeEditorDialog.IView CreateXsltEditorDialog();
+			CustomCodeEditorDialog.IView CreateJUSTEditorDialog();
 		};
 
-		public ObjectsFactory(
+		public Factory(
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs,
 			Help.IPresenter help,
@@ -46,7 +46,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ITempFilesManager tempFilesManager,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
-			ViewFactories viewFactories
+			IViewsFactory viewFactories
 		)
 		{
 			this.viewFactories = viewFactories;
@@ -60,145 +60,145 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.logViewerPresenterFactory = logViewerPresenterFactory;
 		}
 
-		IView IObjectFactory.CreateWizardView()
+		IView IFactory.CreateWizardView()
 		{
 			return viewFactories.CreateFormatsWizardView();
 		}
 
-		ChooseOperationPage.IPresenter IObjectFactory.CreateChooseOperationPage(IWizardScenarioHost host)
+		ChooseOperationPage.IPresenter IFactory.CreateChooseOperationPage(IWizardScenarioHost host)
 		{
 			return new ChooseOperationPage.Presenter(viewFactories.CreateChooseOperationPageView(), host);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateRootScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateRootScenario(IWizardScenarioHost host)
 		{
 			return new RootScenario(host, this);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateImportLog4NetScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateImportLog4NetScenario(IWizardScenarioHost host)
 		{
 			return new ImportLog4NetScenario(host, this);
 		}
 
-		ImportLog4NetPage.IPresenter IObjectFactory.CreateImportLog4NetPage(IWizardScenarioHost host)
+		ImportLog4NetPage.IPresenter IFactory.CreateImportLog4NetPage(IWizardScenarioHost host)
 		{
 			return new ImportLog4NetPage.Presenter(viewFactories.CreateImportLog4NetPagePageView(), host, alerts, fileDialogs);
 		}
 
-		FormatIdentityPage.IPresenter IObjectFactory.CreateFormatIdentityPage(IWizardScenarioHost host, bool newFormatMode)
+		FormatIdentityPage.IPresenter IFactory.CreateFormatIdentityPage(IWizardScenarioHost host, bool newFormatMode)
 		{
 			return new FormatIdentityPage.Presenter(viewFactories.CreateFormatIdentityPageView(), host, alerts, registry, newFormatMode);
 		}
 
-		FormatAdditionalOptionsPage.IPresenter IObjectFactory.CreateFormatAdditionalOptionsPage(IWizardScenarioHost host)
+		FormatAdditionalOptionsPage.IPresenter IFactory.CreateFormatAdditionalOptionsPage(IWizardScenarioHost host)
 		{
 			return new FormatAdditionalOptionsPage.Presenter(viewFactories.CreateFormatAdditionalOptionsPage(), host, help);
 		}
 
-		SaveFormatPage.IPresenter IObjectFactory.CreateSaveFormatPage(IWizardScenarioHost host, bool newFormatMode)
+		SaveFormatPage.IPresenter IFactory.CreateSaveFormatPage(IWizardScenarioHost host, bool newFormatMode)
 		{
 			return new SaveFormatPage.Presenter(viewFactories.CreateSaveFormatPageView(), host, alerts, repo, newFormatMode);
 		}
 
-		NLogGenerationLogPage.IPresenter IObjectFactory.CreateNLogGenerationLogPage(IWizardScenarioHost host)
+		NLogGenerationLogPage.IPresenter IFactory.CreateNLogGenerationLogPage(IWizardScenarioHost host)
 		{
 			return new NLogGenerationLogPage.Presenter(viewFactories.CreateNLogGenerationLogPageView(), host);
 		}
 
-		ImportNLogPage.IPresenter IObjectFactory.CreateImportNLogPage(IWizardScenarioHost host)
+		ImportNLogPage.IPresenter IFactory.CreateImportNLogPage(IWizardScenarioHost host)
 		{
 			return new ImportNLogPage.Presenter(viewFactories.CreateImportNLogPage(), host, alerts, fileDialogs);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateImportNLogScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateImportNLogScenario(IWizardScenarioHost host)
 		{
 			return new ImportNLogScenario(host, this, alerts);
 		}
 
-		ChooseExistingFormatPage.IPresenter IObjectFactory.CreateChooseExistingFormatPage(IWizardScenarioHost host)
+		ChooseExistingFormatPage.IPresenter IFactory.CreateChooseExistingFormatPage(IWizardScenarioHost host)
 		{
 			return new ChooseExistingFormatPage.Presenter(viewFactories.CreateChooseExistingFormatPageView(), host, userDefinedFormatsManager, alerts);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateOperationOverExistingFormatScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateOperationOverExistingFormatScenario(IWizardScenarioHost host)
 		{
 			return new OperationOverExistingFormatScenario(host, this);
 		}
 
-		FormatDeleteConfirmPage.IPresenter IObjectFactory.CreateFormatDeleteConfirmPage(IWizardScenarioHost host)
+		FormatDeleteConfirmPage.IPresenter IFactory.CreateFormatDeleteConfirmPage(IWizardScenarioHost host)
 		{
 			return new FormatDeleteConfirmPage.Presenter(viewFactories.CreateFormatDeleteConfirmPageView(), host);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateDeleteFormatScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateDeleteFormatScenario(IWizardScenarioHost host)
 		{
 			return new DeleteFormatScenario(host, alerts, this);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateModifyRegexBasedFormatScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateModifyRegexBasedFormatScenario(IWizardScenarioHost host)
 		{
 			return new ModifyRegexBasedFormatScenario(host, this);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateModifyXmlBasedFormatScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateModifyXmlBasedFormatScenario(IWizardScenarioHost host)
 		{
 			return new ModifyXmlBasedFormatScenario(host, this);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateModifyJsonBasedFormatScenario(IWizardScenarioHost host)
+		IFormatsWizardScenario IFactory.CreateModifyJsonBasedFormatScenario(IWizardScenarioHost host)
 		{
 			return new ModifyJsonBasedFormatScenario(host, this);
 		}
 
-		RegexBasedFormatPage.IPresenter IObjectFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
+		RegexBasedFormatPage.IPresenter IFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), 
 				host, help, tempFilesManager, alerts, this);
 		}
 
-		EditSampleDialog.IPresenter IObjectFactory.CreateEditSampleDialog ()
+		EditSampleDialog.IPresenter IFactory.CreateEditSampleDialog ()
 		{
 			return new EditSampleDialog.Presenter(viewFactories.CreateEditSampleDialogView(),
 				fileDialogs, alerts);
 		}
 
-		TestDialog.IPresenter IObjectFactory.CreateTestDialog()
+		TestDialog.IPresenter IFactory.CreateTestDialog()
 		{
 			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
 				tempFilesManager, logViewerPresenterFactory);
 		}
 
-		EditRegexDialog.IPresenter IObjectFactory.CreateEditRegexDialog()
+		EditRegexDialog.IPresenter IFactory.CreateEditRegexDialog()
 		{
 			return new EditRegexDialog.Presenter(viewFactories.CreateEditRegexDialog(),
 				help, alerts);
 		}
 
-		EditFieldsMapping.IPresenter IObjectFactory.CreateEditFieldsMapping()
+		EditFieldsMapping.IPresenter IFactory.CreateEditFieldsMapping()
 		{
 			return new EditFieldsMapping.Presenter(viewFactories.CreateEditFieldsMappingDialog(),
 				alerts, fileDialogs, tempFilesManager, help);
 		}
 
-		XmlBasedFormatPage.IPresenter IObjectFactory.CreateXmlBasedFormatPage(IWizardScenarioHost host)
+		XmlBasedFormatPage.IPresenter IFactory.CreateXmlBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new XmlBasedFormatPage.Presenter(viewFactories.CreateXmlBasedFormatPageView(), host,
 				help, tempFilesManager, alerts, this);
 		}
 
-		JsonBasedFormatPage.IPresenter IObjectFactory.CreateJsonBasedFormatPage(IWizardScenarioHost host)
+		JsonBasedFormatPage.IPresenter IFactory.CreateJsonBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new JsonBasedFormatPage.Presenter(viewFactories.CreateJsonBasedFormatPageView(), host,
 				help, tempFilesManager, alerts, this);
 		}
 
-		XsltEditorDialog.IPresenter IObjectFactory.CreateXsltEditorDialog()
+		XsltEditorDialog.IPresenter IFactory.CreateXsltEditorDialog()
 		{
 			return new XsltEditorDialog.Presenter(viewFactories.CreateXsltEditorDialog(),
 				help, alerts, tempFilesManager, this);
 		}
 
-		JUSTEditorDialog.IPresenter IObjectFactory.CreateJUSTEditorDialog()
+		JUSTEditorDialog.IPresenter IFactory.CreateJUSTEditorDialog()
 		{
 			return new JUSTEditorDialog.Presenter(viewFactories.CreateJUSTEditorDialog(),
 				help, alerts, tempFilesManager, this);

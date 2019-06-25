@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		readonly Help.IPresenter help;
 		readonly ITempFilesManager tempFilesManager;
 		readonly IAlertPopup alerts;
-		readonly IObjectFactory objectsFactory;
+		readonly IFactory objectsFactory;
 		XmlNode formatRoot;
 		XmlNode reGrammarRoot;
 		ISampleLogAccess sampleLogAccess;
@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			Help.IPresenter help, 
 			ITempFilesManager tempFilesManager,
 			IAlertPopup alerts,
-			IObjectFactory objectsFactory
+			IFactory objectsFactory
 		)
 		{
 			this.view = view;

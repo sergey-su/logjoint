@@ -53,7 +53,7 @@ namespace LogJoint.Symphony
 			);
 
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
-			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timeSeriesForm = null;
+			UI.Presenters.Postprocessing.IPostprocessorOutputForm timeSeriesForm = null;
 
 			app.Presentation.PostprocessorsFormFactory.FormCreated += (sender, evt) =>
 			{

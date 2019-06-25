@@ -1,9 +1,5 @@
 using LogJoint.UI;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace LogJoint
@@ -44,7 +40,6 @@ namespace LogJoint
 						LogsDownloaderConfig = webContentConfig
 					},
 					modelSynchronizationContext,
-					new ColorLease(16), // todo: dynamic lease
 					(storageManager) => new UI.LogsPreprocessorCredentialsCache(
 						modelSynchronizationContext,
 						storageManager.GlobalSettingsEntry,
@@ -58,127 +53,51 @@ namespace LogJoint
 					)
 				);
 
-				var pluggableProtocolManager = new PluggableProtocolManager(
-					model.instancesCounter,
-					model.shutdown,
-					model.telemetryCollector,
-					model.firstStartDetector,
-					model.launchUrlParser
-				);
-
-				Telemetry.WinFormsUnhandledExceptionsReporter.Setup(model.telemetryCollector);
-
-				var postprocessingViewsFactory = new UI.Postprocessing.PostprocessorOutputFormFactory();
-
 				var presentation = UI.Presenters.Factory.Create(
 					tracer,
 					model,
-					new ClipboardAccess(model.telemetryCollector),
+					new ClipboardAccess(model.TelemetryCollector),
 					new ShellOpen(),
 					new Alerts(),
 					new Alerts(),
 					new UI.PromptDialog.Presenter(),
-
-
-					mainForm.loadedMessagesControl,
-					new UI.StatusReportView(
-						mainForm,
-						mainForm.toolStripStatusLabel,
-						mainForm.cancelLongRunningProcessDropDownButton,
-						mainForm.cancelLongRunningProcessLabel
-					),
-					mainForm.timeLinePanel.TimelineControl,
-					mainForm.timeLinePanel,
-					mainForm.searchResultView,
-					mainForm.threadsListView,
-					new SearchEditorDialogView(),
-					() => new UI.FilterDialogView(),
-					new UI.SearchesManagerDialogView(),
-					mainForm.searchPanelView,
-					new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
-					new UI.SourceDetailsWindowView(),
-					mainForm.sourcesListView.SourcesListView,
-					new UI.ShareDialog(),
-					new UI.HistoryDialog(),
-					new UI.NewLogSourceDialogView(),
-					() => new UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.AnyLogFormatUI(),
-					() => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(),
-					() => new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.DebugOutputFactoryUI(),
-					() => new UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog.EVTFactoryUI(),
-					new UI.Presenters.FormatsWizard.ObjectsFactory.ViewFactories()
-					{
-						CreateFormatsWizardView = () => new ManageFormatsWizard(),
-						CreateChooseOperationPageView = () => new ChooseOperationPage(),
-						CreateImportLog4NetPagePageView = () => new ImportLog4NetPage(),
-						CreateFormatIdentityPageView = () => new FormatIdentityPage(),
-						CreateFormatAdditionalOptionsPage = () => new FormatAdditionalOptionsPage(),
-						CreateSaveFormatPageView = () => new SaveFormatPage(),
-						CreateImportNLogPage = () => new ImportNLogPage(),
-						CreateNLogGenerationLogPageView = () => new NLogGenerationLogPage(),
-						CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPage(),
-						CreateFormatDeleteConfirmPageView = () => new FormatDeleteConfirmPage(),
-						CreateRegexBasedFormatPageView = () => new RegexBasedFormatPage(),
-						CreateEditSampleDialogView = () => new EditSampleLogForm(),
-						CreateTestDialogView = () => new TestParserForm(),
-						CreateEditRegexDialog = () => new EditRegexForm(),
-						CreateEditFieldsMappingDialog = () => new FieldsMappingForm(),
-						CreateXmlBasedFormatPageView = () => new XmlBasedFormatPage(),
-						CreateJsonBasedFormatPageView = () => new XmlBasedFormatPage(),
-						CreateXsltEditorDialog = () => new EditXsltForm(),
-						CreateJUSTEditorDialog = () => new EditXsltForm(),
-					},
-					mainForm.sourcesListView,
-					new MessagePropertiesDialogView(mainForm, model.changeNotification),
-					mainForm.hlFiltersManagementView,
-					mainForm.bookmarksManagerView.ListView,
-					mainForm.bookmarksManagerView,
-					new OptionsDialogView(),
-					new AboutBox(),
 					new AboutDialogConfig(),
-					mainForm,
 					new DragDropHandler(
-						model.logSourcesController,
-						model.logSourcesPreprocessings,
-						model.preprocessingStepsFactory
+						model.LogSourcesController,
+						model.LogSourcesPreprocessings,
+						model.PreprocessingStepsFactory
 					),
-					mainFormPresenter => new UI.Postprocessing.MainWindowTabPage.TabPage(mainFormPresenter),
-					postprocessingViewsFactory
+					new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Light),
+					new UI.Presenters.ViewsFactory(mainForm)
 				);
 
-				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI(
-					model.logSourcesPreprocessings,
+				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI( // todo: refactor into proper MVP
+					model.LogSourcesPreprocessings,
 					mainForm,
-					presentation.statusReportsPresenter);
+					presentation.StatusReportsPresenter);
 
 
 				var pluginEntryPoint = new Extensibility.Application(
-					model.expensibilityEntryPoint,
-					presentation.expensibilityEntryPoint,
+					model.ExpensibilityEntryPoint,
+					presentation.ExpensibilityEntryPoint,
 					new Extensibility.View(
 						mainForm
 					)
 				);
 
-				var pluginsManager = new Extensibility.PluginsManager(
-					pluginEntryPoint,
-					model.telemetryCollector,
-					model.shutdown,
-					model.expensibilityEntryPoint
-				);
-				tracer.Info("plugin manager created");
+				model.PluginsManager.LoadPlugins(pluginEntryPoint);
 
-				AppInitializer.WireUpCommandLineHandler(presentation.mainFormPresenter, model.commandLineHandler);
-
-				postprocessingViewsFactory.Init(
-					pluginEntryPoint,
-					model.logSourceNamesProvider,
-					model.analyticsShortNames,
-					presentation.sourcesManagerPresenter,
-					presentation.loadedMessagesPresenter,
-					presentation.clipboardAccess,
-					presentation.presentersFacade,
-					presentation.alertPopup
+				new PluggableProtocolManager(
+					model.InstancesCounter,
+					model.Shutdown,
+					model.TelemetryCollector,
+					model.FirstStartDetector,
+					model.LaunchUrlParser
 				);
+
+				Telemetry.WinFormsUnhandledExceptionsReporter.Setup(model.TelemetryCollector);
+
+				AppInitializer.WireUpCommandLineHandler(presentation.MainFormPresenter, model.CommandLineHandler);
 
 				return mainForm;
 			}

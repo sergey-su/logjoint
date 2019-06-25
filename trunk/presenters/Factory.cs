@@ -1,22 +1,63 @@
 using System;
-using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters
 {
 	public class PresentationObjects
 	{
-		public StatusReports.IPresenter statusReportsPresenter;
-		public IPresentation expensibilityEntryPoint;
-		public MainForm.IPresenter mainFormPresenter;
-		public SourcesManager.IPresenter sourcesManagerPresenter;
-		public LoadedMessages.IPresenter loadedMessagesPresenter;
-		public IClipboardAccess clipboardAccess;
-		public IPresentersFacade presentersFacade;
-		public IAlertPopup alertPopup;
+		public StatusReports.IPresenter StatusReportsPresenter { get; internal set; }
+		public IPresentation ExpensibilityEntryPoint { get; internal set; }
+		public MainForm.IPresenter MainFormPresenter { get; internal set; }
+		public SourcesManager.IPresenter SourcesManagerPresenter { get; internal set; }
+		public LoadedMessages.IPresenter LoadedMessagesPresenter { get; internal set; }
+		public IClipboardAccess ClipboardAccess { get; internal set; }
+		public IPresentersFacade PresentersFacade { get; internal set; }
+		public IAlertPopup AlertPopup { get; internal set; }
+		public IColorTheme ColorTheme { get; internal set; }
+		public IShellOpen ShellOpen { get; internal set; }
 	};
 
 	public static class Factory
 	{
+		public interface IViewsFactory
+		{
+			LoadedMessages.IView CreateLoadedMessagesView();
+			StatusReports.IView CreateStatusReportsView();
+			Timeline.IView CreateTimelineView();
+			TimelinePanel.IView CreateTimelinePanelView();
+			SearchResult.IView CreateSearchResultView();
+			ThreadsList.IView CreateThreadsListView();
+			SearchEditorDialog.IView CreateSearchEditorDialogView();
+			FilterDialog.IView CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView);
+			FilterDialog.IView CreateHlFilterDialogView();
+			SearchesManagerDialog.IView CreateSearchesManagerDialogView();
+			SearchPanel.IView CreateSearchPanelView();
+			SearchPanel.ISearchResultsPanelView CreateSearchResultsPanelView();
+			SourcePropertiesWindow.IView CreateSourcePropertiesWindowView();
+			SourcesList.IView CreateSourcesListView();
+			SharingDialog.IView CreateSharingDialogView();
+			HistoryDialog.IView CreateHistoryDialogView();
+			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
+			NewLogSourceDialog.Pages.FormatDetection.IView CreateFormatDetectionView();
+			NewLogSourceDialog.Pages.FileBasedFormat.IView CreateFileBasedFormatView();
+#if WIN
+			NewLogSourceDialog.Pages.DebugOutput.IView CreateDebugOutputFormatView();
+			NewLogSourceDialog.Pages.WindowsEventsLog.IView CreateWindowsEventsLogFormatView();
+#endif
+			FormatsWizard.Factory.IViewsFactory FormatsWizardViewFactory { get; }
+			SourcesManager.IView CreateSourcesManagerView();
+			MessagePropertiesDialog.IView CreateMessagePropertiesDialogView();
+			FiltersManager.IView CreateHlFiltersManagerView();
+			BookmarksList.IView CreateBookmarksListView();
+			BookmarksManager.IView CreateBookmarksManagerView();
+			Options.Dialog.IView CreateOptionsDialogView();
+			About.IView CreateAboutView();
+			MainForm.IView CreateMainFormView();
+			Postprocessing.MainWindowTabPage.IView CreatePostprocessingTabPage(MainForm.IPresenter presenter);
+			Postprocessing.Factory.IViewsFactory PostprocessingViewsFactory { get; }
+		};
+
+
+
 		public static PresentationObjects Create(
 			LJTraceSource tracer,
 			ModelObjects model,
@@ -25,145 +66,153 @@ namespace LogJoint.UI.Presenters
 			IAlertPopup alertPopup,
 			IFileDialogs fileDialogs,
 			IPromptDialog promptDialog,
-
-			LoadedMessages.IView loadedMessagesView,
-			StatusReports.IView statusReportsView,
-			Timeline.IView timelineView,
-			TimelinePanel.IView timelinePanelView,
-			SearchResult.IView searchResultView,
-			ThreadsList.IView threadsListView,
-			SearchEditorDialog.IView searchEditorDialogView,
-			Func<FilterDialog.IView> filterDialogViewFactory,
-			SearchesManagerDialog.IView searchesManagerDialogView,
-			SearchPanel.IView searchPanelView,
-			SearchPanel.ISearchResultsPanelView searchResultsPanelView,
-			SourcePropertiesWindow.IView sourcePropertiesWindowView,
-			SourcesList.IView sourcesListView,
-			SharingDialog.IView sharingDialogView,
-			HistoryDialog.IView historyDialogView,
-			NewLogSourceDialog.IView newLogSourceDialogView,
-			Func<NewLogSourceDialog.Pages.FormatDetection.IView> formatDetectionViewFactory,
-			Func<NewLogSourceDialog.Pages.FileBasedFormat.IView> fileBasedFormatViewFactory,
-			Func<NewLogSourceDialog.Pages.DebugOutput.IView> debugOutputFormatViewFactory,
-			Func<NewLogSourceDialog.Pages.WindowsEventsLog.IView> windowsEventsLogFormatViewFactory,
-			FormatsWizard.ObjectsFactory.ViewFactories formatsWizardViewFactories,
-			SourcesManager.IView sourcesManagerView,
-			MessagePropertiesDialog.IView messagePropertiesDialogView,
-			FiltersManager.IView hlFiltersManagerView,
-			BookmarksList.IView bookmarksListView,
-			BookmarksManager.IView bookmarksManagerView,
-			Options.Dialog.IView optionsDialogView,
-			About.IView aboutView,
 			About.IAboutConfig aboutConfig,
-			MainForm.IView mainFormView,
 			MainForm.IDragDropHandler dragDropHandler,
-			Func<MainForm.IPresenter, Postprocessing.MainWindowTabPage.IView> postprocessingTabPageFactory,
-			Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessingViewsFactory
+			ISystemThemeDetector systemThemeDetector,
+			IViewsFactory views
 		)
 		{
-			UI.Presenters.IColorTheme colorTheme = new UI.Presenters.ColorTheme(
-				new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Light),
-				model.globalSettingsAccessor
+			T callOptionalFactory<T>(Func<T> factory) where T: class
+			{
+				try
+				{
+					return factory();
+				}
+				catch (NotImplementedException)
+				{
+					return null;
+				}
+			}
+
+			var loadedMessagesView = views.CreateLoadedMessagesView();
+			var statusReportsView = views.CreateStatusReportsView();
+			var timelineView = views.CreateTimelineView();
+			var timelinePanelView = views.CreateTimelinePanelView();
+			var searchResultView = views.CreateSearchResultView();
+			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
+			var searchEditorDialogView = views.CreateSearchEditorDialogView();
+			var searchesManagerDialogView = views.CreateSearchesManagerDialogView();
+			var searchPanelView = views.CreateSearchPanelView();
+			var searchResultsPanelView = views.CreateSearchResultsPanelView();
+			var sourcePropertiesWindowView = views.CreateSourcePropertiesWindowView();
+			var sourcesListView = views.CreateSourcesListView();
+			var sharingDialogView = views.CreateSharingDialogView();
+			var historyDialogView = views.CreateHistoryDialogView();
+			var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
+			var sourcesManagerView = views.CreateSourcesManagerView();
+			var messagePropertiesDialogView = views.CreateMessagePropertiesDialogView();
+			var hlFiltersManagerView = views.CreateHlFiltersManagerView();
+			var bookmarksListView = views.CreateBookmarksListView();
+			var bookmarksManagerView = views.CreateBookmarksManagerView();
+			var optionsDialogView = callOptionalFactory(views.CreateOptionsDialogView);
+			var aboutView = views.CreateAboutView();
+			var mainFormView = views.CreateMainFormView();
+
+			IColorTheme colorTheme = new ColorTheme(
+				systemThemeDetector,
+				model.GlobalSettingsAccessor
 			);
 
-			var presentersFacade = new UI.Presenters.Facade();
-			UI.Presenters.IPresentersFacade navHandler = presentersFacade;
+			model.ThreadColorsLease.ColorsCountSelector = () => colorTheme.ThreadColors.Length;
 
-			var highlightColorsTable = new UI.Presenters.HighlightBackgroundColorsTable(colorTheme);
+			var presentersFacade = new Facade();
+			IPresentersFacade navHandler = presentersFacade;
 
-			UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
-				model.changeNotification,
-				model.heartBeatTimer,
+			var highlightColorsTable = new HighlightBackgroundColorsTable(colorTheme);
+
+			LogViewer.IPresenterFactory logViewerPresenterFactory = new LogViewer.PresenterFactory(
+				model.ChangeNotification,
+				model.HeartBeatTimer,
 				presentersFacade,
 				clipboardAccess,
-				model.bookmarksFactory,
-				model.telemetryCollector,
-				model.logSourcesManager,
-				model.modelSynchronizationContext,
-				model.modelThreads,
-				model.filtersManager.HighlightFilters,
-				model.bookmarks,
-				model.globalSettingsAccessor,
-				model.searchManager,
-				model.filtersFactory,
+				model.BookmarksFactory,
+				model.TelemetryCollector,
+				model.LogSourcesManager,
+				model.SynchronizationContext,
+				model.ModelThreads,
+				model.FiltersManager.HighlightFilters,
+				model.Bookmarks,
+				model.GlobalSettingsAccessor,
+				model.SearchManager,
+				model.FiltersFactory,
 				colorTheme
 			);
 
-			UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
-				model.logSourcesManager,
-				model.bookmarks,
+			LoadedMessages.IPresenter loadedMessagesPresenter = new LoadedMessages.Presenter(
+				model.LogSourcesManager,
+				model.Bookmarks,
 				loadedMessagesView,
-				model.heartBeatTimer,
+				model.HeartBeatTimer,
 				logViewerPresenterFactory
 			);
 
-			UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
+			LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
-			UI.Presenters.ITabUsageTracker tabUsageTracker = new UI.Presenters.TabUsageTracker();
+			ITabUsageTracker tabUsageTracker = new TabUsageTracker();
 
-			UI.Presenters.StatusReports.IPresenter statusReportsPresenter = new UI.Presenters.StatusReports.Presenter(
+			StatusReports.IPresenter statusReportsPresenter = new StatusReports.Presenter(
 				statusReportsView,
-				model.heartBeatTimer
+				model.HeartBeatTimer
 			);
-			UI.Presenters.StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
+			StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
 
-			UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
-				model.logSourcesManager,
-				model.logSourcesPreprocessings,
-				model.searchManager,
-				model.bookmarks,
+			Timeline.IPresenter timelinePresenter = new Timeline.Presenter(
+				model.LogSourcesManager,
+				model.LogSourcesPreprocessings,
+				model.SearchManager,
+				model.Bookmarks,
 				timelineView,
 				viewerPresenter,
 				statusReportFactory,
 				tabUsageTracker,
-				model.heartBeatTimer,
+				model.HeartBeatTimer,
 				colorTheme);
 
-			UI.Presenters.TimelinePanel.IPresenter timelinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
+			TimelinePanel.IPresenter timelinePanelPresenter = new TimelinePanel.Presenter(
 				timelinePanelView,
 				timelinePresenter);
 
-			UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
-				model.searchManager,
-				model.bookmarks,
-				model.filtersManager.HighlightFilters,
+			SearchResult.IPresenter searchResultPresenter = new SearchResult.Presenter(
+				model.SearchManager,
+				model.Bookmarks,
+				model.FiltersManager.HighlightFilters,
 				searchResultView,
 				navHandler,
 				loadedMessagesPresenter,
-				model.heartBeatTimer,
-				model.modelSynchronizationContext,
+				model.HeartBeatTimer,
+				model.SynchronizationContext,
 				statusReportFactory,
 				logViewerPresenterFactory,
 				colorTheme,
-				model.changeNotification
+				model.ChangeNotification
 			);
 
-			UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(
-				model.modelThreads,
-				model.logSourcesManager,
+			ThreadsList.IPresenter threadsListPresenter = threadsListView != null ? new ThreadsList.Presenter(
+				model.ModelThreads,
+				model.LogSourcesManager,
 				threadsListView,
 				viewerPresenter,
 				navHandler,
-				model.heartBeatTimer,
-				colorTheme);
+				model.HeartBeatTimer,
+				colorTheme) : null;
 
 			tracer.Info("threads list presenter created");
 
-			UI.Presenters.SearchEditorDialog.IPresenter searchEditorDialog = new UI.Presenters.SearchEditorDialog.Presenter(
+			SearchEditorDialog.IPresenter searchEditorDialog = new SearchEditorDialog.Presenter(
 				searchEditorDialogView,
-				model.userDefinedSearches,
+				model.UserDefinedSearches,
 				(filtersList, dialogView) =>
 				{
-					UI.Presenters.FilterDialog.IPresenter filterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
-						null,
+					FilterDialog.IPresenter filterDialogPresenter = new FilterDialog.Presenter(
+						null, // logSources is not required. Scope is not supported by search.
 						filtersList,
-						filterDialogViewFactory(),
+						views.CreateSearchFilterDialogView(dialogView),
 						highlightColorsTable
 					);
-					return new UI.Presenters.FiltersManager.Presenter(
+					return new FiltersManager.Presenter(
 						filtersList,
 						dialogView.FiltersManagerView,
-						new UI.Presenters.FiltersListBox.Presenter(
+						new FiltersListBox.Presenter(
 							filtersList,
 							dialogView.FiltersManagerView.FiltersListView,
 							filterDialogPresenter,
@@ -171,29 +220,29 @@ namespace LogJoint.UI.Presenters
 						),
 						filterDialogPresenter,
 						null,
-						model.heartBeatTimer,
-						model.filtersFactory,
+						model.HeartBeatTimer,
+						model.FiltersFactory,
 						alertPopup
 					);
 				},
 				alertPopup
 			);
 
-			UI.Presenters.SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new UI.Presenters.SearchesManagerDialog.Presenter(
+			SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new SearchesManagerDialog.Presenter(
 				searchesManagerDialogView,
-				model.userDefinedSearches,
+				model.UserDefinedSearches,
 				alertPopup,
 				fileDialogs,
 				searchEditorDialog
 			);
 
-			UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
+			SearchPanel.IPresenter searchPanelPresenter = new SearchPanel.Presenter(
 				searchPanelView,
-				model.searchManager,
-				model.searchHistory,
-				model.userDefinedSearches,
-				model.logSourcesManager,
-				model.filtersFactory,
+				model.SearchManager,
+				model.SearchHistory,
+				model.UserDefinedSearches,
+				model.LogSourcesManager,
+				model.FiltersFactory,
 				searchResultsPanelView,
 				loadedMessagesPresenter,
 				searchResultPresenter,
@@ -205,11 +254,11 @@ namespace LogJoint.UI.Presenters
 			tracer.Info("search panel presenter created");
 
 
-			UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter =
-				new UI.Presenters.SourcePropertiesWindow.Presenter(
+			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter =
+				new SourcePropertiesWindow.Presenter(
 					sourcePropertiesWindowView,
-					model.logSourcesManager,
-					model.logSourcesPreprocessings,
+					model.LogSourcesManager,
+					model.LogSourcesPreprocessings,
 					navHandler,
 					alertPopup,
 					clipboardAccess,
@@ -217,19 +266,19 @@ namespace LogJoint.UI.Presenters
 					colorTheme
 				);
 
-			UI.Presenters.SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter = new UI.Presenters.SaveJointLogInteractionPresenter.Presenter(
-				model.logSourcesManager,
-				model.shutdown,
-				model.progressAggregatorFactory,
+			SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter = new SaveJointLogInteractionPresenter.Presenter(
+				model.LogSourcesManager,
+				model.Shutdown,
+				model.ProgressAggregatorFactory,
 				alertPopup,
 				fileDialogs,
 				statusReportFactory
 			);
 
-			UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
-				model.logSourcesManager,
+			SourcesList.IPresenter sourcesListPresenter = new SourcesList.Presenter(
+				model.LogSourcesManager,
 				sourcesListView,
-				model.logSourcesPreprocessings,
+				model.LogSourcesPreprocessings,
 				sourcePropertiesWindowPresenter,
 				viewerPresenter,
 				navHandler,
@@ -241,101 +290,97 @@ namespace LogJoint.UI.Presenters
 				colorTheme
 			);
 
-			UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter(shellOpen);
+			Help.IPresenter helpPresenter = new Help.Presenter(shellOpen);
 
-			UI.Presenters.SharingDialog.IPresenter sharingDialogPresenter = new UI.Presenters.SharingDialog.Presenter(
-				model.logSourcesManager,
-				model.workspacesManager,
-				model.logSourcesPreprocessings,
+			SharingDialog.IPresenter sharingDialogPresenter = new SharingDialog.Presenter(
+				model.LogSourcesManager,
+				model.WorkspacesManager,
+				model.LogSourcesPreprocessings,
 				alertPopup,
 				clipboardAccess,
 				sharingDialogView
 			);
 
-			UI.Presenters.HistoryDialog.IPresenter historyDialogPresenter = new UI.Presenters.HistoryDialog.Presenter(
-				model.logSourcesController,
+			HistoryDialog.IPresenter historyDialogPresenter = new HistoryDialog.Presenter(
+				model.LogSourcesController,
 				historyDialogView,
-				model.logSourcesPreprocessings,
-				model.preprocessingStepsFactory,
-				model.recentlyUsedLogs,
-				new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox),
+				model.LogSourcesPreprocessings,
+				model.PreprocessingStepsFactory,
+				model.RecentlyUsedLogs,
+				new QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox),
 				alertPopup
 			);
 
-			UI.Presenters.NewLogSourceDialog.IPagePresentersRegistry newLogPagesPresentersRegistry =
-				new UI.Presenters.NewLogSourceDialog.PagePresentersRegistry();
+			NewLogSourceDialog.IPagePresentersRegistry newLogPagesPresentersRegistry =
+				new NewLogSourceDialog.PagePresentersRegistry();
 
-			UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialogPresenter = new UI.Presenters.NewLogSourceDialog.Presenter(
-				model.logProviderFactoryRegistry,
+			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter = new NewLogSourceDialog.Presenter(
+				model.LogProviderFactoryRegistry,
 				newLogPagesPresentersRegistry,
-				model.recentlyUsedLogs,
+				model.RecentlyUsedLogs,
 				newLogSourceDialogView,
-				model.userDefinedFormatsManager,
-				() => new UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.Presenter(
-					formatDetectionViewFactory(),
-					model.logSourcesPreprocessings,
-					model.preprocessingStepsFactory
+				model.UserDefinedFormatsManager,
+				() => new NewLogSourceDialog.Pages.FormatDetection.Presenter(
+					views.CreateFormatDetectionView(),
+					model.LogSourcesPreprocessings,
+					model.PreprocessingStepsFactory
 				),
-				new UI.Presenters.FormatsWizard.Presenter(
-					new UI.Presenters.FormatsWizard.ObjectsFactory(
+				new FormatsWizard.Presenter(
+					new FormatsWizard.Factory(
 						alertPopup,
 						fileDialogs,
 						helpPresenter,
-						model.logProviderFactoryRegistry,
-						model.formatDefinitionsRepository,
-						model.userDefinedFormatsManager,
-						model.tempFilesManager,
+						model.LogProviderFactoryRegistry,
+						model.FormatDefinitionsRepository,
+						model.UserDefinedFormatsManager,
+						model.TempFilesManager,
 						logViewerPresenterFactory,
-						formatsWizardViewFactories
+						views.FormatsWizardViewFactory
 					)
 				)
 			);
 
 			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
 				StdProviderFactoryUIs.FileBasedProviderUIKey,
-				f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
-					fileBasedFormatViewFactory(),
+				f => new NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
+					views.CreateFileBasedFormatView(),
 					(IFileBasedLogProviderFactory)f,
-					model.logSourcesController,
+					model.LogSourcesController,
 					alertPopup,
 					fileDialogs
 				)
 			);
-			if (debugOutputFormatViewFactory != null)
-			{
-				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-					StdProviderFactoryUIs.DebugOutputProviderUIKey,
-					f => new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.Presenter(
-						debugOutputFormatViewFactory(),
-						f,
-						model.logSourcesController
-					)
-				);
-			}
-			if (windowsEventsLogFormatViewFactory != null)
-			{
-				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-					StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
-					f => new UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
-						windowsEventsLogFormatViewFactory(),
-						f,
-						model.logSourcesController
-					)
-				);
-			}
+#if WIN
+			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+				StdProviderFactoryUIs.DebugOutputProviderUIKey,
+				f => new NewLogSourceDialog.Pages.DebugOutput.Presenter(
+					views.CreateDebugOutputFormatView(),
+					f,
+					model.LogSourcesController
+				)
+			);
+			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+				StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
+				f => new NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
+					views.CreateWindowsEventsLogFormatView(),
+					f,
+					model.LogSourcesController
+				)
+			);
+#endif
 
-			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
-				model.logSourcesManager,
-				model.userDefinedFormatsManager,
-				model.recentlyUsedLogs,
-				model.logSourcesPreprocessings,
-				model.logSourcesController,
+			SourcesManager.IPresenter sourcesManagerPresenter = new SourcesManager.Presenter(
+				model.LogSourcesManager,
+				model.UserDefinedFormatsManager,
+				model.RecentlyUsedLogs,
+				model.LogSourcesPreprocessings,
+				model.LogSourcesController,
 				sourcesManagerView,
-				model.preprocessingStepsFactory,
-				model.workspacesManager,
+				model.PreprocessingStepsFactory,
+				model.WorkspacesManager,
 				sourcesListPresenter,
 				newLogSourceDialogPresenter,
-				model.heartBeatTimer,
+				model.HeartBeatTimer,
 				sharingDialogPresenter,
 				historyDialogPresenter,
 				presentersFacade,
@@ -344,50 +389,50 @@ namespace LogJoint.UI.Presenters
 			);
 
 
-			UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter = new UI.Presenters.MessagePropertiesDialog.Presenter(
-				model.bookmarks,
-				model.filtersManager.HighlightFilters,
+			MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter = new MessagePropertiesDialog.Presenter(
+				model.Bookmarks,
+				model.FiltersManager.HighlightFilters,
 				messagePropertiesDialogView,
 				viewerPresenter,
 				navHandler,
 				colorTheme,
-				model.changeNotification,
-				model.telemetryCollector);
+				model.ChangeNotification,
+				model.TelemetryCollector);
 
 
-			Func<IFiltersList, UI.Presenters.FiltersManager.IView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
+			Func<IFiltersList, FiltersManager.IView, FiltersManager.IPresenter> createHlFiltersManager = (filters, view) =>
 			{
-				var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(model.logSourcesManager, filters, filterDialogViewFactory(), highlightColorsTable);
-				UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter, highlightColorsTable);
-				UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
+				var dialogPresenter = new FilterDialog.Presenter(model.LogSourcesManager, filters, views.CreateHlFilterDialogView(), highlightColorsTable);
+				FiltersListBox.IPresenter listPresenter = new FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter, highlightColorsTable);
+				FiltersManager.IPresenter managerPresenter = new FiltersManager.Presenter(
 					filters,
 					view,
 					listPresenter,
 					dialogPresenter,
 					viewerPresenter,
-					model.heartBeatTimer,
-					model.filtersFactory,
+					model.HeartBeatTimer,
+					model.FiltersFactory,
 					alertPopup
 				);
 				return managerPresenter;
 			};
 
-			UI.Presenters.FiltersManager.IPresenter hlFiltersManagerPresenter = createFiltersManager(
-				model.filtersManager.HighlightFilters,
+			FiltersManager.IPresenter hlFiltersManagerPresenter = createHlFiltersManager(
+				model.FiltersManager.HighlightFilters,
 				hlFiltersManagerView);
 
-			UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
-				model.bookmarks,
-				model.logSourcesManager,
+			BookmarksList.IPresenter bookmarksListPresenter = new BookmarksList.Presenter(
+				model.Bookmarks,
+				model.LogSourcesManager,
 				bookmarksListView,
-				model.heartBeatTimer,
+				model.HeartBeatTimer,
 				loadedMessagesPresenter,
 				clipboardAccess,
 				colorTheme,
-				model.changeNotification);
+				model.ChangeNotification);
 
-			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
-				model.bookmarks,
+			BookmarksManager.IPresenter bookmarksManagerPresenter = new BookmarksManager.Presenter(
+				model.Bookmarks,
 				bookmarksManagerView,
 				viewerPresenter,
 				searchResultPresenter,
@@ -397,35 +442,35 @@ namespace LogJoint.UI.Presenters
 				alertPopup
 			);
 
-			UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
+			Options.Dialog.IPresenter optionsDialogPresenter = optionsDialogView != null ? new Options.Dialog.Presenter(
 				optionsDialogView,
-				pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model.globalSettingsAccessor, model.recentlyUsedLogs, model.searchHistory, pageView),
-				pageView => new UI.Presenters.Options.Appearance.Presenter(model.globalSettingsAccessor, pageView, logViewerPresenterFactory, model.changeNotification, colorTheme),
-				pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(model.autoUpdater, model.globalSettingsAccessor, pageView)
-			);
+				pageView => new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory, pageView),
+				pageView => new Options.Appearance.Presenter(model.GlobalSettingsAccessor, pageView, logViewerPresenterFactory, model.ChangeNotification, colorTheme),
+				pageView => new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor, pageView)
+			) : null;
 
-			UI.Presenters.About.IPresenter aboutDialogPresenter = new UI.Presenters.About.Presenter(
+			About.IPresenter aboutDialogPresenter = new About.Presenter(
 				aboutView,
 				aboutConfig,
 				clipboardAccess,
-				model.autoUpdater
+				model.AutoUpdater
 			);
 
-			UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotificationPresenter = new UI.Presenters.TimestampAnomalyNotification.Presenter(
-				model.logSourcesManager,
-				model.logSourcesPreprocessings,
-				model.modelSynchronizationContext,
-				model.heartBeatTimer,
+			TimestampAnomalyNotification.IPresenter timestampAnomalyNotificationPresenter = new TimestampAnomalyNotification.Presenter(
+				model.LogSourcesManager,
+				model.LogSourcesPreprocessings,
+				model.SynchronizationContext,
+				model.HeartBeatTimer,
 				presentersFacade,
 				statusReportsPresenter
 			);
 
-			UI.Presenters.IssueReportDialogPresenter.IPresenter issueReportDialogPresenter =
-				new UI.Presenters.IssueReportDialogPresenter.Presenter(model.telemetryCollector, model.telemetryUploader, promptDialog);
+			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter =
+				new IssueReportDialogPresenter.Presenter(model.TelemetryCollector, model.TelemetryUploader, promptDialog);
 
-			UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
-				model.logSourcesManager,
-				model.logSourcesPreprocessings,
+			MainForm.IPresenter mainFormPresenter = new MainForm.Presenter(
+				model.LogSourcesManager,
+				model.LogSourcesPreprocessings,
 				mainFormView,
 				viewerPresenter,
 				searchResultPresenter,
@@ -435,32 +480,52 @@ namespace LogJoint.UI.Presenters
 				messagePropertiesDialogPresenter,
 				loadedMessagesPresenter,
 				bookmarksManagerPresenter,
-				model.heartBeatTimer,
+				model.HeartBeatTimer,
 				tabUsageTracker,
 				statusReportFactory,
 				dragDropHandler,
 				navHandler,
-				model.autoUpdater,
-				model.progressAggregator,
+				model.AutoUpdater,
+				model.ProgressAggregator,
 				alertPopup,
 				sharingDialogPresenter,
 				issueReportDialogPresenter,
-				model.shutdown,
+				model.Shutdown,
 				colorTheme,
-				model.changeNotification
+				model.ChangeNotification
 			);
 			tracer.Info("main form presenter created");
 
-			UI.Presenters.Postprocessing.MainWindowTabPage.IView postprocessingTabPage = postprocessingTabPageFactory(mainFormPresenter);
-			UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new UI.Presenters.Postprocessing.MainWindowTabPage.PluginTabPagePresenter(
+
+			Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorOutputFormFactory = new Postprocessing.Factory(
+				views.PostprocessingViewsFactory,
+				model.PostprocessorsManager,
+				model.LogSourcesManager,
+				model.SynchronizationContext,
+				model.ChangeNotification,
+				model.Bookmarks,
+				model.ModelThreads,
+				model.StorageManager,
+				model.LogSourceNamesProvider,
+				model.AnalyticsShortNames,
+				sourcesManagerPresenter,
+				loadedMessagesPresenter,
+				clipboardAccess,
+				presentersFacade,
+				alertPopup,
+				colorTheme
+			);
+
+			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage(mainFormPresenter);
+			Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.PluginTabPagePresenter(
 				postprocessingTabPage,
-				model.postprocessorsManager,
-				postprocessingViewsFactory,
-				model.logSourcesManager,
-				model.tempFilesManager,
+				model.PostprocessorsManager,
+				postprocessorOutputFormFactory,
+				model.LogSourcesManager,
+				model.TempFilesManager,
 				shellOpen,
 				newLogSourceDialogPresenter,
-				model.telemetryCollector
+				model.TelemetryCollector
 			);
 
 			presentersFacade.Init(
@@ -485,21 +550,23 @@ namespace LogJoint.UI.Presenters
 				promptDialog,
 				mainFormPresenter,
 				postprocessingTabPagePresenter,
-				postprocessingViewsFactory,
+				postprocessorOutputFormFactory,
 				colorTheme,
 				messagePropertiesDialogPresenter
 			);
 
 			return new PresentationObjects
 			{
-				statusReportsPresenter = statusReportsPresenter,
-				expensibilityEntryPoint = expensibilityEntryPoint,
-				mainFormPresenter = mainFormPresenter,
-				sourcesManagerPresenter = sourcesManagerPresenter,
-				loadedMessagesPresenter = loadedMessagesPresenter,
-				clipboardAccess = clipboardAccess,
-				presentersFacade = presentersFacade,
-				alertPopup = alertPopup
+				StatusReportsPresenter = statusReportsPresenter,
+				ExpensibilityEntryPoint = expensibilityEntryPoint,
+				MainFormPresenter = mainFormPresenter,
+				SourcesManagerPresenter = sourcesManagerPresenter,
+				LoadedMessagesPresenter = loadedMessagesPresenter,
+				ClipboardAccess = clipboardAccess,
+				PresentersFacade = presentersFacade,
+				AlertPopup = alertPopup,
+				ShellOpen = shellOpen,
+				ColorTheme = colorTheme
 			};
 		}
 	};

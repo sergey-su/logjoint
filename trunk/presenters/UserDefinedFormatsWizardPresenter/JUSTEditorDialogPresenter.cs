@@ -16,7 +16,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 		readonly Help.IPresenter help;
 		readonly IAlertPopup alerts;
 		readonly ITempFilesManager tempFilesManager;
-		readonly IObjectFactory objectsFactory;
+		readonly IFactory objectsFactory;
 		XmlNode currentFormatRoot;
 		ISampleLogAccess sampleLogAccess;
 
@@ -25,7 +25,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 			Help.IPresenter help, 
 			IAlertPopup alerts,
 			ITempFilesManager tempFilesManager,
-			IObjectFactory objectFactory
+			IFactory objectFactory
 		)
 		{
 			this.dialog = view;

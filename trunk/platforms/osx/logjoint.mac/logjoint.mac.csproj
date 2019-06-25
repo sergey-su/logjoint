@@ -103,9 +103,7 @@
     <Folder Include="ui\Preprocessing\" />
     <Folder Include="Properties\" />
     <Folder Include="extensibility\" />
-    <Folder Include="telemetry\" />
     <Folder Include="threading\" />
-    <Folder Include="auto-update\" />
     <Folder Include="app\" />
     <Folder Include="drag-n-drop\" />
     <Folder Include="ui\CommonControls\" />
@@ -243,10 +241,7 @@
     <Compile Include="ui\Preprocessing\FilesSelectionDialog.designer.cs">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="telemetry\ConfiguredAzureTelemetryUploader.cs" />
     <Compile Include="threading\SynchronizeInvoke.cs" />
-    <Compile Include="threading\HeartBeatTimer.cs" />
-    <Compile Include="auto-update\AzureUpdateDownloader.cs" />
     <Compile Include="app\AppDelegate.cs" />
     <Compile Include="app\AppDelegate.designer.cs">
       <DependentUpon>AppDelegate.cs</DependentUpon>
@@ -365,10 +360,6 @@
       <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\Common\ToastNotificationsView\ToastNotificationsView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsViewAdapter.cs" />
-    <Compile Include="ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactory.cs" />
-    <Compile Include="..\..\shared\ui\Postprocessing\PostprocessorOutputFormFactoryBase.cs">
-      <Link>ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactoryBase.cs</Link>
-    </Compile>
     <Compile Include="ui\Postprocessors\StateInspectorWindow\Node.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\NodeOp.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\PropertiesViewDataSource.cs" />
@@ -437,7 +428,6 @@
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDataSource.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDelegate.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\NSDynamicCollectionView.cs" />
-    <Compile Include="app\AppInitializer.cs" />
     <Compile Include="ui\QuickSearchTextBox\SearchSuggestionsList.cs" />
     <Compile Include="ui\QuickSearchTextBox\SearchSuggestionsListController.cs" />
     <Compile Include="ui\QuickSearchTextBox\SearchSuggestionsList.designer.cs">
@@ -649,6 +639,7 @@
     <Compile Include="ui\CommonControls\NSDragDropTextField\NSDragDropTextField.cs" />
     <Compile Include="extensibility\Application.cs" />
     <Compile Include="ui\CommonControls\Reactive\NSOutlineViewController.cs" />
+    <Compile Include="ui\ViewsFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -840,6 +831,10 @@
     </Content>
     <Content Include="..\..\..\help\images\json_parsing_header_re.svg">
       <Link>help\images\json_parsing_header_re.svg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-XmlWriterTraceListener.format.xml">
+      <Link>Formats\MS-XmlWriterTraceListener.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

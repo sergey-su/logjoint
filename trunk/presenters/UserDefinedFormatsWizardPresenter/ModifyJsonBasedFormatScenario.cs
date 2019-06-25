@@ -6,7 +6,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 	{
 		public ModifyJsonBasedFormatScenario(
 			IWizardScenarioHost host,
-			IObjectFactory fac
+			IFactory fac
 		)
 		{
 			this.host = host;

@@ -46,7 +46,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			string sampleLog, 
 			IAlertPopup alerts, 
 			ITempFilesManager tempFilesManager,
-			IObjectFactory objectsFactory,
+			IFactory objectsFactory,
 			XmlNode formatRoot,
 			string formatSpecificNodeName
 		)

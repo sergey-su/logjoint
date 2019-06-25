@@ -4,43 +4,45 @@ namespace LogJoint
 {
 	public class ModelObjects
 	{
-		public Settings.IGlobalSettingsAccessor globalSettingsAccessor;
-		public MultiInstance.IInstancesCounter instancesCounter;
-		public IShutdownSource shutdown;
-		public Telemetry.ITelemetryCollector telemetryCollector;
-		public Persistence.IFirstStartDetector firstStartDetector;
-		public AppLaunch.ILaunchUrlParser launchUrlParser;
-		public IChangeNotification changeNotification;
-		public IBookmarksFactory bookmarksFactory;
-		public ILogSourcesManager logSourcesManager;
-		public IModelThreads modelThreads;
-		public IFiltersManager filtersManager;
-		public IBookmarks bookmarks;
-		public ISearchManager searchManager;
-		public IFiltersFactory filtersFactory;
-		public Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
-		public IUserDefinedSearches userDefinedSearches;
-		public ISearchHistory searchHistory;
-		public Progress.IProgressAggregatorFactory progressAggregatorFactory;
-		public Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
-		public Workspaces.IWorkspacesManager workspacesManager;
-		public ILogSourcesController logSourcesController;
-		public MRU.IRecentlyUsedEntities recentlyUsedLogs;
-		public ILogProviderFactoryRegistry logProviderFactoryRegistry;
-		public IUserDefinedFormatsManager userDefinedFormatsManager;
-		public IFormatDefinitionsRepository formatDefinitionsRepository;
-		public ITempFilesManager tempFilesManager;
-		public Persistence.IStorageManager storageManager;
-		public Telemetry.ITelemetryUploader telemetryUploader;
-		public Progress.IProgressAggregator progressAggregator;
-		public Postprocessing.IPostprocessorsManager postprocessorsManager;
-		public Model expensibilityEntryPoint; // todo: concrete class
-		public Postprocessing.IUserNamesProvider analyticsShortNames;
-		public ISynchronizationContext modelSynchronizationContext;
-		public AutoUpdate.IAutoUpdater autoUpdater;
-		public AppLaunch.ICommandLineHandler commandLineHandler;
-		public Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider;
-		public IHeartBeatTimer heartBeatTimer;
+		public Settings.IGlobalSettingsAccessor GlobalSettingsAccessor { get; internal set; }
+		public MultiInstance.IInstancesCounter InstancesCounter { get; internal set; }
+		public IShutdownSource Shutdown { get; internal set; }
+		public Telemetry.ITelemetryCollector TelemetryCollector { get; internal set; }
+		public Persistence.IFirstStartDetector FirstStartDetector { get; internal set; }
+		public AppLaunch.ILaunchUrlParser LaunchUrlParser { get; internal set; }
+		public IChangeNotification ChangeNotification { get; internal set; }
+		public IBookmarksFactory BookmarksFactory { get; internal set; }
+		public ILogSourcesManager LogSourcesManager { get; internal set; }
+		public IModelThreads ModelThreads { get; internal set; }
+		public IFiltersManager FiltersManager { get; internal set; }
+		public IBookmarks Bookmarks { get; internal set; }
+		public ISearchManager SearchManager { get; internal set; }
+		public IFiltersFactory FiltersFactory { get; internal set; }
+		public Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessings { get; internal set; }
+		public IUserDefinedSearches UserDefinedSearches { get; internal set; }
+		public ISearchHistory SearchHistory { get; internal set; }
+		public Progress.IProgressAggregatorFactory ProgressAggregatorFactory { get; internal set; }
+		public Preprocessing.IPreprocessingStepsFactory PreprocessingStepsFactory { get; internal set; }
+		public Workspaces.IWorkspacesManager WorkspacesManager { get; internal set; }
+		public ILogSourcesController LogSourcesController { get; internal set; }
+		public MRU.IRecentlyUsedEntities RecentlyUsedLogs { get; internal set; }
+		public ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; internal set; }
+		public IUserDefinedFormatsManager UserDefinedFormatsManager { get; internal set; }
+		public IFormatDefinitionsRepository FormatDefinitionsRepository { get; internal set; }
+		public ITempFilesManager TempFilesManager { get; internal set; }
+		public Persistence.IStorageManager StorageManager { get; internal set; }
+		public Telemetry.ITelemetryUploader TelemetryUploader { get; internal set; }
+		public Progress.IProgressAggregator ProgressAggregator { get; internal set; }
+		public Postprocessing.IPostprocessorsManager PostprocessorsManager { get; internal set; }
+		public IModel ExpensibilityEntryPoint { get; internal set; }
+		public Postprocessing.IUserNamesProvider AnalyticsShortNames { get; internal set; }
+		public ISynchronizationContext SynchronizationContext { get; internal set; }
+		public AutoUpdate.IAutoUpdater AutoUpdater { get; internal set; }
+		public AppLaunch.ICommandLineHandler CommandLineHandler { get; internal set; }
+		public Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; internal set; }
+		public IHeartBeatTimer HeartBeatTimer { get; internal set; }
+		public IColorLeaseConfig ThreadColorsLease { get; internal set; }
+		public IPluginsManagerStarup PluginsManager { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -51,6 +53,7 @@ namespace LogJoint
 		public string AutoUpdateUrl;
 		public Persistence.IWebContentCacheConfig WebContentCacheConfig;
 		public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
+		public string AppDataDirectory;
 	};
 
 	public static class ModelFactory
@@ -59,10 +62,8 @@ namespace LogJoint
 			LJTraceSource tracer,
 			ModelConfig config,
 			ISynchronizationContext modelSynchronizationContext,
-			IColorLease threadColorsLease,
 			Func<Persistence.IStorageManager, Preprocessing.ICredentialsCache> createPreprocessingCredentialsCache,
 			Func<IShutdownSource, Persistence.IWebContentCache, WebBrowserDownloader.IDownloader> createWebBrowserDownloader
-			
 		)
 		{
 			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer);
@@ -79,7 +80,7 @@ namespace LogJoint
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification);
 			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
 			var bookmarks = bookmarksFactory.CreateBookmarks();
-			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
+			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			IShutdownSource shutdown = new Shutdown();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage, shutdown);
@@ -93,7 +94,7 @@ namespace LogJoint
 			Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
 			contentCacheStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(),
-				 Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(),
+				 Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(config.AppDataDirectory),
 				 new Persistence.ContentCacheManager.ConfigAccess(globalSettingsAccessor)
 			);
 			Persistence.IContentCache contentCache = new Persistence.ContentCacheManager(contentCacheStorage);
@@ -108,6 +109,7 @@ namespace LogJoint
 			Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
 			Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
+			var threadColorsLease = new ColorLease(1);
 			IModelThreads modelThreads = new ModelThreads(threadColorsLease);
 
 			ILogSourcesManager logSourcesManager = new LogSourcesManager(
@@ -283,6 +285,8 @@ namespace LogJoint
 				postprocessingModel
 			);
 
+			IPluginsManagerStarup pluginsManager = new Extensibility.PluginsManager(telemetryCollector, shutdown);
+
 			Model expensibilityModel = new Model(
 				modelSynchronizationContext,
 				changeNotification,
@@ -304,50 +308,53 @@ namespace LogJoint
 				logSourcesController,
 				shutdown,
 				webBrowserDownloader,
-				postprocessingModel
+				postprocessingModel,
+				pluginsManager
 			);
 
 			tracer.Info("model creation completed");
 
 			return new ModelObjects
 			{
-				globalSettingsAccessor = globalSettingsAccessor,
-				instancesCounter = instancesCounter,
-				shutdown = shutdown,
-				telemetryCollector = telemetryCollector,
-				firstStartDetector = firstStartDetector,
-				launchUrlParser = launchUrlParser,
-				changeNotification = changeNotification,
-				bookmarksFactory = bookmarksFactory,
-				logSourcesManager = logSourcesManager,
-				modelThreads = modelThreads,
-				filtersManager = filtersManager,
-				bookmarks = bookmarks,
-				searchManager = searchManager,
-				filtersFactory = filtersFactory,
-				logSourcesPreprocessings = logSourcesPreprocessings,
-				userDefinedSearches = userDefinedSearches,
-				searchHistory = searchHistory,
-				progressAggregatorFactory = progressAggregatorFactory,
-				preprocessingStepsFactory = preprocessingStepsFactory,
-				workspacesManager = workspacesManager,
-				logSourcesController = logSourcesController,
-				recentlyUsedLogs = recentlyUsedLogs,
-				logProviderFactoryRegistry = logProviderFactoryRegistry,
-				userDefinedFormatsManager = userDefinedFormatsManager,
-				formatDefinitionsRepository = formatDefinitionsRepository,
-				tempFilesManager = tempFilesManager,
-				storageManager = storageManager,
-				telemetryUploader = telemetryUploader,
-				progressAggregator = progressAggregator,
-				postprocessorsManager = postprocessorsManager,
-				expensibilityEntryPoint = expensibilityModel,
-				analyticsShortNames = analyticsShortNames,
-				modelSynchronizationContext = modelSynchronizationContext,
-				autoUpdater = autoUpdater,
-				commandLineHandler = commandLineHandler,
-				logSourceNamesProvider = logSourceNamesProvider,
-				heartBeatTimer = heartBeatTimer
+				GlobalSettingsAccessor = globalSettingsAccessor,
+				InstancesCounter = instancesCounter,
+				Shutdown = shutdown,
+				TelemetryCollector = telemetryCollector,
+				FirstStartDetector = firstStartDetector,
+				LaunchUrlParser = launchUrlParser,
+				ChangeNotification = changeNotification,
+				BookmarksFactory = bookmarksFactory,
+				LogSourcesManager = logSourcesManager,
+				ModelThreads = modelThreads,
+				FiltersManager = filtersManager,
+				Bookmarks = bookmarks,
+				SearchManager = searchManager,
+				FiltersFactory = filtersFactory,
+				LogSourcesPreprocessings = logSourcesPreprocessings,
+				UserDefinedSearches = userDefinedSearches,
+				SearchHistory = searchHistory,
+				ProgressAggregatorFactory = progressAggregatorFactory,
+				PreprocessingStepsFactory = preprocessingStepsFactory,
+				WorkspacesManager = workspacesManager,
+				LogSourcesController = logSourcesController,
+				RecentlyUsedLogs = recentlyUsedLogs,
+				LogProviderFactoryRegistry = logProviderFactoryRegistry,
+				UserDefinedFormatsManager = userDefinedFormatsManager,
+				FormatDefinitionsRepository = formatDefinitionsRepository,
+				TempFilesManager = tempFilesManager,
+				StorageManager = storageManager,
+				TelemetryUploader = telemetryUploader,
+				ProgressAggregator = progressAggregator,
+				PostprocessorsManager = postprocessorsManager,
+				ExpensibilityEntryPoint = expensibilityModel,
+				AnalyticsShortNames = analyticsShortNames,
+				SynchronizationContext = modelSynchronizationContext,
+				AutoUpdater = autoUpdater,
+				CommandLineHandler = commandLineHandler,
+				LogSourceNamesProvider = logSourceNamesProvider,
+				HeartBeatTimer = heartBeatTimer,
+				ThreadColorsLease = threadColorsLease,
+				PluginsManager = pluginsManager
 			};
 		}
 

@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin.model.sdk", "..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj", "{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.integration.tests", "logjoint.integration.tests\logjoint.integration.tests.csproj", "{87A87567-6268-4BA0-8050-BC04C2F37702}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -233,6 +235,14 @@ Global
 		{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}.Debug|x86.Build.0 = Debug|Any CPU
 		{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}.Release|x86.ActiveCfg = Release|Any CPU
 		{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}.Release|x86.Build.0 = Release|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Debug|x86.Build.0 = Debug|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Release|x86.ActiveCfg = Release|Any CPU
+		{87A87567-6268-4BA0-8050-BC04C2F37702}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -288,5 +298,6 @@ Global
 		{90AE0C80-3E44-4513-AA75-26C7FADA24EC} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 		{0130D440-6425-41AE-9310-9BB9814BF0BE} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 		{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
+		{87A87567-6268-4BA0-8050-BC04C2F37702} = {55CBF29E-56AA-4DDB-89AB-66573C80313B}
 	EndGlobalSection
 EndGlobal

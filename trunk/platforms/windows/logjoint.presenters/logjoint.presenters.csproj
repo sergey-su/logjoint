@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin\debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;PARALLELIZE_VIEWER_PRESENTER_</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;PARALLELIZE_VIEWER_PRESENTER_;WIN</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -29,7 +29,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin\release\</OutputPath>
-    <DefineConstants>TRACE;PARALLELIZE_VIEWER_PRESENTER</DefineConstants>
+    <DefineConstants>TRACE;PARALLELIZE_VIEWER_PRESENTER;WIN</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -333,6 +333,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\MainWindowTabPagePresenter.cs">
       <Link>Postprocessing\MainWindowTabPagePresenter\MainWindowTabPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\PostprocessorOutputFormFactory.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\PostprocessorOutputFormFactory.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\Postprocessing\SequenceDiagramVisualizerPresenter\Interfaces.cs">
       <Link>Postprocessing\SequenceDiagramVisualizerPresenter\Interfaces.cs</Link>

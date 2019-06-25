@@ -6,24 +6,11 @@ namespace LogJoint.Chromium
 	{
 		public static void Init(IApplication app)
 		{
-			app.Model.Postprocessing.TimeSeries.RegisterTimeSeriesTypesAssembly(typeof(TimeSeries.PostprocessorsFactory).Assembly);
+			var modelObjects = Factory.Create(app.Model);
 
-			var pluginModel = new PluginModel();
-
-			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
-				app.Model.Postprocessing.Manager, 
-				app.Model.UserDefinedFormatsManager, 
-				new StateInspector.PostprocessorsFactory(app.Model.Postprocessing, pluginModel),
-				new TimeSeries.PostprocessorsFactory(app.Model.Postprocessing, pluginModel),
-				new Correlator.PostprocessorsFactory(app.Model),
-				new Timeline.PostprocessorsFactory(app.Model.Postprocessing, pluginModel),
-				new SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)
-			);
-
-			app.Model.PluginsManager.Register<IPluginModel>(pluginModel);
-
+			// todo: move code below to presentation assembly
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
-			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timeSeriesForm = null;
+			UI.Presenters.Postprocessing.IPostprocessorOutputForm timeSeriesForm = null;
 
 			app.Presentation.PostprocessorsFormFactory.FormCreated += (sender, evt) =>
 			{
@@ -74,16 +61,6 @@ namespace LogJoint.Chromium
 					timeSeriesForm = evt.Form;
 				}
 			};
-
-			app.Model.PreprocessingManagerExtensionsRegistry.Register(
-				new WebrtcInternalsDump.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory)
-			);
-			app.Model.PreprocessingManagerExtensionsRegistry.Register(
-				new ChromeDriver.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory, app.Model.Postprocessing.TextLogParser)
-			);
-			app.Model.PreprocessingManagerExtensionsRegistry.Register(
-				new HttpArchive.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.HttpArchive.LogProviderFactory)
-			);
 		}
 	}
 }

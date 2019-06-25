@@ -8,27 +8,27 @@ using System.Diagnostics;
 
 namespace LogJoint.Extensibility
 {
-	public class PluginsManager: IDisposable, IPluginsManager
+	public class PluginsManager: IDisposable, IPluginsManager, IPluginsManagerStarup
 	{
+		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly List<object> plugins = new List<object> ();
 		readonly LJTraceSource tracer;
-		readonly object entryPoint;
 		readonly Dictionary<Type, object> types = new Dictionary<Type, object>();
 
 		public PluginsManager(
-			object entryPoint,
 			Telemetry.ITelemetryCollector telemetry,
-			IShutdown shutdown,
-			Model model)
+			IShutdown shutdown)
 		{
 			this.tracer = new LJTraceSource("Extensibility", "plugins-mgr");
-			this.entryPoint = entryPoint;
-			model.PluginsManager = this;
-
-			InitPlugins(telemetry);
-			RegisterInteropClasses();
+			this.telemetry = telemetry;
 
 			shutdown.Cleanup += (s, e) => Dispose();
+		}
+
+		void IPluginsManagerStarup.LoadPlugins(object appEntryPoint)
+		{
+			InitPlugins(appEntryPoint);
+			RegisterInteropClasses();
 		}
 
 		void IPluginsManager.Register<PluginType>(PluginType plugin)
@@ -43,7 +43,7 @@ namespace LogJoint.Extensibility
 			return plugin as PluginType;
 		}
 
-		private void InitPlugins(Telemetry.ITelemetryCollector telemetry)
+		private void InitPlugins(object entryPoint)
 		{
 			using (tracer.NewFrame)
 			{

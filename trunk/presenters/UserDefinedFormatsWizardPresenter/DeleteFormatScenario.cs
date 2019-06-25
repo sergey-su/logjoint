@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IUserDefinedFactory format;
 
 
-		public DeleteFormatScenario(IWizardScenarioHost host, IAlertPopup alerts, IObjectFactory fac)
+		public DeleteFormatScenario(IWizardScenarioHost host, IAlertPopup alerts, IFactory fac)
 		{
 			this.host = host;
 			this.alerts = alerts;

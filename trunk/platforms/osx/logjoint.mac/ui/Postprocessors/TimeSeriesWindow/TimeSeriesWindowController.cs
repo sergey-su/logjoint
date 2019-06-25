@@ -13,7 +13,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 	public partial class TimeSeriesWindowController : 
 		AppKit.NSWindowController,
 		IView,
-		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
+		Presenters.Postprocessing.IPostprocessorOutputForm
 	{
 		IViewEvents eventsHandler;
 		Drawing.Resources resources;
@@ -104,7 +104,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			get { return GetPlotsViewMetrics(); }
 		}
 
-		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
+		void Presenters.Postprocessing.IPostprocessorOutputForm.Show ()
 		{
 			InvokeOnMainThread(() => eventsHandler.OnShown());
 			Window.MakeKeyAndOrderFront (null);

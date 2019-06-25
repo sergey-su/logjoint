@@ -2,11 +2,6 @@
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
-	public interface IPostprocessorOutputForm
-	{
-		void Show();
-	};
-
 	public enum ViewControlId
 	{
 		StateInspector,

@@ -6,6 +6,7 @@ using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
 using LogJoint.Drawing;
+using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -122,6 +123,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Slave
 	};
 
+	[DebuggerDisplay("{TextLineValue}")]
 	public struct ViewLine
 	{
 		public int LineIndex;

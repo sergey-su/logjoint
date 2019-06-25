@@ -142,6 +142,9 @@
     <Compile Include="..\..\..\model\extensibility\IMessagesReaderExtension.cs">
       <Link>extensibility\IMessagesReaderExtension.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\extensibility\Interfaces.cs">
+      <Link>extensibility\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\extensibility\Model.cs">
       <Link>extensibility\Model.cs</Link>
     </Compile>
@@ -312,6 +315,9 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\synchronization\ManualSynchronizationContext.cs">
       <Link>generic\synchronization\ManualSynchronizationContext.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\synchronization\SerialSynchronizationContext.cs">
+      <Link>generic\synchronization\SerialSynchronizationContext.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\synchronization\ThreadPoolSynchronizationContext.cs">
       <Link>generic\synchronization\ThreadPoolSynchronizationContext.cs</Link>

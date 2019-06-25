@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace LogJoint
 {
 	public interface IColorLease
@@ -7,11 +10,17 @@ namespace LogJoint
 		void Reset();
 	};
 
-	public class ColorLease : IColorLease
+	public interface IColorLeaseConfig
+	{
+		Func<int> ColorsCountSelector { get; set; }
+	};
+
+	public class ColorLease : IColorLease, IColorLeaseConfig
 	{
 		public ColorLease(int colorsCount)
 		{
-			this.refCounters = new int[colorsCount];
+			this.colorsCountSelector = () => colorsCount;
+			this.refCounters = new List<int>();
 		}
 
 		int IColorLease.GetNextColor(int? preferredColor)
@@ -19,22 +28,23 @@ namespace LogJoint
 			int retIdx = 0;
 			lock (sync)
 			{
+				var (colorsCount, counters) = this.GetState();
 				int minRefcounter = int.MaxValue;
-				for (int idx = 0; idx < refCounters.Length; ++idx)
+				for (int idx = 0; idx < colorsCount; ++idx)
 				{
 					if (preferredColor != null && preferredColor.Value == idx)
 					{
 						retIdx = idx;
 						break;
 					}
-					int refCount = refCounters[idx];
+					int refCount = counters[idx];
 					if (refCount < minRefcounter)
 					{
-						minRefcounter = refCounters[idx];
+						minRefcounter = counters[idx];
 						retIdx = idx;
 					}
 				}
-				++refCounters[retIdx];
+				++counters[retIdx];
 				return retIdx;
 			}
 		}
@@ -43,8 +53,9 @@ namespace LogJoint
 		{
 			lock (sync)
 			{
-				if (refCounters[index] > 0)
-					--refCounters[index];
+				var (colorsCount, counters) = this.GetState();
+				if (counters[index] > 0)
+					--counters[index];
 			}
 		}
 
@@ -52,12 +63,33 @@ namespace LogJoint
 		{
 			lock (sync)
 			{
-				for (int idx = 0; idx < refCounters.Length; ++idx)
+				for (int idx = 0; idx < refCounters.Count; ++idx)
 					refCounters[idx] = 0;
 			}
 		}
 
+		Func<int> IColorLeaseConfig.ColorsCountSelector
+		{
+			get => colorsCountSelector;
+			set => colorsCountSelector = value ?? throw new NullReferenceException();
+		}
+
+		private (int colorsCount, List<int> counters) GetState()
+		{
+			var colorsCount = colorsCountSelector();
+			if (colorsCount < 0)
+				throw new InvalidOperationException("color count can be negative, got " + colorsCount.ToString());
+			if (colorsCount > refCounters.Count)
+			{
+				refCounters.Capacity = colorsCount;
+				for (int i = refCounters.Count; i < colorsCount; ++i)
+					refCounters.Add(0);
+			}
+			return (colorsCount, refCounters);
+		}
+
 		readonly object sync = new object();
-		readonly int[] refCounters;
+		Func<int> colorsCountSelector;
+		List<int> refCounters;
 	};
 }

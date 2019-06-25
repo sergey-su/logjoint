@@ -87,7 +87,14 @@ namespace LogJoint.Preprocessing
 			{
 				Magic = "xxxxx"
 			};
-			tarHeader.ParseBuffer(header.Header);
+			try
+			{
+				tarHeader.ParseBuffer(header.Header);
+			}
+			catch (Exception)
+			{
+				return false;
+			}
 			return tarHeader.IsChecksumValid
 				|| tarHeader.Magic?.Contains(ICSharpCode.SharpZipLib.Tar.TarHeader.TMAGIC) == true;
 		}

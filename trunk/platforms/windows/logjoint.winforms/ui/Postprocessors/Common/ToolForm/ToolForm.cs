@@ -1,4 +1,4 @@
-﻿using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
+﻿using LogJoint.UI.Presenters.Postprocessing;
 using System;
 using System.Linq;
 using System.Windows.Forms;

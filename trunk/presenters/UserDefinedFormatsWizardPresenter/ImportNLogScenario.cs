@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IWizardScenarioHost host;
 		IAlertPopup alerts;
 
-		public ImportNLogScenario(IWizardScenarioHost host, IObjectFactory fac, IAlertPopup alerts)
+		public ImportNLogScenario(IWizardScenarioHost host, IFactory fac, IAlertPopup alerts)
 		{
 			this.host = host;
 			this.alerts = alerts;

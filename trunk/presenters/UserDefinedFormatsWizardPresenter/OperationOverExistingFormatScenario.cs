@@ -4,7 +4,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 {
 	public class OperationOverExistingFormatScenario : IFormatsWizardScenario
 	{
-		public OperationOverExistingFormatScenario(IWizardScenarioHost host, IObjectFactory fac)
+		public OperationOverExistingFormatScenario(IWizardScenarioHost host, IFactory fac)
 		{
 			this.host = host;
 			this.fac = fac;
@@ -75,7 +75,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		}
 
 		IWizardScenarioHost host;
-		IObjectFactory fac;
+		IFactory fac;
 		ChooseExistingFormatPage.IPresenter choosePage;
 		IFormatsWizardScenario currentScenario;
 		IFormatsWizardScenario deleteScenario;

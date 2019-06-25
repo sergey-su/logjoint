@@ -4,7 +4,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 {
 	internal class RootScenario : IFormatsWizardScenario
 	{
-		public RootScenario(IWizardScenarioHost host, IObjectFactory fac)
+		public RootScenario(IWizardScenarioHost host, IFactory fac)
 		{
 			this.host = host;
 			this.fac = fac;
@@ -62,7 +62,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		}
 
 		IWizardScenarioHost host;
-		IObjectFactory fac;
+		IFactory fac;
 
 		ChooseOperationPage.IPresenter chooseOpPage;
 		IFormatsWizardScenario currentScenario;

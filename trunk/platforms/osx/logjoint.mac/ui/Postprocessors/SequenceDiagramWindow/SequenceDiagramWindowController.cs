@@ -13,7 +13,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 	public partial class SequenceDiagramWindowController : 
 		AppKit.NSWindowController,
 		IView,
-		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
+		Presenters.Postprocessing.IPostprocessorOutputForm
 	{
 		readonly TagsListViewController tagsListController;
 		readonly QuickSearchTextBoxAdapter quickSearchTextBox;
@@ -235,7 +235,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			get { return toastNotifications; }
 		}
 
-		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
+		void Presenters.Postprocessing.IPostprocessorOutputForm.Show ()
 		{
 			viewModel.OnWindowShown ();
 			Window.MakeKeyAndOrderFront (null);

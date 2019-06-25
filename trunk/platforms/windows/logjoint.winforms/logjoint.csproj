@@ -119,9 +119,6 @@
     <Compile Include="..\..\shared\ui\LogViewerControl\MessageDrawing.cs">
       <Link>ui\LogViewerControl\MessageDrawing.cs</Link>
     </Compile>
-    <Compile Include="..\..\shared\ui\Postprocessing\PostprocessorOutputFormFactoryBase.cs">
-      <Link>ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactoryBase.cs</Link>
-    </Compile>
     <Compile Include="..\..\shared\ui\Postprocessing\SequenceDiagram\SequenceDiagramDrawing.cs">
       <Link>ui\Postprocessors\SequenceDiagram\PlatformIndependent\SequenceDiagramDrawing.cs</Link>
     </Compile>
@@ -259,6 +256,7 @@
     <Compile Include="ui\ExtendedSplitContainer.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ui\ViewsFactory.cs" />
     <Compile Include="ui\FilesSelectionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -484,7 +482,6 @@
     <Compile Include="ui\Postprocessors\Common\ToolForm\ToolForm.designer.cs">
       <DependentUpon>ToolForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactory.cs" />
     <Compile Include="ui\Postprocessors\MainWindowTabPage\TabPage.cs">
       <SubType>UserControl</SubType>
     </Compile>

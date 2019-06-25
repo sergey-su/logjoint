@@ -14,7 +14,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
+    <OutputPath>..\bin\debug\</OutputPath>
     <DefineConstants>DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -56,6 +56,8 @@
     <Reference Include="NSubstitute">
       <HintPath>..\..\..\mocks\NSubstitute.dll</HintPath>
     </Reference>
+    <Reference Include="System.Net" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -63,10 +65,32 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PreprocessingTests.cs" />
+    <Compile Include="..\..\shared\integration.tests\Chromium\Formats\ChromeDebugFormatTests.cs">
+      <Link>Chromium\Formats\ChromeDebugFormatTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Preprocessing\PreprocessingTests.cs">
+      <Link>Preprocessing\PreprocessingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Utils\Extensions.cs">
+      <Link>Utils\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Utils\SamplesUtils.cs">
+      <Link>Utils\SamplesUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Utils\TestApp.cs">
+      <Link>Utils\TestApp.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\extensions\chromium\platforms\windows\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
+      <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
+      <Name>logjoint.chromium.plugin.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\extensions\chromium\platforms\windows\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj">
+      <Project>{5c3545db-36b8-4de2-a2ca-b816910d389b}</Project>
+      <Name>logjoint.chromium.plugin.model</Name>
+    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>

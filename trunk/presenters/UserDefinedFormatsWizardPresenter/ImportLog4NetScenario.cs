@@ -8,7 +8,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		XmlDocument doc;
 		IWizardScenarioHost host;
 
-		public ImportLog4NetScenario(IWizardScenarioHost host, IObjectFactory fac)
+		public ImportLog4NetScenario(IWizardScenarioHost host, IFactory fac)
 		{
 			this.host = host;
 			doc = new XmlDocument();

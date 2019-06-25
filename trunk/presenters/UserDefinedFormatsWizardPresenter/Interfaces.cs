@@ -60,7 +60,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		object ViewObject { get; }
 	};
 
-	public interface IObjectFactory
+	public interface IFactory
 	{
 		IView CreateWizardView();
 

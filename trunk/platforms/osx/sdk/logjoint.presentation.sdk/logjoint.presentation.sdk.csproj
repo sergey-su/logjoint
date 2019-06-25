@@ -105,6 +105,9 @@
     <Compile Include="..\..\..\..\sdk\presentation\Common\IClipboardAccess.cs">
       <Link>Common\IClipboardAccess.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Postprocessing\Interfaces.cs">
+      <Link>Postprocessing\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

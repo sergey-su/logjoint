@@ -74,10 +74,14 @@ namespace LogJoint.AutoUpdate
 			this.manualCheckRequested = new TaskCompletionSource<int>();
 			this.firstStartDetector = firstStartDetector;
 
-			this.managedAssembliesPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-			this.updateInfoFilePath = Path.Combine(managedAssembliesPath, updateInfoFileName);
-			this.installationDir = Path.GetFullPath(
-				Path.Combine(managedAssembliesPath, installationPathRootRelativeToManagedAssembliesLocation));
+			var entryAssemblyLocation = Assembly.GetEntryAssembly()?.Location;
+			if (entryAssemblyLocation != null)
+			{
+				this.managedAssembliesPath = Path.GetDirectoryName(entryAssemblyLocation);
+				this.updateInfoFilePath = Path.Combine(managedAssembliesPath, updateInfoFileName);
+				this.installationDir = Path.GetFullPath(
+					Path.Combine(managedAssembliesPath, installationPathRootRelativeToManagedAssembliesLocation));
+			}
 
 			this.eventInvoker = eventInvoker;
 			this.telemetry = telemetry;
@@ -89,7 +93,14 @@ namespace LogJoint.AutoUpdate
 
 			bool isFirstInstance = mutualExecutionCounter.IsPrimaryInstance;
 			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured;
-			if (!isDownloaderConfigured)
+			if (entryAssemblyLocation == null)
+			{
+				trace.Info("autoupdater is disabled - no entry assembly");
+				isActiveAutoUpdaterInstance = false;
+
+				state = AutoUpdateState.Disabled;
+			}
+			else if (!isDownloaderConfigured)
 			{
 				trace.Info("autoupdater is disabled - update downloader not configured");
 				isActiveAutoUpdaterInstance = false;

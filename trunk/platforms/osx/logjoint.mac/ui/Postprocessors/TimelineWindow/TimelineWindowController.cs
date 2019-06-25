@@ -15,7 +15,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 	public partial class TimelineWindowController : 
 		AppKit.NSWindowController, 
 		IView, 
-		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
+		Presenters.Postprocessing.IPostprocessorOutputForm
 	{
 		IViewModel model;
 		IChangeNotification changeNotification;
@@ -258,7 +258,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			noContentLink.Hidden = !value;
 		}
 
-		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
+		void Presenters.Postprocessing.IPostprocessorOutputForm.Show ()
 		{
 			model.OnWindowShown ();
 			Window.MakeKeyAndOrderFront (null);

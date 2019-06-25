@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IFormatsWizardScenario scenario;
 		IWizardPagePresenter currentContent;
 
-		public Presenter(IObjectFactory fac)
+		public Presenter(IFactory fac)
 		{
 			reset = () =>
 			{

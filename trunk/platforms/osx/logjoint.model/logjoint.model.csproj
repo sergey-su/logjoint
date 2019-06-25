@@ -1085,6 +1085,21 @@
     <Compile Include="..\..\..\model\generic\EditDistance.cs">
       <Link>generic\EditDistance.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Factory.cs">
+      <Link>Factory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\heart-beat\HeartBeatTimer.cs">
+      <Link>heart-beat\HeartBeatTimer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
+      <Link>workspaces\AzureWorkspacesBackend.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\synchronization\SerialSynchronizationContext.cs">
+      <Link>generic\synchronization\SerialSynchronizationContext.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\extensibility\Interfaces.cs">
+      <Link>extensibility\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

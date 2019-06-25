@@ -3,54 +3,80 @@ using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
 using System;
 using System.Collections.Generic;
 
-namespace LogJoint.UI.Postprocessing
+namespace LogJoint.UI.Presenters.Postprocessing
 {
-	public abstract class PostprocessorOutputFormFactoryBase : IPostprocessorOutputFormFactory
+	public class Factory : IPostprocessorOutputFormFactory
 	{
-		protected LogJoint.IApplication app;
-		private ILogSourceNamesProvider logSourceNamesProvider;
-		private IUserNamesProvider shortNames;
-		private Presenters.SourcesManager.IPresenter sourcesManagerPresenter;
-		private Presenters.LoadedMessages.IPresenter loadedMessagesPresenter;
-		private Presenters.IClipboardAccess clipboardAccess;
-		private Presenters.IPresentersFacade presentersFacade;
-		private Presenters.IAlertPopup alerts;
+		private readonly IViewsFactory postprocessingViewsFactory;
+		private readonly ILogSourcesManager logSourcesManager;
+		private readonly IPostprocessorsManager postprocessorsManager;
+		private readonly ISynchronizationContext synchronizationContext;
+		private readonly IChangeNotification changeNotification;
+		private readonly ILogSourceNamesProvider logSourceNamesProvider;
+		private readonly IBookmarks bookmarks;
+		private readonly IModelThreads threads;
+		private readonly Persistence.IStorageManager storageManager;
+		private readonly IUserNamesProvider shortNames;
+		private readonly SourcesManager.IPresenter sourcesManagerPresenter;
+		private readonly LoadedMessages.IPresenter loadedMessagesPresenter;
+		private readonly IClipboardAccess clipboardAccess;
+		private readonly IPresentersFacade presentersFacade;
+		private readonly IAlertPopup alerts;
+		private readonly IColorTheme colorTheme;
 
 		LogJoint.Postprocessing.StateInspector.IStateInspectorVisualizerModel stateInspectorModel;
-		UI.Presenters.Postprocessing.StateInspectorVisualizer.IPresenter stateInspectorPresenter;
-		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm stateInspectorForm;
+		StateInspectorVisualizer.IPresenter stateInspectorPresenter;
+		IPostprocessorOutputForm stateInspectorForm;
 
 		LogJoint.Postprocessing.Timeline.ITimelineVisualizerModel timelineModel;
-		UI.Presenters.Postprocessing.TimelineVisualizer.IPresenter timelinePresenter;
-		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timelineForm;
+		TimelineVisualizer.IPresenter timelinePresenter;
+		IPostprocessorOutputForm timelineForm;
 
 		LogJoint.Postprocessing.SequenceDiagram.ISequenceDiagramVisualizerModel sequenceDiagramModel;
-		LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer.IPresenter sequenceDiagramPresenter;
-		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm sequenceDiagramForm;
+		SequenceDiagramVisualizer.IPresenter sequenceDiagramPresenter;
+		IPostprocessorOutputForm sequenceDiagramForm;
 
 		LogJoint.Postprocessing.TimeSeries.ITimeSeriesVisualizerModel timeSeriesModel;
-		LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter;
-		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timeSeriesForm;
+		TimeSeriesVisualizer.IPresenter timeSeriesPresenter;
+		IPostprocessorOutputForm timeSeriesForm;
 
 		readonly Dictionary<ViewControlId, Func<IPostprocessorOutputForm>> customFactories = new Dictionary<ViewControlId, Func<IPostprocessorOutputForm>>();
 
-		public PostprocessorOutputFormFactoryBase (
-		)
+		public interface IViewsFactory
 		{
-		}
+			(IPostprocessorOutputForm, StateInspectorVisualizer.IView) CreateStateInspectorViewObjects();
+			(IPostprocessorOutputForm, TimelineVisualizer.IView) CreateTimelineViewObjects();
+			(IPostprocessorOutputForm, SequenceDiagramVisualizer.IView) CreateSequenceDiagramViewObjects();
+			(IPostprocessorOutputForm, TimeSeriesVisualizer.IView) CreateTimeSeriesViewObjects();
+		};
 
-		public void Init (
-			LogJoint.IApplication app,
+		public Factory(
+			IViewsFactory postprocessingViewsFactory,
+			IPostprocessorsManager postprocessorsManager,
+			ILogSourcesManager logSourcesManager,
+			ISynchronizationContext synchronizationContext,
+			IChangeNotification changeNotification,
+			IBookmarks bookmarks,
+			IModelThreads threads,
+			Persistence.IStorageManager storageManager,
 			ILogSourceNamesProvider logSourceNamesProvider,
 			IUserNamesProvider shortNames,
-			Presenters.SourcesManager.IPresenter sourcesManagerPresenter,
-			Presenters.LoadedMessages.IPresenter loadedMessagesPresenter,
-			UI.Presenters.IClipboardAccess clipboardAccess,
-			Presenters.IPresentersFacade presentersFacade,
-			Presenters.IAlertPopup alerts
+			SourcesManager.IPresenter sourcesManagerPresenter,
+			LoadedMessages.IPresenter loadedMessagesPresenter,
+			IClipboardAccess clipboardAccess,
+			IPresentersFacade presentersFacade,
+			IAlertPopup alerts,
+			IColorTheme colorTheme
 		)
 		{
-			this.app = app;
+			this.postprocessingViewsFactory = postprocessingViewsFactory;
+			this.postprocessorsManager = postprocessorsManager;
+			this.logSourcesManager = logSourcesManager;
+			this.synchronizationContext = synchronizationContext;
+			this.changeNotification = changeNotification;
+			this.bookmarks = bookmarks;
+			this.threads = threads;
+			this.storageManager = storageManager;
 			this.logSourceNamesProvider = logSourceNamesProvider;
 			this.shortNames = shortNames;
 			this.sourcesManagerPresenter = sourcesManagerPresenter;
@@ -58,13 +84,9 @@ namespace LogJoint.UI.Postprocessing
 			this.clipboardAccess = clipboardAccess;
 			this.presentersFacade = presentersFacade;
 			this.alerts = alerts;
+			this.colorTheme = colorTheme;
 		}
 		
-		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.StateInspectorVisualizer.IView> CreateStateInspectorViewObjects();
-		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimelineVisualizer.IView> CreateTimelineViewObjects();
-		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.SequenceDiagramVisualizer.IView> CreateSequenceDiagramViewObjects();
-		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimeSeriesVisualizer.IView> CreateTimeSeriesViewObjects();
-
 		IPostprocessorOutputForm IPostprocessorOutputFormFactory.GetPostprocessorOutputForm(ViewControlId id)
 		{
 			Func<IPostprocessorOutputForm> facMethod;
@@ -100,27 +122,27 @@ namespace LogJoint.UI.Postprocessing
 		{
 			if (stateInspectorForm != null)
 				return;
-			var viewObjects = CreateStateInspectorViewObjects();
+			var viewObjects = postprocessingViewsFactory.CreateStateInspectorViewObjects();
 			stateInspectorForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			stateInspectorModel = new LogJoint.Postprocessing.StateInspector.StateInspectorVisualizerModel(
-				app.Model.Postprocessing.Manager,
-				app.Model.SourcesManager,
-				app.Model.ModelThreadSynchronization,
+				postprocessorsManager,
+				logSourcesManager,
+				synchronizationContext,
 				shortNames
 			);
-			stateInspectorPresenter = new Presenters.Postprocessing.StateInspectorVisualizer.StateInspectorPresenter(
+			stateInspectorPresenter = new StateInspectorVisualizer.StateInspectorPresenter(
 				view,
 				stateInspectorModel,
 				shortNames,
-				app.Model.SourcesManager,
+				logSourcesManager,
 				loadedMessagesPresenter,
-				app.Model.Bookmarks,
-				app.Model.Threads,
+				bookmarks,
+				threads,
 				presentersFacade,
 				clipboardAccess,
 				sourcesManagerPresenter,
-				app.Presentation.Theme
+				colorTheme
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.StateInspector, stateInspectorForm, stateInspectorPresenter));
 		}
@@ -130,27 +152,27 @@ namespace LogJoint.UI.Postprocessing
 			if (timelineForm != null)
 				return;
 			EnsureStateInspectorInitialized();
-			var viewObjects = CreateTimelineViewObjects();
+			var viewObjects = postprocessingViewsFactory.CreateTimelineViewObjects();
 			timelineForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			timelineModel = new LogJoint.Postprocessing.Timeline.TimelineVisualizerModel(
-				app.Model.Postprocessing.Manager,
-				app.Model.SourcesManager,
+				postprocessorsManager,
+				logSourcesManager,
 				shortNames,
 				logSourceNamesProvider
 			);
-			timelinePresenter = new Presenters.Postprocessing.TimelineVisualizer.TimelineVisualizerPresenter(
+			timelinePresenter = new TimelineVisualizer.TimelineVisualizerPresenter(
 				timelineModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.Manager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
+				new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts),
 				loadedMessagesPresenter,
-				app.Model.Bookmarks,
-				app.Model.StorageManager,
+				bookmarks,
+				storageManager,
 				presentersFacade,
 				shortNames,
-				app.Model.ChangeNotification,
-				app.Presentation.Theme
+				changeNotification,
+				colorTheme
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Timeline, timelineForm, timelinePresenter));
 		}
@@ -162,28 +184,28 @@ namespace LogJoint.UI.Postprocessing
 
 			EnsureStateInspectorInitialized();
 
-			var viewObjects = CreateSequenceDiagramViewObjects();
+			var viewObjects = postprocessingViewsFactory.CreateSequenceDiagramViewObjects();
 			sequenceDiagramForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			sequenceDiagramModel = new LogJoint.Postprocessing.SequenceDiagram.SequenceDiagramVisualizerModel(
-				app.Model.Postprocessing.Manager,
-				app.Model.SourcesManager,
+				postprocessorsManager,
+				logSourcesManager,
 				shortNames,
 				logSourceNamesProvider,
-				app.Model.ChangeNotification
+				changeNotification
 			);
-			sequenceDiagramPresenter = new Presenters.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramVisualizerPresenter(
+			sequenceDiagramPresenter = new SequenceDiagramVisualizer.SequenceDiagramVisualizerPresenter(
 				sequenceDiagramModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.Manager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
+				new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts),
 				loadedMessagesPresenter,
-				app.Model.Bookmarks,
-				app.Model.StorageManager,
+				bookmarks,
+				storageManager,
 				presentersFacade,
 				shortNames,
-				app.Model.ChangeNotification,
-				app.Presentation.Theme
+				changeNotification,
+				colorTheme
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Sequence, sequenceDiagramForm, sequenceDiagramPresenter));
 		}
@@ -193,23 +215,23 @@ namespace LogJoint.UI.Postprocessing
 			if (timeSeriesForm != null)
 				return;
 
-			var viewObjects = CreateTimeSeriesViewObjects();
+			var viewObjects = postprocessingViewsFactory.CreateTimeSeriesViewObjects();
 			timeSeriesForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			timeSeriesModel = new LogJoint.Postprocessing.TimeSeries.TimelineVisualizerModel(
-				app.Model.Postprocessing.Manager,
-				app.Model.SourcesManager,
+				postprocessorsManager,
+				logSourcesManager,
 				shortNames,
 				logSourceNamesProvider
 			);
-			timeSeriesPresenter = new Presenters.Postprocessing.TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
+			timeSeriesPresenter = new TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
 				timeSeriesModel,
 				view,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.Manager, app.Model.SourcesManager, app.Model.ChangeNotification, alerts),
+				new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts),
 				loadedMessagesPresenter.LogViewerPresenter,
-				app.Model.Bookmarks,
+				bookmarks,
 				presentersFacade,
-				app.Model.ChangeNotification
+				changeNotification
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.TimeSeries, timeSeriesForm, timeSeriesPresenter));
 		}

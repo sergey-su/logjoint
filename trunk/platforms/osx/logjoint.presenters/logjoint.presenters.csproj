@@ -78,9 +78,6 @@
     <Compile Include="..\..\..\presenters\Common\BusyStateEventArgs.cs">
       <Link>Common\BusyStateEventArgs.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
-      <Link>Common\IViewUpdates.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
       <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
     </Compile>
@@ -570,6 +567,12 @@
     </Compile>
     <Compile Include="..\..\..\presenters\Common\Reactive\Tree.cs">
       <Link>Common\Reactive\Tree.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Factory.cs">
+      <Link>Factory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\PostprocessorOutputFormFactory.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\PostprocessorOutputFormFactory.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

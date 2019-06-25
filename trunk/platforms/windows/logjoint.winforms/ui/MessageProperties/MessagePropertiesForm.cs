@@ -14,7 +14,7 @@ namespace LogJoint
 		IDialogViewModel viewModel;
 		RadioButton[] contentModeButtons;
 
-		public MessagePropertiesForm(IDialogViewModel host, IChangeNotification changeNotification)
+		public MessagePropertiesForm(IDialogViewModel host)
 		{
 			this.viewModel = host;
 			InitializeComponent();
@@ -22,7 +22,7 @@ namespace LogJoint
 			InitializeTable(CreateRows());
 
 			var tableUpdater = Updaters.Create(() => viewModel.Data, UpdateView);
-			changeNotification.CreateSubscription(tableUpdater);
+			host.ChangeNotification.CreateSubscription(tableUpdater);
 
 			FormClosed += (s, e) => host.OnClosed();
 
@@ -241,17 +241,15 @@ namespace LogJoint
 	class MessagePropertiesDialogView : IView
 	{
 		private readonly IWinFormsComponentsInitializer formsInitializer;
-		private readonly IChangeNotification changeNotification;
 
-		public MessagePropertiesDialogView(IWinFormsComponentsInitializer formsInitializer, IChangeNotification changeNotification)
+		public MessagePropertiesDialogView(IWinFormsComponentsInitializer formsInitializer)
 		{
 			this.formsInitializer = formsInitializer;
-			this.changeNotification = changeNotification;
 		}
 
 		IDialog IView.CreateDialog(IDialogViewModel model)
 		{
-			MessagePropertiesForm frm = new MessagePropertiesForm(model, changeNotification);
+			MessagePropertiesForm frm = new MessagePropertiesForm(model);
 			formsInitializer.InitOwnedForm(frm);
 			return frm;
 		}

@@ -17,14 +17,16 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		static public DesktopFileSystemAccess CreatePersistentUserDataFileSystem()
+		static public DesktopFileSystemAccess CreatePersistentUserDataFileSystem(string appDataDirectory = null)
 		{
-			return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.DirectorySeparatorChar));
+			return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}",
+				appDataDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.DirectorySeparatorChar));
 		}
 
-		static public DesktopFileSystemAccess CreateCacheFileSystemAccess()
+		static public DesktopFileSystemAccess CreateCacheFileSystemAccess(string appDataDirectory = null)
 		{
-			return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}Cache{1}", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.DirectorySeparatorChar));
+			return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}Cache{1}",
+				appDataDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.DirectorySeparatorChar));
 		}
 
 		void IFileSystemAccess.SetTrace(LJTraceSource trace)
