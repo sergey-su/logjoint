@@ -1,14 +1,20 @@
 ﻿namespace LogJoint.UI.Presenters
 {
-	class ViewsFactory : Factory.IViewsFactory, FormatsWizard.Factory.IViewsFactory, Postprocessing.Factory.IViewsFactory
+	class ViewsFactory :
+		Factory.IViewsFactory,
+		FormatsWizard.Factory.IViewsFactory,
+		Postprocessing.Factory.IViewsFactory,
+		Windows.Reactive.IReactive
 	{
 		readonly UI.MainForm mainForm;
 		readonly IWinFormsComponentsInitializer winFormsComponentsInitializer;
+		readonly ModelObjects model;
 
-		public ViewsFactory(UI.MainForm mainForm)
+		public ViewsFactory(UI.MainForm mainForm, ModelObjects model)
 		{
 			this.mainForm = mainForm;
 			this.winFormsComponentsInitializer = mainForm;
+			this.model = model;
 		}
 
 		LoadedMessages.IView Factory.IViewsFactory.CreateLoadedMessagesView() => mainForm.loadedMessagesControl;
@@ -70,6 +76,7 @@
 		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage(MainForm.IPresenter mainFormPresenter) =>
 			new UI.Postprocessing.MainWindowTabPage.TabPage(mainFormPresenter);
 		Postprocessing.Factory.IViewsFactory Factory.IViewsFactory.PostprocessingViewsFactory => this;
+		PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView() => new LogsPreprocessorUI(mainForm, model.SynchronizationContext, this);
 
 		(Postprocessing.IPostprocessorOutputForm, Postprocessing.StateInspectorVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateStateInspectorViewObjects()
 		{
@@ -97,6 +104,16 @@
 			var impl = new UI.Postprocessing.TimeSeriesVisualizer.TimeSeriesForm();
 			winFormsComponentsInitializer.InitOwnedForm(impl, takeOwnership: false);
 			return (impl, impl.TimeSeriesVisualizerView);
+		}
+
+		Windows.Reactive.ITreeViewController Windows.Reactive.IReactive.CreateTreeViewController(System.Windows.Forms.TreeView treeView)
+		{
+			return new Windows.Reactive.TreeViewController(treeView);
+		}
+
+		Windows.Reactive.IListBoxController Windows.Reactive.IReactive.CreateListBoxController(System.Windows.Forms.ListBox listBox)
+		{
+			return new Windows.Reactive.ListBoxController(listBox);
 		}
 	};
 }

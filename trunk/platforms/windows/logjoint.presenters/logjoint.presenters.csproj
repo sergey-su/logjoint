@@ -103,6 +103,9 @@
     <Compile Include="..\..\..\presenters\Common\PromptDialog.cs">
       <Link>Common\PromptDialog.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\Reactive\List.cs">
+      <Link>Common\Reactive\List.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Common\Reactive\Tree.cs">
       <Link>Common\Reactive\Tree.cs</Link>
     </Compile>
@@ -363,6 +366,12 @@
     </Compile>
     <Compile Include="..\..\..\presenters\Postprocessing\TimeSeriesVisualizerPresenter\TimeSeriesVisualizerPresenter.cs">
       <Link>Postprocessing\TimeSeriesVisualizerPresenter\TimeSeriesVisualizerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Preprocessing\Interfaces.cs">
+      <Link>Preprocessing\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Preprocessing\PreprocessingInteractionsPresenter.cs">
+      <Link>Preprocessing\PreprocessingInteractionsPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\PresentersFacade\IPresentersFacade.cs">
       <Link>PresentersFacade\IPresentersFacade.cs</Link>

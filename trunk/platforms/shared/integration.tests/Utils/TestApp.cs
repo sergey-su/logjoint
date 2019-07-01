@@ -28,6 +28,7 @@ namespace LogJoint.Tests.Integration
 	{
 		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
 		public UI.Presenters.MainForm.IViewEvents MainForm;
+		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 	};
 
 	public class TestAppConfig
@@ -75,6 +76,9 @@ namespace LogJoint.Tests.Integration
 
 			mocks.Views.CreateMainFormView().SetPresenter(
 				Arg.Do<UI.Presenters.MainForm.IViewEvents>(x => viewModel.MainForm = x));
+
+			mocks.Views.CreatePreprocessingView().SetViewModel(
+				Arg.Do<UI.Presenters.PreprocessingUserInteractions.IViewModel>(x => viewModel.PreprocessingUserInteractions = x));
 
 			var appDataDir = Path.Combine(Path.GetTempPath(),
 				$"logjoint.int.test.workdir.{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff")}");

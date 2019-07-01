@@ -74,8 +74,18 @@ namespace LogJoint.Tests.Integration
 		{
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
-				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
-				
+				var preprocTask = app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+
+				await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
+
+				var userQueryItems = app.ViewModel.PreprocessingUserInteractions.DialogData.Items;
+				Assert.AreEqual(2, userQueryItems.Count);
+				Assert.IsTrue(userQueryItems.Any(x => x.Title.Contains("Microsoft\\XmlWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\XmlWriterTraceListener1.xml")));
+				Assert.IsTrue(userQueryItems.Any(x => x.Title.Contains("Microsoft\\TextWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\TextWriterTraceListener.log")));
+				Assert.IsFalse(preprocTask.IsCompleted);
+
+				app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
+				await preprocTask;
 
 				return 0;
 			});

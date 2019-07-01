@@ -224,6 +224,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>QuickSearchTextBoxResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\Reactive\ListBoxController.cs" />
     <Compile Include="ui\CommonControls\Reactive\TreeViewController.cs" />
     <Compile Include="ui\CommonControls\TagsList\AllTagsDialog.cs">
       <SubType>Form</SubType>

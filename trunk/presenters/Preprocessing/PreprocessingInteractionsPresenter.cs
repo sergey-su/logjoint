@@ -153,6 +153,7 @@ namespace LogJoint.UI.Presenters.PreprocessingUserInteractions
 			public bool IsChecked { get; internal set; }
 			public string Key { get; internal set; }
 			public bool IsSelected { get; internal set; }
+			public override string ToString() => Title;
 		};
 	};
 }

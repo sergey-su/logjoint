@@ -1,6 +1,7 @@
 ﻿using System;
 using WF = System.Windows.Forms;
 using LogJoint.UI.Presenters.Reactive;
+using System.Collections.Generic;
 
 namespace LogJoint.UI.Windows.Reactive
 {
@@ -17,8 +18,17 @@ namespace LogJoint.UI.Windows.Reactive
 		Action<WF.TreeNode, ITreeNode, ITreeNode> OnUpdateNode { get; set; }
 	}
 
+	public interface IListBoxController
+	{
+		void Update(IReadOnlyList<IListItem> newRoot);
+		bool IsUpdating { get; }
+		Action<IListItem[]> OnSelect { get; set; }
+		Action<IListItem, int, IListItem> OnUpdateRow { get; set; }
+	};
+
 	public interface IReactive
 	{
 		ITreeViewController CreateTreeViewController(WF.TreeView treeView);
+		IListBoxController CreateListBoxController(WF.ListBox listBox);
 	};
 }
