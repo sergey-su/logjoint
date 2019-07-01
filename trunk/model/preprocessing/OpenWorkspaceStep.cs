@@ -21,7 +21,7 @@ namespace LogJoint.Preprocessing
 		{
 			await callback.BecomeLongRunning();
 			callback.SetStepDescription("Opening workspace " + source.FullPath);
-			callback.SetOption(PreprocessingOptions.SkipLogsSelectionDialog, true);
+			callback.SetOption(PreprocessingOptions.Silent, true);
 
 			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Location, callback.Cancellation)).WithCancellation(callback.Cancellation))
 				callback.YieldChildPreprocessing(entry.Log, entry.IsHiddenLog);

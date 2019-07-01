@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.Reactive
 
 		public override string ToString()
 		{
-			if (Type == EditType.Expand || Type == EditType.Collapse || Type == EditType.Select)
+			if (Type == EditType.Expand || Type == EditType.Collapse || Type == EditType.Select || Type == EditType.Deselect)
 				return $"({Node}).{Type}";
 			else
 				return $"({Node}).{Type} ({OldChild})->({NewChild}) at {ChildIndex}";

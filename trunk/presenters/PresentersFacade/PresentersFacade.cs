@@ -72,7 +72,7 @@ namespace LogJoint.UI.Presenters
 			sourcesListPresenter.SaveLogSourceAs(logSource);
 		}
 
-		void IPresentersFacade.ShowPreprocessing(Preprocessing.ILogSourcePreprocessing preproc)
+		void IPresentersFacade.ShowPreprocessing(LogJoint.Preprocessing.ILogSourcePreprocessing preproc)
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.Sources);
 			sourcesListPresenter.SelectPreprocessing(preproc);

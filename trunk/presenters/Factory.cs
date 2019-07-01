@@ -14,6 +14,7 @@ namespace LogJoint.UI.Presenters
 		public IAlertPopup AlertPopup { get; internal set; }
 		public IColorTheme ColorTheme { get; internal set; }
 		public IShellOpen ShellOpen { get; internal set; }
+		public PreprocessingUserInteractions.IPresenter PreprocessingUserInteractions { get; internal set; }
 	};
 
 	public static class Factory
@@ -54,6 +55,7 @@ namespace LogJoint.UI.Presenters
 			MainForm.IView CreateMainFormView();
 			Postprocessing.MainWindowTabPage.IView CreatePostprocessingTabPage(MainForm.IPresenter presenter);
 			Postprocessing.Factory.IViewsFactory PostprocessingViewsFactory { get; }
+			PreprocessingUserInteractions.IView CreatePreprocessingView();
 		};
 
 
@@ -528,6 +530,13 @@ namespace LogJoint.UI.Presenters
 				model.TelemetryCollector
 			);
 
+			PreprocessingUserInteractions.IPresenter preprocessingUserInteractions = new PreprocessingUserInteractions.PreprocessingInteractionsPresenter(
+				views.CreatePreprocessingView(),
+				model.LogSourcesPreprocessings,
+				statusReportsPresenter,
+				model.ChangeNotification
+			);
+
 			presentersFacade.Init(
 				messagePropertiesDialogPresenter,
 				threadsListPresenter,
@@ -566,7 +575,8 @@ namespace LogJoint.UI.Presenters
 				PresentersFacade = presentersFacade,
 				AlertPopup = alertPopup,
 				ShellOpen = shellOpen,
-				ColorTheme = colorTheme
+				ColorTheme = colorTheme,
+				PreprocessingUserInteractions = preprocessingUserInteractions
 			};
 		}
 	};

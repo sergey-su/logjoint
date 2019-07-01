@@ -5,13 +5,15 @@ using System.Windows.Forms;
 
 namespace LogJoint.Extensibility
 {
-	class View: UI.Windows.IView, UI.Windows.Reactive.IReactive
+	class View: UI.Windows.IView
 	{
 		public View(
-			IWinFormsComponentsInitializer winFormsComponentsInitializer
+			IWinFormsComponentsInitializer winFormsComponentsInitializer,
+			IReactive reactiveImpl
 		)
 		{
 			this.winFormsComponentsInitializer = winFormsComponentsInitializer;
+			this.reactiveImpl = reactiveImpl;
 		}
 
 		void UI.Windows.IView.RegisterToolForm(Form f)
@@ -19,14 +21,9 @@ namespace LogJoint.Extensibility
 			winFormsComponentsInitializer.InitOwnedForm(f, false);
 		}
 
-		IReactive IView.Reactive => this;
-
-		ITreeViewController IReactive.CreateTreeViewController(TreeView treeView)
-		{
-			return new TreeViewController(treeView);
-		}
-
+		IReactive IView.Reactive => reactiveImpl;
 
 		readonly IWinFormsComponentsInitializer winFormsComponentsInitializer;
+		readonly IReactive reactiveImpl;
 	};
 }

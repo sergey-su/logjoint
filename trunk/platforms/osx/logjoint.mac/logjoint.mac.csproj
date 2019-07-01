@@ -640,6 +640,7 @@
     <Compile Include="extensibility\Application.cs" />
     <Compile Include="ui\CommonControls\Reactive\NSOutlineViewController.cs" />
     <Compile Include="ui\ViewsFactory.cs" />
+    <Compile Include="ui\CommonControls\Reactive\NSTableViewController.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

@@ -574,6 +574,15 @@
     <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\PostprocessorOutputFormFactory.cs">
       <Link>Postprocessing\MainWindowTabPagePresenter\PostprocessorOutputFormFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Preprocessing\Interfaces.cs">
+      <Link>Preprocessing\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Preprocessing\PreprocessingInteractionsPresenter.cs">
+      <Link>Preprocessing\PreprocessingInteractionsPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\Reactive\List.cs">
+      <Link>Common\Reactive\List.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -630,6 +639,7 @@
     <Folder Include="Common\Theming\" />
     <Folder Include="Extensibility\" />
     <Folder Include="Common\Reactive\" />
+    <Folder Include="Preprocessing\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

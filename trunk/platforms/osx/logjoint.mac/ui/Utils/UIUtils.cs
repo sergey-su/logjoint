@@ -156,6 +156,21 @@ namespace LogJoint.UI
 			return img;
 		}
 
+		public class ActionTarget : NSObject
+		{
+			readonly Action<NSObject> action;
+
+			public ActionTarget (Action<NSObject> action)
+			{
+				this.action = action;
+			}
+
+			public static readonly ObjCRuntime.Selector ActionSelector = new ObjCRuntime.Selector ("OnAction:");
+
+			[Export ("OnAction:")]
+			public void OnChecked (NSObject sender) => action (sender);
+		};
+
 		[Register("ReadonlyFormatter")]
 		public class ReadonlyFormatter: NSFormatter
 		{

@@ -53,6 +53,8 @@ namespace LogJoint
 					)
 				);
 
+				var viewsFactory = new UI.Presenters.ViewsFactory(mainForm, model);
+
 				var presentation = UI.Presenters.Factory.Create(
 					tracer,
 					model,
@@ -68,20 +70,15 @@ namespace LogJoint
 						model.PreprocessingStepsFactory
 					),
 					new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Light),
-					new UI.Presenters.ViewsFactory(mainForm)
+					viewsFactory
 				);
-
-				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI( // todo: refactor into proper MVP
-					model.LogSourcesPreprocessings,
-					mainForm,
-					presentation.StatusReportsPresenter);
-
 
 				var pluginEntryPoint = new Extensibility.Application(
 					model.ExpensibilityEntryPoint,
 					presentation.ExpensibilityEntryPoint,
 					new Extensibility.View(
-						mainForm
+						mainForm,
+						viewsFactory
 					)
 				);
 

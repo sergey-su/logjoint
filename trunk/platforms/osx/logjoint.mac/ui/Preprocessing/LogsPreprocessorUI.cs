@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using AppKit;
+using LogJoint.UI.Presenters.PreprocessingUserInteractions;
 
 namespace LogJoint.UI
 {
@@ -58,38 +59,39 @@ namespace LogJoint.UI
 		}
 	};
 
-	class LogsPreprocessorUI : Preprocessing.IPreprocessingUserRequests
+	class LogsPreprocessorUI : IView
 	{
-		Presenters.StatusReports.IPresenter statusReports;
+		readonly ISynchronizationContext synchronizationContext;
+		readonly Mac.IReactive reactive;
+		FilesSelectionDialogController dialog;
 
-		public LogsPreprocessorUI(
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings, 
-			Presenters.StatusReports.IPresenter statusReports)
+		public LogsPreprocessorUI (ISynchronizationContext synchronizationContext, Mac.IReactive reactive)
 		{
-			this.statusReports = statusReports;
-			logSourcesPreprocessings.SetUserRequestsHandler(this);
-		}
-			
-
-		bool[] Preprocessing.IPreprocessingUserRequests.SelectItems(string prompt, string[] items)
-		{
-			return FilesSelectionDialogController.Execute(prompt, items);
+			this.synchronizationContext = synchronizationContext;
+			this.reactive = reactive;
 		}
 
-		void Preprocessing.IPreprocessingUserRequests.NotifyUserAboutIneffectivePreprocessing(string notificationSource)
+		void IView.SetViewModel (IViewModel viewModel)
 		{
-			statusReports.CreateNewStatusReport().ShowStatusPopup(
-				notificationSource ?? "Log preprocessor", 
-				"No log of known format is detected",
-				true);
-		}
-
-		void Preprocessing.IPreprocessingUserRequests.NotifyUserAboutPreprocessingFailure(string notificationSource, string message)
-		{
-			statusReports.CreateNewStatusReport().ShowStatusPopup(
-				notificationSource ?? "Log preprocessor", 
-				message,
-				true);
+			var updateDialog = Updaters.Create (
+				() => viewModel.DialogData,
+				dd => {
+					if ((dd != null) != (dialog != null)) {
+						if (dialog != null) {
+							dialog.Close ();
+							dialog = null;
+						} else {
+							synchronizationContext.Post (() => {
+								if (viewModel.DialogData != null)
+									FilesSelectionDialogController.Execute (viewModel, reactive, out dialog);
+							});
+						}
+					} else if (dialog != null && dd != null) {
+						dialog.Update (dd);
+					}
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription(updateDialog);
 		}
 	}
 }

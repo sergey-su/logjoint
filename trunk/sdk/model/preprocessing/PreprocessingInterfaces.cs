@@ -12,7 +12,6 @@ namespace LogJoint.Preprocessing
 {
 	public interface ILogSourcesPreprocessingManager
 	{
-		void SetUserRequestsHandler(IPreprocessingUserRequests userRequests);
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
 		Task<YieldedProvider[]> Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
 		Task<YieldedProvider[]> Preprocess(IRecentlyUsedEntity recentLogEntry, PreprocessingOptions options = PreprocessingOptions.None);
@@ -45,6 +44,11 @@ namespace LogJoint.Preprocessing
 		/// Raised when preprocessing has resulted to a new log source
 		/// </summary>
 		event EventHandler<YieldedProvider> ProviderYielded;
+		/// <summary>
+		/// Preprocessing finished and yielded no logs
+		/// </summary>
+		event EventHandler<LogSourcePreprocessingWillYieldEventArg> PreprocessingWillYieldProviders;
+		event EventHandler<LogSourcePreprocessingFailedEventArg> PreprocessingYieldFailed;
 	};
 
 	public struct YieldedProvider
@@ -65,30 +69,58 @@ namespace LogJoint.Preprocessing
 
 	public class LogSourcePreprocessingEventArg : EventArgs
 	{
-		public ILogSourcePreprocessing LogSourcePreprocessing { get { return lsp; } }
+		public ILogSourcePreprocessing LogSourcePreprocessing { get; private set; }
 
 		public LogSourcePreprocessingEventArg(ILogSourcePreprocessing lsp)
 		{
-			this.lsp = lsp;
+			this.LogSourcePreprocessing = lsp;
+		}
+	};
+
+	public class LogSourcePreprocessingFailedEventArg : LogSourcePreprocessingEventArg
+	{
+		public IReadOnlyList<YieldedProvider> FailedProviders { get; private set; }
+
+		public LogSourcePreprocessingFailedEventArg(ILogSourcePreprocessing lsp, IReadOnlyList<YieldedProvider> failedProviders) : base(lsp)
+		{
+			FailedProviders = failedProviders;
+		}
+	};
+
+	public class LogSourcePreprocessingWillYieldEventArg : LogSourcePreprocessingEventArg
+	{
+		private readonly bool[] disallowed;
+		private readonly List<Task> postponeTasks;
+
+		public IReadOnlyList<YieldedProvider> Providers { get; private set; }
+		public void SetIsAllowed(int providerIdx, bool value) => disallowed[providerIdx] = !value;
+		public bool IsAllowed(int providerIdx) => !disallowed[providerIdx];
+
+		public void PostponeUntilCompleted(Task task)
+		{
+			postponeTasks.Add(task);
 		}
 
-		ILogSourcePreprocessing lsp;
+		public LogSourcePreprocessingWillYieldEventArg(
+			ILogSourcePreprocessing lsp,
+			IReadOnlyList<YieldedProvider> providers,
+			List<Task> postponeTasks
+		) : base(lsp)
+		{
+			this.Providers = providers;
+			this.disallowed = new bool[providers.Count];
+			this.postponeTasks = postponeTasks;
+		}
 	};
 
 	public interface ILogSourcePreprocessing
 	{
+		string DisplayName { get; }
 		string CurrentStepDescription { get; }
 		Exception Failure { get; }
 		bool IsDisposed { get; }
 		PreprocessingOptions Flags { get; }
 		Task Dispose();
-	};
-
-	public interface IPreprocessingUserRequests
-	{
-		bool[] SelectItems(string prompt, string[] items);
-		void NotifyUserAboutIneffectivePreprocessing(string notificationSource);
-		void NotifyUserAboutPreprocessingFailure(string notificationSource, string message);
 	};
 
 	public interface ICredentialsCache
@@ -289,10 +321,9 @@ namespace LogJoint.Preprocessing
 	public enum PreprocessingOptions
 	{
 		None = 0,
-		SkipLogsSelectionDialog = 1,
+		Silent = 1,
 		HighlightNewPreprocessing = 2,
 		MakeLogHidden = 4,
-		SkipIneffectivePreprocessingMessage = 8,
 	};
 
 	public class LogDownloaderRule

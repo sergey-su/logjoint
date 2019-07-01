@@ -58,12 +58,34 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[Test]
-		public async Task CanDownloadZipExtractAndFindKnownLogFormatsInArchive()
+		public async Task CanDownloadZipExtractAndFindKnownLogFormatInArchive()
 		{
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
 				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip").ToString());
 				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
+
+				return 0;
+			});
+		}
+
+		[Test]
+		public async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				var preprocTask = app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+
+				await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
+
+				var userQueryItems = app.ViewModel.PreprocessingUserInteractions.DialogData.Items;
+				Assert.AreEqual(2, userQueryItems.Count);
+				Assert.IsTrue(userQueryItems.Any(x => x.Title.Contains("Microsoft\\XmlWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\XmlWriterTraceListener1.xml")));
+				Assert.IsTrue(userQueryItems.Any(x => x.Title.Contains("Microsoft\\TextWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\TextWriterTraceListener.log")));
+				Assert.IsFalse(preprocTask.IsCompleted);
+
+				app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
+				await preprocTask;
 
 				return 0;
 			});

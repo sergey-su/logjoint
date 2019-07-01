@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.Reactive
 	{
 		/// <summary>
 		/// The key is used by UI update procedures to determines if
-		/// a node from tree older version matches that in new version.
+		/// a node from older version of tree matches that in new version.
 		/// </summary>
 		string Key { get; }
 		/// <summary>
