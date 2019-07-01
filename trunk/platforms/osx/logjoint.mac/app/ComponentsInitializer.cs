@@ -39,6 +39,7 @@ namespace LogJoint.UI
 					)
 				);
 
+				var viewsFactory = new Presenters.ViewsFactory (mainWindow, model);
 				var presentation = Presenters.Factory.Create (
 					tracer,
 					model,
@@ -54,13 +55,7 @@ namespace LogJoint.UI
 						model.LogSourcesController
 					),
 					mainWindow,
-					new Presenters.ViewsFactory(mainWindow)
-				);
-
-
-				new UI.LogsPreprocessorUI(
-					model.LogSourcesPreprocessings,
-					presentation.StatusReportsPresenter
+					viewsFactory
 				);
 
 				mainWindow.InstancesCounter = model.InstancesCounter;
@@ -86,7 +81,7 @@ namespace LogJoint.UI
 				model.PluginsManager.LoadPlugins (new Application (
 					model.ExpensibilityEntryPoint,
 					presentation.ExpensibilityEntryPoint,
-					model.TelemetryCollector
+					viewsFactory
 				));
 			}
 		}

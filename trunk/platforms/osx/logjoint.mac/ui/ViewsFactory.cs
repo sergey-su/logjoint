@@ -1,16 +1,24 @@
 ﻿using System;
-using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
-using LogJoint.UI.Presenters.SearchPanel;
+using AppKit;
 
 namespace LogJoint.UI.Presenters
 {
-	public class ViewsFactory: Factory.IViewsFactory, FormatsWizard.Factory.IViewsFactory, Postprocessing.Factory.IViewsFactory
+	public class ViewsFactory:
+		Factory.IViewsFactory,
+		FormatsWizard.Factory.IViewsFactory,
+		Postprocessing.Factory.IViewsFactory,
+		Mac.IReactive
 	{
 		readonly MainWindowAdapter mainWindow;
+		readonly ModelObjects model;
 
-		public ViewsFactory (MainWindowAdapter mainWindow)
+		public ViewsFactory (
+			MainWindowAdapter mainWindow,
+			ModelObjects model
+		)
 		{
 			this.mainWindow = mainWindow;
+			this.model = model;
 		}
 
 		FormatsWizard.Factory.IViewsFactory Factory.IViewsFactory.FormatsWizardViewFactory => this;
@@ -88,10 +96,7 @@ namespace LogJoint.UI.Presenters
 
 		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView () => new NewLogSourceDialogView();
 
-		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView ()
-		{
-			throw new NotImplementedException ();
-		}
+		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView () => throw new NotImplementedException();
 
 		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage (MainForm.IPresenter presenter)
 		{
@@ -104,7 +109,7 @@ namespace LogJoint.UI.Presenters
 
 		SearchPanel.IView Factory.IViewsFactory.CreateSearchPanelView () => mainWindow.SearchPanelControlAdapter;
 
-		ISearchResultsPanelView Factory.IViewsFactory.CreateSearchResultsPanelView () => mainWindow;
+		SearchPanel.ISearchResultsPanelView Factory.IViewsFactory.CreateSearchResultsPanelView () => mainWindow;
 
 		SearchResult.IView Factory.IViewsFactory.CreateSearchResultView () => mainWindow.SearchResultsControlAdapter;
 
@@ -120,13 +125,22 @@ namespace LogJoint.UI.Presenters
 
 		StatusReports.IView Factory.IViewsFactory.CreateStatusReportsView () => mainWindow.StatusPopupControlAdapter;
 
-		ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView ()
-		{
-			throw new NotImplementedException ();
-		}
+		ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView () => throw new NotImplementedException ();
 
 		TimelinePanel.IView Factory.IViewsFactory.CreateTimelinePanelView () => mainWindow.TimelinePanelControlAdapter;
 
 		Timeline.IView Factory.IViewsFactory.CreateTimelineView () => mainWindow.TimelinePanelControlAdapter.TimelineControlAdapter;
+
+		PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView () => new LogsPreprocessorUI (model.SynchronizationContext, this);
+
+		UI.Reactive.INSOutlineViewController Mac.IReactive.CreateOutlineViewController (NSOutlineView outlineView)
+		{
+			return new UI.Reactive.NSOutlineViewController (outlineView, model.TelemetryCollector);
+		}
+
+		UI.Reactive.INSTableViewController Mac.IReactive.CreateTableViewController (NSTableView tableView)
+		{
+			return new UI.Reactive.NSTableViewController (tableView, model.TelemetryCollector);
+		}
 	}
 }

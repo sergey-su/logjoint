@@ -5,34 +5,26 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using ObjCRuntime;
+using LogJoint.UI.Presenters.PreprocessingUserInteractions;
+using LogJoint.UI.Reactive;
+using static LogJoint.UI.UIUtils;
 
 namespace LogJoint.UI
 {
 	public partial class FilesSelectionDialogController : AppKit.NSWindowController
 	{
-		readonly DataSource dataSource = new DataSource();
-		readonly string prompt;
+		readonly IViewModel viewModel;
+		readonly Mac.IReactive reactive;
+		INSTableViewController tableController;
 
 		#region Constructors
 
-		// Called when created from unmanaged code
-		public FilesSelectionDialogController(IntPtr handle)
-			: base(handle)
-		{
-		}
-		
-		// Called when created directly from a XIB file
-		[Export("initWithCoder:")]
-		public FilesSelectionDialogController(NSCoder coder)
-			: base(coder)
-		{
-		}
-		
 		// Call to load from the XIB/NIB file
-		public FilesSelectionDialogController(string prompt)
+		public FilesSelectionDialogController (IViewModel viewModel, Mac.IReactive reactive)
 			: base("FilesSelectionDialog")
 		{
-			this.prompt = prompt;
+			this.viewModel = viewModel;
+			this.reactive = reactive;
 		}
 		
 		#endregion
@@ -51,125 +43,54 @@ namespace LogJoint.UI
 
 			Window.owner = this;
 
-			Window.Title = prompt;
-			tableView.Delegate = new Delegate() { owner = this };
-			tableView.DataSource = dataSource;
+			this.tableController = reactive.CreateTableViewController (tableView);
+			this.tableController.OnCreateView = (item, column) => {
+				var view = new NSButton {
+					State = NSCellStateValue.Off,
+					Action = ActionTarget.ActionSelector
+				};
+				view.SetButtonType (NSButtonType.Switch);
+				UpdateButton ((IDialogItem)item, view);
+				return view;
+			};
+			this.tableController.OnUpdateView = (item, column, view, old) => UpdateButton ((IDialogItem)item, (NSButton)view);
+			this.tableController.OnSelect = items => viewModel.OnSelect (items.LastOrDefault () as IDialogItem);
 
 			checkAllButton.StringValue = "check all";
-			checkAllButton.LinkClicked = (s, e) => SetAllChecked(true);
+			checkAllButton.LinkClicked = (s, e) => viewModel.OnCheckAll (true);
 			uncheckAllButton.StringValue = "uncheck all";
-			uncheckAllButton.LinkClicked = (s, e) => SetAllChecked(false);
+			uncheckAllButton.LinkClicked = (s, e) => viewModel.OnCheckAll (false);
 		}
 
-		public static bool[] Execute(string prompt, string[] choises)
+		void UpdateButton (IDialogItem item, NSButton btn)
 		{
-			var dialog = new FilesSelectionDialogController (prompt);
-			return dialog.ExecuteInternal(choises);
+			btn.Title = item.Title;
+ 			btn.Target = new ActionTarget (_ => viewModel.OnCheck(item, btn.State == NSCellStateValue.On));
+			btn.State = item.IsChecked ? NSCellStateValue.On : NSCellStateValue.Off;
 		}
 
-		bool[] ExecuteInternal(string[] choises)
+		public void Update (DialogViewData dd)
 		{
-			Window.ToString(); // force loading nib
-			dataSource.Items.Clear();
-			dataSource.Items.AddRange(choises.Select((i, idx) => new Item() 
-			{ 
-				Idx = idx, 
-				Data = i, 
-				IsSelected = true,
-				Table = tableView
-			}));
-			tableView.ReloadData();
-			if (choises.Length > 0)
-				tableView.SelectRow(0, false);
-			NSApplication.SharedApplication.RunModalForWindow (Window);
-			return dataSource.Items.Select(i => i.IsSelected).ToArray();
+			Window.Title = dd.Title;
+			tableController.Update (dd.Items);
 		}
 
-		partial void OnCancelButtonClicked (NSObject sender)
+		public static void Execute(IViewModel viewModel, Mac.IReactive reactive, out FilesSelectionDialogController dialog)
 		{
-			dataSource.Items.ForEach(i => { i.IsSelected = false; });
-			NSApplication.SharedApplication.AbortModal ();
-			this.Close();
+			dialog = new FilesSelectionDialogController (viewModel, reactive);
+			dialog.Update (viewModel.DialogData);
+			NSApplication.SharedApplication.RunModalForWindow (dialog.Window);
 		}
 
-		partial void OnOpenButtonClicked (NSObject sender)
+		public new void Close ()
 		{
 			NSApplication.SharedApplication.StopModal ();
-			this.Close();
+			base.Close ();
 		}
 
-		public void ToggleSelected()
-		{
-			var updated = new List<nuint>();
-			for (int i = 0; i < dataSource.Items.Count; ++i)
-			{
-				if (tableView.IsRowSelected(i))
-				{
-					updated.Add((nuint)i);
-					dataSource.Items[i].IsSelected = !dataSource.Items[i].IsSelected;
-				}
-			};
-			tableView.ReloadData(NSIndexSet.FromArray(updated.ToArray()), NSIndexSet.FromIndex(0));
-		}
+		partial void OnCancelButtonClicked (NSObject sender) => viewModel.OnCloseDialog (accept: false);
 
-		void SetAllChecked(bool value)
-		{
-			dataSource.Items.ForEach(i => { i.IsSelected = value; });
-			tableView.ReloadData();
-		}
-
-		class Delegate: NSTableViewDelegate
-		{
-			public FilesSelectionDialogController owner;
-
-			public override NSView GetViewForItem(NSTableView tableView, NSTableColumn tableColumn, nint row)
-			{
-				var item = owner.dataSource.Items[(int)row];
-
-				NSButton view = (NSButton)tableView.MakeView ("cb", this);
-				if (view == null) 
-				{
-					view = new NSButton()
-					{
-						Identifier = "cb",
-						Bordered = false,
-						Action = new Selector("OnChecked:")
-					};
-					view.SetButtonType(NSButtonType.Switch);
-				}
-
-				view.Target = item;
-				view.Title = item.Data;
-				view.State = item.IsSelected ? NSCellStateValue.On : NSCellStateValue.Off;
-
-				return view;
-			}
-		};
-
-		class DataSource: NSTableViewDataSource
-		{
-			public List<Item> Items = new List<Item>();
-
-			public override nint GetRowCount(NSTableView tableView)
-			{
-				return Items.Count;
-			}
-		};
-
-		class Item: NSObject
-		{
-			public int Idx;
-			public string Data;
-			public bool IsSelected;
-			public NSTableView Table;
-
-			[Export("OnChecked:")]
-			void OnChecked(NSButton sender)
-			{
-				IsSelected = sender.State == NSCellStateValue.On;
-				Table.SelectRow(Idx, byExtendingSelection: false);
-			}
-		};
+		partial void OnOpenButtonClicked (NSObject sender) => viewModel.OnCloseDialog (accept: true);
 	}
 }
 

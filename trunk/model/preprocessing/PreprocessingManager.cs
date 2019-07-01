@@ -27,11 +27,7 @@ namespace LogJoint.Preprocessing
 			this.trace = new LJTraceSource("PreprocessingManager", "prepr");
 			this.invokeSynchronize = invokeSynchronize;
 			this.formatAutodetect = formatAutodetect;
-			this.providerYieldedCallback = prov =>
-			{
-				if (ProviderYielded != null)
-					ProviderYielded(this, prov);
-			};
+			this.providerYieldedCallback = prov => ProviderYielded?.Invoke(this, prov);
 			this.extensions = extensions;
 			this.telemetry = telemetry;
 			this.tempFilesManager = tempFilesManager;
@@ -44,30 +40,27 @@ namespace LogJoint.Preprocessing
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 		public event EventHandler<YieldedProvider> ProviderYielded;
+		public event EventHandler<LogSourcePreprocessingWillYieldEventArg> PreprocessingWillYieldProviders;
+		public event EventHandler<LogSourcePreprocessingFailedEventArg> PreprocessingYieldFailed;
 
 		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
 			IEnumerable<IPreprocessingStep> steps,
 			string preprocessingDisplayName,
 			PreprocessingOptions options)
 		{
-			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName, options));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, providerYieldedCallback, steps, preprocessingDisplayName, options));
 		}
 
 		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
 			IRecentlyUsedEntity recentLogEntry,
 			PreprocessingOptions options)
 		{
-			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry, options));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, providerYieldedCallback, recentLogEntry, options));
 		}
 
 		public IEnumerable<ILogSourcePreprocessing> Items
 		{
 			get { return items; }
-		}
-
-		void ILogSourcesPreprocessingManager.SetUserRequestsHandler(IPreprocessingUserRequests userRequests)
-		{
-			this.userRequests = userRequests;
 		}
 
 		bool ILogSourcesPreprocessingManager.ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams)
@@ -158,12 +151,11 @@ namespace LogJoint.Preprocessing
 		{
 			public LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner, 
-				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback,
 				IEnumerable<IPreprocessingStep> initialSteps,
 				string preprocessingDisplayName,
 				PreprocessingOptions options) :
-				this(owner, userRequests, providerYieldedCallback)
+				this(owner, providerYieldedCallback)
 			{
 				this.displayName = preprocessingDisplayName;
 				this.options = options;
@@ -199,12 +191,11 @@ namespace LogJoint.Preprocessing
 
 			public LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner,
-				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback,
 				IRecentlyUsedEntity recentLogEntry,
 				PreprocessingOptions options 
 			) :
-				this(owner, userRequests, providerYieldedCallback)
+				this(owner, providerYieldedCallback)
 			{
 				this.options = options;
 				preprocLogic = async () =>
@@ -246,7 +237,6 @@ namespace LogJoint.Preprocessing
 
 			LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner,
-				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback)
 			{
 				this.owner = owner;
@@ -257,17 +247,16 @@ namespace LogJoint.Preprocessing
 				this.tempFiles = owner.tempFilesManager;
 				this.scopedTempFiles = new TempFilesCleanupList(tempFiles);
 				this.trace = new LJTraceSource("PreprocessingManager", id);
-				this.userRequests = userRequests;
 			}
 
 			public Task<YieldedProvider[]> Execute()
 			{
-				Func<Task<YieldedProvider[]>> helper = async () =>
+				async Task<YieldedProvider[]> helper()
 				{
 					await preprocLogic();
 					LoadChildPreprocessings();
-					return await owner.invokeSynchronize.Invoke<YieldedProvider[]>(LoadYieldedProviders);
-				};
+					return await owner.invokeSynchronize.InvokeAndAwait(LoadYieldedProviders);
+				}
 				var innerTask = helper();
 				this.task = innerTask.ContinueWith(t =>
 				{
@@ -336,7 +325,7 @@ namespace LogJoint.Preprocessing
 				FirePreprocessingChanged();
 			}
 
-			YieldedProvider[] LoadYieldedProviders() // this method is run in model thread
+			async Task<YieldedProvider[]> LoadYieldedProviders() // this method is run in model thread
 			{
 				trace.Info("Loading yielded providers");
 				YieldedProvider[] providersToYield;
@@ -344,32 +333,22 @@ namespace LogJoint.Preprocessing
 				{
 					providersToYield = new YieldedProvider[0];
 				}
-				else if (yieldedProviders.Count > 1)
+				else
 				{
-					bool[] selection;
-					if ((options & PreprocessingOptions.SkipLogsSelectionDialog) != 0)
+					var postponeTasks = new List<Task>();
+					var eventArg = new LogSourcePreprocessingWillYieldEventArg(
+						this, yieldedProviders.AsReadOnly(), postponeTasks);
+					owner?.PreprocessingWillYieldProviders(owner, eventArg);
+					if (postponeTasks.Count > 0)
 					{
-						selection = Enumerable.Repeat(true, yieldedProviders.Count).ToArray();
+						((IPreprocessingStepCallback)this).SetStepDescription("Waiting");
+						await Task.WhenAll(postponeTasks);
 					}
-					else
-					{
-						((IPreprocessingStepCallback)this).SetStepDescription("Waiting user input");
-						selection = userRequests.SelectItems("Select logs to load",
-							yieldedProviders.Select(p => string.Format(
-								"{1}\\{2}: {0}", p.DisplayName, p.Factory.CompanyName, p.Factory.FormatName)).ToArray());
-					}
+					var selection = Enumerable.Range(0, yieldedProviders.Count).Select(eventArg.IsAllowed).ToArray();
 					providersToYield = yieldedProviders.Zip(Enumerable.Range(0, yieldedProviders.Count),
 						(p, i) => selection[i] ? p : new YieldedProvider()).Where(p => p.Factory != null).ToArray();
 				}
-				else
-				{
-					providersToYield = yieldedProviders.ToArray();
-					if (yieldedProviders.Count == 0 && failure == null && childPreprocessings.Count == 0 && (options & PreprocessingOptions.SkipIneffectivePreprocessingMessage) == 0)
-					{
-						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
-					}
-				}
-				var failedProviders = new List<string>();
+				var failedProviders = new List<YieldedProvider>();
 				foreach (var provider in providersToYield)
 				{
 					try
@@ -378,13 +357,13 @@ namespace LogJoint.Preprocessing
 					}
 					catch (Exception e)
 					{
-						failedProviders.Add(provider.Factory.GetUserFriendlyConnectionName(provider.ConnectionParams));
+						failedProviders.Add(provider);
 						trace.Error(e, "Failed to load from {0} from {1}", provider.Factory.FormatName, provider.ConnectionParams);
 					}
 				}
 				if (failedProviders.Count > 0)
-					userRequests.NotifyUserAboutPreprocessingFailure(displayName,
-						"Failed to handle " + string.Join(", ", failedProviders));
+					owner.PreprocessingYieldFailed?.Invoke(owner,
+						new LogSourcePreprocessingFailedEventArg(this, failedProviders.AsReadOnly()));
 				return providersToYield;
 			}
 
@@ -429,13 +408,9 @@ namespace LogJoint.Preprocessing
 			{
 				// allow only few specific modifications
 
-				if (opt == PreprocessingOptions.SkipLogsSelectionDialog && value)
+				if (opt == PreprocessingOptions.Silent && value)
 				{
-					options |= PreprocessingOptions.SkipLogsSelectionDialog;
-				}
-				else if (opt == PreprocessingOptions.SkipIneffectivePreprocessingMessage && value)
-				{
-					options |= PreprocessingOptions.SkipIneffectivePreprocessingMessage;
+					options |= PreprocessingOptions.Silent;
 				}
 			}
 
@@ -495,6 +470,8 @@ namespace LogJoint.Preprocessing
 				get { return trace; }
 			}
 
+			string ILogSourcePreprocessing.DisplayName => displayName ?? "Log preprocessor";
+
 			string ILogSourcePreprocessing.CurrentStepDescription
 			{
 				get { return currentDescription; }
@@ -551,7 +528,6 @@ namespace LogJoint.Preprocessing
 			readonly string id;
 			public Action<YieldedProvider> providerYieldedCallback;
 			readonly LJTraceSource trace;
-			readonly IPreprocessingUserRequests userRequests;
 			readonly IFormatAutodetect formatAutodetect;
 			readonly ITempFilesManager tempFiles;
 			readonly ITempFilesCleanupList scopedTempFiles;
@@ -704,7 +680,6 @@ namespace LogJoint.Preprocessing
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly LJTraceSource trace;
 		readonly ITempFilesManager tempFilesManager;
-		IPreprocessingUserRequests userRequests;
 		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>(); // todo: move to separate class
 		int lastPreprocId;
 
