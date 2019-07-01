@@ -58,12 +58,24 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[Test]
-		public async Task CanDownloadZipExtractAndFindKnownLogFormatsInArchive()
+		public async Task CanDownloadZipExtractAndFindKnownLogFormatInArchive()
 		{
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
 				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip").ToString());
 				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
+
+				return 0;
+			});
+		}
+
+		[Test]
+		public async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+				
 
 				return 0;
 			});
