@@ -12,63 +12,28 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 {
 	public partial class MainWindowTabPageAdapter : AppKit.NSViewController, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 
-		#region Constructors
-
-		public MainWindowTabPageAdapter(UI.Presenters.MainForm.IPresenter mainFormPresenter): this()
-		{
-			mainFormPresenter.AddCustomTab(this.View, "Postprocessing", this);
-			mainFormPresenter.TabChanging += (sender, e) =>
-			{
-				if (e.CustomTabTag == this)
-					eventsHandler.OnTabPageSelected();
-			};
-		}
-
-		// Called when created from unmanaged code
-		public MainWindowTabPageAdapter (IntPtr handle) : base (handle)
-		{
-			Initialize ();
-		}
-		
-		// Called when created directly from a XIB file
-		[Export ("initWithCoder:")]
-		public MainWindowTabPageAdapter (NSCoder coder) : base (coder)
-		{
-			Initialize ();
-		}
-		
-		// Call to load from the XIB/NIB file
 		public MainWindowTabPageAdapter () : base ("MainWindowTabPage", NSBundle.MainBundle)
 		{
-			Initialize ();
 		}
-		
-		// Shared initialization code
-		void Initialize ()
+
+		void IView.SetViewModel(IViewModel viewModel)
 		{
+			this.viewModel = viewModel;
+			var updateControls = Updaters.Create (
+				() => viewModel.ControlsState,
+				state => {
+					foreach (var s in state)
+						UpdateControl (s.Key, s.Value);
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription (updateControls);
 		}
 
-		#endregion
+		object IView.UIControl => this.View;
 
-		public override void AwakeFromNib ()
-		{
-			base.AwakeFromNib ();
-		}
-
-		//strongly typed view accessor
-		public new MainWindowTabPage View 
-		{
-			get { return (MainWindowTabPage)base.View; }
-		}
-
-		void IView.SetEventsHandler (IViewEvents eventsHandler)
-		{
-			this.eventsHandler = eventsHandler;
-		}
-
-		void IView.UpdateControl (ViewControlId id, ControlData data)
+		void UpdateControl (ViewControlId id, ControlData data)
 		{
 			var controls = GetControlsSet (id);
 			if (controls != null) 
@@ -83,16 +48,6 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			}
 		}
 
-		void IView.BeginBatchUpdate()
-		{
-		}
-
-		void IView.EndBatchUpdate()
-		{
-		}
-
-
-
 		void UpdateActionLink(NSLinkLabel lbl, string value, ControlData.StatusColor color, bool enabled, ViewControlId id)
 		{
 			lbl.SetAttributedContents(value);
@@ -106,7 +61,7 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 					if (!string.IsNullOrEmpty(e.Link.Tag as string))
 					{
 						var flags = ClickFlags.None; // todo: flags
-						eventsHandler.OnActionClick ((string)e.Link.Tag, id, flags);
+						viewModel.OnActionClick ((string)e.Link.Tag, id, flags);
 					}
 				};
 			}
