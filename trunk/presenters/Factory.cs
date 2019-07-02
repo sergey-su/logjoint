@@ -53,7 +53,7 @@ namespace LogJoint.UI.Presenters
 			Options.Dialog.IView CreateOptionsDialogView();
 			About.IView CreateAboutView();
 			MainForm.IView CreateMainFormView();
-			Postprocessing.MainWindowTabPage.IView CreatePostprocessingTabPage(MainForm.IPresenter presenter);
+			Postprocessing.MainWindowTabPage.IView CreatePostprocessingTabPage();
 			Postprocessing.Factory.IViewsFactory PostprocessingViewsFactory { get; }
 			PreprocessingUserInteractions.IView CreatePreprocessingView();
 		};
@@ -518,8 +518,8 @@ namespace LogJoint.UI.Presenters
 				colorTheme
 			);
 
-			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage(mainFormPresenter);
-			Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.PluginTabPagePresenter(
+			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage();
+			Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
 				postprocessingTabPage,
 				model.PostprocessorsManager,
 				postprocessorOutputFormFactory,
@@ -527,7 +527,9 @@ namespace LogJoint.UI.Presenters
 				model.TempFilesManager,
 				shellOpen,
 				newLogSourceDialogPresenter,
-				model.TelemetryCollector
+				model.TelemetryCollector,
+				model.ChangeNotification,
+				mainFormPresenter
 			);
 
 			PreprocessingUserInteractions.IPresenter preprocessingUserInteractions = new PreprocessingUserInteractions.PreprocessingInteractionsPresenter(

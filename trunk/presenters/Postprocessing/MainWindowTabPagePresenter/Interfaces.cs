@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
@@ -9,11 +10,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents eventsHandler);
-
-		void BeginBatchUpdate();
-		void EndBatchUpdate();
-		void UpdateControl(ViewControlId id, ControlData data);
+		void SetViewModel(IViewModel viewModel);
+		object UIControl { get; }
 	};
 
 	public struct ControlData
@@ -31,14 +29,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		public double? Progress;
 	};
 
-	public struct LogsCollectionControlData
+	public interface IViewModel
 	{
-		public string Content;
-	};
-
-	public interface IViewEvents
-	{
-		void OnTabPageSelected();
+		IChangeNotification ChangeNotification { get; }
+		IImmutableDictionary<ViewControlId, ControlData> ControlsState { get; }
 		void OnActionClick(string actionId, ViewControlId id, ClickFlags flags);
 	};
 

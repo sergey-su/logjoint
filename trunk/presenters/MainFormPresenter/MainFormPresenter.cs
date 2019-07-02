@@ -178,7 +178,8 @@ namespace LogJoint.UI.Presenters.MainForm
 		string IPresenter.AddCustomTab(object uiControl, string caption, object tag)
 		{
 			string tabId = string.Format ("tab#{0}", ++lastCustomTabId);
-			view.AddTab(tabId, caption, uiControl, tag);
+			customTabsTags[tabId] = tag;
+			view.AddTab(tabId, caption, uiControl);
 			return tabId;
 		}
 
@@ -208,10 +209,10 @@ namespace LogJoint.UI.Presenters.MainForm
 				Loaded(this, EventArgs.Empty);
 		}
 
-		void IViewEvents.OnTabChanging(string tabId, object tag)
+		void IViewEvents.OnTabChanging(string tabId)
 		{
-			if (TabChanging != null)
-				TabChanging (this, new TabChangingEventArgs (tabId, tag));
+			customTabsTags.TryGetValue(tabId, out var tag);
+			TabChanging?.Invoke(this, new TabChangingEventArgs(tabId, tag));
 		}
 
 		void IViewEvents.OnTabPressed()
@@ -421,6 +422,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalyzing;
 		int lastCustomTabId;
+		Dictionary<string, object> customTabsTags = new Dictionary<string, object>();
 
 
 		#endregion

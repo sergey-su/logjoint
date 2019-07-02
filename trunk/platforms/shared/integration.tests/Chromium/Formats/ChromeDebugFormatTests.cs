@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using LogJoint.Chromium;
+using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
 
 namespace LogJoint.Tests.Integration.Chromium
 {
@@ -39,7 +40,11 @@ namespace LogJoint.Tests.Integration.Chromium
 				await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
 
 				Assert.AreEqual("ProcessThreadAttached 0x(nil)", app.ViewModel.LoadedMessagesLogViewer.ViewLines[0].TextLineValue);
-				Assert.AreEqual(4, app.Model.PostprocessorsManager.LogSourcePostprocessorsOutputs.Count()); // todo: verify view model
+				app.ViewModel.MainForm.OnTabChanging(app.ViewModel.PostprocessingTabPageId);
+				var postprocessorsControls = app.ViewModel.PostprocessingTabPage.ControlsState;
+				Assert.IsFalse(postprocessorsControls[ViewControlId.Timeline].Disabled);
+				Assert.IsFalse(postprocessorsControls[ViewControlId.StateInspector].Disabled);
+				Assert.IsFalse(postprocessorsControls[ViewControlId.TimeSeries].Disabled);
 
 				return 0;
 			});

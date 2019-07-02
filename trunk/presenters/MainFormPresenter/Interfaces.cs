@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void BeginSplittingSearchResults();
 		void BeginSplittingTabsPanel();
 		void ActivateTab(string tabId);
-		void AddTab(string tabId, string caption, object uiControl, object tag);
+		void AddTab(string tabId, string caption, object uiControl);
 		void EnableFormControls(bool enable);
 		void EnableOwnedForms(bool enable);
 		void ShowOptionsMenu();
@@ -91,7 +91,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnConfigurationMenuClicked();
 		void OnRestartPictureClicked();
 		void OnOpenRecentMenuClicked();
-		void OnTabChanging(string tabId, object tag);
+		void OnTabChanging(string tabId);
 		void OnShareButtonClicked();
 		void OnReportProblemMenuItemClicked();
 	};

@@ -9,10 +9,10 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 {
 	public partial class TabPage : UserControl, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		readonly Dictionary<ViewControlId, PostprocessorControls> postprocessorsControls = new Dictionary<ViewControlId, PostprocessorControls>();
 
-		public TabPage(UI.Presenters.MainForm.IPresenter mainFormPresenter)
+		public TabPage()
 		{
 			InitializeComponent();
 			this.SetStyle(ControlStyles.Selectable, true);
@@ -35,26 +35,30 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 				x.Value.link.LinkClicked += (s, e) =>
 				{
 					if (!string.IsNullOrEmpty(e.Link.LinkData as string))
-						eventsHandler.OnActionClick((string)e.Link.LinkData, x.Key, GetClickFlags());
+						viewModel.OnActionClick((string)e.Link.LinkData, x.Key, GetClickFlags());
 				};
 			}
-
-			// todo: create when there a least one postprocessor exists. Postprocessors may come from plugings or it can be internal trace.
-
-			mainFormPresenter.AddCustomTab(this, "Postprocessing", this);
-			mainFormPresenter.TabChanging += (sender, e) =>
-			{
-				if (e.CustomTabTag == this)
-					eventsHandler.OnTabPageSelected();
-			};
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		object IView.UIControl => this;
+
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
+			this.viewModel = viewModel;
+			var updateControls = Updaters.Create(
+				() => viewModel.ControlsState,
+				state =>
+				{
+					BeginBatchUpdate();
+					foreach (var s in state)
+						UpdateControl(s.Key, s.Value);
+					EndBatchUpdate();
+				}
+			);
+			viewModel.ChangeNotification.CreateSubscription(updateControls);
 		}
 
-		void IView.UpdateControl(ViewControlId viewId, ControlData data)
+		void UpdateControl(ViewControlId viewId, ControlData data)
 		{
 			PostprocessorControls controls;
 			if (!postprocessorsControls.TryGetValue(viewId, out controls))
@@ -80,11 +84,11 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			}
 		}
 
-		void IView.BeginBatchUpdate()
+		void BeginBatchUpdate()
 		{
 		}
 
-		async void IView.EndBatchUpdate()
+		async void EndBatchUpdate()
 		{
 			await Task.Yield();
 			if (logsCollectionControlProgressBar2.Visible)
