@@ -16,7 +16,7 @@ namespace LogJoint.Postprocessing
 	{
 		void RegisterLogType(LogSourceMetadata meta);
 		void RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor);
-		event EventHandler Changed;
+		event EventHandler Changed; // todo: remove
 		IEnumerable<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; }
 		IEnumerable<ILogSource> KnownLogSources { get; }
 		IEnumerable<LogSourceMetadata> KnownLogTypes { get; }

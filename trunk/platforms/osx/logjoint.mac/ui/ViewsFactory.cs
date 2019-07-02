@@ -98,10 +98,7 @@ namespace LogJoint.UI.Presenters
 
 		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView () => throw new NotImplementedException();
 
-		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage (MainForm.IPresenter presenter)
-		{
-			return new UI.Postprocessing.MainWindowTabPage.MainWindowTabPageAdapter (presenter);
-		}
+		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage () => new UI.Postprocessing.MainWindowTabPage.MainWindowTabPageAdapter ();
 
 		SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView () => new SearchEditorDialogView ();
 

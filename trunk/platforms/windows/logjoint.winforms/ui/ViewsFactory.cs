@@ -73,8 +73,7 @@
 		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView() => new OptionsDialogView();
 		About.IView Factory.IViewsFactory.CreateAboutView() => new AboutBox();
 		MainForm.IView Factory.IViewsFactory.CreateMainFormView() => mainForm;
-		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage(MainForm.IPresenter mainFormPresenter) =>
-			new UI.Postprocessing.MainWindowTabPage.TabPage(mainFormPresenter);
+		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage() => new UI.Postprocessing.MainWindowTabPage.TabPage();
 		Postprocessing.Factory.IViewsFactory Factory.IViewsFactory.PostprocessingViewsFactory => this;
 		PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView() => new LogsPreprocessorUI(mainForm, model.SynchronizationContext, this);
 

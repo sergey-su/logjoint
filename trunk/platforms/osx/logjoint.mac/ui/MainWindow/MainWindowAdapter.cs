@@ -186,14 +186,14 @@ namespace LogJoint.UI
 			this.tabView.SelectAt(tabIdx); 
 		}
 
-		void IView.AddTab(string tabId, string caption, object uiControl, object tag)
+		void IView.AddTab(string tabId, string caption, object uiControl)
 		{
 			var nativeView = uiControl as NSView;
 			if (nativeView == null)
 				throw new ArgumentException("view of wrong type passed");
 			this.toolbarTabsSelector.SegmentCount += 1;
 			this.toolbarTabsSelector.SetLabel(caption, toolbarTabsSelector.SegmentCount - 1);
-			var tabItem = new TabViewItem() { id = tabId, tag = tag };
+			var tabItem = new TabViewItem { id = tabId };
 			this.tabView.Add(tabItem);
 			nativeView.MoveToPlaceholder(tabItem.View);
 		}
@@ -417,16 +417,14 @@ namespace LogJoint.UI
 
 			public override void WillSelect(NSTabView tabView, NSTabViewItem item)
 			{
-				var myItem = item as TabViewItem;
-				if (myItem != null)
-					owner.viewEvents.OnTabChanging(myItem.id, myItem.tag);
+				if (item is TabViewItem tabViewItem)
+					owner.viewEvents.OnTabChanging (tabViewItem.id);
 			}
 		};
 
 		class TabViewItem: NSTabViewItem
 		{
 			public string id;
-			public object tag;
 		};
 	}
 			

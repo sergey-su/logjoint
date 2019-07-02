@@ -2,10 +2,11 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
-	public class PluginTabPagePresenter: IPresenter, IViewEvents
+	public class Presenter: IPresenter, IViewModel
 	{
 		readonly IView view;
 		readonly IPostprocessorsManager postprocessorsManager;
@@ -16,9 +17,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialog;
 		readonly List<IViewControlHandler> logsCollectionControlHandlers = new List<IViewControlHandler>();
 		readonly Telemetry.ITelemetryCollector telemetry;
+		readonly IChainedChangeNotification changeNotification;
 		bool initialized;
+		IImmutableDictionary<ViewControlId, ControlData> controlsData = ImmutableDictionary.Create<ViewControlId, ControlData>();
 
-		public PluginTabPagePresenter(
+		public Presenter(
 			IView view,
 			IPostprocessorsManager postprocessorsManager,
 			IPostprocessorOutputFormFactory outputFormsFactory,
@@ -26,32 +29,53 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			ITempFilesManager tempFiles,
 			IShellOpen shellOpen,
 			NewLogSourceDialog.IPresenter newLogSourceDialog,
-			Telemetry.ITelemetryCollector telemetry
+			Telemetry.ITelemetryCollector telemetry,
+			IChangeNotification changeNotification,
+			MainForm.IPresenter mainFormPresenter
 		)
 		{
 			this.view = view;
-			this.view.SetEventsHandler(this);
 			this.postprocessorsManager = postprocessorsManager;
 			this.outputFormsFactory = outputFormsFactory;
 			this.tempFiles = tempFiles;
 			this.shellOpen = shellOpen;
 			this.newLogSourceDialog = newLogSourceDialog;
 			this.telemetry = telemetry;
+			this.changeNotification = changeNotification.CreateChainedChangeNotification(false);
+
+			this.view.SetViewModel(this);
 
 			logSourcesManager.OnLogSourceAnnotationChanged += (sender, e) =>
 			{
 				RefreshView();
 			};
+
+			// todo: create when there a least one postprocessor exists. Postprocessors may come from plugins or it can be internal trace.
+
+			mainFormPresenter.AddCustomTab(view.UIControl, TabCaption, this);
+			mainFormPresenter.TabChanging += (sender, e) => OnTabPageSelected(e.CustomTabTag == this);
 		}
 
+		public static string TabCaption => "Postprocessing";
 
 		void IPresenter.AddLogsCollectionControlHandler(IViewControlHandler value)
 		{
 			logsCollectionControlHandlers.Add(value);
 		}
 
-		void IViewEvents.OnTabPageSelected()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+		IImmutableDictionary<ViewControlId, ControlData> IViewModel.ControlsState => controlsData;
+
+		void IViewModel.OnActionClick(string actionId, ViewControlId viewId, ClickFlags flags)
 		{
+			viewControlHandlers[viewId].ExecuteAction(actionId, flags);
+		}
+
+		void OnTabPageSelected(bool selected)
+		{
+			changeNotification.Active = selected;
+			if (!selected)
+				return;
 			try
 			{
 				EnsureInitialized();
@@ -62,12 +86,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				telemetry.ReportException(e, "postprocessors tab page activation failed");
 			}
 		}
-
-		void IViewEvents.OnActionClick(string actionId, ViewControlId viewId, ClickFlags flags)
-		{
-			viewControlHandlers[viewId].ExecuteAction(actionId, flags);
-		}
-
 
 		void EnsureInitialized()
 		{
@@ -136,13 +154,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		{
 			if (!initialized)
 				return;
-
-			view.BeginBatchUpdate();
-			foreach (var h in viewControlHandlers)
-			{
-				view.UpdateControl(h.Key, h.Value.GetCurrentData());
-			}
-			view.EndBatchUpdate();
+			controlsData = ImmutableDictionary.CreateRange(
+				viewControlHandlers.Select(h => new KeyValuePair<ViewControlId, ControlData>(h.Key, h.Value.GetCurrentData()))
+			);
+			changeNotification.Post();
 		}
 	}
 }

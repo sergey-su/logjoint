@@ -29,6 +29,8 @@ namespace LogJoint.Tests.Integration
 		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
 		public UI.Presenters.MainForm.IViewEvents MainForm;
 		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
+		public UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
+		public string PostprocessingTabPageId;
 	};
 
 	public class TestAppConfig
@@ -70,15 +72,7 @@ namespace LogJoint.Tests.Integration
 
 			var viewModel = new ViewModelObjects();
 
-			mocks.Views.CreateLoadedMessagesView().MessagesView.SetViewModel(
-				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.LoadedMessagesLogViewer = x));
-			mocks.Views.CreateLoadedMessagesView().MessagesView.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
-
-			mocks.Views.CreateMainFormView().SetPresenter(
-				Arg.Do<UI.Presenters.MainForm.IViewEvents>(x => viewModel.MainForm = x));
-
-			mocks.Views.CreatePreprocessingView().SetViewModel(
-				Arg.Do<UI.Presenters.PreprocessingUserInteractions.IViewModel>(x => viewModel.PreprocessingUserInteractions = x));
+			InitializeMocks(config, mocks, viewModel);
 
 			var appDataDir = Path.Combine(Path.GetTempPath(),
 				$"logjoint.int.test.workdir.{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff")}");
@@ -131,6 +125,27 @@ namespace LogJoint.Tests.Integration
 				Presentation = presentation,
 				ViewModel = viewModel,
 			};
+		}
+
+		private static void InitializeMocks(TestAppConfig config, Mocks mocks, ViewModelObjects viewModel)
+		{
+			mocks.Views.CreateLoadedMessagesView().MessagesView.SetViewModel(
+				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.LoadedMessagesLogViewer = x));
+			mocks.Views.CreateLoadedMessagesView().MessagesView.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
+
+			mocks.Views.CreateMainFormView().SetPresenter(
+				Arg.Do<UI.Presenters.MainForm.IViewEvents>(x => viewModel.MainForm = x));
+			mocks.Views.CreateMainFormView().AddTab(
+				Arg.Do<string>(tabId => viewModel.PostprocessingTabPageId = tabId),
+				UI.Presenters.Postprocessing.MainWindowTabPage.Presenter.TabCaption,
+				Arg.Any<object>()
+			);
+
+			mocks.Views.CreatePreprocessingView().SetViewModel(
+				Arg.Do<UI.Presenters.PreprocessingUserInteractions.IViewModel>(x => viewModel.PreprocessingUserInteractions = x));
+
+			mocks.Views.CreatePostprocessingTabPage().SetViewModel(
+				Arg.Do<UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel>(x => viewModel.PostprocessingTabPage = x));
 		}
 
 		public Task Dispose()
