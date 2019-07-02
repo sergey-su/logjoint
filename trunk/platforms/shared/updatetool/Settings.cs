@@ -151,5 +151,13 @@ namespace LogJoint.UpdateTool.Properties {
 				return ((string)(this["FeedbackUrl"]));
 			}
 		}
+
+		[ApplicationScopedSetting]
+		public string NUnitRunner
+		{
+			get {
+				return ((string)(this["NUnitRunner"]));
+			}
+		}
 	}
 }
