@@ -41,6 +41,7 @@ namespace LogJoint.Tests.Integration
 	public class TestAppInstance
 	{
 		private bool disposed;
+		private TraceListener traceListener;
 
 		public ISynchronizationContext SynchronizationContext { get; private set; }
 		public ModelObjects Model { get; private set; }
@@ -76,6 +77,10 @@ namespace LogJoint.Tests.Integration
 
 			var appDataDir = Path.Combine(Path.GetTempPath(),
 				$"logjoint.int.test.workdir.{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff")}");
+
+			Directory.CreateDirectory(appDataDir);
+			var traceListener = new TraceListener(Path.Combine(appDataDir, "test-debug.log"));
+			LJTraceSource.SetTestListeners(new[] { traceListener });
 
 			ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
 
@@ -124,6 +129,7 @@ namespace LogJoint.Tests.Integration
 				Model = model,
 				Presentation = presentation,
 				ViewModel = viewModel,
+				traceListener = traceListener
 			};
 		}
 
@@ -148,16 +154,24 @@ namespace LogJoint.Tests.Integration
 				Arg.Do<UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel>(x => viewModel.PostprocessingTabPage = x));
 		}
 
-		public Task Dispose()
+		public async Task Dispose()
 		{
 			if (disposed)
-				throw new InvalidOperationException("Must not double dispose");
+				return;
 			disposed = true;
-			var tcs = new TaskCompletionSource<int>();
-			var mainFormView = Mocks.Views.CreateMainFormView();
-			mainFormView.When(x => x.ForceClose()).Do(x => tcs.SetResult(0));
-			ViewModel.MainForm.OnClosing();
-			return tcs.Task;
+			try
+			{
+				var tcs = new TaskCompletionSource<int>();
+				var mainFormView = Mocks.Views.CreateMainFormView();
+				mainFormView.When(x => x.ForceClose()).Do(x => tcs.SetResult(0));
+				ViewModel.MainForm.OnClosing();
+				await tcs.Task;
+				traceListener.Flush();
+			}
+			finally
+			{
+				LJTraceSource.SetTestListeners(null);
+			}
 		}
 	};
 }

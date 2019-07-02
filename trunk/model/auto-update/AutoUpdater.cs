@@ -31,8 +31,8 @@ namespace LogJoint.AutoUpdate
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly Persistence.IStorageManager storage;
 		readonly Persistence.IStorageEntry updatesStorageEntry;
+		readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
 
-		static readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
 		static readonly TimeSpan checkPeriod = TimeSpan.FromHours(3);
 		static readonly string updateInfoFileName = "update-info.xml";
@@ -314,7 +314,7 @@ namespace LogJoint.AutoUpdate
 				UpdatePermissions (tempInstallationDir);
 
 				CopyCustomFormats(managedAssembliesPath, 
-					Path.Combine(tempInstallationDir, managedAssembliesLocationRelativeToInstallationRoot));
+					Path.Combine(tempInstallationDir, managedAssembliesLocationRelativeToInstallationRoot), trace);
 
 				trace.Info("starting updater");
 
@@ -567,7 +567,7 @@ namespace LogJoint.AutoUpdate
 				.Select(e => new KeyValuePair<string, string>(Path.GetFileName(e.Location).ToLower(), e.Location));
 		}
 
-		static void CopyCustomFormats(string managedAssmebliesLocation, string tmpManagedAssmebliesLocation)
+		static void CopyCustomFormats(string managedAssmebliesLocation, string tmpManagedAssmebliesLocation, LJTraceSource trace)
 		{
 			var srcFormatsDir = Path.Combine(managedAssmebliesLocation, DirectoryFormatsRepository.RelativeFormatsLocation);
 			var destFormatsDir = Path.Combine(tmpManagedAssmebliesLocation, DirectoryFormatsRepository.RelativeFormatsLocation);

@@ -13,7 +13,7 @@ namespace LogJoint.Telemetry
 {
 	public class AzureTelemetryUploader: ITelemetryUploader
 	{
-		static readonly LJTraceSource trace = new LJTraceSource("Telemetry");
+		readonly LJTraceSource trace = new LJTraceSource("Telemetry");
 		readonly string telemetryUrl, issuesUrl;
 
 		public AzureTelemetryUploader(

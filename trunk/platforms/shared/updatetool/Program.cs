@@ -45,6 +45,9 @@ namespace LogJoint.UpdateTool
 				case "pack":
 					Pack(args.Skip(1).ToArray());
 					break;
+				case "test":
+					Test(args.Skip(1).ToArray());
+					break;
 				case "deploy":
 					Deploy(args.Skip(1).ToArray());
 					break;
@@ -221,6 +224,58 @@ namespace LogJoint.UpdateTool
 				zip.Save();
 			}
 			Console.WriteLine("Successfully created: {0} ", destArchiveFileName);
+		}
+
+		static void Test(string[] args)
+		{
+			if (string.IsNullOrEmpty(settings.NUnitRunner))
+				throw new Exception("NUnitRunner is not configured");
+			var sourceFilesLocation = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), settings.DefaultFilesLocation));
+			var ljExeFileListEntry = GetFilesList(sourceFilesLocation).FirstOrDefault(
+				e => e.EndsWith("logjoint.exe", StringComparison.InvariantCulture));
+			var testsFileRelative = ljExeFileListEntry?.Replace("logjoint.exe", "logjoint.integration.tests.dll");
+			if (testsFileRelative == null)
+				throw new Exception("Cannot find tests file location");
+			var testsFileSourceAbsolute = Path.Combine(sourceFilesLocation, testsFileRelative);
+			Console.WriteLine("Will run tests from {0} ({1})", testsFileRelative, testsFileSourceAbsolute);
+			if (!File.Exists(testsFileSourceAbsolute))
+				throw new Exception($"Tests file does not exist: {testsFileSourceAbsolute}");
+			var prod = args.FirstOrDefault() == "prod";
+			var archiveFileName = GetIntermediateArchiveFullFileName(prod);
+			Console.WriteLine("Will test packed binaries from {0}", archiveFileName);
+			var tempFolder = Path.Combine(Path.GetTempPath(), $"logjoint.updatetool.test.{(prod ? "prod" : "staging")}");
+			Console.WriteLine("Will test in temp folder {0}", tempFolder);
+			if (Directory.Exists(tempFolder))
+			{
+				Console.WriteLine("Deleting existing temp folder {0}", tempFolder);
+				Directory.Delete(tempFolder, true);
+			}
+			System.IO.Compression.ZipFile.ExtractToDirectory(archiveFileName, tempFolder);
+			string testsFileTargetAbsolute = Path.Combine(tempFolder, testsFileRelative);
+			Console.WriteLine("Copying tests to {0}", testsFileTargetAbsolute);
+			File.Copy(testsFileSourceAbsolute, testsFileTargetAbsolute);
+			foreach (var testDep in new string[] { "nunit.framework.dll", "NSubstitute.dll" })
+			{
+				var depFileRelative = ljExeFileListEntry.Replace("logjoint.exe", testDep);
+				var depFileAbsolute = Path.Combine(sourceFilesLocation, depFileRelative);
+				if (!File.Exists(depFileAbsolute))
+					throw new Exception($"Cannot find test dep {testDep} as {depFileAbsolute}");
+				File.Copy(depFileAbsolute, Path.Combine(tempFolder, depFileRelative));
+			}
+			var runnerAbsolutePath = Path.GetFullPath(settings.NUnitRunner);
+			ProcessStartInfo runnerStartInfo = new ProcessStartInfo
+			{
+				FileName = runnerAbsolutePath,
+				WorkingDirectory = Path.GetDirectoryName(runnerAbsolutePath),
+				Arguments = $"--labels=All \"{testsFileTargetAbsolute}\"",
+				UseShellExecute = false
+			};
+			Console.WriteLine("Running {0} in {1} with arguments {2}",
+				runnerStartInfo.FileName, runnerStartInfo.WorkingDirectory, runnerStartInfo.Arguments);
+			using (var runnerProcess = Process.Start(runnerStartInfo))
+			{
+				runnerProcess.WaitForExit();
+			}
 		}
 
 #if MONOMAC

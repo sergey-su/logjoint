@@ -90,5 +90,22 @@ namespace LogJoint.Tests.Integration
 				return 0;
 			});
 		}
+
+		[Test]
+		public async Task CanQuitAppWhileHavingActivePreprocessingUserInteraction()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				var preprocTask = app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+
+				await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
+
+				Assert.AreEqual(2, app.ViewModel.PreprocessingUserInteractions.DialogData.Items.Count);
+
+				await app.Dispose();
+
+				return 0;
+			});
+		}
 	}
 }

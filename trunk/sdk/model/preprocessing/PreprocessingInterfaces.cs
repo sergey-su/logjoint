@@ -33,6 +33,7 @@ namespace LogJoint.Preprocessing
 		/// LogSourcesPreprocessingManager's constructor.
 		/// </summary>
 		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
+		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingWillDispose;
 		/// <summary>
 		/// Raised when properties of one of ILogSourcePreprocessing objects changed. 
 		/// Note: This event is raised in worker thread.
