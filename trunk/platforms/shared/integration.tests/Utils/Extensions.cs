@@ -29,7 +29,7 @@ namespace LogJoint.Tests.Integration
 			using (var subs = app.Model.ChangeNotification.CreateSubscription(() =>
 			{
 				if (condition())
-					tcs.SetResult(0);
+					tcs.TrySetResult(0);
 			}))
 			{
 				var delay = Task.Delay(timeout.GetValueOrDefault(TimeSpan.FromSeconds(15)));

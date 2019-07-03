@@ -53,11 +53,20 @@ namespace LogJoint.UI.Presenters.PreprocessingUserInteractions
 				}
 				else if (arg.Providers.Count > 1)
 				{
-					if (dialogDone == null)
-						dialogDone = new TaskCompletionSource<int>();
 					items.AddRange(arg.Providers.Select((p, i) => new MutableItem(arg, i)));
+					UpdateDialogPromise();
 					++itemsRevision;
 					arg.PostponeUntilCompleted(dialogDone.Task);
+					changeNotification.Post();
+				}
+			};
+
+			this.manager.PreprocessingWillDispose += (sender, arg) =>
+			{
+				if (items.RemoveAll(i => i.eventArg.LogSourcePreprocessing == arg.LogSourcePreprocessing) > 0)
+				{
+					++itemsRevision;
+					UpdateDialogPromise();
 					changeNotification.Post();
 				}
 			};
@@ -122,10 +131,23 @@ namespace LogJoint.UI.Presenters.PreprocessingUserInteractions
 		{
 			items.ForEach(i => i.eventArg.SetIsAllowed(i.idx, accept && i.isChecked));
 			items.Clear();
+			UpdateDialogPromise();
 			itemsRevision++;
-			dialogDone?.TrySetResult(0);
-			dialogDone = null;
 			changeNotification.Post();
+		}
+
+		void UpdateDialogPromise()
+		{
+			if (items.Count == 0)
+			{
+				dialogDone?.TrySetResult(0);
+				dialogDone = null;
+			}
+			else
+			{
+				if (dialogDone == null)
+					dialogDone = new TaskCompletionSource<int>();
+			}
 		}
 
 		class MutableItem

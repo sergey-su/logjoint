@@ -151,7 +151,7 @@ namespace LogJoint.Tests.Integration
 		public Task Dispose()
 		{
 			if (disposed)
-				throw new InvalidOperationException("Must not double dispose");
+				return Task.FromResult(0);
 			disposed = true;
 			var tcs = new TaskCompletionSource<int>();
 			var mainFormView = Mocks.Views.CreateMainFormView();

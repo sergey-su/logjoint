@@ -37,6 +37,7 @@ namespace LogJoint.Preprocessing
 
 
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingAdded;
+		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingWillDispose;
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 		public event EventHandler<YieldedProvider> ProviderYielded;
@@ -495,6 +496,7 @@ namespace LogJoint.Preprocessing
 				using (trace.NewFrame)
 				{
 					disposed = true;
+					owner.FireWillDispose(this);
 					cancellation.Cancel();
 					trace.Info("Waiting task");
 					await task;
@@ -568,6 +570,11 @@ namespace LogJoint.Preprocessing
 		{
 			items.Remove(prep);
 			PreprocessingDisposed?.Invoke(this, new LogSourcePreprocessingEventArg(prep));
+		}
+
+		internal void FireWillDispose(ILogSourcePreprocessing prep)
+		{
+			PreprocessingWillDispose?.Invoke(this, new LogSourcePreprocessingEventArg(prep));
 		}
 
 		static IEnumerable<PreprocessingHistoryItem> LoadStepsFromConnectionParams(IConnectionParams connectParams)
