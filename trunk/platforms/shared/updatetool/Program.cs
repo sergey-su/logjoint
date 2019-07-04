@@ -228,6 +228,8 @@ namespace LogJoint.UpdateTool
 
 		static void Test(string[] args)
 		{
+			if (string.IsNullOrEmpty(settings.NUnitRunner))
+				throw new Exception("NUnitRunner is not configured");
 			var sourceFilesLocation = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), settings.DefaultFilesLocation));
 			var ljExeFileListEntry = GetFilesList(sourceFilesLocation).FirstOrDefault(
 				e => e.EndsWith("logjoint.exe", StringComparison.InvariantCulture));
@@ -265,7 +267,8 @@ namespace LogJoint.UpdateTool
 			{
 				FileName = runnerAbsolutePath,
 				WorkingDirectory = Path.GetDirectoryName(runnerAbsolutePath),
-				Arguments = $"--inprocess \"{testsFileTargetAbsolute}\""
+				Arguments = $"--labels=All \"{testsFileTargetAbsolute}\"",
+				UseShellExecute = false
 			};
 			Console.WriteLine("Running {0} in {1} with arguments {2}",
 				runnerStartInfo.FileName, runnerStartInfo.WorkingDirectory, runnerStartInfo.Arguments);

@@ -74,7 +74,7 @@ namespace LogJoint
 				string str;
 				if (string.IsNullOrEmpty(exceptionContextFmt))
 				{
-					str = "Exception has occured";
+					str = "Exception has occurred";
 				}
 				else
 				{
