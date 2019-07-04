@@ -14,12 +14,26 @@ namespace LogJoint
 	{
 		public LJTraceSource(string configName, string prefix = "")
 		{
-			this.underlyingSource = new FCLTraceSource(configName, SourceLevels.Off);
+			var testListenersCopy = testListeners;
+			if (testListenersCopy == null)
+			{
+				this.underlyingSource = new FCLTraceSource(configName, SourceLevels.Off);
+			}
+			else
+			{
+				this.underlyingSource = new FCLTraceSource(configName, SourceLevels.All);
+				underlyingSource.Listeners.AddRange(testListenersCopy);
+			}
 			this.autoFrame = new AutoFrame(this);
 			this.prefix = string.IsNullOrEmpty(prefix) ? configName : prefix;
 		}
 
 		public static readonly LJTraceSource EmptyTracer = new LJTraceSource("LogJoint.EmptyTracer");
+
+		internal static void SetTestListeners(TraceListener[] listeners)
+		{
+			testListeners = listeners;
+		}
 
 		public string Prefix { get { return prefix; } }
 
@@ -183,6 +197,7 @@ namespace LogJoint
 		readonly FCLTraceSource underlyingSource;
 		readonly AutoFrame autoFrame;
 		readonly string prefix;
+		static TraceListener[] testListeners;
 	}
 
 	public class Listener : TextWriterTraceListener

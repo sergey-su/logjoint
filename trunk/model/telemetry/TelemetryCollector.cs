@@ -15,7 +15,7 @@ namespace LogJoint.Telemetry
 {
 	public class TelemetryCollector : ITelemetryCollector
 	{
-		static readonly LJTraceSource trace = new LJTraceSource("Telemetry");
+		readonly LJTraceSource trace = new LJTraceSource("Telemetry");
 		static readonly string sessionsRegistrySectionName = "sessions";
 		static readonly string sessionsRegistrySessionElementName = "session";
 		const int maxExceptionsInfoLen = 1024 * 16;
