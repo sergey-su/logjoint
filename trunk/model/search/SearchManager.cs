@@ -52,7 +52,7 @@ namespace LogJoint
 
 			this.combinedSearchResult = factory.CreateCombinedSearchResult(this);
 			this.combinedResultUpdateInvoker = new AsyncInvokeHelper(
-				modelSynchronization, (Action)UpdateCombinedResult);
+				modelSynchronization, UpdateCombinedResult);
 			this.combinedResultNeedsLazyUpdateFlag = new LazyUpdateFlag();
 
 			sources.OnLogSourceAdded += (s, e) =>

@@ -23,10 +23,7 @@ namespace LogJoint
 		{
 			this.filtersFactory = filtersFactory;
 			this.storageEntry = new Lazy<Persistence.IStorageEntry>(() => storage.GetEntry("UserDefinedSearches"));
-			this.changeHandlerInvoker = new AsyncInvokeHelper(modelThreadSynchronization, (Action)HandleChange)
-			{
-				ForceAsyncInvocation = true
-			};
+			this.changeHandlerInvoker = new AsyncInvokeHelper(modelThreadSynchronization, HandleChange);
 
 			LoadItems();
 		}

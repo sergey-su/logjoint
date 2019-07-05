@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		public PresentationModel(
 			ILogSourcesManager logSources,
-			ISynchronizationContext modelInvoke,
+			ISynchronizationContext sync,
 			IModelThreads modelThreads,
 			IFiltersList hlFilters,
 			IBookmarks bookmarks,
@@ -34,12 +34,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.bookmarks = bookmarks;
 			this.settings = settings;
 
-			updateSourcesInvoker = new AsyncInvokeHelper(modelInvoke, UpdateSources);
+			updateSourcesInvoker = new AsyncInvokeHelper(sync, UpdateSources);
 
 			logSources.OnLogSourceColorChanged += (s, e) =>
 			{
-				if (OnLogSourceColorChanged != null)
-					OnLogSourceColorChanged(s, e);
+				OnLogSourceColorChanged?.Invoke(s, e);
 			};
 			logSources.OnLogSourceAdded += (s, e) =>
 			{
@@ -55,8 +54,8 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				{
 					if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) == 0)
 						updateSourcesInvoker.Invoke();
-					else if (OnSourceMessagesChanged != null)
-						OnSourceMessagesChanged(this, EventArgs.Empty);
+					else
+						OnSourceMessagesChanged?.Invoke(this, EventArgs.Empty);
 				}
 			};
 		}

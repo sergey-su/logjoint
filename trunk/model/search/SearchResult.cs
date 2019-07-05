@@ -50,7 +50,7 @@ namespace LogJoint
 			this.cancellation = new CancellationTokenSource();
 			this.results = new List<ISourceSearchResultInternal>();
 			this.progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
-			this.updateInvokationHelper = new AsyncInvokeHelper(modelSynchronization, (Action)UpdateStatus);
+			this.updateInvokationHelper = new AsyncInvokeHelper(modelSynchronization, UpdateStatus);
 			this.hitsLimit = settings.MaxNumberOfHitsInSearchResultsView;
 			this.visible = true;
 			this.trace = new LJTraceSource("SearchManager", "sr."+id.ToString());

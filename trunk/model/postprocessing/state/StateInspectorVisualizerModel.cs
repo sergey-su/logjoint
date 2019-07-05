@@ -14,7 +14,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			IUserNamesProvider shortNamesManager)
 		{
 			this.postprocessorsManager = postprocessorsManager;
-			this.outputsUpdateInvocation = new AsyncInvokeHelper(invokeSync, (Action)UpdateOutputs) { ForceAsyncInvocation = true };
+			this.outputsUpdateInvocation = new AsyncInvokeHelper(invokeSync, UpdateOutputs);
 			this.shortNamesManager = shortNamesManager;
 
 			postprocessorsManager.Changed += (sender, args) =>

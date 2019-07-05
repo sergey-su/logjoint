@@ -67,7 +67,7 @@ namespace LogJoint.Telemetry
 				("session" + Guid.NewGuid().ToString("n")) : null;
 
 			this.transactionInvoker = new AsyncInvokeHelper(synchronization,
-				(Action)(() => DoSessionsRegistryTransaction(TransactionFlag.Default)), new object[0]);
+				() => DoSessionsRegistryTransaction(TransactionFlag.Default));
 
 			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(DisposeAsync());
 
@@ -153,7 +153,7 @@ namespace LogJoint.Telemetry
 
 			transactionInvoker.Invoke();
 
-			if (firstExceptionReport && synchronization.PostRequired)
+			if (firstExceptionReport)
 				Thread.Sleep(1000);
 		}
 
