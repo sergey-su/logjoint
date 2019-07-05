@@ -7,8 +7,6 @@ namespace LogJoint
 	{
 		Queue<Action> actions = new Queue<Action>();
 
-		bool ISynchronizationContext.PostRequired => true;
-
 		void ISynchronizationContext.Post(Action action)
 		{
 			actions.Enqueue(action);

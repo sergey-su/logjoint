@@ -138,13 +138,10 @@ namespace LogJoint.Telemetry
 				e = inner;
 			}
 
-			bool firstExceptionReport = false;
-
 			lock (sync)
 			{
 				if (exceptionsInfo.Length < maxExceptionsInfoLen)
 				{
-					firstExceptionReport = exceptionsInfo.Length == 0;
 					exceptionsInfo.Append(exceptionInfo.ToString());
 					if (exceptionsInfo.Length > maxExceptionsInfoLen)
 						exceptionsInfo.Length = maxExceptionsInfoLen;
@@ -152,9 +149,6 @@ namespace LogJoint.Telemetry
 			}
 
 			transactionInvoker.Invoke();
-
-			if (firstExceptionReport)
-				Thread.Sleep(1000);
 		}
 
 		void ITelemetryCollector.ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>> subFeaturesUseCounters)
@@ -171,8 +165,7 @@ namespace LogJoint.Telemetry
 				{
 					foreach (var subFeature in subFeaturesUseCounters)
 					{
-						int c;
-						feature.subFeaturesUseCounters.TryGetValue(subFeature.Key, out c);
+						feature.subFeaturesUseCounters.TryGetValue(subFeature.Key, out int c);
 						feature.subFeaturesUseCounters[subFeature.Key] = c + 1;
 					}
 				}
@@ -290,7 +283,7 @@ namespace LogJoint.Telemetry
 			}
 			catch (Exception e)
 			{
-				trace.Error(e, "Failed to complete telemetry storage transation");
+				trace.Error(e, "Failed to complete telemetry storage transaction");
 			}
 		}
 
@@ -309,7 +302,7 @@ namespace LogJoint.Telemetry
 					FirstOrDefault();
 				if (currentSessionElt != null)
 				{
-					UpdateTelemtrySessionNode(currentSessionElt);
+					UpdateTelemetrySessionNode(currentSessionElt);
 					if ((flags & TransactionFlag.FinalizeCurrentSession) != 0)
 						currentSessionElt.SetAttributeValue("finalized", "true");
 				}
@@ -326,7 +319,7 @@ namespace LogJoint.Telemetry
 					foreach (var e in uploadedSessionsElements)
 					{
 						e.Remove();
-						trace.Info("submitted telemtry session {0} removed from registry", GetSessionId(e));
+						trace.Info("submitted telemetry session {0} removed from registry", GetSessionId(e));
 					}
 					uploadedSessions.Clear();
 
@@ -350,7 +343,7 @@ namespace LogJoint.Telemetry
 			}
 		}
 
-		void UpdateTelemtrySessionNode(XElement sessionNode)
+		void UpdateTelemetrySessionNode(XElement sessionNode)
 		{
 			sessionNode.SetAttributeValue("duration", Environment.TickCount - sessionStartedMillis);
 			sessionNode.SetAttributeValue("totalNfOfLogs", totalNfOfLogs);
@@ -371,9 +364,8 @@ namespace LogJoint.Telemetry
 
 		static DateTime? GetSessionStartTime(XElement sessionElement)
 		{
-			DateTime started;
-			if (DateTime.TryParseExact(sessionElement.AttributeValue("started"), "o", null, 
-					System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out started))
+			if (DateTime.TryParseExact(sessionElement.AttributeValue("started"), "o", null,
+					System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out DateTime started))
 				return started;
 			return null;
 		}
@@ -453,7 +445,7 @@ namespace LogJoint.Telemetry
 				bool recordSubmittedOk = true;
 				if (!string.IsNullOrEmpty(sessionId) && timestamp.HasValue)
 				{
-					trace.Info("submitting telemtry record {0}", sessionId);
+					trace.Info("submitting telemetry record {0}", sessionId);
 					TelemetryUploadResult uploadResult = TelemetryUploadResult.Failure;
 					try
 					{
@@ -472,7 +464,7 @@ namespace LogJoint.Telemetry
 					{
 						trace.Error(e, "Failed to upload telemetry session {0}", sessionId);
 					}
-					trace.Info("Telemtry session {0} submitted with result {1}", sessionId, uploadResult);
+					trace.Info("Telemetry session {0} submitted with result {1}", sessionId, uploadResult);
 					recordSubmittedOk =
 						uploadResult == TelemetryUploadResult.Success || uploadResult == TelemetryUploadResult.Duplicate;
 				}

@@ -27,11 +27,6 @@ namespace LogJoint
 			}
 		}
 
-		public bool PostRequired 
-		{
-			get { return impl.InvokeRequired; } 
-		}
-
 		public void Post(Action action)
 		{
 			if (isReady)
