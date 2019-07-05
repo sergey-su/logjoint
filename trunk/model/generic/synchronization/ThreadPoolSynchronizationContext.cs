@@ -10,11 +10,6 @@ namespace LogJoint
 			this.cb = state => ((Action)state)();
 		}
 
-		public bool PostRequired
-		{
-			get { return true; }
-		}
-
 		public void Post(Action action)
 		{
 			ThreadPool.QueueUserWorkItem(cb, action);

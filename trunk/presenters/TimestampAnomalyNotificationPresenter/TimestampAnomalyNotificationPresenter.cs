@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 		public Presenter(
 			ILogSourcesManager sourcesManager,
 			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
-			ISynchronizationContext invoker,
+			ISynchronizationContext sync,
 			IHeartBeatTimer heartbeat,
 			IPresentersFacade presentersFacade,
 			StatusReports.IPresenter statusReports
@@ -28,10 +28,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 			this.presentersFacade = presentersFacade;
 			this.statusReports = statusReports;
 
-			this.updateInvokeHelper = new AsyncInvokeHelper(invoker, Update)
-			{
-				ForceAsyncInvocation = true
-			};
+			this.updateInvokeHelper = new AsyncInvokeHelper(sync, Update);
 
 			sourcesManager.OnLogSourceStatsChanged += (sender, e) =>
 			{

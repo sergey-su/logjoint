@@ -13,11 +13,6 @@ namespace LogJoint.UI
 			this.ctx = SynchronizationContext.Current;
 		}
 
-		public bool PostRequired
-		{
-			get { return !NSThread.IsMain; }
-		}
-
 		public void Post(Action action)
 		{
 			ctx.Post(state => ((Action)state)(), action);

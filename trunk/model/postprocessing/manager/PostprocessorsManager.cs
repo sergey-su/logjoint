@@ -28,10 +28,7 @@ namespace LogJoint.Postprocessing
 			this.heartbeat = heartbeat;
 			this.outputDataDeserializer = outputDataDeserializer;
 			this.tracer = new LJTraceSource("App", "ppm");
-			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh)
-			{
-				ForceAsyncInvocation = true
-			};
+			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh);
 
 			logSources.OnLogSourceAdded += (sender, args) => updater.Invoke();
 			logSources.OnLogSourceRemoved += (sender, args) => updater.Invoke();

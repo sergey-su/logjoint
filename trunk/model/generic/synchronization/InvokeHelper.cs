@@ -5,47 +5,30 @@ namespace LogJoint
 {
 	public class AsyncInvokeHelper
 	{
-		public AsyncInvokeHelper(ISynchronizationContext invoker, Delegate method,
-			params object[] args)
+		public AsyncInvokeHelper(ISynchronizationContext sync, Action method)
 		{
-			this.invoker = invoker;
+			this.sync = sync;
 			this.method = method;
-			this.args = args;
 			this.methodToInvoke = InvokeInternal;
 		}
 
-		public AsyncInvokeHelper(ISynchronizationContext invoker, Action method): 
-			this(invoker, method, new object[0])
-		{
-		}
-
-		public bool ForceAsyncInvocation { get; set; }
-
 		public void Invoke()
 		{
-			if (!invoker.PostRequired && !ForceAsyncInvocation)
+			if (Interlocked.Exchange(ref methodInvoked, 1) == 0)
 			{
-				InvokeInternal();
-			}
-			else
-			{
-				if (Interlocked.Exchange(ref methodInvoked, 1) == 0)
-				{
-					invoker.Post(methodToInvoke);
-				}
+				sync.Post(methodToInvoke);
 			}
 		}
 
 		void InvokeInternal()
 		{
 			methodInvoked = 0;
-			method.DynamicInvoke(args);
+			method();
 		}
 
-		private readonly ISynchronizationContext invoker;
-		private readonly Delegate method;
+		private readonly ISynchronizationContext sync;
+		private readonly Action method;
 		private readonly Action methodToInvoke;
-		private readonly object[] args;
 		private int methodInvoked;
 	}
 }

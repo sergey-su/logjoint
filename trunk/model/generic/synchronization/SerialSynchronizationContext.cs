@@ -17,8 +17,6 @@ namespace LogJoint
 			this.actionCallback = state => ((Action)state)();
 		}
 
-		bool ISynchronizationContext.PostRequired => true;
-
 		void ISynchronizationContext.Post(Action action)
 		{
 			queue.Enqueue((actionCallback, action));

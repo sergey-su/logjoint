@@ -12,13 +12,6 @@ namespace LogJoint
 	public interface ISynchronizationContext
 	{
 		/// <summary>
-		/// Determines if calling thread does not belong to target
-		/// synchronization context and therefore needs to call Post to
-		/// run code in the synchronization context.
-		/// </summary>
-		bool PostRequired { get; } // todo: remove use of it. should be always true.
-
-		/// <summary>
 		/// Posts an action that will run in target synchronization context.
 		/// The action can await Tasks. Task continuations will also run in target
 		/// synchronization context.
