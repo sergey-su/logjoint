@@ -25,5 +25,6 @@ namespace LogJoint
 		IShutdown Shutdown { get; }
 		WebBrowserDownloader.IDownloader WebBrowserDownloader { get; }
 		IPluginsManager PluginsManager { get; }
+		ITraceSourceFactory TraceSourceFactory { get; }
 	};
 }

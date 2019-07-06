@@ -11,8 +11,9 @@ namespace LogJoint.StreamParsingStrategies
 	public abstract class MultiThreadedStrategy<UserThreadLocalData> : BaseStrategy
 	{
 		public MultiThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, 
-			MessagesSplitterFlags splitterFlags, TextStreamPositioningParams textStreamPositioningParams, string parentLoggingPrefix)
-			: this(media, encoding, headerRe, splitterFlags, false, textStreamPositioningParams, parentLoggingPrefix)
+			MessagesSplitterFlags splitterFlags, TextStreamPositioningParams textStreamPositioningParams,
+			string parentLoggingPrefix, ITraceSourceFactory traceSourceFactory)
+			: this(media, encoding, headerRe, splitterFlags, false, textStreamPositioningParams, parentLoggingPrefix, traceSourceFactory)
 		{
 			BytesToParsePerThread = GetBytesToParsePerThread(textStreamPositioningParams);
 		}
@@ -78,12 +79,12 @@ namespace LogJoint.StreamParsingStrategies
 		#region Internal members that can be accessed from unit tests
 		
 		internal MultiThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, 
-			bool useMockThreading, TextStreamPositioningParams textStreamPositioningParams, string parentLoggingPrefix)
+			bool useMockThreading, TextStreamPositioningParams textStreamPositioningParams, string parentLoggingPrefix, ITraceSourceFactory traceSourceFactory)
 			: base(media, encoding, headerRe, textStreamPositioningParams)
 		{
 			if (parentLoggingPrefix != null)
 			{
-				this.tracer = new LJTraceSource("LogSource", string.Format("{0}.mts_{1:x4}", parentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
+				this.tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.mts_{1:x4}", parentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 			}
 			this.streamDataPool = new ThreadSafeObjectPool<Byte[]>(pool =>
 			{

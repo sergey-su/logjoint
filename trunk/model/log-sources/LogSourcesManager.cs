@@ -15,9 +15,10 @@ namespace LogJoint
 			IBookmarks bookmarks,
 			Settings.IGlobalSettingsAccessor globalSettingsAccess,
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
-			IShutdown shutdown
-		) : this(heartbeat, recentlyUsedEntities, shutdown,
-			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess))
+			IShutdown shutdown,
+			ITraceSourceFactory traceSourceFactory
+		) : this(heartbeat, recentlyUsedEntities, shutdown, traceSourceFactory,
+			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess, traceSourceFactory))
 		{
 		}
 
@@ -25,10 +26,11 @@ namespace LogJoint
 			IHeartBeatTimer heartbeat,
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
 			IShutdown shutdown,
+			ITraceSourceFactory traceSourceFactory,
 			ILogSourceFactory logSourceFactory
 		)
 		{
-			this.tracer = new LJTraceSource("LogSourcesManager", "lsm");
+			this.tracer = traceSourceFactory.CreateTraceSource("LogSourcesManager", "lsm");
 			this.logSourceFactory = logSourceFactory;
 			this.recentlyUsedEntities = recentlyUsedEntities;
 

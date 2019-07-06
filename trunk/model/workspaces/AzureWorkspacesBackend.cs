@@ -18,9 +18,9 @@ namespace LogJoint.Workspaces.Backend
 		readonly XmlWriterSettings wsWriterSettings = new XmlWriterSettings() { NewLineHandling = NewLineHandling.Entitize };
 		readonly XmlReaderSettings wsReaderSettings = new XmlReaderSettings() { IgnoreWhitespace = false };
 
-		public AzureWorkspacesBackend(string configUri)
+		public AzureWorkspacesBackend(ITraceSourceFactory traceSourceFactory, string configUri)
 		{
-			this.trace = new LJTraceSource("Workspaces", "wsbackend");
+			this.trace = traceSourceFactory.CreateTraceSource("Workspaces", "wsbackend");
 			if (Uri.IsWellFormedUriString(configUri, UriKind.Absolute))
 				this.serviceUrl = new Uri(configUri);
 		}

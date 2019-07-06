@@ -61,7 +61,6 @@ namespace LogJoint.UI.Presenters
 
 
 		public static PresentationObjects Create(
-			LJTraceSource tracer,
 			ModelObjects model,
 			IClipboardAccess clipboardAccess,
 			IShellOpen shellOpen,
@@ -137,7 +136,8 @@ namespace LogJoint.UI.Presenters
 				model.GlobalSettingsAccessor,
 				model.SearchManager,
 				model.FiltersFactory,
-				colorTheme
+				colorTheme,
+				model.TraceSourceFactory
 			);
 
 			LoadedMessages.IPresenter loadedMessagesPresenter = new LoadedMessages.Presenter(
@@ -198,8 +198,6 @@ namespace LogJoint.UI.Presenters
 				model.HeartBeatTimer,
 				colorTheme) : null;
 
-			tracer.Info("threads list presenter created");
-
 			SearchEditorDialog.IPresenter searchEditorDialog = new SearchEditorDialog.Presenter(
 				searchEditorDialogView,
 				model.UserDefinedSearches,
@@ -253,8 +251,6 @@ namespace LogJoint.UI.Presenters
 				searchesManagerDialogPresenter,
 				alertPopup
 			);
-			tracer.Info("search panel presenter created");
-
 
 			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter =
 				new SourcePropertiesWindow.Presenter(
@@ -310,7 +306,8 @@ namespace LogJoint.UI.Presenters
 				model.PreprocessingStepsFactory,
 				model.RecentlyUsedLogs,
 				new QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox),
-				alertPopup
+				alertPopup,
+				model.TraceSourceFactory
 			);
 
 			NewLogSourceDialog.IPagePresentersRegistry newLogPagesPresentersRegistry =
@@ -336,6 +333,7 @@ namespace LogJoint.UI.Presenters
 						model.FormatDefinitionsRepository,
 						model.UserDefinedFormatsManager,
 						model.TempFilesManager,
+						model.TraceSourceFactory,
 						logViewerPresenterFactory,
 						views.FormatsWizardViewFactory
 					)
@@ -386,7 +384,8 @@ namespace LogJoint.UI.Presenters
 				historyDialogPresenter,
 				presentersFacade,
 				sourcePropertiesWindowPresenter,
-				alertPopup
+				alertPopup,
+				model.TraceSourceFactory
 			);
 
 
@@ -430,7 +429,9 @@ namespace LogJoint.UI.Presenters
 				loadedMessagesPresenter,
 				clipboardAccess,
 				colorTheme,
-				model.ChangeNotification);
+				model.ChangeNotification,
+				model.TraceSourceFactory
+			);
 
 			BookmarksManager.IPresenter bookmarksManagerPresenter = new BookmarksManager.Presenter(
 				model.Bookmarks,
@@ -440,7 +441,8 @@ namespace LogJoint.UI.Presenters
 				bookmarksListPresenter,
 				statusReportFactory,
 				navHandler,
-				alertPopup
+				alertPopup,
+				model.TraceSourceFactory
 			);
 
 			Options.Dialog.IPresenter optionsDialogPresenter = optionsDialogView != null ? new Options.Dialog.Presenter(
@@ -493,10 +495,9 @@ namespace LogJoint.UI.Presenters
 				issueReportDialogPresenter,
 				model.Shutdown,
 				colorTheme,
-				model.ChangeNotification
+				model.ChangeNotification,
+				model.TraceSourceFactory
 			);
-			tracer.Info("main form presenter created");
-
 
 			Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorOutputFormFactory = new Postprocessing.Factory(
 				views.PostprocessingViewsFactory,

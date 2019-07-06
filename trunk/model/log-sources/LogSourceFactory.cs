@@ -12,6 +12,7 @@ namespace LogJoint
 		readonly Persistence.IStorageManager storageManager;
 		readonly ITempFilesManager tempFilesManager;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public LogSourceFactory(
 			IModelThreads threads,
@@ -19,7 +20,8 @@ namespace LogJoint
 			ISynchronizationContext invoker,
 			Persistence.IStorageManager storageManager,
 			ITempFilesManager tempFilesManager,
-			Settings.IGlobalSettingsAccessor globalSettingsAccess
+			Settings.IGlobalSettingsAccessor globalSettingsAccess,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.threads = threads;
@@ -28,6 +30,7 @@ namespace LogJoint
 			this.storageManager = storageManager;
 			this.tempFilesManager = tempFilesManager;
 			this.globalSettingsAccess = globalSettingsAccess;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		ILogSourceInternal ILogSourceFactory.CreateLogSource (
@@ -46,7 +49,8 @@ namespace LogJoint
 				storageManager,
 				invoker,
 				globalSettingsAccess,
-				bookmarks
+				bookmarks,
+				traceSourceFactory
 			);
 		}
 	}

@@ -13,26 +13,27 @@ namespace LogJoint
 	{
 		static int lastPerfOp;
 
-		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager) :
-			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, tempFilesManager)
+		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory) :
+			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, tempFilesManager, traceSourceFactory)
 		{
 		}
 
-		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager)
+		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 		{
 			this.mruIndexGetter = mruIndexGetter;
 			this.factoriesRegistry = factoriesRegistry;
 			this.tempFilesManager = tempFilesManager;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		DetectedFormat IFormatAutodetect.DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
 		{
-			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, tempFilesManager);
+			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, tempFilesManager, traceSourceFactory);
 		}
 
 		IFormatAutodetect IFormatAutodetect.Clone()
 		{
-			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, tempFilesManager);
+			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, tempFilesManager, traceSourceFactory);
 		}
 
 		static DetectedFormat DetectFormat(
@@ -42,14 +43,15 @@ namespace LogJoint
 			ILogProviderFactoryRegistry factoriesRegistry,
 			CancellationToken cancellation,
 			IFormatAutodetectionProgress progress,
-			ITempFilesManager tempFilesManager)
+			ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory)
 		{
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("fileName");
 			if (mruIndexGetter == null)
 				throw new ArgumentNullException("mru");
 			Func<SimpleFileMedia> createFileMedia = () => new SimpleFileMedia(SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
-			var log = new LJTraceSource("App", string.Format("fdtc.{0}", Interlocked.Increment(ref lastPerfOp)));
+			var log = traceSourceFactory.CreateTraceSource("App", string.Format("fdtc.{0}", Interlocked.Increment(ref lastPerfOp)));
 			using ( new Profiling.Operation(log, string.Format("format detection of {0}", loggableName)))
 			using (ILogSourceThreads threads = new LogSourceThreads())
 			using (var localCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
@@ -61,7 +63,8 @@ namespace LogJoint
 						using (var perfOp = new Profiling.Operation(log, factory.ToString()))
 						using (var fileMedia = createFileMedia())
 						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
-							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, MessagesReaderFlags.QuickFormatDetectionMode, parentLoggingPrefix: log.Prefix)))
+							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, traceSourceFactory,
+								MessagesReaderFlags.QuickFormatDetectionMode, parentLoggingPrefix: log.Prefix)))
 						{
 							if (progress != null)
 								progress.Trying(factory);
@@ -140,5 +143,6 @@ namespace LogJoint
 		readonly Func<ILogProviderFactory, int> mruIndexGetter;
 		readonly ILogProviderFactoryRegistry factoriesRegistry;
 		readonly ITempFilesManager tempFilesManager;
+		readonly ITraceSourceFactory traceSourceFactory;
 	}
 }

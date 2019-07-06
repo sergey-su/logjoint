@@ -108,7 +108,7 @@ namespace LogJoint
 	/// <summary>
 	/// IPositionedMessagesReader is a generalization of a text log file.
 	/// It represents the stream of data that support random positioning.
-	/// Positions are long intergers. The stream has boundaries - BeginPosition, EndPosition.
+	/// Positions are long integers. The stream has boundaries - BeginPosition, EndPosition.
 	/// EndPosition - is a valid position but represents past-the-end position of the stream.
 	/// To read messages from the stream one uses a 'parser'. Parsers created by CreateParser().
 	/// </summary>
@@ -207,14 +207,16 @@ namespace LogJoint
 		public MessagesReaderFlags Flags;
 		public Settings.IGlobalSettingsAccessor SettingsAccessor;
 		public ITempFilesManager TempFilesManager;
+		public ITraceSourceFactory TraceSourceFactory;
 		public string ParentLoggingPrefix;
-		public MediaBasedReaderParams(ILogSourceThreads threads, ILogMedia media, ITempFilesManager tempFilesManager, MessagesReaderFlags flags = MessagesReaderFlags.None,
+		public MediaBasedReaderParams(ILogSourceThreads threads, ILogMedia media, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, MessagesReaderFlags flags = MessagesReaderFlags.None,
 			Settings.IGlobalSettingsAccessor settingsAccessor = null, string parentLoggingPrefix = null)
 		{
 			Threads = threads;
 			Media = media;
 			Flags = flags;
 			TempFilesManager = tempFilesManager;
+			TraceSourceFactory = traceSourceFactory;
 			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
 			ParentLoggingPrefix = parentLoggingPrefix;
 		}

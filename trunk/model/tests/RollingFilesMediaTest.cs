@@ -351,7 +351,8 @@ namespace LogJoint.Tests
 				new StreamBasedFormatInfo(null),
 				LJTraceSource.EmptyTracer,
 				new GenericRollingMediaStrategy(fs.BaseDir),
-				new TempFilesManager()
+				new TempFilesManager(),
+				new TraceSourceFactory()
 			);
 			return media;
 		}

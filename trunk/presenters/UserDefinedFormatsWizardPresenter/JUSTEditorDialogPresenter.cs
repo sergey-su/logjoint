@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 		readonly ICCEView dialog;
 		readonly Help.IPresenter help;
 		readonly IAlertPopup alerts;
-		readonly ITempFilesManager tempFilesManager;
+		readonly ITestParsing testParsing;
 		readonly IFactory objectsFactory;
 		XmlNode currentFormatRoot;
 		ISampleLogAccess sampleLogAccess;
@@ -24,7 +24,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 			ICCEView view, 
 			Help.IPresenter help, 
 			IAlertPopup alerts,
-			ITempFilesManager tempFilesManager,
+			ITestParsing testParsing,
 			IFactory objectFactory
 		)
 		{
@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 			this.help = help;
 			this.alerts = alerts;
 			this.objectsFactory = objectFactory;
-			this.tempFilesManager = tempFilesManager;
+			this.testParsing = testParsing;
 			this.dialog.InitStaticControls(
 				"JUST editor", "JUST transformation code that normalizes your JSON log messages", "Help");
 		}
@@ -92,11 +92,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 			tmpDoc.AppendChild(tmpRoot);
 			if (!SaveTo(tmpRoot))
 				return;
-			CustomFormatPageUtils.TestParsing(
+			testParsing.Test(
 				sampleLogAccess.SampleLog,
-				alerts,
-				tempFilesManager,
-				objectsFactory,
 				tmpRoot,
 				"json"
 			);

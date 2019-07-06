@@ -104,6 +104,7 @@ namespace LogJoint
 	{
 		string LoggingPrefix { get; }
 		ITempFilesManager TempFilesManager { get; }
+		ITraceSourceFactory TraceSourceFactory { get; }
 		ILogSourceThreads Threads { get; }
 		ITimeOffsets TimeOffsets { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }

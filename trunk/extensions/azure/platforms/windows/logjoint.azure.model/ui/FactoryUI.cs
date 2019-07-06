@@ -16,9 +16,9 @@ namespace LogJoint.UI.Azure
 		IRecentlyUsedEntities recentlyUsedLogs;
 		Presenters.LabeledStepperPresenter.IPresenter recentPeriodCounterPresenter;
 
-		public FactoryUI(Factory factory, ILogSourcesManager logSources, IRecentlyUsedEntities recentlyUsedLogs)
+		public FactoryUI(Factory factory, ILogSourcesManager logSources, IRecentlyUsedEntities recentlyUsedLogs, ITraceSourceFactory traceSourceFactory)
 		{
-			this.trace = new LJTraceSource("UI");
+			this.trace = traceSourceFactory.CreateTraceSource("UI");
 			this.factory = factory;
 			this.logSources = logSources;
 			this.recentlyUsedLogs = recentlyUsedLogs;

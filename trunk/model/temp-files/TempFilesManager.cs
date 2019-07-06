@@ -7,9 +7,9 @@ namespace LogJoint
 {
 	public class TempFilesManager: ITempFilesManager
 	{
-		public TempFilesManager()
+		public TempFilesManager(ITraceSourceFactory traceSourceFactory)
 		{
-			var tracer = new LJTraceSource("App", "tmp");
+			var tracer = traceSourceFactory.CreateTraceSource("App", "tmp");
 			using (tracer.NewFrame)
 			{
 #if !SILVERLIGHT
@@ -48,6 +48,10 @@ namespace LogJoint
 					Directory.CreateDirectory(folder);
 				}
 			}
+		}
+
+		internal TempFilesManager(): this(new TraceSourceFactory())
+		{
 		}
 
 		public void Dispose()

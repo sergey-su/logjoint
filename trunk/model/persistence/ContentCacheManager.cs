@@ -6,9 +6,9 @@ namespace LogJoint.Persistence
 {
 	public class ContentCacheManager: IContentCache, IDisposable
 	{
-		public ContentCacheManager(Implementation.IStorageManagerImplementation impl)
+		public ContentCacheManager(ITraceSourceFactory traceSourceFactory, Implementation.IStorageManagerImplementation impl)
 		{
-			this.trace = new LJTraceSource("ContentCache", "cache");
+			this.trace = traceSourceFactory.CreateTraceSource("ContentCache", "cache");
 			this.impl = impl;
 			this.impl.SetTrace(trace);
 		}

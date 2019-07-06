@@ -16,12 +16,14 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			BookmarksList.IPresenter listPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			IPresentersFacade navHandler,
-			IAlertPopup alerts)
+			IAlertPopup alerts,
+			ITraceSourceFactory traceSourceFactory
+		)
 		{
 			this.bookmarks = bookmarks;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
-			this.tracer = new LJTraceSource("UI", "ui.bmkm");
+			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.bmkm");
 			this.statusReportFactory = statusReportFactory;
 			this.searchResultPresenter = searchResultPresenter;
 			this.navHandler = navHandler;

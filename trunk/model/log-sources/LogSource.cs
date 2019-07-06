@@ -16,6 +16,7 @@ namespace LogJoint
 		readonly LJTraceSource tracer;
 		readonly ILogProvider provider;
 		readonly ILogSourceThreads logSourceThreads;
+		readonly ITraceSourceFactory traceSourceFactory;
 		bool isDisposed;
 		bool visible = true;
 		bool trackingEnabled = true;
@@ -32,20 +33,22 @@ namespace LogJoint
 		public LogSource(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreads threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
-			ISynchronizationContext invoker, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks)
+			ISynchronizationContext invoker, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
+			ITraceSourceFactory traceSourceFactory)
 		{
 			this.owner = owner;
-			this.tracer = new LJTraceSource("LogSource", string.Format("ls{0:D2}", id));
+			this.tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
 			this.tempFilesManager = tempFilesManager;
 			this.invoker = invoker;
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
+			this.traceSourceFactory = traceSourceFactory;
 
 			try
 			{
 
 				this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
-				this.timeGaps = new TimeGapsDetector(tracer, invoker, new LogSourceGapsSource(this));
+				this.timeGaps = new TimeGapsDetector(tracer, invoker, new LogSourceGapsSource(this), traceSourceFactory);
 				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
 				this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 
@@ -163,6 +166,8 @@ namespace LogJoint
 		{
 			get { return tempFilesManager; }
 		}
+
+		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
 
 		string ILogProviderHost.LoggingPrefix
 		{

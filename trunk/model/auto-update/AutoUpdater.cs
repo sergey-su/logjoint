@@ -31,7 +31,7 @@ namespace LogJoint.AutoUpdate
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly Persistence.IStorageManager storage;
 		readonly Persistence.IStorageEntry updatesStorageEntry;
-		readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
+		readonly LJTraceSource trace;
 
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
 		static readonly TimeSpan checkPeriod = TimeSpan.FromHours(3);
@@ -65,7 +65,8 @@ namespace LogJoint.AutoUpdate
 			ISynchronizationContext eventInvoker,
 			IFirstStartDetector firstStartDetector,
 			Telemetry.ITelemetryCollector telemetry,
-			Persistence.IStorageManager storage
+			Persistence.IStorageManager storage,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.mutualExecutionCounter = mutualExecutionCounter;
@@ -73,6 +74,7 @@ namespace LogJoint.AutoUpdate
 			this.tempFiles = tempFiles;
 			this.manualCheckRequested = new TaskCompletionSource<int>();
 			this.firstStartDetector = firstStartDetector;
+			this.trace = traceSourceFactory.CreateTraceSource("AutoUpdater");
 
 			var entryAssemblyLocation = Assembly.GetEntryAssembly()?.Location;
 			if (entryAssemblyLocation != null)

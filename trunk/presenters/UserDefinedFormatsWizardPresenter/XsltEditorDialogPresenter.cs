@@ -14,8 +14,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 		readonly ICCEView dialog;
 		readonly Help.IPresenter help;
 		readonly IAlertPopup alerts;
-		readonly ITempFilesManager tempFilesManager;
-		readonly IFactory objectsFactory;
+		readonly ITestParsing testParsing;
 		XmlNode currentFormatRoot;
 		ISampleLogAccess sampleLogAccess;
 
@@ -23,16 +22,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 			ICCEView view, 
 			Help.IPresenter help, 
 			IAlertPopup alerts,
-			ITempFilesManager tempFilesManager,
-			IFactory objectFactory
+			ITestParsing testParsing
 		)
 		{
 			this.dialog = view;
 			this.dialog.SetEventsHandler(this);
 			this.help = help;
 			this.alerts = alerts;
-			this.objectsFactory = objectFactory;
-			this.tempFilesManager = tempFilesManager;
+			this.testParsing = testParsing;
 			this.dialog.InitStaticControls(
 				"XSLT editor", "XSL transformation code that normalizes your XML log messages", "Help");
 		}
@@ -101,11 +98,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 			tmpDoc.AppendChild(tmpRoot);
 			if (!SaveTo(tmpRoot))
 				return;
-			CustomFormatPageUtils.TestParsing(
+			testParsing.Test(
 				sampleLogAccess.SampleLog,
-				alerts,
-				tempFilesManager,
-				objectsFactory,
 				tmpRoot,
 				"xml"
 			);

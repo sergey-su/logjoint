@@ -13,8 +13,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		readonly IView view;
 		readonly IWizardScenarioHost host;
 		readonly Help.IPresenter help;
-		readonly ITempFilesManager tempFilesManager;
-		readonly IAlertPopup alerts;
+		readonly ITestParsing testParsing;
 		readonly IFactory objectsFactory;
 		XmlNode formatRoot;
 		XmlNode reGrammarRoot;
@@ -25,8 +24,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			IView view, 
 			IWizardScenarioHost host,
 			Help.IPresenter help, 
-			ITempFilesManager tempFilesManager,
-			IAlertPopup alerts,
+			ITestParsing testParsing,
 			IFactory objectsFactory
 		)
 		{
@@ -34,8 +32,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			this.view.SetEventsHandler(this);
 			this.host = host;
 			this.help = help;
-			this.tempFilesManager = tempFilesManager;
-			this.alerts = alerts;
+			this.testParsing = testParsing;
 			this.objectsFactory = objectsFactory;
 		}
 
@@ -65,11 +62,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 
 		void IViewEvents.OnTestButtonClicked()
 		{
-			var testResult = CustomFormatPageUtils.TestParsing(
+			var testResult = testParsing.Test(
 				sampleLogAccess.SampleLog,
-				alerts,
-				tempFilesManager,
-				objectsFactory,
 				formatRoot,
 				"regular-grammar"
 			);

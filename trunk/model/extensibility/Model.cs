@@ -22,7 +22,8 @@ namespace LogJoint
 			IShutdown shutdown,
 			WebBrowserDownloader.IDownloader webBrowserDownloader,
 			Postprocessing.IModel postprocessingModel,
-			IPluginsManager pluginsManager
+			IPluginsManager pluginsManager,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.SynchronizationContext = threadSync;
@@ -44,6 +45,7 @@ namespace LogJoint
 			this.WebBrowserDownloader = webBrowserDownloader;
 			this.Postprocessing = postprocessingModel;
 			this.PluginsManager = pluginsManager;
+			this.TraceSourceFactory = traceSourceFactory;
 		}
 
 		public ISynchronizationContext SynchronizationContext { get; private set; }
@@ -65,5 +67,6 @@ namespace LogJoint
 		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
 		public Postprocessing.IModel Postprocessing { get; private set; }
 		public IPluginsManager PluginsManager { get; private set; }
+		public ITraceSourceFactory TraceSourceFactory { get; private set; }
 	};
 }

@@ -352,12 +352,14 @@ namespace LogJoint.XmlFormat
 		readonly XsltArgumentList transformArgs;
 		readonly LogJointXSLExtension xslExt;
 		readonly ILogSourceThreads threads;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
+			this.traceSourceFactory = readerParams.TraceSourceFactory;
 			this.transformArgs = new XsltArgumentList();
 
 			this.xslExt = new LogJointXSLExtension();
@@ -529,7 +531,7 @@ namespace LogJoint.XmlFormat
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
-					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams, null)
+					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams, null, reader.traceSourceFactory)
 			{
 				this.reader = reader;
 			}
@@ -573,7 +575,9 @@ namespace LogJoint.XmlFormat
 				StreamEncoding,
 				false,
 				formatInfo.HeadRe, 
-				threads);
+				threads,
+				traceSourceFactory
+			);
 		}
 	};
 

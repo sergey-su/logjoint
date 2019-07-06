@@ -9,24 +9,27 @@ namespace LogJoint
 		readonly ISynchronizationContext modelSynchronization;
 		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly Telemetry.ITelemetryCollector telemetryCollector;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public SearchObjectsFactory(
 			Progress.IProgressAggregatorFactory progressAggregatorFactory,
 			ISynchronizationContext modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
-			Telemetry.ITelemetryCollector telemetryCollector
+			Telemetry.ITelemetryCollector telemetryCollector,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.progressAggregatorFactory = progressAggregatorFactory;
 			this.modelSynchronization = modelSynchronization;
 			this.settings = settings;
 			this.telemetryCollector = telemetryCollector;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		ISearchResultInternal ISearchObjectsFactory.CreateSearchResults(
 			ISearchManagerInternal owner, SearchAllOptions options, IFilter optionsFilter, int id, IList<ILogSourceSearchWorkerInternal> workers)
 		{
-			return new SearchResult(owner, options, optionsFilter, workers, progressAggregatorFactory, modelSynchronization, settings, id, this);
+			return new SearchResult(owner, options, optionsFilter, workers, progressAggregatorFactory, modelSynchronization, settings, id, this, traceSourceFactory);
 		}
 
 		ISourceSearchResultInternal ISearchObjectsFactory.CreateSourceSearchResults(

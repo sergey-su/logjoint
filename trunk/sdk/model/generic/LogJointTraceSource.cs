@@ -9,31 +9,29 @@ using FCLTraceSource = System.Diagnostics.TraceSource;
 
 namespace LogJoint
 {
-#if !SILVERLIGHT
+	public interface ITraceSourceFactory
+	{
+		LJTraceSource CreateTraceSource(string configName, string prefix = "");
+	};
+
 	public class LJTraceSource
 	{
-		public LJTraceSource(string configName, string prefix = "")
+		internal LJTraceSource(string configName, string prefix, TraceListener[] programmaticListeners)
 		{
-			var testListenersCopy = testListeners;
-			if (testListenersCopy == null)
+			if (programmaticListeners == null)
 			{
 				this.underlyingSource = new FCLTraceSource(configName, SourceLevels.Off);
 			}
 			else
 			{
 				this.underlyingSource = new FCLTraceSource(configName, SourceLevels.All);
-				underlyingSource.Listeners.AddRange(testListenersCopy);
+				underlyingSource.Listeners.AddRange(programmaticListeners);
 			}
 			this.autoFrame = new AutoFrame(this);
 			this.prefix = string.IsNullOrEmpty(prefix) ? configName : prefix;
 		}
 
-		public static readonly LJTraceSource EmptyTracer = new LJTraceSource("LogJoint.EmptyTracer");
-
-		internal static void SetTestListeners(TraceListener[] listeners)
-		{
-			testListeners = listeners;
-		}
+		public static readonly LJTraceSource EmptyTracer = new LJTraceSource("LogJoint.EmptyTracer", "", null);
 
 		public string Prefix { get { return prefix; } }
 
@@ -197,7 +195,6 @@ namespace LogJoint
 		readonly FCLTraceSource underlyingSource;
 		readonly AutoFrame autoFrame;
 		readonly string prefix;
-		static TraceListener[] testListeners;
 	}
 
 	public class Listener : TextWriterTraceListener
@@ -499,40 +496,4 @@ namespace LogJoint
 			Write(message);
 		}
 	}
-#else
-	public class LJTraceSource
-	{
-		public static readonly LJTraceSource EmptyTracer = new LJTraceSource();
-
-		public void BeginFrame()
-		{
-		}
-
-		public void EndFrame()
-		{
-		}
-
-		public void Error(string fmt, params object[] args)
-		{
-		}
-
-		public void Error(Exception e, string exceptionContextFmt, params object[] args)
-		{
-		}
-
-		public void Warning(string fmt, params object[] args)
-		{
-		}
-
-		public void Info(string fmt, params object[] args)
-		{
-		}
-
-		public IDisposable NewFrame
-		{
-			get { return null; }
-		}
-
-	};
-#endif
 }

@@ -34,12 +34,13 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			IView view,
 			ISynchronizationContext uiInvokeSynchronization,
 			Persistence.IWebContentCache cache,
-			IShutdown shutdown
+			IShutdown shutdown,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.downloaderForm = view;
 			this.uiInvokeSynchronization = uiInvokeSynchronization;
-			this.tracer = new LJTraceSource("BrowserDownloader", "web.dl");
+			this.tracer = traceSourceFactory.CreateTraceSource("BrowserDownloader", "web.dl");
 			this.cache = cache;
 
 			shutdown.Cleanup += Shutdown;

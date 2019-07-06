@@ -11,6 +11,7 @@ namespace LogJoint
 	class PluggableProtocolManager
 	{
 		public PluggableProtocolManager(
+			ITraceSourceFactory traceSourceFactory,
 			MultiInstance.IInstancesCounter instancesCounter, 
 			IShutdown shutdown, 
 			Telemetry.ITelemetryCollector telemetryCollector,
@@ -18,7 +19,7 @@ namespace LogJoint
 			ILaunchUrlParser launchUrlParser
 		)
 		{
-			this.tracer = new LJTraceSource("PluggableProtocol");
+			this.tracer = traceSourceFactory.CreateTraceSource("PluggableProtocol");
 			this.launchUrlParser = launchUrlParser;
 
 			if (instancesCounter.IsPrimaryInstance)

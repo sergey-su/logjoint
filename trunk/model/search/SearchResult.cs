@@ -38,7 +38,8 @@ namespace LogJoint
 			ISynchronizationContext modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
 			int id,
-			ISearchObjectsFactory factory
+			ISearchObjectsFactory factory,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.owner = owner;
@@ -53,8 +54,8 @@ namespace LogJoint
 			this.updateInvokationHelper = new AsyncInvokeHelper(modelSynchronization, UpdateStatus);
 			this.hitsLimit = settings.MaxNumberOfHitsInSearchResultsView;
 			this.visible = true;
-			this.trace = new LJTraceSource("SearchManager", "sr."+id.ToString());
-			this.timeGapsDetector = new TimeGapsDetector(trace, modelSynchronization, this);
+			this.trace = traceSourceFactory.CreateTraceSource("SearchManager", "sr."+id.ToString());
+			this.timeGapsDetector = new TimeGapsDetector(trace, modelSynchronization, this, traceSourceFactory);
 
 			this.timeGapsDetector.OnTimeGapsChanged += (s, e) =>
 			{

@@ -59,7 +59,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			pp1RunSummary.GetLogSpecificSummary(null).ReturnsForAnyArgs((IPostprocessorRunSummary)null);
 
 			manager = new LogJoint.Postprocessing.PostprocessorsManager(
-				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor, outputDataDeserializer);
+				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor, outputDataDeserializer, new TraceSourceFactory());
 
 			manager.RegisterLogType(new LogSourceMetadata(logProviderFac1, logSourcePP1));
 		}

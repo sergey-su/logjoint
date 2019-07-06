@@ -22,7 +22,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Telemetry.ITelemetryCollector telemetry,
 			IScreenBufferFactory screenBufferFactory,
 			IChangeNotification changeNotification,
-			IColorTheme theme
+			IColorTheme theme,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.model = model;
@@ -35,7 +36,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.screenBufferFactory = screenBufferFactory;
 			this.theme = theme;
 
-			this.tracer = new LJTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
+			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			var wordSelection = new WordSelection();

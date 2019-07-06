@@ -30,9 +30,11 @@ namespace LogJoint.Workspaces
 			Backend.IBackendAccess backend,
 			ITempFilesManager tempFilesManager,
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
-			IShutdown shutdown)
+			IShutdown shutdown,
+			ITraceSourceFactory traceSourceFactory
+		)
 		{
-			this.tracer = new LJTraceSource("Workspaces", "ws");
+			this.tracer = traceSourceFactory.CreateTraceSource("Workspaces", "ws");
 			this.logSources = logSources;
 			this.backendAccess = backend;
 			this.tempFilesManager = tempFilesManager;

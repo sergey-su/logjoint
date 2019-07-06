@@ -12,8 +12,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JsonBasedFormatPage
 		readonly IGenericView view;
 		readonly IWizardScenarioHost host;
 		readonly Help.IPresenter help;
-		readonly ITempFilesManager tempFilesManager;
-		readonly IAlertPopup alerts;
+		readonly ITestParsing testParsing;
 		readonly IFactory objectsFactory;
 		ISampleLogAccess sampleLogAccess;
 		XmlNode formatRoot;
@@ -23,9 +22,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JsonBasedFormatPage
 		public Presenter(
 			IGenericView view, 
 			IWizardScenarioHost host,
-			Help.IPresenter help, 
-			ITempFilesManager tempFilesManager,
-			IAlertPopup alerts,
+			Help.IPresenter help,
+			ITestParsing testParsing,
 			IFactory objectsFactory
 		)
 		{
@@ -33,14 +31,13 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JsonBasedFormatPage
 			this.view.SetEventsHandler(this);
 			this.host = host;
 			this.help = help;
-			this.tempFilesManager = tempFilesManager;
-			this.alerts = alerts;
+			this.testParsing = testParsing;
 			this.objectsFactory = objectsFactory;
 			InitLabel(ControlId.PageTitleLabel, "Provide the data needed to parse your JSON logs");
 			InitLabel(ControlId.ConceptsLabel, "Learn how LogJoint uses regular expressions and JUST transformation to parse JSON logs");
 			InitLabel(ControlId.SampleLogLabel, "Select sample log file that can help you test your JSON format configuration");
 			InitLabel(ControlId.HeaderReLabel, "Construct header regular expression");
-			InitLabel(ControlId.TransformLabel, "Compose JUST tranformation");
+			InitLabel(ControlId.TransformLabel, "Compose JUST transformation");
 			InitLabel(ControlId.TestLabel, "Test the data you provided. Click \"Test\" to extract the messages from sample file.");
 		}
 
@@ -70,11 +67,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JsonBasedFormatPage
 
 		void IGenericViewEvents.OnTestButtonClicked()
 		{
-			var testResult = CustomFormatPageUtils.TestParsing(
+			var testResult = testParsing.Test(
 				sampleLogAccess.SampleLog,
-				alerts,
-				tempFilesManager,
-				objectsFactory,
 				formatRoot,
 				"json"
 			);

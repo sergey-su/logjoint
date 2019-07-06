@@ -43,6 +43,7 @@ namespace LogJoint
 		public IHeartBeatTimer HeartBeatTimer { get; internal set; }
 		public IColorLeaseConfig ThreadColorsLease { get; internal set; }
 		public IPluginsManagerStarup PluginsManager { get; internal set; }
+		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -54,24 +55,26 @@ namespace LogJoint
 		public Persistence.IWebContentCacheConfig WebContentCacheConfig;
 		public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 		public string AppDataDirectory;
+		public TraceListener[] TraceListeners;
 	};
 
 	public static class ModelFactory
 	{
 		public static ModelObjects Create(
-			LJTraceSource tracer,
 			ModelConfig config,
 			ISynchronizationContext modelSynchronizationContext,
 			Func<Persistence.IStorageManager, Preprocessing.ICredentialsCache> createPreprocessingCredentialsCache,
-			Func<IShutdownSource, Persistence.IWebContentCache, WebBrowserDownloader.IDownloader> createWebBrowserDownloader
+			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebBrowserDownloader.IDownloader> createWebBrowserDownloader
 		)
 		{
+			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners);
+			var tracer = traceSourceFactory.CreateTraceSource("App", "model");
 			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer);
 			ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-			ITempFilesManager tempFilesManager = new TempFilesManager();
+			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory);
 			IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
-				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager);
+				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager);
 			tracer.Info("app initializer created");
@@ -83,7 +86,7 @@ namespace LogJoint
 			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			IShutdownSource shutdown = new Shutdown();
-			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage, shutdown);
+			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 			userDataStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(),
@@ -97,7 +100,7 @@ namespace LogJoint
 				 Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(config.AppDataDirectory),
 				 new Persistence.ContentCacheManager.ConfigAccess(globalSettingsAccessor)
 			);
-			Persistence.IContentCache contentCache = new Persistence.ContentCacheManager(contentCacheStorage);
+			Persistence.IContentCache contentCache = new Persistence.ContentCacheManager(traceSourceFactory, contentCacheStorage);
 			Persistence.IWebContentCacheConfig webContentCacheConfig = config.WebContentCacheConfig;
 			Preprocessing.ILogsDownloaderConfig logsDownloaderConfig = config.LogsDownloaderConfig;
 			Persistence.IWebContentCache webContentCache = new Persistence.WebContentCache(
@@ -113,6 +116,7 @@ namespace LogJoint
 			IModelThreads modelThreads = new ModelThreads(threadColorsLease);
 
 			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
+				traceSourceFactory,
 				config.TelemetryUrl,
 				config.IssuesUrl
 			);
@@ -123,7 +127,8 @@ namespace LogJoint
 				modelSynchronizationContext,
 				instancesCounter,
 				shutdown,
-				new MemBufferTraceAccess()
+				new MemBufferTraceAccess(),
+				traceSourceFactory
 			);
 			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
 
@@ -142,7 +147,8 @@ namespace LogJoint
 				bookmarks,
 				globalSettingsAccessor,
 				recentlyUsedLogs,
-				shutdown
+				shutdown,
+				traceSourceFactory
 			);
 
 			telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);
@@ -152,10 +158,14 @@ namespace LogJoint
 			IFormatAutodetect formatAutodetect = new FormatAutodetect(
 				recentlyUsedLogs,
 				logProviderFactoryRegistry,
-				tempFilesManager
+				tempFilesManager,
+				traceSourceFactory
 			);
 
-			Workspaces.Backend.IBackendAccess workspacesBackendAccess = new Workspaces.Backend.AzureWorkspacesBackend(config.WorkspacesUrl);
+			Workspaces.Backend.IBackendAccess workspacesBackendAccess = new Workspaces.Backend.AzureWorkspacesBackend(
+				traceSourceFactory,
+				config.WorkspacesUrl
+			);
 
 			Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
 				logSourcesManager,
@@ -164,7 +174,8 @@ namespace LogJoint
 				workspacesBackendAccess,
 				tempFilesManager,
 				recentlyUsedLogs,
-				shutdown
+				shutdown,
+				traceSourceFactory
 			);
 
 			AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
@@ -176,7 +187,7 @@ namespace LogJoint
 				storageManager
 			);
 
-			WebBrowserDownloader.IDownloader webBrowserDownloader = createWebBrowserDownloader(shutdown, webContentCache);
+			WebBrowserDownloader.IDownloader webBrowserDownloader = createWebBrowserDownloader(shutdown, webContentCache, traceSourceFactory);
 
 			Preprocessing.IStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 				workspacesManager,
@@ -188,7 +199,8 @@ namespace LogJoint
 				preprocessingCredentialsCache,
 				logProviderFactoryRegistry,
 				webBrowserDownloader,
-				logsDownloaderConfig
+				logsDownloaderConfig,
+				traceSourceFactory
 			);
 
 			Preprocessing.IManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -199,7 +211,8 @@ namespace LogJoint
 				telemetryCollector,
 				tempFilesManager,
 				logSourcesManager,
-				shutdown
+				shutdown,
+				traceSourceFactory
 			);
 
 			ISearchManager searchManager = new SearchManager(
@@ -209,7 +222,8 @@ namespace LogJoint
 				globalSettingsAccessor,
 				telemetryCollector,
 				heartBeatTimer,
-				changeNotification
+				changeNotification,
+				traceSourceFactory
 			);
 
 			IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory, modelSynchronizationContext);
@@ -243,7 +257,8 @@ namespace LogJoint
 				heartBeatTimer,
 				progressAggregator,
 				globalSettingsAccessor,
-				new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess)
+				new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess),
+				traceSourceFactory
 			);
 
 			Postprocessing.IModel postprocessingModel = new Postprocessing.Model(
@@ -256,6 +271,7 @@ namespace LogJoint
 			);
 
 			AutoUpdate.IUpdateDownloader updateDownloader = new AutoUpdate.AzureUpdateDownloader(
+				traceSourceFactory,
 				config.AutoUpdateUrl
 			);
 
@@ -267,7 +283,8 @@ namespace LogJoint
 				modelSynchronizationContext,
 				firstStartDetector,
 				telemetryCollector,
-				storageManager
+				storageManager,
+				traceSourceFactory
 			);
 
 			AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(
@@ -283,7 +300,11 @@ namespace LogJoint
 				postprocessingModel
 			);
 
-			IPluginsManagerStarup pluginsManager = new Extensibility.PluginsManager(telemetryCollector, shutdown);
+			IPluginsManagerStarup pluginsManager = new Extensibility.PluginsManager(
+				traceSourceFactory,
+				telemetryCollector,
+				shutdown
+			);
 
 			Model expensibilityModel = new Model(
 				modelSynchronizationContext,
@@ -308,7 +329,8 @@ namespace LogJoint
 				shutdown,
 				webBrowserDownloader,
 				postprocessingModel,
-				pluginsManager
+				pluginsManager,
+				traceSourceFactory
 			);
 
 			tracer.Info("model creation completed");
@@ -352,7 +374,8 @@ namespace LogJoint
 				LogSourceNamesProvider = logSourceNamesProvider,
 				HeartBeatTimer = heartBeatTimer,
 				ThreadColorsLease = threadColorsLease,
-				PluginsManager = pluginsManager
+				PluginsManager = pluginsManager,
+				TraceSourceFactory = traceSourceFactory
 			};
 		}
 

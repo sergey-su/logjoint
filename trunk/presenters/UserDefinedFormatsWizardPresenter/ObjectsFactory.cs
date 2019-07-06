@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
 		readonly Help.IPresenter help;
 		readonly ITempFilesManager tempFilesManager;
+		readonly ITraceSourceFactory traceSourceFactory;
 		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
 		readonly IViewsFactory viewFactories;
 
@@ -45,6 +46,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			IFormatDefinitionsRepository repo,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IViewsFactory viewFactories
 		)
@@ -58,6 +60,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.repo = repo;
 			this.tempFilesManager = tempFilesManager;
 			this.logViewerPresenterFactory = logViewerPresenterFactory;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		IView IFactory.CreateWizardView()
@@ -153,7 +156,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		RegexBasedFormatPage.IPresenter IFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), 
-				host, help, tempFilesManager, alerts, this);
+				host, help, CreateTestParsing(), this);
 		}
 
 		EditSampleDialog.IPresenter IFactory.CreateEditSampleDialog ()
@@ -165,7 +168,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		TestDialog.IPresenter IFactory.CreateTestDialog()
 		{
 			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
-				tempFilesManager, logViewerPresenterFactory);
+				tempFilesManager, traceSourceFactory, logViewerPresenterFactory);
 		}
 
 		EditRegexDialog.IPresenter IFactory.CreateEditRegexDialog()
@@ -183,25 +186,27 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		XmlBasedFormatPage.IPresenter IFactory.CreateXmlBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new XmlBasedFormatPage.Presenter(viewFactories.CreateXmlBasedFormatPageView(), host,
-				help, tempFilesManager, alerts, this);
+				help, CreateTestParsing(), this);
 		}
 
 		JsonBasedFormatPage.IPresenter IFactory.CreateJsonBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new JsonBasedFormatPage.Presenter(viewFactories.CreateJsonBasedFormatPageView(), host,
-				help, tempFilesManager, alerts, this);
+				help, CreateTestParsing(), this);
 		}
 
 		XsltEditorDialog.IPresenter IFactory.CreateXsltEditorDialog()
 		{
 			return new XsltEditorDialog.Presenter(viewFactories.CreateXsltEditorDialog(),
-				help, alerts, tempFilesManager, this);
+				help, alerts, CreateTestParsing());
 		}
 
 		JUSTEditorDialog.IPresenter IFactory.CreateJUSTEditorDialog()
 		{
 			return new JUSTEditorDialog.Presenter(viewFactories.CreateJUSTEditorDialog(),
-				help, alerts, tempFilesManager, this);
+				help, alerts, CreateTestParsing(), this);
 		}
+
+		private ITestParsing CreateTestParsing() => new CustomFormatPageUtils.TestParsing(alerts, tempFilesManager, traceSourceFactory, this);
 	};
 };

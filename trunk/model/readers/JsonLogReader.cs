@@ -45,12 +45,14 @@ namespace LogJoint.JsonFormat
 	{
 		internal JsonFormatInfo formatInfo;
 		readonly ILogSourceThreads threads;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, JsonFormatInfo fmt) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
+			this.traceSourceFactory = readerParams.TraceSourceFactory;
 		}
 
 		protected override Encoding DetectStreamEncoding(Stream stream)
@@ -253,7 +255,7 @@ namespace LogJoint.JsonFormat
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
-					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams, null)
+					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams, null, reader.traceSourceFactory)
 			{
 				this.reader = reader;
 			}
@@ -297,7 +299,9 @@ namespace LogJoint.JsonFormat
 				StreamEncoding,
 				false,
 				formatInfo.HeadRe,
-				threads);
+				threads,
+				traceSourceFactory
+			);
 		}
 	};
 

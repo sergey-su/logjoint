@@ -80,16 +80,12 @@ namespace LogJoint.Tests.Integration
 
 			Directory.CreateDirectory(appDataDir);
 			var traceListener = new TraceListener(Path.Combine(appDataDir, "test-debug.log"));
-			LJTraceSource.SetTestListeners(new[] { traceListener });
 
 			ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
 
 			var (model, presentation) = await serialSynchronizationContext.Invoke(() =>
 			{
-				var tracer = new LJTraceSource("app", "test");
-
 				var modelObjects = ModelFactory.Create(
-					tracer,
 					new ModelConfig
 					{
 						WorkspacesUrl = "",
@@ -98,15 +94,15 @@ namespace LogJoint.Tests.Integration
 						AutoUpdateUrl = "",
 						WebContentCacheConfig = mocks.WebContentCacheConfig,
 						LogsDownloaderConfig = mocks.LogsDownloaderConfig,
-						AppDataDirectory = appDataDir
+						AppDataDirectory = appDataDir,
+						TraceListeners = new[] { traceListener }
 					},
 					serialSynchronizationContext,
 					(_1) => mocks.CredentialsCache,
-					(_1, _2) => mocks.WebBrowserDownloader
+					(_1, _2, _3) => mocks.WebBrowserDownloader
 				);
 
 				var presentationObjects = UI.Presenters.Factory.Create(
-					tracer,
 					modelObjects,
 					mocks.ClipboardAccess,
 					mocks.ShellOpen,
@@ -159,19 +155,12 @@ namespace LogJoint.Tests.Integration
 			if (disposed)
 				return;
 			disposed = true;
-			try
-			{
-				var tcs = new TaskCompletionSource<int>();
-				var mainFormView = Mocks.Views.CreateMainFormView();
-				mainFormView.When(x => x.ForceClose()).Do(x => tcs.SetResult(0));
-				ViewModel.MainForm.OnClosing();
-				await tcs.Task;
-				traceListener.Flush();
-			}
-			finally
-			{
-				LJTraceSource.SetTestListeners(null);
-			}
+			var tcs = new TaskCompletionSource<int>();
+			var mainFormView = Mocks.Views.CreateMainFormView();
+			mainFormView.When(x => x.ForceClose()).Do(x => tcs.SetResult(0));
+			ViewModel.MainForm.OnClosing();
+			await tcs.Task;
+			traceListener.Flush();
 		}
 	};
 }

@@ -18,6 +18,7 @@ namespace LogJoint.Preprocessing
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly WebBrowserDownloader.IDownloader webBrowserDownloader;
 		readonly ILogsDownloaderConfig logsDownloaderConfig;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public PreprocessingStepsFactory(
 			Workspaces.IWorkspacesManager workspacesManager, 
@@ -29,7 +30,8 @@ namespace LogJoint.Preprocessing
 			ICredentialsCache credCache,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			WebBrowserDownloader.IDownloader webBrowserDownloader,
-			ILogsDownloaderConfig logsDownloaderConfig
+			ILogsDownloaderConfig logsDownloaderConfig,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.workspacesManager = workspacesManager;
@@ -42,6 +44,7 @@ namespace LogJoint.Preprocessing
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.webBrowserDownloader = webBrowserDownloader;
 			this.logsDownloaderConfig = logsDownloaderConfig;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		IPreprocessingStep IStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
@@ -81,7 +84,7 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IStepsFactory.CreateTimeAnomalyFixingStep(PreprocessingStepParams p)
 		{
-			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, this);
+			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, this, traceSourceFactory);
 		}
 
 		IPreprocessingStep IStepsFactory.CreateUntarStep(PreprocessingStepParams p)

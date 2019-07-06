@@ -24,7 +24,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IClipboardAccess clipboardAccess,
 			IColorTheme colorTheme,
-			IChangeNotification changeNotification)
+			IChangeNotification changeNotification,
+			ITraceSourceFactory traceSourceFactory
+		)
 		{
 			this.bookmarks = bookmarks;
 			this.view = view;
@@ -32,7 +34,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			this.clipboardAccess = clipboardAccess;
 			this.colorTheme = colorTheme;
 			this.changeNotification = changeNotification;
-			this.trace = new LJTraceSource("UI", "bmks");
+			this.trace = traceSourceFactory.CreateTraceSource("UI", "bmks");
 
 			itemsSelector = Selectors.Create(
 				() => bookmarks.Items,

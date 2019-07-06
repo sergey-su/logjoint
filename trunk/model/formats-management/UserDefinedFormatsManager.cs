@@ -7,11 +7,18 @@ namespace LogJoint
 {
 	public class UserDefinedFormatsManager : IUserDefinedFormatsManager
 	{
-		public UserDefinedFormatsManager(IFormatDefinitionsRepository repository, ILogProviderFactoryRegistry registry, ITempFilesManager tempFilesManager)
+		public UserDefinedFormatsManager(
+			IFormatDefinitionsRepository repository,
+			ILogProviderFactoryRegistry registry,
+			ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory
+		)
 		{
 			this.repository = repository ?? throw new ArgumentNullException("repository");
 			this.registry = registry ?? throw new ArgumentNullException("registry");
 			this.tempFilesManager = tempFilesManager;
+			this.traceSourceFactory = traceSourceFactory;
+			this.tracer = traceSourceFactory.CreateTraceSource("UserDefinedFormatsManager", "udfm");
 		}
 
 		IFormatDefinitionsRepository IUserDefinedFormatsManager.Repository
@@ -106,6 +113,7 @@ namespace LogJoint
 					Entry = entry,
 					FactoryRegistry = registry,
 					TempFilesManager = tempFilesManager,
+					TraceSourceFactory = traceSourceFactory,
 					FormatSpecificNode = factoryNodeCandidate,
 					RootNode = root
 				}
@@ -129,7 +137,8 @@ namespace LogJoint
 		readonly IFormatDefinitionsRepository repository;
 		readonly ILogProviderFactoryRegistry registry;
 		readonly ITempFilesManager tempFilesManager;
-		readonly LJTraceSource tracer = new LJTraceSource("UserDefinedFormatsManager", "udfm");
+		readonly ITraceSourceFactory traceSourceFactory;
+		readonly LJTraceSource tracer;
 		readonly Dictionary<string, Type> nodeNameToType = new Dictionary<string, Type>();
 		readonly List<FactoryRecord> factories = new List<FactoryRecord>();
 	}

@@ -42,60 +42,84 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			encodingNode.Value = "UTF-16";
 		}
 
-		public static bool? TestParsing(
-			string sampleLog, 
-			IAlertPopup alerts, 
-			ITempFilesManager tempFilesManager,
-			IFactory objectsFactory,
-			XmlNode formatRoot,
-			string formatSpecificNodeName
-		)
+		public class TestParsing: ITestParsing
 		{
-			if (sampleLog == "")
+			readonly IAlertPopup alerts;
+			readonly ITempFilesManager tempFilesManager;
+			readonly ITraceSourceFactory traceSourceFactory;
+			readonly IFactory objectsFactory;
+
+			public TestParsing(
+				IAlertPopup alerts,
+				ITempFilesManager tempFilesManager,
+				ITraceSourceFactory traceSourceFactory,
+				IFactory objectsFactory
+			)
 			{
-				alerts.ShowPopup("", "Provide sample log first", AlertFlags.Ok | AlertFlags.WarningIcon);
-				return null;
+				this.alerts = alerts;
+				this.tempFilesManager = tempFilesManager;
+				this.traceSourceFactory = traceSourceFactory;
+				this.objectsFactory = objectsFactory;
 			}
 
-			string tmpLog = tempFilesManager.GenerateNewName();
-			try
+			bool? ITestParsing.Test(
+				string sampleLog,
+				XmlNode formatRoot,
+				string formatSpecificNodeName
+			)
 			{
-				XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
-
-				UserDefinedFactoryParams createParams;
-				createParams.Entry = null;
-				createParams.RootNode = clonedFormatXmlDocument.Element("format");
-				createParams.FormatSpecificNode = createParams.RootNode.Element(formatSpecificNodeName);
-				createParams.FactoryRegistry = null;
-				createParams.TempFilesManager = tempFilesManager;
-
-				// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
-				// we test regexps correctness.
-				using (var w = new StreamWriter(tmpLog, false, new UnicodeEncoding(false, false)))
-					w.Write(sampleLog);
-				ChangeEncodingToUnicode(createParams);
-
-				var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
-
-				ILogProviderFactory f;
-				if (formatSpecificNodeName == "regular-grammar")
-					f = new RegularGrammar.UserDefinedFormatFactory(createParams);
-				else if (formatSpecificNodeName == "xml")
-					f = new XmlFormat.UserDefinedFormatFactory(createParams);
-				else if (formatSpecificNodeName == "json")
-					f = new JsonFormat.UserDefinedFormatFactory(createParams);
-				else
-					return null;
-				using (f as IDisposable)
-				using (var interaction = objectsFactory.CreateTestDialog())
+				if (sampleLog == "")
 				{
-					return interaction.ShowDialog(f, cp);
+					alerts.ShowPopup("", "Provide sample log first", AlertFlags.Ok | AlertFlags.WarningIcon);
+					return null;
+				}
+
+				string tmpLog = tempFilesManager.GenerateNewName();
+				try
+				{
+					XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
+
+					UserDefinedFactoryParams createParams;
+					createParams.Entry = null;
+					createParams.RootNode = clonedFormatXmlDocument.Element("format");
+					createParams.FormatSpecificNode = createParams.RootNode.Element(formatSpecificNodeName);
+					createParams.FactoryRegistry = null;
+					createParams.TempFilesManager = tempFilesManager;
+					createParams.TraceSourceFactory = traceSourceFactory;
+
+					// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
+					// we test regexps correctness.
+					using (var w = new StreamWriter(tmpLog, false, new UnicodeEncoding(false, false)))
+						w.Write(sampleLog);
+					ChangeEncodingToUnicode(createParams);
+
+					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
+
+					ILogProviderFactory f;
+					if (formatSpecificNodeName == "regular-grammar")
+						f = new RegularGrammar.UserDefinedFormatFactory(createParams);
+					else if (formatSpecificNodeName == "xml")
+						f = new XmlFormat.UserDefinedFormatFactory(createParams);
+					else if (formatSpecificNodeName == "json")
+						f = new JsonFormat.UserDefinedFormatFactory(createParams);
+					else
+						return null;
+					using (f as IDisposable)
+					using (var interaction = objectsFactory.CreateTestDialog())
+					{
+						return interaction.ShowDialog(f, cp);
+					}
+				}
+				finally
+				{
+					File.Delete(tmpLog);
 				}
 			}
-			finally
-			{
-				File.Delete(tmpLog);
-			}			
 		}
+	};
+
+	public interface ITestParsing
+	{
+		bool? Test(string sampleLog, XmlNode formatRoot, string formatSpecificNodeName);
 	};
 };

@@ -7,12 +7,18 @@ namespace LogJoint
 {
 	public class TimeGapsDetector : ITimeGapsDetector
 	{
-		public TimeGapsDetector(LJTraceSource tracer, ISynchronizationContext modelThreadInvoke, ITimeGapsSource source)
+		public TimeGapsDetector(
+			LJTraceSource tracer,
+			ISynchronizationContext modelSynchronizationContext,
+			ITimeGapsSource source,
+			ITraceSourceFactory traceSourceFactory
+		)
 		{
-			this.trace = new LJTraceSource("GapsDetector", tracer.Prefix + ".gaps");
+			this.traceSourceFactory = traceSourceFactory;
+			this.trace = traceSourceFactory.CreateTraceSource("GapsDetector", tracer.Prefix + ".gaps");
 			using (trace.NewFrame)
 			{
-				this.syncInvoke = modelThreadInvoke;
+				this.modelSynchronizationContext = modelSynchronizationContext;
 				this.source = source;
 
 				trace.Info("starting worker thread");
@@ -222,8 +228,8 @@ namespace LogJoint
 			public Helper(TimeGapsDetector owner)
 			{
 				this.owner = owner;
-				this.invoke = owner.syncInvoke;
-				this.trace = new LJTraceSource("GapsDetector", 
+				this.invoke = owner.modelSynchronizationContext;
+				this.trace = owner.traceSourceFactory.CreateTraceSource("GapsDetector", 
 					string.Format("{0}.h{1}", owner.trace.Prefix, ++owner.lastHelperId));
 				this.source = owner.source;
 			}
@@ -378,7 +384,7 @@ namespace LogJoint
 				this.gaps = gaps;
 			}
 			trace.Info("posting OnTimeGapsChanged event");
-			await syncInvoke.Invoke(() => OnTimeGapsChanged(this, EventArgs.Empty));
+			await modelSynchronizationContext.Invoke(() => OnTimeGapsChanged(this, EventArgs.Empty));
 		}
 
 		class TooManyGapsException : Exception
@@ -497,8 +503,9 @@ namespace LogJoint
 
 
 		readonly LJTraceSource trace;
-		readonly ISynchronizationContext syncInvoke;
+		readonly ISynchronizationContext modelSynchronizationContext;
 		readonly ITimeGapsSource source;
+		readonly ITraceSourceFactory traceSourceFactory;
 		readonly Task thread;
 		readonly AwaitableVariable<int> stopEvt = new AwaitableVariable<int>(isAutoReset: false);
 		readonly AwaitableVariable<int> invalidatedEvt = new AwaitableVariable<int>(isAutoReset: true);

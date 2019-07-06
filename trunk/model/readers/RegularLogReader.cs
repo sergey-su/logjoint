@@ -53,6 +53,7 @@ namespace LogJoint.RegularGrammar
 		readonly ILogSourceThreads threads;
 		readonly FormatInfo fmtInfo;
 		readonly ITempFilesManager tempFilesManager;
+		readonly ITraceSourceFactory traceSourceFactory;
 		readonly Lazy<bool> isBodySingleFieldExpression;
 		readonly LJTraceSource trace;
 
@@ -62,9 +63,10 @@ namespace LogJoint.RegularGrammar
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
 			this.threads = readerParams.Threads;
+			this.traceSourceFactory = readerParams.TraceSourceFactory;
 			this.fmtInfo = fmt;
 			this.tempFilesManager = readerParams.TempFilesManager;
-			this.trace = new LJTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
+			this.trace = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 
 			base.Extensions.AttachExtensions();
 
@@ -210,7 +212,7 @@ namespace LogJoint.RegularGrammar
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.fmtInfo.HeadRe.Regex,
-			         reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(), reader.fmtInfo.TextStreamPositioningParams, reader.trace.Prefix)
+			         reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(), reader.fmtInfo.TextStreamPositioningParams, reader.trace.Prefix, reader.traceSourceFactory)
 			{
 				this.reader = reader;
 			}
@@ -277,7 +279,8 @@ namespace LogJoint.RegularGrammar
 				StreamEncoding,
 				allowPlainTextSearchOptimization,
 				fmtInfo.HeadRe, 
-				threads
+				threads,
+				traceSourceFactory
 			);
 		}
 	};

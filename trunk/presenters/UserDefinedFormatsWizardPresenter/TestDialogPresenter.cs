@@ -9,6 +9,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 	{
 		readonly IView view;
 		readonly ITempFilesManager tempFilesManager;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		readonly IModelThreads threads;
 		readonly ILogSourceThreads logSourceThreads;
@@ -20,12 +21,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		public Presenter(
 			IView view, 
 			ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory,
 			LogViewer.IPresenterFactory logViewerPresenterFactory
 		)
 		{
 			this.view = view;
 			this.view.SetEventsHandler(this);
 			this.tempFilesManager = tempFilesManager;
+			this.traceSourceFactory = traceSourceFactory;
 
 			this.threads = new ModelThreads();
 			this.logSourceThreads = new LogSourceThreads(
@@ -60,6 +63,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		{
 			get { return "test"; }
 		}
+
+		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
 
 		ITimeOffsets ILogProviderHost.TimeOffsets
 		{

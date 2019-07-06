@@ -13,14 +13,16 @@ namespace LogJoint.Telemetry
 {
 	public class AzureTelemetryUploader: ITelemetryUploader
 	{
-		readonly LJTraceSource trace = new LJTraceSource("Telemetry");
+		readonly LJTraceSource trace;
 		readonly string telemetryUrl, issuesUrl;
 
 		public AzureTelemetryUploader(
+			ITraceSourceFactory traceSourceFactory,
 			string telemetryUrl,
 			string issuesUrl
 		)
 		{
+			this.trace = traceSourceFactory.CreateTraceSource("Telemetry");
 			this.telemetryUrl = telemetryUrl;
 			if (!Uri.IsWellFormedUriString(this.telemetryUrl, UriKind.Absolute))
 				this.telemetryUrl = null;

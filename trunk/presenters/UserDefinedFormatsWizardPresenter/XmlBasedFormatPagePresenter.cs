@@ -12,8 +12,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 		readonly IGenericView view;
 		readonly IWizardScenarioHost host;
 		readonly Help.IPresenter help;
-		readonly ITempFilesManager tempFilesManager;
-		readonly IAlertPopup alerts;
+		readonly ITestParsing testParsing;
 		readonly IFactory objectsFactory;
 		readonly XmlNamespaceManager namespaces;
 		ISampleLogAccess sampleLogAccess;
@@ -25,8 +24,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 			IGenericView view, 
 			IWizardScenarioHost host,
 			Help.IPresenter help, 
-			ITempFilesManager tempFilesManager,
-			IAlertPopup alerts,
+			ITestParsing testParsing,
 			IFactory objectsFactory
 		)
 		{
@@ -34,15 +32,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 			this.view.SetEventsHandler(this);
 			this.host = host;
 			this.help = help;
-			this.tempFilesManager = tempFilesManager;
-			this.alerts = alerts;
+			this.testParsing = testParsing;
 			this.objectsFactory = objectsFactory;
 			this.namespaces = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
 			InitLabel(ControlId.PageTitleLabel, "Provide the data needed to parse your XML logs");
 			InitLabel(ControlId.ConceptsLabel, "Learn how LogJoint uses regular expressions and XSLT to parse XML logs");
 			InitLabel(ControlId.SampleLogLabel, "Select sample log file that can help you test your XML format configuration");
 			InitLabel(ControlId.HeaderReLabel, "Construct header regular expression");
-			InitLabel(ControlId.TransformLabel, "Compose XSL tranformation");
+			InitLabel(ControlId.TransformLabel, "Compose XSL transformation");
 			InitLabel(ControlId.TestLabel, "Test the data you provided. Click \"Test\" to extract the messages from sample file.");
 		}
 
@@ -72,11 +69,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 
 		void IGenericViewEvents.OnTestButtonClicked()
 		{
-			var testResult = CustomFormatPageUtils.TestParsing(
+			var testResult = testParsing.Test(
 				sampleLogAccess.SampleLog,
-				alerts,
-				tempFilesManager,
-				objectsFactory,
 				formatRoot,
 				"xml"
 			);

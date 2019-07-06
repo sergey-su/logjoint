@@ -15,7 +15,7 @@ namespace LogJoint.Telemetry
 {
 	public class TelemetryCollector : ITelemetryCollector
 	{
-		readonly LJTraceSource trace = new LJTraceSource("Telemetry");
+		readonly LJTraceSource trace;
 		static readonly string sessionsRegistrySectionName = "sessions";
 		static readonly string sessionsRegistrySessionElementName = "session";
 		const int maxExceptionsInfoLen = 1024 * 16;
@@ -52,9 +52,11 @@ namespace LogJoint.Telemetry
 			ISynchronizationContext synchronization,
 			MultiInstance.IInstancesCounter instancesCounter,
 			IShutdown shutdown,
-			IMemBufferTraceAccess traceAccess
+			IMemBufferTraceAccess traceAccess,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
+			this.trace = traceSourceFactory.CreateTraceSource("Telemetry");
 			this.telemetryUploader = telemetryUploader;
 			this.synchronization = synchronization;
 			this.traceAccess = traceAccess;

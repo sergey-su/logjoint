@@ -33,10 +33,11 @@ namespace LogJoint.UI.Presenters.MainForm
 			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter,
 			IShutdownSource shutdown,
 			IColorTheme theme,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
-			this.tracer = new LJTraceSource("UI", "ui.main");
+			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.main");
 			this.logSources = logSources;
 			this.preprocessingsManager = preprocessingsManager;
 			this.view = view;

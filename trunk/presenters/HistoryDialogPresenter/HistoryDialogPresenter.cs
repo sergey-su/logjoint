@@ -31,7 +31,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			MRU.IRecentlyUsedEntities mru,
 			QuickSearchTextBox.IPresenter searchBoxPresenter,
-			IAlertPopup alerts
+			IAlertPopup alerts,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.view = view;
@@ -40,7 +41,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.mru = mru;
 			this.searchBoxPresenter = searchBoxPresenter;
-			this.trace = new LJTraceSource("UI", "hist-dlg");
+			this.trace = traceSourceFactory.CreateTraceSource("UI", "hist-dlg");
 			this.alerts = alerts;
 
 			searchBoxPresenter.OnSearchNow += (s, e) =>

@@ -4,9 +4,9 @@ namespace LogJoint.Persistence
 {
 	public class PersistentUserDataManager: IStorageManager, IDisposable
 	{
-		public PersistentUserDataManager(Implementation.IStorageManagerImplementation impl, IShutdown shutdown)
+		public PersistentUserDataManager(ITraceSourceFactory traceSourceFactory, Implementation.IStorageManagerImplementation impl, IShutdown shutdown)
 		{
-			this.trace = new LJTraceSource("Storage", "storage");
+			this.trace = traceSourceFactory.CreateTraceSource("Storage", "storage");
 			this.impl = impl; 
 			this.impl.SetTrace(trace);
 			this.globalSettingsEntry = new Lazy<IStorageEntry>(() => impl.GetEntry("global", 0));

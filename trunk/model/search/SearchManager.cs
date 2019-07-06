@@ -27,12 +27,13 @@ namespace LogJoint
 			Settings.IGlobalSettingsAccessor settings,
 			Telemetry.ITelemetryCollector telemetryCollector,
 			IHeartBeatTimer heartBeat,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			ITraceSourceFactory traceSourceFactory
 		) :this(
 			sources,
 			modelSynchronization, 
 			heartBeat,
-			new SearchObjectsFactory(progressAggregatorFactory, modelSynchronization, settings, telemetryCollector),
+			new SearchObjectsFactory(progressAggregatorFactory, modelSynchronization, settings, telemetryCollector, traceSourceFactory),
 			changeNotification
 		)
 		{

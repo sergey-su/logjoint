@@ -24,9 +24,11 @@ namespace LogJoint.Preprocessing
 			Telemetry.ITelemetryCollector telemetry,
 			ITempFilesManager tempFilesManager,
 			ILogSourcesManager logSourcesManager,
-			IShutdown shutdown)
+			IShutdown shutdown,
+			ITraceSourceFactory traceSourceFactory)
 		{
-			this.trace = new LJTraceSource("PreprocessingManager", "prepr");
+			this.traceSourceFactory = traceSourceFactory;
+			this.trace = traceSourceFactory.CreateTraceSource("PreprocessingManager", "prepr");
 			this.invokeSynchronize = invokeSynchronize;
 			this.formatAutodetect = formatAutodetect;
 			this.providerYieldedCallback = prov => logSourcesManager.Create(prov.Factory, prov.ConnectionParams).Visible = !prov.IsHiddenLog;
@@ -254,7 +256,7 @@ namespace LogJoint.Preprocessing
 				this.formatAutodetect = owner.formatAutodetect.Clone();
 				this.tempFiles = owner.tempFilesManager;
 				this.scopedTempFiles = new TempFilesCleanupList(tempFiles);
-				this.trace = new LJTraceSource("PreprocessingManager", id);
+				this.trace = owner.traceSourceFactory.CreateTraceSource("PreprocessingManager", id);
 			}
 
 			public Task<YieldedProvider[]> Execute()
@@ -695,6 +697,7 @@ namespace LogJoint.Preprocessing
 		readonly LJTraceSource trace;
 		readonly ITempFilesManager tempFilesManager;
 		readonly ILogSourcesManager logSourcesManager;
+		readonly ITraceSourceFactory traceSourceFactory;
 		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>(); // todo: move to separate class
 		int lastPreprocId;
 

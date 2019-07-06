@@ -19,85 +19,79 @@ namespace LogJoint
 
 		static Form WireupDependenciesAndCreateMainForm()
 		{
-			var tracer = new LJTraceSource("App", "app");
+			var mainForm = new UI.MainForm();
+			Properties.WebContentConfig webContentConfig = new Properties.WebContentConfig();
+			ISynchronizationContext modelSynchronizationContext = new WinFormsSynchronizationContext(mainForm);
 
-			using (tracer.NewFrame)
-			{
-				var mainForm = new UI.MainForm();
-				tracer.Info("main form created");
-				Properties.WebContentConfig webContentConfig = new Properties.WebContentConfig();
-				ISynchronizationContext modelSynchronizationContext = new WinFormsSynchronizationContext(mainForm);
-
-				var model = ModelFactory.Create(
-					tracer,
-					new ModelConfig
-					{
-						WorkspacesUrl = Properties.Settings.Default.WorkspacesUrl,
-						TelemetryUrl = Properties.Settings.Default.TelemetryUrl,
-						IssuesUrl = Properties.Settings.Default.IssuesUrl,
-						AutoUpdateUrl = Properties.Settings.Default.AutoUpdateUrl,
-						WebContentCacheConfig = webContentConfig,
-						LogsDownloaderConfig = webContentConfig
-					},
+			var model = ModelFactory.Create(
+				new ModelConfig
+				{
+					WorkspacesUrl = Properties.Settings.Default.WorkspacesUrl,
+					TelemetryUrl = Properties.Settings.Default.TelemetryUrl,
+					IssuesUrl = Properties.Settings.Default.IssuesUrl,
+					AutoUpdateUrl = Properties.Settings.Default.AutoUpdateUrl,
+					WebContentCacheConfig = webContentConfig,
+					LogsDownloaderConfig = webContentConfig
+				},
+				modelSynchronizationContext,
+				(storageManager) => new UI.LogsPreprocessorCredentialsCache(
 					modelSynchronizationContext,
-					(storageManager) => new UI.LogsPreprocessorCredentialsCache(
-						modelSynchronizationContext,
-						storageManager.GlobalSettingsEntry,
-						mainForm
-					),
-					(shutdown, webContentCache) => new UI.Presenters.WebBrowserDownloader.Presenter(
-						new UI.WebBrowserDownloader.WebBrowserDownloaderForm(),
-						modelSynchronizationContext,
-						webContentCache,
-						shutdown
-					)
-				);
+					storageManager.GlobalSettingsEntry,
+					mainForm
+				),
+				(shutdown, webContentCache, traceSourceFactory) => new UI.Presenters.WebBrowserDownloader.Presenter(
+					new UI.WebBrowserDownloader.WebBrowserDownloaderForm(),
+					modelSynchronizationContext,
+					webContentCache,
+					shutdown,
+					traceSourceFactory
+				)
+			);
 
-				var viewsFactory = new UI.Presenters.ViewsFactory(mainForm, model);
+			var viewsFactory = new UI.Presenters.ViewsFactory(mainForm, model);
 
-				var presentation = UI.Presenters.Factory.Create(
-					tracer,
-					model,
-					new ClipboardAccess(model.TelemetryCollector),
-					new ShellOpen(),
-					new Alerts(),
-					new Alerts(),
-					new UI.PromptDialog.Presenter(),
-					new AboutDialogConfig(),
-					new DragDropHandler(
-						model.LogSourcesManager,
-						model.LogSourcesPreprocessings,
-						model.PreprocessingStepsFactory
-					),
-					new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Light),
+			var presentation = UI.Presenters.Factory.Create(
+				model,
+				new ClipboardAccess(model.TelemetryCollector),
+				new ShellOpen(),
+				new Alerts(),
+				new Alerts(),
+				new UI.PromptDialog.Presenter(),
+				new AboutDialogConfig(),
+				new DragDropHandler(
+					model.LogSourcesManager,
+					model.LogSourcesPreprocessings,
+					model.PreprocessingStepsFactory
+				),
+				new UI.Presenters.StaticSystemThemeDetector(UI.Presenters.ColorThemeMode.Light),
+				viewsFactory
+			);
+
+			var pluginEntryPoint = new Extensibility.Application(
+				model.ExpensibilityEntryPoint,
+				presentation.ExpensibilityEntryPoint,
+				new Extensibility.View(
+					mainForm,
 					viewsFactory
-				);
+				)
+			);
 
-				var pluginEntryPoint = new Extensibility.Application(
-					model.ExpensibilityEntryPoint,
-					presentation.ExpensibilityEntryPoint,
-					new Extensibility.View(
-						mainForm,
-						viewsFactory
-					)
-				);
+			model.PluginsManager.LoadPlugins(pluginEntryPoint);
 
-				model.PluginsManager.LoadPlugins(pluginEntryPoint);
+			new PluggableProtocolManager(
+				model.TraceSourceFactory,
+				model.InstancesCounter,
+				model.Shutdown,
+				model.TelemetryCollector,
+				model.FirstStartDetector,
+				model.LaunchUrlParser
+			);
 
-				new PluggableProtocolManager(
-					model.InstancesCounter,
-					model.Shutdown,
-					model.TelemetryCollector,
-					model.FirstStartDetector,
-					model.LaunchUrlParser
-				);
+			Telemetry.WinFormsUnhandledExceptionsReporter.Setup(model.TelemetryCollector);
 
-				Telemetry.WinFormsUnhandledExceptionsReporter.Setup(model.TelemetryCollector);
+			AppInitializer.WireUpCommandLineHandler(presentation.MainFormPresenter, model.CommandLineHandler);
 
-				AppInitializer.WireUpCommandLineHandler(presentation.MainFormPresenter, model.CommandLineHandler);
-
-				return mainForm;
-			}
+			return mainForm;
 		}
 	}
 }

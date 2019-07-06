@@ -17,7 +17,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Settings.IGlobalSettingsAccessor settings,
 			ISearchManager searchManager,
 			IFiltersFactory filtersFactory,
-			IColorTheme theme
+			IColorTheme theme,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.changeNotification = changeNotification;
@@ -35,13 +36,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.searchManager = searchManager;
 			this.filtersFactory = filtersFactory;
 			this.theme = theme;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		IPresenter IPresenterFactory.Create (IModel model, IView view, bool createIsolatedPresenter, IColorTheme theme)
 		{
 			return new Presenter(model, view, heartbeat, 
 				createIsolatedPresenter ? null : presentationFacade, clipboard, bookmarksFactory, telemetry,
-				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme);
+				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory);
 		}
 
 		IModel IPresenterFactory.CreateLoadedMessagesModel()
@@ -84,5 +86,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IFiltersFactory filtersFactory;
 		readonly IColorTable highlightColorsTable;
 		readonly IColorTheme theme;
+		readonly ITraceSourceFactory traceSourceFactory;
 	};
 };

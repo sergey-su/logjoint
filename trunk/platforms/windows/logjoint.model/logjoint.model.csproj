@@ -331,6 +331,9 @@
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\TraceSourceFactory.cs">
+      <Link>generic\TraceSourceFactory.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
     </Compile>

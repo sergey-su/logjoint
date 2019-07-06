@@ -27,7 +27,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			HistoryDialog.IPresenter historyDialogPresenter,
 			IPresentersFacade facade,
 			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter,
-			IAlertPopup alerts
+			IAlertPopup alerts,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.logSources = logSources;
@@ -39,7 +40,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.workspacesManager = workspacesManager;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
-			this.tracer = new LJTraceSource("UI", "smgr-ui");
+			this.tracer = traceSourceFactory.CreateTraceSource("UI", "smgr-ui");
 			this.sharingDialogPresenter = sharingDialogPresenter;
 			this.historyDialogPresenter = historyDialogPresenter;
 			this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;

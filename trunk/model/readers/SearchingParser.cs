@@ -37,7 +37,9 @@ namespace LogJoint
 			Encoding streamEncoding,
 			bool allowPlainTextSearchOptimization,
 			LoadedRegex headerRe,
-			ILogSourceThreads threads)
+			ILogSourceThreads threads,
+			ITraceSourceFactory traceSourceFactory
+		)
 		{
 			this.owner = owner;
 			this.parserParams = p;
@@ -48,7 +50,7 @@ namespace LogJoint
 			this.dejitteringParams = dejitteringParams;
 			this.rawStream = rawStream;
 			this.streamEncoding = streamEncoding;
-			this.trace = new LJTraceSource("LogSource", "srchp." + GetHashCode().ToString("x"));
+			this.trace = traceSourceFactory.CreateTraceSource("LogSource", "srchp." + GetHashCode().ToString("x"));
 			var continuationToken = p.ContinuationToken as ContinuationToken;
 			if (continuationToken != null)
 				this.requestedRange = new FileRange.Range(continuationToken.NextPosition, requestedRange.End);

@@ -16,7 +16,8 @@ namespace LogJoint.Postprocessing
 			IHeartBeatTimer heartbeat,
 			Progress.IProgressAggregator progressAggregator,
 			Settings.IGlobalSettingsAccessor settingsAccessor,
-			IOutputDataDeserializer outputDataDeserializer
+			IOutputDataDeserializer outputDataDeserializer,
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.logSources = logSources;
@@ -27,7 +28,7 @@ namespace LogJoint.Postprocessing
 			this.threadPoolSyncContext = threadPoolSyncContext;
 			this.heartbeat = heartbeat;
 			this.outputDataDeserializer = outputDataDeserializer;
-			this.tracer = new LJTraceSource("App", "ppm");
+			this.tracer = traceSourceFactory.CreateTraceSource("App", "ppm");
 			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh);
 
 			logSources.OnLogSourceAdded += (sender, args) => updater.Invoke();

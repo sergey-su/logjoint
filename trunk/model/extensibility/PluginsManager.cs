@@ -16,10 +16,11 @@ namespace LogJoint.Extensibility
 		readonly Dictionary<Type, object> types = new Dictionary<Type, object>();
 
 		public PluginsManager(
+			ITraceSourceFactory traceSourceFactory,
 			Telemetry.ITelemetryCollector telemetry,
 			IShutdown shutdown)
 		{
-			this.tracer = new LJTraceSource("Extensibility", "plugins-mgr");
+			this.tracer = traceSourceFactory.CreateTraceSource("Extensibility", "plugins-mgr");
 			this.telemetry = telemetry;
 
 			shutdown.Cleanup += (s, e) => Dispose();

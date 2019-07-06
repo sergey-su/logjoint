@@ -27,6 +27,7 @@ namespace LogJoint
 		readonly ConcatReadingStream concatStream;
 		readonly ILogSourceThreads tempThreads;
 		readonly ITempFilesManager tempFilesManager;
+		readonly ITraceSourceFactory traceSourceFactory;
 		bool disposed;
 		int folderNeedsRescan;
 
@@ -36,8 +37,10 @@ namespace LogJoint
 			StreamBasedFormatInfo logFormatInfo,
 			LJTraceSource traceSource,
 			IRollingFilesMediaStrategy rollingStrategy,
-			ITempFilesManager tempFilesManager)
+			ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory)
 		{
+			this.traceSourceFactory = traceSourceFactory;
 			trace = traceSource;
 			using (trace.NewFrame)
 			{
@@ -302,7 +305,7 @@ namespace LogJoint
 						{
 							owner.trace.Info("First message time is unknown. Calcalating it");
 							using (IPositionedMessagesReader reader = (IPositionedMessagesReader)Activator.CreateInstance(
-									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia, owner.tempFilesManager), owner.logFormatInfo))
+									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia, owner.tempFilesManager, owner.traceSourceFactory), owner.logFormatInfo))
 							{
 								owner.trace.Info("Reader created");
 
