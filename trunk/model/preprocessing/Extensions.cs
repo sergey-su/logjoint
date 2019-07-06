@@ -6,17 +6,17 @@ namespace LogJoint.Preprocessing
 {
 	public static class Utils
 	{
-		public static Task OpenWorkspace(this ILogSourcesPreprocessingManager logSourcesPreprocessings, 
-			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory, string workspaceUrl)
+		public static Task OpenWorkspace(this IManager logSourcesPreprocessings, 
+			IStepsFactory preprocessingStepsFactory, string workspaceUrl)
 		{
 			return logSourcesPreprocessings.Preprocess(
-				new[] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new Preprocessing.PreprocessingStepParams(workspaceUrl)) },
+				new[] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new PreprocessingStepParams(workspaceUrl)) },
 				"opening workspace"
 			);
 		}
 
-		public static async Task DeletePreprocessings(this Preprocessing.ILogSourcesPreprocessingManager lspm, 
-			Preprocessing.ILogSourcePreprocessing[] preprs)
+		public static async Task DeletePreprocessings(this IManager lspm, 
+			ILogSourcePreprocessing[] preprs)
 		{
 			var tasks = preprs.Where(s => !s.IsDisposed).Select(s => s.Dispose()).ToArray();
 			if (tasks.Length == 0)
@@ -24,12 +24,12 @@ namespace LogJoint.Preprocessing
 			await Task.WhenAll(tasks);
 		}
 
-		public static async Task DeleteAllPreprocessings(this Preprocessing.ILogSourcesPreprocessingManager lspm)
+		public static async Task DeleteAllPreprocessings(this IManager lspm)
 		{
 			await DeletePreprocessings(lspm, lspm.Items.ToArray());
 		}
 
-		public static IConnectionParams AppendReorderingStep(this ILogSourcesPreprocessingManager mgr, 
+		public static IConnectionParams AppendReorderingStep(this IManager mgr, 
 			IConnectionParams connectParams, ILogProviderFactory sourceFormatFactory)
 		{
 			return mgr.AppendStep(connectParams, TimeAnomalyFixingStep.name, 

@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		#region Data
 
 		readonly ILogSourcesManager sourcesManager;
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocMgr;
+		readonly Preprocessing.IManager preprocMgr;
 		readonly ISearchManager searchManager;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		public Presenter(
 			ILogSourcesManager sourcesManager,
-			Preprocessing.ILogSourcesPreprocessingManager preprocMgr,
+			Preprocessing.IManager preprocMgr,
 			ISearchManager searchManager,
 			IBookmarks bookmarks,
 			IView view,
@@ -1302,7 +1302,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly IColorTheme theme;
 		readonly string containerName;
 
-		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc, IColorTheme theme)
+		public LogTimelineDataSource(ILogSource logSource, Preprocessing.IManager preproc, IColorTheme theme)
 		{
 			this.logSource = logSource;
 			this.theme = theme;

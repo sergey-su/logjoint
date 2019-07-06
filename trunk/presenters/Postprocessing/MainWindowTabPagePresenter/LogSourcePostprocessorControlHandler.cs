@@ -9,14 +9,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	class LogSourcePostprocessorControlHandler : IViewControlHandler
 	{
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 		readonly PostprocessorKind postprocessorKind;
 		readonly Func<IPostprocessorOutputForm> lazyOutputForm;
 		readonly LogJoint.UI.Presenters.IShellOpen shellOpen;
 		readonly ITempFilesManager tempFiles;
 
 		public LogSourcePostprocessorControlHandler(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			PostprocessorKind postprocessorKind,
 			Func<IPostprocessorOutputForm> lazyOutputForm,
 			LogJoint.UI.Presenters.IShellOpen shellOpen,

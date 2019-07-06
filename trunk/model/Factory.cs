@@ -18,11 +18,11 @@ namespace LogJoint
 		public IBookmarks Bookmarks { get; internal set; }
 		public ISearchManager SearchManager { get; internal set; }
 		public IFiltersFactory FiltersFactory { get; internal set; }
-		public Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessings { get; internal set; }
+		public Preprocessing.IManager LogSourcesPreprocessings { get; internal set; }
 		public IUserDefinedSearches UserDefinedSearches { get; internal set; }
 		public ISearchHistory SearchHistory { get; internal set; }
 		public Progress.IProgressAggregatorFactory ProgressAggregatorFactory { get; internal set; }
-		public Preprocessing.IPreprocessingStepsFactory PreprocessingStepsFactory { get; internal set; }
+		public Preprocessing.IStepsFactory PreprocessingStepsFactory { get; internal set; }
 		public Workspaces.IWorkspacesManager WorkspacesManager { get; internal set; }
 		public ILogSourcesController LogSourcesController { get; internal set; }
 		public MRU.IRecentlyUsedEntities RecentlyUsedLogs { get; internal set; }
@@ -33,7 +33,7 @@ namespace LogJoint
 		public Persistence.IStorageManager StorageManager { get; internal set; }
 		public Telemetry.ITelemetryUploader TelemetryUploader { get; internal set; }
 		public Progress.IProgressAggregator ProgressAggregator { get; internal set; }
-		public Postprocessing.IPostprocessorsManager PostprocessorsManager { get; internal set; }
+		public Postprocessing.IManager PostprocessorsManager { get; internal set; }
 		public IModel ExpensibilityEntryPoint { get; internal set; }
 		public Postprocessing.IUserNamesProvider AnalyticsShortNames { get; internal set; }
 		public ISynchronizationContext SynchronizationContext { get; internal set; }
@@ -112,6 +112,27 @@ namespace LogJoint
 			var threadColorsLease = new ColorLease(1);
 			IModelThreads modelThreads = new ModelThreads(threadColorsLease);
 
+			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
+				config.TelemetryUrl,
+				config.IssuesUrl
+			);
+
+			var telemetryCollectorImpl = new Telemetry.TelemetryCollector(
+				storageManager,
+				telemetryUploader,
+				modelSynchronizationContext,
+				instancesCounter,
+				shutdown,
+				new MemBufferTraceAccess()
+			);
+			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
+
+			MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
+				storageManager,
+				logProviderFactoryRegistry,
+				telemetryCollector
+			);
+
 			ILogSourcesManager logSourcesManager = new LogSourcesManager(
 				heartBeatTimer,
 				modelSynchronizationContext,
@@ -119,32 +140,14 @@ namespace LogJoint
 				tempFilesManager,
 				storageManager,
 				bookmarks,
-				globalSettingsAccessor
+				globalSettingsAccessor,
+				recentlyUsedLogs,
+				shutdown
 			);
 
-			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
-				config.TelemetryUrl,
-				config.IssuesUrl
-			);
-
-			Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
-				storageManager,
-				telemetryUploader,
-				modelSynchronizationContext,
-				instancesCounter,
-				shutdown,
-				logSourcesManager,
-				new MemBufferTraceAccess()
-			);
-			tracer.Info("telemetry created");
+			telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);
 
 			Telemetry.UnhandledExceptionsReporter.Setup(telemetryCollector);
-
-			MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
-				storageManager,
-				logProviderFactoryRegistry,
-				telemetryCollector
-			);
 
 			IFormatAutodetect formatAutodetect = new FormatAutodetect(
 				recentlyUsedLogs,
@@ -166,7 +169,7 @@ namespace LogJoint
 
 			AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
 
-			Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry =
+			Preprocessing.IExtensionsRegistry preprocessingManagerExtensionsRegistry =
 				new Preprocessing.PreprocessingManagerExtentionsRegistry(logsDownloaderConfig);
 
 			Preprocessing.ICredentialsCache preprocessingCredentialsCache = createPreprocessingCredentialsCache(
@@ -175,7 +178,7 @@ namespace LogJoint
 
 			WebBrowserDownloader.IDownloader webBrowserDownloader = createWebBrowserDownloader(shutdown, webContentCache);
 
-			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
+			Preprocessing.IStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 				workspacesManager,
 				launchUrlParser,
 				modelSynchronizationContext,
@@ -188,13 +191,15 @@ namespace LogJoint
 				logsDownloaderConfig
 			);
 
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
+			Preprocessing.IManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				modelSynchronizationContext,
 				formatAutodetect,
 				preprocessingManagerExtensionsRegistry,
 				new Preprocessing.BuiltinStepsExtension(preprocessingStepsFactory),
 				telemetryCollector,
-				tempFilesManager
+				tempFilesManager,
+				logSourcesManager,
+				shutdown
 			);
 
 			ISearchManager searchManager = new SearchManager(
@@ -210,13 +215,6 @@ namespace LogJoint
 			IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory, modelSynchronizationContext);
 
 			ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry, userDefinedSearches);
-
-			ILogSourcesController logSourcesController = new LogSourcesController(
-				logSourcesManager,
-				logSourcesPreprocessings,
-				recentlyUsedLogs,
-				shutdown
-			);
 
 			IBookmarksController bookmarksController = new BookmarkController(
 				bookmarks,
@@ -237,7 +235,7 @@ namespace LogJoint
 
 			Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 
-			Postprocessing.IPostprocessorsManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
+			Postprocessing.IManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
 				logSourcesManager,
 				telemetryCollector,
 				modelSynchronizationContext,
@@ -297,15 +295,16 @@ namespace LogJoint
 				logSourcesManager,
 				modelThreads,
 				tempFilesManager,
-				preprocessingManagerExtensionsRegistry,
-				logSourcesPreprocessings,
-				preprocessingStepsFactory,
+				new Preprocessing.Model(
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					preprocessingManagerExtensionsRegistry
+				),
 				progressAggregator,
 				logProviderFactoryRegistry,
 				userDefinedFormatsManager,
 				recentlyUsedLogs,
 				progressAggregatorFactory,
-				logSourcesController,
 				shutdown,
 				webBrowserDownloader,
 				postprocessingModel,
@@ -336,7 +335,6 @@ namespace LogJoint
 				ProgressAggregatorFactory = progressAggregatorFactory,
 				PreprocessingStepsFactory = preprocessingStepsFactory,
 				WorkspacesManager = workspacesManager,
-				LogSourcesController = logSourcesController,
 				RecentlyUsedLogs = recentlyUsedLogs,
 				LogProviderFactoryRegistry = logProviderFactoryRegistry,
 				UserDefinedFormatsManager = userDefinedFormatsManager,

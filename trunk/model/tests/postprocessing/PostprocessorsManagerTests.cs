@@ -12,7 +12,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 	[TestFixture]
 	public class PostprocessorsManagerTests
 	{
-		IPostprocessorsManager manager;
+		IManager manager;
 
 		ILogSourcesManager logSources;
 		Telemetry.ITelemetryCollector telemetry;

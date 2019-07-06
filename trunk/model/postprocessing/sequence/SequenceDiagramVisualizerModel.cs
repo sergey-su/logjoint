@@ -11,7 +11,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 {
 	public class SequenceDiagramVisualizerModel : ISequenceDiagramVisualizerModel
 	{
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
 		readonly IChangeNotification changeNotification;
@@ -23,7 +23,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		ImmutableArray<MetadataEntry> metadataEntries = new ImmutableArray<MetadataEntry>();
 
 		public SequenceDiagramVisualizerModel(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			ILogSourcesManager logSourceManager,
 			IUserNamesProvider shortNames,
 			ILogSourceNamesProvider logSourceNamesProvider,

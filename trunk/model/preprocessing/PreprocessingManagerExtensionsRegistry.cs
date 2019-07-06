@@ -7,24 +7,24 @@ using System.Net;
 
 namespace LogJoint.Preprocessing
 {
-	public class PreprocessingManagerExtentionsRegistry : IPreprocessingManagerExtensionsRegistry
+	public class PreprocessingManagerExtentionsRegistry : IExtensionsRegistry
 	{
 		public PreprocessingManagerExtentionsRegistry(ILogsDownloaderConfig logsDownloaderConfig)
 		{
 			this.logsDownloaderConfig = logsDownloaderConfig;
 		}
 
-		IEnumerable<IPreprocessingManagerExtension> IPreprocessingManagerExtensionsRegistry.Items
+		IEnumerable<IPreprocessingManagerExtension> IExtensionsRegistry.Items
 		{
 			get { return items; }
 		}
 
-		void IPreprocessingManagerExtensionsRegistry.Register(IPreprocessingManagerExtension detector)
+		void IExtensionsRegistry.Register(IPreprocessingManagerExtension detector)
 		{
 			items.Add(detector);
 		}
 
-		void IPreprocessingManagerExtensionsRegistry.AddLogDownloaderRule(Uri uri, LogDownloaderRule rule)
+		void IExtensionsRegistry.AddLogDownloaderRule(Uri uri, LogDownloaderRule rule)
 		{
 			logsDownloaderConfig.AddRule(uri, rule);
 		}

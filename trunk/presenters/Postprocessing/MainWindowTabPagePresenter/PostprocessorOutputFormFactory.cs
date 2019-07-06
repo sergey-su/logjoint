@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 	{
 		private readonly IViewsFactory postprocessingViewsFactory;
 		private readonly ILogSourcesManager logSourcesManager;
-		private readonly IPostprocessorsManager postprocessorsManager;
+		private readonly IManager postprocessorsManager;
 		private readonly ISynchronizationContext synchronizationContext;
 		private readonly IChangeNotification changeNotification;
 		private readonly ILogSourceNamesProvider logSourceNamesProvider;
@@ -52,7 +52,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 
 		public Factory(
 			IViewsFactory postprocessingViewsFactory,
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			ISynchronizationContext synchronizationContext,
 			IChangeNotification changeNotification,

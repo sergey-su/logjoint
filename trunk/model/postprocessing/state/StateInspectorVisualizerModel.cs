@@ -8,7 +8,7 @@ namespace LogJoint.Postprocessing.StateInspector
 	public class StateInspectorVisualizerModel : IStateInspectorVisualizerModel
 	{
 		public StateInspectorVisualizerModel(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			ISynchronizationContext invokeSync,
 			IUserNamesProvider shortNamesManager)
@@ -129,7 +129,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			}
 		};
 
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 		readonly IUserNamesProvider shortNamesManager;
 		HashSet<IStateInspectorOutput> outputs = new HashSet<IStateInspectorOutput>();
 		Dictionary<string, RotatedLogGroup> groups = new Dictionary<string, RotatedLogGroup>();

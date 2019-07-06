@@ -7,7 +7,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 	public class Presenter : IPresenter
 	{
 		readonly IPresentersFacade presentersFacade;
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
+		readonly Preprocessing.IManager preprocessingManager;
 		readonly StatusReports.IPresenter statusReports;
 		readonly AsyncInvokeHelper updateInvokeHelper;
 		readonly HashSet<ILogSource> logSourcesRequiringReordering = new HashSet<ILogSource>();
@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 
 		public Presenter(
 			ILogSourcesManager sourcesManager,
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
+			Preprocessing.IManager preprocessingManager,
 			ISynchronizationContext sync,
 			IHeartBeatTimer heartbeat,
 			IPresentersFacade presentersFacade,

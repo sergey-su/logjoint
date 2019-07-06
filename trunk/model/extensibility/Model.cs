@@ -13,22 +13,19 @@ namespace LogJoint
 			ILogSourcesManager sourcesManager,
 			IModelThreads threads,
 			ITempFilesManager tempFilesManager,
-			Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry,
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessingManager,
-			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
+			Preprocessing.IModel preprocessingModel,
 			Progress.IProgressAggregator progressAggregator,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			MRU.IRecentlyUsedEntities mru,
 			Progress.IProgressAggregatorFactory progressAggregatorsFactory,
-			ILogSourcesController logSourcesController,
 			IShutdown shutdown,
 			WebBrowserDownloader.IDownloader webBrowserDownloader,
 			Postprocessing.IModel postprocessingModel,
 			IPluginsManager pluginsManager
 		)
 		{
-			this.ModelThreadSynchronization = threadSync;
+			this.SynchronizationContext = threadSync;
 			this.ChangeNotification = changeNotification;
 			this.WebContentCache = webCache;
 			this.ContentCache = contentCache;
@@ -37,22 +34,19 @@ namespace LogJoint
 			this.SourcesManager = sourcesManager;
 			this.Threads = threads;
 			this.TempFilesManager = tempFilesManager;
-			this.PreprocessingManagerExtensionsRegistry = preprocessingManagerExtentionsRegistry;
-			this.PreprocessingStepsFactory = preprocessingStepsFactory;
-			this.LogSourcesPreprocessingManager = logSourcesPreprocessingManager;
+			this.Preprocessing = preprocessingModel;
 			this.ProgressAggregator = progressAggregator;
 			this.LogProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.UserDefinedFormatsManager = userDefinedFormatsManager;
 			this.ProgressAggregatorsFactory = progressAggregatorsFactory;
 			this.MRU = mru;
-			this.LogSourcesController = logSourcesController;
 			this.Shutdown = shutdown;
 			this.WebBrowserDownloader = webBrowserDownloader;
 			this.Postprocessing = postprocessingModel;
 			this.PluginsManager = pluginsManager;
 		}
 
-		public ISynchronizationContext ModelThreadSynchronization { get; private set; }
+		public ISynchronizationContext SynchronizationContext { get; private set; }
 		public IChangeNotification ChangeNotification { get; private set; }
 		public Persistence.IWebContentCache WebContentCache { get; private set; }
 		public Persistence.IContentCache ContentCache { get; private set; }
@@ -61,15 +55,12 @@ namespace LogJoint
 		public ILogSourcesManager SourcesManager { get; private set; }
 		public IModelThreads Threads { get; private set; }
 		public ITempFilesManager TempFilesManager { get; private set; }
-		public Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtensionsRegistry { get; private set; }
-		public Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; private set; }
-		public Preprocessing.IPreprocessingStepsFactory PreprocessingStepsFactory { get; private set; }
+		public Preprocessing.IModel Preprocessing { get; private set; }
 		public Progress.IProgressAggregator ProgressAggregator { get; private set; }
 		public ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; private set; }
 		public IUserDefinedFormatsManager UserDefinedFormatsManager { get; private set; }
 		public MRU.IRecentlyUsedEntities MRU { get; private set; }
 		public Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; private set; }
-		public ILogSourcesController LogSourcesController { get; private set; }
 		public IShutdown Shutdown { get; private set; }
 		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
 		public Postprocessing.IModel Postprocessing { get; private set; }

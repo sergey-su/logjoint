@@ -10,13 +10,13 @@ namespace LogJoint.AppLaunch
 {
 	public class CommandLineHandler : ICommandLineHandler
 	{
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Preprocessing.IManager preprocessingManager;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly List<IBatchCommandHandler> commandHandlers = new List<IBatchCommandHandler>();
 
 		public CommandLineHandler(
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
-			IPreprocessingStepsFactory preprocessingStepsFactory)
+			Preprocessing.IManager preprocessingManager,
+			IStepsFactory preprocessingStepsFactory)
 		{
 			this.preprocessingManager = preprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;

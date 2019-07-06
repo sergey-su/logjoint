@@ -12,7 +12,7 @@ namespace LogJoint.Postprocessing
 	/// Postprocessing results include the status of last postprocessor's run,
 	/// the postprocessor's output, postprocessing error if any.
 	/// </summary>
-	public interface IPostprocessorsManager
+	public interface IManager
 	{
 		void RegisterLogType(LogSourceMetadata meta);
 		void RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor);

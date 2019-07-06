@@ -17,7 +17,7 @@ namespace LogJoint.Preprocessing
 			ICredentialsCache credCache,
 			WebBrowserDownloader.IDownloader webBrowserDownloader,
 			ILogsDownloaderConfig config,
-			IPreprocessingStepsFactory preprocessingStepsFactory
+			IStepsFactory preprocessingStepsFactory
 		)
 		{
 			this.sourceFile = srcFile;
@@ -206,7 +206,7 @@ namespace LogJoint.Preprocessing
 		}
 
 		readonly PreprocessingStepParams sourceFile;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly Persistence.IWebContentCache cache;
 		readonly ICredentialsCache credCache;

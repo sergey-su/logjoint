@@ -16,7 +16,7 @@ namespace LogJoint.PacketAnalysis
 
 
 		public PostprocessorsInitializer(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			Timeline.IPostprocessorsFactory timelinePostprocessorsFactory
 		)

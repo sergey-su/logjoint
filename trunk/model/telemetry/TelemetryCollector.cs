@@ -52,7 +52,6 @@ namespace LogJoint.Telemetry
 			ISynchronizationContext synchronization,
 			MultiInstance.IInstancesCounter instancesCounter,
 			IShutdown shutdown,
-			ILogSourcesManager logSourcesManager,
 			IMemBufferTraceAccess traceAccess
 		)
 		{
@@ -75,13 +74,6 @@ namespace LogJoint.Telemetry
 			{
 				CreateCurrentSessionSection();
 				InitStaticTelemetryProperties();
-
-				logSourcesManager.OnLogSourceAdded += (s, e) =>
-				{
-					++totalNfOfLogs;
-					var nfOfSimultaneousLogs = logSourcesManager.Items.Count();
-					maxNfOfSimultaneousLogs = Math.Max(maxNfOfSimultaneousLogs, nfOfSimultaneousLogs);
-				};
 			}
 
 			if (telemetryUploader.IsTelemetryConfigured && instancesCounter.IsPrimaryInstance)
@@ -89,6 +81,19 @@ namespace LogJoint.Telemetry
 				this.workerCancellation = new CancellationTokenSource();
 				this.workerCancellationTask = new TaskCompletionSource<int>();
 				this.worker = TaskUtils.StartInThreadPoolTaskScheduler(Worker);
+			}
+		}
+
+		public void SetLogSourcesManager(ILogSourcesManager logSourcesManager)
+		{
+			if (currentSessionId != null)
+			{
+				logSourcesManager.OnLogSourceAdded += (s, e) =>
+				{
+					++totalNfOfLogs;
+					var nfOfSimultaneousLogs = logSourcesManager.Items.Count();
+					maxNfOfSimultaneousLogs = Math.Max(maxNfOfSimultaneousLogs, nfOfSimultaneousLogs);
+				};
 			}
 		}
 

@@ -7,9 +7,9 @@ namespace LogJoint.Preprocessing
 	public class LocationTypeDetectionStep : IPreprocessingStep
 	{
 		readonly PreprocessingStepParams sourceFile;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 
-		internal LocationTypeDetectionStep(PreprocessingStepParams srcFile, IPreprocessingStepsFactory preprocessingStepsFactory)
+		internal LocationTypeDetectionStep(PreprocessingStepParams srcFile, IStepsFactory preprocessingStepsFactory)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;

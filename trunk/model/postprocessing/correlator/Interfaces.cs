@@ -5,7 +5,7 @@ namespace LogJoint.Postprocessing.Correlator
 {
 	public interface IPostprocessorsFactory
 	{
-		void Init(IPostprocessorsManager postprocessorsManager);
+		void Init(IManager postprocessorsManager);
 		ILogSourcePostprocessor CreatePostprocessor();
 	};
 }

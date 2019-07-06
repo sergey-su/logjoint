@@ -12,13 +12,13 @@ namespace LogJoint.Wireshark.Dpml
 	public class PcapUnpackPreprocessingStep : IPreprocessingStep, IUnpackPreprocessingStep
 	{
 		internal static readonly string stepName = "pcap.extract";
-		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly PreprocessingStepParams sourceFile;
 		readonly ITShark tshark;
 		readonly Func<IPreprocessingStepCallback, Task<PreprocessingStepParams[]>> getKeyFiles;
 
 		internal PcapUnpackPreprocessingStep(
-			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
+			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			ITShark tshark,
 			PreprocessingStepParams srcFile,
 			PreprocessingStepParams[] keyFiles)

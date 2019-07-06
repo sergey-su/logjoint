@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	public class Presenter: IPresenter, IViewModel
 	{
 		readonly IView view;
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 		readonly IPostprocessorOutputFormFactory outputFormsFactory;
 		readonly Dictionary<ViewControlId, IViewControlHandler> viewControlHandlers = new Dictionary<ViewControlId, IViewControlHandler>();
 		readonly ITempFilesManager tempFiles;
@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		public Presenter(
 			IView view,
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			IPostprocessorOutputFormFactory outputFormsFactory,
 			ILogSourcesManager logSourcesManager,
 			ITempFilesManager tempFiles,
@@ -119,7 +119,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		private void InitAndAddProstprocessorHandler(
 			Dictionary<ViewControlId, IViewControlHandler> handlers,
 			ViewControlId postprocessorViewId,
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			IPostprocessorOutputFormFactory outputFormsFactory,
 			PostprocessorKind postprocessorKind
 		)

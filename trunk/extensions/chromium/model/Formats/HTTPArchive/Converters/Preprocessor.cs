@@ -13,12 +13,12 @@ namespace LogJoint.Chromium.HttpArchive
 	public class TextConversionPreprocessingStep : IPreprocessingStep, IUnpackPreprocessingStep
 	{
 		internal static readonly string stepName = "har.to_text";
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly PreprocessingStepParams sourceFile;
 		readonly ILogProviderFactory harLogsFactory;
 
 		internal TextConversionPreprocessingStep(
-			IPreprocessingStepsFactory preprocessingStepsFactory,
+			IStepsFactory preprocessingStepsFactory,
 			ILogProviderFactory harLogsFactory,
 			PreprocessingStepParams srcFile
 		)

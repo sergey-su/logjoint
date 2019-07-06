@@ -7,16 +7,17 @@ using LogJoint.Workspaces;
 using LogJoint.Preprocessing;
 using LogJoint.MRU;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.HistoryDialog
 {
 	public class Presenter : IPresenter, IViewEvents
 	{
 		readonly IView view;
-		readonly ILogSourcesController logSourcesController;
+		readonly ILogSourcesManager logSourcesManager;
 		readonly MRU.IRecentlyUsedEntities mru;
-		readonly Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager;
-		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Preprocessing.IManager sourcesPreprocessingManager;
+		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly QuickSearchTextBox.IPresenter searchBoxPresenter;
 		readonly LJTraceSource trace;
 		readonly IAlertPopup alerts;
@@ -24,17 +25,17 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		bool itemsFiltered;
 
 		public Presenter(
-			ILogSourcesController logSourcesController,
+			ILogSourcesManager logSourcesManager,
 			IView view,
-			Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager,
-			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
+			Preprocessing.IManager sourcesPreprocessingManager,
+			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			MRU.IRecentlyUsedEntities mru,
 			QuickSearchTextBox.IPresenter searchBoxPresenter,
 			IAlertPopup alerts
 		)
 		{
 			this.view = view;
-			this.logSourcesController = logSourcesController;
+			this.logSourcesManager = logSourcesManager;
 			this.sourcesPreprocessingManager = sourcesPreprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.mru = mru;
@@ -115,7 +116,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			}
 		}
 
-		private void OpenEntries()
+		private async void OpenEntries()
 		{
 			var selected = view.SelectedItems;
 			if (selected.All(i => i.Data == null))
@@ -123,7 +124,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			view.Hide();
 			if (selected.Any(i => i.Data is RecentWorkspaceEntry))
 			{
-				logSourcesController.DeleteAllLogsAndPreprocessings();
+				await Task.WhenAll(logSourcesManager.DeleteAllLogs(), sourcesPreprocessingManager.DeleteAllPreprocessings());
 			}
 			foreach (var item in selected)
 			{
@@ -133,12 +134,12 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 					var ws = item.Data as RecentWorkspaceEntry;
 					var container = item.Data as IRecentlyUsedEntity[];
 					if (log != null)
-						sourcesPreprocessingManager.Preprocess(log);
+						await sourcesPreprocessingManager.Preprocess(log);
 					else if (ws != null)
-						sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
+						await sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
 					else if (container != null)
 						foreach (var innerLog in container.OfType<RecentLogEntry>())
-							sourcesPreprocessingManager.Preprocess(innerLog);
+							await sourcesPreprocessingManager.Preprocess(innerLog);
 				}
 				catch (Exception e)
 				{

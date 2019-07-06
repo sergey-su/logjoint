@@ -12,13 +12,13 @@ namespace LogJoint.Chromium.ChromeDriver
 	public class TimeFixerPreprocessingStep : IPreprocessingStep, IUnpackPreprocessingStep
 	{
 		internal static readonly string stepName = "chrome_debug.fix_time";
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly PreprocessingStepParams sourceFile;
 		readonly ILogProviderFactory chromeDriverLogsFactory;
 		readonly ITextLogParser textLogParser;
 
 		internal TimeFixerPreprocessingStep(
-			IPreprocessingStepsFactory preprocessingStepsFactory,
+			IStepsFactory preprocessingStepsFactory,
 			ILogProviderFactory chromeDriverLogsFactory,
 			PreprocessingStepParams srcFile,
 			ITextLogParser textLogParser

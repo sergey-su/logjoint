@@ -7,9 +7,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	class AllPostprocessorsControlHandler : IViewControlHandler
 	{
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 
-		public AllPostprocessorsControlHandler(IPostprocessorsManager postprocessorsManager)
+		public AllPostprocessorsControlHandler(IManager postprocessorsManager)
 		{
 			this.postprocessorsManager = postprocessorsManager;
 		}

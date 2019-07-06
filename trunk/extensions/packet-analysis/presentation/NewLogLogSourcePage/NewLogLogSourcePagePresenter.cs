@@ -8,14 +8,14 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.NewLogSourceDialog.Pages.Wiresha
 	public class Presenter : IPagePresenter
 	{
 		readonly IView view;
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
-		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Preprocessing.IManager preprocessingManager;
+		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly ITShark tShark;
 
 		public Presenter(
 			IView view,
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
-			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
+			Preprocessing.IManager preprocessingManager,
+			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			ITShark tShark
 		)
 		{

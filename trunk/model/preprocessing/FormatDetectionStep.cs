@@ -9,7 +9,7 @@ namespace LogJoint.Preprocessing
 {
 	public class FormatDetectionStep: IPreprocessingStep
 	{
-		internal FormatDetectionStep(PreprocessingStepParams srcFile, IPreprocessingManagerExtensionsRegistry extentions, IPreprocessingStepsFactory preprocessingStepsFactory)
+		internal FormatDetectionStep(PreprocessingStepParams srcFile, IExtensionsRegistry extentions, IStepsFactory preprocessingStepsFactory)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
@@ -164,7 +164,7 @@ namespace LogJoint.Preprocessing
 		};
 
 		readonly PreprocessingStepParams sourceFile;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
-		readonly IPreprocessingManagerExtensionsRegistry extentions;
+		readonly IStepsFactory preprocessingStepsFactory;
+		readonly IExtensionsRegistry extentions;
 	};
 }

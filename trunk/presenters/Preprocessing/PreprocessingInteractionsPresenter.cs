@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.PreprocessingUserInteractions
 	public class PreprocessingInteractionsPresenter: IPresenter, IViewModel
 	{
 		private readonly IView view;
-		private readonly ILogSourcesPreprocessingManager manager;
+		private readonly IManager manager;
 		private readonly IChangeNotification changeNotification;
 		private readonly List<MutableItem> items = new List<MutableItem>();
 		private int itemsRevision;
@@ -20,7 +20,7 @@ namespace LogJoint.UI.Presenters.PreprocessingUserInteractions
 
 		public PreprocessingInteractionsPresenter(
 			IView view,
-			ILogSourcesPreprocessingManager manager,
+			IManager manager,
 			StatusReports.IPresenter statusReports,
 			IChangeNotification changeNotification
 		)

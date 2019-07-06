@@ -7,10 +7,10 @@ namespace LogJoint.Chromium.HttpArchive
 {
 	public class PreprocessingManagerExtension : IPreprocessingManagerExtension
 	{
-		IPreprocessingStepsFactory preprocessingStepsFactory;
+		IStepsFactory preprocessingStepsFactory;
 		ILogProviderFactory harLogsFactory;
 
-		public PreprocessingManagerExtension(IPreprocessingStepsFactory preprocessingStepsFactory, ILogProviderFactory harLogsFactory)
+		public PreprocessingManagerExtension(IStepsFactory preprocessingStepsFactory, ILogProviderFactory harLogsFactory)
 		{
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.harLogsFactory = harLogsFactory;

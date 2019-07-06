@@ -304,7 +304,7 @@ namespace LogJoint.UI.Presenters
 			);
 
 			HistoryDialog.IPresenter historyDialogPresenter = new HistoryDialog.Presenter(
-				model.LogSourcesController,
+				model.LogSourcesManager,
 				historyDialogView,
 				model.LogSourcesPreprocessings,
 				model.PreprocessingStepsFactory,
@@ -347,7 +347,7 @@ namespace LogJoint.UI.Presenters
 				f => new NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
 					views.CreateFileBasedFormatView(),
 					(IFileBasedLogProviderFactory)f,
-					model.LogSourcesController,
+					model.LogSourcesManager,
 					alertPopup,
 					fileDialogs
 				)
@@ -358,7 +358,7 @@ namespace LogJoint.UI.Presenters
 				f => new NewLogSourceDialog.Pages.DebugOutput.Presenter(
 					views.CreateDebugOutputFormatView(),
 					f,
-					model.LogSourcesController
+					model.LogSourcesManager
 				)
 			);
 			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
@@ -366,7 +366,7 @@ namespace LogJoint.UI.Presenters
 				f => new NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
 					views.CreateWindowsEventsLogFormatView(),
 					f,
-					model.LogSourcesController
+					model.LogSourcesManager
 				)
 			);
 #endif
@@ -376,7 +376,6 @@ namespace LogJoint.UI.Presenters
 				model.UserDefinedFormatsManager,
 				model.RecentlyUsedLogs,
 				model.LogSourcesPreprocessings,
-				model.LogSourcesController,
 				sourcesManagerView,
 				model.PreprocessingStepsFactory,
 				model.WorkspacesManager,

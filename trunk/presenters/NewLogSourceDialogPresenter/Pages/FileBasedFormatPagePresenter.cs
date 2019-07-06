@@ -31,14 +31,14 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 	{
 		readonly IView view;
 		readonly IFileBasedLogProviderFactory factory;
-		readonly ILogSourcesController model;
+		readonly ILogSourcesManager model;
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
 
 		public Presenter(
 			IView view, 
-			IFileBasedLogProviderFactory factory, 
-			ILogSourcesController model, 
+			IFileBasedLogProviderFactory factory,
+			ILogSourcesManager model, 
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs
 		)
@@ -162,7 +162,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			{
 				try
 				{
-					model.CreateLogSource(factory, factory.CreateParams(fname));
+					model.Create(factory, factory.CreateParams(fname));
 				}
 				catch (Exception e)
 				{
@@ -193,7 +193,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 			try
 			{
-				model.CreateLogSource(factory, connectParams);
+				model.Create(factory, connectParams);
 			}
 			catch (Exception e)
 			{

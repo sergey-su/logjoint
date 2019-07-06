@@ -8,10 +8,10 @@ namespace LogJoint.Preprocessing
 	{
 		internal URLTypeDetectionStep(
 			PreprocessingStepParams srcFile,
-			IPreprocessingStepsFactory preprocessingStepsFactory,
+			IStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
 			AppLaunch.ILaunchUrlParser appLaunch,
-			IPreprocessingManagerExtensionsRegistry extensions
+			IExtensionsRegistry extensions
 		)
 		{
 			this.sourceFile = srcFile;
@@ -86,9 +86,9 @@ namespace LogJoint.Preprocessing
 		}
 
 		readonly PreprocessingStepParams sourceFile;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly AppLaunch.ILaunchUrlParser appLaunch;
-		readonly IPreprocessingManagerExtensionsRegistry extensions;
+		readonly IExtensionsRegistry extensions;
 	};
 }

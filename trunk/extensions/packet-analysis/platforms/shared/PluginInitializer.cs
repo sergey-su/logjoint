@@ -21,10 +21,10 @@ namespace LogJoint.PacketAnalysis
 
 			var tshark = new Wireshark.Dpml.TShark();
 			var wiresharkPreprocessingStepsFactory = new LogJoint.Wireshark.Dpml.PreprocessingStepsFactory(
-				app.Model.PreprocessingStepsFactory, tshark
+				app.Model.Preprocessing.StepsFactory, tshark
 			);
 
-			app.Model.PreprocessingManagerExtensionsRegistry.Register(
+			app.Model.Preprocessing.ExtensionsRegistry.Register(
 				new LogJoint.Wireshark.Dpml.PreprocessingManagerExtension(wiresharkPreprocessingStepsFactory, tshark)
 			);
 
@@ -32,8 +32,8 @@ namespace LogJoint.PacketAnalysis
 				"wireshark",
 				f => new UI.Presenters.NewLogSourceDialog.Pages.WiresharkPage.Presenter(
 					wiresharkPageView,
-					app.Model.LogSourcesPreprocessingManager,
-					app.Model.PreprocessingStepsFactory,
+					app.Model.Preprocessing.Manager,
+					app.Model.Preprocessing.StepsFactory,
 					tshark
 				)
 			);

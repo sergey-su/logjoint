@@ -71,7 +71,7 @@ namespace LogJoint.Postprocessing
 			return input;
 		}
 	
-		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IPostprocessorsManager postprocessorsManager, PostprocessorKind postprocessorKind)
+		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IManager postprocessorsManager, PostprocessorKind postprocessorKind)
 		{
 			return postprocessorsManager
 				.LogSourcePostprocessorsOutputs
@@ -79,7 +79,7 @@ namespace LogJoint.Postprocessing
 				.ToArray();
 		}
 
-		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IPostprocessorsManager postprocessorsManager)
+		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IManager postprocessorsManager)
 		{
 			bool isRelevantPostprocessor(PostprocessorKind id)
 			{
@@ -139,7 +139,7 @@ namespace LogJoint.Postprocessing
 			return false;
 		}
 
-		public static CorrelatorStateSummary GetCorrelatorStateSummary(this IPostprocessorsManager postprocessorsManager)
+		public static CorrelatorStateSummary GetCorrelatorStateSummary(this IManager postprocessorsManager)
 		{
 			var correlationOutputs =
 				postprocessorsManager

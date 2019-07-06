@@ -66,8 +66,7 @@ namespace LogJoint.UI.Azure
 			else
 				return;
 
-			ILogSource src = logSources.FindLiveLogSourceOrCreateNew(factory, connectParams);
-			recentlyUsedLogs.RegisterRecentLogEntry(src);
+			logSources.Create(factory, connectParams);
 		}
 
 		void IPagePresenter.Activate()

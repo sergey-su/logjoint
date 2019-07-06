@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		public Presenter(
 			ILogSourcesManager logSources,
 			IView view,
-			ILogSourcesPreprocessingManager logSourcesPreprocessings,
+			IManager logSourcesPreprocessings,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.IPresenter logViewerPresenter,
 			IPresentersFacade navHandler,
@@ -531,7 +531,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		}
 
 		readonly ILogSourcesManager logSources;
-		readonly ILogSourcesPreprocessingManager logSourcesPreprocessings;
+		readonly IManager logSourcesPreprocessings;
 		readonly IView view;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;

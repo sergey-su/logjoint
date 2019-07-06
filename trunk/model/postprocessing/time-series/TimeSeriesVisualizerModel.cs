@@ -8,7 +8,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 	public class TimelineVisualizerModel : ITimeSeriesVisualizerModel
 	{
 		public TimelineVisualizerModel(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			IUserNamesProvider shortNames,
 			ILogSourceNamesProvider logSourceNamesProvider)
@@ -58,7 +58,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 			Changed?.Invoke(this, EventArgs.Empty);
 		}
 
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
 		HashSet<ITimeSeriesPostprocessorOutput> outputs = new HashSet<ITimeSeriesPostprocessorOutput>();

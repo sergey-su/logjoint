@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing
 {
-	public class PostprocessorsManager : IPostprocessorsManager
+	public class PostprocessorsManager : IManager
 	{
 		public PostprocessorsManager(
 			ILogSourcesManager logSources,
@@ -44,7 +44,7 @@ namespace LogJoint.Postprocessing
 		public event EventHandler Changed;
 
 
-		IEnumerable<LogSourcePostprocessorOutput> IPostprocessorsManager.LogSourcePostprocessorsOutputs
+		IEnumerable<LogSourcePostprocessorOutput> IManager.LogSourcePostprocessorsOutputs
 		{
 			get
 			{
@@ -53,22 +53,22 @@ namespace LogJoint.Postprocessing
 			}
 		}
 
-		void IPostprocessorsManager.RegisterLogType(LogSourceMetadata meta)
+		void IManager.RegisterLogType(LogSourceMetadata meta)
 		{
 			this.knownLogTypes[meta.LogProviderFactory] = meta;
 		}
 
-		IEnumerable<LogSourceMetadata> IPostprocessorsManager.KnownLogTypes
+		IEnumerable<LogSourceMetadata> IManager.KnownLogTypes
 		{
 			get { return this.knownLogTypes.Values; }
 		}
 
-		void IPostprocessorsManager.RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor)
+		void IManager.RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor)
 		{
 			this.crossLogSourcePostprocessorsTypes.Add(postprocessor);
 		}
 
-		async Task<bool> IPostprocessorsManager.RunPostprocessor(
+		async Task<bool> IManager.RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] typesAndSources, 
 			object customData)
 		{
@@ -165,7 +165,7 @@ namespace LogJoint.Postprocessing
 			return true;
 		}
 
-		IEnumerable<ILogSource> IPostprocessorsManager.KnownLogSources
+		IEnumerable<ILogSource> IManager.KnownLogSources
 		{
 			get { return knownLogSources.Keys; }
 		}
@@ -221,7 +221,7 @@ namespace LogJoint.Postprocessing
 					.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
 					.ToArray();
 				if (outputs.Length > 0)
-					((IPostprocessorsManager)this).RunPostprocessor(outputs);
+					((IManager)this).RunPostprocessor(outputs);
 			}
 		}
 

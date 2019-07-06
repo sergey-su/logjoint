@@ -13,9 +13,9 @@ namespace LogJoint.Preprocessing
 {
 	public class BuiltinStepsExtension : IPreprocessingManagerExtension
 	{
-		IPreprocessingStepsFactory stepsFactory;
+		IStepsFactory stepsFactory;
 
-		public BuiltinStepsExtension(IPreprocessingStepsFactory stepsFactory)
+		public BuiltinStepsExtension(IStepsFactory stepsFactory)
 		{
 			this.stepsFactory = stepsFactory;
 		}

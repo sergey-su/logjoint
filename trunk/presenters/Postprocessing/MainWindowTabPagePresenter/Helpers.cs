@@ -7,7 +7,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	public static class Extensions
 	{
-		public static async Task<bool> RunPostprocessors(this IPostprocessorsManager postprocessorsManager, LogSourcePostprocessorOutput[] logs)
+		public static async Task<bool> RunPostprocessors(this IManager postprocessorsManager, LogSourcePostprocessorOutput[] logs)
 		{
 			return await postprocessorsManager.RunPostprocessor(
 				logs

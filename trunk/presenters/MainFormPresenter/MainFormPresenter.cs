@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		public Presenter(
 			ILogSourcesManager logSources,
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager,
+			Preprocessing.IManager preprocessingsManager,
 			IView view,
 			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
@@ -398,7 +398,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		}
 
 		readonly ILogSourcesManager logSources;
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager;
+		readonly Preprocessing.IManager preprocessingsManager;
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;

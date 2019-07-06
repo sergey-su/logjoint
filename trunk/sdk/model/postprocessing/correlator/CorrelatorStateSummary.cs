@@ -22,7 +22,7 @@ namespace LogJoint.Postprocessing.Correlation
 
 	public static class CorrelatorStateSummaryExt
 	{
-		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IPostprocessorsManager postprocessorsManager, IEnumerable<ILogSource> logs)
+		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IManager postprocessorsManager, IEnumerable<ILogSource> logs)
 		{
 			var correlatableLogSourceTypes = 
 				postprocessorsManager
@@ -36,7 +36,7 @@ namespace LogJoint.Postprocessing.Correlation
 			);
 		}
 
-		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IPostprocessorsManager postprocessorsManager)
+		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IManager postprocessorsManager)
 		{
 			return GetCorrelatableLogsConnectionIds(postprocessorsManager, postprocessorsManager.KnownLogSources);
 		}

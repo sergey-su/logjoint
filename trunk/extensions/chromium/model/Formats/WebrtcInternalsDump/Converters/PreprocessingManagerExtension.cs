@@ -7,9 +7,9 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 {
 	public class PreprocessingManagerExtension : IPreprocessingManagerExtension
 	{
-		IPreprocessingStepsFactory preprocessingStepsFactory;
+		IStepsFactory preprocessingStepsFactory;
 
-		public PreprocessingManagerExtension(Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory)
+		public PreprocessingManagerExtension(Preprocessing.IStepsFactory preprocessingStepsFactory)
 		{
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}

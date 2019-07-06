@@ -9,12 +9,12 @@ namespace LogJoint.Chromium.ChromeDriver
 {
 	public class PreprocessingManagerExtension : IPreprocessingManagerExtension
 	{
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly ILogProviderFactory chromeDriverLogsFactory;
 		readonly ITextLogParser textLogParser;
 
 		public PreprocessingManagerExtension(
-			IPreprocessingStepsFactory preprocessingStepsFactory,
+			IStepsFactory preprocessingStepsFactory,
 			ILogProviderFactory chromeDriverLogsFactory,
 			ITextLogParser textLogParser)
 		{

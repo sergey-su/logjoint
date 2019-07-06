@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 
 namespace LogJoint.Preprocessing
 {
-	public interface ILogSourcesPreprocessingManager
+	public interface IManager
 	{
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
 		Task<YieldedProvider[]> Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
@@ -41,10 +41,6 @@ namespace LogJoint.Preprocessing
 		/// want invocation queue to be spammed.
 		/// </summary>
 		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
-		/// <summary>
-		/// Raised when preprocessing has resulted to a new log source
-		/// </summary>
-		event EventHandler<YieldedProvider> ProviderYielded;
 		/// <summary>
 		/// Preprocessing finished and yielded no logs
 		/// </summary>
@@ -277,7 +273,7 @@ namespace LogJoint.Preprocessing
 		void KeepAlive(TimeSpan ttl);
 	};
 
-	public interface IPreprocessingStepsFactory
+	public interface IStepsFactory
 	{
 		IPreprocessingStep CreateFormatDetectionStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateDownloadingStep(PreprocessingStepParams p);
@@ -298,7 +294,7 @@ namespace LogJoint.Preprocessing
 		Task FinalizePreprocessing(IPreprocessingStepCallback callback);
 	};
 
-	public interface IPreprocessingManagerExtensionsRegistry
+	public interface IExtensionsRegistry
 	{
 		IEnumerable<IPreprocessingManagerExtension> Items { get; }
 		void Register(IPreprocessingManagerExtension detector);
@@ -354,5 +350,12 @@ namespace LogJoint.Preprocessing
 		}
 
 		private static readonly LogDownloaderRule plainHttpDownloaderRule = new LogDownloaderRule(false, Enumerable.Empty<string>(), null);
+	};
+
+	public interface IModel
+	{
+		IExtensionsRegistry ExtensionsRegistry { get; }
+		IManager Manager { get; }
+		IStepsFactory StepsFactory { get; }
 	};
 }

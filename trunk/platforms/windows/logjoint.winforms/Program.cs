@@ -65,7 +65,7 @@ namespace LogJoint
 					new UI.PromptDialog.Presenter(),
 					new AboutDialogConfig(),
 					new DragDropHandler(
-						model.LogSourcesController,
+						model.LogSourcesManager,
 						model.LogSourcesPreprocessings,
 						model.PreprocessingStepsFactory
 					),

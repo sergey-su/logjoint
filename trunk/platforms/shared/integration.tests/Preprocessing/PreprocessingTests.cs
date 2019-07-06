@@ -40,8 +40,6 @@ namespace LogJoint.Tests.Integration
 			{
 				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
 				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
-
-				return 0;
 			});
 		}
 
@@ -52,8 +50,6 @@ namespace LogJoint.Tests.Integration
 			{
 				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListener1.xml").ToString());
 				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
-
-				return 0;
 			});
 		}
 
@@ -64,8 +60,6 @@ namespace LogJoint.Tests.Integration
 			{
 				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip").ToString());
 				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
-
-				return 0;
 			});
 		}
 
@@ -86,8 +80,6 @@ namespace LogJoint.Tests.Integration
 
 				app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
 				await preprocTask;
-
-				return 0;
 			});
 		}
 
@@ -103,8 +95,37 @@ namespace LogJoint.Tests.Integration
 				Assert.AreEqual(2, app.ViewModel.PreprocessingUserInteractions.DialogData.Items.Count);
 
 				await app.Dispose();
+			});
+		}
 
-				return 0;
+		[Test]
+		public async Task OpeningTheSameLogTwiceHasNoEffect()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
+				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
+
+				Assert.AreEqual(1, app.Model.LogSourcesManager.Items.Count());
+
+				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
+				Assert.AreEqual(1, app.Model.LogSourcesManager.Items.Count());
+			});
+		}
+
+		[Test]
+		public async Task CanQuitAppWhilePreprocessingIsActive()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				var downloadingPreprocessing = app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("chrome_debug_1.log").ToString());
+
+				await app.Dispose();
+
+				Assert.IsTrue(downloadingPreprocessing.IsFaulted);
+				var webEx = downloadingPreprocessing.Exception.InnerException as System.Net.WebException;
+				Assert.IsNotNull(webEx);
+				Assert.AreEqual(System.Net.WebExceptionStatus.RequestCanceled, webEx.Status);
 			});
 		}
 	}

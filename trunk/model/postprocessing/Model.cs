@@ -6,7 +6,7 @@ namespace LogJoint.Postprocessing
 		readonly ITextLogParser textLogParser = new TextLogParser();
 
 		public Model(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes,
 			StateInspector.IModel stateInspector,
 			Timeline.IModel timeline,
@@ -22,7 +22,7 @@ namespace LogJoint.Postprocessing
 			TimeSeries = timeSeries;
 		}
 
-		public IPostprocessorsManager Manager { get; private set; }
+		public IManager Manager { get; private set; }
 
 		public TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
 

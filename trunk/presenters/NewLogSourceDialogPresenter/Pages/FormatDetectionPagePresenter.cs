@@ -14,13 +14,13 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection
 	public class Presenter : IPagePresenter
 	{
 		readonly IView view;
-		readonly ILogSourcesPreprocessingManager preprocessingManager;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IManager preprocessingManager;
+		readonly IStepsFactory preprocessingStepsFactory;
 
 		public Presenter(
 			IView view,
-			ILogSourcesPreprocessingManager preprocessingManager,
-			IPreprocessingStepsFactory preprocessingStepsFactory
+			IManager preprocessingManager,
+			IStepsFactory preprocessingStepsFactory
 		)
 		{
 			this.view = view;

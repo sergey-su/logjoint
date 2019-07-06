@@ -15,7 +15,7 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile,
 			Progress.IProgressAggregator progressAggregator,
 			ICredentialsCache credCache,
-			IPreprocessingStepsFactory preprocessingStepsFactory)
+			IStepsFactory preprocessingStepsFactory)
 		{
 			this.@params = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
@@ -127,7 +127,7 @@ namespace LogJoint.Preprocessing
 		}
 
 		readonly PreprocessingStepParams @params;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly ICredentialsCache credCache;
 		internal const string name = "unzip";

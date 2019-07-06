@@ -8,16 +8,16 @@ namespace LogJoint
 {
 	class DragDropHandler : IDragDropHandler
 	{
-		readonly ILogSourcesController logSourcesController;
-		readonly ILogSourcesPreprocessingManager preprocessingManager;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly ILogSourcesManager logSourcesManager;
+		readonly IManager preprocessingManager;
+		readonly IStepsFactory preprocessingStepsFactory;
 
 		public DragDropHandler(
-			ILogSourcesController logSourcesController,
-			ILogSourcesPreprocessingManager preprocessingManager,
-			IPreprocessingStepsFactory preprocessingStepsFactory)
+			ILogSourcesManager logSourcesManager,
+			IManager preprocessingManager,
+			IStepsFactory preprocessingStepsFactory)
 		{
-			this.logSourcesController = logSourcesController;
+			this.logSourcesManager = logSourcesManager;
 			this.preprocessingManager = preprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}
@@ -36,7 +36,7 @@ namespace LogJoint
 			if (UrlDragDropUtils.IsUriDataPresent(dataObject))
 			{
 				if (controlKeyHeld)
-					await logSourcesController.DeleteAllLogsAndPreprocessings();
+					await DeleteAllLogsAndPreprocessings();
 				var urls = UrlDragDropUtils.GetURLs(dataObject).ToArray();
 				await preprocessingManager.Preprocess(
 					urls.Select(url => preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(url))),
@@ -46,7 +46,7 @@ namespace LogJoint
 			else if (dataObject.GetDataPresent(DataFormats.FileDrop, false))
 			{
 				if (controlKeyHeld)
-					await logSourcesController.DeleteAllLogsAndPreprocessings();
+					await DeleteAllLogsAndPreprocessings();
 				((dataObject.GetData(DataFormats.FileDrop) as string[]) ?? new string[0]).Select(file =>
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(preprocessingStepsFactory.CreateFormatDetectionStep(new PreprocessingStepParams(file)), 1),
@@ -70,5 +70,7 @@ namespace LogJoint
 			if (dataObject != null)
 				AcceptDragDrop(dataObject, controlKeyHeld);
 		}
+
+		Task DeleteAllLogsAndPreprocessings() => Task.WhenAll(logSourcesManager.DeleteAllLogs(), preprocessingManager.DeleteAllPreprocessings());
 	};
 }

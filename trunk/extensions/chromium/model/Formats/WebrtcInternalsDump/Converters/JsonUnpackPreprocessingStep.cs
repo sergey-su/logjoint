@@ -8,10 +8,10 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 	public class JsonUnpackPreprocessingStep : IPreprocessingStep, IUnpackPreprocessingStep
 	{
 		internal static readonly string stepName = "webrtc_internals_dump.extract";
-		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly PreprocessingStepParams sourceFile;
 
-		internal JsonUnpackPreprocessingStep(Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory, PreprocessingStepParams srcFile)
+		internal JsonUnpackPreprocessingStep(Preprocessing.IStepsFactory preprocessingStepsFactory, PreprocessingStepParams srcFile)
 		{
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.sourceFile = srcFile;

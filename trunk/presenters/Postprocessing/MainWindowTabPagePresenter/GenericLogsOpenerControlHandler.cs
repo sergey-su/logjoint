@@ -22,7 +22,7 @@
 		void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
 		{
 			if (newLogSourceDialog != null)
-				newLogSourceDialog.ShowTheDialog(newLogSourceDialog.FotmatDetectorPageName);
+				newLogSourceDialog.ShowTheDialog(newLogSourceDialog.FormatDetectorPageName);
 		}
 	};
 }

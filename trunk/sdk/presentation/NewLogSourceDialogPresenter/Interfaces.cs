@@ -6,7 +6,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 	{
 		void ShowTheDialog(string selectedPageName = null);
 		IPagePresentersRegistry PagesRegistry { get; }
-		string FotmatDetectorPageName { get; }
+		string FormatDetectorPageName { get; }
 	};
 
 	public interface IPagePresenter : IDisposable

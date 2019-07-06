@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
-	public class PreprocessingStepsFactory : IPreprocessingStepsFactory
+	public class PreprocessingStepsFactory : IStepsFactory
 	{
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly AppLaunch.ILaunchUrlParser appLaunch;
 		readonly ISynchronizationContext invoke;
-		readonly IPreprocessingManagerExtensionsRegistry extentions;
+		readonly IExtensionsRegistry extentions;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly Persistence.IWebContentCache cache;
 		readonly ICredentialsCache credCache;
@@ -23,7 +23,7 @@ namespace LogJoint.Preprocessing
 			Workspaces.IWorkspacesManager workspacesManager, 
 			AppLaunch.ILaunchUrlParser appLaunch,
 			ISynchronizationContext invoke,
-			IPreprocessingManagerExtensionsRegistry extentions,
+			IExtensionsRegistry extentions,
 			Progress.IProgressAggregator progressAggregator,
 			Persistence.IWebContentCache cache,
 			ICredentialsCache credCache,
@@ -44,47 +44,47 @@ namespace LogJoint.Preprocessing
 			this.logsDownloaderConfig = logsDownloaderConfig;
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
 		{
 			return new FormatDetectionStep(p, extentions, this);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)
 		{
 			return new DownloadingStep(p, progressAggregator, cache, credCache, webBrowserDownloader, logsDownloaderConfig, this);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)
 		{
 			return new UnpackingStep(p, progressAggregator, credCache, this);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)
 		{
 			return new URLTypeDetectionStep(p, this, workspacesManager, appLaunch, extentions);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateOpenWorkspaceStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateOpenWorkspaceStep(PreprocessingStepParams p)
 		{
 			return new OpenWorkspaceStep(p, workspacesManager, invoke);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateLocationTypeDetectionStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateLocationTypeDetectionStep(PreprocessingStepParams p)
 		{
 			return new LocationTypeDetectionStep(p, this);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateGunzippingStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateGunzippingStep(PreprocessingStepParams p)
 		{
 			return new GunzippingStep(p, progressAggregator, this);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateTimeAnomalyFixingStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateTimeAnomalyFixingStep(PreprocessingStepParams p)
 		{
 			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, this);
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateUntarStep(PreprocessingStepParams p)
+		IPreprocessingStep IStepsFactory.CreateUntarStep(PreprocessingStepParams p)
 		{
 			return new UntarStep(p, progressAggregator, this);
 		}

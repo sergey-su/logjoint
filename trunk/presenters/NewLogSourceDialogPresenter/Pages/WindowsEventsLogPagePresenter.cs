@@ -17,11 +17,11 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog
 	public class Presenter : IPagePresenter, IViewEvents
 	{
 		readonly IView view;
-		readonly ILogSourcesController model;
+		readonly ILogSourcesManager model;
 		WindowsEventLog.EventLogIdentity currentIdentity;
 		WindowsEventLog.Factory factory;
 
-		public Presenter(IView view, ILogProviderFactory factory, ILogSourcesController model)
+		public Presenter(IView view, ILogProviderFactory factory, ILogSourcesManager model)
 		{
 			this.view = view;
 			this.factory = (WindowsEventLog.Factory)factory;
@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog
 			if (currentIdentity == null)
 				return;
 			IConnectionParams connectParams = factory.CreateParamsFromIdentity(currentIdentity);
-			model.CreateLogSource(factory, connectParams);
+			model.Create(factory, connectParams);
 			SetCurrentIdentity(null);
 		}
 

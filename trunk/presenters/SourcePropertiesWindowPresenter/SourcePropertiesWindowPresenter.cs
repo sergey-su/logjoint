@@ -12,7 +12,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		readonly IPresentersFacade presentersFacade;
 		readonly IAlertPopup alerts;
 		readonly ILogSourcesManager logSources;
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessings;
+		readonly Preprocessing.IManager preprocessings;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
 		readonly IColorTheme theme;
@@ -31,7 +31,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		public Presenter(
 			IView view,
 			ILogSourcesManager logSources,
-			Preprocessing.ILogSourcesPreprocessingManager preprocessings,
+			Preprocessing.IManager preprocessings,
 			IPresentersFacade navHandler,
 			IAlertPopup alerts,
 			IClipboardAccess clipboard,

@@ -47,7 +47,7 @@ namespace LogJoint.Symphony
 				}
 			};
 
-			app.Model.PreprocessingManagerExtensionsRegistry.AddLogDownloaderRule(
+			app.Model.Preprocessing.ExtensionsRegistry.AddLogDownloaderRule(
 				new Uri("https://perzoinc.atlassian.net/secure/attachment/"),
 				Preprocessing.LogDownloaderRule.CreateBrowserDownloaderRule(new[] { "https://id.atlassian.com/login" })
 			);

@@ -73,5 +73,19 @@ namespace LogJoint
 			});
 			return completionSource.Task;
 		}
+
+		/// <summary>
+		/// Calls the asynchronous action <paramref name="asyncAction"/> in the 
+		/// synchronization context and returns the Task that is complete when passed 
+		/// action has completed.
+		/// </summary>
+		public static Task InvokeAndAwait(this ISynchronizationContext sync, Func<Task> asyncAction)
+		{
+			return InvokeAndAwait(sync, async () =>
+			{
+				await asyncAction();
+				return 0;
+			});
+		}
 	};
 }

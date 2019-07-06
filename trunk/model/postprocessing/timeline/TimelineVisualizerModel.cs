@@ -9,7 +9,7 @@ namespace LogJoint.Postprocessing.Timeline
 	public class TimelineVisualizerModel : ITimelineVisualizerModel
 	{
 		public TimelineVisualizerModel(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			IUserNamesProvider shortNames,
 			ILogSourceNamesProvider logSourceNamesProvider)
@@ -288,7 +288,7 @@ namespace LogJoint.Postprocessing.Timeline
 			public string GroupDisplayName;
 		};
 
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 		readonly IEntitiesComparer entitiesComparer;
 		ImmutableList<IActivity> activities = ImmutableList.Create<IActivity>();
 		ImmutableList<IEvent> events = ImmutableList.Create<IEvent>();

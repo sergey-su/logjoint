@@ -12,7 +12,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		readonly ILogSourcesManager logSourcesManager;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly IView view;
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager;
+		readonly Preprocessing.IManager preprocessingsManager;
 		readonly IAlertPopup alertPopup;
 		readonly IClipboardAccess clipboard;
 		DialogAvailability availability;
@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		public Presenter(
 			ILogSourcesManager logSourcesManager,
 			Workspaces.IWorkspacesManager workspacesManager,
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager,
+			Preprocessing.IManager preprocessingsManager,
 			IAlertPopup alertPopup,
 			IClipboardAccess clipboard,
 			IView view)

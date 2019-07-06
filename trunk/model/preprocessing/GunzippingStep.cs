@@ -12,7 +12,7 @@ namespace LogJoint.Preprocessing
 		internal GunzippingStep(
 			PreprocessingStepParams srcFile,
 			Progress.IProgressAggregator progressAggregator,
-			IPreprocessingStepsFactory preprocessingStepsFactory)
+			IStepsFactory preprocessingStepsFactory)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
@@ -61,7 +61,7 @@ namespace LogJoint.Preprocessing
 		}
 
 		readonly PreprocessingStepParams sourceFile;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		internal const string name = "gunzip";
 	};

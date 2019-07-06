@@ -16,10 +16,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			ILogSourcesManager logSources,
 			IUserDefinedFormatsManager udfManager,
 			IRecentlyUsedEntities mru,
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
-			ILogSourcesController logSourcesController,
+			Preprocessing.IManager logSourcesPreprocessings,
 			IView view,
-			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
+			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
@@ -33,7 +32,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		{
 			this.logSources = logSources;
 			this.udfManager = udfManager;
-			this.logSourcesController = logSourcesController;
 			this.mru = mru;
 			this.view = view;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
@@ -221,7 +219,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				}
 				else if (ws != null)
 				{
-					await logSourcesController.DeleteAllLogsAndPreprocessings();
+					await Task.WhenAll(logSources.DeleteAllLogs(), logSourcesPreprocessings.DeleteAllPreprocessings());
 					logSourcesPreprocessings.OpenWorkspace(preprocessingStepsFactory, ws.Url);
 				}
 				else if (object.ReferenceEquals(data, "history"))
@@ -403,10 +401,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly ILogSourcesManager logSources;
 		readonly IUserDefinedFormatsManager udfManager;
 		readonly IRecentlyUsedEntities mru;
-		readonly ILogSourcesController logSourcesController;
 		readonly IView view;
-		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
-		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Preprocessing.IManager logSourcesPreprocessings;
+		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;

@@ -48,7 +48,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 
 		IPagePresentersRegistry IPresenter.PagesRegistry { get { return registry; } }
 
-		string IPresenter.FotmatDetectorPageName 
+		string IPresenter.FormatDetectorPageName 
 		{
 			get { return AutodetectedLogTypeEntry.id; }
 		}

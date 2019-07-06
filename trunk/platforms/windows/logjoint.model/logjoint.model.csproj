@@ -343,9 +343,6 @@
     <Compile Include="..\..\..\model\log-bounds\LogBounds.cs">
       <Link>log-bounds\LogBounds.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\log-sources-controller\LogSourcesController.cs">
-      <Link>log-sources-controller\LogSourcesController.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\log-sources\Interfaces.cs">
       <Link>log-sources\Interfaces.cs</Link>
     </Compile>
@@ -822,6 +819,9 @@
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\LocationTypeDetectionStep.cs">
       <Link>preprocessing\LocationTypeDetectionStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\Model.cs">
+      <Link>preprocessing\Model.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\OpenWorkspaceStep.cs">
       <Link>preprocessing\OpenWorkspaceStep.cs</Link>

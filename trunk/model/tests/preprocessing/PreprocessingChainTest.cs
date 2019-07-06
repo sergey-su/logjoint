@@ -11,11 +11,11 @@ namespace LogJoint.Tests
 	[TestFixture]
 	public class PreprocessingChainTest
 	{
-		IPreprocessingStepsFactory preprocessingStepsFactory;
+		IStepsFactory preprocessingStepsFactory;
 		IPreprocessingStepCallback callback;
 		IWorkspacesManager workspacesManager;
 		ILaunchUrlParser appLaunch;
-		IPreprocessingManagerExtensionsRegistry extensions;
+		IExtensionsRegistry extensions;
 
 		void RunChain(params IPreprocessingStep[] initialSteps)
 		{
@@ -31,8 +31,8 @@ namespace LogJoint.Tests
 		{
 			workspacesManager = Substitute.For<IWorkspacesManager>();
 			appLaunch = Substitute.For<ILaunchUrlParser>();
-			preprocessingStepsFactory = Substitute.For<IPreprocessingStepsFactory>();
-			extensions = Substitute.For<IPreprocessingManagerExtensionsRegistry>();
+			preprocessingStepsFactory = Substitute.For<IStepsFactory>();
+			extensions = Substitute.For<IExtensionsRegistry>();
 			preprocessingStepsFactory.CreateURLTypeDetectionStep(null).ReturnsForAnyArgs(
 				callInfo => new URLTypeDetectionStep(
 					callInfo.Arg<PreprocessingStepParams>(), preprocessingStepsFactory, workspacesManager, appLaunch, extensions));

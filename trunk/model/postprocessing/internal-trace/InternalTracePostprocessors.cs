@@ -10,7 +10,7 @@ namespace LogJoint.Postprocessing
 	public class InternalTracePostprocessors
 	{
 		public static void Register(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ITimeSeriesTypesAccess timeSeriesTypesAccess,
 			IModel postprocessingModel)

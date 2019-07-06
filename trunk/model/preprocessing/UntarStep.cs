@@ -12,7 +12,7 @@ namespace LogJoint.Preprocessing
 		internal UntarStep(
 			PreprocessingStepParams srcFile,
 			Progress.IProgressAggregator progressAggregator,
-			IPreprocessingStepsFactory preprocessingStepsFactory)
+			IStepsFactory preprocessingStepsFactory)
 		{
 			this.@params = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
@@ -78,7 +78,7 @@ namespace LogJoint.Preprocessing
 		}
 
 		readonly PreprocessingStepParams @params;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		internal const string name = "untar";
 	};

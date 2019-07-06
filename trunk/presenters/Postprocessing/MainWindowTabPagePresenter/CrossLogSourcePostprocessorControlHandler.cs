@@ -7,13 +7,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	class CorrelatorPostprocessorControlHandler : IViewControlHandler
 	{
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 		readonly ITempFilesManager tempFilesManager;
 		readonly PostprocessorKind postprocessorKind;
 		readonly IShellOpen shellOpen;
 
 		public CorrelatorPostprocessorControlHandler(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			ITempFilesManager tempFilesManager,
 			IShellOpen shellOpen
 		)

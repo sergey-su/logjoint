@@ -2,7 +2,7 @@
 {
 	public interface IModel
 	{
-		IPostprocessorsManager Manager { get; }
+		IManager Manager { get; }
 		IPrefixMatcher CreatePrefixMatcher();
 		ITextLogParser TextLogParser { get; }
 		Correlation.ICorrelator CreateCorrelator();

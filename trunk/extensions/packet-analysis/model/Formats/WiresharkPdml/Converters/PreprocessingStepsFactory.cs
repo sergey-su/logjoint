@@ -4,10 +4,10 @@ namespace LogJoint.Wireshark.Dpml
 {
 	public class PreprocessingStepsFactory: IPreprocessingStepsFactory
 	{
-		private readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
+		private readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		private readonly ITShark tshark;
 
-		public PreprocessingStepsFactory(Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory, ITShark tshark)
+		public PreprocessingStepsFactory(Preprocessing.IStepsFactory preprocessingStepsFactory, ITShark tshark)
 		{
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.tshark = tshark;

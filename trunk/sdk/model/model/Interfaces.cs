@@ -1,29 +1,29 @@
 
 namespace LogJoint
 {
-	public interface IModel
+	/// <summary>
+	/// LogJoint's model-layer objects.
+	/// </summary>
+	public interface IModel // model objects that are exposed to plug-ins
 	{
-		ISynchronizationContext ModelThreadSynchronization { get; }
+		ISynchronizationContext SynchronizationContext { get; }
 		IChangeNotification ChangeNotification { get; }
+		ITempFilesManager TempFilesManager { get; }
+		Persistence.IStorageManager StorageManager { get; }
+		ILogSourcesManager SourcesManager { get; }
+		MRU.IRecentlyUsedEntities MRU { get; }
+		Preprocessing.IModel Preprocessing { get; }
+		Postprocessing.IModel Postprocessing { get; }
 		Persistence.IWebContentCache WebContentCache { get; }
 		Persistence.IContentCache ContentCache { get; }
-		Persistence.IStorageManager StorageManager { get; }
 		IBookmarks Bookmarks { get; }
-		ILogSourcesManager SourcesManager { get; }
 		IModelThreads Threads { get; }
-		ITempFilesManager TempFilesManager { get; }
-		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtensionsRegistry { get; }
-		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; }
-		Preprocessing.IPreprocessingStepsFactory PreprocessingStepsFactory { get; }
 		Progress.IProgressAggregator ProgressAggregator { get; }
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
-		MRU.IRecentlyUsedEntities MRU { get; }
 		Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; }
-		ILogSourcesController LogSourcesController { get; }
 		IShutdown Shutdown { get; }
 		WebBrowserDownloader.IDownloader WebBrowserDownloader { get; }
-		Postprocessing.IModel Postprocessing { get; }
 		IPluginsManager PluginsManager { get; }
 	};
 }

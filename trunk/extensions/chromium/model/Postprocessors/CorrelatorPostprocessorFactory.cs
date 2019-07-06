@@ -22,12 +22,12 @@ namespace LogJoint.Chromium.Correlator
 	{
 		readonly IModel ljModel;
 		readonly ISynchronizationContext modelThreadSync;
-		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IManager postprocessorsManager;
 
 		public PostprocessorsFactory(IModel ljModel)
 		{
 			this.ljModel = ljModel;
-			this.modelThreadSync = ljModel.ModelThreadSynchronization;
+			this.modelThreadSync = ljModel.SynchronizationContext;
 			this.postprocessorsManager = ljModel.Postprocessing.Manager;
 		}
 

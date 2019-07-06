@@ -34,12 +34,13 @@ namespace LogJoint
 			return ls.Provider.ConnectionId;
 		}
 
-		public static ILogSource FindLiveLogSourceOrCreateNew(
+		public static ILogSource FindLiveLogSourceOrCreateNew( // todo: remove
 			this ILogSourcesManager logSources,
 			ILogProviderFactory factory, 
 			IConnectionParams cp)
 		{
-			ILogSource src = logSources.Find(cp);
+			ILogSource src = null;
+			logSources.Find(cp);
 			if (src != null && src.Provider.Stats.State == LogProviderState.LoadError)
 			{
 				src.Dispose();

@@ -18,7 +18,7 @@ namespace LogJoint.Symphony
 
 
 		public PostprocessorsInitializer(
-			IPostprocessorsManager postprocessorsManager,
+			IManager postprocessorsManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			StateInspector.IPostprocessorsFactory stateInspectorPostprocessorsFactory,
 			TimeSeries.IPostprocessorsFactory timeSeriesPostprocessorsFactory,

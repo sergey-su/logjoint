@@ -25,14 +25,14 @@ namespace LogJoint.Chromium
 				new SequenceDiagram.PostprocessorsFactory(appModel.Postprocessing)
 			);
 
-			appModel.PreprocessingManagerExtensionsRegistry.Register(
-				new WebrtcInternalsDump.PreprocessingManagerExtension(appModel.PreprocessingStepsFactory)
+			appModel.Preprocessing.ExtensionsRegistry.Register(
+				new WebrtcInternalsDump.PreprocessingManagerExtension(appModel.Preprocessing.StepsFactory)
 			);
-			appModel.PreprocessingManagerExtensionsRegistry.Register(
-				new ChromeDriver.PreprocessingManagerExtension(appModel.PreprocessingStepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory, appModel.Postprocessing.TextLogParser)
+			appModel.Preprocessing.ExtensionsRegistry.Register(
+				new ChromeDriver.PreprocessingManagerExtension(appModel.Preprocessing.StepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory, appModel.Postprocessing.TextLogParser)
 			);
-			appModel.PreprocessingManagerExtensionsRegistry.Register(
-				new HttpArchive.PreprocessingManagerExtension(appModel.PreprocessingStepsFactory, postprocessorsRegistry.HttpArchive.LogProviderFactory)
+			appModel.Preprocessing.ExtensionsRegistry.Register(
+				new HttpArchive.PreprocessingManagerExtension(appModel.Preprocessing.StepsFactory, postprocessorsRegistry.HttpArchive.LogProviderFactory)
 			);
 
 			return new ModelObjects

@@ -11,9 +11,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput
 	{
 		readonly IView view;
 		readonly ILogProviderFactory factory;
-		readonly ILogSourcesController model;
+		readonly ILogSourcesManager model;
 
-		public Presenter(IView view, ILogProviderFactory factory, ILogSourcesController model)
+		public Presenter(IView view, ILogProviderFactory factory, ILogSourcesManager model)
 		{
 			this.view = view;
 			this.factory = factory;
@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput
 
 		void IPagePresenter.Apply()
 		{
-			model.CreateLogSource(factory, new ConnectionParams());
+			model.Create(factory, new ConnectionParams());
 		}
 
 		void IPagePresenter.Activate()
