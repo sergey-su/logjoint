@@ -623,9 +623,6 @@
     <Compile Include="..\..\..\model\preprocessing\TimeAnomalyFixingStep.cs">
       <Link>preprocessing\TimeAnomalyFixingStep.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\log-sources-controller\LogSourcesController.cs">
-      <Link>log-sources-controller\LogSourcesController.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\bookmarks-controller\BookmarksController.cs">
       <Link>bookmarks-controller\BookmarksController.cs</Link>
     </Compile>
@@ -1100,6 +1097,9 @@
     <Compile Include="..\..\..\model\extensibility\Interfaces.cs">
       <Link>extensibility\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\Model.cs">
+      <Link>preprocessing\Model.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -1117,7 +1117,6 @@
     <Folder Include="extensibility\" />
     <Folder Include="tracing\" />
     <Folder Include="providers\common\AsyncLogProvider\" />
-    <Folder Include="log-sources-controller\" />
     <Folder Include="bookmarks-controller\" />
     <Folder Include="model\" />
     <Folder Include="filters-manager\" />

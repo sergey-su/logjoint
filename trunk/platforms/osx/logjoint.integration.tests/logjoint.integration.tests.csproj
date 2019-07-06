@@ -88,6 +88,9 @@
     <Compile Include="..\..\shared\integration.tests\Chromium\Formats\ChromeDebugFormatTests.cs">
       <Link>Chromium\Formats\ChromeDebugFormatTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\LogsHistory\LogsHistoryTests.cs">
+      <Link>LogsHistory\LogsHistoryTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -127,6 +130,7 @@
     <Folder Include="Utils\" />
     <Folder Include="Chromium\" />
     <Folder Include="Chromium\Formats\" />
+    <Folder Include="LogsHistory\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

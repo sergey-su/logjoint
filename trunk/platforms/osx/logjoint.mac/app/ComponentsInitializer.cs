@@ -52,7 +52,7 @@ namespace LogJoint.UI
 					new DragDropHandler (
 						model.LogSourcesPreprocessings,
 						model.PreprocessingStepsFactory,
-						model.LogSourcesController
+						model.LogSourcesManager
 					),
 					mainWindow,
 					viewsFactory

@@ -9,18 +9,18 @@ namespace LogJoint.UI
 {
 	public class DragDropHandler: IDragDropHandler
 	{
-		readonly ILogSourcesPreprocessingManager preprocessingManager;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
-		readonly ILogSourcesController model;
+		readonly Preprocessing.IManager preprocessingManager;
+		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
+		readonly ILogSourcesManager logSourcesManager;
 
 		public DragDropHandler(
-			ILogSourcesPreprocessingManager preprocessingManager,
-			IPreprocessingStepsFactory preprocessingStepsFactory,
-			ILogSourcesController model)
+			Preprocessing.IManager preprocessingManager,
+			Preprocessing.IStepsFactory preprocessingStepsFactory,
+			ILogSourcesManager logSourcesManager)
 		{
 			this.preprocessingManager = preprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
-			this.model = model;
+			this.logSourcesManager = logSourcesManager;
 		}
 
 		bool IDragDropHandler.ShouldAcceptDragDrop(object dataObject)
@@ -74,7 +74,8 @@ namespace LogJoint.UI
 
 		void DeleteExistingLogs()
 		{
-			model.DeleteAllLogsAndPreprocessings();
+			logSourcesManager.DeleteAllLogs ();
+			preprocessingManager.DeleteAllPreprocessings ();
 		}
 	}
 }
