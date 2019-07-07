@@ -79,7 +79,7 @@ namespace LogJoint.Tests.Integration
 				$"logjoint.int.test.workdir.{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff")}");
 
 			Directory.CreateDirectory(appDataDir);
-			var traceListener = new TraceListener(Path.Combine(appDataDir, "test-debug.log"));
+			var traceListener = new TraceListener(Path.Combine(appDataDir, "test-debug.log") + ";logical-thread=1");
 
 			ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
 

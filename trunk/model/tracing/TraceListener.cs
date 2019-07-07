@@ -21,11 +21,13 @@ namespace LogJoint
 		readonly uint memBufMaxSize = 128 * 1024;
 		CircularBuffer memBuffer;
 		static TraceListener lastInstance;
+		readonly bool enableLogicalThread;
 
 		class InitializationParams
 		{
 			public readonly string FileName;
 			public readonly bool EnableMemBuffer;
+			public readonly bool EnableLogicalThread;
 		
 			public InitializationParams(string str)
 			{
@@ -39,6 +41,8 @@ namespace LogJoint
 						continue;
 					if (argSplit[0] == "membuf")
 						EnableMemBuffer = argSplit[1]=="1";
+					else if (argSplit[0] == "logical-thread")
+						EnableLogicalThread = argSplit[1] == "1";
 				}
 			}
 		};
@@ -56,16 +60,18 @@ namespace LogJoint
 			public EntryType type;
 			public DateTime dt;
 			public string thread;
+			public string logicalThread;
 			public string message;
 			public TraceEventType msgType;
 
 			public void Write(TextWriter w)
 			{
-				w.WriteLine("{0:yyyy'/'MM'/'dd HH':'mm':'ss'.'fff} T#{1} {2} {3}",
+				w.WriteLine("{0:yyyy'/'MM'/'dd HH':'mm':'ss'.'fff} T#{1}{4} {2} {3}",
 					dt,
 					thread,
 					TypeToStr(msgType),
-					message ?? NullStr
+					message ?? NullStr,
+					logicalThread != null ? $" L#{logicalThread}" : ""
 				);
 			}
 		};
@@ -226,6 +232,7 @@ namespace LogJoint
 				enableMemBuffer = true;
 				memBuffer = new CircularBuffer(memBufMaxSize);
 			}
+			this.enableLogicalThread = initializationParams.EnableLogicalThread;
 
 			lastInstance = this;
 		}
@@ -246,6 +253,7 @@ namespace LogJoint
 				#else
 				thread = evtCache.ThreadId,
 				#endif
+				logicalThread = enableLogicalThread ? (SynchronizationContext.Current?.ToString () ?? "NA") : null,
 				msgType = eventType,
 				message = message
 			});

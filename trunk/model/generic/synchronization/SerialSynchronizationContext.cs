@@ -9,10 +9,12 @@ namespace LogJoint
 		readonly ConcurrentQueue<(SendOrPostCallback cb, object state)> queue = new ConcurrentQueue<(SendOrPostCallback, object)>();
 		private readonly WaitCallback threadPoolCallback;
 		private readonly SendOrPostCallback actionCallback;
+		private readonly string id;
 		int posted;
 
 		public SerialSynchronizationContext()
 		{
+			this.id = GetHashCode().ToString("x4").Substring(0, 4);
 			this.threadPoolCallback = _ => Run();
 			this.actionCallback = state => ((Action)state)();
 		}
@@ -28,6 +30,8 @@ namespace LogJoint
 			queue.Enqueue((d, state));
 			EnsurePosted();
 		}
+
+		public override string ToString() => id;
 
 		void Run()
 		{
