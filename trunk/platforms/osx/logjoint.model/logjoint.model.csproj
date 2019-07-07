@@ -1103,6 +1103,9 @@
     <Compile Include="..\..\..\model\generic\TraceSourceFactory.cs">
       <Link>generic\TraceSourceFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\log-sources\Extensions.cs">
+      <Link>log-sources\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

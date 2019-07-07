@@ -57,7 +57,7 @@ namespace LogJoint.UI.Presenters.SaveJointLogInteractionPresenter
 						status.ShowStatusText(string.Format("Saving joint log {0}%", percentCompleted), autoHide: false);
 					setStatusText(0);
 					progress.ProgressChanged += (s, e) => setStatusText(e.ProgressPercentage);
-					await LogSourceExtensions.SaveJoinedLog(logSources, cancellation.Token, progress, filename);
+					await LogSourcesManagerExtensions.SaveJoinedLog(logSources, cancellation.Token, progress, filename);
 				}
 			}
 			catch (Exception e)
