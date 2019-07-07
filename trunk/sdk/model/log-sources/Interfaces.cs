@@ -8,12 +8,12 @@ namespace LogJoint
 	{
 		/// <summary>
 		/// Kills the log source and its underlying log provider.
-		/// Must be called from model thread.
+		/// Threading: must be called from model context.
 		/// </summary>
 		Task Dispose();
 		/// <summary>
 		/// Determines if log source is disposed.
-		/// It's thread safe. 
+		/// Threading: model context.
 		/// Note that log source is disposed in model thread. Therefore only users running 
 		/// in model thread can rely on return value to determine whether subsequent calls
 		/// to log source will find it disposed or not.

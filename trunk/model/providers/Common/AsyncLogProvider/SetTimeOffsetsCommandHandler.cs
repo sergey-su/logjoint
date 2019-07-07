@@ -23,12 +23,12 @@ namespace LogJoint
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			if (!timeOffsets.Equals(ctx.Reader.TimeOffsets))
 			{
 				ctx.Reader.TimeOffsets = timeOffsets;
-				owner.UpdateAvailableTime(false);
+				await owner.UpdateAvailableTime(false);
 			}
 		}
 

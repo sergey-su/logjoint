@@ -10,14 +10,12 @@ namespace LogJoint
 		public SearchCommand(
 			SearchAllOccurencesParams searchParams,
 			Func<SearchResultMessage, bool> callback,
-			Progress.IProgressEventsSink progress,
-			IModelThreads modelThreads
+			Progress.IProgressEventsSink progress
 		)
 		{
 			this.searchParams = searchParams;
 			this.callback = callback;
 			this.progress = progress;
-			this.modelThreads = modelThreads;
 		}
 
 		public Task Task { get { return task.Task; } }
@@ -44,28 +42,24 @@ namespace LogJoint
 				reverseMatchDirection: false,
 				timeboxedMatching: true
 			))
-			using (var threadsBulkProcessing = modelThreads.StartBulkProcessing())
+			foreach (var loadedMsg in ((IMessagesCollection)ctx.Cache.Messages).Forward(0, int.MaxValue))
 			{
-				foreach (var loadedMsg in ((IMessagesCollection)ctx.Cache.Messages).Forward(0, int.MaxValue))
-				{
-					if (elapsed.ElapsedMilliseconds > 500)
-						return false;
-					var msg = loadedMsg.Message;
-					if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
-						continue;
-					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-					var rslt = preprocessedSearchOptions.ProcessMessage(msg, null);
-					if (rslt.Action == FilterAction.Exclude)
-						continue;
-					if (!callback(new SearchResultMessage(msg.Clone(), rslt)))
-						break;
-				}
+				if (elapsed.ElapsedMilliseconds > 500)
+					return false;
+				var msg = loadedMsg.Message;
+				if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
+					continue;
+				var rslt = preprocessedSearchOptions.ProcessMessage(msg, null);
+				if (rslt.Action == FilterAction.Exclude)
+					continue;
+				if (!callback(new SearchResultMessage(msg.Clone(), rslt)))
+					break;
 			}
 			
 			return true;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			using (var innerCancellation = CancellationTokenSource.CreateLinkedTokenSource(ctx.Cancellation, ctx.Preemption))
 			{
@@ -100,6 +94,7 @@ namespace LogJoint
 					throw;
 				}
 			}
+			return Task.FromResult(0);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)
@@ -138,7 +133,6 @@ namespace LogJoint
 		readonly SearchAllOccurencesParams searchParams;
 		readonly Func<SearchResultMessage, bool> callback;
 		readonly Progress.IProgressEventsSink progress;
-		readonly IModelThreads modelThreads;
 		object continuationToken;
 		int messagesReadSinceCompletionPercentageUpdate;
 	};

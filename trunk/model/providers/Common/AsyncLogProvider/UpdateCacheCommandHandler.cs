@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -46,7 +47,7 @@ namespace LogJoint
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			this.reader = ctx.Reader;
 			this.currentStats = owner.Stats;
@@ -58,6 +59,7 @@ namespace LogJoint
 				startFrom + cacheSize / 2 + (cacheSize % 2) // add remainder to ensure that the diff between positions equals exactly cacheSize
 			);
 			FillCacheRanges(ctx.Preemption);
+			return Task.FromResult(0);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

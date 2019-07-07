@@ -1106,6 +1106,9 @@
     <Compile Include="..\..\..\model\log-sources\Extensions.cs">
       <Link>log-sources\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\threads\Interfaces.cs">
+      <Link>threads\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

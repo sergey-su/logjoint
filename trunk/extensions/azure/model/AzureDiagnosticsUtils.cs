@@ -195,7 +195,7 @@ namespace LogJoint.Azure
 		/// <returns>Sequence of messages sorted by EventTickCount</returns>
 		public static IEnumerable<IMessage> LoadWADLogsTableMessagesRange(
 			IAzureDiagnosticLogsTable wadTable, 
-			ILogSourceThreads threads, 
+			ILogSourceThreadsInternal threads, 
 			EntryPartition beginPartition,
 			EntryPartition endPartition,
 			int? entriesLimit)

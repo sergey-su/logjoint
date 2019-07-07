@@ -1,12 +1,13 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
 	internal interface IAsyncLogProviderCommandHandler
 	{
 		bool RunSynchronously(CommandContext ctx);
-		void ContinueAsynchronously(CommandContext ctx);
+		Task ContinueAsynchronously(CommandContext ctx);
 		void Complete(Exception e);
 	};
 
@@ -31,7 +32,7 @@ namespace LogJoint
 	internal interface IAsyncLogProvider
 	{
 		void SetMessagesCache(AsyncLogProviderDataCache value);
-		bool UpdateAvailableTime(bool incrementalMode);
+		Task<bool> UpdateAvailableTime(bool incrementalMode);
 		void StatsTransaction(Func<LogProviderStats, LogProviderStatsFlag> body);
 		long ActivePositionHint { get; }
 		LogProviderStats Stats { get; }

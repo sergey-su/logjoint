@@ -366,12 +366,12 @@ namespace LogJoint
 
 	internal class MessagesBuilderCallback : IMessagesBuilderCallback
 	{
-		readonly ILogSourceThreads threads;
+		readonly ILogSourceThreadsInternal threads;
 		readonly IThread fakeThread;
 		long currentBeginPosition, currentEndPosition;
 		StringSlice rawText;
 
-		public MessagesBuilderCallback(ILogSourceThreads threads, IThread fakeThread)
+		public MessagesBuilderCallback(ILogSourceThreadsInternal threads, IThread fakeThread)
 		{
 			this.threads = threads;
 			this.fakeThread = fakeThread;

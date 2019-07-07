@@ -59,7 +59,7 @@ namespace LogJoint
 			return finishedSynchroniously;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			var parserFlags = (flags & EnumMessagesFlag.IsSequentialScanningHint) != 0 ? MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading : MessagesParserFlag.None;
 			using (var parser = ctx.Reader.CreateParser(
@@ -75,6 +75,7 @@ namespace LogJoint
 						break;
 				}
 			}
+			return Task.FromResult(0);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

@@ -124,12 +124,16 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			Task<DateBoundPositionResponseData> IMessagesSource.GetDateBoundPosition (DateTime d, ValueBound bound, 
 				LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
+				if (ls.IsDisposed)
+					throw new OperationCanceledException();
 				return ls.Provider.GetDateBoundPosition(d, bound, false, priority, cancellation);
 			}
 
 			Task IMessagesSource.EnumMessages (long fromPosition, Func<IMessage, bool> callback, 
 				EnumMessagesFlag flags, LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
+				if (ls.IsDisposed)
+					throw new OperationCanceledException();
 				return ls.Provider.EnumMessages(fromPosition, callback, flags, priority, cancellation);
 			}
 

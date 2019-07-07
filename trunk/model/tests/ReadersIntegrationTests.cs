@@ -118,7 +118,7 @@ namespace LogJoint.Tests
 
 		public static void Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
 		{
-			using (ILogSourceThreads threads = new LogSourceThreads())
+			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media, tempFilesManager, new TraceSourceFactory())))
 			{
 				reader.UpdateAvailableBounds(false);
@@ -252,7 +252,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
   DateTime=2011-07-12T12:14:00.0000000Z
 ";
 			using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
-			using (ILogSourceThreads threads = new LogSourceThreads())
+			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media, new TempFilesManager(), new TraceSourceFactory())))
 			{
 				reader.UpdateAvailableBounds(false);

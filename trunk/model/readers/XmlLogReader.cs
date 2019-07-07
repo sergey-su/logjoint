@@ -351,7 +351,7 @@ namespace LogJoint.XmlFormat
 		internal XmlFormatInfo formatInfo;
 		readonly XsltArgumentList transformArgs;
 		readonly LogJointXSLExtension xslExt;
-		readonly ILogSourceThreads threads;
+		readonly ILogSourceThreadsInternal threads;
 		readonly ITraceSourceFactory traceSourceFactory;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :

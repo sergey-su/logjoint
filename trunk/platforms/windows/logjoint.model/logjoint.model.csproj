@@ -346,6 +346,9 @@
     <Compile Include="..\..\..\model\log-bounds\LogBounds.cs">
       <Link>log-bounds\LogBounds.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\log-sources\Extensions.cs">
+      <Link>log-sources\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\log-sources\Interfaces.cs">
       <Link>log-sources\Interfaces.cs</Link>
     </Compile>
@@ -1026,6 +1029,9 @@
     </Compile>
     <Compile Include="..\..\..\model\temp-files\TempFilesManager.cs">
       <Link>temp-files\TempFilesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\threads\Interfaces.cs">
+      <Link>threads\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\threads\LogSourceThreads.cs">
       <Link>threads\LogSourceThreads.cs</Link>

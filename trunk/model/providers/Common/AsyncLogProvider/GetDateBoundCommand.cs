@@ -97,7 +97,7 @@ namespace LogJoint
 			return true;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			result = new DateBoundPositionResponseData();
 
@@ -124,6 +124,8 @@ namespace LogJoint
 				}
 			}
 			dateBoundsCache.Set(date, result);
+
+			return System.Threading.Tasks.Task.FromResult(0);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

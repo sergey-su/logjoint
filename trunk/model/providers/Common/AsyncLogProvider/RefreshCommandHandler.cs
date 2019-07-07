@@ -22,9 +22,9 @@ namespace LogJoint
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
-			owner.UpdateAvailableTime(incremental);
+			await owner.UpdateAvailableTime(incremental);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

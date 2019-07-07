@@ -1,13 +1,15 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Collections.Immutable;
 
 namespace LogJoint
 {
-	public class LogSourceThreads: ILogSourceThreads, IDisposable
+	public class LogSourceThreads: ILogSourceThreads, ILogSourceThreadsInternal, IDisposable
 	{
-		public LogSourceThreads(LJTraceSource tracer, IModelThreads modelThreads, ILogSource threadsSource)
+		public LogSourceThreads(LJTraceSource tracer, IModelThreadsInternal modelThreads, ILogSource threadsSource)
 		{
 			this.tracer = tracer;
 			this.modelThreads = modelThreads;
@@ -17,15 +19,14 @@ namespace LogJoint
 			: this(LJTraceSource.EmptyTracer, new ModelThreads(), null)
 		{ }
 
-		IEnumerable<IThread> ILogSourceThreads.Items
+		IReadOnlyList<IThread> ILogSourceThreads.Items
 		{
 			get
 			{
 				threadsDictLock.AcquireReaderLock(Timeout.Infinite);
 				try
 				{
-					foreach (IThread t in this.threadsDict.Values)
-						yield return t;
+					return ImmutableArray.CreateRange(threadsDict.Values);
 				}
 				finally
 				{
@@ -34,7 +35,7 @@ namespace LogJoint
 			}
 		}
 
-		IThread ILogSourceThreads.GetThread(StringSlice id)
+		IThread ILogSourceThreadsInternal.GetThread(StringSlice id)
 		{
 			IThread ret;
 			bool writing = false;
@@ -42,19 +43,21 @@ namespace LogJoint
 			threadsDictLock.AcquireReaderLock(Timeout.Infinite);
 			try
 			{
+				if (disposed)
+					throw new ObjectDisposedException("LogSourceThreads");
 				if (threadsDict.TryGetValue(id, out ret))
 					return ret;
 				threadsDictLock.UpgradeToWriterLock(Timeout.Infinite);
 				writing = true;
 				if (threadsDict.TryGetValue(id, out ret))
 					return ret;
-				tracer.Info("Creating new thread for id={0}", id);
+				// Allocate String from StringSlice only here for the case of a new thread.
 				string idString = id.Value;
+				tracer.Info("Creating new thread for id={0}", idString);
 				ret = modelThreads.RegisterThread(idString, logSource);
-				// constructing dictionary key from idString instead of using id
-				// in order not to hold a reference to potensially big buffer id.Buffer
-				var newKey = new StringSlice(idString);
-				threadsDict.Add(newKey, ret);
+				// Construct dictionary key from idString instead of using id
+				// in order not to hold a reference to potentially big buffer id.Buffer
+				threadsDict.Add(new StringSlice(idString), ret);
 			}
 			finally
 			{
@@ -67,34 +70,29 @@ namespace LogJoint
 			return ret;
 		}
 
-		void ILogSourceThreads.DisposeThreads()
+		void ILogSourceThreadsInternal.Clear()
 		{
-			DisposeInternal();
+			Clear(disposing: false);
 		}
 
-		IModelThreads ILogSourceThreads.UnderlyingThreadsContainer
+		void IDisposable.Dispose()
 		{
-			get { return modelThreads; }
+			Clear(disposing: true);
 		}
 
-		#region IDisposable Members
-
-		public void Dispose()
-		{
-			DisposeInternal();
-		}
-
-		#endregion
-
-		private void DisposeInternal()
+		private void Clear(bool disposing)
 		{
 			threadsDictLock.AcquireWriterLock(Timeout.Infinite);
 			try
 			{
+				if (disposed)
+					return;
+				else if (disposing)
+					disposed = true;
 				foreach (IThread t in threadsDict.Values)
 				{
 					tracer.Info("--> Disposing {0}", t.DisplayName);
-					t.Dispose();
+					modelThreads.UnregisterThread(t);
 				}
 				tracer.Info("All threads disposed");
 				threadsDict.Clear();
@@ -106,9 +104,10 @@ namespace LogJoint
 		}
 
 		readonly LJTraceSource tracer;
-		readonly IModelThreads modelThreads;
+		readonly IModelThreadsInternal modelThreads;
 		readonly ILogSource logSource;
 		readonly Dictionary<StringSlice, IThread> threadsDict = new Dictionary<StringSlice, IThread>();
 		readonly ReaderWriterLock threadsDictLock = new ReaderWriterLock();
+		bool disposed;
 	}
 }

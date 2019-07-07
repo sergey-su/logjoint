@@ -44,7 +44,7 @@ namespace LogJoint.JsonFormat
 	class MessagesReader : MediaBasedPositionedMessagesReader
 	{
 		internal JsonFormatInfo formatInfo;
-		readonly ILogSourceThreads threads;
+		readonly ILogSourceThreadsInternal threads;
 		readonly ITraceSourceFactory traceSourceFactory;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, JsonFormatInfo fmt) :

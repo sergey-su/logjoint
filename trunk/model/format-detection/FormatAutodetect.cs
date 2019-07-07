@@ -52,8 +52,8 @@ namespace LogJoint
 				throw new ArgumentNullException("mru");
 			Func<SimpleFileMedia> createFileMedia = () => new SimpleFileMedia(SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
 			var log = traceSourceFactory.CreateTraceSource("App", string.Format("fdtc.{0}", Interlocked.Increment(ref lastPerfOp)));
-			using ( new Profiling.Operation(log, string.Format("format detection of {0}", loggableName)))
-			using (ILogSourceThreads threads = new LogSourceThreads())
+			using (new Profiling.Operation(log, string.Format("format detection of {0}", loggableName)))
+			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (var localCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
 			{
 				var ret = GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry).AsParallel().Select(factory =>

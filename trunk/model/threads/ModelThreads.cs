@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LogJoint
 {
-	public class ModelThreads : IModelThreads
+	public class ModelThreads : IModelThreads, IModelThreadsInternal
 	{
 		public ModelThreads(IColorLease colors)
 		{
@@ -16,61 +16,52 @@ namespace LogJoint
 		}
 
 		public event EventHandler OnThreadListChanged;
-		public event EventHandler OnThreadVisibilityChanged;
-		public event EventHandler OnPropertiesChanged;
+		public event EventHandler OnThreadPropertiesChanged;
 
-		IThread IModelThreads.RegisterThread(string id, ILogSource logSource)
+		IThread IModelThreadsInternal.RegisterThread(string id, ILogSource logSource)
 		{
 			return new Thread(id, this, logSource);
 		}
 
-		IEnumerable<IThread> IModelThreads.Items
+		void IModelThreadsInternal.UnregisterThread(IThread thread)
+		{
+			((Thread)thread).Dispose();
+		}
+
+		IReadOnlyList<IThread> IModelThreads.Items
 		{
 			get
 			{
+				var result = new List<IThread>();
 				lock (sync)
 				{
 					for (Thread t = this.threads; t != null; t = t.Next)
-						yield return t;
+						result.Add(t);
 				}
+				return result;
 			}
 		}
 
-		IThreadsBulkProcessing IModelThreads.StartBulkProcessing()
+		internal class Thread : IThread
 		{
-			return new ThreadsBulkProcessing(this);
-		}
+			bool IThread.IsDisposed => IsDisposed;
 
-		internal class Thread : IThread, IDisposable
-		{
-			public bool IsDisposed
-			{
-				get { return owner == null; }
-			}
-			public string Description
-			{
-				get { return description; }
-			}
-			public string ID
-			{
-				get { return id; }
-			}
-			public int ThreadColorIndex
-			{
-				get { return color; }
-			}
-			public ILogSource LogSource
-			{
-				get { return logSource; }
-			}
+			string IThread.Description => GetDescription();
 
-			public string DisplayName
+			string IThread.ID => id;
+
+			int IThread.ThreadColorIndex => color;
+
+			ILogSource IThread.LogSource => logSource;
+
+			string IThread.DisplayName
 			{
 				get
 				{
+					var desc = GetDescription();
 					string ret;
-					if (!string.IsNullOrEmpty(description))
-						ret = description;
+					if (!string.IsNullOrEmpty(desc))
+						ret = desc;
 					else if (!string.IsNullOrEmpty(id))
 						ret = id;
 					else
@@ -81,76 +72,57 @@ namespace LogJoint
 				}
 			}
 
-			public bool Visible
+			void IThread.RegisterKnownMessage(IMessage message)
 			{
-				get
+				if (IsDisposed)
+					return;
+				bool changed = false;
+				if (firstMessage == null || message.Position < firstMessage.Position)
 				{
-					return visible;
+					firstMessage = message;
+					firstMessageBmk = null;
+					description = null;
+					changed = true;
 				}
-				set
+				if (lastMessage == null || message.Position > lastMessage.Position)
 				{
-					CheckDisposed();
-					if (visible == value)
-						return;
-					visible = value;
-					if (owner.OnThreadVisibilityChanged != null)
-						owner.OnThreadVisibilityChanged(this, EventArgs.Empty);
-				}
-			}
-
-			public bool ThreadMessagesAreVisible
-			{
-				get
-				{
-					if (logSource != null)
-						if (!logSource.Visible)
-							return false;
-					return visible;
-				}
-			}
-
-			internal void RegisterKnownMessage(IMessage message)
-			{
-				CheckDisposed();
-				if (firstMessageBmk == null || message.Time < firstMessageBmk.Time)
-				{
-					firstMessageBmk = new Bookmark(message, 0, true);
-					description = ComposeDescriptionFromTheFirstKnownLine(message);
-				}
-				if (message.Time >= lastMessageTime)
-				{
-					lastMessageTime = message.Time;
-
 					lastMessageBmk = null; // invalidate last message bookmark
-					lastMessageBmkMessage = message; // store last message to be able to create lastMessageBmk later
+					lastMessage = message; // store last message to be able to create lastMessageBmk later
+					changed = true;
 				}
-				if (owner.OnPropertiesChanged != null)
-					owner.OnPropertiesChanged(this, EventArgs.Empty);
+				if (changed)
+				{
+					owner.OnThreadPropertiesChanged?.Invoke(this, EventArgs.Empty);
+				}
 			}
 
-			public IBookmark FirstKnownMessage 
+			IBookmark IThread.FirstKnownMessage 
 			{
-				get { return firstMessageBmk; }
-			}
-			public IBookmark LastKnownMessage 
-			{
-				get 
+				get
 				{
-					if (lastMessageBmk == null)
+					if (firstMessageBmk == null && firstMessage != null)
 					{
-						if (lastMessageBmkMessage != null)
-						{
-							lastMessageBmk = new Bookmark(lastMessageBmkMessage, 0, true);
-							lastMessageBmkMessage = null;
-						}
+						firstMessageBmk = new Bookmark(firstMessage, 0, true);
+					}
+					return firstMessageBmk;
+				}
+			}
+
+			IBookmark IThread.LastKnownMessage 
+			{
+				get
+				{
+					if (lastMessageBmk == null && lastMessage != null)
+					{
+						lastMessageBmk = new Bookmark(lastMessage, 0, true);
 					}
 					return lastMessageBmk; 
 				}
 			}
 
-			public void Dispose()
+			internal void Dispose()
 			{
-				if (owner != null)
+				if (!IsDisposed)
 				{
 					lock (owner.sync)
 					{
@@ -166,110 +138,67 @@ namespace LogJoint
 							if (next != null)
 								next.prev = prev;
 						}
+						owner.colors.ReleaseColor(color);
 					}
-					owner.colors.ReleaseColor(color);
 					ModelThreads tmp = owner;
 					EventHandler tmpEvt = tmp.OnThreadListChanged;
 					owner = null;
-					if (tmpEvt != null)
-						tmpEvt(tmp, EventArgs.Empty);
+					tmpEvt?.Invoke(tmp, EventArgs.Empty);
 				}
 			}
 
 			public override string ToString()
 			{
-				return string.Format("{0}. {1}", id, String.IsNullOrEmpty(description) ? "<no name>" : description);
+				var desc = GetDescription();
+				return string.Format("{0}. {1}", id, String.IsNullOrEmpty(desc) ? "<no name>" : desc);
 			}
 
 			public Thread(string id, ModelThreads owner, ILogSource logSource)
 			{
 				this.id = id;
-				this.visible = true;
 				this.owner = owner;
-				this.color = owner.colors.GetNextColor();
 				this.logSource = logSource;
 
 				lock (owner.sync)
 				{
+					color = owner.colors.GetNextColor();
 					next = owner.threads;
 					owner.threads = this;
 					if (next != null)
 						next.prev = this;
 				}
-				if (owner.OnThreadListChanged != null)
-					owner.OnThreadListChanged(owner, EventArgs.Empty);
+				owner.OnThreadListChanged?.Invoke(owner, EventArgs.Empty);
 			}
 
-			public Thread Next { get { return next; } }
+			internal Thread Next => next;
 
-			void CheckDisposed()
-			{
-				if (IsDisposed)
-					throw new ObjectDisposedException(this.ToString());
-			}
+			bool IsDisposed => owner == null;
 
 			string ComposeDescriptionFromTheFirstKnownLine(IMessage firstKnownLine)
 			{
-				return string.Format("{0}. {1}", this.ID, firstKnownLine.TextAsMultilineText.GetNthTextLine(0));
+				return string.Format("{0}. {1}", this.id, firstKnownLine.TextAsMultilineText.GetNthTextLine(0));
+			}
+
+			private string GetDescription()
+			{
+				if (description == null && firstMessage != null)
+				{
+					description = ComposeDescriptionFromTheFirstKnownLine(firstMessage);
+				}
+				return description;
 			}
 
 			readonly ILogSource logSource;
+			readonly string id;
+			readonly int color;
 			ModelThreads owner;
 			Thread next, prev;
-			string id;
-			bool visible;
 			string description;
-			int color;
+			IMessage firstMessage;
 			IBookmark firstMessageBmk;
-			MessageTimestamp lastMessageTime;
-			IMessage lastMessageBmkMessage;
+			IMessage lastMessage;
 			IBookmark lastMessageBmk;
 		};
-
-		internal class ThreadsBulkProcessing : IThreadsBulkProcessing
-		{
-			public ThreadsBulkProcessing(ModelThreads owner)
-			{
-			}
-
-			public void Dispose()
-			{
-			}
-
-			public ThreadsBulkProcessingResult ProcessMessage(IMessage message)
-			{
-				if (!message.Thread.IsDisposed)
-				{
-					var threadInfo = GetThreadInfo(message.Thread);
-					threadInfo.ThreadImpl.RegisterKnownMessage(message);
-				}
-				return new ThreadsBulkProcessingResult() { 
-				};
-			}
-
-			ThreadInfo GetThreadInfo(IThread thread)
-			{
-				if (threads.TryGetValue(thread, out ThreadInfo threadInfo))
-					return threadInfo;
-				threadInfo = new ThreadInfo() { ThreadImpl = (Thread)thread };
-				threads.Add(thread, threadInfo);
-				return threadInfo;
-			}
-
-			internal class ThreadInfo
-			{
-				public Thread ThreadImpl;
-			};
-			readonly Dictionary<IThread, ThreadInfo> threads = new Dictionary<IThread, ThreadInfo>();
-		};
-
-		static byte Inc(byte v)
-		{
-			byte delta = 16;
-			if (255 - v <= delta)
-				return 255;
-			return (byte)(v + delta);
-		}
 
 		object sync = new object();
 		Thread threads;

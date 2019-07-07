@@ -25,7 +25,7 @@ namespace LogJoint
 		readonly LogMedia.IFileSystemWatcher fsWatcher;
 		readonly Dictionary<string, LogPart> parts = new Dictionary<string, LogPart>();
 		readonly ConcatReadingStream concatStream;
-		readonly ILogSourceThreads tempThreads;
+		readonly ILogSourceThreadsInternal tempThreads;
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
 		bool disposed;
@@ -297,13 +297,13 @@ namespace LogJoint
 
 						if (!simpleMedia.IsAvailable)
 						{
-							owner.trace.Info("File is not avaliable (i.e. has been deleted)");
+							owner.trace.Info("File is not available (i.e. has been deleted)");
 							return false;
 						}
 
 						if (firstMessageTime == null)
 						{
-							owner.trace.Info("First message time is unknown. Calcalating it");
+							owner.trace.Info("First message time is unknown. Calculating it");
 							using (IPositionedMessagesReader reader = (IPositionedMessagesReader)Activator.CreateInstance(
 									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia, owner.tempFilesManager, owner.traceSourceFactory), owner.logFormatInfo))
 							{

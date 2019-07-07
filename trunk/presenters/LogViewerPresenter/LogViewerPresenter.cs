@@ -122,11 +122,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			var linesObserver = Updaters.Create(() => screenBuffer.Messages, messages =>
 			{
-				using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
-				{
-					foreach (var m in messages)
-						threadsBulkProcessing.ProcessMessage(m.Message);
-				}
+				foreach (var m in messages)
+					m.Message.Thread?.RegisterKnownMessage(m.Message);
 			});
 
 			var displayTextGetterObserver = Updaters.Create(
@@ -352,7 +349,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				bool handled = false;
 				if (preferredSources != null && preferredSources.Length != 0)
 				{
-					var candidates = (await Task.WhenAll(preferredSources.Select(async preferredSource =>  
+					var candidates = (await Task.WhenAll(preferredSources
+						.Where(preferredSource => !preferredSource.IsDisposed).Select(async preferredSource =>  
 					{
 						var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
 							date, ValueBound.Lower, 
