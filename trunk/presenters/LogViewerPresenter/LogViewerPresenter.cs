@@ -352,7 +352,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				bool handled = false;
 				if (preferredSources != null && preferredSources.Length != 0)
 				{
-					var candidates = (await Task.WhenAll(preferredSources.Select(async preferredSource =>  
+					var candidates = (await Task.WhenAll(preferredSources
+						.Where(preferredSource => !preferredSource.IsDisposed).Select(async preferredSource =>  
 					{
 						var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
 							date, ValueBound.Lower, 

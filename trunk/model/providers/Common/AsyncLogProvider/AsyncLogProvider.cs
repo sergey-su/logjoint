@@ -20,7 +20,8 @@ namespace LogJoint
 			this.stats = new LogProviderStats();
 			this.externalStats = this.stats.Clone();
 			this.threads = host.Threads;
-			this.connectionIdLazy = new Lazy<string>(() => factory.GetConnectionId(connectionParamsReadonlyView));
+			this.connectionIdLazy = new Lazy<string>(() => factory.GetConnectionId(connectionParamsReadonlyView),
+				LazyThreadSafetyMode.ExecutionAndPublication);
 		}
 
 		protected void StartAsyncReader(string threadName, IPositionedMessagesReader reader)

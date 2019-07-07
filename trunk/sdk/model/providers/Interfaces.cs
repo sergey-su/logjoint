@@ -50,6 +50,13 @@ namespace LogJoint
 		ITimeOffsets TimeOffsets { get; }
 		LogProviderStats Stats { get; }
 
+		/// <summary>
+		/// Finds the position in the log of a message with timestamp greater or smaller than given.
+		/// Must be called from model synchronization context.
+		/// Throws if called on disposed object.
+		/// If object is disposed while async call to this method is in progress,
+		/// the Task may be rejected with <see cref="OperationCanceledException"/>.
+		/// </summary>
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,
 			ValueBound bound,
@@ -57,6 +64,16 @@ namespace LogJoint
 			LogProviderCommandPriority priority,
 			CancellationToken cancellation
 		);
+		/// <summary>
+		/// Enumerates log message starting from given position.
+		/// Must be called from model synchronization context.
+		/// The callback function is called from unspecified thread. The callback
+		/// function is called sequentially - it won't be called until previous
+		/// call to it returns.
+		/// Throws if called on disposed object.
+		/// If object is disposed while async call to this method is in progress,
+		/// the Task may be rejected with <see cref="OperationCanceledException"/>.
+		/// </summary>
 		Task EnumMessages(
 			long fromPosition,
 			Func<IMessage, bool> callback,
