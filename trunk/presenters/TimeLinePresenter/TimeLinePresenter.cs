@@ -574,9 +574,8 @@ namespace LogJoint.UI.Presenters.Timeline
 				BookmarkDrawInfo di;
 				di.Y = GetYCoordFromDate(m, drange, displayBmkTime);
 				bool hidden = false;
-				if (bmk.Thread != null)
-					if (!bmk.Thread.ThreadMessagesAreVisible)
-						hidden = true;
+				if (bmk.Thread?.LogSource?.Visible == false)
+					hidden = true;
 				di.IsHidden = hidden;
 				yield return di;
 			}

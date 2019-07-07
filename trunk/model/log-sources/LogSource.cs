@@ -25,7 +25,7 @@ namespace LogJoint
 		bool loadingLogSourceInfoFromStorageEntry;
 		readonly ITimeGapsDetector timeGaps;
 		readonly ITempFilesManager tempFilesManager;
-		readonly ISynchronizationContext invoker;
+		readonly ISynchronizationContext modelSyncContext;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
 		int? color;
@@ -33,13 +33,13 @@ namespace LogJoint
 		public LogSource(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreads threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
-			ISynchronizationContext invoker, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
+			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
 			ITraceSourceFactory traceSourceFactory)
 		{
 			this.owner = owner;
 			this.tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
 			this.tempFilesManager = tempFilesManager;
-			this.invoker = invoker;
+			this.modelSyncContext = modelSyncContext;
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
 			this.traceSourceFactory = traceSourceFactory;
@@ -48,7 +48,7 @@ namespace LogJoint
 			{
 
 				this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
-				this.timeGaps = new TimeGapsDetector(tracer, invoker, new LogSourceGapsSource(this), traceSourceFactory);
+				this.timeGaps = new TimeGapsDetector(tracer, modelSyncContext, new LogSourceGapsSource(this), traceSourceFactory);
 				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
 				this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 
@@ -152,37 +152,22 @@ namespace LogJoint
 			}
 		}
 
-		public Persistence.IStorageEntry LogSourceSpecificStorageEntry
-		{
-			get { return logSourceSpecificStorageEntry; }
-		}
+		Persistence.IStorageEntry ILogSource.LogSourceSpecificStorageEntry => logSourceSpecificStorageEntry;
 
-		public ITimeGapsDetector TimeGaps
-		{
-			get { return timeGaps; }
-		}
+		ITimeGapsDetector ILogSource.TimeGaps => timeGaps;
 
-		ITempFilesManager ILogProviderHost.TempFilesManager
-		{
-			get { return tempFilesManager; }
-		}
+		ITempFilesManager ILogProviderHost.TempFilesManager => tempFilesManager;
 
 		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
 
-		string ILogProviderHost.LoggingPrefix
-		{
-			get { return tracer.Prefix; }
-		}
+		ISynchronizationContext ILogProviderHost.ModelSynchronizationContext => modelSyncContext;
 
-		public void OnStatisticsChanged(LogProviderStatsFlag flags)
-		{
-			owner.OnSourceStatsChanged(this, flags);
-		}
+		string ILogProviderHost.LoggingPrefix => tracer.Prefix;
 
-		public ILogSourceThreads Threads
-		{
-			get { return logSourceThreads; }
-		}
+		void ILogProviderHost.OnStatisticsChanged(LogProviderStatsFlag flags) => owner.OnSourceStatsChanged(this, flags);
+
+		ILogSourceThreads ILogSource.Threads => logSourceThreads;
+		ILogSourceThreads ILogProviderHost.Threads => logSourceThreads;
 
 		void ILogSource.StoreBookmarks()
 		{

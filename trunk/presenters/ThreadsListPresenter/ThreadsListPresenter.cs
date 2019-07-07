@@ -32,11 +32,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			{
 				updateTracker.Invalidate();
 			};
-			threads.OnThreadVisibilityChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			threads.OnPropertiesChanged += (sender, args) =>
+			threads.OnThreadPropertiesChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};

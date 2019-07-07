@@ -20,11 +20,11 @@ namespace LogJoint
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			if (!owner.ResetPendingUpdateFlag())
 				return;
-			owner.UpdateAvailableTime(incrementalMode: true);
+			await owner.UpdateAvailableTime(incrementalMode: true);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

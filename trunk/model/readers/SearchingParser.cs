@@ -144,57 +144,54 @@ namespace LogJoint
 
 		IEnumerable<SearchResultMessage> Enum()
 		{
-			using (var threadsBulkProcessing = threads.UnderlyingThreadsContainer.StartBulkProcessing())
+			Func<IMessagesPostprocessor> postprocessor = 
+				() => new MessagesPostprocessor(parserParams.SearchParams, trace);
+			long searchableRangesLength = 0;
+			int searchableRangesCount = 0;
+			long totalMessagesCount = 0;
+			long totalHitsCount = 0;
+			foreach (var currentSearchableRange in EnumSearchableRanges())
 			{
-				Func<IMessagesPostprocessor> postprocessor = 
-					() => new MessagesPostprocessor(parserParams.SearchParams, trace);
-				long searchableRangesLength = 0;
-				int searchableRangesCount = 0;
-				long totalMessagesCount = 0;
-				long totalHitsCount = 0;
-				foreach (var currentSearchableRange in EnumSearchableRanges())
+				searchableRangesLength += currentSearchableRange.Length;
+				++searchableRangesCount;
+				using (var parser = CreateParserForSearchableRange(currentSearchableRange, postprocessor))
 				{
-					searchableRangesLength += currentSearchableRange.Length;
-					++searchableRangesCount;
-					using (var parser = CreateParserForSearchableRange(currentSearchableRange, postprocessor))
+					long messagesCount = 0;
+					long hitsCount = 0;
+					for (;;)
 					{
-						long messagesCount = 0;
-						long hitsCount = 0;
-						for (;;)
+						var tmp = parser.ReadNextAndPostprocess();
+						if (tmp.Message == null)
+							break;
+
+						++messagesCount;
+
+						var msg = tmp.Message;
+						var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
+							tmp.PostprocessingResult);
+
+						if (filteringResult.Action != FilterAction.Exclude)
 						{
-							var tmp = parser.ReadNextAndPostprocess();
-							if (tmp.Message == null)
-								break;
-
-							++messagesCount;
-
-							var msg = tmp.Message;
-							var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
-								tmp.PostprocessingResult);
-
-							if (filteringResult.Action != FilterAction.Exclude)
-							{
-								++hitsCount;
-								yield return new SearchResultMessage(msg, filteringResult);
-							}
-
-							progressAndCancellation.HandleMessageReadingProgress(msg.Position);
-							progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
-
-							progressAndCancellation.CheckTextIterationCancellation();
+							++hitsCount;
+							yield return new SearchResultMessage(msg, filteringResult);
 						}
-						PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange), 
-							hitsCount, messagesCount); 
-						totalMessagesCount += messagesCount;
-						totalHitsCount += hitsCount;
+
+						progressAndCancellation.HandleMessageReadingProgress(msg.Position);
+						progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
+
+						progressAndCancellation.CheckTextIterationCancellation();
 					}
+					PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange), 
+						hitsCount, messagesCount); 
+					totalMessagesCount += messagesCount;
+					totalHitsCount += hitsCount;
 				}
-				trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);
-				trace.Info("Stats: ave searchable range len: {0}", 
-				           searchableRangesCount != 0 ? searchableRangesLength / searchableRangesCount : 0);
-				PrintPctStats("searchable ranges coverage pct", searchableRangesLength, requestedRange.Length); 
-				PrintPctStats("hits pct overall", totalHitsCount, totalMessagesCount); 
 			}
+			trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);
+			trace.Info("Stats: ave searchable range len: {0}", 
+				        searchableRangesCount != 0 ? searchableRangesLength / searchableRangesCount : 0);
+			PrintPctStats("searchable ranges coverage pct", searchableRangesLength, requestedRange.Length); 
+			PrintPctStats("hits pct overall", totalHitsCount, totalMessagesCount); 
 
 			yield return new SearchResultMessage(null, new MessageFilteringResult());
 		}

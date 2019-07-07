@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 
 		readonly IModelThreads threads;
 		readonly ILogSourceThreads logSourceThreads;
+		readonly ISynchronizationContext synchronizationContext;
 		ILogProvider provider;
 		LogViewer.DummyModel model;
 		LogViewer.IPresenter logPresenter;
@@ -22,13 +23,15 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			IView view, 
 			ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory,
-			LogViewer.IPresenterFactory logViewerPresenterFactory
+			LogViewer.IPresenterFactory logViewerPresenterFactory,
+			ISynchronizationContext synchronizationContext
 		)
 		{
 			this.view = view;
 			this.view.SetEventsHandler(this);
 			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
+			this.synchronizationContext = synchronizationContext;
 
 			this.threads = new ModelThreads();
 			this.logSourceThreads = new LogSourceThreads(
@@ -59,12 +62,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			return statusOk;
 		}
 
-		string ILogProviderHost.LoggingPrefix
-		{
-			get { return "test"; }
-		}
+		string ILogProviderHost.LoggingPrefix => "test";
 
 		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
+
+		ISynchronizationContext ILogProviderHost.ModelSynchronizationContext => synchronizationContext;
 
 		ITimeOffsets ILogProviderHost.TimeOffsets
 		{

@@ -98,7 +98,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
 		void FillSampleMessagesCollection()
 		{
-			foreach (var t in sampleThreads.Items.ToArray())
+			foreach (var t in sampleThreads.Items)
 				t.Dispose();
 
 			var sampleMessagesCollection = new List<IMessage>();

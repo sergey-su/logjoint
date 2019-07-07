@@ -104,7 +104,7 @@ namespace LogJoint
 		)
 		{
 			CheckDisposed();
-			var ret = new SearchCommand(searchParams, callback, progress, threads.UnderlyingThreadsContainer);
+			var ret = new SearchCommand(searchParams, callback, progress);
 			Command cmd = new Command(Command.CommandType.Search, 
 				LogProviderCommandPriority.AsyncUserAction, tracer, cancellation, ret);
 			PostCommand(cmd);
@@ -186,7 +186,7 @@ namespace LogJoint
 			Interlocked.Exchange(ref cache, value);
 		}
 
-		bool IAsyncLogProvider.UpdateAvailableTime(bool incrementalMode)
+		Task<bool> IAsyncLogProvider.UpdateAvailableTime(bool incrementalMode)
 		{
 			return UpdateAvailableTime(incrementalMode);
 		}
@@ -353,14 +353,14 @@ namespace LogJoint
 						};
 						ctx.Cancellation.ThrowIfCancellationRequested();
 						ctx.Preemption.ThrowIfCancellationRequested();
-						cmd.Handler.ContinueAsynchronously(ctx);
+						await cmd.Handler.ContinueAsynchronously(ctx);
 						completeCmd(null);
 					}
 					catch (OperationCanceledException e)
 					{
 						if (cmdPreemption != null && cmdPreemption.preemptionTokenSource.IsCancellationRequested && !cmd.Cancellation.IsCancellationRequested)
 						{
-							cmd.Perfop.Milestone("preemtped");	
+							cmd.Perfop.Milestone("preemtped");
 							tracer.Warning("Command {0} preemtped. {1}", cmd, cmdPreemption.dontResume ? "Won't repost it" : "Reposting it.");
 							if (!cmdPreemption.dontResume)
 							{
@@ -410,22 +410,21 @@ namespace LogJoint
 			finally
 			{
 				tracer.Info("Disposing what has been loaded up to now");
-				InvalidateEverythingThatHasBeenLoaded();
+				await InvalidateEverythingThatHasBeenLoaded();
 			}
 		}
 
-		void InvalidateThreads()
+		async Task InvalidateThreads()
 		{
 			if (disposed)
 				return;
-			// todo: thread synching
-			threads.DisposeThreads();
+			await host.ModelSynchronizationContext.Invoke(() => threads.Clear());
 		}
 
-		void InvalidateEverythingThatHasBeenLoaded()
+		async Task InvalidateEverythingThatHasBeenLoaded()
 		{
 			InvalidateMessages();
-			InvalidateThreads();
+			await InvalidateThreads();
 		}
 
 		void InvalidateMessages()
@@ -475,7 +474,7 @@ namespace LogJoint
 			}
 		}
 
-		bool UpdateAvailableTime(bool incrementalMode)
+		async Task<bool> UpdateAvailableTime(bool incrementalMode)
 		{
 			bool itIsFirstUpdate = firstUpdateFlag;
 			firstUpdateFlag = false;
@@ -511,17 +510,17 @@ namespace LogJoint
 				if (!itIsFirstUpdate)
 				{
 					// Reset everything that has been loaded so far
-					InvalidateEverythingThatHasBeenLoaded();
+					await InvalidateEverythingThatHasBeenLoaded();
 				}
 				firstMessage = null;
 			}
 
-			// Try to get the dates range for new bounday messages
+			// Try to get the dates range for new boundary messages
 			DateRange newAvailTime = GetAvailableDateRangeHelper(newFirst, newLast);
 			firstMessage = newFirst;
 
 			// Getting here means that the boundaries changed. 
-			// Fire the notfication.
+			// Fire the notification.
 
 			var positionsRange = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
 

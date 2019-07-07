@@ -335,7 +335,8 @@ namespace LogJoint.UI.Presenters
 						model.TempFilesManager,
 						model.TraceSourceFactory,
 						logViewerPresenterFactory,
-						views.FormatsWizardViewFactory
+						views.FormatsWizardViewFactory,
+						model.SynchronizationContext
 					)
 				)
 			);

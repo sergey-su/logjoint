@@ -417,7 +417,7 @@ namespace LogJoint
 				//   interval (d, d + threshold).
 				// - If no messages are found on the interval then we encountered with 
 				//   a time gap. The end of the gap is located by searching for the
-				//   first message that is greated than d.
+				//   first message that is greater than d.
 				TimeSpan cumulativeGapsLen = new TimeSpan();
 				for (DateTime d = range.Begin; d < range.End; )
 				{
@@ -433,7 +433,7 @@ namespace LogJoint
 					else
 					{
 						var gapBegin = helper.CurrentDate.ToLocalDateTime();
-						// A tick is needed here becuase CurrentDate is a date of an existing message.  
+						// A tick is needed here because CurrentDate is a date of an existing message.  
 						// The gap begins right after this date. This tick matters when 
 						// we are comparing gap's date range with a date range of messages. 
 						// Do not forget: date ranges use the idea that DateRange.End doesn't belong 

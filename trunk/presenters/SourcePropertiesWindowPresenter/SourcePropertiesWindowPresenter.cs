@@ -351,11 +351,11 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 				IBookmark tmp;
 
 				if ((tmp = t.FirstKnownMessage) != null)
-					if (first == null || tmp.Time < first.Time)
+					if (first == null || tmp.Position < first.Position)
 						first = tmp;
 
 				if ((tmp = t.LastKnownMessage) != null)
-					if (last == null || tmp.Time > last.Time)
+					if (last == null || tmp.Position > last.Position)
 						last = tmp;
 			}
 

@@ -297,13 +297,13 @@ namespace LogJoint
 
 						if (!simpleMedia.IsAvailable)
 						{
-							owner.trace.Info("File is not avaliable (i.e. has been deleted)");
+							owner.trace.Info("File is not available (i.e. has been deleted)");
 							return false;
 						}
 
 						if (firstMessageTime == null)
 						{
-							owner.trace.Info("First message time is unknown. Calcalating it");
+							owner.trace.Info("First message time is unknown. Calculating it");
 							using (IPositionedMessagesReader reader = (IPositionedMessagesReader)Activator.CreateInstance(
 									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia, owner.tempFilesManager, owner.traceSourceFactory), owner.logFormatInfo))
 							{

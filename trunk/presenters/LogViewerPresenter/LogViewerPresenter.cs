@@ -122,11 +122,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			var linesObserver = Updaters.Create(() => screenBuffer.Messages, messages =>
 			{
-				using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
-				{
-					foreach (var m in messages)
-						threadsBulkProcessing.ProcessMessage(m.Message);
-				}
+				foreach (var m in messages)
+					m.Message.Thread?.RegisterKnownMessage(m.Message);
 			});
 
 			var displayTextGetterObserver = Updaters.Create(

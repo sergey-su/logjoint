@@ -224,7 +224,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 
 					cmd = new GetDateBoundCommand(dateToTest, false, bound, boundsCache);
 					cmdIntf = cmd;
-					cmdIntf.ContinueAsynchronously(ctx);
+					cmdIntf.ContinueAsynchronously(ctx).Wait();
 					cmdIntf.Complete(null);
 					Assert.IsTrue(cmd.Task.IsCompleted);
 					DateBoundPositionResponseData asyncResult = cmd.Task.Result;

@@ -38,8 +38,9 @@ namespace LogJoint
 	/// This class starts to work when a client calls Update(DateRange) method. The value passed
 	/// to Update() is a date range where the client wants to find the gaps. The dates range
 	/// is divided to a fixed number of pieces. The length of the piece is used as a threshold.
-	/// The periods of time with no messages and with the lenght greated than the threshold are
+	/// The periods of time with no messages and with the length greater than the threshold are
 	/// considered time gaps.
+	/// Threading: all methods/properties/events are in model synchronization context.
 	/// </remarks>
 	public interface ITimeGapsDetector
 	{

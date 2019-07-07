@@ -125,6 +125,7 @@ namespace LogJoint
 		ILogSourceThreads Threads { get; }
 		ITimeOffsets TimeOffsets { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
+		ISynchronizationContext ModelSynchronizationContext { get; }
 
 		void OnStatisticsChanged(LogProviderStatsFlag flags);
 	};
