@@ -19,7 +19,7 @@ namespace LogJoint
 			this.connectionParamsReadonlyView = new ConnectionParamsReadOnlyView(this.connectionParams);
 			this.stats = new LogProviderStats();
 			this.externalStats = this.stats.Clone();
-			this.threads = host.Threads;
+			this.threads = (ILogSourceThreadsInternal)host.Threads;
 			this.connectionIdLazy = new Lazy<string>(() => factory.GetConnectionId(connectionParamsReadonlyView),
 				LazyThreadSafetyMode.ExecutionAndPublication);
 		}
@@ -656,7 +656,7 @@ namespace LogJoint
 		protected readonly ILogProviderHost host;
 		protected readonly ILogProviderFactory factory;
 		protected readonly LJTraceSource tracer;
-		protected readonly ILogSourceThreads threads;
+		protected readonly ILogSourceThreadsInternal threads;
 		protected readonly IConnectionParams connectionParams;
 		protected readonly IConnectionParams connectionParamsReadonlyView;
 

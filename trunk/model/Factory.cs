@@ -113,7 +113,7 @@ namespace LogJoint
 			Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
 			var threadColorsLease = new ColorLease(1);
-			IModelThreads modelThreads = new ModelThreads(threadColorsLease);
+			IModelThreadsInternal modelThreads = new ModelThreads(threadColorsLease);
 
 			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
 				traceSourceFactory,

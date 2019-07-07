@@ -9,7 +9,7 @@ namespace LogJoint
 		public LogSourcesManager(
 			IHeartBeatTimer heartbeat,
 			ISynchronizationContext invoker,
-			IModelThreads threads,
+			IModelThreadsInternal threads,
 			ITempFilesManager tempFilesManager,
 			Persistence.IStorageManager storageManager,
 			IBookmarks bookmarks,

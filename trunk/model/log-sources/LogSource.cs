@@ -15,7 +15,7 @@ namespace LogJoint
 		readonly ILogSourcesManagerInternal owner;
 		readonly LJTraceSource tracer;
 		readonly ILogProvider provider;
-		readonly ILogSourceThreads logSourceThreads;
+		readonly ILogSourceThreadsInternal logSourceThreads;
 		readonly ITraceSourceFactory traceSourceFactory;
 		bool isDisposed;
 		bool visible = true;
@@ -32,7 +32,7 @@ namespace LogJoint
 
 		public LogSource(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
-			IModelThreads threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
+			IModelThreadsInternal threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
 			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
 			ITraceSourceFactory traceSourceFactory)
 		{

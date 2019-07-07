@@ -6,7 +6,7 @@ namespace LogJoint
 {
 	class LogSourceFactory: ILogSourceFactory
 	{
-		readonly IModelThreads threads;
+		readonly IModelThreadsInternal threads;
 		readonly IBookmarks bookmarks;
 		readonly ISynchronizationContext invoker;
 		readonly Persistence.IStorageManager storageManager;
@@ -15,7 +15,7 @@ namespace LogJoint
 		readonly ITraceSourceFactory traceSourceFactory;
 
 		public LogSourceFactory(
-			IModelThreads threads,
+			IModelThreadsInternal threads,
 			IBookmarks bookmarks,
 			ISynchronizationContext invoker,
 			Persistence.IStorageManager storageManager,

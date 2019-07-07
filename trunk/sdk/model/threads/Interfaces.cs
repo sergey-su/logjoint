@@ -11,9 +11,9 @@ namespace LogJoint
 	public interface IThread
 	{
 		/// <summary>
-		/// Removed this thread from <see cref="IModelThreads"/> list.
+		/// Indicates whether this object represents a thread from closed log source or
+		/// the thread was discarded for another reason.
 		/// </summary>
-		void Dispose();
 		bool IsDisposed { get; }
 		string ID { get; }
 		string Description { get; }
@@ -53,35 +53,17 @@ namespace LogJoint
 		/// Threading: thread-safe
 		/// </summary>
 		IReadOnlyList<IThread> Items { get; }
-
-		/// <summary>
-		/// Allocates a new thread and adds it to the list.
-		/// Threading: can be called from any thread.
-		/// </summary>
-		IThread RegisterThread(string id, ILogSource logSource);
 	};
 
 	/// <summary>
 	/// Contains list of all log message threads for one log source.
-	/// Threading: mixed, see individual members.
 	/// </summary>
-	public interface ILogSourceThreads: IDisposable
+	public interface ILogSourceThreads
 	{
 		/// <summary>
 		/// Returns an immutable snapshot of current list.
 		/// Thread-safe.
 		/// </summary>
 		IReadOnlyList<IThread> Items { get; }
-		/// <summary>
-		/// Gets existing thread object or allocates new.
-		/// Thread-safe.
-		/// </summary>
-		IThread GetThread(StringSlice id);
-		/// <summary>
-		/// Disposes and removes all threads from the list.
-		/// Threading: must be called in model context if <see cref="IThread"/> objects are reachable from model context,
-		/// otherwise can be disposed from any thread. Same threading rules apply to Dispose().
-		/// </summary>
-		void Clear();
 	};
 }

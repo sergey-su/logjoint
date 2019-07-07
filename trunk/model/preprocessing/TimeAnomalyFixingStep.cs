@@ -67,7 +67,7 @@ namespace LogJoint.Preprocessing
 				throw new InvalidDataException("bad factory: " + factoryName);
 			using (ILogMedia fileMedia = new SimpleFileMedia(
 				SimpleFileMedia.CreateConnectionParamsFromFileName(@params.Location)))
-			using (ILogSourceThreads threads = new LogSourceThreads())
+			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (var reader = readerFactory.CreateMessagesReader(
 				new MediaBasedReaderParams(threads, fileMedia, callback.TempFilesManager, traceSourceFactory)))
 			{

@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 
 namespace LogJoint
 {
-	public class LogSourceThreads: ILogSourceThreads
+	public class LogSourceThreads: ILogSourceThreads, ILogSourceThreadsInternal, IDisposable
 	{
-		public LogSourceThreads(LJTraceSource tracer, IModelThreads modelThreads, ILogSource threadsSource)
+		public LogSourceThreads(LJTraceSource tracer, IModelThreadsInternal modelThreads, ILogSource threadsSource)
 		{
 			this.tracer = tracer;
 			this.modelThreads = modelThreads;
@@ -35,7 +35,7 @@ namespace LogJoint
 			}
 		}
 
-		IThread ILogSourceThreads.GetThread(StringSlice id)
+		IThread ILogSourceThreadsInternal.GetThread(StringSlice id)
 		{
 			IThread ret;
 			bool writing = false;
@@ -70,12 +70,12 @@ namespace LogJoint
 			return ret;
 		}
 
-		void ILogSourceThreads.Clear()
+		void ILogSourceThreadsInternal.Clear()
 		{
 			Clear(disposing: false);
 		}
 
-		public void Dispose()
+		void IDisposable.Dispose()
 		{
 			Clear(disposing: true);
 		}
@@ -92,7 +92,7 @@ namespace LogJoint
 				foreach (IThread t in threadsDict.Values)
 				{
 					tracer.Info("--> Disposing {0}", t.DisplayName);
-					t.Dispose();
+					modelThreads.UnregisterThread(t);
 				}
 				tracer.Info("All threads disposed");
 				threadsDict.Clear();
@@ -104,7 +104,7 @@ namespace LogJoint
 		}
 
 		readonly LJTraceSource tracer;
-		readonly IModelThreads modelThreads;
+		readonly IModelThreadsInternal modelThreads;
 		readonly ILogSource logSource;
 		readonly Dictionary<StringSlice, IThread> threadsDict = new Dictionary<StringSlice, IThread>();
 		readonly ReaderWriterLock threadsDictLock = new ReaderWriterLock();

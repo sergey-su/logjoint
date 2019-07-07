@@ -50,7 +50,7 @@ namespace LogJoint.RegularGrammar
 
 	public class MessagesReader : MediaBasedPositionedMessagesReader
 	{
-		readonly ILogSourceThreads threads;
+		readonly ILogSourceThreadsInternal threads;
 		readonly FormatInfo fmtInfo;
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;

@@ -25,7 +25,7 @@ namespace LogJoint
 		readonly LogMedia.IFileSystemWatcher fsWatcher;
 		readonly Dictionary<string, LogPart> parts = new Dictionary<string, LogPart>();
 		readonly ConcatReadingStream concatStream;
-		readonly ILogSourceThreads tempThreads;
+		readonly ILogSourceThreadsInternal tempThreads;
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
 		bool disposed;

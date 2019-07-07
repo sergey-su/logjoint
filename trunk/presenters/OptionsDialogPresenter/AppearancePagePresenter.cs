@@ -99,7 +99,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		void FillSampleMessagesCollection()
 		{
 			foreach (var t in sampleThreads.Items)
-				t.Dispose();
+				sampleThreads.UnregisterThread(t);
 
 			var sampleMessagesCollection = new List<IMessage>();
 			DateTime baseTime = sampleMessagesBaseTime;
@@ -200,7 +200,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly LogViewer.IViewFonts viewFonts;
 		readonly LogViewer.IPresenter sampleLogViewerPresenter;
 		readonly TemporaryColorTheme temporaryColorTheme;
-		readonly IModelThreads sampleThreads;
+		readonly IModelThreadsInternal sampleThreads;
 		LogViewer.DummyModel dummyModel;
 		readonly DateTime sampleMessagesBaseTime;
 		readonly LabeledStepperPresenter.IPresenter fontSizeControl;

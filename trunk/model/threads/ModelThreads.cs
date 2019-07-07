@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LogJoint
 {
-	public class ModelThreads : IModelThreads
+	public class ModelThreads : IModelThreads, IModelThreadsInternal
 	{
 		public ModelThreads(IColorLease colors)
 		{
@@ -18,9 +18,14 @@ namespace LogJoint
 		public event EventHandler OnThreadListChanged;
 		public event EventHandler OnThreadPropertiesChanged;
 
-		IThread IModelThreads.RegisterThread(string id, ILogSource logSource)
+		IThread IModelThreadsInternal.RegisterThread(string id, ILogSource logSource)
 		{
 			return new Thread(id, this, logSource);
+		}
+
+		void IModelThreadsInternal.UnregisterThread(IThread thread)
+		{
+			((Thread)thread).Dispose();
 		}
 
 		IReadOnlyList<IThread> IModelThreads.Items
@@ -115,7 +120,7 @@ namespace LogJoint
 				}
 			}
 
-			void IThread.Dispose()
+			internal void Dispose()
 			{
 				if (!IsDisposed)
 				{

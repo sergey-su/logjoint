@@ -11,8 +11,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
 
-		readonly IModelThreads threads;
-		readonly ILogSourceThreads logSourceThreads;
+		readonly IModelThreadsInternal threads;
+		readonly ILogSourceThreadsInternal logSourceThreads;
 		readonly ISynchronizationContext synchronizationContext;
 		ILogProvider provider;
 		LogViewer.DummyModel model;
