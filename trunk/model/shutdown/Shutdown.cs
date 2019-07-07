@@ -28,6 +28,7 @@ namespace LogJoint
 			tokenSource.Cancel();
 			Cleanup?.Invoke(this, EventArgs.Empty);
 			await Task.WhenAll(cleanupTasks.Select(IgnoreTimeout));
+			Phase2Cleanup?.Invoke(this, EventArgs.Empty);
 		}
 
 		async Task IgnoreTimeout(Task t)
@@ -42,5 +43,6 @@ namespace LogJoint
 		}
 
 		public event EventHandler Cleanup;
+		public event EventHandler Phase2Cleanup;
 	}
 }

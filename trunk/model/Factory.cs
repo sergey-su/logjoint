@@ -68,8 +68,9 @@ namespace LogJoint
 		)
 		{
 			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners);
+			IShutdownSource shutdown = new Shutdown();
 			var tracer = traceSourceFactory.CreateTraceSource("App", "model");
-			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer);
+			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer, shutdown);
 			ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory);
@@ -85,7 +86,6 @@ namespace LogJoint
 			var bookmarks = bookmarksFactory.CreateBookmarks();
 			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
-			IShutdownSource shutdown = new Shutdown();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 			userDataStorage.Init(
@@ -153,7 +153,7 @@ namespace LogJoint
 
 			telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);
 
-			Telemetry.UnhandledExceptionsReporter.Setup(telemetryCollector);
+			Telemetry.UnhandledExceptionsReporter.Setup(telemetryCollector, shutdown);
 
 			IFormatAutodetect formatAutodetect = new FormatAutodetect(
 				recentlyUsedLogs,
