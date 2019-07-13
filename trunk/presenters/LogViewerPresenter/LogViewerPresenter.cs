@@ -23,7 +23,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IScreenBufferFactory screenBufferFactory,
 			IChangeNotification changeNotification,
 			IColorTheme theme,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			IViewModeStrategy viewModeStrategy
 		)
 		{
 			this.model = model;
@@ -35,6 +36,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.telemetry = telemetry;
 			this.screenBufferFactory = screenBufferFactory;
 			this.theme = theme;
+			this.viewModeStrategy = viewModeStrategy;
 
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
@@ -64,7 +66,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.focusedMessageBookmark = Selectors.Create(
 				() => selectionManager.Selection,
 				displayTextGetterSelector,
-				() => rawMessagesViewMode,
+				() => viewModeStrategy.IsRawMessagesMode,
 				(sel, displayTextGetter, rawMode) => 
 				{
 					var f = sel?.First;
@@ -157,6 +159,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void IDisposable.Dispose()
 		{
 			selectionManager.Dispose();
+			viewModeStrategy.Dispose();
 			subscription.Dispose();
 		}
 
@@ -164,7 +167,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public event EventHandler DefaultFocusedMessageAction;
 		public event EventHandler ManualRefresh;
-		public event EventHandler RawViewModeChanged;
 		public event EventHandler ColoringModeChanged;
 		public event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 		public event EventHandler FocusedMessageChanged;
@@ -234,38 +236,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool IPresenter.ShowRawMessages
 		{
-			get
-			{
-				return rawMessagesViewMode;
-			}
-			set
-			{
-				if (rawMessagesViewMode == value)
-					return;
-				if (value && !rawViewAllowed)
-					return;
-				rawMessagesViewMode = value;
-				changeNotification.Post();
-				RawViewModeChanged?.Invoke(this, EventArgs.Empty);
-			}
+			get => viewModeStrategy.IsRawMessagesMode;
+			set => viewModeStrategy.IsRawMessagesMode = value;
 		}
 
-		bool IPresenter.RawViewAllowed
-		{
-			get
-			{
-				return rawViewAllowed;
-			}
-			set
-			{
-				if (rawViewAllowed == value)
-					return;
-				rawViewAllowed = value;
-				if (!rawViewAllowed && ThisIntf.ShowRawMessages)
-					ThisIntf.ShowRawMessages = false;
-				changeNotification.Post();
-			}
-		}
+		bool IPresenter.RawViewAllowed => viewModeStrategy.IsRawMessagesModeAllowed;
 
 		bool IPresenter.ViewTailMode 
 		{ 
@@ -1369,10 +1344,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 					cache.Set(key, ret);
 					return ret;
 				};
-			};
+			}
 
 			return Selectors.Create(
-				() => rawMessagesViewMode,
+				() => viewModeStrategy.IsRawMessagesMode,
 				() => searchResultModel?.SearchFiltersList,
 				(rawMode, searchResultFilters) =>
 				{
@@ -1408,14 +1383,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly ISelectionManager selectionManager;
 		readonly IHighlightingManager highlightingManager;
 		readonly IColorTheme theme;
+		readonly IViewModeStrategy viewModeStrategy;
 
 		IBookmark slaveModeFocusedMessage;
 		string defaultFocusedMessageActionCaption;
 		FontData font = new FontData();
 		bool showTime;
 		bool showMilliseconds = true;
-		bool rawViewAllowed;
-		bool rawMessagesViewMode;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
 		ColoringMode coloring = ColoringMode.Threads;
 		FocusedMessageDisplayModes focusedMessageDisplayMode;

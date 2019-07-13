@@ -14,11 +14,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LogViewer.IPresenter messagesPresenter;
-		readonly AsyncInvokeHelper rawViewUpdater;
 		readonly IChangeNotification changeNotification;
-		bool automaticRawView = true;
-		int visibilityRevision;
-		readonly Func<IReadOnlyList<ILogSource>> visibleSources;
 		readonly Func<ViewState> viewState;
 		readonly (ColoringMode Mode, string Text, string Tooltip)[] coloringOptions = {
 			(ColoringMode.None, "None", "All log messages have same background"),
@@ -40,25 +36,15 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.bookmarks = bookmarks;
 			this.view = view;
 			this.changeNotification = changeNotification;
-			this.messagesPresenter =  logViewerPresenterFactory.Create(
-				logViewerPresenterFactory.CreateLoadedMessagesModel(),
-				view.MessagesView,
-				createIsolatedPresenter: false
-			);
+			this.messagesPresenter =  logViewerPresenterFactory.CreateLoadedMessagesPresenter(view.MessagesView);
 			this.messagesPresenter.DblClickAction = LogViewer.PreferredDblClickAction.SelectWord;
-
-			this.visibleSources = Selectors.Create(
-				() => logSources.Items,
-				() => visibilityRevision,
-				(items, _) => (IReadOnlyList<ILogSource>)ImmutableArray.CreateRange(items.Where(i => i.Visible))
-			);
 
 			var viewColoringOptions = coloringOptions.Select(i => (i.Text, i.Tooltip)).ToArray().AsReadOnly();
 
 			this.viewState = Selectors.Create(
 				() => (messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages),
 				() => messagesPresenter.ViewTailMode,
-				visibleSources,
+				() => logSources.VisibleItems,
 				() => messagesPresenter.Coloring,
 				() => messagesPresenter.NavigationIsInProgress,
 				(raw, viewTailMode, sources, coloring, navigation) => new ViewState
@@ -71,32 +57,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				}
 			);
 
-			rawViewUpdater = new AsyncInvokeHelper(synchronizationContext,() =>
-			{
-				UpdateRawViewAvailability();
-				UpdateRawViewMode();
-			});
-			logSources.OnLogSourceRemoved += (sender, evt) =>
-			{
-				if (logSources.Items.Count == 0)
-					automaticRawView = true; // reset automatic mode when last source is gone
-				rawViewUpdater.Invoke();
-			};
-			logSources.OnLogSourceAdded += (sender, evt) =>
-			{
-				rawViewUpdater.Invoke();
-			};
-			logSources.OnLogSourceVisiblityChanged += (sender, evt) =>
-			{
-				++visibilityRevision;
-				changeNotification.Post();
-				rawViewUpdater.Invoke();
-			};
-
-
 			this.view.SetViewModel(this);
-
-			rawViewUpdater.Invoke();
 		}
 
 		public event EventHandler OnResizingStarted;
@@ -115,7 +76,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		void IViewModel.OnToggleRawView()
 		{
 			messagesPresenter.ShowRawMessages = !messagesPresenter.ShowRawMessages;
-			automaticRawView = false; // when mode is manually changed -> stop automatic selection of raw view
 		}
 
 		void IViewModel.OnToggleViewTail ()
@@ -157,21 +117,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		void IViewModel.OnResizingStarted()
 		{
 			OnResizingStarted?.Invoke (this, EventArgs.Empty);
-		}
-
-		void UpdateRawViewAvailability()
-		{
-			bool rawViewAllowed = visibleSources().Any(s => s.Provider.Factory.ViewOptions.RawViewAllowed);
-			messagesPresenter.RawViewAllowed = rawViewAllowed;
-		}
-
-		void UpdateRawViewMode()
-		{
-			if (automaticRawView)
-			{
-				bool allWantRawView = visibleSources().All(s => s.Provider.Factory.ViewOptions.PreferredView == PreferredViewMode.Raw);
-				messagesPresenter.ShowRawMessages = allWantRawView;
-			}
 		}
 	};
 };

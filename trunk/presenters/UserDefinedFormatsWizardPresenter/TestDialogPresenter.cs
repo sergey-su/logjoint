@@ -37,8 +37,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			this.logSourceThreads = new LogSourceThreads(
 				LJTraceSource.EmptyTracer, threads, null);
 			this.model = new Presenters.LogViewer.DummyModel(threads);
-			this.logPresenter = logViewerPresenterFactory.Create(
-				model, view.LogViewer, createIsolatedPresenter: true);
+			this.logPresenter = logViewerPresenterFactory.CreateIsolatedPresenter(model, view.LogViewer);
 			logPresenter.ShowTime = true;
 		}
 

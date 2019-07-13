@@ -38,6 +38,12 @@ namespace LogJoint
 			this.recentlyUsedEntities = recentlyUsedEntities;
 			this.changeNotification = changeNotification;
 
+			this.visibleItems = Selectors.Create(
+				() => logSources,
+				() => visibilityRevision,
+				(items, _) => ImmutableArray.CreateRange(items.Where(i => i.Visible))
+			);
+
 			heartbeat.OnTimer += (s, e) =>
 			{
 				if (e.IsRareUpdate)
@@ -61,6 +67,8 @@ namespace LogJoint
 		public event EventHandler OnLogTimeGapsChanged;
 
 		IReadOnlyList<ILogSource> ILogSourcesManager.Items => logSources;
+
+		IReadOnlyList<ILogSource> ILogSourcesManager.VisibleItems => visibleItems();
 
 		ILogSource ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
 		{
@@ -125,6 +133,8 @@ namespace LogJoint
 
 		void ILogSourcesManagerInternal.OnSourceVisibilityChanged(ILogSource t)
 		{
+			++visibilityRevision;
+			changeNotification.Post();
 			OnLogSourceVisiblityChanged?.Invoke(this, EventArgs.Empty);
 		}
 
@@ -178,6 +188,8 @@ namespace LogJoint
 		readonly LJTraceSource tracer;
 		readonly IChangeNotification changeNotification;
 		ImmutableList<ILogSource> logSources = ImmutableList<ILogSource>.Empty;
+		readonly Func<ImmutableArray<ILogSource>> visibleItems;
+		int visibilityRevision;
 
 		int lastLogSourceId;
 

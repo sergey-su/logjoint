@@ -583,6 +583,15 @@
     <Compile Include="..\..\..\presenters\Common\Reactive\List.cs">
       <Link>Common\Reactive\List.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\DelegatingViewModeStrategy.cs">
+      <Link>LogViewerPresenter\ViewModeStrategies\DelegatingViewModeStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\LoadedMessagesViewModeStrategy.cs">
+      <Link>LogViewerPresenter\ViewModeStrategies\LoadedMessagesViewModeStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\ProhibitiveViewModeStrategy.cs">
+      <Link>LogViewerPresenter\ViewModeStrategies\ProhibitiveViewModeStrategy.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -640,6 +649,7 @@
     <Folder Include="Extensibility\" />
     <Folder Include="Common\Reactive\" />
     <Folder Include="Preprocessing\" />
+    <Folder Include="LogViewerPresenter\ViewModeStrategies\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

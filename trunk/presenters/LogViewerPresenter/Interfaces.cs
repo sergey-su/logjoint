@@ -20,10 +20,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ShowTime { get; set; }
 		bool ShowMilliseconds { get; set; }
 		bool ShowRawMessages { get; set; }
-		bool RawViewAllowed { get; set; }
+		bool RawViewAllowed { get; }
 		bool ViewTailMode { get; set; }
 		UserInteraction DisabledUserInteractions { get; set; }
-		ColoringMode Coloring { get; set; }
+		ColoringMode Coloring { get; set; } // todo: coloring stragery
 		bool NavigationIsInProgress { get; }
 
 		Task<bool> SelectMessageAt(IBookmark bmk);
@@ -58,7 +58,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler FocusedMessageBookmarkChanged;
 		event EventHandler DefaultFocusedMessageAction;
 		event EventHandler ManualRefresh;
-		event EventHandler RawViewModeChanged;
 		event EventHandler ColoringModeChanged;
 		event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 	};
@@ -338,9 +337,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IPresenterFactory
 	{
-		IPresenter Create(IModel model, IView view, bool createIsolatedPresenter, IColorTheme theme = null);
-		IModel CreateLoadedMessagesModel();
-		ISearchResultModel CreateSearchResultsModel();
+		IPresenter CreateLoadedMessagesPresenter(IView view);
+		(IPresenter Presenter, ISearchResultModel Model) CreateSearchResultsPresenter(
+			IView view, IPresenter loadedMessagesPresenter);
+		IPresenter CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme = null);
 	};
 
 	public class ContextMenuEventArgs : EventArgs
@@ -353,5 +353,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				items = new List<MenuData.ExtendedItem>();
 			items.Add(item);
 		}
+	};
+
+	public interface IViewModeStrategy: IDisposable
+	{
+		bool IsRawMessagesMode { get; set; }
+		bool IsRawMessagesModeAllowed { get; }
 	};
 };

@@ -54,6 +54,11 @@ namespace LogJoint
 		/// An immutable list of currently open and not yet disposed log sources.
 		/// </summary>
 		IReadOnlyList<ILogSource> Items { get; }
+		/// <summary>
+		/// An immutable list of currently open and visible log sources.
+		/// Subset of <see cref="Items"/>.
+		/// </summary>
+		IReadOnlyList<ILogSource> VisibleItems { get; }
 		ILogSource Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
 		ITimeOffsetsBuilder CreateTimeOffsetsBuilder();

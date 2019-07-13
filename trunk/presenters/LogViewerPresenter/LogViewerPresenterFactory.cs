@@ -39,16 +39,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.traceSourceFactory = traceSourceFactory;
 		}
 
-		IPresenter IPresenterFactory.Create (IModel model, IView view, bool createIsolatedPresenter, IColorTheme theme)
+		IPresenter IPresenterFactory.CreateLoadedMessagesPresenter(IView view)
 		{
-			return new Presenter(model, view, heartbeat, 
-				createIsolatedPresenter ? null : presentationFacade, clipboard, bookmarksFactory, telemetry,
-				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory);
-		}
-
-		IModel IPresenterFactory.CreateLoadedMessagesModel()
-		{
-			return new LoadedMessages.PresentationModel(
+			IModel model = new LoadedMessages.PresentationModel(
 				logSources,
 				modelInvoke,
 				modelThreads,
@@ -56,11 +49,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				bookmarks,
 				settings
 			);
+			return new Presenter(model, view, heartbeat,
+				presentationFacade, clipboard, bookmarksFactory, telemetry,
+				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
+				new LoadedMessagesViewModeStrategy(logSources, changeNotification));
 		}
 
-		ISearchResultModel IPresenterFactory.CreateSearchResultsModel()
+		(IPresenter, ISearchResultModel) IPresenterFactory.CreateSearchResultsPresenter(IView view, IPresenter loadedMessagesPresenter)
 		{
-			return new SearchResult.SearchResultMessagesModel(
+			ISearchResultModel model = new SearchResult.SearchResultMessagesModel(
 				logSources,
 				searchManager,
 				filtersFactory,
@@ -68,6 +65,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 				bookmarks,
 				settings
 			);
+			return (
+				new Presenter(model, view, heartbeat,
+					presentationFacade, clipboard, bookmarksFactory, telemetry,
+					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
+					new DelegatingViewModeStrategy(loadedMessagesPresenter)),
+				model
+			);
+		}
+
+		IPresenter IPresenterFactory.CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme)
+		{
+			return new Presenter(
+				model, view, heartbeat, null, clipboard, bookmarksFactory, telemetry,
+				new ScreenBufferFactory(changeNotification),
+				changeNotification, theme ?? this.theme, traceSourceFactory,
+				new ProhibitiveViewModeStrategy());
 		}
 
 		readonly IChangeNotification changeNotification;

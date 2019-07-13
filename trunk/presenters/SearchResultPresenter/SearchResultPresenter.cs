@@ -33,12 +33,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.statusReports = statusReports;
 			this.theme = theme;
 			this.changeNotification = changeNotification;
-			var messagesModel = logViewerPresenterFactory.CreateSearchResultsModel();
-			this.messagesPresenter = logViewerPresenterFactory.Create(
-				messagesModel,
-				view.MessagesView,
-				createIsolatedPresenter: false
-			);
+			var (messagesPresenter, messagesModel) = logViewerPresenterFactory.CreateSearchResultsPresenter(
+				view.MessagesView, loadedMessagesPresenter.LogViewerPresenter);
+			this.messagesPresenter = messagesPresenter;
 			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.FocusedMessageDisplayModes.Slave;
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.DoDefaultAction;
 			this.messagesPresenter.DefaultFocusedMessageActionCaption = "Go to message";
@@ -95,7 +92,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 				uiThreadSynchronization.Post(ValidateView);
 				uiThreadSynchronization.Post(PreSearchActions);
 			};
-			this.UpdateRawViewMode();
 			this.UpdateColoringMode();
 
 			heartbeat.OnTimer += (sender, args) =>
@@ -104,10 +100,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 					ValidateView();
 			};
 
-			loadedMessagesPresenter.LogViewerPresenter.RawViewModeChanged += (sender, args) =>
-			{
-				UpdateRawViewMode();
-			};
 			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, args) =>
 			{
 				UpdateColoringMode();
@@ -358,12 +350,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 					searchingStatusReport = null;
 				}
 			}
-		}
-
-		void UpdateRawViewMode()
-		{
-			messagesPresenter.RawViewAllowed = true;
-			messagesPresenter.ShowRawMessages = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
 		}
 
 		void UpdateColoringMode()
