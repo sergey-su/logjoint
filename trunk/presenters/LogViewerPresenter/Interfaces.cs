@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool RawViewAllowed { get; }
 		bool ViewTailMode { get; set; }
 		UserInteraction DisabledUserInteractions { get; set; }
-		ColoringMode Coloring { get; set; } // todo: coloring stragery
+		ColoringMode Coloring { get; set; }
 		bool NavigationIsInProgress { get; }
 
 		Task<bool> SelectMessageAt(IBookmark bmk);
@@ -58,7 +58,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler FocusedMessageBookmarkChanged;
 		event EventHandler DefaultFocusedMessageAction;
 		event EventHandler ManualRefresh;
-		event EventHandler ColoringModeChanged;
 		event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 	};
 
@@ -359,5 +358,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		bool IsRawMessagesMode { get; set; }
 		bool IsRawMessagesModeAllowed { get; }
+	};
+
+	public interface IColoringModeStrategy : IDisposable
+	{
+		ColoringMode Coloring { get; set; }
 	};
 };

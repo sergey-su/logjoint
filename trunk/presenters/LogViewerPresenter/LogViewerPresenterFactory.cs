@@ -52,7 +52,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return new Presenter(model, view, heartbeat,
 				presentationFacade, clipboard, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
-				new LoadedMessagesViewModeStrategy(logSources, changeNotification));
+				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
+				new PermissiveColoringModeStrategy(changeNotification));
 		}
 
 		(IPresenter, ISearchResultModel) IPresenterFactory.CreateSearchResultsPresenter(IView view, IPresenter loadedMessagesPresenter)
@@ -69,7 +70,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				new Presenter(model, view, heartbeat,
 					presentationFacade, clipboard, bookmarksFactory, telemetry,
 					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
-					new DelegatingViewModeStrategy(loadedMessagesPresenter)),
+					new DelegatingViewModeStrategy(loadedMessagesPresenter),
+					new DelegatingColoringModeStrategy(loadedMessagesPresenter)
+				),
 				model
 			);
 		}
@@ -80,7 +83,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				model, view, heartbeat, null, clipboard, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification),
 				changeNotification, theme ?? this.theme, traceSourceFactory,
-				new ProhibitiveViewModeStrategy());
+				new ProhibitiveViewModeStrategy(),
+				new PermissiveColoringModeStrategy(changeNotification)
+			);
 		}
 
 		readonly IChangeNotification changeNotification;

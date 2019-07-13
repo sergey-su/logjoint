@@ -92,17 +92,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 				uiThreadSynchronization.Post(ValidateView);
 				uiThreadSynchronization.Post(PreSearchActions);
 			};
-			this.UpdateColoringMode();
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
 				if (args.IsNormalUpdate)
 					ValidateView();
-			};
-
-			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, args) =>
-			{
-				UpdateColoringMode();
 			};
 
 			view.SetViewModel(this);
@@ -350,11 +344,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 					searchingStatusReport = null;
 				}
 			}
-		}
-
-		void UpdateColoringMode()
-		{
-			messagesPresenter.Coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
 		}
 
 		void UpdateExpandedState()

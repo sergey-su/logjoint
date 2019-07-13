@@ -583,6 +583,12 @@
     <Compile Include="..\..\..\presenters\Common\Reactive\List.cs">
       <Link>Common\Reactive\List.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ColoringModeStrategies\DelegatingColoringModeStrategy.cs">
+      <Link>LogViewerPresenter\ColoringModeStrategies\DelegatingColoringModeStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ColoringModeStrategies\PermissiveColoringModeStrategy.cs">
+      <Link>LogViewerPresenter\ColoringModeStrategies\PermissiveColoringModeStrategy.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\DelegatingViewModeStrategy.cs">
       <Link>LogViewerPresenter\ViewModeStrategies\DelegatingViewModeStrategy.cs</Link>
     </Compile>
@@ -650,6 +656,7 @@
     <Folder Include="Common\Reactive\" />
     <Folder Include="Preprocessing\" />
     <Folder Include="LogViewerPresenter\ViewModeStrategies\" />
+    <Folder Include="LogViewerPresenter\ColoringModeStrategies\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

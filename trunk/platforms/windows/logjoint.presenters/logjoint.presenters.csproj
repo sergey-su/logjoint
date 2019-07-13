@@ -181,6 +181,12 @@
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\LoadedMessagesPresenter.cs">
       <Link>LoadedMessagesPresenter\LoadedMessagesPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ColoringModeStrategies\DelegatingColoringModeStrategy.cs">
+      <Link>LogViewerPresenter\ColoringModeStrategies\DelegatingColoringModeStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ColoringModeStrategies\PermissiveColoringModeStrategy.cs">
+      <Link>LogViewerPresenter\ColoringModeStrategies\PermissiveColoringModeStrategy.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\DummyModel.cs">
       <Link>LogViewerPresenter\DummyModel.cs</Link>
     </Compile>
@@ -249,6 +255,15 @@
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\Selection\WordSelection.cs">
       <Link>LogViewerPresenter\Selection\WordSelection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\DelegatingViewModeStrategy.cs">
+      <Link>LogViewerPresenter\ViewModeStrategies\DelegatingViewModeStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\LoadedMessagesViewModeStrategy.cs">
+      <Link>LogViewerPresenter\ViewModeStrategies\LoadedMessagesViewModeStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\ProhibitiveViewModeStrategy.cs">
+      <Link>LogViewerPresenter\ViewModeStrategies\ProhibitiveViewModeStrategy.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\MainFormPresenter\Interfaces.cs">
       <Link>MainFormPresenter\Interfaces.cs</Link>
@@ -608,6 +623,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

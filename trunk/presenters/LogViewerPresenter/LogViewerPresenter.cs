@@ -24,7 +24,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IChangeNotification changeNotification,
 			IColorTheme theme,
 			ITraceSourceFactory traceSourceFactory,
-			IViewModeStrategy viewModeStrategy
+			IViewModeStrategy viewModeStrategy,
+			IColoringModeStrategy coloringModeStrategy
 		)
 		{
 			this.model = model;
@@ -37,6 +38,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.screenBufferFactory = screenBufferFactory;
 			this.theme = theme;
 			this.viewModeStrategy = viewModeStrategy;
+			this.coloringModeStrategy = coloringModeStrategy;
 
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
@@ -167,11 +169,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public event EventHandler DefaultFocusedMessageAction;
 		public event EventHandler ManualRefresh;
-		public event EventHandler ColoringModeChanged;
 		public event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler FocusedMessageBookmarkChanged;
-
 
 		LogFontSize IPresenter.FontSize
 		{
@@ -256,18 +256,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		ColoringMode IPresenter.Coloring
 		{
-			get
-			{
-				return coloring;
-			}
-			set
-			{
-				if (coloring == value)
-					return;
-				coloring = value;
-				changeNotification.Post();
-				ColoringModeChanged?.Invoke(this, EventArgs.Empty);
-			}
+			get => coloringModeStrategy.Coloring;
+			set => coloringModeStrategy.Coloring = value;
 		}
 
 		async Task<Dictionary<IMessagesSource, long>> IPresenter.GetCurrentPositions(CancellationToken cancellation)
@@ -708,7 +698,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		string IViewModel.EmptyViewMessage => screenBuffer.Messages.Count == 0 ? model.MessageToDisplayWhenMessagesCollectionIsEmpty : null;
 
-		ColoringMode IPresentationProperties.Coloring => coloring;
+		ColoringMode IPresentationProperties.Coloring => coloringModeStrategy.Coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
 		bool IPresentationProperties.ShowTime => showTime;
 
@@ -989,7 +979,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private void ReadGlobalSettings()
 		{
-			this.coloring = model.GlobalSettings.Appearance.Coloring;
+			this.coloringModeStrategy.Coloring = model.GlobalSettings.Appearance.Coloring;
 			this.font = new FontData(model.GlobalSettings.Appearance.FontFamily, model.GlobalSettings.Appearance.FontSize);
 			changeNotification.Post();
 		}
@@ -1272,7 +1262,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, model.Bookmarks?.Items),
-				() => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
+				() => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring: coloringModeStrategy.Coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
@@ -1384,6 +1374,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IHighlightingManager highlightingManager;
 		readonly IColorTheme theme;
 		readonly IViewModeStrategy viewModeStrategy;
+		readonly IColoringModeStrategy coloringModeStrategy;
 
 		IBookmark slaveModeFocusedMessage;
 		string defaultFocusedMessageActionCaption;
@@ -1391,7 +1382,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool showTime;
 		bool showMilliseconds = true;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
-		ColoringMode coloring = ColoringMode.Threads;
 		FocusedMessageDisplayModes focusedMessageDisplayMode;
 		int slaveMessagePositionAnimationStep;
 		CancellationTokenSource slaveMessageAnimationThreadCancellation;
