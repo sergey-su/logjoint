@@ -31,6 +31,8 @@ namespace LogJoint.Tests.Integration
 		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
 		public string PostprocessingTabPageId;
+		public UI.Presenters.LoadedMessages.IViewModel LoadedMessages;
+		public UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
 	};
 
 	public class TestAppConfig
@@ -148,6 +150,14 @@ namespace LogJoint.Tests.Integration
 
 			mocks.Views.CreatePostprocessingTabPage().SetViewModel(
 				Arg.Do<UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel>(x => viewModel.PostprocessingTabPage = x));
+
+			mocks.Views.CreateLoadedMessagesView().SetViewModel(
+				Arg.Do<UI.Presenters.LoadedMessages.IViewModel>(x => viewModel.LoadedMessages = x));
+
+			mocks.Views.CreateSearchResultView().MessagesView.SetViewModel(
+				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.SearchResultLogViewer = x));
+			mocks.Views.CreateSearchResultView().MessagesView.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
+
 		}
 
 		public async Task Dispose()
@@ -156,9 +166,12 @@ namespace LogJoint.Tests.Integration
 				return;
 			disposed = true;
 			var tcs = new TaskCompletionSource<int>();
-			var mainFormView = Mocks.Views.CreateMainFormView();
-			mainFormView.When(x => x.ForceClose()).Do(x => tcs.SetResult(0));
-			ViewModel.MainForm.OnClosing();
+			await this.Model.SynchronizationContext.Invoke(() =>
+			{
+				var mainFormView = Mocks.Views.CreateMainFormView();
+				mainFormView.When(x => x.ForceClose()).Do(x => tcs.SetResult(0));
+				ViewModel.MainForm.OnClosing();
+			});
 			await tcs.Task;
 			traceListener.Flush();
 		}

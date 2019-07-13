@@ -92,6 +92,9 @@
     <Compile Include="..\..\shared\integration.tests\Utils\TestApp.cs">
       <Link>Utils\TestApp.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\Viewer\ViewModeTests.cs">
+      <Link>Viewer\ViewModeTests.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

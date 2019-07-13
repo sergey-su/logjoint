@@ -75,7 +75,7 @@ namespace LogJoint
 	{
 		/// <summary>
 		/// Numeric id. Unique in scope of LogJoint's process lifetime.
-		/// Nonotonically incremented: newer searches have bigger ids than older ones.
+		/// Monotonically incremented: newer searches have bigger ids than older ones.
 		/// </summary>
 		int Id { get; }
 		SearchResultStatus Status { get; }

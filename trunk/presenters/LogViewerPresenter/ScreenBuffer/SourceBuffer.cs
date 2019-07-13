@@ -303,7 +303,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private void Append(ScreenBufferLinesRange range)
 		{
-			Debug.Assert(endPosition == range.BeginPosition);
+			diagnostics.VerifyPositionsOrderBeforeRangeConcatenation(
+				endPosition, range.BeginPosition, source.HasConsecutiveMessages);
 			lines.AddRange(range.Lines);
 			endPosition = range.EndPosition;
 			if (Debugger.IsAttached)
@@ -314,7 +315,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private void Prepend(ScreenBufferLinesRange range)
 		{
-			Debug.Assert(beginPosition == range.EndPosition);
+			diagnostics.VerifyPositionsOrderBeforeRangeConcatenation(
+				range.EndPosition, beginPosition, source.HasConsecutiveMessages);
 			lines.InsertRange(0, range.Lines);
 			beginPosition = range.BeginPosition;
 			if (Debugger.IsAttached)

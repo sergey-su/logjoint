@@ -22,6 +22,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			VerifyLines(lines.Select(l => l.ToScreenBufferEntry()), verifyConsecutiveMessages);
 		}
 
+		public void VerifyPositionsOrderBeforeRangeConcatenation(long end, long begin, bool mustBeConsecutiveMessages)
+		{
+			if (!isEnabled)
+				return;
+			if (mustBeConsecutiveMessages)
+				Assert(begin == end);
+			else
+				Assert(begin >= end);
+		}
+
 		public void VerifyLines(IEnumerable<ScreenBufferEntry> entries, bool verifyConsecutiveMessages)
 		{
 			if (!isEnabled)
