@@ -6,7 +6,8 @@ namespace LogJoint
 {
 	internal interface ILogSourcesManagerInternal: ILogSourcesManager
 	{
-		List<ILogSource> Container { get; }
+		void Add(ILogSource ls);
+		void Remove(ILogSource ls);
 
 		#region Single-threaded notifications
 		void FireOnLogSourceAdded(ILogSource sender);

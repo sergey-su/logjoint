@@ -63,7 +63,7 @@ namespace LogJoint
 				throw;
 			}
 
-			this.owner.Container.Add(this);
+			this.owner.Add(this);
 			this.owner.FireOnLogSourceAdded(this);
 
 			this.LoadBookmarks();
@@ -198,11 +198,11 @@ namespace LogJoint
 			if (isDisposed)
 				return;
 			isDisposed = true;
+			owner.Remove(this);
 			await timeGaps.Dispose();
 			if (provider != null)
 			{
 				await provider.Dispose();
-				owner.Container.Remove(this);
 				owner.FireOnLogSourceRemoved(this);
 			}
 		}

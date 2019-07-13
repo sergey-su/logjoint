@@ -68,6 +68,9 @@
     <Compile Include="..\..\shared\integration.tests\Chromium\Formats\ChromeDebugFormatTests.cs">
       <Link>Chromium\Formats\ChromeDebugFormatTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\Chromium\Formats\ChromeDriverFormatTests.cs">
+      <Link>Chromium\Formats\ChromeDriverFormatTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\integration.tests\LogsHistory\LogsHistoryTests.cs">
       <Link>LogsHistory\LogsHistoryTests.cs</Link>
     </Compile>

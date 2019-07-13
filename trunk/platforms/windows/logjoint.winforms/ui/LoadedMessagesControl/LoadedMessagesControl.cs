@@ -7,13 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.LoadedMessages;
-using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 
 namespace LogJoint.UI
 {
 	public partial class LoadedMessagesControl : UserControl, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 
 		public LoadedMessagesControl()
 		{
@@ -24,9 +23,9 @@ namespace LogJoint.UI
 			rawViewToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.RawView, toolStrip1.ImageScalingSize);
 
 			toolStrip1.ResizingEnabled = true;
-			toolStrip1.ResizingStarted += (sender, args) => eventsHandler.OnResizingStarted();
-			toolStrip1.ResizingFinished += (sender, args) => eventsHandler.OnResizingFinished();
-			toolStrip1.Resizing += (sender, args) => eventsHandler.OnResizing(args.Delta);
+			toolStrip1.ResizingStarted += (sender, args) => viewModel.OnResizingStarted();
+			toolStrip1.ResizingFinished += (sender, args) => viewModel.OnResizingFinished();
+			toolStrip1.Resizing += (sender, args) => viewModel.OnResizing(args.Delta);
 		}
 
 		Presenters.LogViewer.IView Presenters.LoadedMessages.IView.MessagesView
@@ -34,63 +33,60 @@ namespace LogJoint.UI
 			get { return logViewerControl; }
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
-		}
+			this.viewModel = viewModel;
 
-		void IView.SetRawViewButtonState(bool visible, bool checked_)
-		{
-			rawViewToolStripButton.Visible = visible;
-			rawViewToolStripButton.Checked = checked_; 
-		}
+			var updateView = Updaters.Create(
+				() => viewModel.ViewState,
+				state =>
+				{
+					toggleBookmarkButton.Visible = state.ToggleBookmark.Visible;
+					toggleBookmarkButton.ToolTipText = state.ToggleBookmark.Tooltip;
+					rawViewToolStripButton.Visible = state.RawViewButton.Visible;
+					rawViewToolStripButton.Checked = state.RawViewButton.Checked;
+					rawViewToolStripButton.ToolTipText = state.RawViewButton.Tooltip;
+					viewTailToolStripButton.Checked = state.ViewTailButton.Checked;
+					viewTailToolStripButton.Visible = state.ViewTailButton.Visible;
+					viewTailToolStripButton.ToolTipText = state.ViewTailButton.Tooltip;
+					busyIndicatorLabel.Visible = state.NavigationProgressIndicator.Visible;
+					busyIndicatorLabel.ToolTipText = state.NavigationProgressIndicator.Tooltip;
+					coloringDropDownButton.Visible = state.Coloring.Visible;
+					foreach (var i in (new [] { coloringMenuItem1, coloringMenuItem2, coloringMenuItem3 })
+						.Select((option, idx) => (option, idx)))
+					{
+						i.option.Text = state.Coloring.Options[i.idx].Text;
+						i.option.ToolTipText = state.Coloring.Options[i.idx].Tooltip;
+						i.option.Tag = i.idx;
+						i.option.Checked = i.idx == state.Coloring.Selected;
+					}
+				}
+			);
 
-		void IView.SetViewTailButtonState(bool visible, bool checked_, string tooltip)
-		{
-			viewTailToolStripButton.Checked = checked_;
-			viewTailToolStripButton.Visible = visible;
-			viewTailToolStripButton.ToolTipText = tooltip;
-		}
-
-		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
-		{
-			coloringNoneMenuItem.Checked = noColoringChecked;
-			coloringSourcesMenuItem.Checked = sourcesColoringChecked;
-			coloringThreadsMenuItem.Checked = threadsColoringChecked;
-		}
-
-		void IView.SetNavigationProgressIndicatorVisibility(bool value)
-		{
-			busyIndicatorLabel.Visible = value;
+			viewModel.ChangeNotification.CreateSubscription(updateView);
 		}
 
 		private void rawViewToolStripButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnToggleRawView();
+			viewModel.OnToggleRawView();
 		}
 
 		private void viewTailToolStripButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnToggleViewTail();
+			viewModel.OnToggleViewTail();
 		}
 
 		private void coloringMenuItem_Click(object sender, EventArgs e)
 		{
-			ColoringMode coloring;
-			if (sender == coloringNoneMenuItem)
-				coloring = ColoringMode.None;
-			else if (sender == coloringThreadsMenuItem)
-				coloring = ColoringMode.Threads;
-			else if (sender == coloringSourcesMenuItem)
-				coloring = ColoringMode.Sources;
-			else
-				return;
-			eventsHandler.OnColoringButtonClicked(coloring);
+			if (sender is ToolStripMenuItem item && item.Tag is int modeIdx)
+			{
+				viewModel.OnColoringButtonClicked(modeIdx);
+			}
 		}
 
 		private void toggleBookmarkButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnToggleBookmark();
+			viewModel.OnToggleBookmark();
 		}
 	}
 }

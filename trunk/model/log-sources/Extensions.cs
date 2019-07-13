@@ -160,7 +160,7 @@ namespace LogJoint
 			string fileName
 		)
 		{
-			var visibleSources = sources.Items.Where(s => !s.IsDisposed && s.Visible).ToArray();
+			var visibleSources = sources.Items.Where(s => s.Visible).ToArray();
 			using (var fs = new StreamWriter(fileName, false, Encoding.UTF8))
 			{
 				await EnumMessagesAndMerge(

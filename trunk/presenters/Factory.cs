@@ -145,7 +145,9 @@ namespace LogJoint.UI.Presenters
 				model.Bookmarks,
 				loadedMessagesView,
 				model.HeartBeatTimer,
-				logViewerPresenterFactory
+				logViewerPresenterFactory,
+				model.ChangeNotification,
+				model.SynchronizationContext
 			);
 
 			LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;

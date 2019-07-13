@@ -1,127 +1,73 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
+using System.Diagnostics;
 using Foundation;
 using LogJoint.UI.Presenters.LoadedMessages;
 using AppKit;
-using LogJoint.Settings;
 
 namespace LogJoint.UI
 {
 	public partial class LoadedMessagesControlAdapter: NSViewController, IView
 	{
-		LogViewerControlAdapter logViewerControlAdapter;
-		IViewEvents viewEvents;
+		readonly LogViewerControlAdapter logViewerControlAdapter;
+		IViewModel viewModel;
 
-		public LoadedMessagesControlAdapter(IntPtr handle)
-			: base(handle)
-		{
-			Initialize();
-		}
-
-		// Called when created directly from a XIB file
-		[Export("initWithCoder:")]
-		public LoadedMessagesControlAdapter(NSCoder coder)
-			: base(coder)
-		{
-			Initialize();
-		}
-
-		// Call to load from the XIB/NIB file
 		public LoadedMessagesControlAdapter()
 			: base("LoadedMessagesControl", NSBundle.MainBundle)
 		{
-			Initialize();
-		}
-
-		void Initialize()
-		{
-			logViewerControlAdapter = new LogViewerControlAdapter();
+			logViewerControlAdapter = new LogViewerControlAdapter ();
 		}
 			
 		public override void AwakeFromNib()
 		{
 			logViewerControlAdapter.View.MoveToPlaceholder(logViewerPlaceholder);
-
-			rawViewButton.ToolTip = "Toggle raw log view";
-			toggleBookmarkButton.ToolTip = "Toggle bookmark";
-			coloringButton.ToolTip = "Log coloring";
-
-			Action<int, string, string, int> initItem = (itemIndex, title, tooltop, tag) =>
-			{
-				var item = coloringButton.ItemAtIndex(itemIndex);
-				item.Title = title;
-				item.ToolTip = tooltop;
-				item.Tag = tag;
-			};
-			initItem(0, "Threads", "Log messages with different threads to have different background color", (int)Appearance.ColoringMode.Threads);
-			initItem(1, "Sources", "Log messages from different log sources to have different background color", (int)Appearance.ColoringMode.Sources);
-			initItem(2, "None", "White background for all log messages", (int)Appearance.ColoringMode.None);
 		}
 
-		void IView.SetEventsHandler(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = presenter;
+			this.viewModel = viewModel;
+
+			var updateView = Updaters.Create (
+				() => viewModel.ViewState,
+				state => {
+					toggleBookmarkButton.Hidden = !state.ToggleBookmark.Visible;
+					toggleBookmarkButton.ToolTip = state.ToggleBookmark.Tooltip;
+
+					rawViewButton.Hidden = !state.RawViewButton.Visible;
+					rawViewButton.State = state.RawViewButton.Checked ? NSCellStateValue.On : NSCellStateValue.Off;
+					rawViewButton.ToolTip = state.RawViewButton.Tooltip;
+
+					viewTailButton.Hidden = !state.ViewTailButton.Visible;
+					viewTailButton.State = state.ViewTailButton.Checked ? NSCellStateValue.On : NSCellStateValue.Off;
+					viewTailButton.ToolTip = state.ViewTailButton.Tooltip;
+
+					navigationProgressIndicator.Hidden = !state.NavigationProgressIndicator.Visible;
+					navigationProgressIndicator.ToolTip = state.NavigationProgressIndicator.Tooltip;
+
+					coloringButton.Hidden = !state.Coloring.Visible;
+					coloringLabel.Hidden = !state.Coloring.Visible;
+					Debug.Assert (state.Coloring.Options.Count == coloringButton.ItemCount);
+					foreach (var option in state.Coloring.Options.Select ((opt, idx) => (opt, idx))) {
+						var item = coloringButton.ItemAtIndex (option.idx);
+						item.Title = option.opt.Text;
+						item.ToolTip = option.opt.Tooltip;
+						item.Tag = option.idx;
+					}
+					coloringButton.SelectItem (state.Coloring.Selected);
+				}
+			);
+
+			viewModel.ChangeNotification.CreateSubscription (updateView);
 		}
 
-		void IView.SetRawViewButtonState(bool visible, bool checked_)
-		{
-			rawViewButton.Hidden = !visible;
-			rawViewButton.State = checked_ ? NSCellStateValue.On : NSCellStateValue.Off;
-		}
+		Presenters.LogViewer.IView IView.MessagesView => logViewerControlAdapter;
 
-		void IView.SetViewTailButtonState (bool visible, bool checked_, string tooltip)
-		{
-			viewTailButton.State = checked_ ? NSCellStateValue.On : NSCellStateValue.Off;
-			viewTailButton.Hidden = !visible;
-			viewTailButton.ToolTip = tooltip;
-		}
+		partial void OnRawViewButtonClicked (NSObject sender) => viewModel.OnToggleRawView ();
 
-		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
-		{
-			Appearance.ColoringMode mode;
-			if (noColoringChecked)
-				mode = Appearance.ColoringMode.None;
-			else if (sourcesColoringChecked)
-				mode = Appearance.ColoringMode.Sources;
-			else
-				mode = Appearance.ColoringMode.Threads;
-			if ((int)mode == coloringButton.SelectedItem.Tag)
-				return;
-			coloringButton.SelectItem(coloringButton.Items().FirstOrDefault(i => i.Tag == (int)mode));
-		}
+		partial void OnToggleBookmarkButtonClicked (NSObject sender) => viewModel.OnToggleBookmark ();
 
-		void IView.SetNavigationProgressIndicatorVisibility(bool value)
-		{
-			navigationProgressIndicator.Hidden = !value;
-		}
+		partial void OnViewTailButtonClicked (NSObject sender) => viewModel.OnToggleViewTail ();
 
-		LogJoint.UI.Presenters.LogViewer.IView IView.MessagesView
-		{
-			get
-			{
-				return logViewerControlAdapter;
-			}
-		}
-
-		partial void OnRawViewButtonClicked (NSObject sender)
-		{
-			viewEvents.OnToggleRawView();
-		}
-
-		partial void OnToggleBookmarkButtonClicked (NSObject sender)
-		{
-			viewEvents.OnToggleBookmark();
-		}
-
-		partial void OnViewTailButtonClicked (NSObject sender)
-		{
-			viewEvents.OnToggleViewTail();
-		}
-
-		partial void OnColoringButtonClicked (NSObject sender)
-		{
-			viewEvents.OnColoringButtonClicked((Appearance.ColoringMode) (int)coloringButton.SelectedItem.Tag);
-		}
+		partial void OnColoringButtonClicked (NSObject sender) => viewModel.OnColoringButtonClicked ((int)coloringButton.SelectedItem.Tag);
 	}
 }
 

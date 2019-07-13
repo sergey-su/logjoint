@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="LoadedMessagesControlAdapter">
             <connections>
                 <outlet property="coloringButton" destination="7bV-qm-z41" id="045-oQ-apR"/>
+                <outlet property="coloringLabel" destination="DQO-ga-pTO" id="WGJ-5Y-ywm"/>
                 <outlet property="logViewerPlaceholder" destination="FJ3-1C-bNj" id="41I-1Y-Abp"/>
                 <outlet property="navigationProgressIndicator" destination="fNh-bQ-1Id" id="9qu-Gv-3X3"/>
                 <outlet property="rawViewButton" destination="pkK-eL-Way" id="xLq-Fw-GvU"/>
@@ -25,7 +27,7 @@
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="FJ3-1C-bNj">
                     <rect key="frame" x="0.0" y="0.0" width="438" height="236"/>
                 </customView>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DQO-ga-pTO">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DQO-ga-pTO">
                     <rect key="frame" x="44" y="238" width="57" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="coloring:" id="ot5-re-i6S">
                         <font key="font" metaFont="system"/>
@@ -47,7 +49,7 @@
                     </connections>
                 </button>
                 <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7bV-qm-z41">
-                    <rect key="frame" x="99" y="233" width="68" height="22"/>
+                    <rect key="frame" x="99" y="233" width="70" height="22"/>
                     <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="yWa-RW-xzu" id="TPk-SU-7dS">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>
@@ -64,7 +66,7 @@
                     </connections>
                 </popUpButton>
                 <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pkK-eL-Way">
-                    <rect key="frame" x="181" y="236" width="53" height="17"/>
+                    <rect key="frame" x="183" y="236" width="53" height="17"/>
                     <buttonCell key="cell" type="roundRect" title="raw log" bezelStyle="roundedRect" imagePosition="overlaps" alignment="center" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RXb-Xz-ZaQ">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>
@@ -74,10 +76,10 @@
                     </connections>
                 </button>
                 <progressIndicator hidden="YES" wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="fNh-bQ-1Id">
-                    <rect key="frame" x="290" y="237" width="16" height="16"/>
+                    <rect key="frame" x="292" y="237" width="16" height="16"/>
                 </progressIndicator>
                 <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="od6-uc-Lwz">
-                    <rect key="frame" x="247" y="236" width="30" height="17"/>
+                    <rect key="frame" x="249" y="236" width="30" height="17"/>
                     <buttonCell key="cell" type="roundRect" title="tail" bezelStyle="roundedRect" imagePosition="overlaps" alignment="center" controlSize="small" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="n9n-gg-l7D">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>

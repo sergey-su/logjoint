@@ -148,7 +148,8 @@ namespace LogJoint
 				globalSettingsAccessor,
 				recentlyUsedLogs,
 				shutdown,
-				traceSourceFactory
+				traceSourceFactory,
+				changeNotification
 			);
 
 			telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);

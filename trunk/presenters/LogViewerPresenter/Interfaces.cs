@@ -59,9 +59,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler DefaultFocusedMessageAction;
 		event EventHandler ManualRefresh;
 		event EventHandler RawViewModeChanged;
-		event EventHandler ViewTailModeChanged;
 		event EventHandler ColoringModeChanged;
-		event EventHandler NavigationIsInProgressChanged;
 		event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 	};
 

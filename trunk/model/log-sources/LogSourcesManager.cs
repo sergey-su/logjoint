@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace LogJoint
@@ -16,8 +17,9 @@ namespace LogJoint
 			Settings.IGlobalSettingsAccessor globalSettingsAccess,
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
 			IShutdown shutdown,
-			ITraceSourceFactory traceSourceFactory
-		) : this(heartbeat, recentlyUsedEntities, shutdown, traceSourceFactory,
+			ITraceSourceFactory traceSourceFactory,
+			IChangeNotification changeNotification
+		) : this(heartbeat, recentlyUsedEntities, shutdown, traceSourceFactory, changeNotification,
 			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess, traceSourceFactory))
 		{
 		}
@@ -27,12 +29,14 @@ namespace LogJoint
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
 			IShutdown shutdown,
 			ITraceSourceFactory traceSourceFactory,
+			IChangeNotification changeNotification,
 			ILogSourceFactory logSourceFactory
 		)
 		{
 			this.tracer = traceSourceFactory.CreateTraceSource("LogSourcesManager", "lsm");
 			this.logSourceFactory = logSourceFactory;
 			this.recentlyUsedEntities = recentlyUsedEntities;
+			this.changeNotification = changeNotification;
 
 			heartbeat.OnTimer += (s, e) =>
 			{
@@ -56,10 +60,7 @@ namespace LogJoint
 		public event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		public event EventHandler OnLogTimeGapsChanged;
 
-		IEnumerable<ILogSource> ILogSourcesManager.Items
-		{
-			get { return logSources; }
-		}
+		IReadOnlyList<ILogSource> ILogSourcesManager.Items => logSources;
 
 		ILogSource ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
 		{
@@ -84,7 +85,7 @@ namespace LogJoint
 
 		ILogSource ILogSourcesManager.Find(IConnectionParams connectParams)
 		{
-			return logSources.Where(ls => !ls.IsDisposed).FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
+			return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
 		}
 
 		void ILogSourcesManager.Refresh()
@@ -100,7 +101,17 @@ namespace LogJoint
 			return new TimeOffsets.Builder();
 		}
 
-		List<ILogSource> ILogSourcesManagerInternal.Container { get { return logSources; }}
+		void ILogSourcesManagerInternal.Add(ILogSource ls)
+		{
+			logSources = logSources.Add(ls);
+			changeNotification.Post();
+		}
+
+		void ILogSourcesManagerInternal.Remove(ILogSource ls)
+		{
+			logSources = logSources.Remove(ls);
+			changeNotification.Post();
+		}
 
 		void ILogSourcesManagerInternal.FireOnLogSourceAdded(ILogSource sender)
 		{
@@ -152,7 +163,7 @@ namespace LogJoint
 
 		void PeriodicUpdate()
 		{
-			foreach (ILogSource s in logSources.Where(s => !s.IsDisposed && s.Visible && s.TrackingEnabled))
+			foreach (ILogSource s in logSources.Where(s => s.Visible && s.TrackingEnabled))
 			{
 				s.Provider.PeriodicUpdate();
 			}
@@ -165,7 +176,8 @@ namespace LogJoint
 		readonly ILogSourceFactory logSourceFactory;
 		readonly MRU.IRecentlyUsedEntities recentlyUsedEntities;
 		readonly LJTraceSource tracer;
-		readonly List<ILogSource> logSources = new List<ILogSource>();
+		readonly IChangeNotification changeNotification;
+		ImmutableList<ILogSource> logSources = ImmutableList<ILogSource>.Empty;
 
 		int lastLogSourceId;
 

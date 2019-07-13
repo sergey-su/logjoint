@@ -350,8 +350,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 			sourcesDataCache.MarkAllInvalid();
 			foreach (ILogSource s in logSources.Items) 
 			{
-				if (s.IsDisposed)
-					continue;
 				var itemData = sourcesDataCache.Get(s, src => new LogSourceItemData() 
 				{ 
 					LogSource = src,
@@ -378,7 +376,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				var itemData = preprocsDataCache.Get(pls, p => new PreprocessingItemData()
 				{
 					Preprocessing = p,
-					Checked = null, // unchackable
+					Checked = null, // uncheckable
 				});
 				itemData.Description = pls.CurrentStepDescription;
 				if (pls.Failure != null)

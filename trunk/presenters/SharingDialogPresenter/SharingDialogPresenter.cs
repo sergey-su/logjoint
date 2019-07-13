@@ -91,7 +91,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		void IViewEvents.OnUploadButtonClicked()
 		{
 			var nonNetworkSource = logSourcesManager.Items.FirstOrDefault(s =>
-				!s.IsDisposed && !preprocessingsManager.ConnectionRequiresDownloadPreprocessing(s.Provider.ConnectionParams));
+				!preprocessingsManager.ConnectionRequiresDownloadPreprocessing(s.Provider.ConnectionParams));
 			if (nonNetworkSource != null && alertPopup.ShowPopup(
 				"Warning",
 				string.Format(

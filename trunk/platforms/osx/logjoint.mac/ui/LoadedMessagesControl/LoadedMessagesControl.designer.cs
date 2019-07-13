@@ -16,6 +16,9 @@ namespace LogJoint.UI
 		AppKit.NSPopUpButton coloringButton { get; set; }
 
 		[Outlet]
+		AppKit.NSTextField coloringLabel { get; set; }
+
+		[Outlet]
 		AppKit.NSView logViewerPlaceholder { get; set; }
 
 		[Outlet]
@@ -44,11 +47,6 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (viewTailButton != null) {
-				viewTailButton.Dispose ();
-				viewTailButton = null;
-			}
-
 			if (coloringButton != null) {
 				coloringButton.Dispose ();
 				coloringButton = null;
@@ -72,6 +70,16 @@ namespace LogJoint.UI
 			if (toggleBookmarkButton != null) {
 				toggleBookmarkButton.Dispose ();
 				toggleBookmarkButton = null;
+			}
+
+			if (viewTailButton != null) {
+				viewTailButton.Dispose ();
+				viewTailButton = null;
+			}
+
+			if (coloringLabel != null) {
+				coloringLabel.Dispose ();
+				coloringLabel = null;
 			}
 		}
 	}

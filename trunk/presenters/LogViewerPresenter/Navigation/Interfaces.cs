@@ -8,7 +8,5 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		bool NavigationIsInProgress { get; }
 		Task NavigateView(Func<CancellationToken, Task> navigate);
-
-		event EventHandler NavigationIsInProgressChanged;
 	};
 };

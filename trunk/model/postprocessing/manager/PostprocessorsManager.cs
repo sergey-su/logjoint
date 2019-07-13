@@ -235,8 +235,6 @@ namespace LogJoint.Postprocessing
 		{
 			foreach (ILogSource src in logSources.Items.ToArray())
 			{
-				if (src.IsDisposed)
-					continue;
 				LogSourceMetadata meta;
 				if (knownLogTypes.TryGetValue(src.Provider.Factory, out meta))
 					yield return new KeyValuePair<ILogSource, LogSourceMetadata>(src, meta);

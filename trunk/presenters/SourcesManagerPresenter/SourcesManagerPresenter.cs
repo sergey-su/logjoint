@@ -292,8 +292,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				var toDelete2 = new List<Preprocessing.ILogSourcePreprocessing>();
 				foreach (ILogSource s in sourcesToDelete)
 				{
-					if (s.IsDisposed)
-						continue;
 					tracer.Info("-- source to delete: {0}", s.ToString());
 					toDelete.Add(s);
 				}

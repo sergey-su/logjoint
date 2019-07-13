@@ -108,7 +108,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		void UpdateSources()
 		{
 			var newSources = logSources.Items.Where(
-				s => !s.IsDisposed && s.Visible && s.Provider.Stats.PositionsRangeUpdatesCount > 0).ToHashSet();
+				s => s.Visible && s.Provider.Stats.PositionsRangeUpdatesCount > 0).ToHashSet();
 			int removed = sources.RemoveAll(s => !newSources.Contains(s.ls));
 			sources.ForEach(s => newSources.Remove(s.ls));
 			sources.AddRange(newSources.Select(s => new MessagesSource() { ls = s } ));

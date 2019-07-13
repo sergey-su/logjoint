@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.selectionManager = new SelectionManager(
 				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection, theme);
 			this.navigationManager = new NavigationManager(
-				tracer, telemetry);
+				tracer, telemetry, changeNotification);
 			this.highlightingManager = new HighlightingManager(
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
 				model.HighlightFilters, this.selectionManager, wordSelection, theme
@@ -165,17 +165,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler DefaultFocusedMessageAction;
 		public event EventHandler ManualRefresh;
 		public event EventHandler RawViewModeChanged;
-		public event EventHandler ViewTailModeChanged;
 		public event EventHandler ColoringModeChanged;
 		public event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler FocusedMessageBookmarkChanged;
 
-		event EventHandler IPresenter.NavigationIsInProgressChanged
-		{
-			add { navigationManager.NavigationIsInProgressChanged += value; }
-			remove { navigationManager.NavigationIsInProgressChanged -= value; }
-		}
 
 		LogFontSize IPresenter.FontSize
 		{
@@ -269,6 +263,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				rawViewAllowed = value;
 				if (!rawViewAllowed && ThisIntf.ShowRawMessages)
 					ThisIntf.ShowRawMessages = false;
+				changeNotification.Post();
 			}
 		}
 
@@ -1257,7 +1252,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (viewTailMode == value)
 				return;
 			viewTailMode = value;
-			ViewTailModeChanged?.Invoke(this, EventArgs.Empty);
+			changeNotification.Post();
 			if (viewTailMode && externalCall)
 				ThisIntf.GoToEnd().IgnoreCancellation();
 		}

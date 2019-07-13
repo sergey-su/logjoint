@@ -3,105 +3,129 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Immutable;
+using static LogJoint.Settings.Appearance;
 
 namespace LogJoint.UI.Presenters.LoadedMessages
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		readonly ILogSourcesManager logSources;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LogViewer.IPresenter messagesPresenter;
-		readonly LazyUpdateFlag rawViewUpdateFlag = new LazyUpdateFlag();
-		readonly LazyUpdateFlag tailUpdateFlag = new LazyUpdateFlag();
+		readonly AsyncInvokeHelper rawViewUpdater;
+		readonly IChangeNotification changeNotification;
 		bool automaticRawView = true;
+		int visibilityRevision;
+		readonly Func<IReadOnlyList<ILogSource>> visibleSources;
+		readonly Func<ViewState> viewState;
+		readonly (ColoringMode Mode, string Text, string Tooltip)[] coloringOptions = {
+			(ColoringMode.None, "None", "All log messages have same background"),
+			(ColoringMode.Threads, "Threads", "Messages of different threads have different color"),
+			(ColoringMode.Sources, "Log sources", "All messages of the same log source have same color")
+		};
 
 		public Presenter(
 			ILogSourcesManager logSources,
 			IBookmarks bookmarks,
 			IView view,
 			IHeartBeatTimer heartbeat,
-			LogViewer.IPresenterFactory logViewerPresenterFactory
+			LogViewer.IPresenterFactory logViewerPresenterFactory,
+			IChangeNotification changeNotification,
+			ISynchronizationContext synchronizationContext
 		)
 		{
 			this.logSources = logSources;
 			this.bookmarks = bookmarks;
 			this.view = view;
+			this.changeNotification = changeNotification;
 			this.messagesPresenter =  logViewerPresenterFactory.Create(
 				logViewerPresenterFactory.CreateLoadedMessagesModel(),
 				view.MessagesView,
 				createIsolatedPresenter: false
 			);
-			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.SelectWord;
-			this.UpdateRawViewButton();
-			this.UpdateColoringControls();
-			this.messagesPresenter.RawViewModeChanged += (s, e) => UpdateRawViewButton();
-			this.messagesPresenter.NavigationIsInProgressChanged += (s, e) => 
-				{ view.SetNavigationProgressIndicatorVisibility(messagesPresenter.NavigationIsInProgress); };
-			this.messagesPresenter.ViewTailModeChanged += (s, e) => UpdateViewTailButton();
+			this.messagesPresenter.DblClickAction = LogViewer.PreferredDblClickAction.SelectWord;
 
-			heartbeat.OnTimer += (sender, args) =>
+			this.visibleSources = Selectors.Create(
+				() => logSources.Items,
+				() => visibilityRevision,
+				(items, _) => (IReadOnlyList<ILogSource>)ImmutableArray.CreateRange(items.Where(i => i.Visible))
+			);
+
+			var viewColoringOptions = coloringOptions.Select(i => (i.Text, i.Tooltip)).ToArray().AsReadOnly();
+
+			this.viewState = Selectors.Create(
+				() => (messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages),
+				() => messagesPresenter.ViewTailMode,
+				visibleSources,
+				() => messagesPresenter.Coloring,
+				() => messagesPresenter.NavigationIsInProgress,
+				(raw, viewTailMode, sources, coloring, navigation) => new ViewState
+				{
+					ToggleBookmark = (Visible: sources.Count > 0, Tooltip: "Log coloring"),
+					RawViewButton = (Visible: raw.RawViewAllowed, Checked: raw.ShowRawMessages, Tooltip: "Toggle raw log view"),
+					ViewTailButton = (Visible: sources.Count > 0, Checked: viewTailMode, Tooltip: viewTailMode ? "Stop autoscrolling to log end" : "Autoscroll to log end"),
+					Coloring = (Visible: sources.Count > 0, Options: viewColoringOptions, Selected: coloringOptions.IndexOf(option => option.Mode == coloring).GetValueOrDefault(0)),
+					NavigationProgressIndicator = (Visible: navigation, Tooltip: "Loading..."),
+				}
+			);
+
+			rawViewUpdater = new AsyncInvokeHelper(synchronizationContext,() =>
 			{
-				if (args.IsNormalUpdate && rawViewUpdateFlag.Validate())
-				{
-					UpdateRawViewAvailability();
-					UpdateRawViewMode();
-					UpdateRawViewButton();
-				}
-				if (args.IsNormalUpdate && tailUpdateFlag.Validate())
-				{
-					UpdateViewTailButton();
-				}
-			};
+				UpdateRawViewAvailability();
+				UpdateRawViewMode();
+			});
 			logSources.OnLogSourceRemoved += (sender, evt) =>
 			{
-				if (logSources.Items.Count(s => !s.IsDisposed) == 0)
+				if (logSources.Items.Count == 0)
 					automaticRawView = true; // reset automatic mode when last source is gone
-				rawViewUpdateFlag.Invalidate();
-				tailUpdateFlag.Invalidate();
+				rawViewUpdater.Invoke();
 			};
 			logSources.OnLogSourceAdded += (sender, evt) =>
 			{
-				rawViewUpdateFlag.Invalidate();
-				tailUpdateFlag.Invalidate();
+				rawViewUpdater.Invoke();
 			};
 			logSources.OnLogSourceVisiblityChanged += (sender, evt) =>
 			{
-				rawViewUpdateFlag.Invalidate();
-				tailUpdateFlag.Invalidate();
+				++visibilityRevision;
+				changeNotification.Post();
+				rawViewUpdater.Invoke();
 			};
 
 
-			this.view.SetEventsHandler(this);
+			this.view.SetViewModel(this);
 
-			tailUpdateFlag.Invalidate();
-			rawViewUpdateFlag.Invalidate();
+			rawViewUpdater.Invoke();
 		}
 
 		public event EventHandler OnResizingStarted;
 		public event EventHandler<ResizingEventArgs> OnResizing;
 		public event EventHandler OnResizingFinished;
 
-		void IViewEvents.OnToggleBookmark()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		ViewState IViewModel.ViewState => viewState();
+
+		void IViewModel.OnToggleBookmark()
 		{
 			bookmarks.ToggleBookmark(messagesPresenter.FocusedMessageBookmark);
 		}
 
-		void IViewEvents.OnToggleRawView()
+		void IViewModel.OnToggleRawView()
 		{
 			messagesPresenter.ShowRawMessages = !messagesPresenter.ShowRawMessages;
 			automaticRawView = false; // when mode is manually changed -> stop automatic selection of raw view
 		}
 
-		void IViewEvents.OnToggleViewTail ()
+		void IViewModel.OnToggleViewTail ()
 		{
 			messagesPresenter.ViewTailMode = !messagesPresenter.ViewTailMode;
 		}
 
-		void IViewEvents.OnColoringButtonClicked(Settings.Appearance.ColoringMode mode)
+		void IViewModel.OnColoringButtonClicked(int modeIndex)
 		{
-			messagesPresenter.Coloring = mode;
-			UpdateColoringControls();
+			messagesPresenter.Coloring = coloringOptions[modeIndex].Mode;
 		}
 
 		LogViewer.IPresenter IPresenter.LogViewerPresenter
@@ -120,52 +144,24 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				.ToDictionary(p => p.src, p => p.pos);
 		}
 
-		void IViewEvents.OnResizingFinished()
+		void IViewModel.OnResizingFinished()
 		{
 			OnResizingFinished?.Invoke (this, EventArgs.Empty);
 		}
 
-		void IViewEvents.OnResizing(int delta)
+		void IViewModel.OnResizing(int delta)
 		{
 			OnResizing?.Invoke (this, new ResizingEventArgs () { Delta = delta });
 		}
 
-		void IViewEvents.OnResizingStarted()
+		void IViewModel.OnResizingStarted()
 		{
 			OnResizingStarted?.Invoke (this, EventArgs.Empty);
 		}
 
-
-		void UpdateRawViewButton()
-		{
-			view.SetRawViewButtonState(messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages);
-		}
-
-		void UpdateViewTailButton()
-		{
-			view.SetViewTailButtonState(
-				EnumVisibleSources().Any(), messagesPresenter.ViewTailMode,
-				messagesPresenter.ViewTailMode ? "Stop autoscrolling to log end" : "Autoscroll to log end");
-		}
-
-		void UpdateColoringControls()
-		{
-			var coloring = messagesPresenter.Coloring;
-			view.SetColoringButtonsState(
-				coloring == Settings.Appearance.ColoringMode.None,
-				coloring == Settings.Appearance.ColoringMode.Sources,
-				coloring == Settings.Appearance.ColoringMode.Threads
-			);
-		}
-
-		IEnumerable<ILogSource> EnumVisibleSources()
-		{
-			return logSources.Items.Where(s => !s.IsDisposed && s.Visible);
-		}
-
 		void UpdateRawViewAvailability()
 		{
-			bool rawViewAllowed = EnumVisibleSources().Any(s => s.Provider.Factory.ViewOptions.RawViewAllowed);
+			bool rawViewAllowed = visibleSources().Any(s => s.Provider.Factory.ViewOptions.RawViewAllowed);
 			messagesPresenter.RawViewAllowed = rawViewAllowed;
 		}
 
@@ -173,7 +169,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		{
 			if (automaticRawView)
 			{
-				bool allWantRawView = EnumVisibleSources().All(s => s.Provider.Factory.ViewOptions.PreferredView == PreferredViewMode.Raw);
+				bool allWantRawView = visibleSources().All(s => s.Provider.Factory.ViewOptions.PreferredView == PreferredViewMode.Raw);
 				messagesPresenter.ShowRawMessages = allWantRawView;
 			}
 		}

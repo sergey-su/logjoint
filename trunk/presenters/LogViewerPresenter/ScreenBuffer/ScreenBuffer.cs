@@ -573,7 +573,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					double topLineScroll = idxWhole - idx;
 					double ret = idx;
 
-					Action<int, double> applyContraint = (int newTopLineIdx, double newTopLineScroll) =>
+					Action<int, double> applyConstraint = (int newTopLineIdx, double newTopLineScroll) =>
 					{
 						ret += ((double)topLineIdx - topLineScroll) - ((double)newTopLineIdx - newTopLineScroll);
 						topLineIdx = newTopLineIdx;
@@ -584,11 +584,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					if (topLineIdx + topLineScroll + viewSize > lines.Count)
 					{
-						applyContraint(lines.Count - (int)Math.Ceiling(viewSize), Math.Ceiling(viewSize) - viewSize);
+						applyConstraint(lines.Count - (int)Math.Ceiling(viewSize), Math.Ceiling(viewSize) - viewSize);
 					}
 					if (topLineIdx < 0)
 					{
-						applyContraint(0, 0);
+						applyConstraint(0, 0);
 					}
 
 					var unnededTopMessages = tmpCopy.Keys.ToDictionary(s => s, s => new Ref<int>());

@@ -330,7 +330,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void UpdateFormCaption()
 		{
-			var sources = logSources.Items.Where(s => !s.IsDisposed).ToArray();
+			var sources = logSources.Items.ToArray();
 			var builder = new StringBuilder();
 			HashSet<string> reportedContainers = null;
 			foreach (var srcEntry in sources.Select(source => new { 

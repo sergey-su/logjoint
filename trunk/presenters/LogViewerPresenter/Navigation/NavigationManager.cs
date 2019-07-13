@@ -8,6 +8,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		readonly LJTraceSource tracer;
 		readonly Telemetry.ITelemetryCollector telemetry;
+		readonly IChangeNotification changeNotification;
 
 		Task currentNavigationTask;
 		CancellationTokenSource currentNavigationTaskCancellation;
@@ -15,14 +16,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public NavigationManager(
 			LJTraceSource tracer,
-			Telemetry.ITelemetryCollector telemetry
+			Telemetry.ITelemetryCollector telemetry,
+			IChangeNotification changeNotification
 		)
 		{
 			this.tracer = tracer;
 			this.telemetry = telemetry;
+			this.changeNotification = changeNotification;
 		}
-
-		public event EventHandler NavigationIsInProgressChanged;
 
 		bool INavigationManager.NavigationIsInProgress
 		{
@@ -64,7 +65,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (taskId == currentNavigationTaskId && currentNavigationTask != null)
 					{
 						currentNavigationTask = null;
-						NavigationIsInProgressChanged?.Invoke (this, EventArgs.Empty);
+						changeNotification.Post();
 					}
 				}
 			};
@@ -74,7 +75,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				currentNavigationTask = tmp;
 			}
 			if (wasInProgress != (currentNavigationTask != null))
-				NavigationIsInProgressChanged?.Invoke (this, EventArgs.Empty);
+			{
+				changeNotification.Post();
+			}
 			return tmp;
 		}
 	};

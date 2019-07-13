@@ -309,7 +309,7 @@ namespace LogJoint.Workspaces
 				allowOverwrite = allowOverwrite
 			};
 
-			var sources = logSources.Items.Where(s => !s.IsDisposed).ToArray();
+			var sources = logSources.Items.ToArray();
 
 			dto.sources.AddRange(sources.Select(source => new WorkspaceDTO.Source()
 			{
