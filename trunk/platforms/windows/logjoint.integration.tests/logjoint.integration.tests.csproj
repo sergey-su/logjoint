@@ -71,6 +71,12 @@
     <Compile Include="..\..\shared\integration.tests\Chromium\Formats\ChromeDriverFormatTests.cs">
       <Link>Chromium\Formats\ChromeDriverFormatTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\Chromium\Formats\HttpArchiveFormatTests.cs">
+      <Link>Chromium\Formats\HttpArchiveFormatTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Chromium\Formats\WebRtcInternalsFormatTests.cs">
+      <Link>Chromium\Formats\WebRtcInternalsFormatTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\integration.tests\LogsHistory\LogsHistoryTests.cs">
       <Link>LogsHistory\LogsHistoryTests.cs</Link>
     </Compile>
@@ -115,6 +121,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

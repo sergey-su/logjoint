@@ -85,11 +85,20 @@
     <Compile Include="..\..\shared\integration.tests\Utils\TestApp.cs">
       <Link>Utils\TestApp.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\LogsHistory\LogsHistoryTests.cs">
+      <Link>LogsHistory\LogsHistoryTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\integration.tests\Chromium\Formats\ChromeDebugFormatTests.cs">
       <Link>Chromium\Formats\ChromeDebugFormatTests.cs</Link>
     </Compile>
-    <Compile Include="..\..\shared\integration.tests\LogsHistory\LogsHistoryTests.cs">
-      <Link>LogsHistory\LogsHistoryTests.cs</Link>
+    <Compile Include="..\..\shared\integration.tests\Chromium\Formats\ChromeDriverFormatTests.cs">
+      <Link>Chromium\Formats\ChromeDriverFormatTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Chromium\Formats\HttpArchiveFormatTests.cs">
+      <Link>Chromium\Formats\HttpArchiveFormatTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Chromium\Formats\WebRtcInternalsFormatTests.cs">
+      <Link>Chromium\Formats\WebRtcInternalsFormatTests.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

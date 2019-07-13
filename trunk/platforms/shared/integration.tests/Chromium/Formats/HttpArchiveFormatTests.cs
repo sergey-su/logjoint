@@ -12,7 +12,7 @@ using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
 namespace LogJoint.Tests.Integration.Chromium
 {
 	[TestFixture]
-	class ChromeDebugTests
+	class HttpArchiveFormatTests
 	{
 		SamplesUtils samples = new SamplesUtils();
 		TestAppInstance app;
@@ -35,16 +35,15 @@ namespace LogJoint.Tests.Integration.Chromium
 		{
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("chrome_debug_1.log"));
+				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("www.hemnet.se.har"));
 
 				await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
 
-				Assert.AreEqual("[1:20:0102/101210.009354:INFO:paced_sender.cc(354)] ProcessThreadAttached 0x(nil)", app.ViewModel.LoadedMessagesLogViewer.ViewLines[0].TextLineValue);
+				Assert.AreEqual("entry#147 I header  date: Sat, 13 Jul 2019 13:36:59 GMT", app.ViewModel.LoadedMessagesLogViewer.ViewLines[3].TextLineValue);
 				app.ViewModel.MainForm.OnTabChanging(app.ViewModel.PostprocessingTabPageId);
 				var postprocessorsControls = app.ViewModel.PostprocessingTabPage.ControlsState;
 				Assert.IsFalse(postprocessorsControls[ViewControlId.Timeline].Disabled);
-				Assert.IsFalse(postprocessorsControls[ViewControlId.StateInspector].Disabled);
-				Assert.IsFalse(postprocessorsControls[ViewControlId.TimeSeries].Disabled);
+				Assert.IsFalse(postprocessorsControls[ViewControlId.Sequence].Disabled);
 
 				return 0;
 			});
