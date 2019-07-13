@@ -34,9 +34,9 @@ namespace LogJoint.Wireshark.Dpml
 				tsharkArgs.Append($" -o \"ssl.desegment_ssl_records: TRUE\" -o \"ssl.desegment_ssl_application_data: TRUE\" -o \"ssl.keylog_file:{keyFile}\"");
 			}
 			using (var process = tshark.Start(tsharkArgs.ToString()))
+			using (var cancellationSub = cancellation.Register(() => process.Kill()))
 			using (var xmlReader = XmlReader.Create(process.StandardOutput))
 			using (var writer = new StreamWriter(outputFile, false, new UTF8Encoding(false)))
-			using (var cancellationSub = cancellation.Register(() => process.Kill()))
 			{
 				var packetsRead = 0;
 				var processTask = process.GetExitCodeAsync(Timeout.InfiniteTimeSpan);
@@ -134,14 +134,20 @@ namespace LogJoint.Wireshark.Dpml
 
 			var producer = Task.Run(wrapErrors(() => 
 			{
-				foreach (var packet in ReadChildrenElements(xmlReader))
+				try
 				{
-					queue.Add(packet);
-					if (cancellation.IsCancellationRequested)
-						break;
+					foreach (var packet in ReadChildrenElements(xmlReader))
+					{
+						queue.Add(packet);
+						if (cancellation.IsCancellationRequested)
+							break;
+					}
 				}
-				queue.CompleteAdding();
-			}, "prodcer"));
+				finally
+				{
+					queue.CompleteAdding();
+				}
+			}, "producer"));
 
 			var consumer = Task.Run(wrapErrors(() => 
 			{
