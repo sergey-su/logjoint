@@ -33,6 +33,7 @@ namespace LogJoint.Tests.Integration
 		public string PostprocessingTabPageId;
 		public UI.Presenters.LoadedMessages.IViewModel LoadedMessages;
 		public UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
+		public UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
 	};
 
 	public class TestAppConfig
@@ -158,6 +159,8 @@ namespace LogJoint.Tests.Integration
 				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.SearchResultLogViewer = x));
 			mocks.Views.CreateSearchResultView().MessagesView.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
 
+			mocks.Views.CreateMessagePropertiesDialogView().CreateDialog(
+				Arg.Do<UI.Presenters.MessagePropertiesDialog.IDialogViewModel>(x => viewModel.MessagePropertiesDialog = x));
 		}
 
 		public async Task Dispose()
