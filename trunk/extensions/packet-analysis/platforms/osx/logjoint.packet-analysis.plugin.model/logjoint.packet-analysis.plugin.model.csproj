@@ -88,6 +88,9 @@
     <Compile Include="..\..\..\model\Utils\Utils.cs">
       <Link>Utils\Utils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Factory.cs">
+      <Link>Factory.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

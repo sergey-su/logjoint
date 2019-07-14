@@ -58,6 +58,12 @@
     <Compile Include="..\..\..\presentation\MessagePropertiesDialogContentPresenter\MessagePropertiesDialogContentPresenter.cs">
       <Link>MessagePropertiesDialogContentPresenter\MessagePropertiesDialogContentPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presentation\Factory.cs">
+      <Link>Factory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presentation\MessagePropertiesDialogContentPresenter\MessagePropertiesDialogExtension.cs">
+      <Link>MessagePropertiesDialogContentPresenter\MessagePropertiesDialogExtension.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
