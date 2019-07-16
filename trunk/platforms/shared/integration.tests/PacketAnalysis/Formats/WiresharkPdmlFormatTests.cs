@@ -3,7 +3,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using PA = LogJoint.PacketAnalysis;
@@ -14,6 +13,7 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 	[TestFixture]
 	class WiresharkPdmlFormatTests
 	{
+		PluginLoader pluginLoader = new PluginLoader();
 		SamplesUtils samples = new SamplesUtils();
 		TestAppInstance app;
 		PA.UI.Presenters.Factory.IViewsFactory viewsFactory;
@@ -30,6 +30,7 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 			viewsFactory.CreateMessageContentView().OSView.Returns(messagePropertiesOSView);
 
 			app = await TestAppInstance.Create();
+			app.Model.PluginFormatsManager.RegisterPluginFormats(pluginLoader.Manifest);
 			PA.UI.Presenters.Factory.Create(
 				PA.Factory.Create(app.Model.ExpensibilityEntryPoint),
 				app.Presentation.ExpensibilityEntryPoint,

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <id>1e1245c1-492c-4a59-9ce8-23be39b7599f-chromium</id>
+  <version>1.0.0</version>
+  <name>Support for viewing chrome/chromium logs</name>
+  <file type="format">Formats/Chromium-chrome_debug.format.xml</file>
+  <file type="format">Formats/Chromium-chromedriver.format.xml</file>
+  <file type="format">Formats/Chromium-webrtc_internals_dump.format.xml</file>
+  <file type="format">Formats/W3C - HTTP Archive.format.xml</file>
+  <file type="format">Formats/Atlassian-JitsiVideoBridge log.format.xml</file>
+  <file type="entry">logjoint.chromium.plugin.dll</file>
+  <file type="dll">logjoint.chromium.plugin.model.dll</file>
+  <file type="sdk">logjoint.chromium.plugin.model.sdk.dll</file>
+  <file type="dll">HarSharp.dll</file>
+  <file type="dll">HelperSharp.dll</file>
+  <file type="dll">Newtonsoft.Json.dll</file>
+  <file type="dll">System.Collections.Immutable.dll</file>
+  <file type="dll">System.ValueTuple.dll</file>
+</manifest>

@@ -28,6 +28,7 @@ namespace LogJoint
 		public MRU.IRecentlyUsedEntities RecentlyUsedLogs { get; internal set; }
 		public ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; internal set; }
 		public IUserDefinedFormatsManager UserDefinedFormatsManager { get; internal set; }
+		public IPluginFormatsManager PluginFormatsManager { get; internal set; }
 		public IFormatDefinitionsRepository FormatDefinitionsRepository { get; internal set; }
 		public ITempFilesManager TempFilesManager { get; internal set; }
 		public Persistence.IStorageManager StorageManager { get; internal set; }
@@ -42,7 +43,7 @@ namespace LogJoint
 		public Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; internal set; }
 		public IHeartBeatTimer HeartBeatTimer { get; internal set; }
 		public IColorLeaseConfig ThreadColorsLease { get; internal set; }
-		public IPluginsManagerStarup PluginsManager { get; internal set; }
+		public IPluginsManagerInternal PluginsManager { get; internal set; }
 		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
 	};
 
@@ -74,7 +75,7 @@ namespace LogJoint
 			ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory);
-			IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
+			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager);
@@ -301,10 +302,11 @@ namespace LogJoint
 				postprocessingModel
 			);
 
-			IPluginsManagerStarup pluginsManager = new Extensibility.PluginsManager(
+			IPluginsManagerInternal pluginsManager = new Extensibility.PluginsManager(
 				traceSourceFactory,
 				telemetryCollector,
-				shutdown
+				shutdown,
+				userDefinedFormatsManager
 			);
 
 			Model expensibilityModel = new Model(
@@ -361,6 +363,7 @@ namespace LogJoint
 				RecentlyUsedLogs = recentlyUsedLogs,
 				LogProviderFactoryRegistry = logProviderFactoryRegistry,
 				UserDefinedFormatsManager = userDefinedFormatsManager,
+				PluginFormatsManager = userDefinedFormatsManager,
 				FormatDefinitionsRepository = formatDefinitionsRepository,
 				TempFilesManager = tempFilesManager,
 				StorageManager = storageManager,

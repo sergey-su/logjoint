@@ -139,6 +139,9 @@
     <Compile Include="..\..\..\model\connection-params\ConnectionParamsUtils.cs">
       <Link>connection-params\ConnectionParamsUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\extensibility\Extensions.cs">
+      <Link>extensibility\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\extensibility\IMessagesReaderExtension.cs">
       <Link>extensibility\IMessagesReaderExtension.cs</Link>
     </Compile>
@@ -147,6 +150,9 @@
     </Compile>
     <Compile Include="..\..\..\model\extensibility\Model.cs">
       <Link>extensibility\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\extensibility\PluginManifest.cs">
+      <Link>extensibility\PluginManifest.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\extensibility\PluginsManager.cs">
       <Link>extensibility\PluginsManager.cs</Link>
@@ -195,6 +201,9 @@
     </Compile>
     <Compile Include="..\..\..\model\formats-management\DirectoryFormatsRepository.cs">
       <Link>formats-management\DirectoryFormatsRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\Interfaces.cs">
+      <Link>formats-management\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\formats-management\LogProviderFactoryRegistry.cs">
       <Link>formats-management\LogProviderFactoryRegistry.cs</Link>

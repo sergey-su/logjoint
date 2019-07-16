@@ -7,6 +7,7 @@ using LogJoint.Preprocessing;
 using HarSharp;
 using System.Threading;
 using LogJoint.Postprocessing;
+using System.Reflection;
 
 namespace LogJoint.Chromium.HttpArchive
 {
@@ -60,6 +61,17 @@ namespace LogJoint.Chromium.HttpArchive
 			callback.SetStepDescription(string.Format("{0}: converting to text", sourceFile.FullPath));
 			var harTask = Task.Run(() =>
 			{
+				Assembly dependencyResolveHandler(object s, ResolveEventArgs e)
+				{
+					if (new AssemblyName(e.Name).Name == "Newtonsoft.Json") // HarConvert needs Newtonsoft.Json v6, map it to whatever modern version shipped with the plugin
+					{
+						return Assembly.LoadFrom(Path.Combine(
+							Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+							"Newtonsoft.Json.dll"));
+					}
+					return null;
+				}
+				AppDomain.CurrentDomain.AssemblyResolve += dependencyResolveHandler;
 				try
 				{
 					return HarConvert.DeserializeFromFile(sourceFile.Location);
@@ -67,6 +79,10 @@ namespace LogJoint.Chromium.HttpArchive
 				catch (Newtonsoft.Json.JsonReaderException e)
 				{
 					throw new Exception(string.Format("HTTP archive is broken"), e);
+				}
+				finally
+				{
+					AppDomain.CurrentDomain.AssemblyResolve -= dependencyResolveHandler;
 				}
 			});
 			if (await Task.WhenAny(ToTask(callback.Cancellation), harTask) != harTask)

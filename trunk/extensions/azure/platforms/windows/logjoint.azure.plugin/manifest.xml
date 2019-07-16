@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <id>74bbc86c-3081-47b4-b6ae-ac54396decef-azure</id>
+  <version>1.0.0</version>
+  <name>Support for loading Azure logs</name>
+  <file type="entry">logjoint.azure.plugin.dll</file>
+  <file type="dll">logjoint.azure.model.dll</file>
+  <file type="dll">Microsoft.WindowsAzure.Configuration.dll</file>
+  <file type="dll">Microsoft.WindowsAzure.StorageClient.dll</file>
+</manifest>

@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\Plugins\chromium\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\Plugins\chromium\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -49,6 +49,7 @@
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\platforms\windows\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -224,6 +225,7 @@
     <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
       <Name>logjoint.model.sdk</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
       <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>

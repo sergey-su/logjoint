@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
-	public class UserDefinedFormatsManager : IUserDefinedFormatsManager
+	public class UserDefinedFormatsManager : IUserDefinedFormatsManager, IPluginFormatsManager
 	{
 		public UserDefinedFormatsManager(
 			IFormatDefinitionsRepository repository,
@@ -14,8 +15,8 @@ namespace LogJoint
 			ITraceSourceFactory traceSourceFactory
 		)
 		{
-			this.repository = repository ?? throw new ArgumentNullException("repository");
-			this.registry = registry ?? throw new ArgumentNullException("registry");
+			this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
+			this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
 			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
 			this.tracer = traceSourceFactory.CreateTraceSource("UserDefinedFormatsManager", "udfm");
@@ -76,10 +77,32 @@ namespace LogJoint
 		{
 			get
 			{
-				return factories.Select(f => f.factory);
+				return factories.Select(f => f.factory).Union(pluginFactories);
 			}
 		}
 
+		void IPluginFormatsManager.RegisterPluginFormats(IPluginManifest manifest)
+		{
+			foreach (var formatFile in manifest.Files.Where(f => f.Type == PluginFileType.FormatDefinition))
+			{
+				var root = XDocument.Load(formatFile.AbsolulePath).Element("format");
+				pluginFactories.AddRange(
+					from factoryNodeCandidate in root.Elements()
+					where nodeNameToType.ContainsKey(factoryNodeCandidate.Name.LocalName)
+					let createParams = new UserDefinedFactoryParams()
+					{
+						Location = formatFile.AbsolulePath,
+						FactoryRegistry = registry,
+						TempFilesManager = tempFilesManager,
+						TraceSourceFactory = traceSourceFactory,
+						FormatSpecificNode = factoryNodeCandidate,
+						RootNode = root
+					}
+					select (IUserDefinedFactory)Activator.CreateInstance(
+							nodeNameToType[factoryNodeCandidate.Name.LocalName], createParams)
+				);
+			}
+		}
 
 		void MarkAllFactoriesAsNonExisting()
 		{
@@ -110,7 +133,7 @@ namespace LogJoint
 				where nodeNameToType.ContainsKey(factoryNodeCandidate.Name.LocalName)
 				let createParams = new UserDefinedFactoryParams()
 				{
-					Entry = entry,
+					Location = entry.Location,
 					FactoryRegistry = registry,
 					TempFilesManager = tempFilesManager,
 					TraceSourceFactory = traceSourceFactory,
@@ -141,5 +164,6 @@ namespace LogJoint
 		readonly LJTraceSource tracer;
 		readonly Dictionary<string, Type> nodeNameToType = new Dictionary<string, Type>();
 		readonly List<FactoryRecord> factories = new List<FactoryRecord>();
+		readonly List<IUserDefinedFactory> pluginFactories = new List<IUserDefinedFactory>();
 	}
 }

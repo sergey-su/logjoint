@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\Plugins\sysinternals\</OutputPath>
     <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin.model</BaseIntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -28,7 +28,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\Plugins\sysinternals\</OutputPath>
     <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin.model</BaseIntermediateOutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
