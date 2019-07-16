@@ -21,8 +21,8 @@ namespace LogJoint
 
 	/// <summary>
 	/// A repository of XML documents that describe user-defined format.
-	/// One implemenation enumerates XML files in a directory (<seealso cref="LogJoint.DirectoryFormatsRepository"/>).
-	/// Other implemenation enumerates embedded resource streams (<seealso cref="LogJoint.ResourcesFormatsRepository"/>).
+	/// One implementation enumerates XML files in a directory (<seealso cref="LogJoint.DirectoryFormatsRepository"/>).
+	/// Other implementation enumerates embedded resource streams (<seealso cref="LogJoint.ResourcesFormatsRepository"/>).
 	/// </summary>
 	public interface IFormatDefinitionsRepository
 	{
@@ -40,7 +40,7 @@ namespace LogJoint
 	{
 		bool IsDisposed { get; }
 		/// <summary>
-		/// Location of format definition focument (file or resource)
+		/// Location of format definition document (file or resource)
 		/// </summary>
 		string Location { get; }
 	};

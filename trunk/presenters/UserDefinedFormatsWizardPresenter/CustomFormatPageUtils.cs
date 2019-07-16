@@ -80,7 +80,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
 
 					UserDefinedFactoryParams createParams;
-					createParams.Entry = null;
+					createParams.Location = null;
 					createParams.RootNode = clonedFormatXmlDocument.Element("format");
 					createParams.FormatSpecificNode = createParams.RootNode.Element(formatSpecificNodeName);
 					createParams.FactoryRegistry = null;

@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\osx\bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Debug\logjoint.app\Contents\MonoBundle\Plugins\chromium</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\osx\bin\Release\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Release\logjoint.app\Contents\MonoBundle\Plugins\chromium</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -248,6 +248,7 @@
     <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
       <Name>logjoint.model.sdk</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
       <Project>{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}</Project>

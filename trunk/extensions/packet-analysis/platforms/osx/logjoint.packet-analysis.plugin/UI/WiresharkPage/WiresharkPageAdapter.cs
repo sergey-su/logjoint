@@ -10,36 +10,10 @@ namespace LogJoint.PacketAnalysis.UI
 {
 	public partial class WiresharkPageAdapter : AppKit.NSViewController, IView
 	{
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public WiresharkPageAdapter(IntPtr handle)
-			: base(handle)
-		{
-			Initialize();
-		}
-		
-		// Called when created directly from a XIB file
-		[Export("initWithCoder:")]
-		public WiresharkPageAdapter(NSCoder coder)
-			: base(coder)
-		{
-			Initialize();
-		}
-		
-		// Call to load from the XIB/NIB file
-		public WiresharkPageAdapter()
-			: base("WiresharkPage", NSBundle.MainBundle)
-		{
-			Initialize();
-		}
-		
-		// Shared initialization code
-		void Initialize()
+		public WiresharkPageAdapter(NSBundle bundle)
+			: base("WiresharkPage", bundle)
 		{
 		}
-
-		#endregion
 
 		object IView.PageView
 		{

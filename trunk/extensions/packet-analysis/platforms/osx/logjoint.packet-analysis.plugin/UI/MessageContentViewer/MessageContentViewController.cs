@@ -13,8 +13,8 @@ namespace LogJoint.PacketAnalysis.UI
 		private readonly LogJoint.UI.Mac.IView ljView;
 		private LogJoint.UI.Reactive.INSOutlineViewController treeController;
 
-		// Call to load from the XIB/NIB file
-		public MessageContentViewController(LogJoint.UI.Mac.IView ljView) : base("MessageContentView", NSBundle.MainBundle)
+		public MessageContentViewController(LogJoint.UI.Mac.IView ljView, NSBundle bundle) :
+			base("MessageContentView", bundle)
 		{
 			this.ljView = ljView;
 		}

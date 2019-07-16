@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\Plugins\sysinternals\</OutputPath>
     <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin</BaseIntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -28,7 +28,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\Plugins\sysinternals\</OutputPath>
     <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin</BaseIntermediateOutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -55,7 +55,13 @@
     <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
       <Name>logjoint.sdk</Name>
+      <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="manifest.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

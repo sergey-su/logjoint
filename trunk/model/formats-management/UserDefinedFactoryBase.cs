@@ -55,11 +55,7 @@ namespace LogJoint
 			if (createParams.RootNode == null)
 				throw new ArgumentNullException("createParams.RootNode");
 
-			if (createParams.Entry != null)
-			{
-				this.location = createParams.Entry.Location;
-			}
-
+			this.location = createParams.Location;
 			this.factoryRegistry = createParams.FactoryRegistry;
 
 			var idData = createParams.RootNode.Elements("id").Select(

@@ -5,8 +5,6 @@ namespace LogJoint.Symphony
 {
 	public class PluginImpl
 	{
-		public Action Start;
-
 		public PluginImpl(IApplication app)
 		{
 			app.Model.Postprocessing.TimeSeries.RegisterTimeSeriesTypesAssembly(typeof(TimeSeries.PostprocessorsFactory).Assembly);
@@ -35,17 +33,14 @@ namespace LogJoint.Symphony
 				new SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)
 			);
 
-			Start = () =>
+			var chromiumPlugin = app.Model.PluginsManager.Get<Chromium.IPluginModel>();
+			if (chromiumPlugin != null)
 			{
-				var chromiumPlugin = app.Model.PluginsManager.Get<Chromium.IPluginModel>();
-				if (chromiumPlugin != null)
-				{
-					chromiumPlugin.RegisterSource(statePostprocessors.CreateChromeDebugSourceFactory());
-					chromiumPlugin.RegisterSource(timeSeriesPostprocessors.CreateChromeDebugSourceFactory());
-					chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDebugLogEventsSourceFactory());
-					chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDriverEventsSourceFactory());
-				}
-			};
+				chromiumPlugin.RegisterSource(statePostprocessors.CreateChromeDebugSourceFactory());
+				chromiumPlugin.RegisterSource(timeSeriesPostprocessors.CreateChromeDebugSourceFactory());
+				chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDebugLogEventsSourceFactory());
+				chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDriverEventsSourceFactory());
+			}
 
 			app.Model.Preprocessing.ExtensionsRegistry.AddLogDownloaderRule(
 				new Uri("https://perzoinc.atlassian.net/secure/attachment/"),

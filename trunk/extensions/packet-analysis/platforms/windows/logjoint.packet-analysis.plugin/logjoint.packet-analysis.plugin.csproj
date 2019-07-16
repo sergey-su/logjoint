@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\Plugins\packet-analysis\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\Plugins\packet-analysis\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -66,14 +66,17 @@
     <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
       <Name>logjoint.model.sdk</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
       <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
       <Name>logjoint.presentation.sdk</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
       <Name>logjoint.sdk</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
       <Project>{3c4aabd0-7bd7-4403-b7d5-210cc4409f0b}</Project>
@@ -91,6 +94,11 @@
     <EmbeddedResource Include="UI\WiresharkPageUI.resx">
       <DependentUpon>WiresharkPageUI.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="manifest.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

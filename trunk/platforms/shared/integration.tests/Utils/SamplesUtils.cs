@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace LogJoint.Tests.Integration
 {
 	/// <summary>
-	/// Utililities that manage test samples, such as sample log files.
+	/// Utilities that manage test samples, such as sample log files.
 	/// Samples are stored on the web.
 	/// </summary>
 	public class SamplesUtils

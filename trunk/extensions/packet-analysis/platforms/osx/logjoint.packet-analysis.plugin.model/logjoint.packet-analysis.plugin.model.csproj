@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\osx\bin\Debug\logjoint.app\Contents\MonoBundle</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Debug\logjoint.app\Contents\MonoBundle\Plugins\packet-analysis</OutputPath>
     <DefineConstants>DEBUG;TRACE;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,7 +26,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\osx\bin\Debug\logjoint.app\Contents\MonoBundle</OutputPath>
+    <OutputPath>..\..\..\..\..\platforms\osx\bin\Release\logjoint.app\Contents\MonoBundle\Plugins\packet-analysis</OutputPath>
     <DefineConstants>TRACE;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -97,6 +97,7 @@
     <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
       <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
       <Name>logjoint.model.sdk</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
