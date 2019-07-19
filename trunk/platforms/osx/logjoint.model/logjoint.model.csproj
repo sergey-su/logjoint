@@ -1109,6 +1109,15 @@
     <Compile Include="..\..\..\model\threads\Interfaces.cs">
       <Link>threads\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\formats-management\Interfaces.cs">
+      <Link>formats-management\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\extensibility\PluginManifest.cs">
+      <Link>extensibility\PluginManifest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\extensibility\Extensions.cs">
+      <Link>extensibility\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

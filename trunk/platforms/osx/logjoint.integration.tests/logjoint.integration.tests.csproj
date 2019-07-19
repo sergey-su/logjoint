@@ -106,6 +106,15 @@
     <Compile Include="..\..\shared\integration.tests\PacketAnalysis\Formats\WiresharkPdmlFormatTests.cs">
       <Link>PacketAnalysis\Formats\WiresharkPdmlFormatTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\Chromium\PluginLoader.cs">
+      <Link>Chromium\PluginLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\PacketAnalysis\PluginLoader.cs">
+      <Link>PacketAnalysis\PluginLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\Utils\PluginUtils.cs">
+      <Link>Utils\PluginUtils.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
