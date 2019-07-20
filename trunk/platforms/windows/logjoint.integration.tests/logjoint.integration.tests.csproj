@@ -95,6 +95,9 @@
     <Compile Include="..\..\shared\integration.tests\Utils\Extensions.cs">
       <Link>Utils\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\Utils\NUnitUtils.cs">
+      <Link>Utils\NUnitUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\integration.tests\Utils\PluginUtils.cs">
       <Link>Utils\PluginUtils.cs</Link>
     </Compile>
