@@ -236,7 +236,6 @@
     <Folder Include="preprocessing\" />
     <Folder Include="providers\" />
     <Folder Include="providers\AsyncLogProvider\" />
-    <Folder Include="nlog\4.4\" />
     <Folder Include="log4net\" />
     <Folder Include="log4net\1.2\" />
     <Folder Include="log4net\2.0\" />
@@ -245,6 +244,7 @@
     <Folder Include="PrefixMatcher\" />
     <Folder Include="TimeSeries\" />
     <Folder Include="Utils\" />
+    <Folder Include="nlog\4.6\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\model\tests\nlog\1.0\NLog.dll">
@@ -286,9 +286,6 @@
     <EmbeddedResource Include="..\..\..\model\tests\nlog\2.0\NLog.dll">
       <Link>nlog\2.0\NLog.dll</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\..\model\tests\nlog\4.4\NLog.dll">
-      <Link>nlog\4.4\NLog.dll</Link>
-    </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\model\tests\log4net\1.2\log4net.dll">
       <Link>log4net\1.2\log4net.dll</Link>
     </EmbeddedResource>
@@ -297,6 +294,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\model\tests\TimeSeries\TestParserConfig.cs">
       <Link>TimeSeries\TestParserConfig.cs</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\nlog\4.6\NLog.dll">
+      <Link>nlog\4.6\NLog.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
