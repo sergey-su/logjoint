@@ -1952,8 +1952,8 @@ ${level}", (logger, expectation) =>
 			TestAgainstNLog1 = 1,
 			TestAgainstNLog2Plus = 2,
 			TestAgainstNLog4Plus = 4,
-			TestAgainstNLog4PlusOnMono = TestAgainstNLog4Plus | 8, // affected by https://github.com/NLog/NLog/pull/2600
-			Default = TestAgainstNLog1 | TestAgainstNLog2Plus | TestAgainstNLog4Plus
+			ForceNLog4PlusOnMono = 8, // affected by https://github.com/NLog/NLog/pull/2600
+			Default = TestAgainstNLog1 | TestAgainstNLog2Plus | TestAgainstNLog4Plus,
 		};
 
 		void RunTestWithNLogVersion(string testName, string nLogVersion)
@@ -2010,7 +2010,7 @@ ${level}", (logger, expectation) =>
 				testName = new System.Diagnostics.StackFrame(1).GetMethod().Name;
 			var forced4plus =
 #if MONO
-				(options & TestOptions.TestAgainstNLog4PlusOnMono) == TestOptions.TestAgainstNLog4PlusOnMono;
+				(options & TestOptions.ForceNLog4PlusOnMono) != 0;
 #else
 				false;
 #endif
@@ -2031,25 +2031,25 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void NLogWrapperNamesAndParamsAreNotCaseSensitive()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void InsignificantSpacesInParamsAreIngnored()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void SignificantSpacesInParamsAreNotIgnored()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}		
 
 		[Test]
 		public void EscapingTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2109,7 +2109,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void PaddingAndCasingAsAmbientProps()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus | TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2176,61 +2176,61 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void FullySpecifiedDate()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestStdDateFormatStrings_InvariantCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestStdDateFormatStrings_RuCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestStdDateFormatStrings_JpCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void DateAndTimeHaveDifferentCultures()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestCustomDateTimeFormatStrings_InvariantCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestCustomDateTimeFormatStrings_RuCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestCustomDateTimeFormatStrings_JpCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void EmptyDateFormat()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void LocaleDependentDateWithCasing()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2284,7 +2284,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void NotHandlableRenderersTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus | TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2308,7 +2308,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void GuidTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4PlusOnMono);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]

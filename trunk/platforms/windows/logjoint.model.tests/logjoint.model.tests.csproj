@@ -274,10 +274,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <EmbeddedResource Include="..\..\..\model\tests\nlog\4.4\NLog.dll">
-      <Link>nlog\4.4\NLog.dll</Link>
+    <EmbeddedResource Include="..\..\..\model\tests\nlog\4.6\NLog.dll">
+      <Link>nlog\4.6\NLog.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
