@@ -1559,10 +1559,14 @@ ${level}", (logger, expectation) =>
 				logger.Info("foo");
 				logger.Info("bar");
 
+				var expectedMessage = CurrentVersion == NLogVersion.Ver4 ?
+					"Could not find value for entry assembly and version type Assembly" :
+					"Could not find entry assembly";
+
 				expectation.Add(
 					0,
-					new EM("Could not find entry assembly|foo"),
-					new EM("Could not find entry assembly|bar")
+					new EM($"{expectedMessage}|foo"),
+					new EM($"{expectedMessage}|bar")
 				);
 			});
 		}
@@ -1948,7 +1952,8 @@ ${level}", (logger, expectation) =>
 			TestAgainstNLog1 = 1,
 			TestAgainstNLog2Plus = 2,
 			TestAgainstNLog4Plus = 4,
-			Default = TestAgainstNLog1 | TestAgainstNLog2Plus | TestAgainstNLog4Plus
+			ForceNLog4PlusOnMono = 8, // affected by https://github.com/NLog/NLog/pull/2600
+			Default = TestAgainstNLog1 | TestAgainstNLog2Plus | TestAgainstNLog4Plus,
 		};
 
 		void RunTestWithNLogVersion(string testName, string nLogVersion)
@@ -1974,10 +1979,9 @@ ${level}", (logger, expectation) =>
 
 				var setup = new AppDomainSetup();
 				setup.ApplicationBase = thisAsmPath;
-				setup.PrivateBinPath = nLogVersion;
+				setup.PrivateBinPath = tempNLogDirName;
 
 				domain.Domain = AppDomain.CreateDomain(nLogVersion, null, setup);
-				domain.Domain.AppendPrivatePath(tempNLogDirName);
 				domain.TestsContainer = domain.Domain.CreateInstanceAndUnwrap("logjoint.model.tests", typeof(TestsContainer).FullName);
 
 				nlogVersionToDomain[nLogVersion] = domain;
@@ -2004,12 +2008,18 @@ ${level}", (logger, expectation) =>
 		{
 			if (testName == null)
 				testName = new System.Diagnostics.StackFrame(1).GetMethod().Name;
-			if ((options & TestOptions.TestAgainstNLog1) != 0)
+			var forced4plus =
+#if MONO
+				(options & TestOptions.ForceNLog4PlusOnMono) != 0;
+#else
+				false;
+#endif
+			if ((options & TestOptions.TestAgainstNLog1) != 0 && !forced4plus)
 				RunTestWithNLogVersion(testName, "_1._0");
-			if ((options & TestOptions.TestAgainstNLog2Plus) != 0)
+			if ((options & TestOptions.TestAgainstNLog2Plus) != 0 && !forced4plus)
 				RunTestWithNLogVersion(testName, "_2._0");
 			if ((options & (TestOptions.TestAgainstNLog2Plus | TestOptions.TestAgainstNLog4Plus)) != 0)
-				RunTestWithNLogVersion(testName, "_4._4");
+				RunTestWithNLogVersion(testName, "_4._6");
 		}
 
 		[Test]
@@ -2021,25 +2031,25 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void NLogWrapperNamesAndParamsAreNotCaseSensitive()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void InsignificantSpacesInParamsAreIngnored()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void SignificantSpacesInParamsAreNotIgnored()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}		
 
 		[Test]
 		public void EscapingTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2099,7 +2109,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void PaddingAndCasingAsAmbientProps()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2166,61 +2176,61 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void FullySpecifiedDate()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestStdDateFormatStrings_InvariantCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestStdDateFormatStrings_RuCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestStdDateFormatStrings_JpCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void DateAndTimeHaveDifferentCultures()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestCustomDateTimeFormatStrings_InvariantCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestCustomDateTimeFormatStrings_RuCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void TestCustomDateTimeFormatStrings_JpCulture()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void EmptyDateFormat()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
 		public void LocaleDependentDateWithCasing()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2274,7 +2284,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void NotHandlableRenderersTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
@@ -2298,7 +2308,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void GuidTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions();
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.Default | TestOptions.ForceNLog4PlusOnMono);
 		}
 
 		[Test]
