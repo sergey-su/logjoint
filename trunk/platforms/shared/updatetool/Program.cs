@@ -30,6 +30,7 @@ namespace LogJoint.UpdateTool
 				Console.WriteLine("  pack [prod]                 collects latest binaries and zips them to an archive.");
 				Console.WriteLine("                              If prod option is specified zipped LogJoint's config file is modified to fetch production updates.");
 				Console.WriteLine("                              By default staging updates are assumed.");
+				Console.WriteLine("  test [prod]                 takes binaries collected by last pack command and runs integration tests against them.");
 				Console.WriteLine("  deploy [prod]               deploys zipped binaries to the cloud as staging blob (default) or production blob");
 				Console.WriteLine("  init                        (re)initializes storage account by creating required objects and setting proper access policies");
 				Console.WriteLine("  telem [months]              downloads and analyzes telemetry for specified nr of recent months");
@@ -37,6 +38,7 @@ namespace LogJoint.UpdateTool
 				Console.WriteLine("  packinst [prod]             builds installation image");
 				Console.WriteLine("  deployinst [prod]           deploys installation image to the cloud");
 				Console.WriteLine("  encrypt <str>               encrypts a string with configured encryption certificate (thumbprint={0})", settings.StorageAccountKeyEncryptionCertThumbprint);
+				Console.WriteLine("  plugin alloc [id]           allocates new plugin id, or if id is specified, only allocates inbox url");
 				return;
 			}
 
@@ -68,6 +70,17 @@ namespace LogJoint.UpdateTool
 					break;
 				case "deployinst":
 					DeployInstaller (args.Skip (1).ToArray ());
+					break;
+				case "plugin":
+					switch (args.ElementAtOrDefault(1) ?? "")
+					{
+						case "alloc":
+							AllocatePlugin(args.Skip(2).ToArray());
+							break;
+						default:
+							Console.WriteLine("Unknown plugin command");
+							break;
+					}
 					break;
 				default:
 					Console.WriteLine("Unknown command");
@@ -493,7 +506,7 @@ namespace LogJoint.UpdateTool
 			BlobContainerPermissions updatesContainerPermissions = new BlobContainerPermissions();
 			updatesContainerPermissions.PublicAccess = BlobContainerPublicAccessType.Blob;
 
-			Console.Write("Setting permissions on the blob container ... ");
+			Console.Write("Setting permissions on the updates blobs container ... ");
 			updatesContainer.SetPermissions(updatesContainerPermissions);
 			Console.WriteLine("Done");
 			
@@ -511,6 +524,7 @@ namespace LogJoint.UpdateTool
 
 			Console.Write("Setting permissions on telemetry table ... ");
 			telemetryTable.SetPermissions(tablePermissions);
+			Console.WriteLine("Done");
 
 			CloudBlobContainer issuesContainer = blobClient.GetContainerReference(settings.IssuesBlobContainerName);
 			Console.Write("Creating issues container ... ");
@@ -525,8 +539,25 @@ namespace LogJoint.UpdateTool
 
 			Console.Write("Setting permissions on issues container ... ");
 			issuesContainer.SetPermissions(issuesContainerPermissions);
-
 			Console.WriteLine("Done");
+
+			CloudBlobContainer pluginsContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
+			Console.Write("Creating plug-ins inbox blob container ... ");
+			Console.WriteLine(pluginsContainer.CreateIfNotExists() ? "Created" : "Already exists");
+
+			BlobContainerPermissions pluginsContainerPermissions = new BlobContainerPermissions();
+			pluginsContainerPermissions.PublicAccess = BlobContainerPublicAccessType.Off;
+			pluginsContainerPermissions.SharedAccessPolicies.Add(settings.StoredClientsAccessPolicyName, new SharedAccessBlobPolicy()
+			{
+				SharedAccessExpiryTime = DateTime.MaxValue,
+				Permissions = SharedAccessBlobPermissions.Write
+			});
+
+			Console.Write("Setting permissions on the plug-ins inbox blobs container ... ");
+			pluginsContainer.SetPermissions(pluginsContainerPermissions);
+			Console.WriteLine("Done");
+
+			Console.WriteLine("Storage setup finished");
 		}
 
 		static X509Certificate2 FindStorageKeyEncryptionCertificate(bool mustHavePrivateKey)
@@ -615,6 +646,31 @@ namespace LogJoint.UpdateTool
 				// todo
 			}
 			Console.WriteLine("Downloaded {0} issue reports", blobsCount);
+		}
+
+
+		static void AllocatePlugin(string[] arg)
+		{
+			CloudStorageAccount storageAccount = CreateStorageAccount();
+			var blobClient = storageAccount.CreateCloudBlobClient();
+
+			CloudBlobContainer pluginsContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
+
+			var newPluginId = arg.ElementAtOrDefault(0);
+			if (newPluginId == null)
+			{
+				newPluginId = Guid.NewGuid().ToString("N");
+				Console.WriteLine("Allocated new plug-in id {0}", newPluginId);
+			}
+			var blob = pluginsInboxContainer.GetBlockBlobReference(newPluginId);
+
+			Console.Write("Uploading initial empty plug-in content ...");
+			blob.UploadFromByteArray(new byte[0], 0, 0);
+			Console.WriteLine("Done");
+
+			var pluginWriteOnlyUri = TransformUri(blob.Uri, blob.GetSharedAccessSignature(null, settings.StoredClientsAccessPolicyName));
+			Console.WriteLine("Allocated plug-in write-only URI:");
+			Console.WriteLine("{0}", pluginWriteOnlyUri);
 		}
 	}
 }
