@@ -2,7 +2,9 @@
 <manifest>
   <id>74bbc86c-3081-47b4-b6ae-ac54396decef-azure</id>
   <version>1.0.0</version>
-  <name>Support for loading Azure logs</name>
+  <platform>win</platform>
+  <name>Azure</name>
+  <description>Allows loading of Azure logs from table storage.</description>
   <file type="entry">logjoint.azure.plugin.dll</file>
   <file type="dll">logjoint.azure.model.dll</file>
   <file type="dll">Microsoft.WindowsAzure.Configuration.dll</file>

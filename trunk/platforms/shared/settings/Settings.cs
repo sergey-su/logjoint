@@ -104,5 +104,14 @@ namespace LogJoint.Properties
 				return ((string)(this["MonospaceBookmarks"]));
 			}
 		}
+
+		[ApplicationScopedSetting]
+		public string PluginsUrl
+		{
+			get
+			{
+				return ((string)(this["PluginsUrl"]));
+			}
+		}
 	}
 }

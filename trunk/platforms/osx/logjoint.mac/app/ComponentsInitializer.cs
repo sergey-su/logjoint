@@ -15,6 +15,7 @@ namespace LogJoint.UI
 					TelemetryUrl = Properties.Settings.Default.TelemetryUrl,
 					IssuesUrl = Properties.Settings.Default.IssuesUrl,
 					AutoUpdateUrl = Properties.Settings.Default.AutoUpdateUrl,
+					PluginsUrl = Properties.Settings.Default.PluginsUrl,
 					WebContentCacheConfig = webContentConfig,
 					LogsDownloaderConfig = webContentConfig
 				},

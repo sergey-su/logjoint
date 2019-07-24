@@ -2,6 +2,6 @@
 {
 	public interface IPluginFormatsManager
 	{
-		void RegisterPluginFormats(IPluginManifest manifest);
+		void RegisterPluginFormats(Extensibility.IPluginManifest manifest);
 	};
 }

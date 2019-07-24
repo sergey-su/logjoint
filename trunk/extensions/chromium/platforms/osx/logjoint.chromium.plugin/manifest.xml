@@ -2,7 +2,9 @@
 <manifest>
   <id>1e1245c1-492c-4a59-9ce8-23be39b7599f-chromium</id>
   <version>1.0.0</version>
-  <name>Support for viewing chrome/chromium logs</name>
+  <platform>mac</platform>
+  <name>Chromium and WebRTC</name>
+  <description>Support for viewing and visualization of chrome/chromium logs: HTTP archive (HAR), chrome_debug log, chrome driver log, WebRTC internals dump.</description>
   <file type="format">Formats/Chromium-chrome_debug.format.xml</file>
   <file type="format">Formats/Chromium-chromedriver.format.xml</file>
   <file type="format">Formats/Chromium-webrtc_internals_dump.format.xml</file>

@@ -1,12 +1,13 @@
 ﻿
 using CR = LogJoint.Chromium;
+using LogJoint.Extensibility;
 
 namespace LogJoint.Tests.Integration.Chromium
 {
 	public class PluginLoader
 	{
 		public readonly IPluginManifest Manifest =
-			new Extensibility.PluginManifest(PluginUtils.GetPluginDirectory("chromium"));
+			new PluginManifest(PluginUtils.GetPluginDirectory("chromium"));
 
 		public PluginLoader()
 		{

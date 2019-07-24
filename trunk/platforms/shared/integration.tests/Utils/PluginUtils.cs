@@ -2,6 +2,7 @@
 using System.Linq;
 using System.IO;
 using System.Reflection;
+using LogJoint.Extensibility;
 
 namespace LogJoint.Tests.Integration
 {

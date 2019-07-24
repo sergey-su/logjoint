@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PA = LogJoint.PacketAnalysis;
 using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
+using LogJoint.Extensibility;
 
 namespace LogJoint.Tests.Integration.PacketAnalysis
 {

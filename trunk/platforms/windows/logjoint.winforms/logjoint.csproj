@@ -257,6 +257,12 @@
     <Compile Include="ui\ExtendedSplitContainer.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ui\Options\PluginsView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Options\PluginsView.Designer.cs">
+      <DependentUpon>PluginsView.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\ViewsFactory.cs" />
     <Compile Include="ui\FilesSelectionDialog.cs">
       <SubType>Form</SubType>
@@ -825,6 +831,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Options\AppearanceSettingsView.resx">
       <DependentUpon>AppearanceSettingsView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Options\PluginsView.resx">
+      <DependentUpon>PluginsView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Options\UpdatesAndFeedbackView.resx">
       <DependentUpon>UpdatesAndFeedbackView.cs</DependentUpon>

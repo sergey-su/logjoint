@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 
-namespace LogJoint
+namespace LogJoint.Extensibility
 {
 	public static class PluginsManagerExtensions
 	{
@@ -11,7 +11,7 @@ namespace LogJoint
 		{
 			var missingFiles = string.Join(",", pluginManifest.Files.Where(f => !File.Exists(f.AbsolulePath)).Select(f => f.RelativePath));
 			if (missingFiles.Length > 0)
-				throw new FileNotFoundException($"Some plugin files are missing: {missingFiles}");
+				throw new FileNotFoundException($"Some plug-in files are missing: {missingFiles}");
 		}
 	};
 }

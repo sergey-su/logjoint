@@ -458,7 +458,8 @@ namespace LogJoint.UI.Presenters
 				optionsDialogView,
 				pageView => new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory, pageView),
 				pageView => new Options.Appearance.Presenter(model.GlobalSettingsAccessor, pageView, logViewerPresenterFactory, model.ChangeNotification, colorTheme),
-				pageView => new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor, pageView)
+				pageView => new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor, pageView),
+				pageView => new Options.Plugins.Presenter(pageView, model.PluginsManager, model.ChangeNotification)
 			) : null;
 
 			About.IPresenter aboutDialogPresenter = new About.Presenter(

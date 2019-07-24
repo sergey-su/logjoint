@@ -69,6 +69,12 @@ namespace LogJoint.UI
 			viewEvents.OnKeyPressed (KeyCode.NewWindowShortcut);
 		}
 
+		public void OnOptionsClicked()
+		{
+			viewEvents.OnConfigurationMenuClicked();
+		}
+
+
 		[Export ("performFindPanelAction:")]
 		void OnPerformFindPanelAction (NSObject sender)
 		{

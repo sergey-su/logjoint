@@ -154,6 +154,9 @@
     <Compile Include="..\..\..\model\extensibility\PluginManifest.cs">
       <Link>extensibility\PluginManifest.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\extensibility\PluginsIndex.cs">
+      <Link>extensibility\PluginsIndex.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\extensibility\PluginsManager.cs">
       <Link>extensibility\PluginsManager.cs</Link>
     </Compile>

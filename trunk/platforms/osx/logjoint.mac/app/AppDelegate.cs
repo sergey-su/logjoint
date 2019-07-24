@@ -53,5 +53,10 @@ namespace LogJoint
 		{
 			mainWindowAdapter.OnNewDocumentClicked ();
 		}
+
+		partial void onOptionsClicked(Foundation.NSObject sender)
+		{
+			mainWindowAdapter.OnOptionsClicked();
+		}
 	}
 }

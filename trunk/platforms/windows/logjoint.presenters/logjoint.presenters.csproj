@@ -316,6 +316,9 @@
     <Compile Include="..\..\..\presenters\OptionsDialogPresenter\OptionsDialogPresenter.cs">
       <Link>OptionsDialogPresenter\OptionsDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\PluginsPresenter.cs">
+      <Link>OptionsDialogPresenter\PluginsPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs">
       <Link>OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs</Link>
     </Compile>

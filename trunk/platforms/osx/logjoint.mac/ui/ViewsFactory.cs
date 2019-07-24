@@ -96,7 +96,7 @@ namespace LogJoint.UI.Presenters
 
 		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView () => new NewLogSourceDialogView();
 
-		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView () => throw new NotImplementedException();
+		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView () => new OptionsView(this);
 
 		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage () => new UI.Postprocessing.MainWindowTabPage.MainWindowTabPageAdapter ();
 

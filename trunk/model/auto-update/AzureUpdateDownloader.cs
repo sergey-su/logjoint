@@ -13,9 +13,9 @@ namespace LogJoint.AutoUpdate
 		readonly bool isConfigured;
 		readonly LJTraceSource trace;
 
-		public AzureUpdateDownloader(ITraceSourceFactory traceSourceFactory, string autoUpdateUrl)
+		public AzureUpdateDownloader(ITraceSourceFactory traceSourceFactory, string autoUpdateUrl, string updateType)
 		{
-			this.trace = traceSourceFactory.CreateTraceSource("AutoUpdater", "az-upd");
+			this.trace = traceSourceFactory.CreateTraceSource("AutoUpdater", $"az-dwnld-{updateType}");
 			this.autoUpdateUrl = autoUpdateUrl;
 			isConfigured = !string.IsNullOrEmpty(autoUpdateUrl);
 		}

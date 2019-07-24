@@ -81,9 +81,9 @@ namespace LogJoint
 			}
 		}
 
-		void IPluginFormatsManager.RegisterPluginFormats(IPluginManifest manifest)
+		void IPluginFormatsManager.RegisterPluginFormats(Extensibility.IPluginManifest manifest)
 		{
-			foreach (var formatFile in manifest.Files.Where(f => f.Type == PluginFileType.FormatDefinition))
+			foreach (var formatFile in manifest.Files.Where(f => f.Type == Extensibility.PluginFileType.FormatDefinition))
 			{
 				var root = XDocument.Load(formatFile.AbsolulePath).Element("format");
 				pluginFactories.AddRange(

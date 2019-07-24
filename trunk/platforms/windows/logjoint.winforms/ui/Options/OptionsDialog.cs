@@ -12,12 +12,19 @@ namespace LogJoint.UI
 {
 	public partial class OptionsDialog : Form, IDialog
 	{
-		IPresenterEvents presenter;
+		IDialogViewModel viewModel;
 
-		public OptionsDialog(IPresenterEvents presenter)
+		public OptionsDialog(Windows.Reactive.IReactive reactive)
 		{
-			this.presenter = presenter;
 			InitializeComponent();
+			pluginsView1.Init(reactive);
+		}
+
+		void IDialog.SetViewModel(IDialogViewModel value)
+		{
+			this.viewModel = value;
+			SetPageVisibility(viewModel.UpdatesAndFeedbackPageVisibile, updatesAndFeedbackTabPage);
+			SetPageVisibility(viewModel.PluginPageVisible, pluginsTabPage);
 		}
 
 		void IDialog.Show()
@@ -45,14 +52,16 @@ namespace LogJoint.UI
 			get { return updatesAndFeedbackView1; }
 		}
 
-		void IDialog.SetUpdatesAndFeedbackPageVisibility(bool value)
+		Presenters.Options.Plugins.IView IDialog.PluginsPage => pluginsView1;
+
+		void SetPageVisibility(bool value, TabPage page)
 		{
-			if (value == (tabControl1.TabPages.IndexOf(updatesAndFeedbackTabPage) >= 0))
+			if (value == (tabControl1.TabPages.IndexOf(page) >= 0))
 				return;
 			if (!value)
-				tabControl1.TabPages.Remove(updatesAndFeedbackTabPage);
+				tabControl1.TabPages.Remove(page);
 			else
-				tabControl1.TabPages.Add(updatesAndFeedbackTabPage);
+				tabControl1.TabPages.Add(page);
 		}
 
 		void IDisposable.Dispose()
@@ -62,27 +71,27 @@ namespace LogJoint.UI
 
 		private void okButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnOkPressed();
+			viewModel.OnOkPressed();
 		}
 
 		private void cancelButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnCancelPressed();
+			viewModel.OnCancelPressed();
 		}
 	}
 
 	public class OptionsDialogView : IView
 	{
-		IPresenterEvents presenter;
+		readonly Windows.Reactive.IReactive reactive;
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		public OptionsDialogView(Windows.Reactive.IReactive reactive)
 		{
-			this.presenter = presenter;
+			this.reactive = reactive;
 		}
 
 		IDialog IView.CreateDialog()
 		{
-			return new OptionsDialog(presenter);
+			return new OptionsDialog(reactive);
 		}
 	};
 }

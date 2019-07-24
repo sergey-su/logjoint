@@ -2,7 +2,9 @@
 <manifest>
   <id>e35400e2-ff58-4530-a7dc-3b1a790cb130-symphony</id>
   <version>1.0.0</version>
-  <name>Symphony LLC log formats</name>
+  <platform>win</platform>
+  <name>Symphony LLC</name>
+  <description>Support for viewing and visualization of Symphony log formats: RTC browser log, Spring log (CS, SB), SMB log.</description>
   <dependency>1e1245c1-492c-4a59-9ce8-23be39b7599f-chromium</dependency>
   <file type="format">Formats/Symphony - RTC log.format.xml</file>
   <file type="format">Formats/Symphony - SMB log.format.xml</file>

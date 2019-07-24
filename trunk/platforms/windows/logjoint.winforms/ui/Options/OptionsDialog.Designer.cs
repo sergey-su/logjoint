@@ -33,15 +33,18 @@
 			this.cancelButton = new System.Windows.Forms.Button();
 			this.tabControl1 = new System.Windows.Forms.TabControl();
 			this.memAndPerformanceTabPage = new System.Windows.Forms.TabPage();
-			this.memAndPerformanceSettingsView = new LogJoint.UI.MemAndPerformanceSettingsView();
 			this.appearanceTabPage = new System.Windows.Forms.TabPage();
-			this.appearanceSettingsView1 = new LogJoint.UI.AppearanceSettingsView();
 			this.updatesAndFeedbackTabPage = new System.Windows.Forms.TabPage();
+			this.pluginsTabPage = new System.Windows.Forms.TabPage();
+			this.memAndPerformanceSettingsView = new LogJoint.UI.MemAndPerformanceSettingsView();
+			this.appearanceSettingsView1 = new LogJoint.UI.AppearanceSettingsView();
 			this.updatesAndFeedbackView1 = new LogJoint.UI.UpdatesAndFeedbackView();
+			this.pluginsView1 = new LogJoint.UI.PluginsView();
 			this.tabControl1.SuspendLayout();
 			this.memAndPerformanceTabPage.SuspendLayout();
 			this.appearanceTabPage.SuspendLayout();
 			this.updatesAndFeedbackTabPage.SuspendLayout();
+			this.pluginsTabPage.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// okButton
@@ -77,6 +80,7 @@
 			this.tabControl1.Controls.Add(this.memAndPerformanceTabPage);
 			this.tabControl1.Controls.Add(this.appearanceTabPage);
 			this.tabControl1.Controls.Add(this.updatesAndFeedbackTabPage);
+			this.tabControl1.Controls.Add(this.pluginsTabPage);
 			this.tabControl1.Location = new System.Drawing.Point(2, 2);
 			this.tabControl1.Name = "tabControl1";
 			this.tabControl1.SelectedIndex = 0;
@@ -94,16 +98,6 @@
 			this.memAndPerformanceTabPage.Text = "Resources and performance";
 			this.memAndPerformanceTabPage.UseVisualStyleBackColor = true;
 			// 
-			// memAndPerformanceSettingsView
-			// 
-			this.memAndPerformanceSettingsView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.memAndPerformanceSettingsView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.memAndPerformanceSettingsView.Location = new System.Drawing.Point(7, 7);
-			this.memAndPerformanceSettingsView.Margin = new System.Windows.Forms.Padding(5);
-			this.memAndPerformanceSettingsView.Name = "memAndPerformanceSettingsView";
-			this.memAndPerformanceSettingsView.Size = new System.Drawing.Size(547, 353);
-			this.memAndPerformanceSettingsView.TabIndex = 0;
-			// 
 			// appearanceTabPage
 			// 
 			this.appearanceTabPage.Controls.Add(this.appearanceSettingsView1);
@@ -116,6 +110,38 @@
 			this.appearanceTabPage.Text = "Appearance";
 			this.appearanceTabPage.UseVisualStyleBackColor = true;
 			// 
+			// updatesAndFeedbackTabPage
+			// 
+			this.updatesAndFeedbackTabPage.Controls.Add(this.updatesAndFeedbackView1);
+			this.updatesAndFeedbackTabPage.Location = new System.Drawing.Point(4, 26);
+			this.updatesAndFeedbackTabPage.Name = "updatesAndFeedbackTabPage";
+			this.updatesAndFeedbackTabPage.Padding = new System.Windows.Forms.Padding(3);
+			this.updatesAndFeedbackTabPage.Size = new System.Drawing.Size(561, 367);
+			this.updatesAndFeedbackTabPage.TabIndex = 2;
+			this.updatesAndFeedbackTabPage.Text = "Software Update";
+			this.updatesAndFeedbackTabPage.UseVisualStyleBackColor = true;
+			// 
+			// pluginsTabPage
+			// 
+			this.pluginsTabPage.Controls.Add(this.pluginsView1);
+			this.pluginsTabPage.Location = new System.Drawing.Point(4, 26);
+			this.pluginsTabPage.Name = "pluginsTabPage";
+			this.pluginsTabPage.Padding = new System.Windows.Forms.Padding(3);
+			this.pluginsTabPage.Size = new System.Drawing.Size(561, 367);
+			this.pluginsTabPage.TabIndex = 3;
+			this.pluginsTabPage.Text = "Plugins";
+			this.pluginsTabPage.UseVisualStyleBackColor = true;
+			// 
+			// memAndPerformanceSettingsView
+			// 
+			this.memAndPerformanceSettingsView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.memAndPerformanceSettingsView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.memAndPerformanceSettingsView.Location = new System.Drawing.Point(7, 7);
+			this.memAndPerformanceSettingsView.Margin = new System.Windows.Forms.Padding(5);
+			this.memAndPerformanceSettingsView.Name = "memAndPerformanceSettingsView";
+			this.memAndPerformanceSettingsView.Size = new System.Drawing.Size(547, 353);
+			this.memAndPerformanceSettingsView.TabIndex = 0;
+			// 
 			// appearanceSettingsView1
 			// 
 			this.appearanceSettingsView1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -127,17 +153,6 @@
 			this.appearanceSettingsView1.Size = new System.Drawing.Size(547, 353);
 			this.appearanceSettingsView1.TabIndex = 0;
 			// 
-			// updatesAndFeedbaclTabPage
-			// 
-			this.updatesAndFeedbackTabPage.Controls.Add(this.updatesAndFeedbackView1);
-			this.updatesAndFeedbackTabPage.Location = new System.Drawing.Point(4, 26);
-			this.updatesAndFeedbackTabPage.Name = "updatesAndFeedbaclTabPage";
-			this.updatesAndFeedbackTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.updatesAndFeedbackTabPage.Size = new System.Drawing.Size(561, 367);
-			this.updatesAndFeedbackTabPage.TabIndex = 2;
-			this.updatesAndFeedbackTabPage.Text = "Software Update";
-			this.updatesAndFeedbackTabPage.UseVisualStyleBackColor = true;
-			// 
 			// updatesAndFeedbackView1
 			// 
 			this.updatesAndFeedbackView1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -145,8 +160,18 @@
 			this.updatesAndFeedbackView1.Location = new System.Drawing.Point(3, 3);
 			this.updatesAndFeedbackView1.Margin = new System.Windows.Forms.Padding(4);
 			this.updatesAndFeedbackView1.Name = "updatesAndFeedbackView1";
-			this.updatesAndFeedbackView1.Size = new System.Drawing.Size(555, 361);
+			this.updatesAndFeedbackView1.Size = new System.Drawing.Size(555, 362);
 			this.updatesAndFeedbackView1.TabIndex = 0;
+			// 
+			// pluginsView1
+			// 
+			this.pluginsView1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.pluginsView1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.pluginsView1.Location = new System.Drawing.Point(3, 3);
+			this.pluginsView1.Margin = new System.Windows.Forms.Padding(4);
+			this.pluginsView1.Name = "pluginsView1";
+			this.pluginsView1.Size = new System.Drawing.Size(555, 361);
+			this.pluginsView1.TabIndex = 0;
 			// 
 			// OptionsDialog
 			// 
@@ -174,6 +199,7 @@
 			this.memAndPerformanceTabPage.ResumeLayout(false);
 			this.appearanceTabPage.ResumeLayout(false);
 			this.updatesAndFeedbackTabPage.ResumeLayout(false);
+			this.pluginsTabPage.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -189,5 +215,7 @@
 		private AppearanceSettingsView appearanceSettingsView1;
 		private System.Windows.Forms.TabPage updatesAndFeedbackTabPage;
 		private UpdatesAndFeedbackView updatesAndFeedbackView1;
+		private System.Windows.Forms.TabPage pluginsTabPage;
+		private PluginsView pluginsView1;
 	}
 }

@@ -169,5 +169,13 @@ namespace LogJoint.UpdateTool.Properties {
 			}
 		}
 
+		[ApplicationScopedSetting]
+		public string PluginsBlobName
+		{
+			get
+			{
+				return ((string)(this["PluginsBlobName"]));
+			}
+		}
 	}
 }

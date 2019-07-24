@@ -2,7 +2,9 @@
 <manifest>
   <id>317dec6d-6f49-4a68-98f8-f107d94fe988-packet-analysis</id>
   <version>1.0.0</version>
+  <platform>win</platform>
   <name>Packet Analysis</name>
+  <description>Enabled opening, viewing and visualization of packet captures (PCAP). HTTPS decryption is supported. Requires TShark to be installed in your system.</description>
   <file type="format">Formats/Wireshark - pdml.format.xml</file>
   <file type="entry">logjoint.packet-analysis.plugin.dll</file>
   <file type="dll">logjoint.packet-analysis.plugin.model.dll</file>

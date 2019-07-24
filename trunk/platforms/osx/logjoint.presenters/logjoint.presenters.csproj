@@ -600,6 +600,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\SourcesListPresenter\Items.cs">
       <Link>SourcesListPresenter\Items.cs</Link>
+    </Compile>      
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\PluginsPresenter.cs">
+      <Link>OptionsDialogPresenter\PluginsPresenter.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

@@ -12,10 +12,12 @@ namespace LogJoint.Extensibility
 		readonly string pluginDirectory;
 		readonly string absolulePath;
 		readonly string id;
+		readonly string name;
+		readonly string description;
 		readonly Version version;
 		readonly IReadOnlyList<IPluginFile> files;
 		readonly IPluginFile entry;
-		readonly IReadOnlyList<IPluginDependency> dependencies;
+		readonly IReadOnlyList<string> dependencies;
 
 		public PluginManifest(string pluginDirectory)
 		{
@@ -39,6 +41,12 @@ namespace LogJoint.Extensibility
 			var versionStr = getMandatory("version").Value;
 			if (!Version.TryParse(versionStr, out this.version))
 				throw new BadManifestException($"'{versionStr}' is not a valid plugin version");
+			if (version.Build == -1)
+				throw new BadManifestException($"Bad version '{versionStr}': version should contain at least 3 components");
+			this.name = getMandatory("name").Value;
+			if (string.IsNullOrWhiteSpace(this.name))
+				throw new BadManifestException($"'{name}' is not a bad name");
+			this.description = getMandatory("description").Value;
 			this.files = root.Elements("file").Select(fileNode =>
 			{
 				PluginFileType type;
@@ -64,11 +72,7 @@ namespace LogJoint.Extensibility
 				?? throw new BadManifestException($"Plugin entry is missing from manifest");
 			this.dependencies = root.Elements("dependency").Select(depNode =>
 			{
-				return new Dependency
-				{
-					manifest = this,
-					pluginId = !string.IsNullOrWhiteSpace(depNode.Value) ? depNode.Value : throw new BadManifestException($"Bad dependency {depNode}")
-				};
+				return !string.IsNullOrWhiteSpace(depNode.Value) ? depNode.Value : throw new BadManifestException($"Bad dependency {depNode}");
 			}).ToArray().AsReadOnly();
 		}
 
@@ -79,12 +83,16 @@ namespace LogJoint.Extensibility
 		string IPluginManifest.AbsolulePath => absolulePath;
 
 		string IPluginManifest.Id => id;
+		Version IPluginManifest.Version => version;
+
+		string IPluginManifest.Name => name;
+		string IPluginManifest.Description => description;
 
 		IReadOnlyList<IPluginFile> IPluginManifest.Files => files;
 
 		IPluginFile IPluginManifest.Entry => entry;
 
-		IReadOnlyList<IPluginDependency> IPluginManifest.Dependencies => dependencies;
+		IReadOnlyList<string> IPluginManifest.Dependencies => dependencies;
 
 		public override string ToString() => $"{id} {version}";
 
@@ -103,16 +111,6 @@ namespace LogJoint.Extensibility
 			string IPluginFile.AbsolulePath => Path.Combine(manifest.pluginDirectory, relativePath);
 
 			public override string ToString() => $"{type} {relativePath}";
-		};
-
-		class Dependency : IPluginDependency
-		{
-			public PluginManifest manifest;
-			public string pluginId;
-
-			IPluginManifest IPluginDependency.Manifest => manifest;
-
-			string IPluginDependency.PluginId => pluginId;
 		};
 	}
 }

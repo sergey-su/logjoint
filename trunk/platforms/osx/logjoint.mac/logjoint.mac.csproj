@@ -154,6 +154,7 @@
     <Folder Include="help\images\" />
     <Folder Include="ui\CommonControls\NSCustomTableRowView\" />
     <Folder Include="ui\CommonControls\NSDragDropTextField\" />
+    <Folder Include="ui\OptionsDialog\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -639,6 +640,14 @@
     <Compile Include="ui\CommonControls\Reactive\NSOutlineViewController.cs" />
     <Compile Include="ui\ViewsFactory.cs" />
     <Compile Include="ui\CommonControls\Reactive\NSTableViewController.cs" />
+    <Compile Include="ui\OptionsDialog\OptionsWindow.cs" />
+    <Compile Include="ui\OptionsDialog\OptionsWindow.designer.cs">
+      <DependentUpon>OptionsWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\OptionsDialog\OptionsWindowController.cs" />
+    <Compile Include="ui\OptionsDialog\OptionsWindowController.designer.cs">
+      <DependentUpon>OptionsWindowController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -701,6 +710,7 @@
     <InterfaceDefinition Include="ui\FormatsWizard\TestFormatDialog.xib" />
     <InterfaceDefinition Include="ui\FormatsWizard\XmlBasedFormatPage.xib" />
     <InterfaceDefinition Include="ui\FormatsWizard\XsltEditorDialog.xib" />
+    <InterfaceDefinition Include="ui\OptionsDialog\OptionsWindow.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

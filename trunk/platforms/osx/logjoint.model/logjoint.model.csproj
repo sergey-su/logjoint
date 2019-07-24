@@ -1118,6 +1118,9 @@
     <Compile Include="..\..\..\model\extensibility\Extensions.cs">
       <Link>extensibility\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\extensibility\PluginsIndex.cs">
+      <Link>extensibility\PluginsIndex.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

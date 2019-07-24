@@ -15,25 +15,27 @@ namespace LogJoint.UI.Presenters.Options
 
 		public interface IView
 		{
-			void SetPresenter(IPresenterEvents presenter);
 			IDialog CreateDialog();
 		};
 
 
 		public interface IDialog: IDisposable
 		{
+			void SetViewModel(IDialogViewModel viewModel);
 			MemAndPerformancePage.IView MemAndPerformancePage { get; }
 			Appearance.IView ApperancePage { get; }
 			UpdatesAndFeedback.IView UpdatesAndFeedbackPage { get; }
-			void SetUpdatesAndFeedbackPageVisibility(bool value);
+			Plugins.IView PluginsPage { get; }
 			void Show();
 			void Hide();
 		};
 
-		public interface IPresenterEvents
+		public interface IDialogViewModel
 		{
 			void OnOkPressed();
 			void OnCancelPressed();
+			bool UpdatesAndFeedbackPageVisibile { get; }
+			bool PluginPageVisible { get; }
 		};
 
 		public interface IPagePresenter
@@ -136,4 +138,47 @@ namespace LogJoint.UI.Presenters.Options
 			void OnCheckUpdateNowClicked();
 		};
 	};
+
+	namespace Plugins
+	{
+		public interface IPresenter : IDisposable
+		{
+			bool Apply();
+			bool IsAvailable { get; }
+		};
+
+		public interface IView
+		{
+			void SetViewModel(IViewModel viewModel);
+		};
+
+		public interface IViewModel
+		{
+			IChangeNotification ChangeNotification { get; }
+			IReadOnlyList<IPluginListItem> ListItems { get; }
+			PluginsListFetchingStatus ListFetchingStatus { get; }
+			ISelectedPluginData SelectedPluginData { get; }
+			void OnSelect(IPluginListItem item);
+			void OnAction();
+		};
+
+		public enum PluginsListFetchingStatus
+		{
+			Pending,
+			Success,
+			Failed,
+		};
+
+		public interface IPluginListItem: Reactive.IListItem
+		{
+			string Text { get; }
+		};
+
+		public interface ISelectedPluginData
+		{
+			string Caption { get; }
+			string Description { get; }
+			(bool Enabled, string Caption) ActionButton { get; }
+		};
+	}
 };

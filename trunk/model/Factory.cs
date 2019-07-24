@@ -43,7 +43,7 @@ namespace LogJoint
 		public Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; internal set; }
 		public IHeartBeatTimer HeartBeatTimer { get; internal set; }
 		public IColorLeaseConfig ThreadColorsLease { get; internal set; }
-		public IPluginsManagerInternal PluginsManager { get; internal set; }
+		public Extensibility.IPluginsManagerInternal PluginsManager { get; internal set; }
 		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
 	};
 
@@ -53,6 +53,7 @@ namespace LogJoint
 		public string TelemetryUrl;
 		public string IssuesUrl;
 		public string AutoUpdateUrl;
+		public string PluginsUrl;
 		public Persistence.IWebContentCacheConfig WebContentCacheConfig;
 		public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 		public string AppDataDirectory;
@@ -275,7 +276,8 @@ namespace LogJoint
 
 			AutoUpdate.IUpdateDownloader updateDownloader = new AutoUpdate.AzureUpdateDownloader(
 				traceSourceFactory,
-				config.AutoUpdateUrl
+				config.AutoUpdateUrl,
+				"app"
 			);
 
 			AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
@@ -303,11 +305,21 @@ namespace LogJoint
 				postprocessingModel
 			);
 
-			IPluginsManagerInternal pluginsManager = new Extensibility.PluginsManager(
+			AutoUpdate.IUpdateDownloader pluginsIndexDownloader = new AutoUpdate.AzureUpdateDownloader(
+				traceSourceFactory,
+				config.PluginsUrl,
+				"plugins"
+			);
+
+			Extensibility.IPluginsManagerInternal pluginsManager = new Extensibility.PluginsManager(
 				traceSourceFactory,
 				telemetryCollector,
 				shutdown,
-				userDefinedFormatsManager
+				userDefinedFormatsManager,
+				pluginsIndexDownloader,
+				new Extensibility.PluginsIndex.Factory(telemetryCollector),
+				changeNotification,
+				updateDownloader
 			);
 
 			Model expensibilityModel = new Model(

@@ -1,11 +1,12 @@
 ﻿using PA = LogJoint.PacketAnalysis;
+using LogJoint.Extensibility;
 
 namespace LogJoint.Tests.Integration.PacketAnalysis
 {
 	public class PluginLoader
 	{
 		public readonly IPluginManifest Manifest =
-			new Extensibility.PluginManifest(PluginUtils.GetPluginDirectory("packet-analysis"));
+			new PluginManifest(PluginUtils.GetPluginDirectory("packet-analysis"));
 
 		public PluginLoader()
 		{

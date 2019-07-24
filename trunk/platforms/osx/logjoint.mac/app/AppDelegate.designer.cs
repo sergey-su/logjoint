@@ -24,6 +24,9 @@ namespace LogJoint
 		[Action ("OnOpenRecentMenuClicked:")]
 		partial void OnOpenRecentMenuClicked (Foundation.NSObject sender);
 
+		[Action ("onOptionsClicked:")]
+		partial void onOptionsClicked (Foundation.NSObject sender);
+
 		[Action ("OnReportProblemMenuItemClicked:")]
 		partial void OnReportProblemMenuItemClicked (Foundation.NSObject sender);
 		

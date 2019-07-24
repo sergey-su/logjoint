@@ -162,6 +162,8 @@ namespace LogJoint.UpdateTool
 			configNode = getSettingNode("FeedbackUrl");
 			configNode.Value = settings.FeedbackUrl;
 
+			configNode = getSettingNode("PluginsUrl");
+			configNode.Value = CreatePluginsBlob(prod).Uri.ToString();
 
 			// configure trace listener according to build flavor
 			configNode = configDoc.Descendants()
@@ -419,6 +421,12 @@ namespace LogJoint.UpdateTool
 				return CreateBlob(prod ? settings.ProdMacInstallerBlobName : settings.StagingMacInstallerBlobName, backup);
 		}
 
+		private static CloudBlockBlob CreatePluginsBlob(bool prod)
+		{
+			// todo: prod/staging distinction
+			return CreateBlob(settings.PluginsBlobName, backup: false);
+		}
+
 		private static CloudTable CreateTelemetryTable()
 		{
 			CloudStorageAccount storageAccount = CreateStorageAccount();
@@ -509,7 +517,20 @@ namespace LogJoint.UpdateTool
 			Console.Write("Setting permissions on the updates blobs container ... ");
 			updatesContainer.SetPermissions(updatesContainerPermissions);
 			Console.WriteLine("Done");
-			
+
+			Console.Write("Creating plugins index blob ... ");
+			var pluginsIndexBlob = CreatePluginsBlob(prod: true); // todo: staging
+			if (pluginsIndexBlob.Exists())
+			{
+				Console.WriteLine("Already exists");
+			}
+			else
+			{
+				var initialContents = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?><plugins></plugins>");
+				pluginsIndexBlob.UploadFromByteArray(initialContents, 0, initialContents.Length);
+				Console.WriteLine("Created empty one");
+			}
+
 			var tableClient = storageAccount.CreateCloudTableClient();
 			var telemetryTable = tableClient.GetTableReference(settings.TelemetryTableName);
 			Console.Write("Creating telemetry table ... ");
@@ -541,9 +562,9 @@ namespace LogJoint.UpdateTool
 			issuesContainer.SetPermissions(issuesContainerPermissions);
 			Console.WriteLine("Done");
 
-			CloudBlobContainer pluginsContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
+			CloudBlobContainer pluginsInboxContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
 			Console.Write("Creating plug-ins inbox blob container ... ");
-			Console.WriteLine(pluginsContainer.CreateIfNotExists() ? "Created" : "Already exists");
+			Console.WriteLine(pluginsInboxContainer.CreateIfNotExists() ? "Created" : "Already exists");
 
 			BlobContainerPermissions pluginsContainerPermissions = new BlobContainerPermissions();
 			pluginsContainerPermissions.PublicAccess = BlobContainerPublicAccessType.Off;
@@ -554,7 +575,7 @@ namespace LogJoint.UpdateTool
 			});
 
 			Console.Write("Setting permissions on the plug-ins inbox blobs container ... ");
-			pluginsContainer.SetPermissions(pluginsContainerPermissions);
+			pluginsInboxContainer.SetPermissions(pluginsContainerPermissions);
 			Console.WriteLine("Done");
 
 			Console.WriteLine("Storage setup finished");
@@ -654,7 +675,7 @@ namespace LogJoint.UpdateTool
 			CloudStorageAccount storageAccount = CreateStorageAccount();
 			var blobClient = storageAccount.CreateCloudBlobClient();
 
-			CloudBlobContainer pluginsContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
+			CloudBlobContainer pluginsInboxContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
 
 			var newPluginId = arg.ElementAtOrDefault(0);
 			if (newPluginId == null)
