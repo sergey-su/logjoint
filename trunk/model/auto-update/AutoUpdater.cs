@@ -66,7 +66,8 @@ namespace LogJoint.AutoUpdate
 			IFirstStartDetector firstStartDetector,
 			Telemetry.ITelemetryCollector telemetry,
 			Persistence.IStorageManager storage,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			Extensibility.IPluginsManagerInternal pluginsManager
 		)
 		{
 			this.mutualExecutionCounter = mutualExecutionCounter;
@@ -205,7 +206,7 @@ namespace LogJoint.AutoUpdate
 				{
 					SetState(AutoUpdateState.Idle);
 
-					var updateInfoFileContent = ReadUpdateInfoFile(updateInfoFilePath);
+					var updateInfoFileContent = UpdateInfoFileContent.Read(updateInfoFilePath);
 
 					if (firstStartDetector.IsFirstStartDetected // it's very first start on this machine
 					 || updateInfoFileContent.LastCheckTimestamp == null) // it's installation that has never updated
@@ -221,7 +222,7 @@ namespace LogJoint.AutoUpdate
 
 					if (await CheckForUpdate(updateInfoFileContent.BinariesETag))
 					{
-						SetLastUpdateCheckInfo(ReadUpdateInfoFile(updateInfoFilePath));
+						SetLastUpdateCheckInfo(UpdateInfoFileContent.Read(updateInfoFilePath));
 						SetState(AutoUpdateState.WaitingRestart);
 						break;
 					}
@@ -295,8 +296,7 @@ namespace LogJoint.AutoUpdate
 					trace.Info("update downloader finished with status {0}. error message is '{1}'",
 						downloadResult.Status, downloadResult.ErrorMessage);
 
-					WriteUpdateInfoFile(updateInfoFilePath,
-						new UpdateInfoFileContent(currentBinariesETag, DateTime.UtcNow, downloadResult.ErrorMessage));
+					new UpdateInfoFileContent(currentBinariesETag, DateTime.UtcNow, downloadResult.ErrorMessage).Write(updateInfoFilePath);
 
 					return false;
 				}
@@ -311,7 +311,7 @@ namespace LogJoint.AutoUpdate
 
 				var newUpdateInfoPath = Path.Combine(tempInstallationDir, 
 					managedAssembliesLocationRelativeToInstallationRoot, updateInfoFileName);
-				WriteUpdateInfoFile(newUpdateInfoPath, new UpdateInfoFileContent(downloadResult.ETag, DateTime.UtcNow, null));
+				new UpdateInfoFileContent(downloadResult.ETag, DateTime.UtcNow, null).Write(newUpdateInfoPath);
 
 				UpdatePermissions (tempInstallationDir);
 
@@ -524,44 +524,6 @@ namespace LogJoint.AutoUpdate
 			cancellation.ThrowIfCancellationRequested();
 		}
 
-		static UpdateInfoFileContent ReadUpdateInfoFile(string fileName)
-		{
-			var retVal = new UpdateInfoFileContent();
-			if (File.Exists(fileName))
-			{
-				try
-				{
-					var updateInfoDoc = XDocument.Load(fileName);
-					XAttribute attr;
-					if ((attr = updateInfoDoc.Root.Attribute("binaries-etag")) != null)
-						retVal.BinariesETag = attr.Value;
-					DateTime lastChecked;
-					if ((attr = updateInfoDoc.Root.Attribute("last-check-timestamp")) != null)
-						if (DateTime.TryParseExact(attr.Value, "o", null, 
-								System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out lastChecked))
-							retVal.LastCheckTimestamp = lastChecked;
-					if ((attr = updateInfoDoc.Root.Attribute("last-check-error")) != null)
-						retVal.LastCheckError = attr.Value;
-				}
-				catch
-				{
-				}
-			}
-			return retVal;
-		}
-
-		static void WriteUpdateInfoFile(string fileName, UpdateInfoFileContent updateInfoFileContent)
-		{
-			var doc = new XDocument(new XElement("root"));
-			if (updateInfoFileContent.BinariesETag != null)
-				doc.Root.Add(new XAttribute("binaries-etag", updateInfoFileContent.BinariesETag));
-			if (updateInfoFileContent.LastCheckTimestamp.HasValue)
-				doc.Root.Add(new XAttribute("last-check-timestamp", updateInfoFileContent.LastCheckTimestamp.Value.ToString("o")));
-			if (updateInfoFileContent.LastCheckError != null)
-				doc.Root.Add(new XAttribute("last-check-error", updateInfoFileContent.LastCheckError));
-			doc.Save(fileName);
-		}
-
 		static IEnumerable<KeyValuePair<string, string>> EnumFormatsDefinitions(string formatsDir)
 		{
 			return (new DirectoryFormatsRepository(formatsDir))
@@ -635,20 +597,6 @@ namespace LogJoint.AutoUpdate
 		{
 			eventInvoker.Post(() => Changed?.Invoke(this, EventArgs.Empty));
 		}
-
-		struct UpdateInfoFileContent
-		{
-			public string BinariesETag;
-			public DateTime? LastCheckTimestamp;
-			public string LastCheckError;
-
-			public UpdateInfoFileContent(string binariesETag, DateTime? lastCheckTimestamp, string lastCheckError)
-			{
-				BinariesETag = binariesETag;
-				LastCheckTimestamp = lastCheckTimestamp;
-				LastCheckError = lastCheckError;
-			}
-		};
 
 		class BadInstallationDirException : Exception
 		{

@@ -280,18 +280,6 @@ namespace LogJoint
 				"app"
 			);
 
-			AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
-				instancesCounter,
-				updateDownloader,
-				tempFilesManager,
-				shutdown,
-				modelSynchronizationContext,
-				firstStartDetector,
-				telemetryCollector,
-				storageManager,
-				traceSourceFactory
-			);
-
 			AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(
 				logSourcesPreprocessings,
 				preprocessingStepsFactory);
@@ -320,6 +308,19 @@ namespace LogJoint
 				new Extensibility.PluginsIndex.Factory(telemetryCollector),
 				changeNotification,
 				updateDownloader
+			);
+
+			AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
+				instancesCounter,
+				updateDownloader,
+				tempFilesManager,
+				shutdown,
+				modelSynchronizationContext,
+				firstStartDetector,
+				telemetryCollector,
+				storageManager,
+				traceSourceFactory,
+				pluginsManager
 			);
 
 			Model expensibilityModel = new Model(

@@ -100,6 +100,9 @@
     <Compile Include="..\..\..\model\auto-update\Interfaces.cs">
       <Link>auto-update\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\auto-update\UpdateInfoFileContent.cs">
+      <Link>auto-update\UpdateInfoFileContent.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\bookmarks-controller\BookmarksController.cs">
       <Link>bookmarks-controller\BookmarksController.cs</Link>
     </Compile>
