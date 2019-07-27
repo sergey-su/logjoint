@@ -39,6 +39,7 @@ namespace LogJoint.UpdateTool
 				Console.WriteLine("  deployinst [prod]           deploys installation image to the cloud");
 				Console.WriteLine("  encrypt <str>               encrypts a string with configured encryption certificate (thumbprint={0})", settings.StorageAccountKeyEncryptionCertThumbprint);
 				Console.WriteLine("  plugin alloc [id]           allocates new plugin id, or if id is specified, only allocates inbox url");
+				Console.WriteLine("  plugin index                updates plugins index blob");
 				return;
 			}
 
@@ -76,6 +77,9 @@ namespace LogJoint.UpdateTool
 					{
 						case "alloc":
 							AllocatePlugin(args.Skip(2).ToArray());
+							break;
+						case "index":
+							UpdatePluginsIndex();
 							break;
 						default:
 							Console.WriteLine("Unknown plugin command");
@@ -672,10 +676,7 @@ namespace LogJoint.UpdateTool
 
 		static void AllocatePlugin(string[] arg)
 		{
-			CloudStorageAccount storageAccount = CreateStorageAccount();
-			var blobClient = storageAccount.CreateCloudBlobClient();
-
-			CloudBlobContainer pluginsInboxContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
+			CloudBlobContainer pluginsInboxContainer = CreatePluginsInboxBlobContainer();
 
 			var newPluginId = arg.ElementAtOrDefault(0);
 			if (newPluginId == null)
@@ -692,6 +693,75 @@ namespace LogJoint.UpdateTool
 			var pluginWriteOnlyUri = TransformUri(blob.Uri, blob.GetSharedAccessSignature(null, settings.StoredClientsAccessPolicyName));
 			Console.WriteLine("Allocated plug-in write-only URI:");
 			Console.WriteLine("{0}", pluginWriteOnlyUri);
+		}
+
+		private static CloudBlobContainer CreatePluginsInboxBlobContainer()
+		{
+			CloudStorageAccount storageAccount = CreateStorageAccount();
+			var blobClient = storageAccount.CreateCloudBlobClient();
+
+			CloudBlobContainer pluginsInboxContainer = blobClient.GetContainerReference(settings.PluginsInboxBlobContainerName);
+			return pluginsInboxContainer;
+		}
+
+		static void UpdatePluginsIndex()
+		{
+			var result = new XDocument(new XElement("plugins"));
+			var inbox = CreatePluginsInboxBlobContainer();
+			foreach (var item in inbox.ListBlobs())
+			{
+				var pluginBlob = inbox.GetBlobReference(new CloudBlockBlob(item.Uri).Name);
+				Console.Write("Reading {0} ... ", pluginBlob.Name);
+				try
+				{
+					using (var tempZipStream = new MemoryStream())
+					using (var tempManifestStream = new MemoryStream())
+					{
+						pluginBlob.DownloadToStream(tempZipStream);
+
+						// todo: validate stuff from inbox
+						// todo: handle inbox and accepted blobs e-tags
+						tempZipStream.Position = 0;
+						var acceptedPluginBlob = CreateBlob(pluginBlob.Name, backup: false);
+						acceptedPluginBlob.Properties.ContentType = "application/zip";
+						acceptedPluginBlob.UploadFromStream(tempZipStream);
+
+						tempZipStream.Position = 0;
+						using (var zip = ZipFile.Read(tempZipStream))
+						{
+							var manifestEntry = zip["manifest.xml"];
+							manifestEntry.Extract(tempManifestStream);
+							tempManifestStream.Position = 0;
+							var manifest = XDocument.Load(tempManifestStream).Root;
+							result.Root.Add(new XElement("plugin",
+								manifest.Element("id"),
+								manifest.Element("version"),
+								manifest.Element("name"),
+								manifest.Element("description"),
+								manifest.Element("platform"),
+								new XElement("location", acceptedPluginBlob.Uri)
+							));
+						}
+					}
+					Console.WriteLine("DONE");
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine("FAILED. {0}", e.Message);
+					throw;
+				}
+			}
+
+			Console.Write("Writing index ... ");
+			using (var indexStream = new MemoryStream())
+			{
+				result.Save(indexStream);
+				indexStream.Position = 0;
+				var indexBlob = CreatePluginsBlob(true);
+				indexBlob.Properties.ContentType = "text/xml";
+				indexBlob.UploadFromStream(indexStream);
+			}
+			Console.WriteLine("DONE");
 		}
 	}
 }
