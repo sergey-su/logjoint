@@ -208,12 +208,6 @@ namespace LogJoint.AutoUpdate
 
 					var updateInfoFileContent = UpdateInfoFileContent.Read(updateInfoFilePath);
 
-					if (firstStartDetector.IsFirstStartDetected // it's very first start on this machine
-					 || updateInfoFileContent.LastCheckTimestamp == null) // it's installation that has never updated
-					{
-						FinalizeInstallation(installationDir, trace);
-					}
-
 					SetLastUpdateCheckInfo(updateInfoFileContent);
 
 					await IdleUntilItsTimeToCheckForUpdate(updateInfoFileContent.LastCheckTimestamp);
@@ -564,30 +558,9 @@ namespace LogJoint.AutoUpdate
 			IOUtils.EnsureIsExecutable(executablePath);
 		}
 
-		static void FinalizeInstallation(string installationDir, LJTraceSource trace)
-		{
-		#if CRAP // The code changes permissions to allow any mac user update app. This approach does not work :( 
-			     // keeping the chmod code until working solution is found.
-			trace.Info ("finalizing installation");
-			var appPath = Path.GetFullPath (Path.Combine (installationDir, appLocationRelativeToInstallationRoot));
-			var chmod = Process.Start ("chmod", "g+w \"" + appPath + "\"");
-			trace.Error("changing premission for '{0}'", appPath);
-			if (chmod == null)
-				trace.Error("failed to start chmod");
-			else if (!chmod.WaitForExit (5000))
-				trace.Error("chmod did not quit");
-			else if (chmod.ExitCode != 0)
-				trace.Error("chmod did not quit ok: {0}", chmod.ExitCode);
-		#endif
-		}
-
 		#else
 
 		static void UpdatePermissions(string installationDir)
-		{
-		}
-
-		static void FinalizeInstallation(string installationDir, LJTraceSource trace)
 		{
 		}
 
