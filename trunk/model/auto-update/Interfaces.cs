@@ -34,8 +34,14 @@ namespace LogJoint.AutoUpdate
 
 	public class LastUpdateCheckInfo
 	{
-		public DateTime When;
-		public string ErrorMessage;
+		public DateTime When { get; private set; }
+		public string ErrorMessage { get; private set; }
+
+		public LastUpdateCheckInfo(DateTime when, string errorMessage)
+		{
+			When = when;
+			ErrorMessage = errorMessage;
+		}
 	};
 
 	public interface IUpdateDownloader

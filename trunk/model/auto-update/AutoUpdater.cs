@@ -354,11 +354,7 @@ namespace LogJoint.AutoUpdate
 		{
 			LastUpdateCheckInfo info = null;
 			if (updateInfoFileContent.LastCheckTimestamp.HasValue)
-				info = new LastUpdateCheckInfo()
-				{
-					When = updateInfoFileContent.LastCheckTimestamp.Value,
-					ErrorMessage = updateInfoFileContent.LastCheckError
-				};
+				info = new LastUpdateCheckInfo(updateInfoFileContent.LastCheckTimestamp.Value, updateInfoFileContent.LastCheckError);
 			lock (sync)
 			{
 				lastUpdateResult = info;
