@@ -46,7 +46,8 @@ namespace LogJoint.Extensibility
 				var platform = pluginNode.Element("platform")?.Value;
 				var locationStr = pluginNode.Element("location")?.Value;
 				var description = pluginNode.Element("description")?.Value;
-				if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(platform)
+				var pluginEtag = pluginNode.Element("etag")?.Value;
+				if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(platform) || string.IsNullOrEmpty(pluginEtag)
 					|| !Uri.TryCreate(locationStr ?? "", UriKind.Absolute, out var location)
 					|| !Version.TryParse(versionStr, out var version))
 				{
@@ -72,6 +73,7 @@ namespace LogJoint.Extensibility
 					name = name,
 					description = description ?? "",
 					location = location,
+					etag = pluginEtag,
 					dependencies = ImmutableArray.CreateRange(pluginNode.Elements("dependency").Select(d => d.Value))
 				};
 			}
@@ -84,7 +86,7 @@ namespace LogJoint.Extensibility
 
 		class Item : IPluginIndexItem
 		{
-			public string id, name, description;
+			public string id, name, description, etag;
 			public Uri location;
 			public Version version;
 			public ImmutableArray<string> dependencies;
@@ -94,6 +96,7 @@ namespace LogJoint.Extensibility
 			string IPluginIndexItem.Name => name;
 			string IPluginIndexItem.Description => description;
 			Uri IPluginIndexItem.Location => location;
+			string IPluginIndexItem.ETag => etag;
 			IReadOnlyList<string> IPluginIndexItem.Dependencies => dependencies;
 		};
 	}

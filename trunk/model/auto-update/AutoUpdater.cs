@@ -9,14 +9,13 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO.Compression;
 using LogJoint.Persistence;
+using System.Collections.Immutable;
 
 namespace LogJoint.AutoUpdate
 {
 	public class AutoUpdater : IAutoUpdater
 	{
-		readonly MultiInstance.IInstancesCounter mutualExecutionCounter;
 		readonly IUpdateDownloader updateDownloader;
-		readonly ITempFilesManager tempFiles;
 		readonly bool isActiveAutoUpdaterInstance;
 		readonly Task worker;
 		readonly CancellationTokenSource workerCancellation;
@@ -27,63 +26,45 @@ namespace LogJoint.AutoUpdate
 		readonly string installationDir;
 		readonly string updateInfoFilePath;
 		readonly ISynchronizationContext eventInvoker;
-		readonly IFirstStartDetector firstStartDetector;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly Persistence.IStorageManager storage;
 		readonly Persistence.IStorageEntry updatesStorageEntry;
 		readonly LJTraceSource trace;
-
-		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
-		static readonly TimeSpan checkPeriod = TimeSpan.FromHours(3);
-		static readonly string updateInfoFileName = "update-info.xml";
-		static readonly string updateLogKeyPrefix = "updatelog";
-
-		#if MONOMAC
-		// on mac managed dlls are in logjoint.app/Contents/MonoBundle
-		// Contents is the installation root. It is completely replaced during update.
-		static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../";
-		static readonly string managedAssembliesLocationRelativeToInstallationRoot = "MonoBundle/";
-		static readonly string nativeExecutableLocationRelativeToInstallationRoot = "MacOS/logjoint";
-		string autoRestartFlagFileName;
-		#else
-		// on win dlls are in root installation folder
-		static readonly string installationPathRootRelativeToManagedAssembliesLocation = ".";
-		static readonly string managedAssembliesLocationRelativeToInstallationRoot = ".";
-		static readonly string startAfterUpdateEventName = "LogJoint.Updater.StartAfterUpdate";
-		#endif
+		readonly IFactory factory;
+		readonly Extensibility.IPluginsManagerInternal pluginsManager;
+		readonly ISubscription changeListenerSubscription;
 
 		bool disposed;
 		AutoUpdateState state;
 		LastUpdateCheckInfo lastUpdateResult;
-		TaskCompletionSource<int> manualCheckRequested;
+		TaskCompletionSource<int> checkRequested;
+		IPendingUpdate currentPendingUpdate;
 
 		public AutoUpdater(
+			IFactory factory,
 			MultiInstance.IInstancesCounter mutualExecutionCounter,
-			IUpdateDownloader updateDownloader,
-			ITempFilesManager tempFiles,
 			IShutdown shutdown,
 			ISynchronizationContext eventInvoker,
-			IFirstStartDetector firstStartDetector,
 			Telemetry.ITelemetryCollector telemetry,
 			Persistence.IStorageManager storage,
 			ITraceSourceFactory traceSourceFactory,
-			Extensibility.IPluginsManagerInternal pluginsManager
+			Extensibility.IPluginsManagerInternal pluginsManager,
+			IChangeNotification changeNotification
 		)
 		{
-			this.mutualExecutionCounter = mutualExecutionCounter;
-			this.updateDownloader = updateDownloader;
-			this.tempFiles = tempFiles;
-			this.manualCheckRequested = new TaskCompletionSource<int>();
-			this.firstStartDetector = firstStartDetector;
+			this.updateDownloader = factory.CreateAppUpdateDownloader();
+			this.checkRequested = new TaskCompletionSource<int>();
+			this.factory = factory;
+			this.pluginsManager = pluginsManager;
 			this.trace = traceSourceFactory.CreateTraceSource("AutoUpdater");
 
 			var entryAssemblyLocation = Assembly.GetEntryAssembly()?.Location;
 			if (entryAssemblyLocation != null)
 			{
 				this.managedAssembliesPath = Path.GetDirectoryName(entryAssemblyLocation);
-				this.updateInfoFilePath = Path.Combine(managedAssembliesPath, updateInfoFileName);
+				this.updateInfoFilePath = Path.Combine(managedAssembliesPath, Constants.updateInfoFileName);
 				this.installationDir = Path.GetFullPath(
-					Path.Combine(managedAssembliesPath, installationPathRootRelativeToManagedAssembliesLocation));
+					Path.Combine(managedAssembliesPath, Constants.installationPathRootRelativeToManagedAssembliesLocation));
 			}
 
 			this.eventInvoker = eventInvoker;
@@ -128,6 +109,15 @@ namespace LogJoint.AutoUpdate
 				workerCancellationToken = workerCancellation.Token;
 				workerCancellationTask = new TaskCompletionSource<int>();
 
+				changeListenerSubscription = changeNotification.CreateSubscription(Updaters.Create(
+					() => pluginsManager.InstallationRequests,
+					(_, prev) =>
+					{
+						if (prev != null)
+							checkRequested.TrySetResult(1);
+					}
+				));
+
 				worker = TaskUtils.StartInThreadPoolTaskScheduler(Worker);
 			}
 		}
@@ -141,6 +131,7 @@ namespace LogJoint.AutoUpdate
 			if (isActiveAutoUpdaterInstance)
 			{
 				bool workerCompleted = false;
+				changeListenerSubscription.Dispose();
 				workerCancellation.Cancel();
 				workerCancellationTask.TrySetResult(1);
 				try
@@ -167,26 +158,12 @@ namespace LogJoint.AutoUpdate
 
 		void IAutoUpdater.CheckNow()
 		{
-			manualCheckRequested.TrySetResult(1);
+			checkRequested.TrySetResult(1);
 		}
 
 		bool IAutoUpdater.TrySetRestartAfterUpdateFlag()
 		{
-			#if MONOMAC
-			if (autoRestartFlagFileName == null)
-				return false;
-			if (!File.Exists(autoRestartFlagFileName))
-				return false;
-			using (var fs = File.OpenWrite(autoRestartFlagFileName))
-				fs.WriteByte((byte)'1');
-			return true;
-			#else
-			EventWaitHandle evt;
-			if (!EventWaitHandle.TryOpenExisting(startAfterUpdateEventName, out evt))
-				return false;
-			evt.Set();
-			return true;
-			#endif
+			return currentPendingUpdate?.TrySetRestartAfterUpdateFlag() == true;
 		}
 
 		LastUpdateCheckInfo IAutoUpdater.LastUpdateCheckResult
@@ -198,28 +175,69 @@ namespace LogJoint.AutoUpdate
 		{
 			try
 			{
-				await Task.Delay(initialWorkerDelay, workerCancellationToken);
+				await Task.Delay(Constants.initialWorkerDelay, workerCancellationToken);
 
 				HandlePastUpdates(workerCancellationToken);
 
+				SetState(AutoUpdateState.Idle);
+
 				for (;;)
 				{
-					SetState(AutoUpdateState.Idle);
+					var appUpdateInfoFileContent = UpdateInfoFileContent.Read(updateInfoFilePath);
+					var installationUpdateKey = factory.CreateUpdateKey(
+						appUpdateInfoFileContent.BinariesETag,
+						pluginsManager.InstalledPlugins.ToDictionary(
+							p => p.Id,
+							p => UpdateInfoFileContent.Read(Path.Combine(p.PluginDirectory, Constants.updateInfoFileName)).BinariesETag
+						)
+					);
 
-					var updateInfoFileContent = UpdateInfoFileContent.Read(updateInfoFilePath);
+					SetLastUpdateCheckInfo(appUpdateInfoFileContent);
 
-					SetLastUpdateCheckInfo(updateInfoFileContent);
-
-					await IdleUntilItsTimeToCheckForUpdate(updateInfoFileContent.LastCheckTimestamp);
+					await IdleUntilItsTimeToCheckForUpdate(appUpdateInfoFileContent.LastCheckTimestamp);
 
 					SetState(AutoUpdateState.Checking);
 
-					if (await CheckForUpdate(updateInfoFileContent.BinariesETag))
+					var appCheckResult = await CheckForUpdate(appUpdateInfoFileContent.BinariesETag);
+					if (appCheckResult.Status == DownloadUpdateResult.StatusCode.Failure)
+						continue;
+
+					var requiredPlugins = await GetRequiredPlugins(pluginsManager, workerCancellationToken);
+					var requiredUpdateKey = factory.CreateUpdateKey(
+						appCheckResult.ETag,
+						requiredPlugins.ToDictionary(p => p.Id, p => p.IndexItem.ETag)
+					);
+
+					var nullUpdateKey = factory.CreateNullUpdateKey();
+
+					bool requiredUpdateIsSameAsAlreadyInstalled = requiredUpdateKey.Equals(installationUpdateKey);
+					trace.Info("Comparing required update key '{0}' with already installed '{1}': {2}", requiredUpdateKey, installationUpdateKey, requiredUpdateIsSameAsAlreadyInstalled);
+					if (requiredUpdateIsSameAsAlreadyInstalled)
+						requiredUpdateKey = nullUpdateKey;
+
+					if (!requiredUpdateKey.Equals(currentPendingUpdate?.Key ?? nullUpdateKey))
 					{
-						SetLastUpdateCheckInfo(UpdateInfoFileContent.Read(updateInfoFilePath));
-						SetState(AutoUpdateState.WaitingRestart);
-						break;
+						if (currentPendingUpdate != null)
+						{
+							await currentPendingUpdate.Dispose();
+							currentPendingUpdate = null;
+						}
+						if (!requiredUpdateKey.Equals(nullUpdateKey))
+						{
+							currentPendingUpdate = await factory.CreatePendingUpdate(
+								requiredPlugins,
+								managedAssembliesPath,
+								ComposeUpdateLogFileName(),
+								workerCancellationToken
+							);
+							trace.Info("Created new pending update with key '{0}'", currentPendingUpdate.Key);
+						}
 					}
+
+					if (currentPendingUpdate != null)
+						SetState(AutoUpdateState.WaitingRestart);
+					else
+						SetState(AutoUpdateState.Idle);
 				}
 			}
 			catch (TaskCanceledException)
@@ -245,90 +263,29 @@ namespace LogJoint.AutoUpdate
 			}
 		}
 
-		#if MONOMAC
-
-		private string GetTempInstallationDir()
-		{
-			string tempInstallationDir = Path.Combine(
-				tempFiles.GenerateNewName(),
-				"pending-logjoint-update");
-			return tempInstallationDir;
-		}
-
-		#else
-
-		// On windows: download update to a folder next to installation dir.
-		// This ensures almost 100% that temp folder and installtion dir are on the same HDD partition
-		// which ensures speed and success of moving the temp folder in place of installtion dir.
-		private string GetTempInstallationDir()
-		{
-			var localUpdateCheckId = Guid.NewGuid().GetHashCode();
-			string tempInstallationDir = Path.GetFullPath(string.Format(@"{0}\..\pending-logjoint-update-{1:x}",
-				installationDir, localUpdateCheckId));
-			return tempInstallationDir;
-		}
-	
-		#endif
-
-		private async Task<bool> CheckForUpdate(string currentBinariesETag)
+		private async Task<DownloadUpdateResult> CheckForUpdate(string currentBinariesETag)
 		{
 			trace.Info("checking for update. current etag is '{0}'", currentBinariesETag);
 
-			string tempInstallationDir = GetTempInstallationDir();
+			var downloadResult = await updateDownloader.CheckUpdate(currentBinariesETag, workerCancellationToken);
+			workerCancellationToken.ThrowIfCancellationRequested();
 
-			var tempFileName = tempFiles.GenerateNewName();
-			using (var tempFileStream = new FileStream(tempFileName, FileMode.Create, FileAccess.ReadWrite))
-			{
-				trace.Info("downloading update to '{0}'", tempFileName);
+			trace.Info("update check finished with status {0}. error message is '{1}'",
+				downloadResult.Status, downloadResult.ErrorMessage);
+			new UpdateInfoFileContent(downloadResult.ETag, DateTime.UtcNow, downloadResult.ErrorMessage).Write(updateInfoFilePath);
 
-				var downloadResult = await updateDownloader.DownloadUpdate(currentBinariesETag, tempFileStream, workerCancellationToken);
-				workerCancellationToken.ThrowIfCancellationRequested();
-
-				if (downloadResult.Status == DownloadUpdateResult.StatusCode.Failure
-				 || downloadResult.Status == DownloadUpdateResult.StatusCode.NotModified)
-				{
-					trace.Info("update downloader finished with status {0}. error message is '{1}'",
-						downloadResult.Status, downloadResult.ErrorMessage);
-
-					new UpdateInfoFileContent(currentBinariesETag, DateTime.UtcNow, downloadResult.ErrorMessage).Write(updateInfoFilePath);
-
-					return false;
-				}
-
-				await tempFileStream.FlushAsync();
-
-				// todo: check stream's digital signature
-
-				trace.Info("unzipping downloaded update to {0}", tempInstallationDir);
-
-				UnzipDownloadedUpdate(tempFileStream, tempInstallationDir, workerCancellationToken);
-
-				var newUpdateInfoPath = Path.Combine(tempInstallationDir, 
-					managedAssembliesLocationRelativeToInstallationRoot, updateInfoFileName);
-				new UpdateInfoFileContent(downloadResult.ETag, DateTime.UtcNow, null).Write(newUpdateInfoPath);
-
-				UpdatePermissions (tempInstallationDir);
-
-				CopyCustomFormats(managedAssembliesPath, 
-					Path.Combine(tempInstallationDir, managedAssembliesLocationRelativeToInstallationRoot), trace);
-
-				trace.Info("starting updater");
-
-				await StartUpdater(installationDir, tempInstallationDir, tempFiles, mutualExecutionCounter, workerCancellationToken);
-
-				return true;
-			}
+			return downloadResult;
 		}
 
 		private async Task IdleUntilItsTimeToCheckForUpdate(DateTime? lastCheckTimestamp)
 		{
 			for (; ; )
 			{
-				if (manualCheckRequested.Task.IsCompleted)
+				if (checkRequested.Task.IsCompleted)
 				{
 					trace.Info("manual update check requested");
 					var newManualCheckRequested = new TaskCompletionSource<int>();
-					Interlocked.Exchange(ref manualCheckRequested, newManualCheckRequested);
+					Interlocked.Exchange(ref checkRequested, newManualCheckRequested);
 					return;
 				}
 
@@ -341,8 +298,8 @@ namespace LogJoint.AutoUpdate
 
 				trace.Info("autoupdater now waits for any of wakeup events");
 				await Task.WhenAny(
-					Task.Delay(TimeSpan.FromTicks(checkPeriod.Ticks / 10), workerCancellationToken),
-					manualCheckRequested.Task,
+					Task.Delay(TimeSpan.FromTicks(Constants.checkPeriod.Ticks / 10), workerCancellationToken),
+					checkRequested.Task,
 					workerCancellationTask.Task
 				);
 
@@ -374,81 +331,13 @@ namespace LogJoint.AutoUpdate
 			FireChangedEvent();
 		}
 
-		private async Task StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, 
-			MultiInstance.IInstancesCounter mutualExecutionCounter, CancellationToken cancel)
-		{
-			var tempUpdaterExePath = tempFiles.GenerateNewName() + ".lj.updater.exe";
-			string updaterExePath;
-			string programToStart;
-			string firstArg;
-			string autoRestartCommandLine;
-			string autoRestartIPCKey;
-
-#if MONOMAC
-			updaterExePath = Path.Combine(installationDir, managedAssembliesLocationRelativeToInstallationRoot, "logjoint.updater.exe");
-			var monoPath = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
-			programToStart = monoPath;
-			firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
-			autoRestartIPCKey = autoRestartFlagFileName = tempFiles.GenerateNewName() + ".autorestart";
-			autoRestartCommandLine = Path.GetFullPath(Path.Combine(installationDir, ".."));
-#else
-			updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
-			programToStart = tempUpdaterExePath;
-			firstArg = "";
-			autoRestartIPCKey = startAfterUpdateEventName;
-			autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe");
-#endif
-
-			File.Copy(updaterExePath, tempUpdaterExePath);
-
-			trace.Info("updater executable copied to '{0}'", tempUpdaterExePath);
-
-			var updateLogFileName = ComposeUpdateLogFileName();
-			trace.Info("this update's log is '{0}'", updateLogFileName);
-
-			var updaterExeProcessParams = new ProcessStartInfo()
-			{
-				UseShellExecute = false,
-				FileName = programToStart,
-				Arguments = string.Format("{0}\"{1}\" \"{2}\" \"{3}\" \"{4}\" \"{5}\" \"{6}\"",
-					firstArg,
-					installationDir,
-					tempInstallationDir,
-					mutualExecutionCounter.MutualExecutionKey,
-					updateLogFileName,
-					autoRestartIPCKey,
-					autoRestartCommandLine
-				),
-				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
-			};
-
-			trace.Info("starting updater executable '{0}' with args '{1}'",
-				updaterExeProcessParams.FileName,
-				updaterExeProcessParams.Arguments);
-
-			Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", ""); // todo
-			using (var process = Process.Start(updaterExeProcessParams))
-			{
-				// wait a bit to catch and log immediate updater's failure
-				for (int i = 0; i < 10 && !cancel.IsCancellationRequested; ++i)
-				{
-					if (process.HasExited && process.ExitCode != 0)
-					{
-						trace.Error("updater process exited abnormally with code {0}", process.ExitCode);
-						break;
-					}
-					await Task.Delay(100);
-				}
-			}
-		}
-
 		private void HandlePastUpdates(CancellationToken cancel)
 		{
 			try // do not fail updater on handling old updates
 			{
 				foreach (var sectionInfo in updatesStorageEntry.EnumSections(cancel))
 				{
-					if (!sectionInfo.Key.StartsWith(updateLogKeyPrefix, StringComparison.OrdinalIgnoreCase))
+					if (!sectionInfo.Key.StartsWith(Constants.updateLogKeyPrefix, StringComparison.OrdinalIgnoreCase))
 						continue;
 					trace.Info("found update log key={0}, id={1}", sectionInfo.Key, sectionInfo.Id);
 					string sectionAbsolutePath;
@@ -489,47 +378,11 @@ namespace LogJoint.AutoUpdate
 		private string ComposeUpdateLogFileName()
 		{
 			using (var updateLogSection = updatesStorageEntry.OpenRawStreamSection(
-				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH'-'mm'-'ss'Z'}", updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
+				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH'-'mm'-'ss'Z'}", Constants.updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
 				StorageSectionOpenFlag.ClearOnOpen | StorageSectionOpenFlag.ReadWrite)
 			)
 			{
 				return updateLogSection.AbsolutePath;
-			}
-		}
-
-		private static void UnzipDownloadedUpdate(FileStream tempFileStream, string tempInstallationDir, CancellationToken cancellation)
-		{
-			tempFileStream.Position = 0;
-			using (var zipFile = new ZipArchive(tempFileStream, ZipArchiveMode.Read))
-			{
-				try
-				{
-					zipFile.ExtractToDirectory(tempInstallationDir);
-				}
-				catch (UnauthorizedAccessException e)
-				{
-					throw new BadInstallationDirException(e);
-				}
-			}
-			cancellation.ThrowIfCancellationRequested();
-		}
-
-		static IEnumerable<KeyValuePair<string, string>> EnumFormatsDefinitions(string formatsDir)
-		{
-			return (new DirectoryFormatsRepository(formatsDir))
-				.Entries
-				.Select(e => new KeyValuePair<string, string>(Path.GetFileName(e.Location).ToLower(), e.Location));
-		}
-
-		static void CopyCustomFormats(string managedAssmebliesLocation, string tmpManagedAssmebliesLocation, LJTraceSource trace)
-		{
-			var srcFormatsDir = Path.Combine(managedAssmebliesLocation, DirectoryFormatsRepository.RelativeFormatsLocation);
-			var destFormatsDir = Path.Combine(tmpManagedAssmebliesLocation, DirectoryFormatsRepository.RelativeFormatsLocation);
-			var destFormats = EnumFormatsDefinitions(destFormatsDir).ToLookup(x => x.Key);
-			foreach (var srcFmt in EnumFormatsDefinitions(srcFormatsDir).Where(x => !destFormats.Contains(x.Key)))
-			{
-				trace.Info("copying user-defined format {0} to {1}", srcFmt.Key, destFormatsDir);
-				File.Copy(srcFmt.Value, Path.Combine(destFormatsDir, Path.GetFileName(srcFmt.Value)));
 			}
 		}
 
@@ -538,49 +391,32 @@ namespace LogJoint.AutoUpdate
 			if (!lastCheckTimestamp.HasValue)
 				return true;
 			var lastChecked = lastCheckTimestamp.Value;
-			if (now > lastChecked + checkPeriod)
+			if (now > lastChecked + Constants.checkPeriod)
 				return true;
 			if (lastChecked - now > TimeSpan.FromDays(30)) // wall clock is way too behind. probably user messed up with it.
 				return true;
 			return false;
 		}
 
-		#if MONOMAC
-
-		static void UpdatePermissions(string installationDir)
+		static async Task<IReadOnlyList<Extensibility.IPluginInfo>> GetRequiredPlugins(
+			Extensibility.IPluginsManagerInternal pluginsManager,
+			CancellationToken cancellation
+		)
 		{
-			var executablePath = Path.Combine (installationDir, 
-				nativeExecutableLocationRelativeToInstallationRoot);
-			IOUtils.EnsureIsExecutable(executablePath);
+			var allPlugins = await pluginsManager.FetchAllPlugins(cancellation);
+			return ImmutableArray.CreateRange(allPlugins.Where(plugin =>
+			{
+				if (plugin.IndexItem == null)
+					return false;
+				if (pluginsManager.InstallationRequests.TryGetValue(plugin.Id, out var requestedState))
+					return requestedState;
+				return plugin.InstalledPluginManifest != null;
+			}));
 		}
-
-		#else
-
-		static void UpdatePermissions(string installationDir)
-		{
-		}
-
-		#endif
 
 		void FireChangedEvent()
 		{
 			eventInvoker.Post(() => Changed?.Invoke(this, EventArgs.Empty));
 		}
-
-		class BadInstallationDirException : Exception
-		{
-			public BadInstallationDirException(Exception e)
-				: base("bad installation directory: unable to create pending update directory", e)
-			{
-			}
-		};
-		
-		class PastUpdateFailedException: Exception
-		{
-			public PastUpdateFailedException(string updateLogName, string updateLogContents)
-				: base(string.Format("update failed. Log {0}: {1}", updateLogName, updateLogContents))
-			{
-			}
-		};
 	};
 }

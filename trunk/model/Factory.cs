@@ -274,10 +274,18 @@ namespace LogJoint
 				new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
 			);
 
-			AutoUpdate.IUpdateDownloader updateDownloader = new AutoUpdate.AzureUpdateDownloader(
+			AutoUpdate.IFactory autoUpdateFactory = new AutoUpdate.Factory(
+				tempFilesManager,
 				traceSourceFactory,
+				instancesCounter,
+				shutdown,
+				modelSynchronizationContext,
+				firstStartDetector,
+				telemetryCollector,
+				storageManager,
+				changeNotification,
 				config.AutoUpdateUrl,
-				"app"
+				config.PluginsUrl
 			);
 
 			AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(
@@ -293,35 +301,18 @@ namespace LogJoint
 				postprocessingModel
 			);
 
-			AutoUpdate.IUpdateDownloader pluginsIndexDownloader = new AutoUpdate.AzureUpdateDownloader(
-				traceSourceFactory,
-				config.PluginsUrl,
-				"plugins"
-			);
-
 			Extensibility.IPluginsManagerInternal pluginsManager = new Extensibility.PluginsManager(
 				traceSourceFactory,
 				telemetryCollector,
 				shutdown,
 				userDefinedFormatsManager,
-				pluginsIndexDownloader,
+				autoUpdateFactory.CreatePluginsIndexUpdateDownloader(),
 				new Extensibility.PluginsIndex.Factory(telemetryCollector),
 				changeNotification,
-				updateDownloader
+				autoUpdateFactory.CreateAppUpdateDownloader()
 			);
 
-			AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
-				instancesCounter,
-				updateDownloader,
-				tempFilesManager,
-				shutdown,
-				modelSynchronizationContext,
-				firstStartDetector,
-				telemetryCollector,
-				storageManager,
-				traceSourceFactory,
-				pluginsManager
-			);
+			AutoUpdate.IAutoUpdater autoUpdater = autoUpdateFactory.CreateAutoUpdater(pluginsManager);
 
 			Model expensibilityModel = new Model(
 				modelSynchronizationContext,

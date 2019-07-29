@@ -1121,6 +1121,21 @@
     <Compile Include="..\..\..\model\extensibility\PluginsIndex.cs">
       <Link>extensibility\PluginsIndex.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\auto-update\Constants.cs">
+      <Link>auto-update\Constants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\Factory.cs">
+      <Link>auto-update\Factory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\PendingUpdate.cs">
+      <Link>auto-update\PendingUpdate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\UpdateInfoFileContent.cs">
+      <Link>auto-update\UpdateInfoFileContent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\UpdateKey.cs">
+      <Link>auto-update\UpdateKey.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

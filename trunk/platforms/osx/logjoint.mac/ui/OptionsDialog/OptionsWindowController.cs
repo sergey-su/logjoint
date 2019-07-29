@@ -12,6 +12,7 @@ namespace LogJoint.UI
 		readonly Mac.IReactive reactive;
 		IDialogViewModel viewModel;
 		Reactive.INSTableViewController pluginsTableController;
+		Presenters.Options.Plugins.IViewModel pluginsViewModel;
 
 		public OptionsWindowController (Mac.IReactive reactive) : base ("OptionsWindow")
 		{
@@ -33,11 +34,14 @@ namespace LogJoint.UI
 
 		partial void onOkButtonClicked (Foundation.NSObject sender) => viewModel.OnOkPressed();
 
+		partial void pluginActionButtonClicked (Foundation.NSObject sender) => pluginsViewModel?.OnAction ();
+
 		void IDialog.SetViewModel (IDialogViewModel viewModel)
 		{
 			Window.EnsureCreated();
 
 			this.viewModel = viewModel;
+
 			// todo: show/hide pages
 		}
 
@@ -55,6 +59,8 @@ namespace LogJoint.UI
 		void Presenters.Options.Plugins.IView.SetViewModel (Presenters.Options.Plugins.IViewModel viewModel)
 		{
 			Window.EnsureCreated();
+
+			pluginsViewModel = viewModel;
 
 			pluginsTableController.OnSelect =
 				sel => viewModel.OnSelect(sel.FirstOrDefault() as Presenters.Options.Plugins.IPluginListItem);

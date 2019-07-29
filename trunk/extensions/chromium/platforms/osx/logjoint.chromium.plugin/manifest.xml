@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <id>1e1245c1-492c-4a59-9ce8-23be39b7599f-chromium</id>
+  <id>c0ef79e0-5cbf-42ff-a093-f138c94fe756-chromium</id>
   <version>1.0.0</version>
   <platform>mac</platform>
   <name>Chromium and WebRTC</name>

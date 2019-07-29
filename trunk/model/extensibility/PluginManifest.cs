@@ -10,7 +10,7 @@ namespace LogJoint.Extensibility
 	public class PluginManifest : IPluginManifest
 	{
 		readonly string pluginDirectory;
-		readonly string absolulePath;
+		readonly string absolutePath;
 		readonly string id;
 		readonly string name;
 		readonly string description;
@@ -22,11 +22,11 @@ namespace LogJoint.Extensibility
 		public PluginManifest(string pluginDirectory)
 		{
 			this.pluginDirectory = pluginDirectory;
-			this.absolulePath = Path.Combine(pluginDirectory, ManifestFileName);
+			this.absolutePath = Path.Combine(pluginDirectory, ManifestFileName);
 			XDocument doc;
 			try
 			{
-				doc = XDocument.Load(this.absolulePath);
+				doc = XDocument.Load(this.absolutePath);
 			}
 			catch (XmlException e)
 			{
@@ -80,7 +80,7 @@ namespace LogJoint.Extensibility
 
 		string IPluginManifest.PluginDirectory => pluginDirectory;
 
-		string IPluginManifest.AbsolulePath => absolulePath;
+		string IPluginManifest.AbsolulePath => absolutePath;
 
 		string IPluginManifest.Id => id;
 		Version IPluginManifest.Version => version;

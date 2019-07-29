@@ -18,8 +18,9 @@ namespace LogJoint.PluginTool
 			{
 				Console.WriteLine("logjoint.updatetool.exe <command>");
 				Console.WriteLine("commands:");
-				Console.WriteLine("  pack <path to manifest.xml>                collects plug-in files referenced in the manifest and zips them");
-				Console.WriteLine("  deploy <inbox url>                         sends the zip file with plug-in binaries into the plug-ins inbox");
+				Console.WriteLine("  pack <path to manifest.xml> <zip-name> [prod]       Collects plug-in files referenced in the manifest and zips them into a deployable package.");
+				Console.WriteLine("                                                      Once package is deployed, if prod flag is not specified, the package will be verified, but not published to users.");
+				Console.WriteLine("  deploy <zip-name> <inbox url>                       Sends the plug-in package into the plug-ins inbox.");
 				return 0;
 			}
 
@@ -43,10 +44,17 @@ namespace LogJoint.PluginTool
 				Console.WriteLine("Manifest not specified");
 				return 1;
 			}
+			var zipFileName = args.ElementAtOrDefault(1);
+			if (string.IsNullOrEmpty(zipFileName))
+			{
+				Console.WriteLine("Zip file name not specified");
+				return 1;
+			}
+			var prod = args.ElementAtOrDefault(2) == "prod";
 
 			var binariesRoot = Path.GetDirectoryName(manifestFileName);
 			var manifest = XDocument.Load(manifestFileName);
-			var outputFileName = Path.GetFullPath(PackageFileName);
+			var outputFileName = Path.GetFullPath(zipFileName);
 
 			using (var stream = new FileStream(outputFileName, FileMode.Create))
 			using (var outputZip = new ZipArchive(stream, ZipArchiveMode.Create))
@@ -57,8 +65,17 @@ namespace LogJoint.PluginTool
 					Console.WriteLine("Adding {0}", filePath);
 					outputZip.CreateEntryFromFile(filePath, fileElement.Value);
 				}
-				Console.WriteLine("Adding manifest {0}", manifestFileName);
-				outputZip.CreateEntryFromFile(manifestFileName, "manifest.xml");
+
+				Console.WriteLine("Adding manifest {0} ({1})", manifestFileName, prod ? "PRODUCTION" : "STAGING");
+
+				if (prod)
+					manifest.Root.SetAttributeValue("production", "true");
+				var tempManifestFileName = Path.GetTempFileName();
+				manifest.Save(tempManifestFileName);
+
+				outputZip.CreateEntryFromFile(tempManifestFileName, "manifest.xml");
+
+				File.Delete(tempManifestFileName);
 			}
 
 			Console.WriteLine("Created successfully {0}", outputFileName);
@@ -67,15 +84,23 @@ namespace LogJoint.PluginTool
 
 		static int Deploy(string[] args)
 		{
-			var inboxUrl = args.ElementAtOrDefault(0);
+			var zipFileName = args.ElementAtOrDefault(0);
+			if (string.IsNullOrEmpty(zipFileName))
+			{
+				Console.WriteLine("Zip file name is not specified");
+				return 1;
+			}
+			var inboxUrl = args.ElementAtOrDefault(1);
 			if (string.IsNullOrEmpty(inboxUrl))
 			{
 				Console.WriteLine("Url is not specified");
 				return 1;
 			}
-			Console.WriteLine("Url: {0}", inboxUrl);
+			var inputFileName = Path.GetFullPath(zipFileName);
+			Console.WriteLine("Package file: {0}", inputFileName);
+			Console.WriteLine("Target url: {0}", inboxUrl);
 			var client = new HttpClient();
-			using (var zipStream = new FileStream(PackageFileName, FileMode.Open))
+			using (var zipStream = new FileStream(inputFileName, FileMode.Open))
 			using (var content = new StreamContent(zipStream))
 			{
 				content.Headers.Add("x-ms-blob-type", "BlockBlob");

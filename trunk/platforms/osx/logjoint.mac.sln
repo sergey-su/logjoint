@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin.mo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.integration.tests", "logjoint.integration.tests\logjoint.integration.tests.csproj", "{87A87567-6268-4BA0-8050-BC04C2F37702}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.plugintool", "logjoint.plugintool\logjoint.plugintool.csproj", "{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -243,6 +245,14 @@ Global
 		{87A87567-6268-4BA0-8050-BC04C2F37702}.Debug|x86.Build.0 = Debug|Any CPU
 		{87A87567-6268-4BA0-8050-BC04C2F37702}.Release|x86.ActiveCfg = Release|Any CPU
 		{87A87567-6268-4BA0-8050-BC04C2F37702}.Release|x86.Build.0 = Release|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Debug|x86.Build.0 = Debug|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Release|x86.ActiveCfg = Release|Any CPU
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -299,5 +309,6 @@ Global
 		{0130D440-6425-41AE-9310-9BB9814BF0BE} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 		{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
 		{87A87567-6268-4BA0-8050-BC04C2F37702} = {55CBF29E-56AA-4DDB-89AB-66573C80313B}
+		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175} = {255420E4-67A9-441B-8DA0-67A77DE25034}
 	EndGlobalSection
 EndGlobal

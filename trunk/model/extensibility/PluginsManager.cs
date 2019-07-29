@@ -284,7 +284,7 @@ namespace LogJoint.Extensibility
 					version = indexedPlugin.Version,
 					name = indexedPlugin.Name,
 					description = indexedPlugin.Description,
-					location = indexedPlugin.Location,
+					indexItem = indexedPlugin,
 					installedPluginManifest = installedPluginsMap[indexedPlugin.Id].FirstOrDefault(),
 					dependenciesIds = indexedPlugin.Dependencies,
 				};
@@ -298,7 +298,7 @@ namespace LogJoint.Extensibility
 					version = installedPlugin.Version,
 					name = installedPlugin.Name,
 					description = installedPlugin.Description,
-					location = null,
+					indexItem = null,
 					installedPluginManifest = installedPlugin,
 					dependenciesIds = installedPlugin.Dependencies
 				})
@@ -329,7 +329,7 @@ namespace LogJoint.Extensibility
 		class PluginInfo : IPluginInfo
 		{
 			public string id, name, description;
-			public Uri location;
+			public IPluginIndexItem indexItem;
 			public Version version;
 			public IPluginManifest installedPluginManifest;
 			public IReadOnlyList<string> dependenciesIds;
@@ -340,7 +340,7 @@ namespace LogJoint.Extensibility
 			Version IPluginInfo.Version => version;
 			string IPluginInfo.Name => name;
 			string IPluginInfo.Description => description;
-			Uri IPluginInfo.Location => location;
+			IPluginIndexItem IPluginInfo.IndexItem => indexItem;
 			IReadOnlyList<IPluginInfo> IPluginInfo.Dependencies => dependencies;
 			IReadOnlyList<IPluginInfo> IPluginInfo.Dependants => dependants;
 			IPluginManifest IPluginInfo.InstalledPluginManifest => installedPluginManifest;

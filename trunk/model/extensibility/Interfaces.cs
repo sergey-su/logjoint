@@ -26,7 +26,7 @@ namespace LogJoint.Extensibility
 		Version Version { get; }
 		string Name { get; }
 		string Description { get; }
-		Uri Location { get; }
+		IPluginIndexItem IndexItem { get; }
 		IReadOnlyList<IPluginInfo> Dependencies { get; }
 		IReadOnlyList<IPluginInfo> Dependants { get; }
 		IPluginManifest InstalledPluginManifest { get; }
@@ -90,6 +90,7 @@ namespace LogJoint.Extensibility
 		string Name { get; }
 		string Description { get; }
 		Uri Location { get; }
+		string ETag { get; }
 		IReadOnlyList<string> Dependencies { get; }
 	};
 

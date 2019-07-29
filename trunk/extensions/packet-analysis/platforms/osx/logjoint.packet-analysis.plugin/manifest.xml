@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <id>317dec6d-6f49-4a68-98f8-f107d94fe988-packet-analysis</id>
+  <id>acb8d4cd-c58b-470e-83ba-77bf5c1db925-packet-analysis</id>
   <version>1.0.0</version>
   <platform>mac</platform>
   <name>Packet Analysis</name>

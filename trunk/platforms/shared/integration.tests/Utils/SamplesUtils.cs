@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
@@ -17,7 +18,6 @@ namespace LogJoint.Tests.Integration
 	/// </summary>
 	public class SamplesUtils
 	{
-		private HttpClient httpClient;
 		private readonly string cacheDir;
 
 		public Uri RepositoryUrl { get; private set; }
@@ -44,18 +44,20 @@ namespace LogJoint.Tests.Integration
 				return sampleCacheLocation;
 			}
 
-			if (httpClient == null)
-				httpClient = new HttpClient();
-
 			var sampleUri = GetSampleAsUri(sampleName);
-			using (var rsp = await httpClient.GetAsync(sampleUri))
+			var request = WebRequest.CreateHttp(sampleUri.ToString());
+			request.Method = "GET";
+
+			using (var rsp = await request.GetResponseNoException())
 			{
 				if (rsp.StatusCode != System.Net.HttpStatusCode.OK)
 				{
 					throw new Exception($"Failed to download sample {sampleName} from {sampleUri}: {rsp.StatusCode}");
 				}
-				var content = await rsp.Content.ReadAsByteArrayAsync();
-				File.WriteAllBytes(sampleCacheLocation, content);
+				using (var outFileStream = new FileStream(sampleCacheLocation, FileMode.Create))
+				{
+					await rsp.GetResponseStream().CopyToAsync(outFileStream);
+				}
 			}
 
 			return sampleCacheLocation;
