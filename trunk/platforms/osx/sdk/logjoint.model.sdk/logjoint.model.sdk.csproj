@@ -3,18 +3,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>logjoint.model.sdk</RootNamespace>
     <AssemblyName>logjoint.model.sdk</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <UseXamMacFullFramework>true</UseXamMacFullFramework>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <ProjectGuid>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</ProjectGuid>
+    <BaseDirectory>..\..\bin\debug\</BaseDirectory>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <BaseDirectory>..\..\bin\debug\</BaseDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,11 +49,12 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="Xamarin.Mac" />
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="mscorlib" />
+    <Reference Include="System.ValueTuple">
+      <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
@@ -63,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -75,6 +74,7 @@
   -->
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="..\..\bin\debug\packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

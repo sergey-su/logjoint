@@ -3,14 +3,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>logjoint.presentation.sdk</RootNamespace>
     <AssemblyName>logjoint.presentation.sdk</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <UseXamMacFullFramework>true</UseXamMacFullFramework>
+	<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <ProjectGuid>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</ProjectGuid>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -51,7 +49,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="Xamarin.Mac" />
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
@@ -63,7 +60,7 @@
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
