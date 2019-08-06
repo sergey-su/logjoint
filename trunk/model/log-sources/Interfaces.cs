@@ -18,7 +18,11 @@ namespace LogJoint
 		void OnSourceAnnotationChanged(ILogSource logSource);
 		void OnSourceColorChanged(ILogSource logSource);
 		void OnTimeOffsetChanged(ILogSource logSource);
-		void OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags);
+		#endregion
+
+		#region Notification fired from a unknown thread
+		void OnSourceStatsChanged(ILogSource logSource, LogProviderStats value,
+			LogProviderStats oldValue, LogProviderStatsFlag flags);
 		#endregion
 	};
 

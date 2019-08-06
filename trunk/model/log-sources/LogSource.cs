@@ -164,7 +164,11 @@ namespace LogJoint
 
 		string ILogProviderHost.LoggingPrefix => tracer.Prefix;
 
-		void ILogProviderHost.OnStatisticsChanged(LogProviderStatsFlag flags) => owner.OnSourceStatsChanged(this, flags);
+		void ILogProviderHost.OnStatisticsChanged(LogProviderStats value,
+			LogProviderStats oldValue, LogProviderStatsFlag flags)
+		{
+			owner.OnSourceStatsChanged(this, value, oldValue, flags);
+		}
 
 		ILogSourceThreads ILogSource.Threads => logSourceThreads;
 		ILogSourceThreads ILogProviderHost.Threads => logSourceThreads;

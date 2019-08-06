@@ -1420,7 +1420,7 @@ ${level}", (logger, expectation) =>
 			else
 			{
 #if MONO
-				methodName = "System.Reflection.MonoMethod";
+				methodName = "System.Reflection.RuntimeMethodInfo";
 #else
 				methodName = "System.RuntimeMethodHandle";
 #endif

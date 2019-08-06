@@ -159,9 +159,10 @@ namespace LogJoint
 			OnLogSourceTimeOffsetChanged?.Invoke(logSource, EventArgs.Empty);
 		}
 
-		void ILogSourcesManagerInternal.OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags)
+		void ILogSourcesManagerInternal.OnSourceStatsChanged(
+			ILogSource logSource, LogProviderStats value, LogProviderStats oldValue, LogProviderStatsFlag flags)
 		{
-			OnLogSourceStatsChanged?.Invoke(logSource, new LogSourceStatsEventArgs(flags));
+			OnLogSourceStatsChanged?.Invoke(logSource, new LogSourceStatsEventArgs(value, oldValue, flags));
 		}
 
 		void ILogSourcesManagerInternal.OnTimegapsChanged(ILogSource logSource)

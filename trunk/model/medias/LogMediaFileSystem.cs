@@ -126,6 +126,10 @@ namespace LogJoint.LogMedia
 							// then bubsequent open request will results in error 5: access denied.
 							return true;
 						}
+						catch (FileNotFoundException)
+						{
+							return true;
+						}
 						lastTimeFileWasReopened = ticks;
 					}
 

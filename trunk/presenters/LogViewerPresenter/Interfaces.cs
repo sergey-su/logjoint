@@ -324,8 +324,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 
 		event EventHandler OnSourcesChanged;
-		event EventHandler OnSourceMessagesChanged;
+		event EventHandler<SourceMessagesChangeArgs> OnSourceMessagesChanged;
 		event EventHandler OnLogSourceColorChanged;
+	};
+
+	public class SourceMessagesChangeArgs : EventArgs
+	{
+		public bool IsIncrementalChange { get; private set; }
+
+		public SourceMessagesChangeArgs(bool isIncrementalChange)
+		{
+			this.IsIncrementalChange = isIncrementalChange;
+		}
 	};
 
 	public interface ISearchResultModel : IModel

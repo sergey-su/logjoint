@@ -78,10 +78,14 @@ namespace LogJoint
 
 	public class LogSourceStatsEventArgs : EventArgs
 	{
+		public LogProviderStats OldValue { get; private set; }
+		public LogProviderStats Value { get; private set; }
 		public LogProviderStatsFlag Flags { get; private set; }
 
-		public LogSourceStatsEventArgs(LogProviderStatsFlag flags)
+		public LogSourceStatsEventArgs(LogProviderStats value, LogProviderStats oldValue, LogProviderStatsFlag flags)
 		{
+			this.Value = value;
+			this.OldValue = oldValue;
 			this.Flags = flags;
 		}
 	};

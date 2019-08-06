@@ -87,7 +87,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			get { return logSourceThreads; }
 		}
 
-		void ILogProviderHost.OnStatisticsChanged(LogProviderStatsFlag flags)
+		void ILogProviderHost.OnStatisticsChanged(
+			LogProviderStats value, LogProviderStats oldValue, LogProviderStatsFlag flags)
 		{
 		}
 

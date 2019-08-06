@@ -1,5 +1,5 @@
-<format>
-  <regular-grammar>
+﻿<format>
+  <regular-grammar suffers-from-partial-match-problem="yes">
     <head-re><![CDATA[^ # every message starts from new line
 (?<source>.+)\ # log source name
 (?<type>Critical|Error|Warning|Information|Verbose|Start|Stop|Suspend|Resume|Transfer)\:\  #severity

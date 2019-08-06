@@ -44,7 +44,8 @@ namespace LogJoint
 					if (finishedSynchroniously)
 						break;
 					ctx.Cancellation.ThrowIfCancellationRequested();
-					positionToContinueAsync = i.Message.Position + (direction == MessagesParserDirection.Forward ? 1 : -1);
+					positionToContinueAsync = direction == MessagesParserDirection.Forward ?
+						i.Message.EndPosition : i.Message.Position - 1;
 				}
 				if (!finishedSynchroniously)
 				{

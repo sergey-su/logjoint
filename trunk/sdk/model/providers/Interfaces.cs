@@ -127,7 +127,8 @@ namespace LogJoint
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		ISynchronizationContext ModelSynchronizationContext { get; }
 
-		void OnStatisticsChanged(LogProviderStatsFlag flags);
+		void OnStatisticsChanged(LogProviderStats value,
+			LogProviderStats oldValue, LogProviderStatsFlag flags);
 	};
 
 	public interface ILogProviderFactory
@@ -203,6 +204,7 @@ namespace LogJoint
 		public IMessage FirstMessageWithTimeConstraintViolation;
 		public LogProviderBackgroundAcivityStatus BackgroundAcivityStatus;
 		public int? ContentsEtag;
+
 
 		public LogProviderStats Clone() { return (LogProviderStats)MemberwiseClone(); }
 	};

@@ -97,17 +97,25 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.model.OnSourceMessagesChanged += (sender, e) => 
 			{
-				pendingUpdateFlag.Invalidate();
+				if (e.IsIncrementalChange)
+					pendingIncrementalUpdateFlag.Invalidate();
+				else
+					pendingFullUpdateFlag.Invalidate();
 			};
 
 			heartbeat.OnTimer += (sender, e) => 
 			{
-				if (e.IsNormalUpdate && pendingUpdateFlag.Validate())
+				if (e.IsNormalUpdate)
 				{
-					if (viewTailMode)
-						ThisIntf.GoToEnd();
-					else
-						Refresh().IgnoreCancellation();
+					bool isIncrementalUpdate = pendingIncrementalUpdateFlag.Validate();
+					bool isFullUpdate = pendingFullUpdateFlag.Validate();
+					if (isFullUpdate || isIncrementalUpdate)
+					{
+						if (viewTailMode || isFullUpdate)
+							ThisIntf.GoToEnd().IgnoreCancellation();
+						else
+							Refresh().IgnoreCancellation();
+					}
 				}
 			};
 
@@ -1367,7 +1375,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly IScreenBufferFactory screenBufferFactory;
-		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
+		readonly LazyUpdateFlag pendingIncrementalUpdateFlag = new LazyUpdateFlag();
+		readonly LazyUpdateFlag pendingFullUpdateFlag = new LazyUpdateFlag();
 		readonly IScreenBuffer screenBuffer;
 		readonly INavigationManager navigationManager;
 		readonly ISelectionManager selectionManager;

@@ -130,7 +130,8 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			mockedSyncContext.Deplete();
 
 			logSource1.Provider.Stats.Returns(new LogProviderStats() { ContentsEtag = 123 });
-			logSources.OnLogSourceStatsChanged += Raise.EventWith(logSource1, new LogSourceStatsEventArgs(LogProviderStatsFlag.ContentsEtag));
+			logSources.OnLogSourceStatsChanged += Raise.EventWith(logSource1,
+				new LogSourceStatsEventArgs(logSource1.Provider.Stats, null, LogProviderStatsFlag.ContentsEtag));
 			mockedSyncContext.Deplete();
 
 			outputDataDeserializer.Received(1).Deserialize(PostprocessorKind.SequenceDiagram, Arg.Any<LogSourcePostprocessorDeserializationParams>());

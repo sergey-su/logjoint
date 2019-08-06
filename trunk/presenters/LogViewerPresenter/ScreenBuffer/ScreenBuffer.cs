@@ -57,7 +57,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				var currentTopSourcePresent = buffers.ContainsKey(currentTop.Source);
 
-				needsClear = await PerformBuffersTransaction(
+				await PerformBuffersTransaction(
 					opName,
 					cancellation,
 					modifyBuffers: tmp => Task.WhenAll(tmp.Select(s => oldBuffers.ContainsKey(s.Source) ?
@@ -76,22 +76,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 							.Aggregate(new { l = new DisplayLine(), diff = TimeSpan.MaxValue }, (acc, l) => l.diff < acc.diff ? l : acc);
 						return !best.l.IsEmpty ? Tuple.Create(best.l, 0d) : null;
 					}
-				) == null;
+				);
 			}
 			else
 			{
-				needsClear = await PerformBuffersTransaction(
+				await PerformBuffersTransaction(
 					opName,
 					cancellation,
 					modifyBuffers: tmp => Task.FromResult(0),
 					getPivotLine: MakePivotLineGetter(l => 0)
-				) == null;
-			}
-			if (needsClear)
-			{
-				entries = entries.Clear();
-				SetScrolledLines(0);
-				changeNotification.Post();
+				);
 			}
 		}
 
@@ -561,6 +555,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 		double? FinalizeTransaction(Dictionary<IMessagesSource, SourceBuffer> tmpCopy, Func<List<DisplayLine>, IEnumerable<SourceBuffer>, Tuple<DisplayLine, double>> getPivotLine)
 		{
 			var lines = EnumScreenBufferLines(tmpCopy.Values).ToList();
+
+			if (lines.Count == 0)
+			{
+				if (entries.Length > 0)
+				{
+					entries = entries.Clear();
+					SetScrolledLines(0);
+					changeNotification.Post();
+				}
+				return null;
+			}
+
 			var pivotLine = getPivotLine(lines, tmpCopy.Values);
 			foreach (var line in lines)
 			{
@@ -619,7 +625,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					return ret;
 				}
 			}
-			
+
 			return null;
 		}
 

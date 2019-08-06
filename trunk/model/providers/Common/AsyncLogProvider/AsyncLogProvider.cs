@@ -260,8 +260,10 @@ namespace LogJoint
 			var flags = body(stats);
 			if (flags != LogProviderStatsFlag.None)
 			{
-				Interlocked.Exchange(ref externalStats, stats.Clone());
-				host.OnStatisticsChanged(flags);
+				var oldValue = externalStats;
+				var value = stats.Clone();
+				Interlocked.Exchange(ref externalStats, value);
+				host.OnStatisticsChanged(value, oldValue, flags);
 			}
 		}
 
@@ -289,7 +291,7 @@ namespace LogJoint
 				});
 
 				tracer.Info("Updating available time");
-				UpdateAvailableTime(false);
+				await UpdateAvailableTime(false);
 
 				for (; ; )
 				{
@@ -443,7 +445,8 @@ namespace LogJoint
 				stats.MessagesCount = 0;
 				stats.FirstMessageWithTimeConstraintViolation = null;
 				return LogProviderStatsFlag.CachedTime | LogProviderStatsFlag.BytesCount |
-					LogProviderStatsFlag.CachedMessagesCount | LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation;
+					LogProviderStatsFlag.CachedMessagesCount | LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation |
+					LogProviderStatsFlag.ContentsEtag;
 			});
 		}
 

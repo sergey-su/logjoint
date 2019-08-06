@@ -477,7 +477,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		public void RaiseMessagesChanged()
 		{
-			OnSourceMessagesChanged?.Invoke(this, EventArgs.Empty);
+			OnSourceMessagesChanged?.Invoke(this,
+				new LogViewer.SourceMessagesChangeArgs(isIncrementalChange: true));
 		}
 
 		IEnumerable<LogViewer.IMessagesSource> LogViewer.IModel.Sources
@@ -520,7 +521,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		}
 
 		public event EventHandler OnSourcesChanged;
-		public event EventHandler OnSourceMessagesChanged;
+		public event EventHandler<LogViewer.SourceMessagesChangeArgs> OnSourceMessagesChanged;
 		public event EventHandler OnLogSourceColorChanged;
 
 		void UpdateSourcesCache()

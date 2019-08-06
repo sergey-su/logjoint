@@ -16,6 +16,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;
 		readonly Settings.IGlobalSettingsAccessor settings;
+		readonly ISynchronizationContext synchronizationContext;
 		readonly List<MessagesSource> sources = new List<MessagesSource>();
 		readonly AsyncInvokeHelper updateSourcesInvoker;
 
@@ -33,6 +34,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.hlFilters = hlFilters;
 			this.bookmarks = bookmarks;
 			this.settings = settings;
+			this.synchronizationContext = sync;
 
 			updateSourcesInvoker = new AsyncInvokeHelper(sync, UpdateSources);
 
@@ -52,16 +54,24 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			{
 				if ((e.Flags & LogProviderStatsFlag.PositionsRange) != 0)
 				{
-					if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) == 0)
+					if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) != 0)
+					{
+						FireMessagesChanged(s, isIncrementalChange: true);
+					}
+					else if (IsExposableLogSource(e.Value) && !IsExposableLogSource(e.OldValue))
+					{
 						updateSourcesInvoker.Invoke();
+					}
 					else
-						OnSourceMessagesChanged?.Invoke(this, EventArgs.Empty);
+					{
+						FireMessagesChanged(s, isIncrementalChange: false);
+					}
 				}
 			};
 		}
 
 		public event EventHandler OnSourcesChanged;
-		public event EventHandler OnSourceMessagesChanged;
+		public event EventHandler<SourceMessagesChangeArgs> OnSourceMessagesChanged;
 		public event EventHandler OnLogSourceColorChanged;
 
 		IEnumerable<IMessagesSource> LogViewer.IModel.Sources
@@ -99,22 +109,32 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		static public ILogSource MessagesSourceToLogSource(IMessagesSource src)
 		{
-			var impl = src as MessagesSource;
-			if (impl == null)
-				return null;
-			return impl.ls;
+			if (src is MessagesSource impl)
+				return impl.ls;
+			return null;
+		}
+
+		static bool IsExposableLogSource(LogProviderStats logProviderStats)
+		{
+			return logProviderStats != null && logProviderStats.PositionsRangeUpdatesCount > 0;
 		}
 
 		void UpdateSources()
 		{
-			var newSources = logSources.Items.Where(
-				s => s.Visible && s.Provider.Stats.PositionsRangeUpdatesCount > 0).ToHashSet();
+			var newSources = logSources.VisibleItems.Where(
+				s => IsExposableLogSource(s.Provider.Stats)).ToHashSet();
 			int removed = sources.RemoveAll(s => !newSources.Contains(s.ls));
 			sources.ForEach(s => newSources.Remove(s.ls));
 			sources.AddRange(newSources.Select(s => new MessagesSource() { ls = s } ));
 			var added = newSources.Count;
 			if ((removed + added) > 0 && OnSourcesChanged != null)
 				OnSourcesChanged(this, EventArgs.Empty);
+		}
+
+		void FireMessagesChanged(object logSource, bool isIncrementalChange)
+		{
+			synchronizationContext.Post(() =>
+				OnSourceMessagesChanged?.Invoke(logSource, new SourceMessagesChangeArgs(isIncrementalChange)));
 		}
 
 		class MessagesSource: IMessagesSource

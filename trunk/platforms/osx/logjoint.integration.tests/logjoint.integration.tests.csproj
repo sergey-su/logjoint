@@ -118,6 +118,9 @@
     <Compile Include="..\..\shared\integration.tests\Utils\NUnitUtils.cs">
       <Link>Utils\NUnitUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\LiveLogWatching\TextWriterTraceListener.cs">
+      <Link>LiveLogWatching\TextWriterTraceListener.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -173,6 +176,7 @@
     <Folder Include="PacketAnalysis\" />
     <Folder Include="Viewer\" />
     <Folder Include="PacketAnalysis\Formats\" />
+    <Folder Include="LiveLogWatching\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>
