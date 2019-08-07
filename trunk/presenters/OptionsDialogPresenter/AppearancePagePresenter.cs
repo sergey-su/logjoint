@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			this.sampleMessagesBaseTime = DateTime.UtcNow;
 			this.temporaryColorTheme = new TemporaryColorTheme(theme, changeNotification);
 			this.sampleThreads = new ModelThreads(new ColorLease(temporaryColorTheme.ThreadColorsCount));
-			this.dummyModel = new LogViewer.DummyModel(threads: sampleThreads);
+			this.dummyModel = new LogViewer.DummyModel();
 			this.sampleLogViewerPresenter = logViewerPresenterFactory.CreateIsolatedPresenter(
 				dummyModel, view.PreviewLogView,
 				theme: temporaryColorTheme);

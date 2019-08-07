@@ -238,10 +238,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			ScreenBufferLinesRange ret;
 			ret.Lines = lines;
 			ret.BeginPosition = lines.Count > 0 ? lines[0].Message.Position : badPosition;
-			if (lines.Count == 0)
-				ret.EndPosition = badPosition;
-			else
-				ret.EndPosition = lines[lines.Count - 1].Message.EndPosition;
+			ret.EndPosition = lines.Count > 0 ? lines[lines.Count - 1].Message.EndPosition : badPosition;
 			diag.VerifyLines(ret.Lines, src.HasConsecutiveMessages);
 			return ret;
 		}

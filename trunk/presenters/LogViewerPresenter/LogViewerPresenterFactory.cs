@@ -43,14 +43,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			IModel model = new LoadedMessages.PresentationModel(
 				logSources,
-				modelInvoke,
-				modelThreads,
-				hlFilters,
-				bookmarks,
-				settings
+				modelInvoke
 			);
 			return new Presenter(model, view, heartbeat,
-				presentationFacade, clipboard, bookmarksFactory, telemetry,
+				presentationFacade, clipboard, settings, hlFilters, bookmarks, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
 				new PermissiveColoringModeStrategy(changeNotification));
@@ -61,14 +57,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			ISearchResultModel model = new SearchResult.SearchResultMessagesModel(
 				logSources,
 				searchManager,
-				filtersFactory,
-				modelThreads,
-				bookmarks,
-				settings
+				filtersFactory
 			);
+			// do not use model's filters.
+			// highlighting in search results is determined 
+			// by filters from search options.
+			IFiltersList highlightFilters = null;
 			return (
 				new Presenter(model, view, heartbeat,
-					presentationFacade, clipboard, bookmarksFactory, telemetry,
+					presentationFacade, clipboard, settings, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
 					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
 					new DelegatingColoringModeStrategy(loadedMessagesPresenter)
@@ -79,8 +76,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IPresenter IPresenterFactory.CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme)
 		{
+			IFiltersList highlightFilter = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting, null);
+			highlightFilter.FilteringEnabled = false;
 			return new Presenter(
-				model, view, heartbeat, null, clipboard, bookmarksFactory, telemetry,
+				model, view, heartbeat, null, clipboard,
+				Settings.DefaultSettingsAccessor.Instance, highlightFilter,
+				null, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification),
 				changeNotification, theme ?? this.theme, traceSourceFactory,
 				new ProhibitiveViewModeStrategy(),
@@ -102,7 +103,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly ISearchManager searchManager;
 		readonly IFiltersFactory filtersFactory;
-		readonly IColorTable highlightColorsTable;
 		readonly IColorTheme theme;
 		readonly ITraceSourceFactory traceSourceFactory;
 	};

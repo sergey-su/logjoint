@@ -7,16 +7,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	public class DummyModel : IModel
 	{
-		readonly IModelThreads threads;
-		readonly IFiltersList hlFilters;
 		DummySource dummySource;
 
-		public DummyModel(IModelThreads threads = null, Settings.IGlobalSettingsAccessor settings = null)
+		public DummyModel()
 		{
-			this.threads = threads ?? new ModelThreads();
 			this.dummySource = new DummySource();
-			this.hlFilters = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting, null);
-			hlFilters.FilteringEnabled = false;
 		}
 
 		public void SetMessages(IEnumerable<IMessage> msgs)
@@ -33,31 +28,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IEnumerable<IMessagesSource> IModel.Sources
 		{
 			get { yield return dummySource; }
-		}
-
-		IModelThreads IModel.Threads
-		{
-			get { return threads; }
-		}
-
-		IFiltersList IModel.HighlightFilters
-		{
-			get { return hlFilters; }
-		}
-
-		IBookmarks IModel.Bookmarks
-		{
-			get { return null; }
-		}
-
-		string IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
-		{
-			get { return null; }
-		}
-
-		Settings.IGlobalSettingsAccessor IModel.GlobalSettings
-		{
-			get { return Settings.DefaultSettingsAccessor.Instance; }
 		}
 
 		event EventHandler IModel.OnLogSourceColorChanged

@@ -307,7 +307,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		/// <summary>
 		/// Returns true if the source serves messages without gaps in positions,
-		/// i.e. EndPositoin of previous message equals Position of next one.
+		/// i.e. EndPosition of previous message equals Position of next one.
 		/// Example of a source that returns false is the source that represents
 		/// search results which can be sparse.
 		/// </summary>
@@ -317,11 +317,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public interface IModel
 	{
 		IEnumerable<IMessagesSource> Sources { get; }
-		IModelThreads Threads { get; }
-		IFiltersList HighlightFilters { get; }
-		IBookmarks Bookmarks { get; }
-		string MessageToDisplayWhenMessagesCollectionIsEmpty { get; }
-		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 
 		event EventHandler OnSourcesChanged;
 		event EventHandler<SourceMessagesChangeArgs> OnSourceMessagesChanged;

@@ -12,28 +12,16 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 	public class PresentationModel : LogViewer.IModel
 	{
 		readonly ILogSourcesManager logSources;
-		readonly IModelThreads modelThreads;
-		readonly IFiltersList hlFilters;
-		readonly IBookmarks bookmarks;
-		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly ISynchronizationContext synchronizationContext;
 		readonly List<MessagesSource> sources = new List<MessagesSource>();
 		readonly AsyncInvokeHelper updateSourcesInvoker;
 
 		public PresentationModel(
 			ILogSourcesManager logSources,
-			ISynchronizationContext sync,
-			IModelThreads modelThreads,
-			IFiltersList hlFilters,
-			IBookmarks bookmarks,
-			Settings.IGlobalSettingsAccessor settings
+			ISynchronizationContext sync
 		)
 		{
 			this.logSources = logSources;
-			this.modelThreads = modelThreads;
-			this.hlFilters = hlFilters;
-			this.bookmarks = bookmarks;
-			this.settings = settings;
 			this.synchronizationContext = sync;
 
 			updateSourcesInvoker = new AsyncInvokeHelper(sync, UpdateSources);
@@ -74,38 +62,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		public event EventHandler<SourceMessagesChangeArgs> OnSourceMessagesChanged;
 		public event EventHandler OnLogSourceColorChanged;
 
-		IEnumerable<IMessagesSource> LogViewer.IModel.Sources
-		{
-			get { return sources; }
-		}
-
-		IModelThreads LogViewer.IModel.Threads
-		{
-			get { return modelThreads; }
-		}
-
-		IFiltersList LogViewer.IModel.HighlightFilters
-		{
-			get { return hlFilters; }
-		}
-
-		IBookmarks LogViewer.IModel.Bookmarks
-		{
-			get { return bookmarks; }
-		}
-
-		string LogViewer.IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
-		{
-			get
-			{
-				return "No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
-			}
-		}
-
-		Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings
-		{
-			get { return settings; }
-		}
+		IEnumerable<IMessagesSource> LogViewer.IModel.Sources => sources;
 
 		static public ILogSource MessagesSourceToLogSource(IMessagesSource src)
 		{
@@ -182,15 +139,9 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				return pos;
 			}
 
-			ILogSource LogViewer.IMessagesSource.LogSourceHint
-			{
-				get { return ls; }
-			}
+			ILogSource LogViewer.IMessagesSource.LogSourceHint => ls;
 
-			bool LogViewer.IMessagesSource.HasConsecutiveMessages
-			{
-				get { return true; }
-			}
+			bool LogViewer.IMessagesSource.HasConsecutiveMessages => true;
 		};
 	};
 };

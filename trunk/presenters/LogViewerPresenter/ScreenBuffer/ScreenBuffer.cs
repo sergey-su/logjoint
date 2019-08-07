@@ -46,7 +46,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			var oldBuffers = buffers;
 			buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics, displayTextGetter));
-			bool needsClear = false;
 			if (!buffers.Keys.ToHashSet().SetEquals(oldBuffers.Keys))
 			{
 				buffersVersion++;

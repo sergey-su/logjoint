@@ -420,12 +420,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 	public class SearchResultMessagesModel : LogViewer.ISearchResultModel
 	{
-		readonly ILogSourcesManager logSources;
 		readonly ISearchManager searchManager;
-		readonly IModelThreads threads;
-		readonly IBookmarks bookmarks;
-		readonly Settings.IGlobalSettingsAccessor settings;
-		readonly IFiltersFactory filtersFactory;
 		readonly List<LogViewerSource> sourcesCache = new List<LogViewerSource>();
 		ICombinedSearchResult lastCombinedSearhResult;
 		readonly Func<IFiltersList> getSearchFiltersList;
@@ -433,18 +428,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public SearchResultMessagesModel(
 			ILogSourcesManager logSources,
 			ISearchManager searchManager,
-			IFiltersFactory filtersFactory,
-			IModelThreads threads,
-			IBookmarks bookmarks,
-			Settings.IGlobalSettingsAccessor settings
+			IFiltersFactory filtersFactory
 		)
 		{
-			this.logSources = logSources;
 			this.searchManager = searchManager;
-			this.threads = threads;
-			this.bookmarks = bookmarks;
-			this.settings = settings;
-			this.filtersFactory = filtersFactory;
 			logSources.OnLogSourceColorChanged += (s, e) =>
 			{
 				OnLogSourceColorChanged?.Invoke(s, e);
@@ -490,35 +477,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			}
 		}
 
-		IModelThreads LogViewer.IModel.Threads
-		{
-			get { return threads; }
-		}
-
-		IFiltersList LogViewer.IModel.HighlightFilters
-		{
-			// do not use model's filters.
-			// highlighting in search results is determined 
-			// by filters from search options.
-			get { return null; } 
-		}
-
-		IBookmarks LogViewer.IModel.Bookmarks
-		{
-			get { return bookmarks; }
-		}
-
-		string LogViewer.IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
-		{
-			get { return null; }
-		}
-
 		IFiltersList LogViewer.ISearchResultModel.SearchFiltersList => getSearchFiltersList();
-
-		Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings
-		{
-			get { return settings; }
-		}
 
 		public event EventHandler OnSourcesChanged;
 		public event EventHandler<LogViewer.SourceMessagesChangeArgs> OnSourceMessagesChanged;

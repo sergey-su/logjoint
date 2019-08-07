@@ -18,6 +18,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IHeartBeatTimer heartbeat,
 			IPresentersFacade navHandler,
 			IClipboardAccess clipboard,
+			Settings.IGlobalSettingsAccessor settings,
+			IFiltersList highlightFilters,
+			IBookmarks bookmarks,
 			IBookmarksFactory bookmarksFactory,
 			Telemetry.ITelemetryCollector telemetry,
 			IScreenBufferFactory screenBufferFactory,
@@ -33,9 +36,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.searchResultModel = model as ISearchResultModel;
 			this.view = view;
 			this.presentationFacade = navHandler;
+			this.bookmarks = bookmarks;
 			this.bookmarksFactory = bookmarksFactory;
 			this.telemetry = telemetry;
 			this.screenBufferFactory = screenBufferFactory;
+			this.highlightFilters = highlightFilters;
+			this.settings = settings;
 			this.theme = theme;
 			this.viewModeStrategy = viewModeStrategy;
 			this.coloringModeStrategy = coloringModeStrategy;
@@ -50,7 +56,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				tracer, telemetry, changeNotification);
 			this.highlightingManager = new HighlightingManager(
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
-				model.HighlightFilters, this.selectionManager, wordSelection, theme
+				highlightFilters, this.selectionManager, wordSelection, theme
 			);
 			this.displayTextGetterSelector = MakeDisplayTextGetterSelector();
 
@@ -69,7 +75,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => selectionManager.Selection,
 				displayTextGetterSelector,
 				() => viewModeStrategy.IsRawMessagesMode,
-				(sel, displayTextGetter, rawMode) => 
+				(sel, displayTextGetter, rawMode) =>
 				{
 					var f = sel?.First;
 					if (f == null)
@@ -85,7 +91,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			AttachToView(view);
 
-			this.model.OnSourcesChanged += (sender, e) => 
+			this.model.OnSourcesChanged += (sender, e) =>
 			{
 				HandleSourcesListChange();
 			};
@@ -95,7 +101,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				changeNotification.Post();
 			};
 
-			this.model.OnSourceMessagesChanged += (sender, e) => 
+			this.model.OnSourceMessagesChanged += (sender, e) =>
 			{
 				if (e.IsIncrementalChange)
 					pendingIncrementalUpdateFlag.Invalidate();
@@ -103,7 +109,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					pendingFullUpdateFlag.Invalidate();
 			};
 
-			heartbeat.OnTimer += (sender, e) => 
+			heartbeat.OnTimer += (sender, e) =>
 			{
 				if (e.IsNormalUpdate)
 				{
@@ -119,13 +125,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			};
 
-			model.GlobalSettings.Changed += (sender, e) =>
-			{
-				if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
-				{
-					ReadGlobalSettings();
-				}
-			};
+			settings.Changed += HandleSettingsChange;
 
 			var viewSizeObserver = Updaters.Create(
 				() => view.DisplayLinesPerPage,
@@ -168,6 +168,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IDisposable.Dispose()
 		{
+			settings.Changed -= HandleSettingsChange;
 			selectionManager.Dispose();
 			viewModeStrategy.Dispose();
 			subscription.Dispose();
@@ -250,9 +251,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool IPresenter.RawViewAllowed => viewModeStrategy.IsRawMessagesModeAllowed;
 
-		bool IPresenter.ViewTailMode 
-		{ 
-			get { return viewTailMode; } 
+		bool IPresenter.ViewTailMode
+		{
+			get { return viewTailMode; }
 			set { SetViewTailMode(value, externalCall: true); }
 		}
 
@@ -283,7 +284,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			using (var bulkProcessing = opts.Filters.StartBulkProcessing(screenBuffer.DisplayTextGetter, opts.ReverseSearch))
 			{
 				var positiveFilters = opts.Filters.GetPositiveFilters();
-				bool hasEmptyTemplate = positiveFilters.Any(f => f == null || 
+				bool hasEmptyTemplate = positiveFilters.Any(f => f == null ||
 					string.IsNullOrEmpty(f.Options.Template));
 				return await Scan(
 					opts.ReverseSearch,
@@ -318,19 +319,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (preferredSources != null && preferredSources.Length != 0)
 				{
 					var candidates = (await Task.WhenAll(preferredSources
-						.Where(preferredSource => !preferredSource.IsDisposed).Select(async preferredSource =>  
+						.Where(preferredSource => !preferredSource.IsDisposed).Select(async preferredSource =>
 					{
 						var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
-							date, ValueBound.Lower, 
+							date, ValueBound.Lower,
 							getMessage: true,
-							priority: LogProviderCommandPriority.RealtimeUserAction, 
+							priority: LogProviderCommandPriority.RealtimeUserAction,
 							cancellation: cancellation);
 						var upperDatePos = await preferredSource.Provider.GetDateBoundPosition(
-							date, ValueBound.UpperReversed, 
+							date, ValueBound.UpperReversed,
 							getMessage: true,
-							priority: LogProviderCommandPriority.RealtimeUserAction, 
+							priority: LogProviderCommandPriority.RealtimeUserAction,
 							cancellation: cancellation);
-						return new []
+						return new[]
 						{
 							new { rsp = lowerDatePos, ls = preferredSource},
 							new { rsp = upperDatePos, ls = preferredSource},
@@ -367,7 +368,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		Task IPresenter.GoToNextMessageInThread()
 		{
-			return FindMessageInCurrentThread (EnumMessagesFlag.Forward);
+			return FindMessageInCurrentThread(EnumMessagesFlag.Forward);
 		}
 
 		Task IPresenter.GoToPrevMessageInThread()
@@ -391,7 +392,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return false;
 
 			bool ret = false;
-			await navigationManager.NavigateView(async cancellation => 
+			await navigationManager.NavigateView(async cancellation =>
 			{
 				var idx = await LoadMessageAt(bmk, BookmarkLookupMode.ExactMatch, cancellation);
 				if (idx != null)
@@ -570,7 +571,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (ThisIntf.ShowRawMessages)
 				ret.CheckedItems |= ContextMenuItem.ShowRawMessages;
 
-			if (model.Bookmarks != null)
+			if (bookmarks != null)
 				ret.VisibleItems |= ContextMenuItem.ToggleBmk;
 
 			ret.DefaultItemText = ThisIntf.DefaultFocusedMessageActionCaption;
@@ -598,7 +599,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else if (menuItem == ContextMenuItem.DefaultAction)
 				PerformDefaultFocusedMessageAction();
 			else if (menuItem == ContextMenuItem.ToggleBmk)
-				model.Bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
+				bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
 			else if (menuItem == ContextMenuItem.GotoNextMessageInTheThread)
 				ThisIntf.GoToNextMessageInThread();
 			else if (menuItem == ContextMenuItem.GotoPrevMessageInTheThread)
@@ -704,7 +705,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		double? IViewModel.VerticalScrollerPosition => screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?();
 
-		string IViewModel.EmptyViewMessage => screenBuffer.Messages.Count == 0 ? model.MessageToDisplayWhenMessagesCollectionIsEmpty : null;
+		string IViewModel.EmptyViewMessage =>
+			screenBuffer.Messages.Count != 0 ? null :
+			searchResultModel != null ? null :
+			"No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
 
 		ColoringMode IPresentationProperties.Coloring => coloringModeStrategy.Coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
@@ -754,7 +758,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
 				else if (k == Key.BookmarkShortcut)
-					model.Bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
+					bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
 			}
 			if (k == Key.Copy)
 			{
@@ -987,8 +991,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private void ReadGlobalSettings()
 		{
-			this.coloringModeStrategy.Coloring = model.GlobalSettings.Appearance.Coloring;
-			this.font = new FontData(model.GlobalSettings.Appearance.FontFamily, model.GlobalSettings.Appearance.FontSize);
+			this.coloringModeStrategy.Coloring = settings.Appearance.Coloring;
+			this.font = new FontData(settings.Appearance.FontFamily, settings.Appearance.FontSize);
 			changeNotification.Post();
 		}
 
@@ -1194,9 +1198,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task GoToNextHighlightedMessage(bool reverse)
 		{
-			if (selectionManager.Selection == null || model.HighlightFilters == null)
+			if (selectionManager.Selection == null || highlightFilters == null)
 				return;
-			using (var hlFiltersBulkProcessing = model.HighlightFilters.StartBulkProcessing(
+			using (var hlFiltersBulkProcessing = highlightFilters.StartBulkProcessing(
 				screenBuffer.DisplayTextGetter, reverseMatchDirection: false))
 			{
 				await Scan(
@@ -1269,14 +1273,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Func<ImmutableArray<ViewLine>> CreateViewLinesSelector()
 		{
 			return Selectors.Create(
-				() => (screenBuffer.Messages, model.Bookmarks?.Items),
+				() => (screenBuffer.Messages, bookmarks?.Items),
 				() => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring: coloringModeStrategy.Coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
 				{
 					var list = ImmutableArray.CreateBuilder<ViewLine>();
-					using (var bookmarksHandler = (model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler()))
+					using (var bookmarksHandler = (bookmarks != null ? bookmarks.CreateHandler() : new DummyBookmarksHandler()))
 					{
 						var normalizedSelection = selectionProps.Selection?.Normalize();
 
@@ -1362,6 +1366,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
+		private void HandleSettingsChange(object sender, Settings.SettingsChangeEvent e)
+		{
+			if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
+			{
+				ReadGlobalSettings();
+			}
+		}
+
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
 
@@ -1372,7 +1384,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IView view;
 		readonly IPresentersFacade presentationFacade;
 		readonly LJTraceSource tracer;
+		readonly IBookmarks bookmarks;
 		readonly IBookmarksFactory bookmarksFactory;
+		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly LazyUpdateFlag pendingIncrementalUpdateFlag = new LazyUpdateFlag();
@@ -1380,6 +1394,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IScreenBuffer screenBuffer;
 		readonly INavigationManager navigationManager;
 		readonly ISelectionManager selectionManager;
+		readonly IFiltersList highlightFilters;
 		readonly IHighlightingManager highlightingManager;
 		readonly IColorTheme theme;
 		readonly IViewModeStrategy viewModeStrategy;
