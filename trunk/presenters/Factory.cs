@@ -287,7 +287,8 @@ namespace LogJoint.UI.Presenters
 				clipboardAccess,
 				shellOpen,
 				saveJointLogInteractionPresenter,
-				colorTheme
+				colorTheme,
+				model.ChangeNotification
 			);
 
 			Help.IPresenter helpPresenter = new Help.Presenter(shellOpen);
@@ -298,7 +299,8 @@ namespace LogJoint.UI.Presenters
 				model.LogSourcesPreprocessings,
 				alertPopup,
 				clipboardAccess,
-				sharingDialogView
+				sharingDialogView,
+				model.ChangeNotification
 			);
 
 			HistoryDialog.IPresenter historyDialogPresenter = new HistoryDialog.Presenter(
@@ -388,7 +390,8 @@ namespace LogJoint.UI.Presenters
 				presentersFacade,
 				sourcePropertiesWindowPresenter,
 				alertPopup,
-				model.TraceSourceFactory
+				model.TraceSourceFactory,
+				model.ChangeNotification
 			);
 
 

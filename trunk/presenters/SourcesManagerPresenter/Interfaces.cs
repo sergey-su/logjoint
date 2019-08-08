@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
@@ -15,15 +12,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 	public interface IView
 	{
-		void SetPresenter(IViewEvents presenter);
+		void SetViewModel(IViewModel value);
 		void ShowMRUMenu(List<MRUMenuItem> items);
-		void EnableDeleteAllSourcesButton(bool enable);
-		void EnableDeleteSelectedSourcesButton(bool enable);
-		void EnableTrackChangesCheckBox(bool enable);
-		void SetTrackingChangesCheckBoxState(TrackingChangesCheckBoxState state);
-		void SetShareButtonState(bool visible, bool enabled, bool progress);
-		string ShowOpenSingleFileDialog();
-		void SetPropertiesButtonState(bool enabled);
 	};
 
 	public struct MRUMenuItem
@@ -35,23 +25,21 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		public bool Disabled;
 	};
 
-	public enum TrackingChangesCheckBoxState
+	public interface IViewModel
 	{
-		Indeterminate,
-		Checked,
-		Unchecked
-	};
+		IChangeNotification ChangeNotification { get; }
 
-	public interface IViewEvents
-	{
+		bool DeleteSelectedSourcesButtonEnabled { get; }
+		bool PropertiesButtonEnabled { get; }
+		bool DeleteAllSourcesButtonEnabled { get; }
+		(bool visible, bool enabled, bool progress) ShareButtonState { get; }
+
 		void OnAddNewLogButtonClicked();
 		void OnDeleteSelectedLogSourcesButtonClicked();
 		void OnDeleteAllLogSourcesButtonClicked();
 		void OnMRUButtonClicked();
 		void OnMRUMenuItemClicked(object data);
-		void OnTrackingChangesCheckBoxChecked(bool value);
 		void OnShareButtonClicked();
-		void OnOpenSingleFileButtonClicked();
 		void OnShowHistoryDialogButtonClicked();
 		void OnPropertiesButtonClicked();
 	};

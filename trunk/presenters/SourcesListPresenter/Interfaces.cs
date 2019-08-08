@@ -10,14 +10,13 @@ namespace LogJoint.UI.Presenters.SourcesList
 	public interface IPresenter
 	{
 		void UpdateView();
-		IEnumerable<ILogSource> SelectedSources { get; }
-		IEnumerable<ILogSourcePreprocessing> SelectedPreprocessings { get; }
+		IReadOnlyList<ILogSource> SelectedSources { get; }
+		IReadOnlyList<ILogSourcePreprocessing> SelectedPreprocessings { get; }
 		void SelectSource(ILogSource source);
 		void SelectPreprocessing(ILogSourcePreprocessing source);
 		void SaveLogSourceAs(ILogSource logSource);
 
 		event EventHandler DeleteRequested;
-		event EventHandler SelectionChanged;
 		event EventHandler<BusyStateEventArgs> OnBusyState;
 	};
 

@@ -25,7 +25,7 @@ namespace LogJoint.UI
 		NSButton logSourcePropertiesButton { get; set; }
 
 		SourcesListControlAdapter sourcesListControlAdapter;
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 
 		public SourcesManagementControlAdapter()
 		{
@@ -48,9 +48,24 @@ namespace LogJoint.UI
 
 		#region IView implementation
 
-		void IView.SetPresenter(IViewEvents viewEvents)
+		void IView.SetViewModel (IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
+
+			var updateDeleteSelectedSourcesButton = Updaters.Create (
+				() => viewModel.DeleteSelectedSourcesButtonEnabled,
+				value => deleteSelectedSourcesButton.Enabled = value
+			);
+
+			var updatePropertiesButton = Updaters.Create (
+				() => viewModel.PropertiesButtonEnabled,
+				value => logSourcePropertiesButton.Enabled = value
+			);
+
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				updateDeleteSelectedSourcesButton ();
+				updatePropertiesButton ();
+			});
 		}
 
 		void IView.ShowMRUMenu(List<MRUMenuItem> items)
@@ -58,78 +73,30 @@ namespace LogJoint.UI
 			// not supported in this UI
 		}
 
-		void IView.EnableDeleteAllSourcesButton(bool enable)
-		{
-			// not supported in this UI
-		}
-
-		void IView.EnableDeleteSelectedSourcesButton(bool enable)
-		{
-			deleteSelectedSourcesButton.Enabled = enable;
-		}
-
-		void IView.EnableTrackChangesCheckBox(bool enable)
-		{
-			// not supported in this UI
-		}
-
-		void IView.SetTrackingChangesCheckBoxState(TrackingChangesCheckBoxState state)
-		{
-			// not supported in this UI
-		}
-
-		void IView.SetShareButtonState(bool visible, bool enabled, bool progress)
-		{
-			// not supported in this UI
-		}
-
-		string IView.ShowOpenSingleFileDialog()
-		{
-			var dlg = NSOpenPanel.OpenPanel;
-			dlg.CanChooseFiles = true;
-			dlg.CanChooseDirectories = false;
-
-			if (dlg.RunModal () == 1) 
-			{
-				var url = dlg.Urls [0];
-				if (url != null)
-				{
-					return url.Path;
-				}
-			}
-
-			return null;
-		}
-
-		void IView.SetPropertiesButtonState(bool enabled)
-		{
-			logSourcePropertiesButton.Enabled = enabled;
-		}
-
 		#endregion
 
 		[Action ("OnAddLogSourceButtonClicked:")]
 		void OnAddLogSourceButtonClicked (NSObject sender)
 		{
-			viewEvents.OnAddNewLogButtonClicked();
+			viewModel.OnAddNewLogButtonClicked();
 		}
 
 		[Action ("OnDeleteSelectedSourcesButtonClicked:")]
 		void OnDeleteSelectedSourcesButtonClicked (NSObject sender)
 		{
-			viewEvents.OnDeleteSelectedLogSourcesButtonClicked();
+			viewModel.OnDeleteSelectedLogSourcesButtonClicked();
 		}
 
 		[Action ("OnRecentSourcesButtonClicked:")]
 		void OnRecentSourcesButtonClicked (NSObject sender)
 		{
-			viewEvents.OnShowHistoryDialogButtonClicked();
+			viewModel.OnShowHistoryDialogButtonClicked();
 		}
 
 		[Action ("OnLogSourcePropertiesButtonClicked:")]
 		void OnLogSourcePropertiesButtonClicked (NSObject sender)
 		{
-			viewEvents.OnPropertiesButtonClicked();
+			viewModel.OnPropertiesButtonClicked();
 		}
 	}
 }

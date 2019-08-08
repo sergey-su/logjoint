@@ -214,7 +214,8 @@ namespace LogJoint
 				tempFilesManager,
 				logSourcesManager,
 				shutdown,
-				traceSourceFactory
+				traceSourceFactory,
+				changeNotification
 			);
 
 			ISearchManager searchManager = new SearchManager(

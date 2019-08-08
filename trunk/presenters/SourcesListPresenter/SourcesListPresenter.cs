@@ -6,6 +6,7 @@ using LogJoint.Preprocessing;
 using LogJoint;
 using System.Threading.Tasks;
 using LogJoint.Drawing;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.SourcesList
 {
@@ -23,7 +24,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IClipboardAccess clipboard,
 			IShellOpen shellOpen,
 			SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter,
-			IColorTheme theme
+			IColorTheme theme,
+			IChangeNotification changeNotification
 		)
 		{
 			this.logSources = logSources;
@@ -37,6 +39,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.shellOpen = shellOpen;
 			this.saveJointLogInteractionPresenter = saveJointLogInteractionPresenter;
 			this.theme = theme;
+			this.changeNotification = changeNotification;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -47,7 +50,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		}
 
 		public event EventHandler DeleteRequested;
-		public event EventHandler SelectionChanged;
 		public event EventHandler<BusyStateEventArgs> OnBusyState;
 
 		void IPresenter.UpdateView()
@@ -76,27 +78,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 		}
 
-		IEnumerable<ILogSource> IPresenter.SelectedSources
-		{
-			get 
-			{ 
-				return GetSelectedItems().SelectMany(i =>
-				{
-					var singleSource = i.Datum as LogSourceItemData;
-					if (singleSource != null)
-						return Enumerable.Repeat(singleSource.LogSource, 1);
-					var container = i.Datum as SourcesContainerItemData;
-					if (container != null)
-						return container.LogSources.Select(x => x.LogSource);
-					return Enumerable.Empty<ILogSource>();
-				});
-			}
-		}
+		IReadOnlyList<ILogSource> IPresenter.SelectedSources => selectedSources;
 
-		IEnumerable<ILogSourcePreprocessing> IPresenter.SelectedPreprocessings
-		{
-			get { return GetSelectedItems().Select(i => (i.Datum as PreprocessingItemData)?.Preprocessing).Where(lsp => lsp != null); }
-		}
+		IReadOnlyList<ILogSourcePreprocessing> IPresenter.SelectedPreprocessings => selectedPreprocessings;
 
 		void IPresenter.SelectSource(ILogSource source)
 		{
@@ -274,8 +258,22 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		void IViewEvents.OnSelectionChanged()
 		{
-			if (SelectionChanged != null)
-				SelectionChanged(this, EventArgs.Empty);
+			selectedSources = ImmutableArray.CreateRange(GetSelectedItems().SelectMany(i =>
+			{
+				if (i.Datum is LogSourceItemData singleSource)
+					return Enumerable.Repeat(singleSource.LogSource, 1);
+				if (i.Datum is SourcesContainerItemData container)
+					return container.LogSources.Select(x => x.LogSource);
+				return Enumerable.Empty<ILogSource>();
+			}));
+
+			selectedPreprocessings = ImmutableArray.CreateRange(
+				GetSelectedItems()
+				.Select(i => (i.Datum as PreprocessingItemData)?.Preprocessing)
+				.Where(lsp => lsp != null)
+			);
+
+			changeNotification.Post();
 		}
 
 		void IViewEvents.OnCopyShortcutPressed()
@@ -539,6 +537,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IShellOpen shellOpen;
 		readonly SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter;
 		readonly IColorTheme theme;
+		readonly IChangeNotification changeNotification;
 
 		readonly CacheDictionary<ILogSource, LogSourceItemData> sourcesDataCache = 
 			new CacheDictionary<ILogSource, LogSourceItemData>();
@@ -548,6 +547,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 			new CacheDictionary<string, SourcesContainerItemData>();
 		readonly CacheDictionary<ViewItemsCacheKey, IViewItem> viewItemsCache = 
 			new CacheDictionary<ViewItemsCacheKey, IViewItem>();
+
+		ImmutableArray<ILogSource> selectedSources = ImmutableArray.Create<ILogSource>();
+		ImmutableArray<ILogSourcePreprocessing> selectedPreprocessings = ImmutableArray.Create<ILogSourcePreprocessing>();
 
 		int updateLock;
 

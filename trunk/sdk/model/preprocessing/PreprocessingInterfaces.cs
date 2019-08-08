@@ -12,7 +12,7 @@ namespace LogJoint.Preprocessing
 {
 	public interface IManager
 	{
-		IEnumerable<ILogSourcePreprocessing> Items { get; }
+		IReadOnlyList<ILogSourcePreprocessing> Items { get; }
 		Task<YieldedProvider[]> Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
 		Task<YieldedProvider[]> Preprocess(IRecentlyUsedEntity recentLogEntry, PreprocessingOptions options = PreprocessingOptions.None);
 		bool ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams);

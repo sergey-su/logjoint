@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		public Presenter(
 			ILogSourcesManager logSources,
@@ -28,7 +28,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			IPresentersFacade facade,
 			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter,
 			IAlertPopup alerts,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			IChangeNotification changeNotification
 		)
 		{
 			this.logSources = logSources;
@@ -46,24 +47,19 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;
 			this.alerts = alerts;
 			this.presentersFacade = facade;
+			this.changeNotification = changeNotification;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
 			{
 				DeleteSelectedSources();
 			};
-			logSources.OnLogSourceAdded += (sender, args) =>
-			{
-				UpdateRemoveAllButton();
-			};
 			logSources.OnLogSourceRemoved += (sender, args) =>
 			{
 				updateTracker.Invalidate();
-				UpdateRemoveAllButton();
 			};
 			logSourcesPreprocessings.PreprocessingAdded += (sender, args) =>
 			{
 				updateTracker.Invalidate();
-				UpdateRemoveAllButton();
 				if ((args.LogSourcePreprocessing.Flags & PreprocessingOptions.HighlightNewPreprocessing) != 0)
 				{
 					preprocessingAwaitingHighlighting = args.LogSourcePreprocessing;
@@ -72,21 +68,10 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			logSourcesPreprocessings.PreprocessingDisposed += (sender, args) =>
 			{
 				updateTracker.Invalidate();
-				UpdateRemoveAllButton();
 			};
 			logSourcesPreprocessings.PreprocessingChangedAsync += (sender, args) =>
 			{
 				updateTracker.Invalidate();
-			};
-			sourcesListPresenter.SelectionChanged += delegate(object sender, EventArgs args)
-			{
-				bool anySourceSelected = sourcesListPresenter.SelectedSources.Any();
-				bool anyPreprocSelected = sourcesListPresenter.SelectedPreprocessings.Any();
-				view.EnableDeleteSelectedSourcesButton(anySourceSelected || anyPreprocSelected);
-				view.EnableTrackChangesCheckBox(anySourceSelected);
-				UpdateTrackChangesCheckBox();
-				view.SetPropertiesButtonState(
-					sourcePropertiesWindowPresenter != null && sourcesListPresenter.SelectedSources.Count() == 1);
 			};
 
 			logSources.OnLogSourceVisiblityChanged += (sender, args) =>
@@ -112,18 +97,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					UpdateView();
 			};
 			
-			this.sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
-			{
-				UpdateShareButton();
-			};
-			this.sharingDialogPresenter.IsBusyChanged += (sender, args) =>
-			{
-				UpdateShareButton();
-			};
-
-			view.SetPresenter(this);
-
-			UpdateShareButton();
+			view.SetViewModel(this);
 		}
 
 		public event EventHandler<BusyStateEventArgs> OnBusyState;
@@ -133,44 +107,50 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			await DeleteSources(forSources, Enumerable.Empty<ILogSourcePreprocessing>());
 		}
 
-		void IViewEvents.OnAddNewLogButtonClicked()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		bool IViewModel.DeleteSelectedSourcesButtonEnabled =>
+			(sourcesListPresenter.SelectedSources.Count + sourcesListPresenter.SelectedPreprocessings.Count) > 0;
+
+		bool IViewModel.PropertiesButtonEnabled =>
+			sourcePropertiesWindowPresenter != null && sourcesListPresenter.SelectedSources.Count == 1;
+
+		bool IViewModel.DeleteAllSourcesButtonEnabled =>
+			(logSources.Items.Count + logSourcesPreprocessings.Items.Count) > 0;
+
+		(bool visible, bool enabled, bool progress) IViewModel.ShareButtonState =>
+			(
+				visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
+				enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
+				progress: sharingDialogPresenter.IsBusy
+			);
+
+		void IViewModel.OnAddNewLogButtonClicked()
 		{
 			udfManager.ReloadFactories(); // todo: move it away from this presenter
 
 			newLogSourceDialogPresenter.ShowTheDialog();
 		}
 
-		void IViewEvents.OnOpenSingleFileButtonClicked()
-		{
-			string fileName = view.ShowOpenSingleFileDialog();
-			if (fileName != null)
-			{
-				logSourcesPreprocessings.Preprocess(
-					new [] {preprocessingStepsFactory.CreateLocationTypeDetectionStep(new PreprocessingStepParams(fileName))},
-					"Opening selected file"
-				);
-			}
-		}
-
-		void IViewEvents.OnPropertiesButtonClicked()
+		void IViewModel.OnPropertiesButtonClicked()
 		{
 			var sel = sourcesListPresenter.SelectedSources.FirstOrDefault();
 			if (sel != null && sourcePropertiesWindowPresenter != null)
 				sourcePropertiesWindowPresenter.ShowWindow(sel);
 		}
 
-		void IViewEvents.OnDeleteSelectedLogSourcesButtonClicked()
+		void IViewModel.OnDeleteSelectedLogSourcesButtonClicked()
 		{
 			DeleteSelectedSources();
 		}
 
-		void IViewEvents.OnDeleteAllLogSourcesButtonClicked()
+		void IViewModel.OnDeleteAllLogSourcesButtonClicked()
 		{
 			DeleteAllSources();
 			workspacesManager.DetachFromWorkspace();
 		}
 
-		void IViewEvents.OnMRUButtonClicked()
+		void IViewModel.OnMRUButtonClicked()
 		{
 			udfManager.ReloadFactories();
 			var items = new List<MRUMenuItem>();
@@ -206,7 +186,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			view.ShowMRUMenu(items);
 		}
 
-		async void IViewEvents.OnMRUMenuItemClicked(object data)
+		async void IViewModel.OnMRUMenuItemClicked(object data)
 		{
 			if (data == null)
 				return;
@@ -239,19 +219,12 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			}
 		}
 
-		void IViewEvents.OnShowHistoryDialogButtonClicked()
+		void IViewModel.OnShowHistoryDialogButtonClicked()
 		{
 			historyDialogPresenter.ShowDialog();
 		}
 
-		void IViewEvents.OnTrackingChangesCheckBoxChecked(bool value)
-		{
-			foreach (ILogSource s in sourcesListPresenter.SelectedSources)
-				s.TrackingEnabled = value;
-			UpdateTrackChangesCheckBox();
-		}
-
-		void IViewEvents.OnShareButtonClicked()
+		void IViewModel.OnShareButtonClicked()
 		{
 			sharingDialogPresenter.ShowDialog();
 		}
@@ -261,11 +234,10 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void UpdateView()
 		{
 			sourcesListPresenter.UpdateView();
-			UpdateTrackChangesCheckBox();
-			ExecurePendingHighlightings();
+			ExecutePendingHighlightings();
 		}
 
-		private void ExecurePendingHighlightings()
+		private void ExecutePendingHighlightings()
 		{
 			if (preprocessingAwaitingHighlighting != null && !preprocessingAwaitingHighlighting.IsDisposed)
 				presentersFacade.ShowPreprocessing(preprocessingAwaitingHighlighting);
@@ -344,45 +316,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				OnBusyState(this, new BusyStateEventArgs(value));
 		}
 
-		void UpdateRemoveAllButton()
-		{
-			view.EnableDeleteAllSourcesButton(logSources.Items.Any() || logSourcesPreprocessings.Items.Any());
-		}
-
-		void UpdateShareButton()
-		{
-			view.SetShareButtonState(
-				visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable, 
-				enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
-				progress: sharingDialogPresenter.IsBusy
-			);
-		}
-
-		void UpdateTrackChangesCheckBox()
-		{
-			bool f1 = false;
-			bool f2 = false;
-			foreach (ILogSource s in sourcesListPresenter.SelectedSources)
-			{
-				if (s.Visible && s.TrackingEnabled)
-					f1 = true;
-				else
-					f2 = true;
-				if (f1 && f2)
-					break;
-			}
-
-			TrackingChangesCheckBoxState newState;
-			if (f1 && f2)
-				newState = TrackingChangesCheckBoxState.Indeterminate;
-			else if (f1)
-				newState = TrackingChangesCheckBoxState.Checked;
-			else
-				newState = TrackingChangesCheckBoxState.Unchecked;
-
-			view.SetTrackingChangesCheckBoxState(newState);
-		}
-
 		static string MakeInplaceAnnotation(string ann)
 		{
 			if (string.IsNullOrEmpty(ann))
@@ -413,6 +346,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		readonly IAlertPopup alerts;
 		readonly IPresentersFacade presentersFacade;
+		readonly IChangeNotification changeNotification;
 		ILogSourcePreprocessing preprocessingAwaitingHighlighting;
 
 		#endregion

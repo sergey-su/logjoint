@@ -25,7 +25,9 @@ namespace LogJoint.Preprocessing
 			ITempFilesManager tempFilesManager,
 			ILogSourcesManager logSourcesManager,
 			IShutdown shutdown,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory,
+			IChangeNotification changeNotification
+		)
 		{
 			this.traceSourceFactory = traceSourceFactory;
 			this.trace = traceSourceFactory.CreateTraceSource("PreprocessingManager", "prepr");
@@ -36,6 +38,7 @@ namespace LogJoint.Preprocessing
 			this.telemetry = telemetry;
 			this.tempFilesManager = tempFilesManager;
 			this.logSourcesManager = logSourcesManager;
+			this.changeNotification = changeNotification;
 
 			extensions.Register(builtinStepsExtension);
 
@@ -68,10 +71,7 @@ namespace LogJoint.Preprocessing
 			return ExecutePreprocessing(new LogSourcePreprocessing(this, providerYieldedCallback, recentLogEntry, options));
 		}
 
-		public IEnumerable<ILogSourcePreprocessing> Items
-		{
-			get { return items; }
-		}
+		IReadOnlyList<ILogSourcePreprocessing> IManager.Items => items;
 
 		bool IManager.ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams)
 		{
@@ -570,14 +570,16 @@ namespace LogJoint.Preprocessing
 			var ret = prep.Execute();
 			if (ret.IsCompleted)
 				return ret;
-			items.Add(prep);
+			items = items.Add(prep);
+			changeNotification.Post();
 			PreprocessingAdded?.Invoke(this, new LogSourcePreprocessingEventArg(prep));
 			return ret;
 		}
 
 		internal void Remove(ILogSourcePreprocessing prep)
 		{
-			items.Remove(prep);
+			items = items.Remove(prep);
+			changeNotification.Post();
 			PreprocessingDisposed?.Invoke(this, new LogSourcePreprocessingEventArg(prep));
 		}
 
@@ -689,10 +691,11 @@ namespace LogJoint.Preprocessing
 		};
 
 		readonly ISynchronizationContext invokeSynchronize;
+		readonly IChangeNotification changeNotification;
 		readonly IFormatAutodetect formatAutodetect;
 		readonly Action<YieldedProvider> providerYieldedCallback;
 		readonly IExtensionsRegistry extensions;
-		readonly List<ILogSourcePreprocessing> items = new List<ILogSourcePreprocessing>();
+		ImmutableList<ILogSourcePreprocessing> items = ImmutableList.Create<ILogSourcePreprocessing>();
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly LJTraceSource trace;
 		readonly ITempFilesManager tempFilesManager;

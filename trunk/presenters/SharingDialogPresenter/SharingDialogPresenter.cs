@@ -15,6 +15,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		readonly Preprocessing.IManager preprocessingsManager;
 		readonly IAlertPopup alertPopup;
 		readonly IClipboardAccess clipboard;
+		readonly IChangeNotification changeNotification;
 		DialogAvailability availability;
 		bool isBusy;
 		string statusDetailsMessage;
@@ -25,7 +26,9 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			Preprocessing.IManager preprocessingsManager,
 			IAlertPopup alertPopup,
 			IClipboardAccess clipboard,
-			IView view)
+			IView view,
+			IChangeNotification changeNotification
+		)
 		{
 			this.logSourcesManager = logSourcesManager;
 			this.workspacesManager = workspacesManager;
@@ -33,6 +36,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			this.preprocessingsManager = preprocessingsManager;
 			this.alertPopup = alertPopup;
 			this.clipboard = clipboard;
+			this.changeNotification = changeNotification;
 
 			view.SetEventsHandler(this);
 
@@ -138,6 +142,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			if (a != availability)
 			{
 				availability = a;
+				changeNotification.Post();
 				if (AvailabilityChanged != null)
 					AvailabilityChanged(this, EventArgs.Empty);
 			}
@@ -183,6 +188,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			if (isBusy == newValue)
 				return;
 			isBusy = newValue;
+			changeNotification.Post();
 			if (IsBusyChanged != null)
 				IsBusyChanged(this, EventArgs.Empty);
 		}
