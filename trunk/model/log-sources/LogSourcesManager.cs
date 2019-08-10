@@ -141,22 +141,26 @@ namespace LogJoint
 		void ILogSourcesManagerInternal.OnSourceTrackingChanged(ILogSource t)
 		{
 			OnLogSourceTrackingFlagChanged?.Invoke(t, EventArgs.Empty);
+			changeNotification.Post();
 		}
 
 		void ILogSourcesManagerInternal.OnSourceAnnotationChanged(ILogSource t)
 		{
 			recentlyUsedEntities.UpdateRecentLogEntry(t.Provider, t.Annotation);
 			OnLogSourceAnnotationChanged?.Invoke(t, EventArgs.Empty);
+			changeNotification.Post();
 		}
 
 		void ILogSourcesManagerInternal.OnSourceColorChanged(ILogSource logSource)
 		{
 			OnLogSourceColorChanged?.Invoke(logSource, EventArgs.Empty);
+			changeNotification.Post();
 		}
 
 		void ILogSourcesManagerInternal.OnTimeOffsetChanged(ILogSource logSource)
 		{
 			OnLogSourceTimeOffsetChanged?.Invoke(logSource, EventArgs.Empty);
+			changeNotification.Post();
 		}
 
 		void ILogSourcesManagerInternal.OnSourceStatsChanged(

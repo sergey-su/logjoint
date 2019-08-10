@@ -259,11 +259,14 @@ namespace LogJoint.UI.Presenters
 					sourcePropertiesWindowView,
 					model.LogSourcesManager,
 					model.LogSourcesPreprocessings,
+					model.ModelThreads,
 					navHandler,
 					alertPopup,
 					clipboardAccess,
 					shellOpen,
-					colorTheme
+					colorTheme,
+					model.HeartBeatTimer,
+					model.ChangeNotification
 				);
 
 			SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter = new SaveJointLogInteractionPresenter.Presenter(

@@ -44,7 +44,7 @@ namespace LogJoint
 		/// </summary>
 		event EventHandler OnThreadListChanged;
 		/// <summary>
-		/// Notification that thread one of many <see cref="IThread"/> properties have changed.
+		/// Notification that one of many <see cref="IThread"/> properties have changed.
 		/// Threading: called from unspecified thread.
 		/// </summary>
 		event EventHandler OnThreadPropertiesChanged;

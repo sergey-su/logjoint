@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using LogJoint.Drawing;
@@ -6,37 +8,38 @@ using LogJoint.Preprocessing;
 
 namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 {
-	public class Presenter: IPresenter, IViewEvents
+	public class Presenter: IPresenter, IViewModel
 	{
 		readonly IView view;
 		readonly IPresentersFacade presentersFacade;
 		readonly IAlertPopup alerts;
-		readonly ILogSourcesManager logSources;
 		readonly Preprocessing.IManager preprocessings;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
 		readonly IColorTheme theme;
+		readonly IChainedChangeNotification changeNotification;
+		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
+		static readonly ViewState emptyViewState = new ViewState();
 		IWindow currentWindow;
 		ILogSource source;
-		string previouslySetAnnotation;
-		string previouslySetOffset;
-		IBookmark firstMessageBmk, lastMessageBmk;
-		string stateDetailsErrorMessage;
-		string loadedMessagesWarningMessage;
-		LoadedMessageWarningStatus loadedMessageWarningStatus;
-		string copyablePath;
-		string containingFolderPath;
+		string annotation;
+		string timeOffset;
+		int forceUpdateRevision;
 
+		Func<ViewState> getViewState;
 
 		public Presenter(
 			IView view,
 			ILogSourcesManager logSources,
 			Preprocessing.IManager preprocessings,
+			IModelThreads threads,
 			IPresentersFacade navHandler,
 			IAlertPopup alerts,
 			IClipboardAccess clipboard,
 			IShellOpen shellOpen,
-			IColorTheme theme
+			IColorTheme theme,
+			IHeartBeatTimer heartBeat,
+			IChangeNotification changeNotification
 		)
 		{
 			this.view = view;
@@ -45,88 +48,146 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			this.preprocessings = preprocessings;
 			this.clipboard = clipboard;
 			this.shellOpen = shellOpen;
-			this.logSources = logSources;
 			this.theme = theme;
+			this.changeNotification = changeNotification.CreateChainedChangeNotification(initiallyActive: false);
 
-			view.SetEventsHandler(this);
-
-			logSources.OnLogSourceColorChanged += (s, e) =>
+			logSources.OnLogSourceStatsChanged += (s, e) =>
 			{
-				if (object.ReferenceEquals(s, source) && currentWindow != null)
+				if (s == logSources)
+					pendingUpdateFlag.Invalidate();
+			};
+
+			threads.OnThreadListChanged += (s, e) => pendingUpdateFlag.Invalidate();
+			threads.OnThreadPropertiesChanged += (s, e) => pendingUpdateFlag.Invalidate();
+
+			heartBeat.OnTimer += (s, e) =>
+			{
+				if (pendingUpdateFlag.Validate())
 				{
-					UpdateColorPanel();
+					++forceUpdateRevision;
+					changeNotification.Post();
 				}
 			};
+
+			this.getViewState = () => emptyViewState;
+
+			view.SetViewModel(this);
 		}
 
-		void IPresenter.UpdateOpenWindow()
+		void IPresenter.ShowWindow(ILogSource source)
 		{
-			UpdateView(initialUpdate: false);
-		}
+			this.source = source;
 
-		void IPresenter.ShowWindow(ILogSource forSource)
-		{
+			this.annotation = source.Annotation;
+			this.timeOffset = source.TimeOffsets.ToString();
+
+			this.getViewState = Selectors.Create(
+				() => annotation,
+				() => timeOffset,
+				() => (source.Visible, source.TrackingEnabled, source.ColorIndex, source.DisplayName),
+				() => theme.ThreadColors,
+				() => forceUpdateRevision,
+				(annotation, timeOffset, sourceProps, themeThreadColors, rev) => MakeViewState(
+					annotation,
+					timeOffset,
+					sourceProps.Visible,
+					sourceProps.TrackingEnabled,
+					sourceProps.ColorIndex,
+					sourceProps.DisplayName,
+					source.Provider,
+					preprocessings,
+					themeThreadColors,
+					source.Threads.Items
+				)
+			);
+			
 			currentWindow = view.CreateWindow();
-			source = forSource;
-			try
+
+			var autoCloseDialog = Updaters.Create(
+				() => this.source.IsDisposed,
+				disposed =>
+				{
+					if (disposed)
+						currentWindow.Close();
+				}
+			);
+			using (changeNotification.CreateSubscription(autoCloseDialog))
 			{
-				UpdateView(initialUpdate: true);
-				currentWindow.ShowDialog();
-			}
-			finally
-			{
-				currentWindow = null;
+				try
+				{
+					changeNotification.Active = true;
+					currentWindow.ShowDialog();
+				}
+				finally
+				{
+					changeNotification.Active = false;
+					this.getViewState = () => emptyViewState;
+					currentWindow = null;
+				}
 			}
 		}
 
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
-		void IViewEvents.OnVisibleCheckBoxClicked()
+		IViewState IViewModel.ViewState => getViewState();
+
+		void IViewModel.OnVisibleCheckBoxChange(bool value)
 		{
-			source.Visible = currentWindow.ReadControl(ControlFlag.VisibleCheckBox | ControlFlag.Checked) != null;
-			UpdateSuspendResumeTrackingLink();
+			source.Visible = value;
 		}
 
-		void IViewEvents.OnSuspendResumeTrackingLinkClicked()
+		void IViewModel.OnSuspendResumeTrackingLinkClicked()
 		{
 			source.TrackingEnabled = !source.TrackingEnabled;
-			UpdateSuspendResumeTrackingLink();
 		}
 
-		void IViewEvents.OnStateDetailsLinkClicked()
+		void IViewModel.OnStateDetailsLinkClicked()
 		{
-			string msg = stateDetailsErrorMessage;
+			string msg = getViewState().stateDetailsErrorMessage;
 			if (!string.IsNullOrEmpty(msg))
 				alerts.ShowPopup("Error details", msg, AlertFlags.Ok | AlertFlags.WarningIcon);
 		}
 
-		void IViewEvents.OnBookmarkLinkClicked(ControlFlag controlId)
+		void IViewModel.OnFirstKnownMessageLinkClicked()
 		{
-			IBookmark bmk = null;
-			if (controlId == ControlFlag.FirstMessageLinkLabel)
-				bmk = firstMessageBmk;
-			else if (controlId == ControlFlag.LastMessageLinkLabel)
-				bmk = lastMessageBmk;
-			if (bmk != null)
-				presentersFacade.ShowMessage(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet | BookmarkNavigationOptions.NoLinksInPopups);
+			HandleBookmarkClick(getViewState().firstMessageBmk);
 		}
 
-		void IViewEvents.OnSaveAsButtonClicked()
+		void IViewModel.OnLastKnownMessageLinkClicked()
+		{
+			HandleBookmarkClick(getViewState().lastMessageBmk);
+		}
+
+		void IViewModel.OnSaveAsButtonClicked()
 		{
 			presentersFacade.SaveLogSourceAs(source);
 		}
 
-		void IViewEvents.OnClosingDialog()
+		void IViewModel.OnChangeAnnotation(string value)
 		{
-			source.Annotation = currentWindow.ReadControl(ControlFlag.AnnotationTextBox | ControlFlag.Value);
-			ITimeOffsets newTimeOffset;
-			if (TimeOffsets.TryParse(currentWindow.ReadControl(ControlFlag.TimeOffsetTextBox | ControlFlag.Value), out newTimeOffset))
+			annotation = value;
+			changeNotification.Post();
+		}
+
+		void IViewModel.OnChangeChangeTimeOffset(string value)
+		{
+			timeOffset = value;
+			changeNotification.Post();
+		}
+
+		void IViewModel.OnClosingDialog()
+		{
+			source.Annotation = annotation;
+			if (TimeOffsets.TryParse(timeOffset, out var newTimeOffset))
 			{
 				source.TimeOffsets = newTimeOffset;
 			}
 		}
 
-		void IViewEvents.OnLoadedMessagesWarningIconClicked()
+		void IViewModel.OnLoadedMessagesWarningIconClicked()
 		{
+			var loadedMessageWarningStatus = getViewState().loadedMessageWarningStatus;
+			var loadedMessagesWarningMessage = getViewState().loadedMessagesWarningMessage;
 			if (loadedMessageWarningStatus == LoadedMessageWarningStatus.Unfixable)
 			{
 				alerts.ShowPopup("Problem with the log", loadedMessagesWarningMessage, 
@@ -149,92 +210,92 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			}
 		}
 
-		void IViewEvents.OnChangeColorLinkClicked()
+		void IViewModel.OnChangeColorLinkClicked()
 		{
 			currentWindow.ShowColorSelector(
 				theme.ThreadColors.ZipWithIndex().Where(x => x.Key != source.ColorIndex).Select(x => x.Value).ToArray());
 		}
 
-		void IViewEvents.OnColorSelected(Color color)
+		void IViewModel.OnColorSelected(Color color)
 		{
 			var cl = theme.ThreadColors.IndexOf(color);
 			if (cl != -1)
 				source.ColorIndex = cl;
 		}
 
-		void IViewEvents.OnCopyButtonClicked()
+		void IViewModel.OnCopyButtonClicked()
 		{
+			var copyablePath = getViewState().copyablePath;
 			if (copyablePath != null && clipboard != null)
 				clipboard.SetClipboard(copyablePath);
 		}
 
-		void IViewEvents.OnOpenContainingFolderButtonClicked()
+		void IViewModel.OnOpenContainingFolderButtonClicked()
 		{
+			var containingFolderPath = getViewState().containingFolderPath;
 			if (containingFolderPath != null)
 				shellOpen.OpenFileBrowser(containingFolderPath);
 		}
 
-		#region Implementation
-
-		void UpdateView(bool initialUpdate)
+		static ViewState MakeViewState(
+			string annotation,
+			string timeOffset,
+			bool sourceVisible,
+			bool sourceTrackingEnabled,
+			int sourceColorIndex,
+			string sourceDisplayName,
+			ILogProvider sourceProvider,
+			Preprocessing.IManager preprocessings,
+			ImmutableArray<Color> themeThreadColors,
+			IReadOnlyList<IThread> sourceThreads
+		)
 		{
-			if (currentWindow == null)
+			ViewState state = new ViewState();
+
+			state.NameEditbox = new ControlState
 			{
-				return;
-			}
-			if (source.IsDisposed)
+				Text = sourceDisplayName
+			};
+			state.FormatTextBox = new ControlState
 			{
-				currentWindow.Close();
-				return;
-			}
-
-			SetTextBoxValue(ControlFlag.NameEditbox, source.DisplayName);
-			SetTextBoxValue(ControlFlag.FormatTextBox, LogProviderFactoryRegistry.ToString(source.Provider.Factory));
-
-			WriteControl(ControlFlag.VisibleCheckBox | ControlFlag.Checked, source.Visible);
-			UpdateColorPanel();
-			ShowTechInfoPanel();
-			UpdateStatsView(source.Provider.Stats);
-			UpdateSuspendResumeTrackingLink();
-			UpdateFirstAndLastMessages();
-			UpdateSaveAs();
-			UpdateAnnotation(initialUpdate);
-			UpdateTimeOffset(initialUpdate);
-			UpdateCopyPathButton();
-			UpdateOpenContainingFolderButton();
-		}
-
-		private void UpdateColorPanel()
-		{
-			WriteControl(ControlFlag.ColorPanel | ControlFlag.BackColor, theme.ThreadColors.GetByIndex(source.ColorIndex).ToUnsignedArgb().ToString());
-		}
-
-		void WriteControl(ControlFlag flags, string value)
-		{
-			currentWindow.WriteControl(flags, value);
-		}
-
-		void WriteControl(ControlFlag flags, bool value)
-		{
-			currentWindow.WriteControl(flags, value ? "" : null);
-		}
-
-		void SetTextBoxValue(ControlFlag box, string value)
-		{
-			if (currentWindow.ReadControl(ControlFlag.Value | box) != value)
+				Text = LogProviderFactoryRegistry.ToString(sourceProvider.Factory)
+			};
+			state.VisibleCheckBox = new ControlState
 			{
-				currentWindow.WriteControl(ControlFlag.Value | box, value);
-			}
+				Checked = sourceVisible
+			};
+
+			state.ColorPanel = new ControlState
+			{
+				BackColor = themeThreadColors.GetByIndex(sourceColorIndex)
+			};
+
+			state.AnnotationTextBox = new ControlState
+			{
+				Text = annotation
+			};
+
+			state.TimeOffsetTextBox = new ControlState
+			{
+				Text = timeOffset
+			};
+
+			UpdateStatsView(state, sourceProvider);
+			UpdateSuspendResumeTrackingLink(state, sourceVisible, sourceTrackingEnabled);
+			UpdateFirstAndLastMessages(state, sourceThreads, sourceVisible);
+			UpdateSaveAs(state, sourceProvider);
+			UpdateCopyPathButton(state, sourceProvider, preprocessings);
+			UpdateOpenContainingFolderButton(state, sourceProvider, preprocessings);
+
+			return state;
 		}
 
-		[System.Diagnostics.Conditional("DEBUG")]
-		void ShowTechInfoPanel()
+		static void UpdateStatsView(
+			ViewState viewState,
+			ILogProvider logProvider
+		)
 		{
-			//techInfoGroupBox.Visible = true;
-		}
-
-		void UpdateStatsView(LogProviderStats stats)
-		{
+			var stats = logProvider.Stats;
 			string errorMsg = null;
 			string labelValue = null;
 			switch (stats.State)
@@ -258,30 +319,46 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 					break;
 			}
 
-			WriteControl(ControlFlag.StateLabel | ControlFlag.Value, labelValue);
-
-			WriteControl(ControlFlag.StateDetailsLink | ControlFlag.Visibility, errorMsg != null);
-			stateDetailsErrorMessage = errorMsg;
-			if (errorMsg != null)
+			viewState.StateDetailsLink = new ControlState
 			{
-				WriteControl(ControlFlag.StateLabel | ControlFlag.ForeColor, 0xffff0000.ToString());
-			}
-			else
+				Hidden = errorMsg == null,
+				Text = "details"
+			};
+			viewState.stateDetailsErrorMessage = errorMsg;
+
+			viewState.StateLabel = new ControlState
 			{
-				WriteControl(ControlFlag.StateLabel | ControlFlag.ForeColor, view.DefaultControlForeColor.ToString());
-			}
+				Text = labelValue,
+				ForeColor = errorMsg != null ? Color.Red : new Color?()
+			};
 
-			WriteControl(ControlFlag.LoadedMessagesTextBox | ControlFlag.Value, stats.MessagesCount.ToString());
+			viewState.LoadedMessagesTextBox = new ControlState
+			{
+				Text = stats.MessagesCount.ToString()
+			};
 
-			UpdateLoadingWarning(stats);
+			UpdateLoadingWarning(viewState, stats, logProvider);
 		}
 
-		private void UpdateLoadingWarning(LogProviderStats stats)
+		private static void UpdateLoadingWarning(
+			ViewState viewState,
+			LogProviderStats stats,
+			ILogProvider logProvider
+		)
 		{
 			var firstMessageWithTimeConstraintViolation = stats.FirstMessageWithTimeConstraintViolation;
 			bool showWarning = firstMessageWithTimeConstraintViolation != null;
-			WriteControl(ControlFlag.LoadedMessagesWarningIcon | ControlFlag.Visibility, showWarning);
-			WriteControl(ControlFlag.LoadedMessagesWarningLinkLabel | ControlFlag.Visibility, showWarning);
+			viewState.LoadedMessagesWarningIcon = new ControlState
+			{
+				Hidden = !showWarning,
+				Tooltip = "Log source has warnings",
+			};
+			viewState.LoadedMessagesWarningLinkLabel = new ControlState
+			{
+				Hidden = !showWarning,
+				Text = "see warnings",
+				Tooltip = "see warnings",
+			};
 			if (showWarning)
 			{
 				StringBuilder warningMessage = new StringBuilder();
@@ -296,57 +373,75 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 				warningMessage.AppendLine();
 				warningMessage.AppendLine();
 				warningMessage.Append("Messages must be strictly ordered by time.");
-				var formatFlags = source.Provider.Factory.Flags;
+				var formatFlags = logProvider.Factory.Flags;
 				if ((formatFlags & LogProviderFactoryFlag.SupportsReordering) != 0)
 				{
 					warningMessage.AppendLine();
 					warningMessage.AppendLine();
 					warningMessage.Append("Select Yes to open reordered temporary copy of the log.");
-					loadedMessageWarningStatus = LoadedMessageWarningStatus.FixableByReordering;
+					viewState.loadedMessageWarningStatus = LoadedMessageWarningStatus.FixableByReordering;
 				}
 				else if ((formatFlags & LogProviderFactoryFlag.DejitterEnabled) != 0)
 				{
 					warningMessage.Append(" Consider increasing reordering buffer size. " +
 						"That can be done in formats management wizard.");
-					loadedMessageWarningStatus = LoadedMessageWarningStatus.Unfixable;
+					viewState.loadedMessageWarningStatus = LoadedMessageWarningStatus.Unfixable;
 				}
 				else if ((formatFlags & LogProviderFactoryFlag.SupportsDejitter) != 0)
 				{
 					warningMessage.Append(" Consider enabling automatic messages reordering. " +
 						"That can be done in formats management wizard.");
-					loadedMessageWarningStatus = LoadedMessageWarningStatus.Unfixable;
+					viewState.loadedMessageWarningStatus = LoadedMessageWarningStatus.Unfixable;
 				}
-				loadedMessagesWarningMessage = warningMessage.ToString();
+				viewState.loadedMessagesWarningMessage = warningMessage.ToString();
 			}
 			else
 			{
-				loadedMessagesWarningMessage = null;
-				loadedMessageWarningStatus = LoadedMessageWarningStatus.None;
+				viewState.loadedMessagesWarningMessage = null;
+				viewState.loadedMessageWarningStatus = LoadedMessageWarningStatus.None;
 			}
 		}
 
-		void UpdateSuspendResumeTrackingLink()
+		static void UpdateSuspendResumeTrackingLink(
+			ViewState viewState,
+			bool sourceVisible,
+			bool sourceTrackingEnabled
+		)
 		{
-			if (source.Visible)
+			if (sourceVisible)
 			{
-				WriteControl(ControlFlag.TrackChangesLabel | ControlFlag.Value, source.TrackingEnabled ? "enabled" : "disabled");
-				WriteControl(ControlFlag.SuspendResumeTrackingLink | ControlFlag.Value, source.TrackingEnabled ? "suspend tracking" : "resume tracking");
-				WriteControl(ControlFlag.TrackChangesLabel | ControlFlag.Enabled, true);
-				WriteControl(ControlFlag.SuspendResumeTrackingLink | ControlFlag.Visibility, true);
+				viewState.TrackChangesLabel = new ControlState
+				{
+					Text = sourceTrackingEnabled ? "enabled" : "disabled"
+				};
+				viewState.SuspendResumeTrackingLink = new ControlState
+				{
+					Text = sourceTrackingEnabled ? "suspend tracking" : "resume tracking"
+				};
 			}
 			else
 			{
-				WriteControl(ControlFlag.TrackChangesLabel | ControlFlag.Value, "disabled (source is hidden)");
-				WriteControl(ControlFlag.TrackChangesLabel | ControlFlag.Enabled, false);
-				WriteControl(ControlFlag.SuspendResumeTrackingLink | ControlFlag.Visibility, false);
+				viewState.TrackChangesLabel = new ControlState
+				{
+					Text = "disabled (source is hidden)",
+					Disabled = true
+				};
+				viewState.SuspendResumeTrackingLink = new ControlState
+				{
+					Hidden = true
+				};
 			}
 		}
 
-		void UpdateFirstAndLastMessages()
+		static void UpdateFirstAndLastMessages(
+			ViewState viewState,
+			IReadOnlyList<IThread> threads,
+			bool sourceVisible
+		)
 		{
 			IBookmark first = null;
 			IBookmark last = null;
-			foreach (IThread t in source.Threads.Items)
+			foreach (IThread t in threads)
 			{
 				IBookmark tmp;
 
@@ -359,72 +454,103 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 						last = tmp;
 			}
 
-			SetBookmark(ControlFlag.FirstMessageLinkLabel, firstMessageBmk = first);
-			SetBookmark(ControlFlag.LastMessageLinkLabel, lastMessageBmk = last);
+			ControlState makeBookmarkState(IBookmark bmk) =>
+				bmk != null && sourceVisible ?
+					new ControlState
+					{
+						Text = bmk.Time.ToUserFrendlyString()
+					}
+					: new ControlState
+					{
+						Text = "-",
+						Disabled = true
+					};
+
+			viewState.FirstMessageLinkLabel = makeBookmarkState(viewState.firstMessageBmk = first);
+			viewState.LastMessageLinkLabel = makeBookmarkState(viewState.lastMessageBmk = last);
 		}
 
-		void SetBookmark(ControlFlag label, IBookmark bmk)
-		{
-			if (bmk != null && source.Visible)
-			{
-				WriteControl(label | ControlFlag.Value, bmk.Time.ToUserFrendlyString());
-				WriteControl(label | ControlFlag.Enabled, true);
-			}
-			else
-			{
-				WriteControl(label | ControlFlag.Value, "-");
-				WriteControl(label | ControlFlag.Enabled, false);
-			}
-		}
-
-		void UpdateSaveAs()
+		static void UpdateSaveAs(ViewState viewState, ILogProvider sourceProvider)
 		{
 			bool isSavable = false;
-			ISaveAs saveAs = source.Provider as ISaveAs;
-			if (saveAs != null)
+			if (sourceProvider is ISaveAs saveAs)
 				isSavable = saveAs.IsSavableAs;
-			WriteControl(ControlFlag.SaveAsButton | ControlFlag.Enabled, isSavable);
-		}
-
-		void UpdateCopyPathButton()
-		{
-			copyablePath = preprocessings.ExtractCopyablePathFromConnectionParams(source.Provider.ConnectionParams);
-			WriteControl(ControlFlag.CopyPathButton | ControlFlag.Enabled, copyablePath != null);
-		}
-
-		void UpdateOpenContainingFolderButton()
-		{
-			containingFolderPath = preprocessings.ExtractUserBrowsableFileLocationFromConnectionParams(source.Provider.ConnectionParams);
-			WriteControl(ControlFlag.OpenContainingFolderButton | ControlFlag.Enabled, containingFolderPath != null);
-		}
-
-		void UpdateAnnotation(bool initialUpdate)
-		{
-			var annotation = source.Annotation;
-			if (initialUpdate || annotation != previouslySetAnnotation)
+			viewState.SaveAsButton = new ControlState
 			{
-				WriteControl(ControlFlag.AnnotationTextBox | ControlFlag.Value, annotation);
-				previouslySetAnnotation = annotation;
-			}
+				Disabled = !isSavable,
+				Text = "Save As...",
+			};
 		}
 
-		void UpdateTimeOffset(bool initialUpdate)
+		static void UpdateCopyPathButton(ViewState viewState,
+			ILogProvider sourceProvider, Preprocessing.IManager preprocessings)
 		{
-			var offset = source.TimeOffsets.ToString();
-			if (initialUpdate || offset != previouslySetOffset)
+			viewState.copyablePath = preprocessings.ExtractCopyablePathFromConnectionParams(sourceProvider.ConnectionParams);
+			viewState.CopyPathButton = new ControlState
 			{
-				WriteControl(ControlFlag.TimeOffsetTextBox | ControlFlag.Value, offset);
-				previouslySetOffset = offset;
-			}
+				Disabled = viewState.copyablePath == null,
+				Text = "Copy path",
+				Tooltip = "copy log source path"
+			};
 		}
 
-		#endregion
+		static void UpdateOpenContainingFolderButton(ViewState viewState,
+			ILogProvider sourceProvider, Preprocessing.IManager preprocessings)
+		{
+			viewState.containingFolderPath = preprocessings.ExtractUserBrowsableFileLocationFromConnectionParams(
+				sourceProvider.ConnectionParams);
+			viewState.OpenContainingFolderButton = new ControlState
+			{
+				Disabled = viewState.containingFolderPath == null,
+				Text =
+#if MONOMAC
+				"Reveal in Finder"
+#else
+				"Open Containing Folder"
+#endif
+			};
+		}
+
+		private void HandleBookmarkClick(IBookmark bmk)
+		{
+			if (bmk != null)
+				presentersFacade.ShowMessage(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet | BookmarkNavigationOptions.NoLinksInPopups);
+		}
 
 		enum LoadedMessageWarningStatus
 		{
 			None,
 			Unfixable,
 			FixableByReordering
+		};
+
+		class ViewState : IViewState
+		{
+			public ControlState NameEditbox { get; set; }
+			public ControlState FormatTextBox { get; set; }
+			public ControlState VisibleCheckBox { get; set; }
+			public ControlState ColorPanel { get; set; }
+			public ControlState StateDetailsLink { get; set; }
+			public ControlState StateLabel { get; set; }
+			public ControlState LoadedMessagesTextBox { get; set; }
+			public ControlState LoadedMessagesWarningIcon { get; set; }
+			public ControlState LoadedMessagesWarningLinkLabel { get; set; }
+			public ControlState TrackChangesLabel { get; set; }
+			public ControlState SuspendResumeTrackingLink { get; set; }
+			public ControlState FirstMessageLinkLabel { get; set; }
+			public ControlState LastMessageLinkLabel { get; set; }
+			public ControlState SaveAsButton { get; set; }
+			public ControlState AnnotationTextBox { get; set; }
+			public ControlState TimeOffsetTextBox { get; set; }
+			public ControlState CopyPathButton { get; set; }
+			public ControlState OpenContainingFolderButton { get; set; }
+
+			public string stateDetailsErrorMessage;
+			public string loadedMessagesWarningMessage;
+			public LoadedMessageWarningStatus loadedMessageWarningStatus;
+			public IBookmark firstMessageBmk, lastMessageBmk;
+			public string copyablePath;
+			public string containingFolderPath;
 		};
 	};
 };

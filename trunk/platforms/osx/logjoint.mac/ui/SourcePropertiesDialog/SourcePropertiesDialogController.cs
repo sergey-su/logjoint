@@ -7,114 +7,27 @@ using AppKit;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
 using LogJoint.Drawing;
 using ObjCRuntime;
-using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
 	public partial class SourcePropertiesDialogAdapter : AppKit.NSWindowController, IWindow
 	{
-		readonly IViewEvents viewEvents;
-		readonly Dictionary<ControlFlag, NSView> controls = new Dictionary<ControlFlag, NSView>();
+		readonly IViewModel viewModel;
 		NSEvent changeColorNSEvent;
 
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public SourcePropertiesDialogAdapter(IntPtr handle)
-			: base(handle)
-		{
-		}
-		
-		// Called when created directly from a XIB file
-		[Export("initWithCoder:")]
-		public SourcePropertiesDialogAdapter(NSCoder coder)
-			: base(coder)
-		{
-		}
-		
-		// Call to load from the XIB/NIB file
-		public SourcePropertiesDialogAdapter(IViewEvents viewEvents)
+		public SourcePropertiesDialogAdapter(IViewModel viewModel)
 			: base("SourcePropertiesDialog")
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
+
+			viewModel.ChangeNotification.CreateSubscription (
+				Updaters.Create (() => viewModel.ViewState, UpdateView)
+			);
 		}
-		
-		#endregion
 
 		void IWindow.ShowDialog()
 		{
 			NSApplication.SharedApplication.RunModalForWindow(Window);
-		}
-
-		void IWindow.WriteControl(ControlFlag flags, string value)
-		{
-			NSView view;
-			if (!controls.TryGetValue(flags & ControlFlag.ControlIdMask, out view))
-				return;
-			NSControl ctrl;
-			NSButton btn;
-			NSLinkLabel ll;
-			NSTextField txt;
-			if ((flags & ControlFlag.Value) != 0)
-			{
-				if ((ctrl = view as NSControl) != null)
-				{
-					ctrl.StringValue = value;
-					if ((txt = view as NSTextField) != null && txt.CurrentEditor != null)
-						txt.CurrentEditor.SelectedRange = new NSRange();
-				}
-				else if ((ll = view as NSLinkLabel) != null)
-				{
-					ll.StringValue = value;
-				}
-			}
-			else if ((flags & ControlFlag.Checked) != 0)
-			{
-				if ((btn = view as NSButton) != null)
-					btn.State = value != null ? NSCellStateValue.On : NSCellStateValue.Off;
-			}
-			else if ((flags & ControlFlag.Visibility) != 0)
-			{
-				view.Hidden = value == null;
-			}
-			else if ((flags & ControlFlag.BackColor) != 0)
-			{
-				if ((txt = view as NSTextField) != null)
-				{
-					txt.BackgroundColor = new Color(uint.Parse(value)).ToNSColor();
-				}
-			}
-			else if ((flags & ControlFlag.ForeColor) != 0)
-			{
-				if ((ll = view as NSLinkLabel) != null)
-				{
-					ll.TextColor = new Color(uint.Parse(value)).ToNSColor();
-				}
-			}
-			else if ((flags & ControlFlag.Enabled) != 0)
-			{
-				if ((ctrl = view as NSControl) != null)
-				{
-					ctrl.Enabled = value != null;
-				}
-				else if ((ll = view as NSLinkLabel) != null)
-				{
-					ll.IsEnabled = value != null;
-				}
-			}
-		}
-
-		string IWindow.ReadControl(ControlFlag flags)
-		{
-			NSView view;
-			if (!controls.TryGetValue(flags & ControlFlag.ControlIdMask, out view))
-				return null;
-			if ((flags & ControlFlag.Value) != 0)
-				return view is NSControl ? (view as NSControl).StringValue : null;
-			else if ((flags & ControlFlag.Checked) != 0)
-				return view is NSButton && (view as NSButton).State == NSCellStateValue.On ? "" : null;
-			else
-				return null;
 		}
 
 		void IWindow.ShowColorSelector(Color[] options)
@@ -145,69 +58,94 @@ namespace LogJoint.UI
 			NSMenu.PopUpContextMenu(menu, changeColorNSEvent, changeColorLinkLabel);
 		}
 
+		void UpdateView (IViewState viewState)
+		{
+			bool updateControl(ControlState state, NSControl control)
+			{
+				var txt = state.Text ?? "";
+				bool result = control.StringValue != txt;
+				if (result)
+					control.StringValue = txt;
+				control.Hidden = state.Hidden;
+				control.Enabled = !state.Disabled;
+				control.ToolTip = state.Tooltip ?? "";
+				return result;
+			}
+
+			void updateTextField(ControlState state, NSTextField control)
+			{
+				if (updateControl (state, control)) {
+					if (control.CurrentEditor != null)
+						control.CurrentEditor.SelectedRange = new NSRange ();
+				}
+				control.BackgroundColor = state.BackColor != null ? state.BackColor.Value.ToNSColor() : NSColor.TextBackground;
+			}
+
+			void updateLinkLabel (ControlState state, NSLinkLabel control)
+			{
+				control.StringValue = state.Text ?? "";
+				control.Hidden = state.Hidden;
+				control.IsEnabled = !state.Disabled;
+				control.TextColor = state.ForeColor != null ? state.ForeColor.Value.ToNSColor () : NSColor.LinkColor;
+			}
+
+			void updateButton (ControlState state, NSButton control)
+			{
+				updateControl (state, control);
+				if (state.Checked != null)
+					control.State = state.Checked == true ? NSCellStateValue.On : NSCellStateValue.Off;
+			}
+
+			updateTextField (viewState.NameEditbox, nameTextField);
+			updateTextField (viewState.FormatTextBox, formatTextField);
+			updateButton (viewState.VisibleCheckBox, visibleCheckbox);
+			updateTextField (viewState.ColorPanel, colorPanel);
+			updateLinkLabel (viewState.StateDetailsLink, stateDetailsLink);
+			updateTextField (viewState.StateLabel, stateLabel);
+			updateTextField (viewState.LoadedMessagesTextBox, loadedMessagesLabel);
+			updateButton (viewState.LoadedMessagesWarningIcon, loadedMessagesWarningIcon);
+			updateLinkLabel (viewState.LoadedMessagesWarningLinkLabel, loadedMessagesWarningLinkLabel);
+			updateTextField (viewState.TrackChangesLabel, trackChangesLabel);
+			updateLinkLabel (viewState.SuspendResumeTrackingLink, suspendResumeTrackingLinkLabel);
+			updateLinkLabel (viewState.FirstMessageLinkLabel, firstMessageLinkLabel);
+			updateLinkLabel (viewState.LastMessageLinkLabel, lastMessageLinkLabel);
+			updateButton (viewState.SaveAsButton, saveAsButton);
+			updateTextField (viewState.AnnotationTextBox, annotationEditBox);
+			updateTextField (viewState.TimeOffsetTextBox, timeShiftTextField);
+			updateButton (viewState.CopyPathButton, copyPathButton);
+			updateButton (viewState.OpenContainingFolderButton, openContainingFolderButton);
+		}
+
 		[Export("OnColorMenuItemClicked:")]
 		public void OnColorMenuItemClicked(NSMenuItem sender)
 		{
-			viewEvents.OnColorSelected(new Color(unchecked ((uint) sender.Tag)));
+			viewModel.OnColorSelected(new Color(unchecked ((uint) sender.Tag)));
 		}
 
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
 
-			controls[ControlFlag.NameEditbox] = nameTextField;
-			controls[ControlFlag.FormatTextBox] = formatTextField;
-			controls[ControlFlag.VisibleCheckBox] = visibleCheckbox;
-			controls[ControlFlag.ColorPanel] = colorPanel;
-			controls[ControlFlag.StateDetailsLink] = stateDetailsLink;
-			controls[ControlFlag.StateLabel] = stateLabel;
-			controls[ControlFlag.LoadedMessagesTextBox] = loadedMessagesLabel;
-			controls[ControlFlag.LoadedMessagesWarningIcon] = loadedMessagesWarningIcon;
-			controls[ControlFlag.LoadedMessagesWarningLinkLabel] = loadedMessagesWarningLinkLabel;
-			controls[ControlFlag.TrackChangesLabel] = trackChangesLabel;
-			controls[ControlFlag.SuspendResumeTrackingLink] = suspendResumeTrackingLinkLabel;
-			controls[ControlFlag.FirstMessageLinkLabel] = firstMessageLinkLabel;
-			controls[ControlFlag.LastMessageLinkLabel] = lastMessageLinkLabel;
-			controls[ControlFlag.SaveAsButton] = saveAsButton;
-			controls[ControlFlag.AnnotationTextBox] = annotationEditBox;
-			controls[ControlFlag.TimeOffsetTextBox] = timeShiftTextField;
-			controls[ControlFlag.CopyPathButton] = copyPathButton;
-			controls[ControlFlag.OpenContainingFolderButton] = openContainingFolderButton;
-
 			copyPathButton.Image.Template = true;
 
 			Window.WillClose += (object sender, EventArgs e) =>
 			{
-				viewEvents.OnClosingDialog();
+				viewModel.OnClosingDialog();
 				NSApplication.SharedApplication.AbortModal();
 			};
 
-			firstMessageLinkLabel.LinkClicked += (object sender, NSLinkLabel.LinkClickEventArgs e) =>
-			{
-				viewEvents.OnBookmarkLinkClicked(ControlFlag.FirstMessageLinkLabel);
-			};
-			lastMessageLinkLabel.LinkClicked += (object sender, NSLinkLabel.LinkClickEventArgs e) =>
-			{
-				viewEvents.OnBookmarkLinkClicked(ControlFlag.LastMessageLinkLabel);
-			};
-			suspendResumeTrackingLinkLabel.LinkClicked += (object sender, NSLinkLabel.LinkClickEventArgs e) =>
-			{
-				viewEvents.OnSuspendResumeTrackingLinkClicked();
-			};
+			firstMessageLinkLabel.LinkClicked += (s, e) => viewModel.OnFirstKnownMessageLinkClicked();
+			lastMessageLinkLabel.LinkClicked += (s, e) => viewModel.OnLastKnownMessageLinkClicked();
+			suspendResumeTrackingLinkLabel.LinkClicked += (s, e) => viewModel.OnSuspendResumeTrackingLinkClicked ();
 			changeColorLinkLabel.StringValue = "change";
-			changeColorLinkLabel.LinkClicked += (object sender, NSLinkLabel.LinkClickEventArgs e) =>
+			changeColorLinkLabel.LinkClicked += (s, e) =>
 			{
 				changeColorNSEvent = e.NativeEvent;
-				viewEvents.OnChangeColorLinkClicked();
+				viewModel.OnChangeColorLinkClicked();
 			};
-			loadedMessagesWarningLinkLabel.StringValue = "see warnings";
-			loadedMessagesWarningLinkLabel.LinkClicked += (object sender, NSLinkLabel.LinkClickEventArgs e) =>
-			{
-				viewEvents.OnLoadedMessagesWarningIconClicked();
-			};
-			loadedMessagesWarningIcon.ToolTip = "Log source has warnings";
-
-			copyPathButton.ToolTip = "copy log source path";
+			loadedMessagesWarningLinkLabel.LinkClicked += (s, e) => viewModel.OnLoadedMessagesWarningIconClicked ();
+			annotationEditBox.Changed += (s, e) => viewModel.OnChangeAnnotation (annotationEditBox.StringValue);
+			timeShiftTextField.Changed += (s, e) => viewModel.OnChangeChangeTimeOffset (timeShiftTextField.StringValue);
 		}
 
 		partial void OnCloseButtonClicked (Foundation.NSObject sender)
@@ -217,25 +155,24 @@ namespace LogJoint.UI
 
 		partial void OnVisibleCheckboxClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnVisibleCheckBoxClicked();
+			viewModel.OnVisibleCheckBoxChange(visibleCheckbox.State == NSCellStateValue.On);
 		}
 
 		partial void OnSaveButtonClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnSaveAsButtonClicked();
+			viewModel.OnSaveAsButtonClicked();
 		}
 
 		partial void OnCopyButtonClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnCopyButtonClicked();
+			viewModel.OnCopyButtonClicked();
 		}
 
 		partial void OnOpenContainingFolderButtonClicked (NSObject sender)
 		{
-			viewEvents.OnOpenContainingFolderButtonClicked();
+			viewModel.OnOpenContainingFolderButtonClicked();
 		}
 
-		//strongly typed window accessor
 		new SourcePropertiesDialog Window
 		{
 			get { return (SourcePropertiesDialog)base.Window; }
@@ -244,25 +181,18 @@ namespace LogJoint.UI
 
 	public class SourcePropertiesDialogView: IView
 	{
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 
-		void IView.SetEventsHandler(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewEvents)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewEvents;
 		}
 
 		IWindow IView.CreateWindow()
 		{
-			var wnd = new SourcePropertiesDialogAdapter(viewEvents);
+			var wnd = new SourcePropertiesDialogAdapter(viewModel);
 			wnd.Window.GetHashCode(); // force loading from nib
 			return wnd;
-		}
-
-		uint IView.DefaultControlForeColor
-		{
-			get { unchecked {
-				return (uint)NSColor.Text.ToColor().ToArgb();
-			} }
 		}
 	};
 }

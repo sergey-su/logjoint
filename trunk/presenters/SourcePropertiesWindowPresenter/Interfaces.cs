@@ -1,67 +1,69 @@
 using LogJoint.Drawing;
-using System;
 
 namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 {
 	public interface IPresenter
 	{
-		void UpdateOpenWindow(); // todo: remove, be reactive
 		void ShowWindow(ILogSource forSource);
 	};
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents viewEvents);
+		void SetViewModel(IViewModel viewModel);
 		IWindow CreateWindow();
-		uint DefaultControlForeColor { get; }
 	};
 
 	public interface IWindow
 	{
 		void ShowDialog();
 		void Close();
-		void WriteControl(ControlFlag flags, string value);
-		string ReadControl(ControlFlag flags);
 		void ShowColorSelector(Color[] options);
 	};
 
-	[Flags]
-	public enum ControlFlag
+	public struct ControlState
 	{
-		Value = 1024,
-		Visibility = 2048,
-		Checked = 4096,
-		BackColor = 8192,
-		ForeColor = 16384,
-		Enabled = 32768,
-
-		ControlIdMask = 0xff,
-		NameEditbox = 1,
-		FormatTextBox,
-		VisibleCheckBox,
-		ColorPanel,
-		StateDetailsLink,
-		StateLabel,
-		LoadedMessagesTextBox,
-		LoadedMessagesWarningIcon,
-		LoadedMessagesWarningLinkLabel,
-		TrackChangesLabel,
-		SuspendResumeTrackingLink,
-		FirstMessageLinkLabel,
-		LastMessageLinkLabel,
-		SaveAsButton,
-		AnnotationTextBox,
-		TimeOffsetTextBox,
-		CopyPathButton,
-		OpenContainingFolderButton
+		public bool Disabled;
+		public bool Hidden;
+		public Color? BackColor;
+		public Color? ForeColor;
+		public string Text;
+		public bool? Checked;
+		public string Tooltip;
 	};
 
-	public interface IViewEvents
+	public interface IViewState
 	{
-		void OnVisibleCheckBoxClicked();
+		ControlState NameEditbox { get; }
+		ControlState FormatTextBox { get; }
+		ControlState VisibleCheckBox { get; }
+		ControlState ColorPanel { get; }
+		ControlState StateDetailsLink { get; }
+		ControlState StateLabel { get; }
+		ControlState LoadedMessagesTextBox { get; }
+		ControlState LoadedMessagesWarningIcon { get; }
+		ControlState LoadedMessagesWarningLinkLabel { get; }
+		ControlState TrackChangesLabel { get; }
+		ControlState SuspendResumeTrackingLink { get; }
+		ControlState FirstMessageLinkLabel { get; }
+		ControlState LastMessageLinkLabel { get; }
+		ControlState SaveAsButton { get; }
+		ControlState AnnotationTextBox { get; }
+		ControlState TimeOffsetTextBox { get; }
+		ControlState CopyPathButton { get; }
+		ControlState OpenContainingFolderButton { get; }
+	};
+
+	public interface IViewModel
+	{
+		IChangeNotification ChangeNotification { get; }
+
+		IViewState ViewState { get; }
+
+		void OnVisibleCheckBoxChange(bool value);
 		void OnSuspendResumeTrackingLinkClicked();
 		void OnStateDetailsLinkClicked();
-		void OnBookmarkLinkClicked(ControlFlag controlId);
+		void OnFirstKnownMessageLinkClicked();
+		void OnLastKnownMessageLinkClicked();
 		void OnSaveAsButtonClicked();
 		void OnClosingDialog();
 		void OnLoadedMessagesWarningIconClicked();
@@ -69,5 +71,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void OnColorSelected(Color color);
 		void OnCopyButtonClicked();
 		void OnOpenContainingFolderButtonClicked();
+		void OnChangeAnnotation(string value);
+		void OnChangeChangeTimeOffset(string value);
 	};
 };
