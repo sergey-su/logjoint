@@ -598,6 +598,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ViewModeStrategies\ProhibitiveViewModeStrategy.cs">
       <Link>LogViewerPresenter\ViewModeStrategies\ProhibitiveViewModeStrategy.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\SourcesListPresenter\Items.cs">
+      <Link>SourcesListPresenter\Items.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

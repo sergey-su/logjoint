@@ -281,14 +281,14 @@ namespace LogJoint.UI.Presenters
 				model.LogSourcesPreprocessings,
 				sourcePropertiesWindowPresenter,
 				viewerPresenter,
-				navHandler,
 				alertPopup,
 				fileDialogs,
 				clipboardAccess,
 				shellOpen,
 				saveJointLogInteractionPresenter,
 				colorTheme,
-				model.ChangeNotification
+				model.ChangeNotification,
+				model.HeartBeatTimer
 			);
 
 			Help.IPresenter helpPresenter = new Help.Presenter(shellOpen);
@@ -484,7 +484,6 @@ namespace LogJoint.UI.Presenters
 				viewerPresenter,
 				searchResultPresenter,
 				searchPanelPresenter,
-				sourcesListPresenter,
 				sourcesManagerPresenter,
 				messagePropertiesDialogPresenter,
 				loadedMessagesPresenter,

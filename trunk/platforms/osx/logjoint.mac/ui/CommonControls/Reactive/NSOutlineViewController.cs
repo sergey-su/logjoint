@@ -40,6 +40,16 @@ namespace LogJoint.UI.Reactive
 			}
 		}
 
+		public void ScrollToVisible (ITreeNode node)
+		{
+			if (dataSource.TryMapNodeToItem (node, out var item))
+			{
+				var row = treeView.RowForItem (item);
+				if (row != -1)
+					treeView.ScrollRowToVisible (row);
+			}
+		}
+
 		public Action<ITreeNode> OnExpand { get; set; }
 		public Action<ITreeNode> OnCollapse { get; set; }
 		public Action<ITreeNode[]> OnSelect { get; set; }
@@ -56,6 +66,11 @@ namespace LogJoint.UI.Reactive
 				this.treeView = treeView;
 				this.nodeToItem = new Dictionary<ITreeNode, NSNodeItem>();
 				this.rootItem = CreateItem(EmptyTreeNode.Instance);
+			}
+
+			public bool TryMapNodeToItem (ITreeNode node, out NSNodeItem item)
+			{
+				return nodeToItem.TryGetValue (node, out item);
 			}
 
 			NSNodeItem CreateItem(ITreeNode node)

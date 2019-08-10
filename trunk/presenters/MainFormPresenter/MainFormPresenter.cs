@@ -16,7 +16,6 @@ namespace LogJoint.UI.Presenters.MainForm
 			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			SearchPanel.IPresenter searchPanelPresenter,
-			SourcesList.IPresenter sourcesListPresenter,
 			SourcesManager.IPresenter sourcesManagerPresenter,
 			MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
@@ -88,8 +87,6 @@ namespace LogJoint.UI.Presenters.MainForm
 				searchResultPresenter.OnClose += (sender, args) => searchPanelPresenter.CollapseSearchResultPanel();
 				searchResultPresenter.OnResizingStarted += (sender, args) => view.BeginSplittingSearchResults();
 			}
-
-			sourcesListPresenter.OnBusyState += (_, evt) => SetWaitState(evt.BusyStateRequired);
 
 			sourcesManagerPresenter.OnBusyState += (_, evt) => SetWaitState(evt.BusyStateRequired);
 

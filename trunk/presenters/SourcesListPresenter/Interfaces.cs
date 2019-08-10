@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using LogJoint.Drawing;
 using LogJoint.Preprocessing;
 
@@ -9,7 +7,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 {
 	public interface IPresenter
 	{
-		void UpdateView();
 		IReadOnlyList<ILogSource> SelectedSources { get; }
 		IReadOnlyList<ILogSourcePreprocessing> SelectedPreprocessings { get; }
 		void SelectSource(ILogSource source);
@@ -17,28 +14,19 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void SaveLogSourceAs(ILogSource logSource);
 
 		event EventHandler DeleteRequested;
-		event EventHandler<BusyStateEventArgs> OnBusyState;
 	};
 
 	public interface IView
 	{
-		void SetPresenter(IViewEvents presenter);
-		void BeginUpdate();
-		void EndUpdate();
-		IEnumerable<IViewItem> Items { get; }
-		IViewItem AddItem(object datum, IViewItem parent);
-		void Remove(IViewItem item);
+		void SetViewModel(IViewModel value);
 		void SetTopItem(IViewItem item);
-		void InvalidateFocusedMessageArea();
 	};
 
-	public interface IViewItem
+	public interface IViewItem: Reactive.ITreeNode
 	{
-		object Datum { get; }
-		bool Selected { get; set; }
-		bool? Checked { get; set; }
-		void SetText(string value);
-		void SetBackColor(Color color, bool isFailureColor);
+		bool? Checked { get; }
+		(Color value, bool isFailureColor) Color { get; }
+		IViewItem Parent { get; }
 	};
 
 	[Flags]
@@ -47,7 +35,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		None,
 		SourceVisible = 1,
 		SaveLogAs = 2,
-		SourceProprties = 4,
+		SourceProperties = 4,
 		Separator1 = 8,
 		OpenContainingFolder = 16,
 		SaveMergedFilteredLog = 32,
@@ -57,23 +45,29 @@ namespace LogJoint.UI.Presenters.SourcesList
 		CloseOthers = 512,
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+
+		IViewItem RootItem { get; }
+		IViewItem FocusedMessageItem { get; }
+
 		void OnSourceProprtiesMenuItemClicked();
 		void OnEnterKeyPressed();
 		void OnDeleteButtonPressed();
-		void OnMenuItemOpening(bool ctrl, out MenuItem visibleItems, out MenuItem checkedItems);
-		void OnItemChecked(IViewItem item);
+		(MenuItem visibleItems, MenuItem checkedItems) OnMenuItemOpening(bool ctrl);
+		void OnItemCheck(IViewItem item, bool value);
+		void OnItemExpand(IViewItem item);
+		void OnItemCollapse(IViewItem item);
 		void OnSourceVisisbleMenuItemClicked(bool menuItemChecked);
-		IViewItem OnFocusedMessageSourcePainting();
 		void OnSaveLogAsMenuItemClicked();
 		void OnSaveMergedFilteredLogMenuItemClicked();
 		void OnOpenContainingFolderMenuItemClicked();
-		void OnSelectionChanged();
+		void OnSelectionChange(IReadOnlyList<IViewItem> proposedSelection);
 		void OnShowOnlyThisLogClicked();
 		void OnShowAllLogsClicked();
 		void OnCopyShortcutPressed();
-		void OnCopyErrorMessageCliecked();
+		void OnCopyErrorMessageClicked();
 		void OnCloseOthersClicked();
 		void OnSelectAllShortcutPressed();
 	};

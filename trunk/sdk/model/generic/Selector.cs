@@ -159,6 +159,53 @@ namespace LogJoint
 				return memoRet;
 			};
 		}
+
+		public static Func<R> Create<A1, A2, A3, A4, A5, A6, R>(
+			Func<A1> argSelector1,
+			Func<A2> argSelector2,
+			Func<A3> argSelector3,
+			Func<A4> argSelector4,
+			Func<A5> argSelector5,
+			Func<A6> argSelector6,
+			Func<A1, A2, A3, A4, A5, A6, R> resultSelector)
+		{
+			var memoArg1 = default(A1);
+			var cmp1 = GetEqualityComparer<A1>();
+			var memoArg2 = default(A2);
+			var cmp2 = GetEqualityComparer<A2>();
+			var memoArg3 = default(A3);
+			var cmp3 = GetEqualityComparer<A3>();
+			var memoArg4 = default(A4);
+			var cmp4 = GetEqualityComparer<A4>();
+			var memoArg5 = default(A5);
+			var cmp5 = GetEqualityComparer<A5>();
+			var memoArg6 = default(A6);
+			var cmp6 = GetEqualityComparer<A6>();
+			R memoRet = default(R);
+			bool firstEvaluation = true;
+			return () =>
+			{
+				var arg1 = argSelector1();
+				var arg2 = argSelector2();
+				var arg3 = argSelector3();
+				var arg4 = argSelector4();
+				var arg5 = argSelector5();
+				var arg6 = argSelector6();
+				if (firstEvaluation || !cmp1.Equals(arg1, memoArg1) || !cmp2.Equals(arg2, memoArg2) || !cmp3.Equals(arg3, memoArg3) || !cmp4.Equals(arg4, memoArg4) || !cmp5.Equals(arg5, memoArg5) || !cmp6.Equals(arg6, memoArg6))
+				{
+					firstEvaluation = false;
+					memoRet = resultSelector(arg1, arg2, arg3, arg4, arg5, arg6);
+					memoArg1 = arg1;
+					memoArg2 = arg2;
+					memoArg3 = arg3;
+					memoArg4 = arg4;
+					memoArg5 = arg5;
+					memoArg6 = arg6;
+				}
+				return memoRet;
+			};
+		}
+
 		internal static IEqualityComparer<T> GetEqualityComparer<T>()
 		{
 			return EqualityComparer<T>.Default;

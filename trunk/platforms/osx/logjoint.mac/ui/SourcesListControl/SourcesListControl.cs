@@ -42,11 +42,7 @@ namespace LogJoint.UI
 			var NSDeleteCharacter2 = (char)0xf728; // delete 
 			if ((evt.CharactersIgnoringModifiers ?? "").IndexOfAny(new [] {NSDeleteCharacter, NSDeleteCharacter2}) >= 0)
 			{
-				owner.viewEvents.OnDeleteButtonPressed();
-			}
-			else if (evt.CharactersIgnoringModifiers.IndexOf(' ') >= 0)
-			{
-				owner.ToggleSelectedSource();
+				owner.viewModel.OnDeleteButtonPressed();
 			}
 			else
 			{
@@ -57,7 +53,7 @@ namespace LogJoint.UI
 		[Export ("copy:")]
 		void OnCopy (NSObject theEvent)
 		{
-			owner.viewEvents.OnCopyShortcutPressed();
+			owner.viewModel.OnCopyShortcutPressed();
 		}
 	}
 }

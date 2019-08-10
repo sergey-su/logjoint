@@ -49,51 +49,23 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.presentersFacade = facade;
 			this.changeNotification = changeNotification;
 
-			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
+			sourcesListPresenter.DeleteRequested += (sender, args) =>
 			{
 				DeleteSelectedSources();
 			};
-			logSources.OnLogSourceRemoved += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
+
 			logSourcesPreprocessings.PreprocessingAdded += (sender, args) =>
 			{
-				updateTracker.Invalidate();
 				if ((args.LogSourcePreprocessing.Flags & PreprocessingOptions.HighlightNewPreprocessing) != 0)
 				{
 					preprocessingAwaitingHighlighting = args.LogSourcePreprocessing;
+					pendingUpdateFlag.Invalidate();
 				}
 			};
-			logSourcesPreprocessings.PreprocessingDisposed += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			logSourcesPreprocessings.PreprocessingChangedAsync += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
 
-			logSources.OnLogSourceVisiblityChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			logSources.OnLogSourceAnnotationChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			logSources.OnLogSourceTrackingFlagChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			logSources.OnLogSourceStatsChanged += (sender, args) =>
-			{
-				if ((args.Flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.CachedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount | LogProviderStatsFlag.BackgroundAcivityStatus)) != 0)
-					updateTracker.Invalidate();
-			};
 			heartbeat.OnTimer += (sender, args) =>
 			{
-				if (updateTracker.Validate())
+				if (pendingUpdateFlag.Validate())
 					UpdateView();
 			};
 			
@@ -233,15 +205,17 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void UpdateView()
 		{
-			sourcesListPresenter.UpdateView();
-			ExecutePendingHighlightings();
+			HandlePendingHighlightings();
 		}
 
-		private void ExecutePendingHighlightings()
+		private void HandlePendingHighlightings()
 		{
-			if (preprocessingAwaitingHighlighting != null && !preprocessingAwaitingHighlighting.IsDisposed)
-				presentersFacade.ShowPreprocessing(preprocessingAwaitingHighlighting);
-			preprocessingAwaitingHighlighting = null;
+			if (preprocessingAwaitingHighlighting != null)
+			{
+				if (!preprocessingAwaitingHighlighting.IsDisposed)
+					presentersFacade.ShowPreprocessing(preprocessingAwaitingHighlighting);
+				preprocessingAwaitingHighlighting = null;
+			}
 		}
 
 		private async void DeleteSelectedSources()
@@ -343,7 +317,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly HistoryDialog.IPresenter historyDialogPresenter;
 		readonly SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter;
 		readonly LJTraceSource tracer;
-		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
+		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
 		readonly IAlertPopup alerts;
 		readonly IPresentersFacade presentersFacade;
 		readonly IChangeNotification changeNotification;

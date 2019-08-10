@@ -181,8 +181,6 @@
       <DependentUpon>SourcesListControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\SourcesListControl\SourcesListControlAdapter.cs" />
-    <Compile Include="ui\SourcesListControl\SourcesListItem.cs" />
-    <Compile Include="ui\SourcesListControl\SourcesListOutlineDataSource.cs" />
     <Compile Include="..\..\..\porting\graphics\interfaces.cs">
       <Link>ui\Drawing\interfaces.cs</Link>
     </Compile>

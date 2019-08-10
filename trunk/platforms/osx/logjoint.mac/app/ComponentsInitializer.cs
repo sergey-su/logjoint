@@ -34,6 +34,8 @@ namespace LogJoint.UI
 			);
 
 			var viewsFactory = new Presenters.ViewsFactory (mainWindow, model);
+			mainWindow.Init (model.InstancesCounter);
+			mainWindow.SourcesManagementControlAdapter.SourcesListControlAdapter.Init (viewsFactory);
 			var presentation = Presenters.Factory.Create (
 				model,
 				new ClipboardAccess (),
@@ -50,8 +52,6 @@ namespace LogJoint.UI
 				mainWindow,
 				viewsFactory
 			);
-
-			mainWindow.InstancesCounter = model.InstancesCounter;
 
 			CustomURLSchemaEventsHandler.Instance.Init(
 				presentation.MainFormPresenter,

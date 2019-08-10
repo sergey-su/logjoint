@@ -5,7 +5,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 {
 	public interface IPresenter
 	{
-		void UpdateOpenWindow();
+		void UpdateOpenWindow(); // todo: remove, be reactive
 		void ShowWindow(ILogSource forSource);
 	};
 

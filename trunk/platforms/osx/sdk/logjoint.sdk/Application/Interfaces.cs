@@ -31,6 +31,7 @@ namespace LogJoint
 		public interface INSOutlineViewController
 		{
 			void Update(PR.ITreeNode newRoot);
+			void ScrollToVisible(PR.ITreeNode item);
 			Action<PR.ITreeNode> OnExpand { get; set; }
 			Action<PR.ITreeNode> OnCollapse { get; set; }
 			Action<PR.ITreeNode[]> OnSelect { get; set; }

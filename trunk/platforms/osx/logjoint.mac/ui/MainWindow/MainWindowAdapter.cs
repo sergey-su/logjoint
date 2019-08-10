@@ -25,36 +25,19 @@ namespace LogJoint.UI
 		AppDelegate appDelegate;
 		ColorThemeMode colorThemeMode = ColorThemeMode.Light;
 		IDisposable effectiveAppearanceObserver;
+		IInstancesCounter instancesCounter;
 
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public MainWindowAdapter (IntPtr handle) : base (handle)
-		{
-			Initialize ();
-		}
-		
-		// Called when created directly from a XIB file
-		[Export ("initWithCoder:")]
-		public MainWindowAdapter (NSCoder coder) : base (coder)
-		{
-			Initialize ();
-		}
-		
-		// Call to load from the XIB/NIB file
 		public MainWindowAdapter (AppDelegate appDelegate) : base ("MainWindow")
 		{
 			this.appDelegate = appDelegate;
-			Initialize ();
-		}
-		
-		// Shared initialization code
-		void Initialize ()
-		{
-			Window.RegisterForDraggedTypes(new [] { NSPasteboard.NSFilenamesType.ToString(), NSPasteboard.NSUrlType.ToString() });
 		}
 
-		#endregion
+		public void Init (IInstancesCounter instancesCounter)
+		{
+			this.instancesCounter = instancesCounter;
+			Window.EnsureCreated ();
+			Window.RegisterForDraggedTypes (new [] { NSPasteboard.NSFilenamesType.ToString (), NSPasteboard.NSUrlType.ToString () });
+		}
 
 		public bool DraggingEntered(object dataObject)
 		{
@@ -263,8 +246,6 @@ namespace LogJoint.UI
 
 		public new MainWindow Window => (MainWindow)base.Window;
 
-		public IInstancesCounter InstancesCounter { get; set; }
-
 		ColorThemeMode ISystemThemeDetector.Mode => colorThemeMode;
 
 		public override void AwakeFromNib()
@@ -313,7 +294,7 @@ namespace LogJoint.UI
 
 			viewEvents.OnLoad ();
 
-			var instancesCount = InstancesCounter.Count;
+			var instancesCount = instancesCounter.Count;
 			if (instancesCount > 1) {
 				var index = instancesCount % 5;
 				Window.SetFrame (new CoreGraphics.CGRect (

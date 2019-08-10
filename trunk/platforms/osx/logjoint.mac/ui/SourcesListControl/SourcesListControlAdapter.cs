@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using AppKit;
 using Foundation;
@@ -9,15 +8,15 @@ using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
-	public class SourcesListControlAdapter: NSOutlineViewDelegate, IView
+	public class SourcesListControlAdapter : NSOutlineViewDelegate, IView
 	{
-		internal IViewEvents viewEvents;
-		SourcesListOutlineDataSource dataSource = new SourcesListOutlineDataSource();
-		bool updating;
+		internal IViewModel viewModel;
+		Reactive.INSOutlineViewController outlineViewController;
 		LJD.Image currentSourceImage;
+		IViewItem requestedTopItem;
 
-		[Export("view")]
-		public SourcesListControl View { get; set;}
+		[Export ("view")]
+		public SourcesListControl View { get; set; }
 		[Outlet]
 		NSOutlineView outlineView { get; set; }
 		[Outlet]
@@ -27,79 +26,65 @@ namespace LogJoint.UI
 		[Outlet]
 		NSTableColumn currentSourceColumn { get; set; }
 
-		public SourcesListControlAdapter()
+		public SourcesListControlAdapter ()
 		{
 			NSBundle.LoadNib ("SourcesListControl", this);
 
-			outlineView.DataSource = dataSource;
-			currentSourceImage = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
+			currentSourceImage = new LJD.Image (NSImage.ImageNamed ("FocusedMsgSlave.png"));
 			View.owner = this;
 			outlineView.Menu = new NSMenu { Delegate = new MenuDelegate { owner = this } };
 		}
-			
-		void IView.SetPresenter(IViewEvents viewEvents)
+
+		public void Init (Mac.IReactive reactive)
 		{
-			this.viewEvents = viewEvents;
+			View.EnsureCreated ();
+			outlineViewController = reactive.CreateOutlineViewController (outlineView);
+
+			outlineViewController.OnView = GetView;
 		}
 
-		void IView.BeginUpdate()
+		void IView.SetViewModel (IViewModel viewModel)
 		{
-			updating = true;
-		}
+			this.viewModel = viewModel;
 
-		void IView.EndUpdate()
-		{
-			updating = false;
-			DoFullUpdate();
-		}
+			outlineViewController.OnExpand = n => viewModel.OnItemExpand (n as IViewItem);
+			outlineViewController.OnCollapse = n => viewModel.OnItemCollapse (n as IViewItem);
+			outlineViewController.OnSelect = items => viewModel.OnSelectionChange (items.OfType<IViewItem> ().ToArray ());
 
-		IEnumerable<IViewItem> IView.Items { get { return GetItems(); } }
-		
-		void IView.Remove(IViewItem item)
-		{
-			var li = (SourcesListItem)item;
-			li.updater = null;
-			li.viewEvents = null;
-			(li.parent?.items ?? dataSource.Items).Remove(li);
-			if (!updating)
-				DoFullUpdate();
-		}
+			var updateTree = Updaters.Create (
+				() => viewModel.RootItem,
+				outlineViewController.Update
+			);
 
-		IViewItem IView.AddItem(object datum, IViewItem parent)
-		{
-			var item = new SourcesListItem()
+			var updateFocusedMessageArea = Updaters.Create (
+				() => viewModel.FocusedMessageItem,
+				_ => {
+					for (var i = 0; i < outlineView.RowCount; ++i) {
+						var cell = outlineView.GetView (1, i, false);
+						if (cell != null)
+							cell.NeedsDisplay = true;
+					}
+				}
+			);
+
+			void setTopItem()
 			{
-				datum = datum,
-				updater = UpdateItem,
-				viewEvents = viewEvents,
-				parent = parent as SourcesListItem,
-			};
-			if (item.parent != null)
-				item.parent.items.Add(item);
-			else
-				dataSource.Items.Add(item);
-			UpdateItem(item);
-			return item;
-		}
-
-		void IView.SetTopItem(IViewItem item)
-		{
-			var li = (SourcesListItem)item;
-			if (li.parent != null && !outlineView.IsItemExpanded(li.parent))
-				outlineView.ExpandItem(li.parent);
-			var row = outlineView.RowForItem(li);
-			if (row != -1)
-				outlineView.ScrollRowToVisible(row);
-		}
-
-		void IView.InvalidateFocusedMessageArea()
-		{
-			for (var i = 0; i < outlineView.RowCount; ++i)
-			{
-				var cell = outlineView.GetView(1, i, false);
-				if (cell != null)
-					cell.NeedsDisplay = true;
+				if (requestedTopItem != null) {
+					outlineViewController.ScrollToVisible (requestedTopItem);
+					requestedTopItem = null;
+				}
 			}
+
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				updateTree ();
+				updateFocusedMessageArea ();
+				setTopItem ();
+			});
+		}
+
+		void IView.SetTopItem (IViewItem item)
+		{
+			requestedTopItem = item;
 		}
 
 		public override NSTableRowView RowViewForItem (NSOutlineView outlineView, NSObject item)
@@ -107,78 +92,82 @@ namespace LogJoint.UI
 			return new NSCustomTableRowView { InvalidateSubviewsOnSelectionChange = true };
 		}
 
-		public override NSView GetView (NSOutlineView outlineView, NSTableColumn tableColumn, NSObject item) 
+		class CheckTarget : NSObject
 		{
-			var sourceItem = item as SourcesListItem;
+			public IViewItem item;
+			public IViewModel viewModel;
 
-			if (tableColumn == sourceCheckedColumn)
+			[Export ("ItemChecked:")]
+			public void ItemChecked (NSObject sender)
 			{
-				if (sourceItem.isChecked == null)
+				bool isChecked = ((NSButton) sender).State == NSCellStateValue.On;
+				viewModel.OnItemCheck(item, isChecked);
+			}
+		}
+
+		NSView GetView (NSTableColumn tableColumn, Presenters.Reactive.ITreeNode item)
+		{
+			var sourceItem = item as IViewItem;
+
+			if (tableColumn == sourceCheckedColumn) {
+				if (sourceItem.Checked == null)
 					return null;
 
 				var cellIdentifier = "checked_cell";
-				var view = (NSButton)outlineView.MakeView(cellIdentifier, this);
+				var view = (NSButton)outlineView.MakeView (cellIdentifier, this);
 
-				if (view == null)
-				{
-					view = new NSButton();
+				if (view == null) {
+					view = new NSButton ();
 					view.Identifier = cellIdentifier;
-					view.SetButtonType(NSButtonType.Switch);
+					view.SetButtonType (NSButtonType.Switch);
 					view.BezelStyle = 0;
 					view.ImagePosition = NSCellImagePosition.ImageOnly;
-					view.Action = new ObjCRuntime.Selector("ItemChecked:");
+					view.Action = new ObjCRuntime.Selector ("ItemChecked:");
 				}
 
-				view.Target = sourceItem;
-				view.State = sourceItem.isChecked.GetValueOrDefault(false) ? 
+				view.Target = new CheckTarget {
+					item = sourceItem,
+					viewModel = viewModel
+				};
+				view.State = sourceItem.Checked.GetValueOrDefault (false) ?
 					NSCellStateValue.On : NSCellStateValue.Off;
 				return view;
-			}
-			else if (tableColumn == sourceDescriptionColumn)
-			{
+			} else if (tableColumn == sourceDescriptionColumn) {
 				var cellIdentifier = "description_cell";
-				var view = (NSLinkLabel)outlineView.MakeView(cellIdentifier, this);
+				var view = (NSLinkLabel)outlineView.MakeView (cellIdentifier, this);
 
-				if (view == null)
-				{
-					view = NSLinkLabel.CreateLabel();
+				if (view == null) {
+					view = NSLinkLabel.CreateLabel ();
 					view.Identifier = cellIdentifier;
-					view.LinkClicked = (sender, e) => 
-					{
+					view.LinkClicked = (sender, e) => {
 						if (e.NativeEvent.ClickCount == 2)
-							viewEvents.OnEnterKeyPressed();
-					}; 
+							viewModel.OnEnterKeyPressed ();
+					};
 				}
 
-				view.BackgroundColor = sourceItem.color != null ?
-					sourceItem.color.Value.ToNSColor() : NSColor.Clear;
-				view.StringValue = sourceItem.text;
+				view.BackgroundColor = sourceItem.Color.isFailureColor ? sourceItem.Color.value.ToNSColor () : NSColor.Clear;
+				view.StringValue = sourceItem.ToString();
 				view.Menu = outlineView.Menu;
 				return view;
-			}
-			else if (tableColumn == currentSourceColumn)
-			{
+			} else if (tableColumn == currentSourceColumn) {
 				var cellIdentifier = "current_source_mark_cell";
-				var view = (NSCustomizableView)outlineView.MakeView(cellIdentifier, this);
+				var view = (NSCustomizableView)outlineView.MakeView (cellIdentifier, this);
 
-				if (view == null)
-				{
-					view = new NSCustomizableView();
+				if (view == null) {
+					view = new NSCustomizableView ();
 					view.Identifier = cellIdentifier;
 				}
 
-				view.OnPaint = (ditryRect) =>
-				{
-					var focusedItem = viewEvents.OnFocusedMessageSourcePainting() as SourcesListItem;
+				view.OnPaint = (ditryRect) => {
+					var focusedItem = viewModel.FocusedMessageItem;
 					if (focusedItem == null)
 						return;
-					if (!(focusedItem == sourceItem || focusedItem.parent == sourceItem))
+					if (!(focusedItem == sourceItem || focusedItem.Parent == sourceItem))
 						return;
-					using (var g = new LJD.Graphics())
-					{
-						var s = currentSourceImage.GetSize(height: 9);
+					using (var g = new LJD.Graphics ()) {
+						var s = currentSourceImage.GetSize (height: 9);
 						var r = view.Bounds;
-						r = new CoreGraphics.CGRect((r.Left + r.Right - s.Width) / 2, 
+						r = new CoreGraphics.CGRect ((r.Left + r.Right - s.Width) / 2,
 							(r.Top + r.Bottom - s.Height) / 2, s.Width, s.Height);
 						g.DrawImage (currentSourceImage, r.ToRectangleF ());
 					}
@@ -190,96 +179,32 @@ namespace LogJoint.UI
 			return null;
 		}
 
-		class MenuDelegate: NSMenuDelegate
+		class MenuDelegate : NSMenuDelegate
 		{
 			public SourcesListControlAdapter owner;
 
 			public override void MenuWillOpen (NSMenu menu)
 			{
-				var e = owner.viewEvents;
-				menu.RemoveAllItems();
-				var visibleItems = MenuItem.None;
-				var checkedItems = MenuItem.None;
-				e.OnMenuItemOpening(true, out visibleItems, out checkedItems);
-				Action<MenuItem, string, Action> addItem = (item, str, handler) =>
-				{
+				var e = owner.viewModel;
+				menu.RemoveAllItems ();
+				var (visibleItems, checkedItems) = e.OnMenuItemOpening (true);
+				Action<MenuItem, string, Action> addItem = (item, str, handler) => {
 					if ((item & visibleItems) != 0)
-						menu.AddItem(new NSMenuItem(str, (sender, evt) => handler()));
+						menu.AddItem (new NSMenuItem (str, (sender, evt) => handler ()));
 				};
-				addItem(MenuItem.SaveLogAs, "Save as...", e.OnSaveLogAsMenuItemClicked);
-				addItem(MenuItem.SourceProprties, "Properties...", e.OnSourceProprtiesMenuItemClicked);
-				addItem(MenuItem.OpenContainingFolder, "Open containing folder", e.OnOpenContainingFolderMenuItemClicked);
-				addItem(MenuItem.ShowOnlyThisLog, "Show only this log", e.OnShowOnlyThisLogClicked);
-				addItem(MenuItem.ShowAllLogs, "Show all logs", e.OnShowAllLogsClicked);
-				addItem(MenuItem.CloseOthers, "Close others", e.OnCloseOthersClicked);
-				addItem(MenuItem.CopyErrorMessage, "Copy error message", e.OnCopyErrorMessageCliecked);
-				addItem(MenuItem.SaveMergedFilteredLog, "Save joint log...", e.OnSaveMergedFilteredLogMenuItemClicked);
+				addItem (MenuItem.SaveLogAs, "Save as...", e.OnSaveLogAsMenuItemClicked);
+				addItem (MenuItem.SourceProperties, "Properties...", e.OnSourceProprtiesMenuItemClicked);
+				addItem (MenuItem.OpenContainingFolder, "Open containing folder", e.OnOpenContainingFolderMenuItemClicked);
+				addItem (MenuItem.ShowOnlyThisLog, "Show only this log", e.OnShowOnlyThisLogClicked);
+				addItem (MenuItem.ShowAllLogs, "Show all logs", e.OnShowAllLogsClicked);
+				addItem (MenuItem.CloseOthers, "Close others", e.OnCloseOthersClicked);
+				addItem (MenuItem.CopyErrorMessage, "Copy error message", e.OnCopyErrorMessageClicked);
+				addItem (MenuItem.SaveMergedFilteredLog, "Save joint log...", e.OnSaveMergedFilteredLogMenuItemClicked);
 			}
 
 			public override void MenuWillHighlightItem (NSMenu menu, NSMenuItem item)
 			{
 			}
 		};
-
-		public override void SelectionDidChange(NSNotification notification)
-		{
-			foreach (var x in GetItems().ZipWithIndex())
-				x.Value.isSelected = false;
-
-			foreach (var x in Enumerable.Range (0, (int)outlineView.RowCount)
-				  	.Where (i => outlineView.IsRowSelected (i))
-				  	.Select (i => outlineView.ItemAtRow (i))
-			         .Cast<SourcesListItem>())
-			{
-				x.isSelected = true;
-			}
-
-			viewEvents.OnSelectionChanged();
-		}
-
-		void UpdateItem(SourcesListItem item)
-		{
-			if (!updating)
-			{
-				outlineView.ReloadItem(item);
-				if (item.isSelected)
-					outlineView.SelectRow(outlineView.RowForItem(item), true);
-				else
-					outlineView.DeselectRow(outlineView.RowForItem(item));
-			}
-		}
-
-		void DoFullUpdate()
-		{
-			outlineView.ReloadData();
-			outlineView.SelectRows(NSIndexSet.FromArray(
-				GetItems()
-				.ZipWithIndex()
-				.Where(x => x.Value.isSelected)
-				.Select(x => x.Key)
-				.ToArray()
-			), byExtendingSelection: false);
-		}
-		
-		IEnumerable<SourcesListItem> GetItems() {
-			foreach (var i in dataSource.Items) {
-				yield return i;
-				foreach (var j in i.items)
-					yield return j;
-			}
-		}
-
-		internal void ToggleSelectedSource() 
-		{
-			foreach (var i in GetItems())
-			{
-				if (i.isSelected && i.isChecked.HasValue)
-				{
-					i.isChecked = !i.isChecked.Value;
-					outlineView.ReloadItem(i);
-					viewEvents.OnItemChecked(i);
-				}
-			}
-		}
 	}
 }
