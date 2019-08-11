@@ -35,6 +35,9 @@ namespace LogJoint.Tests.Integration
 		public UI.Presenters.LoadedMessages.IViewModel LoadedMessages;
 		public UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
 		public UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
+		public UI.Presenters.SourcesManager.IViewModel SourcesManager;
+		public UI.Presenters.SourcesList.IViewModel SourcesList;
+		public UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
 	};
 
 	public class TestAppConfig
@@ -168,6 +171,13 @@ namespace LogJoint.Tests.Integration
 
 			mocks.Views.CreateMessagePropertiesDialogView().CreateDialog(
 				Arg.Do<UI.Presenters.MessagePropertiesDialog.IDialogViewModel>(x => viewModel.MessagePropertiesDialog = x));
+
+			mocks.Views.CreateSourcesManagerView().SetViewModel(
+				Arg.Do<UI.Presenters.SourcesManager.IViewModel>(x => viewModel.SourcesManager = x));
+			mocks.Views.CreateSourcesListView().SetViewModel(
+				Arg.Do<UI.Presenters.SourcesList.IViewModel>(x => viewModel.SourcesList = x));
+			mocks.Views.CreateSourcePropertiesWindowView().SetViewModel(
+				Arg.Do<UI.Presenters.SourcePropertiesWindow.IViewModel>(x => viewModel.SourcePropertiesWindow = x));
 		}
 
 		public async Task Dispose()

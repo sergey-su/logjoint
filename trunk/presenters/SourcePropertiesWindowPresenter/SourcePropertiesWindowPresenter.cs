@@ -74,7 +74,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			view.SetViewModel(this);
 		}
 
-		void IPresenter.ShowWindow(ILogSource source)
+		async void IPresenter.ShowWindow(ILogSource source)
 		{
 			this.source = source;
 
@@ -116,7 +116,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 				try
 				{
 					changeNotification.Active = true;
-					currentWindow.ShowDialog();
+					await currentWindow.ShowModalDialog();
 				}
 				finally
 				{

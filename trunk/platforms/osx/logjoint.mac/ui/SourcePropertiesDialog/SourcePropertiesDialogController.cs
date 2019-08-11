@@ -7,6 +7,7 @@ using AppKit;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
 using LogJoint.Drawing;
 using ObjCRuntime;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -25,9 +26,10 @@ namespace LogJoint.UI
 			);
 		}
 
-		void IWindow.ShowDialog()
+		Task IWindow.ShowModalDialog ()
 		{
 			NSApplication.SharedApplication.RunModalForWindow(Window);
+			return Task.FromResult (0);
 		}
 
 		void IWindow.ShowColorSelector(Color[] options)

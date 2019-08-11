@@ -27,13 +27,6 @@ namespace LogJoint.Tests.Integration
 			await app.Dispose();
 		}
 
-		bool IsLogDisplayed(string text)
-		{
-			var viewLines = app.ViewModel.LoadedMessagesLogViewer.ViewLines;
-			var displayedText = string.Join("\n", viewLines.Select(vl => vl.TextLineValue));
-			return StringUtils.NormalizeLinebreakes(text) == StringUtils.NormalizeLinebreakes(displayedText);
-		}
-
 		static void Log(StreamWriter logWriter, string line)
 		{
 			logWriter.WriteLine(
@@ -59,7 +52,7 @@ namespace LogJoint.Tests.Integration
 
 					await app.EmulateFileDragAndDrop(testLog);
 
-					await app.WaitFor(() => IsLogDisplayed("initial line"));
+					await app.WaitForLogDisplayed("initial line");
 
 					for (int i = 0; i < 10; ++i)
 					{
@@ -68,7 +61,7 @@ namespace LogJoint.Tests.Integration
 						var expectedLog = string.Join("\n",
 							new[] { "initial line" }.Union(
 								Enumerable.Range(0, i + 1).Select(j => $"test {j}")));
-						await app.WaitFor(() => IsLogDisplayed(expectedLog));
+						await app.WaitForLogDisplayed(expectedLog);
 					}
 				}
 			});
@@ -89,12 +82,12 @@ namespace LogJoint.Tests.Integration
 
 					await app.EmulateFileDragAndDrop(testLog);
 
-					await app.WaitFor(() => IsLogDisplayed("test1\ntest2\ntest3"));
+					await app.WaitForLogDisplayed("test1\ntest2\ntest3");
 				}
 
 				File.Delete(testLog);
 
-				await app.WaitFor(() => IsLogDisplayed(""));
+				await app.WaitForLogDisplayed("");
 
 				using (var logWriter = new StreamWriter(testLog, append: false))
 				{
@@ -102,7 +95,7 @@ namespace LogJoint.Tests.Integration
 					Log(logWriter, "test5");
 					Log(logWriter, "test6");
 
-					await app.WaitFor(() => IsLogDisplayed("test4\ntest5\ntest6"));
+					await app.WaitForLogDisplayed("test4\ntest5\ntest6");
 				}
 			});
 		}
@@ -124,7 +117,7 @@ namespace LogJoint.Tests.Integration
 
 						await app.EmulateFileDragAndDrop(testLog);
 
-						await app.WaitFor(() => IsLogDisplayed("test1\ntest2"));
+						await app.WaitForLogDisplayed("test1\ntest2");
 					}
 
 					stream.SetLength(0);
@@ -134,7 +127,7 @@ namespace LogJoint.Tests.Integration
 					{
 						Log(logWriter, "test4");
 
-						await app.WaitFor(() => IsLogDisplayed("test4"));
+						await app.WaitForLogDisplayed("test4");
 					}
 				}
 			});

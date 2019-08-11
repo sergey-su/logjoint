@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using LogJoint.Drawing;
 
 namespace LogJoint.UI.Presenters.SourcePropertiesWindow
@@ -15,7 +16,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 
 	public interface IWindow
 	{
-		void ShowDialog();
+		Task ShowModalDialog();
 		void Close();
 		void ShowColorSelector(Color[] options);
 	};

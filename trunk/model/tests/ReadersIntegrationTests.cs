@@ -228,9 +228,9 @@ SampleApp Information: 0 : Timestamp parsed and ignored
 				new EM("Searching for data files", "4756 - 7", null),
 				new EM("No free data file found. Going sleep.", "4756 - 7", null),
 				new EM("File cannot be open which means that it was handled", "4756 - 6", null),
+				new EM("Timestamp parsed and ignored", "4756 - 6", null),
 				new EM("Test frame", "4756 - 6", null),
-				new EM("", "4756 - 6", null),
-				new EM("Timestamp parsed and ignored", "4756 - 6", null)
+				new EM("", "4756 - 6", null)
 			);
 		}
 		
