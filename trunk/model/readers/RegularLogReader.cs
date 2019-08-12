@@ -26,6 +26,9 @@ namespace LogJoint.RegularGrammar
 		public readonly static string EmptyBodyReEquivalientTemplate = "^(?<body>.*)$";
 		public readonly FormatFlags Flags;
 		public readonly RotationParams RotationParams;
+		public readonly BoundFinder BeginFinder;
+		public readonly BoundFinder EndFinder;
+
 		public FormatInfo(
 			LoadedRegex headRe, LoadedRegex bodyRe, 
 			string encoding, FieldsProcessor.InitializationParams fieldsParams, 
@@ -33,7 +36,9 @@ namespace LogJoint.RegularGrammar
 			DejitteringParams? dejitteringParams,
 			TextStreamPositioningParams textStreamPositioningParams,
 			FormatFlags flags,
-			RotationParams rotationParams
+			RotationParams rotationParams,
+			BoundFinder beginFinder,
+			BoundFinder endFinder
 		) :
 			base(extensionsInitData)
 		{
@@ -45,6 +50,8 @@ namespace LogJoint.RegularGrammar
 			this.TextStreamPositioningParams = textStreamPositioningParams;
 			this.Flags = flags;
 			this.RotationParams = rotationParams;
+			this.BeginFinder = beginFinder;
+			this.EndFinder = endFinder;
 		}
 	};
 
@@ -58,7 +65,7 @@ namespace LogJoint.RegularGrammar
 		readonly LJTraceSource trace;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
-			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
@@ -305,6 +312,9 @@ namespace LogJoint.RegularGrammar
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
 			ReadPatterns(formatSpecificNode, patterns);
+			var boundsNodes = formatSpecificNode.Elements("bounds").Take(1);
+			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
+			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			tempFilesManager = createParams.TempFilesManager;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
@@ -331,7 +341,9 @@ namespace LogJoint.RegularGrammar
 					dejitteringParams,
 					textStreamPositioningParams,
 					flags,
-					rotationParams
+					rotationParams,
+					beginFinder,
+					endFinder
 				);
 			});
 			uiKey = ReadParameter(formatSpecificNode, "ui-key");

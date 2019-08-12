@@ -536,6 +536,31 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 37)),
 				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37))
 			);
+
+			DoTest(
+@"#Software: Microsoft Internet Information Services 7.5
+#Version: 1.0
+#Date: 2013-02-07 08:35:37
+#Fields: date time s-ip cs-method cs-uri-stem cs-uri-query s-port cs-username c-ip cs(User-Agent) sc-status sc-substatus sc-win32-status time-taken
+2013-02-07 08:35 fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340
+2013-02-07 08:35 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4
+2013-02-07 08:35 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32 - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 1",
+				new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 0)),
+				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 0))
+			);
+
+			DoTest(
+@"#Software: Microsoft Internet Information Services 7.5
+#Version: 1.0
+#Date: 2013-02-07 08:35:37
+#Fields: date time s-ip cs-method cs-uri-stem cs-uri-query s-port cs-username c-ip cs(User-Agent) sc-status sc-substatus sc-win32-status time-taken
+2013-02-07 08:35:37.234 fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340
+2013-02-07 08:35:37.235 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4
+2013-02-07 08:35:37.678 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32 - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 1",
+				new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 37, 234)),
+				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37, 235))
+			);
+
 		}
 
 	}

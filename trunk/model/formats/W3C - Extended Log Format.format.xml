@@ -9,10 +9,17 @@
 2012-09-14 03:16:24 127.0.0.1 GET /SignallingHub/state.js name=as&nodeId=123 80 - 127.0.0.1 Mozilla/5.0+(Windows+NT+6.1;+WOW64)+AppleWebKit/537.1+(KHTML,+like+Gecko)+Chrome/21.0.1180.89+Safari/537.1 404 0 2 3
 2012-09-14 03:16:24 127.0.0.1 GET /favicon.ico - 80 - 127.0.0.1 Mozilla/5.0+(Windows+NT+6.1;+WOW64)+AppleWebKit/537.1+(KHTML,+like+Gecko)+Chrome/21.0.1180.89+Safari/537.1 404 0 2 2
 ]]></sample-log>
+    <bounds>
+       <begin>
+         <trie-search>
+            <text><![CDATA[#Fields: date time]]></text>
+         </trie-search>
+       </begin>
+    </bounds>
     <head-re><![CDATA[^
-(?<dateTime>\d{4}\-\d{2}\-\d{2}\ \d{2}\:\d{2}\:\d{2})]]></head-re>
+(?<dateTime>\d{4}\-\d{2}\-\d{2}\ \d{2}\:\d{2}(\:\d{2}(\.\d{1,7})?)?)]]></head-re>
     <fields-config>
-      <field name="Time"><![CDATA[TO_DATETIME(dateTime, "yyyy-MM-dd HH:mm:ss")]]></field>
+      <field name="Time"><![CDATA[TO_DATETIME(dateTime, dateTime.Length == 16 ? @"yyyy-MM-dd HH\:mm" : dateTime.Length == 19 ? @"yyyy-MM-dd HH\:mm\:ss" : @"yyyy-MM-dd HH\:mm\:ss\.FFFFFFF")]]></field>
       <field name="Body"><![CDATA[body]]></field>
     </fields-config>
     <patterns>
