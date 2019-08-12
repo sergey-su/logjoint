@@ -53,6 +53,11 @@ namespace LogJoint.Tests.Integration
 		public ViewModelObjects ViewModel { get; private set; }
 		public Mocks Mocks { get; private set; }
 
+		/// <summary>
+		/// Temporary folder where this instance of application stores its state.
+		/// </summary>
+		public string AppDataDirectory { get; private set; }
+
 		public static async Task<TestAppInstance> Create(TestAppConfig config = null)
 		{
 			config = config ?? new TestAppConfig();
@@ -129,8 +134,9 @@ namespace LogJoint.Tests.Integration
 				Model = model,
 				Presentation = presentation,
 				ViewModel = viewModel,
-				traceListener = traceListener
-			};
+				traceListener = traceListener,
+				AppDataDirectory = appDataDir
+		};
 		}
 
 		private static void InitializeMocks(TestAppConfig config, Mocks mocks, ViewModelObjects viewModel)

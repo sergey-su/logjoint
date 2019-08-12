@@ -76,9 +76,23 @@ namespace LogJoint.Chromium.HttpArchive
 				{
 					return HarConvert.DeserializeFromFile(sourceFile.Location);
 				}
-				catch (Newtonsoft.Json.JsonReaderException e)
+				catch (Newtonsoft.Json.JsonReaderException)
 				{
-					throw new Exception(string.Format("HTTP archive is broken"), e);
+					string fixedJsonFileName = callback.TempFilesManager.GenerateNewName();
+					try
+					{
+						TryFixJson(sourceFile.Location, fixedJsonFileName);
+						return HarConvert.DeserializeFromFile(fixedJsonFileName);
+					}
+					catch (Newtonsoft.Json.JsonReaderException e)
+					{
+						throw new Exception(string.Format("HTTP archive is broken"), e);
+					}
+					finally
+					{
+						if (File.Exists(fixedJsonFileName))
+							File.Delete(fixedJsonFileName);
+					}
 				}
 				finally
 				{
@@ -116,7 +130,7 @@ namespace LogJoint.Chromium.HttpArchive
 			int lastEntryId = 0;
 			foreach (var e in har.Log.Entries)
 			{
-				if (e.Request == null)
+				if (e.Request == null || e.Timings == null)
 					continue;
 				var entryId = (++lastEntryId).ToString();
 				Action<double?, string, string, string> add = (timeOffset, sev, msgType, msg) =>
@@ -201,6 +215,27 @@ namespace LogJoint.Chromium.HttpArchive
 				return m1.Index - m2.Index;
 			});
 			return (new[] {buffer.ToArray()}).ToAsync();
+		}
+
+		void TryFixJson(string inputFile, string outputFile)
+		{
+			using (var jsonTextReader = new StreamReader(inputFile))
+			using (var jsonReader = new Newtonsoft.Json.JsonTextReader(jsonTextReader))
+			using (var jsonTextWriter = new StreamWriter(outputFile))
+			using (var jsonWriter = new Newtonsoft.Json.JsonTextWriter(jsonTextWriter)
+			{
+				AutoCompleteOnClose = true,
+				Formatting = Newtonsoft.Json.Formatting.Indented
+			})
+			{
+				try
+				{
+					jsonWriter.WriteToken(jsonReader, writeChildren: true);
+				}
+				catch (Newtonsoft.Json.JsonReaderException)
+				{
+				}
+			}
 		}
 	};
 }
