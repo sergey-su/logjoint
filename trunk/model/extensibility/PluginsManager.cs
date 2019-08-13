@@ -84,6 +84,8 @@ namespace LogJoint.Extensibility
 				{
 					var pluginPath = manifest.Entry.AbsolulePath;
 
+					tracer.Info("Loading plugin {0} from '{1}'", manifest.Id, pluginPath);
+
 					Stopwatch sw = Stopwatch.StartNew();
 					pluginFormatsManager.RegisterPluginFormats(manifest);
 					var formatsLoadTime = sw.Elapsed;
@@ -96,9 +98,7 @@ namespace LogJoint.Extensibility
 					}
 					catch (Exception e)
 					{
-						tracer.Error(e, "failed to load plugin");
-						telemetry.ReportException(e, "loading plugin " + pluginPath);
-						return;
+						throw new Exception("Failed to load plugin asm", e);
 					}
 					var loadTime = sw.Elapsed;
 					sw.Restart();
@@ -109,21 +109,17 @@ namespace LogJoint.Extensibility
 					}
 					catch (Exception e)
 					{
-						tracer.Error(e, "failed to load plugin type");
-						telemetry.ReportException(e, "loading plugin " + pluginPath);
-						return;
+						throw new Exception("Failed to load plugin type", e);
 					}
 					var typeLoadTime = sw.Elapsed;
 					if (pluginType == null)
 					{
-						tracer.Warning("plugin class not found in plugin assembly");
-						return;
+						throw new Exception("plugin class not found in plugin assembly");
 					}
 					var ctr = pluginType.GetConstructor(new[] { entryPoint.GetType() });
 					if (ctr == null)
 					{
-						tracer.Warning("plugin class does not implement ctr with LogJoint.IApplication argument");
-						return;
+						throw new Exception("plugin class does not implement ctr with LogJoint.IApplication argument");
 					}
 					sw.Restart();
 					object plugin;
@@ -133,9 +129,7 @@ namespace LogJoint.Extensibility
 					}
 					catch (Exception e)
 					{
-						tracer.Error(e, "failed to create an instance of plugin");
-						telemetry.ReportException(e, "creation of plugin " + pluginPath);
-						return;
+						throw new Exception("failed to create an instance of plugin", e);
 					}
 					var instantiationTime = sw.Elapsed;
 
@@ -152,8 +146,7 @@ namespace LogJoint.Extensibility
 					{
 						if (!manifests.TryGetValue(id, out var manifest))
 						{
-							tracer.Error($"Required plugin '{id}' not found");
-							return;
+							throw new Exception($"Required plugin '{id}' not found");
 						}
 
 						foreach (var dep in manifest.Dependencies)
@@ -169,7 +162,14 @@ namespace LogJoint.Extensibility
 						{
 							var fileName = $"{(new AssemblyName(e.Name)).Name}.dll";
 							var sdkFile = sdks.FirstOrDefault(f => Path.GetFileName(f.RelativePath) == fileName);
-							return sdkFile != null ? Assembly.LoadFrom(sdkFile.AbsolulePath) : null;
+							try
+							{
+								return sdkFile != null ? Assembly.LoadFrom(sdkFile.AbsolulePath) : null;
+							}
+							catch (Exception ex)
+							{
+								throw new Exception($"Failed to load SDK asm '{sdkFile.AbsolulePath}' requested by {manifest.Id}", ex);
+							}
 						}
 						AppDomain.CurrentDomain.AssemblyResolve += dependencyResolveHandler;
 						try
@@ -185,7 +185,15 @@ namespace LogJoint.Extensibility
 
 				foreach (string pluginId in manifests.Keys)
 				{
-					LoadPluginAndDependencies(pluginId);
+					try
+					{
+						LoadPluginAndDependencies(pluginId);
+					}
+					catch (Exception e)
+					{
+						tracer.Error(e, $"Failed to load plugin '{pluginId}' or its dependencies");
+						telemetry.ReportException(e, "Loading of plugin " + pluginId);
+					}
 				}
 			}
 		}
