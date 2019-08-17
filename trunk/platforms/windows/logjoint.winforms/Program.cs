@@ -50,6 +50,8 @@ namespace LogJoint
 
 			var viewsFactory = new UI.Presenters.ViewsFactory(mainForm, model);
 
+			mainForm.sourcesListView.SourcesListView.Init(viewsFactory);
+
 			var presentation = UI.Presenters.Factory.Create(
 				model,
 				new ClipboardAccess(model.TelemetryCollector),

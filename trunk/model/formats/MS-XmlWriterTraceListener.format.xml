@@ -36,7 +36,7 @@
 						</xsl:attribute>
 					</xsl:for-each>
 					<xsl:attribute name='d'>
-						<xsl:value-of select='lj:TO_NATIVE_DATETIME_STR(lj:TO_DATETIME(sys:TimeCreated/@SystemTime, "yyyy-MM-ddTHH:mm:ss.fffffffK"))'/>
+						<xsl:value-of select='lj:TO_NATIVE_DATETIME_STR(lj:TO_DATETIME(sys:TimeCreated/@SystemTime, "yyyy-MM-ddTHH\:mm\:ss.fffffffK"))'/>
 					</xsl:attribute>
 					<xsl:attribute name='s'>
 						<xsl:choose>

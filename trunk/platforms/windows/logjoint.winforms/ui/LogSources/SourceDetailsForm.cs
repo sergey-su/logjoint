@@ -4,83 +4,87 @@ using System.Linq;
 using LogJoint.Drawing;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
 	public partial class SourceDetailsForm : Form, IWindow
 	{
-		readonly IViewEvents viewEvents;
-		readonly Dictionary<ControlFlag, Control> controls = new Dictionary<ControlFlag, Control>();
+		readonly IViewModel viewModel;
 
-		public SourceDetailsForm(IViewEvents viewEvents)
+		public SourceDetailsForm(IViewModel viewModel)
 		{
 			InitializeComponent();
 
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
 
-			controls[ControlFlag.NameEditbox] = nameTextBox;
-			controls[ControlFlag.FormatTextBox] = formatTextBox;
-			controls[ControlFlag.VisibleCheckBox] = visibleCheckBox;
-			controls[ControlFlag.ColorPanel] = colorPanel;
-			controls[ControlFlag.StateDetailsLink] = stateDetailsLink;
-			controls[ControlFlag.StateLabel] = stateLabel;
-			controls[ControlFlag.LoadedMessagesTextBox] = loadedMessagesTextBox;
-			controls[ControlFlag.LoadedMessagesWarningIcon] = loadedMessagesWarningIcon;
-			controls[ControlFlag.LoadedMessagesWarningLinkLabel] = loadedMessagesWarningLinkLabel;
-			controls[ControlFlag.TrackChangesLabel] = trackChangesLabel;
-			controls[ControlFlag.SuspendResumeTrackingLink] = suspendResumeTrackingLink;
-			controls[ControlFlag.FirstMessageLinkLabel] = firstMessageLinkLabel;
-			controls[ControlFlag.LastMessageLinkLabel] = lastMessageLinkLabel;
-			controls[ControlFlag.SaveAsButton] = saveAsButton;
-			controls[ControlFlag.AnnotationTextBox] = annotationTextBox;
-			controls[ControlFlag.TimeOffsetTextBox] = timeOffsetTextBox;
-			controls[ControlFlag.CopyPathButton] = copyPathLink;
+			var updateControls = Updaters.Create(
+				() => viewModel.ViewState,
+				UpdateControls
+			);
+
+			viewModel.ChangeNotification.CreateSubscription(updateControls);
 		}
 
-		void IWindow.ShowDialog()
+		Task IWindow.ShowModalDialog()
 		{
 			if (!IsDisposed)
 				this.ShowDialog();
+			return Task.FromResult(0);
 		}
 
-		void IWindow.WriteControl(ControlFlag flags, string value)
+		void UpdateControls(IViewState state)
 		{
-			Control ctrl;
-			if (!controls.TryGetValue(flags & ControlFlag.ControlIdMask, out ctrl))
-				return;
-			if ((flags & ControlFlag.Value) != 0)
+			void updateControl(
+				Control ctrl,
+				ControlState controlState,
+				TextBoxBase textBox = null,
+				bool backColor = false,
+				bool foreColor = false
+			)
 			{
-				ctrl.Text = value;
-				if (ctrl is TextBox)
-					(ctrl as TextBox).Select(0, 0);
+				ctrl.Visible = !controlState.Hidden;
+				ctrl.Enabled = !controlState.Disabled;
+				if (backColor)
+					ctrl.BackColor = controlState.BackColor != null ? controlState.BackColor.Value.ToSystemDrawingObject() : System.Drawing.SystemColors.Control;
+				if (foreColor)
+					ctrl.ForeColor = controlState.ForeColor != null ? controlState.ForeColor.Value.ToSystemDrawingObject() : System.Drawing.SystemColors.ControlText;
+				if (ctrl.Text != controlState.Text)
+				{
+					ctrl.Text = controlState.Text;
+					textBox?.Select(0, 0);
+				}
+				toolTip1.SetToolTip(ctrl, controlState.Tooltip);
 			}
-			else if ((flags & ControlFlag.Checked) != 0)
-			{
-				var cb = ctrl as CheckBox;
-				if (cb != null)
-					cb.Checked = value != null;
-			}
-			else if ((flags & ControlFlag.Visibility) != 0)
-				ctrl.Visible = value != null;
-			else if ((flags & ControlFlag.BackColor) != 0)
-				ctrl.BackColor = new Color(uint.Parse(value)).ToSystemDrawingObject();
-			else if ((flags & ControlFlag.ForeColor) != 0)
-				ctrl.ForeColor = new Color(uint.Parse(value)).ToSystemDrawingObject();
-			else if ((flags & ControlFlag.Enabled) != 0)
-				ctrl.Enabled = value != null;
-		}
 
-		string IWindow.ReadControl(ControlFlag flags)
-		{
-			Control ctrl;
-			if (!controls.TryGetValue(flags & ControlFlag.ControlIdMask, out ctrl))
-				return null;
-			if ((flags & ControlFlag.Value) != 0)
-				return ctrl.Text;
-			else if ((flags & ControlFlag.Checked) != 0)
-				return ctrl is CheckBox && (ctrl as CheckBox).Checked ? "" : null;
-			else
-				return null;
+			void updateCheckBox(CheckBox control, ControlState controlState)
+			{
+				updateControl(control, controlState);
+				control.Checked = controlState.Checked.GetValueOrDefault();
+			}
+
+			void updateTextBox(TextBox control, ControlState controlState)
+			{
+				updateControl(control, controlState, control);
+			}
+
+			updateTextBox(nameTextBox, state.NameEditbox);
+			updateTextBox(formatTextBox, state.FormatTextBox);
+			updateCheckBox(visibleCheckBox, state.VisibleCheckBox);
+			updateControl(colorPanel, state.ColorPanel, backColor: true);
+			updateControl(stateDetailsLink, state.StateDetailsLink);
+			updateControl(stateLabel, state.StateLabel, foreColor: true);
+			updateTextBox(loadedMessagesTextBox, state.LoadedMessagesTextBox);
+			updateControl(loadedMessagesWarningIcon, state.LoadedMessagesWarningIcon);
+			updateControl(loadedMessagesWarningLinkLabel, state.LoadedMessagesWarningLinkLabel);
+			updateControl(trackChangesLabel, state.TrackChangesLabel);
+			updateControl(suspendResumeTrackingLink, state.SuspendResumeTrackingLink);
+			updateControl(firstMessageLinkLabel, state.FirstMessageLinkLabel);
+			updateControl(lastMessageLinkLabel, state.LastMessageLinkLabel);
+			updateControl(saveAsButton, state.SaveAsButton);
+			updateTextBox(annotationTextBox, state.AnnotationTextBox);
+			updateTextBox(timeOffsetTextBox, state.TimeOffsetTextBox);
+			updateControl(copyPathLink, state.CopyPathButton);
 		}
 
 		void IWindow.ShowColorSelector(Color[] options)
@@ -96,7 +100,7 @@ namespace LogJoint.UI
 					Size = new System.Drawing.Size(300, (int)UIUtils.Dpi.Scale(15f))
 				};
 				mi.Paint += colorOptionMenuItemPaint;
-				mi.Click += (s, e) => viewEvents.OnColorSelected(cl);
+				mi.Click += (s, e) => viewModel.OnColorSelected(cl);
 				menu.Items.Add(mi);
 			}
 			menu.Show(changeColorLinkLabel, new System.Drawing.Point(0, changeColorLinkLabel.Height));
@@ -114,69 +118,82 @@ namespace LogJoint.UI
 
 		private void visibleCheckBox_Click(object sender, EventArgs e)
 		{
-			viewEvents.OnVisibleCheckBoxClicked();
+			viewModel.OnVisibleCheckBoxChange(visibleCheckBox.Checked);
 		}
 
 		private void suspendResumeTrackingLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			viewEvents.OnSuspendResumeTrackingLinkClicked();
+			viewModel.OnSuspendResumeTrackingLinkClicked();
 		}
 
 		private void stateDetailsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			viewEvents.OnStateDetailsLinkClicked();
+			viewModel.OnStateDetailsLinkClicked();
 		}
 
-		private void bookmarkClicked(object sender, EventArgs e)
+		private void lastBookmarkClicked(object sender, EventArgs e)
 		{
-			var ctrl = controls.Where(c => (object)c.Value == sender).FirstOrDefault();
-			if (ctrl.Value != null)
-				viewEvents.OnBookmarkLinkClicked(ctrl.Key);
+			viewModel.OnLastKnownMessageLinkClicked();
+		}
+
+		private void firstBookmarkClicked(object sender, EventArgs e)
+		{
+			viewModel.OnFirstKnownMessageLinkClicked();
 		}
 
 		private void saveAsButton_Click(object sender, EventArgs e)
 		{
-			viewEvents.OnSaveAsButtonClicked();
+			viewModel.OnSaveAsButtonClicked();
 		}
 
 		private void SourceDetailsForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			viewEvents.OnClosingDialog();
+			viewModel.OnClosingDialog();
 		}
 
 		private void loadedMessagesWarningIcon_Click(object sender, EventArgs e)
 		{
-			viewEvents.OnLoadedMessagesWarningIconClicked();
+			viewModel.OnLoadedMessagesWarningIconClicked();
 		}
 
 		void changeColorLinkLabel_Click(object sender, System.EventArgs e)
 		{
-			viewEvents.OnChangeColorLinkClicked();
+			viewModel.OnChangeColorLinkClicked();
 		}
 
 		void copyPathLink_LinkClicked(object sender, System.EventArgs e)
 		{
-			viewEvents.OnCopyButtonClicked();
+			viewModel.OnCopyButtonClicked();
+		}
+
+		void annotationTextBox_TextChanged(object sender, System.EventArgs e)
+		{
+			viewModel.OnChangeAnnotation(annotationTextBox.Text);
+		}
+
+		void timeOffsetTextBox_TextChanged(object sender, System.EventArgs e)
+		{
+			viewModel.OnChangeChangeTimeOffset(timeOffsetTextBox.Text);
+		}
+
+		void changeColorLinkLabel_LinkClicked(object sender, System.Windows.Forms.LinkLabelLinkClickedEventArgs e)
+		{
+			viewModel.OnChangeColorLinkClicked();
 		}
 	}
 
 	public class SourceDetailsWindowView : IView
 	{
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 
-		void IView.SetEventsHandler(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
 		}
 
 		IWindow IView.CreateWindow()
 		{
-			return new SourceDetailsForm(viewEvents);
-		}
-
-		uint IView.DefaultControlForeColor
-		{
-			get { return new Color(System.Drawing.SystemColors.ControlText.ToArgb()).ToUnsignedArgb(); }
+			return new SourceDetailsForm(viewModel);
 		}
 	};
 }

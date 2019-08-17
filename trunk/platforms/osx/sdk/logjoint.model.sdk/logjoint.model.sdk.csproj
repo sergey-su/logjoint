@@ -74,7 +74,6 @@
   -->
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="..\..\bin\debug\packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -86,7 +86,7 @@ namespace LogJoint.Tests.Integration
 		[Test]
 		public void SourceNameIsCorrect()
 		{
-			Assert.IsTrue(DialogState.NameEditbox.Text.Contains("xmlwritertracelistener1.xml", StringComparison.OrdinalIgnoreCase));
+			Assert.IsTrue(DialogState.NameEditbox.Text.ToLower().Contains("xmlwritertracelistener1.xml"));
 		}
 
 		[Test]
@@ -102,7 +102,7 @@ namespace LogJoint.Tests.Integration
 			Assert.IsFalse(DialogState.CopyPathButton.Hidden);
 			ViewModel.OnCopyButtonClicked();
 			app.Mocks.ClipboardAccess.Received(1).SetClipboard(Arg.Is<string>(
-				s => s.Contains("xmlwritertracelistener1.xml", StringComparison.OrdinalIgnoreCase)));
+				s => s.ToLower().Contains("xmlwritertracelistener1.xml")));
 		}
 
 		[Test]
@@ -119,7 +119,7 @@ namespace LogJoint.Tests.Integration
 				ViewModel.OnColorSelected(newColor);
 				await app.WaitFor(() => DialogState.ColorPanel.BackColor.Value == newColor);
 				var sourcesColoringMode = app.ViewModel.LoadedMessages.ViewState.Coloring.Options.IndexOf(
-					i => i.Text.Contains("source", StringComparison.OrdinalIgnoreCase));
+					i => i.Text.ToLower().Contains("source"));
 				app.ViewModel.LoadedMessages.OnColoringButtonClicked(sourcesColoringMode.Value);
 				await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.ElementAtOrDefault(0).ContextColor == newColor);
 			});
@@ -149,7 +149,7 @@ namespace LogJoint.Tests.Integration
 				CloseDialog();
 
 				await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children[0].ToString().Contains(
-					"annotation 123", StringComparison.Ordinal));
+					"annotation 123"));
 
 				await OpenDialog();
 
@@ -165,7 +165,7 @@ namespace LogJoint.Tests.Integration
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
 				EmulateShowTimeMenu();
-				await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.LastOrDefault().Time == "2011-07-24 14:37:45.475");
+				await app.WaitFor(() => (app.ViewModel.LoadedMessagesLogViewer.ViewLines.LastOrDefault().Time ?? "").EndsWith(":37:45.475"));
 
 				Assert.AreEqual("00:00:00", DialogState.TimeOffsetTextBox.Text);
 				Assert.IsFalse(DialogState.TimeOffsetTextBox.Disabled);
@@ -176,7 +176,7 @@ namespace LogJoint.Tests.Integration
 
 				CloseDialog();
 
-				await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.Last().Time == "2011-07-24 14:37:40.475");
+				await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.Last().Time.EndsWith(":37:40.475"));
 
 				await OpenDialog();
 
@@ -216,7 +216,7 @@ namespace LogJoint.Tests.Integration
 				ViewModel.OnSaveAsButtonClicked();
 				app.Mocks.FileDialogs.Received(1).SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>());
 
-				var savedLog = await File.ReadAllTextAsync(destinationFileName);
+				var savedLog = File.ReadAllText(destinationFileName);
 
 				var head = "<E2ETraceEvent xmlns=\"http://schemas.microsoft.com/2004/06/E2ETraceEvent\"><System xmlns=\"http://schemas.microsoft.com/2004/06/windows/eventlog/system\"><EventID>0</EventID><Type>3</Type><SubType Name=\"Start\">0</SubType><Level>255</Level><TimeCreated SystemTime=\"2011-07-24T10:37:25.9854589Z\" /><Source Name=\"SampleApp\" />";
 				Assert.AreEqual(head, savedLog.Substring(0, head.Length));
@@ -241,12 +241,12 @@ namespace LogJoint.Tests.Integration
 				EmulateShowTimeMenu();
 
 				app.ViewModel.LoadedMessagesLogViewer.OnKeyPressed(UI.Presenters.LogViewer.Key.BeginOfDocument);
-				await app.WaitFor(() => DialogState.FirstMessageLinkLabel.Text == "2011-07-24 14:37:25.985");
+				await app.WaitFor(() => (DialogState.FirstMessageLinkLabel.Text ?? "").EndsWith(":37:25.985"));
 
 				app.ViewModel.LoadedMessages.OnToggleViewTail();
-				await app.WaitFor(() => DialogState.LastMessageLinkLabel.Text == "2011-07-24 14:37:45.475");
+				await app.WaitFor(() => DialogState.LastMessageLinkLabel.Text.EndsWith(":37:45.475"));
 
-				var log = await File.ReadAllTextAsync(tempLogFileName);
+				var log = File.ReadAllText(tempLogFileName);
 				log += "<E2ETraceEvent xmlns=\"http://schemas.microsoft.com/2004/06/E2ETraceEvent\">"+
 "  <System xmlns=\"http://schemas.microsoft.com/2004/06/windows/eventlog/system\">"+
 "    <EventID>0</EventID>"+
@@ -262,8 +262,8 @@ namespace LogJoint.Tests.Integration
 "  </System>"+
 "  <ApplicationData>new line</ApplicationData>"+
 "</E2ETraceEvent>";
-				await File.WriteAllTextAsync(tempLogFileName, log);
-				await app.WaitFor(() => DialogState.LastMessageLinkLabel.Text == "2011-07-24 14:50:01.100");
+				File.WriteAllText(tempLogFileName, log);
+				await app.WaitFor(() => DialogState.LastMessageLinkLabel.Text.EndsWith(":50:01.100"));
 			});
 		}
 	}

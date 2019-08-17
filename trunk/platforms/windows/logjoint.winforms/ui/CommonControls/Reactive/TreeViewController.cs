@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
@@ -8,12 +9,12 @@ namespace LogJoint.UI.Windows.Reactive
 {
 	class TreeViewController : ITreeViewController
 	{
-		readonly TreeView treeView;
+		readonly MultiselectTreeView treeView;
 		readonly Dictionary<ITreeNode, ViewNode> nodeToViewNodes = new Dictionary<ITreeNode, ViewNode>();
 		ITreeNode currentRoot = EmptyTreeNode.Instance;
 		bool updating;
 
-		public TreeViewController(TreeView treeView)
+		public TreeViewController(MultiselectTreeView treeView)
 		{
 			this.treeView = treeView;
 			treeView.BeforeExpand += (s, e) =>
@@ -21,21 +22,21 @@ namespace LogJoint.UI.Windows.Reactive
 				if (updating)
 					return;
 				e.Cancel = true;
-				OnExpand?.Invoke((e.Node as ViewNode)?.Node);
+				OnExpand?.Invoke(Map(e.Node));
 			};
 			treeView.BeforeCollapse += (s, e) =>
 			{
 				if (updating)
 					return;
 				e.Cancel = true;
-				OnCollapse?.Invoke((e.Node as ViewNode)?.Node);
+				OnCollapse?.Invoke(Map(e.Node));
 			};
-			treeView.BeforeSelect += (s, e) =>
+			treeView.BeforeMultiSelect += (s, e) =>
 			{
 				if (updating)
 					return;
-				var n = (e.Node as ViewNode)?.Node;
-				OnSelect?.Invoke(n != null ? new[] { n } : new ITreeNode[0]);
+				e.Cancel = true;
+				OnSelect?.Invoke(e.Nodes.OfType<ViewNode>().Select(n => n.Node).ToArray());
 			};
 		}
 
@@ -44,10 +45,20 @@ namespace LogJoint.UI.Windows.Reactive
 		public Action<ITreeNode> OnCollapse { get; set; }
 		public Action<TreeNode, ITreeNode, ITreeNode> OnUpdateNode { get; set; }
 
+		public ITreeNode Map(TreeNode node)
+		{
+			return (node as ViewNode)?.Node;
+		}
+
+		public TreeNode Map(ITreeNode node)
+		{
+			nodeToViewNodes.TryGetValue(node, out var vn);
+			return vn;
+		}
+
 		public void Update(ITreeNode newRoot)
 		{
 			var finalizeActions = new List<Action>();
-			bool ensureSelectedVisible = false;
 
 			bool updateBegun = false;
 			void BeginUpdate()
@@ -87,6 +98,7 @@ namespace LogJoint.UI.Windows.Reactive
 							DeleteDescendantsFromMap(deletedNode);
 							break;
 						case TreeEdit.EditType.Reuse:
+							BeginUpdate();
 							var nodeToReuse = nodeToViewNodes[e.OldChild];
 							Rebind(nodeToReuse, e.NewChild);
 							UpdateViewNode(nodeToReuse, e.NewChild, e.OldChild);
@@ -100,15 +112,10 @@ namespace LogJoint.UI.Windows.Reactive
 							finalizeActions.Add(node.Collapse);
 							break;
 						case TreeEdit.EditType.Select:
-							if (treeView.SelectedNode != node)
-							{
-								treeView.SelectedNode = node;
-								ensureSelectedVisible = true;
-							}
+							treeView.SelectNode(node);
 							break;
 						case TreeEdit.EditType.Deselect:
-							if (treeView.SelectedNode == node)
-								treeView.SelectedNode = null;
+							treeView.DeselectNode(node);
 							break;
 					}
 				}
@@ -129,10 +136,6 @@ namespace LogJoint.UI.Windows.Reactive
 					treeView.SelectedNode = null;
 				}
 				updating = false;
-			}
-			if (ensureSelectedVisible)
-			{
-				treeView.SelectedNode?.EnsureVisible();
 			}
 		}
 

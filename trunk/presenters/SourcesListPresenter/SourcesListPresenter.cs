@@ -71,6 +71,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 			logSources.OnLogSourceVisiblityChanged += (s, e) => updateItems();
 			logSources.OnLogSourceAnnotationChanged += (s, e) => updateItems();
+			logSources.OnLogSourceColorChanged += (s, e) => updateItems();
 
 			logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => pendingUpdateFlag.Invalidate();
 			logSources.OnLogSourceStatsChanged += (s, e) =>

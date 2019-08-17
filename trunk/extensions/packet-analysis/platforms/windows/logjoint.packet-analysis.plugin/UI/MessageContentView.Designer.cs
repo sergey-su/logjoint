@@ -28,7 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.treeView = new System.Windows.Forms.TreeView();
+			this.treeView = new LogJoint.UI.Windows.MultiselectTreeView();
 			this.SuspendLayout();
 			// 
 			// treeView
@@ -36,7 +36,6 @@
 			this.treeView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.treeView.FullRowSelect = true;
 			this.treeView.HideSelection = false;
 			this.treeView.Location = new System.Drawing.Point(0, 0);
 			this.treeView.Name = "treeView";
@@ -57,6 +56,6 @@
 
 		#endregion
 
-		private System.Windows.Forms.TreeView treeView;
+		private LogJoint.UI.Windows.MultiselectTreeView treeView;
 	}
 }

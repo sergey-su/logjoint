@@ -16,6 +16,8 @@ namespace LogJoint.UI.Windows.Reactive
 		/// to represent a ITreeNode. Old ITreeNode or null is passed as 3rd argument.
 		/// </summary>
 		Action<WF.TreeNode, ITreeNode, ITreeNode> OnUpdateNode { get; set; }
+		ITreeNode Map(WF.TreeNode node);
+		WF.TreeNode Map(ITreeNode node);
 	}
 
 	public interface IListBoxController
@@ -28,7 +30,7 @@ namespace LogJoint.UI.Windows.Reactive
 
 	public interface IReactive
 	{
-		ITreeViewController CreateTreeViewController(WF.TreeView treeView);
+		ITreeViewController CreateTreeViewController(MultiselectTreeView treeView);
 		IListBoxController CreateListBoxController(WF.ListBox listBox);
 	};
 }
