@@ -12,6 +12,8 @@ namespace LogJoint.UI
 {
 	public partial class SourcesManagementView : UserControl, IView
 	{
+		IViewModel viewModel;
+
 		public SourcesManagementView()
 		{ 
 			InitializeComponent();
@@ -22,9 +24,47 @@ namespace LogJoint.UI
 			get { return sourcesListView; }
 		}
 
-		void IView.SetPresenter(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel value)
 		{
-			this.presenter = presenter;
+			this.viewModel = value;
+
+			var updateDeleteAllButton = Updaters.Create(
+				() => value.DeleteAllSourcesButtonEnabled,
+				enabled => deleteAllButton.Enabled = enabled
+			);
+			var enableDeleteSelectedButton = Updaters.Create(
+				() => value.DeleteSelectedSourcesButtonEnabled,
+				enabled => deleteButton.Enabled = enabled
+			);
+			var updateShareButton = Updaters.Create(
+				() => value.ShareButtonState,
+				state =>
+				{
+					shareButton.Visible = state.visible;
+					shareButton.Enabled = state.enabled;
+					if (state.progress)
+					{
+						shareButton.Image = Properties.Resources.loader;
+						shareButton.ImageAlign = ContentAlignment.MiddleLeft;
+					}
+					else
+					{
+						shareButton.Image = null;
+					}
+				}
+			);
+			var updatePropertiesButton = Updaters.Create(
+				() => value.PropertiesButtonEnabled,
+				enabled => propertiesButton.Enabled = enabled
+			);
+
+			value.ChangeNotification.CreateSubscription(() =>
+			{
+				updateDeleteAllButton();
+				enableDeleteSelectedButton();
+				updateShareButton();
+				updatePropertiesButton();
+			});
 		}
 
 		void IView.ShowMRUMenu(List<MRUMenuItem> items)
@@ -43,106 +83,43 @@ namespace LogJoint.UI
 			mruContextMenuStrip.Show(recentButton, new Point(0, recentButton.Height));
 		}
 
-		void IView.EnableDeleteAllSourcesButton(bool enable)
-		{
-			deleteAllButton.Enabled = enable;
-		}
-
-		void IView.EnableDeleteSelectedSourcesButton(bool enable)
-		{
-			deleteButton.Enabled = enable;
-		}
-
-		void IView.EnableTrackChangesCheckBox(bool enable)
-		{
-			trackChangesCheckBox.Enabled = enable;
-		}
-
-		void IView.SetTrackingChangesCheckBoxState(TrackingChangesCheckBoxState state)
-		{
-			CheckState newState;
-			if (state == TrackingChangesCheckBoxState.Indeterminate)
-				newState = CheckState.Indeterminate;
-			else if (state == TrackingChangesCheckBoxState.Checked)
-				newState = CheckState.Checked;
-			else
-				newState = CheckState.Unchecked;
-
-			if (trackChangesCheckBox.CheckState != newState)
-				trackChangesCheckBox.CheckState = newState;
-		}
-
-		void IView.SetShareButtonState(bool visible, bool enabled, bool progress)
-		{
-			shareButton.Visible = visible;
-			shareButton.Enabled = enabled;
-			if (progress)
-			{
-				shareButton.Image = LogJoint.Properties.Resources.loader;
-				shareButton.ImageAlign = ContentAlignment.MiddleLeft;
-			}
-			else
-			{
-				shareButton.Image = null;
-			}
-		}
-
-		void IView.SetPropertiesButtonState(bool enabled)
-		{
-			propertiesButton.Enabled = enabled;
-		}
-
-		string IView.ShowOpenSingleFileDialog()
-		{
-			return null;
-		}
-
 		private void addNewLogButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnAddNewLogButtonClicked();
+			viewModel.OnAddNewLogButtonClicked();
 		}
 
 		private void shareButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnShareButtonClicked();
+			viewModel.OnShareButtonClicked();
 		}
 
 		private void propertiesButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnPropertiesButtonClicked();
+			viewModel.OnPropertiesButtonClicked();
 		}
 
 		private void deleteButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnDeleteSelectedLogSourcesButtonClicked();
+			viewModel.OnDeleteSelectedLogSourcesButtonClicked();
 		}
 
 		private void deleteAllButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnDeleteAllLogSourcesButtonClicked();
+			viewModel.OnDeleteAllLogSourcesButtonClicked();
 		}
 
 		private void recentButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnShowHistoryDialogButtonClicked();
+			viewModel.OnShowHistoryDialogButtonClicked();
 		}
 
 		private void mruContextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
 		{
 			// Hide the menu here to simplify debugging. Without Hide() the menu remains 
-			// on the screen if execution stops at a breakepoint.
+			// on the screen if execution stops at a breakpoint.
 			mruContextMenuStrip.Hide();
 
-			presenter.OnMRUMenuItemClicked(e.ClickedItem.Tag);
+			viewModel.OnMRUMenuItemClicked(e.ClickedItem.Tag);
 		}
-
-		private void trackChangesCheckBox_Click(object sender, EventArgs e)
-		{
-			bool value = trackChangesCheckBox.CheckState == CheckState.Unchecked;
-			presenter.OnTrackingChangesCheckBoxChecked(value);
-		}
-
-		IViewEvents presenter;
-
 	}
 }

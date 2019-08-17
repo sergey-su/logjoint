@@ -58,9 +58,9 @@ namespace LogJoint.Tests.Integration.Chromium
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
 				var tempHarFileName = Path.Combine(app.AppDataDirectory, "broken.har");
-				var harContent = await File.ReadAllTextAsync(await samples.GetSampleAsLocalFile("www.hemnet.se.har"));
+				var harContent = File.ReadAllText(await samples.GetSampleAsLocalFile("www.hemnet.se.har"));
 				harContent = harContent.Substring(0, harContent.Length - 761); // break HAR json by randomly cutting the tail
-				await File.WriteAllTextAsync(tempHarFileName, harContent);
+				File.WriteAllText(tempHarFileName, harContent);
 				await app.EmulateFileDragAndDrop(tempHarFileName);
 
 				await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);

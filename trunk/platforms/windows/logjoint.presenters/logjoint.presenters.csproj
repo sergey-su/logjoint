@@ -445,6 +445,9 @@
     <Compile Include="..\..\..\presenters\SourcesListPresenter\Interfaces.cs">
       <Link>SourcesListPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\SourcesListPresenter\Items.cs">
+      <Link>SourcesListPresenter\Items.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\SourcesListPresenter\SourcesListPresenter.cs">
       <Link>SourcesListPresenter\SourcesListPresenter.cs</Link>
     </Compile>

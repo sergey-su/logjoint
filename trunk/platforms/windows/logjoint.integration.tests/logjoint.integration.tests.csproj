@@ -92,6 +92,12 @@
     <Compile Include="..\..\shared\integration.tests\Preprocessing\PreprocessingTests.cs">
       <Link>Preprocessing\PreprocessingTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\integration.tests\SourcesManagement\SourceListTests.cs">
+      <Link>SourcesManagement\SourceListTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\integration.tests\SourcesManagement\SourcePropertiesTests.cs">
+      <Link>SourcesManagement\SourcePropertiesTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\integration.tests\Utils\Extensions.cs">
       <Link>Utils\Extensions.cs</Link>
     </Compile>

@@ -53,7 +53,7 @@ pid='4704'>
   Host ID: RPRO9
   Host addr: 151.1.0.76
   Module:", null,
-			       	new DateTime(2010, 03, 30, 06, 00, 00, 107, DateTimeKind.Utc)) { TextNeedsNormalization = true },
+					new DateTime(2010, 03, 30, 06, 00, 00, 107, DateTimeKind.Utc)) { TextNeedsNormalization = true },
 				new EM(null, null,
 					new DateTime(2010, 03, 30, 06, 00, 10, 254, DateTimeKind.Utc)) 
 					{ TextVerifier = t => t.StartsWith("Thread 1 advanced to log sequence 40 (LGWR switch)") }

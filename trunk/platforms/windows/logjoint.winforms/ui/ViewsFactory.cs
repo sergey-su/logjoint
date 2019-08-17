@@ -1,4 +1,6 @@
-﻿namespace LogJoint.UI.Presenters
+﻿using LogJoint.UI.Windows;
+
+namespace LogJoint.UI.Presenters
 {
 	class ViewsFactory :
 		Factory.IViewsFactory,
@@ -105,7 +107,7 @@
 			return (impl, impl.TimeSeriesVisualizerView);
 		}
 
-		Windows.Reactive.ITreeViewController Windows.Reactive.IReactive.CreateTreeViewController(System.Windows.Forms.TreeView treeView)
+		Windows.Reactive.ITreeViewController Windows.Reactive.IReactive.CreateTreeViewController(MultiselectTreeView treeView)
 		{
 			return new Windows.Reactive.TreeViewController(treeView);
 		}

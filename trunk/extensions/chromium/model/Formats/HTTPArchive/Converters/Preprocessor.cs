@@ -65,9 +65,7 @@ namespace LogJoint.Chromium.HttpArchive
 				{
 					if (new AssemblyName(e.Name).Name == "Newtonsoft.Json") // HarConvert needs Newtonsoft.Json v6, map it to whatever modern version shipped with the plugin
 					{
-						return Assembly.LoadFrom(Path.Combine(
-							Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-							"Newtonsoft.Json.dll"));
+						return typeof(Newtonsoft.Json.JsonReaderException).Assembly;
 					}
 					return null;
 				}

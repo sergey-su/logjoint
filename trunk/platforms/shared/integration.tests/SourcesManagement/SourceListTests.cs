@@ -53,11 +53,9 @@ namespace LogJoint.Tests.Integration
 			Assert.IsTrue(container.Checked);
 			Assert.IsTrue(container.ToString().Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
 			Assert.IsTrue(container.ToString().EndsWith("(2 logs)", StringComparison.InvariantCultureIgnoreCase));
-			Assert.IsTrue(container.Children[0].ToString().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\xmlwritertracelistener1.xml",
-				StringComparison.InvariantCultureIgnoreCase));
+			Assert.IsTrue(container.Children[0].ToString().ToLower().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\xmlwritertracelistener1.xml"));
 			Assert.IsTrue(((IViewItem)container.Children[0]).Checked);
-			Assert.IsTrue(container.Children[1].ToString().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\textwritertracelistener.log",
-				StringComparison.InvariantCultureIgnoreCase));
+			Assert.IsTrue(container.Children[1].ToString().ToLower().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\textwritertracelistener.log"));
 			Assert.IsTrue(((IViewItem)container.Children[1]).Checked);
 		}
 

@@ -29,7 +29,6 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
-			this.trackChangesCheckBox = new System.Windows.Forms.CheckBox();
 			this.sourcesListView = new LogJoint.UI.SourcesListView();
 			this.deleteButton = new System.Windows.Forms.Button();
 			this.deleteAllButton = new System.Windows.Forms.Button();
@@ -39,22 +38,6 @@
 			this.propertiesButton = new System.Windows.Forms.Button();
 			this.mruContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.SuspendLayout();
-			// 
-			// trackChangesCheckBox
-			// 
-			this.trackChangesCheckBox.AutoCheck = false;
-			this.trackChangesCheckBox.AutoSize = true;
-			this.trackChangesCheckBox.Enabled = false;
-			this.trackChangesCheckBox.Location = new System.Drawing.Point(404, 8);
-			this.trackChangesCheckBox.Margin = new System.Windows.Forms.Padding(4);
-			this.trackChangesCheckBox.Name = "trackChangesCheckBox";
-			this.trackChangesCheckBox.Size = new System.Drawing.Size(124, 21);
-			this.trackChangesCheckBox.TabIndex = 12;
-			this.trackChangesCheckBox.Text = "Track changes";
-			this.trackChangesCheckBox.ThreeState = true;
-			this.trackChangesCheckBox.UseVisualStyleBackColor = true;
-			this.trackChangesCheckBox.Visible = false;
-			this.trackChangesCheckBox.Click += new System.EventHandler(this.trackChangesCheckBox_Click);
 			// 
 			// sourcesListView
 			// 
@@ -149,7 +132,6 @@
 			// SourcesManagementView
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
-			this.Controls.Add(this.trackChangesCheckBox);
 			this.Controls.Add(this.sourcesListView);
 			this.Controls.Add(this.deleteButton);
 			this.Controls.Add(this.deleteAllButton);
