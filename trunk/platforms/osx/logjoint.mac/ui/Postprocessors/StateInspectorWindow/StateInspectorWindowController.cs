@@ -180,6 +180,12 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		{
 			EnsureLoaded ();
 			treeView.NeedsDisplay = true;
+			var rows = treeView.RowsInRect (treeView.VisibleRect());
+			for (var r = 0; r < rows.Length; ++r) {
+				var rv = treeView.GetRowView (r + rows.Location, false);
+				if (rv != null)
+					rv.NeedsDisplay = true;
+			}
 		}
 
 		void IView.ExpandAll (NodeInfo node)
