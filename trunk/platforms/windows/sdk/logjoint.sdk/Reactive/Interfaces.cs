@@ -26,6 +26,7 @@ namespace LogJoint.UI.Windows.Reactive
 		bool IsUpdating { get; }
 		Action<IListItem[]> OnSelect { get; set; }
 		Action<IListItem, int, IListItem> OnUpdateRow { get; set; }
+		IListItem Map(object listBoxItem);
 	};
 
 	public interface IReactive

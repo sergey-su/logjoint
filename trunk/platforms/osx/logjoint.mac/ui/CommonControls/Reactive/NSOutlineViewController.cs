@@ -54,6 +54,7 @@ namespace LogJoint.UI.Reactive
 		public Action<ITreeNode> OnCollapse { get; set; }
 		public Action<ITreeNode[]> OnSelect { get; set; }
 		public Func<NSTableColumn, ITreeNode, NSView> OnView { get; set; }
+		public Func<ITreeNode, NSTableRowView> OnRow { get; set; }
 
 		class DataSource : NSOutlineViewDataSource
 		{
@@ -112,7 +113,10 @@ namespace LogJoint.UI.Reactive
 					});
 				}
 
-				var edits = TreeEdit.GetTreeEdits(rootItem.Node, newRoot);
+				var edits = TreeEdit.GetTreeEdits(rootItem.Node, newRoot, new TreeEdit.Options
+				{
+					TemporariltyExpandParentToInitChildren = true
+				});
 
 				Rebind(rootItem, newRoot);
 
@@ -213,6 +217,16 @@ namespace LogJoint.UI.Reactive
 				else
 					view.StringValue = item.ToString();
 				return view;
+			}
+
+			[Export ("outlineView:rowViewForItem:")]
+			public override NSTableRowView RowViewForItem (NSOutlineView outlineView, NSObject item)
+			{
+				if (owner.OnRow != null)
+				{
+					return owner.OnRow (((NSNodeItem)item).Node);
+				}
+				return null;
 			}
 
 			public override NSIndexSet GetSelectionIndexes(NSOutlineView outlineView, NSIndexSet proposedSelectionIndexes)

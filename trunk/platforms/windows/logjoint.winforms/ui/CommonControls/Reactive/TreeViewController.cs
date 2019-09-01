@@ -61,7 +61,7 @@ namespace LogJoint.UI.Windows.Reactive
 			var finalizeActions = new List<Action>();
 
 			bool updateBegun = false;
-			void BeginUpdate()
+			Action beginUpdate = () =>
 			{
 				if (!updateBegun)
 				{
@@ -70,7 +70,7 @@ namespace LogJoint.UI.Windows.Reactive
 					treeView.BeginUpdate();
 					updateBegun = true;
 				}
-			}
+			};
 
 			updating = true;
 			try
@@ -85,12 +85,12 @@ namespace LogJoint.UI.Windows.Reactive
 					switch (e.Type)
 					{
 						case TreeEdit.EditType.Insert:
-							BeginUpdate();
+							beginUpdate();
 							var insertedNode = CreateViewNode(e.NewChild);
 							nodeChildren.Insert(e.ChildIndex, insertedNode);
 							break;
 						case TreeEdit.EditType.Delete:
-							BeginUpdate();
+							beginUpdate();
 							var deletedNode = nodeChildren[e.ChildIndex];
 							nodeChildren.RemoveAt(e.ChildIndex);
 							Debug.Assert(deletedNode == nodeToViewNodes[e.OldChild]);
@@ -98,18 +98,15 @@ namespace LogJoint.UI.Windows.Reactive
 							DeleteDescendantsFromMap(deletedNode);
 							break;
 						case TreeEdit.EditType.Reuse:
-							BeginUpdate();
 							var nodeToReuse = nodeToViewNodes[e.OldChild];
 							Rebind(nodeToReuse, e.NewChild);
-							UpdateViewNode(nodeToReuse, e.NewChild, e.OldChild);
+							UpdateViewNode(nodeToReuse, e.NewChild, e.OldChild, beginUpdate);
 							break;
 						case TreeEdit.EditType.Expand:
-							BeginUpdate();
 							finalizeActions.Add(node.Expand);
 							break;
 						case TreeEdit.EditType.Collapse:
-							BeginUpdate();
-							finalizeActions.Add(node.Collapse);
+							finalizeActions.Add(() => node.Collapse(ignoreChildren: true));
 							break;
 						case TreeEdit.EditType.Select:
 							treeView.SelectNode(node);
@@ -142,7 +139,7 @@ namespace LogJoint.UI.Windows.Reactive
 		ViewNode CreateViewNode(ITreeNode node)
 		{
 			var result = new ViewNode { Node = node };
-			UpdateViewNode(result, node, null);
+			UpdateViewNode(result, node, null, null);
 			nodeToViewNodes.Add(node, result);
 			return result;
 		}
@@ -163,7 +160,7 @@ namespace LogJoint.UI.Windows.Reactive
 			}
 		}
 
-		void UpdateViewNode(TreeNode viewNode, ITreeNode newNode, ITreeNode oldNode)
+		void UpdateViewNode(TreeNode viewNode, ITreeNode newNode, ITreeNode oldNode, Action beginUpdate)
 		{
 			if (OnUpdateNode != null)
 			{
@@ -173,7 +170,10 @@ namespace LogJoint.UI.Windows.Reactive
 			{
 				var newText = newNode.ToString();
 				if (oldNode == null || newText != oldNode.ToString())
+				{
+					beginUpdate?.Invoke();
 					viewNode.Text = newText;
+				}
 			}
 		}
 

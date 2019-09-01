@@ -8,18 +8,18 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	class TreeRowView: NSTableRowView
 	{
 		public StateInspectorWindowController owner;
-		public Node node;
+		public IObjectsTreeNode node;
 
-		public void Update(Node n)
+		public void Update(IObjectsTreeNode n)
 		{
 			node = n;
 		}
 
 		public override void DrawRect (CGRect dirtyRect)
 		{
-			bool isSelected = owner.TreeView.IsRowSelected (owner.TreeView.RowForItem (node));
+			bool isSelected = node.IsSelected;
 			bool isDarkMode = owner.ViewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
-			var paintInfo = owner.ViewModel.OnPaintNode(node.ToNodeInfo(), false);
+			var paintInfo = owner.ViewModel.PaintNode(node, false);
 			if (isSelected) {
 				NSColor.SelectedMenuItem.SetFill ();
 			}

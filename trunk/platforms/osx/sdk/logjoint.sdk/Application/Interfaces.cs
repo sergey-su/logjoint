@@ -36,10 +36,12 @@ namespace LogJoint
 			Action<PR.ITreeNode> OnCollapse { get; set; }
 			Action<PR.ITreeNode[]> OnSelect { get; set; }
 			Func<NSTableColumn, PR.ITreeNode, NSView> OnView { get; set; }
+			Func<PR.ITreeNode, NSTableRowView> OnRow { get; set; }
 		};
 
 		public delegate NSView CrateTableViewDelegate(PR.IListItem item, NSTableColumn column);
 		public delegate void UpdateTableViewDelegate(PR.IListItem item, NSTableColumn column, NSView view, PR.IListItem oldItem);
+		public delegate NSTableRowView CreateTableRowViewDelegate(PR.IListItem item, int rowIndex);
 
 		public interface INSTableViewController
 		{
@@ -47,6 +49,7 @@ namespace LogJoint
 			Action<PR.IListItem[]> OnSelect { get; set; }
 			CrateTableViewDelegate OnCreateView { get; set; }
 			UpdateTableViewDelegate OnUpdateView { get; set; }
+			CreateTableRowViewDelegate OnCreateRowView { get; set; }
 		};
 	}
 }

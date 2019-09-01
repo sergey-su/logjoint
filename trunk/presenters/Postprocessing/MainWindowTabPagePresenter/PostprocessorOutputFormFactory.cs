@@ -128,7 +128,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 			stateInspectorModel = new LogJoint.Postprocessing.StateInspector.StateInspectorVisualizerModel(
 				postprocessorsManager,
 				logSourcesManager,
-				synchronizationContext,
+				changeNotification,
 				shortNames
 			);
 			stateInspectorPresenter = new StateInspectorVisualizer.StateInspectorPresenter(
@@ -142,7 +142,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 				presentersFacade,
 				clipboardAccess,
 				sourcesManagerPresenter,
-				colorTheme
+				colorTheme,
+				changeNotification
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.StateInspector, stateInspectorForm, stateInspectorPresenter));
 		}

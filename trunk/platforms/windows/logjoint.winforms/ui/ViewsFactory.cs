@@ -81,7 +81,7 @@ namespace LogJoint.UI.Presenters
 
 		(Postprocessing.IPostprocessorOutputForm, Postprocessing.StateInspectorVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateStateInspectorViewObjects()
 		{
-			var impl = new UI.Postprocessing.StateInspector.StateInspectorForm();
+			var impl = new UI.Postprocessing.StateInspector.StateInspectorForm(this);
 			winFormsComponentsInitializer.InitOwnedForm(impl, takeOwnership: false);
 			return (impl, impl);
 		}

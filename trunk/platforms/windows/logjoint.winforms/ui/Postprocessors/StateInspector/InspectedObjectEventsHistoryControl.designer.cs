@@ -51,7 +51,6 @@
 			this.listBox.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.listBox1_DrawItem);
 			this.listBox.DoubleClick += new System.EventHandler(this.listBox1_DoubleClick);
-			this.listBox.SelectedIndexChanged += listBox_SelectedIndexChanged;
 			// 
 			// toolStrip1
 			// 

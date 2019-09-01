@@ -3,15 +3,16 @@ using AppKit;
 using Foundation;
 using CoreGraphics;
 using LogJoint.Drawing;
+using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
 	class TreeNodeView: NSView
 	{
 		public StateInspectorWindowController owner;
-		public Node node;
+		public IObjectsTreeNode node;
 
-		public void Update(Node node)
+		public void Update(IObjectsTreeNode node)
 		{
 			this.node = node;
 			this.NeedsDisplay = true;
@@ -21,9 +22,9 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		{
 			base.DrawRect (dirtyRect);
 
-			var mainText = new NSString (node.text);
+			var mainText = new NSString (node.ToString());
 			var bounds = this.Bounds.ToRectangleF();
-			bool isSelected = owner.TreeView.IsRowSelected (owner.TreeView.RowForItem (node));
+			bool isSelected = node.IsSelected;
 
 			var mainTextAttrs = new NSMutableDictionary ();
 			var mainTextPara = new NSMutableParagraphStyle ();
@@ -40,7 +41,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			float spaceAvailableForDefaultPropValue =
 				bounds.Width - mainTextSz.Width - nodeTextAndPrimaryPropHorzSpacing;
 
-			var paintInfo = owner.ViewModel.OnPaintNode(node.ToNodeInfo(), spaceAvailableForDefaultPropValue > 30);
+			var paintInfo = owner.ViewModel.PaintNode(node, spaceAvailableForDefaultPropValue > 30);
 			if (paintInfo.PrimaryPropValue != null)
 			{
 				var r = new RectangleF(

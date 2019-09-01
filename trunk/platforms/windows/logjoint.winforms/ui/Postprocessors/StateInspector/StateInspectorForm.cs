@@ -11,163 +11,68 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 {
 	public partial class StateInspectorForm : ToolForm, IView
 	{
+		readonly Windows.Reactive.IReactive reactive;
 		IViewModel viewModel;
-		bool expandingProgrammatically;
+		Windows.Reactive.ITreeViewController treeViewController;
 
-		public StateInspectorForm()
+		public StateInspectorForm(Windows.Reactive.IReactive reactive)
 		{
 			InitializeComponent();
 
+			this.reactive = reactive;
+			this.treeViewController = reactive.CreateTreeViewController(objectsTreeView);
 			this.objectsTreeView.Indent = UIUtils.Dpi.Scale(20, 120);
 			this.splitContainer1.SplitterWidth = Math.Max(4, UIUtils.Dpi.Scale(4, 120));
 			this.splitContainer3.SplitterDistance = UIUtils.Dpi.Scale(260, 120);
 			this.ClientSize = new System.Drawing.Size(UIUtils.Dpi.Scale(800, 120), UIUtils.Dpi.Scale(500, 120));
-			this.objectsTreeView.BeforeExpand += (s, e) => { if (!expandingProgrammatically) viewModel.OnNodeExpanding(GetNodeInternal(e.Node)); };
+			this.treeViewController.OnExpand = node => viewModel.OnExpandNode((IObjectsTreeNode)node);
+			this.treeViewController.OnCollapse = node => viewModel.OnCollapseNode((IObjectsTreeNode)node);
+			this.treeViewController.OnSelect = nodes => viewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray());
 
 			selectedObjectStateHistoryControl.Header.ResizingStarted += (s, e) => splitContainer3.BeginSplitting();
 
 		}
 
-		void IView.SetEventsHandler(IViewModel viewModel)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
-			selectedObjectStateHistoryControl.Init(viewModel);
+			selectedObjectStateHistoryControl.Init(viewModel, reactive);
 			propertiesDataGridView.Init(viewModel);
-		}
 
-		NodesCollectionInfo IView.RootNodesCollection
-		{
-			get { return GetNodesCollection(objectsTreeView.Nodes); }
-		}
+			var updateTree = Updaters.Create(
+				() => viewModel.ObjectsTreeRoot,
+				treeViewController.Update
+			);
 
-		void IView.Clear(NodesCollectionInfo nodesCollection)
-		{
-			((TreeNodeCollection)nodesCollection.Data).Clear();
-		}
+			var updateCurrentTime = Updaters.Create(
+				() => viewModel.CurrentTimeLabelText,
+				text => currentTimeLabel.Text = text
+			);
 
-		void IView.AddNode(NodesCollectionInfo nodesCollection, NodeInfo node)
-		{
-			((TreeNodeCollection)nodesCollection.Data).Add((TreeNode)node.Data);
-		}
+			var updatePropertiesTable = Updaters.Create(
+				() => viewModel.ObjectsProperties,
+				properties => propertiesDataGridView.DataSource = properties // todo: preserve selection
+			);
 
-		NodeInfo[] IView.SelectedNodes
-		{
-			get { return objectsTreeView.SelectedNodes.Select(n => GetNodeInternal(n)).ToArray(); }
-			set { objectsTreeView.SelectedNodes = value.Select(n => (TreeNode)n.Data).ToArray(); }
-		}
+			var repaintTree = Updaters.Create(
+				() => viewModel.PaintNode,
+				_ => objectsTreeView.Invalidate()
+			);
 
-		void IView.SetNodeText(NodeInfo node, string text)
-		{
-			((TreeNode)node.Data).Text = text;
-		}
-
-		void IView.ScrollSelectedNodesInView()
-		{
-			objectsTreeView.ScrollSelectedNodesInView();
-		}
-
-		void IView.BeginTreeUpdate()
-		{
-			objectsTreeView.BeginUpdate();
-		}
-
-		void IView.EndTreeUpdate()
-		{
-			objectsTreeView.EndUpdate();
-		}
-
-		void IView.InvalidateTree()
-		{
-			objectsTreeView.Invalidate();
-		}
-
-		bool IView.TreeSupportsLoadingOnExpansion
-		{
-			get { return true; }
-		}
-		NodeInfo IView.CreateNode(string nodeText, object tag, NodesCollectionInfo nodesCollection)
-		{
-			var viewNode = new TreeNode(nodeText) { Tag = tag };
-			if (nodesCollection.Data != null)
-				((TreeNodeCollection)nodesCollection.Data).Add(viewNode);
-			return GetNodeInternal(viewNode);
-		}
-
-		async void IView.ExpandAll(NodeInfo node)
-		{
-			expandingProgrammatically = true;
-			((TreeNode)node.Data).ExpandAll();
-			await Task.Yield();
-			expandingProgrammatically = false;
-		}
-
-		void IView.Collapse(NodeInfo node)
-		{
-			((TreeNode)node.Data).Collapse();
-		}
-
-		IEnumerable<NodeInfo> IView.EnumCollection(NodesCollectionInfo nodesCollection)
-		{
-			return ((TreeNodeCollection)nodesCollection.Data).Cast<TreeNode>().Select(GetNodeInternal);
-		}
-
-		int? IView.SelectedPropertiesRow
-		{
-			get
+			viewModel.ChangeNotification.CreateSubscription(() =>
 			{
-				if (propertiesDataGridView.SelectedRows.Count > 0)
-					return propertiesDataGridView.SelectedRows[0].Index;
-				return null;
-			}
-			set
-			{
-				if (value != null)
-					propertiesDataGridView.Rows[value.Value].Selected = true;
-			}
+				updateTree();
+				repaintTree();
+				updateCurrentTime();
+				updatePropertiesTable();
+			});
 		}
 
-		void IView.SetPropertiesDataSource(IList<KeyValuePair<string, object>> properties)
-		{
-			propertiesDataGridView.DataSource = properties;
-		}
-
-		void IView.SetCurrentTimeLabelText(string text)
-		{
-			currentTimeLabel.Text = text;
-		}
 
 		void IView.Show()
 		{
 			this.Visible = true;
 			this.BringToFront();
-		}
-
-		void IView.SetNodeColoring(NodeInfo nodeObj, NodeColoring coloring)
-		{
-			var node = (TreeNode)nodeObj.Data;
-			var res = GetNodeColoringResources(coloring);
-			node.BackColor = res.BkColor;
-			node.ForeColor = res.FontColor;
-		}
-
-		IEnumerable<StateHistoryItem> IView.SelectedStateHistoryEvents
-		{
-			get { return selectedObjectStateHistoryControl.GetSelection(); }
-		}
-
-		void IView.BeginUpdateStateHistoryList(bool fullUpdate, bool clearList)
-		{
-			selectedObjectStateHistoryControl.BeginUpdate(fullUpdate, clearList);
-		}
-
-		int IView.AddStateHistoryItem(StateHistoryItem item)
-		{
-			return selectedObjectStateHistoryControl.AddItem(item);
-		}
-
-		void IView.EndUpdateStateHistoryList(int[] newSelectedIndexes, bool fullUpdate, bool redrawFocusedMessageMark)
-		{
-			selectedObjectStateHistoryControl.EndUpdate(newSelectedIndexes, fullUpdate, redrawFocusedMessageMark);
 		}
 
 		void IView.ScrollStateHistoryItemIntoView(int itemIndex)
@@ -200,15 +105,10 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			return NodeColoringResources.NotCreatedYet;
 		}
 
-		void objectsTreeView_SelectedNodesChanged(object sender, EventArgs e)
-		{
-			viewModel.OnSelectedNodesChanged();
-		}
-
 		private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
 		{
 			propertiesDataGridView.Capture = false;
-			viewModel.OnPropertiesRowDoubleClicked();
+			viewModel.OnPropertiesRowDoubleClicked(e.RowIndex);
 		}
 
 		private void propertiesDataGridView_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
@@ -239,7 +139,18 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		private void CallObjectsForm_VisibleChanged(object sender, EventArgs e)
 		{
 			if (viewModel != null)
-				viewModel.OnVisibleChanged();
+				viewModel.OnVisibleChanged(this.Visible);
+		}
+
+		private void objectsTreeView_NodeDisplayAttributes(object sender, Windows.TreeViewAttributesEventArgs e)
+		{
+			if (viewModel == null)
+				return;
+
+			var paintInfo = viewModel.PaintNode((IObjectsTreeNode)treeViewController.Map(e.Node), false);
+
+			if (paintInfo.DrawingEnabled)
+				e.BackColor = GetNodeColoringResources(paintInfo.Coloring).BkColor;
 		}
 
 		private void objectsTreeView_DrawNode(object sender, DrawTreeNodeEventArgs e)
@@ -247,9 +158,8 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			if (viewModel == null)
 				return;
 
-
 			int spaceAvailableForDefaultPropValue = objectsTreeView.ClientSize.Width - e.Node.Bounds.Right;
-			var paintInfo = viewModel.OnPaintNode(GetNodeInternal(e.Node), spaceAvailableForDefaultPropValue > 30);
+			var paintInfo = viewModel.PaintNode((IObjectsTreeNode)treeViewController.Map(e.Node), spaceAvailableForDefaultPropValue > 30);
 
 			if (!paintInfo.DrawingEnabled)
 				return;
@@ -280,13 +190,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		{
 			if (e.KeyCode == Keys.Delete)
 			{
-				viewModel.OnDeleteKeyPressed();
+				viewModel.OnNodeDeleteKeyPressed();
 			}
 		}
 
 		private void contextMenuStrip_Opening(object sender, CancelEventArgs e)
 		{
-			var menuData = viewModel.OnMenuOpening();
+			var menuData = viewModel.OnNodeMenuOpening();
 			if (menuData.Items.Count == 0)
 			{
 				e.Cancel = true;
@@ -307,28 +217,6 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 					contextMenuStrip.Items.Add(menuItem);
 				}
 			}
-		}
-
-		static NodeInfo GetNodeInternal(TreeNode node)
-		{
-			if (node == null)
-				return new NodeInfo();
-			return new NodeInfo()
-			{
-				Data = node,
-				Tag = node.Tag,
-				ChildrenNodesCollection = GetNodesCollection(node.Nodes),
-				Text = node.Text,
-				Coloring = GetNodeColoringResources(node).Code
-			};
-		}
-
-		static NodesCollectionInfo GetNodesCollection(TreeNodeCollection coll)
-		{
-			return new NodesCollectionInfo()
-			{
-				Data = coll
-			};
 		}
 
 		struct NodeColoringResources

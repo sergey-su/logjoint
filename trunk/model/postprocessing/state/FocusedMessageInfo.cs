@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
-	public class FocusedMessageInfo
+	public class FocusedMessageInfo // todo: get rid of
 	{
 		readonly IMessage focusedMessage;
 

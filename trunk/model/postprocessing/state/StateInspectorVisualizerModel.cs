@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using System.Collections.Immutable;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
@@ -10,32 +11,38 @@ namespace LogJoint.Postprocessing.StateInspector
 		public StateInspectorVisualizerModel(
 			IManager postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
-			ISynchronizationContext invokeSync,
+			IChangeNotification changeNotification,
 			IUserNamesProvider shortNamesManager)
 		{
 			this.postprocessorsManager = postprocessorsManager;
-			this.outputsUpdateInvocation = new AsyncInvokeHelper(invokeSync, UpdateOutputs);
 			this.shortNamesManager = shortNamesManager;
 
+			int postprocessorsVersion = 0;
 			postprocessorsManager.Changed += (sender, args) =>
 			{
-				outputsUpdateInvocation.Invoke();
+				postprocessorsVersion++;
+				changeNotification.Post();
 			};
-			logSourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
-			{
-				outputsUpdateInvocation.Invoke();
-			};
-
-			UpdateOutputs();
+			var updateGroups = Updaters.Create(
+				() => logSourcesManager.VisibleItems,
+				() => postprocessorsVersion,
+				(visibleSources, _) =>
+				{
+					UpdateOutputs();
+					UpdateOutputGroups();
+				}
+			);
+			this.getGroupsList = Selectors.Create(
+				() =>
+				{
+					updateGroups();
+					return groups;
+				},
+				dict => (IReadOnlyList<IStateInspectorOutputsGroup>)dict.Values.ToImmutableArray()
+			);
 		}
 
-		IEnumerable<IStateInspectorOutputsGroup> IStateInspectorVisualizerModel.Groups
-		{
-			get { return groups.Values; }
-		}
-
-		public event EventHandler Changed;
-
+		IReadOnlyList<IStateInspectorOutputsGroup> IStateInspectorVisualizerModel.Groups => getGroupsList();
 
 		void UpdateOutputs()
 		{
@@ -51,8 +58,6 @@ namespace LogJoint.Postprocessing.StateInspector
 			{
 				outputs = newOutputs;
 				UpdateOutputGroups();
-				if (Changed != null)
-					Changed(this, EventArgs.Empty);
 			}
 		}
 
@@ -68,16 +73,17 @@ namespace LogJoint.Postprocessing.StateInspector
 				});
 
 			var oldGroups = groups;
-			groups = new Dictionary<string, RotatedLogGroup>();
+			var builder = ImmutableDictionary.CreateBuilder<string, RotatedLogGroup>();
 
 			foreach (var newGroup in newGroups)
 			{
 				RotatedLogGroup existingGroup;
 				if (oldGroups.TryGetValue(newGroup.key, out existingGroup))
-					groups.Add(newGroup.key, existingGroup);
+					builder.Add(newGroup.key, existingGroup);
 				else
-					groups.Add(newGroup.key, newGroup);
+					builder.Add(newGroup.key, newGroup);
 			}
+			groups = builder.ToImmutable();
 
 			foreach (var group in groups.Values)
 			{
@@ -106,14 +112,14 @@ namespace LogJoint.Postprocessing.StateInspector
 			public bool isInitialized;
 			public List<IStateInspectorOutput> parts;
 			public List<StateInspectorEvent> events;
-			public List<IInspectedObject> roots;
+			public IReadOnlyList<IInspectedObject> roots;
 
 			string IStateInspectorOutputsGroup.Key
 			{
 				get { return key; }
 			}
 
-			IEnumerable<IInspectedObject> IStateInspectorOutputsGroup.Roots
+			IReadOnlyList<IInspectedObject> IStateInspectorOutputsGroup.Roots
 			{
 				get { return roots; }
 			}
@@ -123,7 +129,7 @@ namespace LogJoint.Postprocessing.StateInspector
 				get { return events; }
 			}
 
-			IEnumerable<IStateInspectorOutput> IStateInspectorOutputsGroup.Outputs
+			IReadOnlyList<IStateInspectorOutput> IStateInspectorOutputsGroup.Outputs
 			{
 				get { return parts; }
 			}
@@ -132,7 +138,8 @@ namespace LogJoint.Postprocessing.StateInspector
 		readonly IManager postprocessorsManager;
 		readonly IUserNamesProvider shortNamesManager;
 		HashSet<IStateInspectorOutput> outputs = new HashSet<IStateInspectorOutput>();
-		Dictionary<string, RotatedLogGroup> groups = new Dictionary<string, RotatedLogGroup>();
+		ImmutableDictionary<string, RotatedLogGroup> groups = ImmutableDictionary<string, RotatedLogGroup>.Empty;
 		readonly AsyncInvokeHelper outputsUpdateInvocation;
+		readonly Func<IReadOnlyList<IStateInspectorOutputsGroup>> getGroupsList;
 	};
 }

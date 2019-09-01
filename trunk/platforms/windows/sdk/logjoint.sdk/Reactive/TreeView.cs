@@ -70,12 +70,13 @@ namespace LogJoint.UI.Windows
 
 		public event TreeViewMultiNodeCancelEventHandler BeforeMultiSelect;
 		public event EventHandler AfterMultiSelect;
+		public event TreeViewNodeDisplayAttributesEventHandler NodeDisplayAttributes;
 
 		protected unsafe override void WndProc(ref Message m)
 		{
 			switch (m.Msg)
 			{
-				case 8270:
+				case OCM_NOTIFY:
 					NMHDR* ptr = (NMHDR*)((void*)m.LParam);
 					if (ptr->code == NM_CUSTOMDRAW)
 					{
@@ -117,9 +118,15 @@ namespace LogJoint.UI.Windows
 			base.WndProc(ref m);
 		}
 
-		static Color GetNodeRowBackgroundColor(TreeNode node)
+		Color GetNodeRowBackgroundColor(TreeNode node)
 		{
 			var rowColor = node.BackColor;
+			if (NodeDisplayAttributes != null)
+			{
+				var args = new TreeViewAttributesEventArgs(node);
+				NodeDisplayAttributes.Invoke(this, args);
+				rowColor = args.BackColor;
+			}
 			if (rowColor == Color.Empty)
 				rowColor = Color.White;
 			return rowColor;
@@ -289,32 +296,37 @@ namespace LogJoint.UI.Windows
 			if (e.Node == null)
 				return;
 
-			var selected = selectedNodes.Contains(e.Node);
-			var focused = e.Node.TreeView.Focused;
-			var font = e.Node.NodeFont ?? e.Node.TreeView.Font;
-			var textBounds = e.Bounds;
-			if (CheckBoxes)
-			{
-				var pad = 1;
-				textBounds.X += pad;
-				textBounds.Width -= pad;
-			}
-
-			if (selected)
-			{
-				e.Graphics.FillRectangle(SystemBrushes.Highlight, textBounds);
-				TextRenderer.DrawText(e.Graphics, e.Node.Text, font, textBounds, 
-					System.Drawing.SystemColors.HighlightText, TextFormatFlags.Default);
-			}
-			else
-			{
-				using (var b = new SolidBrush(GetNodeRowBackgroundColor(e.Node)))
-					e.Graphics.FillRectangle(b, textBounds);
-				TextRenderer.DrawText(e.Graphics, e.Node.Text, font, textBounds,
-					(e.Node.ForeColor != Color.Empty) ? e.Node.ForeColor : this.ForeColor, TextFormatFlags.Default);
-			}
+			e.DrawDefault = true;
 
 			base.OnDrawNode(e);
+
+			if (e.DrawDefault)
+			{
+				var selected = selectedNodes.Contains(e.Node);
+				var focused = e.Node.TreeView.Focused;
+				var font = e.Node.NodeFont ?? e.Node.TreeView.Font;
+				var textBounds = e.Bounds;
+				if (CheckBoxes)
+				{
+					var pad = 1;
+					textBounds.X += pad;
+					textBounds.Width -= pad;
+				}
+
+				if (selected)
+				{
+					e.Graphics.FillRectangle(SystemBrushes.Highlight, textBounds);
+					TextRenderer.DrawText(e.Graphics, e.Node.Text, font, textBounds,
+						SystemColors.HighlightText, TextFormatFlags.Default);
+				}
+				else
+				{
+					using (var b = new SolidBrush(GetNodeRowBackgroundColor(e.Node)))
+						e.Graphics.FillRectangle(b, textBounds);
+					TextRenderer.DrawText(e.Graphics, e.Node.Text, font, textBounds,
+						(e.Node.ForeColor != Color.Empty) ? e.Node.ForeColor : this.ForeColor, TextFormatFlags.Default); // todo: use version with back color
+				}
+			}
 
 			e.DrawDefault = false;
 		}
@@ -383,6 +395,7 @@ namespace LogJoint.UI.Windows
 		const int WM_ERASEBKGND = 0x0014;
 		const int WM_HSCROLL = 0x0114;
 		const int NM_CUSTOMDRAW = -12;
+		const int OCM_NOTIFY = 8270;
 		const int CDDS_ITEM = 0x00010000;
 		const int CDDS_PREPAINT = 0x00000001;
 		const int CDDS_PREERASE = 0x00000003;
@@ -439,4 +452,20 @@ namespace LogJoint.UI.Windows
 	}
 
 	public delegate void TreeViewMultiNodeCancelEventHandler(object sender, TreeViewMultiNodeCancelEventArgs e);
+
+	public class TreeViewAttributesEventArgs : EventArgs
+	{
+		public TreeViewAttributesEventArgs(TreeNode node)
+		{
+			Node = node;
+			BackColor = node.BackColor;
+			ForeColor = node.ForeColor;
+		}
+
+		public TreeNode Node { get; private set; }
+		public Color BackColor { get; set; }
+		public Color ForeColor { get; set; }
+	};
+
+	public delegate void TreeViewNodeDisplayAttributesEventHandler(object sender, TreeViewAttributesEventArgs e);
 }

@@ -42,6 +42,7 @@ namespace LogJoint.UI.Reactive
 		public Action<IListItem[]> OnSelect { get; set; }
 		public CrateTableViewDelegate OnCreateView { get; set; }
 		public UpdateTableViewDelegate OnUpdateView { get; set; }
+		public CreateTableRowViewDelegate OnCreateRowView { get; set; }
 
 		class DataSource : NSTableViewDataSource
 		{
@@ -156,6 +157,16 @@ namespace LogJoint.UI.Reactive
 				else
 					view.StringValue = item.ToString();
 				return view;
+			}
+
+			public override NSTableRowView CoreGetRowView (NSTableView tableView, nint row)
+			{
+				if (owner.OnCreateRowView != null)
+				{
+					var item = dataSource.items [(int)row];
+					return owner.OnCreateRowView (item, (int)row);
+				}
+				return base.CoreGetRowView(tableView, row);
 			}
 
 			public override NSIndexSet GetSelectionIndexes(NSTableView tableView, NSIndexSet proposedSelectionIndexes)

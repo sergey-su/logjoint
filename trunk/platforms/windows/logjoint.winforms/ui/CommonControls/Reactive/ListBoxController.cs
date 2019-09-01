@@ -61,7 +61,7 @@ namespace LogJoint.UI.Windows.Reactive
 							listBox.Items.RemoveAt(e.Index);
 							break;
 						case ListEdit.EditType.Reuse:
-							listBox.Items[e.Index] = e.Item;
+							// listBox.Items[e.Index] = e.Item;
 							OnUpdateRow?.Invoke(e.Item, e.Index, e.OldItem);
 							break;
 						case ListEdit.EditType.Select:
@@ -81,6 +81,11 @@ namespace LogJoint.UI.Windows.Reactive
 				}
 				updating = false;
 			}
+		}
+
+		IListItem IListBoxController.Map(object listBoxItem)
+		{
+			return listBoxItem as IListItem;
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
@@ -9,8 +10,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	public partial class InspectedObjectEventsHistoryControl : UserControl
 	{
 		IViewModel viewModel;
-		bool isUpdating;
-		int topIndexBeforeUpdate;
+		Windows.Reactive.IListBoxController listBoxController;
 		StringFormat strFormat;
 		float bookmarkAndFocusedMarkAreaWidth;
 		BufferedGraphicsContext bufferedGraphicsContext = new BufferedGraphicsContext();
@@ -23,69 +23,33 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			bookmarkAndFocusedMarkAreaWidth = UIUtils.Dpi.Scale(13);
 		}
 
-		public void Init(IViewModel viewEvents)
+		public void Init(IViewModel viewModel, Windows.Reactive.IReactive reactive)
 		{
-			this.viewModel = viewEvents;
+			this.viewModel = viewModel;
+			this.listBoxController = reactive.CreateListBoxController(this.listBox);
+			this.listBoxController.OnSelect = (Presenters.Reactive.IListItem[] proposedSelection) => this.viewModel.OnChangeHistoryChangeSelection(proposedSelection.OfType<IStateHistoryItem>());
+
+			var updateStateHistoty = Updaters.Create(
+				() => viewModel.ChangeHistoryItems,
+				listBoxController.Update
+			);
+
+			var updateBookmarksAndFocusedMessageMark = Updaters.Create(
+				() => viewModel.IsChangeHistoryItemBookmarked,
+				() => viewModel.FocusedMessagePositionInChangeHistory,
+				(_1, _2) => listBox.Invalidate(new Rectangle(0, 0, (int)bookmarkAndFocusedMarkAreaWidth + 1, listBox.Height))
+			);
+
+			viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				updateStateHistoty();
+				updateBookmarksAndFocusedMessageMark();
+			});
 		}
 
 		public ExtendedToolStrip Header { get { return toolStrip1; } }
 
-		public IEnumerable<StateHistoryItem> GetSelection()
-		{
-			foreach (int i in listBox.SelectedIndices)
-				yield return ((ListItem)listBox.Items[i]).evt;
-		}
-
-		StateHistoryItem PrimarySelectedItem
-		{
-			get
-			{
-				var i = listBox.SelectedItem as ListItem;
-				if (i != null)
-					return i.evt;
-				return null;
-			}
-		}
-
-		public void BeginUpdate(bool fullUpdate, bool clearList)
-		{
-			if (fullUpdate)
-			{
-				isUpdating = true;
-				topIndexBeforeUpdate = listBox.TopIndex;
-				listBox.BeginUpdate();
-			}
-			if (clearList)
-			{
-				listBox.Items.Clear();
-			}
-		}
-
-		public int AddItem(StateHistoryItem item)
-		{
-			return listBox.Items.Add(new ListItem(item));
-		}
-
-		public void EndUpdate(int[] newSelectedIndexes, bool fullUpdate, bool redrawFocusedMessageMark)
-		{
-			if (newSelectedIndexes != null)
-			{
-				listBox.SelectedIndices.Clear();
-				foreach (var i in newSelectedIndexes)
-					listBox.SelectedIndices.Add(i);
-			}
-			if (fullUpdate)
-			{
-				isUpdating = false;
-				listBox.EndUpdate();
-				if (topIndexBeforeUpdate < listBox.Items.Count)
-					listBox.TopIndex = topIndexBeforeUpdate;
-			}
-			if (redrawFocusedMessageMark)
-			{
-				listBox.Invalidate(new Rectangle(0, 0, (int)bookmarkAndFocusedMarkAreaWidth+1, listBox.Height));
-			}
-		}
+		IStateHistoryItem PrimarySelectedItem => listBoxController.Map(listBox.SelectedItem) as IStateHistoryItem;
 
 		protected override CreateParams CreateParams
 		{
@@ -97,38 +61,17 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			}
 		}
 
-		class ListItem
-		{
-			public ListItem(StateHistoryItem evt)
-			{
-				this.evt = evt;
-			}
-
-			public override string ToString()
-			{
-				return "\t" + evt.Time + "\t" + evt.Message;
-			}
-
-			public readonly StateHistoryItem evt;
-		};
-
 		private void listBox1_DoubleClick(object sender, EventArgs e)
 		{
 			listBox.Capture = false;
 			if (PrimarySelectedItem != null)
-				viewModel.OnChangeHistoryItemClicked(PrimarySelectedItem);
-		}
-
-		void listBox_SelectedIndexChanged(object sender, System.EventArgs e)
-		{
-			if (!isUpdating)
-				viewModel.OnChangeHistorySelectionChanged();
+				viewModel.OnChangeHistoryItemDoubleClicked(PrimarySelectedItem);
 		}
 
 		private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
 		{
 			// drawing uses double buffering to ensure good look over RDP session.
-			// direct drawing to e.Graphics in DRP session disables font smoothing for some reason.
+			// direct drawing to e.Graphics in RDP session disables font smoothing for some reason.
 			using (var backBuffer = bufferedGraphicsContext.Allocate(e.Graphics, e.Bounds)) 
 			{
 				var g = backBuffer.Graphics;
@@ -139,13 +82,12 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				}
 				if (e.Index >= 0) // Index was observed to be -1 once in a while!
 				{
-					var li = listBox.Items[e.Index] as ListItem;
-					if (li != null)
+					if (listBox.Items[e.Index] is IStateHistoryItem li)
 					{
 						var bmkImg = StateInspectorResources.Bookmark;
 						var bmkImgSz = bmkImg.GetSize(width: UIUtils.Dpi.Scale(9));
 
-						bool isBookmarked = viewModel.OnGetHistoryItemBookmarked(li.evt);
+						bool isBookmarked = viewModel.IsChangeHistoryItemBookmarked(li);
 						if (isBookmarked)
 						{
 							var r = listBox.GetItemRectangle(e.Index);
@@ -153,7 +95,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 							g.DrawImage(bmkImg, new RectangleF(1, r.Y + (r.Height - bmkImgSz.Height) / 2, bmkImgSz.Width, bmkImgSz.Height));
 						}
 
-						var focusedMessage = viewModel.OnDrawFocusedMessageMark();
+						var focusedMessage = viewModel.FocusedMessagePositionInChangeHistory;
 						if (focusedMessage != null && listBox.Items.Count != 0 && Math.Abs(focusedMessage.Item1 - e.Index) <= 1)
 						{
 							var imgsz = UIUtils.FocusedItemMarkBounds.Size;
@@ -174,7 +116,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 								strFormat = new StringFormat(StringFormatFlags.NoFontFallback);
 								strFormat.SetTabStops(0, new float[] { bookmarkAndFocusedMarkAreaWidth, g.MeasureString("12:23:45.678", e.Font).Width + 5 });
 							}
-							g.DrawString(li.ToString(), e.Font, b, e.Bounds.Location, strFormat);
+							g.DrawString($"\t{li.Time}\t{li.Message}", e.Font, b, e.Bounds.Location, strFormat);
 						}
 					}
 				}

@@ -47,7 +47,7 @@ namespace LogJoint.UI.Presenters
 
 		(Postprocessing.IPostprocessorOutputForm, Postprocessing.StateInspectorVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateStateInspectorViewObjects ()
 		{
-			var wnd = new UI.Postprocessing.StateInspector.StateInspectorWindowController ();
+			var wnd = new UI.Postprocessing.StateInspector.StateInspectorWindowController (this);
 			return (wnd, wnd);
 		}
 
