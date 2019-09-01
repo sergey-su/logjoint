@@ -7,7 +7,7 @@ namespace LogJoint
 {
 	public class TempFilesManager: ITempFilesManager
 	{
-		public TempFilesManager(ITraceSourceFactory traceSourceFactory)
+		public TempFilesManager(ITraceSourceFactory traceSourceFactory, MultiInstance.IInstancesCounter instancesCounter)
 		{
 			var tracer = traceSourceFactory.CreateTraceSource("App", "tmp");
 			using (tracer.NewFrame)
@@ -16,9 +16,6 @@ namespace LogJoint
 				folder = Path.Combine(Path.GetTempPath(), "LogJoint");
 #else
 #endif
-				bool thisIsTheOnlyInstance = false;
-				runningInstanceMutex = new Mutex(true, "LogJoint/TempFilesManager", out thisIsTheOnlyInstance);
-
 				tracer.Info("Temp directory: {0}", folder);
 				
 				if (!Directory.Exists(folder))
@@ -28,7 +25,7 @@ namespace LogJoint
 				}
 				else
 				{
-					if (!thisIsTheOnlyInstance)
+					if (!instancesCounter.IsPrimaryInstance)
 					{
 						tracer.Info("Temp directory exists and I am NOT the only instance in the system. Skipping temp cleanup.");
 					}
@@ -50,13 +47,12 @@ namespace LogJoint
 			}
 		}
 
-		internal TempFilesManager(): this(new TraceSourceFactory())
+		internal TempFilesManager(): this(new TraceSourceFactory(), new MultiInstance.InstancesCounter())
 		{
 		}
 
 		public void Dispose()
 		{
-			runningInstanceMutex.Dispose ();
 		}
 
 		public string GenerateNewName()
@@ -71,8 +67,6 @@ namespace LogJoint
 		}
 
 		readonly string folder;
-		readonly Mutex runningInstanceMutex;
-		static TempFilesManager instance;
 	}
 
 	public class TempFilesCleanupList : ITempFilesCleanupList

@@ -75,7 +75,8 @@ namespace LogJoint
 			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer, shutdown);
 			ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory);
+			MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter();
+			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
@@ -109,7 +110,6 @@ namespace LogJoint
 				contentCache,
 				webContentCacheConfig
 			);
-			MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 			IHeartBeatTimer heartBeatTimer = new HeartBeatTimer();
 			Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
 			Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();

@@ -6,9 +6,9 @@ namespace LogJoint.MultiInstance
 	public class InstancesCounter: IInstancesCounter
 	{
 		readonly string processName = "logjoint";
-		bool isFirstInstance;
+		readonly bool isFirstInstance;
 
-		public InstancesCounter(IShutdown shutdown)
+		public InstancesCounter()
 		{
 			isFirstInstance = GetCount() == 1;
 		}
