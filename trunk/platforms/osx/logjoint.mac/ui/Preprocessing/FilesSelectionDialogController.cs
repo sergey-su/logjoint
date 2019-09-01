@@ -15,7 +15,7 @@ namespace LogJoint.UI
 	{
 		readonly IViewModel viewModel;
 		readonly Mac.IReactive reactive;
-		INSTableViewController tableController;
+		INSTableViewController<IDialogItem> tableController;
 
 		#region Constructors
 
@@ -43,18 +43,18 @@ namespace LogJoint.UI
 
 			Window.owner = this;
 
-			this.tableController = reactive.CreateTableViewController (tableView);
+			this.tableController = reactive.CreateTableViewController<IDialogItem> (tableView);
 			this.tableController.OnCreateView = (item, column) => {
 				var view = new NSButton {
 					State = NSCellStateValue.Off,
 					Action = ActionTarget.ActionSelector
 				};
 				view.SetButtonType (NSButtonType.Switch);
-				UpdateButton ((IDialogItem)item, view);
+				UpdateButton (item, view);
 				return view;
 			};
-			this.tableController.OnUpdateView = (item, column, view, old) => UpdateButton ((IDialogItem)item, (NSButton)view);
-			this.tableController.OnSelect = items => viewModel.OnSelect (items.LastOrDefault () as IDialogItem);
+			this.tableController.OnUpdateView = (item, column, view, old) => UpdateButton (item, (NSButton)view);
+			this.tableController.OnSelect = items => viewModel.OnSelect (items.LastOrDefault ());
 
 			checkAllButton.StringValue = "check all";
 			checkAllButton.LinkClicked = (s, e) => viewModel.OnCheckAll (true);

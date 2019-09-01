@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 
 namespace LogJoint.UI.Presenters.Reactive
 {
@@ -44,5 +45,22 @@ namespace LogJoint.UI.Presenters.Reactive
 		bool ITreeNode.IsSelected => false;
 
 		static readonly IReadOnlyList<ITreeNode> empty = new List<ITreeNode>().AsReadOnly();
+	};
+
+	public static class DebugExtensions
+	{
+		public static string ToDebugString(this ITreeNode node)
+		{
+			void toString(ITreeNode n, StringBuilder sb, string pad)
+			{
+				sb.AppendLine($"{pad}hash={n.GetHashCode():x08} key={n.Key} {(n.IsExpanded ? "e" : "")}{(n.IsSelected ? "s" : "")} {n.ToString()}");
+				foreach (var c in n.Children)
+					toString(c, sb, pad + "  ");
+			}
+
+			var result = new StringBuilder();
+			toString(node, result, "");
+			return result.ToString();
+		}
 	};
 }

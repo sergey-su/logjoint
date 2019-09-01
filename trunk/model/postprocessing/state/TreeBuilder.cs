@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
@@ -21,15 +22,15 @@ namespace LogJoint.Postprocessing.StateInspector
 			}
 		}
 
-		public List<IInspectedObject> Build()
+		public ImmutableArray<IInspectedObject> Build()
 		{
 			return BuildTree();
 		}
 
-		List<IInspectedObject> BuildTree()
+		ImmutableArray<IInspectedObject> BuildTree()
 		{
 			finalizedObjects.AddRange(objects.Values);
-			return finalizedObjects.Where(i => i.Parent == null).ToList();
+			return finalizedObjects.Where(i => i.Parent == null).ToImmutableArray();
 		}
 
 		IInspectedObject GetObject(string id)

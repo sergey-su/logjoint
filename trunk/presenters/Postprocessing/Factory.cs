@@ -61,7 +61,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 				var model = new LogJoint.Postprocessing.StateInspector.StateInspectorVisualizerModel(
 					postprocessorsManager,
 					logSourcesManager,
-					synchronizationContext,
+					changeNotification,
 					shortNames
 				);
 				return new StateInspectorVisualizer.StateInspectorPresenter(
@@ -75,7 +75,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 					presentersFacade,
 					clipboardAccess,
 					sourcesManagerPresenter,
-					colorTheme
+					colorTheme,
+					changeNotification
 				);
 			});
 

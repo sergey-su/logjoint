@@ -32,15 +32,16 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		[Export ("copy:")]
 		void OnCopy (NSObject theEvent)
 		{
-			owner.ViewModel.OnCopyShortcutPressed ();
+			if (SelectedRow >= 0)
+				owner.ViewModel.OnPropertyCellCopyShortcutPressed ((int)SelectedRow);
 		}
 
 		public override void MouseDown (NSEvent e)
 		{
 			base.MouseDown (e);
 
-			if (e.ClickCount == 2)
-				owner.ViewModel.OnPropertiesRowDoubleClicked ();
+			if (e.ClickCount == 2 && SelectedRow >= 0)
+				owner.ViewModel.OnPropertiesRowDoubleClicked ((int)SelectedRow);
 		}
 	};
 }

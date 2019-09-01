@@ -13,7 +13,7 @@ namespace LogJoint.UI
 	public partial class PluginsView : UserControl, IView
 	{
 		IViewModel viewModel;
-		Windows.Reactive.IListBoxController pluginsListController;
+		Windows.Reactive.IListBoxController<IPluginListItem> pluginsListController;
 
 		public PluginsView()
 		{
@@ -22,8 +22,8 @@ namespace LogJoint.UI
 
 		public void Init(Windows.Reactive.IReactive reactive)
 		{
-			pluginsListController = reactive.CreateListBoxController(pluginsListBox);
-			pluginsListController.OnSelect = items => viewModel.OnSelect(items.FirstOrDefault() as IPluginListItem);
+			pluginsListController = reactive.CreateListBoxController<IPluginListItem>(pluginsListBox);
+			pluginsListController.OnSelect = items => viewModel.OnSelect(items.FirstOrDefault());
 		}
 
 		void IView.SetViewModel(IViewModel viewModel)

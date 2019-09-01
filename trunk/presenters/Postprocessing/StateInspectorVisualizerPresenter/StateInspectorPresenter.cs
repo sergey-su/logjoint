@@ -7,14 +7,17 @@ using System.Threading;
 using SI = LogJoint.Postprocessing.StateInspector;
 using LogJoint.Postprocessing.StateInspector;
 using LogJoint.Postprocessing;
+using LogJoint.UI.Presenters.Reactive;
+using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
 	public class StateInspectorPresenter: IPresenter, IViewModel, IPresenterInternal
 	{
 		public StateInspectorPresenter(
-			IView view, 
-			IStateInspectorVisualizerModel model, 
+			IView view,
+			IStateInspectorVisualizerModel model,
 			IUserNamesProvider shortNames,
 			ILogSourcesManager logSources,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
@@ -23,7 +26,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			IPresentersFacade presentersFacade,
 			IClipboardAccess clipboardAccess,
 			SourcesManager.IPresenter sourcesManagerPresenter,
-			IColorTheme theme
+			IColorTheme theme,
+			IChangeNotification changeNotification
 		)
 		{
 			this.view = view;
@@ -36,34 +40,153 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.sourcesManagerPresenter = sourcesManagerPresenter;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.theme = theme;
+			this.changeNotification = changeNotification.CreateChainedChangeNotification(initiallyActive: false);
 
-			view.SetEventsHandler(this);
-
+			var annotationsVersion = 0;
 			logSources.OnLogSourceAnnotationChanged += (sender, e) =>
 			{
-				InvalidateTree();
+				annotationsVersion++;
+				changeNotification.Post();
 			};
 
-			loadedMessagesPresenter.LogViewerPresenter.FocusedMessageChanged += (sender, args) =>
+			var getAnnotationsMap = Selectors.Create(
+				() => logSources.Items,
+				() => annotationsVersion,
+				(sources, _) =>
+					sources
+					.Where(s => !s.IsDisposed && !string.IsNullOrEmpty(s.Annotation))
+					.ToImmutableDictionary(s => s, s => s.Annotation)
+			);
+
+			VisualizerNode rootNode = new VisualizerNode(null, ImmutableList<VisualizerNode>.Empty, true, false, 0, ImmutableDictionary<ILogSource, string>.Empty);
+			var updateRoot = Updaters.Create(
+				() => model.Groups,
+				getAnnotationsMap,
+				(groups, annotationsMap) => rootNode = MakeRootNode(groups, OnNodeCreated, annotationsMap, rootNode)
+			);
+			this.getRootNode = () =>
 			{
-				HandleFocusedMessageChange();
+				updateRoot();
+				return rootNode;
 			};
-
-			bookmarks.OnBookmarksChanged += (sender, args) =>
+			this.updateRootNode = reducer =>
 			{
-				view.BeginUpdateStateHistoryList(false, false);
-				view.EndUpdateStateHistoryList(null, false, redrawFocusedMessageMark: true);
+				var oldRoot = getRootNode();
+				var newRoot = reducer(oldRoot);
+				if (oldRoot != newRoot)
+				{
+					rootNode = newRoot;
+					changeNotification.Post();
+				}
 			};
 
-			model.Changed += (sender, args) =>
-			{
-				InvalidateTree();
-				HandleFocusedMessageChange();
-				RemoveMissingGroupsFromCache();
-			};
+			this.getSelectedNodes = Selectors.Create(
+				getRootNode,
+				(root) => 
+				{
+					var result = ImmutableArray.CreateBuilder<VisualizerNode>();
 
-			InvalidateTree();
-			HandleFocusedMessageChange();
+					void traverse(VisualizerNode n)
+					{
+						if (!n.HasSelectedNodes)
+							return;
+						if (n.IsSelected)
+							result.Add(n);
+						foreach (var c in n.Children)
+							traverse(c);
+					}
+
+					traverse(root);
+
+					return result.ToImmutable();
+				}
+			);
+
+			this.getSelectedInspectedObjects = Selectors.Create(
+				getSelectedNodes,
+				nodes => ImmutableArray.CreateRange(nodes.Select(n => n.InspectedObject))
+			);
+
+			this.getStateHistoryItems = Selectors.Create(
+				getSelectedInspectedObjects,
+				() => selectedHistoryEvents,
+				MakeSelectedObjectHistory
+			);
+
+			this.getIsHistoryItemBookmarked = Selectors.Create(
+				() => bookmarks.Items,
+				boormarksItems =>
+				{
+					Predicate<IStateHistoryItem> result = (item) =>
+					{
+						var change = (item as StateHistoryItem)?.Event;
+						if (change == null || change.Output.LogSource.IsDisposed)
+							return false;
+						var bmk = bookmarks.Factory.CreateBookmark(
+							change.Trigger.Timestamp.Adjust(change.Output.LogSource.TimeOffsets),
+								change.Output.LogSource.GetSafeConnectionId(), change.Trigger.StreamPosition, 0);
+						var pos = boormarksItems.FindBookmark(bmk);
+						return pos.Item2 > pos.Item1;
+					};
+					return result;
+				}
+			);
+
+			this.getFocusedMessageInfo = () => loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
+
+			this.getFocusedMessageEqualRange = Selectors.Create(
+				getFocusedMessageInfo,
+				focusedMessageInfo =>
+				{
+					var cache = new Dictionary<IStateInspectorOutputsGroup, FocusedMessageEventsRange>();
+					Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> result = forGroup =>
+					{
+						if (!cache.TryGetValue(forGroup, out FocusedMessageEventsRange eventsRange))
+						{
+							eventsRange = new FocusedMessageEventsRange(focusedMessageInfo,
+								forGroup.Events.CalcFocusedMessageEqualRange(focusedMessageInfo));
+							cache.Add(forGroup, eventsRange);
+						}
+						return eventsRange;
+					};
+					return result;
+				}
+			);
+
+			this.getPaintNode = Selectors.Create(
+				getFocusedMessageEqualRange,
+				MakePaintNodeDelegate
+			);
+
+			this.getFocusedMessagePositionInHistory = Selectors.Create(
+				getStateHistoryItems,
+				getFocusedMessageInfo,
+				(changes, focusedMessage) =>
+				{
+					return
+						focusedMessage == null ? null :
+						new ListUtils.VirtualList<StateInspectorEvent>(changes.Length,
+							i => changes[i].Event).CalcFocusedMessageEqualRange(focusedMessage);
+				}
+			);
+
+			this.getCurrentTimeLabelText = Selectors.Create(
+				getFocusedMessageInfo,
+				focusedMsg => focusedMsg != null ? $"at {focusedMsg.Time}" : ""
+			);
+
+			this.getCurrentProperties = Selectors.Create(
+				getSelectedInspectedObjects,
+				getFocusedMessageEqualRange,
+				MakeCurrentProperties
+			);
+
+			this.getObjectsProperties = Selectors.Create(
+				getCurrentProperties,
+				props => (IReadOnlyList<KeyValuePair<string, object>>)props.Select(p => p.ToDataSourceItem()).ToImmutableArray()
+			);
+
+			view.SetViewModel(this);
 		}
 
 		public event EventHandler<MenuData> OnMenu;
@@ -78,26 +201,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				.Any(e => objectEvent.CompareTo(e.Trigger) == 0);
 		}
 
-		IVisualizerNode IPresenter.SelectedObject
-		{
-			get 
-			{
-				return VisualizerNode.FromObject(GetSelectedInspectedObjects().FirstOrDefault());
-			}
-		}
+		IVisualizerNode IPresenter.SelectedObject => getSelectedNodes().FirstOrDefault();
 
 		IEnumerableAsync<IVisualizerNode> IPresenter.Roots
 		{
 			get
 			{
-				return EnumRoots().ToAsync().Select(c => (IVisualizerNode)VisualizerNode.FromObject(c));
+				return getRootNode().Children.Cast<IVisualizerNode>().ToAsync();
 			}
 		}
 
 		bool IPresenterInternal.TrySelectObject(ILogSource source, TextLogEventTrigger creationTrigger, Func<IVisualizerNode, int> disambiguationFunction)
 		{
-			EnsureTreeView();
-
 			Func<IInspectedObject, bool> predecate = obj =>
 			{
 				return obj.Owner.Outputs.Any(o => o.LogSource == source)
@@ -108,19 +223,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			if (candidates.Count > 0)
 			{
-				IInspectedObject obj;
+				VisualizerNode node;
 				if (candidates.Count == 1 || disambiguationFunction == null)
-					obj = candidates[0];
+					node = FindOrCreateNode(candidates[0]);
 				else
-					obj = candidates
-						.Select(c => new { Obj = c, Rating = disambiguationFunction(VisualizerNode.FromObject(c)) })
+					node = candidates
+						.Select(c => FindOrCreateNode(c))
+						.Select(n => new { Node = n, Rating = disambiguationFunction(n) })
 						.OrderByDescending(x => x.Rating)
-						.First().Obj;
-				var n = FindOrCreateNode(obj);
-				if (n != null)
+						.First().Node;
+				if (node != null)
 				{
-					view.SelectedNodes = new[] { n.Value };
-					view.ScrollSelectedNodesInView();
+					SetSelection(new[] { node });
 					return true;
 				}
 			}
@@ -132,28 +246,31 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			view.Show();
 		}
 
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		IObjectsTreeNode IViewModel.ObjectsTreeRoot => getRootNode();
+
+		IReadOnlyList<IStateHistoryItem> IViewModel.ChangeHistoryItems => getStateHistoryItems();
+
+		Predicate<IStateHistoryItem> IViewModel.IsChangeHistoryItemBookmarked => getIsHistoryItemBookmarked();
+
+		Tuple<int, int> IViewModel.FocusedMessagePositionInChangeHistory => getFocusedMessagePositionInHistory();
+
+		string IViewModel.CurrentTimeLabelText => getCurrentTimeLabelText();
+
 		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 
-		void IViewModel.OnVisibleChanged()
+		void IViewModel.OnVisibleChanged(bool value)
 		{
-			if (view.Visible)
-			{
-				EnsureTreeView();
-				EnsureAliveObjectsView();
-			}
+			changeNotification.Active = value;
 		}
 
-		void IViewModel.OnSelectedNodesChanged()
+		void IViewModel.OnPropertiesRowDoubleClicked(int rowIndex)
 		{
-			UpdateSelectedObjectPropertiesAndHistory();
-		}
-
-		void IViewModel.OnPropertiesRowDoubleClicked()
-		{
-			var selectedProp = GetSelectedProperty();
-			if (selectedProp == null)
+			var selectedProp = getCurrentProperties().ElementAtOrDefault(rowIndex);
+			if (selectedProp.PropertyView == null)
 				return;
-			var evt = selectedProp.Value.PropertyView.GetTrigger() as StateInspectorEvent;
+			var evt = selectedProp.PropertyView.GetTrigger() as StateInspectorEvent;
 			if (evt == null)
 				return;
 			ShowPropertyChange(evt, false);
@@ -162,7 +279,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		PropertyCellPaintInfo IViewModel.OnPropertyCellPaint(int rowIndex)
 		{
 			var ret = new PropertyCellPaintInfo();
-			var p = currentProperties[rowIndex];
+			var p = getCurrentProperties().ElementAtOrDefault(rowIndex);
 			if (p.PropertyView != null)
 			{
 				ret.PaintAsLink = p.PropertyView.IsLink();
@@ -173,16 +290,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		void IViewModel.OnPropertyCellClicked(int rowIndex)
 		{
-			if (rowIndex >= 0 && rowIndex < currentProperties.Count)
+			var currentProperties = getCurrentProperties();
+			if (rowIndex >= 0 && rowIndex < currentProperties.Length)
 			{
 				var pcView = currentProperties[rowIndex].PropertyView;
 				if (pcView == null)
 					return;
-				var evt = pcView.GetTrigger() as StateInspectorEvent;
-				if (evt != null)
+				if (pcView.GetTrigger() is StateInspectorEvent evt)
 				{
-					var pc = evt.OriginalEvent as PropertyChange;
-					if (pc == null)
+					if (!(evt.OriginalEvent is PropertyChange pc))
 						return;
 					if (pc.ValueType == SI.ValueType.Reference)
 					{
@@ -194,7 +310,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 						var nodeToSelect = query.FirstOrDefault();
 						if (nodeToSelect == null)
 							return;
-						view.SelectedNodes = new[] { nodeToSelect.Value };
+						SetSelection(new[] { nodeToSelect });
 					}
 					else if (pc.ValueType == SI.ValueType.ThreadReference)
 					{
@@ -204,8 +320,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 					}
 					return;
 				}
-				var ls = pcView.GetTrigger() as ILogSource;
-				if (ls != null)
+				if (pcView.GetTrigger() is ILogSource ls)
 				{
 					presentersFacade.ShowLogSource(ls);
 					return;
@@ -213,101 +328,49 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		NodePaintInfo IViewModel.OnPaintNode(NodeInfo node, bool getPrimaryPropValue)
+		PaintNodeDelegate IViewModel.PaintNode => getPaintNode();
+
+		void IViewModel.OnExpandNode(IObjectsTreeNode node) => ExpandNode(node, true);
+
+		void IViewModel.OnCollapseNode(IObjectsTreeNode node) => ExpandNode(node, false);
+
+		void IViewModel.OnSelect(IReadOnlyCollection<IObjectsTreeNode> proposedSelection)
 		{
-			var ret = new NodePaintInfo();
-			
-			IInspectedObject obj = GetInspectedObject(node);
-			if (obj == null)
-				return ret;
-
-			ret.DrawingEnabled = true;
-
-			var focusedMessageInfo = GetFocusedMessageEqualRange(obj);
-			var liveStatus = obj.GetLiveStatus(focusedMessageInfo);
-			var coloring = GetLiveStatusColoring(liveStatus);
-			ret.Coloring = coloring;
-
-			if (liveStatus == InspectedObjectLiveStatus.Alive || liveStatus == InspectedObjectLiveStatus.Deleted || obj.IsTimeless)
-			{
-				if (getPrimaryPropValue)
-				{
-					ret.PrimaryPropValue = obj.GetCurrentPrimaryPropertyValue(focusedMessageInfo);
-				}
-			}
-
-			if (obj.Parent == null && focusedMessageInfo != null)
-			{
-				var m = focusedMessageInfo.FocusedMessage.FocusedMessage;
-				if (m != null)
-				{
-					var focusedLs = m.GetLogSource();
-					if (focusedLs != null)
-					{
-						ret.DrawFocusedMsgMark = obj.EnumInvolvedLogSources().Any(ls => ls == focusedLs);
-					}
-				}
-			}
-
-			return ret;
+			SetSelection(proposedSelection.OfType<VisualizerNode>());
 		}
 
-		void IViewModel.OnNodeExpanding(NodeInfo node)
+		void IViewModel.OnChangeHistoryItemDoubleClicked(IStateHistoryItem item)
 		{
-			if (!view.TreeSupportsLoadingOnExpansion)
-				return;
-			EnsureLazyLoadedChildrenCollectionAndEnum(node).FirstOrDefault();
+			if (item is StateHistoryItem historyItem)
+				ShowPropertyChange(historyItem.Event, retainFocus: false);
 		}
 
-		Tuple<int, int> IViewModel.OnDrawFocusedMessageMark()
+		void IViewModel.OnChangeHistoryItemKeyEvent(IStateHistoryItem item, Key key)
 		{
-			return stateHistoryFocusedMessage;
-		}
-
-		bool IViewModel.OnGetHistoryItemBookmarked(StateHistoryItem item)
-		{
-			var change = item.Data as StateInspectorEvent;
-			if (change == null || change.Output.LogSource.IsDisposed)
-				return false;
-			var bmk = bookmarks.Factory.CreateBookmark(
-				change.Trigger.Timestamp.Adjust(change.Output.LogSource.TimeOffsets), 
-					change.Output.LogSource.GetSafeConnectionId(), change.Trigger.StreamPosition, 0);
-			var pos = bookmarks.FindBookmark(bmk);
-			return pos.Item2 > pos.Item1;
-		}
-
-		void IViewModel.OnChangeHistoryItemClicked(StateHistoryItem item)
-		{
-			var change = item != null ? item.Data as StateInspectorEvent : null;
-			if (change != null)
-				ShowPropertyChange(change, retainFocus: false);
-		}
-
-		void IViewModel.OnChangeHistoryItemKeyEvent(StateHistoryItem item, Key key)
-		{
-			var change = item != null ? item.Data as StateInspectorEvent : null;
-			if (change != null)
+			if (item is StateHistoryItem historyItem)
 			{
 				if (key == Key.Enter)
-					ShowPropertyChange(change, retainFocus: true);
+					ShowPropertyChange(historyItem.Event, retainFocus: true);
 				else if (key == Key.BookmarkShortcut)
-					ToggleBookmark(change);
+					ToggleBookmark(historyItem.Event);
 			}
 		}
 
-		void IViewModel.OnChangeHistorySelectionChanged()
+		void IViewModel.OnChangeHistoryChangeSelection(IEnumerable<IStateHistoryItem> items)
 		{
-			UpdateSelectedObjectHistory(GetSelectedInspectedObjects());
+			this.selectedHistoryEvents = ImmutableArray.CreateRange(items.OfType<StateHistoryItem>().Select(i => i.Event));
+			this.changeNotification.Post();
 		}
 
-		void IViewModel.OnFindCurrentPositionInStateHistory()
+		void IViewModel.OnFindCurrentPositionInChangeHistory()
 		{
-			if (stateHistoryFocusedMessage == null)
+			var pos = getFocusedMessagePositionInHistory();
+			if (pos == null)
 				return;
-			view.ScrollStateHistoryItemIntoView(stateHistoryFocusedMessage.Item1);
+			view.ScrollStateHistoryItemIntoView(pos.Item1);
 		}
 
-		MenuData IViewModel.OnMenuOpening()
+		MenuData IViewModel.OnNodeMenuOpening()
 		{
 			var menuData = new MenuData()
 			{
@@ -317,19 +380,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return menuData;
 		}
 
-		void IViewModel.OnCopyShortcutPressed()
+		IReadOnlyList<KeyValuePair<string, object>> IViewModel.ObjectsProperties => getObjectsProperties();
+
+		void IViewModel.OnPropertyCellCopyShortcutPressed(int propertyIndex)
 		{
-			var sel = view.SelectedPropertiesRow;
-			if (sel == null || sel.Value >= currentProperties.Count)
+			var sel = getCurrentProperties().ElementAtOrDefault(propertyIndex);
+			if (sel.PropertyView == null)
 				return;
-			var str = currentProperties[sel.Value].PropertyView.ToClipboardString();
+			var str = sel.PropertyView.ToClipboardString();
 			if (!string.IsNullOrEmpty(str))
 				clipboardAccess.SetClipboard(str);
 		}
 
-		void IViewModel.OnDeleteKeyPressed()
+		void IViewModel.OnNodeDeleteKeyPressed()
 		{
-			var objs = GetSelectedInspectedObjects();
+			var objs = getSelectedInspectedObjects();
 			if (objs.All(x => x.Parent == null))
 			{
 				var logSources = objs.Select(obj => obj.GetPrimarySource()).Distinct().ToArray();
@@ -340,174 +405,112 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		void InvalidateTree()
+		static VisualizerNode MakeRootNode(
+			IReadOnlyList<IStateInspectorOutputsGroup> groups,
+			EventHandler<NodeCreatedEventArgs> nodeCreationHandler,
+			ImmutableDictionary<ILogSource, string> annotationsMap,
+			VisualizerNode existingRoot
+		)
 		{
-			treeViewInvalidated = true;
-			if (!view.Visible)
-				return;
-			EnsureTreeView();
-		}
+			var existingRoots = existingRoot.Children.ToLookup(c => c.InspectedObject);
 
-		void EnsureTreeView()
-		{
-			if (!treeViewInvalidated)
-				return;
-			treeViewInvalidated = false;
-
-			var oldRoots = view.EnumCollection(view.RootNodesCollection).ToList();
-			var newRoots = new List<NodeInfo>();
-			bool updateStarted = false;
-
-			MarkAllViewPartsAsDead();
-			foreach (var group in model.Groups)
-			{
-				TreeViewPart part;
-				if (!viewPartsCache.TryGetValue(group.Key, out part))
-				{
-					viewPartsCache.Add(group.Key, part = new TreeViewPart() { Key = group.Key });
-
-					foreach (var rootObj in group.Roots)
+			var children = ImmutableList.CreateRange(
+				groups.SelectMany(
+					group => group.Roots.Select(rootObj =>
 					{
-						if (!updateStarted) 
-						{
-							view.BeginTreeUpdate ();
-							updateStarted = true;
-						}
-						var nodesToCollapse = new List<NodeInfo>();
-						var rootNode = CreateViewNode(view, new NodesCollectionInfo(), rootObj, 0, nodesToCollapse);
-						part.RootNodes.Add(rootNode);
-						view.ExpandAll(rootNode);
-						nodesToCollapse.ForEach(view.Collapse);
-					}
-				}
-				newRoots.AddRange(part.RootNodes);
-				part.OutputIsAlive = true;
-			}
-			RemoveDeadViewPartsFromCache();
+						var existingNode = existingRoots[rootObj].FirstOrDefault();
+						if (existingNode != null)
+							return existingNode.SetAnnotationsMap(annotationsMap);
+						var newNode = MakeVisualizerNode(rootObj, 1, annotationsMap);
+						newNode.SetInitialProps(nodeCreationHandler); // call handler on second phase when all children and parents are initiated
+						return newNode;
+					})
+				)
+			);
 
-			newRoots.Sort((n1, n2) => MessageTimestamp.Compare(GetNodeTimestamp(n1), GetNodeTimestamp(n2)));
+			children = children.Sort((n1, n2) => MessageTimestamp.Compare(GetNodeTimestamp(n1), GetNodeTimestamp(n2)));
 
-			bool propsNeedUpdating = false;
-			if (!newRoots.SequenceEqual(oldRoots))
+			var result = new VisualizerNode(null, children, true, false, 0, annotationsMap);
+
+			if (!result.HasSelectedNodes &&  result.Children.Count > 0)
+				result = result.Children[0].Select(true);
+
+			return result;
+		}
+
+		void ExpandNode(IObjectsTreeNode node, bool expand)
+		{
+			updateRootNode(rootNode =>
 			{
-				if (!updateStarted) 
-					view.BeginTreeUpdate ();
+				var vn = new InspectedObjectPath(node as VisualizerNode).Follow(rootNode);
+				return vn?.Expand(expand) ?? rootNode;
+			});
+		}
 
-				var oldSelectedNodes = view.SelectedNodes;
-				var newSelectedNodes = (
-					from selectedNode in oldSelectedNodes
-					let selectedObj = GetInspectedObject(selectedNode)
-					where selectedObj != null
-					let selectedObjRoot = selectedObj.GetRoot()
-					where newRoots.Any(r => r.Tag == selectedObjRoot)
-					select selectedNode
-				).ToArray();
-
-				view.Clear(view.RootNodesCollection);
-				foreach (var rootNode in newRoots)
-					view.AddNode(view.RootNodesCollection, rootNode);
-
-				if (newSelectedNodes.Length > 0)
-				{
-					view.SelectedNodes = newSelectedNodes;
-					selectedObjectsPathsBeforeSelectionLoss.Clear();
-				}
-				else if (oldSelectedNodes.Length > 0)
-				{
-					selectedObjectsPathsBeforeSelectionLoss.Clear();
-					selectedObjectsPathsBeforeSelectionLoss.AddRange(
-						from selectedNode in oldSelectedNodes
-						let selectedObj = GetInspectedObject(selectedNode)
-						where selectedObj != null
-						select new InspectedObjectPath(selectedObj)
-					);
-				}
-				else if (selectedObjectsPathsBeforeSelectionLoss.Count > 0)
-				{
-					newSelectedNodes = (
-						from p in selectedObjectsPathsBeforeSelectionLoss
-						let n = p.Follow(this)
-						where n != null
-						select n.Value
-					).ToArray();
-					if (newSelectedNodes.Length > 0)
-					{
-						view.SelectedNodes = newSelectedNodes;
-						view.ScrollSelectedNodesInView();
-						selectedObjectsPathsBeforeSelectionLoss.Clear();
-					}
-				}
-
-				view.EndTreeUpdate();
-			}
-			newRoots.ForEach(UpdateRootNodeText);
-
-			if (propsNeedUpdating)
+		static PaintNodeDelegate MakePaintNodeDelegate(
+			Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> getFocusedMessageEqualRange
+		)
+		{
+			NodePaintInfo result(IObjectsTreeNode node, bool getPrimaryPropValue)
 			{
-				UpdateSelectedObjectPropertiesAndHistory();
-			}
-		}
+				var ret = new NodePaintInfo();
 
-		private void RemoveDeadViewPartsFromCache()
-		{
-			foreach (TreeViewPart rec in new List<TreeViewPart>(viewPartsCache.Values))
-			{
-				if (rec.OutputIsAlive)
-					continue;
-				viewPartsCache.Remove(rec.Key);
-			}
-		}
-
-		void RemoveMissingGroupsFromCache()
-		{
-			MarkAllViewPartsAsDead();
-			TreeViewPart part;
-			foreach (var group in model.Groups)
-				if (viewPartsCache.TryGetValue(group.Key, out part))
-					part.OutputIsAlive = true;
-			RemoveDeadViewPartsFromCache();
-		}
-
-		private void MarkAllViewPartsAsDead()
-		{
-			foreach (TreeViewPart rec in viewPartsCache.Values)
-				rec.OutputIsAlive = false;
-		}
-
-		void EnsureAliveObjectsView()
-		{
-			if (!aliveObjectsViewInvalidated)
-				return;
-			aliveObjectsViewInvalidated = false;
-
-			UpdateLiveObjectsColoring(view.RootNodesCollection);
-
-			view.InvalidateTree();
-
-			UpdateSelectedObjectPropertiesAndHistory();
-
-			FocusedMessageInfo focusedMsgInfo = GetFocusedMessageInfo();
-			
-			view.SetCurrentTimeLabelText(focusedMsgInfo.FocusedMessage != null ? "at " + focusedMsgInfo.FocusedMessage.Time.ToString() : "");
-		}
-
-		private void UpdateLiveObjectsColoring( NodesCollectionInfo collection)
-		{
-			foreach (NodeInfo node in EnumViewTree(collection))
-			{
-				var obj = GetInspectedObject(node);
+				IInspectedObject obj = (node as VisualizerNode)?.InspectedObject;
 				if (obj == null)
-					continue;
-				var liveStatus = obj.GetLiveStatus(GetFocusedMessageEqualRange(obj));
+					return ret;
+
+				ret.DrawingEnabled = true;
+
+				var focusedMessageEventsRange = getFocusedMessageEqualRange(obj.Owner);
+				var liveStatus = obj.GetLiveStatus(focusedMessageEventsRange);
 				var coloring = GetLiveStatusColoring(liveStatus);
-				if (node.Coloring != coloring)
+				ret.Coloring = coloring;
+
+				if (liveStatus == InspectedObjectLiveStatus.Alive || liveStatus == InspectedObjectLiveStatus.Deleted || obj.IsTimeless)
 				{
-					view.SetNodeColoring(node, coloring);
+					if (getPrimaryPropValue)
+					{
+						ret.PrimaryPropValue = obj.GetCurrentPrimaryPropertyValue(focusedMessageEventsRange);
+					}
 				}
+
+				if (obj.Parent == null)
+				{
+					var focusedLs = focusedMessageEventsRange?.FocusedMessage?.GetLogSource();
+					if (focusedLs != null)
+					{
+						ret.DrawFocusedMsgMark = obj.EnumInvolvedLogSources().Any(ls => ls == focusedLs);
+					}
+				}
+
+				return ret;
 			}
+
+			return result;
 		}
 
-		NodeColoring GetLiveStatusColoring(InspectedObjectLiveStatus liveStatus)
+		void SetSelection(IEnumerable<VisualizerNode> proposedSelection)
+		{
+			var newSelection = ImmutableHashSet.CreateRange(proposedSelection.Select(n => new InspectedObjectPath(n).Follow(getRootNode())).Where(n => n != null));
+			var selectedNodes = getSelectedNodes();
+			var pathsToDeselect = selectedNodes.Except(newSelection).Select(n => new InspectedObjectPath(n));
+			var pathsToSelect = newSelection.Except(selectedNodes).Select(n => new InspectedObjectPath(n));
+
+			updateRootNode(rootNode =>
+			{
+				var newRoot = rootNode;
+				void select(InspectedObjectPath p, bool value) => newRoot = p.Follow(newRoot)?.Select(value) ?? newRoot;
+				foreach (var p in pathsToDeselect)
+					select(p, false);
+				foreach (var p in pathsToSelect)
+					select(p, true);
+				return newRoot;
+			});
+
+			changeNotification.Post();
+		}
+
+		static NodeColoring GetLiveStatusColoring(InspectedObjectLiveStatus liveStatus)
 		{
 			switch (liveStatus)
 			{
@@ -520,35 +523,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		private void UpdateRootNodeText(NodeInfo node)
+		static MessageTimestamp GetNodeTimestamp(VisualizerNode node)
 		{
-			IInspectedObject root = GetInspectedObject(node);
-			if (root == null)
-				return;
-			var ls = root.EnumInvolvedLogSources().FirstOrDefault();
-			if (ls == null)
-				return;
-			var nodeText = new StringBuilder(root.Id);
-			if (!string.IsNullOrEmpty(ls.Annotation))
-				nodeText.AppendFormat(" ({0})", ls.Annotation);
-			if (root.Comment != "")
-				nodeText.AppendFormat(" ({0})", root.Comment);
-			view.SetNodeText(node, nodeText.ToString());
-		}
-
-		static IInspectedObject GetInspectedObject(NodeInfo node)
-		{
-			var inspectedObject = node.Tag as IInspectedObject;
-			if (inspectedObject == null)
-				return null;
-			if (inspectedObject.EnumInvolvedLogSources().Any(ls => ls.IsDisposed)) // todo: get rid of this check
-				return null;
-			return inspectedObject;
-		}
-
-		MessageTimestamp GetNodeTimestamp(NodeInfo node)
-		{
-			var obj = GetInspectedObject(node);
+			var obj = (node as VisualizerNode)?.InspectedObject;
 			StateInspectorEvent referenceEvt = null;
 			if (obj != null)
 				referenceEvt = obj.StateChangeHistory.FirstOrDefault();
@@ -557,189 +534,89 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return MessageTimestamp.MaxValue;
 		}
 
-		NodeInfo CreateViewNode(IView view, NodesCollectionInfo collectionToAddViewNode, IInspectedObject modelNode, int level, List<NodeInfo> nodesToCollapse)
+		static VisualizerNode MakeVisualizerNode(IInspectedObject modelNode, int level, ImmutableDictionary<ILogSource, string> annotationsMap)
 		{
-			string nodeText = modelNode.DisplayName;
-			if (modelNode.Comment != "")
-				nodeText += " (" + modelNode.Comment + ")";
-
-			bool createCollapsed = false;
-			bool createLazilyLoaded = false;
-			if (level < 5)
-			{
-				if (OnNodeCreated != null)
-				{
-					var args = new NodeCreatedEventArgs() { NodeObject = VisualizerNode.FromObject(modelNode) };
-					OnNodeCreated(this, args);
-					createCollapsed = args.CreateCollapsed.GetValueOrDefault(createCollapsed);
-					createLazilyLoaded = args.CreateLazilyLoaded.GetValueOrDefault(createLazilyLoaded);
-				}
-				if (createLazilyLoaded && !view.TreeSupportsLoadingOnExpansion)
-				{
-					createLazilyLoaded = false;
-				}
-			}
-
-			var viewNode = view.CreateNode(nodeText, modelNode, collectionToAddViewNode);
-			if (createLazilyLoaded)
-			{
-				view.CreateNode(lazyLoadTag, lazyLoadTag, viewNode.ChildrenNodesCollection);
-			}
-			else
-			{
-				foreach (var child in modelNode.Children)
-					CreateViewNode(view, viewNode.ChildrenNodesCollection, child, level + 1, nodesToCollapse);
-			}
-			if (createCollapsed)
-			{
-				nodesToCollapse.Add(viewNode);
-			}
-			return viewNode;
+			var children = ImmutableList.CreateRange(modelNode.Children.Select(child => MakeVisualizerNode(child, level + 1, annotationsMap)));
+			return new VisualizerNode(modelNode, children, false, false, level, annotationsMap);
 		}
 
-		StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo, bool isSelected, bool showTimeDeltas, StateInspectorEvent prevSelectedEvent)
+		StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo,
+			bool isSelected, bool showTimeDeltas, StateInspectorEvent prevSelectedEvent,
+			StateHistoryMessageFormatter messageFormatter)
 		{
 			var evt = evtInfo.Event;
-			StateHistoryItem ret = new StateHistoryItem() { Data = evt };
+			string time;
 			if (showTimeDeltas)
 				if (isSelected && prevSelectedEvent != null)
-					ret.Time = TimeUtils.TimeDeltaToString(
+					time = TimeUtils.TimeDeltaToString(
 						evt.Trigger.Timestamp.ToUnspecifiedTime() - prevSelectedEvent.Trigger.Timestamp.ToUnspecifiedTime(),
 						addPlusSign: true);
 				else
-					ret.Time = "";
+					time = "";
 			else
-				ret.Time = FormatTimestampt(evt);
-			var messageFormatter = new StateHistoryMessageFormatter() { shortNames = this.shortNames };
+				time = FormatTimestampt(evt);
+			string message;
+			messageFormatter.Reset();
 			evt.OriginalEvent.Visit(messageFormatter);
 			if (evtInfo.InspectedObjectNr != 0)
-				ret.Message = string.Format("#{0}: {1}", evtInfo.InspectedObjectNr, messageFormatter.message);
+				message = string.Format("#{0}: {1}", evtInfo.InspectedObjectNr, messageFormatter.message);
 			else
-				ret.Message = messageFormatter.message;
-			return ret;
+				message = messageFormatter.message;
+			return new StateHistoryItem(evt, time, message, isSelected);
 		}
 
-		IInspectedObject[] GetSelectedInspectedObjects()
+		ImmutableArray<StateHistoryItem> MakeSelectedObjectHistory(
+			ImmutableArray<IInspectedObject> selectedObjects,
+			ImmutableArray<StateInspectorEvent> selectedEvents
+		)
 		{
-			return view.SelectedNodes.Select(n => GetInspectedObject(n)).Where(obj => obj != null).ToArray();
-		}
-
-		StateInspectorEvent[] GetSelectedStateHistoryEvents()
-		{
-			return view
-				.SelectedStateHistoryEvents
-				.Select(item => item.Data as StateInspectorEvent)
-				.Where(x => x != null)
-				.ToArray();
-		}
-
-		PropertyInfo? GetSelectedProperty()
-		{
-			int? row = view.SelectedPropertiesRow;
-			if (row != null)
-				return currentProperties[row.Value];
-			return null;
-		}
-
-		void UpdateSelectedObjectPropertiesAndHistory()
-		{
-			var objs = GetSelectedInspectedObjects();
-
-			PropertyInfo? savedSelectedProperty = GetSelectedProperty();
-			UpdateCurrentPropertiesCollection(objs);
-			UpdatePropertiesDataGrid(savedSelectedProperty);
-
-			UpdateSelectedObjectHistory(objs);
-		}
-
-		void UpdateSelectedObjectHistory(IInspectedObject[] objs)
-		{
-			var olsSelection = GetSelectedStateHistoryEvents();
-			bool updateItemsFlag = // if false - skip some steps to reduce flickering
-				!currentObjects.SetEquals(objs) ||
-				olsSelection.Length != stateHistorySelectedRowsCount;
-			currentObjects.Clear();
-			foreach (var obj in objs)
-				currentObjects.Add(obj);
-			var newSelectedIndexes = new HashSet<int>();
-			view.BeginUpdateStateHistoryList(updateItemsFlag, updateItemsFlag);
-			try
-			{
-				stateHistoryFocusedMessage = null;
-				var changes =
-					objs
-					.ZipWithIndex()
-					.Where(obj => !obj.Value.IsTimeless)
-					.Select(obj => obj.Value.StateChangeHistory.Select(e => new StateInspectorEventInfo()
-					{
-						Object = obj.Value,
-						InspectedObjectNr = objs.Length >= 2 ? obj.Key + 1 : 0,
-						Event = e
-					}))
-					.ToArray()
-					.MergeSortedSequences(new EventsComparer())
-					.ToList();
-				if (updateItemsFlag)
+			var result = ImmutableArray.CreateBuilder<StateHistoryItem>();
+			var changes =
+				selectedObjects
+				.ZipWithIndex()
+				.Where(obj => !obj.Value.IsTimeless)
+				.Select(obj => obj.Value.StateChangeHistory.Select(e => new StateInspectorEventInfo()
 				{
-					foreach (var change in changes.ZipWithIndex())
-					{
-						if (olsSelection.Length > 0 
-						 && olsSelection.Any(i => i.Output == change.Value.Event.Output && i.Index == change.Value.Event.Index))
-						{
-							newSelectedIndexes.Add(change.Key);
-						}
-					}
-					stateHistorySelectedRowsCount = newSelectedIndexes.Count;
-					StateInspectorEvent prevSelectedEvent = null;
-					foreach (var change in changes.ZipWithIndex())
-					{
-						bool isSelected = newSelectedIndexes.Contains(change.Key);
-						view.AddStateHistoryItem(MakeStateHistoryItem(change.Value, 
-							isSelected, stateHistorySelectedRowsCount > 1, prevSelectedEvent));
-						if (isSelected)
-							prevSelectedEvent = change.Value.Event;
-					}
-				}
-				var focusedMessageInfo = GetFocusedMessageEqualRange(objs.FirstOrDefault());
-				if (focusedMessageInfo != null)
-				{
-					stateHistoryFocusedMessage = new ListUtils.VirtualList<StateInspectorEvent>(changes.Count, 
-						i => changes[i].Event).CalcFocusedMessageEqualRange(focusedMessageInfo.FocusedMessage);
-				}
-			}
-			finally
+					Object = obj.Value,
+					InspectedObjectNr = selectedObjects.Length >= 2 ? obj.Key + 1 : 0,
+					Event = e
+				}))
+				.ToArray()
+				.MergeSortedSequences(new EventsComparer())
+				.ToList();
+
+			var selectedEventsSet = selectedEvents.Select(e => (e.Output, e.Index)).ToHashSet();
+			bool isEventSelected(StateInspectorEvent e) => selectedEventsSet.Contains((e.Output, e.Index));
+
+			var messageFormatter = new StateHistoryMessageFormatter { shortNames = this.shortNames };
+			bool showTimeDeltas = changes.Where(c => isEventSelected(c.Event)).Take(2).Count() > 1;
+			StateInspectorEvent prevSelectedEvent = null;
+			foreach (var change in changes.ZipWithIndex())
 			{
-				view.EndUpdateStateHistoryList(
-					updateItemsFlag ? newSelectedIndexes.ToArray() : null,
-					updateItemsFlag,
-					!updateItemsFlag);
+				bool isSelected = isEventSelected(change.Value.Event);
+				result.Add(MakeStateHistoryItem(change.Value, isSelected,
+					showTimeDeltas, prevSelectedEvent, messageFormatter));
+				if (isSelected)
+					prevSelectedEvent = change.Value.Event;
 			}
+
+			return result.ToImmutable();
 		}
 
-		void UpdatePropertiesDataGrid(PropertyInfo? savedSelectedProperty)
+		static ImmutableArray<PropertyInfo> MakeCurrentProperties(
+			ImmutableArray<IInspectedObject> objs,
+			Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> getFocusedMessageEqualRange
+		)
 		{
-			view.SetPropertiesDataSource(currentProperties.Select(p => p.ToDataSourceItem()).ToArray());
-
-			if (savedSelectedProperty != null)
-				for (int rowIdx = 0; rowIdx < currentProperties.Count; ++rowIdx)
-					if (PropertyInfo.Equal(currentProperties[rowIdx], savedSelectedProperty.Value))
-					{
-						view.SelectedPropertiesRow = rowIdx;
-						break;
-					}
-		}
-
-		void UpdateCurrentPropertiesCollection(IInspectedObject[] objs)
-		{
+			var result = ImmutableArray.CreateBuilder<PropertyInfo>();
 			bool isMultiObjectMode = objs.Length >= 2;
 			int objectIndex = 0;
-			currentProperties.Clear();
 			foreach (var obj in objs)
 			{
-				foreach (var dynamicProperty in obj.GetCurrentProperties(GetFocusedMessageEqualRange(obj)))
+				foreach (var dynamicProperty in obj.GetCurrentProperties(getFocusedMessageEqualRange(obj.Owner)))
 				{
 					var idProperty = dynamicProperty.Value as IdPropertyView;
-					currentProperties.Add(new PropertyInfo(
+					result.Add(new PropertyInfo(
 						obj, 
 						dynamicProperty.Key,
 						dynamicProperty.Value,
@@ -752,43 +629,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				}
 				++objectIndex;
 			}
+			return result.ToImmutable();
 		}
 
 		FocusedMessageEventsRange GetFocusedMessageEqualRange(IInspectedObject obj)
 		{
-			if (obj == null)
-				return null;
-			return GetFocusedMessageEqualRange(obj.Owner);
+			return obj == null ? null : getFocusedMessageEqualRange()(obj.Owner);
 		}
 
-		FocusedMessageEventsRange GetFocusedMessageEqualRange(IStateInspectorOutputsGroup forGroup)
-		{
-			FocusedMessageEventsRange ret;
-			if (focusedMessagePositionsCache.TryGetValue(forGroup, out ret))
-				return ret;
-			var equalRange = forGroup.Events.CalcFocusedMessageEqualRange(GetFocusedMessageInfo());
-			ret = new FocusedMessageEventsRange(GetFocusedMessageInfo(), equalRange);
-			focusedMessagePositionsCache.Add(forGroup, ret);
-			return ret;
-		}
-
-		FocusedMessageInfo GetFocusedMessageInfo()
-		{
-			if (focusedMessageInfoCache == null)
-				focusedMessageInfoCache = new FocusedMessageInfo(
-					loadedMessagesPresenter.LogViewerPresenter.FocusedMessage);
-			return focusedMessageInfoCache;
-		}
-
-		IEnumerable<NodeInfo> EnumViewTree(NodesCollectionInfo rootCollection)
-		{
-			foreach (NodeInfo node in view.EnumCollection(rootCollection))
-			{
-				yield return node;
-				foreach (NodeInfo child in EnumViewTree(node.ChildrenNodesCollection))
-					yield return child;
-			}
-		}
 
 		IEnumerable<IInspectedObject> EnumTree(IInspectedObject obj)
 		{
@@ -800,22 +648,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return model.Groups.SelectMany(g => g.Roots);
 		}
 
-		NodeInfo? FindOrCreateNode(IInspectedObject obj)
+		VisualizerNode FindOrCreateNode(IInspectedObject obj)
 		{
-			return new InspectedObjectPath(obj).Follow(this);
-		}
-
-		void HandleFocusedMessageChange()
-		{
-			// invalidate caches that depend on focused message
-			focusedMessageInfoCache = null;
-			focusedMessagePositionsCache.Clear();
-
-			aliveObjectsViewInvalidated = true;
-			if (!view.Visible)
-				return;
-
-			EnsureAliveObjectsView();
+			return new InspectedObjectPath(obj).Follow(getRootNode());
 		}
 
 		IBookmark CreateBookmark(StateInspectorEvent change)
@@ -866,45 +701,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return evt.Trigger.Timestamp.ToUserFrendlyString(showMilliseconds: true, showDate: false);
 		}
 
-		IEnumerable<NodeInfo> EnsureLazyLoadedChildrenCollectionAndEnum(NodeInfo node)
-		{
-			var viewNodes = view.EnumCollection(node.ChildrenNodesCollection);
-			bool lazyLoadingNeedsTesting = view.TreeSupportsLoadingOnExpansion;
-			bool needsLazyLoading = false;
-			foreach (var child in viewNodes)
-			{
-				if (lazyLoadingNeedsTesting)
-				{
-					needsLazyLoading = child.Tag == (object)lazyLoadTag;
-					if (needsLazyLoading)
-						break;
-					lazyLoadingNeedsTesting = false;
-				}
-				yield return child;
-			}
-			if (needsLazyLoading)
-			{
-				view.Clear(node.ChildrenNodesCollection);
-				var nodesToCollapse = new List<NodeInfo>();
-				var ret = new List<NodeInfo>();
-				var obj = GetInspectedObject(node);
-				if (obj == null)
-					yield break;
-				foreach (var child in obj.Children)
-					ret.Add(CreateViewNode(view, node.ChildrenNodesCollection, child, 2, nodesToCollapse));
-				UpdateLiveObjectsColoring(node.ChildrenNodesCollection);
-				foreach (var child in ret)
-					yield return child;
-			}
-		}
-
-		class TreeViewPart
-		{
-			public string Key;
-			public List<NodeInfo> RootNodes = new List<NodeInfo>();
-			public bool OutputIsAlive;
-		};
-
 		struct PropertyInfo
 		{
 			public IInspectedObject Object;
@@ -933,32 +729,34 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		class InspectedObjectPath
 		{
-			public readonly string OutputsGroupKey;
-			public readonly List<string> Path;
+			readonly string outputsGroupKey;
+			readonly List<IInspectedObject> path;
+
+			public InspectedObjectPath(VisualizerNode node): this(node?.InspectedObject)
+			{
+			}
 
 			public InspectedObjectPath(IInspectedObject obj)
 			{
-				this.Path = new List<string>();
-				this.OutputsGroupKey = obj.Owner.Key;
+				this.path = new List<IInspectedObject>();
+				this.outputsGroupKey = obj?.Owner?.Key;
 				for (IInspectedObject i = obj; i != null; i = i.Parent)
-					Path.Add(i.Id);
-				Path.Reverse();
+					path.Add(i);
+				path.Reverse();
 			}
 
-			public NodeInfo? Follow(StateInspectorPresenter owner)
+			public VisualizerNode Follow(VisualizerNode rootNode)
 			{
-				NodeInfo? ret = null;
+				VisualizerNode ret = null;
 				bool inspectingRoots = true;
-				foreach (var segment in Path)
+				foreach (var segment in path)
 				{
-					NodeInfo? found = (
-						from n in inspectingRoots ?
-							  owner.view.EnumCollection(owner.view.RootNodesCollection)
-							: owner.EnsureLazyLoadedChildrenCollectionAndEnum(ret.Value)
-						let obj = GetInspectedObject(n)
+					VisualizerNode found = (
+						from n in inspectingRoots ? rootNode.Children : ret.Children
+						let obj = n.InspectedObject
 						where obj != null
-						where inspectingRoots ? (obj.Id == segment && obj.Owner.Key == OutputsGroupKey) : (obj.Id == segment)
-						select new NodeInfo?(n)
+						where inspectingRoots ? (obj == segment && obj.Owner.Key == outputsGroupKey) : (obj == segment)
+						select n
 					).FirstOrDefault();
 					if (found == null)
 						return null;
@@ -969,10 +767,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		};
 
-		class StateHistoryMessageFormatter: IEventsVisitor
+		class StateHistoryMessageFormatter : IEventsVisitor
 		{
-			public string message = "???";
+			public string message = "";
 			public IUserNamesProvider shortNames;
+
+			public void Reset()
+			{
+				message = "";
+			}
 
 			void IEventsVisitor.Visit (ObjectCreation objectCreation)
 			{
@@ -992,20 +795,101 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		};
 
-		class VisualizerNode : IVisualizerNode
+		[DebuggerDisplay("{key} {text}")]
+		class VisualizerNode : IVisualizerNode, IObjectsTreeNode
 		{
-			IInspectedObject obj;
+			private readonly IInspectedObject obj;
+			private readonly string key;
+			private bool expanded;
+			private readonly bool selected;
+			private readonly string text;
+			private readonly ImmutableList<VisualizerNode> children;
+			private readonly int level;
+			private readonly bool hasSelectedNodes;
+			private readonly ImmutableDictionary<ILogSource, string> annotationsMap;
 
-			public static VisualizerNode FromObject(IInspectedObject obj)
+			// Parent pointers lead to currently visible root node.
+			// If null - the node is not reachable from ViewModel root.
+			// This mutable state does not break Reactive.ITreeNode immutability requirement
+			// because it's not visible via ITreeNode interface.
+			private VisualizerNode parent;
+
+			public VisualizerNode(
+				IInspectedObject obj,
+				ImmutableList<VisualizerNode> children,
+				bool expanded,
+				bool selected,
+				int level,
+				ImmutableDictionary<ILogSource, string> annotationsMap
+			)
 			{
-				return obj != null ? new VisualizerNode() { obj = obj } : null;
+				this.obj = obj;
+				this.key = $"{obj?.GetHashCode():x08}";
+				this.children = children;
+				this.annotationsMap = annotationsMap;
+				this.text = GetNodeText(obj, level, annotationsMap);
+				this.expanded = expanded;
+				this.selected = selected;
+				this.level = level;
+				children.ForEach(c => c.parent = this);
+				this.hasSelectedNodes = selected || children.Any(c => c.HasSelectedNodes);
+			}
+
+
+			public IInspectedObject InspectedObject => obj;
+			public bool IsSelected => selected;
+			public bool HasSelectedNodes => hasSelectedNodes;
+			public IReadOnlyList<VisualizerNode> Children => children;
+
+			public void SetInitialProps(EventHandler<NodeCreatedEventArgs> nodeCreationHandler)
+			{
+				bool createCollapsed = false;
+				if (level < 5) // todo: why 5?
+				{
+					if (nodeCreationHandler != null)
+					{
+						var args = new NodeCreatedEventArgs() { NodeObject = this };
+						nodeCreationHandler(this, args);
+						createCollapsed = args.CreateCollapsed.GetValueOrDefault(createCollapsed);
+					}
+				}
+				expanded = !createCollapsed;
+				children.ForEach(c => c.SetInitialProps(nodeCreationHandler));
+			}
+
+			public VisualizerNode ReplaceChild(VisualizerNode old, VisualizerNode newChild, bool ensureExpanded)
+			{
+				var copy = new VisualizerNode(obj, ImmutableList.CreateRange(children.Select(c => c == old ? newChild : c)),
+						ensureExpanded ? true : expanded, selected, level, annotationsMap);
+				old.parent = null;
+				return parent == null ? copy : parent.ReplaceChild(this, copy, ensureExpanded);
+			}
+
+			public VisualizerNode Expand(bool value)
+			{
+				var copy = new VisualizerNode(obj, children, value, selected, level, annotationsMap);
+				return parent.ReplaceChild(this, copy, false);
+			}
+
+			public VisualizerNode Select(bool value)
+			{
+				var copy = new VisualizerNode(obj, children, expanded, value, level, annotationsMap);
+				return parent.ReplaceChild(this, copy, true);
+			}
+
+			public VisualizerNode SetAnnotationsMap(ImmutableDictionary<ILogSource, string> annotationsMap)
+			{
+				if (level != 1 || this.annotationsMap == annotationsMap)
+					return this;
+				return new VisualizerNode(obj, children, expanded, selected, level, annotationsMap);
 			}
 
 			string IVisualizerNode.Id => obj.Id;
 
 			Event IVisualizerNode.CreationEvent => obj.CreationEvent?.OriginalEvent;
 
-			IVisualizerNode IVisualizerNode.Parent => FromObject(obj.Parent);
+			IVisualizerNode IVisualizerNode.Parent => parent?.obj != null ? parent : null;
+			IEnumerableAsync<IVisualizerNode> IVisualizerNode.Children => children.Cast<IVisualizerNode>().ToAsync();
 
 			bool IVisualizerNode.BelongsToSource(ILogSource logSource)
 			{
@@ -1020,13 +904,64 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				}
 			}
 
-			IEnumerableAsync<IVisualizerNode> IVisualizerNode.Children
+			string ITreeNode.Key => key;
+
+			IReadOnlyList<ITreeNode> ITreeNode.Children => children;
+
+			bool ITreeNode.IsExpanded => expanded;
+
+			bool ITreeNode.IsSelected => selected;
+
+			public override string ToString() => text;
+
+			static private string GetNodeText(IInspectedObject node, int level, ImmutableDictionary<ILogSource, string> annotationsMap)
 			{
-				get
+				switch (level)
 				{
-					return obj.Children.ToAsync().Select(c => (IVisualizerNode)FromObject(c));
+					case 0: return "";
+					case 1:
+						var rootNodeText = new StringBuilder(node.Id);
+						var ls = node.EnumInvolvedLogSources().FirstOrDefault();
+						if (ls != null && annotationsMap.TryGetValue(ls, out var logSourceAnnotation))
+							rootNodeText.AppendFormat(" ({0})", logSourceAnnotation);
+						if (node.Comment != "")
+							rootNodeText.AppendFormat(" ({0})", node.Comment);
+						return rootNodeText.ToString();
+					default:
+						string nodeText = node.DisplayName;
+						if (node.Comment != "")
+							nodeText += " (" + node.Comment + ")";
+						return nodeText;
 				}
 			}
+		};
+
+		class StateHistoryItem : IStateHistoryItem
+		{
+			readonly string time;
+			readonly string message;
+			readonly bool isSelected;
+			readonly StateInspectorEvent @event;
+			readonly string key;
+
+			public StateHistoryItem(StateInspectorEvent @event, string time, string message, bool isSelected)
+			{
+				this.time = time;
+				this.message = message;
+				this.isSelected = isSelected;
+				this.@event = @event;
+				this.key = @event.GetHashCode().ToString();
+			}
+
+			public StateInspectorEvent Event => @event;
+
+			string IStateHistoryItem.Time => time;
+
+			string IStateHistoryItem.Message => message;
+
+			string IListItem.Key => key;
+
+			bool IListItem.IsSelected => isSelected;
 		};
 
 		readonly IView view;
@@ -1039,16 +974,20 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly SourcesManager.IPresenter sourcesManagerPresenter;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IColorTheme theme;
-		readonly Dictionary<string, TreeViewPart> viewPartsCache = new Dictionary<string, TreeViewPart>();
-		readonly List<PropertyInfo> currentProperties = new List<PropertyInfo>();
-		readonly HashSet<IInspectedObject> currentObjects = new HashSet<IInspectedObject>();
-		readonly Dictionary<IStateInspectorOutputsGroup, FocusedMessageEventsRange> focusedMessagePositionsCache = new Dictionary<IStateInspectorOutputsGroup, FocusedMessageEventsRange>();
-		readonly List<InspectedObjectPath> selectedObjectsPathsBeforeSelectionLoss = new List<InspectedObjectPath>();
-		bool treeViewInvalidated;
-		bool aliveObjectsViewInvalidated;
-		FocusedMessageInfo focusedMessageInfoCache;
-		Tuple<int, int> stateHistoryFocusedMessage;
-		int stateHistorySelectedRowsCount;
-		static readonly string lazyLoadTag = "(load-me)";
+		readonly IChainedChangeNotification changeNotification;
+		readonly Func<VisualizerNode> getRootNode;
+		readonly Action<Func<VisualizerNode, VisualizerNode>> updateRootNode;
+		readonly Func<ImmutableArray<VisualizerNode>> getSelectedNodes;
+		readonly Func<PaintNodeDelegate> getPaintNode;
+		readonly Func<ImmutableArray<IInspectedObject>> getSelectedInspectedObjects;
+		readonly Func<ImmutableArray<StateHistoryItem>> getStateHistoryItems;
+		readonly Func<Predicate<IStateHistoryItem>> getIsHistoryItemBookmarked;
+		readonly Func<Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange>> getFocusedMessageEqualRange;
+		readonly Func<IMessage> getFocusedMessageInfo;
+		readonly Func<Tuple<int, int>> getFocusedMessagePositionInHistory;
+		readonly Func<string> getCurrentTimeLabelText;
+		ImmutableArray<StateInspectorEvent> selectedHistoryEvents = ImmutableArray<StateInspectorEvent>.Empty;
+		readonly Func<ImmutableArray<PropertyInfo>> getCurrentProperties;
+		readonly Func<IReadOnlyList<KeyValuePair<string, object>>> getObjectsProperties;
 	}
 }

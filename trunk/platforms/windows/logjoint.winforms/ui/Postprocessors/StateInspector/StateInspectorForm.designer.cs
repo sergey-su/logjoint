@@ -31,7 +31,7 @@
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(StateInspectorForm));
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-			this.objectsTreeView = new System.Windows.Forms.MyTreeView();
+			this.objectsTreeView = new LogJoint.UI.Windows.MultiselectTreeView();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			this.aliveObjectsComment = new System.Windows.Forms.Label();
@@ -84,17 +84,16 @@
 			// 
 			this.objectsTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.objectsTreeView.DrawMode = System.Windows.Forms.TreeViewDrawMode.OwnerDrawText;
-			this.objectsTreeView.FullRowSelect = true;
 			this.objectsTreeView.HideSelection = false;
+			this.objectsTreeView.FullRowSelect = true;
 			this.objectsTreeView.Location = new System.Drawing.Point(3, 22);
 			this.objectsTreeView.Margin = new System.Windows.Forms.Padding(0);
 			this.objectsTreeView.Name = "objectsTreeView";
-			this.objectsTreeView.SelectedNodes = ((System.Collections.Generic.IEnumerable<System.Windows.Forms.TreeNode>)(resources.GetObject("objectsTreeView.SelectedNodes")));
 			this.objectsTreeView.Size = new System.Drawing.Size(397, 502);
 			this.objectsTreeView.TabIndex = 3;
-			this.objectsTreeView.SelectedNodesChanged += new System.EventHandler(this.objectsTreeView_SelectedNodesChanged);
 			this.objectsTreeView.DrawNode += new System.Windows.Forms.DrawTreeNodeEventHandler(this.objectsTreeView_DrawNode);
 			this.objectsTreeView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.objectsTreeView_KeyDown);
+			this.objectsTreeView.NodeDisplayAttributes += new LogJoint.UI.Windows.TreeViewNodeDisplayAttributesEventHandler(this.objectsTreeView_NodeDisplayAttributes);
 			this.objectsTreeView.ContextMenuStrip = contextMenuStrip;
 			// 
 			// panel2
@@ -299,7 +298,7 @@
 		#endregion
 
 		private System.Windows.Forms.SplitContainer splitContainer1;
-		private System.Windows.Forms.MyTreeView objectsTreeView;
+		private LogJoint.UI.Windows.MultiselectTreeView objectsTreeView;
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
 		private System.Windows.Forms.Label aliveObjectsComment;

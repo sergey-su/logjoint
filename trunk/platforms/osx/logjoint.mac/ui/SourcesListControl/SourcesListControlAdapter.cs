@@ -11,7 +11,7 @@ namespace LogJoint.UI
 	public class SourcesListControlAdapter : NSOutlineViewDelegate, IView
 	{
 		internal IViewModel viewModel;
-		Reactive.INSOutlineViewController outlineViewController;
+		Reactive.INSOutlineViewController<IViewItem> outlineViewController;
 		LJD.Image currentSourceImage;
 		IViewItem requestedTopItem;
 
@@ -38,18 +38,18 @@ namespace LogJoint.UI
 		public void Init (Mac.IReactive reactive)
 		{
 			View.EnsureCreated ();
-			outlineViewController = reactive.CreateOutlineViewController (outlineView);
+			outlineViewController = reactive.CreateOutlineViewController<IViewItem> (outlineView);
 
-			outlineViewController.OnView = GetView;
+			outlineViewController.OnCreateView = GetView;
 		}
 
 		void IView.SetViewModel (IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
 
-			outlineViewController.OnExpand = n => viewModel.OnItemExpand (n as IViewItem);
-			outlineViewController.OnCollapse = n => viewModel.OnItemCollapse (n as IViewItem);
-			outlineViewController.OnSelect = items => viewModel.OnSelectionChange (items.OfType<IViewItem> ().ToArray ());
+			outlineViewController.OnExpand = viewModel.OnItemExpand;
+			outlineViewController.OnCollapse = viewModel.OnItemCollapse;
+			outlineViewController.OnSelect = viewModel.OnSelectionChange;
 
 			var updateTree = Updaters.Create (
 				() => viewModel.RootItem,
@@ -105,10 +105,8 @@ namespace LogJoint.UI
 			}
 		}
 
-		NSView GetView (NSTableColumn tableColumn, Presenters.Reactive.ITreeNode item)
+		NSView GetView (NSTableColumn tableColumn, IViewItem sourceItem)
 		{
-			var sourceItem = item as IViewItem;
-
 			if (tableColumn == sourceCheckedColumn) {
 				if (sourceItem.Checked == null)
 					return null;

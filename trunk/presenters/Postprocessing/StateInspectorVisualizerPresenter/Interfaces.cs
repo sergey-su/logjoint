@@ -1,10 +1,7 @@
 ﻿using LogJoint.Postprocessing;
-using LogJoint.Postprocessing.StateInspector;
+using LogJoint.UI.Presenters.Reactive;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
@@ -16,55 +13,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewModel eventsHandler);
-		bool Visible { get; }
-		NodesCollectionInfo RootNodesCollection { get; }
-		void Clear(NodesCollectionInfo nodesCollection);
-		void AddNode(NodesCollectionInfo nodesCollection, NodeInfo node);
-		NodeInfo CreateNode(string nodeText, object tag, NodesCollectionInfo nodesCollection);
-		void SetNodeText(NodeInfo node, string text);
-		void BeginTreeUpdate();
-		void EndTreeUpdate();
-		void InvalidateTree();
-		/// <summary>
-		/// Expands all child nodes recursively. Is does not raise IViewEvents.OnNodeExpanding.
-		/// </summary>
-		void ExpandAll(NodeInfo node);
-		void Collapse(NodeInfo node);
-		IEnumerable<NodeInfo> EnumCollection(NodesCollectionInfo nodesCollection);
-		NodeInfo[] SelectedNodes { get; set; }
-		void SetNodeColoring(NodeInfo node, NodeColoring coloring);
-		bool TreeSupportsLoadingOnExpansion { get; }
-		void ScrollSelectedNodesInView();
-		IEnumerable<StateHistoryItem> SelectedStateHistoryEvents { get; }
-		void BeginUpdateStateHistoryList(bool fullUpdate, bool clearList);
-		int AddStateHistoryItem(StateHistoryItem item);
-		void EndUpdateStateHistoryList(int[] newSelectedIndexes, bool fullUpdate, bool redrawFocusedMessageMark);
-		void ScrollStateHistoryItemIntoView(int itemIndex);
-
-		int? SelectedPropertiesRow { get; set; }
-		void SetPropertiesDataSource(IList<KeyValuePair<string, object>> properties);
-
-		void SetCurrentTimeLabelText(string text);
-
+		void SetViewModel(IViewModel value);
 		void Show();
+
+		void ScrollStateHistoryItemIntoView(int itemIndex);
 	};
 
-	public struct NodeInfo
+	public interface IObjectsTreeNode: ITreeNode
 	{
-		public object Data;
-		public object Tag;
-		public NodesCollectionInfo ChildrenNodesCollection;
-		public string Text;
-		public NodeColoring Coloring;
 	};
 
-	public struct NodesCollectionInfo
-	{
-		public object Data;
-	};
-
-	[Flags]
 	public enum NodeColoring
 	{
 		Alive = 1,
@@ -82,22 +40,37 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 	public interface IViewModel
 	{
 		ColorThemeMode ColorTheme { get; }
-		void OnVisibleChanged();
-		void OnSelectedNodesChanged();
-		void OnPropertiesRowDoubleClicked();
+
+		IChangeNotification ChangeNotification { get; }
+
+		void OnVisibleChanged(bool value);
+
+		IObjectsTreeNode ObjectsTreeRoot { get; }
+		PaintNodeDelegate PaintNode { get; }
+		void OnExpandNode(IObjectsTreeNode node);
+		void OnCollapseNode(IObjectsTreeNode node);
+		void OnSelect(IReadOnlyCollection<IObjectsTreeNode> value);
+		MenuData OnNodeMenuOpening();
+		void OnNodeDeleteKeyPressed();
+
+
+		string CurrentTimeLabelText { get; }
+
+
+		IReadOnlyList<KeyValuePair<string, object>> ObjectsProperties { get; }
+		void OnPropertiesRowDoubleClicked(int rowIndex);
 		PropertyCellPaintInfo OnPropertyCellPaint(int rowIndex);
 		void OnPropertyCellClicked(int rowIndex);
-		void OnChangeHistoryItemClicked(StateHistoryItem item);
-		void OnChangeHistoryItemKeyEvent(StateHistoryItem item, Key key);
-		void OnChangeHistorySelectionChanged();
-		NodePaintInfo OnPaintNode(NodeInfo node, bool getPrimaryPropValue);
-		Tuple<int, int> OnDrawFocusedMessageMark();
-		bool OnGetHistoryItemBookmarked(StateHistoryItem item);
-		void OnCopyShortcutPressed();
-		void OnDeleteKeyPressed();
-		void OnNodeExpanding(NodeInfo info);
-		void OnFindCurrentPositionInStateHistory();
-		MenuData OnMenuOpening();
+		void OnPropertyCellCopyShortcutPressed(int propertyIndex);
+
+
+		IReadOnlyList<IStateHistoryItem> ChangeHistoryItems { get; }
+		Predicate<IStateHistoryItem> IsChangeHistoryItemBookmarked { get; }
+		Tuple<int, int> FocusedMessagePositionInChangeHistory { get; }
+		void OnChangeHistoryItemDoubleClicked(IStateHistoryItem item);
+		void OnChangeHistoryItemKeyEvent(IStateHistoryItem item, Key key);
+		void OnChangeHistoryChangeSelection(IEnumerable<IStateHistoryItem> items);
+		void OnFindCurrentPositionInChangeHistory();
 	};
 
 	public struct PropertyCellPaintInfo
@@ -114,10 +87,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		public bool DrawFocusedMsgMark;
 	};
 
-	public class StateHistoryItem
+	public delegate NodePaintInfo PaintNodeDelegate(IObjectsTreeNode node, bool getPrimaryPropValue);
+
+	public interface IStateHistoryItem: IListItem
 	{
-		public string Time;
-		public string Message;
-		public object Data;
+		string Time { get; }
+		string Message { get; }
 	};
 }

@@ -7,15 +7,15 @@ namespace LogJoint.Postprocessing.StateInspector
 {
 	public static class StateInspectorOutputExtensions
 	{
-		public static Tuple<int, int> CalcFocusedMessageEqualRange(this IReadOnlyList<StateInspectorEvent> allChanges, FocusedMessageInfo focusedMessageInfo)
+		public static Tuple<int, int> CalcFocusedMessageEqualRange(this IReadOnlyList<StateInspectorEvent> allChanges, IMessage focusedMessage)
 		{
-			if (focusedMessageInfo == null || focusedMessageInfo.FocusedMessage == null)
+			if (focusedMessage == null)
 				return null;
-			var messageLogSource = focusedMessageInfo.FocusedMessage.GetLogSource();
+			var messageLogSource = focusedMessage.GetLogSource();
 			if (messageLogSource == null)
 				return null;
-			var focusedMessageTime = focusedMessageInfo.FocusedMessage.Time;
-			var focusedMessagePosition = focusedMessageInfo.FocusedMessage.Position;
+			var focusedMessageTime = focusedMessage.Time;
+			var focusedMessagePosition = focusedMessage.Position;
 
 			int lowerBound = ListUtils.BinarySearch(allChanges, 0, allChanges.Count,
 				change => EventsComparer.Compare(change, focusedMessageTime, messageLogSource, focusedMessagePosition) < 0);

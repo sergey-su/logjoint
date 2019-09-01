@@ -8,7 +8,7 @@ using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Reactive
 {
-	public class NSTableViewController: INSTableViewController
+	public class NSTableViewController<Item>: INSTableViewController<Item> where Item : class, IListItem
 	{
 		private readonly NSTableView tableView;
 		private readonly Telemetry.ITelemetryCollector telemetryCollector;
@@ -26,7 +26,7 @@ namespace LogJoint.UI.Reactive
 			this.tableView.DataSource = dataSource;
 		}
 
-		public void Update(IReadOnlyList<IListItem> newList)
+		public void Update(IReadOnlyList<Item> newList)
 		{
 			this.@delegate.updating = true;
 			try
@@ -39,17 +39,18 @@ namespace LogJoint.UI.Reactive
 			}
 		}
 
-		public Action<IListItem[]> OnSelect { get; set; }
-		public CrateTableViewDelegate OnCreateView { get; set; }
-		public UpdateTableViewDelegate OnUpdateView { get; set; }
+		public Action<IReadOnlyList<Item>> OnSelect { get; set; }
+		public CrateTableViewDelegate<Item> OnCreateView { get; set; }
+		public UpdateTableViewDelegate<Item> OnUpdateView { get; set; }
+		public CreateTableRowViewDelegate<Item> OnCreateRowView { get; set; }
 
 		class DataSource : NSTableViewDataSource
 		{
 			readonly NSTableView tableView;
-			readonly NSTableViewController owner;
-			public IReadOnlyList<IListItem> items = new List<IListItem>().AsReadOnly();
+			readonly NSTableViewController<Item> owner;
+			public IReadOnlyList<Item> items = new List<Item> ().AsReadOnly();
 
-			public DataSource(NSTableViewController owner, NSTableView tableView)
+			public DataSource(NSTableViewController<Item> owner, NSTableView tableView)
 			{
 				this.tableView = tableView;
 				this.owner = owner;
@@ -57,7 +58,7 @@ namespace LogJoint.UI.Reactive
 
 			public override nint GetRowCount(NSTableView tableView) => items.Count;
 
-			public void Update(IReadOnlyList<IListItem> newList)
+			public void Update(IReadOnlyList<Item> newList)
 			{
 				this.tableView.BeginUpdates();
 				try
@@ -71,7 +72,7 @@ namespace LogJoint.UI.Reactive
 				UpdateSelection();
 			}
 
-			void UpdateStructure(IReadOnlyList<IListItem> newList)
+			void UpdateStructure(IReadOnlyList<Item> newList)
 			{
 				var edits = ListEdit.GetListEdits(items, newList);
 
@@ -85,10 +86,12 @@ namespace LogJoint.UI.Reactive
 					switch (e.Type)
 					{
 					case ListEdit.EditType.Insert:
-						tableView.InsertRows(new NSIndexSet(e.Index), NSTableViewAnimation.None);
+						using (var set = new NSIndexSet (e.Index))
+							tableView.InsertRows(set, NSTableViewAnimation.None);
 						break;
 					case ListEdit.EditType.Delete:
-						tableView.RemoveRows(new NSIndexSet(e.Index), NSTableViewAnimation.None);
+						using (var set = new NSIndexSet (e.Index))
+							tableView.RemoveRows (set, NSTableViewAnimation.None);
 						break;
 					case ListEdit.EditType.Reuse:
 						if (owner.OnUpdateView != null && owner.OnCreateView != null)
@@ -97,18 +100,21 @@ namespace LogJoint.UI.Reactive
 							{
 								var existingView = tableView.GetView(col, e.Index, makeIfNecessary: false);
 								if (existingView != null)
-									owner.OnUpdateView(e.Item, columns[col], existingView, e.OldItem);
+									owner.OnUpdateView((Item)e.Item, columns[col], existingView, (Item)e.OldItem);
 							}
 						}
 						else
 						{
 							if (allColumnsSet == null)
 								allColumnsSet = NSIndexSet.FromArray(Enumerable.Range(0, columns.Length).ToArray());
-							tableView.ReloadData(new NSIndexSet(e.Index), allColumnsSet);
+							using (var set = new NSIndexSet (e.Index))
+								tableView.ReloadData (set, allColumnsSet);
 						}
 						break;
 					}
 				}
+
+				allColumnsSet?.Dispose ();
 			}
 
 			void UpdateSelection()
@@ -132,12 +138,12 @@ namespace LogJoint.UI.Reactive
 
 		class Delegate : NSTableViewDelegate
 		{
-			private readonly NSTableViewController owner;
+			private readonly NSTableViewController<Item> owner;
 			private readonly DataSource dataSource;
 			public bool updating;
 			Task notificationChain = Task.CompletedTask;
 
-			public Delegate(NSTableViewController owner, DataSource dataSource)
+			public Delegate(NSTableViewController<Item> owner, DataSource dataSource)
 			{
 				this.owner = owner;
 				this.dataSource = dataSource;
@@ -156,6 +162,16 @@ namespace LogJoint.UI.Reactive
 				else
 					view.StringValue = item.ToString();
 				return view;
+			}
+
+			public override NSTableRowView CoreGetRowView (NSTableView tableView, nint row)
+			{
+				if (owner.OnCreateRowView != null)
+				{
+					var item = dataSource.items [(int)row];
+					return owner.OnCreateRowView (item, (int)row);
+				}
+				return null;
 			}
 
 			public override NSIndexSet GetSelectionIndexes(NSTableView tableView, NSIndexSet proposedSelectionIndexes)

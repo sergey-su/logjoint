@@ -5,13 +5,16 @@ using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 using Foundation;
 using CoreGraphics;
+using System.Collections.Generic;
+using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
-	public class StateHistroryTableRowView: NSTableRowView
+	public class StateHistoryTableRowView: NSTableRowView
 	{
 		public StateInspectorWindowController owner;
 		public int row;
+		public IReadOnlyList<IStateHistoryItem> items;
 		static LJD.Image bookmarkImage = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
 
 		public override void DrawBackground(CGRect dirtyRect)
@@ -30,7 +33,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		void DrawFocusedMessage()
 		{
-			Tuple<int, int> focused = owner.ViewModel.OnDrawFocusedMessageMark();
+			Tuple<int, int> focused = owner.ViewModel.FocusedMessagePositionInChangeHistory;
 			if (focused != null)
 			{
 				var frame = this.Frame.ToRectangleF ();
@@ -54,7 +57,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		void DrawBookmark()
 		{
-			bool bookmarked = owner.ViewModel.OnGetHistoryItemBookmarked(owner.StateHistoryDataSource.data[row]);
+			bool bookmarked = owner.ViewModel.IsChangeHistoryItemBookmarked(items [row]);
 			if (bookmarked)
 			{
 				var frame = this.Frame.ToRectangleF ();

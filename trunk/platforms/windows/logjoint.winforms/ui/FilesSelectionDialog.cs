@@ -13,7 +13,7 @@ namespace LogJoint.UI
 {
 	public partial class FilesSelectionDialog : Form
 	{
-		IListBoxController listBoxController;
+		IListBoxController<IDialogItem> listBoxController;
 
 		public FilesSelectionDialog()
 		{
@@ -24,14 +24,14 @@ namespace LogJoint.UI
 		{
 			dialog = new FilesSelectionDialog();
 			var listBox = dialog.checkedListBox1;
-			var listBoxController = reactive.CreateListBoxController(listBox);
+			var listBoxController = reactive.CreateListBoxController<IDialogItem>(listBox);
 			dialog.listBoxController = listBoxController;
-			listBoxController.OnSelect = s => viewModel.OnSelect(s.LastOrDefault() as IDialogItem);
-			listBoxController.OnUpdateRow = (item, i, oldItem) => listBox.SetItemChecked(i, ((IDialogItem)item).IsChecked);
+			listBoxController.OnSelect = s => viewModel.OnSelect(s.LastOrDefault());
+			listBoxController.OnUpdateRow = (item, i, oldItem) => listBox.SetItemChecked(i, item.IsChecked);
 			listBox.ItemCheck += (s, e) =>
 			{
 				if (!listBoxController.IsUpdating)
-					viewModel.OnCheck((IDialogItem)listBox.Items[e.Index], e.NewValue == CheckState.Checked);
+					viewModel.OnCheck(listBoxController.Map(listBox.Items[e.Index]), e.NewValue == CheckState.Checked);
 			};
 			dialog.Update(viewModel.DialogData);
 			viewModel.OnCloseDialog(dialog.ShowDialog() == DialogResult.OK);

@@ -22,7 +22,7 @@ namespace System.Windows.Forms
 			{
 				// hack: 
 				// set clipboard manually and return null to suppress clipboard modification by DataGridView
-				viewModel.OnCopyShortcutPressed();
+				viewModel.OnPropertyCellCopyShortcutPressed(row.Index);
 				return null;
 			}
 			else

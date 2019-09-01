@@ -79,7 +79,7 @@ namespace LogJoint.UI.Presenters
 
 		Postprocessing.StateInspectorVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateStateInspectorView()
 		{
-			var impl = new UI.Postprocessing.StateInspector.StateInspectorForm();
+			var impl = new UI.Postprocessing.StateInspector.StateInspectorForm(this);
 			winFormsComponentsInitializer.InitOwnedForm(impl, takeOwnership: false);
 			return impl;
 		}
@@ -105,14 +105,14 @@ namespace LogJoint.UI.Presenters
 			return impl.TimeSeriesVisualizerView;
 		}
 
-		Windows.Reactive.ITreeViewController Windows.Reactive.IReactive.CreateTreeViewController(MultiselectTreeView treeView)
+		Windows.Reactive.ITreeViewController<Node> Windows.Reactive.IReactive.CreateTreeViewController<Node>(MultiselectTreeView treeView)
 		{
-			return new Windows.Reactive.TreeViewController(treeView);
+			return new Windows.Reactive.TreeViewController<Node>(treeView);
 		}
 
-		Windows.Reactive.IListBoxController Windows.Reactive.IReactive.CreateListBoxController(System.Windows.Forms.ListBox listBox)
+		Windows.Reactive.IListBoxController<Item> Windows.Reactive.IReactive.CreateListBoxController<Item>(System.Windows.Forms.ListBox listBox)
 		{
-			return new Windows.Reactive.ListBoxController(listBox);
+			return new Windows.Reactive.ListBoxController<Item>(listBox);
 		}
 	};
 }

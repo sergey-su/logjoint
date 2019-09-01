@@ -43,16 +43,14 @@ namespace LogJoint.Postprocessing.StateInspector
 
 	public interface IStateInspectorVisualizerModel
 	{
-		IEnumerable<IStateInspectorOutputsGroup> Groups { get; }
-
-		event EventHandler Changed;
+		IReadOnlyList<IStateInspectorOutputsGroup> Groups { get; }
 	};
 
 	public interface IStateInspectorOutputsGroup
 	{
 		string Key { get; }
-		IEnumerable<IInspectedObject> Roots { get; }
+		IReadOnlyList<IInspectedObject> Roots { get; }
 		IReadOnlyList<StateInspectorEvent> Events { get; }
-		IEnumerable<IStateInspectorOutput> Outputs { get; }
+		IReadOnlyList<IStateInspectorOutput> Outputs { get; }
 	};
 }

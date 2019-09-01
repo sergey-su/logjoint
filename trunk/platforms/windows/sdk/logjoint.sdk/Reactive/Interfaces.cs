@@ -5,32 +5,33 @@ using System.Collections.Generic;
 
 namespace LogJoint.UI.Windows.Reactive
 {
-	public interface ITreeViewController
+	public interface ITreeViewController<Node> where Node: class, ITreeNode
 	{
-		void Update(ITreeNode newRoot);
-		Action<ITreeNode[]> OnSelect { get; set; }
-		Action<ITreeNode> OnExpand { get; set; }
-		Action<ITreeNode> OnCollapse { get; set; }
+		void Update(Node newRoot);
+		Action<Node[]> OnSelect { get; set; }
+		Action<Node> OnExpand { get; set; }
+		Action<Node> OnCollapse { get; set; }
 		/// <summary>
 		/// a hook that is called when the controller needs to update TreeNode object
 		/// to represent a ITreeNode. Old ITreeNode or null is passed as 3rd argument.
 		/// </summary>
-		Action<WF.TreeNode, ITreeNode, ITreeNode> OnUpdateNode { get; set; }
-		ITreeNode Map(WF.TreeNode node);
-		WF.TreeNode Map(ITreeNode node);
+		Action<WF.TreeNode, Node, Node> OnUpdateNode { get; set; }
+		Node Map(WF.TreeNode node);
+		WF.TreeNode Map(Node node);
 	}
 
-	public interface IListBoxController
+	public interface IListBoxController<Item> where Item: IListItem
 	{
-		void Update(IReadOnlyList<IListItem> newRoot);
+		void Update(IReadOnlyList<Item> newRoot);
 		bool IsUpdating { get; }
-		Action<IListItem[]> OnSelect { get; set; }
-		Action<IListItem, int, IListItem> OnUpdateRow { get; set; }
+		Action<Item[]> OnSelect { get; set; }
+		Action<Item, int, Item> OnUpdateRow { get; set; }
+		Item Map(object listBoxItem);
 	};
 
 	public interface IReactive
 	{
-		ITreeViewController CreateTreeViewController(MultiselectTreeView treeView);
-		IListBoxController CreateListBoxController(WF.ListBox listBox);
+		ITreeViewController<Node> CreateTreeViewController<Node>(MultiselectTreeView treeView) where Node : class, ITreeNode;
+		IListBoxController<Item> CreateListBoxController<Item>(WF.ListBox listBox) where Item : class, IListItem;
 	};
 }

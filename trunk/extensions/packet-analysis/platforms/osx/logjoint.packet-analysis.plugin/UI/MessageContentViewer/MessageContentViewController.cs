@@ -11,7 +11,7 @@ namespace LogJoint.PacketAnalysis.UI
 	public partial class MessageContentViewController : AppKit.NSViewController, IView
 	{
 		private readonly LogJoint.UI.Mac.IView ljView;
-		private LogJoint.UI.Reactive.INSOutlineViewController treeController;
+		private LogJoint.UI.Reactive.INSOutlineViewController<IViewTreeNode> treeController;
 
 		public MessageContentViewController(LogJoint.UI.Mac.IView ljView, NSBundle bundle) :
 			base("MessageContentView", bundle)
@@ -27,11 +27,11 @@ namespace LogJoint.PacketAnalysis.UI
 		{
 			View.GetHashCode();
 
-			treeController = ljView.Reactive.CreateOutlineViewController(treeView);
-			treeController.OnExpand = n => viewModel.OnExpand((IViewTreeNode)n);
-			treeController.OnCollapse = n => viewModel.OnCollapse((IViewTreeNode)n);
-			treeController.OnSelect = n => viewModel.OnSelect((IViewTreeNode)n.FirstOrDefault());
-			treeController.OnView = (column, n) => CreateTreeNodeView((IViewTreeNode)n);
+			treeController = ljView.Reactive.CreateOutlineViewController<IViewTreeNode>(treeView);
+			treeController.OnExpand = viewModel.OnExpand;
+			treeController.OnCollapse = viewModel.OnCollapse;
+			treeController.OnSelect = n => viewModel.OnSelect(n.FirstOrDefault());
+			treeController.OnCreateView = (column, n) => CreateTreeNodeView(n);
 
 			var updateTree = Updaters.Create(
 				() => viewModel.Root,

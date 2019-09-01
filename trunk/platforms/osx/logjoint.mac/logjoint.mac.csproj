@@ -394,23 +394,17 @@
       <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\Common\ToastNotificationsView\ToastNotificationsView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsViewAdapter.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\Node.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\NodeOp.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\PropertiesViewDataSource.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\PropertiesViewDelegate.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\StateHistoryDataSource.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\StateHistoryViewDelegate.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\StateHistroryTableRowView.cs" />
+    <Compile Include="ui\Postprocessors\StateInspectorWindow\StateHistoryTableRowView.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\StateInspectorPropertiesView.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\StateInspectorWindow.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\StateInspectorWindow.designer.cs">
       <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\StateInspectorWindow\StateInspectorWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Postprocessors\StateInspectorWindow\StateInspectorWindowController.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\TreeDataSource.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\TreeNodeView.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\TreeRowView.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\TreeViewDelegate.cs" />
     <Compile Include="ui\Postprocessors\MainWindowTabPage\MainWindowTabPage.cs" />
     <Compile Include="ui\Postprocessors\MainWindowTabPage\MainWindowTabPage.designer.cs">
       <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\MainWindowTabPage\MainWindowTabPage.cs</DependentUpon>

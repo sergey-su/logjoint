@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
-using LogJoint.UI;
 using AppKit;
-using CoreText;
 using Foundation;
-using ObjCRuntime;
-using System.Threading.Tasks;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
@@ -16,45 +13,20 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		IView,
 		Presenters.Postprocessing.IPostprocessorVisualizerPresenter
 	{
-		IViewModel eventsHandler;
-		readonly TreeDataSource treeDataSource = new TreeDataSource ();
+		private readonly UI.Mac.IReactive reactive;
+		private Reactive.INSOutlineViewController<IObjectsTreeNode> treeViewController;
+		private Reactive.INSTableViewController<IStateHistoryItem> stateHistoryController;
+		private readonly PropertiesViewDataSource propsDataSource = new PropertiesViewDataSource ();
+		IViewModel viewModel;
 		StateInspectorWindow windowRef;
-		bool updatingTree;
-		readonly List<NodeOp> delayedTreeOps = new List<NodeOp>();
-		readonly PropertiesViewDataSource propsDataSource = new PropertiesViewDataSource ();
-		readonly StateHistoryDataSource stateHistoryDataSource = new StateHistoryDataSource();
-		bool updatingStateHistory;
 		ContextMenuDelegate contextMenuDelegate;
 
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public StateInspectorWindowController (IntPtr handle) : base (handle)
+		public StateInspectorWindowController (Mac.IReactive reactive) : base ("StateInspectorWindow")
 		{
-			Initialize ();
-		}
-		
-		// Called when created directly from a XIB file
-		[Export ("initWithCoder:")]
-		public StateInspectorWindowController (NSCoder coder) : base (coder)
-		{
-			Initialize ();
-		}
-		
-		// Call to load from the XIB/NIB file
-		public StateInspectorWindowController () : base ("StateInspectorWindow")
-		{
-			Initialize ();
-		}
-		
-		// Shared initialization code
-		void Initialize ()
-		{
+			this.reactive = reactive;
 		}
 
-		#endregion
-
-		internal IViewModel ViewModel { get { return eventsHandler; } }
+		internal IViewModel ViewModel { get { return viewModel; } }
 
 		internal PropertiesViewDataSource PropsDataSource { get { return propsDataSource; } }
 
@@ -63,8 +35,6 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		internal NSTableColumn PropValueColumn { get { return propValueColumn; } }
 
 		internal NSOutlineView TreeView { get { return treeView; } }
-
-		internal StateHistoryDataSource StateHistoryDataSource { get { return stateHistoryDataSource; } }
 
 		internal new StateInspectorWindow Window { get { return (StateInspectorWindow)base.Window; } }
 
@@ -76,14 +46,12 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		internal NSTableColumn HistoryItemTimeColumn { get { return historyItemTimeColumn; } }
 
-		internal bool IsUpdatingStateHistory { get { return updatingStateHistory; }}
-
-		internal void OnStateHistoryKeyEvent(Key key)
+		internal void OnStateHistoryKeyEvent (Key key)
 		{
-			var sel = stateHistoryDataSource.data.ElementAtOrDefault((int)stateHistoryView.SelectedRow);
+			var sel = viewModel.ChangeHistoryItems.ElementAtOrDefault((int)stateHistoryView.SelectedRow);
 			if (sel != null)
 			{
-				eventsHandler.OnChangeHistoryItemKeyEvent(sel, key);
+				viewModel.OnChangeHistoryItemKeyEvent(sel, key);
 			}
 		}
 
@@ -92,219 +60,150 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			base.AwakeFromNib ();
 
 			windowRef = Window;
-			windowRef.WillClose += (sender, e) => eventsHandler.OnVisibleChanged();
+			windowRef.WillClose += (sender, e) => viewModel.OnVisibleChanged(false);
 			windowRef.owner = this;
 
-			treeView.Delegate = new TreeViewDelegate () { owner = this };
-			treeView.DataSource = treeDataSource;
+			treeViewController = reactive.CreateOutlineViewController<IObjectsTreeNode> (treeView);
+			stateHistoryController = reactive.CreateTableViewController<IStateHistoryItem> (stateHistoryView);
 
 			propertiesView.Init (this);
 			propertiesView.Delegate = new PropertiesViewDelegate { owner = this, table = propertiesView };
 			propertiesView.DataSource = propsDataSource;
 
-			stateHistoryView.Delegate = new StateHistoryViewDelegate () { owner = this };
-			stateHistoryView.DataSource = stateHistoryDataSource;
-			stateHistoryView.DoubleClick += (sender, e) => eventsHandler.OnChangeHistoryItemClicked(
-				item: stateHistoryDataSource.data.ElementAtOrDefault((int)stateHistoryView.ClickedRow));
+			stateHistoryView.DoubleClick += (sender, e) => viewModel.OnChangeHistoryItemDoubleClicked(
+				viewModel.ChangeHistoryItems[(int)stateHistoryView.ClickedRow]);
 			((StateHistoryTableView)stateHistoryView).owner = this;
 
 			findCurrentPositionInStateHistoryButton.Image.Template = true;
 		}
 
-		void IView.SetEventsHandler (IViewModel eventsHandler)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
-		}
+			this.viewModel = viewModel;
 
-		void IView.Clear (NodesCollectionInfo nodesCollection)
-		{
-			EnsureLoaded ();
-			AssertUpdatingTree ();
-			Node.FromNodesCollectionInfo (nodesCollection).children.Clear ();
-		}
+			this.Window.EnsureCreated ();
 
-		void IView.AddNode (NodesCollectionInfo nodesCollection, NodeInfo node)
-		{
-			EnsureLoaded ();
-			AssertUpdatingTree ();
-			var parent = Node.FromNodesCollectionInfo (nodesCollection);
-			var n = Node.FromNodeInfo (node);
-			parent.children.Add (n);
-			n.parent = parent;
-		}
-
-		NodeInfo IView.CreateNode (string nodeText, object tag, NodesCollectionInfo nodesCollection)
-		{
-			var newNode = new Node () 
-			{
-				tag = tag,
-				text = nodeText
+			treeViewController.OnExpand = viewModel.OnExpandNode;
+			treeViewController.OnCollapse = viewModel.OnCollapseNode;
+			treeViewController.OnSelect = viewModel.OnSelect;
+			treeViewController.OnCreateView = (col, node) => {
+				TreeNodeView view = (TreeNodeView)treeView.MakeView ("view", this);
+				if (view == null)
+					view = new TreeNodeView {
+						owner = this,
+						Identifier = "view",
+						Menu = new NSMenu { Delegate = GetContextMenuDelegate () }
+					};
+				view.Update (node);
+				return view;
 			};
-			var parent = Node.FromNodesCollectionInfo (nodesCollection);
-			if (parent != null) {
-				EnsureLoaded ();
-				AssertUpdatingTree ();
-				parent.children.Add (newNode);
-				newNode.parent = parent;
-			}
-			return newNode.ToNodeInfo ();
-		}
+			treeViewController.OnCreateRowView = (node) => {
+				TreeRowView view = (TreeRowView)treeView.MakeView ("row", this);
+				if (view == null)
+					view = new TreeRowView {
+						owner = this,
+						Identifier = "row"
+					};
+				view.Update (node);
+				return view;
+			};
+			treeViewController.OnUpdateRowView = (rowView, node) => {
+				((TreeRowView)rowView).Update (node);
+			};
 
-		void IView.SetNodeText (NodeInfo node, string text)
-		{
-			EnsureLoaded ();
-			var n = Node.FromNodeInfo (node);
-			n.text = text;
-			ExecuteNodeOp (n, NodeOpType.InvalidateNodeView);
-		}
 
-		void IView.BeginTreeUpdate ()
-		{
-			EnsureLoaded ();
-			updatingTree = true;
-			delayedTreeOps.Clear ();
-		}
+			stateHistoryController.OnSelect = items => viewModel.OnChangeHistoryChangeSelection (items);
+			stateHistoryController.OnCreateView = (historyItem, tableColumn) => {
 
-		void IView.EndTreeUpdate ()
-		{
-			EnsureLoaded ();
-			AssertUpdatingTree ();
-			updatingTree = false;
-			treeView.ReloadData ();
-			foreach (var op in delayedTreeOps)
-				op.Execute (treeView, playingDelayedOps: true);
-			delayedTreeOps.Clear ();
-		}
+				NSTextField MakeTextField (string viewId)
+				{
+					NSTextField view = (NSTextField)stateHistoryView.MakeView (viewId, this);
+					if (view == null) {
+						view = new NSTextField () {
+							Identifier = viewId,
+							Editable = false,
+							Selectable = false,
+							Bordered = false,
+							BackgroundColor = NSColor.Clear
+						};
+						view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
+					}
+					return view;
+				}
 
-		void IView.InvalidateTree ()
-		{
-			EnsureLoaded ();
-			treeView.NeedsDisplay = true;
-			var rows = treeView.RowsInRect (treeView.VisibleRect());
-			for (var r = 0; r < rows.Length; ++r) {
-				var rv = treeView.GetRowView (r + rows.Location, false);
-				if (rv != null)
-					rv.NeedsDisplay = true;
-			}
-		}
+				if (tableColumn == HistoryItemTimeColumn) {
+					var view = MakeTextField ("timeView");
+					view.StringValue = historyItem.Time;
+					return view;
+				} else if (tableColumn == HistoryItemTextColumn) {
+					var view = MakeTextField ("messageView");
+					view.StringValue = historyItem.Message;
+					return view;
+				}
 
-		void IView.ExpandAll (NodeInfo node)
-		{
-			EnsureLoaded ();
-			ExecuteNodeOp (Node.FromNodeInfo (node), NodeOpType.ExpandAll);
-		}
+				return null;
+			};
+			stateHistoryController.OnUpdateView = (item, tableColumn, view, oldItem) => {
+				if (tableColumn == HistoryItemTimeColumn) {
+					((NSTextField)view).StringValue = item.Time;
+				} else if (tableColumn == HistoryItemTextColumn) {
+					((NSTextField)view).StringValue = item.Message;
+				}
+			};
 
-		void IView.Collapse (NodeInfo node)
-		{
-			EnsureLoaded ();
-			ExecuteNodeOp (Node.FromNodeInfo (node), NodeOpType.Collapse);
-		}
-
-		IEnumerable<NodeInfo> IView.EnumCollection (NodesCollectionInfo nodesCollection)
-		{
-			EnsureLoaded ();
-			return Node.FromNodesCollectionInfo(nodesCollection).children.Select (n => n.ToNodeInfo ());
-		}
-
-		void IView.SetNodeColoring (NodeInfo node, NodeColoring coloring)
-		{
-			EnsureLoaded ();
-			var n = Node.FromNodeInfo (node);
-			n.coloring = coloring;
-			ExecuteNodeOp (n, NodeOpType.InvalidateNodeView);
-		}
-
-		void IView.ScrollSelectedNodesInView ()
-		{
-			EnsureLoaded ();
-			var selectedRow = treeView.SelectedRow;
-			if (selectedRow < 0)
-				return;
-			var rect = treeView.FrameOfOutlineCellAtRow (selectedRow);
-			treeView.ScrollRectToVisible (rect);
-		}
-
-		void IView.BeginUpdateStateHistoryList (bool fullUpdate, bool clearList)
-		{
-			EnsureLoaded ();
-
-			if (clearList)
-				stateHistoryDataSource.data.Clear ();
-			updatingStateHistory = true;
-		}
-
-		int IView.AddStateHistoryItem (StateHistoryItem item)
-		{
-			EnsureLoaded ();
-			if (!updatingStateHistory)
-				throw new InvalidOperationException ();
-			stateHistoryDataSource.data.Add (item);
-			return stateHistoryDataSource.data.Count - 1;
-		}
-
-		void IView.EndUpdateStateHistoryList (int[] newSelectedIndexes, bool fullUpdate, bool redrawFocusedMessageMark)
-		{
-			EnsureLoaded ();
-			if (!updatingStateHistory)
-				throw new InvalidOperationException ();
-			if (fullUpdate)
-				stateHistoryView.ReloadData();
-			if (newSelectedIndexes != null)
-				stateHistoryView.SelectRows(
-					NSIndexSet.FromArray(newSelectedIndexes),
-					byExtendingSelection: false
-				);
-			if (redrawFocusedMessageMark)
-				InvalidateStateHistoryTableView();
-			if (fullUpdate)
-				UpdateStateHistoryTimeColumn();
-			updatingStateHistory = false;
-		}
-
-		void UpdateStateHistoryTimeColumn()
-		{
-			float w = 0;
-			for (int i = 0; i < stateHistoryDataSource.data.Count; ++i)
+			stateHistoryController.OnCreateRowView = (item, rowIndex) =>
 			{
-				var cellView = (NSTextField)stateHistoryView.GetView(1, i, makeIfNecessary: true);
-				cellView.SizeToFit();
-				w = Math.Max(w, (float)cellView.Frame.Width);
-			}
-			historyItemTimeColumn.Width = w;
-		}
+				return new StateHistoryTableRowView { owner = this, row = rowIndex, items = viewModel.ChangeHistoryItems };
+			};
 
-		IEnumerable<StateHistoryItem> IView.SelectedStateHistoryEvents {
-			get {
-				if (windowRef == null)
-					Enumerable.Empty<StateHistoryItem>();
-				return
-					stateHistoryDataSource.data
-					.ZipWithIndex()
-					.Where(i => stateHistoryView.IsRowSelected(i.Key))
-					.Select(i => i.Value);
-			}
-		}
 
-		void IView.ScrollStateHistoryItemIntoView(int itemIndex)
-		{
-			if (stateHistoryDataSource.data.Count == 0)
-				return;
-			stateHistoryView.ScrollRowToVisible(RangeUtils.PutInRange(0, stateHistoryDataSource.data.Count - 1, itemIndex));
-		}
+			var updateTree = Updaters.Create (
+				() => viewModel.ObjectsTreeRoot,
+				treeViewController.Update
+			);
 
-		void IView.SetPropertiesDataSource (IList<KeyValuePair<string, object>> properties)
-		{
-			EnsureLoaded ();
+			var invalidateTree = Updaters.Create (
+				() => viewModel.PaintNode,
+				() => viewModel.ColorTheme,
+				(_1, _2) => InvalidateTree()
+			);
 
-			propsDataSource.data = properties;
-			propertiesView.ReloadData ();
-		}
+			var updateStateHistory = Updaters.Create (
+				() => viewModel.ChangeHistoryItems,
+				items =>
+				{
+					stateHistoryController.Update (items);
+					UpdateStateHistoryTimeColumn (items);
+				}
+			);
 
-		void IView.SetCurrentTimeLabelText (string text)
-		{
-			EnsureLoaded ();
+			var invalidateStateHistory = Updaters.Create (
+				() => viewModel.IsChangeHistoryItemBookmarked,
+				() => viewModel.FocusedMessagePositionInChangeHistory,
+				(_1, _2) => InvalidateStateHistoryTableView ()
+			);
 
-			currentTimeLabel.StringValue = text;
+			var updateProperties = Updaters.Create (
+				() => viewModel.ObjectsProperties,
+				properties => {
+					propsDataSource.data = properties;
+					propertiesView.ReloadData ();
+				}
+			);
+
+			var updateCurrentTime = Updaters.Create (
+				() => viewModel.CurrentTimeLabelText,
+				timeValue => currentTimeLabel.StringValue = timeValue
+			);
+
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				updateTree ();
+				invalidateTree ();
+				updateStateHistory ();
+				invalidateStateHistory ();
+				updateProperties ();
+				updateCurrentTime ();
+			});
 		}
 
 		void IView.Show ()
@@ -312,59 +211,42 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			ShowInternal ();
 		}
 
-		bool IView.Visible 
+		void IView.ScrollStateHistoryItemIntoView (int itemIndex)
 		{
-			get { return windowRef != null && windowRef.IsVisible; }
+			var items = viewModel.ChangeHistoryItems;
+			if (items.Count == 0)
+				return;
+			stateHistoryView.ScrollRowToVisible (RangeUtils.PutInRange (0, items.Count - 1, itemIndex));
 		}
 
-		NodesCollectionInfo IView.RootNodesCollection 
+		void InvalidateTree ()
 		{
-			get { return treeDataSource.root.ToNodesCollection (); }
-		}
-
-		NodeInfo[] IView.SelectedNodes 
-		{
-			get
-			{
-				if (windowRef == null)
-					return new NodeInfo[0];
-				switch (treeView.SelectedRowCount) {
-				case 0:
-					return new NodeInfo[0];
-				case 1:
-					return new [] {((Node)treeView.ItemAtRow (treeView.SelectedRow)).ToNodeInfo ()};
-				default:
-					return 
-						Enumerable.Range (0, (int)treeView.RowCount)
-						.Where (r => treeView.IsRowSelected (r))
-						.Select (r => treeView.ItemAtRow ((int)r))
-						.OfType<Node> ()
-						.Select (n => n.ToNodeInfo ())
-						.ToArray ();
-				}
-			}
-			set {
-				EnsureLoaded ();
-				UIUtils.SelectAndScrollInView(treeView, value.Select(Node.FromNodeInfo).ToArray(), i => i.parent);
+			treeView.NeedsDisplay = true;
+			var rows = treeView.RowsInRect (treeView.VisibleRect());
+			for (var r = 0; r < rows.Length; ++r) {
+				var rv = treeView.GetRowView (r + rows.Location, false);
+				if (rv != null)
+					rv.NeedsDisplay = true;
+				var nv = treeView.GetView(0, r + rows.Location, false);
+				if (nv != null)
+					nv.NeedsDisplay = true;
 			}
 		}
 
-		int? IView.SelectedPropertiesRow {
-			get {
-				var x = (int)propertiesView.SelectedRow;
-				return x >= 0 ? x : new int?();
-			}
-			set {
-				if (value != null)
-					propertiesView.SelectRow (value.Value, false);
-				else
-					propertiesView.SelectRows (new NSIndexSet (), false);
-			}
-		}
-
-		bool IView.TreeSupportsLoadingOnExpansion
+		void UpdateStateHistoryTimeColumn (IReadOnlyList<IStateHistoryItem> items)
 		{
-			get { return false; }
+			var widestCell = items.Select (
+				(item, idx) => (item, idx)
+			).MaxByKey(
+				i => i.item.Time.Length
+			);
+			if (widestCell.item != null) {
+				var cellView = (NSTextField)stateHistoryView.GetView (1, widestCell.idx, makeIfNecessary: true);
+				cellView.SizeToFit ();
+				historyItemTimeColumn.Width = cellView.Frame.Width + 10;
+			} else {
+				historyItemTimeColumn.Width = 0;
+			}
 		}
 
 		void Presenters.Postprocessing.IPostprocessorVisualizerPresenter.Show ()
@@ -377,33 +259,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			windowRef.Close ();
 		}
 
-		void AssertUpdatingTree()
-		{
-			if (!updatingTree)
-				throw new InvalidOperationException ();
-		}
-
 		void ShowInternal ()
 		{
 			var w = Window;
 			var wasVisible = w.IsVisible;
 			w.MakeKeyAndOrderFront (null);
 			if (!wasVisible)
-				eventsHandler.OnVisibleChanged ();
-		}
-
-		void EnsureLoaded()
-		{
-			Window.GetHashCode (); // getting Window loads the nib
-		}
-
-		void ExecuteNodeOp(Node target, NodeOpType op)
-		{
-			var opObj = new NodeOp (op, target);
-			if (updatingTree)
-				delayedTreeOps.Add (opObj);
-			else
-				opObj.Execute (treeView, false);
+				viewModel.OnVisibleChanged (true);
 		}
 
 		void InvalidateStateHistoryTableView()
@@ -418,13 +280,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		partial void OnFindCurrentPositionInStateHistory (NSObject sender)
 		{
-			eventsHandler.OnFindCurrentPositionInStateHistory();
+			viewModel.OnFindCurrentPositionInChangeHistory();
 		}
 		
 		internal ContextMenuDelegate GetContextMenuDelegate()
 		{
 			if (contextMenuDelegate == null)
-				contextMenuDelegate = new ContextMenuDelegate() { eventsHandler = eventsHandler };
+				contextMenuDelegate = new ContextMenuDelegate() { eventsHandler = viewModel };
 			return contextMenuDelegate;
 		}
 	}
@@ -440,7 +302,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		public override void MenuWillOpen (NSMenu menu)
 		{
 			menu.RemoveAllItems();
-			var menuData = eventsHandler.OnMenuOpening();
+			var menuData = eventsHandler.OnNodeMenuOpening();
 			if (menuData.Items != null && menuData.Items.Count > 0)
 			{
 				foreach (var extItem in menuData.Items)
@@ -450,7 +312,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	};
 
 	[Register ("StateHistoryTableView")]
-	partial class StateHistoryTableView: NSTableView
+	class StateHistoryTableView: NSTableView
 	{
 		internal StateInspectorWindowController owner;
 

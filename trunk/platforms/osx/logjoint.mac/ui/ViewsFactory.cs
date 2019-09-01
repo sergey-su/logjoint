@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters
 
 		Postprocessing.Factory.IViewsFactory Factory.IViewsFactory.PostprocessingViewsFactory => this;
 
-		Postprocessing.StateInspectorVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateStateInspectorView () => new UI.Postprocessing.StateInspector.StateInspectorWindowController ();
+		Postprocessing.StateInspectorVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateStateInspectorView () => new UI.Postprocessing.StateInspector.StateInspectorWindowController (this);
 		Postprocessing.TimelineVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateTimelineView () => new UI.Postprocessing.TimelineVisualizer.TimelineWindowController ();
 		Postprocessing.SequenceDiagramVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramView () => new UI.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramWindowController ();
 		Postprocessing.TimeSeriesVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateTimeSeriesView () => new UI.Postprocessing.TimeSeriesVisualizer.TimeSeriesWindowController ();
@@ -115,14 +115,14 @@ namespace LogJoint.UI.Presenters
 
 		NewLogSourceDialog.Pages.WindowsEventsLog.IView Factory.IViewsFactory.CreateWindowsEventsLogFormatView () => throw new PlatformNotSupportedException ();
 
-		UI.Reactive.INSOutlineViewController Mac.IReactive.CreateOutlineViewController (NSOutlineView outlineView)
+		UI.Reactive.INSOutlineViewController<Node> Mac.IReactive.CreateOutlineViewController<Node> (NSOutlineView outlineView)
 		{
-			return new UI.Reactive.NSOutlineViewController (outlineView, model.TelemetryCollector);
+			return new UI.Reactive.NSOutlineViewController<Node> (outlineView, model.TelemetryCollector);
 		}
 
-		UI.Reactive.INSTableViewController Mac.IReactive.CreateTableViewController (NSTableView tableView)
+		UI.Reactive.INSTableViewController<Item> Mac.IReactive.CreateTableViewController<Item> (NSTableView tableView)
 		{
-			return new UI.Reactive.NSTableViewController (tableView, model.TelemetryCollector);
+			return new UI.Reactive.NSTableViewController<Item> (tableView, model.TelemetryCollector);
 		}
 	}
 }
