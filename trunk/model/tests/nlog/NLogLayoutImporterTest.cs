@@ -17,7 +17,7 @@ namespace LogJoint.Tests.NLog
 	public class TestsContainer: MarshalByRefObject
 	{
 		Assembly nlogAsm = Assembly.Load("NLog");
-		ITempFilesManager tempFilesManager = new TempFilesManager(new TraceSourceFactory());
+		ITempFilesManager tempFilesManager = new TempFilesManager();
 
 		enum NLogVersion
 		{
