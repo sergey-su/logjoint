@@ -115,12 +115,16 @@ namespace LogJoint.Symphony.Timeline
 			var inputMultiplexed = input.Multiplex();
 			var symEvents = RunForSymMessages(matcher, inputMultiplexed, postprocessorInput.TemplatesTracker, out var symLog);
 			var endOfTimelineEventSource = postprocessing.Timeline.CreateEndOfTimelineEventSource<Sym.Message>();
+			var messagingEventsSource = postprocessing.Timeline.CreateMessagingEventsSource();
+			var messagingEvents = messagingEventsSource.GetEvents(
+				((Sym.IMessagingEvents)new Sym.MessagingEvents()).GetEvents(inputMultiplexed));
 			var eofEvts = endOfTimelineEventSource.GetEvents(inputMultiplexed);
 
 			matcher.Freeze();
 
 			var events = EnumerableAsync.Merge(
 				symEvents,
+				messagingEvents,
 				eofEvts
 			);
 

@@ -35,13 +35,17 @@ namespace LogJoint.Postprocessing.Timeline
 					type = ActivityEventType.End;
 				if (type != null && networkMsg.MessageId != null)
 				{
-					Timeline.Event netEvt = new Timeline.NetworkMessageEvent(
+					var netEvt = new Timeline.NetworkMessageEvent(
 						evt.Trigger,
 						GetDirectionDisplayNamePrefix(networkMsg.MessageDirection) + networkMsg.DisplayName, 
 						networkMsg.MessageId,
 						type.Value,
 						ToNetworkMessageDirection(networkMsg.MessageDirection)
 					);
+					bool IsBadHttpCode(int code) => code < 200 || code >= 300;
+					netEvt.Status = networkMsg is Messaging.HttpMessage http
+						&& IsBadHttpCode(http.StatusCode.GetValueOrDefault(200))
+							? ActivityStatus.Error : ActivityStatus.Unspecified;
 					netEvt.SetTags(networkMsg.Tags);
 					return netEvt;
 				}
