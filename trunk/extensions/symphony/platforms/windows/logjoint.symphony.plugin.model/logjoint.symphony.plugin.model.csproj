@@ -80,6 +80,9 @@
     <Compile Include="..\..\..\model\Formats\SpringServiceLog\Reader\Writer.cs">
       <Link>Formats\SpringServiceLog\Reader\Writer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Messagnig\HttpMessaging.cs">
+      <Link>Formats\SymphonyRtc\Messagnig\HttpMessaging.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
       <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
     </Compile>

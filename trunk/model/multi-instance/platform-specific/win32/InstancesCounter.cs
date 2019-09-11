@@ -29,4 +29,13 @@ namespace LogJoint.MultiInstance
 
 		int IInstancesCounter.Count { get { throw new NotImplementedException(); } }
 	};
+
+	public class DummyInstancesCounter : IInstancesCounter
+	{
+		bool IInstancesCounter.IsPrimaryInstance => true;
+
+		string IInstancesCounter.MutualExecutionKey => "";
+
+		int IInstancesCounter.Count => 1;
+	};
 }
