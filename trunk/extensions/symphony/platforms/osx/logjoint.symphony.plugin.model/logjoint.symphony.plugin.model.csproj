@@ -131,6 +131,9 @@
     <Compile Include="..\..\..\model\Formats\Common\Messaging\HttpMessaging.cs">
       <Link>Formats\Common\Messaging\HttpMessaging.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Messagnig\HttpMessaging.cs">
+      <Link>Formats\SymphonyRtc\Messagnig\HttpMessaging.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -160,6 +163,7 @@
     <Folder Include="Formats\SMB\Messagnig\" />
     <Folder Include="Formats\Common\" />
     <Folder Include="Formats\Common\Messaging\" />
+    <Folder Include="Formats\SymphonyRtc\Messagnig\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Symphony-SpringServiceLog.format.xml">

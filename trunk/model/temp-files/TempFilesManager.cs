@@ -47,7 +47,7 @@ namespace LogJoint
 			}
 		}
 
-		internal TempFilesManager(): this(new TraceSourceFactory(), new MultiInstance.InstancesCounter())
+		internal TempFilesManager(): this(new TraceSourceFactory(), new MultiInstance.DummyInstancesCounter())
 		{
 		}
 

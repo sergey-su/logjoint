@@ -39,8 +39,9 @@ namespace LogJoint.Symphony.Messaging
 					requests.Remove(requestId);
 				}
 				string displayName = MakeDisplayName(requestName, rest);
-				buffer.Enqueue(new NetworkMessageEvent(
-					trigger, displayName, dir, type, "", requestId, null, remoteSideId)
+				int? status = GetStatus(rest);
+				buffer.Enqueue(new HttpMessage(
+					trigger, displayName, dir, type, requestId, remoteSideId, null, null, null, status)
 						.SetTags(GetTags(requestName)));
 			}
 		}
@@ -76,6 +77,14 @@ namespace LogJoint.Symphony.Messaging
 			return requestName;
 		}
 
+		int? GetStatus(string rest)
+		{
+			var m = statusRestMatch.Match(rest);
+			if (m.Success)
+				return int.Parse(m.Groups[1].Value);
+			return null;
+		}
+
 		static bool IsPoll(string requestName)
 		{
 			return requestName.Contains("poll");
@@ -101,6 +110,7 @@ namespace LogJoint.Symphony.Messaging
 		readonly Regex restMatch = new Regex(@"session id (?<sessionid>[\w\-_]+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 		readonly Regex pollRestMatch = new Regex(@"polled\: (?<value>[\w\-_\,]+)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 		readonly Regex requestNameRegex = new Regex(@"^(?<ns>\w+)\/.+", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		readonly Regex statusRestMatch = new Regex(@"status (?<value>\d+)$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
 		class PendingRequest
 		{
