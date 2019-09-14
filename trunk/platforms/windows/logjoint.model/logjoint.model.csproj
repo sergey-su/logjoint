@@ -460,6 +460,9 @@
     <Compile Include="..\..\..\model\mru\RecentWorkspaceEntry.cs">
       <Link>mru\RecentWorkspaceEntry.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\multi-instance\DummyInstanceCounter.cs">
+      <Link>multi-instance\DummyInstanceCounter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\multi-instance\Interfaces.cs">
       <Link>multi-instance\Interfaces.cs</Link>
     </Compile>
