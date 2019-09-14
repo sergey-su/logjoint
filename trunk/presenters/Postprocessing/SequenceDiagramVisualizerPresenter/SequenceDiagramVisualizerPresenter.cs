@@ -1512,6 +1512,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		{
 			foreach (var m in msgs)
 			{
+				if (m.Event.Status != M.EventStatus.Unspecified)
+					return m.Event.Status == M.EventStatus.Success ? ArrowColor.Normal : ArrowColor.Error;
+			}
+			foreach (var m in msgs)
+			{
 				if (m.Event is M.HttpMessage http && http.StatusCode.GetValueOrDefault(200) >= 400)
 					return ArrowColor.Error;
 			}

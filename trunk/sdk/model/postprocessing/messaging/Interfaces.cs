@@ -9,9 +9,14 @@ namespace LogJoint.Postprocessing.Messaging
 	{
 		public object Trigger;
 		public readonly string DisplayName;
+		public EventStatus Status { get; set; }
 		public HashSet<string> Tags { get { return tags; } set { tags = value; } }
 
-		public Event(object trigger, string displayName)
+		public Event(
+			object trigger,
+			string displayName,
+			EventStatus status = EventStatus.Unspecified
+		)
 		{
 			this.Trigger = trigger;
 			this.DisplayName = displayName;
@@ -27,6 +32,13 @@ namespace LogJoint.Postprocessing.Messaging
 		}
 
 		HashSet<string> tags;
+	};
+
+	public enum EventStatus
+	{
+		Unspecified,
+		Success,
+		Error
 	};
 
 	public enum MessageDirection
@@ -52,8 +64,18 @@ namespace LogJoint.Postprocessing.Messaging
 		public readonly string TargetIdHint;
 		public readonly string RemoteSideId; // todo: document the diff from TargetIdHint
 
-		public NetworkMessageEvent(object trigger, string displayName, MessageDirection direction, MessageType type, string eventType, string messageId, string targetIdHint, string remoteSideId) :
-			base(trigger, displayName)
+		public NetworkMessageEvent(
+			object trigger,
+			string displayName,
+			MessageDirection direction,
+			MessageType type,
+			string eventType,
+			string messageId,
+			string targetIdHint,
+			string remoteSideId,
+			EventStatus status = EventStatus.Unspecified
+		) :
+			base(trigger, displayName, status)
 		{
 			MessageDirection = direction;
 			MessageId = messageId;

@@ -26,5 +26,6 @@ namespace LogJoint.Postprocessing.Messaging
 		internal const string Attr_MetaKey = "key";
 		internal const string Attr_MetaValue = "value";
 		internal const string Attr_TargetId = "targetId";
+		internal const string Attr_Status = "st";
 	}
 }

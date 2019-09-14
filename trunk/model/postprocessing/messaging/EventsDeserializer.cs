@@ -84,6 +84,7 @@ namespace LogJoint.Postprocessing.Messaging
 			{
 				ret.Tags = tagsPool.Intern(
 					new HashSet<string>((Attr(elt, SC.Attr_Tags) ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
+				ret.Status = EventStatus(elt, SC.Attr_Status);
 			}
 			return ret != null;
 		}
@@ -109,6 +110,12 @@ namespace LogJoint.Postprocessing.Messaging
 		static MessageType MessageType(XElement e, string name)
 		{
 			return (MessageType)int.Parse(Attr(e, name));
+		}
+
+		static EventStatus EventStatus(XElement e, string name)
+		{
+			var val = Attr(e, name);
+			return val != null ? (EventStatus)int.Parse(val) : Messaging.EventStatus.Unspecified;
 		}
 
 		static int? StatusCode(XElement e, string name)

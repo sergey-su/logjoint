@@ -24,16 +24,21 @@ namespace LogJoint.Symphony.Rtc
 			impl.GetEvents(msg.Text, msg, buffer);
 
 			Match m;
-			if ((m = abortOrFailRegex.Match(msg.Text)).Success)
+			if ((m = abortRegex.Match(msg.Text)).Success)
 			{
-				// todo: Request cancellation event for cancelled
-				buffer.Enqueue(new NetworkMessageEvent( // todo: http with code 0
+				buffer.Enqueue(new NetworkMessageEvent(
 					msg, "aborted", MessageDirection.Incoming, MessageType.Response, "", m.Groups["id"].Value, null, null));
+			}
+			if ((m = failRegex.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new NetworkMessageEvent(
+					msg, "failed", MessageDirection.Incoming, MessageType.Response, "", m.Groups["id"].Value, null, null, EventStatus.Error));
 			}
 		}
 
 		private readonly Messaging.IMessagingEvents impl = new Messaging.MessagingEvents();
 
-		private readonly Regex abortOrFailRegex = new Regex(@"Request \[(?<id>\w+)\] (aborted|failed)", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		private readonly Regex abortRegex = new Regex(@"Request \[(?<id>\w+)\] aborted", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		private readonly Regex failRegex = new Regex(@"Request \[(?<id>\w+)\] failed", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 	}
 }

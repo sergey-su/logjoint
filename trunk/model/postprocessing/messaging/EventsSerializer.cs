@@ -26,7 +26,7 @@ namespace LogJoint.Postprocessing.Messaging
 		void IEventsVisitor.Visit(HttpMessage evt)
 		{
 			CreateElement(evt, SC.Elt_HttpMessage,
-				new XAttribute(SC.Attr_Method, evt.Method),
+				evt.Method != null ? new XAttribute(SC.Attr_Method, evt.Method) : null,
 				evt.StatusCode != null ? new XAttribute(SC.Attr_StatusCode, evt.StatusCode.Value) : null,
 				evt.StatusComment != null ? new XAttribute(SC.Attr_StatusComment, evt.StatusComment) : null
 			);
@@ -84,6 +84,7 @@ namespace LogJoint.Postprocessing.Messaging
 				(evt.EventType != null) ? new XAttribute(SC.Attr_EventType, evt.EventType) : null,
 				(evt.RemoteSideId != null) ? new XAttribute(SC.Attr_Remote, evt.RemoteSideId) : null,
 				(evt.TargetIdHint != null) ? new XAttribute(SC.Attr_TargetId, evt.TargetIdHint) : null,
+				(evt.Status != EventStatus.Unspecified) ? new XAttribute(SC.Attr_Status, (int)evt.Status) : null,
 			}).ToArray());
 		}
 

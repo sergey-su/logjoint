@@ -39,9 +39,8 @@ namespace LogJoint.Symphony.Messaging
 					requests.Remove(requestId);
 				}
 				string displayName = MakeDisplayName(requestName, rest);
-				int? status = GetStatus(rest);
-				buffer.Enqueue(new HttpMessage(
-					trigger, displayName, dir, type, requestId, remoteSideId, null, null, null, status)
+				buffer.Enqueue(new NetworkMessageEvent(
+					trigger, displayName, dir, type, "", requestId, null, remoteSideId, GetStatus(rest))
 						.SetTags(GetTags(requestName)));
 			}
 		}
@@ -77,12 +76,12 @@ namespace LogJoint.Symphony.Messaging
 			return requestName;
 		}
 
-		int? GetStatus(string rest)
+		EventStatus GetStatus(string rest)
 		{
 			var m = statusRestMatch.Match(rest);
 			if (m.Success)
-				return int.Parse(m.Groups[1].Value);
-			return null;
+				return int.Parse(m.Groups[1].Value) >= 300 ? EventStatus.Error : EventStatus.Unspecified;
+			return EventStatus.Unspecified;
 		}
 
 		static bool IsPoll(string requestName)
