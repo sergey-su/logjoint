@@ -1094,7 +1094,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					if (arrow.NonHorizontalConnectedArrow != null && arrow.Index > arrow.NonHorizontalConnectedArrow.Index)
 						EndOffset(arrow, arrow.To.CurrentNonHorizontalArrowsOffsets, arrow.NonHorizontalConnectedArrow, null);
 					if (arrow.LinkedArrow != null && (arrow.Type == ArrowType.Response || arrow.Type == ArrowType.ActivityEnd))
-						EndOffset(arrow, arrow.From.CurrentExecutionOccurencesOffsets, arrow.LinkedArrow, arrow.From.ExecutionOccurrences);
+						/* node: arrow.LinkedArrow.To can differ from arrow.From */
+						EndOffset(arrow, arrow.LinkedArrow.To.CurrentExecutionOccurencesOffsets, arrow.LinkedArrow, arrow.LinkedArrow.To.ExecutionOccurrences);
 				}
 			}
 			foreach (var role in roles)
