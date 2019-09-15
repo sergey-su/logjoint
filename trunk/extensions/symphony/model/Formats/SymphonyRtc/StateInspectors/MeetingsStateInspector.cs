@@ -42,6 +42,23 @@ namespace LogJoint.Symphony.Rtc
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 
+		public static (string id, DateTime referenceTime, string env) GetMeetingRelatedId(
+			Event stateInspectorObjectCreationEvent, IEnumerable<PropertyChange> stateInspectorObjectChanges,
+			Event rootStateInspectorCreationEvent, IEnumerable<PropertyChange> rootStateInspectorObjectChanges
+		)
+		{
+			var objectType = stateInspectorObjectCreationEvent?.ObjectType?.TypeName;
+			string FindProp(string name, IEnumerable<PropertyChange> changes) => changes.Where(c => c.PropertyName == name).Select(c => c.Value).FirstOrDefault();
+			var id =
+				objectType == MeetingTypeInfo.TypeName ? FindProp("meeting ID", stateInspectorObjectChanges) :
+				objectType == InvitationTypeInfo.TypeName ? FindProp("meeting id", stateInspectorObjectChanges) :
+				objectType == MeetingSessionTypeInfo.TypeName ? FindProp("session id", stateInspectorObjectChanges) :
+				null;
+			var env = FindProp("environment", rootStateInspectorObjectChanges);
+			var referenceTime = stateInspectorObjectChanges.Select(c => c.Trigger).OfType<ITriggerTime>().Select(t => t.Timestamp).FirstOrDefault();
+			return (id, referenceTime, env);
+		}
+
 		void GetEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer)
 		{
 			string id, type;
@@ -174,17 +191,29 @@ namespace LogJoint.Symphony.Rtc
 
 		void GetProtocolEvents(MessagePrefixesPair<Message> msgPfx, Queue<Event> buffer, string loggableId)
 		{
-			ProtocolSessionData sessionData;
-			if (!protocolSessionData.TryGetValue(loggableId, out sessionData))
+			var msg = msgPfx.Message;
+			Match m;
+			if ((m = protocolCSUrlRegex.Match(msg.Text)).Success)
+			{
+				var env = m.Groups["value"].Value;
+				if (env != reportedEnv)
+				{
+					EnsureRootReported(msg, buffer);
+					reportedEnv = env;
+					buffer.Enqueue(new PropertyChange(msg, rootObjectId, rootTypeInfo, "environment", env));
+				}
+			}
+
+			if (!protocolSessionData.TryGetValue(loggableId, out var sessionData))
+			{
 				protocolSessionData[loggableId] = sessionData = new ProtocolSessionData();
+			}
 			if (sessionData.meetingSessionId == null)
 			{
 				sessionData.pendingMessages.Add(msgPfx);
 				return;
 			}
 
-			var msg = msgPfx.Message;
-			Match m;
 			if ((m = protocolSessionIdAllocated.Match(msg.Text)).Success)
 			{
 				buffer.Enqueue(new PropertyChange(msg, sessionData.meetingSessionId, meetingSessionTypeInfo, "session id", m.Groups["value"].Value));
@@ -357,7 +386,7 @@ namespace LogJoint.Symphony.Rtc
 		Dictionary<string, string> participantsLoggableIdToSessionLoggableId = new Dictionary<string, string>();
 		Dictionary<string, string> sessionUserIdToRemotePartId = new Dictionary<string, string>();
 		bool invitationsReported;
-		string reportedLocalUserId, reportedLocalUserName;
+		string reportedLocalUserId, reportedLocalUserName, reportedEnv;
 
 		readonly static ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("sym.rtc", isTimeless: false);
 		readonly static string rootObjectId = "Symphony RTC";
@@ -390,6 +419,7 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex participantsUserLeftRegex = new Regex(@"^User left: (?<userId>\S+)", reopts);
 
 		readonly Regex protocolSessionIdAllocated = new Regex(@"^session id allocated: (?<value>\S+)", reopts);
+		readonly Regex protocolCSUrlRegex = new Regex(@"^conference service url: https://(?<value>[^\.]+)\.", reopts);
 
 		readonly Regex invitationPropsRegex = new Regex(@"^created for stream '(?<streamId>\S+)', initiator (?<initiator>\S+), initiated as SS (?<ss>\S+)", reopts);
 		readonly Regex invitationCtrRegex = new Regex(@"^created for meeting (?<meetingId>\S+)", reopts);

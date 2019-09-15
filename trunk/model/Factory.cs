@@ -66,7 +66,7 @@ namespace LogJoint
 			ModelConfig config,
 			ISynchronizationContext modelSynchronizationContext,
 			Func<Persistence.IStorageManager, Preprocessing.ICredentialsCache> createPreprocessingCredentialsCache,
-			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebBrowserDownloader.IDownloader> createWebBrowserDownloader
+			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebViewTools.IWebViewTools> createWebBrowserDownloader
 		)
 		{
 			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners);
@@ -190,7 +190,7 @@ namespace LogJoint
 				storageManager
 			);
 
-			WebBrowserDownloader.IDownloader webBrowserDownloader = createWebBrowserDownloader(shutdown, webContentCache, traceSourceFactory);
+			WebViewTools.IWebViewTools webBrowserDownloader = createWebBrowserDownloader(shutdown, webContentCache, traceSourceFactory);
 
 			Preprocessing.IStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 				workspacesManager,

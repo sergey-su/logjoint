@@ -572,7 +572,8 @@ namespace LogJoint.UI.Presenters
 				postprocessingTabPagePresenter,
 				postprocessorOutputFormFactory,
 				colorTheme,
-				messagePropertiesDialogPresenter
+				messagePropertiesDialogPresenter,
+				promptDialog
 			);
 
 			return new PresentationObjects

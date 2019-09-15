@@ -5,11 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
-using LogJoint.WebBrowserDownloader;
+using LogJoint.WebViewTools;
 
-namespace LogJoint.UI.Presenters.WebBrowserDownloader
+namespace LogJoint.UI.Presenters.WebViewTools
 {
-	public class Presenter : IPresenter, IViewModel, IDownloader
+	public class Presenter : IPresenter, IViewModel, IWebViewTools
 	{
 		#region readonly thread-safe objects, no thread sync required to access or invoke
 		readonly object syncRoot = new object();
@@ -48,9 +48,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			downloaderForm.SetViewModel(this);
 		}
 
-		#region IDownloader
-
-		async Task<Stream> IDownloader.Download(DownloadParams downloadParams)
+		async Task<Stream> IWebViewTools.Download(DownloadParams downloadParams)
 		{
 			if (downloadParams.CacheMode == CacheMode.AllowCacheReading || downloadParams.CacheMode == CacheMode.DownloadFromCacheOnly)
 			{
@@ -65,7 +63,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 					return null;
 				}
 			}
-			var task = new PendingTask()
+			var task = new DownloadTask
 			{
 				location = downloadParams.Location,
 				expectedMimeType = downloadParams.ExpectedMimeType,
@@ -77,7 +75,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			};
 			lock (syncRoot)
 			{
-				tracer.Info("new task {0} added for location='{1}'", task, task.location);
+				tracer.Info("new download task {0} added for location='{1}'", task, task.location);
 				tasks.Enqueue(task);
 			}
 			TryTakeNewTask();
@@ -100,16 +98,39 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			return stream;
 		}
 
+		async Task<UploadFormResult> IWebViewTools.UploadForm(UploadFormParams uploadFormParams)
+		{
+#if WIN
+			throw new NotImplementedException("Not implemented on Windows");
+#else
+			var task = new UploadFormTask
+			{
+				location = uploadFormParams.Location,
+				formLocation = uploadFormParams.FormUri,
+				cancellation = uploadFormParams.Cancellation,
+				promise = new TaskCompletionSource<IReadOnlyList<KeyValuePair<string, string>>>(),
+			};
+			lock (syncRoot)
+			{
+				tracer.Info("new form upload task {0} added for location='{1}'", task, task.location);
+				tasks.Enqueue(task);
+			}
+			TryTakeNewTask();
+			var values = await task.promise.Task;
+			return new UploadFormResult
+			{
+				Values = values
+			};
+#endif
+		}
 
-		#endregion
-
-		#region View events
+#region View events
 
 		bool IViewModel.OnStartDownload(Uri uri)
 		{
 			lock (syncRoot)
 			{
-				bool shouldContinue = ShouldContinueDownloading();
+				bool shouldContinue = IsCurrentTaskValid();
 				tracer.Info("OnStartDownload. will continue? {0}", shouldContinue ? "yes" : "no");
 				if (!shouldContinue)
 					return false;
@@ -124,7 +145,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		{
 			lock (syncRoot)
 			{
-				bool shouldContinue = ShouldContinueDownloading();
+				bool shouldContinue = IsCurrentTaskValid();
 				tracer.Info("OnProgress {1}/{2} {3}. will continue? {0}", shouldContinue ? "yes" : "no", currentValue, totalSize, statusText);
 				if (!shouldContinue)
 					return false;
@@ -136,19 +157,13 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			}
 		}
 
-		CurrentWebDownloadTarget IViewModel.CurrentTarget
+		WebViewAction IViewModel.CurrentAction
 		{
 			get
 			{
 				lock (syncRoot)
 				{
-					if (currentTask == null)
-						return null;
-					return new CurrentWebDownloadTarget()
-					{
-						Uri = currentTask.location,
-						MimeType = currentTask.expectedMimeType
-					};
+					return currentTask?.ToAction();
 				}
 			}
 		}
@@ -157,13 +172,13 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		{
 			lock (syncRoot)
 			{
-				bool shouldContinue = ShouldContinueDownloading();
+				bool shouldContinue = IsCurrentTaskValid();
 				tracer.Info("OnDataAvailable {1}. will continue? {0}", shouldContinue ? "yes" : "no", bytesAvailable);
-				if (!shouldContinue)
+				if (!shouldContinue || !(currentTask is DownloadTask downloadTask))
 					return false;
 				if (browserState == BrowserState.Showing)
 					SetBroswerState(BrowserState.Busy);
-				currentTask.stream.Write(buffer, 0, bytesAvailable);
+				downloadTask.stream.Write(buffer, 0, bytesAvailable);
 				return true;
 			}
 		}
@@ -173,20 +188,20 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			lock (syncRoot)
 			{
 				tracer.Info("OnDownloadCompleted {0}. statusText={1}. current task={2}", success ? "successfully" : "with failure", statusText, currentTask);
-				if (currentTask != null)
+				if (currentTask is DownloadTask downloadTask)
 				{
 					if (success)
 					{
-						currentTask.stream.Position = 0;
-						currentTask.promise.SetResult(currentTask.stream);
+						downloadTask.stream.Position = 0;
+						downloadTask.promise.SetResult(downloadTask.stream);
 					}
 					else
 					{
-						currentTask.promise.SetException(new Exception(statusText ?? "download failed"));
+						downloadTask.promise.SetException(new Exception(statusText ?? "download failed"));
 					}
-					currentTask.Dispose();
-					currentTask = null;
 				}
+				currentTask?.Dispose();
+				currentTask = null;
 			}
 			ResetBrowser();
 			TryTakeNewTask();
@@ -199,7 +214,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 				tracer.Info("OnAborted. current task={0}", currentTask);
 				if (currentTask != null)
 				{
-					currentTask.promise.SetException(new TaskCanceledException());
+					currentTask.Reject(new TaskCanceledException());
 					currentTask.Dispose();
 					currentTask = null;
 				}
@@ -215,9 +230,9 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			bool clearTimer = false;
 			lock (syncRoot)
 			{
-				if (currentTask != null)
+				if (currentTask is DownloadTask downloadTask)
 				{
-					if (currentTask.isLoginUrl != null && currentTask.isLoginUrl(url))
+					if (downloadTask.isLoginUrl != null && downloadTask.isLoginUrl(url))
 					{
 						setTimer = browserState == BrowserState.Busy;
 						if (setTimer)
@@ -228,6 +243,12 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 						clearTimer = true;
 						SetBroswerState(BrowserState.Busy);
 					}
+				}
+				else if (currentTask is UploadFormTask)
+				{
+					setTimer = browserState == BrowserState.Busy;
+					if (setTimer)
+						SetBroswerState(BrowserState.Showing);
 				}
 				if (setTimer || clearTimer)
 				{
@@ -246,9 +267,29 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			}
 		}
 
-		#endregion
+		void IViewModel.OnFormSubmitted(IReadOnlyList<KeyValuePair<string, string>> values)
+		{
+			lock (syncRoot)
+			{
+				tracer.Info("OnFormSubmitted. current task={0}", currentTask);
+				if (currentTask is UploadFormTask uploadFormTask)
+				{
+					uploadFormTask.promise.SetResult(values);
+					currentTask.Dispose();
+					currentTask = null;
+				}
+				else
+				{
+					return;
+				}
+			}
+			ResetBrowser();
+			TryTakeNewTask();
+		}
 
-		#region Implementation
+#endregion
+
+#region Implementation
 
 		void OnTimer()
 		{
@@ -262,7 +303,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			}
 		}
 
-		bool ShouldContinueDownloading()
+		bool IsCurrentTaskValid()
 		{
 			return currentTask != null && !currentTask.cancellation.IsCancellationRequested;
 		}
@@ -334,7 +375,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			if (!task.cancellation.IsCancellationRequested)
 				return false;
 			tracer.Info("completing task {0} with TaskCanceledException as its cancellation was requested", task);
-			task.promise.SetException(new TaskCanceledException());
+			task.Reject(new TaskCanceledException());
 			task.Dispose();
 			return true;
 		}
@@ -364,41 +405,82 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 				{
 					var t = tasks.Dequeue();
 					tracer.Info("cancelling pending task {0}", t);
-					t.promise.TrySetException(new TaskCanceledException());
+					t.Reject(new TaskCanceledException());
 					t.Dispose();
 				}
 			}
 		}
 
 
-		#endregion
+#endregion
 
 
-		#region Helper types
+#region Helper types
 
-		class PendingTask
+		abstract class PendingTask
 		{
 			public Uri location;
-			public string expectedMimeType;
 			public CancellationToken cancellation;
-			public Progress.IProgressAggregator progress;
-			public MemoryStream stream;
-			public TaskCompletionSource<Stream> promise;
 			public CancellationTokenRegistration? cancellationRegistration;
+			public Progress.IProgressAggregator progress;
 			public Progress.IProgressEventsSink progressSink;
-			public Predicate<Uri> isLoginUrl;
 
-			public void Dispose()
+			public virtual void Dispose()
 			{
 				if (cancellationRegistration.HasValue)
 					cancellationRegistration.Value.Dispose();
-				if (progressSink != null)
-					progressSink.Dispose();
+				progressSink?.Dispose();
 			}
+
+			public abstract WebViewAction ToAction();
+			public abstract void Reject(Exception exception);
 
 			public override string ToString()
 			{
 				return string.Format("{0:x}", this.GetHashCode());
+			}
+		};
+
+		class DownloadTask: PendingTask
+		{
+			public string expectedMimeType;
+			public MemoryStream stream;
+			public TaskCompletionSource<Stream> promise;
+			public Predicate<Uri> isLoginUrl;
+
+			public override WebViewAction ToAction()
+			{
+				return new WebViewAction
+				{
+					Type = WebViewActionType.Download,
+					Uri = location,
+					MimeType = expectedMimeType,
+				};
+			}
+
+			public override void Reject(Exception exception)
+			{
+				promise.TrySetException(exception);
+			}
+		};
+
+		class UploadFormTask : PendingTask
+		{
+			public Uri formLocation;
+			public TaskCompletionSource<IReadOnlyList<KeyValuePair<string, string>>> promise;
+
+			public override WebViewAction ToAction()
+			{
+				return new WebViewAction
+				{
+					Type = WebViewActionType.UploadForm,
+					Uri = formLocation,
+				};
+			}
+
+			public override void Reject(Exception exception)
+			{
+				promise.TrySetException(exception);
 			}
 		};
 
@@ -409,6 +491,6 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			Showing
 		};
 
-		#endregion
+#endregion
 	};
 };

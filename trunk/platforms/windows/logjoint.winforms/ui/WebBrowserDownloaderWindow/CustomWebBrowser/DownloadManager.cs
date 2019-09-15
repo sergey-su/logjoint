@@ -1,11 +1,11 @@
-using LogJoint.UI.Presenters.WebBrowserDownloader;
+using LogJoint.UI.Presenters.WebViewTools;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
-namespace LogJoint.UI.WebBrowserDownloader
+namespace LogJoint.UI.WebViewTools
 {
 	class DownloadManager : IDownloadManager
 	{

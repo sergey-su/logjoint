@@ -20,7 +20,7 @@ namespace LogJoint
 			MRU.IRecentlyUsedEntities mru,
 			Progress.IProgressAggregatorFactory progressAggregatorsFactory,
 			IShutdown shutdown,
-			WebBrowserDownloader.IDownloader webBrowserDownloader,
+			WebViewTools.IWebViewTools webViewTools,
 			Postprocessing.IModel postprocessingModel,
 			IPluginsManager pluginsManager,
 			ITraceSourceFactory traceSourceFactory
@@ -42,7 +42,7 @@ namespace LogJoint
 			this.ProgressAggregatorsFactory = progressAggregatorsFactory;
 			this.MRU = mru;
 			this.Shutdown = shutdown;
-			this.WebBrowserDownloader = webBrowserDownloader;
+			this.WebViewTools = webViewTools;
 			this.Postprocessing = postprocessingModel;
 			this.PluginsManager = pluginsManager;
 			this.TraceSourceFactory = traceSourceFactory;
@@ -64,7 +64,7 @@ namespace LogJoint
 		public MRU.IRecentlyUsedEntities MRU { get; private set; }
 		public Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; private set; }
 		public IShutdown Shutdown { get; private set; }
-		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
+		public WebViewTools.IWebViewTools WebViewTools { get; private set; }
 		public Postprocessing.IModel Postprocessing { get; private set; }
 		public IPluginsManager PluginsManager { get; private set; }
 		public ITraceSourceFactory TraceSourceFactory { get; private set; }

@@ -164,9 +164,6 @@
     <Compile Include="..\..\..\..\sdk\model\generic\TimeUtils.cs">
       <Link>generic\TimeUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\generic\WebBrowserDownloaderInterface.cs">
-      <Link>generic\WebBrowserDownloaderInterface.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\generic\FileRange.cs">
       <Link>generic\FileRange.cs</Link>
     </Compile>
@@ -347,6 +344,9 @@
     <Compile Include="..\..\..\..\sdk\model\generic\Selector.cs">
       <Link>generic\Selector.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\model\webview-tools\WebViewToolsInterface.cs">
+      <Link>webview-tools\WebViewToolsInterface.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="analytics\infra\" />
@@ -407,5 +407,6 @@
     <Folder Include="..\..\bin\debug\postprocessing\timeline\" />
     <Folder Include="..\..\bin\debug\postprocessing\time-series\filters\" />
     <Folder Include="..\..\bin\debug\extensibility\" />
+    <Folder Include="..\..\bin\debug\webview-tools\" />
   </ItemGroup>
 </Project>

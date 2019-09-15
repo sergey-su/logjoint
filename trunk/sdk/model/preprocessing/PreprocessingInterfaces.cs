@@ -154,7 +154,7 @@ namespace LogJoint.Preprocessing
 		/// </summary>
 		LJTraceSource Trace { get; }
 		/// <summary>
-		/// Updates user-visible description of your running preprocessing step.
+		/// Updates user-visible description of the running preprocessing step.
 		/// </summary>
 		void SetStepDescription(string desc);
 		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;

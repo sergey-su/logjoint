@@ -7,5 +7,6 @@ namespace LogJoint.UI.Presenters
 		IColorTheme Theme { get; }
 		MessagePropertiesDialog.IPresenter MessagePropertiesDialog { get; }
 		IClipboardAccess ClipboardAccess { get; }
+		IPromptDialog PromptDialog { get; }
 	}
 }

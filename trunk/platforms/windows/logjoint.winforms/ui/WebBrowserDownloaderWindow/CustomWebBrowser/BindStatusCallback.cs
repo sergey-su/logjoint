@@ -1,11 +1,11 @@
-using LogJoint.UI.Presenters.WebBrowserDownloader;
+using LogJoint.UI.Presenters.WebViewTools;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LogJoint.UI.WebBrowserDownloader
+namespace LogJoint.UI.WebViewTools
 {
 	class BindStatusCallback : IBindStatusCallback
 	{

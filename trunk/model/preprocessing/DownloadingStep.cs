@@ -15,7 +15,7 @@ namespace LogJoint.Preprocessing
 			Progress.IProgressAggregator progressAgg, 
 			Persistence.IWebContentCache cache, 
 			ICredentialsCache credCache,
-			WebBrowserDownloader.IDownloader webBrowserDownloader,
+			WebViewTools.IWebViewTools webBrowserDownloader,
 			ILogsDownloaderConfig config,
 			IStepsFactory preprocessingStepsFactory
 		)
@@ -99,7 +99,7 @@ namespace LogJoint.Preprocessing
 					}
 					else if ((logDownloaderRule = config.GetLogDownloaderConfig(uri)) != null && logDownloaderRule.UseWebBrowserDownloader)
 					{
-						using (var stream = await webBrowserDownloader.Download(new WebBrowserDownloader.DownloadParams()
+						using (var stream = await webBrowserDownloader.Download(new WebViewTools.DownloadParams()
 						{
 							Location = uri,
 							ExpectedMimeType = logDownloaderRule.ExpectedMimeType,
@@ -210,7 +210,7 @@ namespace LogJoint.Preprocessing
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly Persistence.IWebContentCache cache;
 		readonly ICredentialsCache credCache;
-		readonly WebBrowserDownloader.IDownloader webBrowserDownloader;
+		readonly WebViewTools.IWebViewTools webBrowserDownloader;
 		readonly ILogsDownloaderConfig config;
 		internal const string name = "download";
 	};

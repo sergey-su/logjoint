@@ -23,7 +23,7 @@ namespace LogJoint
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
 		Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; }
 		IShutdown Shutdown { get; }
-		WebBrowserDownloader.IDownloader WebBrowserDownloader { get; }
+		WebViewTools.IWebViewTools WebViewTools { get; }
 		IPluginsManager PluginsManager { get; }
 		ITraceSourceFactory TraceSourceFactory { get; }
 	};

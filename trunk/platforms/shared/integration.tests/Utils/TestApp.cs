@@ -9,7 +9,7 @@ namespace LogJoint.Tests.Integration
 	public class Mocks
 	{
 		public Preprocessing.ICredentialsCache CredentialsCache;
-		public WebBrowserDownloader.IDownloader WebBrowserDownloader;
+		public WebViewTools.IWebViewTools WebBrowserDownloader;
 		public Persistence.IWebContentCacheConfig WebContentCacheConfig;
 		public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 
@@ -68,7 +68,7 @@ namespace LogJoint.Tests.Integration
 			var mocks = new Mocks
 			{
 				CredentialsCache = Substitute.For<Preprocessing.ICredentialsCache>(),
-				WebBrowserDownloader = Substitute.For<WebBrowserDownloader.IDownloader>(),
+				WebBrowserDownloader = Substitute.For<WebViewTools.IWebViewTools>(),
 				WebContentCacheConfig = Substitute.For<Persistence.IWebContentCacheConfig>(),
 				LogsDownloaderConfig = Substitute.For<Preprocessing.ILogsDownloaderConfig>(),
 

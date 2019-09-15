@@ -1,4 +1,4 @@
-﻿namespace LogJoint.UI.WebBrowserDownloader
+﻿namespace LogJoint.UI.WebViewTools
 {
 	partial class CustomWebBrowser
 	{

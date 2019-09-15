@@ -127,27 +127,24 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			{
 				await Task.WhenAll(logSourcesManager.DeleteAllLogs(), sourcesPreprocessingManager.DeleteAllPreprocessings());
 			}
-			foreach (var item in selected)
+			var tasks = selected.Select(async item => 
 			{
 				try
 				{
-					var log = item.Data as RecentLogEntry;
-					var ws = item.Data as RecentWorkspaceEntry;
-					var container = item.Data as IRecentlyUsedEntity[];
-					if (log != null)
+					if (item.Data is RecentLogEntry log)
 						await sourcesPreprocessingManager.Preprocess(log);
-					else if (ws != null)
+					else if (item.Data is RecentWorkspaceEntry ws)
 						await sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
-					else if (container != null)
-						foreach (var innerLog in container.OfType<RecentLogEntry>())
-							await sourcesPreprocessingManager.Preprocess(innerLog);
+					else if (item.Data is IRecentlyUsedEntity[] container)
+						await Task.WhenAll(container.OfType<RecentLogEntry>().Select(innerLog => sourcesPreprocessingManager.Preprocess(innerLog)));
 				}
 				catch (Exception e)
 				{
 					trace.Error(e, "failed to open '{0}'", item.Text);
 					alerts.ShowPopup("Error", "Failed to open " + item.Text, AlertFlags.Ok | AlertFlags.WarningIcon);
 				}
-			}
+			});
+			await Task.WhenAll(tasks);
 		}
 
 		private void Cleanup()
