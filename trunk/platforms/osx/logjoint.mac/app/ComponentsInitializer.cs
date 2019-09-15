@@ -25,7 +25,7 @@ namespace LogJoint.UI
 					storageManager.GlobalSettingsEntry,
 					invokingSynchronization
 				),
-				(shutdown, webContentCache, traceSourceFactory) => new Presenters.WebBrowserDownloader.Presenter (
+				(shutdown, webContentCache, traceSourceFactory) => new Presenters.WebViewTools.Presenter (
 					new WebBrowserDownloaderWindowController (),
 					invokingSynchronization,
 					webContentCache,

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Foundation;
 using AppKit;
-using LogJoint.UI.Presenters.WebBrowserDownloader;
+using LogJoint.UI.Presenters.WebViewTools;
 using WebKit;
 using System.IO;
 using System.Threading.Tasks;
@@ -76,6 +76,47 @@ namespace LogJoint.UI
 				owner.eventsHandler.OnBrowserNavigated (webView.Url);
 			}
 
+			public override void DecidePolicy (
+				WKWebView webView,
+				WKNavigationAction navigationAction,
+				Action<WKNavigationActionPolicy> decisionHandler)
+			{
+				var currentAction = owner.eventsHandler.CurrentAction;
+				if (currentAction?.Type == WebViewActionType.UploadForm
+				 && currentAction.Uri == (Uri)navigationAction.Request.Url
+				 && navigationAction.Request.HttpMethod.ToUpperInvariant () == "POST") {
+					HandleFormSubmission (webView, decisionHandler);
+				} else {
+					decisionHandler (WKNavigationActionPolicy.Allow);
+				}
+			}
+
+			class KV
+			{
+				public string k, v;
+				public override string ToString () => $"{k}={v}";
+			};
+
+			async void HandleFormSubmission (WKWebView webView, Action<WKNavigationActionPolicy> decisionHandler)
+			{
+				var allInputsJson = await webView.EvaluateJavaScriptAsync (@"
+					JSON.stringify(
+						(new Array(...document.getElementsByTagName('input')))
+							.map(i => ({k: i.name || i.id, v: i.value}))
+							.filter(i => i.k))
+				");
+				var allInputs = Newtonsoft.Json.JsonConvert.DeserializeObject<List<KV>> (
+					allInputsJson.ToString());
+				var currentAction = owner.eventsHandler.CurrentAction;
+				if (currentAction?.Type == WebViewActionType.UploadForm) {
+					owner.eventsHandler.OnFormSubmitted (allInputs.Select(
+						i => new KeyValuePair<string, string>(i.k, i.v)).ToList());
+					decisionHandler (WKNavigationActionPolicy.Cancel);
+				} else {
+					decisionHandler (WKNavigationActionPolicy.Allow);
+				}
+			}
+
 			public override void DecidePolicy (WKWebView webView,
 				WKNavigationResponse navigationResponse,
 				Action<WKNavigationResponsePolicy> decisionHandler)
@@ -86,8 +127,8 @@ namespace LogJoint.UI
 						webView.Configuration.WebsiteDataStore.HttpCookieStore.SetCookieAsync (c);
 					}
 
-					var target = owner.eventsHandler.CurrentTarget;
-					if (target != null) {
+					var target = owner.eventsHandler.CurrentAction;
+					if (target?.Type == WebViewActionType.Download) {
 						bool startDownload = false;
 						if (!string.IsNullOrEmpty (target.MimeType)) {
 							startDownload = rsp.AllHeaderFields.TryGetValue (new NSString ("Content-Type"), out var contentType)
@@ -112,7 +153,7 @@ namespace LogJoint.UI
 				decisionHandler (WKNavigationResponsePolicy.Allow);
 			}
 
-			void StartDownload (NSUrl url, CurrentWebDownloadTarget target)
+			void StartDownload (NSUrl url, WebViewAction target)
 			{
 				if (!owner.eventsHandler.OnStartDownload (url)) {
 					return;

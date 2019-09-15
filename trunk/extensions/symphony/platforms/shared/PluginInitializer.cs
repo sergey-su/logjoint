@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.Symphony
 {
@@ -88,6 +89,15 @@ namespace LogJoint.Symphony
 										});
 									}
 								}
+								arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
+								{
+									Text = "Download backend logs",
+									Click = () =>
+									{
+										SpringServiceLog.CloudWatchDownloader.DownloadBackendLogs(
+											app.Model.WebViewTools);
+									}
+								});
 							}
 						};
 					}

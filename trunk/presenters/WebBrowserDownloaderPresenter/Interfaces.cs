@@ -1,13 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace LogJoint.UI.Presenters.WebBrowserDownloader
+namespace LogJoint.UI.Presenters.WebViewTools
 {
 	public interface IPresenter
 	{
@@ -31,11 +25,19 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		void OnDownloadCompleted(bool success, string statusText);
 		void OnAborted();
 		void OnBrowserNavigated(Uri url);
-		CurrentWebDownloadTarget CurrentTarget { get; }
+		void OnFormSubmitted(IReadOnlyList<KeyValuePair<string, string>> values);
+		WebViewAction CurrentAction { get; }
 	};
 
-	public class CurrentWebDownloadTarget
+	public enum WebViewActionType
 	{
+		Download,
+		UploadForm
+	};
+
+	public class WebViewAction
+	{
+		public WebViewActionType Type { get; internal set; }
 		public Uri Uri { get; internal set; }
 		public string MimeType { get; internal set; }
 	};
