@@ -6,7 +6,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogJoint.UI.WebBrowserDownloader
+namespace LogJoint.UI.WebViewTools
 {
 	[ComImport]
 	[Guid("79eac9c0-baf9-11ce-8c82-00aa004ba90b")]
@@ -60,7 +60,6 @@ namespace LogJoint.UI.WebBrowserDownloader
 		[PreserveSig]
 		IntPtr Download(IMoniker pmk, IBindCtx pbc, uint dwBindVerb, int grfBINDF, IntPtr pBindInfo, [MarshalAs(UnmanagedType.LPWStr)] string pszHeaders,
 		   [MarshalAs(UnmanagedType.LPWStr)] string pszRedir, uint uiCP);
-
 	}
 
 	[ComImport]

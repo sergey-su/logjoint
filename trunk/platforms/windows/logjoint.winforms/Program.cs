@@ -40,8 +40,8 @@ namespace LogJoint
 					storageManager.GlobalSettingsEntry,
 					mainForm
 				),
-				(shutdown, webContentCache, traceSourceFactory) => new UI.Presenters.WebBrowserDownloader.Presenter(
-					new UI.WebBrowserDownloader.WebBrowserDownloaderForm(),
+				(shutdown, webContentCache, traceSourceFactory) => new UI.Presenters.WebViewTools.Presenter(
+					new UI.WebViewTools.WebBrowserDownloaderForm(),
 					modelSynchronizationContext,
 					webContentCache,
 					shutdown,

@@ -1,4 +1,4 @@
-﻿using LogJoint.UI.Presenters.WebBrowserDownloader;
+﻿using LogJoint.UI.Presenters.WebViewTools;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace LogJoint.UI.WebBrowserDownloader
+namespace LogJoint.UI.WebViewTools
 {
 	public partial class WebBrowserDownloaderForm : Form, IView
 	{

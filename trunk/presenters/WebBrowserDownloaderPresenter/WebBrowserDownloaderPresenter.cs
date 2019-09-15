@@ -100,6 +100,9 @@ namespace LogJoint.UI.Presenters.WebViewTools
 
 		async Task<UploadFormResult> IWebViewTools.UploadForm(UploadFormParams uploadFormParams)
 		{
+#if WIN
+			throw new NotImplementedException("Not implemented on Windows");
+#else
 			var task = new UploadFormTask
 			{
 				location = uploadFormParams.Location,
@@ -118,9 +121,10 @@ namespace LogJoint.UI.Presenters.WebViewTools
 			{
 				Values = values
 			};
+#endif
 		}
 
-		#region View events
+#region View events
 
 		bool IViewModel.OnStartDownload(Uri uri)
 		{
@@ -283,9 +287,9 @@ namespace LogJoint.UI.Presenters.WebViewTools
 			TryTakeNewTask();
 		}
 
-		#endregion
+#endregion
 
-		#region Implementation
+#region Implementation
 
 		void OnTimer()
 		{
@@ -408,10 +412,10 @@ namespace LogJoint.UI.Presenters.WebViewTools
 		}
 
 
-		#endregion
+#endregion
 
 
-		#region Helper types
+#region Helper types
 
 		abstract class PendingTask
 		{
@@ -487,6 +491,6 @@ namespace LogJoint.UI.Presenters.WebViewTools
 			Showing
 		};
 
-		#endregion
+#endregion
 	};
 };

@@ -1,4 +1,4 @@
-﻿namespace LogJoint.UI.WebBrowserDownloader
+﻿namespace LogJoint.UI.WebViewTools
 {
 	partial class WebBrowserDownloaderForm
 	{
@@ -29,7 +29,7 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
-			this.myWebBrowser = new LogJoint.UI.WebBrowserDownloader.CustomWebBrowser();
+			this.myWebBrowser = new LogJoint.UI.WebViewTools.CustomWebBrowser();
 			this.SuspendLayout();
 			// 
 			// myWebBrowser

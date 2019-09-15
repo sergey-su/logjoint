@@ -89,15 +89,17 @@ namespace LogJoint.Symphony
 										});
 									}
 								}
+#if MONOMAC
 								arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
 								{
-									Text = "Download backend logs",
+									Text = "Download back-end logs",
 									Click = () =>
 									{
 										SpringServiceLog.CloudWatchDownloader.DownloadBackendLogs(
 											app.Model.WebViewTools);
 									}
 								});
+#endif
 							}
 						};
 					}
