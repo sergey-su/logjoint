@@ -119,9 +119,6 @@
     <Compile Include="..\..\..\..\sdk\model\generic\TimeUtils.cs">
       <Link>generic\TimeUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\sdk\model\generic\WebBrowserDownloaderInterface.cs">
-      <Link>generic\WebBrowserDownloaderInterface.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\sdk\model\log-sources-controller\Interfaces.cs">
       <Link>log-sources-controller\Interfaces.cs</Link>
     </Compile>
@@ -325,6 +322,9 @@
     </Compile>
     <Compile Include="..\..\..\..\sdk\model\timegaps\Interfaces.cs">
       <Link>timegaps\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\sdk\model\webview-tools\WebViewToolsInterface.cs">
+      <Link>webview-tools\WebViewToolsInterface.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
