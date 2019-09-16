@@ -92,11 +92,17 @@ namespace LogJoint.Symphony
 #if MONOMAC
 								arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
 								{
-									Text = "Download back-end logs",
+									Text = "Download backend logs",
 									Click = () =>
 									{
-										SpringServiceLog.CloudWatchDownloader.DownloadBackendLogs(
-											app.Model.WebViewTools);
+										SpringServiceLog.IPreprocessingStepsFactory f = new SpringServiceLog.PreprocessingStepsFactory(
+											app.Model.Preprocessing.StepsFactory,
+											app.Model.WebViewTools
+										);
+										app.Model.Preprocessing.Manager.Preprocess(
+											new[] { f.CreateCloudWatchDownloadStep() },
+											"Downloading backend logs"
+										);
 									}
 								});
 #endif

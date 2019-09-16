@@ -56,6 +56,9 @@
     <Reference Include="AWSSDK.CloudWatchLogs">
       <HintPath>..\..\..\..\..\platforms\osx\packages\AWSSDK.CloudWatchLogs.3.3.101.21\lib\net45\AWSSDK.CloudWatchLogs.dll</HintPath>
     </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\..\..\..\..\platforms\osx\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
@@ -145,6 +148,18 @@
     </Compile>
     <Compile Include="..\..\..\model\Formats\SpringServiceLog\Preprocessors\CloudWatchDownloader.cs">
       <Link>Formats\SpringServiceLog\Preprocessors\CloudWatchDownloader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SpringServiceLog\Preprocessors\DownloadStep.cs">
+      <Link>Formats\SpringServiceLog\Preprocessors\DownloadStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SpringServiceLog\Preprocessors\PreprocessingStepsFactory.cs">
+      <Link>Formats\SpringServiceLog\Preprocessors\PreprocessingStepsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SpringServiceLog\Preprocessors\PreprocessingManagerExtension.cs">
+      <Link>Formats\SpringServiceLog\Preprocessors\PreprocessingManagerExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SpringServiceLog\Preprocessors\Interfaces.cs">
+      <Link>Formats\SpringServiceLog\Preprocessors\Interfaces.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup />

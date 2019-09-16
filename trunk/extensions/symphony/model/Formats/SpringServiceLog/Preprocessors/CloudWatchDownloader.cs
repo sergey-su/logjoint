@@ -11,12 +11,14 @@ using System.Xml.Linq;
 using Amazon.CloudWatchLogs;
 using Amazon.CloudWatchLogs.Model;
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace LogJoint.Symphony.SpringServiceLog
 {
 	public class CloudWatchDownloader
 	{
-		public static async Task DownloadBackendLogs(WebViewTools.IWebViewTools webViewTools)
+		public static async Task<Dictionary<string, string>> DownloadBackendLogs(WebViewTools.IWebViewTools webViewTools)
 		{
 			var region = RegionEndpoint.USEast1; // todo: map from env
 			var loginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI1D2H726TCM30VUZSK7"; // todo: map from env
@@ -28,7 +30,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				var authResponse = await authCli.AssumeRoleWithSAMLAsync(authReq);
 				using (var logscli = new AmazonCloudWatchLogsClient(authResponse.Credentials, region))
 				{
-					await F(logscli);
+					return await F(logscli);
 				}
 			}
 		}
@@ -83,7 +85,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 			return authReq;
 		}
 
-		private static async Task F(AmazonCloudWatchLogsClient cli)
+		private static async Task<Dictionary<string, string>> F(AmazonCloudWatchLogsClient cli)
 		{
 			var downloadedEvents = new Dictionary<string, FilteredLogEvent>(); // id -> event, used to dedupe events
 			var downloadedIds = new Dictionary<string, DateRange>(); // id -> range downloaded
@@ -95,7 +97,8 @@ namespace LogJoint.Symphony.SpringServiceLog
 			newIds.Add("448a2e20-5fd7-4a9c-b52a-b75947d543fd"); // todo: initial ids
 			while (newIds.Count > 0)
 			{
-				var batch = await DownloadIds(cli, logGroupName, logStreamNamePrefix, currBeginDate, currEndDate, newIds);
+				var batch = await DownloadByIds(cli, logGroupName, logStreamNamePrefix,
+					currBeginDate, currEndDate, newIds);
 				foreach (var id in newIds)
 				{
 					downloadedIds.Add(id, new DateRange(currBeginDate, currEndDate));
@@ -107,13 +110,36 @@ namespace LogJoint.Symphony.SpringServiceLog
 					if (!downloadedEvents.ContainsKey(key))
 					{
 						downloadedEvents.Add(key, m);
-						// todo: parse new message looking for ids
+						foreach (var id in ExtractIds(m.Message))
+						{
+							if (!downloadedIds.ContainsKey(id))
+								newIds.Add(id);
+						}
 					}
 				}
+
 			}
+			var result = new Dictionary<string, List<FilteredLogEvent>>();
+			foreach (var e in downloadedEvents.Values)
+			{
+				var roleInstanceId = e.LogStreamName;
+				if (!result.TryGetValue(roleInstanceId, out var list))
+				{
+					result.Add(roleInstanceId, list = new List<FilteredLogEvent>());
+				}
+				list.Add(e);
+			}
+			foreach (var events in result.Values)
+			{
+				events.Sort((e1, e2) => Math.Sign(e1.Timestamp - e2.Timestamp));
+			}
+			return result.ToDictionary(
+				i => i.Key,
+				i => i.Value.Aggregate(new StringBuilder(), (builder, e) => builder.AppendLine(e.Message), builder => builder.ToString())
+			);
 		}
 
-		private static async Task<List<FilteredLogEvent>> DownloadIds(
+		private static async Task<List<FilteredLogEvent>> DownloadByIds(
 			AmazonCloudWatchLogsClient cli,
 			string logGroupName,
 			string logStreamNamePrefix,
@@ -145,5 +171,26 @@ namespace LogJoint.Symphony.SpringServiceLog
 			}
 			return result;
 		}
+
+		private static IEnumerable<string> ExtractIds(string logLine)
+		{
+			foreach (var re in idRegexps)
+			{
+				var m = re.Match(logLine);
+				if (m.Success)
+				{
+					for (int g = 1; g < m.Groups.Count; ++g)
+					{
+						yield return m.Groups[g].Value;
+					}
+				}
+			}
+		}
+
+		private readonly static Regex idRe1 = new Regex(@"handleJoin conferenceSessionId (?<id1>[^\,]+), sessionId (?<id2>[\w\-]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex[] idRegexps =
+		{
+			idRe1
+		};
 	};
 }
