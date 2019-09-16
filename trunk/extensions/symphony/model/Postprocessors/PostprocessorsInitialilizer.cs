@@ -54,7 +54,8 @@ namespace LogJoint.Symphony
 				symRtcLogFormat,
 				stateInspectorPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
 				timeSeriesPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
-				timelinePostprocessorsFactory.CreateSymRtcPostprocessor()
+				timelinePostprocessorsFactory.CreateSymRtcPostprocessor(),
+				sequenceDiagramPostprocessorsFactory.CreateRtcLogPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.symRtcLogMeta);
 

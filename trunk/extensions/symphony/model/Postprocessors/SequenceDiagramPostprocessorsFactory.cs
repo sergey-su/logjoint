@@ -8,6 +8,7 @@ using LogJoint.Postprocessing.SequenceDiagram;
 using System.Xml;
 using SVC = LogJoint.Symphony.SpringServiceLog;
 using SMB = LogJoint.Symphony.SMB;
+using Cli = LogJoint.Symphony.Rtc;
 
 namespace LogJoint.Symphony.SequenceDiagram
 {
@@ -15,6 +16,7 @@ namespace LogJoint.Symphony.SequenceDiagram
 	{
 		ILogSourcePostprocessor CreateSpringServiceLogPostprocessor();
 		ILogSourcePostprocessor CreateSMBPostprocessor();
+		ILogSourcePostprocessor CreateRtcLogPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -39,6 +41,14 @@ namespace LogJoint.Symphony.SequenceDiagram
 			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
 				i => RunForSMBLog(new SMB.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateRtcLogPostprocessor()
+		{
+			return new LogSourcePostprocessor(
+				PostprocessorKind.SequenceDiagram,
+				i => RunForClientLog(new Cli.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -80,6 +90,27 @@ namespace LogJoint.Symphony.SequenceDiagram
 				null,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((SMB.Message)evtTrigger),
+				postprocessorInput
+			);
+		}
+
+		async Task RunForClientLog(
+			IEnumerableAsync<Cli.Message[]> input,
+			LogSourcePostprocessorInput postprocessorInput
+		)
+		{
+			Cli.IMessagingEvents messagingEvents = new Cli.MessagingEvents();
+
+			var events = EnumerableAsync.Merge(
+				messagingEvents.GetEvents(input)
+			);
+
+			await postprocessing.SequenceDiagram.SavePostprocessorOutput(
+				events,
+				null,
+				null,
+				null,
+				evtTrigger => TextLogEventTrigger.Make((Cli.Message)evtTrigger),
 				postprocessorInput
 			);
 		}
