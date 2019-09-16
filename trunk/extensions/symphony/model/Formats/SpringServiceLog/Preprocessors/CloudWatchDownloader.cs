@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Amazon.CloudWatchLogs;
 using Amazon.CloudWatchLogs.Model;
+using System.Collections.Generic;
 
 namespace LogJoint.Symphony.SpringServiceLog
 {
@@ -17,28 +18,17 @@ namespace LogJoint.Symphony.SpringServiceLog
 	{
 		public static async Task DownloadBackendLogs(WebViewTools.IWebViewTools webViewTools)
 		{
-			var region = RegionEndpoint.USEast1;
-			var loginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI1D2H726TCM30VUZSK7";
-			var logGroupName = "sym-qa5-rtc";
-			var logStreamNamePrefix = "qa-sym-qa5-cs/qa-sym-qa5-cs/";
+			var region = RegionEndpoint.USEast1; // todo: map from env
+			var loginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI1D2H726TCM30VUZSK7"; // todo: map from env
 
 			string samlAssertion = await GetSAMLAssertionFromUser(webViewTools, loginEntryPoint);
 			using (var authCli = new AmazonSecurityTokenServiceClient(new AnonymousAWSCredentials(), region))
 			{
 				var authReq = CreateAssumeWithSAMLRequest(samlAssertion);
 				var authResponse = await authCli.AssumeRoleWithSAMLAsync(authReq);
-				using (var logscli = new AmazonCloudWatchLogsClient(authResponse.Credentials, RegionEndpoint.USEast1))
+				using (var logscli = new AmazonCloudWatchLogsClient(authResponse.Credentials, region))
 				{
-					var getLogs = logscli.FilterLogEvents(new FilterLogEventsRequest
-					{
-						StartTime = DateTime.Now.ToUnixTimestampMillis() - (long)TimeSpan.FromDays(4).TotalMilliseconds,
-						EndTime = DateTime.Now.ToUnixTimestampMillis() - (long)TimeSpan.FromDays(1).TotalMilliseconds,
-						Limit = 10,
-						LogGroupName = logGroupName,
-						LogStreamNamePrefix = logStreamNamePrefix,
-						FilterPattern = "\"448a2e20-5fd7-4a9c-b52a-b75947d543fd\""
-					});
-					Console.WriteLine("Hello World");
+					await F(logscli);
 				}
 			}
 		}
@@ -91,6 +81,69 @@ namespace LogJoint.Symphony.SpringServiceLog
 				authReq.PrincipalArn = split[1];
 			}
 			return authReq;
+		}
+
+		private static async Task F(AmazonCloudWatchLogsClient cli)
+		{
+			var downloadedEvents = new Dictionary<string, FilteredLogEvent>(); // id -> event, used to dedupe events
+			var downloadedIds = new Dictionary<string, DateRange>(); // id -> range downloaded
+			var currBeginDate = DateTime.Now - TimeSpan.FromDays(4); // todo: initial date +- extra
+			var currEndDate = DateTime.Now - TimeSpan.FromDays(1);
+			var logGroupName = "sym-qa5-rtc"; // todo: map from env
+			var logStreamNamePrefix = "qa-sym-qa5-cs/qa-sym-qa5-cs/"; // map from env
+			var newIds = new HashSet<string>();
+			newIds.Add("448a2e20-5fd7-4a9c-b52a-b75947d543fd"); // todo: initial ids
+			while (newIds.Count > 0)
+			{
+				var batch = await DownloadIds(cli, logGroupName, logStreamNamePrefix, currBeginDate, currEndDate, newIds);
+				foreach (var id in newIds)
+				{
+					downloadedIds.Add(id, new DateRange(currBeginDate, currEndDate));
+				}
+				newIds.Clear();
+				foreach (var m in batch)
+				{
+					var key = m.EventId; // todo: check if event id is unique
+					if (!downloadedEvents.ContainsKey(key))
+					{
+						downloadedEvents.Add(key, m);
+						// todo: parse new message looking for ids
+					}
+				}
+			}
+		}
+
+		private static async Task<List<FilteredLogEvent>> DownloadIds(
+			AmazonCloudWatchLogsClient cli,
+			string logGroupName,
+			string logStreamNamePrefix,
+			DateTime beginDate,
+			DateTime endDate,
+			HashSet<string> ids
+		)
+		{
+			var result = new List<FilteredLogEvent>();
+			foreach (string id in ids)
+			{
+				// todo: query all ids at once
+				for (string continuationToken = null;;)
+				{
+					var rsp = await cli.FilterLogEventsAsync(new FilterLogEventsRequest
+					{
+						NextToken = continuationToken,
+						StartTime = beginDate.ToUnixTimestampMillis(),
+						EndTime = endDate.ToUnixTimestampMillis(),
+						LogGroupName = logGroupName,
+						LogStreamNamePrefix = logStreamNamePrefix,
+						FilterPattern = $"\"{id}\""
+					});
+					result.AddRange(rsp.Events);
+					if (rsp.NextToken == null)
+						break;
+					continuationToken = rsp.NextToken;
+				}
+			}
+			return result;
 		}
 	};
 }
