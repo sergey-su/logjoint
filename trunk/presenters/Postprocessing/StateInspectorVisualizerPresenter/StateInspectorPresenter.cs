@@ -1003,6 +1003,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			{
 				return obj.Owner.Outputs.Any(x => x.LogSource == logSource);
 			}
+
+			IEnumerable<PropertyChange> IVisualizerNode.ChangeHistory
+			{
+				get
+				{
+					return obj.StateChangeHistory.Select(i => i.OriginalEvent).OfType<PropertyChange>();
+				}
+			}
 		};
 
 		readonly IView view;

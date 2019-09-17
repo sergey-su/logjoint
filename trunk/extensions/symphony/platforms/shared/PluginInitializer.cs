@@ -1,3 +1,4 @@
+using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -88,6 +89,21 @@ namespace LogJoint.Symphony
 											}
 										});
 									}
+								}
+								IVisualizerNode GetParent(IVisualizerNode n) => n.Parent == null ? n : GetParent(n.Parent);
+								var (id, referenceTime, env) = Rtc.MeetingsStateInspector.GetMeetingRelatedId(
+									stateInspectorPresenter.SelectedObject.CreationEvent, stateInspectorPresenter.SelectedObject.ChangeHistory,
+									GetParent(stateInspectorPresenter.SelectedObject).CreationEvent, GetParent(stateInspectorPresenter.SelectedObject).ChangeHistory
+								);
+								if (id != null)
+								{
+									arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
+									{
+										Text = $"Download backend logs for {id} env {env} time {referenceTime}",
+										Click = () =>
+										{
+										}
+									});
 								}
 #if MONOMAC
 								arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()

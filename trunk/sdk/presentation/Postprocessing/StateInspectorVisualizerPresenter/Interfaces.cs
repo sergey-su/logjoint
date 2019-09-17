@@ -41,5 +41,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		Event CreationEvent { get; }
 		IVisualizerNode Parent { get; }
 		bool BelongsToSource(ILogSource logSource);
+		IEnumerable<PropertyChange> ChangeHistory { get; }
 	};
 }
