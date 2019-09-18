@@ -37,21 +37,64 @@ namespace LogJoint.Symphony.SpringServiceLog
 				LogStreamNamePrefix = "qa-sym-qa5-cs/qa-sym-qa5-cs/",
 			};
 
-			public static readonly IReadOnlyList<Environment> Environments = new []
+			public static readonly Environment ST2 = new Environment
 			{
-				QA5
+				Name = "st2",
+				Region = RegionEndpoint.USEast1,
+				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DIM6CNTQJPKJ6D4GJK04",
+				LogGroupName = "sym-st2-rtc",
+				LogStreamNamePrefix = "dev-sym-st2-cs/dev-sym-st2-cs/",
 			};
+
+			public static readonly Environment RTC1 = new Environment
+			{
+				Name = "rtc1",
+				Region = RegionEndpoint.USEast1,
+				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DIM6CNTQJPKJ6D4GJK04",
+				LogGroupName = "sym-rtc1-rtc",
+				LogStreamNamePrefix = "dev-sym-rtc1-cs/dev-sym-rtc1-cs/",
+			};
+
+			public static readonly Environment Corporate = new Environment
+			{
+				Name = "corporate",
+				Region = RegionEndpoint.USEast1,
+				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI17XYLYKQYHON337JU6",
+				LogGroupName = "sym-corp-stage-chat-glb-1-ms",
+				LogStreamNamePrefix = "rtc-cs/rtc-cs/",
+			};
+
+			public static readonly Environment CitiUAT = new Environment
+			{
+				Name = "citi-test2",
+				Region = RegionEndpoint.USEast1,
+				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI17XYLYKQYHON337JU6",
+				LogGroupName = "uat-citi-na-2-rtc",
+				LogStreamNamePrefix = "rtc-cs/rtc-cs/",
+			};
+
+			public static readonly IReadOnlyDictionary<string, Environment> Environments = new []
+			{
+				QA5,
+				ST2,
+				RTC1,
+				Corporate,
+				CitiUAT
+			}.ToDictionary(env => env.Name);
 		};
 
 		public class DownloadRequest
 		{
 			public Environment Env { get; private set; }
-			public ICollection<string> Ids { get; private set; }
+			public IReadOnlyCollection<string> Ids { get; private set; }
 			public DateTime ReferenceTime { get; private set; }
 
-			public DownloadRequest(Environment env, ICollection<string> ids, DateTime referenceTime)
+			public DownloadRequest(string env, IReadOnlyCollection<string> ids, DateTime referenceTime)
 			{
-				Env = env ?? throw new ArgumentNullException(nameof(env));
+				if (!Environment.Environments.TryGetValue(env ?? throw new ArgumentNullException(nameof(env)), out var tmpEnv))
+					throw new ArgumentException($"Unknown environment '{env}'", nameof(env));
+				else
+					Env = tmpEnv;
 				Ids = ids ?? throw new ArgumentNullException(nameof(ids));
 				if (Ids.Count == 0)
 					throw new ArgumentException("No ids provided to logs downloader");

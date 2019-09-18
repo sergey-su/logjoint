@@ -25,12 +25,14 @@ namespace LogJoint.Symphony.SpringServiceLog
 		IPreprocessingStep IPreprocessingManagerExtension.CreateStepByName(string stepName, PreprocessingStepParams stepParams)
 		{
 			if (stepName == DownloadStep.stepName)
-				return preprocessingStepsFactory.CreateCloudWatchDownloadStep();
+				return preprocessingStepsFactory.CreateCloudWatchDownloadStep(stepParams);
 			return null;
 		}
 
 		IPreprocessingStep IPreprocessingManagerExtension.TryParseLaunchUri(Uri url)
 		{
+			if (url.Host == DownloadStep.urlHost && url.Scheme == DownloadStep.urlProtocol)
+				return preprocessingStepsFactory.CreateCloudWatchDownloadStep(new PreprocessingStepParams(url.ToString()));
 			return null;
 		}
 

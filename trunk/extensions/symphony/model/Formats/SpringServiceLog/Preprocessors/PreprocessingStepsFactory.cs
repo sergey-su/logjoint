@@ -1,4 +1,6 @@
-﻿using LogJoint.Preprocessing;
+﻿using System;
+using System.Collections.Generic;
+using LogJoint.Preprocessing;
 
 namespace LogJoint.Symphony.SpringServiceLog
 {
@@ -16,9 +18,16 @@ namespace LogJoint.Symphony.SpringServiceLog
 			this.webViewTools = webViewTools;
 		}
 
-		IPreprocessingStep IPreprocessingStepsFactory.CreateCloudWatchDownloadStep()
+		IPreprocessingStep IPreprocessingStepsFactory.CreateCloudWatchDownloadStep(
+			IReadOnlyCollection<string> ids, DateTime referenceTime, string env)
 		{
-			return new DownloadStep(preprocessingStepsFactory, webViewTools);
+			return new DownloadStep(preprocessingStepsFactory, webViewTools, ids, referenceTime, env);
+		}
+
+		IPreprocessingStep IPreprocessingStepsFactory.CreateCloudWatchDownloadStep(
+			PreprocessingStepParams stepParams)
+		{
+			return new DownloadStep(preprocessingStepsFactory, webViewTools, stepParams);
 		}
 	};
 }

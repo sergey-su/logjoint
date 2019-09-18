@@ -1,6 +1,7 @@
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LogJoint.Symphony
@@ -49,6 +50,13 @@ namespace LogJoint.Symphony
 				Preprocessing.LogDownloaderRule.CreateBrowserDownloaderRule(new[] { "https://id.atlassian.com/login" })
 			);
 
+			SpringServiceLog.IPreprocessingStepsFactory backendLogsPreprocessingStepsFactory = new SpringServiceLog.PreprocessingStepsFactory(
+				app.Model.Preprocessing.StepsFactory,
+				app.Model.WebViewTools
+			);
+			app.Model.Preprocessing.ExtensionsRegistry.Register(new SpringServiceLog.PreprocessingManagerExtension(
+				backendLogsPreprocessingStepsFactory));
+
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
 			UI.Presenters.Postprocessing.IPostprocessorOutputForm timeSeriesForm = null;
 
@@ -90,6 +98,7 @@ namespace LogJoint.Symphony
 										});
 									}
 								}
+#if MONOMAC
 								IVisualizerNode GetParent(IVisualizerNode n) => n.Parent == null ? n : GetParent(n.Parent);
 								var (id, referenceTime, env) = Rtc.MeetingsStateInspector.GetMeetingRelatedId(
 									stateInspectorPresenter.SelectedObject.CreationEvent, stateInspectorPresenter.SelectedObject.ChangeHistory,
@@ -97,30 +106,43 @@ namespace LogJoint.Symphony
 								);
 								if (id != null)
 								{
+									// todo: ask for missing data
 									arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
 									{
-										Text = $"Download backend logs for {id} env {env} time {referenceTime}",
+										Text = "Download backend logs",
 										Click = () =>
 										{
+											var input = app.Presentation.PromptDialog.ExecuteDialog(
+												"Download RTC backend logs",
+												"Specify query parameters",
+												$"ID={id}{Environment.NewLine}Environment={env ?? "??"}{Environment.NewLine}Reference time={referenceTime.ToString("o")}");
+											if (input != null)
+											{
+												var ids = new [] { id };
+												foreach (var line in input.Split('\r', '\n'))
+												{
+													var m = Regex.Match(line, @"^(?<k>[^\=]+)\=(?<v>.+)$", RegexOptions.ExplicitCapture);
+													if (!m.Success)
+														continue;
+													var k = m.Groups["k"].Value;
+													var v = m.Groups["v"].Value;
+													if (k == "ID")
+														ids = v.Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+													else if (k == "Environment")
+														env = v;
+													else if (k == "Reference time")
+														if (DateTime.TryParseExact(v, "o", null, System.Globalization.DateTimeStyles.None, out var tmpRefTime))
+															referenceTime = tmpRefTime;
+												}
+												app.Model.Preprocessing.Manager.Preprocess(
+													new[] { backendLogsPreprocessingStepsFactory.CreateCloudWatchDownloadStep(ids, referenceTime, env) },
+													"Downloading backend logs",
+													Preprocessing.PreprocessingOptions.HighlightNewPreprocessing
+												);
+											}
 										}
 									});
 								}
-#if MONOMAC
-								arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
-								{
-									Text = "Download backend logs",
-									Click = () =>
-									{
-										SpringServiceLog.IPreprocessingStepsFactory f = new SpringServiceLog.PreprocessingStepsFactory(
-											app.Model.Preprocessing.StepsFactory,
-											app.Model.WebViewTools
-										);
-										app.Model.Preprocessing.Manager.Preprocess(
-											new[] { f.CreateCloudWatchDownloadStep() },
-											"Downloading backend logs"
-										);
-									}
-								});
 #endif
 							}
 						};

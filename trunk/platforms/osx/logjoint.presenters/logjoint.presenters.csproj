@@ -298,9 +298,6 @@
     <Compile Include="..\..\..\presenters\IssueReportDialogPresenter\IssueReportDialogPresenter.cs">
       <Link>IssueReportDialogPresenter\IssueReportDialogPresenter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\Common\PromptDialog.cs">
-      <Link>Common\PromptDialog.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\Postprocessing\Common\ToastNotifications\CorrelatorToastNotification.cs">
       <Link>Postprocessing\Common\ToastNotifications\CorrelatorToastNotification.cs</Link>
     </Compile>
