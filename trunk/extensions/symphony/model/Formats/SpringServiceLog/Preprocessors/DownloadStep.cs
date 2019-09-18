@@ -40,10 +40,16 @@ namespace LogJoint.Symphony.SpringServiceLog
 		async Task<List<PreprocessingStepParams>> ExecuteInternal(IPreprocessingStepCallback callback)
 		{
 			await callback.BecomeLongRunning();
-			callback.SetStepDescription("Downloading ... todo");
+			callback.SetStepDescription("Downloading...");
 
 			var result = new List<PreprocessingStepParams>();
-			var logs = await CloudWatchDownloader.DownloadBackendLogs(webViewTools);
+			var request = new CloudWatchDownloader.DownloadRequest(
+				CloudWatchDownloader.Environment.QA5,
+				new [] { "1a641c4d-d564-4f16-8c0d-1d51eb8a5e26" },
+				DateTime.Parse("2019-09-17T11:33:08.240Z")
+			);
+			var logs = await CloudWatchDownloader.Download(
+				webViewTools, request, callback.SetStepDescription);
 			foreach (var l in logs)
 			{
 				string tmpFileName = callback.TempFilesManager.GenerateNewName();
@@ -51,7 +57,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				result.Add(new PreprocessingStepParams(
 					tmpFileName,
 					//$"{sourceFile.FullPath}\\as_pdml",
-					$"myDisplayName\\{l.Key}"
+					$"CloudWatchLogs\\{l.Key}"
 					//sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(stepName, StepArgument.ToString(keyFiles))),
 					//$"{sourceFile.FullPath} (converted to PDML)"
 				));

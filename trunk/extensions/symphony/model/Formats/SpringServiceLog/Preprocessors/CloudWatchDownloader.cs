@@ -16,26 +16,146 @@ using System.Text.RegularExpressions;
 
 namespace LogJoint.Symphony.SpringServiceLog
 {
-	public class CloudWatchDownloader
+	public static class CloudWatchDownloader
 	{
-		public static async Task<Dictionary<string, string>> DownloadBackendLogs(WebViewTools.IWebViewTools webViewTools)
+		public class Environment
 		{
-			var region = RegionEndpoint.USEast1; // todo: map from env
-			var loginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI1D2H726TCM30VUZSK7"; // todo: map from env
+			public string Name { get; private set; }
+			public RegionEndpoint Region { get; private set; }
+			public string LoginEntryPoint { get; private set; }
+			public string LogGroupName { get; private set; }
+			public string LogStreamNamePrefix { get; private set; }
 
-			string samlAssertion = await GetSAMLAssertionFromUser(webViewTools, loginEntryPoint);
-			using (var authCli = new AmazonSecurityTokenServiceClient(new AnonymousAWSCredentials(), region))
+			public override string ToString() => Name;
+
+			public static readonly Environment QA5 = new Environment
 			{
-				var authReq = CreateAssumeWithSAMLRequest(samlAssertion);
-				var authResponse = await authCli.AssumeRoleWithSAMLAsync(authReq);
-				using (var logscli = new AmazonCloudWatchLogsClient(authResponse.Credentials, region))
+				Name = "qa5",
+				Region = RegionEndpoint.USEast1,
+				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI1D2H726TCM30VUZSK7",
+				LogGroupName = "sym-qa5-rtc",
+				LogStreamNamePrefix = "qa-sym-qa5-cs/qa-sym-qa5-cs/",
+			};
+
+			public static readonly IReadOnlyList<Environment> Environments = new []
+			{
+				QA5
+			};
+		};
+
+		public class DownloadRequest
+		{
+			public Environment Env { get; private set; }
+			public ICollection<string> Ids { get; private set; }
+			public DateTime ReferenceTime { get; private set; }
+
+			public DownloadRequest(Environment env, ICollection<string> ids, DateTime referenceTime)
+			{
+				Env = env ?? throw new ArgumentNullException(nameof(env));
+				Ids = ids ?? throw new ArgumentNullException(nameof(ids));
+				if (Ids.Count == 0)
+					throw new ArgumentException("No ids provided to logs downloader");
+				ReferenceTime = referenceTime;
+			}
+		};
+
+		public static async Task<Dictionary<string, string>> Download(
+			WebViewTools.IWebViewTools webViewTools,
+			DownloadRequest request,
+			Action<string> statusReporter
+		)
+		{
+			statusReporter("Authenticating...");
+			using (var logscli = await CreateLogsClient(webViewTools, request.Env))
+			{
+				var downloadedEvents = new Dictionary<string, FilteredLogEvent>(); // id -> event, used to dedupe events
+				var downloadedIds = new Dictionary<string, DateRange>(); // id -> range downloaded TODO: remove range?
+				var ambientIds = new HashSet<string>();
+				var currBeginDate = request.ReferenceTime - TimeSpan.FromHours(2);
+				var currEndDate = request.ReferenceTime + TimeSpan.FromHours(2);
+				var logGroupName = request.Env.LogGroupName;
+				var logStreamNamePrefix = request.Env.LogStreamNamePrefix;
+				var newIds = new HashSet<string>(request.Ids);
+
+				string getKey(FilteredLogEvent e) => e.EventId;
+
+				while (newIds.Count > 0)
 				{
-					return await F(logscli);
+					statusReporter($"Downloading {string.Join(", ", newIds.Take(3))}{(newIds.Count > 3 ? $" +{newIds.Count - 3} more" : "")}...");
+
+					var batch = await DownloadBySubstrings(logscli, logGroupName, logStreamNamePrefix,
+						currBeginDate.ToUnixTimestampMillis(), currEndDate.ToUnixTimestampMillis(), newIds);
+					foreach (var id in newIds)
+					{
+						downloadedIds.Add(id, new DateRange(currBeginDate, currEndDate));
+					}
+					newIds.Clear();
+					foreach (var m in batch)
+					{
+						if (!downloadedEvents.ContainsKey(getKey(m)))
+						{
+							downloadedEvents.Add(getKey(m), m);
+							foreach (var (id, isAmbient) in ExtractIds(m.Message))
+							{
+								if (isAmbient)
+									ambientIds.Add(id);
+								else if (!downloadedIds.ContainsKey(id))
+									newIds.Add(id);
+							}
+						}
+					}
 				}
+
+				var exactBeginDate = downloadedEvents.Values.Aggregate(
+					long.MaxValue,
+					(curr, e) => Math.Min(curr, e.Timestamp)
+				);
+				var exactEndDate = downloadedEvents.Values.Aggregate(
+					long.MinValue,
+					(curr, e) => Math.Max(curr, e.Timestamp)
+				);
+				foreach (var m in await DownloadBySubstrings(logscli, logGroupName, logStreamNamePrefix,
+					exactBeginDate, exactEndDate, ambientIds))
+				{
+					if (!downloadedEvents.ContainsKey(getKey(m)))
+						downloadedEvents.Add(getKey(m), m);
+				}
+
+
+				var result = new Dictionary<string, List<FilteredLogEvent>>();
+				foreach (var e in downloadedEvents.Values)
+				{
+					var roleInstanceId = e.LogStreamName;
+					if (!result.TryGetValue(roleInstanceId, out var list))
+					{
+						result.Add(roleInstanceId, list = new List<FilteredLogEvent>());
+					}
+					list.Add(e);
+				}
+				return result.ToDictionary(
+					i => i.Key,
+					i => i.Value.OrderBy(e => e.Timestamp).Aggregate(
+						new StringBuilder(),
+						(builder, e) => builder.AppendLine(e.Message),
+						builder => builder.ToString()
+					)
+				);
 			}
 		}
 
-		private static async Task<string> GetSAMLAssertionFromUser(WebViewTools.IWebViewTools webViewTools, string loginEntryPoint)
+		private static async Task<AmazonCloudWatchLogsClient> CreateLogsClient(WebViewTools.IWebViewTools webViewTools, Environment env)
+		{
+			string samlAssertion = await GetSAMLAssertionFromUser(webViewTools, env.LoginEntryPoint);
+			using (var authCli = new AmazonSecurityTokenServiceClient(new AnonymousAWSCredentials(), env.Region))
+			{
+				var authReq = CreateAssumeWithSAMLRequest(samlAssertion);
+				var authResponse = await authCli.AssumeRoleWithSAMLAsync(authReq);
+				return new AmazonCloudWatchLogsClient(authResponse.Credentials, env.Region);
+			}
+		}
+
+		private static async Task<string> GetSAMLAssertionFromUser(
+			WebViewTools.IWebViewTools webViewTools, string loginEntryPoint)
 		{
 			var samlForm = await webViewTools.UploadForm(new WebViewTools.UploadFormParams
 			{
@@ -85,94 +205,36 @@ namespace LogJoint.Symphony.SpringServiceLog
 			return authReq;
 		}
 
-		private static async Task<Dictionary<string, string>> F(AmazonCloudWatchLogsClient cli)
-		{
-			var downloadedEvents = new Dictionary<string, FilteredLogEvent>(); // id -> event, used to dedupe events
-			var downloadedIds = new Dictionary<string, DateRange>(); // id -> range downloaded
-			var currBeginDate = DateTime.Now - TimeSpan.FromDays(4); // todo: initial date +- extra
-			var currEndDate = DateTime.Now - TimeSpan.FromDays(1);
-			var logGroupName = "sym-qa5-rtc"; // todo: map from env
-			var logStreamNamePrefix = "qa-sym-qa5-cs/qa-sym-qa5-cs/"; // map from env
-			var newIds = new HashSet<string>();
-			newIds.Add("448a2e20-5fd7-4a9c-b52a-b75947d543fd"); // todo: initial ids
-			while (newIds.Count > 0)
-			{
-				var batch = await DownloadByIds(cli, logGroupName, logStreamNamePrefix,
-					currBeginDate, currEndDate, newIds);
-				foreach (var id in newIds)
-				{
-					downloadedIds.Add(id, new DateRange(currBeginDate, currEndDate));
-				}
-				newIds.Clear();
-				foreach (var m in batch)
-				{
-					var key = m.EventId; // todo: check if event id is unique
-					if (!downloadedEvents.ContainsKey(key))
-					{
-						downloadedEvents.Add(key, m);
-						foreach (var id in ExtractIds(m.Message))
-						{
-							if (!downloadedIds.ContainsKey(id))
-								newIds.Add(id);
-						}
-					}
-				}
-
-			}
-			var result = new Dictionary<string, List<FilteredLogEvent>>();
-			foreach (var e in downloadedEvents.Values)
-			{
-				var roleInstanceId = e.LogStreamName;
-				if (!result.TryGetValue(roleInstanceId, out var list))
-				{
-					result.Add(roleInstanceId, list = new List<FilteredLogEvent>());
-				}
-				list.Add(e);
-			}
-			foreach (var events in result.Values)
-			{
-				events.Sort((e1, e2) => Math.Sign(e1.Timestamp - e2.Timestamp));
-			}
-			return result.ToDictionary(
-				i => i.Key,
-				i => i.Value.Aggregate(new StringBuilder(), (builder, e) => builder.AppendLine(e.Message), builder => builder.ToString())
-			);
-		}
-
-		private static async Task<List<FilteredLogEvent>> DownloadByIds(
+		private static async Task<List<FilteredLogEvent>> DownloadBySubstrings(
 			AmazonCloudWatchLogsClient cli,
 			string logGroupName,
 			string logStreamNamePrefix,
-			DateTime beginDate,
-			DateTime endDate,
-			HashSet<string> ids
+			long beginDate,
+			long endDate,
+			HashSet<string> substrings
 		)
 		{
 			var result = new List<FilteredLogEvent>();
-			foreach (string id in ids)
+			for (string continuationToken = null; substrings.Count > 0;)
 			{
-				// todo: query all ids at once
-				for (string continuationToken = null;;)
+				var rsp = await cli.FilterLogEventsAsync(new FilterLogEventsRequest
 				{
-					var rsp = await cli.FilterLogEventsAsync(new FilterLogEventsRequest
-					{
-						NextToken = continuationToken,
-						StartTime = beginDate.ToUnixTimestampMillis(),
-						EndTime = endDate.ToUnixTimestampMillis(),
-						LogGroupName = logGroupName,
-						LogStreamNamePrefix = logStreamNamePrefix,
-						FilterPattern = $"\"{id}\""
-					});
-					result.AddRange(rsp.Events);
-					if (rsp.NextToken == null)
-						break;
-					continuationToken = rsp.NextToken;
-				}
+					NextToken = continuationToken,
+					StartTime = beginDate,
+					EndTime = endDate,
+					LogGroupName = logGroupName,
+					LogStreamNamePrefix = logStreamNamePrefix,
+					FilterPattern = string.Join(" ", substrings.Select(id => $"?\"{id}\"")) // todo: escape " in id
+				});
+				result.AddRange(rsp.Events);
+				if (rsp.NextToken == null)
+					break;
+				continuationToken = rsp.NextToken;
 			}
 			return result;
 		}
 
-		private static IEnumerable<string> ExtractIds(string logLine)
+		private static IEnumerable<(string value, bool isAmbient)> ExtractIds(string logLine)
 		{
 			foreach (var re in idRegexps)
 			{
@@ -181,16 +243,22 @@ namespace LogJoint.Symphony.SpringServiceLog
 				{
 					for (int g = 1; g < m.Groups.Count; ++g)
 					{
-						yield return m.Groups[g].Value;
+						yield return (m.Groups[g].Value, re.GetGroupNames()[g].Contains("ambient"));
 					}
 				}
 			}
 		}
 
-		private readonly static Regex idRe1 = new Regex(@"handleJoin conferenceSessionId (?<id1>[^\,]+), sessionId (?<id2>[\w\-]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex joinRe = new Regex(@"handleJoin conferenceSessionId (?<id_conf>[^\,]+), sessionId (?<id_session>[\w\-]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex requestRe = new Regex(@"Incoming request \[(?<id_request>[^\]]+)\]", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex mediaBridgeRe = new Regex($@"Acquired mediaBridgeSessionId (?<id_ambient_mbr>[\w\-]+), conferenceSessionId (?<id_conf>[^\,]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex sipBridgeRe = new Regex($@"Acquired sipBridgeSessionId (?<id_ambient_sipb>[\w\-]+), conferenceSessionId (?<id_conf>[^\,]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex[] idRegexps =
 		{
-			idRe1
+			joinRe,
+			requestRe,
+			mediaBridgeRe,
+			sipBridgeRe,
 		};
 	};
 }
