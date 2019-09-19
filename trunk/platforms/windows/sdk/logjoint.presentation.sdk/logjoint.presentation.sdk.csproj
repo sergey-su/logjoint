@@ -59,6 +59,9 @@
     <Compile Include="..\..\..\..\sdk\presentation\Common\IClipboardAccess.cs">
       <Link>Common\IClipboardAccess.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\sdk\presentation\Common\PromptDialog.cs">
+      <Link>Common\PromptDialog.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\sdk\presentation\Common\Reactive\List.cs">
       <Link>Common\Reactive\List.cs</Link>
     </Compile>

@@ -50,12 +50,14 @@ namespace LogJoint.Symphony
 				Preprocessing.LogDownloaderRule.CreateBrowserDownloaderRule(new[] { "https://id.atlassian.com/login" })
 			);
 
+#if MONOMAC
 			SpringServiceLog.IPreprocessingStepsFactory backendLogsPreprocessingStepsFactory = new SpringServiceLog.PreprocessingStepsFactory(
 				app.Model.Preprocessing.StepsFactory,
 				app.Model.WebViewTools
 			);
 			app.Model.Preprocessing.ExtensionsRegistry.Register(new SpringServiceLog.PreprocessingManagerExtension(
 				backendLogsPreprocessingStepsFactory));
+#endif
 
 			UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter = null;
 			UI.Presenters.Postprocessing.IPostprocessorOutputForm timeSeriesForm = null;

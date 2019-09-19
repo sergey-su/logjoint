@@ -100,9 +100,6 @@
     <Compile Include="..\..\..\presenters\Common\LinkLabelUtils.cs">
       <Link>Common\LinkLabelUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\Common\PromptDialog.cs">
-      <Link>Common\PromptDialog.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\Common\Reactive\List.cs">
       <Link>Common\Reactive\List.cs</Link>
     </Compile>
