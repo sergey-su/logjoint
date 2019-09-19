@@ -12,4 +12,7 @@
   <file type="entry">logjoint.symphony.plugin.dll</file>
   <file type="dll">logjoint.symphony.plugin.model.dll</file>
   <file type="dll">Newtonsoft.Json.dll</file>
+  <file type="dll">AWSSDK.CloudWatchLogs.dll</file>
+  <file type="dll">AWSSDK.Core.dll</file>
+  <file type="dll">AWSSDK.SecurityToken.dll</file>
 </manifest>

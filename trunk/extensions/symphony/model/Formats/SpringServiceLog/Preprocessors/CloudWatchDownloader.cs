@@ -177,6 +177,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				}
 				return result.ToDictionary(
 					i => i.Key,
+					// todo: order by inner test stamps
 					i => i.Value.OrderBy(e => e.Timestamp).Aggregate(
 						new StringBuilder(),
 						(builder, e) => builder.AppendLine(e.Message),
