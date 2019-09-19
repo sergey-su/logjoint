@@ -13,6 +13,8 @@ using Amazon.CloudWatchLogs.Model;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using LogJoint.Postprocessing;
+using System.Threading;
 
 namespace LogJoint.Symphony.SpringServiceLog
 {
@@ -111,28 +113,51 @@ namespace LogJoint.Symphony.SpringServiceLog
 			statusReporter("Authenticating...");
 			using (var logscli = await CreateLogsClient(webViewTools, request.Env))
 			{
-				var downloadedEvents = new Dictionary<string, FilteredLogEvent>(); // id -> event, used to dedupe events
-				var downloadedIds = new Dictionary<string, DateRange>(); // id -> range downloaded TODO: remove range?
+				var downloadedEvents = new Dictionary<string, FilteredLogEvent>(); // event key -> event, used to dedupe events
+				var downloadedIds = new HashSet<string>();
+				var ids = new HashSet<string>(request.Ids);
 				var ambientIds = new HashSet<string>();
-				var currBeginDate = request.ReferenceTime - TimeSpan.FromHours(2);
-				var currEndDate = request.ReferenceTime + TimeSpan.FromHours(2);
+				var beginDate = request.ReferenceTime - TimeSpan.FromHours(2);
+				var endDate = request.ReferenceTime + TimeSpan.FromHours(2);
 				var logGroupName = request.Env.LogGroupName;
 				var logStreamNamePrefix = request.Env.LogStreamNamePrefix;
-				var newIds = new HashSet<string>(request.Ids);
 
 				string getKey(FilteredLogEvent e) => e.EventId;
 
-				while (newIds.Count > 0)
+				for (;;)
 				{
-					statusReporter($"Downloading {string.Join(", ", newIds.Take(3))}{(newIds.Count > 3 ? $" +{newIds.Count - 3} more" : "")}...");
+					var currentIds =
+						ids.Count > 0 ? ids :
+						ambientIds.Count > 0 ? ambientIds :
+						null;
+					if (currentIds == null)
+						break;
 
-					var batch = await DownloadBySubstrings(logscli, logGroupName, logStreamNamePrefix,
-						currBeginDate.ToUnixTimestampMillis(), currEndDate.ToUnixTimestampMillis(), newIds);
-					foreach (var id in newIds)
+					List<FilteredLogEvent> batch;
+					if (currentIds == ids)
 					{
-						downloadedIds.Add(id, new DateRange(currBeginDate, currEndDate));
+						batch = await DownloadBySubstrings(logscli, logGroupName, logStreamNamePrefix,
+							beginDate.ToUnixTimestampMillis(), endDate.ToUnixTimestampMillis(),
+							currentIds, statusReporter);
 					}
-					newIds.Clear();
+					else
+					{
+						var exactBeginDate = downloadedEvents.Values.Aggregate(
+							long.MaxValue,
+							(curr, e) => Math.Min(curr, e.Timestamp)
+						);
+						var exactEndDate = downloadedEvents.Values.Aggregate(
+							long.MinValue,
+							(curr, e) => Math.Max(curr, e.Timestamp)
+						);
+						batch = await DownloadBySubstrings(logscli, logGroupName, logStreamNamePrefix,
+							exactBeginDate, exactEndDate, ambientIds, statusReporter);
+					}
+					foreach (var id in currentIds)
+					{
+						downloadedIds.Add(id);
+					}
+					currentIds.Clear();
 					foreach (var m in batch)
 					{
 						if (!downloadedEvents.ContainsKey(getKey(m)))
@@ -140,28 +165,11 @@ namespace LogJoint.Symphony.SpringServiceLog
 							downloadedEvents.Add(getKey(m), m);
 							foreach (var (id, isAmbient) in ExtractIds(m.Message))
 							{
-								if (isAmbient)
-									ambientIds.Add(id);
-								else if (!downloadedIds.ContainsKey(id))
-									newIds.Add(id);
+								if (!downloadedIds.Contains(id))
+									(isAmbient ? ambientIds : ids).Add(id);
 							}
 						}
 					}
-				}
-
-				var exactBeginDate = downloadedEvents.Values.Aggregate(
-					long.MaxValue,
-					(curr, e) => Math.Min(curr, e.Timestamp)
-				);
-				var exactEndDate = downloadedEvents.Values.Aggregate(
-					long.MinValue,
-					(curr, e) => Math.Max(curr, e.Timestamp)
-				);
-				foreach (var m in await DownloadBySubstrings(logscli, logGroupName, logStreamNamePrefix,
-					exactBeginDate, exactEndDate, ambientIds))
-				{
-					if (!downloadedEvents.ContainsKey(getKey(m)))
-						downloadedEvents.Add(getKey(m), m);
 				}
 
 
@@ -177,12 +185,15 @@ namespace LogJoint.Symphony.SpringServiceLog
 				}
 				return result.ToDictionary(
 					i => i.Key,
-					// todo: order by inner test stamps
-					i => i.Value.OrderBy(e => e.Timestamp).Aggregate(
-						new StringBuilder(),
-						(builder, e) => builder.AppendLine(e.Message),
-						builder => builder.ToString()
-					)
+					i => i.Value
+						.Select(e => (e, ts: Reader.Read(e.Message)?.Timestamp))
+						.Where(p => p.ts != null)
+						.OrderBy(e => e.ts.Value)
+						.Aggregate(
+							new StringBuilder(),
+							(builder, e) => builder.AppendLine(e.e.Message),
+							builder => builder.ToString()
+						)
 				);
 			}
 		}
@@ -255,12 +266,14 @@ namespace LogJoint.Symphony.SpringServiceLog
 			string logStreamNamePrefix,
 			long beginDate,
 			long endDate,
-			HashSet<string> substrings
+			HashSet<string> substrings,
+			Action<string> statusReporter
 		)
 		{
 			var result = new List<FilteredLogEvent>();
-			async Task DownloadWithFilter(string filter)
+			async Task DownloadWithFilter(string filter, IReadOnlyList<string> filterSubstrings)
 			{
+				statusReporter($"Downloading {string.Join(", ", filterSubstrings.Take(3))}{(filterSubstrings.Count > 3 ? $" +{filterSubstrings.Count - 3} more" : "")}...");
 				for (string continuationToken = null; substrings.Count > 0;)
 				{
 					var rsp = await cli.FilterLogEventsAsync(new FilterLogEventsRequest
@@ -280,6 +293,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 			}
 			var filterLenLimit = 1024;
 			var filterBuilder = new StringBuilder();
+			var filterSubstringsList = new List<string>();
 			foreach (var s in substrings)
 			{
 				var term = $" ?\"{s}\"";
@@ -287,13 +301,15 @@ namespace LogJoint.Symphony.SpringServiceLog
 					continue;
 				if (filterBuilder.Length + term.Length > filterLenLimit)
 				{
-					await DownloadWithFilter(filterBuilder.ToString());
+					await DownloadWithFilter(filterBuilder.ToString(), filterSubstringsList);
 					filterBuilder.Clear();
+					filterSubstringsList.Clear();
 				}
 				filterBuilder.Append(term);
+				filterSubstringsList.Add(s);
 			}
 			if (filterBuilder.Length > 0)
-				await DownloadWithFilter(filterBuilder.ToString());
+				await DownloadWithFilter(filterBuilder.ToString(), filterSubstringsList);
 			return result;
 		}
 
@@ -314,8 +330,8 @@ namespace LogJoint.Symphony.SpringServiceLog
 
 		private readonly static Regex joinRe = new Regex(@"handleJoin conferenceSessionId (?<id_conf>[^\,]+), sessionId (?<id_session>[\w\-]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex requestRe = new Regex(@"Incoming request \[(?<id_request>[^\]]+)\]", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		private readonly static Regex mediaBridgeRe = new Regex($@"Acquired mediaBridgeSessionId (?<id_ambient_mbr>[\w\-]+), conferenceSessionId (?<id_conf>[^\,]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		private readonly static Regex sipBridgeRe = new Regex($@"Acquired sipBridgeSessionId (?<id_ambient_sipb>[\w\-]+), conferenceSessionId (?<id_conf>[^\,]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex mediaBridgeRe = new Regex($@"Acquired mediaBridgeSessionId (?<id_ambient_mbr>[\w\-]+), conferenceSessionId", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex sipBridgeRe = new Regex($@"Acquired sipBridgeSessionId (?<id_ambient_sipb>[\w\-]+), conferenceSessionId", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex[] idRegexps =
 		{
 			joinRe,

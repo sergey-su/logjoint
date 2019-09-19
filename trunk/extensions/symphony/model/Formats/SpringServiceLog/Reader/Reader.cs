@@ -20,15 +20,21 @@ namespace LogJoint.Symphony.SpringServiceLog
 			this.cancellation = cancellation;
 		}
 
-		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler)
 		{
 			return Read(() => new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), s => s.Dispose(), progressHandler);
 		}
 
-		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler)
 		{
 			using (var ctx = new Context())
 				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, cancellation, progressHandler, textLogParser), false);
+		}
+
+		public static Message Read(string line)
+		{
+			using (var ctx = new Context())
+				return ctx.Read(line);
 		}
 
 		class Context : IDisposable
@@ -68,14 +74,11 @@ namespace LogJoint.Symphony.SpringServiceLog
 								var mi = messagesInfo[i];
 								var headerMatch = ((IRegexHeaderMatch)mi.HeaderMatch).Match;
 								var body = mi.MessageBoby;
-								outMessages[i] = new Message(
+								outMessages[i] = MakeMessage(
 									mi.MessageIndex,
 									mi.StreamPosition,
-									DateTime.ParseExact(headerMatch.Groups["date"].Value, "yyyy'-'MM'-'dd' 'HH':'mm':'ss.FFF", CultureInfo.InvariantCulture),
-									new StringSlice(mi.Buffer, headerMatch.Groups["sev"]),
-									new StringSlice(mi.Buffer, headerMatch.Groups["pid"]),
-									new StringSlice(mi.Buffer, headerMatch.Groups["tid"]),
-									new StringSlice(mi.Buffer, headerMatch.Groups["logger"]),
+									headerMatch,
+									mi.Buffer,
 									body
 								);
 							}
@@ -90,6 +93,28 @@ namespace LogJoint.Symphony.SpringServiceLog
 				{
 					releaseStream(inputStream);
 				}
+			}
+
+			public Message Read(string line)
+			{
+				var m = logMessageRegex.Match(line);
+				if (!m.Success)
+					return null;
+				return MakeMessage(0, 0, m, line, line.Substring(m.Index + m.Length));
+			}
+
+			Message MakeMessage(int messageIndex, long streamPosition, Match headerMatch, string headerBuffer, string body)
+			{
+				return new Message(
+					messageIndex,
+					streamPosition,
+					DateTime.ParseExact(headerMatch.Groups["date"].Value, "yyyy'-'MM'-'dd' 'HH':'mm':'ss.FFF", CultureInfo.InvariantCulture),
+					new StringSlice(headerBuffer, headerMatch.Groups["sev"]),
+					new StringSlice(headerBuffer, headerMatch.Groups["pid"]),
+					new StringSlice(headerBuffer, headerMatch.Groups["tid"]),
+					new StringSlice(headerBuffer, headerMatch.Groups["logger"]),
+					body
+				);
 			}
 		}
 	}
