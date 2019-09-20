@@ -1,4 +1,5 @@
-﻿using LogJoint.Preprocessing;
+﻿using LogJoint.Persistence;
+using LogJoint.Preprocessing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -20,12 +21,14 @@ namespace LogJoint.Symphony.SpringServiceLog
 		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly WebViewTools.IWebViewTools webViewTools;
 		readonly PreprocessingStepParams source;
+		readonly IContentCache contentCache;
 
 		internal DownloadStep(
 			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			WebViewTools.IWebViewTools webViewTools,
+			IContentCache contentCache,
 			PreprocessingStepParams source
-		): this(preprocessingStepsFactory, webViewTools)
+		) : this(preprocessingStepsFactory, webViewTools, contentCache)
 		{
 			this.source = source;
 		}
@@ -33,21 +36,24 @@ namespace LogJoint.Symphony.SpringServiceLog
 		internal DownloadStep(
 			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			WebViewTools.IWebViewTools webViewTools,
+			IContentCache contentCache,
 			IReadOnlyCollection<string> ids,
 			DateTime referenceTime,
 			string env
-		): this(preprocessingStepsFactory, webViewTools)
+		): this(preprocessingStepsFactory, webViewTools, contentCache)
 		{
 			source = new PreprocessingStepParams(MakeUrl(ids, referenceTime, env));
 		}
 
 		private DownloadStep(
 			Preprocessing.IStepsFactory preprocessingStepsFactory,
-			WebViewTools.IWebViewTools webViewTools
+			WebViewTools.IWebViewTools webViewTools,
+			IContentCache contentCache
 		)
 		{
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.webViewTools = webViewTools;
+			this.contentCache = contentCache;
 		}
 
 		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
@@ -73,18 +79,19 @@ namespace LogJoint.Symphony.SpringServiceLog
 
 			using (var sharedDownloadTask = callback.GetOrAddSharedValue($"{stepName}:{source.Location}", async () =>
 			{
-				var logs = await CloudWatchDownloader.Download(
-					webViewTools, request, callback.SetStepDescription);
 				string zipTmpFileName = callback.TempFilesManager.GenerateNewName();
-				using (var zipToOpen = new FileStream(zipTmpFileName, FileMode.CreateNew))
-				using (var archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+				using (var zipStream = new FileStream(zipTmpFileName, FileMode.CreateNew))
+				using (var cachedStream = contentCache.GetValue(source.Location))
 				{
-					foreach (var l in logs)
+					if (cachedStream != null)
 					{
-						string tmpFile = callback.TempFilesManager.GenerateNewName();
-						File.WriteAllText(tmpFile, l.Value);
-						archive.CreateEntryFromFile(tmpFile, l.Key);
-						File.Delete(tmpFile);
+						await cachedStream.CopyToAsync(zipStream);
+					}
+					else
+					{
+						await DownloadAndMakeZip(request, zipStream, callback);
+						zipStream.Position = 0;
+						await contentCache.SetValue(source.Location, zipStream);
 					}
 				}
 				return zipTmpFileName;
@@ -99,7 +106,26 @@ namespace LogJoint.Symphony.SpringServiceLog
 					source.PreprocessingHistory.Add(new PreprocessingHistoryItem(stepName))
 				);
 			}
-			// todo: cache
+		}
+
+		async Task DownloadAndMakeZip(
+			CloudWatchDownloader.DownloadRequest request,
+			Stream zipStream,
+			IPreprocessingStepCallback callback
+		)
+		{
+			var logs = await CloudWatchDownloader.Download(
+				webViewTools, request, callback.SetStepDescription);
+			using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+			{
+				foreach (var l in logs)
+				{
+					string tmpFile = callback.TempFilesManager.GenerateNewName();
+					File.WriteAllText(tmpFile, l.Value);
+					archive.CreateEntryFromFile(tmpFile, l.Key);
+					File.Delete(tmpFile);
+				}
+			}
 		}
 
 		static string MakeUrl(IEnumerable<string> ids, DateTime referenceTime, string env)

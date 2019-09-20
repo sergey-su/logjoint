@@ -53,7 +53,8 @@ namespace LogJoint.Symphony
 #if MONOMAC
 			SpringServiceLog.IPreprocessingStepsFactory backendLogsPreprocessingStepsFactory = new SpringServiceLog.PreprocessingStepsFactory(
 				app.Model.Preprocessing.StepsFactory,
-				app.Model.WebViewTools
+				app.Model.WebViewTools,
+				app.Model.ContentCache
 			);
 			app.Model.Preprocessing.ExtensionsRegistry.Register(new SpringServiceLog.PreprocessingManagerExtension(
 				backendLogsPreprocessingStepsFactory));

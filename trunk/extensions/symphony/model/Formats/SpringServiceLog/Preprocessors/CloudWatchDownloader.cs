@@ -328,13 +328,17 @@ namespace LogJoint.Symphony.SpringServiceLog
 			}
 		}
 
-		private readonly static Regex joinRe = new Regex(@"handleJoin conferenceSessionId (?<id_conf>[^\,]+), sessionId (?<id_session>[\w\-]+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		const string conferenceSessionIdRegex = @"(?<id_conf>[^\,]+)";
+		const string sessionIdRegex = @"(?<id_session>[\w\-]+)";
+		private readonly static Regex joinRe = new Regex($@"handleJoin conferenceSessionId {conferenceSessionIdRegex}, sessionId {sessionIdRegex}", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex eventRegex = new Regex($@"Sending event type: \w+, sessionId: {sessionIdRegex}, conferenceSessionId: {conferenceSessionIdRegex}", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex requestRe = new Regex(@"Incoming request \[(?<id_request>[^\]]+)\]", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex mediaBridgeRe = new Regex($@"Acquired mediaBridgeSessionId (?<id_ambient_mbr>[\w\-]+), conferenceSessionId", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex sipBridgeRe = new Regex($@"Acquired sipBridgeSessionId (?<id_ambient_sipb>[\w\-]+), conferenceSessionId", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex[] idRegexps =
 		{
 			joinRe,
+			eventRegex,
 			requestRe,
 			mediaBridgeRe,
 			sipBridgeRe,
