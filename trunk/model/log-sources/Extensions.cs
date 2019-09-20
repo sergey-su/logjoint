@@ -129,14 +129,14 @@ namespace LogJoint
 			try
 			{
 				await Task.WhenAll(helpers.Select(h => h.FillBuffer()));
-				Action<EnumMessagesHelper> enqueueOfKill = h =>
+				void enqueueOrKill(EnumMessagesHelper h)
 				{
 					if (h.Peek() != null)
 						queue.Enqueue(h);
 					else
 						h.Dispose();
-				};
-				helpers.ForEach(enqueueOfKill);
+				}
+				helpers.ForEach(enqueueOrKill);
 				while (queue.Count > 0)
 				{
 					var h = queue.Dequeue();
@@ -144,7 +144,7 @@ namespace LogJoint
 					h.Dequeue();
 					if (h.Peek() == null)
 						await h.FillBuffer();
-					enqueueOfKill(h);
+					enqueueOrKill(h);
 				}
 			}
 			finally
@@ -161,7 +161,7 @@ namespace LogJoint
 		)
 		{
 			var visibleSources = sources.Items.Where(s => s.Visible).ToArray();
-			using (var fs = new StreamWriter(fileName, false, Encoding.UTF8))
+			using (var fs = new StreamWriter(fileName, append: false, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)))
 			{
 				await EnumMessagesAndMerge(
 					visibleSources,

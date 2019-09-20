@@ -189,5 +189,37 @@ Test frame
 				Assert.IsFalse(((IViewItem)ListRoot.Children[0]).Checked, "Container must be unchecked");
 			});
 		}
+
+		[Test]
+		public async Task SanSaveMergedLog()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				var destinationFileName = Path.GetTempFileName();
+				try
+				{
+					var expectedJoinedLog = File.ReadAllBytes(await samples.GetSampleAsLocalFile("XmlWriterTraceListenerAndTextWriterTraceListenerJoined.log"));
+					app.Mocks.FileDialogs.SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>()).ReturnsForAnyArgs(destinationFileName);
+					var (visibleItems, checkedItems) = app.ViewModel.SourcesList.OnMenuItemOpening(ctrl: false);
+					Assert.IsTrue((visibleItems & MenuItem.SaveMergedFilteredLog) != 0);
+					app.ViewModel.SourcesList.OnSaveMergedFilteredLogMenuItemClicked();
+					var match = false;
+					for (var iter = 0; iter < 25; ++iter)
+					{
+						await Task.Delay(100);
+						var actualJoinedLog = File.ReadAllBytes(destinationFileName);
+						if ((match = actualJoinedLog.SequenceEqual(expectedJoinedLog)) == true)
+							break;
+					}
+					Assert.IsTrue(match);
+				}
+				finally
+				{
+					if (File.Exists(destinationFileName))
+						File.Delete(destinationFileName);
+				}
+			});
+		}
+
 	}
 }
