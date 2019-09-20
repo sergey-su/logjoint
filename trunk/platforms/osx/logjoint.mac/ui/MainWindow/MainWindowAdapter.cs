@@ -144,12 +144,17 @@ namespace LogJoint.UI
 			}
 		}
 
+		void IView.Close ()
+		{
+			Window.PerformClose (this);
+		}
+
 		void IView.ForceClose()
 		{
 			closing = true;
 			Window.Close();
+			NSApplication.SharedApplication.Terminate (this);
 		}
-
 
 		void IView.ActivateTab(string tabId)
 		{
