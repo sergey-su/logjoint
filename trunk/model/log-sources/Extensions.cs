@@ -168,7 +168,8 @@ namespace LogJoint
 					m =>
 					{
 						var txt = m.RawText.IsInitialized ? m.RawText : m.Text;
-						fs.WriteLine(txt.ToString());
+						fs.Write(txt.ToString());
+						fs.Write("\n");
 					},
 					progress,
 					cancel
