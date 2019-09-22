@@ -113,9 +113,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				MakeSelectedObjectHistory
 			);
 
-			this.getIsHistoryItemBookmarked = Selectors.Create( // todo: recompute when LogSource properties change: IsDisposed, TimeOffsets
+			this.getIsHistoryItemBookmarked = Selectors.Create(
 				() => bookmarks.Items,
-				boormaksItems =>
+				boormarksItems =>
 				{
 					Predicate<IStateHistoryItem> result = (item) =>
 					{
@@ -125,7 +125,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 						var bmk = bookmarks.Factory.CreateBookmark(
 							change.Trigger.Timestamp.Adjust(change.Output.LogSource.TimeOffsets),
 								change.Output.LogSource.GetSafeConnectionId(), change.Trigger.StreamPosition, 0);
-						var pos = boormaksItems.FindBookmark(bmk);
+						var pos = boormarksItems.FindBookmark(bmk);
 						return pos.Item2 > pos.Item1;
 					};
 					return result;
@@ -398,12 +398,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 					sourcesManagerPresenter.StartDeletionInteraction(logSources);
 				}
 			}
-		}
-
-		void InvalidateTree()
-		{
-			treeViewInvalidated++;
-			changeNotification.Post();
 		}
 
 		static VisualizerNode MakeRootNode(
@@ -795,20 +789,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		};
 
-		static string ToString(ITreeNode node) // todo: to SDK
-		{
-			void toString(ITreeNode n, StringBuilder sb, string pad)
-			{
-				sb.AppendLine($"{pad}hash={n.GetHashCode():x08} key={n.Key} {(n.IsExpanded ? "e" : "")}{(n.IsSelected ? "s" : "")} {n.ToString()}");
-				foreach (var c in n.Children)
-					toString(c, sb, pad + "  ");
-			}
-
-			var result = new StringBuilder();
-			toString(node, result, "");
-			return result.ToString();
-		}
-
 		[DebuggerDisplay("{key} {text}")]
 		class VisualizerNode : IVisualizerNode, IObjectsTreeNode
 		{
@@ -1016,7 +996,5 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		ImmutableArray<StateInspectorEvent> selectedHistoryEvents = ImmutableArray<StateInspectorEvent>.Empty;
 		readonly Func<ImmutableArray<PropertyInfo>> getCurrentProperties;
 		readonly Func<IReadOnlyList<KeyValuePair<string, object>>> getObjectsProperties;
-
-		int treeViewInvalidated; // todo: use reactive updates
 	}
 }
