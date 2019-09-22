@@ -9,7 +9,7 @@ using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Reactive
 {
-	public class NSOutlineViewController: INSOutlineViewController
+	public class NSOutlineViewController<Node>: INSOutlineViewController<Node> where Node : class, ITreeNode
 	{
 		private readonly NSOutlineView treeView;
 		private readonly Telemetry.ITelemetryCollector telemetryCollector;
@@ -27,7 +27,7 @@ namespace LogJoint.UI.Reactive
 			this.treeView.DataSource = dataSource;
 		}
 
-		public void Update(ITreeNode newRoot)
+		public void Update(Node newRoot)
 		{
 			this.@delegate.updating = true;
 			try
@@ -40,7 +40,7 @@ namespace LogJoint.UI.Reactive
 			}
 		}
 
-		public void ScrollToVisible (ITreeNode node)
+		public void ScrollToVisible (Node node)
 		{
 			if (dataSource.TryMapNodeToItem (node, out var item))
 			{
@@ -50,11 +50,11 @@ namespace LogJoint.UI.Reactive
 			}
 		}
 
-		public Action<ITreeNode> OnExpand { get; set; }
-		public Action<ITreeNode> OnCollapse { get; set; }
-		public Action<ITreeNode[]> OnSelect { get; set; }
-		public Func<NSTableColumn, ITreeNode, NSView> OnView { get; set; }
-		public Func<ITreeNode, NSTableRowView> OnRow { get; set; }
+		public Action<Node> OnExpand { get; set; }
+		public Action<Node> OnCollapse { get; set; }
+		public Action<IReadOnlyList<Node>> OnSelect { get; set; }
+		public Func<NSTableColumn, Node, NSView> OnView { get; set; }
+		public Func<Node, NSTableRowView> OnRow { get; set; }
 
 		class DataSource : NSOutlineViewDataSource
 		{
@@ -196,11 +196,11 @@ namespace LogJoint.UI.Reactive
 
 		class Delegate : NSOutlineViewDelegate
 		{
-			private readonly NSOutlineViewController owner;
+			private readonly NSOutlineViewController<Node> owner;
 			public bool updating;
 			Task notificationChain = Task.CompletedTask;
 
-			public Delegate(NSOutlineViewController owner)
+			public Delegate(NSOutlineViewController<Node> owner)
 			{
 				this.owner = owner;
 			}
@@ -209,7 +209,7 @@ namespace LogJoint.UI.Reactive
 			{
 				if (owner.OnView != null)
 				{
-					return owner.OnView(tableColumn, ((NSNodeItem)item).Node);
+					return owner.OnView(tableColumn, ((NSNodeItem)item).ModelNode);
 				}
 				var view = (NSTextField)outlineView.MakeView("defaultView", this);
 				if (view == null)
@@ -224,7 +224,7 @@ namespace LogJoint.UI.Reactive
 			{
 				if (owner.OnRow != null)
 				{
-					return owner.OnRow (((NSNodeItem)item).Node);
+					return owner.OnRow (((NSNodeItem)item).ModelNode);
 				}
 				return null;
 			}
@@ -239,7 +239,7 @@ namespace LogJoint.UI.Reactive
 						proposedSelectionIndexes
 						.Select(row => outlineView.ItemAtRow((nint)row))
 						.OfType<NSNodeItem>()
-						.Select(n => n.Node)
+						.Select(n => n.ModelNode)
 						.ToArray()
 					);
 				});
@@ -252,7 +252,7 @@ namespace LogJoint.UI.Reactive
 					return true;
 				Notify(() =>
 				{
-					owner.OnExpand?.Invoke(((NSNodeItem)item).Node);
+					owner.OnExpand?.Invoke(((NSNodeItem)item).ModelNode);
 				});
 				return false;
 			}
@@ -263,7 +263,7 @@ namespace LogJoint.UI.Reactive
 					return true;
 				Notify(() =>
 				{
-					owner.OnCollapse?.Invoke(((NSNodeItem)item).Node);
+					owner.OnCollapse?.Invoke(((NSNodeItem)item).ModelNode);
 				});
 				return false;
 			}
@@ -288,6 +288,7 @@ namespace LogJoint.UI.Reactive
 		{
 			public ITreeNode Node;
 			public readonly List<NSNodeItem> Children = new List<NSNodeItem>();
+			public Node ModelNode => (Node)Node;
 
 			public override string ToString() => Node.ToString();
 		};

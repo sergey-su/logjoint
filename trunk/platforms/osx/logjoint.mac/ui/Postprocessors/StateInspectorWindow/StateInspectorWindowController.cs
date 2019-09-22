@@ -13,8 +13,8 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		Presenters.Postprocessing.IPostprocessorOutputForm
 	{
 		private readonly UI.Mac.IReactive reactive;
-		private Reactive.INSOutlineViewController treeViewController;
-		private Reactive.INSTableViewController stateHistoryController;
+		private Reactive.INSOutlineViewController<IObjectsTreeNode> treeViewController;
+		private Reactive.INSTableViewController<IStateHistoryItem> stateHistoryController;
 		private readonly PropertiesViewDataSource propsDataSource = new PropertiesViewDataSource ();
 		IViewModel viewModel;
 		StateInspectorWindow windowRef;
@@ -62,8 +62,8 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			windowRef.WillClose += (sender, e) => viewModel.OnVisibleChanged(false);
 			windowRef.owner = this;
 
-			treeViewController = reactive.CreateOutlineViewController (treeView);
-			stateHistoryController = reactive.CreateTableViewController (stateHistoryView);
+			treeViewController = reactive.CreateOutlineViewController<IObjectsTreeNode> (treeView);
+			stateHistoryController = reactive.CreateTableViewController<IStateHistoryItem> (stateHistoryView);
 
 			propertiesView.Init (this);
 			propertiesView.Delegate = new PropertiesViewDelegate { owner = this, table = propertiesView };
@@ -82,9 +82,9 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 			this.Window.EnsureCreated ();
 
-			treeViewController.OnExpand = node => viewModel.OnExpandNode (node as IObjectsTreeNode);
-			treeViewController.OnCollapse = node => viewModel.OnCollapseNode (node as IObjectsTreeNode);
-			treeViewController.OnSelect = nodes => viewModel.OnSelect (nodes.OfType<IObjectsTreeNode> ().ToArray ());
+			treeViewController.OnExpand = viewModel.OnExpandNode;
+			treeViewController.OnCollapse = viewModel.OnCollapseNode;
+			treeViewController.OnSelect = viewModel.OnSelect;
 			treeViewController.OnView = (col, node) => {
 				TreeNodeView view = (TreeNodeView)treeView.MakeView ("view", this);
 				if (view == null)
@@ -93,7 +93,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 						Identifier = "view",
 						Menu = new NSMenu { Delegate = GetContextMenuDelegate () }
 					};
-				view.Update ((IObjectsTreeNode)node);
+				view.Update (node);
 				return view;
 			};
 			treeViewController.OnRow = (node) => {
@@ -103,14 +103,14 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 						owner = this,
 						Identifier = "row"
 					};
-				view.Update ((IObjectsTreeNode)node);
+				view.Update (node);
 				return view;
 			};
 
 
-			stateHistoryController.OnSelect = items => viewModel.OnChangeHistoryChangeSelection (items.OfType<IStateHistoryItem> ().ToArray ());
+			stateHistoryController.OnSelect = items => viewModel.OnChangeHistoryChangeSelection (items);
 			stateHistoryController.OnCreateView = (item, tableColumn) => {
-				var historyItem = (IStateHistoryItem)item;
+				var historyItem = item;
 
 				NSTextField MakeTextField (string viewId)
 				{

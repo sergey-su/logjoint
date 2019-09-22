@@ -99,7 +99,7 @@ namespace LogJoint.UI.Presenters.Reactive
 				var edits = EditDistance.GetEditDistance(n1.Children, n2.Children, (c1, c2) =>
 				{
 					return
-						c1 == null || c2 == null ? 1 : // let deletion/insertion of a node to cost 1
+						c1 == null || c2 == null ? 1 : // let deletion/insertion of a node cost 1
 						c1.Key == c2.Key ? 0 : // encourage reuse of nodes with same Key by giving it no cost,
 						1; // reuse nodes with different Keys
 				}).edits;

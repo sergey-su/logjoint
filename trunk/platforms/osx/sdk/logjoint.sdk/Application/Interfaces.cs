@@ -21,35 +21,35 @@ namespace LogJoint
 
 		public interface IReactive
 		{
-			Reactive.INSOutlineViewController CreateOutlineViewController(NSOutlineView outlineView);
-			Reactive.INSTableViewController CreateTableViewController(NSTableView tableView);
+			Reactive.INSOutlineViewController<Node> CreateOutlineViewController<Node>(NSOutlineView outlineView) where Node : class, PR.ITreeNode;
+			Reactive.INSTableViewController<Item> CreateTableViewController<Item>(NSTableView tableView) where Item : class, PR.IListItem;
 		};
 	}
 
 	namespace UI.Reactive
 	{
-		public interface INSOutlineViewController
+		public interface INSOutlineViewController<Node> where Node: class, PR.ITreeNode
 		{
-			void Update(PR.ITreeNode newRoot);
-			void ScrollToVisible(PR.ITreeNode item);
-			Action<PR.ITreeNode> OnExpand { get; set; }
-			Action<PR.ITreeNode> OnCollapse { get; set; }
-			Action<PR.ITreeNode[]> OnSelect { get; set; }
-			Func<NSTableColumn, PR.ITreeNode, NSView> OnView { get; set; }
-			Func<PR.ITreeNode, NSTableRowView> OnRow { get; set; }
+			void Update(Node newRoot);
+			void ScrollToVisible(Node item);
+			Action<Node> OnExpand { get; set; }
+			Action<Node> OnCollapse { get; set; }
+			Action<IReadOnlyList<Node>> OnSelect { get; set; }
+			Func<NSTableColumn, Node, NSView> OnView { get; set; }
+			Func<Node, NSTableRowView> OnRow { get; set; }
 		};
 
-		public delegate NSView CrateTableViewDelegate(PR.IListItem item, NSTableColumn column);
-		public delegate void UpdateTableViewDelegate(PR.IListItem item, NSTableColumn column, NSView view, PR.IListItem oldItem);
-		public delegate NSTableRowView CreateTableRowViewDelegate(PR.IListItem item, int rowIndex);
+		public delegate NSView CrateTableViewDelegate<Item>(Item item, NSTableColumn column);
+		public delegate void UpdateTableViewDelegate<Item>(Item item, NSTableColumn column, NSView view, Item oldItem);
+		public delegate NSTableRowView CreateTableRowViewDelegate<Item>(Item item, int rowIndex);
 
-		public interface INSTableViewController
+		public interface INSTableViewController<Item> where Item: class, PR.IListItem
 		{
-			void Update(IReadOnlyList<PR.IListItem> newList);
-			Action<PR.IListItem[]> OnSelect { get; set; }
-			CrateTableViewDelegate OnCreateView { get; set; }
-			UpdateTableViewDelegate OnUpdateView { get; set; }
-			CreateTableRowViewDelegate OnCreateRowView { get; set; }
+			void Update(IReadOnlyList<Item> newList);
+			Action<IReadOnlyList<Item>> OnSelect { get; set; }
+			CrateTableViewDelegate<Item> OnCreateView { get; set; }
+			UpdateTableViewDelegate<Item> OnUpdateView { get; set; }
+			CreateTableRowViewDelegate<Item> OnCreateRowView { get; set; }
 		};
 	}
 }

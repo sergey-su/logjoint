@@ -891,7 +891,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			Event IVisualizerNode.CreationEvent => obj.CreationEvent?.OriginalEvent;
 
-			IVisualizerNode IVisualizerNode.Parent => parent;
+			IVisualizerNode IVisualizerNode.Parent => parent?.obj != null ? parent : null;
 
 			bool IVisualizerNode.BelongsToSource(ILogSource logSource)
 			{

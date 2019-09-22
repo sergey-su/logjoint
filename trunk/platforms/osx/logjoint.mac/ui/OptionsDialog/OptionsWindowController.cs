@@ -11,7 +11,7 @@ namespace LogJoint.UI
 	{
 		readonly Mac.IReactive reactive;
 		IDialogViewModel viewModel;
-		Reactive.INSTableViewController pluginsTableController;
+		Reactive.INSTableViewController<Presenters.Options.Plugins.IPluginListItem> pluginsTableController;
 		Presenters.Options.Plugins.IViewModel pluginsViewModel;
 
 		public OptionsWindowController (Mac.IReactive reactive) : base ("OptionsWindow")
@@ -23,7 +23,7 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib ();
 
-			pluginsTableController = reactive.CreateTableViewController(pluginsTableView);
+			pluginsTableController = reactive.CreateTableViewController<Presenters.Options.Plugins.IPluginListItem>(pluginsTableView);
 		}
 
 		public new OptionsWindow Window {
@@ -62,8 +62,7 @@ namespace LogJoint.UI
 
 			pluginsViewModel = viewModel;
 
-			pluginsTableController.OnSelect =
-				sel => viewModel.OnSelect(sel.FirstOrDefault() as Presenters.Options.Plugins.IPluginListItem);
+			pluginsTableController.OnSelect = sel => viewModel.OnSelect(sel.FirstOrDefault());
 
 			var updateList = Updaters.Create(
 				() => viewModel.ListItems,
