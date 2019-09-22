@@ -6,10 +6,10 @@ using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Windows.Reactive
 {
-	class ListBoxController : IListBoxController
+	class ListBoxController<Item> : IListBoxController<Item> where Item : class, IListItem
 	{
 		readonly ListBox listBox;
-		IReadOnlyList<IListItem> currentList = new IListItem[0];
+		IReadOnlyList<Item> currentList = new Item[0];
 		bool updating;
 
 		public ListBoxController(ListBox listBox)
@@ -19,15 +19,15 @@ namespace LogJoint.UI.Windows.Reactive
 			{
 				if (updating)
 					return;
-				OnSelect?.Invoke(listBox.SelectedItems.OfType<IListItem>().ToArray());
+				OnSelect?.Invoke(listBox.SelectedItems.OfType<ViewItem>().Select(i => i.item).ToArray());
 			};
 		}
 
-		public Action<IListItem[]> OnSelect { get; set; }
-		public Action<IListItem, int, IListItem> OnUpdateRow { get; set; }
-		bool IListBoxController.IsUpdating => updating;
+		public Action<Item[]> OnSelect { get; set; }
+		public Action<Item, int, Item> OnUpdateRow { get; set; }
+		bool IListBoxController<Item>.IsUpdating => updating;
 
-		void IListBoxController.Update(IReadOnlyList<IListItem> newList)
+		void IListBoxController<Item>.Update(IReadOnlyList<Item> newList)
 		{
 			bool updateBegun = false;
 			void BeginUpdate()
@@ -53,16 +53,26 @@ namespace LogJoint.UI.Windows.Reactive
 					{
 						case ListEdit.EditType.Insert:
 							BeginUpdate();
-							listBox.Items.Insert(e.Index, e.Item);
-							OnUpdateRow?.Invoke(e.Item, e.Index, null);
+							var newViewItem = new ViewItem { item = (Item)e.Item };
+							listBox.Items.Insert(e.Index, newViewItem);
+							OnUpdateRow?.Invoke(newViewItem.item, e.Index, null);
 							break;
 						case ListEdit.EditType.Delete:
 							BeginUpdate();
 							listBox.Items.RemoveAt(e.Index);
 							break;
 						case ListEdit.EditType.Reuse:
-							// listBox.Items[e.Index] = e.Item;
-							OnUpdateRow?.Invoke(e.Item, e.Index, e.OldItem);
+							if (OnUpdateRow != null)
+							{
+								var existingViewItem = (ViewItem)listBox.Items[e.Index];
+								var oldItem = existingViewItem.item;
+								existingViewItem.item = (Item)e.Item;
+								OnUpdateRow?.Invoke(existingViewItem.item, e.Index, oldItem);
+							}
+							else
+							{
+								listBox.Items[e.Index] = new ViewItem { item = (Item)e.Item };
+							}
 							break;
 						case ListEdit.EditType.Select:
 							listBox.SelectedIndices.Add(e.Index);
@@ -83,9 +93,16 @@ namespace LogJoint.UI.Windows.Reactive
 			}
 		}
 
-		IListItem IListBoxController.Map(object listBoxItem)
+		Item IListBoxController<Item>.Map(object listBoxItem)
 		{
-			return listBoxItem as IListItem;
+			return (listBoxItem as ViewItem)?.item;
 		}
+
+		class ViewItem
+		{
+			public Item item;
+
+			public override string ToString() => item.ToString();
+		};
 	}
 }

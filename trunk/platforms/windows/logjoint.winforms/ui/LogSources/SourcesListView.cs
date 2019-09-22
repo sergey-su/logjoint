@@ -12,7 +12,7 @@ namespace LogJoint.UI
 	{
 		IViewModel viewModel;
 		bool updateLocked;
-		Windows.Reactive.ITreeViewController treeViewController;
+		Windows.Reactive.ITreeViewController<IViewItem> treeViewController;
 
 		public SourcesListView()
 		{
@@ -21,15 +21,15 @@ namespace LogJoint.UI
 
 		public void Init(Windows.Reactive.IReactive reactive)
 		{
-			treeViewController = reactive.CreateTreeViewController(treeView);
+			treeViewController = reactive.CreateTreeViewController<IViewItem>(treeView);
 
-			treeViewController.OnExpand = item => viewModel.OnItemExpand((IViewItem)item);
-			treeViewController.OnCollapse = item => viewModel.OnItemCollapse((IViewItem)item);
-			treeViewController.OnSelect = items => viewModel.OnSelectionChange(items.OfType<IViewItem>().ToArray());
+			treeViewController.OnExpand = item => viewModel.OnItemExpand(item);
+			treeViewController.OnCollapse = item => viewModel.OnItemCollapse(item);
+			treeViewController.OnSelect = items => viewModel.OnSelectionChange(items);
 			treeViewController.OnUpdateNode = (treeNode, item, oldItem) =>
 			{
-				var vi = (IViewItem)item;
-				var oldvi = (IViewItem)oldItem;
+				var vi = item;
+				var oldvi = oldItem;
 				updateLocked = true;
 				if (vi.Checked != oldvi?.Checked)
 					treeNode.Checked = vi.Checked == true;
@@ -164,7 +164,7 @@ namespace LogJoint.UI
 			if (updateLocked)
 				return;
 			e.Cancel = true;
-			viewModel.OnItemCheck((IViewItem)treeViewController.Map(e.Node), !e.Node.Checked);
+			viewModel.OnItemCheck(treeViewController.Map(e.Node), !e.Node.Checked);
 		}
 
 		private void treeView_DrawNode(object sender, DrawTreeNodeEventArgs e)

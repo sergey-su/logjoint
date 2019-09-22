@@ -13,21 +13,21 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	{
 		readonly Windows.Reactive.IReactive reactive;
 		IViewModel viewModel;
-		Windows.Reactive.ITreeViewController treeViewController;
+		Windows.Reactive.ITreeViewController<IObjectsTreeNode> treeViewController;
 
 		public StateInspectorForm(Windows.Reactive.IReactive reactive)
 		{
 			InitializeComponent();
 
 			this.reactive = reactive;
-			this.treeViewController = reactive.CreateTreeViewController(objectsTreeView);
+			this.treeViewController = reactive.CreateTreeViewController<IObjectsTreeNode>(objectsTreeView);
 			this.objectsTreeView.Indent = UIUtils.Dpi.Scale(20, 120);
 			this.splitContainer1.SplitterWidth = Math.Max(4, UIUtils.Dpi.Scale(4, 120));
 			this.splitContainer3.SplitterDistance = UIUtils.Dpi.Scale(260, 120);
 			this.ClientSize = new System.Drawing.Size(UIUtils.Dpi.Scale(800, 120), UIUtils.Dpi.Scale(500, 120));
-			this.treeViewController.OnExpand = node => viewModel.OnExpandNode((IObjectsTreeNode)node);
-			this.treeViewController.OnCollapse = node => viewModel.OnCollapseNode((IObjectsTreeNode)node);
-			this.treeViewController.OnSelect = nodes => viewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray());
+			this.treeViewController.OnExpand = node => viewModel.OnExpandNode(node);
+			this.treeViewController.OnCollapse = node => viewModel.OnCollapseNode(node);
+			this.treeViewController.OnSelect = nodes => viewModel.OnSelect(nodes);
 
 			selectedObjectStateHistoryControl.Header.ResizingStarted += (s, e) => splitContainer3.BeginSplitting();
 
@@ -147,7 +147,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			if (viewModel == null)
 				return;
 
-			var paintInfo = viewModel.PaintNode((IObjectsTreeNode)treeViewController.Map(e.Node), false);
+			var paintInfo = viewModel.PaintNode(treeViewController.Map(e.Node), false);
 
 			if (paintInfo.DrawingEnabled)
 				e.BackColor = GetNodeColoringResources(paintInfo.Coloring).BkColor;
@@ -159,7 +159,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				return;
 
 			int spaceAvailableForDefaultPropValue = objectsTreeView.ClientSize.Width - e.Node.Bounds.Right;
-			var paintInfo = viewModel.PaintNode((IObjectsTreeNode)treeViewController.Map(e.Node), spaceAvailableForDefaultPropValue > 30);
+			var paintInfo = viewModel.PaintNode(treeViewController.Map(e.Node), spaceAvailableForDefaultPropValue > 30);
 
 			if (!paintInfo.DrawingEnabled)
 				return;

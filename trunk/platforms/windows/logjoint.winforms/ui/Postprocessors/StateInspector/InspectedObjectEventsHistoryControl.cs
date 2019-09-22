@@ -10,7 +10,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	public partial class InspectedObjectEventsHistoryControl : UserControl
 	{
 		IViewModel viewModel;
-		Windows.Reactive.IListBoxController listBoxController;
+		Windows.Reactive.IListBoxController<IStateHistoryItem> listBoxController;
 		StringFormat strFormat;
 		float bookmarkAndFocusedMarkAreaWidth;
 		BufferedGraphicsContext bufferedGraphicsContext = new BufferedGraphicsContext();
@@ -26,8 +26,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		public void Init(IViewModel viewModel, Windows.Reactive.IReactive reactive)
 		{
 			this.viewModel = viewModel;
-			this.listBoxController = reactive.CreateListBoxController(this.listBox);
-			this.listBoxController.OnSelect = (Presenters.Reactive.IListItem[] proposedSelection) => this.viewModel.OnChangeHistoryChangeSelection(proposedSelection.OfType<IStateHistoryItem>());
+			this.listBoxController = reactive.CreateListBoxController<IStateHistoryItem>(this.listBox);
+			this.listBoxController.OnSelect = this.viewModel.OnChangeHistoryChangeSelection;
+			this.listBoxController.OnUpdateRow = (item, index, oldItem) =>
+			{
+				if (oldItem != null)
+					listBox.Invalidate(listBox.GetItemRectangle(index));
+			};
 
 			var updateStateHistoty = Updaters.Create(
 				() => viewModel.ChangeHistoryItems,
@@ -82,7 +87,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				}
 				if (e.Index >= 0) // Index was observed to be -1 once in a while!
 				{
-					if (listBox.Items[e.Index] is IStateHistoryItem li)
+					if (listBoxController.Map(listBox.Items[e.Index]) is IStateHistoryItem li)
 					{
 						var bmkImg = StateInspectorResources.Bookmark;
 						var bmkImgSz = bmkImg.GetSize(width: UIUtils.Dpi.Scale(9));

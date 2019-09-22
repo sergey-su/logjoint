@@ -7,7 +7,7 @@ using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Windows.Reactive
 {
-	class TreeViewController : ITreeViewController
+	class TreeViewController<Node> : ITreeViewController<Node> where Node : class, ITreeNode
 	{
 		readonly MultiselectTreeView treeView;
 		readonly Dictionary<ITreeNode, ViewNode> nodeToViewNodes = new Dictionary<ITreeNode, ViewNode>();
@@ -40,23 +40,23 @@ namespace LogJoint.UI.Windows.Reactive
 			};
 		}
 
-		public Action<ITreeNode[]> OnSelect { get; set; }
-		public Action<ITreeNode> OnExpand { get; set; }
-		public Action<ITreeNode> OnCollapse { get; set; }
-		public Action<TreeNode, ITreeNode, ITreeNode> OnUpdateNode { get; set; }
+		public Action<Node[]> OnSelect { get; set; }
+		public Action<Node> OnExpand { get; set; }
+		public Action<Node> OnCollapse { get; set; }
+		public Action<TreeNode, Node, Node> OnUpdateNode { get; set; }
 
-		public ITreeNode Map(TreeNode node)
+		public Node Map(TreeNode node)
 		{
 			return (node as ViewNode)?.Node;
 		}
 
-		public TreeNode Map(ITreeNode node)
+		public TreeNode Map(Node node)
 		{
 			nodeToViewNodes.TryGetValue(node, out var vn);
 			return vn;
 		}
 
-		public void Update(ITreeNode newRoot)
+		public void Update(Node newRoot)
 		{
 			var finalizeActions = new List<Action>();
 
@@ -86,7 +86,7 @@ namespace LogJoint.UI.Windows.Reactive
 					{
 						case TreeEdit.EditType.Insert:
 							beginUpdate();
-							var insertedNode = CreateViewNode(e.NewChild);
+							var insertedNode = CreateViewNode((Node)e.NewChild);
 							nodeChildren.Insert(e.ChildIndex, insertedNode);
 							break;
 						case TreeEdit.EditType.Delete:
@@ -99,8 +99,8 @@ namespace LogJoint.UI.Windows.Reactive
 							break;
 						case TreeEdit.EditType.Reuse:
 							var nodeToReuse = nodeToViewNodes[e.OldChild];
-							Rebind(nodeToReuse, e.NewChild);
-							UpdateViewNode(nodeToReuse, e.NewChild, e.OldChild, beginUpdate);
+							Rebind(nodeToReuse, (Node)e.NewChild);
+							UpdateViewNode(nodeToReuse, (Node)e.NewChild, (Node)e.OldChild, beginUpdate);
 							break;
 						case TreeEdit.EditType.Expand:
 							finalizeActions.Add(node.Expand);
@@ -136,7 +136,7 @@ namespace LogJoint.UI.Windows.Reactive
 			}
 		}
 
-		ViewNode CreateViewNode(ITreeNode node)
+		ViewNode CreateViewNode(Node node)
 		{
 			var result = new ViewNode { Node = node };
 			UpdateViewNode(result, node, null, null);
@@ -144,7 +144,7 @@ namespace LogJoint.UI.Windows.Reactive
 			return result;
 		}
 
-		void Rebind(ViewNode viewNode, ITreeNode newNode)
+		void Rebind(ViewNode viewNode, Node newNode)
 		{
 			nodeToViewNodes.Remove(viewNode.Node);
 			viewNode.Node = newNode;
@@ -160,7 +160,7 @@ namespace LogJoint.UI.Windows.Reactive
 			}
 		}
 
-		void UpdateViewNode(TreeNode viewNode, ITreeNode newNode, ITreeNode oldNode, Action beginUpdate)
+		void UpdateViewNode(TreeNode viewNode, Node newNode, Node oldNode, Action beginUpdate)
 		{
 			if (OnUpdateNode != null)
 			{
@@ -179,7 +179,7 @@ namespace LogJoint.UI.Windows.Reactive
 
 		class ViewNode : TreeNode
 		{
-			internal ITreeNode Node;
+			internal Node Node;
 		};
 	}
 }
