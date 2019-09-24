@@ -227,6 +227,9 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				var rv = treeView.GetRowView (r + rows.Location, false);
 				if (rv != null)
 					rv.NeedsDisplay = true;
+				var nv = treeView.GetView(0, r + rows.Location, false);
+				if (nv != null)
+					nv.NeedsDisplay = true;
 			}
 		}
 

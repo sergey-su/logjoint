@@ -1052,9 +1052,6 @@
     <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageEventsRange.cs">
       <Link>postprocessing\state\FocusedMessageEventsRange.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\postprocessing\state\FocusedMessageInfo.cs">
-      <Link>postprocessing\state\FocusedMessageInfo.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\postprocessing\state\PropertyViews.cs">
       <Link>postprocessing\state\PropertyViews.cs</Link>
     </Compile>

@@ -132,10 +132,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				}
 			);
 
-			this.getFocusedMessageInfo = Selectors.Create(
-				() => loadedMessagesPresenter.LogViewerPresenter.FocusedMessage,
-				msg => new FocusedMessageInfo(msg)
-			);
+			this.getFocusedMessageInfo = () => loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
 
 			this.getFocusedMessageEqualRange = Selectors.Create(
 				getFocusedMessageInfo,
@@ -164,18 +161,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.getFocusedMessagePositionInHistory = Selectors.Create(
 				getStateHistoryItems,
 				getFocusedMessageInfo,
-				(changes, focusedMessageInfo) =>
+				(changes, focusedMessage) =>
 				{
 					return
-						focusedMessageInfo == null ? null :
+						focusedMessage == null ? null :
 						new ListUtils.VirtualList<StateInspectorEvent>(changes.Length,
-							i => changes[i].Event).CalcFocusedMessageEqualRange(focusedMessageInfo);
+							i => changes[i].Event).CalcFocusedMessageEqualRange(focusedMessage);
 				}
 			);
 
 			this.getCurrentTimeLabelText = Selectors.Create(
 				getFocusedMessageInfo,
-				focusedMsgInfo => focusedMsgInfo.FocusedMessage != null ? $"at {focusedMsgInfo.FocusedMessage.Time}" : ""
+				focusedMsg => focusedMsg != null ? $"at {focusedMsg.Time}" : ""
 			);
 
 			this.getCurrentProperties = Selectors.Create(
@@ -456,8 +453,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 				ret.DrawingEnabled = true;
 
-				var focusedMessageInfo = getFocusedMessageEqualRange(obj.Owner);
-				var liveStatus = obj.GetLiveStatus(focusedMessageInfo);
+				var focusedMessageEventsRange = getFocusedMessageEqualRange(obj.Owner);
+				var liveStatus = obj.GetLiveStatus(focusedMessageEventsRange);
 				var coloring = GetLiveStatusColoring(liveStatus);
 				ret.Coloring = coloring;
 
@@ -465,20 +462,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				{
 					if (getPrimaryPropValue)
 					{
-						ret.PrimaryPropValue = obj.GetCurrentPrimaryPropertyValue(focusedMessageInfo);
+						ret.PrimaryPropValue = obj.GetCurrentPrimaryPropertyValue(focusedMessageEventsRange);
 					}
 				}
 
-				if (obj.Parent == null && focusedMessageInfo != null)
+				if (obj.Parent == null)
 				{
-					var m = focusedMessageInfo.FocusedMessage.FocusedMessage;
-					if (m != null)
+					var focusedLs = focusedMessageEventsRange?.FocusedMessage?.GetLogSource();
+					if (focusedLs != null)
 					{
-						var focusedLs = m.GetLogSource();
-						if (focusedLs != null)
-						{
-							ret.DrawFocusedMsgMark = obj.EnumInvolvedLogSources().Any(ls => ls == focusedLs);
-						}
+						ret.DrawFocusedMsgMark = obj.EnumInvolvedLogSources().Any(ls => ls == focusedLs);
 					}
 				}
 
@@ -990,7 +983,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly Func<ImmutableArray<StateHistoryItem>> getStateHistoryItems;
 		readonly Func<Predicate<IStateHistoryItem>> getIsHistoryItemBookmarked;
 		readonly Func<Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange>> getFocusedMessageEqualRange;
-		readonly Func<FocusedMessageInfo> getFocusedMessageInfo;
+		readonly Func<IMessage> getFocusedMessageInfo;
 		readonly Func<Tuple<int, int>> getFocusedMessagePositionInHistory;
 		readonly Func<string> getCurrentTimeLabelText;
 		ImmutableArray<StateInspectorEvent> selectedHistoryEvents = ImmutableArray<StateInspectorEvent>.Empty;

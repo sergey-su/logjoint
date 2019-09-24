@@ -4,10 +4,10 @@ namespace LogJoint.Postprocessing.StateInspector
 {
 	public class FocusedMessageEventsRange
 	{
-		public readonly FocusedMessageInfo FocusedMessage;
+		public readonly IMessage FocusedMessage;
 		public readonly Tuple<int, int> EqualRange;
 
-		public FocusedMessageEventsRange(FocusedMessageInfo focusedMessage, Tuple<int, int> equalRange)
+		public FocusedMessageEventsRange(IMessage focusedMessage, Tuple<int, int> equalRange)
 		{
 			this.FocusedMessage = focusedMessage;
 			this.EqualRange = equalRange;
