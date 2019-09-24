@@ -13,6 +13,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		public void Update(IObjectsTreeNode n)
 		{
 			node = n;
+			this.NeedsDisplay = true;
 		}
 
 		public override void DrawRect (CGRect dirtyRect)

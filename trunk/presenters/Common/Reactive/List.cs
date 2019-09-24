@@ -52,13 +52,16 @@ namespace LogJoint.UI.Presenters.Reactive
 				{
 					var i1 = list1[i.Value];
 					var i2 = list2[j.Value];
-					result.Add(new ListEdit
+					if (i1 != i2)
 					{
-						Type = EditType.Reuse,
-						OldItem = i1,
-						Item = i2,
-						Index = targetIdx
-					});
+						result.Add(new ListEdit
+						{
+							Type = EditType.Reuse,
+							OldItem = i1,
+							Item = i2,
+							Index = targetIdx
+						});
+					}
 					if (i2.IsSelected != i1.IsSelected)
 					{
 						result.Add(new ListEdit

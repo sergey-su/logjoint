@@ -176,6 +176,7 @@ namespace LogJoint.Symphony.Rtc
 				{
 					sessionData.meetingSessionId = loggableId;
 					sessionData.pendingMessages.ForEach(pmsg => GetProtocolEvents(pmsg, buffer, protocolSessionId));
+					sessionData.pendingMessages.Clear();
 				}
 			}
 			else if ((m = sessionLocalMediaRegex.Match(msg.Text)).Success)

@@ -4,6 +4,7 @@ using System.Linq;
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 using AppKit;
 using Foundation;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
@@ -106,11 +107,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				view.Update (node);
 				return view;
 			};
+			treeViewController.OnUpdateRow = (rowView, node) => {
+				((TreeRowView)rowView).Update (node);
+			};
 
 
 			stateHistoryController.OnSelect = items => viewModel.OnChangeHistoryChangeSelection (items);
-			stateHistoryController.OnCreateView = (item, tableColumn) => {
-				var historyItem = item;
+			stateHistoryController.OnCreateView = (historyItem, tableColumn) => {
 
 				NSTextField MakeTextField (string viewId)
 				{
@@ -140,10 +143,17 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 				return null;
 			};
+			stateHistoryController.OnUpdateView = (item, tableColumn, view, oldItem) => {
+				if (tableColumn == HistoryItemTimeColumn) {
+					((NSTextField)view).StringValue = item.Time;
+				} else if (tableColumn == HistoryItemTextColumn) {
+					((NSTextField)view).StringValue = item.Message;
+				}
+			};
 
 			stateHistoryController.OnCreateRowView = (item, rowIndex) =>
 			{
-				return new StateHistroryTableRowView () { owner = this, row = rowIndex };
+				return new StateHistoryTableRowView { owner = this, row = rowIndex, items = viewModel.ChangeHistoryItems };
 			};
 
 
@@ -222,13 +232,18 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		void UpdateStateHistoryTimeColumn (IReadOnlyList<IStateHistoryItem> items)
 		{
-			float w = 0;
-			for (int i = 0; i < items.Count; ++i) {
-				var cellView = (NSTextField)stateHistoryView.GetView (1, i, makeIfNecessary: true);
+			var widestCell = items.Select (
+				(item, idx) => (item, idx)
+			).MaxByKey(
+				i => i.item.Time.Length
+			);
+			if (widestCell.item != null) {
+				var cellView = (NSTextField)stateHistoryView.GetView (1, widestCell.idx, makeIfNecessary: true);
 				cellView.SizeToFit ();
-				w = Math.Max (w, (float)cellView.Frame.Width);
+				historyItemTimeColumn.Width = cellView.Frame.Width + 10;
+			} else {
+				historyItemTimeColumn.Width = 0;
 			}
-			historyItemTimeColumn.Width = w;
 		}
 
 		void Presenters.Postprocessing.IPostprocessorOutputForm.Show ()

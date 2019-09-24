@@ -364,7 +364,7 @@
     <Compile Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsViewAdapter.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\PropertiesViewDataSource.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\PropertiesViewDelegate.cs" />
-    <Compile Include="ui\Postprocessors\StateInspectorWindow\StateHistroryTableRowView.cs" />
+    <Compile Include="ui\Postprocessors\StateInspectorWindow\StateHistoryTableRowView.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\StateInspectorPropertiesView.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\StateInspectorWindow.cs" />
     <Compile Include="ui\Postprocessors\StateInspectorWindow\StateInspectorWindow.designer.cs">

@@ -21,7 +21,7 @@ namespace LogJoint.UI.Reactive
 			this.treeView = treeView;
 			this.telemetryCollector = telemetryCollector;
 
-			this.dataSource = new DataSource(treeView);
+			this.dataSource = new DataSource(this, treeView);
 			this.@delegate = new Delegate(this);
 			this.treeView.Delegate = @delegate;
 			this.treeView.DataSource = dataSource;
@@ -55,15 +55,18 @@ namespace LogJoint.UI.Reactive
 		public Action<IReadOnlyList<Node>> OnSelect { get; set; }
 		public Func<NSTableColumn, Node, NSView> OnView { get; set; }
 		public Func<Node, NSTableRowView> OnRow { get; set; }
+		public Action<NSTableRowView, Node> OnUpdateRow { get; set; }
 
 		class DataSource : NSOutlineViewDataSource
 		{
+			readonly NSOutlineViewController<Node> owner;
 			readonly NSOutlineView treeView;
 			readonly NSNodeItem rootItem;
 			readonly Dictionary<ITreeNode, NSNodeItem> nodeToItem;
 
-			public DataSource(NSOutlineView treeView)
+			public DataSource(NSOutlineViewController<Node> owner, NSOutlineView treeView)
 			{
+				this.owner = owner;
 				this.treeView = treeView;
 				this.nodeToItem = new Dictionary<ITreeNode, NSNodeItem>();
 				this.rootItem = CreateItem(EmptyTreeNode.Instance);
@@ -128,19 +131,29 @@ namespace LogJoint.UI.Reactive
 					case TreeEdit.EditType.Insert:
 						var insertedNode = CreateItem(e.NewChild);
 						node.Children.Insert(e.ChildIndex, insertedNode);
-						treeView.InsertItems(new NSIndexSet(e.ChildIndex), ToObject(node), NSTableViewAnimation.None);
+						using (var set = new NSIndexSet (e.ChildIndex))
+							treeView.InsertItems(set, ToObject(node), NSTableViewAnimation.None);
 						break;
 					case TreeEdit.EditType.Delete:
 						var deletedNode = node.Children[e.ChildIndex];
 						node.Children.RemoveAt(e.ChildIndex);
 						Debug.Assert(deletedNode == nodeToItem[e.OldChild]);
 						nodeToItem.Remove(e.OldChild);
-						treeView.RemoveItems(new NSIndexSet(e.ChildIndex), ToObject(node), NSTableViewAnimation.None);
+						using (var set = new NSIndexSet (e.ChildIndex))
+							treeView.RemoveItems (set, ToObject (node), NSTableViewAnimation.None);
 						DeleteDescendantsFromMap(deletedNode);
 						break;
 					case TreeEdit.EditType.Reuse:
-						treeView.ReloadItem(ToObject(node));
-						Rebind(nodeToItem[e.OldChild], e.NewChild);
+						var viewItem = nodeToItem [e.OldChild];
+						Rebind (viewItem, e.NewChild);
+						treeView.ReloadItem (ToObject (viewItem), reloadChildren: false);
+						if (owner.OnUpdateRow != null) {
+							var rowIdx = treeView.RowForItem (ToObject (viewItem));
+							var rowView = rowIdx >= 0 ? treeView.GetRowView (rowIdx, makeIfNecessary: false) : null;
+							if (rowView != null) {
+								owner.OnUpdateRow (rowView, (Node)e.NewChild);
+							}
+						}
 						break;
 					case TreeEdit.EditType.Expand:
 						treeView.ExpandItem(ToObject(node), expandChildren: false);
@@ -156,7 +169,7 @@ namespace LogJoint.UI.Reactive
 			{
 				var rowsToSelect = new HashSet<nuint>();
 
-				void DiscoverSelected(ITreeNode node)
+				void DiscoverSelected(ITreeNode node) // todo: remove linear traversal
 				{
 					if (node.IsSelected)
 					{

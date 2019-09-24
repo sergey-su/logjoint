@@ -86,10 +86,12 @@ namespace LogJoint.UI.Reactive
 					switch (e.Type)
 					{
 					case ListEdit.EditType.Insert:
-						tableView.InsertRows(new NSIndexSet(e.Index), NSTableViewAnimation.None);
+						using (var set = new NSIndexSet (e.Index))
+							tableView.InsertRows(set, NSTableViewAnimation.None);
 						break;
 					case ListEdit.EditType.Delete:
-						tableView.RemoveRows(new NSIndexSet(e.Index), NSTableViewAnimation.None);
+						using (var set = new NSIndexSet (e.Index))
+							tableView.RemoveRows (set, NSTableViewAnimation.None);
 						break;
 					case ListEdit.EditType.Reuse:
 						if (owner.OnUpdateView != null && owner.OnCreateView != null)
@@ -105,11 +107,14 @@ namespace LogJoint.UI.Reactive
 						{
 							if (allColumnsSet == null)
 								allColumnsSet = NSIndexSet.FromArray(Enumerable.Range(0, columns.Length).ToArray());
-							tableView.ReloadData(new NSIndexSet(e.Index), allColumnsSet);
+							using (var set = new NSIndexSet (e.Index))
+								tableView.ReloadData (set, allColumnsSet);
 						}
 						break;
 					}
 				}
+
+				allColumnsSet?.Dispose ();
 			}
 
 			void UpdateSelection()
@@ -166,7 +171,7 @@ namespace LogJoint.UI.Reactive
 					var item = dataSource.items [(int)row];
 					return owner.OnCreateRowView (item, (int)row);
 				}
-				return base.CoreGetRowView(tableView, row);
+				return null;
 			}
 
 			public override NSIndexSet GetSelectionIndexes(NSTableView tableView, NSIndexSet proposedSelectionIndexes)

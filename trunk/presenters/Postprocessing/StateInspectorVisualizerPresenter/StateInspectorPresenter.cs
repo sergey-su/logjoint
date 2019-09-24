@@ -539,7 +539,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return new VisualizerNode(modelNode, children, false, false, level, annotationsMap);
 		}
 
-		StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo, bool isSelected, bool showTimeDeltas, StateInspectorEvent prevSelectedEvent)
+		StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo,
+			bool isSelected, bool showTimeDeltas, StateInspectorEvent prevSelectedEvent,
+			StateHistoryMessageFormatter messageFormatter)
 		{
 			var evt = evtInfo.Event;
 			string time;
@@ -553,7 +555,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			else
 				time = FormatTimestampt(evt);
 			string message;
-			var messageFormatter = new StateHistoryMessageFormatter() { shortNames = this.shortNames };
+			messageFormatter.Reset();
 			evt.OriginalEvent.Visit(messageFormatter);
 			if (evtInfo.InspectedObjectNr != 0)
 				message = string.Format("#{0}: {1}", evtInfo.InspectedObjectNr, messageFormatter.message);
@@ -582,19 +584,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				.MergeSortedSequences(new EventsComparer())
 				.ToList();
 
-			bool isEventSelected(StateInspectorEvent e)
-			{
-				return 
-					selectedEvents.Length > 0
-				 && selectedEvents.Any(i => i.Output == e.Output && i.Index == e.Index);
-			}
+			var selectedEventsSet = selectedEvents.Select(e => (e.Output, e.Index)).ToHashSet();
+			bool isEventSelected(StateInspectorEvent e) => selectedEventsSet.Contains((e.Output, e.Index));
 
+			var messageFormatter = new StateHistoryMessageFormatter { shortNames = this.shortNames };
 			bool showTimeDeltas = changes.Where(c => isEventSelected(c.Event)).Take(2).Count() > 1;
 			StateInspectorEvent prevSelectedEvent = null;
 			foreach (var change in changes.ZipWithIndex())
 			{
 				bool isSelected = isEventSelected(change.Value.Event);
-				result.Add(MakeStateHistoryItem(change.Value, isSelected, showTimeDeltas, prevSelectedEvent));
+				result.Add(MakeStateHistoryItem(change.Value, isSelected,
+					showTimeDeltas, prevSelectedEvent, messageFormatter));
 				if (isSelected)
 					prevSelectedEvent = change.Value.Event;
 			}
@@ -766,10 +766,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		};
 
-		class StateHistoryMessageFormatter: IEventsVisitor
+		class StateHistoryMessageFormatter : IEventsVisitor
 		{
-			public string message = "???";
+			public string message = "";
 			public IUserNamesProvider shortNames;
+
+			public void Reset()
+			{
+				message = "";
+			}
 
 			void IEventsVisitor.Visit (ObjectCreation objectCreation)
 			{
@@ -964,11 +969,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			string IListItem.Key => key;
 
 			bool IListItem.IsSelected => isSelected;
-
-			public override string ToString() // todo: fix UI not depend on this value
-			{
-				return $"${GetHashCode():x08} {time} {message}";
-			}
 		};
 
 		readonly IView view;
