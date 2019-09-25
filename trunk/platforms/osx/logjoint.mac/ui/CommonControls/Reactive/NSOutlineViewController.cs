@@ -53,9 +53,9 @@ namespace LogJoint.UI.Reactive
 		public Action<Node> OnExpand { get; set; }
 		public Action<Node> OnCollapse { get; set; }
 		public Action<IReadOnlyList<Node>> OnSelect { get; set; }
-		public Func<NSTableColumn, Node, NSView> OnView { get; set; }
-		public Func<Node, NSTableRowView> OnRow { get; set; }
-		public Action<NSTableRowView, Node> OnUpdateRow { get; set; }
+		public Func<NSTableColumn, Node, NSView> OnCreateView { get; set; }
+		public Func<Node, NSTableRowView> OnCreateRowView { get; set; }
+		public Action<NSTableRowView, Node> OnUpdateRowView { get; set; }
 
 		class DataSource : NSOutlineViewDataSource
 		{
@@ -147,11 +147,11 @@ namespace LogJoint.UI.Reactive
 						var viewItem = nodeToItem [e.OldChild];
 						Rebind (viewItem, e.NewChild);
 						treeView.ReloadItem (ToObject (viewItem), reloadChildren: false);
-						if (owner.OnUpdateRow != null) {
+						if (owner.OnUpdateRowView != null) {
 							var rowIdx = treeView.RowForItem (ToObject (viewItem));
 							var rowView = rowIdx >= 0 ? treeView.GetRowView (rowIdx, makeIfNecessary: false) : null;
 							if (rowView != null) {
-								owner.OnUpdateRow (rowView, (Node)e.NewChild);
+								owner.OnUpdateRowView (rowView, (Node)e.NewChild);
 							}
 						}
 						break;
@@ -220,9 +220,9 @@ namespace LogJoint.UI.Reactive
 
 			public override NSView GetView(NSOutlineView outlineView, NSTableColumn tableColumn, NSObject item)
 			{
-				if (owner.OnView != null)
+				if (owner.OnCreateView != null)
 				{
-					return owner.OnView(tableColumn, ((NSNodeItem)item).ModelNode);
+					return owner.OnCreateView (tableColumn, ((NSNodeItem)item).ModelNode);
 				}
 				var view = (NSTextField)outlineView.MakeView("defaultView", this);
 				if (view == null)
@@ -235,9 +235,9 @@ namespace LogJoint.UI.Reactive
 			[Export ("outlineView:rowViewForItem:")]
 			public override NSTableRowView RowViewForItem (NSOutlineView outlineView, NSObject item)
 			{
-				if (owner.OnRow != null)
+				if (owner.OnCreateRowView != null)
 				{
-					return owner.OnRow (((NSNodeItem)item).ModelNode);
+					return owner.OnCreateRowView (((NSNodeItem)item).ModelNode);
 				}
 				return null;
 			}

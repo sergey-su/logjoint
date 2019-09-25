@@ -35,9 +35,9 @@ namespace LogJoint
 			Action<Node> OnExpand { get; set; }
 			Action<Node> OnCollapse { get; set; }
 			Action<IReadOnlyList<Node>> OnSelect { get; set; }
-			Func<NSTableColumn, Node, NSView> OnView { get; set; }
-			Func<Node, NSTableRowView> OnRow { get; set; }
-			Action<NSTableRowView, Node> OnUpdateRow { get; set; } // todo: merge with OnRow somehow, or make consistent with INSTableViewController
+			Func<NSTableColumn, Node, NSView> OnCreateView { get; set; }
+			Func<Node, NSTableRowView> OnCreateRowView { get; set; }
+			Action<NSTableRowView, Node> OnUpdateRowView { get; set; }
 		};
 
 		public delegate NSView CrateTableViewDelegate<Item>(Item item, NSTableColumn column);

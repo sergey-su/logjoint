@@ -40,7 +40,7 @@ namespace LogJoint.UI
 			View.EnsureCreated ();
 			outlineViewController = reactive.CreateOutlineViewController<IViewItem> (outlineView);
 
-			outlineViewController.OnView = GetView;
+			outlineViewController.OnCreateView = GetView;
 		}
 
 		void IView.SetViewModel (IViewModel viewModel)

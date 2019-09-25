@@ -31,7 +31,7 @@ namespace LogJoint.PacketAnalysis.UI
 			treeController.OnExpand = viewModel.OnExpand;
 			treeController.OnCollapse = viewModel.OnCollapse;
 			treeController.OnSelect = n => viewModel.OnSelect(n.FirstOrDefault());
-			treeController.OnView = (column, n) => CreateTreeNodeView(n);
+			treeController.OnCreateView = (column, n) => CreateTreeNodeView(n);
 
 			var updateTree = Updaters.Create(
 				() => viewModel.Root,

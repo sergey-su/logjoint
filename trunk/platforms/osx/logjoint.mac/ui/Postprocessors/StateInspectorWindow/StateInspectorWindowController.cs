@@ -86,7 +86,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			treeViewController.OnExpand = viewModel.OnExpandNode;
 			treeViewController.OnCollapse = viewModel.OnCollapseNode;
 			treeViewController.OnSelect = viewModel.OnSelect;
-			treeViewController.OnView = (col, node) => {
+			treeViewController.OnCreateView = (col, node) => {
 				TreeNodeView view = (TreeNodeView)treeView.MakeView ("view", this);
 				if (view == null)
 					view = new TreeNodeView {
@@ -97,7 +97,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				view.Update (node);
 				return view;
 			};
-			treeViewController.OnRow = (node) => {
+			treeViewController.OnCreateRowView = (node) => {
 				TreeRowView view = (TreeRowView)treeView.MakeView ("row", this);
 				if (view == null)
 					view = new TreeRowView {
@@ -107,7 +107,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				view.Update (node);
 				return view;
 			};
-			treeViewController.OnUpdateRow = (rowView, node) => {
+			treeViewController.OnUpdateRowView = (rowView, node) => {
 				((TreeRowView)rowView).Update (node);
 			};
 
