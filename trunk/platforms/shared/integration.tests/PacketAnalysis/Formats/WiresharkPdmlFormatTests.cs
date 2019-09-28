@@ -43,7 +43,7 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 				viewsFactory
 			);
 
-			await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("network_trace_with_keys_1.tar.gz"));
+			await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("network_trace_with_keys_3.tar.gz"));
 			await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
 		}
 
@@ -56,7 +56,7 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 		{
 			await app.SynchronizationContext.Invoke(() =>
 			{
-				Assert.AreEqual("            Expert Info (Warning/Sequence): Connection reset (RST)", app.ViewModel.LoadedMessagesLogViewer.ViewLines[4].TextLineValue);
+				Assert.AreEqual("        IP Option - Router Alert (4 bytes): Router shall examine packet (0)", app.ViewModel.LoadedMessagesLogViewer.ViewLines[0].TextLineValue);
 			});
 		}
 
