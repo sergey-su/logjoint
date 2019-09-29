@@ -2,7 +2,7 @@
 using LogJoint;
 using LogJoint.RegularExpressions;
 using Rhino.Mocks;
-using LogJoint.FileRange;
+using Range = LogJoint.FileRange.Range;
 using NUnit.Framework;
 
 namespace LogJoint.Tests

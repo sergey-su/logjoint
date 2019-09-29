@@ -4,7 +4,7 @@ using LogJoint;
 using System.Collections.Generic;
 using NSubstitute;
 using System.Threading;
-using LogJoint.FileRange;
+using Range = LogJoint.FileRange.Range;
 using NUnit.Framework;
 
 namespace LogJoint.Tests.Providers.AsyncLogProvider
@@ -244,7 +244,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 			}
 		}
 
-		void TestSyncResults(Range cachedRange, params string[] expectedSyncResults)
+		void TestSyncResults(FileRange.Range cachedRange, params string[] expectedSyncResults)
 		{
 			IPositionedMessagesReader reader = new PositionedMessagesUtilsTests.TestReader(new long[] { 0, 10, 20, 30, 40, 50, 60 });
 			IMessage firstMsg, lastMsg;
@@ -253,7 +253,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 				firstMsg.Time.ToLocalDateTime(),
 				lastMsg.Time.ToLocalDateTime()
 			);
-			var availableRange = new Range(reader.BeginPosition, reader.EndPosition);
+			var availableRange = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
 			var ctx = new CommandContext()
 			{
 				Cache = new AsyncLogProviderDataCache()

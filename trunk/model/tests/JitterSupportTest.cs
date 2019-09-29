@@ -8,6 +8,7 @@ using System.Reflection;
 
 using LogJoint;
 using LogJoint.FileRange;
+using Range = LogJoint.FileRange.Range;
 using NUnit.Framework;
 
 namespace LogJoint.Tests
