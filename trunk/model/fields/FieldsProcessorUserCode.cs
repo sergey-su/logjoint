@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.CodeDom.Compiler;
+using Microsoft.CodeAnalysis;
 
 namespace LogJoint
 {
@@ -80,18 +80,24 @@ namespace LogJoint
 				}
 			}
 
-			public static void FindErrorLocation(string code, CompilerError error, out int globalErrorPos, out UserCode.Entry? userCodeEntry)
+			public static void FindErrorLocation(string code, Diagnostic error, out int globalErrorPos, out UserCode.Entry? userCodeEntry)
 			{
 				globalErrorPos = 0;
 				userCodeEntry = null;
 
+				if (!error.Location.IsInSource)
+					return;
+				var lineSpan = error.Location.GetLineSpan();
+				if (!lineSpan.IsValid)
+					return;
+
 				List<UserCode.LineInfo> lines = new List<UserCode.LineInfo>(UserCode.GetLines(code));
 
-				int lineIdx = error.Line - 1;
+				int lineIdx = lineSpan.EndLinePosition.Line;
 				if (lineIdx < 0 || lineIdx >= lines.Count)
 					return;
 
-				globalErrorPos = lines[lineIdx].Position + error.Column - 1;
+				globalErrorPos = lines[lineIdx].Position + lineSpan.EndLinePosition.Character;
 				foreach (UserCode.Entry uce in UserCode.GetEntries(code))
 				{
 					if (globalErrorPos >= uce.Index && globalErrorPos < (uce.Index + uce.Length))

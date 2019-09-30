@@ -3,17 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Reflection;
-#if !SILVERLIGHT
-using Microsoft.CSharp;
-using System.CodeDom.Compiler;
-#endif
-using System.Globalization;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Linq;
 using System.Xml.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
 
 namespace LogJoint
 {
@@ -44,7 +41,7 @@ namespace LogJoint
 		void SetTimeOffsets(ITimeOffsets value);
 		void SetInputField(int idx, StringSlice value);
 		IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
-		Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver);
+		Type CompileUserCodeToType(Func<string, string> assemblyLocationResolver);
 		bool IsBodySingleFieldExpression();
 	};
 
@@ -174,9 +171,9 @@ namespace LogJoint
 			return builder.MakeMessage(callback, flags);
 		}
 
-		Type IFieldsProcessor.CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
+		Type IFieldsProcessor.CompileUserCodeToType(Func<string, string> assemblyLocationResolver)
 		{
-			return CompileUserCodeToTypeInternal(targetFx, assemblyLocationResolver);
+			return CompileUserCodeToTypeInternal(assemblyLocationResolver);
 		}
 
 		bool IFieldsProcessor.IsBodySingleFieldExpression()
@@ -238,7 +235,7 @@ namespace LogJoint
 					{
 						builderTypeTask = Task.Run(() => 
 						{
-							return CompileUserCodeToTypeInternal(CompilationTargetFx.RunningFx,
+							return CompileUserCodeToTypeInternal(
 								asmName => Assembly.Load(asmName).Location);
 						});
 						builderTypesCache.Add(builderTypeHash, builderTypeTask);
@@ -265,77 +262,44 @@ namespace LogJoint
 
 		static Dictionary<int, Task<Type>> builderTypesCache = new Dictionary<int, Task<Type>>();
 
-#if SILVERLIGHT
-		Type CompileUserCodeToTypeInternal(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
+		Type CompileUserCodeToTypeInternal(Func<string, string> assemblyLocationResolver)
 		{
-			throw new NotImplementedException("Code compilaction not supported in silverlight");
-		}
-#else
-		static string GetSilverlightDir()
-		{
-			using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Silverlight", false))
-			{
-				if (key != null)
-				{
-					var ver = key.GetValue("Version") as string;
-					if (!string.IsNullOrEmpty(ver))
-					{
-						string dir = Environment.ExpandEnvironmentVariables(@"%ProgramFiles%\Microsoft Silverlight\") + ver + @"\";
-						if (System.IO.Directory.Exists(dir))
-							return dir;
-					}
-				}
-			}
-			throw new Exception("Silverlight not found on this machine");
-		}
-
-		Type CompileUserCodeToTypeInternal(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
-		{
-			using (CSharpCodeProvider prov = new CSharpCodeProvider())
 			using (var perfop = new Profiling.Operation(trace, "compile user code"))
 			{
 				List<string> refs = new List<string>();
 				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields, refs);
 
-				CompilerParameters cp = new CompilerParameters();
-				if (targetFx == CompilationTargetFx.RunningFx)
-				{
-					cp.ReferencedAssemblies.Add("System.dll");
-					cp.CompilerOptions = "/optimize";
-				}
-				else if (targetFx == CompilationTargetFx.Silverlight)
-				{
-					var silverLightDir = GetSilverlightDir();
-					foreach (var silverlightAsm in new string[] {"mscorlib.dll", "System.Core.dll", "System.dll"})
-						cp.ReferencedAssemblies.Add(silverLightDir + silverlightAsm);
-					cp.CompilerOptions = "/optimize /nostdlib+";
-				}
-				List<string> resolvedRefs = new List<string>();
-				resolvedRefs.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
-				resolvedRefs.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
-				foreach (string refAsm in refs)
-					resolvedRefs.Add(assemblyLocationResolver(refAsm));
+				var syntaxTree = CSharpSyntaxTree.ParseText(fullCode);
 
-				foreach (string resoledAsm in resolvedRefs)
-					cp.ReferencedAssemblies.Add(resoledAsm);
+				var metadataReferences = new List<MetadataReference>();
+				metadataReferences.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName)));
+				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName)));
+				metadataReferences.AddRange(refs.Select(refAsm => MetadataReference.CreateFromFile(assemblyLocationResolver(refAsm))));
 
-				string tempDir = tempFilesManager.GenerateNewName();
-				Directory.CreateDirectory(tempDir);
-				cp.OutputAssembly = string.Format("{0}{2}UserCode{1}.dll", tempDir, Guid.NewGuid().ToString("N"), Path.DirectorySeparatorChar);
-				// Temp folder will be cleaned when LogJoint starts next time.
-				cp.TempFiles = new TempFileCollection(tempDir, false);
-				cp.TreatWarningsAsErrors = false;
-				CompilerResults cr;
-				using (new CodedomEnvironmentConfigurator())
+				CSharpCompilation compilation = CSharpCompilation.Create(
+					$"UserCode{Guid.NewGuid().ToString("N")}",
+					new[] { syntaxTree },
+					metadataReferences,
+					new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+						.WithOptimizationLevel(OptimizationLevel.Release)
+				);
+
+				using (var dllStream = new MemoryStream())
 				{
 					perfop.Milestone("started compile");
-					cr = prov.CompileAssemblyFromSource(cp, fullCode);
+					var emitResult = compilation.Emit(dllStream);
+					if (!emitResult.Success)
+					{
+						ThrowBadUserCodeException(fullCode, emitResult.Diagnostics);
+					}
+					dllStream.Flush();
+					dllStream.Position = 0;
+					perfop.Milestone("getting type");
+					var asm = Assembly.Load(dllStream.ToArray());
+					return asm.GetType("GeneratedMessageBuilder");
 				}
-				if (cr.Errors.HasErrors)
-					ThrowBadUserCodeException(fullCode, cr);
-				perfop.Milestone("getting type");
-				return cr.CompiledAssembly.GetType("GeneratedMessageBuilder");
-			}	
+			}
 		}
 
 		static string GetOutputFieldExpression(OutputFieldStruct s, string type, StringBuilder helperFunctions)
@@ -649,7 +613,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			return code.ToString();
 		}
 
-		private static void ThrowBadUserCodeException(string fullCode, CompilerResults cr)
+		private static void ThrowBadUserCodeException(string fullCode, ImmutableArray<Diagnostic> cr)
 		{
 			StringBuilder exceptionMessage = new StringBuilder();
 			StringBuilder allErrors = new StringBuilder();
@@ -658,15 +622,18 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 			exceptionMessage.Append("Failed to process log fields. There must be an error in format's configuration. ");
 	
-			foreach (CompilerError err in cr.Errors)
+			foreach (Diagnostic err in cr)
 			{
-				if (err.IsWarning)
+				if (err.DefaultSeverity != DiagnosticSeverity.Error)
 					continue;
+				
 
-				exceptionMessage.AppendLine(err.ErrorText);
-				allErrors.AppendFormat("Line {0} Column {1}: ({2}) {3}{4}", 
-					err.Line, err.Column, err.ErrorNumber, err.ErrorText, Environment.NewLine);
-				errorMessage = err.ErrorText;
+				exceptionMessage.AppendLine(err.GetMessage());
+				if (err.Location.IsInSource && err.Location.GetLineSpan().IsValid)
+					allErrors.AppendFormat("Line {0} Column {1}: {2}{3}",
+						err.Location.GetLineSpan().EndLinePosition.Line, err.Location.GetLineSpan().EndLinePosition.Character,
+						err.GetMessage(), err.GetMessage(), Environment.NewLine);
+				errorMessage = err.GetMessage();
 
 				int globalErrorPos;
 				UserCode.Entry? userCodeEntry;
@@ -682,7 +649,6 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 			throw new BadUserCodeException(exceptionMessage.ToString(), fullCode, errorMessage, allErrors.ToString(), badField);
 		}
-#endif
 
 		Internal.__MessageBuilder builder;
 
@@ -696,30 +662,6 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			public string Name;
 			public CodeType Type;
 			public string Code;
-		};
-
-		class CodedomEnvironmentConfigurator: IDisposable
-		{
-#if MONOMAC
-			string monoEnvOptions;
-
-			public CodedomEnvironmentConfigurator()
-			{
-				Directory.SetCurrentDirectory(@"/Library/Frameworks/Mono.framework/Versions/Current/bin");
-				monoEnvOptions = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
-				Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", "");
-			}
-
-			void IDisposable.Dispose()
-			{
-				if (!string.IsNullOrEmpty(monoEnvOptions))
-					Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", monoEnvOptions);
-			}
-#else
-			void IDisposable.Dispose()
-			{
-			}
-#endif
 		};
 
 		readonly List<string> inputFieldNames;
