@@ -330,11 +330,14 @@ namespace LogJoint.Symphony.SpringServiceLog
 
 		const string conferenceSessionIdRegex = @"(?<id_conf>[^\,]+)";
 		const string sessionIdRegex = @"(?<id_session>[\w\-]+)";
+		const string mixerIdRegex = @"(?<id_mixer>\w+)";
 		private readonly static Regex joinRe = new Regex($@"handleJoin conferenceSessionId {conferenceSessionIdRegex}, sessionId {sessionIdRegex}", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex eventRegex = new Regex($@"Sending event type: \w+, sessionId: {sessionIdRegex}, conferenceSessionId: {conferenceSessionIdRegex}", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex requestRe = new Regex(@"Incoming request \[(?<id_request>[^\]]+)\]", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex mediaBridgeRe = new Regex($@"Acquired mediaBridgeSessionId (?<id_ambient_mbr>[\w\-]+), conferenceSessionId", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex sipBridgeRe = new Regex($@"Acquired sipBridgeSessionId (?<id_ambient_sipb>[\w\-]+), conferenceSessionId", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex mixerRe1 = new Regex($@"onMixerAllocResponse conferenceSessionId {conferenceSessionIdRegex} created mixer id {mixerIdRegex}", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private readonly static Regex mixerRe2 = new Regex($@"Multi-leg transport allocated on JBV for mixer {mixerIdRegex} in {conferenceSessionIdRegex}", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private readonly static Regex[] idRegexps =
 		{
 			joinRe,
@@ -342,6 +345,8 @@ namespace LogJoint.Symphony.SpringServiceLog
 			requestRe,
 			mediaBridgeRe,
 			sipBridgeRe,
+			mixerRe1,
+			mixerRe2
 		};
 	};
 }
