@@ -19,7 +19,7 @@ namespace LogJoint.Symphony.Rtc
 	{
 		public CITimelineEvents(IPrefixMatcher matcher)
 		{
-			devToolsConsoleEventPrefix = matcher.RegisterPrefix(CD.DevTools.Events.Runtime.LogAPICalled.Prefix);
+			devToolsConsoleEventPrefix = matcher.RegisterPrefix(CD.DevTools.Events.Runtime.LogAPICalled.Prefix1);
 		}
 
 		IEnumerableAsync<Event[]> ICITimelineEvents.GetEvents(IEnumerableAsync<CDL.Message[]> input)

@@ -118,7 +118,7 @@ namespace LogJoint.Chromium.Correlator
 					{
 						var reader = (new CD.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
 						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
-						var nodeId = new NodeId("webrtc-int", getUniqueRoleInstanceName(inputFile));
+						var nodeId = new NodeId("chrome-driver", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
 						var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
 						return new NodeInfo(

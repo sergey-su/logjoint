@@ -15,12 +15,13 @@ namespace LogJoint.Chromium.ChromeDriver
 	public class NodeDetectionTokenSource : INodeDetectionTokenSource
 	{
 		readonly IProcessIdDetector processIdDetector;
-		readonly int consoleApiPrefix;
+		readonly int consoleApiPrefix1, consoleApiPrefix2;
 
 		public NodeDetectionTokenSource(IProcessIdDetector processIdDetector, IPrefixMatcher prefixMatcher)
 		{
 			this.processIdDetector = processIdDetector;
-			this.consoleApiPrefix = prefixMatcher.RegisterPrefix(DevTools.Events.Runtime.LogAPICalled.Prefix);
+			this.consoleApiPrefix1 = prefixMatcher.RegisterPrefix(DevTools.Events.Runtime.LogAPICalled.Prefix1);
+			this.consoleApiPrefix2 = prefixMatcher.RegisterPrefix(DevTools.Events.Runtime.LogAPICalled.Prefix2);
 		}
 
 		public async Task<ISameNodeDetectionToken> GetToken(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
@@ -49,7 +50,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			{
 				foreach (var msg in messages)
 				{
-					if (msg.Prefixes.Contains(consoleApiPrefix))
+					if (msg.Prefixes.Contains(consoleApiPrefix1) || msg.Prefixes.Contains(consoleApiPrefix2))
 					{
 						var arg = DevTools.Events.LogMessage.Parse(msg.Message.Text)?.ParsePayload<DevTools.Events.Runtime.LogAPICalled>()?.args?[0];
 						if (arg != null && arg.type == "string")

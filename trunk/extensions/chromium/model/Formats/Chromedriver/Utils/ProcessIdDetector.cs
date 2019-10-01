@@ -12,11 +12,12 @@ namespace LogJoint.Chromium.ChromeDriver
 
 	public class ProcessIdDetector : IProcessIdDetector
 	{
-		readonly int dataCollectedPrefix;
+		readonly int dataCollectedPrefix1, dataCollectedPrefix2;
 
 		public ProcessIdDetector(IPrefixMatcher prefixMatcher)
 		{
-			dataCollectedPrefix = prefixMatcher.RegisterPrefix(DevTools.Events.Tracing.DataCollected.Prefix);
+			dataCollectedPrefix1 = prefixMatcher.RegisterPrefix(DevTools.Events.Tracing.DataCollected.Prefix1);
+			dataCollectedPrefix2 = prefixMatcher.RegisterPrefix(DevTools.Events.Tracing.DataCollected.Prefix2);
 		}
 
 		async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
@@ -26,7 +27,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			{
 				foreach (var msg in messages)
 				{
-					if (msg.Prefixes.Contains(dataCollectedPrefix))
+					if (msg.Prefixes.Contains(dataCollectedPrefix1) || msg.Prefixes.Contains(dataCollectedPrefix2))
 					{
 						var arr = DevTools.Events.LogMessage.Parse(msg.Message.Text)?.ParsePayload<DevTools.Events.Tracing.DataCollected>()?.value;
 						if (arr != null)

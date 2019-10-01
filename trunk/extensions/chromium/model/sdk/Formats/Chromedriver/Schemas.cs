@@ -115,7 +115,8 @@ namespace LogJoint.Chromium.ChromeDriver
 		{
 			public class DataCollected 
 			{
-				public readonly static string Prefix = "DEVTOOLS EVENT Tracing.dataCollected";
+				public readonly static string Prefix1 = "DEVTOOLS EVENT Tracing.dataCollected";
+				public readonly static string Prefix2 = "DevTools WebSocket Event: Tracing.dataCollected";
 
 				public Entry[] value;
 
@@ -131,7 +132,8 @@ namespace LogJoint.Chromium.ChromeDriver
 		{
 			public class LogAPICalled
 			{
-				public readonly static string Prefix = "DEVTOOLS EVENT Runtime.consoleAPICalled";
+				public readonly static string Prefix1 = "DEVTOOLS EVENT Runtime.consoleAPICalled";
+				public readonly static string Prefix2 = "DevTools WebSocket Event: Runtime.consoleAPICalled";
 
 				public Arg[] args;
 
