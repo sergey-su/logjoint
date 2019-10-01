@@ -17,6 +17,7 @@ namespace LogJoint.Symphony.SequenceDiagram
 		ILogSourcePostprocessor CreateSpringServiceLogPostprocessor();
 		ILogSourcePostprocessor CreateSMBPostprocessor();
 		ILogSourcePostprocessor CreateRtcLogPostprocessor();
+		Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>.Factory CreateChromeDebugLogEventsSourceFactory();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -50,6 +51,22 @@ namespace LogJoint.Symphony.SequenceDiagram
 				PostprocessorKind.SequenceDiagram,
 				i => RunForClientLog(new Cli.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
+		}
+
+		Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>.Factory IPostprocessorsFactory.CreateChromeDebugLogEventsSourceFactory()
+		{
+			return (matcher, messages, tracker) =>
+			{
+				var symEvents = RunForClientMessages(
+					new Cli.Reader(postprocessing.TextLogParser, CancellationToken.None).FromChromeDebugLog(messages)
+				);
+
+				var events = EnumerableAsync.Merge(
+					symEvents
+				);
+
+				return new Chromium.EventsSource<Event, Chromium.ChromeDebugLog.Message>(events);
+			};
 		}
 
 		async Task RunForSpringServiceLog(
@@ -99,11 +116,7 @@ namespace LogJoint.Symphony.SequenceDiagram
 			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-			Cli.IMessagingEvents messagingEvents = new Cli.MessagingEvents();
-
-			var events = EnumerableAsync.Merge(
-				messagingEvents.GetEvents(input)
-			);
+			var events = RunForClientMessages(input);
 
 			await postprocessing.SequenceDiagram.SavePostprocessorOutput(
 				events,
@@ -113,6 +126,19 @@ namespace LogJoint.Symphony.SequenceDiagram
 				evtTrigger => TextLogEventTrigger.Make((Cli.Message)evtTrigger),
 				postprocessorInput
 			);
+		}
+
+		private IEnumerableAsync<Event[]> RunForClientMessages(
+			IEnumerableAsync<Cli.Message[]> messages
+		)
+		{
+			Cli.IMessagingEvents messagingEvents = new Cli.MessagingEvents();
+
+			var events = EnumerableAsync.Merge(
+				messagingEvents.GetEvents(messages)
+			);
+
+			return events;
 		}
 	};
 }

@@ -22,7 +22,7 @@ namespace LogJoint.Chromium
 				new TimeSeries.PostprocessorsFactory(appModel.Postprocessing, pluginModel),
 				new Correlator.PostprocessorsFactory(appModel),
 				new Timeline.PostprocessorsFactory(appModel.Postprocessing, pluginModel),
-				new SequenceDiagram.PostprocessorsFactory(appModel.Postprocessing)
+				new SequenceDiagram.PostprocessorsFactory(appModel.Postprocessing, pluginModel)
 			);
 
 			appModel.Preprocessing.ExtensionsRegistry.Register(

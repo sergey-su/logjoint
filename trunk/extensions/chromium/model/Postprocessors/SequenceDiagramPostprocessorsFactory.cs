@@ -1,21 +1,26 @@
 ﻿using System.Threading.Tasks;
+using System.Linq;
 using LogJoint.Postprocessing;
 using HAR = LogJoint.Chromium.HttpArchive;
+using System.Collections.Generic;
 
 namespace LogJoint.Chromium.SequenceDiagram
 {
 	public interface IPostprocessorsFactory
 	{
 		ILogSourcePostprocessor CreateHttpArchivePostprocessor();
+		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
 		readonly Postprocessing.IModel postprocessing;
+		readonly PluginModel pluginModel;
 
-		public PostprocessorsFactory(Postprocessing.IModel postprocessing)
+		public PostprocessorsFactory(Postprocessing.IModel postprocessing, PluginModel pluginModel)
 		{
 			this.postprocessing = postprocessing;
+			this.pluginModel = pluginModel;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateHttpArchivePostprocessor()
@@ -23,6 +28,14 @@ namespace LogJoint.Chromium.SequenceDiagram
 			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
 				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
+		{
+			return new LogSourcePostprocessor(
+				PostprocessorKind.SequenceDiagram,
+				i => RunForChromeDebug(new ChromeDebugLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -45,6 +58,36 @@ namespace LogJoint.Chromium.SequenceDiagram
 				evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger),
 				postprocessorInput
 			);
+		}
+
+		async Task RunForChromeDebug(
+			IEnumerableAsync<ChromeDebugLog.Message[]> input,
+			LogSourcePostprocessorInput postprocessorInput
+		)
+		{
+			var multiplexedInput = input.Multiplex();
+			var matcher = postprocessing.CreatePrefixMatcher();
+
+			var extensionSources = pluginModel.ChromeDebugLogMessagingEventSources.Select(src => src(
+				matcher, multiplexedInput, postprocessorInput.TemplatesTracker)).ToArray();
+
+
+			var events = EnumerableAsync.Merge(extensionSources.Select(s => s.Events).ToArray());
+
+			var serialize = postprocessing.SequenceDiagram.SavePostprocessorOutput(
+				events,
+				null,
+				null,
+				null,
+				evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger),
+				postprocessorInput
+			);
+
+			var tasks = new List<Task>();
+			tasks.Add(serialize);
+			tasks.AddRange(extensionSources.SelectMany(s => s.MultiplexingEnumerables.Select(e => e.Open())));
+			tasks.Add(multiplexedInput.Open());
+			await Task.WhenAll(tasks);
 		}
 	};
 }

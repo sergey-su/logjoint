@@ -15,6 +15,8 @@ namespace LogJoint.Chromium
 			EventsSource<Postprocessing.Timeline.Event, MessagePrefixesPair<ChromeDriver.Message>>.Factory source);
 		void RegisterSource(
 			EventsSource<Postprocessing.Timeline.Event, ChromeDebugLog.Message>.Factory source);
+		void RegisterSource(
+			EventsSource<Postprocessing.Messaging.Event, ChromeDebugLog.Message>.Factory source);
 	};
 
 	public class EventsSource<EventType, MessageType>

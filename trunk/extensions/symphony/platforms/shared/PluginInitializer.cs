@@ -26,6 +26,10 @@ namespace LogJoint.Symphony
 				app.Model.Postprocessing
 			);
 
+			SequenceDiagram.IPostprocessorsFactory sequenceDiagramPostprocessors = new SequenceDiagram.PostprocessorsFactory(
+				app.Model.Postprocessing
+			);
+
 			IPostprocessorsRegistry postprocessorsRegistry = new PostprocessorsInitializer(
 				app.Model.Postprocessing.Manager,
 				app.Model.UserDefinedFormatsManager,
@@ -33,7 +37,7 @@ namespace LogJoint.Symphony
 				timeSeriesPostprocessors,
 				new Correlator.PostprocessorsFactory(app.Model),
 				timelinePostprocessors,
-				new SequenceDiagram.PostprocessorsFactory(app.Model.Postprocessing)
+				sequenceDiagramPostprocessors
 			);
 
 			var chromiumPlugin = app.Model.PluginsManager.Get<Chromium.IPluginModel>();
@@ -43,6 +47,7 @@ namespace LogJoint.Symphony
 				chromiumPlugin.RegisterSource(timeSeriesPostprocessors.CreateChromeDebugSourceFactory());
 				chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDebugLogEventsSourceFactory());
 				chromiumPlugin.RegisterSource(timelinePostprocessors.CreateChromeDriverEventsSourceFactory());
+				chromiumPlugin.RegisterSource(sequenceDiagramPostprocessors.CreateChromeDebugLogEventsSourceFactory());
 			}
 
 			app.Model.Preprocessing.ExtensionsRegistry.AddLogDownloaderRule(

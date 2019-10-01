@@ -50,6 +50,7 @@ namespace LogJoint.Chromium
 				stateInspectorPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				timeSeriesPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				timelinePostprocessorsFactory.CreateChromeDebugPostprocessor(),
+				sequenceDiagramPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				correlatorPostprocessorType
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
