@@ -100,7 +100,7 @@ namespace LogJoint.Extensibility
 			return new PluginInstallationRequestsBuilder(this);
 		}
 
-		private void InitPlugins(object entryPoint)
+		private void InitPlugins(object appEntryPoint)
 		{
 			using (tracer.NewFrame)
 			{
@@ -164,22 +164,48 @@ namespace LogJoint.Extensibility
 					{
 						throw new Exception("plugin class not found in plugin assembly");
 					}
-					var ctr = pluginType.GetConstructor(new[] { entryPoint.GetType() });
-					if (ctr == null)
+
+					var modelEntryPoint = appEntryPoint.GetType().InvokeMember("Model", BindingFlags.GetProperty, null, appEntryPoint, new object[0]);
+					if (modelEntryPoint == null)
 					{
-						throw new Exception("plugin class does not implement ctr with LogJoint.IApplication argument");
+						throw new Exception("Model is missing from app entry point");
 					}
-					sw.Restart();
-					object plugin;
-					try
+					var presentationEntryPoint = appEntryPoint.GetType().InvokeMember("Presentation", BindingFlags.GetProperty, null, appEntryPoint, new object[0]);
+					if (presentationEntryPoint == null)
 					{
-						plugin = ctr.Invoke(new[] { entryPoint });
+						throw new Exception("Presentation is missing from app entry point");
 					}
-					catch (Exception e)
+
+					TimeSpan instantiationTime = TimeSpan.Zero;
+					object plugin = null;
+
+					bool TryCtr(params object[] @params)
 					{
-						throw new Exception("failed to create an instance of plugin", e);
+						var ctr = pluginType.GetConstructor(@params.Select(p => p.GetType()).ToArray());
+						if (ctr == null)
+						{
+							return false;
+						}
+						sw.Restart();
+						try
+						{
+							plugin = ctr.Invoke(@params);
+						}
+						catch (Exception e)
+						{
+							throw new Exception("failed to create an instance of plugin", e);
+						}
+						instantiationTime = sw.Elapsed;
+						return true;
 					}
-					var instantiationTime = sw.Elapsed;
+
+					if (!TryCtr(appEntryPoint)
+					 && !TryCtr(modelEntryPoint)
+					 && !TryCtr(modelEntryPoint, presentationEntryPoint))
+					{
+						throw new Exception("plugin class does not implement ctr with LogJoint.IApplication argument, or with LogJoint.IModel argument, or with IModel and IPresentation arguments");
+					}
+
 
 					tracer.Info("plugin {0} accepted. times: loading formats={1}, loading dll={2}, type loading={3}, instantiation={4}",
 						Path.GetFileName(pluginPath), formatsLoadTime, loadTime, typeLoadTime, instantiationTime);

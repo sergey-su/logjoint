@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../sdk/model/logjoint.model.sdk.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="../../../sdk/presentation/logjoint.presentation.sdk.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+
+    <ProjectReference Include="../model.sdk/logjoint.chromium.plugin.model.sdk.csproj" />
+    <ProjectReference Include="../model/logjoint.chromium.plugin.model.csproj" />
+    <ProjectReference Include="../presentation/logjoint.chromium.plugin.presentation.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>..\..\..\platforms\osx\bin\debug\logjoint.app\Contents\MonoBundle\Plugins\chromium</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\..\..\platforms\osx\bin\debug\logjoint.app\Contents\MonoBundle\Plugins\chromium</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="manifest.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="manifest.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

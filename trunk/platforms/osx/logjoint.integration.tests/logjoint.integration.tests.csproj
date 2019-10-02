@@ -137,16 +137,6 @@
       <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
       <Name>logjoint.presenters</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj">
-      <Project>{5C3545DB-36B8-4DE2-A2CA-B816910D389B}</Project>
-      <Name>logjoint.chromium.plugin.model</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
-      <Project>{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}</Project>
-      <Name>logjoint.chromium.plugin.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
       <Project>{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}</Project>
       <Name>logjoint.packet-analysis.plugin.model</Name>
