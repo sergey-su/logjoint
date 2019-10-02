@@ -222,11 +222,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
-      <Name>logjoint.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
       <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
       <Name>logjoint.chromium.plugin.model.sdk</Name>

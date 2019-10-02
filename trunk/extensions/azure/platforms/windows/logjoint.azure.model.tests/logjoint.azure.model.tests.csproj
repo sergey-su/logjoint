@@ -56,10 +56,6 @@
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.azure.model\logjoint.azure.model.csproj">
       <Project>{1ba8ac55-dfd6-4184-8e2d-a63133cea115}</Project>
       <Name>logjoint.azure.model</Name>

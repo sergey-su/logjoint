@@ -69,16 +69,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
-      <Name>logjoint.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
       <Project>{3c4aabd0-7bd7-4403-b7d5-210cc4409f0b}</Project>
       <Name>logjoint.packet-analysis.plugin.model</Name>
