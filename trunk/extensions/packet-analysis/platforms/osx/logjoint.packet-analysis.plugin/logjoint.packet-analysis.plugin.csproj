@@ -93,16 +93,6 @@
       <Project>{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}</Project>
       <Name>logjoint.packet-analysis.plugin.presenters</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
-      <Name>logjoint.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
       <Name>logjoint.sdk</Name>

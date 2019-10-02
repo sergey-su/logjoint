@@ -64,16 +64,6 @@
       <Name>logjoint.sdk</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
-      <Name>logjoint.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
       <Project>{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}</Project>
       <Name>logjoint.chromium.plugin.model.sdk</Name>

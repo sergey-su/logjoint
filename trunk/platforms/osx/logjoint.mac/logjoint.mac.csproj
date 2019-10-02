@@ -1,4 +1,5 @@
 ﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.CodeAnalysis.Analyzers.2.9.4\build\Microsoft.CodeAnalysis.Analyzers.props" Condition="Exists('..\packages\Microsoft.CodeAnalysis.Analyzers.2.9.4\build\Microsoft.CodeAnalysis.Analyzers.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -8,9 +9,10 @@
     <RootNamespace>LogJoint.UI</RootNamespace>
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
     <AssemblyName>logjoint</AssemblyName>
-    <UseXamMacFullFramework>true</UseXamMacFullFramework>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -76,11 +78,29 @@
     <Reference Include="Xamarin.Mac" />
     <Reference Include="System.Numerics" />
     <Reference Include="mscorlib" />
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    <Reference Include="System.Buffers">
+      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Metadata">
+      <HintPath>..\packages\System.Reflection.Metadata.1.6.0\lib\netstandard2.0\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory">
+      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>..\packages\Microsoft.CodeAnalysis.Common.3.3.1\lib\netstandard2.0\Microsoft.CodeAnalysis.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp">
+      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.3.3.1\lib\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -735,10 +755,6 @@
     </MonoDevelop>
   </ProjectExtensions>
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
       <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
       <Name>logjoint.presenters</Name>
@@ -751,17 +767,21 @@
       <Project>{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}</Project>
       <Name>logjoint.updater</Name>
     </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
-      <Name>logjoint.presentation.sdk</Name>
+    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
+      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+      <Name>logjoint.model</Name>
     </ProjectReference>
     <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
       <Name>logjoint.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{D9942354-A4EC-412F-A120-A96E8F1C58A3}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{731F60CB-87A0-4C4E-8553-EE9259A05AAF}</Project>
+      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -94,13 +94,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\osx\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
-      <Name>logjoint.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Formats\WiresharkPdml\Reader\" />
     <Folder Include="Formats\WiresharkPdml\Timeline\" />
     <Folder Include="Formats\WiresharkPdml\Converters\" />

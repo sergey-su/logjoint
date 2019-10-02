@@ -3,114 +3,123 @@ using System.Configuration;
 
 namespace LogJoint.Properties
 {
-	public class Settings: ApplicationSettingsBase
+	// todo
+	public class Settings//: ApplicationSettingsBase
 	{
-		private static Settings defaultInstance = ((Settings)(ApplicationSettingsBase.Synchronized(new Settings())));
+		// private static Settings defaultInstance = ((Settings)(ApplicationSettingsBase.Synchronized(new Settings())));
+		private static Settings settings = new  Settings();
 
 		public static Settings Default 
 		{
 			get
 			{
-				return defaultInstance;
+				return settings;
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string AutoUpdateUrl
 		{
 			get 
 			{
-				return ((string)(this["AutoUpdateUrl"]));
+				return "";
 			}
 		}
 
-		[ApplicationScopedSetting]
+		
 		public string TelemetryUrl
 		{
 			get
 			{
-				return ((string)(this["TelemetryUrl"]));
+				return "";
 			}
 		}
 
-		[ApplicationScopedSetting]
 		public string IssuesUrl
 		{
 			get
 			{
-				return ((string)(this["IssuesUrl"]));
+				return "";
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string WorkspacesUrl 
 		{
 			get
 			{
-				return ((string)(this["WorkspacesUrl"]));
+				return "";
+				// return ((string)(this["WorkspacesUrl"]));
 			}
 		}
 
-		[ApplicationScopedSetting]
+		//[ApplicationScopedSetting]
 		public string ForceWebContentCachingFor
 		{
 			get
 			{
-				return ((string)(this["ForceWebContentCachingFor"]));
+				return "";
+				// return ((string)(this["ForceWebContentCachingFor"]));
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string LogDownloaderConfig
 		{
 			get
 			{
-				return ((string)(this["LogDownloaderConfig"]));
+				return "";
+				// return ((string)(this["LogDownloaderConfig"]));
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string WinInstallerUrl
 		{
 			get 
 			{
-				return ((string)(this["WinInstallerUrl"]));
+				return "";
+				// return ((string)(this["WinInstallerUrl"]));
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string MacInstallerUrl
 		{
 			get 
 			{
-				return ((string)(this["MacInstallerUrl"]));
+				return "";
+				// return ((string)(this["MacInstallerUrl"]));
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string FeedbackUrl
 		{
 			get 
 			{
-				return ((string)(this["FeedbackUrl"]));
+				return"";
+				// return ((string)(this["FeedbackUrl"]));
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string MonospaceBookmarks
 		{
 			get
 			{
-				return ((string)(this["MonospaceBookmarks"]));
+				return "";
+				// return ((string)(this["MonospaceBookmarks"]));
 			}
 		}
 
-		[ApplicationScopedSetting]
+		// [ApplicationScopedSetting]
 		public string PluginsUrl
 		{
 			get
 			{
-				return ((string)(this["PluginsUrl"]));
+				return "";
+				// return ((string)(this["PluginsUrl"]));
 			}
 		}
 	}
