@@ -8,9 +8,8 @@
   <file type="format">Formats/Wireshark - pdml.format.xml</file>
   <file type="entry">logjoint.packet-analysis.plugin.dll</file>
   <file type="dll">logjoint.packet-analysis.plugin.model.dll</file>
-  <file type="dll">logjoint.packet-analysis.plugin.presenters.dll</file>
+  <file type="dll">logjoint.packet-analysis.plugin.presentation.dll</file>
   <file type="dll">Newtonsoft.Json.dll</file>
-  <file type="dll">System.Collections.Immutable.dll</file>
   <file type="nib">MessageContentView.nib</file>
   <file type="nib">WiresharkPage.nib</file>	
 </manifest>

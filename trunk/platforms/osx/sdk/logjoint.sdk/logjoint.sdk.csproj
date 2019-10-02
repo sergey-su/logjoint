@@ -10,10 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint</RootNamespace>
     <AssemblyName>logjoint.sdk</AssemblyName>
-    <UseXamMacFullFramework>true</UseXamMacFullFramework>
     <FileAlignment>512</FileAlignment>
 	<ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
 	<BaseDirectory>..\..\bin\debug\</BaseDirectory>
+	<TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+	<TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -62,13 +63,14 @@
     <Folder Include="Application\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
+    <ProjectReference Include="..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{731F60CB-87A0-4C4E-8553-EE9259A05AAF}</Project>
       <Name>logjoint.presentation.sdk</Name>
+      <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{D9942354-A4EC-412F-A120-A96E8F1C58A3}</Project>
+      <Name>logjoint.model.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />

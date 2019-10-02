@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 using LogJoint.RegularExpressions;
@@ -16,12 +17,9 @@ namespace LogJoint.Search
 
 	public static class Extensions
 	{
-		private const bool useRegexsForSimpleTemplates =
-#if MONOMAC
-				true; // on mac compiled regex seems to work faster than IndexOf
-#else
-				false;
-#endif
+		private static readonly bool useRegexsForSimpleTemplates =
+			RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? true : // on mac compiled regex seems to work faster than IndexOf
+			false;
 
 		public static MatchedTextRange? SearchInMessageText(
 			this SearchState state,

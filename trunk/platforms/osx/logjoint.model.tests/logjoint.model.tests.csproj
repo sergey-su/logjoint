@@ -9,9 +9,10 @@
     <RootNamespace>logjoint.model.tests</RootNamespace>
     <AssemblyName>logjoint.model.tests</AssemblyName>
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
-    <UseXamMacFullFramework>true</UseXamMacFullFramework>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -61,14 +62,16 @@
       <HintPath>..\..\..\mocks\Rhino.Mocks.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.3.8.1\lib\netstandard1.6\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System.Collections.Immutable">
-      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -210,20 +213,16 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
-      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
-      <Name>logjoint.analytics</Name>
+    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
+      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
+      <Name>logjoint.regex</Name>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
-      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
-      <Name>logjoint.regex</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
+    <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{D9942354-A4EC-412F-A120-A96E8F1C58A3}</Project>
       <Name>logjoint.model.sdk</Name>
     </ProjectReference>
   </ItemGroup>

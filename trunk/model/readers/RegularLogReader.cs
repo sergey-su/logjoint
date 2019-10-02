@@ -407,12 +407,12 @@ namespace LogJoint.RegularGrammar
 		}
 
 
-		public Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
+		public Type CompileUserCodeToType(Func<string, string> assemblyLocationResolver)
 		{
 			using (MessagesReaderExtensions extensions = new MessagesReaderExtensions(null, fmtInfo.Value.ExtensionsInitData))
 			{
 				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions, tempFilesManager, LJTraceSource.EmptyTracer);
-				var type = fieldsProcessor.CompileUserCodeToType(targetFx, assemblyLocationResolver);
+				var type = fieldsProcessor.CompileUserCodeToType(assemblyLocationResolver);
 				return type;
 			}
 		}

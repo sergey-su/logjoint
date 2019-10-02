@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using Ionic.Zip;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.Telemetry
 {
@@ -268,11 +269,10 @@ namespace LogJoint.Telemetry
 				}
 			}
 
-			#if MONOMAC
-			staticTelemetryProperties["platform"] = "mac";
-			#else
-			staticTelemetryProperties["platform"] = "win";
-			#endif
+			staticTelemetryProperties["platform"] =
+				RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "win" :
+				RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "mac" :
+				"";
 		}
 
 		[Flags]

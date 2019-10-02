@@ -48,13 +48,14 @@ namespace LogJoint.Extensibility
 			shutdown.Cleanup += (s, e) => Dispose();
 		}
 
-		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint)
+		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint, string localPluginsList)
 		{
-			InitPlugins(appEntryPoint);
-			RegisterInteropClasses();
+			InitPlugins(appEntryPoint, localPluginsList);
 		}
 
 		bool IPluginsManagerInternal.IsConfigured => pluginsIndexDownloader.IsDownloaderConfigured && updateDownloader.IsDownloaderConfigured;
+
+		IEnumerable<Assembly> IPluginsManagerInternal.PluginAssemblies => plugins.Select(plugin => plugin.GetType().Assembly);
 
 		void IPluginsManager.Register<PluginType>(PluginType plugin)
 		{
@@ -100,7 +101,7 @@ namespace LogJoint.Extensibility
 			return new PluginInstallationRequestsBuilder(this);
 		}
 
-		private void InitPlugins(object entryPoint)
+		private void InitPlugins(object appEntryPoint, string localPluginsList)
 		{
 			using (tracer.NewFrame)
 			{
@@ -108,10 +109,18 @@ namespace LogJoint.Extensibility
 				string pluginsDirectory = Path.Combine(thisPath, "Plugins");
 				bool pluginsDirectoryExists = Directory.Exists(pluginsDirectory);
 				tracer.Info("plugins directory: {0}{1}", pluginsDirectory, !pluginsDirectoryExists ? " (MISSING!)" : "");
-				if (!pluginsDirectoryExists)
-					return;
+				var localPluginDirs =
+					localPluginsList.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+					.Select(dir => Path.IsPathRooted(dir) ? dir : Path.GetFullPath(Path.Combine(thisPath, dir)))
+					.Select(dir => (dir, exists: Directory.Exists(dir)));
+				tracer.Info("local plugin directories: {0}", string.Join(",",
+					localPluginDirs.Select(d => $"{d.dir}{(d.exists ? "" : " (MISSING!)")}"))
+				);
 
-				var manifests = Directory.EnumerateDirectories(pluginsDirectory).Select(pluginDirectory =>
+				var manifests =
+					(pluginsDirectoryExists ? Directory.EnumerateDirectories(pluginsDirectory) : new string[0])
+					.Union(localPluginDirs.Where(d => d.exists).Select(d => d.dir))
+					.Select(pluginDirectory =>
 				{
 					tracer.Info("---> plugin found {0}", pluginDirectory);
 					IPluginManifest manifest = null;
@@ -164,22 +173,48 @@ namespace LogJoint.Extensibility
 					{
 						throw new Exception("plugin class not found in plugin assembly");
 					}
-					var ctr = pluginType.GetConstructor(new[] { entryPoint.GetType() });
-					if (ctr == null)
+
+					var modelEntryPoint = appEntryPoint.GetType().InvokeMember("Model", BindingFlags.GetProperty, null, appEntryPoint, new object[0]);
+					if (modelEntryPoint == null)
 					{
-						throw new Exception("plugin class does not implement ctr with LogJoint.IApplication argument");
+						throw new Exception("Model is missing from app entry point");
 					}
-					sw.Restart();
-					object plugin;
-					try
+					var presentationEntryPoint = appEntryPoint.GetType().InvokeMember("Presentation", BindingFlags.GetProperty, null, appEntryPoint, new object[0]);
+					if (presentationEntryPoint == null)
 					{
-						plugin = ctr.Invoke(new[] { entryPoint });
+						throw new Exception("Presentation is missing from app entry point");
 					}
-					catch (Exception e)
+
+					TimeSpan instantiationTime = TimeSpan.Zero;
+					object plugin = null;
+
+					bool TryCtr(params object[] @params)
 					{
-						throw new Exception("failed to create an instance of plugin", e);
+						var ctr = pluginType.GetConstructor(@params.Select(p => p.GetType()).ToArray());
+						if (ctr == null)
+						{
+							return false;
+						}
+						sw.Restart();
+						try
+						{
+							plugin = ctr.Invoke(@params);
+						}
+						catch (Exception e)
+						{
+							throw new Exception("failed to create an instance of plugin", e);
+						}
+						instantiationTime = sw.Elapsed;
+						return true;
 					}
-					var instantiationTime = sw.Elapsed;
+
+					if (!TryCtr(appEntryPoint)
+					 && !TryCtr(modelEntryPoint)
+					 && !TryCtr(modelEntryPoint, presentationEntryPoint))
+					{
+						throw new Exception("plugin class does not implement ctr with LogJoint.IApplication argument, or with LogJoint.IModel argument, or with IModel and IPresentation arguments");
+					}
+
 
 					tracer.Info("plugin {0} accepted. times: loading formats={1}, loading dll={2}, type loading={3}, instantiation={4}",
 						Path.GetFileName(pluginPath), formatsLoadTime, loadTime, typeLoadTime, instantiationTime);
@@ -245,14 +280,6 @@ namespace LogJoint.Extensibility
 					}
 				}
 			}
-		}
-
-		void RegisterInteropClasses()
-		{
-			#if MONOMAC
-			foreach (var plugin in plugins)
-				ObjCRuntime.Runtime.RegisterAssembly (plugin.GetType().Assembly);
-			#endif
 		}
 
 		public void Dispose()

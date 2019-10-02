@@ -9,9 +9,10 @@
     <RootNamespace>logjoint.presenters.tests</RootNamespace>
     <AssemblyName>logjoint.presenters.tests</AssemblyName>
 	<MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
-	<UseXamMacFullFramework>true</UseXamMacFullFramework>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,6 +25,7 @@
     <UseSGen>false</UseSGen>
     <AOTMode>None</AOTMode>
     <LangVersion>7.3</LangVersion>
+    <EnableCodeSigning></EnableCodeSigning>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -40,14 +42,17 @@
     <Reference Include="NSubstitute">
       <HintPath>..\..\..\mocks\NSubstitute.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="System.Collections.Immutable">
-      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.3.8.1\lib\netstandard1.6\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -86,17 +91,17 @@
       <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
       <Name>logjoint.presenters</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{D9942354-A4EC-412F-A120-A96E8F1C58A3}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{731F60CB-87A0-4C4E-8553-EE9259A05AAF}</Project>
+      <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
-      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

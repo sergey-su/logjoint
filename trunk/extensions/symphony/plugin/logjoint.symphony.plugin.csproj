@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../sdk/model/logjoint.model.sdk.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="../../../sdk/presentation/logjoint.presentation.sdk.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+
+    <ProjectReference Include="../model/logjoint.symphony.plugin.model.csproj" />
+    <ProjectReference Include="../presentation/logjoint.symphony.plugin.presentation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="manifest.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

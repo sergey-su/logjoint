@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.LogMedia
 {
-#if !SILVERLIGHT
 	public interface IFileSystemWatcher: IDisposable
 	{
 		string Path { get; set; }
@@ -14,15 +14,12 @@ namespace LogJoint.LogMedia
 		event RenamedEventHandler Renamed;
 		bool EnableRaisingEvents { get; set; }
 	};
-#endif
 
 	public interface IFileSystem
 	{
 		Stream OpenFile(string fileName);
-#if !SILVERLIGHT
 		string[] GetFiles(string path, string searchPattern);
 		IFileSystemWatcher CreateWatcher();
-#endif
 	};
 
 	public interface IFileStreamInfo
@@ -33,11 +30,9 @@ namespace LogJoint.LogMedia
 
 	class FileSystemImpl : IFileSystem
 	{
-#if !SILVERLIGHT
 		class Watcher : FileSystemWatcher, IFileSystemWatcher
 		{
 		};
-#endif
 		
 		class StreamImpl : FileStream, IFileStreamInfo
 		{
@@ -66,14 +61,15 @@ namespace LogJoint.LogMedia
 						throw new ObjectDisposedException(GetType().Name);
 					}
 
-#if !SILVERLIGHT && !MONOMAC
-					// Try to detect the time via file handle. It is faster than File.GetLastWriteTime()
-					long created, modified, accessed;
-					if (GetFileTime(this.SafeFileHandle, out created, out accessed, out modified))
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
-						return DateTime.FromFileTime(modified);
+						// Try to detect the time via file handle. It is faster than File.GetLastWriteTime()
+						long created, modified, accessed;
+						if (WindowsNative.GetFileTime(this.SafeFileHandle, out created, out accessed, out modified))
+						{
+							return DateTime.FromFileTime(modified);
+						}
 					}
-#endif
 
 					// This is default implementation
 					return File.GetLastWriteTime(fileName);
@@ -91,25 +87,25 @@ namespace LogJoint.LogMedia
 						throw new ObjectDisposedException(GetType().Name);
 					}
 
-#if !SILVERLIGHT && !MONOMAC
-					if (!isOnNTFSDrive.HasValue)
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
-						isOnNTFSDrive = IsOnNTFSVolume(fileName);
-					}
-
-					// First, try quick but platform-dependent way
-					if (isOnNTFSDrive.Value)
-					{
-						BY_HANDLE_FILE_INFORMATION info;
-						// GetFileInformationByHandle is not guaranteed to work ok on all file systems.
-						// Call it only if we are on NTFS drive. 
-						if (GetFileInformationByHandle(this.SafeFileHandle, out info))
+						if (!isOnNTFSDrive.HasValue)
 						{
-							return info.nNumberOfLinks == 0;
+							isOnNTFSDrive = WindowsNative.IsOnNTFSVolume(fileName);
+						}
+
+						// First, try quick but platform-dependent way
+						if (isOnNTFSDrive.Value)
+						{
+							WindowsNative.BY_HANDLE_FILE_INFORMATION info;
+							// GetFileInformationByHandle is not guaranteed to work ok on all file systems.
+							// Call it only if we are on NTFS drive. 
+							if (WindowsNative.GetFileInformationByHandle(this.SafeFileHandle, out info))
+							{
+								return info.nNumberOfLinks == 0;
+							}
 						}
 					}
-
-#endif
 
 					long ticks = Environment.TickCount;
 
@@ -139,58 +135,59 @@ namespace LogJoint.LogMedia
 
 			#endregion
 
-#if !SILVERLIGHT && !MONOMAC
-			[System.Runtime.InteropServices.DllImport("kernel32.dll")]
-			static extern bool GetFileTime(
-				Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
-				out long lpCreationTime,
-				out long lpLastAccessTime,
-				out long lpLastWriteTime
-			);
-
-			[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 1)]
-			public struct BY_HANDLE_FILE_INFORMATION
+			static class WindowsNative
 			{
-				public UInt32 dwFileAttributes;
-				public UInt64 ftCreationTime;
-				public UInt64 ftLastAccessTime;
-				public UInt64 ftLastWriteTime;
-				public UInt32 dwVolumeSerialNumber;
-				public UInt32 nFileSizeHigh;
-				public UInt32 nFileSizeLow;
-				public UInt32 nNumberOfLinks;
-				public UInt32 nFileIndexHigh;
-				public UInt32 nFileIndexLow;
-			};
-			[System.Runtime.InteropServices.DllImport("kernel32.dll")]
-			public static extern bool GetFileInformationByHandle(
-				Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
-				out BY_HANDLE_FILE_INFORMATION lpFileInformation
-			);
+				[DllImport("kernel32.dll")]
+				public static extern bool GetFileTime(
+					Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
+					out long lpCreationTime,
+					out long lpLastAccessTime,
+					out long lpLastWriteTime
+				);
 
-			static bool IsOnNTFSVolume(string path)
-			{
-				DriveInfo drive;
-				try
+				[StructLayout(LayoutKind.Sequential, Pack = 1)]
+				public struct BY_HANDLE_FILE_INFORMATION
 				{
-					drive = new DriveInfo(Path.GetPathRoot(path));
-				}
-				catch (ArgumentException)
+					public UInt32 dwFileAttributes;
+					public UInt64 ftCreationTime;
+					public UInt64 ftLastAccessTime;
+					public UInt64 ftLastWriteTime;
+					public UInt32 dwVolumeSerialNumber;
+					public UInt32 nFileSizeHigh;
+					public UInt32 nFileSizeLow;
+					public UInt32 nNumberOfLinks;
+					public UInt32 nFileIndexHigh;
+					public UInt32 nFileIndexLow;
+				};
+				[DllImport("kernel32.dll")]
+				public static extern bool GetFileInformationByHandle(
+					Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
+					out BY_HANDLE_FILE_INFORMATION lpFileInformation
+				);
+
+				public static bool IsOnNTFSVolume(string path)
 				{
-					return false;
-				}
-				try
-				{
-					return drive.DriveFormat == "NTFS";
-				}
-				catch (DriveNotFoundException)
-				{
-					return false;
+					DriveInfo drive;
+					try
+					{
+						drive = new DriveInfo(Path.GetPathRoot(path));
+					}
+					catch (ArgumentException)
+					{
+						return false;
+					}
+					try
+					{
+						return drive.DriveFormat == "NTFS";
+					}
+					catch (DriveNotFoundException)
+					{
+						return false;
+					}
 				}
 			}
 
 			bool? isOnNTFSDrive;
-#endif
 
 			readonly string fileName;
 			bool disposed;
@@ -201,7 +198,6 @@ namespace LogJoint.LogMedia
 		{
 			return new StreamImpl(fileName);
 		}
-#if !SILVERLIGHT
 		public string[] GetFiles(string path, string searchPattern)
 		{
 			return Directory.GetFiles(path, searchPattern);
@@ -210,7 +206,6 @@ namespace LogJoint.LogMedia
 		{
 			return new Watcher();
 		}
-#endif
 
 		public static FileSystemImpl Instance = new FileSystemImpl();
 	};

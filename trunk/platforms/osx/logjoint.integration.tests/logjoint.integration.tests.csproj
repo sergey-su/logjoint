@@ -129,45 +129,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
     </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{04F5EC7D-B83F-44C9-97C0-08173A620CA9}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
       <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
       <Name>logjoint.presenters</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{50400C8A-004A-4162-8D98-5DC0152BF2A7}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj">
-      <Project>{5C3545DB-36B8-4DE2-A2CA-B816910D389B}</Project>
-      <Name>logjoint.chromium.plugin.model</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
-      <Project>{2D2ABEF0-E425-4559-BC89-BAB4DF1AC77E}</Project>
-      <Name>logjoint.chromium.plugin.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
-      <Project>{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}</Project>
-      <Name>logjoint.packet-analysis.plugin.model</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin.presenters\logjoint.packet-analysis.plugin.presenters.csproj">
-      <Project>{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}</Project>
-      <Name>logjoint.packet-analysis.plugin.presenters</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

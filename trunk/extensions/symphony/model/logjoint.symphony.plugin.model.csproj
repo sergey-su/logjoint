@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../sdk/model/logjoint.model.sdk.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="../../../sdk/presentation/logjoint.presentation.sdk.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+
+    <ProjectReference Include="../../chromium/model.sdk/logjoint.chromium.plugin.model.sdk.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.CloudWatchLogs" Version="3.3.101.29" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.3.102.30" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Formats/Symphony - RTC log.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats/Symphony - SMB log.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats/Symphony-SpringServiceLog.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

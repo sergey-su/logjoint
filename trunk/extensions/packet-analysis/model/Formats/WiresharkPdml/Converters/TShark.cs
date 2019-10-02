@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.Wireshark.Dpml
 {
@@ -34,8 +35,17 @@ namespace LogJoint.Wireshark.Dpml
 			return Process.Start(psi);
 		}
 
-#if MONOMAC
 		private string GetExecutablePath()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				return GetExecutablePathOSX();
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				return GetExecutablePathWin();
+			else
+				throw new PlatformNotSupportedException();
+		}
+
+		private string GetExecutablePathOSX()
 		{
 			var psi = new ProcessStartInfo()
 			{
@@ -55,8 +65,8 @@ namespace LogJoint.Wireshark.Dpml
 			}
 			return null;
 		}
-#elif WIN
-		private string GetExecutablePath()
+
+		private string GetExecutablePathWin()
 		{
 			foreach (var folder in new[]
 			{
@@ -70,6 +80,5 @@ namespace LogJoint.Wireshark.Dpml
 			}
 			return null;
 		}
-#endif
 	};
 }
