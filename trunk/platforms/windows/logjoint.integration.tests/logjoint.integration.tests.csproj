@@ -119,16 +119,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\extensions\chromium\platforms\windows\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
-      <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
-      <Name>logjoint.chromium.plugin.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\chromium\platforms\windows\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj">
-      <Project>{5c3545db-36b8-4de2-a2ca-b816910d389b}</Project>
-      <Name>logjoint.chromium.plugin.model</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\extensions\packet-analysis\platforms\windows\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
       <Project>{3c4aabd0-7bd7-4403-b7d5-210cc4409f0b}</Project>
       <Name>logjoint.packet-analysis.plugin.model</Name>

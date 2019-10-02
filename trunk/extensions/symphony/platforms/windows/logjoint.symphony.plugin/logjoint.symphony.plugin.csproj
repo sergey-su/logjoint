@@ -59,11 +59,6 @@
       <Name>logjoint.sdk</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\chromium\platforms\windows\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
-      <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
-      <Name>logjoint.chromium.plugin.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.symphony.plugin.model\logjoint.symphony.plugin.model.csproj">
       <Project>{4bd42113-f5da-46bc-ad12-66509397d97d}</Project>
       <Name>logjoint.symphony.plugin.model</Name>

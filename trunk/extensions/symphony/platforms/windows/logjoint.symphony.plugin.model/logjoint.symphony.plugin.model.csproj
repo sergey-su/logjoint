@@ -145,11 +145,6 @@
       <Name>logjoint.sdk</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\chromium\platforms\windows\logjoint.chromium.plugin.model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
-      <Project>{e1faa540-dd01-4df3-8697-d97b50d7b929}</Project>
-      <Name>logjoint.chromium.plugin.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
