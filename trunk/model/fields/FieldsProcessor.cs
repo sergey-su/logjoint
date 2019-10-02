@@ -273,6 +273,7 @@ namespace LogJoint
 
 				var metadataReferences = new List<MetadataReference>();
 				metadataReferences.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")));
 				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName)));
 				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName)));
 				metadataReferences.AddRange(refs.Select(refAsm => MetadataReference.CreateFromFile(assemblyLocationResolver(refAsm))));
