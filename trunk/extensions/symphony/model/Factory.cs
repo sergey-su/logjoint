@@ -1,6 +1,7 @@
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace LogJoint.Symphony
 	public class ModelObjects
 	{
 		public IPostprocessorsRegistry PostprocessorsRegistry { get; internal set; }
+		public SpringServiceLog.IPreprocessingStepsFactory BackendLogsPreprocessingStepsFactory { get; internal set; }
 	};
 
 	public class Factory
@@ -60,18 +62,22 @@ namespace LogJoint.Symphony
 				Preprocessing.LogDownloaderRule.CreateBrowserDownloaderRule(new[] { "https://id.atlassian.com/login" })
 			);
 
-#if MONOMAC // todo: detect at runtime
-			SpringServiceLog.IPreprocessingStepsFactory backendLogsPreprocessingStepsFactory = new SpringServiceLog.PreprocessingStepsFactory(
-				appModel.Preprocessing.StepsFactory,
-				appModel.WebViewTools,
-				appModel.ContentCache
-			);
-			appModel.Preprocessing.ExtensionsRegistry.Register(new SpringServiceLog.PreprocessingManagerExtension(
-				backendLogsPreprocessingStepsFactory));
-#endif
+			SpringServiceLog.IPreprocessingStepsFactory backendLogsPreprocessingStepsFactory = null;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				backendLogsPreprocessingStepsFactory = new SpringServiceLog.PreprocessingStepsFactory(
+					appModel.Preprocessing.StepsFactory,
+					appModel.WebViewTools,
+					appModel.ContentCache
+				);
+				appModel.Preprocessing.ExtensionsRegistry.Register(new SpringServiceLog.PreprocessingManagerExtension(
+					backendLogsPreprocessingStepsFactory));
+			}
+
 			return new ModelObjects
 			{
-				PostprocessorsRegistry = postprocessorsRegistry
+				PostprocessorsRegistry = postprocessorsRegistry,
+				BackendLogsPreprocessingStepsFactory = backendLogsPreprocessingStepsFactory
 			};
 		}
 	};

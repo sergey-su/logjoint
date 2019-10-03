@@ -6,8 +6,8 @@ namespace LogJoint
 	{
 		public Plugin(IModel model, UI.Presenters.IPresentation presentation)
 		{
-			LogJoint.Symphony.Factory.Create(model);
-			LogJoint.Symphony.UI.Presenters.Factory.Create(presentation);
+			var modelObjects = Symphony.Factory.Create(model);
+			Symphony.UI.Presenters.Factory.Create(model, modelObjects, presentation);
 		}
 	}
 }
