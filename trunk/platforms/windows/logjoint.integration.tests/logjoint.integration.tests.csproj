@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>LogJoint.Tests.Intergration</RootNamespace>
     <AssemblyName>logjoint.integration.tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -46,11 +46,10 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="NSubstitute">
@@ -59,7 +58,7 @@
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -119,6 +118,34 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\extensions\chromium\model.sdk\logjoint.chromium.plugin.model.sdk.csproj">
+      <Project>{28ba2b03-97d0-4a56-807c-81ead4b1efba}</Project>
+      <Name>logjoint.chromium.plugin.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\extensions\chromium\model\logjoint.chromium.plugin.model.csproj">
+      <Project>{5380585c-795f-45bf-86ac-3e634992e709}</Project>
+      <Name>logjoint.chromium.plugin.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\extensions\chromium\presentation\logjoint.chromium.plugin.presentation.csproj">
+      <Project>{b9d611e2-03e2-48f1-ac5f-3745033091e4}</Project>
+      <Name>logjoint.chromium.plugin.presentation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\extensions\packet-analysis\model\logjoint.packet-analysis.plugin.model.csproj">
+      <Project>{73894319-df61-4686-9f03-2e20da252459}</Project>
+      <Name>logjoint.packet-analysis.plugin.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\extensions\packet-analysis\presentation\logjoint.packet-analysis.plugin.presentation.csproj">
+      <Project>{107111dd-cb76-467d-ae8a-ac63a4fd8e5b}</Project>
+      <Name>logjoint.packet-analysis.plugin.presentation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
+      <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
