@@ -110,7 +110,7 @@ namespace LogJoint.Extensibility
 				tracer.Info("plugins directory: {0}{1}", pluginsDirectory, !pluginsDirectoryExists ? " (MISSING!)" : "");
 				var localPluginDirs =
 					localPluginsList.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-					.Select(dir => Path.GetFullPath(dir, thisPath))
+					.Select(dir => Path.IsPathRooted(dir) ? dir : Path.GetFullPath(Path.Combine(thisPath, dir)))
 					.Select(dir => (dir, exists: Directory.Exists(dir)));
 				tracer.Info("local plugin directories: {0}", string.Join(",",
 					localPluginDirs.Select(d => $"{d.dir}{(d.exists ? "" : " (MISSING!)")}"))

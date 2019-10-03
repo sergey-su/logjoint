@@ -46,19 +46,19 @@ namespace LogJoint.Properties
 
 		public static Settings Default => settings;
 
-		public string TraceListenerConfig { get; private set; }
+		public string TraceListenerConfig { get; set; }
 
-		public string AutoUpdateUrl { get; private set; }	 = "";
-		public string TelemetryUrl { get; private set; } = "";
-		public string IssuesUrl { get; private set; } = "";
-		public string WorkspacesUrl { get; private set; } = "";
-		public string ForceWebContentCachingFor { get; private set; } = "";
-		public string LogDownloaderConfig { get; private set; } = "";
-		public string WinInstallerUrl { get; private set; } = "";
-		public string MacInstallerUrl { get; private set; } = "";
-		public string FeedbackUrl { get; private set; } = "";
-		public string MonospaceBookmarks { get; private set; } = "";
-		public string PluginsUrl { get; private set; } = "";
-		public string LocalPlugins { get; private set; } = "";
+		public string AutoUpdateUrl { get; set; } = "";
+		public string TelemetryUrl { get;  set; } = "";
+		public string IssuesUrl { get; set; } = "";
+		public string WorkspacesUrl { get; set; } = "";
+		public string ForceWebContentCachingFor { get; set; } = "";
+		public string LogDownloaderConfig { get; set; } = "";
+		public string WinInstallerUrl { get; set; } = "";
+		public string MacInstallerUrl { get; set; } = "";
+		public string FeedbackUrl { get; set; } = "";
+		public string MonospaceBookmarks { get; set; } = "";
+		public string PluginsUrl { get; set; } = "";
+		public string LocalPlugins { get; set; } = "";
 	}
 }

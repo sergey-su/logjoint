@@ -119,16 +119,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\extensions\packet-analysis\platforms\windows\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
-      <Project>{3c4aabd0-7bd7-4403-b7d5-210cc4409f0b}</Project>
-      <Name>logjoint.packet-analysis.plugin.model</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\extensions\packet-analysis\platforms\windows\logjoint.packet-analysis.plugin.presenters\logjoint.packet-analysis.plugin.presenters.csproj">
-      <Project>{654565ea-946e-4244-bf23-518dbdd65221}</Project>
-      <Name>logjoint.packet-analysis.plugin.presenters</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
