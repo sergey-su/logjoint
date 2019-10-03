@@ -12,15 +12,7 @@
       <Private>False</Private>
     </ProjectReference>
 
-    <ProjectReference Include="../model.sdk/logjoint.chromium.plugin.model.sdk.csproj" />
-    <ProjectReference Include="../model/logjoint.chromium.plugin.model.csproj" />
-    <ProjectReference Include="../presentation/logjoint.chromium.plugin.presentation.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="manifest.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="../model/logjoint.symphony.plugin.model.csproj" />
   </ItemGroup>
 
 </Project>

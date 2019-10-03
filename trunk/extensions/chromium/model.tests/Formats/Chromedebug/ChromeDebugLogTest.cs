@@ -16,6 +16,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 
 			var actualContent = new MemoryStream();
 
+			// todo: int testing
 			var reader = new Reader(new TextLogParser(), CancellationToken.None);
 			var writer = new Writer();
 
