@@ -13,13 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Formats\Chromium-webrtc_internals_dump.format.xml" />
-    <None Remove="Formats\Chromium-chrome_debug.format.xml" />
-    <None Remove="Formats\Atlassian-JitsiVideoBridge log.format.xml" />
-    <None Remove="Formats\Chromium-chromedriver.format.xml" />
-    <None Remove="Formats\W3C - HTTP Archive.format.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Formats\Chromium-webrtc_internals_dump.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

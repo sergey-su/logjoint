@@ -48,9 +48,9 @@ namespace LogJoint.Extensibility
 			shutdown.Cleanup += (s, e) => Dispose();
 		}
 
-		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint)
+		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint, string localPluginsList)
 		{
-			InitPlugins(appEntryPoint);
+			InitPlugins(appEntryPoint, localPluginsList);
 			RegisterInteropClasses();
 		}
 
@@ -100,7 +100,7 @@ namespace LogJoint.Extensibility
 			return new PluginInstallationRequestsBuilder(this);
 		}
 
-		private void InitPlugins(object appEntryPoint)
+		private void InitPlugins(object appEntryPoint, string localPluginsList)
 		{
 			using (tracer.NewFrame)
 			{
@@ -108,10 +108,18 @@ namespace LogJoint.Extensibility
 				string pluginsDirectory = Path.Combine(thisPath, "Plugins");
 				bool pluginsDirectoryExists = Directory.Exists(pluginsDirectory);
 				tracer.Info("plugins directory: {0}{1}", pluginsDirectory, !pluginsDirectoryExists ? " (MISSING!)" : "");
-				if (!pluginsDirectoryExists)
-					return;
+				var localPluginDirs =
+					localPluginsList.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+					.Select(dir => Path.GetFullPath(dir, thisPath))
+					.Select(dir => (dir, exists: Directory.Exists(dir)));
+				tracer.Info("local plugin directories: {0}", string.Join(",",
+					localPluginDirs.Select(d => $"{d.dir}{(d.exists ? "" : " (MISSING!)")}"))
+				);
 
-				var manifests = Directory.EnumerateDirectories(pluginsDirectory).Select(pluginDirectory =>
+				var manifests =
+					(pluginsDirectoryExists ? Directory.EnumerateDirectories(pluginsDirectory) : new string[0])
+					.Union(localPluginDirs.Where(d => d.exists).Select(d => d.dir))
+					.Select(pluginDirectory =>
 				{
 					tracer.Info("---> plugin found {0}", pluginDirectory);
 					IPluginManifest manifest = null;

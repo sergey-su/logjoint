@@ -17,7 +17,10 @@ namespace LogJoint.UI
 					AutoUpdateUrl = Properties.Settings.Default.AutoUpdateUrl,
 					PluginsUrl = Properties.Settings.Default.PluginsUrl,
 					WebContentCacheConfig = webContentConfig,
-					LogsDownloaderConfig = webContentConfig
+					LogsDownloaderConfig = webContentConfig,
+					TraceListeners = Properties.Settings.Default.TraceListenerConfig != null ?
+						new [] { new TraceListener(Properties.Settings.Default.TraceListenerConfig) }
+						: null
 				},
 				invokingSynchronization,
 				(storageManager) => new PreprocessingCredentialsCache (
@@ -74,7 +77,7 @@ namespace LogJoint.UI
 				model.ExpensibilityEntryPoint,
 				presentation.ExpensibilityEntryPoint,
 				viewsFactory
-			));
+			), Properties.Settings.Default.LocalPlugins);
 		}
 	}
 }

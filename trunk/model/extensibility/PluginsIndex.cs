@@ -62,7 +62,7 @@ namespace LogJoint.Extensibility
 #else
 					"<unk>";
 #endif
-				if (thisPlatform != platform)
+				if (platform != "any" && thisPlatform != platform)
 				{
 					continue;
 				}

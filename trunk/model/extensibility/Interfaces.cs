@@ -9,7 +9,7 @@ namespace LogJoint.Extensibility
 	public interface IPluginsManagerInternal: IPluginsManager
 	{
 		bool IsConfigured { get; }
-		void LoadPlugins(object appEntryPoint);
+		void LoadPlugins(object appEntryPoint, string localPluginsList);
 		IReadOnlyList<IPluginManifest> InstalledPlugins { get; }
 		Task<IReadOnlyList<IPluginInfo>> FetchAllPlugins(CancellationToken cancellation);
 		/// <summary>
