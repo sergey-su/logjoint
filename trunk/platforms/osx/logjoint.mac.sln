@@ -31,10 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.test.logging.app",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packet-analysis", "packet-analysis", "{F14D10AD-3F32-4793-AB6A-450DB99EE65F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin.model", "..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj", "{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin.presenters", "..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin.presenters\logjoint.packet-analysis.plugin.presenters.csproj", "{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin", "..\..\extensions\packet-analysis\platforms\osx\logjoint.packet-analysis.plugin\logjoint.packet-analysis.plugin.csproj", "{C04BD9F7-2731-4BE7-A980-7719E789EF91}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sdk", "sdk", "{255420E4-67A9-441B-8DA0-67A77DE25034}"
@@ -64,6 +60,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin.presentation", "..\..\extensions\symphony\presentation\logjoint.symphony.plugin.presentation.csproj", "{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin", "..\..\extensions\symphony\plugin\logjoint.symphony.plugin.csproj", "{4E798DED-DFF2-4322-A1DA-2B7421AD2298}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin.model", "..\..\extensions\packet-analysis\model\logjoint.packet-analysis.plugin.model.csproj", "{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin.presentation", "..\..\extensions\packet-analysis\presentation\logjoint.packet-analysis.plugin.presentation.csproj", "{E43E55BE-22B9-4BA0-868F-C2A2468BF477}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,22 +153,6 @@ Global
 		{4E3A38C0-3AE7-4140-AEC3-C7A34566979B}.Debug|x86.Build.0 = Debug|Any CPU
 		{4E3A38C0-3AE7-4140-AEC3-C7A34566979B}.Release|x86.ActiveCfg = Release|Any CPU
 		{4E3A38C0-3AE7-4140-AEC3-C7A34566979B}.Release|x86.Build.0 = Release|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Debug|x86.Build.0 = Debug|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Release|x86.ActiveCfg = Release|Any CPU
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A}.Release|x86.Build.0 = Release|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Debug|x86.Build.0 = Debug|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Release|x86.ActiveCfg = Release|Any CPU
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA}.Release|x86.Build.0 = Release|Any CPU
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -273,6 +257,22 @@ Global
 		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Debug|x86.Build.0 = Debug|Any CPU
 		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Release|x86.ActiveCfg = Release|Any CPU
 		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Release|x86.Build.0 = Release|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Debug|x86.Build.0 = Debug|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Release|x86.ActiveCfg = Release|Any CPU
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7}.Release|x86.Build.0 = Release|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Debug|x86.Build.0 = Debug|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Release|x86.ActiveCfg = Release|Any CPU
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -316,8 +316,6 @@ Global
 		{AAF9ABC9-DA69-4007-BC8A-B6A361C55064} = {55CBF29E-56AA-4DDB-89AB-66573C80313B}
 		{4E3A38C0-3AE7-4140-AEC3-C7A34566979B} = {D53860DE-DE18-4D16-AE61-A4D66BB9B51B}
 		{F14D10AD-3F32-4793-AB6A-450DB99EE65F} = {68F58D7E-4D53-4F62-9338-E965AE399D8A}
-		{C5749013-A5CA-4519-ACF5-0FAD1980EF4A} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
-		{87CA79A3-9E7C-4202-AC90-BFD757C6E2BA} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340} = {255420E4-67A9-441B-8DA0-67A77DE25034}
 		{55FE35E5-2464-4D55-AA52-04DFF1107DE1} = {68F58D7E-4D53-4F62-9338-E965AE399D8A}
@@ -332,5 +330,7 @@ Global
 		{F6AA113B-071D-4133-B3A6-F65FDF284A51} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 		{4E798DED-DFF2-4322-A1DA-2B7421AD2298} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
+		{74F02DF1-BCAD-431A-9B67-EE31E5B03DA7} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
+		{E43E55BE-22B9-4BA0-868F-C2A2468BF477} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
 	EndGlobalSection
 EndGlobal

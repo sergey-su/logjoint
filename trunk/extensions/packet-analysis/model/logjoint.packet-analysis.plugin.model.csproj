@@ -5,15 +5,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../model.sdk/logjoint.chromium.plugin.model.sdk.csproj" />
-    <ProjectReference Include="../model/logjoint.chromium.plugin.model.csproj" />
-
     <ProjectReference Include="../../../sdk/presentation/logjoint.presentation.sdk.csproj">
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="../../../sdk/model/logjoint.model.sdk.csproj">
       <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Formats\Wireshark - pdml.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
