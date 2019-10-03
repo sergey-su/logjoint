@@ -43,10 +43,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.sdk", "sdk\logjoin
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "symphony", "symphony", "{55FE35E5-2464-4D55-AA52-04DFF1107DE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin.model", "..\..\extensions\symphony\platforms\osx\logjoint.symphony.plugin.model\logjoint.symphony.plugin.model.csproj", "{90AE0C80-3E44-4513-AA75-26C7FADA24EC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin", "..\..\extensions\symphony\platforms\osx\logjoint.symphony.plugin\logjoint.symphony.plugin.csproj", "{0130D440-6425-41AE-9310-9BB9814BF0BE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.integration.tests", "logjoint.integration.tests\logjoint.integration.tests.csproj", "{87A87567-6268-4BA0-8050-BC04C2F37702}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.plugintool", "logjoint.plugintool\logjoint.plugintool.csproj", "{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175}"
@@ -62,6 +58,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin.presentation", "..\..\extensions\chromium\presentation\logjoint.chromium.plugin.presentation.csproj", "{B64CC532-A7D8-402C-A024-B2F0A900B309}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin", "..\..\extensions\chromium\plugin\logjoint.chromium.plugin.csproj", "{04585440-5849-4FB3-84DD-A33A9C5F7E8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin.model", "..\..\extensions\symphony\model\logjoint.symphony.plugin.model.csproj", "{F6AA113B-071D-4133-B3A6-F65FDF284A51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin.presentation", "..\..\extensions\symphony\presentation\logjoint.symphony.plugin.presentation.csproj", "{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.symphony.plugin", "..\..\extensions\symphony\plugin\logjoint.symphony.plugin.csproj", "{4E798DED-DFF2-4322-A1DA-2B7421AD2298}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -183,22 +185,6 @@ Global
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Debug|x86.Build.0 = Debug|Any CPU
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|x86.ActiveCfg = Release|Any CPU
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}.Release|x86.Build.0 = Release|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Debug|x86.Build.0 = Debug|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|x86.ActiveCfg = Release|Any CPU
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC}.Release|x86.Build.0 = Release|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Debug|x86.Build.0 = Debug|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|x86.ActiveCfg = Release|Any CPU
-		{0130D440-6425-41AE-9310-9BB9814BF0BE}.Release|x86.Build.0 = Release|Any CPU
 		{87A87567-6268-4BA0-8050-BC04C2F37702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{87A87567-6268-4BA0-8050-BC04C2F37702}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87A87567-6268-4BA0-8050-BC04C2F37702}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -263,6 +249,30 @@ Global
 		{04585440-5849-4FB3-84DD-A33A9C5F7E8A}.Debug|x86.Build.0 = Debug|Any CPU
 		{04585440-5849-4FB3-84DD-A33A9C5F7E8A}.Release|x86.ActiveCfg = Release|Any CPU
 		{04585440-5849-4FB3-84DD-A33A9C5F7E8A}.Release|x86.Build.0 = Release|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Debug|x86.Build.0 = Debug|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Release|x86.ActiveCfg = Release|Any CPU
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51}.Release|x86.Build.0 = Release|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Debug|x86.Build.0 = Debug|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Release|x86.ActiveCfg = Release|Any CPU
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9}.Release|x86.Build.0 = Release|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Debug|x86.Build.0 = Debug|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Release|x86.ActiveCfg = Release|Any CPU
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -311,8 +321,6 @@ Global
 		{C04BD9F7-2731-4BE7-A980-7719E789EF91} = {F14D10AD-3F32-4793-AB6A-450DB99EE65F}
 		{C90306F2-3BB8-4D1B-BF0A-3C07DE799340} = {255420E4-67A9-441B-8DA0-67A77DE25034}
 		{55FE35E5-2464-4D55-AA52-04DFF1107DE1} = {68F58D7E-4D53-4F62-9338-E965AE399D8A}
-		{90AE0C80-3E44-4513-AA75-26C7FADA24EC} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
-		{0130D440-6425-41AE-9310-9BB9814BF0BE} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 		{87A87567-6268-4BA0-8050-BC04C2F37702} = {55CBF29E-56AA-4DDB-89AB-66573C80313B}
 		{CFFE73BF-4E6A-4D4F-AB70-50A6624CA175} = {255420E4-67A9-441B-8DA0-67A77DE25034}
 		{D9942354-A4EC-412F-A120-A96E8F1C58A3} = {255420E4-67A9-441B-8DA0-67A77DE25034}
@@ -321,5 +329,8 @@ Global
 		{1358758C-D6F5-44CF-8564-714A82CF3FA1} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
 		{B64CC532-A7D8-402C-A024-B2F0A900B309} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
 		{04585440-5849-4FB3-84DD-A33A9C5F7E8A} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
+		{F6AA113B-071D-4133-B3A6-F65FDF284A51} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
+		{51CD7AC0-E16C-423F-A444-F2BD158CD1D9} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
+		{4E798DED-DFF2-4322-A1DA-2B7421AD2298} = {55FE35E5-2464-4D55-AA52-04DFF1107DE1}
 	EndGlobalSection
 EndGlobal
