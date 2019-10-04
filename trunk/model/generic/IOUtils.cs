@@ -5,6 +5,7 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
@@ -55,19 +56,14 @@ namespace LogJoint
 			}
 		}
 
-		#if MONOMAC
 		public static void EnsureIsExecutable(string executablePath)
 		{
-			File.SetAttributes(
-				executablePath,
-				(FileAttributes)((uint) File.GetAttributes (executablePath) | 0x80000000)
-			);
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				File.SetAttributes(
+					executablePath,
+					(FileAttributes)((uint) File.GetAttributes (executablePath) | 0x80000000)
+				);
 		}
-		#else
-		public static void EnsureIsExecutable(string executablePath)
-		{
-		}
-		#endif
 
 		public static async Task CheckPythonInstallation()
 		{
