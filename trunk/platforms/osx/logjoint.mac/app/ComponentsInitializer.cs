@@ -78,6 +78,9 @@ namespace LogJoint.UI
 				presentation.ExpensibilityEntryPoint,
 				viewsFactory
 			), Properties.Settings.Default.LocalPlugins);
+
+			foreach (var asm in model.PluginsManager.PluginAssemblies)
+				ObjCRuntime.Runtime.RegisterAssembly(asm);
 		}
 	}
 }

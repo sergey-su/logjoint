@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
 using LogJoint.WebViewTools;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.UI.Presenters.WebViewTools
 {
@@ -100,9 +101,11 @@ namespace LogJoint.UI.Presenters.WebViewTools
 
 		async Task<UploadFormResult> IWebViewTools.UploadForm(UploadFormParams uploadFormParams)
 		{
-#if WIN
-			throw new NotImplementedException("Not implemented on Windows");
-#else
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				throw new NotImplementedException("Not implemented on Windows");
+			}
+
 			var task = new UploadFormTask
 			{
 				location = uploadFormParams.Location,
@@ -121,7 +124,6 @@ namespace LogJoint.UI.Presenters.WebViewTools
 			{
 				Values = values
 			};
-#endif
 		}
 
 #region View events

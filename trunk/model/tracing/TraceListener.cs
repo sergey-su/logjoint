@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Globalization;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
@@ -248,11 +249,10 @@ namespace LogJoint
 			{
 				type = EntryType.LogMessage,
 				dt = evtCache.DateTime,
-				#if MONOMAC // on mono TraceEventCache.ThreadId does not return ID but thread name
-				thread = Thread.CurrentThread.ManagedThreadId.ToString(),
-				#else
-				thread = evtCache.ThreadId,
-				#endif
+				thread =
+					RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? // on mono TraceEventCache.ThreadId does not return ID but thread name
+						Thread.CurrentThread.ManagedThreadId.ToString() :
+						evtCache.ThreadId,
 				logicalThread = enableLogicalThread ? (SynchronizationContext.Current?.ToString () ?? "NA") : null,
 				msgType = eventType,
 				message = message

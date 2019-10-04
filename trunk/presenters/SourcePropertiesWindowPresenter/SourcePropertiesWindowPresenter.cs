@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using LogJoint.Drawing;
 using LogJoint.Preprocessing;
@@ -503,11 +504,9 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			{
 				Disabled = viewState.containingFolderPath == null,
 				Text =
-#if MONOMAC
-				"Reveal in Finder"
-#else
-				"Open Containing Folder"
-#endif
+					RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
+						"Reveal in Finder" :
+						"Open Containing Folder"
 			};
 		}
 

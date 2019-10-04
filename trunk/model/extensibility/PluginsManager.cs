@@ -51,10 +51,11 @@ namespace LogJoint.Extensibility
 		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint, string localPluginsList)
 		{
 			InitPlugins(appEntryPoint, localPluginsList);
-			RegisterInteropClasses();
 		}
 
 		bool IPluginsManagerInternal.IsConfigured => pluginsIndexDownloader.IsDownloaderConfigured && updateDownloader.IsDownloaderConfigured;
+
+		IEnumerable<Assembly> IPluginsManagerInternal.PluginAssemblies => plugins.Select(plugin => plugin.GetType().Assembly);
 
 		void IPluginsManager.Register<PluginType>(PluginType plugin)
 		{
@@ -279,14 +280,6 @@ namespace LogJoint.Extensibility
 					}
 				}
 			}
-		}
-
-		void RegisterInteropClasses()
-		{
-			#if MONOMAC
-			foreach (var plugin in plugins)
-				ObjCRuntime.Runtime.RegisterAssembly (plugin.GetType().Assembly);
-			#endif
 		}
 
 		public void Dispose()

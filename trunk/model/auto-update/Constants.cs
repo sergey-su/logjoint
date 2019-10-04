@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO.Compression;
 using LogJoint.Persistence;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.AutoUpdate
 {
@@ -19,17 +20,16 @@ namespace LogJoint.AutoUpdate
 		public static readonly string updateInfoFileName = "update-info.xml";
 		public static readonly string updateLogKeyPrefix = "updatelog";
 
-#if MONOMAC
 		// on mac managed dlls are in logjoint.app/Contents/MonoBundle
 		// Contents is the installation root. It is completely replaced during update.
-		public static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../";
-		public static readonly string managedAssembliesLocationRelativeToInstallationRoot = "MonoBundle/";
-		public static readonly string nativeExecutableLocationRelativeToInstallationRoot = "MacOS/logjoint";
-#else
 		// on win dlls are in root installation folder
-		public static readonly string installationPathRootRelativeToManagedAssembliesLocation = ".";
-		public static readonly string managedAssembliesLocationRelativeToInstallationRoot = ".";
-		public static readonly string startAfterUpdateEventName = "LogJoint.Updater.StartAfterUpdate";
-#endif
+		public static readonly string installationPathRootRelativeToManagedAssembliesLocation =
+			RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?  "../" : ".";
+		public static readonly string managedAssembliesLocationRelativeToInstallationRoot =
+			RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "MonoBundle/" : ".";
+		public static readonly string nativeExecutableLocationRelativeToInstallationRoot =
+			RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "MacOS/logjoint" : null;
+		public static readonly string startAfterUpdateEventName =
+			RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? null : "LogJoint.Updater.StartAfterUpdate";
 	};
 }

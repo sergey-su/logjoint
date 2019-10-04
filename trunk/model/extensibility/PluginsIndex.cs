@@ -5,6 +5,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Xml;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.Extensibility
 {
@@ -55,13 +56,10 @@ namespace LogJoint.Extensibility
 					continue;
 				}
 				string thisPlatform =
-#if WIN
-					"win";
-#elif MONOMAC
-					"mac";
-#else
+					RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "win" :
+					RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "mac" :
 					"<unk>";
-#endif
+
 				if (platform != "any" && thisPlatform != platform)
 				{
 					continue;

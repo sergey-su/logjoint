@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ namespace LogJoint.Extensibility
 		/// </summary>
 		IReadOnlyDictionary<string, bool> InstallationRequests { get; }
 		IPluginInstallationRequestsBuilder CreatePluginInstallationRequestsBuilder();
+		IEnumerable<Assembly> PluginAssemblies { get; }
 	};
 
 	public interface IPluginInfo

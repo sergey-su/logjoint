@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using LogJoint.Persistence;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.AutoUpdate
 {
@@ -94,23 +95,27 @@ namespace LogJoint.AutoUpdate
 				string firstArg;
 				string autoRestartCommandLine;
 				string autoRestartIPCKey;
+				string restartFlagFileName;
 
-#if MONOMAC
-				updaterExePath = Path.Combine(installationDir, Constants.managedAssembliesLocationRelativeToInstallationRoot, "logjoint.updater.exe");
-				var monoPath = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
-				programToStart = monoPath;
-				firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
-				string restartFlagFileName = tempFiles.GenerateNewName() + ".autorestart";
-				autoRestartIPCKey = restartFlagFileName;
-				autoRestartCommandLine = Path.GetFullPath(Path.Combine(installationDir, ".."));
-#else
-				updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
-				programToStart = tempUpdaterExePath;
-				firstArg = "";
-				autoRestartIPCKey = Constants.startAfterUpdateEventName;
-				autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe");
-				string restartFlagFileName = null;
-#endif
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					updaterExePath = Path.Combine(installationDir, Constants.managedAssembliesLocationRelativeToInstallationRoot, "logjoint.updater.exe");
+					var monoPath = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
+					programToStart = monoPath;
+					firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
+					restartFlagFileName = tempFiles.GenerateNewName() + ".autorestart";
+					autoRestartIPCKey = restartFlagFileName;
+					autoRestartCommandLine = Path.GetFullPath(Path.Combine(installationDir, ".."));
+				}
+				else
+				{
+					updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
+					programToStart = tempUpdaterExePath;
+					firstArg = "";
+					autoRestartIPCKey = Constants.startAfterUpdateEventName;
+					autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe");
+					restartFlagFileName = null;
+				}
 
 				File.Copy(updaterExePath, tempUpdaterExePath);
 
@@ -238,58 +243,56 @@ namespace LogJoint.AutoUpdate
 
 		bool IPendingUpdate.TrySetRestartAfterUpdateFlag()
 		{
-#if MONOMAC
-			if (autoRestartFlagFileName == null)
-				return false;
-			if (!File.Exists(autoRestartFlagFileName))
-				return false;
-			using (var fs = File.OpenWrite(autoRestartFlagFileName))
-				fs.WriteByte((byte)'1');
-			return true;
-#else
-			EventWaitHandle evt;
-			if (!EventWaitHandle.TryOpenExisting(Constants.startAfterUpdateEventName, out evt))
-				return false;
-			evt.Set();
-			return true;
-#endif
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				if (autoRestartFlagFileName == null)
+					return false;
+				if (!File.Exists(autoRestartFlagFileName))
+					return false;
+				using (var fs = File.OpenWrite(autoRestartFlagFileName))
+					fs.WriteByte((byte)'1');
+				return true;
+			}
+			else
+			{
+				EventWaitHandle evt;
+				if (!EventWaitHandle.TryOpenExisting(Constants.startAfterUpdateEventName, out evt))
+					return false;
+				evt.Set();
+				return true;
+			}
 		}
-
-#if MONOMAC
 
 		static string GetTempInstallationDir(string installationDir, ITempFilesManager tempFiles)
 		{
-			string tempInstallationDir = Path.Combine(
-				tempFiles.GenerateNewName(),
-				"pending-logjoint-update");
-			return tempInstallationDir;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				string tempInstallationDir = Path.Combine(
+					tempFiles.GenerateNewName(),
+					"pending-logjoint-update");
+				return tempInstallationDir;
+			}
+			else
+			{
+				// On windows: download update to a folder next to installation dir.
+				// This ensures almost 100% that temp folder and installation dir are on the same HDD partition
+				// which ensures speed and success of moving the temp folder in place of installation dir.
+				var localUpdateCheckId = Guid.NewGuid().GetHashCode();
+				string tempInstallationDir = Path.GetFullPath(string.Format(@"{0}\..\pending-logjoint-update-{1:x}",
+					installationDir, localUpdateCheckId));
+				return tempInstallationDir;
+			}
 		}
 
 		static void UpdatePermissions(string installationDir)
 		{
-			var executablePath = Path.Combine (installationDir, 
-				Constants.nativeExecutableLocationRelativeToInstallationRoot);
-			IOUtils.EnsureIsExecutable(executablePath);
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				var executablePath = Path.Combine (installationDir, 
+					Constants.nativeExecutableLocationRelativeToInstallationRoot);
+				IOUtils.EnsureIsExecutable(executablePath);
+			}
 		}
-
-#else
-
-		// On windows: download update to a folder next to installation dir.
-		// This ensures almost 100% that temp folder and installation dir are on the same HDD partition
-		// which ensures speed and success of moving the temp folder in place of installation dir.
-		static string GetTempInstallationDir(string installationDir, ITempFilesManager tempFiles)
-		{
-			var localUpdateCheckId = Guid.NewGuid().GetHashCode();
-			string tempInstallationDir = Path.GetFullPath(string.Format(@"{0}\..\pending-logjoint-update-{1:x}",
-				installationDir, localUpdateCheckId));
-			return tempInstallationDir;
-		}
-
-		static void UpdatePermissions(string installationDir)
-		{
-		}
-
-#endif
 
 		static IEnumerable<KeyValuePair<string, string>> EnumFormatsDefinitions(string formatsDir)
 		{
