@@ -101,6 +101,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\porting\graphics\fcl\matrix.cs">
+      <Link>ui\Drawing\impl\matrix.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\porting\graphics\fcl\systemColors.cs">
       <Link>ui\Drawing\impl\systemColors.cs</Link>
     </Compile>

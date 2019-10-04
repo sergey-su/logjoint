@@ -34,7 +34,8 @@ namespace LogJoint.UI
 					webContentCache,
 					shutdown,
 					traceSourceFactory
-				)
+				),
+				new Drawing.Matrix.Factory()
 			);
 
 			var viewsFactory = new Presenters.ViewsFactory (mainWindow, model);

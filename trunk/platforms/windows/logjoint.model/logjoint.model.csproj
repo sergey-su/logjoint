@@ -283,12 +283,6 @@
     <Compile Include="..\..\..\model\generic\drawing\Extensions.cs">
       <Link>generic\drawing\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\drawing\Matrix.cs">
-      <Link>generic\drawing\Matrix.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\drawing\platform-specific\win\MatrixImpl.cs">
-      <Link>generic\drawing\MatrixImpl.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\EditDistance.cs">
       <Link>generic\EditDistance.cs</Link>
     </Compile>

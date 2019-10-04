@@ -45,6 +45,7 @@ namespace LogJoint
 		public IColorLeaseConfig ThreadColorsLease { get; internal set; }
 		public Extensibility.IPluginsManagerInternal PluginsManager { get; internal set; }
 		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
+		public Drawing.IMatrixFactory MatrixFactory { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -66,7 +67,8 @@ namespace LogJoint
 			ModelConfig config,
 			ISynchronizationContext modelSynchronizationContext,
 			Func<Persistence.IStorageManager, Preprocessing.ICredentialsCache> createPreprocessingCredentialsCache,
-			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebViewTools.IWebViewTools> createWebBrowserDownloader
+			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebViewTools.IWebViewTools> createWebBrowserDownloader,
+			Drawing.IMatrixFactory matrixFactory
 		)
 		{
 			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners);
@@ -384,7 +386,8 @@ namespace LogJoint
 				HeartBeatTimer = heartBeatTimer,
 				ThreadColorsLease = threadColorsLease,
 				PluginsManager = pluginsManager,
-				TraceSourceFactory = traceSourceFactory
+				TraceSourceFactory = traceSourceFactory,
+				MatrixFactory = matrixFactory
 			};
 		}
 

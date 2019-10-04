@@ -15,7 +15,11 @@ namespace LogJoint.Postprocessing.Correlation
 				throw new Exception("Unsupported platform");
 #endif
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+#if MONOMAC
 				return new Postprocessing.Correlation.ExternalSolver.CmdLineToolProxy();
+#else
+				throw new Exception("Unsupported platform");
+#endif
 			else
 				throw new Exception("Unsupported platform");
 		}
