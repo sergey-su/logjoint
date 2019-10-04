@@ -26,6 +26,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IScreenBufferFactory screenBufferFactory,
 			IChangeNotification changeNotification,
 			IColorTheme theme,
+			RegularExpressions.IRegexFactory regexFactory,
 			ITraceSourceFactory traceSourceFactory,
 			IViewModeStrategy viewModeStrategy,
 			IColoringModeStrategy coloringModeStrategy
@@ -49,14 +50,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
-			var wordSelection = new WordSelection();
+			var wordSelection = new WordSelection(regexFactory);
 			this.selectionManager = new SelectionManager(
 				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection, theme);
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry, changeNotification);
 			this.highlightingManager = new HighlightingManager(
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
-				highlightFilters, this.selectionManager, wordSelection, theme
+				highlightFilters, this.selectionManager, wordSelection, theme, regexFactory
 			);
 			this.displayTextGetterSelector = MakeDisplayTextGetterSelector();
 

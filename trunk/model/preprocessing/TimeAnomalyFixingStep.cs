@@ -16,13 +16,15 @@ namespace LogJoint.Preprocessing
 			Progress.IProgressAggregator progressAggregator,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			IStepsFactory preprocessingStepsFactory,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.@params = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAggregator;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 		}
 
 		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
@@ -69,7 +71,7 @@ namespace LogJoint.Preprocessing
 				SimpleFileMedia.CreateConnectionParamsFromFileName(@params.Location)))
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (var reader = readerFactory.CreateMessagesReader(
-				new MediaBasedReaderParams(threads, fileMedia, callback.TempFilesManager, traceSourceFactory)))
+				new MediaBasedReaderParams(threads, fileMedia, callback.TempFilesManager, traceSourceFactory, regexFactory)))
 			{
 				var readerImpl = reader as MediaBasedPositionedMessagesReader; // todo: do not use real classes; have stream endcoding in an interface.
 				if (readerImpl == null)
@@ -125,6 +127,7 @@ namespace LogJoint.Preprocessing
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 		internal const string name = "reorder";
 		const int progressUpdateThreshold = 1024;
 		const int queueSize = 1024 * 128;

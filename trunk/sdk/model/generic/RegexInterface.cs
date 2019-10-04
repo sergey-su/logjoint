@@ -56,15 +56,4 @@ namespace LogJoint.RegularExpressions
 	{
 		IRegex Create(string pattern, ReOptions options);
 	};
-
-	public static class RegexFactory
-	{
-		public static readonly IRegexFactory Instance =
-#if !SILVERLIGHT
-			//FCLRegexFactory.Instance;
-			LJRegexFactory.Instance;
-#else
-			FCLRegexFactory.Instance;
-#endif			
-	};
 }

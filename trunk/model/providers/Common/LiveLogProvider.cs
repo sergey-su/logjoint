@@ -150,7 +150,7 @@ namespace LogJoint
 				host, 
 				factory,
 				CreateConnectionParams(originalConnectionParams, host.TempFilesManager),
-				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false)),
+				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), host.RegexFactory),
 				typeof(XmlFormat.MessagesReader)
 			)
 		{

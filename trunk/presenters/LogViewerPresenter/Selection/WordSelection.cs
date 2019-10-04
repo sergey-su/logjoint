@@ -20,6 +20,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	internal class WordSelection: IWordSelection
 	{
+		public WordSelection(IRegexFactory regexFactory)
+		{
+			isPartOfGuidRegex = regexFactory.Create(
+				@"^[\da-f\-]{1,36}$", ReOptions.IgnoreCase);
+			isGuidRegex = regexFactory.Create(
+				@"^[\da-f]{8}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{12}$", ReOptions.IgnoreCase);
+			isPartOfIPRegex = regexFactory.Create(
+				@"^[\d\.\:]{1,21}$", ReOptions.IgnoreCase);
+			ipRegex = regexFactory.Create(
+				@"(?<p1>\d{1,3})\.(?<p2>\d{1,3})\.(?<p3>\d{1,3})\.(?<p4>\d{1,3})(\:(?<port>\d+))?", ReOptions.IgnoreCase);
+		}
+
 		Tuple<int, int> IWordSelection.FindWordBoundaries(StringSlice line, int pos)
 		{
 			Func<KeyValuePair<int, char>, bool> isNotAWordChar = c => !StringUtils.IsWordChar(c.Value);
@@ -68,13 +80,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return true;
 		}
 
-		static bool TryExpandSelectionToCoverGuid(ref int begin, ref int end, StringSlice line)
+		bool TryExpandSelectionToCoverGuid(ref int begin, ref int end, StringSlice line)
 		{
 			return TryExpandSelection(ref begin, ref end, line, (substr, partialTest) => 
 				(partialTest ? isPartOfGuidRegex : isGuidRegex).IsMatch(substr) ? substr : new StringSlice?());
 		}
 
-		static bool TryExpandSelectionToCoverIP(ref int begin, ref int end, StringSlice line)
+		bool TryExpandSelectionToCoverIP(ref int begin, ref int end, StringSlice line)
 		{
 			return TryExpandSelection(ref begin, ref end, line, (substr, partialTest) =>
 			{
@@ -84,12 +96,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		static bool IsIP(StringSlice str)
+		bool IsIP(StringSlice str)
 		{
 			return (FindIP(str) ?? StringSlice.Empty) == str;
 		}
 
-		static StringSlice? FindIP(StringSlice str)
+		StringSlice? FindIP(StringSlice str)
 		{
 			IMatch m = null;
 			if (!ipRegex.Match(str.Buffer, str.StartIndex, str.Length, ref m))
@@ -104,13 +116,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return m.Groups[0].ToStringSlice(str.Buffer);
 		}
 
-		static IRegex isPartOfGuidRegex = RegexFactory.Instance.Create(
-			@"^[\da-f\-]{1,36}$", ReOptions.IgnoreCase);
-		static IRegex isGuidRegex = RegexFactory.Instance.Create(
-			@"^[\da-f]{8}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{12}$", ReOptions.IgnoreCase);
-		static IRegex isPartOfIPRegex = RegexFactory.Instance.Create(
-			@"^[\d\.\:]{1,21}$", ReOptions.IgnoreCase);
-		static IRegex ipRegex = RegexFactory.Instance.Create(
-			@"(?<p1>\d{1,3})\.(?<p2>\d{1,3})\.(?<p3>\d{1,3})\.(?<p4>\d{1,3})(\:(?<port>\d+))?", ReOptions.IgnoreCase);
+		readonly IRegex isPartOfGuidRegex;
+		readonly IRegex isGuidRegex;
+		readonly IRegex isPartOfIPRegex;
+		readonly IRegex ipRegex;
 	};
 };

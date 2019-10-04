@@ -17,6 +17,7 @@ namespace LogJoint
 		readonly ILogProvider provider;
 		readonly ILogSourceThreadsInternal logSourceThreads;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 		bool isDisposed;
 		bool visible = true;
 		bool trackingEnabled = true;
@@ -34,7 +35,7 @@ namespace LogJoint
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreadsInternal threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
 			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.owner = owner;
 			this.tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
@@ -43,6 +44,7 @@ namespace LogJoint
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
 			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 
 			try
 			{
@@ -159,6 +161,8 @@ namespace LogJoint
 		ITempFilesManager ILogProviderHost.TempFilesManager => tempFilesManager;
 
 		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
+
+		RegularExpressions.IRegexFactory ILogProviderHost.RegexFactory => regexFactory;
 
 		ISynchronizationContext ILogProviderHost.ModelSynchronizationContext => modelSyncContext;
 

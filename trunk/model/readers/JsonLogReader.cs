@@ -46,6 +46,7 @@ namespace LogJoint.JsonFormat
 		internal JsonFormatInfo formatInfo;
 		readonly ILogSourceThreadsInternal threads;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly IRegexFactory regexFactory;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, JsonFormatInfo fmt) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
@@ -53,6 +54,7 @@ namespace LogJoint.JsonFormat
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
 			this.traceSourceFactory = readerParams.TraceSourceFactory;
+			this.regexFactory = readerParams.RegexFactory;
 		}
 
 		protected override Encoding DetectStreamEncoding(Stream stream)
@@ -300,7 +302,8 @@ namespace LogJoint.JsonFormat
 				false,
 				formatInfo.HeadRe,
 				threads,
-				traceSourceFactory
+				traceSourceFactory,
+				regexFactory
 			);
 		}
 	};

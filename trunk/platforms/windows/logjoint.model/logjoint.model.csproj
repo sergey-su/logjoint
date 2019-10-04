@@ -313,15 +313,6 @@
     <Compile Include="..\..\..\model\generic\NumUtils.cs">
       <Link>generic\NumUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\regexps\FCLRegex.cs">
-      <Link>generic\regexps\FCLRegex.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\regexps\LJRegex.cs">
-      <Link>generic\regexps\LJRegex.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\regexps\RegexInterface.cs">
-      <Link>generic\regexps\RegexInterface.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\regexps\RegexUtils.cs">
       <Link>generic\regexps\RegexUtils.cs</Link>
     </Compile>
@@ -1162,10 +1153,6 @@
     <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
       <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
       <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
-      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
-      <Name>logjoint.regex</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -294,12 +294,11 @@ namespace LogJoint.XmlFormat
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
-		public static readonly XmlFormatInfo NativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions());
-
-		public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams, FormatViewOptions viewOptions)
+		public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams, 
+			FormatViewOptions viewOptions, IRegexFactory regexFactory)
 		{
 			LoadedRegex headRe;
-			headRe.Regex = RegexFactory.Instance.Create(@"\<\s*(m|f|ef)\s", ReOptions.None);
+			headRe.Regex = regexFactory.Create(@"\<\s*(m|f|ef)\s", ReOptions.None);
 			headRe.SuffersFromPartialMatchProblem = false;
 			return new XmlFormatInfo(
 				null, headRe, new LoadedRegex(),
@@ -353,6 +352,7 @@ namespace LogJoint.XmlFormat
 		readonly LogJointXSLExtension xslExt;
 		readonly ILogSourceThreadsInternal threads;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly IRegexFactory regexFactory;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
@@ -360,6 +360,7 @@ namespace LogJoint.XmlFormat
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
 			this.traceSourceFactory = readerParams.TraceSourceFactory;
+			this.regexFactory = readerParams.RegexFactory;
 			this.transformArgs = new XsltArgumentList();
 
 			this.xslExt = new LogJointXSLExtension();
@@ -574,9 +575,10 @@ namespace LogJoint.XmlFormat
 				VolatileStream,
 				StreamEncoding,
 				false,
-				formatInfo.HeadRe, 
+				formatInfo.HeadRe,
 				threads,
-				traceSourceFactory
+				traceSourceFactory,
+				regexFactory
 			);
 		}
 	};
@@ -584,10 +586,12 @@ namespace LogJoint.XmlFormat
 	public class NativeXMLFormatFactory : IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
 		readonly ITempFilesManager tempFiles;
+		readonly XmlFormatInfo nativeFormatInfo;
 
-		public NativeXMLFormatFactory(ITempFilesManager tempFiles)
+		public NativeXMLFormatFactory(ITempFilesManager tempFiles, IRegexFactory regexFactory)
 		{
 			this.tempFiles = tempFiles;
+			this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions(), regexFactory);
 		}
 
 		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
@@ -639,8 +643,8 @@ namespace LogJoint.XmlFormat
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, 
-				XmlFormatInfo.NativeFormatInfo, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams,
+				nativeFormatInfo, typeof(MessagesReader));
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.Default; } }
@@ -652,7 +656,7 @@ namespace LogJoint.XmlFormat
 
 		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, XmlFormat.XmlFormatInfo.NativeFormatInfo);
+			return new MessagesReader(readerParams, nativeFormatInfo);
 		}
 	};
 

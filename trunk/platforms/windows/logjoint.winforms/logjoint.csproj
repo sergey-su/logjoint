@@ -107,6 +107,9 @@
     <Compile Include="..\..\..\porting\graphics\fcl\systemColors.cs">
       <Link>ui\Drawing\impl\systemColors.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\regex\LJRegex.cs">
+      <Link>regex\LJRegex.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\settings\Settings.cs">
       <Link>Properties\Settings.cs</Link>
     </Compile>

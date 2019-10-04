@@ -42,7 +42,7 @@ namespace LogJoint.PlainText
 			{
 				IMessagesSplitter splitter = new MessagesSplitter(
 					new StreamTextAccess(media.DataStream, Encoding.ASCII, TextStreamPositioningParams.Default),
-					RegexFactory.Instance.Create(@"^(?<body>.+)$", ReOptions.Multiline)
+					host.RegexFactory.Create(@"^(?<body>.+)$", ReOptions.Multiline)
 				);
 
 				watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;

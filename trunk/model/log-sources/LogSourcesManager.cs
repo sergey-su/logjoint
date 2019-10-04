@@ -18,9 +18,10 @@ namespace LogJoint
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
 			IShutdown shutdown,
 			ITraceSourceFactory traceSourceFactory,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			RegularExpressions.IRegexFactory regexFactory
 		) : this(heartbeat, recentlyUsedEntities, shutdown, traceSourceFactory, changeNotification,
-			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess, traceSourceFactory))
+			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess, traceSourceFactory, regexFactory))
 		{
 		}
 

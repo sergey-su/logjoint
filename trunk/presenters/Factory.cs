@@ -137,7 +137,8 @@ namespace LogJoint.UI.Presenters
 				model.SearchManager,
 				model.FiltersFactory,
 				colorTheme,
-				model.TraceSourceFactory
+				model.TraceSourceFactory,
+				model.RegexFactory
 			);
 
 			LoadedMessages.IPresenter loadedMessagesPresenter = new LoadedMessages.Presenter(
@@ -341,6 +342,7 @@ namespace LogJoint.UI.Presenters
 						model.UserDefinedFormatsManager,
 						model.TempFilesManager,
 						model.TraceSourceFactory,
+						model.RegexFactory,
 						logViewerPresenterFactory,
 						views.FormatsWizardViewFactory,
 						model.SynchronizationContext

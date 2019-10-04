@@ -13,27 +13,29 @@ namespace LogJoint
 	{
 		static int lastPerfOp;
 
-		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory) :
-			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, tempFilesManager, traceSourceFactory)
+		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory) :
+			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, tempFilesManager, traceSourceFactory, regexFactory)
 		{
 		}
 
-		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
+		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.mruIndexGetter = mruIndexGetter;
 			this.factoriesRegistry = factoriesRegistry;
 			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 		}
 
 		DetectedFormat IFormatAutodetect.DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
 		{
-			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, tempFilesManager, traceSourceFactory);
+			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, tempFilesManager, traceSourceFactory, regexFactory);
 		}
 
 		IFormatAutodetect IFormatAutodetect.Clone()
 		{
-			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, tempFilesManager, traceSourceFactory);
+			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, tempFilesManager, traceSourceFactory, regexFactory);
 		}
 
 		static DetectedFormat DetectFormat(
@@ -44,7 +46,8 @@ namespace LogJoint
 			CancellationToken cancellation,
 			IFormatAutodetectionProgress progress,
 			ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory)
 		{
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("fileName");
@@ -63,7 +66,7 @@ namespace LogJoint
 						using (var perfOp = new Profiling.Operation(log, factory.ToString()))
 						using (var fileMedia = createFileMedia())
 						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
-							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, traceSourceFactory,
+							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, traceSourceFactory, regexFactory,
 								MessagesReaderFlags.QuickFormatDetectionMode, parentLoggingPrefix: log.Prefix)))
 						{
 							if (progress != null)
@@ -144,5 +147,6 @@ namespace LogJoint
 		readonly ILogProviderFactoryRegistry factoriesRegistry;
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 	}
 }

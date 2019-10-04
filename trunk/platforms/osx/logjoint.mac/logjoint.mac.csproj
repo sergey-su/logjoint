@@ -178,6 +178,7 @@
     <Folder Include="ui\CommonControls\NSCustomTableRowView\" />
     <Folder Include="ui\CommonControls\NSDragDropTextField\" />
     <Folder Include="ui\OptionsDialog\" />
+    <Folder Include="regexp\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -673,6 +674,9 @@
     </Compile>
     <Compile Include="..\..\..\porting\graphics\mac\matrix.cs">
       <Link>ui\Drawing\impl\matrix.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\regex\LJRegex.cs">
+      <Link>regexp\LJRegex.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

@@ -10,5 +10,6 @@ namespace LogJoint
 		public XElement FormatSpecificNode;
 		public ITempFilesManager TempFilesManager;
 		public ITraceSourceFactory TraceSourceFactory;
+		public RegularExpressions.IRegexFactory RegexFactory;
 	};
 }
