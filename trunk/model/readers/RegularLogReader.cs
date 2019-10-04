@@ -61,6 +61,7 @@ namespace LogJoint.RegularGrammar
 		readonly FormatInfo fmtInfo;
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly IRegexFactory regexFactory;
 		readonly Lazy<bool> isBodySingleFieldExpression;
 		readonly LJTraceSource trace;
 
@@ -71,6 +72,7 @@ namespace LogJoint.RegularGrammar
 				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
 			this.threads = readerParams.Threads;
 			this.traceSourceFactory = readerParams.TraceSourceFactory;
+			this.regexFactory = readerParams.RegexFactory;
 			this.fmtInfo = fmt;
 			this.tempFilesManager = readerParams.TempFilesManager;
 			this.trace = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
@@ -285,9 +287,10 @@ namespace LogJoint.RegularGrammar
 				VolatileStream,
 				StreamEncoding,
 				allowPlainTextSearchOptimization,
-				fmtInfo.HeadRe, 
+				fmtInfo.HeadRe,
 				threads,
-				traceSourceFactory
+				traceSourceFactory,
+				regexFactory
 			);
 		}
 	};

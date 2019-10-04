@@ -28,6 +28,7 @@ namespace LogJoint
 		readonly ILogSourceThreadsInternal tempThreads;
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 		bool disposed;
 		int folderNeedsRescan;
 
@@ -38,9 +39,11 @@ namespace LogJoint
 			LJTraceSource traceSource,
 			IRollingFilesMediaStrategy rollingStrategy,
 			ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 			trace = traceSource;
 			using (trace.NewFrame)
 			{
@@ -305,7 +308,7 @@ namespace LogJoint
 						{
 							owner.trace.Info("First message time is unknown. Calculating it");
 							using (IPositionedMessagesReader reader = (IPositionedMessagesReader)Activator.CreateInstance(
-									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia, owner.tempFilesManager, owner.traceSourceFactory), owner.logFormatInfo))
+									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia, owner.tempFilesManager, owner.traceSourceFactory, owner.regexFactory), owner.logFormatInfo))
 							{
 								owner.trace.Info("Reader created");
 

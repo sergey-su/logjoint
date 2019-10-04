@@ -35,7 +35,8 @@ namespace LogJoint.UI
 					shutdown,
 					traceSourceFactory
 				),
-				new Drawing.Matrix.Factory()
+				new Drawing.Matrix.Factory(),
+				RegularExpressions.LJRegexFactory.Instance
 			);
 
 			var viewsFactory = new Presenters.ViewsFactory (mainWindow, model);

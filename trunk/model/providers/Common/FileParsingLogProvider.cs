@@ -44,13 +44,14 @@ namespace LogJoint
 						tracer,
 						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam]),
 						host.TempFilesManager,
-						host.TraceSourceFactory
+						host.TraceSourceFactory,
+						host.RegexFactory
 					);
 				else
 					media = new SimpleFileMedia(connectParams);
 
 				reader = (IPositionedMessagesReader)Activator.CreateInstance(
-					readerType, new MediaBasedReaderParams(this.threads, media, host.TempFilesManager, host.TraceSourceFactory,
+					readerType, new MediaBasedReaderParams(this.threads, media, host.TempFilesManager, host.TraceSourceFactory, host.RegexFactory,
 						settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix), formatInfo);
 
 				ITimeOffsets initialTimeOffset;

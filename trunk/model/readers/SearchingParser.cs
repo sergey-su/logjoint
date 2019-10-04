@@ -26,7 +26,9 @@ namespace LogJoint
 		readonly TextMessageCapture aligmentCapture;
 		readonly IEnumerable<SearchResultMessage> impl;
 		readonly LJTraceSource trace;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 		IEnumerator<SearchResultMessage> enumerator;
+		readonly IFilter dummyFilter;
 
 		public SearchingParser(
 			IPositionedMessagesReader owner,
@@ -38,7 +40,8 @@ namespace LogJoint
 			bool allowPlainTextSearchOptimization,
 			LoadedRegex headerRe,
 			ILogSourceThreads threads,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory
 		)
 		{
 			this.owner = owner;
@@ -50,7 +53,9 @@ namespace LogJoint
 			this.dejitteringParams = dejitteringParams;
 			this.rawStream = rawStream;
 			this.streamEncoding = streamEncoding;
+			this.regexFactory = regexFactory;
 			this.trace = traceSourceFactory.CreateTraceSource("LogSource", "srchp." + GetHashCode().ToString("x"));
+			this.dummyFilter = new Filter(FilterAction.Include, "", true, new Search.Options(), null, regexFactory);
 			var continuationToken = p.ContinuationToken as ContinuationToken;
 			if (continuationToken != null)
 				this.requestedRange = new FileRange.Range(continuationToken.NextPosition, requestedRange.End);
@@ -86,14 +91,13 @@ namespace LogJoint
 			readonly Stopwatch filteringTime;
 			readonly int tid;
 			readonly LJTraceSource trace;
+			readonly IFilter dummyFilter;
 			int totalMessages;
 			int matchedMessages;
 
-			static readonly IFilter dummyFilter = new Filter(
-				FilterAction.Include, "", true, new Search.Options(), null);
-
-			public MessagesPostprocessor(SearchAllOccurencesParams searchParams, LJTraceSource trace)
+			public MessagesPostprocessor(SearchAllOccurencesParams searchParams, LJTraceSource trace, IFilter dummyFilter)
 			{
+				this.dummyFilter = dummyFilter;
 				this.bulkProcessing = searchParams.Filters.StartBulkProcessing(
 					MessageTextGetters.Get(searchParams.SearchInRawText),
 					reverseMatchDirection: false);
@@ -127,7 +131,7 @@ namespace LogJoint
 				return ret;
 			}
 
-			public static MessageFilteringResult GetFilteringResultFromPostprocessorResult(object obj)
+			public static MessageFilteringResult GetFilteringResultFromPostprocessorResult(object obj, IFilter dummyFilter)
 			{
 				var f = (IFilter) obj;
 				if (f == null)
@@ -145,7 +149,7 @@ namespace LogJoint
 		IEnumerable<SearchResultMessage> Enum()
 		{
 			Func<IMessagesPostprocessor> postprocessor = 
-				() => new MessagesPostprocessor(parserParams.SearchParams, trace);
+				() => new MessagesPostprocessor(parserParams.SearchParams, trace, dummyFilter);
 			long searchableRangesLength = 0;
 			int searchableRangesCount = 0;
 			long totalMessagesCount = 0;
@@ -168,7 +172,7 @@ namespace LogJoint
 
 						var msg = tmp.Message;
 						var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
-							tmp.PostprocessingResult);
+							tmp.PostprocessingResult, dummyFilter);
 
 						if (filteringResult.Action != FilterAction.Exclude)
 						{
@@ -198,12 +202,12 @@ namespace LogJoint
 
 		void PrintPctStats(string name, long num, long denum)
 		{
-			trace.Info("Stats: {0}: {1:F4}%", name, denum != 0 ? num * 100d / denum : 0d);			
+			trace.Info("Stats: {0}: {1:F4}%", name, denum != 0 ? num * 100d / denum : 0d);
 		}
 
 		IEnumerable<FileRange.Range> EnumSearchableRanges()
 		{
-			var matcher = new PlainTextMatcher(parserParams, textStreamPositioningParams, plainTextSearchOptimizationAllowed);
+			var matcher = new PlainTextMatcher(parserParams, textStreamPositioningParams, plainTextSearchOptimizationAllowed, regexFactory);
 			if (!matcher.PlainTextSearchOptimizationPossible)
 			{
 				yield return requestedRange;
@@ -425,7 +429,8 @@ namespace LogJoint
 			public PlainTextMatcher(
 				CreateSearchingParserParams p, 
 				TextStreamPositioningParams textStreamPositioningParams,
-				bool plainTextSearchOptimizationAllowed)
+				bool plainTextSearchOptimizationAllowed,
+				RegularExpressions.IRegexFactory regexFactory)
 			{
 				var fixedOptions = new List<Search.Options>();
 				plainTextSearchOptimizationPossible = true;
@@ -461,7 +466,7 @@ namespace LogJoint
 				}
 				if (plainTextSearchOptimizationPossible)
 				{
-					opts = fixedOptions.Select(i => i.BeginSearch()).ToArray();
+					opts = fixedOptions.Select(i => i.BeginSearch(regexFactory)).ToArray();
 				}
 			}
 

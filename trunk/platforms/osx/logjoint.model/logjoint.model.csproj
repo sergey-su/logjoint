@@ -230,15 +230,6 @@
     <Compile Include="..\..\..\model\generic\NumUtils.cs">
       <Link>generic\NumUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\regexps\FCLRegex.cs">
-      <Link>generic\regexps\FCLRegex.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\regexps\LJRegex.cs">
-      <Link>generic\regexps\LJRegex.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\regexps\RegexInterface.cs">
-      <Link>generic\regexps\RegexInterface.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\regexps\RegexUtils.cs">
       <Link>generic\regexps\RegexUtils.cs</Link>
     </Compile>

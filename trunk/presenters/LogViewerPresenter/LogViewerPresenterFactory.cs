@@ -18,7 +18,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			ISearchManager searchManager,
 			IFiltersFactory filtersFactory,
 			IColorTheme theme,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory
 		)
 		{
 			this.changeNotification = changeNotification;
@@ -37,6 +38,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.filtersFactory = filtersFactory;
 			this.theme = theme;
 			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 		}
 
 		IPresenter IPresenterFactory.CreateLoadedMessagesPresenter(IView view)
@@ -47,9 +49,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 			return new Presenter(model, view, heartbeat,
 				presentationFacade, clipboard, settings, hlFilters, bookmarks, bookmarksFactory, telemetry,
-				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
+				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
-				new PermissiveColoringModeStrategy(changeNotification));
+				new PermissiveColoringModeStrategy(changeNotification)
+			);
 		}
 
 		(IPresenter, ISearchResultModel) IPresenterFactory.CreateSearchResultsPresenter(IView view, IPresenter loadedMessagesPresenter)
@@ -66,7 +69,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return (
 				new Presenter(model, view, heartbeat,
 					presentationFacade, clipboard, settings, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
-					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, traceSourceFactory,
+					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
 					new DelegatingColoringModeStrategy(loadedMessagesPresenter)
 				),
@@ -83,7 +86,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				Settings.DefaultSettingsAccessor.Instance, highlightFilter,
 				null, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification),
-				changeNotification, theme ?? this.theme, traceSourceFactory,
+				changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new ProhibitiveViewModeStrategy(),
 				new PermissiveColoringModeStrategy(changeNotification)
 			);
@@ -105,5 +108,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IFiltersFactory filtersFactory;
 		readonly IColorTheme theme;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 	};
 };

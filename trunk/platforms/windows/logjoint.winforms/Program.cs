@@ -50,7 +50,8 @@ namespace LogJoint
 					shutdown,
 					traceSourceFactory
 				),
-				new Drawing.Matrix.Factory()
+				new Drawing.Matrix.Factory(),
+				RegularExpressions.LJRegexFactory.Instance
 			);
 
 			var viewsFactory = new UI.Presenters.ViewsFactory(mainForm, model);
