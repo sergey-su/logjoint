@@ -671,6 +671,9 @@
     <Compile Include="ui\OptionsDialog\OptionsWindowController.designer.cs">
       <DependentUpon>OptionsWindowController.cs</DependentUpon>
     </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\matrix.cs">
+      <Link>ui\Drawing\impl\matrix.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

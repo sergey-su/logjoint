@@ -524,7 +524,8 @@ namespace LogJoint.UI.Presenters
 				clipboardAccess,
 				presentersFacade,
 				alertPopup,
-				colorTheme
+				colorTheme,
+				model.MatrixFactory
 			);
 
 			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage();

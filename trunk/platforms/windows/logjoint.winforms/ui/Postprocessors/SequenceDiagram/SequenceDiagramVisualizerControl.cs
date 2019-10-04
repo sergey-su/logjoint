@@ -155,16 +155,11 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		private void InitializeArrowEndShapePoints()
 		{
+			var scale = UIUtils.Dpi.Scale(1f, 120);
 			this.resources.ArrowEndShapePoints = new[] {
-				new LJD.PointF (-7, -4),
-				new LJD.PointF (-7, +4),
-				new LJD.PointF (0, 0)
-			};
-			using (var mtx = new LJD.Matrix())
-			{
-				var scale = UIUtils.Dpi.Scale(1f, 120);
-				mtx.Scale(scale, scale);
-				mtx.TransformPoints(this.resources.ArrowEndShapePoints);
+				new LJD.PointF (-7 * scale, -4 * scale),
+				new LJD.PointF (-7 * scale, +4 * scale),
+				new LJD.PointF (0  * scale,  0 * scale)
 			};
 		}
 
