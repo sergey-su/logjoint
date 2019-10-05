@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace LogJoint
 {
@@ -93,10 +94,7 @@ namespace LogJoint
 
 		public static string GetCSharpStringLiteral(string value)
 		{
-			var sw = new System.IO.StringWriter();
-			csharpProvider.Value.GenerateCodeFromExpression(
-				new System.CodeDom.CodePrimitiveExpression(value), sw, new System.CodeDom.Compiler.CodeGeneratorOptions());
-			return sw.ToString();
+			return SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(value)).ToFullString();
 		}
 
 		public static int FindNextWordInString(string str, int startFrom)
@@ -223,14 +221,6 @@ namespace LogJoint
 				}
 			}
 
-		}
-
-		static Lazy<System.CodeDom.Compiler.CodeDomProvider> csharpProvider;
-
-		static StringUtils()
-		{
-			csharpProvider = new Lazy<System.CodeDom.Compiler.CodeDomProvider>(
-				() => Microsoft.CSharp.CSharpCodeProvider.CreateProvider("C#"), true);
 		}
 	}
 }
