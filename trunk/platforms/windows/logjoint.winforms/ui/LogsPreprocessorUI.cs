@@ -27,7 +27,7 @@ namespace LogJoint.UI
 			lock (credentialCacheLock)
 			{
 				if (credentialCache == null)
-					credentialCache = new NetworkCredentialsStorage(credentialsCacheStorage);
+					credentialCache = new NetworkCredentialsStorage(credentialsCacheStorage, new Persistence.SystemDataProtection());
 				var cred = credentialCache.GetCredential(uri);
 				if (cred != null)
 					return cred;
@@ -48,7 +48,7 @@ namespace LogJoint.UI
 			lock (credentialCacheLock)
 			{
 				if (credentialCache == null)
-					credentialCache = new NetworkCredentialsStorage(credentialsCacheStorage);
+					credentialCache = new NetworkCredentialsStorage(credentialsCacheStorage, new Persistence.SystemDataProtection());
 				if (credentialCache.Remove(site))
 					credentialCache.StoreSecurely();
 			}
