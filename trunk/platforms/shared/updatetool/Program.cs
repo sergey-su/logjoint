@@ -12,8 +12,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
-using Ionic.Zip;
 using System.Diagnostics;
+using System.IO.Compression;
 
 namespace LogJoint.UpdateTool
 {
@@ -212,9 +212,8 @@ namespace LogJoint.UpdateTool
 			}
 
 			Console.WriteLine("Creating {0}", destArchiveFileName);
-			using (var zip = new ZipFile(destArchiveFileName))
+			using (var zip = ZipFile.Open(destArchiveFileName, ZipArchiveMode.Create))
 			{
-				zip.ParallelDeflateThreshold = -1; // http://dotnetzip.codeplex.com/workitem/14087
 				Console.WriteLine("Reading files from {0}", sourceFilesLocation);
 				var filesList = GetFilesList(sourceFilesLocation);
 				if (!prod)
@@ -232,15 +231,17 @@ namespace LogJoint.UpdateTool
 						var configDoc = MakeAppConfig (sourceFileAbsolutePath, prod);
 						Console.WriteLine("Adding to archive:   {0}   (config modified to fetch {1} updates, {2} logging)", 
 							relativeFilePath, prod ? "prod" : "staging", prod ? "no" : "full");
-						zip.AddEntry(relativeFilePath, configDoc.ToString());
+						using (var configStream = zip.CreateEntry(relativeFilePath).Open())
+							configDoc.Save(configStream);
 					}
 					else
 					{
 						Console.WriteLine("Adding to archive:   {0}", relativeFilePath);
-						zip.AddFile(sourceFileAbsolutePath, relativePathInArchive);
+						using (var entryStream = zip.CreateEntry(relativeFilePath).Open())
+						using (var sourceFileStream = new FileStream(sourceFileAbsolutePath, FileMode.Open))
+							sourceFileStream.CopyTo(entryStream);
 					}
 				}
-				zip.Save();
 			}
 			Console.WriteLine("Successfully created: {0} ", destArchiveFileName);
 		}
@@ -721,23 +722,20 @@ namespace LogJoint.UpdateTool
 				try
 				{
 					bool productionPackage;
-					using (var tempZipStream = new MemoryStream())
-					using (var tempManifestStream = new MemoryStream())
+					var tempZipFile = Path.GetTempFileName();
 					{
-						pluginBlob.DownloadToStream(tempZipStream);
+						pluginBlob.DownloadToFile(tempZipFile, FileMode.Create);
 
 						// todo: validate stuff from inbox
 						// todo: handle inbox and accepted blobs e-tags
 
 						XElement manifest;
 
-						tempZipStream.Position = 0;
-						using (var zip = ZipFile.Read(tempZipStream))
+						using (var zip = ZipFile.OpenRead(tempZipFile))
 						{
-							var manifestEntry = zip["manifest.xml"];
-							manifestEntry.Extract(tempManifestStream);
-							tempManifestStream.Position = 0;
-							manifest = XDocument.Load(tempManifestStream).Root;
+							var manifestEntry = zip.GetEntry("manifest.xml");
+							using (var manifestEntryStream = manifestEntry.Open())
+								manifest = XDocument.Load(manifestEntryStream).Root;
 						}
 
 						productionPackage = manifest.Attribute("production")?.Value == "true";
@@ -749,11 +747,9 @@ namespace LogJoint.UpdateTool
 
 						if (productionPackage)
 						{
-							tempZipStream.Position = 0;
-
 							var acceptedPluginBlob = CreateBlob(pluginBlob.Name, backup: false);
 							acceptedPluginBlob.Properties.ContentType = "application/zip";
-							acceptedPluginBlob.UploadFromStream(tempZipStream);
+							acceptedPluginBlob.UploadFromFile(tempZipFile);
 
 							var plugin = new XElement("plugin",
 								manifest.Element("id"),
@@ -770,6 +766,7 @@ namespace LogJoint.UpdateTool
 							result.Root.Add(plugin);
 						}
 					}
+					File.Delete(tempZipFile);
 					Console.WriteLine(productionPackage ? "DONE" : "SKIPPED (staging)");
 				}
 				catch (Exception e)

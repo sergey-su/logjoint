@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -21,13 +22,14 @@ namespace LogJoint
 			return Path.GetFullPath(path).ToLower();
 		}
 	
-		public static void CopyStreamWithProgress(Stream src, Stream dest, Action<long> progress)
+		public static void CopyStreamWithProgress(Stream src, Stream dest, Action<long> progress, CancellationToken cancellation)
 		{
 			for (byte[] buf = new byte[16 * 1024]; ; )
 			{
 				int read = src.Read(buf, 0, buf.Length);
 				if (read == 0)
 					break;
+				cancellation.ThrowIfCancellationRequested();
 				dest.Write(buf, 0, read);
 				progress(dest.Length);
 			}

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LogJoint.Preprocessing;
+using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace LogJoint.Tests.Integration
 {
@@ -62,6 +64,77 @@ namespace LogJoint.Tests.Integration
 				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
 			});
 		}
+
+		[Test]
+		public async Task CanOpenPasswordProtectedZipExtractAndFindKnownLogFormatInArchive()
+		{
+			app.Mocks.CredentialsCache.QueryCredentials(
+				Arg.Is<Uri>(v => v.ToString().Contains("XmlWriterTraceListener1AndImage.PasswordProtected.zip")), null)
+				.ReturnsForAnyArgs(new System.Net.NetworkCredential("", "Pa$$w0rd"));
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.PasswordProtected.zip"));
+				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
+			});
+		}
+
+		[Test]
+		public async Task DisplaysProgressDuringUnzipping()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				var preprocessorTask = app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
+				int lastPercent = 0;
+				for (int iter = 0; iter < 3; ++iter)
+				{
+					await app.WaitFor(() =>
+					{
+						var displayText = app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "";
+						var m = Regex.Match(displayText, @"Unpacking (\d+)\%");
+						if (m.Success)
+						{
+							var percent = int.Parse(m.Groups[1].Value);
+							if (percent > lastPercent && percent < 100)
+							{
+								lastPercent = percent;
+								return true;
+							}
+						}
+						return false;
+					});
+				}
+			});
+		}
+
+		[Test]
+		public async Task UnzippingCanBeCancelled()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				var preprocessorTask = app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
+				await app.WaitFor(() => (app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "").Contains("Unpacking"));
+				app.ViewModel.SourcesList.OnSelectAllShortcutPressed();
+				app.Mocks.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
+					UI.Presenters.AlertFlags.Yes);
+				var stopwatch = Stopwatch.StartNew();
+				app.ViewModel.SourcesList.OnDeleteButtonPressed();
+				await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 0);
+				stopwatch.Stop();
+				Assert.Less(stopwatch.ElapsedMilliseconds, 1000);
+				Assert.IsTrue(preprocessorTask.IsCanceled);
+			});
+		}
+
+		[Test]
+		public async Task CanExtractGZippedLog()
+		{
+			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			{
+				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml.gz"));
+				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
+			});
+		}
+
 
 		[Test]
 		public async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen()

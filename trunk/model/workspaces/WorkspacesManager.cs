@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LogJoint.Persistence;
-using Ionic.Zip;
 using LogJoint.MRU;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace LogJoint.Workspaces
 {
@@ -178,16 +178,17 @@ namespace LogJoint.Workspaces
 			var entries = new Dictionary<string, IStorageEntry>();
 			using (var zipFile = new ZipFile(entriesArchiveFileName))
 			{
-				foreach (var zipEntry in zipFile.Entries.Where(e => e != null))
+				foreach (var zipEntry in zipFile.OfType<ZipEntry>().Where(e => e != null))
 				{
 					if (zipEntry.IsDirectory)
 						continue;
-					var storageEntryId = Path.GetDirectoryName(zipEntry.FileName);
-					var sectionId = Path.GetFileName(zipEntry.FileName);
+					var storageEntryId = Path.GetDirectoryName(zipEntry.Name);
+					var sectionId = Path.GetFileName(zipEntry.Name);
 					using (var sectionContentStream = new FileStream(sectionContentTempFileName,
 						FileMode.Create, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.DeleteOnClose))
 					{
-						zipEntry.Extract(sectionContentStream);
+						using (var inputStream = zipFile.GetInputStream(zipEntry))
+							IOUtils.CopyStreamWithProgress(inputStream, sectionContentStream, _ => { }, CancellationToken.None);
 						sectionContentStream.Position = 0;
 						IStorageEntry storageEntry;
 						if (!entries.TryGetValue(storageEntryId, out storageEntry))
@@ -284,15 +285,17 @@ namespace LogJoint.Workspaces
 			var entriesArchiveFileName = tempFilesManager.GenerateNewName();
 			await Task.Run(() =>
 			{
-				using (var zip = new ZipFile(entriesArchiveFileName))
+				using (var baseOutputStream = new FileStream(entriesArchiveFileName, FileMode.Create))
+				using (var zip = new ZipOutputStream(baseOutputStream))
 				{
-					zip.ParallelDeflateThreshold = -1; // http://dotnetzip.codeplex.com/workitem/14087
 					foreach (var entry in entriesToArchive)
 					{
+						var newEntry = new ZipEntry(entry.Key);
+						zip.PutNextEntry(newEntry);
 						entry.Value.Position = 0;
-						zip.AddEntry(entry.Key, entry.Value);
+						IOUtils.CopyStreamWithProgress(entry.Value, zip, _ => { }, CancellationToken.None);
+						zip.CloseEntry();
 					}
-					zip.Save();
 				}
 			});
 			return entriesArchiveFileName;
