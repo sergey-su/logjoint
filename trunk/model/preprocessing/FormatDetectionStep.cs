@@ -47,7 +47,7 @@ namespace LogJoint.Preprocessing
 		{
 			if (HasZipExtension(fileInfo.Location) || HasZipExtension(fileInfo.FullPath))
 				if (header.Header.Take(4).SequenceEqual(new byte[] { 0x50, 0x4b, 0x03, 0x04 }))
-					return Ionic.Zip.ZipFile.IsZipFile(fileInfo.Location, false);
+					return true;
 			return false;
 		}
 
@@ -67,14 +67,14 @@ namespace LogJoint.Preprocessing
 		static bool IsGzipFile(string filePath)
 		{
 			using (var fstm  = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 64))
-			using (var stm = new Ionic.Zlib.GZipStream(fstm, Ionic.Zlib.CompressionMode.Decompress))
+			using (var stm = new ICSharpCode.SharpZipLib.GZip.GZipInputStream(fstm))
 			{
 				try
 				{
 					stm.Read(new byte[0], 0, 0);
 					return true;
 				}
-				catch (Ionic.Zlib.ZlibException)
+				catch (ICSharpCode.SharpZipLib.GZip.GZipException)
 				{
 					return false;
 				}

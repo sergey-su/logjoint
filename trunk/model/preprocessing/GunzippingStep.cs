@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Ionic.Zlib;
 using System.Threading.Tasks;
 using System;
 
@@ -43,15 +42,15 @@ namespace LogJoint.Preprocessing
 			using (var outFileStream = new FileStream(tmpFileName, FileMode.CreateNew))
 			using (var progress = sourceFileInfo.Length != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null)
 			{
-				using (var gzipStream = new GZipStream(inFileStream, CompressionMode.Decompress, true))
+				using (var gzipStream = new ICSharpCode.SharpZipLib.GZip.GZipInputStream(inFileStream))
 				{
-					IOUtils.CopyStreamWithProgress(gzipStream, outFileStream, downloadedBytes =>
+					IOUtils.CopyStreamWithProgress(gzipStream, outFileStream, bytes =>
 					{
 						callback.SetStepDescription(string.Format("{1} {0}: Gunzipping...",
-								IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath));
+								IOUtils.FileSizeToString(bytes), sourceFile.FullPath));
 						if (progress != null)
-							progress.SetValue((double)gzipStream.TotalIn / (double)sourceFileInfo.Length);
-					});
+							progress.SetValue((double)inFileStream.Position / (double)sourceFileInfo.Length);
+					}, callback.Cancellation);
 
 					return
 						new PreprocessingStepParams(tmpFileName, sourceFile.FullPath,

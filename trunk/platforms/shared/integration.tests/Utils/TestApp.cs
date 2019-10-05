@@ -111,7 +111,9 @@ namespace LogJoint.Tests.Integration
 					},
 					serialSynchronizationContext,
 					(_1) => mocks.CredentialsCache,
-					(_1, _2, _3) => mocks.WebBrowserDownloader
+					(_1, _2, _3) => mocks.WebBrowserDownloader,
+					Substitute.For<Drawing.IMatrixFactory>(), // todo: won't work for SequenceDiagram presenter tests
+					RegularExpressions.FCLRegexFactory.Instance
 				);
 
 				var presentationObjects = UI.Presenters.Factory.Create(

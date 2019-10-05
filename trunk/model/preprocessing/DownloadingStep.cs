@@ -85,7 +85,7 @@ namespace LogJoint.Preprocessing
 									IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath, description));
 							if (progress != null)
 								progress.SetValue((double)downloadedBytes / (double)contentLength);
-						});
+						}, callback.Cancellation);
 					}
 				};
 
