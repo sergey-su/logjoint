@@ -217,10 +217,6 @@
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
       <Project>{D9942354-A4EC-412F-A120-A96E8F1C58A3}</Project>
       <Name>logjoint.model.sdk</Name>
