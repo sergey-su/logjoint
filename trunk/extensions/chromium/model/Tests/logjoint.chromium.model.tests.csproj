@@ -66,12 +66,6 @@
   <ItemGroup>
     <EmbeddedResource Include="LogSamples\chrome_debug_2017_06_26.log" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
-      <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
-  </ItemGroup>
   <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="LogSamples\JsonLikeParserTest01.json" />

@@ -567,23 +567,11 @@
     <Compile Include="ui\providers\DebugOutputFactoryUI.designer.cs">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.designer.cs">
-      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
-    </Compile>
     <Compile Include="ui\providers\FileLogFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ui\providers\FileLogFactoryUI.designer.cs">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.designer.cs">
-      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Search\SearchEditorDialog.cs">
       <SubType>Form</SubType>
@@ -889,14 +877,8 @@
     <EmbeddedResource Include="ui\providers\DebugOutputFactoryUI.resx">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\EVTFactoryUI.resx">
-      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\FileLogFactoryUI.resx">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\SelectEVTLogSourceDialog.resx">
-      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Search\SearchEditorDialog.resx">
       <DependentUpon>SearchEditorDialog.cs</DependentUpon>
@@ -975,6 +957,14 @@
     <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\model\logjoint.model.csproj">
+      <Project>{a46e3f7f-86de-43b5-ae56-641cba2f6d0e}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\presenters\logjoint.presenters.csproj">
+      <Project>{b5575d95-edf2-4404-aefd-ac75687be7e4}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
       <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
       <Name>logjoint.model.sdk</Name>
@@ -982,14 +972,6 @@
     <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
       <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
       <Name>logjoint.presentation.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
-      <Name>logjoint.presenters</Name>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>

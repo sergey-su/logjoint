@@ -767,10 +767,6 @@
     </MonoDevelop>
   </ProjectExtensions>
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
-      <Name>logjoint.presenters</Name>
-    </ProjectReference>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
@@ -778,10 +774,6 @@
     <ProjectReference Include="..\logjoint.updater\logjoint.updater.csproj">
       <Project>{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}</Project>
       <Name>logjoint.updater</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
     </ProjectReference>
     <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
@@ -794,6 +786,14 @@
     <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
       <Project>{731F60CB-87A0-4C4E-8553-EE9259A05AAF}</Project>
       <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\model\logjoint.model.csproj">
+      <Project>{A13EFFC2-BA8E-48BF-A8D9-5D0B774EA266}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\presenters\logjoint.presenters.csproj">
+      <Project>{51B3C06E-37DD-4463-8AC3-87F36E5BB787}</Project>
+      <Name>logjoint.presenters</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

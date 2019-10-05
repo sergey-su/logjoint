@@ -133,10 +133,6 @@
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
-      <Name>logjoint.presenters</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

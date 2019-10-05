@@ -615,10 +615,6 @@
       <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
       <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

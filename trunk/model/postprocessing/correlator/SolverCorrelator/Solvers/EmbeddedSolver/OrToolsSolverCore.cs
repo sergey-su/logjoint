@@ -25,11 +25,11 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 
 			solver.Minimize(ToLinearExpr(rq.goal.expr, vars));
 
-			int resultStatus = solver.Solve();
+			GLS.Solver.ResultStatus resultStatus = solver.Solve();
 
 			var rsp = new Response();
 
-			if (resultStatus == GLS.Solver.INFEASIBLE) // todo: detect positive result
+			if (resultStatus == GLS.Solver.ResultStatus.INFEASIBLE) // todo: detect positive result
 			{
 				rsp.status = Response.Infeasible;
 			}

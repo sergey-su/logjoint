@@ -8,7 +8,6 @@ using LogJoint;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text.RegularExpressions;
-using LJRE = System.Text.RegularExpressions.LogJointVersion;
 using NUnit.Framework;
 
 namespace LogJoint.Tests

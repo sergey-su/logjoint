@@ -105,7 +105,7 @@ namespace LogJoint.Tests
 
 		public static IMediaBasedReaderFactory CreateFactoryFromAssemblyResource(Assembly asm, string companyName, string formatName)
 		{
-			var repo = new ResourcesFormatsRepository(asm);
+			var repo = new DirectoryFormatsRepository(Path.Combine(Path.GetDirectoryName(asm.Location), "formats"));
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);

@@ -29,6 +29,7 @@ namespace LogJoint.Tests.Integration
 				tempLogFileName = Path.Combine(app.AppDataDirectory, "XmlWriterTraceListener1.xml");
 				File.Copy(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"), tempLogFileName, overwrite: true);
 				await app.EmulateFileDragAndDrop(tempLogFileName);
+				await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.Length > 0);
 				await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
 				app.ViewModel.SourcesList.OnSelectionChange(new[] {
 					(SrcListItem)app.ViewModel.SourcesList.RootItem.Children[0]
