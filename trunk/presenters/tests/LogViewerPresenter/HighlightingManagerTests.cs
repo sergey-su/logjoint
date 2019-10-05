@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			selectionManager = Substitute.For<ISelectionManager>();
 			messagesSource = Substitute.For<IMessagesSource>();
 			colorTheme = Substitute.For<IColorTheme>();
-			wordSelection = new WordSelection();
+			wordSelection = new WordSelection(RegularExpressions.FCLRegexFactory.Instance);
 			isRawMessagesMode = false;
 			viewSize = 3;
 			highlightFilters.FilteringEnabled.Returns(true);
@@ -84,7 +84,7 @@ describe('MeetingV2', () => {
 		void CreateHighlightingManager()
 		{
 			highlightingManager = new HighlightingManager(searchResultModel,
-				() => MessageTextGetters.Get(isRawMessagesMode), () => viewSize, highlightFilters, selectionManager, wordSelection, colorTheme);
+				() => MessageTextGetters.Get(isRawMessagesMode), () => viewSize, highlightFilters, selectionManager, wordSelection, colorTheme, RegularExpressions.FCLRegexFactory.Instance);
 		}
 
 		IFilter CreateFilter(FilterAction action, bool expectRawMessagesMode, bool enabed,
@@ -211,7 +211,7 @@ describe('MeetingV2', () => {
 			[Test]
 			public void SingleLineMatch()
 			{
-				searchFilters.Insert(0, new Filter(FilterAction.Include, "test", true, new Search.Options() { Template = "meeting" }, Substitute.For<IFiltersFactory>()));
+				searchFilters.Insert(0, new Filter(FilterAction.Include, "test", true, new Search.Options() { Template = "meeting" }, Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
 				var textInfo = highlightingManager.GetSearchResultMessageText(msgWithMultilineText, MessageTextGetters.SummaryTextGetter, searchFilters);
 				Assert.AreEqual(StringUtils.NormalizeLinebreakes(
 @"import { MeetingSession } from '../../../../client/model/meeting/impl/meeting/meetingSession';
@@ -234,7 +234,7 @@ describe('MeetingV2', () => {
 				searchFilters.Insert(0, new Filter(FilterAction.Include, "test", true, new Search.Options() {
 					Template = @"Impl\'\;\r\n+import",
 					Regexp = true
-				}, Substitute.For<IFiltersFactory>()));
+				}, Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
 				var textInfo = highlightingManager.GetSearchResultMessageText(msgWithMultilineText, MessageTextGetters.SummaryTextGetter, searchFilters);
 				Assert.AreEqual(StringUtils.NormalizeLinebreakes(
 @"import { MeetingImpl } from '../../../../client/model/meeting/impl/meeting/impl/meetingImpl';

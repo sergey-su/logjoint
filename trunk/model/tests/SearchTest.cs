@@ -16,7 +16,7 @@ namespace LogJoint.Tests
 				WholeWord = wholeWord,
 				ReverseSearch = reverse
 			};
-			var actual = opts.BeginSearch().SearchInText(new StringSlice(text) , startPosition);
+			var actual = opts.BeginSearch(RegularExpressions.FCLRegexFactory.Instance).SearchInText(new StringSlice(text) , startPosition);
 			if (expectation != null)
 			{
 				Assert.IsTrue(actual != null);

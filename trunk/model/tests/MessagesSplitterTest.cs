@@ -12,7 +12,7 @@ namespace LogJoint.Tests
 	[TestFixture]
 	public class MessagesSplitterTest
 	{
-		static IRegexFactory reFactory = LJRegexFactory.Instance;
+		static IRegexFactory reFactory = RegularExpressions.FCLRegexFactory.Instance;
 
 		[Test]
 		public void GetCurrentMessageAndMoveToNextOne_MainScenario_Forward()
