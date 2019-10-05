@@ -118,6 +118,12 @@ namespace LogJoint.Persistence
 		bool IsCachingForcedForHost(string hostName);
 	};
 
+	public interface ICredentialsProtection
+	{
+		byte[] Protect(byte[] userData);
+		byte[] Unprotect(byte[] encryptedData);
+	};
+
 	public class StorageException : Exception
 	{
 		public StorageException(Exception inner) : base(inner.Message, inner) { }
