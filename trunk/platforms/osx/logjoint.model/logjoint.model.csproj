@@ -552,9 +552,6 @@
     <Compile Include="..\..\..\model\auto-update\AzureUpdateDownloader.cs">
       <Link>auto-update\AzureUpdateDownloader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\multi-instance\platform-specific\mac\InstancesCounter.cs">
-      <Link>multi-instance\InstancesCounter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\telemetry\AzureTelemetryUploader.cs">
       <Link>telemetry\AzureTelemetryUploader.cs</Link>
     </Compile>
@@ -1148,6 +1145,9 @@
     </Compile>
     <Compile Include="..\..\..\model\multi-instance\DummyInstanceCounter.cs">
       <Link>multi-instance\DummyInstanceCounter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\multi-instance\InstancesCounter.cs">
+      <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
