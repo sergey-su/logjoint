@@ -352,7 +352,8 @@ namespace LogJoint.Tests
 				LJTraceSource.EmptyTracer,
 				new GenericRollingMediaStrategy(fs.BaseDir),
 				new TempFilesManager(),
-				new TraceSourceFactory()
+				new TraceSourceFactory(),
+				RegularExpressions.FCLRegexFactory.Instance
 			);
 			return media;
 		}

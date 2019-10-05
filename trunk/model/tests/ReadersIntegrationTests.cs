@@ -107,7 +107,7 @@ namespace LogJoint.Tests
 		{
 			var repo = new ResourcesFormatsRepository(asm);
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory());
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			LogJoint.XmlFormat.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
@@ -119,7 +119,7 @@ namespace LogJoint.Tests
 		public static void Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
 		{
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media, tempFilesManager, new TraceSourceFactory())))
+			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance)))
 			{
 				reader.UpdateAvailableBounds(false);
 
@@ -253,7 +253,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 ";
 			using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media, new TempFilesManager(), new TraceSourceFactory())))
+			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media, new TempFilesManager(), new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance)))
 			{
 				reader.UpdateAvailableBounds(false);
 				long? prevMessagePos = PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
@@ -588,7 +588,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			var repo = new SingleEntryFormatsRepository(formatDescription);
 			ITempFilesManager tempFilesManager = new TempFilesManager();
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory());
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance);
 			JsonFormat.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 			var factory = reg.Items.FirstOrDefault();

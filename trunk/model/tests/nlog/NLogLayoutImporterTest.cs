@@ -152,7 +152,7 @@ namespace LogJoint.Tests.NLog
 			var formatXml = formatDocument.OuterXml;
 			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory());
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance);
 			RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 

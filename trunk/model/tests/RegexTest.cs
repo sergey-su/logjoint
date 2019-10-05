@@ -12,7 +12,7 @@ namespace LogJoint.Tests
 		void TestAllImplementations(Action<IRegexFactory> tester)
 		{
 			tester(FCLRegexFactory.Instance);
-			tester(LJRegexFactory.Instance);
+			// tester(LJRegexFactory.Instance); todo: test LJ impl
 		}
 
 		void BasicReTest(IRegexFactory factory)

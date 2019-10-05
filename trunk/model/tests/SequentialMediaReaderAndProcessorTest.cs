@@ -181,8 +181,7 @@ namespace LogJoint.Tests
 
 			LogJoint.RegularExpressions.IRegexFactory factory;
 			
-			factory = LogJoint.RegularExpressions.LJRegexFactory.Instance;
-			//factory = LogJoint.RegularExpressions.FCLRegexFactory.Instance;
+			factory = LogJoint.RegularExpressions.FCLRegexFactory.Instance;
 			
 			Func<LogJoint.RegularExpressions.IRegex> makeRe = () => 
 				factory.Create(reTemplate, LogJoint.RegularExpressions.ReOptions.Multiline);

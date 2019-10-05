@@ -313,6 +313,9 @@
     <Compile Include="..\..\..\model\generic\NumUtils.cs">
       <Link>generic\NumUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\regexps\FCLRegex.cs">
+      <Link>generic\regexps\FCLRegex.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\regexps\RegexUtils.cs">
       <Link>generic\regexps\RegexUtils.cs</Link>
     </Compile>
@@ -472,11 +475,11 @@
     <Compile Include="..\..\..\model\multi-instance\DummyInstanceCounter.cs">
       <Link>multi-instance\DummyInstanceCounter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\multi-instance\InstancesCounter.cs">
+      <Link>multi-instance\InstancesCounter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\multi-instance\Interfaces.cs">
       <Link>multi-instance\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\multi-instance\platform-specific\win32\InstancesCounter.cs">
-      <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\nlog\CsvOutputGeneration.cs">
       <Link>nlog\CsvOutputGeneration.cs</Link>
