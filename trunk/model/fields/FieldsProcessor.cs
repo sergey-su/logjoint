@@ -273,6 +273,7 @@ namespace LogJoint
 
 				var metadataReferences = new List<MetadataReference>();
 				metadataReferences.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver("System.Runtime")));
 				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")));
 				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName)));
 				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName)));
@@ -523,7 +524,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				}
 				else
 				{
-					if (!fieldsAdded)
+					if (!fieldsAdded) // todo: remove __fields
 					{
 						code.AppendLine(@"
 		StringBuilder __fields = new StringBuilder();
@@ -531,7 +532,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 						fieldsAdded = true;
 					}
 					code.AppendFormat(@"
-		__fields.AppendFormat(""{{0}}{{1}}={{2}}"", Environment.NewLine, ""{0}"", {1});",
+		__fields.AppendLine();
+		__fields.AppendFormat(""{{0}}={{1}}"", ""{0}"", {1});",
 						s.Name, GetOutputFieldExpression(s, "string", helperFunctions));
 				}
 			}
