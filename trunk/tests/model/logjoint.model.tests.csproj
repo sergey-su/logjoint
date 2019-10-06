@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,13 +18,17 @@
     <ProjectReference Include="../../model/logjoint.model.csproj" />
   </ItemGroup>
 
-  <!-- todo: fix excluded tests --> 
+  <!-- todo: fix excluded tests -->
   <ItemGroup>
     <Compile Remove="nlog/testapp/**" />
     <Compile Remove="MessagesSplitterTest.cs" />
     <Compile Remove="SimpleFileMediaTest.cs" />
     <Compile Remove="log4net/Log4netLayoutImporterTest.cs" />
     <Compile Remove="nlog/NLogLayoutImporterTest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Samples\XmlWriterTraceListener1.xml" />
   </ItemGroup>
 
 </Project>

@@ -82,16 +82,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
-      <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
-      <Name>logjoint.model</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
-      <Name>logjoint.presenters</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
       <Project>{929f7c79-e2bb-4e6c-af17-f21e5025265a}</Project>
       <Name>logjoint</Name>
