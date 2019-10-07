@@ -41,7 +41,6 @@ namespace LogJoint
 		void SetTimeOffsets(ITimeOffsets value);
 		void SetInputField(int idx, StringSlice value);
 		IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
-		Type CompileUserCodeToType(Func<string, string> assemblyLocationResolver);
 		bool IsBodySingleFieldExpression();
 	};
 
@@ -169,11 +168,6 @@ namespace LogJoint
 		IMessage IFieldsProcessor.MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags)
 		{
 			return builder.MakeMessage(callback, flags);
-		}
-
-		Type IFieldsProcessor.CompileUserCodeToType(Func<string, string> assemblyLocationResolver)
-		{
-			return CompileUserCodeToTypeInternal(assemblyLocationResolver);
 		}
 
 		bool IFieldsProcessor.IsBodySingleFieldExpression()
