@@ -47,6 +47,7 @@ namespace LogJoint
 		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
 		public Drawing.IMatrixFactory MatrixFactory { get; internal set; }
 		public RegularExpressions.IRegexFactory RegexFactory { get; internal set; }
+		public IFieldsProcessorFactory FieldsProcessorFactory { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -81,10 +82,11 @@ namespace LogJoint
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 			MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
+			IFieldsProcessorFactory fieldsProcessorFactory = new FieldsProcessor.Factory(tempFilesManager);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
-				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory);
+				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
-			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory);
+			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
 			tracer.Info("app initializer created");
 			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
@@ -166,9 +168,7 @@ namespace LogJoint
 			IFormatAutodetect formatAutodetect = new FormatAutodetect(
 				recentlyUsedLogs,
 				logProviderFactoryRegistry,
-				tempFilesManager,
-				traceSourceFactory,
-				regexFactory
+				traceSourceFactory
 			);
 
 			Workspaces.Backend.IBackendAccess workspacesBackendAccess = new Workspaces.Backend.AzureWorkspacesBackend(
@@ -209,7 +209,6 @@ namespace LogJoint
 				logProviderFactoryRegistry,
 				webBrowserDownloader,
 				logsDownloaderConfig,
-				traceSourceFactory,
 				regexFactory
 			);
 
@@ -394,6 +393,7 @@ namespace LogJoint
 				TraceSourceFactory = traceSourceFactory,
 				MatrixFactory = matrixFactory,
 				RegexFactory = regexFactory,
+				FieldsProcessorFactory = fieldsProcessorFactory,
 			};
 		}
 
@@ -401,14 +401,15 @@ namespace LogJoint
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			ITempFilesManager tempFilesManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
-			RegularExpressions.IRegexFactory regexFactory)
+			RegularExpressions.IRegexFactory regexFactory,
+			ITraceSourceFactory traceSourceFactory)
 		{
 #if WIN
 			logProviderFactoryRegistry.Register(new DebugOutput.Factory());
 			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
 #endif
 			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager));
-			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory));
+			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
 			userDefinedFormatsManager.ReloadFactories();
 		}
 

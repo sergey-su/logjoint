@@ -206,24 +206,16 @@ namespace LogJoint
 		public ILogMedia Media;
 		public MessagesReaderFlags Flags;
 		public Settings.IGlobalSettingsAccessor SettingsAccessor;
-		public ITempFilesManager TempFilesManager;
-		public ITraceSourceFactory TraceSourceFactory;
-		public RegularExpressions.IRegexFactory RegexFactory;
 		public string ParentLoggingPrefix;
 		public MediaBasedReaderParams(ILogSourceThreadsInternal threads, ILogMedia media, 
-			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory,
 			MessagesReaderFlags flags = MessagesReaderFlags.None,
 			Settings.IGlobalSettingsAccessor settingsAccessor = null, string parentLoggingPrefix = null)
 		{
 			Threads = threads;
 			Media = media;
 			Flags = flags;
-			TempFilesManager = tempFilesManager;
-			TraceSourceFactory = traceSourceFactory;
 			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
 			ParentLoggingPrefix = parentLoggingPrefix;
-			RegexFactory = regexFactory;
 		}
 	};
 

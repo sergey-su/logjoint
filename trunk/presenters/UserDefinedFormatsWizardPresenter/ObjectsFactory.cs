@@ -16,6 +16,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
 		readonly IViewsFactory viewFactories;
 		readonly ISynchronizationContext synchronizationContext;
+		readonly IFieldsProcessorFactory fieldsProcessorFactory;
 
 		public interface IViewsFactory
 		{
@@ -52,7 +53,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			RegularExpressions.IRegexFactory regexFactory,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IViewsFactory viewFactories,
-			ISynchronizationContext synchronizationContext
+			ISynchronizationContext synchronizationContext,
+			IFieldsProcessorFactory fieldsProcessorFactory
 		)
 		{
 			this.viewFactories = viewFactories;
@@ -67,6 +69,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.synchronizationContext = synchronizationContext;
+			this.fieldsProcessorFactory = fieldsProcessorFactory;
 		}
 
 		IView IFactory.CreateWizardView()
@@ -214,6 +217,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		}
 
 		private ITestParsing CreateTestParsing() => new CustomFormatPageUtils.TestParsing(
-			alerts, tempFilesManager, traceSourceFactory, regexFactory, this);
+			alerts, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory, this);
 	};
 };

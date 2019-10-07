@@ -119,7 +119,7 @@ namespace LogJoint.Tests
 		public static void Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
 		{
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance)))
+			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media, new TraceSourceFactory())))
 			{
 				reader.UpdateAvailableBounds(false);
 
