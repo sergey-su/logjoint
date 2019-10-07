@@ -65,16 +65,22 @@ namespace LogJoint.RegularGrammar
 		readonly Lazy<bool> isBodySingleFieldExpression;
 		readonly LJTraceSource trace;
 
-		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
+		public MessagesReader(
+			MediaBasedReaderParams readerParams,
+			FormatInfo fmt,
+			ITempFilesManager tempFilesManager,
+			IRegexFactory regexFactory,
+			ITraceSourceFactory traceSourceFactory
+		) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
 			this.threads = readerParams.Threads;
-			this.traceSourceFactory = readerParams.TraceSourceFactory;
-			this.regexFactory = readerParams.RegexFactory;
+			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 			this.fmtInfo = fmt;
-			this.tempFilesManager = readerParams.TempFilesManager;
+			this.tempFilesManager = tempFilesManager;
 			this.trace = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 
 			base.Extensions.AttachExtensions();
@@ -303,6 +309,8 @@ namespace LogJoint.RegularGrammar
 		Lazy<FormatInfo> fmtInfo;
 		readonly string uiKey;
 		readonly ITempFilesManager tempFilesManager;
+		readonly IRegexFactory regexFactory;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
@@ -319,6 +327,8 @@ namespace LogJoint.RegularGrammar
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			tempFilesManager = createParams.TempFilesManager;
+			regexFactory = createParams.RegexFactory;
+			traceSourceFactory = createParams.TraceSourceFactory;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
 				Type precompiledUserCode = ReadPrecompiledUserCode(createParams.RootNode);
@@ -354,7 +364,7 @@ namespace LogJoint.RegularGrammar
 
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, fmtInfo.Value);
+			return new MessagesReader(readerParams, fmtInfo.Value, tempFilesManager, regexFactory, traceSourceFactory);
 		}
 		
 		#region ILogReaderFactory Members
@@ -373,7 +383,7 @@ namespace LogJoint.RegularGrammar
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, fmtInfo.Value, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, fmtInfo.Value, tempFilesManager, regexFactory, traceSourceFactory));
 		}
 
 		public override LogProviderFactoryFlag Flags

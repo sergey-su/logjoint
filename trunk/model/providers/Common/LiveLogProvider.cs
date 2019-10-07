@@ -150,8 +150,12 @@ namespace LogJoint
 				host, 
 				factory,
 				CreateConnectionParams(originalConnectionParams, host.TempFilesManager),
-				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), host.RegexFactory),
-				typeof(XmlFormat.MessagesReader)
+				@params => new XmlFormat.MessagesReader(
+					@params,
+					XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), host.RegexFactory),
+					host.RegexFactory,
+					host.TraceSourceFactory
+				)
 			)
 		{
 			this.trace = base.tracer;

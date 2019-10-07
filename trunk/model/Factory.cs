@@ -84,7 +84,7 @@ namespace LogJoint
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
-			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory);
+			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
 			tracer.Info("app initializer created");
 			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
@@ -166,9 +166,7 @@ namespace LogJoint
 			IFormatAutodetect formatAutodetect = new FormatAutodetect(
 				recentlyUsedLogs,
 				logProviderFactoryRegistry,
-				tempFilesManager,
-				traceSourceFactory,
-				regexFactory
+				traceSourceFactory
 			);
 
 			Workspaces.Backend.IBackendAccess workspacesBackendAccess = new Workspaces.Backend.AzureWorkspacesBackend(
@@ -209,7 +207,6 @@ namespace LogJoint
 				logProviderFactoryRegistry,
 				webBrowserDownloader,
 				logsDownloaderConfig,
-				traceSourceFactory,
 				regexFactory
 			);
 
@@ -401,14 +398,15 @@ namespace LogJoint
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			ITempFilesManager tempFilesManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
-			RegularExpressions.IRegexFactory regexFactory)
+			RegularExpressions.IRegexFactory regexFactory,
+			ITraceSourceFactory traceSourceFactory)
 		{
 #if WIN
 			logProviderFactoryRegistry.Register(new DebugOutput.Factory());
 			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
 #endif
 			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager));
-			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory));
+			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
 			userDefinedFormatsManager.ReloadFactories();
 		}
 

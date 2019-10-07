@@ -8,6 +8,7 @@ namespace LogJoint
 		public string Location;
 		public XElement RootNode;
 		public XElement FormatSpecificNode;
+
 		public ITempFilesManager TempFilesManager;
 		public ITraceSourceFactory TraceSourceFactory;
 		public RegularExpressions.IRegexFactory RegexFactory;
