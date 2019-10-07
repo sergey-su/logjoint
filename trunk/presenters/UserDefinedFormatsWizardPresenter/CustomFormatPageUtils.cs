@@ -48,6 +48,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			readonly ITempFilesManager tempFilesManager;
 			readonly ITraceSourceFactory traceSourceFactory;
 			readonly RegularExpressions.IRegexFactory regexFactory;
+			readonly IFieldsProcessorFactory fieldsProcessorFactory;
 			readonly IFactory objectsFactory;
 
 			public TestParsing(
@@ -55,6 +56,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				ITempFilesManager tempFilesManager,
 				ITraceSourceFactory traceSourceFactory,
 				RegularExpressions.IRegexFactory regexFactory,
+				IFieldsProcessorFactory fieldsProcessorFactory,
 				IFactory objectsFactory
 			)
 			{
@@ -63,6 +65,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				this.traceSourceFactory = traceSourceFactory;
 				this.regexFactory = regexFactory;
 				this.objectsFactory = objectsFactory;
+				this.fieldsProcessorFactory = fieldsProcessorFactory;
 			}
 
 			bool? ITestParsing.Test(
@@ -90,6 +93,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					createParams.TempFilesManager = tempFilesManager;
 					createParams.TraceSourceFactory = traceSourceFactory;
 					createParams.RegexFactory = regexFactory;
+					createParams.FieldsProcessorFactory = fieldsProcessorFactory;
 
 					// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
 					// we test regexps correctness.

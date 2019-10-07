@@ -14,36 +14,6 @@ using System.Collections.Immutable;
 
 namespace LogJoint
 {
-	public interface IMessagesBuilderCallback
-	{
-		long CurrentPosition { get; }
-		long CurrentEndPosition { get; }
-		StringSlice CurrentRawText { get; }
-		IThread GetThread(StringSlice id);
-	};
-
-	[Flags]
-	public enum MakeMessageFlags
-	{
-		Default = 0,
-		HintIgnoreTime = 1,
-		HintIgnoreBody = 2,
-		HintIgnoreSeverity = 4,
-		HintIgnoreThread = 8,
-		HintIgnoreEntryType = 16,
-	};
-
-	public interface IFieldsProcessor
-	{
-		void Reset();
-		void SetSourceTime(DateTime sourceTime);
-		void SetPosition(long value);
-		void SetTimeOffsets(ITimeOffsets value);
-		void SetInputField(int idx, StringSlice value);
-		IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
-		bool IsBodySingleFieldExpression();
-	};
-
 	public partial class FieldsProcessor: IFieldsProcessor
 	{
 		public class InitializationParams
@@ -114,6 +84,30 @@ namespace LogJoint
 				this.ExtensionAssemblyName = extensionAssemblyName;
 				this.ExtensionClassName = extensionClassName;
 				this.InstanceGetter = instanceGetter;
+			}
+		};
+
+		public class Factory : IFieldsProcessorFactory
+		{
+			readonly ITempFilesManager tempFilesManager;
+			public Factory(ITempFilesManager tempFilesManager)
+			{
+				this.tempFilesManager = tempFilesManager;
+			}
+
+			IFieldsProcessor IFieldsProcessorFactory.Create(
+				InitializationParams initializationParams,
+				IEnumerable<string> inputFieldNames,
+				IEnumerable<ExtensionInfo> extensions,
+				LJTraceSource trace)
+			{
+				return new FieldsProcessor(
+					initializationParams,
+					inputFieldNames,
+					extensions,
+					tempFilesManager,
+					trace
+				);
 			}
 		};
 

@@ -12,5 +12,6 @@ namespace LogJoint
 		public ITempFilesManager TempFilesManager;
 		public ITraceSourceFactory TraceSourceFactory;
 		public RegularExpressions.IRegexFactory RegexFactory;
+		public IFieldsProcessorFactory FieldsProcessorFactory;
 	};
 }

@@ -47,6 +47,7 @@ namespace LogJoint
 		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
 		public Drawing.IMatrixFactory MatrixFactory { get; internal set; }
 		public RegularExpressions.IRegexFactory RegexFactory { get; internal set; }
+		public IFieldsProcessorFactory FieldsProcessorFactory { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -81,8 +82,9 @@ namespace LogJoint
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 			MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
+			IFieldsProcessorFactory fieldsProcessorFactory = new FieldsProcessor.Factory(tempFilesManager);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
-				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory);
+				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
 			tracer.Info("app initializer created");
@@ -391,6 +393,7 @@ namespace LogJoint
 				TraceSourceFactory = traceSourceFactory,
 				MatrixFactory = matrixFactory,
 				RegexFactory = regexFactory,
+				FieldsProcessorFactory = fieldsProcessorFactory,
 			};
 		}
 

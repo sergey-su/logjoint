@@ -59,7 +59,7 @@ namespace LogJoint.RegularGrammar
 	{
 		readonly ILogSourceThreadsInternal threads;
 		readonly FormatInfo fmtInfo;
-		readonly ITempFilesManager tempFilesManager;
+		readonly IFieldsProcessorFactory fieldsProcessorFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly IRegexFactory regexFactory;
 		readonly Lazy<bool> isBodySingleFieldExpression;
@@ -68,7 +68,7 @@ namespace LogJoint.RegularGrammar
 		public MessagesReader(
 			MediaBasedReaderParams readerParams,
 			FormatInfo fmt,
-			ITempFilesManager tempFilesManager,
+			IFieldsProcessorFactory fieldsProcessorFactory,
 			IRegexFactory regexFactory,
 			ITraceSourceFactory traceSourceFactory
 		) :
@@ -80,7 +80,7 @@ namespace LogJoint.RegularGrammar
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.fmtInfo = fmt;
-			this.tempFilesManager = tempFilesManager;
+			this.fieldsProcessorFactory = fieldsProcessorFactory;
 			this.trace = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 
 			base.Extensions.AttachExtensions();
@@ -93,17 +93,11 @@ namespace LogJoint.RegularGrammar
 
 		IFieldsProcessor CreateNewFieldsProcessor()
 		{
-			return CreateNewFieldsProcessor(fmtInfo, Extensions, tempFilesManager, trace);
-		}
-
-		internal static IFieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions, ITempFilesManager tempFilesManager, LJTraceSource trace)
-		{
-			return new FieldsProcessor(
+			return fieldsProcessorFactory.Create(
 				fmtInfo.FieldsProcessorParams,
 				fmtInfo.HeadRe.Regex.GetGroupNames().Skip(1).Concat(
 					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) : Enumerable.Repeat("body", 1)),
-				extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
-				tempFilesManager,
+				Extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
 				trace
 			);
 		}
@@ -309,6 +303,7 @@ namespace LogJoint.RegularGrammar
 		Lazy<FormatInfo> fmtInfo;
 		readonly string uiKey;
 		readonly ITempFilesManager tempFilesManager;
+		readonly IFieldsProcessorFactory fieldsProcessorFactory;
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 
@@ -327,6 +322,7 @@ namespace LogJoint.RegularGrammar
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			tempFilesManager = createParams.TempFilesManager;
+			fieldsProcessorFactory = createParams.FieldsProcessorFactory;
 			regexFactory = createParams.RegexFactory;
 			traceSourceFactory = createParams.TraceSourceFactory;
 			fmtInfo = new Lazy<FormatInfo>(() =>
@@ -364,7 +360,7 @@ namespace LogJoint.RegularGrammar
 
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, fmtInfo.Value, tempFilesManager, regexFactory, traceSourceFactory);
+			return new MessagesReader(readerParams, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory);
 		}
 		
 		#region ILogReaderFactory Members
@@ -383,7 +379,7 @@ namespace LogJoint.RegularGrammar
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, fmtInfo.Value, tempFilesManager, regexFactory, traceSourceFactory));
+			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory));
 		}
 
 		public override LogProviderFactoryFlag Flags
