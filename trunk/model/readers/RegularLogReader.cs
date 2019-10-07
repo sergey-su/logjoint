@@ -297,7 +297,7 @@ namespace LogJoint.RegularGrammar
 
 	public class UserDefinedFormatFactory : 
 		UserDefinedFactoryBase,
-		IFileBasedLogProviderFactory, IMediaBasedReaderFactory, IUserCodePrecompile
+		IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
 		List<string> patterns = new List<string>();
 		Lazy<FormatInfo> fmtInfo;
@@ -407,17 +407,6 @@ namespace LogJoint.RegularGrammar
 		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
 		{
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
-		}
-
-
-		public Type CompileUserCodeToType(Func<string, string> assemblyLocationResolver)
-		{
-			using (MessagesReaderExtensions extensions = new MessagesReaderExtensions(null, fmtInfo.Value.ExtensionsInitData))
-			{
-				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions, tempFilesManager, LJTraceSource.EmptyTracer);
-				var type = fieldsProcessor.CompileUserCodeToType(assemblyLocationResolver);
-				return type;
-			}
 		}
 	};
 }
