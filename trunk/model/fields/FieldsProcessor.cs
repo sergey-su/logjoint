@@ -12,13 +12,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 
-namespace LogJoint
+namespace LogJoint.FieldsProcessor
 {
-	public partial class FieldsProcessor: IFieldsProcessor
+	public partial class FieldsProcessorImpl: IFieldsProcessor
 	{
-		public class InitializationParams
+		public class InitializationParams: IInitializationParams
 		{
-			public InitializationParams(XElement fieldsNode, bool performChecks, Type precompiledUserCode)
+			public InitializationParams(XElement fieldsNode, bool performChecks)
 			{
 				if (fieldsNode == null)
 					throw new ArgumentNullException(nameof (fieldsNode));
@@ -46,85 +46,60 @@ namespace LogJoint
 					if (this.timeField.Name == null)
 						throw new Exception("'Time' field is not defined");
 				}
-				this.precompiledUserCode = precompiledUserCode;
 			}
 
-			internal void InitializeInstance(FieldsProcessor proc)
+			internal void InitializeInstance(FieldsProcessorImpl proc)
 			{
 				proc.outputFields.AddRange(outputFields);
-				proc.precompiledBuilderType = precompiledUserCode;
 			}
 
 			readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 			readonly OutputFieldStruct timeField;
-			readonly Type precompiledUserCode;
 		};
 
-		public struct ExtensionInfo
+		public class Factory : IFactory
 		{
-			public readonly string ExtensionName;
-			public readonly string ExtensionAssemblyName;
-			public readonly string ExtensionClassName;
-			public readonly Func<object> InstanceGetter;
-			public ExtensionInfo(string extensionName, string extensionAssemblyName, string extensionClassName, 
-				Func<object> instanceGetter)
-			{
-				if (string.IsNullOrEmpty(extensionName))
-					throw new ArgumentException(nameof(extensionName));
-				if (string.IsNullOrEmpty(extensionAssemblyName))
-					throw new ArgumentException(nameof(extensionAssemblyName));
-				if (string.IsNullOrEmpty(extensionClassName))
-					throw new ArgumentException(nameof(extensionClassName));
-				if (instanceGetter == null)
-					throw new ArgumentNullException(nameof (instanceGetter));
-				if (!StringUtils.IsValidCSharpIdentifier(extensionName))
-					throw new ArgumentException("extensionName must be a valid C# identifier", nameof (extensionName));
-
-				this.ExtensionName = extensionName;
-				this.ExtensionAssemblyName = extensionAssemblyName;
-				this.ExtensionClassName = extensionClassName;
-				this.InstanceGetter = instanceGetter;
-			}
-		};
-
-		public class Factory : IFieldsProcessorFactory
-		{
-			readonly ITempFilesManager tempFilesManager;
 			readonly Persistence.IStorageEntry cacheEntry;
+			readonly Telemetry.ITelemetryCollector telemetryCollector;
 
 			public Factory(
-				ITempFilesManager tempFilesManager,
-				Persistence.IStorageManager storageManager
+				Persistence.IStorageManager storageManager,
+				Telemetry.ITelemetryCollector telemetryCollector
 			)
 			{
-				this.tempFilesManager = tempFilesManager;
-				this.cacheEntry = storageManager.GetEntry("user-code-cache", 0x81012231);
+				this.cacheEntry = storageManager.GetEntry("user-code-cache", 0x81012232);
+				this.telemetryCollector = telemetryCollector;
 			}
 
-			IFieldsProcessor IFieldsProcessorFactory.Create(
-				InitializationParams initializationParams,
+			IInitializationParams IFactory.CreateInitializationParams(
+				XElement fieldsNode, bool performChecks
+			) => new InitializationParams(fieldsNode, performChecks);
+
+			IFieldsProcessor IFactory.CreateProcessor(
+				IInitializationParams initializationParams,
 				IEnumerable<string> inputFieldNames,
 				IEnumerable<ExtensionInfo> extensions,
 				LJTraceSource trace)
 			{
-				return new FieldsProcessor(
-					initializationParams,
+				return new FieldsProcessorImpl(
+					(InitializationParams)initializationParams,
 					inputFieldNames,
 					extensions,
-					tempFilesManager,
 					cacheEntry,
-					trace
+					trace,
+					telemetryCollector
 				);
 			}
 		};
 
-		public FieldsProcessor(
+		public FieldsProcessorImpl(
 			InitializationParams initializationParams, 
 			IEnumerable<string> inputFieldNames, 
 			IEnumerable<ExtensionInfo> extensions,
-			ITempFilesManager tempFilesManager,
 			Persistence.IStorageEntry cacheEntry,
-			LJTraceSource trace)
+			LJTraceSource trace,
+			Telemetry.ITelemetryCollector telemetryCollector
+		)
 		{
 			if (inputFieldNames == null)
 				throw new ArgumentNullException(nameof (inputFieldNames));
@@ -132,9 +107,9 @@ namespace LogJoint
 			if (extensions != null)
 				this.extensions.AddRange(extensions);
 			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
-			this.tempFilesManager = tempFilesManager;
 			this.cacheEntry = cacheEntry;
 			this.trace = trace;
+			this.telemetryCollector = telemetryCollector;
 		}
 
 		void IFieldsProcessor.Reset()
@@ -232,16 +207,7 @@ namespace LogJoint
 				{
 					if (!builderTypesCache.TryGetValue(builderTypeHash, out builderTypeTask))
 					{
-						builderTypeTask = Task.Run(() => 
-						{
-							using (var cacheESection = cacheEntry.OpenRawStreamSection("code",
-								Persistence.StorageSectionOpenFlag.ReadOnly, additionalNumericKey: builderTypeHash))
-							{
-								// cacheESection.
-							}
-							return CompileUserCodeToTypeInternal(
-								asmName => Assembly.Load(asmName).Location);
-						});
+						builderTypeTask = Task.Run(() => GenerateType(builderTypeHash));
 						builderTypesCache.Add(builderTypeHash, builderTypeTask);
 					}
 				}
@@ -266,22 +232,50 @@ namespace LogJoint
 
 		static Dictionary<int, Task<Type>> builderTypesCache = new Dictionary<int, Task<Type>>();
 
-		Type CompileUserCodeToTypeInternal(Func<string, string> assemblyLocationResolver)
+		Type GenerateType(int builderTypeHash)
+		{
+			using (var cacheSection = cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
+				Persistence.StorageSectionOpenFlag.ReadWrite))
+			{
+				var cachedRawAsmSize = cacheSection.Data.Length;
+				if (cachedRawAsmSize > 0)
+				{
+					try
+					{
+						var cachedRawAsm = new byte[cachedRawAsmSize];
+						cacheSection.Data.Read(cachedRawAsm, 0, (int)cachedRawAsmSize);
+						return Assembly.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
+					}
+					catch (Exception e)
+					{
+						trace.Error(e, "Failed to load cached builder");
+						telemetryCollector.ReportException(e, "loading cached builder asm");
+					}
+				}
+				var (asm, rawAsm) = CompileUserCodeToAsm();
+				cacheSection.Data.Position = 0;
+				cacheSection.Data.Write(rawAsm, 0, rawAsm.Length);
+				return asm.GetType("GeneratedMessageBuilder");
+			}
+		}
+
+		(Assembly, byte[]) CompileUserCodeToAsm()
 		{
 			using (var perfop = new Profiling.Operation(trace, "compile user code"))
 			{
 				List<string> refs = new List<string>();
 				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields, refs);
+				MetadataReference assemblyLocationResolver(string asmName) => MetadataReference.CreateFromFile(Assembly.Load(asmName).Location);
 
 				var syntaxTree = CSharpSyntaxTree.ParseText(fullCode);
 
 				var metadataReferences = new List<MetadataReference>();
 				metadataReferences.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
-				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver("System.Runtime")));
-				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")));
-				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName)));
-				metadataReferences.Add(MetadataReference.CreateFromFile(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName)));
-				metadataReferences.AddRange(refs.Select(refAsm => MetadataReference.CreateFromFile(assemblyLocationResolver(refAsm))));
+				metadataReferences.Add(assemblyLocationResolver("System.Runtime"));
+				metadataReferences.Add(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"));
+				metadataReferences.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
+				metadataReferences.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
+				metadataReferences.AddRange(refs.Select(assemblyLocationResolver));
 
 				CSharpCompilation compilation = CSharpCompilation.Create(
 					$"UserCode{Guid.NewGuid().ToString("N")}",
@@ -302,8 +296,9 @@ namespace LogJoint
 					dllStream.Flush();
 					dllStream.Position = 0;
 					perfop.Milestone("getting type");
-					var asm = Assembly.Load(dllStream.ToArray());
-					return asm.GetType("GeneratedMessageBuilder");
+					var rawAsm = dllStream.ToArray();
+					var asm = Assembly.Load(rawAsm);
+					return (asm, rawAsm);
 				}
 			}
 		}
@@ -448,8 +443,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			");
 
 			code.AppendLine(@"
-	public override LogJoint.IMessage MakeMessage(LogJoint.IMessagesBuilderCallback __callback,
-		LogJoint.MakeMessageFlags __flags)
+	public override LogJoint.IMessage MakeMessage(LogJoint.FieldsProcessor.IMessagesBuilderCallback __callback,
+		LogJoint.FieldsProcessor.MakeMessageFlags __flags)
 	{
 			");
 
@@ -518,7 +513,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				{
 					code.AppendFormat(@"
 		{0} {1};
-		if ((__flags & LogJoint.MakeMessageFlags.{2}) == 0)
+		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.{2}) == 0)
 			{1} = {3};
 		else 
 			{1} = {4};",
@@ -573,7 +568,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			}
 
 			code.AppendLine(@"
-		if ((__flags & LogJoint.MakeMessageFlags.HintIgnoreBody) == 0)
+		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.HintIgnoreBody) == 0)
 			__body = TRIM(__body);");
 
 
@@ -674,8 +669,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly List<string> inputFieldNames;
 		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 		readonly List<ExtensionInfo> extensions = new List<ExtensionInfo>();
-		readonly ITempFilesManager tempFilesManager;
 		readonly Persistence.IStorageEntry cacheEntry;
+		readonly Telemetry.ITelemetryCollector telemetryCollector;
 		readonly LJTraceSource trace;
 		Type precompiledBuilderType;
 

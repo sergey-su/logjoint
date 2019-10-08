@@ -120,25 +120,6 @@ namespace LogJoint
 			return Type.GetType(typeName);
 		}
 
-		protected static Type ReadPrecompiledUserCode(XElement root)
-		{
-			var codeNode = root.Element("precompiled-user-code");
-			if (codeNode == null)
-				return null;
-			var typeAttr = codeNode.Attribute("type");
-			if (typeAttr == null)
-				return null;
-			Assembly asm;
-			byte[] asmBytes = Convert.FromBase64String(codeNode.Value);
-#if !SILVERLIGHT
-			asm = Assembly.Load(asmBytes);
-#else
-				var asmPart = new System.Windows.AssemblyPart();
-				asm = asmPart.Load(new MemoryStream(asmBytes));
-#endif
-			return asm.GetType(typeAttr.Value);
-		}
-
 		protected static void ReadPatterns(XElement formatSpecificNode, List<string> patternsList)
 		{
 			patternsList.AddRange(

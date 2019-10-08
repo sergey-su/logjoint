@@ -16,7 +16,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
 		readonly IViewsFactory viewFactories;
 		readonly ISynchronizationContext synchronizationContext;
-		readonly IFieldsProcessorFactory fieldsProcessorFactory;
+		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 
 		public interface IViewsFactory
 		{
@@ -54,7 +54,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IViewsFactory viewFactories,
 			ISynchronizationContext synchronizationContext,
-			IFieldsProcessorFactory fieldsProcessorFactory
+			FieldsProcessor.IFactory fieldsProcessorFactory
 		)
 		{
 			this.viewFactories = viewFactories;
@@ -189,7 +189,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		EditFieldsMapping.IPresenter IFactory.CreateEditFieldsMapping()
 		{
 			return new EditFieldsMapping.Presenter(viewFactories.CreateEditFieldsMappingDialog(),
-				alerts, fileDialogs, tempFilesManager, help);
+				alerts, fileDialogs, fieldsProcessorFactory, help);
 		}
 
 		XmlBasedFormatPage.IPresenter IFactory.CreateXmlBasedFormatPage(IWizardScenarioHost host)

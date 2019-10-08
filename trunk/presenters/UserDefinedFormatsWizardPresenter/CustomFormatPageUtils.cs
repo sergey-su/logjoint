@@ -48,7 +48,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			readonly ITempFilesManager tempFilesManager;
 			readonly ITraceSourceFactory traceSourceFactory;
 			readonly RegularExpressions.IRegexFactory regexFactory;
-			readonly IFieldsProcessorFactory fieldsProcessorFactory;
+			readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 			readonly IFactory objectsFactory;
 
 			public TestParsing(
@@ -56,7 +56,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				ITempFilesManager tempFilesManager,
 				ITraceSourceFactory traceSourceFactory,
 				RegularExpressions.IRegexFactory regexFactory,
-				IFieldsProcessorFactory fieldsProcessorFactory,
+				FieldsProcessor.IFactory fieldsProcessorFactory,
 				IFactory objectsFactory
 			)
 			{

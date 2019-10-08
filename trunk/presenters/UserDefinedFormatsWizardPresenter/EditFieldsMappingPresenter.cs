@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping
 		readonly IView dialog;
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
-		readonly ITempFilesManager tempFilesManager;
+		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly Help.IPresenter help;
 		static readonly string[] predefindOutputFields = { "Time", "Thread", "Body", "Severity" };
 		int fieldIndex = 0;
@@ -26,14 +26,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping
 			IView view,
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs,
-			ITempFilesManager tempFilesManager,
+			FieldsProcessor.IFactory fieldsProcessorFactory,
 			Help.IPresenter help
 		)
 		{
 			this.dialog = view;
 			this.alerts = alerts;
 			this.fileDialogs = fileDialogs;
-			this.tempFilesManager = tempFilesManager;
+			this.fieldsProcessorFactory = fieldsProcessorFactory;
 			this.help = help;
 			this.dialog.SetEventsHandler(this);
 		}
@@ -333,11 +333,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping
 
 			XDocument tmpXDoc = XDocument.Parse(tmp.OuterXml);
 
-			FieldsProcessor.InitializationParams tmpProcessorParams = new FieldsProcessor.InitializationParams(
-				tmpXDoc.Element("root").Element("fields-config"), false, null);
+			FieldsProcessor.IInitializationParams tmpProcessorParams = fieldsProcessorFactory.CreateInitializationParams(
+				tmpXDoc.Element("root").Element("fields-config"), false);
 			try
 			{
-				IFieldsProcessor tmpProcessor = new FieldsProcessor(tmpProcessorParams, availableInputFields, null, tempFilesManager, LJTraceSource.EmptyTracer);
+				var tmpProcessor = fieldsProcessorFactory.CreateProcessor(
+					tmpProcessorParams, availableInputFields, null, LJTraceSource.EmptyTracer);
 				tmpProcessor.Reset();
 				alerts.ShowPopup("Test", "Code compiled OK", AlertFlags.Ok);
 			}

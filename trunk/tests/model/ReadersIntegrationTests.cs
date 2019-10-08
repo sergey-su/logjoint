@@ -8,6 +8,7 @@ using System.IO;
 using EM = LogJoint.Tests.ExpectedMessage;
 using NUnit.Framework;
 using System.Xml.Linq;
+using NSubstitute;
 
 namespace LogJoint.Tests
 {
@@ -99,6 +100,20 @@ namespace LogJoint.Tests
 		Dictionary<int, ExpectedMessage> expectedMessages = new Dictionary<int, ExpectedMessage>();
 	};
 
+	static class Mocks
+	{
+		public static FieldsProcessor.IFactory SetupFieldsProcessorFactory()
+		{
+			var storageManager = Substitute.For<Persistence.IStorageManager>();
+			var cacheEntry = Substitute.For<Persistence.IStorageEntry>();
+			storageManager.GetEntry(null, 0).ReturnsForAnyArgs(cacheEntry);
+			var cacheSection = Substitute.For<Persistence.IRawStreamStorageSection>();
+			cacheSection.Data.Returns(new MemoryStream());
+			cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(cacheSection);
+			return new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, Substitute.For<Telemetry.ITelemetryCollector>());
+		}
+	};
+
 	public static class ReaderIntegrationTest
 	{
 		static ITempFilesManager tempFilesManager = new TempFilesManager();
@@ -107,7 +122,9 @@ namespace LogJoint.Tests
 		{
 			var repo = new DirectoryFormatsRepository(Path.Combine(Path.GetDirectoryName(asm.Location), "formats"));
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance);
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager,
+				new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance,
+				Mocks.SetupFieldsProcessorFactory());
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			LogJoint.XmlFormat.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
@@ -119,7 +136,7 @@ namespace LogJoint.Tests
 		public static void Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
 		{
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media, new TraceSourceFactory())))
+			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
 				reader.UpdateAvailableBounds(false);
 
@@ -253,7 +270,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 ";
 			using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media, new TempFilesManager(), new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance)))
+			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
 				reader.UpdateAvailableBounds(false);
 				long? prevMessagePos = PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
@@ -588,7 +605,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			var repo = new SingleEntryFormatsRepository(formatDescription);
 			ITempFilesManager tempFilesManager = new TempFilesManager();
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager, new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance);
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager,
+				new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance, Mocks.SetupFieldsProcessorFactory());
 			JsonFormat.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 			var factory = reg.Items.FirstOrDefault();

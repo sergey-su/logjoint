@@ -4,9 +4,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 
-namespace LogJoint
+namespace LogJoint.FieldsProcessor
 {
-	public partial class FieldsProcessor
+	public partial class FieldsProcessorImpl
 	{
 		static class UserCode
 		{

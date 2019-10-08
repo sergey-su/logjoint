@@ -18,7 +18,7 @@ namespace LogJoint.XmlFormat
 	class FactoryWriter : XmlWriter
 	{
 		public FactoryWriter(
-			IMessagesBuilderCallback callback,
+			FieldsProcessor.IMessagesBuilderCallback callback,
 			ITimeOffsets timeOffsets,
 			int? maxLineLen
 		)
@@ -258,7 +258,7 @@ namespace LogJoint.XmlFormat
 		StringBuilder content = new StringBuilder();
 		SeverityFlag severity = SeverityFlag.Info;
 		Message output;
-		readonly IMessagesBuilderCallback callback;
+		readonly FieldsProcessor.IMessagesBuilderCallback callback;
 		readonly ITimeOffsets timeOffsets;
 		readonly int? maxLineLen;
 	};

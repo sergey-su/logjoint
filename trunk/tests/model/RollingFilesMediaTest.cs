@@ -346,14 +346,11 @@ namespace LogJoint.Tests
 
 		ILogMedia CreateMedia(FileSystemImpl fs)
 		{
-			var media = new RollingFilesMedia(fs, 
-				typeof(MessagesReader), 
-				new StreamBasedFormatInfo(null),
+			var media = new RollingFilesMedia(
+				fs,
+				@params => new MessagesReader(@params, new StreamBasedFormatInfo(null)), 
 				LJTraceSource.EmptyTracer,
-				new GenericRollingMediaStrategy(fs.BaseDir),
-				new TempFilesManager(),
-				new TraceSourceFactory(),
-				RegularExpressions.FCLRegexFactory.Instance
+				new GenericRollingMediaStrategy(fs.BaseDir)
 			);
 			return media;
 		}

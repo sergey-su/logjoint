@@ -20,7 +20,7 @@ namespace LogJoint.RegularGrammar
 		public readonly LoadedRegex HeadRe;
 		public readonly LoadedRegex BodyRe;
 		public readonly string Encoding;
-		public readonly FieldsProcessor.InitializationParams FieldsProcessorParams;
+		public readonly FieldsProcessor.IInitializationParams FieldsProcessorParams;
 		public readonly DejitteringParams? DejitteringParams;
 		public readonly TextStreamPositioningParams TextStreamPositioningParams;
 		public readonly static string EmptyBodyReEquivalientTemplate = "^(?<body>.*)$";
@@ -31,7 +31,7 @@ namespace LogJoint.RegularGrammar
 
 		public FormatInfo(
 			LoadedRegex headRe, LoadedRegex bodyRe, 
-			string encoding, FieldsProcessor.InitializationParams fieldsParams, 
+			string encoding, FieldsProcessor.IInitializationParams fieldsParams, 
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
 			DejitteringParams? dejitteringParams,
 			TextStreamPositioningParams textStreamPositioningParams,
@@ -59,7 +59,7 @@ namespace LogJoint.RegularGrammar
 	{
 		readonly ILogSourceThreadsInternal threads;
 		readonly FormatInfo fmtInfo;
-		readonly IFieldsProcessorFactory fieldsProcessorFactory;
+		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly IRegexFactory regexFactory;
 		readonly Lazy<bool> isBodySingleFieldExpression;
@@ -68,7 +68,7 @@ namespace LogJoint.RegularGrammar
 		public MessagesReader(
 			MediaBasedReaderParams readerParams,
 			FormatInfo fmt,
-			IFieldsProcessorFactory fieldsProcessorFactory,
+			FieldsProcessor.IFactory fieldsProcessorFactory,
 			IRegexFactory regexFactory,
 			ITraceSourceFactory traceSourceFactory
 		) :
@@ -91,9 +91,9 @@ namespace LogJoint.RegularGrammar
 			});
 		}
 
-		IFieldsProcessor CreateNewFieldsProcessor()
+		FieldsProcessor.IFieldsProcessor CreateNewFieldsProcessor()
 		{
-			return fieldsProcessorFactory.Create(
+			return fieldsProcessorFactory.CreateProcessor(
 				fmtInfo.FieldsProcessorParams,
 				fmtInfo.HeadRe.Regex.GetGroupNames().Skip(1).Concat(
 					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) : Enumerable.Repeat("body", 1)),
@@ -114,8 +114,8 @@ namespace LogJoint.RegularGrammar
 			IRegex headRe,
 			IRegex bodyRe,
 			ref IMatch bodyMatch,
-			IFieldsProcessor fieldsProcessor,
-			MakeMessageFlags makeMessageFlags,
+			FieldsProcessor.IFieldsProcessor fieldsProcessor,
+			FieldsProcessor.MakeMessageFlags makeMessageFlags,
 			DateTime sourceTime,
 			ITimeOffsets timeOffsets,
 			MessagesBuilderCallback threadLocalCallbackImpl
@@ -165,12 +165,12 @@ namespace LogJoint.RegularGrammar
 		class SingleThreadedStrategyImpl : StreamParsingStrategies.SingleThreadedStrategy
 		{
 			readonly MessagesReader reader;
-			readonly IFieldsProcessor fieldsProcessor;
+			readonly FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			readonly MessagesBuilderCallback callback;
 			readonly IRegex headerRegex, bodyRegex;
 			IMatch bodyMatch;
 
-			MakeMessageFlags currentParserFlags;
+			FieldsProcessor.MakeMessageFlags currentParserFlags;
 
 			public SingleThreadedStrategyImpl(MessagesReader reader) : base(
 				reader.LogMedia,
@@ -210,14 +210,14 @@ namespace LogJoint.RegularGrammar
 			public LoadedRegex headRe;
 			public LoadedRegex bodyRe;
 			public IMatch bodyMatch;
-			public IFieldsProcessor fieldsProcessor;
+			public FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			public MessagesBuilderCallback callback;
 		}
 
 		class MultiThreadedStrategyImpl : StreamParsingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
 		{
 			MessagesReader reader;
-			MakeMessageFlags flags;
+			FieldsProcessor.MakeMessageFlags flags;
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.fmtInfo.HeadRe.Regex,
@@ -303,7 +303,7 @@ namespace LogJoint.RegularGrammar
 		Lazy<FormatInfo> fmtInfo;
 		readonly string uiKey;
 		readonly ITempFilesManager tempFilesManager;
-		readonly IFieldsProcessorFactory fieldsProcessorFactory;
+		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 
@@ -327,9 +327,8 @@ namespace LogJoint.RegularGrammar
 			traceSourceFactory = createParams.TraceSourceFactory;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
-				Type precompiledUserCode = ReadPrecompiledUserCode(createParams.RootNode);
-				FieldsProcessor.InitializationParams fieldsInitParams = new FieldsProcessor.InitializationParams(
-					formatSpecificNode.Element("fields-config"), true, precompiledUserCode);
+				FieldsProcessor.IInitializationParams fieldsInitParams = fieldsProcessorFactory.CreateInitializationParams(
+					formatSpecificNode.Element("fields-config"), performChecks: true);
 				MessagesReaderExtensions.XmlInitializationParams extensionsInitData = new MessagesReaderExtensions.XmlInitializationParams(
 					formatSpecificNode.Element("extensions"));
 				DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(

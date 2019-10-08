@@ -54,7 +54,7 @@ namespace LogJoint.Internal
 			FrameEnd,
 		};
 
-		public abstract IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
+		public abstract IMessage MakeMessage(FieldsProcessor.IMessagesBuilderCallback callback, FieldsProcessor.MakeMessageFlags flags);
 		public abstract __MessageBuilder Clone();
 		public abstract void SetExtensionByName(string name, object ext);
 
