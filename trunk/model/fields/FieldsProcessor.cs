@@ -90,9 +90,15 @@ namespace LogJoint
 		public class Factory : IFieldsProcessorFactory
 		{
 			readonly ITempFilesManager tempFilesManager;
-			public Factory(ITempFilesManager tempFilesManager)
+			readonly Persistence.IStorageEntry cacheEntry;
+
+			public Factory(
+				ITempFilesManager tempFilesManager,
+				Persistence.IStorageManager storageManager
+			)
 			{
 				this.tempFilesManager = tempFilesManager;
+				this.cacheEntry = storageManager.GetEntry("user-code-cache", 0x81012231);
 			}
 
 			IFieldsProcessor IFieldsProcessorFactory.Create(
@@ -106,6 +112,7 @@ namespace LogJoint
 					inputFieldNames,
 					extensions,
 					tempFilesManager,
+					cacheEntry,
 					trace
 				);
 			}
@@ -116,6 +123,7 @@ namespace LogJoint
 			IEnumerable<string> inputFieldNames, 
 			IEnumerable<ExtensionInfo> extensions,
 			ITempFilesManager tempFilesManager,
+			Persistence.IStorageEntry cacheEntry,
 			LJTraceSource trace)
 		{
 			if (inputFieldNames == null)
@@ -125,6 +133,7 @@ namespace LogJoint
 				this.extensions.AddRange(extensions);
 			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
 			this.tempFilesManager = tempFilesManager;
+			this.cacheEntry = cacheEntry;
 			this.trace = trace;
 		}
 
@@ -189,21 +198,23 @@ namespace LogJoint
 		int GetMessageBuilderTypeHash()
 		{
 			int typeHash = Hashing.GetHashCode(0);
+			typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(
+				typeof(CSharpCompilation).Assembly.FullName));
 			foreach (string i in inputFieldNames)
 			{
-				typeHash = Hashing.GetHashCode(typeHash, i.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i));
 			}
 			foreach (OutputFieldStruct i in outputFields)
 			{
 				typeHash = Hashing.GetHashCode(typeHash, (int)i.Type);
-				typeHash = Hashing.GetHashCode(typeHash, i.Name.GetHashCode());
-				typeHash = Hashing.GetHashCode(typeHash, i.Code.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.Name));
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.Code));
 			}
 			foreach (ExtensionInfo i in extensions)
 			{
-				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionAssemblyName.GetType().GetHashCode());
-				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionClassName.GetType().GetHashCode());
-				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionName.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.ExtensionAssemblyName));
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.ExtensionClassName));
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.ExtensionName));
 			}
 			return typeHash;
 		}
@@ -223,6 +234,11 @@ namespace LogJoint
 					{
 						builderTypeTask = Task.Run(() => 
 						{
+							using (var cacheESection = cacheEntry.OpenRawStreamSection("code",
+								Persistence.StorageSectionOpenFlag.ReadOnly, additionalNumericKey: builderTypeHash))
+							{
+								// cacheESection.
+							}
 							return CompileUserCodeToTypeInternal(
 								asmName => Assembly.Load(asmName).Location);
 						});
@@ -659,6 +675,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 		readonly List<ExtensionInfo> extensions = new List<ExtensionInfo>();
 		readonly ITempFilesManager tempFilesManager;
+		readonly Persistence.IStorageEntry cacheEntry;
 		readonly LJTraceSource trace;
 		Type precompiledBuilderType;
 
