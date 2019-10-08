@@ -96,7 +96,10 @@ namespace LogJoint.RegularGrammar
 			return fieldsProcessorFactory.CreateProcessor(
 				fmtInfo.FieldsProcessorParams,
 				fmtInfo.HeadRe.Regex.GetGroupNames().Skip(1).Concat(
-					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) : Enumerable.Repeat("body", 1)),
+					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) :
+					fmtInfo.HeadRe.Regex.GetGroupNames().Contains("body") ? Enumerable.Empty<string>() :
+					Enumerable.Repeat("body", 1)
+				),
 				Extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
 				trace
 			);
