@@ -1,18 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Reflection;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-using System.Linq;
 using System.Xml.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
 
-namespace LogJoint
+namespace LogJoint.FieldsProcessor
 {
 	public interface IMessagesBuilderCallback
 	{
@@ -44,12 +34,47 @@ namespace LogJoint
 		bool IsBodySingleFieldExpression();
 	};
 
-	public interface IFieldsProcessorFactory
+	public interface IInitializationParams
 	{
-		IFieldsProcessor Create(
-			FieldsProcessor.InitializationParams initializationParams,
+	}
+
+	public struct ExtensionInfo
+	{
+		public readonly string ExtensionName;
+		public readonly string ExtensionAssemblyName;
+		public readonly string ExtensionClassName;
+		public readonly Func<object> InstanceGetter;
+
+		public ExtensionInfo(string extensionName, string extensionAssemblyName, string extensionClassName, 
+			Func<object> instanceGetter)
+		{
+			if (string.IsNullOrEmpty(extensionName))
+				throw new ArgumentException(nameof(extensionName));
+			if (string.IsNullOrEmpty(extensionAssemblyName))
+				throw new ArgumentException(nameof(extensionAssemblyName));
+			if (string.IsNullOrEmpty(extensionClassName))
+				throw new ArgumentException(nameof(extensionClassName));
+			if (instanceGetter == null)
+				throw new ArgumentNullException(nameof (instanceGetter));
+			if (!StringUtils.IsValidCSharpIdentifier(extensionName))
+				throw new ArgumentException("extensionName must be a valid C# identifier", nameof (extensionName));
+
+			this.ExtensionName = extensionName;
+			this.ExtensionAssemblyName = extensionAssemblyName;
+			this.ExtensionClassName = extensionClassName;
+			this.InstanceGetter = instanceGetter;
+		}
+	};
+
+	public interface IFactory
+	{
+		IInitializationParams CreateInitializationParams(
+			XElement fieldsNode, bool performChecks
+		);
+		IFieldsProcessor CreateProcessor(
+			IInitializationParams initializationParams,
 			IEnumerable<string> inputFieldNames,
-			IEnumerable<FieldsProcessor.ExtensionInfo> extensions,
+			IEnumerable<ExtensionInfo> extensions,
 			LJTraceSource trace
 		);
 	};

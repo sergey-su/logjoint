@@ -47,7 +47,7 @@ namespace LogJoint
 		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
 		public Drawing.IMatrixFactory MatrixFactory { get; internal set; }
 		public RegularExpressions.IRegexFactory RegexFactory { get; internal set; }
-		public IFieldsProcessorFactory FieldsProcessorFactory { get; internal set; }
+		public FieldsProcessor.IFactory FieldsProcessorFactory { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -82,26 +82,40 @@ namespace LogJoint
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 			MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
-			IFieldsProcessorFactory fieldsProcessorFactory = new FieldsProcessor.Factory(tempFilesManager);
-			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
-				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
-			RegisterUserDefinedFormats(userDefinedFormatsManager);
-			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
-			tracer.Info("app initializer created");
-			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
-			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
-			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
-			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
-			var bookmarks = bookmarksFactory.CreateBookmarks();
-			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);
+			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 			userDataStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(),
 				 persistentUserDataFileSystem,
 				 new Persistence.PersistentUserDataManager.ConfigAccess(globalSettingsAccessor)
 			);
+			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
+				traceSourceFactory,
+				config.TelemetryUrl,
+				config.IssuesUrl
+			);
+			var telemetryCollectorImpl = new Telemetry.TelemetryCollector(
+				storageManager,
+				telemetryUploader,
+				modelSynchronizationContext,
+				instancesCounter,
+				shutdown,
+				new MemBufferTraceAccess(),
+				traceSourceFactory
+			);
+			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
+			FieldsProcessor.IFactory fieldsProcessorFactory = new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, telemetryCollector);
+			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
+				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
+			RegisterUserDefinedFormats(userDefinedFormatsManager);
+			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
+			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
+			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
+			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
+			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
+			var bookmarks = bookmarksFactory.CreateBookmarks();
 			Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
 			Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
 			contentCacheStorage.Init(
@@ -123,22 +137,6 @@ namespace LogJoint
 			var threadColorsLease = new ColorLease(1);
 			IModelThreadsInternal modelThreads = new ModelThreads(threadColorsLease);
 
-			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
-				traceSourceFactory,
-				config.TelemetryUrl,
-				config.IssuesUrl
-			);
-
-			var telemetryCollectorImpl = new Telemetry.TelemetryCollector(
-				storageManager,
-				telemetryUploader,
-				modelSynchronizationContext,
-				instancesCounter,
-				shutdown,
-				new MemBufferTraceAccess(),
-				traceSourceFactory
-			);
-			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
 
 			MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
 				storageManager,

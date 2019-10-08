@@ -218,14 +218,14 @@ namespace LogJoint
 			}
 		}
 
-		protected static MakeMessageFlags ParserFlagsToMakeMessageFlags(MessagesParserFlag flags)
+		protected static FieldsProcessor.MakeMessageFlags ParserFlagsToMakeMessageFlags(MessagesParserFlag flags)
 		{
-			MakeMessageFlags ret = MakeMessageFlags.Default;
+			FieldsProcessor.MakeMessageFlags ret = FieldsProcessor.MakeMessageFlags.Default;
 			if ((flags & MessagesParserFlag.HintMessageTimeIsNotNeeded) != 0)
-				ret |= MakeMessageFlags.HintIgnoreTime;
+				ret |= FieldsProcessor.MakeMessageFlags.HintIgnoreTime;
 			if ((flags & MessagesParserFlag.HintMessageContentIsNotNeeed) != 0)
-				ret |= (MakeMessageFlags.HintIgnoreBody | MakeMessageFlags.HintIgnoreEntryType
-					| MakeMessageFlags.HintIgnoreSeverity | MakeMessageFlags.HintIgnoreThread);
+				ret |= (FieldsProcessor.MakeMessageFlags.HintIgnoreBody | FieldsProcessor.MakeMessageFlags.HintIgnoreEntryType
+					| FieldsProcessor.MakeMessageFlags.HintIgnoreSeverity | FieldsProcessor.MakeMessageFlags.HintIgnoreThread);
 			return ret;
 		}
 
@@ -364,7 +364,7 @@ namespace LogJoint
 		#endregion
 	};
 
-	internal class MessagesBuilderCallback : IMessagesBuilderCallback
+	internal class MessagesBuilderCallback : FieldsProcessor.IMessagesBuilderCallback
 	{
 		readonly ILogSourceThreadsInternal threads;
 		readonly IThread fakeThread;
