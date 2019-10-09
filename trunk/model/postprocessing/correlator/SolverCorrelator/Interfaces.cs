@@ -10,35 +10,24 @@ namespace LogJoint.Postprocessing.Correlation.Solver
 {
 	public interface ISolver
 	{
-		//var solverContext = new SolverContext();
-		//var solverModel = solverContext.CreateModel();
 		Solver.IModel CreateModel();
 	};
 
 	public interface IModel: IDisposable
 	{
-		// Dispose: solverContext.ClearModel();
-		IDecision CreateDecision(string name); // msft: new Decision(Domain.RealNonnegative, ...) + Add + AddGoal GoalKind.Minimize,
+		IDecision CreateDecision(string name);
 		void AddConstraints(string name, Expr expr);
-		void SetMinimizeGoal(IDecision[] variables); // AddGoal GoalKind.Minimize,
-			
-		// solverContext.Solve(() => cancellation.IsCancellationRequested, new SimplexDirective());
+		void SetMinimizeGoal(IDecision[] variables);
 		ISolution Solve(CancellationToken cancellation);
 	};
 
-	public interface IDecision 
+	public interface IDecision
 	{
-		double Value { get; } // msft: ToDouble()
+		double Value { get; }
 	};
 
-	public interface ISolution 
+	public interface ISolution
 	{
-		/*
-		return solution.Quality == SolverQuality.Infeasible
-			               || solution.Quality == SolverQuality.InfeasibleOrUnbounded
-			               || solution.Quality == SolverQuality.LocalInfeasible
-			               || solution.Quality == SolverQuality.Unknown;
-		*/
 		bool IsInfeasible { get; }
 	};
 
@@ -67,16 +56,11 @@ namespace LogJoint.Postprocessing.Correlation.Solver
 		public double Value;
 	};
 
-	// msft: UnsolvableModelException
 	public class UnsolvableModelException: Exception
 	{
 	};
 
-	// msft: UnsolvableModelException ume   
-	//          if (ume.InnerException is MsfLicenseException)
 	public class ModelTooComplexException: UnsolvableModelException
 	{
 	};
-
-
 }

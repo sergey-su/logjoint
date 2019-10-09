@@ -36,7 +36,8 @@ namespace LogJoint.UI
 					traceSourceFactory
 				),
 				new Drawing.Matrix.Factory(),
-				RegularExpressions.LJRegexFactory.Instance
+				RegularExpressions.LJRegexFactory.Instance,
+				() => new LogJoint.Postprocessing.Correlation.EmbeddedSolver.EmbeddedSolver()
 			);
 
 			var viewsFactory = new Presenters.ViewsFactory (mainWindow, model);
