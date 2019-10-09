@@ -15,7 +15,6 @@ namespace LogJoint.Tests.Integration.Chromium
 	[TestFixture]
 	class HttpArchiveFormatTests
 	{
-		PluginLoader pluginLoader = new PluginLoader();
 		SamplesUtils samples = new SamplesUtils();
 		TestAppInstance app;
 
@@ -23,7 +22,6 @@ namespace LogJoint.Tests.Integration.Chromium
 		public async Task BeforeEach()
 		{
 			app = await TestAppInstance.Create();
-			app.Model.PluginFormatsManager.RegisterPluginFormats(pluginLoader.Manifest);
 			Factory.Create(app.Model.ExpensibilityEntryPoint);
 		}
 
