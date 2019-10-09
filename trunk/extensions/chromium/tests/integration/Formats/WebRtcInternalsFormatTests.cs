@@ -12,9 +12,8 @@ using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
 namespace LogJoint.Tests.Integration.Chromium
 {
 	[TestFixture]
-	class ChromeDriverFormatTests
+	class WebRtcInternalsFormatTests
 	{
-		PluginLoader pluginLoader = new PluginLoader();
 		SamplesUtils samples = new SamplesUtils();
 		TestAppInstance app;
 
@@ -22,7 +21,6 @@ namespace LogJoint.Tests.Integration.Chromium
 		public async Task BeforeEach()
 		{
 			app = await TestAppInstance.Create();
-			app.Model.PluginFormatsManager.RegisterPluginFormats(pluginLoader.Manifest);
 			Factory.Create(app.Model.ExpensibilityEntryPoint);
 		}
 
@@ -37,14 +35,15 @@ namespace LogJoint.Tests.Integration.Chromium
 		{
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("chromedriver_1.log"));
+				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("webrtc_internals_dump_1.txt"));
 
 				await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
 
-				Assert.AreEqual("[1548250986.197][INFO]: Waiting for pending navigations...", app.ViewModel.LoadedMessagesLogViewer.ViewLines[2].TextLineValue);
+				Assert.AreEqual("2017-06-30T18:02:21.000000|C|35286-1|log|addIceCandidate|sdpMid: audio, sdpMLineIndex: 0, candidate: candidate:508100464 1 udp 2122260223 192.168.10.157 57279 typ host generation 0 ufrag yKWx network-id 1 network-cost 10", app.ViewModel.LoadedMessagesLogViewer.ViewLines[0].TextLineValue);
 				app.ViewModel.MainForm.OnTabChanging(app.ViewModel.PostprocessingTabPageId);
 				var postprocessorsControls = app.ViewModel.PostprocessingTabPage.ControlsState;
-				Assert.IsFalse(postprocessorsControls[ViewControlId.Timeline].Disabled);
+				Assert.IsFalse(postprocessorsControls[ViewControlId.StateInspector].Disabled);
+				Assert.IsFalse(postprocessorsControls[ViewControlId.TimeSeries].Disabled);
 
 				return 0;
 			});

@@ -81,6 +81,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.presentation.tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.integration.tests", "..\..\tests\integration\logjoint.integration.tests.csproj", "{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{217E5336-2FA6-46FF-BE65-163D6519ACCB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.chromium.plugin.integration", "..\..\extensions\chromium\tests\integration\logjoint.chromium.plugin.integration.csproj", "{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -329,6 +333,14 @@ Global
 		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -362,6 +374,8 @@ Global
 		{D81F9F5B-BF80-4D64-B8D6-20224332A9BF} = {E5ECBEAD-F934-46D0-8B0A-DFD7921195FE}
 		{A19AE1C4-8BAE-4074-B880-15FBAFBE34CE} = {E5ECBEAD-F934-46D0-8B0A-DFD7921195FE}
 		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69} = {E5ECBEAD-F934-46D0-8B0A-DFD7921195FE}
+		{217E5336-2FA6-46FF-BE65-163D6519ACCB} = {CEABF9D9-BEF3-4421-ACA7-477BB356197A}
+		{E4F53EB9-B947-482D-AF92-ED73B58AE3EE} = {217E5336-2FA6-46FF-BE65-163D6519ACCB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F60C2567-FE95-48E5-95F5-0AB036505E21}

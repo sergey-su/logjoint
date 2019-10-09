@@ -80,5 +80,10 @@ namespace LogJoint.Tests.Integration
 				c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c
 			).ToArray());
 		}
+
+		public async Task<Stream> GetSampleAsStream(string sampleName)
+		{
+			return File.OpenRead(await GetSampleAsLocalFile(sampleName));
+		}
 	};
 }
