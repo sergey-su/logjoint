@@ -42,6 +42,11 @@
           <command>cp -rf Formats help logjoint.app/Contents/MonoBundle</command>
           <workingdir>${TargetDir}</workingdir>
         </Command>
+        <Command>
+          <type>AfterBuild</type>
+          <command>cp Google.OrTools.runtime.osx-x64.dylib libortools.dylib libgflags.2.2.dylib libglog.0.dylib libprotobuf.3.9.0.0.dylib libCbcSolver.3.dylib libCbc.3.dylib libOsiCbc.3.dylib libCgl.1.dylib libClpSolver.1.dylib libClp.1.dylib libOsiClp.1.dylib libOsi.1.dylib libCoinUtils.3.dylib ${TargetDir}/logjoint.app/Contents/MonoBundle</command>
+          <workingdir>${SolutionDir}/packages/Google.OrTools.runtime.osx-x64.7.3.7083/runtimes/osx-x64/native</workingdir>
+        </Command>
       </CustomCommands>
     </CustomCommands>
     <AOTMode>None</AOTMode>
@@ -103,6 +108,12 @@
       <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Security" />
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\packages\Google.Protobuf.3.9.1\lib\netstandard2.0\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.OrTools">
+      <HintPath>../packages/Google.OrTools.runtime.osx-x64.7.3.7083/runtimes/osx-x64/lib/netstandard2.0/Google.OrTools.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -181,6 +192,7 @@
     <Folder Include="ui\OptionsDialog\" />
     <Folder Include="regexp\" />
     <Folder Include="dataProtection\" />
+    <Folder Include="solver\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -682,6 +694,18 @@
     </Compile>
     <Compile Include="..\..\shared\dataProtection\DataProtection.cs">
       <Link>dataProtection\DataProtection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\EmbeddedSolver.cs">
+      <Link>solver\EmbeddedSolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\ExternalSolverBase.cs">
+      <Link>solver\ExternalSolverBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\OrToolsSolverCore.cs">
+      <Link>solver\OrToolsSolverCore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\Protocol.cs">
+      <Link>solver\Protocol.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
