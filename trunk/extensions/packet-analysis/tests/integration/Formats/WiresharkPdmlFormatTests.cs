@@ -11,9 +11,9 @@ using LogJoint.Extensibility;
 
 namespace LogJoint.Tests.Integration.PacketAnalysis
 {
-	class Tests<T>: UndiscoverableByNUnit<T>
+	[TestFixture]
+	class WiresharkPdmlFormatTests
 	{
-		readonly IPluginManifest manifest;
 		readonly SamplesUtils samples = new SamplesUtils();
 		TestAppInstance app;
 
@@ -21,11 +21,7 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 		PA.UI.Presenters.MessagePropertiesDialog.IViewModel messagePropertiesViewModel;
 		object messagePropertiesOSView;
 
-		public Tests(IPluginManifest manifest)
-		{
-			this.manifest = manifest;
-		}
-
+		[OneTimeSetUp]
 		public async Task Before()
 		{
 			viewsFactory = Substitute.For<PA.UI.Presenters.Factory.IViewsFactory>();
@@ -35,7 +31,6 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 			viewsFactory.CreateMessageContentView().OSView.Returns(messagePropertiesOSView);
 
 			app = await TestAppInstance.Create();
-			app.Model.PluginFormatsManager.RegisterPluginFormats(manifest);
 			PA.UI.Presenters.Factory.Create(
 				PA.Factory.Create(app.Model.ExpensibilityEntryPoint),
 				app.Presentation.ExpensibilityEntryPoint,
@@ -47,10 +42,13 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 			await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
 		}
 
+		[OneTimeTearDown]
 		public async Task After()
 		{
 			await app.Dispose();
 		}
+
+		[Test]
 
 		public async Task FormatIsDetectedAndLoaded()
 		{
@@ -59,6 +57,8 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 				Assert.AreEqual("        IP Option - Router Alert (4 bytes): Router shall examine packet (0)", app.ViewModel.LoadedMessagesLogViewer.ViewLines[0].TextLineValue);
 			});
 		}
+
+		[Test]
 
 		public async Task PostprocessorsEnabled()
 		{
@@ -70,6 +70,7 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 			});
 		}
 
+		[Test]
 		public async Task MessagePropertiesDialogExtensionIsRegistered()
 		{
 			await app.SynchronizationContext.Invoke(() =>
@@ -95,30 +96,4 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 			});
 		}
 	};
-
-	[TestFixture]
-	class WiresharkPdmlFormatTests
-	{
-		readonly PluginLoader pluginLoader = new PluginLoader();
-		Tests<int> tests;
-
-		[OneTimeSetUp]
-		public async Task Before()
-		{
-			tests = new Tests<int>(pluginLoader.Manifest);
-			await tests.Before();
-		}
-
-		[OneTimeTearDown]
-		public Task After() => tests.After();
-
-		[Test]
-		public Task FormatIsDetectedAndLoaded() => tests.FormatIsDetectedAndLoaded();
-
-		[Test]
-		public Task PostprocessorsEnabled() => tests.PostprocessorsEnabled();
-
-		[Test]
-		public Task MessagePropertiesDialogExtensionIsRegistered() => tests.MessagePropertiesDialogExtensionIsRegistered();
-	}
 }
