@@ -55,8 +55,10 @@ namespace LogJoint
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (var localCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
 			{
-				var ret = GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry).AsParallel().Select(factory =>
+				var candidateFactories = GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry).ToArray();
+				var ret = candidateFactories.Select((factory, index) => (factory, index)).AsParallel().Select(candidate =>
 				{
+					var (factory, idx) = candidate;
 					try
 					{
 						using (var perfOp = new Profiling.Operation(log, factory.ToString()))
@@ -70,7 +72,7 @@ namespace LogJoint
 							if (localCancellation.IsCancellationRequested)
 							{
 								perfOp.Milestone("cancelled");
-								return null;
+								return (fmt: (DetectedFormat)null, idx);
 							}
 							reader.UpdateAvailableBounds(false);
 							perfOp.Milestone("bounds detected");
@@ -81,7 +83,7 @@ namespace LogJoint
 								{
 									log.Info("Autodetected format of {0}: {1}", fileName, factory);
 									localCancellation.Cancel();
-									return new DetectedFormat(factory, ((IFileBasedLogProviderFactory)factory).CreateParams(fileName));
+									return (fmt: new DetectedFormat(factory, ((IFileBasedLogProviderFactory)factory).CreateParams(fileName)), idx);
 								}
 							}
 						}
@@ -90,8 +92,8 @@ namespace LogJoint
 					{
 						log.Error(e, "Failed to load '{0}' as {1}", fileName, factory);
 					}
-					return null;
-				}).FirstOrDefault(x => x != null);
+					return (fmt: (DetectedFormat)null, idx);
+				}).Where(x => x.fmt != null).OrderBy(x => x.idx).Select(x => x.fmt).FirstOrDefault();
 				if (ret != null)
 					return ret;
 				using (var fileMedia = createFileMedia())
@@ -135,6 +137,7 @@ namespace LogJoint
 			return
 				from factory in factoriesRegistry.Items
 				where factory is IFileBasedLogProviderFactory && factory is IMediaBasedReaderFactory
+				where !(factory.CompanyName == PlainText.Factory.CompanyName && factory.FormatName == PlainText.Factory.FormatName)
 				orderby GetFilePatternsMatchRating(factory, fileName), mruIndexGetter(factory)
 				select factory;
 		}
