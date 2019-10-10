@@ -60,6 +60,11 @@ namespace LogJoint
 			return new MessageTimestamp(dateTime).StoreToLoselessFormat();
 		}
 
+		public string TO_NATIVE_DATETIME_STR(string dateTimeStr, string format)
+		{
+			return TO_NATIVE_DATETIME_STR(TO_DATETIME(dateTimeStr, format));
+		}
+
 		public DateTime DATETIME_ADD_MILLISECONDS(DateTime dateTime, double milliseconds)
 		{
 			return dateTime.AddTicks((long)(milliseconds*10000));
