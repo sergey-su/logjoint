@@ -16,7 +16,7 @@
 		<xsl:template match='msg'>
       <m>
         <xsl:attribute name='d'>
-          <xsl:value-of select='lj:TO_NATIVE_DATETIME_STR(lj:TO_DATETIME(@time, "yyyy-MM-ddTHH\:mm\:ss.fffK"))'/>
+          <xsl:value-of select='lj:TO_NATIVE_DATETIME_STR(@time, "yyyy-MM-ddTHH\:mm\:ss.fffK")'/>
         </xsl:attribute>
         <xsl:attribute name='s'>
           <xsl:choose>
