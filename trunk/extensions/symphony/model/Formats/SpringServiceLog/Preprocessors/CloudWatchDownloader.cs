@@ -27,6 +27,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 			public string LoginEntryPoint { get; private set; }
 			public string LogGroupName { get; private set; }
 			public string LogStreamNamePrefix { get; private set; }
+			public string SAMLRole { get; private set; }
 
 			public override string ToString() => Name;
 
@@ -37,6 +38,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI1D2H726TCM30VUZSK7",
 				LogGroupName = "sym-qa5-rtc",
 				LogStreamNamePrefix = "qa-sym-qa5-cs/qa-sym-qa5-cs/",
+				SAMLRole = "Sym-SSO-DUO-Dev-Standard-Role",
 			};
 
 			public static readonly Environment ST2 = new Environment
@@ -46,6 +48,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DIM6CNTQJPKJ6D4GJK04",
 				LogGroupName = "sym-st2-rtc",
 				LogStreamNamePrefix = "dev-sym-st2-cs/dev-sym-st2-cs/",
+				SAMLRole = "Sym-SSO-DUO-Dev-Standard-Role",
 			};
 
 			public static readonly Environment RTC1 = new Environment
@@ -55,6 +58,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DIM6CNTQJPKJ6D4GJK04",
 				LogGroupName = "sym-rtc1-rtc",
 				LogStreamNamePrefix = "dev-sym-rtc1-cs/dev-sym-rtc1-cs/",
+				SAMLRole = "Sym-SSO-DUO-Dev-Standard-Role",
 			};
 
 			public static readonly Environment Corporate = new Environment
@@ -64,6 +68,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI17XYLYKQYHON337JU6",
 				LogGroupName = "sym-corp-stage-chat-glb-1-ms",
 				LogStreamNamePrefix = "rtc-cs/rtc-cs/",
+				SAMLRole = "Sym-SSO-DUO-Dev-Standard-Role",
 			};
 
 			public static readonly Environment CitiUAT = new Environment
@@ -73,6 +78,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 				LoginEntryPoint = "https://duo.symphony.com/dag/saml2/idp/SSOService.php?spentityid=DI17XYLYKQYHON337JU6",
 				LogGroupName = "uat-citi-na-2-rtc",
 				LogStreamNamePrefix = "rtc-cs/rtc-cs/",
+				SAMLRole = "Sym-SSO-DUO-Dev-Standard-Role",
 			};
 
 			public static readonly IReadOnlyDictionary<string, Environment> Environments = new []
@@ -203,7 +209,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 			string samlAssertion = await GetSAMLAssertionFromUser(webViewTools, env.LoginEntryPoint);
 			using (var authCli = new AmazonSecurityTokenServiceClient(new AnonymousAWSCredentials(), env.Region))
 			{
-				var authReq = CreateAssumeWithSAMLRequest(samlAssertion);
+				var authReq = CreateAssumeWithSAMLRequest(samlAssertion, env.SAMLRole);
 				var authResponse = await authCli.AssumeRoleWithSAMLAsync(authReq);
 				return new AmazonCloudWatchLogsClient(authResponse.Credentials, env.Region);
 			}
@@ -228,7 +234,7 @@ namespace LogJoint.Symphony.SpringServiceLog
 			return samlAssertion;
 		}
 
-		private static AssumeRoleWithSAMLRequest CreateAssumeWithSAMLRequest(string samlAssertion)
+		private static AssumeRoleWithSAMLRequest CreateAssumeWithSAMLRequest(string samlAssertion, string expectedRoleSubstring)
 		{
 			var authReq = new AssumeRoleWithSAMLRequest
 			{
@@ -240,20 +246,20 @@ namespace LogJoint.Symphony.SpringServiceLog
 				var samlXmlns = "urn:oasis:names:tc:SAML:2.0:assertion";
 				var roles = assertionDoc
 						.Descendants()
-						.Where(n =>
-								n.Name == XName.Get("Attribute", samlXmlns)
-						 && n.Attribute("Name")?.Value == "https://aws.amazon.com/SAML/Attributes/Role")
-						.Select(n => n.Element(XName.Get("AttributeValue", samlXmlns))?.Value)
+						.Where(n => n.Name == XName.Get("Attribute", samlXmlns)
+							&& n.Attribute("Name")?.Value == "https://aws.amazon.com/SAML/Attributes/Role")
+						.SelectMany(n => n.Elements(XName.Get("AttributeValue", samlXmlns)).Select(valElement => valElement.Value))
 						.ToList();
 				if (roles.Count == 0)
 				{
 					throw new Exception("SAML assertion contains no roles");
 				}
-				if (roles.Count > 1)
+				var role = roles.FirstOrDefault(r => r.Contains(expectedRoleSubstring));
+				if (role == null)
 				{
-					throw new Exception("SAML assertion contains multiple roles");
+					throw new Exception($"SAML assertion does contains the role having '{expectedRoleSubstring}'. All roles: {string.Join(",", roles)}");
 				}
-				var split = roles[0].Split(',');
+				var split = role.Split(',');
 				authReq.RoleArn = split[0];
 				authReq.PrincipalArn = split[1];
 			}
