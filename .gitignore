@@ -21,3 +21,6 @@ BuildInfo.txt
 /trunk/platforms/osx/.vs/*
 /trunk/platforms/windows/.vs/*
 /trunk/.vs/*
+/trunk/extensions/chromium/plugin/deploy.sh
+/trunk/extensions/symphony/plugin/deploy.sh
+/trunk/extensions/packet-analysis/platforms/osx/logjoint.packet-analysis.plugin/deploy.sh

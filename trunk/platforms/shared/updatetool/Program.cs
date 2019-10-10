@@ -39,7 +39,7 @@ namespace LogJoint.UpdateTool
 				Console.WriteLine("  deployinst [prod]           deploys installation image to the cloud");
 				Console.WriteLine("  encrypt <str>               encrypts a string with configured encryption certificate (thumbprint={0})", settings.StorageAccountKeyEncryptionCertThumbprint);
 				Console.WriteLine("  plugin alloc [id]           allocates new plugin id, or if id is specified, only allocates inbox url");
-				Console.WriteLine("  plugin index                updates plugins index blob");
+				Console.WriteLine("  plugin index [prod]         updates plugins index blob");
 				return;
 			}
 
@@ -79,7 +79,7 @@ namespace LogJoint.UpdateTool
 							AllocatePlugin(args.Skip(2).ToArray());
 							break;
 						case "index":
-							UpdatePluginsIndex();
+							UpdatePluginsIndex(args.Skip(1).ToArray());
 							break;
 						default:
 							Console.WriteLine("Unknown plugin command");
@@ -167,7 +167,7 @@ namespace LogJoint.UpdateTool
 			configNode.Value = settings.FeedbackUrl;
 
 			configNode = getSettingNode("PluginsUrl");
-			configNode.Value = CreatePluginsBlob().Uri.ToString();
+			configNode.Value = CreatePluginsBlob(prod).Uri.ToString();
 
 			// configure trace listener according to build flavor
 			configNode = configDoc.Descendants()
@@ -430,9 +430,9 @@ namespace LogJoint.UpdateTool
 				return CreateBlob(prod ? settings.ProdMacInstallerBlobName : settings.StagingMacInstallerBlobName, backup);
 		}
 
-		private static CloudBlockBlob CreatePluginsBlob()
+		private static CloudBlockBlob CreatePluginsBlob(bool prod)
 		{
-			return CreateBlob(settings.PluginsBlobName, backup: false);
+			return CreateBlob(prod ? settings.PluginsBlobName : settings.StagingPluginsBlobName, backup: false);
 		}
 
 		private static CloudTable CreateTelemetryTable()
@@ -526,18 +526,23 @@ namespace LogJoint.UpdateTool
 			updatesContainer.SetPermissions(updatesContainerPermissions);
 			Console.WriteLine("Done");
 
-			Console.Write("Creating plugins index blob ... ");
-			var pluginsIndexBlob = CreatePluginsBlob();
-			if (pluginsIndexBlob.Exists())
+			void CreatePluginsIndex(bool prod)
 			{
-				Console.WriteLine("Already exists");
+				Console.Write($"Creating {(prod ? "PROD" : "STAGING")} plugins index blob ... ");
+				var pluginsIndexBlob = CreatePluginsBlob(prod);
+				if (pluginsIndexBlob.Exists())
+				{
+					Console.WriteLine("Already exists");
+				}
+				else
+				{
+					var initialContents = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?><plugins></plugins>");
+					pluginsIndexBlob.UploadFromByteArray(initialContents, 0, initialContents.Length);
+					Console.WriteLine("Created empty one");
+				}
 			}
-			else
-			{
-				var initialContents = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?><plugins></plugins>");
-				pluginsIndexBlob.UploadFromByteArray(initialContents, 0, initialContents.Length);
-				Console.WriteLine("Created empty one");
-			}
+			CreatePluginsIndex(true);
+			CreatePluginsIndex(false);
 
 			var tableClient = storageAccount.CreateCloudTableClient();
 			var telemetryTable = tableClient.GetTableReference(settings.TelemetryTableName);
@@ -715,8 +720,11 @@ namespace LogJoint.UpdateTool
 			return value.Substring(1, value.Length - 2);
 		}
 
-		static void UpdatePluginsIndex()
+		static void UpdatePluginsIndex(string[] args)
 		{
+			var prod = args.FirstOrDefault() == "prod";
+			var packagesSuffix = $"{(int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds}";
+			Console.WriteLine("Updating {0} plugins index ... ", prod ? "PRODUCTION" : "STAGING");
 			var result = new XDocument(new XElement("plugins"));
 			var inbox = CreatePluginsInboxBlobContainer();
 			foreach (var item in inbox.ListBlobs())
@@ -725,53 +733,52 @@ namespace LogJoint.UpdateTool
 				Console.Write("Reading {0} ... ", pluginBlob.Name);
 				try
 				{
-					bool productionPackage;
 					var tempZipFile = Path.GetTempFileName();
+					pluginBlob.DownloadToFile(tempZipFile, FileMode.Create);
+
+					// todo: validate stuff from inbox
+					// todo: handle inbox and accepted blobs e-tags
+
+					XElement manifest;
+
+					using (var zip = ZipFile.OpenRead(tempZipFile))
 					{
-						pluginBlob.DownloadToFile(tempZipFile, FileMode.Create);
-
-						// todo: validate stuff from inbox
-						// todo: handle inbox and accepted blobs e-tags
-
-						XElement manifest;
-
-						using (var zip = ZipFile.OpenRead(tempZipFile))
-						{
-							var manifestEntry = zip.GetEntry("manifest.xml");
-							using (var manifestEntryStream = manifestEntry.Open())
-								manifest = XDocument.Load(manifestEntryStream).Root;
-						}
-
-						productionPackage = manifest.Attribute("production")?.Value == "true";
-
-						Console.Write(" ver={0}, platf={1} {2}... ",
-							manifest.Element("version").Value,
-							manifest.Element("platform").Value,
-							productionPackage ? "" : "STAGING package");
-
-						if (productionPackage)
-						{
-							var acceptedPluginBlob = CreateBlob(pluginBlob.Name, backup: false);
-							acceptedPluginBlob.Properties.ContentType = "application/zip";
-							acceptedPluginBlob.UploadFromFile(tempZipFile);
-
-							var plugin = new XElement("plugin",
-								manifest.Element("id"),
-								manifest.Element("version"),
-								manifest.Element("name"),
-								manifest.Element("description"),
-								manifest.Element("platform"),
-								new XElement("location", acceptedPluginBlob.Uri),
-								new XElement("etag", UnquoteETag(acceptedPluginBlob.Properties.ETag))
-							);
-							foreach (var dep in manifest.Elements("dependency"))
-								plugin.Add(dep);
-
-							result.Root.Add(plugin);
-						}
+						var manifestEntry = zip.GetEntry("manifest.xml");
+						using (var manifestEntryStream = manifestEntry.Open())
+							manifest = XDocument.Load(manifestEntryStream).Root;
 					}
+
+					bool productionPackage = manifest.Attribute("production")?.Value == "true";
+
+					Console.Write(" ver={0}, platf={1} {2}... ",
+						manifest.Element("version").Value,
+						manifest.Element("platform").Value,
+						productionPackage ? "" : "DRY RUN");
+
+					if (productionPackage)
+					{
+						var acceptedPluginBlob = CreateBlob($"{pluginBlob.Name}-{packagesSuffix}", backup: false);
+						acceptedPluginBlob.Properties.ContentType = "application/zip";
+						acceptedPluginBlob.UploadFromFile(tempZipFile);
+
+						var plugin = new XElement("plugin",
+							manifest.Element("id"),
+							manifest.Element("version"),
+							manifest.Element("name"),
+							manifest.Element("description"),
+							manifest.Element("platform"),
+							new XElement("location", acceptedPluginBlob.Uri),
+							new XElement("etag", UnquoteETag(acceptedPluginBlob.Properties.ETag))
+						);
+						foreach (var dep in manifest.Elements("dependency"))
+							plugin.Add(dep);
+
+						result.Root.Add(plugin);
+					}
+					// todo: else, take link to current package from current index
+
 					File.Delete(tempZipFile);
-					Console.WriteLine(productionPackage ? "DONE" : "SKIPPED (staging)");
+					Console.WriteLine(productionPackage ? "DONE" : "SKIPPED (dry run)");
 				}
 				catch (Exception e)
 				{
@@ -785,7 +792,7 @@ namespace LogJoint.UpdateTool
 			{
 				result.Save(indexStream);
 				indexStream.Position = 0;
-				var indexBlob = CreatePluginsBlob();
+				var indexBlob = CreatePluginsBlob(prod);
 				indexBlob.Properties.ContentType = "text/xml";
 				indexBlob.UploadFromStream(indexStream);
 			}
