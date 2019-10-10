@@ -183,6 +183,9 @@ namespace LogJoint.UpdateTool
 				(prod ? "" : localLogLocation) + ";membuf=1");
 
 
+			var localPluginsNode = getSettingNode("LocalPlugins");
+			localPluginsNode.Value = "";
+
 			// remove local debug configs
 			removeAppSettingNode("localCosmosLocation");
 			removeAppSettingNode("useCallDbAwareCosmosReader");
@@ -194,8 +197,9 @@ namespace LogJoint.UpdateTool
 		static IEnumerable<string> GetFilesList(string sourceFilesLocation)
 		{
 			return settings.FilesList
-				.Split ('\n')
+				.Split ('\r', '\n' )
 				.Select (s => s.Trim ())
+				.Where (s => s.Length > 0)
 				.SelectMany (s => ResolveMasks (s, sourceFilesLocation));
 		}
 		
