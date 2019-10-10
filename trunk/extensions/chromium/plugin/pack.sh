@@ -1,0 +1,1 @@
+dotnet run --project ../../../sdk/tools/logjoint.plugintool pack bin/Debug/netstandard2.0/manifest.xml bin/chromium.zip $1

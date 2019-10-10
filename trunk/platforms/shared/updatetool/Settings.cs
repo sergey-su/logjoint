@@ -177,5 +177,14 @@ namespace LogJoint.UpdateTool.Properties {
 				return ((string)(this["PluginsBlobName"]));
 			}
 		}
+
+		[ApplicationScopedSetting]
+		public string StagingPluginsBlobName
+		{
+			get
+			{
+				return ((string)(this["StagingPluginsBlobName"]));
+			}
+		}
 	}
 }
