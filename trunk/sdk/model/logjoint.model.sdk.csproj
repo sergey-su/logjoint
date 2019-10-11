@@ -4,6 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>7.3</LangVersion>
+    <PackageId>logjoint.model.sdk</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>sergeysu</Authors>
+    <Company>private</Company>
   </PropertyGroup>
 
   <ItemGroup>
