@@ -112,6 +112,11 @@ namespace LogJoint
 			return ret.AddMilliseconds(epochTime);
 		}
 
+		public string EPOCH_TIME_TO_NATIVE_DATETIME_STR(double epochTime)
+		{
+			return TO_NATIVE_DATETIME_STR(EPOCH_TIME(epochTime));
+		}
+
 		public string NEW_LINE()
 		{
 			return Environment.NewLine;
