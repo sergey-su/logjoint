@@ -35,7 +35,7 @@
             <xsl:value-of select="@thread" />
           </xsl:attribute>
           <xsl:attribute name="d">
-            <xsl:value-of select="lj:EPOCH_TIME(@timeMillis)" />
+            <xsl:value-of select="lj:EPOCH_TIME_TO_NATIVE_DATETIME_STR(@timeMillis)" />
           </xsl:attribute>
           <xsl:attribute name="s">
             <xsl:choose>
