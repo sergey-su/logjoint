@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.3</LangVersion>
+    <PackageId>logjoint.presentation.sdk</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>sergeysu</Authors>
+    <Company>private</Company>
   </PropertyGroup>
 
   <ItemGroup>

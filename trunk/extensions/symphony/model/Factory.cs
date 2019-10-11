@@ -1,4 +1,3 @@
-using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
