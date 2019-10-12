@@ -12,7 +12,8 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory,
 			Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory,
 			Func<UpdatesAndFeedback.IView, UpdatesAndFeedback.IPresenter> updatesAndFeedbackPresenterFactory,
-			Func<Plugins.IView, Plugins.IPresenter> pluginsPresenterFactory)
+			Func<Plugins.IView, Plugins.IPresenter> pluginsPresenterFactory
+		)
 		{
 			this.view = view;
 			this.memAndPerformancePagePresenterFactory = memAndPerformancePagePresenterFactory;
@@ -21,15 +22,8 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			this.pluginsPresenterFactory = pluginsPresenterFactory;
 		}
 
-		PageId IPresenter.VisiblePages => GetVisiblePages();
-
 		void IPresenter.ShowDialog(PageId? initiallySelectedPage)
 		{
-			if (initiallySelectedPage != null &&
-				(GetVisiblePages() & initiallySelectedPage.Value) == 0)
-			{
-				return;
-			}
 			using (var dialog = view.CreateDialog())
 			{
 				currentDialog = dialog;
@@ -41,6 +35,8 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 					updatesAndFeedbackPresenter = updatesAndFeedbackPresenterFactory(dialog.UpdatesAndFeedbackPage);
 				if (dialog.PluginsPage != null)
 					pluginPresenter = pluginsPresenterFactory(dialog.PluginsPage);
+				if (initiallySelectedPage != null && (GetVisiblePages() & initiallySelectedPage.Value) == 0)
+					initiallySelectedPage = null;
 				currentDialog.SetViewModel(this);
 				currentDialog.Show(initiallySelectedPage);
 				currentDialog = null;
@@ -79,12 +75,13 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 		{
 			PageId result = PageId.Appearance | PageId.MemAndPerformance;
 			if (updatesAndFeedbackPresenter?.IsAvailable == true)
-				result |= PageId.UpdatesAndFeedback;
+				result = result | PageId.UpdatesAndFeedback;
 			if (pluginPresenter?.IsAvailable == true)
-				result |= PageId.Plugins;
+				result = result | PageId.Plugins;
 			return result;
 		}
 
+		readonly LJTraceSource trace;
 		readonly IView view;
 		readonly Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory;
 		readonly Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory;

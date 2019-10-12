@@ -129,7 +129,7 @@
 			this.pluginsTabPage.Padding = new System.Windows.Forms.Padding(3);
 			this.pluginsTabPage.Size = new System.Drawing.Size(561, 367);
 			this.pluginsTabPage.TabIndex = 3;
-			this.pluginsTabPage.Text = "Plugins";
+			this.pluginsTabPage.Text = "Plug-ins";
 			this.pluginsTabPage.UseVisualStyleBackColor = true;
 			// 
 			// memAndPerformanceSettingsView

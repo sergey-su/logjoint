@@ -513,6 +513,7 @@ namespace LogJoint.UI.Presenters
 
 			Options.PluginsInstallationOffer.Init(
 				optionsDialogPresenter,
+				new Options.Plugins.PageAvailability(model.PluginsManager),
 				model.StorageManager,
 				mainFormPresenter,
 				alertPopup

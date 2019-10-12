@@ -9,6 +9,7 @@ namespace LogJoint.UI.Presenters.Options
 	{
 		public static void Init(
 			Dialog.IPresenter optionsDialogPresenter,
+			Plugins.IPageAvailability pluginsPageAvailability,
 			Persistence.IStorageManager storageManager,
 			MainForm.IPresenter mainFormPresenter,
 			IAlertPopup popup
@@ -17,7 +18,7 @@ namespace LogJoint.UI.Presenters.Options
 			async void handler(object s, EventArgs e)
 			{
 				mainFormPresenter.Loaded -= handler;
-				if ((optionsDialogPresenter.VisiblePages & Dialog.PageId.Plugins) != 0)
+				if (pluginsPageAvailability.IsAvailable)
 				{
 					bool showOffer = false;
 					var storageEntry = storageManager.GetEntry("PluginsInstallationOffer");
@@ -39,7 +40,7 @@ namespace LogJoint.UI.Presenters.Options
 						}
 						else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							pluginsLocation = "Options... -> Preferences... -> Plug-ins";
+							pluginsLocation = "Options... -> Configuration... -> Plug-ins";
 						}
 						if (popup.ShowPopup(
 							"Plug-ins",
