@@ -511,6 +511,13 @@ namespace LogJoint.UI.Presenters
 				model.TraceSourceFactory
 			);
 
+			Options.PluginsInstallationOffer.Init(
+				optionsDialogPresenter,
+				model.StorageManager,
+				mainFormPresenter,
+				alertPopup
+			);
+
 			Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorOutputFormFactory = new Postprocessing.Factory(
 				views.PostprocessingViewsFactory,
 				model.PostprocessorsManager,
