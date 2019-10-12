@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -11,9 +11,9 @@
                 <outlet property="pluginActionButton" destination="o6X-je-278" id="LAR-io-ALB"/>
                 <outlet property="pluginDetailsLabel" destination="xhq-uJ-Cab" id="KYf-jj-C1s"/>
                 <outlet property="pluginHeaderLabel" destination="oxe-O2-ePP" id="vNu-Zj-h0D"/>
-                <outlet property="pluginsLoadingFailedLabel" destination="2Mi-ig-kaZ" id="ZE5-Ed-rOw"/>
                 <outlet property="pluginsLoadingIndicator" destination="YRn-1m-W45" id="8Oa-VB-82G"/>
                 <outlet property="pluginsPage" destination="My2-WF-kSb" id="szO-Cn-JQx"/>
+                <outlet property="pluginsStatusLabel" destination="2Mi-ig-kaZ" id="8Vn-80-jlc"/>
                 <outlet property="pluginsTab" destination="kiW-mU-MAg" id="uEX-5W-YbA"/>
                 <outlet property="pluginsTableView" destination="znA-gX-gjI" id="e1X-B4-dTF"/>
                 <outlet property="window" destination="2" id="6"/>
@@ -24,7 +24,7 @@
         <window title="Options" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" visibleAtLaunch="NO" animationBehavior="default" id="2" customClass="OptionsWindow">
             <windowStyleMask key="styleMask" titled="YES"/>
             <rect key="contentRect" x="131" y="74" width="600" height="405"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
             <view key="contentView" id="3">
                 <rect key="frame" x="0.0" y="0.0" width="600" height="405"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -106,28 +106,20 @@
                                             </textFieldCell>
                                         </textField>
                                         <progressIndicator hidden="YES" wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="YRn-1m-W45">
-                                            <rect key="frame" x="550" y="301" width="16" height="16"/>
+                                            <rect key="frame" x="460" y="301" width="16" height="16"/>
                                         </progressIndicator>
-                                        <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="2Mi-ig-kaZ">
-                                            <rect key="frame" x="408" y="301" width="160" height="17"/>
-                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Plug-ins list loading failed" id="Eee-1P-lxk">
-                                                <font key="font" metaFont="system"/>
-                                                <color key="textColor" name="systemRedColor" catalog="System" colorSpace="catalog"/>
-                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                            </textFieldCell>
-                                        </textField>
                                         <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fSj-eJ-Hi9">
                                             <rect key="frame" x="17" y="5" width="472" height="69"/>
                                             <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="1e7-hT-dpO">
-                                                <rect key="frame" x="0.0" y="0.0" width="457" height="69"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="472" height="69"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <textView editable="NO" drawsBackground="NO" importsGraphics="NO" richText="NO" verticallyResizable="YES" allowsCharacterPickerTouchBarItem="NO" textCompletion="NO" id="xhq-uJ-Cab">
-                                                        <rect key="frame" x="0.0" y="0.0" width="457" height="69"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="472" height="69"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                        <size key="minSize" width="457" height="69"/>
+                                                        <size key="minSize" width="472" height="69"/>
                                                         <size key="maxSize" width="500" height="10000000"/>
                                                         <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                     </textView>
@@ -139,7 +131,7 @@
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                             <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="j8z-dh-qVL">
-                                                <rect key="frame" x="457" y="0.0" width="15" height="69"/>
+                                                <rect key="frame" x="456" y="0.0" width="16" height="69"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                         </scrollView>
@@ -161,6 +153,14 @@
                                                 <action selector="pluginActionButtonClicked:" target="-2" id="GuZ-W4-hDr"/>
                                             </connections>
                                         </button>
+                                        <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="2Mi-ig-kaZ">
+                                            <rect key="frame" x="479" y="301" width="89" height="17"/>
+                                            <textFieldCell key="cell" lineBreakMode="clipping" title="Plugins status" id="Eee-1P-lxk">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
                                     </subviews>
                                     <constraints>
                                         <constraint firstItem="iTr-7m-7Yl" firstAttribute="top" secondItem="2Mi-ig-kaZ" secondAttribute="bottom" id="2Nd-yI-cDU"/>
@@ -170,13 +170,13 @@
                                         <constraint firstItem="oxe-O2-ePP" firstAttribute="leading" secondItem="iTr-7m-7Yl" secondAttribute="leading" id="6PC-Z5-aP9"/>
                                         <constraint firstItem="o6X-je-278" firstAttribute="top" secondItem="iTr-7m-7Yl" secondAttribute="bottom" constant="8" id="9Jm-Qy-PFP"/>
                                         <constraint firstItem="o6X-je-278" firstAttribute="leading" secondItem="fSj-eJ-Hi9" secondAttribute="trailing" constant="8" id="9e0-dd-dyZ"/>
-                                        <constraint firstItem="YRn-1m-W45" firstAttribute="trailing" secondItem="iTr-7m-7Yl" secondAttribute="trailing" id="BCH-qb-fkf"/>
                                         <constraint firstItem="oxe-O2-ePP" firstAttribute="top" secondItem="iTr-7m-7Yl" secondAttribute="bottom" constant="8" id="Cdf-rM-SbE"/>
                                         <constraint firstAttribute="bottom" secondItem="iTr-7m-7Yl" secondAttribute="bottom" constant="100" id="EA0-y9-RIY"/>
                                         <constraint firstItem="iTr-7m-7Yl" firstAttribute="top" secondItem="YRn-1m-W45" secondAttribute="bottom" id="LMy-be-7TH"/>
                                         <constraint firstItem="o6X-je-278" firstAttribute="trailing" secondItem="iTr-7m-7Yl" secondAttribute="trailing" id="Mmo-pB-CWi"/>
                                         <constraint firstItem="iTr-7m-7Yl" firstAttribute="top" secondItem="dOq-ID-0yc" secondAttribute="bottom" id="Sdq-jv-2CI"/>
-                                        <constraint firstItem="iTr-7m-7Yl" firstAttribute="trailing" secondItem="2Mi-ig-kaZ" secondAttribute="trailing" id="WRQ-Ta-rdA"/>
+                                        <constraint firstItem="iTr-7m-7Yl" firstAttribute="trailing" secondItem="2Mi-ig-kaZ" secondAttribute="trailing" id="T79-Q3-EPp"/>
+                                        <constraint firstItem="2Mi-ig-kaZ" firstAttribute="leading" secondItem="YRn-1m-W45" secondAttribute="trailing" constant="5" id="Z4t-FC-QRo"/>
                                         <constraint firstAttribute="bottom" secondItem="fSj-eJ-Hi9" secondAttribute="bottom" constant="5" id="bM1-8a-NMO"/>
                                         <constraint firstItem="iTr-7m-7Yl" firstAttribute="leading" secondItem="AUg-Mw-nmJ" secondAttribute="leading" constant="17" id="cvL-KV-pfb"/>
                                         <constraint firstItem="fSj-eJ-Hi9" firstAttribute="top" secondItem="oxe-O2-ePP" secondAttribute="bottom" constant="1" id="nCA-EQ-oZ0"/>

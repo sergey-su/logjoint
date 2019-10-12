@@ -71,11 +71,16 @@ namespace LogJoint.UI
 			);
 
 			var updateStatus = Updaters.Create(
-				() => viewModel.ListFetchingStatus,
+				() => viewModel.Status,
 				status =>
 				{
-					pluginsLoadingIndicator.Hidden = status != Presenters.Options.Plugins.PluginsListFetchingStatus.Pending;
-					pluginsLoadingFailedLabel.Hidden = status != Presenters.Options.Plugins.PluginsListFetchingStatus.Failed;
+					pluginsLoadingIndicator.Hidden =
+						(status.flags & Presenters.Options.Plugins.StatusFlags.IsProgressIndicatorVisible) == 0;
+					pluginsStatusLabel.Hidden = status.text == null;
+					pluginsStatusLabel.StringValue = status.text ?? "";
+					pluginsStatusLabel.TextColor =
+						(status.flags & Presenters.Options.Plugins.StatusFlags.IsError) != 0 ?
+							NSColor.SystemRedColor : NSColor.LabelColor;
 				}
 			);
 

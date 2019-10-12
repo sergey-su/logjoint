@@ -16,6 +16,7 @@ namespace LogJoint.AutoUpdate
 	public class AutoUpdater : IAutoUpdater
 	{
 		readonly IUpdateDownloader updateDownloader;
+		readonly IChangeNotification changeNotification;
 		readonly bool isActiveAutoUpdaterInstance;
 		readonly Task worker;
 		readonly CancellationTokenSource workerCancellation;
@@ -52,6 +53,7 @@ namespace LogJoint.AutoUpdate
 			IChangeNotification changeNotification
 		)
 		{
+			this.changeNotification = changeNotification;
 			this.updateDownloader = factory.CreateAppUpdateDownloader();
 			this.checkRequested = new TaskCompletionSource<int>();
 			this.factory = factory;
@@ -416,6 +418,7 @@ namespace LogJoint.AutoUpdate
 
 		void FireChangedEvent()
 		{
+			changeNotification.Post();
 			eventInvoker.Post(() => Changed?.Invoke(this, EventArgs.Empty));
 		}
 	};

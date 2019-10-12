@@ -22,10 +22,10 @@ namespace LogJoint.UI
 		AppKit.NSTextField pluginHeaderLabel { get; set; }
 
 		[Outlet]
-		AppKit.NSTextField pluginsLoadingFailedLabel { get; set; }
+		AppKit.NSProgressIndicator pluginsLoadingIndicator { get; set; }
 
 		[Outlet]
-		AppKit.NSProgressIndicator pluginsLoadingIndicator { get; set; }
+		AppKit.NSTextField pluginsStatusLabel { get; set; }
 
 		[Outlet]
 		AppKit.NSTabViewItem pluginsTab { get; set; }
@@ -44,6 +44,11 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (pluginsStatusLabel != null) {
+				pluginsStatusLabel.Dispose ();
+				pluginsStatusLabel = null;
+			}
+
 			if (pluginActionButton != null) {
 				pluginActionButton.Dispose ();
 				pluginActionButton = null;
@@ -59,24 +64,19 @@ namespace LogJoint.UI
 				pluginHeaderLabel = null;
 			}
 
-			if (pluginsLoadingFailedLabel != null) {
-				pluginsLoadingFailedLabel.Dispose ();
-				pluginsLoadingFailedLabel = null;
-			}
-
 			if (pluginsLoadingIndicator != null) {
 				pluginsLoadingIndicator.Dispose ();
 				pluginsLoadingIndicator = null;
 			}
 
-			if (pluginsTableView != null) {
-				pluginsTableView.Dispose ();
-				pluginsTableView = null;
-			}
-
 			if (pluginsTab != null) {
 				pluginsTab.Dispose ();
 				pluginsTab = null;
+			}
+
+			if (pluginsTableView != null) {
+				pluginsTableView.Dispose ();
+				pluginsTableView = null;
 			}
 		}
 	}
