@@ -8,7 +8,6 @@ namespace LogJoint.UI.Presenters.Options
 		public interface IPresenter
 		{
 			void ShowDialog(PageId? initiallySelectedPage = null);
-			PageId VisiblePages { get; }
 		};
 
 		public interface IView
@@ -148,10 +147,9 @@ namespace LogJoint.UI.Presenters.Options
 
 	namespace Plugins
 	{
-		public interface IPresenter : IDisposable
+		public interface IPresenter : IDisposable, IPageAvailability
 		{
 			bool Apply();
-			bool IsAvailable { get; }
 		};
 
 		public interface IView
@@ -177,7 +175,7 @@ namespace LogJoint.UI.Presenters.Options
 			IsError = 2
 		};
 
-		public interface IPluginListItem: Reactive.IListItem
+		public interface IPluginListItem : Reactive.IListItem
 		{
 			string Text { get; }
 		};
@@ -187,6 +185,11 @@ namespace LogJoint.UI.Presenters.Options
 			string Caption { get; }
 			string Description { get; }
 			(bool Enabled, string Caption) ActionButton { get; }
+		};
+
+		public interface IPageAvailability
+		{
+			bool IsAvailable { get; }
 		};
 	}
 };

@@ -76,7 +76,7 @@ namespace LogJoint.UI.Presenters.Options.Plugins
 			return true;
 		}
 
-		bool IPresenter.IsAvailable => pluginsManager.IsConfigured;
+		bool IPageAvailability.IsAvailable => PageAvailability.ComputeAvailability(pluginsManager);
 
 		void IDisposable.Dispose()
 		{
@@ -226,5 +226,22 @@ namespace LogJoint.UI.Presenters.Options.Plugins
 			Success,
 			Failed,
 		};
+	};
+
+	public class PageAvailability : IPageAvailability
+	{
+		readonly IPluginsManagerInternal pluginsManager;
+
+		public PageAvailability(IPluginsManagerInternal pluginsManager)
+		{
+			this.pluginsManager = pluginsManager;
+		}
+
+		static internal bool ComputeAvailability(IPluginsManagerInternal pluginsManager)
+		{
+			return pluginsManager.IsConfigured;
+		}
+
+		bool IPageAvailability.IsAvailable => ComputeAvailability(pluginsManager);
 	};
 };
