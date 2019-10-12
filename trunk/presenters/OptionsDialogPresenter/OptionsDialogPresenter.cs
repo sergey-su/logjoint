@@ -21,8 +21,15 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			this.pluginsPresenterFactory = pluginsPresenterFactory;
 		}
 
-		void IPresenter.ShowDialog()
+		PageId IPresenter.VisiblePages => GetVisiblePages();
+
+		void IPresenter.ShowDialog(PageId? initiallySelectedPage)
 		{
+			if (initiallySelectedPage != null &&
+				(GetVisiblePages() & initiallySelectedPage.Value) == 0)
+			{
+				return;
+			}
 			using (var dialog = view.CreateDialog())
 			{
 				currentDialog = dialog;
@@ -35,7 +42,7 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 				if (dialog.PluginsPage != null)
 					pluginPresenter = pluginsPresenterFactory(dialog.PluginsPage);
 				currentDialog.SetViewModel(this);
-				currentDialog.Show();
+				currentDialog.Show(initiallySelectedPage);
 				currentDialog = null;
 			}
 		}
@@ -58,9 +65,7 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			DisposePages();
 		}
 
-		bool IDialogViewModel.UpdatesAndFeedbackPageVisibile => updatesAndFeedbackPresenter?.IsAvailable == true;
-
-		bool IDialogViewModel.PluginPageVisible => pluginPresenter?.IsAvailable == true;
+		PageId IDialogViewModel.VisiblePages => GetVisiblePages();
 
 		#region Implementation
 
@@ -68,6 +73,16 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 		{
 			appearancePresenter?.Dispose();
 			pluginPresenter?.Dispose();
+		}
+
+		PageId GetVisiblePages()
+		{
+			PageId result = PageId.Appearance | PageId.MemAndPerformance;
+			if (updatesAndFeedbackPresenter?.IsAvailable == true)
+				result |= PageId.UpdatesAndFeedback;
+			if (pluginPresenter?.IsAvailable == true)
+				result |= PageId.Plugins;
+			return result;
 		}
 
 		readonly IView view;

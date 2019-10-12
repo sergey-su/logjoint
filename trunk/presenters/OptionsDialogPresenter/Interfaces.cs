@@ -7,7 +7,8 @@ namespace LogJoint.UI.Presenters.Options
 	{
 		public interface IPresenter
 		{
-			void ShowDialog();
+			void ShowDialog(PageId? initiallySelectedPage = null);
+			PageId VisiblePages { get; }
 		};
 
 		public interface IView
@@ -23,7 +24,7 @@ namespace LogJoint.UI.Presenters.Options
 			Appearance.IView ApperancePage { get; }
 			UpdatesAndFeedback.IView UpdatesAndFeedbackPage { get; }
 			Plugins.IView PluginsPage { get; }
-			void Show();
+			void Show(PageId? initiallySelectedPage);
 			void Hide();
 		};
 
@@ -31,13 +32,22 @@ namespace LogJoint.UI.Presenters.Options
 		{
 			void OnOkPressed();
 			void OnCancelPressed();
-			bool UpdatesAndFeedbackPageVisibile { get; }
-			bool PluginPageVisible { get; }
+			PageId VisiblePages { get; }
 		};
 
 		public interface IPagePresenter
 		{
 			void Apply();
+		};
+
+		[Flags]
+		public enum PageId
+		{
+			None = 0,
+			MemAndPerformance = 1,
+			Appearance = 2,
+			Plugins = 4,
+			UpdatesAndFeedback = 8,
 		};
 	}
 

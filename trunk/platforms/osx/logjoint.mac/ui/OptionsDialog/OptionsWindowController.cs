@@ -42,11 +42,12 @@ namespace LogJoint.UI
 
 			this.viewModel = viewModel;
 
-			// todo: show/hide pages
+			// todo: show/hide pages by viewModel.VisiblePages
 		}
 
-		void IDialog.Show ()
+		void IDialog.Show (PageId? initiallySelectedPage)
 		{
+			// todo: initiallySelectedPage is not implemenented because there is only one page atm
 			NSApplication.SharedApplication.RunModalForWindow(Window);
 		}
 
