@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 
 namespace LogJoint.UI.Presenters.Options
 {
@@ -156,17 +153,18 @@ namespace LogJoint.UI.Presenters.Options
 		{
 			IChangeNotification ChangeNotification { get; }
 			IReadOnlyList<IPluginListItem> ListItems { get; }
-			PluginsListFetchingStatus ListFetchingStatus { get; }
+			(StatusFlags flags, string text) Status { get; }
 			ISelectedPluginData SelectedPluginData { get; }
 			void OnSelect(IPluginListItem item);
 			void OnAction();
 		};
 
-		public enum PluginsListFetchingStatus
+		[Flags]
+		public enum StatusFlags
 		{
-			Pending,
-			Success,
-			Failed,
+			None = 0,
+			IsProgressIndicatorVisible = 1,
+			IsError = 2
 		};
 
 		public interface IPluginListItem: Reactive.IListItem

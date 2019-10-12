@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using System.Threading;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.Extensibility
 {
@@ -135,7 +136,10 @@ namespace LogJoint.Extensibility
 						telemetry.ReportException(e, "Bad manifest in " + pluginDirectory);
 					}
 					return manifest;
-				}).Where(manifest => manifest != null).ToDictionary(manifest => manifest.Id);
+				}).Where(manifest => manifest != null).ToDictionarySafe(
+					manifest => manifest.Id, manifest => manifest,
+					(exisingManifest, newManifest) => newManifest
+				);
 
 				void LoadPlugin(IPluginManifest manifest)
 				{
