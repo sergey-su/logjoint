@@ -417,9 +417,7 @@ namespace LogJoint
 		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry)
 		{
 			logProviderFactoryRegistry.Register(new DebugOutput.Factory());
-#if WIN
 			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
-#endif
 		}
 
 		private static void RegisterUserDefinedFormats(IUserDefinedFormatsManager userDefinedFormatsManager)

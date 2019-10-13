@@ -44,9 +44,7 @@ namespace LogJoint.UI.Presenters
 		NewLogSourceDialog.Pages.FormatDetection.IView Factory.IViewsFactory.CreateFormatDetectionView() => new NewLogSourceDialog.Pages.FormatDetection.AnyLogFormatUI();
 		NewLogSourceDialog.Pages.FileBasedFormat.IView Factory.IViewsFactory.CreateFileBasedFormatView() => new NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI();
 		NewLogSourceDialog.Pages.DebugOutput.IView Factory.IViewsFactory.CreateDebugOutputFormatView() => new NewLogSourceDialog.Pages.DebugOutput.DebugOutputFactoryUI();
-#if WIN_TODO
 		NewLogSourceDialog.Pages.WindowsEventsLog.IView Factory.IViewsFactory.CreateWindowsEventsLogFormatView() => new NewLogSourceDialog.Pages.WindowsEventsLog.EVTFactoryUI();
-#endif
 		FormatsWizard.Factory.IViewsFactory Factory.IViewsFactory.FormatsWizardViewFactory => this;
 		FormatsWizard.IView FormatsWizard.Factory.IViewsFactory.CreateFormatsWizardView() => new ManageFormatsWizard();
 		FormatsWizard.ChooseOperationPage.IView FormatsWizard.Factory.IViewsFactory.CreateChooseOperationPageView() => new ChooseOperationPage();
