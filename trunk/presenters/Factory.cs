@@ -40,8 +40,8 @@ namespace LogJoint.UI.Presenters
 			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
 			NewLogSourceDialog.Pages.FormatDetection.IView CreateFormatDetectionView();
 			NewLogSourceDialog.Pages.FileBasedFormat.IView CreateFileBasedFormatView();
-#if WIN
 			NewLogSourceDialog.Pages.DebugOutput.IView CreateDebugOutputFormatView();
+#if WIN
 			NewLogSourceDialog.Pages.WindowsEventsLog.IView CreateWindowsEventsLogFormatView();
 #endif
 			FormatsWizard.Factory.IViewsFactory FormatsWizardViewFactory { get; }
@@ -361,7 +361,6 @@ namespace LogJoint.UI.Presenters
 					fileDialogs
 				)
 			);
-#if WIN
 			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
 				StdProviderFactoryUIs.DebugOutputProviderUIKey,
 				f => new NewLogSourceDialog.Pages.DebugOutput.Presenter(
@@ -370,6 +369,7 @@ namespace LogJoint.UI.Presenters
 					model.LogSourcesManager
 				)
 			);
+#if WIN
 			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
 				StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
 				f => new NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
