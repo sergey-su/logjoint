@@ -19,7 +19,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 	public interface IView
 	{
-		void SetPresenter(IViewEvents presenter);
+		void SetViewModel(IViewModel value);
 		IInputFocusState CaptureInputFocusState();
 		void ExecuteThreadPropertiesDialog(IThread thread, IPresentersFacade navHandler, IColorTheme theme);
 		void SetAnalyzingIndicationVisibility(bool value);
@@ -31,7 +31,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		void EnableOwnedForms(bool enable);
 		void ShowOptionsMenu();
 		void SetCaption(string value);
-		void SetUpdateIconVisibility(bool value);
 		void Close();
 		void ForceClose();
 		void SetTaskbarState(TaskbarState state);
@@ -76,9 +75,10 @@ namespace LogJoint.UI.Presenters.MainForm
 	};
 
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		(AutoUpdateButtonState state, string tooltip) AutoUpdateButton { get; }
 		void OnClosing();
 		void OnLoad();
 		void OnTabPressed();
@@ -106,6 +106,13 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		Progress,
 		Idle
+	};
+
+	public enum AutoUpdateButtonState
+	{
+		Hidden,
+		ProgressIcon,
+		WaitingRestartIcon,
 	};
 
 	public class TabChangingEventArgs: EventArgs

@@ -28,7 +28,7 @@ namespace LogJoint.Tests.Integration
 	public class ViewModelObjects
 	{
 		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
-		public UI.Presenters.MainForm.IViewEvents MainForm;
+		public UI.Presenters.MainForm.IViewModel MainForm;
 		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
 		public string PostprocessingTabPageId;
@@ -151,8 +151,8 @@ namespace LogJoint.Tests.Integration
 				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.LoadedMessagesLogViewer = x));
 			mocks.Views.CreateLoadedMessagesView().MessagesView.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
 
-			mocks.Views.CreateMainFormView().SetPresenter(
-				Arg.Do<UI.Presenters.MainForm.IViewEvents>(x => viewModel.MainForm = x));
+			mocks.Views.CreateMainFormView().SetViewModel(
+				Arg.Do<UI.Presenters.MainForm.IViewModel>(x => viewModel.MainForm = x));
 			mocks.Views.CreateMainFormView().AddTab(
 				Arg.Do<string>(tabId => viewModel.PostprocessingTabPageId = tabId),
 				UI.Presenters.Postprocessing.MainWindowTabPage.Presenter.TabCaption,
