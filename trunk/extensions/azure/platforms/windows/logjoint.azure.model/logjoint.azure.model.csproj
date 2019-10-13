@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.Azure</RootNamespace>
     <AssemblyName>logjoint.azure.model</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -47,8 +47,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,23 +67,23 @@
       <Link>LogProvider.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ui\FactoryUI.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FactoryUI.designer.cs">
-      <DependentUpon>FactoryUI.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ui\FactoryUI.resx">
-      <DependentUpon>FactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
-      <Project>{929f7c79-e2bb-4e6c-af17-f21e5025265a}</Project>
-      <Name>logjoint</Name>
-      <Private>False</Private>
+    <ProjectReference Include="..\..\..\..\..\model\logjoint.model.csproj">
+      <Project>{a46e3f7f-86de-43b5-ae56-641cba2f6d0e}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\presenters\logjoint.presenters.csproj">
+      <Project>{b5575d95-edf2-4404-aefd-ac75687be7e4}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
+      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

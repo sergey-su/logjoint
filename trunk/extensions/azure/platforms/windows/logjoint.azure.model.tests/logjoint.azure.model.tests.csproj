@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.Azure</RootNamespace>
     <AssemblyName>logjoint.azure.model.tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkProfile />
@@ -52,6 +52,14 @@
     <Compile Include="Tests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\model\logjoint.model.csproj">
+      <Project>{a46e3f7f-86de-43b5-ae56-641cba2f6d0e}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
     <ProjectReference Include="..\logjoint.azure.model\logjoint.azure.model.csproj">
       <Project>{1ba8ac55-dfd6-4184-8e2d-a63133cea115}</Project>
       <Name>logjoint.azure.model</Name>
