@@ -20,10 +20,4 @@
     <ProjectReference Include="../../presenters/logjoint.presenters.csproj" />
   </ItemGroup>
 
-  <!-- todo: fix excluded tests -->
-  <ItemGroup>
-    <Compile Remove="Chromium/**" />
-    <Compile Remove="PacketAnalysis/**" />
-  </ItemGroup>
-
 </Project>
