@@ -430,9 +430,9 @@ namespace LogJoint.UpdateTool
 				return CreateBlob(prod ? settings.ProdMacInstallerBlobName : settings.StagingMacInstallerBlobName, backup);
 		}
 
-		private static CloudBlockBlob CreatePluginsBlob(bool prod)
+		private static CloudBlockBlob CreatePluginsBlob(bool prod, bool backup = false)
 		{
-			return CreateBlob(prod ? settings.PluginsBlobName : settings.StagingPluginsBlobName, backup: false);
+			return CreateBlob(prod ? settings.PluginsBlobName : settings.StagingPluginsBlobName, backup: backup);
 		}
 
 		private static CloudTable CreateTelemetryTable()
@@ -787,13 +787,15 @@ namespace LogJoint.UpdateTool
 				}
 			}
 
+			var indexBlob = CreatePluginsBlob(prod);
+			indexBlob.Properties.ContentType = "text/xml";
+			if (indexBlob.Exists())
+				BackupBlob(indexBlob, CreateUpdateBlob(prod, backup: true));
 			Console.Write("Writing index ... ");
 			using (var indexStream = new MemoryStream())
 			{
 				result.Save(indexStream);
 				indexStream.Position = 0;
-				var indexBlob = CreatePluginsBlob(prod);
-				indexBlob.Properties.ContentType = "text/xml";
 				indexBlob.UploadFromStream(indexStream);
 			}
 			Console.WriteLine("DONE");
