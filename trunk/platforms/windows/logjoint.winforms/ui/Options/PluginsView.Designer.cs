@@ -105,18 +105,18 @@
 			this.label1.TabIndex = 5;
 			this.label1.Text = "Plug-ins";
 			// 
-			// failedFetchStatusLabel
+			// statusLabel
 			// 
 			this.statusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.statusLabel.AutoSize = true;
-			this.statusLabel.Location = new System.Drawing.Point(403, 20);
-			this.statusLabel.Name = "failedFetchStatusLabel";
-			this.statusLabel.Size = new System.Drawing.Size(90, 17);
+			this.statusLabel.AutoSize = false;
+			this.statusLabel.Location = new System.Drawing.Point(270, 20);
+			this.statusLabel.Name = "statusLabel";
+			this.statusLabel.Size = new System.Drawing.Size(180, 17);
 			this.statusLabel.TabIndex = 6;
-			this.statusLabel.Text = "Loading failed";
+			this.statusLabel.Text = "status";
 			this.statusLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			this.statusLabel.Visible = false;
-			this.statusLabel.Padding = new System.Windows.Forms.Padding(0, 0, 40, 0);
+			this.statusLabel.Padding = new System.Windows.Forms.Padding(0, 0, 0, 0);
 			// 
 			// progressFetchStatusLabel
 			// 
