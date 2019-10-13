@@ -795,10 +795,6 @@
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.updater\logjoint.updater.csproj">
-      <Project>{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}</Project>
-      <Name>logjoint.updater</Name>
-    </ProjectReference>
     <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{C90306F2-3BB8-4D1B-BF0A-3C07DE799340}</Project>
       <Name>logjoint.sdk</Name>

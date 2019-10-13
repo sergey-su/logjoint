@@ -113,7 +113,8 @@ namespace LogJoint.UI
 				Bordered = true,
 				ImagePosition = NSCellImagePosition.ImageOverlaps,
 				ImageScaling = NSImageScale.ProportionallyDown,
-				Image = NSImage.ImageNamed ("PendingUpdateNotification.png")
+				Image = NSImage.ImageNamed ("PendingUpdateNotification.png"),
+				Title = ""
 			};
 			autoUpdateButton.SetButtonType (NSButtonType.MomentaryPushIn);
 
