@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.UI.Presenters
 {
@@ -41,9 +42,7 @@ namespace LogJoint.UI.Presenters
 			NewLogSourceDialog.Pages.FormatDetection.IView CreateFormatDetectionView();
 			NewLogSourceDialog.Pages.FileBasedFormat.IView CreateFileBasedFormatView();
 			NewLogSourceDialog.Pages.DebugOutput.IView CreateDebugOutputFormatView();
-#if WIN
 			NewLogSourceDialog.Pages.WindowsEventsLog.IView CreateWindowsEventsLogFormatView();
-#endif
 			FormatsWizard.Factory.IViewsFactory FormatsWizardViewFactory { get; }
 			SourcesManager.IView CreateSourcesManagerView();
 			MessagePropertiesDialog.IView CreateMessagePropertiesDialogView();
@@ -73,7 +72,7 @@ namespace LogJoint.UI.Presenters
 			IViewsFactory views
 		)
 		{
-			T callOptionalFactory<T>(Func<T> factory) where T: class
+			T callOptionalFactory<T>(Func<T> factory) where T : class
 			{
 				try
 				{
@@ -361,24 +360,10 @@ namespace LogJoint.UI.Presenters
 					fileDialogs
 				)
 			);
-			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-				StdProviderFactoryUIs.DebugOutputProviderUIKey,
-				f => new NewLogSourceDialog.Pages.DebugOutput.Presenter(
-					views.CreateDebugOutputFormatView(),
-					f,
-					model.LogSourcesManager
-				)
-			);
-#if WIN
-			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-				StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
-				f => new NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
-					views.CreateWindowsEventsLogFormatView(),
-					f,
-					model.LogSourcesManager
-				)
-			);
-#endif
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				RegisterWindowsOnlyPresenters(model, views, newLogPagesPresentersRegistry);
+			}
 
 			SourcesManager.IPresenter sourcesManagerPresenter = new SourcesManager.Presenter(
 				model.LogSourcesManager,
@@ -602,6 +587,30 @@ namespace LogJoint.UI.Presenters
 				ColorTheme = colorTheme,
 				PreprocessingUserInteractions = preprocessingUserInteractions
 			};
+		}
+
+		private static void RegisterWindowsOnlyPresenters(
+			ModelObjects model,
+			IViewsFactory views,
+			NewLogSourceDialog.IPagePresentersRegistry newLogPagesPresentersRegistry
+		)
+		{
+			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+				StdProviderFactoryUIs.DebugOutputProviderUIKey,
+				f => new NewLogSourceDialog.Pages.DebugOutput.Presenter(
+					views.CreateDebugOutputFormatView(),
+					f,
+					model.LogSourcesManager
+				)
+			);
+			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+				StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
+				f => new NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
+					views.CreateWindowsEventsLogFormatView(),
+					f,
+					model.LogSourcesManager
+				)
+			);
 		}
 	};
 };

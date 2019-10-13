@@ -1,15 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
-using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
-using System.Security.Permissions;
-using System.ComponentModel;
 using System.Xml;
 using System.Text.RegularExpressions;
 using System.Diagnostics.Eventing.Reader;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LogJoint.WindowsEventLog

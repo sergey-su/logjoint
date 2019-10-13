@@ -13,10 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="NewLogSourceDialogPresenter/Pages/WindowsEventsLogPagePresenter.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="RangeTree" Version="1.0.6" />
   </ItemGroup>
 
