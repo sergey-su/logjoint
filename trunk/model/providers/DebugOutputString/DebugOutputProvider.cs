@@ -47,7 +47,7 @@ namespace LogJoint.DebugOutput
 				}
 				catch (Exception e)
 				{
-					trace.Error(e, "Failed to inistalize DebugOutput reader. Disposing what has been created so far.");
+					trace.Error(e, "Failed to initialize DebugOutput reader. Disposing what has been created so far.");
 					Cleanup();
 					throw;
 				}

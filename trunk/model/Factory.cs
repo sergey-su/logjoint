@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
@@ -404,13 +405,21 @@ namespace LogJoint
 			RegularExpressions.IRegexFactory regexFactory,
 			ITraceSourceFactory traceSourceFactory)
 		{
-#if WIN
-			logProviderFactoryRegistry.Register(new DebugOutput.Factory());
-			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
-#endif
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				RegisterWindowsOnlyFactories(logProviderFactoryRegistry);
+			}
 			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager));
 			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
 			userDefinedFormatsManager.ReloadFactories();
+		}
+
+		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry)
+		{
+			logProviderFactoryRegistry.Register(new DebugOutput.Factory());
+#if WIN
+			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
+#endif
 		}
 
 		private static void RegisterUserDefinedFormats(IUserDefinedFormatsManager userDefinedFormatsManager)
