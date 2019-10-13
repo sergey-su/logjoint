@@ -385,7 +385,6 @@ namespace LogJoint.UI
 			// restartAppToUpdatePicture
 			// 
 			this.restartAppToUpdatePicture.Dock = System.Windows.Forms.DockStyle.Left;
-			this.restartAppToUpdatePicture.Image = global::LogJoint.Properties.Resources.RestartApp;
 			this.restartAppToUpdatePicture.Location = new System.Drawing.Point(0, 0);
 			this.restartAppToUpdatePicture.Margin = new System.Windows.Forms.Padding(0);
 			this.restartAppToUpdatePicture.Name = "restartAppToUpdatePicture";
@@ -393,7 +392,6 @@ namespace LogJoint.UI
 			this.restartAppToUpdatePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
 			this.restartAppToUpdatePicture.TabIndex = 3;
 			this.restartAppToUpdatePicture.TabStop = false;
-			this.toolTip1.SetToolTip(this.restartAppToUpdatePicture, "New update available. Restart application to apply it.");
 			this.restartAppToUpdatePicture.Visible = false;
 			this.restartAppToUpdatePicture.Click += restartAppToUpdatePicture_Click;
 			// 

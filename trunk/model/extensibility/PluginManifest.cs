@@ -28,7 +28,7 @@ namespace LogJoint.Extensibility
 			{
 				doc = XDocument.Load(this.absolutePath);
 			}
-			catch (XmlException e)
+			catch (Exception e)
 			{
 				throw new BadManifestException($"Failed to load manifest", e);
 			}
