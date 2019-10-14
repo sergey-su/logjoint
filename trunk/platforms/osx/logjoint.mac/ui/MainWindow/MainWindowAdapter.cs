@@ -117,9 +117,12 @@ namespace LogJoint.UI
 				Title = ""
 			};
 			autoUpdateButton.SetButtonType (NSButtonType.MomentaryPushIn);
+			autoUpdateButton.Target = this;
+			autoUpdateButton.Action = new ObjCRuntime.Selector ("OnRestartButtonClicked:");
 
 			var autoUpdateProgressIndicator = new NSProgressIndicator {
-				Style = NSProgressIndicatorStyle.Spinning
+				Style = NSProgressIndicatorStyle.Spinning,
+				ControlSize = NSControlSize.Small
 			};
 
 			var updateAutoUpdateButton = Updaters.Create (

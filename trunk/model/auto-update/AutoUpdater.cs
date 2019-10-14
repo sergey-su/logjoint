@@ -202,7 +202,10 @@ namespace LogJoint.AutoUpdate
 
 					var appCheckResult = await CheckForUpdate(appUpdateInfoFileContent.BinariesETag);
 					if (appCheckResult.Status == DownloadUpdateResult.StatusCode.Failure)
+					{
+						SetState(AutoUpdateState.Idle);
 						continue;
+					}
 
 					var requiredPlugins = await GetRequiredPlugins(pluginsManager, workerCancellationToken);
 					var requiredUpdateKey = factory.CreateUpdateKey(
