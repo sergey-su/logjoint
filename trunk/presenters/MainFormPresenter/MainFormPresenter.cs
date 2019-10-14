@@ -323,8 +323,8 @@ namespace LogJoint.UI.Presenters.MainForm
 				{
 					switch (autoUpdater.State)
 					{
-						case AutoUpdateState.WaitingRestart: return (AutoUpdateButtonState.WaitingRestartIcon, "New update available. Restart application to apply it.");
-						case AutoUpdateState.Checking: return (AutoUpdateButtonState.ProgressIcon, "Handling new update");
+						case AutoUpdateState.WaitingRestart: return (AutoUpdateButtonState.WaitingRestartIcon, "New software update is available. Restart application to apply it.");
+						case AutoUpdateState.Checking: return (AutoUpdateButtonState.ProgressIcon, "Software update procedure is in progress");
 					}
 				}
 				return (AutoUpdateButtonState.Hidden, "");
