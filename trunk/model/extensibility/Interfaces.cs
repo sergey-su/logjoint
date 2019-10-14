@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +10,7 @@ namespace LogJoint.Extensibility
 	public interface IPluginsManagerInternal: IPluginsManager
 	{
 		bool IsConfigured { get; }
-		void LoadPlugins(object appEntryPoint);
+		void LoadPlugins(object appEntryPoint, string localPluginsList);
 		IReadOnlyList<IPluginManifest> InstalledPlugins { get; }
 		Task<IReadOnlyList<IPluginInfo>> FetchAllPlugins(CancellationToken cancellation);
 		/// <summary>
@@ -18,6 +19,7 @@ namespace LogJoint.Extensibility
 		/// </summary>
 		IReadOnlyDictionary<string, bool> InstallationRequests { get; }
 		IPluginInstallationRequestsBuilder CreatePluginInstallationRequestsBuilder();
+		IEnumerable<Assembly> PluginAssemblies { get; }
 	};
 
 	public interface IPluginInfo

@@ -32,7 +32,10 @@ namespace LogJoint
 					AutoUpdateUrl = Properties.Settings.Default.AutoUpdateUrl,
 					PluginsUrl = Properties.Settings.Default.PluginsUrl,
 					WebContentCacheConfig = webContentConfig,
-					LogsDownloaderConfig = webContentConfig
+					LogsDownloaderConfig = webContentConfig,
+					TraceListeners = Properties.Settings.Default.TraceListenerConfig != null ?
+						new[] { new TraceListener(Properties.Settings.Default.TraceListenerConfig) } :
+						null
 				},
 				modelSynchronizationContext,
 				(storageManager) => new UI.LogsPreprocessorCredentialsCache(
@@ -46,7 +49,10 @@ namespace LogJoint
 					webContentCache,
 					shutdown,
 					traceSourceFactory
-				)
+				),
+				new Drawing.Matrix.Factory(),
+				RegularExpressions.LJRegexFactory.Instance,
+				() => new Postprocessing.Correlation.EmbeddedSolver.EmbeddedSolver()
 			);
 
 			var viewsFactory = new UI.Presenters.ViewsFactory(mainForm, model);
@@ -79,7 +85,7 @@ namespace LogJoint
 				)
 			);
 
-			model.PluginsManager.LoadPlugins(pluginEntryPoint);
+			model.PluginsManager.LoadPlugins(pluginEntryPoint, Properties.Settings.Default.LocalPlugins);
 
 			new PluggableProtocolManager(
 				model.TraceSourceFactory,

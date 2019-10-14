@@ -59,11 +59,11 @@ namespace LogJoint.Persistence
 		/// </summary>
 		IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		/// <summary>
-		/// Returns an XML section in persistent storage that is accessibe via simple API (SAX).
+		/// Returns an XML section in persistent storage that is accessible via simple API (SAX).
 		/// </summary>
 		ISaxXMLStorageSection OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		/// <summary>
-		// Returns a raw data section in persistent storage.
+		/// Returns a raw data section in persistent storage.
 		/// When open with ReadWrite flag the returned IStorageSection's Dispose may throw StorageException
 		/// </summary>
 		IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
@@ -116,6 +116,12 @@ namespace LogJoint.Persistence
 	public interface IWebContentCacheConfig
 	{
 		bool IsCachingForcedForHost(string hostName);
+	};
+
+	public interface ICredentialsProtection
+	{
+		byte[] Protect(byte[] userData);
+		byte[] Unprotect(byte[] encryptedData);
 	};
 
 	public class StorageException : Exception

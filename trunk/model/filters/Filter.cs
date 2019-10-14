@@ -9,9 +9,10 @@ namespace LogJoint
 	internal class Filter : IDisposable, IFilter
 	{
 		public Filter(FilterAction action, string initialName, bool enabled,
-			Search.Options options, IFiltersFactory factory)
+			Search.Options options, IFiltersFactory factory, RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.factory = factory;
+			this.regexFactory = regexFactory;
 
 			if (initialName == null)
 				throw new ArgumentNullException(nameof(initialName));
@@ -22,15 +23,16 @@ namespace LogJoint
 			this.options = options;
 
 			// Filters ignores following flags passed.
-			// Actually used values are provided later when filters are appied.
+			// Actually used values are provided later when filters are applied.
 			this.options.ReverseSearch = false;
 
 			InvalidateName();
 		}
 
-		public Filter(XElement e, IFiltersFactory factory)
+		public Filter(XElement e, IFiltersFactory factory, RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.factory = factory;
+			this.regexFactory = regexFactory;
 
 			LoadInternal(e);
 		}
@@ -141,7 +143,7 @@ namespace LogJoint
 			tmp.ReverseSearch = reverseMatchDirection;
 			return new BulkProcessing()
 			{
-				searchState = tmp.BeginSearch(timeboxedMatching)
+				searchState = tmp.BeginSearch(regexFactory, timeboxedMatching)
 			};
 		}
 
@@ -297,6 +299,7 @@ namespace LogJoint
 		#region Members
 
 		private readonly IFiltersFactory factory;
+		private readonly RegularExpressions.IRegexFactory regexFactory;
 
 		private bool isDisposed;
 		private IFiltersList owner;

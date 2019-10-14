@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
@@ -45,6 +46,9 @@ namespace LogJoint
 		public IColorLeaseConfig ThreadColorsLease { get; internal set; }
 		public Extensibility.IPluginsManagerInternal PluginsManager { get; internal set; }
 		public ITraceSourceFactory TraceSourceFactory { get; internal set; }
+		public Drawing.IMatrixFactory MatrixFactory { get; internal set; }
+		public RegularExpressions.IRegexFactory RegexFactory { get; internal set; }
+		public FieldsProcessor.IFactory FieldsProcessorFactory { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -66,7 +70,10 @@ namespace LogJoint
 			ModelConfig config,
 			ISynchronizationContext modelSynchronizationContext,
 			Func<Persistence.IStorageManager, Preprocessing.ICredentialsCache> createPreprocessingCredentialsCache,
-			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebViewTools.IWebViewTools> createWebBrowserDownloader
+			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebViewTools.IWebViewTools> createWebBrowserDownloader,
+			Drawing.IMatrixFactory matrixFactory,
+			RegularExpressions.IRegexFactory regexFactory,
+			Func<Postprocessing.Correlation.Solver.ISolver> solverFactory
 		)
 		{
 			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners);
@@ -77,25 +84,40 @@ namespace LogJoint
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 			MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
-			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
-				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory);
-			RegisterUserDefinedFormats(userDefinedFormatsManager);
-			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager);
-			tracer.Info("app initializer created");
-			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
-			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
-			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification);
-			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
-			var bookmarks = bookmarksFactory.CreateBookmarks();
-			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);
+			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 			userDataStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(),
 				 persistentUserDataFileSystem,
 				 new Persistence.PersistentUserDataManager.ConfigAccess(globalSettingsAccessor)
 			);
+			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
+				traceSourceFactory,
+				config.TelemetryUrl,
+				config.IssuesUrl
+			);
+			var telemetryCollectorImpl = new Telemetry.TelemetryCollector(
+				storageManager,
+				telemetryUploader,
+				modelSynchronizationContext,
+				instancesCounter,
+				shutdown,
+				new MemBufferTraceAccess(),
+				traceSourceFactory
+			);
+			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
+			FieldsProcessor.IFactory fieldsProcessorFactory = new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, telemetryCollector);
+			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
+				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
+			RegisterUserDefinedFormats(userDefinedFormatsManager);
+			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
+			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
+			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
+			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
+			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
+			var bookmarks = bookmarksFactory.CreateBookmarks();
 			Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
 			Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
 			contentCacheStorage.Init(
@@ -117,22 +139,6 @@ namespace LogJoint
 			var threadColorsLease = new ColorLease(1);
 			IModelThreadsInternal modelThreads = new ModelThreads(threadColorsLease);
 
-			Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.AzureTelemetryUploader(
-				traceSourceFactory,
-				config.TelemetryUrl,
-				config.IssuesUrl
-			);
-
-			var telemetryCollectorImpl = new Telemetry.TelemetryCollector(
-				storageManager,
-				telemetryUploader,
-				modelSynchronizationContext,
-				instancesCounter,
-				shutdown,
-				new MemBufferTraceAccess(),
-				traceSourceFactory
-			);
-			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
 
 			MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
 				storageManager,
@@ -151,7 +157,8 @@ namespace LogJoint
 				recentlyUsedLogs,
 				shutdown,
 				traceSourceFactory,
-				changeNotification
+				changeNotification,
+				regexFactory
 			);
 
 			telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);
@@ -161,7 +168,6 @@ namespace LogJoint
 			IFormatAutodetect formatAutodetect = new FormatAutodetect(
 				recentlyUsedLogs,
 				logProviderFactoryRegistry,
-				tempFilesManager,
 				traceSourceFactory
 			);
 
@@ -203,7 +209,7 @@ namespace LogJoint
 				logProviderFactoryRegistry,
 				webBrowserDownloader,
 				logsDownloaderConfig,
-				traceSourceFactory
+				regexFactory
 			);
 
 			Preprocessing.IManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -271,7 +277,8 @@ namespace LogJoint
 				new Postprocessing.StateInspector.Model(tempFilesManager),
 				new Postprocessing.Timeline.Model(tempFilesManager),
 				new Postprocessing.SequenceDiagram.Model(tempFilesManager),
-				new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess)
+				new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess),
+				solverFactory
 			);
 
 			AutoUpdate.IFactory autoUpdateFactory = new AutoUpdate.Factory(
@@ -384,22 +391,33 @@ namespace LogJoint
 				HeartBeatTimer = heartBeatTimer,
 				ThreadColorsLease = threadColorsLease,
 				PluginsManager = pluginsManager,
-				TraceSourceFactory = traceSourceFactory
+				TraceSourceFactory = traceSourceFactory,
+				MatrixFactory = matrixFactory,
+				RegexFactory = regexFactory,
+				FieldsProcessorFactory = fieldsProcessorFactory,
 			};
 		}
 
 		private static void RegisterPredefinedFormatFactories(
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			ITempFilesManager tempFilesManager,
-			IUserDefinedFormatsManager userDefinedFormatsManager)
+			IUserDefinedFormatsManager userDefinedFormatsManager,
+			RegularExpressions.IRegexFactory regexFactory,
+			ITraceSourceFactory traceSourceFactory)
 		{
-#if WIN
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				RegisterWindowsOnlyFactories(logProviderFactoryRegistry);
+			}
+			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager));
+			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
+			userDefinedFormatsManager.ReloadFactories();
+		}
+
+		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry)
+		{
 			logProviderFactoryRegistry.Register(new DebugOutput.Factory());
 			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
-#endif
-			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager));
-			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager));
-			userDefinedFormatsManager.ReloadFactories();
 		}
 
 		private static void RegisterUserDefinedFormats(IUserDefinedFormatsManager userDefinedFormatsManager)

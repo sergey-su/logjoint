@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.MainForm
 {
-	public class Presenter: IPresenter, IViewEvents
+	public class Presenter: IPresenter, IViewModel
 	{
 		public Presenter(
 			ILogSourcesManager logSources,
@@ -58,7 +58,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.theme = theme;
 			this.changeNotification = changeNotification;
 
-			view.SetPresenter(this);
+			view.SetViewModel(this);
 
 			viewerPresenter.ManualRefresh += delegate(object sender, EventArgs args)
 			{
@@ -110,14 +110,6 @@ namespace LogJoint.UI.Presenters.MainForm
 			{
 				UpdateFormCaption();
 			};
-
-			if (autoUpdater != null)
-			{
-				autoUpdater.Changed += (sender, args) =>
-				{
-					UpdateAutoUpdateIcon();
-				};
-			}
 
 			progressAggregator.ProgressStarted += (sender, args) =>
 			{
@@ -181,9 +173,9 @@ namespace LogJoint.UI.Presenters.MainForm
 			return tabId;
 		}
 
-		IChangeNotification IViewEvents.ChangeNotification => changeNotification;
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
-		async void IViewEvents.OnClosing()
+		async void IViewModel.OnClosing()
 		{
 			using (tracer.NewFrame)
 			{
@@ -201,34 +193,34 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 			
-		void IViewEvents.OnLoad()
+		void IViewModel.OnLoad()
 		{
 			if (Loaded != null)
 				Loaded(this, EventArgs.Empty);
 		}
 
-		void IViewEvents.OnTabChanging(string tabId)
+		void IViewModel.OnTabChanging(string tabId)
 		{
 			customTabsTags.TryGetValue(tabId, out var tag);
 			TabChanging?.Invoke(this, new TabChangingEventArgs(tabId, tag));
 		}
 
-		void IViewEvents.OnTabPressed()
+		void IViewModel.OnTabPressed()
 		{
 			tabUsageTracker.OnTabPressed();
 		}
 
-		void IViewEvents.OnShareButtonClicked()
+		void IViewModel.OnShareButtonClicked()
 		{
 			sharingDialogPresenter.ShowDialog();
 		}
 		
-		void IViewEvents.OnReportProblemMenuItemClicked()
+		void IViewModel.OnReportProblemMenuItemClicked()
 		{
 			issueReportDialogPresenter.ShowDialog();
 		}
 
-		void IViewEvents.OnKeyPressed(KeyCode key)
+		void IViewModel.OnKeyPressed(KeyCode key)
 		{
 			if (key == KeyCode.Escape)
 			{
@@ -273,22 +265,22 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
-		void IViewEvents.OnOptionsLinkClicked()
+		void IViewModel.OnOptionsLinkClicked()
 		{
 			view.ShowOptionsMenu();
 		}
 
-		void IViewEvents.OnAboutMenuClicked()
+		void IViewModel.OnAboutMenuClicked()
 		{
 			presentersFacade.ShowAboutDialog();
 		}
 
-		void IViewEvents.OnConfigurationMenuClicked()
+		void IViewModel.OnConfigurationMenuClicked()
 		{
 			presentersFacade.ShowOptionsDialog();
 		}
 
-		void IViewEvents.OnRestartPictureClicked()
+		void IViewModel.OnRestartPictureClicked()
 		{
 			if (alerts.ShowPopup(
 				"App restart",
@@ -303,24 +295,40 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
-		void IViewEvents.OnOpenRecentMenuClicked()
+		void IViewModel.OnOpenRecentMenuClicked()
 		{
 			presentersFacade.ShowHistoryDialog();
 		}
 
-		bool IViewEvents.OnDragOver(object data)
+		bool IViewModel.OnDragOver(object data)
 		{
 			return dragDropHandler.ShouldAcceptDragDrop(data);
 		}
 
-		void IViewEvents.OnDragDrop(object data, bool controlKeyHeld)
+		void IViewModel.OnDragDrop(object data, bool controlKeyHeld)
 		{
 			dragDropHandler.AcceptDragDrop(data, controlKeyHeld);
 		}
 
-		void IViewEvents.OnRawViewButtonClicked()
+		void IViewModel.OnRawViewButtonClicked()
 		{
 			viewerPresenter.ShowRawMessages = !viewerPresenter.ShowRawMessages;
+		}
+
+		(AutoUpdateButtonState, string) IViewModel.AutoUpdateButton
+		{
+			get
+			{
+				if (autoUpdater != null)
+				{
+					switch (autoUpdater.State)
+					{
+						case AutoUpdateState.WaitingRestart: return (AutoUpdateButtonState.WaitingRestartIcon, "New software update is available. Restart application to apply it.");
+						case AutoUpdateState.Checking: return (AutoUpdateButtonState.ProgressIcon, "Software update procedure is in progress");
+					}
+				}
+				return (AutoUpdateButtonState.Hidden, "");
+			}
 		}
 
 		#region Implementation
@@ -388,11 +396,6 @@ namespace LogJoint.UI.Presenters.MainForm
 				return;
 			view.SetAnalyzingIndicationVisibility(analyzing);
 			isAnalyzing = analyzing;
-		}
-
-		void UpdateAutoUpdateIcon()
-		{
-			view.SetUpdateIconVisibility(autoUpdater.State == AutoUpdateState.WaitingRestart);
 		}
 
 		readonly ILogSourcesManager logSources;

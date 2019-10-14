@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <id>c0ef79e0-5cbf-42ff-a093-f138c94fe756-chromium</id>
+  <version>1.0.0</version>
+  <platform>any</platform>
+  <name>Chromium and WebRTC</name>
+  <description>Support for viewing and visualization of chrome/chromium logs: HTTP archive (HAR), chrome_debug log, chrome driver log, WebRTC internals dump.</description>
+  <file type="format">Formats/Chromium-chrome_debug.format.xml</file>
+  <file type="format">Formats/Chromium-chromedriver.format.xml</file>
+  <file type="format">Formats/Chromium-webrtc_internals_dump.format.xml</file>
+  <file type="format">Formats/W3C - HTTP Archive.format.xml</file>
+  <file type="format">Formats/Atlassian-JitsiVideoBridge log.format.xml</file>
+  <file type="entry">logjoint.chromium.plugin.dll</file>
+  <file type="dll">logjoint.chromium.plugin.presentation.dll</file>
+  <file type="dll">logjoint.chromium.plugin.model.dll</file>
+  <file type="sdk">logjoint.chromium.plugin.model.sdk.dll</file>
+  <file type="dll">HarSharp.dll</file>
+  <file type="dll">Newtonsoft.Json.dll</file>
+</manifest>

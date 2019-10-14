@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint</RootNamespace>
     <AssemblyName>logjoint.sdk</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -58,17 +58,17 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
+      <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

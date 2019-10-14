@@ -130,6 +130,10 @@ namespace LogJoint.UI.Presenters
 
 		PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView () => new LogsPreprocessorUI (model.SynchronizationContext, this);
 
+		NewLogSourceDialog.Pages.DebugOutput.IView Factory.IViewsFactory.CreateDebugOutputFormatView () => throw new PlatformNotSupportedException ();
+
+		NewLogSourceDialog.Pages.WindowsEventsLog.IView Factory.IViewsFactory.CreateWindowsEventsLogFormatView () => throw new PlatformNotSupportedException ();
+
 		UI.Reactive.INSOutlineViewController Mac.IReactive.CreateOutlineViewController (NSOutlineView outlineView)
 		{
 			return new UI.Reactive.NSOutlineViewController (outlineView, model.TelemetryCollector);

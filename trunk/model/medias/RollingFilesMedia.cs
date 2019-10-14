@@ -18,39 +18,30 @@ namespace LogJoint
 	{
 		readonly LJTraceSource trace = LJTraceSource.EmptyTracer;
 		readonly LogMedia.IFileSystem fileSystem;
-		readonly Type logReaderType;
-		readonly StreamBasedFormatInfo logFormatInfo;
+		readonly Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator;
 		readonly IRollingFilesMediaStrategy rollingStrategy;
 		readonly string baseDirectory;
 		readonly LogMedia.IFileSystemWatcher fsWatcher;
 		readonly Dictionary<string, LogPart> parts = new Dictionary<string, LogPart>();
 		readonly ConcatReadingStream concatStream;
 		readonly ILogSourceThreadsInternal tempThreads;
-		readonly ITempFilesManager tempFilesManager;
-		readonly ITraceSourceFactory traceSourceFactory;
 		bool disposed;
 		int folderNeedsRescan;
 
 		public RollingFilesMedia(
 			LogMedia.IFileSystem fileSystem,
-			Type logReaderType,
-			StreamBasedFormatInfo logFormatInfo,
+			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator,
 			LJTraceSource traceSource,
-			IRollingFilesMediaStrategy rollingStrategy,
-			ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory)
+			IRollingFilesMediaStrategy rollingStrategy)
 		{
-			this.traceSourceFactory = traceSourceFactory;
 			trace = traceSource;
 			using (trace.NewFrame)
 			{
 				if (fileSystem == null)
-					throw new ArgumentNullException("fileSystem");
+					throw new ArgumentNullException(nameof(fileSystem));
 
 				this.rollingStrategy = rollingStrategy;
-				this.logReaderType = logReaderType;
-				this.logFormatInfo = logFormatInfo;
-				this.tempFilesManager = tempFilesManager;
+				this.readerCreator = readerCreator;
 
 				try
 				{
@@ -304,8 +295,8 @@ namespace LogJoint
 						if (firstMessageTime == null)
 						{
 							owner.trace.Info("First message time is unknown. Calculating it");
-							using (IPositionedMessagesReader reader = (IPositionedMessagesReader)Activator.CreateInstance(
-									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia, owner.tempFilesManager, owner.traceSourceFactory), owner.logFormatInfo))
+							using (IPositionedMessagesReader reader = owner.readerCreator(
+									new MediaBasedReaderParams(owner.tempThreads, SimpleMedia)))
 							{
 								owner.trace.Info("Reader created");
 

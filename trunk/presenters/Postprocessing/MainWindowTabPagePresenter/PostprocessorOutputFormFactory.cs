@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 		private readonly IPresentersFacade presentersFacade;
 		private readonly IAlertPopup alerts;
 		private readonly IColorTheme colorTheme;
+		private readonly Drawing.IMatrixFactory matrixFactory;
 
 		LogJoint.Postprocessing.StateInspector.IStateInspectorVisualizerModel stateInspectorModel;
 		StateInspectorVisualizer.IPresenter stateInspectorPresenter;
@@ -66,7 +67,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 			IClipboardAccess clipboardAccess,
 			IPresentersFacade presentersFacade,
 			IAlertPopup alerts,
-			IColorTheme colorTheme
+			IColorTheme colorTheme,
+			Drawing.IMatrixFactory matrixFactory
 		)
 		{
 			this.postprocessingViewsFactory = postprocessingViewsFactory;
@@ -85,6 +87,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 			this.presentersFacade = presentersFacade;
 			this.alerts = alerts;
 			this.colorTheme = colorTheme;
+			this.matrixFactory = matrixFactory;
 		}
 		
 		IPostprocessorOutputForm IPostprocessorOutputFormFactory.GetPostprocessorOutputForm(ViewControlId id)
@@ -205,7 +208,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 				presentersFacade,
 				shortNames,
 				changeNotification,
-				colorTheme
+				colorTheme,
+				matrixFactory
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Sequence, sequenceDiagramForm, sequenceDiagramPresenter));
 		}

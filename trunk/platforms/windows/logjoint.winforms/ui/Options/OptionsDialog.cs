@@ -13,22 +13,32 @@ namespace LogJoint.UI
 	public partial class OptionsDialog : Form, IDialog
 	{
 		IDialogViewModel viewModel;
+		readonly Dictionary<PageId, TabPage> pages;
 
 		public OptionsDialog(Windows.Reactive.IReactive reactive)
 		{
 			InitializeComponent();
 			pluginsView1.Init(reactive);
+			pages = new Dictionary<PageId, TabPage>
+			{
+				{ PageId.Plugins, pluginsTabPage },
+				{ PageId.UpdatesAndFeedback, updatesAndFeedbackTabPage },
+				{ PageId.Appearance, appearanceTabPage },
+				{ PageId.MemAndPerformance, memAndPerformanceTabPage },
+			};
 		}
 
 		void IDialog.SetViewModel(IDialogViewModel value)
 		{
 			this.viewModel = value;
-			SetPageVisibility(viewModel.UpdatesAndFeedbackPageVisibile, updatesAndFeedbackTabPage);
-			SetPageVisibility(viewModel.PluginPageVisible, pluginsTabPage);
+			foreach (var p in pages)
+				SetPageVisibility((viewModel.VisiblePages & p.Key) != 0, p.Value);
 		}
 
-		void IDialog.Show()
+		void IDialog.Show(PageId? initiallySelectedPage)
 		{
+			if (initiallySelectedPage.HasValue && pages.TryGetValue(initiallySelectedPage.Value, out var p))
+				tabControl1.SelectedIndex = tabControl1.TabPages.IndexOf(p);
 			this.ShowDialog();
 		}
 

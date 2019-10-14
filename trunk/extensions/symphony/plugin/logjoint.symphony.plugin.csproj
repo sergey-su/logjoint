@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="logjoint.model.sdk" Version="0.0.1" />
+    <PackageReference Include="logjoint.presentation.sdk" Version="0.0.1" />
+
+    <ProjectReference Include="../model/logjoint.symphony.plugin.model.csproj" />
+    <ProjectReference Include="../presentation/logjoint.symphony.plugin.presentation.csproj" />
+
+    <DotNetCliToolReference Include="logjoint.plugintool" Version="0.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="manifest.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

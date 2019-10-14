@@ -10,10 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint</RootNamespace>
     <AssemblyName>logjoint</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -26,7 +27,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -80,16 +80,13 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    <Reference Include="Google.OrTools">
+      <HintPath>..\packages\Google.OrTools.runtime.win-x64.7.3.7083\runtimes\win-x64\lib\netstandard2.0\Google.OrTools.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
-    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -101,14 +98,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\porting\graphics\fcl\matrix.cs">
+      <Link>ui\Drawing\impl\matrix.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\porting\graphics\fcl\systemColors.cs">
       <Link>ui\Drawing\impl\systemColors.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\dataProtection\DataProtection.cs">
+      <Link>dataProtection\DataProtection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\regex\LJRegex.cs">
+      <Link>regex\LJRegex.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\settings\Settings.cs">
       <Link>Properties\Settings.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\settings\WebContentConfig.cs">
       <Link>Properties\WebContentConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\EmbeddedSolver.cs">
+      <Link>solver\EmbeddedSolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\ExternalSolverBase.cs">
+      <Link>solver\ExternalSolverBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\OrToolsSolverCore.cs">
+      <Link>solver\OrToolsSolverCore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\solvers\Protocol.cs">
+      <Link>solver\Protocol.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\ui\LogViewerControl\GraphicsResource.cs">
       <Link>ui\LogViewerControl\GraphicsResource.cs</Link>
@@ -262,6 +280,18 @@
     </Compile>
     <Compile Include="ui\Options\PluginsView.Designer.cs">
       <DependentUpon>PluginsView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\providers\EVTFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\providers\EVTFactoryUI.Designer.cs">
+      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\providers\SelectEVTLogSourceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\providers\SelectEVTLogSourceDialog.Designer.cs">
+      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\ViewsFactory.cs" />
     <Compile Include="ui\FilesSelectionDialog.cs">
@@ -558,23 +588,11 @@
     <Compile Include="ui\providers\DebugOutputFactoryUI.designer.cs">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.designer.cs">
-      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
-    </Compile>
     <Compile Include="ui\providers\FileLogFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ui\providers\FileLogFactoryUI.designer.cs">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.designer.cs">
-      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Search\SearchEditorDialog.cs">
       <SubType>Form</SubType>
@@ -966,25 +984,25 @@
     <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
-      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+    <ProjectReference Include="..\..\..\model\logjoint.model.csproj">
+      <Project>{a46e3f7f-86de-43b5-ae56-641cba2f6d0e}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
+    <ProjectReference Include="..\..\..\presenters\logjoint.presenters.csproj">
+      <Project>{b5575d95-edf2-4404-aefd-ac75687be7e4}</Project>
       <Name>logjoint.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
+      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
-      <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
     <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
@@ -1114,7 +1132,6 @@
       <Link>Formats\W3C - NCSA.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="packages.config" />
     <None Include="resources\RestartApp.png" />
     <None Include="resources\close_16x16.png" />
     <Content Include="resources\icon.ico" />
@@ -1138,11 +1155,20 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="Google.OrTools.runtime.win-x64">
+      <Version>7.3.7083</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>1.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.ValueTuple">
+      <Version>4.5.0</Version>
+    </PackageReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>copy $(SolutionDir)\packages\Google.OrTools.runtime.win-x64.7.3.7083\runtimes\win-x64\native\Google.OrTools.runtime.win-x64.dll $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

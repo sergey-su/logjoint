@@ -46,13 +46,20 @@ namespace LogJoint.JsonFormat
 		internal JsonFormatInfo formatInfo;
 		readonly ILogSourceThreadsInternal threads;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly IRegexFactory regexFactory;
 
-		public MessagesReader(MediaBasedReaderParams readerParams, JsonFormatInfo fmt) :
+		public MessagesReader(
+			MediaBasedReaderParams readerParams,
+			JsonFormatInfo fmt,
+			IRegexFactory regexFactory,
+			ITraceSourceFactory traceSourceFactory
+		) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
-			this.traceSourceFactory = readerParams.TraceSourceFactory;
+			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 		}
 
 		protected override Encoding DetectStreamEncoding(Stream stream)
@@ -300,7 +307,8 @@ namespace LogJoint.JsonFormat
 				false,
 				formatInfo.HeadRe,
 				threads,
-				traceSourceFactory
+				traceSourceFactory,
+				regexFactory
 			);
 		}
 	};
@@ -312,7 +320,9 @@ namespace LogJoint.JsonFormat
 	{
 		List<string> patterns = new List<string>();
 		Lazy<JsonFormatInfo> formatInfo;
-		ITempFilesManager tempFilesManager;
+		readonly ITempFilesManager tempFilesManager;
+		readonly IRegexFactory regexFactory;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
@@ -331,6 +341,8 @@ namespace LogJoint.JsonFormat
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 
 			this.tempFilesManager = createParams.TempFilesManager;
+			this.regexFactory = createParams.RegexFactory;
+			this.traceSourceFactory = createParams.TraceSourceFactory;
 
 			formatInfo = new Lazy<JsonFormatInfo>(() =>
 			{
@@ -370,7 +382,7 @@ namespace LogJoint.JsonFormat
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, formatInfo.Value, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory));
 		}
 
 		public override LogProviderFactoryFlag Flags
@@ -411,7 +423,7 @@ namespace LogJoint.JsonFormat
 		#region IMediaBasedReaderFactory Members
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, formatInfo.Value);
+			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory);
 		}
 		#endregion
 	};

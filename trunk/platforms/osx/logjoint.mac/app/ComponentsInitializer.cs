@@ -17,7 +17,10 @@ namespace LogJoint.UI
 					AutoUpdateUrl = Properties.Settings.Default.AutoUpdateUrl,
 					PluginsUrl = Properties.Settings.Default.PluginsUrl,
 					WebContentCacheConfig = webContentConfig,
-					LogsDownloaderConfig = webContentConfig
+					LogsDownloaderConfig = webContentConfig,
+					TraceListeners = Properties.Settings.Default.TraceListenerConfig != null ?
+						new [] { new TraceListener(Properties.Settings.Default.TraceListenerConfig) }
+						: null
 				},
 				invokingSynchronization,
 				(storageManager) => new PreprocessingCredentialsCache (
@@ -31,7 +34,10 @@ namespace LogJoint.UI
 					webContentCache,
 					shutdown,
 					traceSourceFactory
-				)
+				),
+				new Drawing.Matrix.Factory(),
+				RegularExpressions.LJRegexFactory.Instance,
+				() => new LogJoint.Postprocessing.Correlation.EmbeddedSolver.EmbeddedSolver()
 			);
 
 			var viewsFactory = new Presenters.ViewsFactory (mainWindow, model);
@@ -74,7 +80,10 @@ namespace LogJoint.UI
 				model.ExpensibilityEntryPoint,
 				presentation.ExpensibilityEntryPoint,
 				viewsFactory
-			));
+			), Properties.Settings.Default.LocalPlugins);
+
+			foreach (var asm in model.PluginsManager.PluginAssemblies)
+				ObjCRuntime.Runtime.RegisterAssembly(asm);
 		}
 	}
 }

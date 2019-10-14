@@ -42,11 +42,12 @@ namespace LogJoint.UI
 
 			this.viewModel = viewModel;
 
-			// todo: show/hide pages
+			// todo: show/hide pages by viewModel.VisiblePages
 		}
 
-		void IDialog.Show ()
+		void IDialog.Show (PageId? initiallySelectedPage)
 		{
+			// todo: initiallySelectedPage is not implemenented because there is only one page atm
 			NSApplication.SharedApplication.RunModalForWindow(Window);
 		}
 
@@ -71,11 +72,16 @@ namespace LogJoint.UI
 			);
 
 			var updateStatus = Updaters.Create(
-				() => viewModel.ListFetchingStatus,
+				() => viewModel.Status,
 				status =>
 				{
-					pluginsLoadingIndicator.Hidden = status != Presenters.Options.Plugins.PluginsListFetchingStatus.Pending;
-					pluginsLoadingFailedLabel.Hidden = status != Presenters.Options.Plugins.PluginsListFetchingStatus.Failed;
+					pluginsLoadingIndicator.Hidden =
+						(status.flags & Presenters.Options.Plugins.StatusFlags.IsProgressIndicatorVisible) == 0;
+					pluginsStatusLabel.Hidden = status.text == null;
+					pluginsStatusLabel.StringValue = status.text ?? "";
+					pluginsStatusLabel.TextColor =
+						(status.flags & Presenters.Options.Plugins.StatusFlags.IsError) != 0 ?
+							NSColor.SystemRedColor : NSColor.LabelColor;
 				}
 			);
 

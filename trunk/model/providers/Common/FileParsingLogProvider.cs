@@ -27,31 +27,24 @@ namespace LogJoint
 			ILogProviderHost host, 
 			ILogProviderFactory factory,
 			IConnectionParams connectParams,
-			StreamBasedFormatInfo formatInfo,
-			Type readerType
+			Func<MediaBasedReaderParams, IPositionedMessagesReader> createrCreator
 		):
 			base (host, factory, connectParams)
 		{
 			using (tracer.NewFrame)
 			{
-				tracer.Info("readerType={0}", readerType);
-
 				if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 					media = new RollingFilesMedia(
 						LogMedia.FileSystemImpl.Instance,
-						readerType, 
-						formatInfo,
+						createrCreator, 
 						tracer,
-						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam]),
-						host.TempFilesManager,
-						host.TraceSourceFactory
+						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam])
 					);
 				else
 					media = new SimpleFileMedia(connectParams);
 
-				reader = (IPositionedMessagesReader)Activator.CreateInstance(
-					readerType, new MediaBasedReaderParams(this.threads, media, host.TempFilesManager, host.TraceSourceFactory,
-						settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix), formatInfo);
+				reader = createrCreator(new MediaBasedReaderParams(this.threads, media,
+						settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix));
 
 				ITimeOffsets initialTimeOffset;
 				if (LogJoint.TimeOffsets.TryParse(

@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.Azure</RootNamespace>
     <AssemblyName>logjoint.azure.model</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\Plugins\azure\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.azure.model</BaseIntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -28,7 +28,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\Plugins\azure\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.azure.model</BaseIntermediateOutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -47,8 +47,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,48 +67,23 @@
       <Link>LogProvider.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ui\FactoryUI.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FactoryUI.designer.cs">
-      <DependentUpon>FactoryUI.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ui\FactoryUI.resx">
-      <DependentUpon>FactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
-      <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
+    <ProjectReference Include="..\..\..\..\..\model\logjoint.model.csproj">
+      <Project>{a46e3f7f-86de-43b5-ae56-641cba2f6d0e}</Project>
       <Name>logjoint.model</Name>
-      <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
-      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
+    <ProjectReference Include="..\..\..\..\..\presenters\logjoint.presenters.csproj">
+      <Project>{b5575d95-edf2-4404-aefd-ac75687be7e4}</Project>
       <Name>logjoint.presenters</Name>
-      <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
-      <Project>{929f7c79-e2bb-4e6c-af17-f21e5025265a}</Project>
-      <Name>logjoint</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
+    <ProjectReference Include="..\..\..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
       <Name>logjoint.model.sdk</Name>
-      <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
+    <ProjectReference Include="..\..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
       <Name>logjoint.presentation.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
-      <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
-      <Name>logjoint.sdk</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

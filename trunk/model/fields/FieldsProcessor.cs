@@ -3,56 +3,22 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Reflection;
-#if !SILVERLIGHT
-using Microsoft.CSharp;
-using System.CodeDom.Compiler;
-#endif
-using System.Globalization;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Linq;
 using System.Xml.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
 
-namespace LogJoint
+namespace LogJoint.FieldsProcessor
 {
-	public interface IMessagesBuilderCallback
+	public partial class FieldsProcessorImpl: IFieldsProcessor
 	{
-		long CurrentPosition { get; }
-		long CurrentEndPosition { get; }
-		StringSlice CurrentRawText { get; }
-		IThread GetThread(StringSlice id);
-	};
-
-	[Flags]
-	public enum MakeMessageFlags
-	{
-		Default = 0,
-		HintIgnoreTime = 1,
-		HintIgnoreBody = 2,
-		HintIgnoreSeverity = 4,
-		HintIgnoreThread = 8,
-		HintIgnoreEntryType = 16,
-	};
-
-	public interface IFieldsProcessor
-	{
-		void Reset();
-		void SetSourceTime(DateTime sourceTime);
-		void SetPosition(long value);
-		void SetTimeOffsets(ITimeOffsets value);
-		void SetInputField(int idx, StringSlice value);
-		IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
-		Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver);
-		bool IsBodySingleFieldExpression();
-	};
-
-	public partial class FieldsProcessor: IFieldsProcessor
-	{
-		public class InitializationParams
+		public class InitializationParams: IInitializationParams
 		{
-			public InitializationParams(XElement fieldsNode, bool performChecks, Type precompiledUserCode)
+			public InitializationParams(XElement fieldsNode, bool performChecks)
 			{
 				if (fieldsNode == null)
 					throw new ArgumentNullException(nameof (fieldsNode));
@@ -80,53 +46,60 @@ namespace LogJoint
 					if (this.timeField.Name == null)
 						throw new Exception("'Time' field is not defined");
 				}
-				this.precompiledUserCode = precompiledUserCode;
 			}
 
-			internal void InitializeInstance(FieldsProcessor proc)
+			internal void InitializeInstance(FieldsProcessorImpl proc)
 			{
 				proc.outputFields.AddRange(outputFields);
-				proc.precompiledBuilderType = precompiledUserCode;
 			}
 
 			readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 			readonly OutputFieldStruct timeField;
-			readonly Type precompiledUserCode;
 		};
 
-		public struct ExtensionInfo
+		public class Factory : IFactory
 		{
-			public readonly string ExtensionName;
-			public readonly string ExtensionAssemblyName;
-			public readonly string ExtensionClassName;
-			public readonly Func<object> InstanceGetter;
-			public ExtensionInfo(string extensionName, string extensionAssemblyName, string extensionClassName, 
-				Func<object> instanceGetter)
-			{
-				if (string.IsNullOrEmpty(extensionName))
-					throw new ArgumentException(nameof(extensionName));
-				if (string.IsNullOrEmpty(extensionAssemblyName))
-					throw new ArgumentException(nameof(extensionAssemblyName));
-				if (string.IsNullOrEmpty(extensionClassName))
-					throw new ArgumentException(nameof(extensionClassName));
-				if (instanceGetter == null)
-					throw new ArgumentNullException(nameof (instanceGetter));
-				if (!StringUtils.IsValidCSharpIdentifier(extensionName))
-					throw new ArgumentException("extensionName must be a valid C# identifier", nameof (extensionName));
+			readonly Persistence.IStorageEntry cacheEntry;
+			readonly Telemetry.ITelemetryCollector telemetryCollector;
 
-				this.ExtensionName = extensionName;
-				this.ExtensionAssemblyName = extensionAssemblyName;
-				this.ExtensionClassName = extensionClassName;
-				this.InstanceGetter = instanceGetter;
+			public Factory(
+				Persistence.IStorageManager storageManager,
+				Telemetry.ITelemetryCollector telemetryCollector
+			)
+			{
+				this.cacheEntry = storageManager.GetEntry("user-code-cache", 0x81012232);
+				this.telemetryCollector = telemetryCollector;
+			}
+
+			IInitializationParams IFactory.CreateInitializationParams(
+				XElement fieldsNode, bool performChecks
+			) => new InitializationParams(fieldsNode, performChecks);
+
+			IFieldsProcessor IFactory.CreateProcessor(
+				IInitializationParams initializationParams,
+				IEnumerable<string> inputFieldNames,
+				IEnumerable<ExtensionInfo> extensions,
+				LJTraceSource trace)
+			{
+				return new FieldsProcessorImpl(
+					(InitializationParams)initializationParams,
+					inputFieldNames,
+					extensions,
+					cacheEntry,
+					trace,
+					telemetryCollector
+				);
 			}
 		};
 
-		public FieldsProcessor(
+		public FieldsProcessorImpl(
 			InitializationParams initializationParams, 
 			IEnumerable<string> inputFieldNames, 
 			IEnumerable<ExtensionInfo> extensions,
-			ITempFilesManager tempFilesManager,
-			LJTraceSource trace)
+			Persistence.IStorageEntry cacheEntry,
+			LJTraceSource trace,
+			Telemetry.ITelemetryCollector telemetryCollector
+		)
 		{
 			if (inputFieldNames == null)
 				throw new ArgumentNullException(nameof (inputFieldNames));
@@ -134,8 +107,9 @@ namespace LogJoint
 			if (extensions != null)
 				this.extensions.AddRange(extensions);
 			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
-			this.tempFilesManager = tempFilesManager;
+			this.cacheEntry = cacheEntry;
 			this.trace = trace;
+			this.telemetryCollector = telemetryCollector;
 		}
 
 		void IFieldsProcessor.Reset()
@@ -174,11 +148,6 @@ namespace LogJoint
 			return builder.MakeMessage(callback, flags);
 		}
 
-		Type IFieldsProcessor.CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
-		{
-			return CompileUserCodeToTypeInternal(targetFx, assemblyLocationResolver);
-		}
-
 		bool IFieldsProcessor.IsBodySingleFieldExpression()
 		{
 			var bodyFld = outputFields.FirstOrDefault(f => f.Name == "Body");
@@ -204,21 +173,23 @@ namespace LogJoint
 		int GetMessageBuilderTypeHash()
 		{
 			int typeHash = Hashing.GetHashCode(0);
+			typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(
+				typeof(CSharpCompilation).Assembly.FullName));
 			foreach (string i in inputFieldNames)
 			{
-				typeHash = Hashing.GetHashCode(typeHash, i.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i));
 			}
 			foreach (OutputFieldStruct i in outputFields)
 			{
 				typeHash = Hashing.GetHashCode(typeHash, (int)i.Type);
-				typeHash = Hashing.GetHashCode(typeHash, i.Name.GetHashCode());
-				typeHash = Hashing.GetHashCode(typeHash, i.Code.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.Name));
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.Code));
 			}
 			foreach (ExtensionInfo i in extensions)
 			{
-				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionAssemblyName.GetType().GetHashCode());
-				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionClassName.GetType().GetHashCode());
-				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionName.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.ExtensionAssemblyName));
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.ExtensionClassName));
+				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i.ExtensionName));
 			}
 			return typeHash;
 		}
@@ -236,11 +207,7 @@ namespace LogJoint
 				{
 					if (!builderTypesCache.TryGetValue(builderTypeHash, out builderTypeTask))
 					{
-						builderTypeTask = Task.Run(() => 
-						{
-							return CompileUserCodeToTypeInternal(CompilationTargetFx.RunningFx,
-								asmName => Assembly.Load(asmName).Location);
-						});
+						builderTypeTask = Task.Run(() => GenerateType(builderTypeHash));
 						builderTypesCache.Add(builderTypeHash, builderTypeTask);
 					}
 				}
@@ -265,77 +232,75 @@ namespace LogJoint
 
 		static Dictionary<int, Task<Type>> builderTypesCache = new Dictionary<int, Task<Type>>();
 
-#if SILVERLIGHT
-		Type CompileUserCodeToTypeInternal(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
+		Type GenerateType(int builderTypeHash)
 		{
-			throw new NotImplementedException("Code compilaction not supported in silverlight");
-		}
-#else
-		static string GetSilverlightDir()
-		{
-			using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Silverlight", false))
+			using (var cacheSection = cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
+				Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
-				if (key != null)
+				var cachedRawAsmSize = cacheSection.Data.Length;
+				if (cachedRawAsmSize > 0)
 				{
-					var ver = key.GetValue("Version") as string;
-					if (!string.IsNullOrEmpty(ver))
+					try
 					{
-						string dir = Environment.ExpandEnvironmentVariables(@"%ProgramFiles%\Microsoft Silverlight\") + ver + @"\";
-						if (System.IO.Directory.Exists(dir))
-							return dir;
+						var cachedRawAsm = new byte[cachedRawAsmSize];
+						cacheSection.Data.Read(cachedRawAsm, 0, (int)cachedRawAsmSize);
+						return Assembly.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
+					}
+					catch (Exception e)
+					{
+						trace.Error(e, "Failed to load cached builder");
+						telemetryCollector.ReportException(e, "loading cached builder asm");
 					}
 				}
+				var (asm, rawAsm) = CompileUserCodeToAsm();
+				cacheSection.Data.Position = 0;
+				cacheSection.Data.Write(rawAsm, 0, rawAsm.Length);
+				return asm.GetType("GeneratedMessageBuilder");
 			}
-			throw new Exception("Silverlight not found on this machine");
 		}
 
-		Type CompileUserCodeToTypeInternal(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
+		(Assembly, byte[]) CompileUserCodeToAsm()
 		{
-			using (CSharpCodeProvider prov = new CSharpCodeProvider())
 			using (var perfop = new Profiling.Operation(trace, "compile user code"))
 			{
 				List<string> refs = new List<string>();
 				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields, refs);
+				MetadataReference assemblyLocationResolver(string asmName) => MetadataReference.CreateFromFile(Assembly.Load(asmName).Location);
 
-				CompilerParameters cp = new CompilerParameters();
-				if (targetFx == CompilationTargetFx.RunningFx)
-				{
-					cp.ReferencedAssemblies.Add("System.dll");
-					cp.CompilerOptions = "/optimize";
-				}
-				else if (targetFx == CompilationTargetFx.Silverlight)
-				{
-					var silverLightDir = GetSilverlightDir();
-					foreach (var silverlightAsm in new string[] {"mscorlib.dll", "System.Core.dll", "System.dll"})
-						cp.ReferencedAssemblies.Add(silverLightDir + silverlightAsm);
-					cp.CompilerOptions = "/optimize /nostdlib+";
-				}
-				List<string> resolvedRefs = new List<string>();
-				resolvedRefs.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
-				resolvedRefs.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
-				foreach (string refAsm in refs)
-					resolvedRefs.Add(assemblyLocationResolver(refAsm));
+				var syntaxTree = CSharpSyntaxTree.ParseText(fullCode);
 
-				foreach (string resoledAsm in resolvedRefs)
-					cp.ReferencedAssemblies.Add(resoledAsm);
+				var metadataReferences = new List<MetadataReference>();
+				metadataReferences.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+				metadataReferences.Add(assemblyLocationResolver("System.Runtime"));
+				metadataReferences.Add(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"));
+				metadataReferences.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
+				metadataReferences.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
+				metadataReferences.AddRange(refs.Select(assemblyLocationResolver));
 
-				string tempDir = tempFilesManager.GenerateNewName();
-				Directory.CreateDirectory(tempDir);
-				cp.OutputAssembly = string.Format("{0}{2}UserCode{1}.dll", tempDir, Guid.NewGuid().ToString("N"), Path.DirectorySeparatorChar);
-				// Temp folder will be cleaned when LogJoint starts next time.
-				cp.TempFiles = new TempFileCollection(tempDir, false);
-				cp.TreatWarningsAsErrors = false;
-				CompilerResults cr;
-				using (new CodedomEnvironmentConfigurator())
+				CSharpCompilation compilation = CSharpCompilation.Create(
+					$"UserCode{Guid.NewGuid().ToString("N")}",
+					new[] { syntaxTree },
+					metadataReferences,
+					new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+						.WithOptimizationLevel(OptimizationLevel.Release)
+				);
+
+				using (var dllStream = new MemoryStream())
 				{
 					perfop.Milestone("started compile");
-					cr = prov.CompileAssemblyFromSource(cp, fullCode);
+					var emitResult = compilation.Emit(dllStream);
+					if (!emitResult.Success)
+					{
+						ThrowBadUserCodeException(fullCode, emitResult.Diagnostics);
+					}
+					dllStream.Flush();
+					dllStream.Position = 0;
+					perfop.Milestone("getting type");
+					var rawAsm = dllStream.ToArray();
+					var asm = Assembly.Load(rawAsm);
+					return (asm, rawAsm);
 				}
-				if (cr.Errors.HasErrors)
-					ThrowBadUserCodeException(fullCode, cr);
-				perfop.Milestone("getting type");
-				return cr.CompiledAssembly.GetType("GeneratedMessageBuilder");
-			}	
+			}
 		}
 
 		static string GetOutputFieldExpression(OutputFieldStruct s, string type, StringBuilder helperFunctions)
@@ -478,8 +443,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			");
 
 			code.AppendLine(@"
-	public override LogJoint.IMessage MakeMessage(LogJoint.IMessagesBuilderCallback __callback,
-		LogJoint.MakeMessageFlags __flags)
+	public override LogJoint.IMessage MakeMessage(LogJoint.FieldsProcessor.IMessagesBuilderCallback __callback,
+		LogJoint.FieldsProcessor.MakeMessageFlags __flags)
 	{
 			");
 
@@ -548,7 +513,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				{
 					code.AppendFormat(@"
 		{0} {1};
-		if ((__flags & LogJoint.MakeMessageFlags.{2}) == 0)
+		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.{2}) == 0)
 			{1} = {3};
 		else 
 			{1} = {4};",
@@ -558,7 +523,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				}
 				else
 				{
-					if (!fieldsAdded)
+					if (!fieldsAdded) // todo: remove __fields
 					{
 						code.AppendLine(@"
 		StringBuilder __fields = new StringBuilder();
@@ -566,7 +531,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 						fieldsAdded = true;
 					}
 					code.AppendFormat(@"
-		__fields.AppendFormat(""{{0}}{{1}}={{2}}"", Environment.NewLine, ""{0}"", {1});",
+		__fields.AppendLine();
+		__fields.AppendFormat(""{{0}}={{1}}"", ""{0}"", {1});",
 						s.Name, GetOutputFieldExpression(s, "string", helperFunctions));
 				}
 			}
@@ -602,7 +568,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			}
 
 			code.AppendLine(@"
-		if ((__flags & LogJoint.MakeMessageFlags.HintIgnoreBody) == 0)
+		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.HintIgnoreBody) == 0)
 			__body = TRIM(__body);");
 
 
@@ -649,7 +615,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			return code.ToString();
 		}
 
-		private static void ThrowBadUserCodeException(string fullCode, CompilerResults cr)
+		private static void ThrowBadUserCodeException(string fullCode, ImmutableArray<Diagnostic> cr)
 		{
 			StringBuilder exceptionMessage = new StringBuilder();
 			StringBuilder allErrors = new StringBuilder();
@@ -658,15 +624,18 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 			exceptionMessage.Append("Failed to process log fields. There must be an error in format's configuration. ");
 	
-			foreach (CompilerError err in cr.Errors)
+			foreach (Diagnostic err in cr)
 			{
-				if (err.IsWarning)
+				if (err.DefaultSeverity != DiagnosticSeverity.Error)
 					continue;
+				
 
-				exceptionMessage.AppendLine(err.ErrorText);
-				allErrors.AppendFormat("Line {0} Column {1}: ({2}) {3}{4}", 
-					err.Line, err.Column, err.ErrorNumber, err.ErrorText, Environment.NewLine);
-				errorMessage = err.ErrorText;
+				exceptionMessage.AppendLine(err.GetMessage());
+				if (err.Location.IsInSource && err.Location.GetLineSpan().IsValid)
+					allErrors.AppendFormat("Line {0} Column {1}: {2}{3}",
+						err.Location.GetLineSpan().EndLinePosition.Line, err.Location.GetLineSpan().EndLinePosition.Character,
+						err.GetMessage(), err.GetMessage(), Environment.NewLine);
+				errorMessage = err.GetMessage();
 
 				int globalErrorPos;
 				UserCode.Entry? userCodeEntry;
@@ -682,7 +651,6 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 			throw new BadUserCodeException(exceptionMessage.ToString(), fullCode, errorMessage, allErrors.ToString(), badField);
 		}
-#endif
 
 		Internal.__MessageBuilder builder;
 
@@ -698,34 +666,11 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			public string Code;
 		};
 
-		class CodedomEnvironmentConfigurator: IDisposable
-		{
-#if MONOMAC
-			string monoEnvOptions;
-
-			public CodedomEnvironmentConfigurator()
-			{
-				Directory.SetCurrentDirectory(@"/Library/Frameworks/Mono.framework/Versions/Current/bin");
-				monoEnvOptions = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
-				Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", "");
-			}
-
-			void IDisposable.Dispose()
-			{
-				if (!string.IsNullOrEmpty(monoEnvOptions))
-					Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", monoEnvOptions);
-			}
-#else
-			void IDisposable.Dispose()
-			{
-			}
-#endif
-		};
-
 		readonly List<string> inputFieldNames;
 		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 		readonly List<ExtensionInfo> extensions = new List<ExtensionInfo>();
-		readonly ITempFilesManager tempFilesManager;
+		readonly Persistence.IStorageEntry cacheEntry;
+		readonly Telemetry.ITelemetryCollector telemetryCollector;
 		readonly LJTraceSource trace;
 		Type precompiledBuilderType;
 

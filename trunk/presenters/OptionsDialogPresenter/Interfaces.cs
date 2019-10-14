@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 
 namespace LogJoint.UI.Presenters.Options
 {
@@ -10,7 +7,7 @@ namespace LogJoint.UI.Presenters.Options
 	{
 		public interface IPresenter
 		{
-			void ShowDialog();
+			void ShowDialog(PageId? initiallySelectedPage = null);
 		};
 
 		public interface IView
@@ -26,7 +23,7 @@ namespace LogJoint.UI.Presenters.Options
 			Appearance.IView ApperancePage { get; }
 			UpdatesAndFeedback.IView UpdatesAndFeedbackPage { get; }
 			Plugins.IView PluginsPage { get; }
-			void Show();
+			void Show(PageId? initiallySelectedPage);
 			void Hide();
 		};
 
@@ -34,13 +31,22 @@ namespace LogJoint.UI.Presenters.Options
 		{
 			void OnOkPressed();
 			void OnCancelPressed();
-			bool UpdatesAndFeedbackPageVisibile { get; }
-			bool PluginPageVisible { get; }
+			PageId VisiblePages { get; }
 		};
 
 		public interface IPagePresenter
 		{
 			void Apply();
+		};
+
+		[Flags]
+		public enum PageId
+		{
+			None = 0,
+			MemAndPerformance = 1,
+			Appearance = 2,
+			Plugins = 4,
+			UpdatesAndFeedback = 8,
 		};
 	}
 
@@ -141,10 +147,9 @@ namespace LogJoint.UI.Presenters.Options
 
 	namespace Plugins
 	{
-		public interface IPresenter : IDisposable
+		public interface IPresenter : IDisposable, IPageAvailability
 		{
 			bool Apply();
-			bool IsAvailable { get; }
 		};
 
 		public interface IView
@@ -156,20 +161,21 @@ namespace LogJoint.UI.Presenters.Options
 		{
 			IChangeNotification ChangeNotification { get; }
 			IReadOnlyList<IPluginListItem> ListItems { get; }
-			PluginsListFetchingStatus ListFetchingStatus { get; }
+			(StatusFlags flags, string text) Status { get; }
 			ISelectedPluginData SelectedPluginData { get; }
 			void OnSelect(IPluginListItem item);
 			void OnAction();
 		};
 
-		public enum PluginsListFetchingStatus
+		[Flags]
+		public enum StatusFlags
 		{
-			Pending,
-			Success,
-			Failed,
+			None = 0,
+			IsProgressIndicatorVisible = 1,
+			IsError = 2
 		};
 
-		public interface IPluginListItem: Reactive.IListItem
+		public interface IPluginListItem : Reactive.IListItem
 		{
 			string Text { get; }
 		};
@@ -179,6 +185,11 @@ namespace LogJoint.UI.Presenters.Options
 			string Caption { get; }
 			string Description { get; }
 			(bool Enabled, string Caption) ActionButton { get; }
+		};
+
+		public interface IPageAvailability
+		{
+			bool IsAvailable { get; }
 		};
 	}
 };

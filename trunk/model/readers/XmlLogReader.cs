@@ -18,7 +18,7 @@ namespace LogJoint.XmlFormat
 	class FactoryWriter : XmlWriter
 	{
 		public FactoryWriter(
-			IMessagesBuilderCallback callback,
+			FieldsProcessor.IMessagesBuilderCallback callback,
 			ITimeOffsets timeOffsets,
 			int? maxLineLen
 		)
@@ -258,7 +258,7 @@ namespace LogJoint.XmlFormat
 		StringBuilder content = new StringBuilder();
 		SeverityFlag severity = SeverityFlag.Info;
 		Message output;
-		readonly IMessagesBuilderCallback callback;
+		readonly FieldsProcessor.IMessagesBuilderCallback callback;
 		readonly ITimeOffsets timeOffsets;
 		readonly int? maxLineLen;
 	};
@@ -294,12 +294,11 @@ namespace LogJoint.XmlFormat
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
-		public static readonly XmlFormatInfo NativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions());
-
-		public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams, FormatViewOptions viewOptions)
+		public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams, 
+			FormatViewOptions viewOptions, IRegexFactory regexFactory)
 		{
 			LoadedRegex headRe;
-			headRe.Regex = RegexFactory.Instance.Create(@"\<\s*(m|f|ef)\s", ReOptions.None);
+			headRe.Regex = regexFactory.Create(@"\<\s*(m|f|ef)\s", ReOptions.None);
 			headRe.SuffersFromPartialMatchProblem = false;
 			return new XmlFormatInfo(
 				null, headRe, new LoadedRegex(),
@@ -353,13 +352,20 @@ namespace LogJoint.XmlFormat
 		readonly LogJointXSLExtension xslExt;
 		readonly ILogSourceThreadsInternal threads;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly IRegexFactory regexFactory;
 
-		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :
+		public MessagesReader(
+			MediaBasedReaderParams readerParams,
+			XmlFormatInfo fmt,
+			IRegexFactory regexFactory,
+			ITraceSourceFactory traceSourceFactory
+		) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
-			this.traceSourceFactory = readerParams.TraceSourceFactory;
+			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 			this.transformArgs = new XsltArgumentList();
 
 			this.xslExt = new LogJointXSLExtension();
@@ -574,9 +580,10 @@ namespace LogJoint.XmlFormat
 				VolatileStream,
 				StreamEncoding,
 				false,
-				formatInfo.HeadRe, 
+				formatInfo.HeadRe,
 				threads,
-				traceSourceFactory
+				traceSourceFactory,
+				regexFactory
 			);
 		}
 	};
@@ -584,10 +591,16 @@ namespace LogJoint.XmlFormat
 	public class NativeXMLFormatFactory : IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
 		readonly ITempFilesManager tempFiles;
+		readonly XmlFormatInfo nativeFormatInfo;
+		readonly IRegexFactory regexFactory;
+		readonly ITraceSourceFactory traceSourceFactory;
 
-		public NativeXMLFormatFactory(ITempFilesManager tempFiles)
+		public NativeXMLFormatFactory(ITempFilesManager tempFiles, IRegexFactory regexFactory, ITraceSourceFactory traceSourceFactory)
 		{
 			this.tempFiles = tempFiles;
+			this.regexFactory = regexFactory;
+			this.traceSourceFactory = traceSourceFactory;
+			this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions(), regexFactory);
 		}
 
 		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
@@ -639,8 +652,7 @@ namespace LogJoint.XmlFormat
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, 
-				XmlFormatInfo.NativeFormatInfo, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory));
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.Default; } }
@@ -652,7 +664,7 @@ namespace LogJoint.XmlFormat
 
 		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, XmlFormat.XmlFormatInfo.NativeFormatInfo);
+			return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory);
 		}
 	};
 
@@ -661,9 +673,11 @@ namespace LogJoint.XmlFormat
 		IFileBasedLogProviderFactory, 
 		IMediaBasedReaderFactory
 	{
-		List<string> patterns = new List<string>();
-		Lazy<XmlFormatInfo> formatInfo;
-		ITempFilesManager tempFilesManager;
+		readonly List<string> patterns = new List<string>();
+		readonly Lazy<XmlFormatInfo> formatInfo;
+		readonly ITempFilesManager tempFilesManager;
+		readonly IRegexFactory regexFactory;
+		readonly ITraceSourceFactory traceSourceFactory;
 		static XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 		static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
 		readonly string uiKey;
@@ -692,6 +706,8 @@ namespace LogJoint.XmlFormat
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			
 			this.tempFilesManager = createParams.TempFilesManager;
+			this.regexFactory = createParams.RegexFactory;
+			this.traceSourceFactory = createParams.TraceSourceFactory;
 
 			formatInfo = new Lazy<XmlFormatInfo>(() => 
 			{
@@ -737,7 +753,7 @@ namespace LogJoint.XmlFormat
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, formatInfo.Value, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory));
 		}
 
 		public override LogProviderFactoryFlag Flags
@@ -778,7 +794,7 @@ namespace LogJoint.XmlFormat
 		#region IMediaBasedReaderFactory Members
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, formatInfo.Value);
+			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory);
 		}
 		#endregion
 	};

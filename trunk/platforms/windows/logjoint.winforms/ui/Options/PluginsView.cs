@@ -31,11 +31,13 @@ namespace LogJoint.UI
 			this.viewModel = viewModel;
 
 			var updateFetchStatus = Updaters.Create(
-				() => viewModel.ListFetchingStatus,
+				() => viewModel.Status,
 				status =>
 				{
-					failedFetchStatusLabel.Visible = status == PluginsListFetchingStatus.Failed;
-					progressFetchStatusLabel.Visible = status == PluginsListFetchingStatus.Pending;
+					statusLabel.Visible = status.text != null;
+					statusLabel.Text = status.text ?? "";
+					statusLabel.ForeColor = (status.flags & StatusFlags.IsError) != 0 ? Color.Red : SystemColors.ControlText;
+					fetchStatusProgresssLabel.Visible = (status.flags & StatusFlags.IsProgressIndicatorVisible) != 0;
 				}
 			);
 

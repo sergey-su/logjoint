@@ -12,7 +12,7 @@ namespace LogJoint.UI
 		LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView,
 		Presenters.ISystemThemeDetector
 	{
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 		LoadedMessagesControlAdapter loadedMessagesControlAdapter;
 		SourcesManagementControlAdapter sourcesManagementControlAdapter;
 		SearchPanelControlAdapter searchPanelControlAdapter;
@@ -41,37 +41,37 @@ namespace LogJoint.UI
 
 		public bool DraggingEntered(object dataObject)
 		{
-			return viewEvents.OnDragOver(dataObject);
+			return viewModel.OnDragOver(dataObject);
 		}
 
 		public void PerformDragOperation(object dataObject)
 		{
-			viewEvents.OnDragDrop(dataObject, false /*todo*/);
+			viewModel.OnDragDrop(dataObject, false /*todo*/);
 		}
 
 		public void OnAboutDialogMenuClicked()
 		{
-			viewEvents.OnAboutMenuClicked();
+			viewModel.OnAboutMenuClicked();
 		}
 
 		public void OnOpenRecentMenuClicked()
 		{
-			viewEvents.OnOpenRecentMenuClicked();
+			viewModel.OnOpenRecentMenuClicked();
 		}
 		
 		public void OnReportProblemMenuItemClicked()
 		{
-			viewEvents.OnReportProblemMenuItemClicked();
+			viewModel.OnReportProblemMenuItemClicked();
 		}
 
 		public void OnNewDocumentClicked ()
 		{
-			viewEvents.OnKeyPressed (KeyCode.NewWindowShortcut);
+			viewModel.OnKeyPressed (KeyCode.NewWindowShortcut);
 		}
 
 		public void OnOptionsClicked()
 		{
-			viewEvents.OnConfigurationMenuClicked();
+			viewModel.OnConfigurationMenuClicked();
 		}
 
 
@@ -95,7 +95,7 @@ namespace LogJoint.UI
 						break;
 				}
 			}
-			viewEvents.OnKeyPressed(key);
+			viewModel.OnKeyPressed(key);
 		}
 
 		[Export ("validateMenuItem:")]
@@ -104,9 +104,50 @@ namespace LogJoint.UI
 			return true;
 		}
 
-		void IView.SetPresenter(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
+
+			var autoUpdateButton = new NSButton {
+				BezelStyle = NSBezelStyle.SmallSquare,
+				Bordered = true,
+				ImagePosition = NSCellImagePosition.ImageOverlaps,
+				ImageScaling = NSImageScale.ProportionallyDown,
+				Image = NSImage.ImageNamed ("PendingUpdateNotification.png"),
+				Title = ""
+			};
+			autoUpdateButton.SetButtonType (NSButtonType.MomentaryPushIn);
+			autoUpdateButton.Target = this;
+			autoUpdateButton.Action = new ObjCRuntime.Selector ("OnRestartButtonClicked:");
+
+			var autoUpdateProgressIndicator = new NSProgressIndicator {
+				Style = NSProgressIndicatorStyle.Spinning,
+				ControlSize = NSControlSize.Small
+			};
+
+			var updateAutoUpdateButton = Updaters.Create (
+				() => viewModel.AutoUpdateButton,
+				btn => {
+					SetToolbarItemVisibility (pendingUpdateNotificationButton,
+						btn.state != AutoUpdateButtonState.Hidden);
+					NSView view;
+					if (btn.state == AutoUpdateButtonState.ProgressIcon) {
+						view = autoUpdateProgressIndicator;
+					} else {
+						view = autoUpdateButton;
+					}
+					if (view == autoUpdateProgressIndicator)
+						autoUpdateProgressIndicator.StartAnimation (this);
+					else
+						autoUpdateProgressIndicator.StopAnimation (this);
+					view.ToolTip = btn.tooltip;
+					pendingUpdateNotificationButton.View = view;
+				}
+			);
+
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				updateAutoUpdateButton ();
+			});
 		}
 
 		IInputFocusState IView.CaptureInputFocusState()
@@ -212,11 +253,6 @@ namespace LogJoint.UI
 			Window.Title = value;
 		}
 
-		void IView.SetUpdateIconVisibility(bool value)
-		{
-			SetToolbarItemVisibility(pendingUpdateNotificationButton, value);
-		}
-
 		void IView.SetTaskbarState(TaskbarState state)
 		{
 			// todo
@@ -292,7 +328,6 @@ namespace LogJoint.UI
 			timelinePanelControlAdapter.View.MoveToPlaceholder (timelinePanelPlaceholder);
 
 			SetToolbarItemVisibility (pendingUpdateNotificationButton, false);
-			pendingUpdateNotificationButton.ToolTip = "Software update downloaded. Click to restart app and apply update.";
 
 			SetToolbarItemVisibility (stopLongOpButton, false);
 			stopLongOpButton.ToolTip = "Stop";
@@ -303,7 +338,7 @@ namespace LogJoint.UI
 
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow (this);
 
-			viewEvents.OnLoad ();
+			viewModel.OnLoad ();
 
 			var instancesCount = instancesCounter.Count;
 			if (instancesCount > 1) {
@@ -340,7 +375,7 @@ namespace LogJoint.UI
 
 		partial void OnRestartButtonClicked (NSObject sender)
 		{
-			viewEvents.OnRestartPictureClicked();
+			viewModel.OnRestartPictureClicked();
 		}
 
 		partial void OnStopLongOpButtonPressed (NSObject sender)
@@ -350,7 +385,7 @@ namespace LogJoint.UI
 
 		partial void OnShareButtonClicked (NSObject sender)
 		{
-			viewEvents.OnShareButtonClicked();
+			viewModel.OnShareButtonClicked();
 		}
 
 		void InitTheme()
@@ -378,7 +413,7 @@ namespace LogJoint.UI
 				ColorThemeMode.Dark : ColorThemeMode.Light; ;
 			if (value != colorThemeMode) {
 				colorThemeMode = value;
-				viewEvents?.ChangeNotification.Post ();
+				viewModel?.ChangeNotification.Post ();
 			}
 		}
 
@@ -398,7 +433,7 @@ namespace LogJoint.UI
 			{
 				if (owner.closing)
 					return true;
-				owner.viewEvents.OnClosing();
+				owner.viewModel.OnClosing();
 				return false;
 			}
 		};
@@ -410,7 +445,7 @@ namespace LogJoint.UI
 			public override void WillSelect(NSTabView tabView, NSTabViewItem item)
 			{
 				if (item is TabViewItem tabViewItem)
-					owner.viewEvents.OnTabChanging (tabViewItem.id);
+					owner.viewModel.OnTabChanging (tabViewItem.id);
 			}
 		};
 

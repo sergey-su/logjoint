@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Xml;
+using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
@@ -10,13 +11,9 @@ namespace LogJoint
 	{
 		public static Encoding GetDefaultEncoding()
 		{
-#if SILVERLIGHT
-			return Encoding.UTF8;
-#elif MONOMAC
-			return Encoding.ASCII;
-#else
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				return Encoding.ASCII;
 			return Encoding.Default;
-#endif
 		}
 
 		public static Encoding GetEncodingFromConfigXMLName(string encoding)

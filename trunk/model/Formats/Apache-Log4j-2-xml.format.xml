@@ -1,0 +1,67 @@
+<format>
+  <xml>
+    <sample-log><![CDATA[<Event xmlns="http://logging.apache.org/log4j/2.0/events" timeMillis="1503404622363" thread="main" level="TRACE" loggerName="Entry" endOfBatch="false" loggerFqcn="org.apache.logging.log4j.spi.AbstractLogger" threadId="1" threadPriority="5">
+  <Message>Entering application.</Message>
+</Event>
+
+<Event xmlns="http://logging.apache.org/log4j/2.0/events" timeMillis="1503404622631" thread="main" level="ERROR" loggerName="Entry" endOfBatch="false" loggerFqcn="org.apache.logging.log4j.spi.AbstractLogger" threadId="1" threadPriority="5">
+  <Message>foo bar 0</Message>
+    <Thrown commonElementCount="0" localizedMessage="asas" message="asas" name="java.lang.IllegalArgumentException">
+      <Cause commonElementCount="1" localizedMessage="as" message="as" name="java.lang.ClassNotFoundException">
+        <Cause commonElementCount="1" localizedMessage="foobar" message="foobar" name="java.lang.RuntimeException"/>
+      </Cause>
+      <ExtendedStackTrace>
+        <ExtendedStackTraceItem class="Entry" method="Test" file="Entry.java" line="14" exact="false" location="JavaTest/" version="?"/>
+        <ExtendedStackTraceItem class="Entry" method="main" file="Entry.java" line="24" exact="true" location="JavaTest/" version="?"/>
+      </ExtendedStackTrace>
+    </Thrown>
+</Event>
+
+<Event xmlns="http://logging.apache.org/log4j/2.0/events" timeMillis="1503404622655" thread="main" level="INFO" loggerName="Entry" endOfBatch="false" loggerFqcn="org.apache.logging.log4j.spi.AbstractLogger" threadId="1" threadPriority="5">
+  <Message>foo bar 1</Message>
+</Event>
+
+]]></sample-log>
+    <head-re><![CDATA[<Event\s]]></head-re>
+    <patterns>
+      <pattern>*.xml</pattern>
+    </patterns>
+    <encoding>utf-8</encoding>
+    <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:lj="http://logjoint.codeplex.com/" xmlns:l4j="http://logging.apache.org/log4j/2.0/events">
+      <xsl:output method="xml" />
+      <xsl:template match="l4j:Event">
+        <m>
+          <xsl:attribute name="t">
+            <xsl:value-of select="@thread" />
+          </xsl:attribute>
+          <xsl:attribute name="d">
+            <xsl:value-of select="lj:EPOCH_TIME_TO_NATIVE_DATETIME_STR(@timeMillis)" />
+          </xsl:attribute>
+          <xsl:attribute name="s">
+            <xsl:choose>
+              <xsl:when test="@level='ERROR'">e</xsl:when>
+              <xsl:when test="@severity='WARN'">w</xsl:when>
+              <xsl:otherwise>i</xsl:otherwise>
+            </xsl:choose>
+          </xsl:attribute>
+          <xsl:value-of select="l4j:Message/text()" />
+          <xsl:apply-templates select="l4j:Thrown" />
+        </m>
+      </xsl:template>
+      <xsl:template match="l4j:Thrown">
+        <xsl:value-of select="lj:NEW_LINE()" />
+        <xsl:text>Exception </xsl:text>
+        <xsl:value-of select="@name" />: <xsl:value-of select="@message" /><xsl:apply-templates select="l4j:Cause" /><xsl:value-of select="lj:NEW_LINE()" /><xsl:text>Stack:</xsl:text><xsl:apply-templates select="l4j:ExtendedStackTrace/l4j:ExtendedStackTraceItem" /></xsl:template>
+      <xsl:template match="l4j:Cause">
+        <xsl:value-of select="lj:NEW_LINE()" />
+        <xsl:text>Caused by </xsl:text>
+        <xsl:value-of select="@name" />: <xsl:value-of select="@message" /><xsl:apply-templates select="l4j:Cause" /></xsl:template>
+      <xsl:template match="l4j:ExtendedStackTraceItem">
+        <xsl:value-of select="lj:NEW_LINE()" />
+        <xsl:text>- </xsl:text>
+        <xsl:value-of select="@class" />.<xsl:value-of select="@method" /> at <xsl:value-of select="@file" />:<xsl:value-of select="@line" /></xsl:template>
+    </xsl:stylesheet>
+  </xml>
+  <id company="Apache" name="Log4j 2 XML" />
+  <description>XML log produced by Log4j v2.x XMLLayout</description>
+</format>

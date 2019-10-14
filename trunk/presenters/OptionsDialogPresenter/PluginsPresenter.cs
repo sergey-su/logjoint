@@ -22,15 +22,18 @@ namespace LogJoint.UI.Presenters.Options.Plugins
 		IPluginInfo selectedPlugin;
 		readonly Func<ISelectedPluginData> selectedPluginDataSelector;
 		readonly IPluginInstallationRequestsBuilder pluginInstallationRequestsBuilder;
+		readonly AutoUpdate.IAutoUpdater autoUpdater;
 
 		public Presenter(
 			IView view,
 			IPluginsManagerInternal pluginsManager,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			AutoUpdate.IAutoUpdater autoUpdater
 		)
 		{
 			this.pluginsManager = pluginsManager;
 			this.view = view;
+			this.autoUpdater = autoUpdater;
 
 			this.changeNotification = changeNotification.CreateChainedChangeNotification();
 			this.fetchCancellation = new CancellationTokenSource();
@@ -73,7 +76,7 @@ namespace LogJoint.UI.Presenters.Options.Plugins
 			return true;
 		}
 
-		bool IPresenter.IsAvailable => pluginsManager.IsConfigured;
+		bool IPageAvailability.IsAvailable => PageAvailability.ComputeAvailability(pluginsManager);
 
 		void IDisposable.Dispose()
 		{
@@ -101,7 +104,30 @@ namespace LogJoint.UI.Presenters.Options.Plugins
 
 		ISelectedPluginData IViewModel.SelectedPluginData => selectedPluginDataSelector();
 
-		PluginsListFetchingStatus IViewModel.ListFetchingStatus => fetchStatus;
+		(StatusFlags flags, string text) IViewModel.Status
+		{
+			get
+			{
+				switch (fetchStatus)
+				{
+					case PluginsListFetchingStatus.Pending: return (StatusFlags.IsProgressIndicatorVisible, "Fetching plugins list...");
+					case PluginsListFetchingStatus.Failed: return (StatusFlags.IsError, "Plug-ins list loading failed");
+					case PluginsListFetchingStatus.Success:
+						switch (autoUpdater.State)
+						{
+							case AutoUpdate.AutoUpdateState.Checking: return (StatusFlags.IsProgressIndicatorVisible, "Installing...");
+							case AutoUpdate.AutoUpdateState.WaitingRestart: return (StatusFlags.None, "Waiting app restart");
+							case AutoUpdate.AutoUpdateState.Failed:
+							case AutoUpdate.AutoUpdateState.FailedDueToBadInstallationDirectory:
+								return (StatusFlags.IsError, "Installation failed");
+						}
+						break;
+				}
+				if (pluginInstallationRequestsBuilder.InstallationRequests.Count > 0)
+					return (StatusFlags.None, "Press OK to apply changes");
+				return (StatusFlags.None, null);
+			}
+		}
 
 		async void FetchPlugins()
 		{
@@ -193,5 +219,29 @@ namespace LogJoint.UI.Presenters.Options.Plugins
 			string ISelectedPluginData.Description => description;
 			(bool Enabled, string Caption) ISelectedPluginData.ActionButton => (actionEnabled, actionCaption);
 		};
+
+		enum PluginsListFetchingStatus
+		{
+			Pending,
+			Success,
+			Failed,
+		};
+	};
+
+	public class PageAvailability : IPageAvailability
+	{
+		readonly IPluginsManagerInternal pluginsManager;
+
+		public PageAvailability(IPluginsManagerInternal pluginsManager)
+		{
+			this.pluginsManager = pluginsManager;
+		}
+
+		static internal bool ComputeAvailability(IPluginsManagerInternal pluginsManager)
+		{
+			return pluginsManager.IsConfigured;
+		}
+
+		bool IPageAvailability.IsAvailable => ComputeAvailability(pluginsManager);
 	};
 };

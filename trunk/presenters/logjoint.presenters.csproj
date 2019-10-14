@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../sdk/model/logjoint.model.sdk.csproj" />
+    <ProjectReference Include="../sdk/presentation/logjoint.presentation.sdk.csproj" />
+    <ProjectReference Include="../model/logjoint.model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RangeTree" Version="1.0.6" />
+  </ItemGroup>
+
+</Project>

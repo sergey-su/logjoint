@@ -20,16 +20,24 @@ namespace LogJoint
 			FreeBuffer();
 		}
 
-#if MONOMAC
 		unsafe static char* memmove(char* dest, char* src, UIntPtr count)
 		{
-			Buffer.MemoryCopy((void*)src, (void*)dest, count.ToUInt32(), count.ToUInt32());
-			return dest;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				return WindowsNative.memmoveWin(dest, src, count);
+			}
+			else
+			{
+				Buffer.MemoryCopy((void*)src, (void*)dest, count.ToUInt32(), count.ToUInt32());
+				return dest;
+			}
 		}
-#else
-		[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-		unsafe static extern char* memmove(char* dest, char* src, UIntPtr count);
-#endif
+
+		static class WindowsNative
+		{
+			[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "memmove")]
+			public unsafe static extern char* memmoveWin(char* dest, char* src, UIntPtr count);
+		}
 
 		StringSlice IStringSliceReallocator.Reallocate(StringSlice value)
 		{

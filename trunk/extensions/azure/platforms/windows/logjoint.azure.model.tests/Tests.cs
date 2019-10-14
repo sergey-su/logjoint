@@ -118,7 +118,7 @@ namespace LogJoint.Azure
 		}
 
 		[TestMethod]
-		public void LoadMessagesRange_EntriesAlreadySortedWithingPartitions()
+		public void LoadMessagesRange_EntriesAlreadySortedWithinPartitions()
 		{
 			var msgs = AzureDiagnosticsUtils.LoadWADLogsTableMessagesRange(
 				new AzureDiagnosticLogsTableMock()
@@ -132,7 +132,7 @@ namespace LogJoint.Azure
 		}
 
 		[TestMethod]
-		public void LoadMessagesRange_EntriesAreUnsortedWithingPartitions()
+		public void LoadMessagesRange_EntriesAreUnsortedWithinPartitions()
 		{
 			var msgs = AzureDiagnosticsUtils.LoadWADLogsTableMessagesRange(
 				new AzureDiagnosticLogsTableMock()

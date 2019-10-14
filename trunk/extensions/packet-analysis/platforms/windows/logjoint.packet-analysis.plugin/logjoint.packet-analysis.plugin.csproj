@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.PacketAnalysis</RootNamespace>
     <AssemblyName>logjoint.packet-analysis.plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\Plugins\packet-analysis\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\Plugins\packet-analysis\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -63,28 +63,26 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.model.sdk\logjoint.model.sdk.csproj">
-      <Project>{a9307e88-df08-456c-a2fa-c4738ae75b33}</Project>
-      <Name>logjoint.model.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.presentation.sdk\logjoint.presentation.sdk.csproj">
-      <Project>{5e390903-42ce-432e-8d26-ff73f6fbe82f}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
       <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
       <Name>logjoint.sdk</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.packet-analysis.plugin.model\logjoint.packet-analysis.plugin.model.csproj">
-      <Project>{3c4aabd0-7bd7-4403-b7d5-210cc4409f0b}</Project>
+    <ProjectReference Include="..\..\..\..\..\sdk\model\logjoint.model.sdk.csproj">
+      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
+      <Name>logjoint.model.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
+      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
+      <Name>logjoint.presentation.sdk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\model\logjoint.packet-analysis.plugin.model.csproj">
+      <Project>{73894319-df61-4686-9f03-2e20da252459}</Project>
       <Name>logjoint.packet-analysis.plugin.model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\logjoint.packet-analysis.plugin.presenters\logjoint.packet-analysis.plugin.presenters.csproj">
-      <Project>{654565ea-946e-4244-bf23-518dbdd65221}</Project>
-      <Name>logjoint.packet-analysis.plugin.presenters</Name>
+    <ProjectReference Include="..\..\..\presentation\logjoint.packet-analysis.plugin.presentation.csproj">
+      <Project>{107111dd-cb76-467d-ae8a-ac63a4fd8e5b}</Project>
+      <Name>logjoint.packet-analysis.plugin.presentation</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +97,9 @@
     <Content Include="manifest.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pack.bat" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

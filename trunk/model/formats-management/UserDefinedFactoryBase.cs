@@ -57,6 +57,7 @@ namespace LogJoint
 
 			this.location = createParams.Location;
 			this.factoryRegistry = createParams.FactoryRegistry;
+			this.regexFactory = createParams.RegexFactory;
 
 			var idData = createParams.RootNode.Elements("id").Select(
 				id => new { company = id.AttributeValue("company"), formatName = id.AttributeValue("name") }).FirstOrDefault();
@@ -94,7 +95,7 @@ namespace LogJoint
 			return root.Elements(name).Select(a => a.Value).FirstOrDefault() ?? "";
 		}
 
-		protected static LoadedRegex ReadRe(XElement root, string name, ReOptions opts)
+		protected LoadedRegex ReadRe(XElement root, string name, ReOptions opts)
 		{
 			LoadedRegex ret = new LoadedRegex();
 			var n = root.Element(name);
@@ -103,7 +104,7 @@ namespace LogJoint
 			string pattern = n.Value;
 			if (string.IsNullOrEmpty(pattern))
 				return ret;
-			ret.Regex = RegexFactory.Instance.Create(pattern, opts);
+			ret.Regex = regexFactory.Create(pattern, opts);
 			XAttribute attr;
 			ret.SuffersFromPartialMatchProblem =
 				(attr = n.Attribute("suffers-from-partial-match-problem")) != null
@@ -117,25 +118,6 @@ namespace LogJoint
 			if (string.IsNullOrEmpty(typeName))
 				return defType;
 			return Type.GetType(typeName);
-		}
-
-		protected static Type ReadPrecompiledUserCode(XElement root)
-		{
-			var codeNode = root.Element("precompiled-user-code");
-			if (codeNode == null)
-				return null;
-			var typeAttr = codeNode.Attribute("type");
-			if (typeAttr == null)
-				return null;
-			Assembly asm;
-			byte[] asmBytes = Convert.FromBase64String(codeNode.Value);
-#if !SILVERLIGHT
-			asm = Assembly.Load(asmBytes);
-#else
-				var asmPart = new System.Windows.AssemblyPart();
-				asm = asmPart.Load(new MemoryStream(asmBytes));
-#endif
-			return asm.GetType(typeAttr.Value);
 		}
 
 		protected static void ReadPatterns(XElement formatSpecificNode, List<string> patternsList)
@@ -153,6 +135,7 @@ namespace LogJoint
 		readonly string formatName;
 		readonly string description = "";
 		readonly ILogProviderFactoryRegistry factoryRegistry;
+		readonly IRegexFactory regexFactory;
 		protected readonly FormatViewOptions viewOptions;
 		bool disposed;
 	};

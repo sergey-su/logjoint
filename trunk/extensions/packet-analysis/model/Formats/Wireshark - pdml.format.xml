@@ -111,7 +111,7 @@
       <xsl:template match="packet">
         <m>
           <xsl:attribute name="d">
-            <xsl:value-of select="lj:EPOCH_TIME(number(proto[@name='geninfo']/field[@name='timestamp']/@value) * 1000)" />
+            <xsl:value-of select="lj:EPOCH_TIME_TO_NATIVE_DATETIME_STR(number(proto[@name='geninfo']/field[@name='timestamp']/@value) * 1000)" />
           </xsl:attribute>
           <xsl:attribute name="s">
             <xsl:choose>

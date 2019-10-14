@@ -206,17 +206,14 @@ namespace LogJoint
 		public ILogMedia Media;
 		public MessagesReaderFlags Flags;
 		public Settings.IGlobalSettingsAccessor SettingsAccessor;
-		public ITempFilesManager TempFilesManager;
-		public ITraceSourceFactory TraceSourceFactory;
 		public string ParentLoggingPrefix;
-		public MediaBasedReaderParams(ILogSourceThreadsInternal threads, ILogMedia media, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, MessagesReaderFlags flags = MessagesReaderFlags.None,
+		public MediaBasedReaderParams(ILogSourceThreadsInternal threads, ILogMedia media, 
+			MessagesReaderFlags flags = MessagesReaderFlags.None,
 			Settings.IGlobalSettingsAccessor settingsAccessor = null, string parentLoggingPrefix = null)
 		{
 			Threads = threads;
 			Media = media;
 			Flags = flags;
-			TempFilesManager = tempFilesManager;
-			TraceSourceFactory = traceSourceFactory;
 			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
 			ParentLoggingPrefix = parentLoggingPrefix;
 		}

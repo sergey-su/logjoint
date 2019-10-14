@@ -8,19 +8,13 @@
 			UI.Windows.IView view
 		)
 		{
-			this.presentation = presentation;
-			this.model = model;
-			this.view = view;
+			this.Model = model;
+			this.Presentation = presentation;
+			this.View = view;
 		}
 
-		UI.Presenters.IPresentation IApplication.Presentation { get { return presentation; } }
-
-		IModel IApplication.Model { get { return model; } }
-
-		UI.Windows.IView IApplication.View { get { return view; } }
-
-		readonly IModel model;
-		readonly UI.Presenters.IPresentation presentation;
-		readonly UI.Windows.IView view;
+		public UI.Presenters.IPresentation Presentation { get; private set; }
+		public IModel Model { get; private set; }
+		public UI.Windows.IView View { get; private set; }
 	}
 }

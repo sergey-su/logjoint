@@ -9,7 +9,8 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
-using Ionic.Zip;
+using System.Runtime.InteropServices;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace LogJoint.Telemetry
 {
@@ -179,31 +180,41 @@ namespace LogJoint.Telemetry
 			}
 		}
 		
-		void ITelemetryCollector.ReportIssue(string description)
+		async Task ITelemetryCollector.ReportIssue(string description)
 		{
-			ReportIssueAsync(description, CancellationToken.None);
+			if (telemetryUploader.IsIssuesReportingConfigured)
+				await ReportIssueAsync(description, CancellationToken.None);
 		}
 		
 		async Task ReportIssueAsync(string description, CancellationToken cancellation)
 		{
 			try
 			{
-				using (var zipFile = new ZipFile(Encoding.UTF8))
+				using (var zipMemoryStream = new MemoryStream())
 				{
-					zipFile.AddEntry("description.txt", description);
-					
-					using (var logWriter = new StringWriter())
+					using (var zipOutputStream = new ZipOutputStream(zipMemoryStream))
 					{
-						traceAccess.ClearMemBufferAndGetCurrentContents(logWriter);
-						zipFile.AddEntry("membuffer.log", logWriter.ToString());
-					}
+						zipOutputStream.IsStreamOwner = false;
+						zipOutputStream.SetLevel(9);
 
-					using (var zipStream = new MemoryStream())
-					{
-						zipFile.Save(zipStream);
-						zipStream.Position = 0;
-						await telemetryUploader.UploadIssueReport(zipStream, cancellation);
+						var newEntry = new ZipEntry("description.txt");
+						zipOutputStream.PutNextEntry(newEntry);
+						using (var descriptionWriter = new StreamWriter(zipOutputStream, Encoding.UTF8, 1024, leaveOpen: true))
+						{
+							descriptionWriter.Write(description);
+						}
+						zipOutputStream.CloseEntry();
+
+						newEntry = new ZipEntry("membuffer.log");
+						zipOutputStream.PutNextEntry(newEntry);
+						using (var logWriter = new StreamWriter(zipOutputStream, Encoding.UTF8, 1024, leaveOpen: true))
+						{
+							traceAccess.ClearMemBufferAndGetCurrentContents(logWriter);
+						}
+						zipOutputStream.CloseEntry();
 					}
+					zipMemoryStream.Position = 0;
+					await telemetryUploader.UploadIssueReport(zipMemoryStream, cancellation);
 				}
 			}
 			catch (Exception e)
@@ -268,11 +279,10 @@ namespace LogJoint.Telemetry
 				}
 			}
 
-			#if MONOMAC
-			staticTelemetryProperties["platform"] = "mac";
-			#else
-			staticTelemetryProperties["platform"] = "win";
-			#endif
+			staticTelemetryProperties["platform"] =
+				RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "win" :
+				RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "mac" :
+				"";
 		}
 
 		[Flags]

@@ -60,6 +60,11 @@ namespace LogJoint
 			return new MessageTimestamp(dateTime).StoreToLoselessFormat();
 		}
 
+		public string TO_NATIVE_DATETIME_STR(string dateTimeStr, string format)
+		{
+			return TO_NATIVE_DATETIME_STR(TO_DATETIME(dateTimeStr, format));
+		}
+
 		public DateTime DATETIME_ADD_MILLISECONDS(DateTime dateTime, double milliseconds)
 		{
 			return dateTime.AddTicks((long)(milliseconds*10000));
@@ -105,6 +110,11 @@ namespace LogJoint
 		{
 			DateTime ret = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
 			return ret.AddMilliseconds(epochTime);
+		}
+
+		public string EPOCH_TIME_TO_NATIVE_DATETIME_STR(double epochTime)
+		{
+			return TO_NATIVE_DATETIME_STR(EPOCH_TIME(epochTime));
 		}
 
 		public string NEW_LINE()

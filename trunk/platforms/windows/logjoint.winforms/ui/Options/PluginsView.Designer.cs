@@ -34,8 +34,8 @@
 			this.captionLabel = new System.Windows.Forms.Label();
 			this.descriptionTextBox = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
-			this.failedFetchStatusLabel = new System.Windows.Forms.Label();
-			this.progressFetchStatusLabel = new System.Windows.Forms.Label();
+			this.statusLabel = new System.Windows.Forms.Label();
+			this.fetchStatusProgresssLabel = new System.Windows.Forms.Label();
 			this.panel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -105,37 +105,36 @@
 			this.label1.TabIndex = 5;
 			this.label1.Text = "Plug-ins";
 			// 
-			// failedFetchStatusLabel
+			// statusLabel
 			// 
-			this.failedFetchStatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.failedFetchStatusLabel.AutoSize = true;
-			this.failedFetchStatusLabel.ForeColor = System.Drawing.Color.Red;
-			this.failedFetchStatusLabel.Location = new System.Drawing.Point(403, 20);
-			this.failedFetchStatusLabel.Name = "failedFetchStatusLabel";
-			this.failedFetchStatusLabel.Size = new System.Drawing.Size(90, 17);
-			this.failedFetchStatusLabel.TabIndex = 6;
-			this.failedFetchStatusLabel.Text = "Loading failed";
-			this.failedFetchStatusLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			this.failedFetchStatusLabel.Visible = false;
+			this.statusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.statusLabel.AutoSize = false;
+			this.statusLabel.Location = new System.Drawing.Point(270, 20);
+			this.statusLabel.Name = "statusLabel";
+			this.statusLabel.Size = new System.Drawing.Size(180, 17);
+			this.statusLabel.TabIndex = 6;
+			this.statusLabel.Text = "status";
+			this.statusLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.statusLabel.Visible = false;
+			this.statusLabel.Padding = new System.Windows.Forms.Padding(0, 0, 0, 0);
 			// 
 			// progressFetchStatusLabel
 			// 
-			this.progressFetchStatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.progressFetchStatusLabel.ForeColor = System.Drawing.Color.Red;
-			this.progressFetchStatusLabel.Image = global::LogJoint.Properties.Resources.loader;
-			this.progressFetchStatusLabel.Location = new System.Drawing.Point(455, 20);
-			this.progressFetchStatusLabel.Name = "progressFetchStatusLabel";
-			this.progressFetchStatusLabel.Size = new System.Drawing.Size(38, 17);
-			this.progressFetchStatusLabel.TabIndex = 7;
-			this.progressFetchStatusLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			this.progressFetchStatusLabel.Visible = false;
+			this.fetchStatusProgresssLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.fetchStatusProgresssLabel.Image = global::LogJoint.Properties.Resources.loader;
+			this.fetchStatusProgresssLabel.Location = new System.Drawing.Point(455, 20);
+			this.fetchStatusProgresssLabel.Name = "progressFetchStatusLabel";
+			this.fetchStatusProgresssLabel.Size = new System.Drawing.Size(38, 17);
+			this.fetchStatusProgresssLabel.TabIndex = 7;
+			this.fetchStatusProgresssLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.fetchStatusProgresssLabel.Visible = false;
 			// 
 			// PluginsView
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-			this.Controls.Add(this.progressFetchStatusLabel);
-			this.Controls.Add(this.failedFetchStatusLabel);
+			this.Controls.Add(this.fetchStatusProgresssLabel);
+			this.Controls.Add(this.statusLabel);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.descriptionTextBox);
 			this.Controls.Add(this.captionLabel);
@@ -159,7 +158,7 @@
 		private System.Windows.Forms.Label captionLabel;
 		private System.Windows.Forms.TextBox descriptionTextBox;
 		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.Label failedFetchStatusLabel;
-		private System.Windows.Forms.Label progressFetchStatusLabel;
+		private System.Windows.Forms.Label statusLabel;
+		private System.Windows.Forms.Label fetchStatusProgresssLabel;
 	}
 }

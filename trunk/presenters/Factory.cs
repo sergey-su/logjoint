@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.UI.Presenters
 {
@@ -40,10 +41,8 @@ namespace LogJoint.UI.Presenters
 			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
 			NewLogSourceDialog.Pages.FormatDetection.IView CreateFormatDetectionView();
 			NewLogSourceDialog.Pages.FileBasedFormat.IView CreateFileBasedFormatView();
-#if WIN
 			NewLogSourceDialog.Pages.DebugOutput.IView CreateDebugOutputFormatView();
 			NewLogSourceDialog.Pages.WindowsEventsLog.IView CreateWindowsEventsLogFormatView();
-#endif
 			FormatsWizard.Factory.IViewsFactory FormatsWizardViewFactory { get; }
 			SourcesManager.IView CreateSourcesManagerView();
 			MessagePropertiesDialog.IView CreateMessagePropertiesDialogView();
@@ -73,7 +72,7 @@ namespace LogJoint.UI.Presenters
 			IViewsFactory views
 		)
 		{
-			T callOptionalFactory<T>(Func<T> factory) where T: class
+			T callOptionalFactory<T>(Func<T> factory) where T : class
 			{
 				try
 				{
@@ -137,7 +136,8 @@ namespace LogJoint.UI.Presenters
 				model.SearchManager,
 				model.FiltersFactory,
 				colorTheme,
-				model.TraceSourceFactory
+				model.TraceSourceFactory,
+				model.RegexFactory
 			);
 
 			LoadedMessages.IPresenter loadedMessagesPresenter = new LoadedMessages.Presenter(
@@ -341,9 +341,11 @@ namespace LogJoint.UI.Presenters
 						model.UserDefinedFormatsManager,
 						model.TempFilesManager,
 						model.TraceSourceFactory,
+						model.RegexFactory,
 						logViewerPresenterFactory,
 						views.FormatsWizardViewFactory,
-						model.SynchronizationContext
+						model.SynchronizationContext,
+						model.FieldsProcessorFactory
 					)
 				)
 			);
@@ -358,24 +360,10 @@ namespace LogJoint.UI.Presenters
 					fileDialogs
 				)
 			);
-#if WIN
-			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-				StdProviderFactoryUIs.DebugOutputProviderUIKey,
-				f => new NewLogSourceDialog.Pages.DebugOutput.Presenter(
-					views.CreateDebugOutputFormatView(),
-					f,
-					model.LogSourcesManager
-				)
-			);
-			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
-				StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
-				f => new NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
-					views.CreateWindowsEventsLogFormatView(),
-					f,
-					model.LogSourcesManager
-				)
-			);
-#endif
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				RegisterWindowsOnlyPresenters(model, views, newLogPagesPresentersRegistry);
+			}
 
 			SourcesManager.IPresenter sourcesManagerPresenter = new SourcesManager.Presenter(
 				model.LogSourcesManager,
@@ -459,7 +447,7 @@ namespace LogJoint.UI.Presenters
 				pageView => new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory, pageView),
 				pageView => new Options.Appearance.Presenter(model.GlobalSettingsAccessor, pageView, logViewerPresenterFactory, model.ChangeNotification, colorTheme),
 				pageView => new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor, pageView),
-				pageView => new Options.Plugins.Presenter(pageView, model.PluginsManager, model.ChangeNotification)
+				pageView => new Options.Plugins.Presenter(pageView, model.PluginsManager, model.ChangeNotification, model.AutoUpdater)
 			) : null;
 
 			About.IPresenter aboutDialogPresenter = new About.Presenter(
@@ -508,6 +496,14 @@ namespace LogJoint.UI.Presenters
 				model.TraceSourceFactory
 			);
 
+			Options.PluginsInstallationOffer.Init(
+				optionsDialogPresenter,
+				new Options.Plugins.PageAvailability(model.PluginsManager),
+				model.StorageManager,
+				mainFormPresenter,
+				alertPopup
+			);
+
 			Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorOutputFormFactory = new Postprocessing.Factory(
 				views.PostprocessingViewsFactory,
 				model.PostprocessorsManager,
@@ -524,7 +520,8 @@ namespace LogJoint.UI.Presenters
 				clipboardAccess,
 				presentersFacade,
 				alertPopup,
-				colorTheme
+				colorTheme,
+				model.MatrixFactory
 			);
 
 			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage();
@@ -590,6 +587,30 @@ namespace LogJoint.UI.Presenters
 				ColorTheme = colorTheme,
 				PreprocessingUserInteractions = preprocessingUserInteractions
 			};
+		}
+
+		private static void RegisterWindowsOnlyPresenters(
+			ModelObjects model,
+			IViewsFactory views,
+			NewLogSourceDialog.IPagePresentersRegistry newLogPagesPresentersRegistry
+		)
+		{
+			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+				StdProviderFactoryUIs.DebugOutputProviderUIKey,
+				f => new NewLogSourceDialog.Pages.DebugOutput.Presenter(
+					views.CreateDebugOutputFormatView(),
+					f,
+					model.LogSourcesManager
+				)
+			);
+			newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+				StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
+				f => new NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
+					views.CreateWindowsEventsLogFormatView(),
+					f,
+					model.LogSourcesManager
+				)
+			);
 		}
 	};
 };

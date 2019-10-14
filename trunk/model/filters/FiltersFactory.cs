@@ -7,12 +7,14 @@ namespace LogJoint
 	public class FiltersFactory: IFiltersFactory
 	{
 		readonly IChangeNotification changeNotification;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 
 		public static readonly IFilterScope DefaultScope = FilterScope.DefaultScope;
 
-		public FiltersFactory(IChangeNotification changeNotification)
+		public FiltersFactory(IChangeNotification changeNotification, RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.changeNotification = changeNotification;
+			this.regexFactory = regexFactory;
 		}
 
 		IFilterScope IFiltersFactory.CreateScope()
@@ -27,12 +29,12 @@ namespace LogJoint
 
 		IFilter IFiltersFactory.CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions)
 		{
-			return new Filter(type, initialName, enabled, searchOptions, this);
+			return new Filter(type, initialName, enabled, searchOptions, this, regexFactory);
 		}
 
 		IFilter IFiltersFactory.CreateFilter(XElement e)
 		{
-			return new Filter(e, this);
+			return new Filter(e, this, regexFactory);
 		}
 
 		IFiltersList IFiltersFactory.CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose)

@@ -9,9 +9,10 @@ namespace LogJoint
 {
 	public class NetworkCredentialsStorage
 	{
-		public NetworkCredentialsStorage(Persistence.IStorageEntry settingsEntry)
+		public NetworkCredentialsStorage(Persistence.IStorageEntry settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
 		{
 			this.settingsEntry = settingsEntry;
+			this.credentialsProtection = credentialsProtection;
 
 			Load();
 		}
@@ -54,8 +55,7 @@ namespace LogJoint
 			);
 			MemoryStream ms = new MemoryStream();
 			doc.Save(ms);
-			var protectedData = System.Security.Cryptography.ProtectedData.Protect(ms.ToArray(), additionalEntropy, 
-				System.Security.Cryptography.DataProtectionScope.CurrentUser);
+			var protectedData = credentialsProtection.Protect(ms.ToArray());
 			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 			{
 				sect.Data.SetLength(0);
@@ -74,8 +74,7 @@ namespace LogJoint
 			byte[] unprotectedData;
 			try
 			{
-				unprotectedData = System.Security.Cryptography.ProtectedData.Unprotect(protectedData, additionalEntropy,
-					System.Security.Cryptography.DataProtectionScope.CurrentUser);
+				unprotectedData = credentialsProtection.Unprotect(protectedData);
 			}
 			catch (System.Security.Cryptography.CryptographicException)
 			{
@@ -103,13 +102,13 @@ namespace LogJoint
 		}
 
 		readonly Persistence.IStorageEntry settingsEntry;
+		readonly Persistence.ICredentialsProtection credentialsProtection;
+
 		struct Entry
 		{
 			public Uri UriPrefix;
 			public System.Net.NetworkCredential Cred;
 		};
 		List<Entry> entries = new List<Entry>();
-
-		static byte[] additionalEntropy = { 19, 22, 43, 127, 128, 63, 221 };
 	}
 }

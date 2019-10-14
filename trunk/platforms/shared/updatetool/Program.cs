@@ -12,8 +12,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
-using Ionic.Zip;
 using System.Diagnostics;
+using System.IO.Compression;
 
 namespace LogJoint.UpdateTool
 {
@@ -39,7 +39,7 @@ namespace LogJoint.UpdateTool
 				Console.WriteLine("  deployinst [prod]           deploys installation image to the cloud");
 				Console.WriteLine("  encrypt <str>               encrypts a string with configured encryption certificate (thumbprint={0})", settings.StorageAccountKeyEncryptionCertThumbprint);
 				Console.WriteLine("  plugin alloc [id]           allocates new plugin id, or if id is specified, only allocates inbox url");
-				Console.WriteLine("  plugin index                updates plugins index blob");
+				Console.WriteLine("  plugin index [prod]         updates plugins index blob");
 				return;
 			}
 
@@ -79,7 +79,7 @@ namespace LogJoint.UpdateTool
 							AllocatePlugin(args.Skip(2).ToArray());
 							break;
 						case "index":
-							UpdatePluginsIndex();
+							UpdatePluginsIndex(args.Skip(1).ToArray());
 							break;
 						default:
 							Console.WriteLine("Unknown plugin command");
@@ -167,7 +167,7 @@ namespace LogJoint.UpdateTool
 			configNode.Value = settings.FeedbackUrl;
 
 			configNode = getSettingNode("PluginsUrl");
-			configNode.Value = CreatePluginsBlob().Uri.ToString();
+			configNode.Value = CreatePluginsBlob(prod).Uri.ToString();
 
 			// configure trace listener according to build flavor
 			configNode = configDoc.Descendants()
@@ -183,6 +183,9 @@ namespace LogJoint.UpdateTool
 				(prod ? "" : localLogLocation) + ";membuf=1");
 
 
+			var localPluginsNode = getSettingNode("LocalPlugins");
+			localPluginsNode.Value = "";
+
 			// remove local debug configs
 			removeAppSettingNode("localCosmosLocation");
 			removeAppSettingNode("useCallDbAwareCosmosReader");
@@ -194,8 +197,9 @@ namespace LogJoint.UpdateTool
 		static IEnumerable<string> GetFilesList(string sourceFilesLocation)
 		{
 			return settings.FilesList
-				.Split ('\n')
+				.Split ('\r', '\n' )
 				.Select (s => s.Trim ())
+				.Where (s => s.Length > 0)
 				.SelectMany (s => ResolveMasks (s, sourceFilesLocation));
 		}
 		
@@ -212,9 +216,8 @@ namespace LogJoint.UpdateTool
 			}
 
 			Console.WriteLine("Creating {0}", destArchiveFileName);
-			using (var zip = new ZipFile(destArchiveFileName))
+			using (var zip = ZipFile.Open(destArchiveFileName, ZipArchiveMode.Create))
 			{
-				zip.ParallelDeflateThreshold = -1; // http://dotnetzip.codeplex.com/workitem/14087
 				Console.WriteLine("Reading files from {0}", sourceFilesLocation);
 				var filesList = GetFilesList(sourceFilesLocation);
 				if (!prod)
@@ -232,15 +235,17 @@ namespace LogJoint.UpdateTool
 						var configDoc = MakeAppConfig (sourceFileAbsolutePath, prod);
 						Console.WriteLine("Adding to archive:   {0}   (config modified to fetch {1} updates, {2} logging)", 
 							relativeFilePath, prod ? "prod" : "staging", prod ? "no" : "full");
-						zip.AddEntry(relativeFilePath, configDoc.ToString());
+						using (var configStream = zip.CreateEntry(relativeFilePath).Open())
+							configDoc.Save(configStream);
 					}
 					else
 					{
 						Console.WriteLine("Adding to archive:   {0}", relativeFilePath);
-						zip.AddFile(sourceFileAbsolutePath, relativePathInArchive);
+						using (var entryStream = zip.CreateEntry(relativeFilePath).Open())
+						using (var sourceFileStream = new FileStream(sourceFileAbsolutePath, FileMode.Open))
+							sourceFileStream.CopyTo(entryStream);
 					}
 				}
-				zip.Save();
 			}
 			Console.WriteLine("Successfully created: {0} ", destArchiveFileName);
 		}
@@ -425,9 +430,9 @@ namespace LogJoint.UpdateTool
 				return CreateBlob(prod ? settings.ProdMacInstallerBlobName : settings.StagingMacInstallerBlobName, backup);
 		}
 
-		private static CloudBlockBlob CreatePluginsBlob()
+		private static CloudBlockBlob CreatePluginsBlob(bool prod, bool backup = false)
 		{
-			return CreateBlob(settings.PluginsBlobName, backup: false);
+			return CreateBlob(prod ? settings.PluginsBlobName : settings.StagingPluginsBlobName, backup: backup);
 		}
 
 		private static CloudTable CreateTelemetryTable()
@@ -521,18 +526,23 @@ namespace LogJoint.UpdateTool
 			updatesContainer.SetPermissions(updatesContainerPermissions);
 			Console.WriteLine("Done");
 
-			Console.Write("Creating plugins index blob ... ");
-			var pluginsIndexBlob = CreatePluginsBlob();
-			if (pluginsIndexBlob.Exists())
+			void CreatePluginsIndex(bool prod)
 			{
-				Console.WriteLine("Already exists");
+				Console.Write($"Creating {(prod ? "PROD" : "STAGING")} plugins index blob ... ");
+				var pluginsIndexBlob = CreatePluginsBlob(prod);
+				if (pluginsIndexBlob.Exists())
+				{
+					Console.WriteLine("Already exists");
+				}
+				else
+				{
+					var initialContents = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?><plugins></plugins>");
+					pluginsIndexBlob.UploadFromByteArray(initialContents, 0, initialContents.Length);
+					Console.WriteLine("Created empty one");
+				}
 			}
-			else
-			{
-				var initialContents = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"utf-8\"?><plugins></plugins>");
-				pluginsIndexBlob.UploadFromByteArray(initialContents, 0, initialContents.Length);
-				Console.WriteLine("Created empty one");
-			}
+			CreatePluginsIndex(true);
+			CreatePluginsIndex(false);
 
 			var tableClient = storageAccount.CreateCloudTableClient();
 			var telemetryTable = tableClient.GetTableReference(settings.TelemetryTableName);
@@ -710,8 +720,11 @@ namespace LogJoint.UpdateTool
 			return value.Substring(1, value.Length - 2);
 		}
 
-		static void UpdatePluginsIndex()
+		static void UpdatePluginsIndex(string[] args)
 		{
+			var prod = args.FirstOrDefault() == "prod";
+			var packagesSuffix = $"{(int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds}";
+			Console.WriteLine("Updating {0} plugins index ... ", prod ? "PRODUCTION" : "STAGING");
 			var result = new XDocument(new XElement("plugins"));
 			var inbox = CreatePluginsInboxBlobContainer();
 			foreach (var item in inbox.ListBlobs())
@@ -720,57 +733,52 @@ namespace LogJoint.UpdateTool
 				Console.Write("Reading {0} ... ", pluginBlob.Name);
 				try
 				{
-					bool productionPackage;
-					using (var tempZipStream = new MemoryStream())
-					using (var tempManifestStream = new MemoryStream())
+					var tempZipFile = Path.GetTempFileName();
+					pluginBlob.DownloadToFile(tempZipFile, FileMode.Create);
+
+					// todo: validate stuff from inbox
+					// todo: handle inbox and accepted blobs e-tags
+
+					XElement manifest;
+
+					using (var zip = ZipFile.OpenRead(tempZipFile))
 					{
-						pluginBlob.DownloadToStream(tempZipStream);
-
-						// todo: validate stuff from inbox
-						// todo: handle inbox and accepted blobs e-tags
-
-						XElement manifest;
-
-						tempZipStream.Position = 0;
-						using (var zip = ZipFile.Read(tempZipStream))
-						{
-							var manifestEntry = zip["manifest.xml"];
-							manifestEntry.Extract(tempManifestStream);
-							tempManifestStream.Position = 0;
-							manifest = XDocument.Load(tempManifestStream).Root;
-						}
-
-						productionPackage = manifest.Attribute("production")?.Value == "true";
-
-						Console.Write(" ver={0}, platf={1} {2}... ",
-							manifest.Element("version").Value,
-							manifest.Element("platform").Value,
-							productionPackage ? "" : "STAGING package");
-
-						if (productionPackage)
-						{
-							tempZipStream.Position = 0;
-
-							var acceptedPluginBlob = CreateBlob(pluginBlob.Name, backup: false);
-							acceptedPluginBlob.Properties.ContentType = "application/zip";
-							acceptedPluginBlob.UploadFromStream(tempZipStream);
-
-							var plugin = new XElement("plugin",
-								manifest.Element("id"),
-								manifest.Element("version"),
-								manifest.Element("name"),
-								manifest.Element("description"),
-								manifest.Element("platform"),
-								new XElement("location", acceptedPluginBlob.Uri),
-								new XElement("etag", UnquoteETag(acceptedPluginBlob.Properties.ETag))
-							);
-							foreach (var dep in manifest.Elements("dependency"))
-								plugin.Add(dep);
-
-							result.Root.Add(plugin);
-						}
+						var manifestEntry = zip.GetEntry("manifest.xml");
+						using (var manifestEntryStream = manifestEntry.Open())
+							manifest = XDocument.Load(manifestEntryStream).Root;
 					}
-					Console.WriteLine(productionPackage ? "DONE" : "SKIPPED (staging)");
+
+					bool productionPackage = manifest.Attribute("production")?.Value == "true";
+
+					Console.Write(" ver={0}, platf={1} {2}... ",
+						manifest.Element("version").Value,
+						manifest.Element("platform").Value,
+						productionPackage ? "" : "DRY RUN");
+
+					if (productionPackage)
+					{
+						var acceptedPluginBlob = CreateBlob($"{pluginBlob.Name}-{packagesSuffix}", backup: false);
+						acceptedPluginBlob.Properties.ContentType = "application/zip";
+						acceptedPluginBlob.UploadFromFile(tempZipFile);
+
+						var plugin = new XElement("plugin",
+							manifest.Element("id"),
+							manifest.Element("version"),
+							manifest.Element("name"),
+							manifest.Element("description"),
+							manifest.Element("platform"),
+							new XElement("location", acceptedPluginBlob.Uri),
+							new XElement("etag", UnquoteETag(acceptedPluginBlob.Properties.ETag))
+						);
+						foreach (var dep in manifest.Elements("dependency"))
+							plugin.Add(dep);
+
+						result.Root.Add(plugin);
+					}
+					// todo: else, take link to current package from current index
+
+					File.Delete(tempZipFile);
+					Console.WriteLine(productionPackage ? "DONE" : "SKIPPED (dry run)");
 				}
 				catch (Exception e)
 				{
@@ -779,13 +787,15 @@ namespace LogJoint.UpdateTool
 				}
 			}
 
+			var indexBlob = CreatePluginsBlob(prod);
+			indexBlob.Properties.ContentType = "text/xml";
+			if (indexBlob.Exists())
+				BackupBlob(indexBlob, CreateUpdateBlob(prod, backup: true));
 			Console.Write("Writing index ... ");
 			using (var indexStream = new MemoryStream())
 			{
 				result.Save(indexStream);
 				indexStream.Position = 0;
-				var indexBlob = CreatePluginsBlob();
-				indexBlob.Properties.ContentType = "text/xml";
 				indexBlob.UploadFromStream(indexStream);
 			}
 			Console.WriteLine("DONE");

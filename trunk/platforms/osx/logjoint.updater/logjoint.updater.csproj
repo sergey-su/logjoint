@@ -10,28 +10,30 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>logjoint.updater</RootNamespace>
     <AssemblyName>logjoint.updater</AssemblyName>
-    <UseXamMacFullFramework>true</UseXamMacFullFramework>
     <FileAlignment>512</FileAlignment>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <UseXamMacFullFramework>true</UseXamMacFullFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\debug\updater\</OutputPath>
+    <OutputPath>..\bin\debug\logjoint.app\Contents\MonoBundle</OutputPath>
     <DefineConstants>DEBUG;TRACE;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseSGen>false</UseSGen>
+    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\release\updater\</OutputPath>
+    <OutputPath>..\bin\debug\logjoint.app\Contents\MonoBundle</OutputPath>
     <DefineConstants>TRACE;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseSGen>false</UseSGen>
+    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

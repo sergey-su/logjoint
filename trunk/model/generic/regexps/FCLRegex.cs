@@ -16,9 +16,7 @@ namespace LogJoint.RegularExpressions
 			this.pattern = pattern;
 			
 			var opts = 
-#if !SILVERLIGHT
 				RENS.RegexOptions.Compiled | 
-#endif
 				RENS.RegexOptions.ExplicitCapture;
 			if ((options & ReOptions.AllowPatternWhitespaces) == 0)
 				opts |= RENS.RegexOptions.IgnorePatternWhitespace;

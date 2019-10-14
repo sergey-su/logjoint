@@ -20,7 +20,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IFiltersList highlightFilters,
 			ISelectionManager selectionManager,
 			IWordSelection wordSelection,
-			IColorTheme theme
+			IColorTheme theme,
+			RegularExpressions.IRegexFactory regexFactory
 		)
 		{
 			var viewSizeQuantizedSelector = Selectors.Create(
@@ -49,7 +50,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				displayTextGetterSelector,
 				viewSizeQuantizedSelector,
 				(selection, displayTextGetter, viewSize) =>
-					MakeSelectionInplaceHighlightingHander(selection, displayTextGetter, wordSelection, ViewSizeToCacheSize(viewSize))
+					MakeSelectionInplaceHighlightingHander(selection, displayTextGetter, wordSelection, ViewSizeToCacheSize(viewSize), regexFactory)
 			);
 		}
 
@@ -189,7 +190,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private static IHighlightingHandler MakeSelectionInplaceHighlightingHander(
-			SelectionInfo selection, MessageTextGetter displayTextGetter, IWordSelection wordSelection, int cacheSize)
+			SelectionInfo selection, MessageTextGetter displayTextGetter, IWordSelection wordSelection, int cacheSize,
+			RegularExpressions.IRegexFactory regexFactory)
 		{
 			IHighlightingHandler newHandler = null;
 
@@ -208,7 +210,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						Template = selectedPart,
 						MessageTextGetter = displayTextGetter,
 					};
-					var optionsPreprocessed = options.BeginSearch();
+					var optionsPreprocessed = options.BeginSearch(regexFactory);
 					newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection, 
 						(normSelection.First.Message, beginIdx + line.StartIndex - text.Text.StartIndex)), cacheSize);
 				}

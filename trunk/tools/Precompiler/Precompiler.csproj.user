@@ -1,6 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>/platform:silverlight  /output:1.xml /dump-asms:yes "c:\projects\logjoint.new\tools\Precompiler\bin\Debug\Skype - Deobfuscated corelib log.format.xml" /reference:"c:\projects\logjoint.new\platforms\silverlight\bin\debug\logjoint.skype.plugin.model.dll" /reference:"c:\projects\logjoint.new\platforms\silverlight\bin\debug\logjoint.model.dll"</StartArguments>
-  </PropertyGroup>
-</Project>

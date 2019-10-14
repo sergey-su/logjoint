@@ -47,13 +47,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		int quickSearchVersion;
 
 		Point? capturedMousePt;
-		Matrix capturedMouseTransform;
+		IMatrix capturedMouseTransform;
 		bool viewMovedAfterCapturing;
 
 		readonly Func<ReadonlyRef<Rectangle>> viewRect;
 		readonly Func<ReadonlyRef<Rectangle>> sceneRect;
-		Matrix transform = new Matrix();
-		readonly Func<Matrix> effectiveTransform;
+		IMatrix transform;
+		readonly Func<IMatrix> effectiveTransform;
 		readonly Func<ScrollInfo> scrollInfo;
 
 		readonly Func<ImmutableArray<RoleDrawInfo>> rolesDrawInfo;
@@ -70,7 +70,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			IPresentersFacade presentersFacade,
 			IUserNamesProvider userNamesProvider,
 			IChangeNotification parentChangeNotification,
-			IColorTheme theme
+			IColorTheme theme,
+			IMatrixFactory matrixFactory
 		)
 		{
 			this.model = model;
@@ -83,6 +84,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			this.presentersFacade = presentersFacade;
 			this.userNamesProvider = userNamesProvider;
 			this.theme = theme;
+
+			this.transform = matrixFactory.CreateIdentity();
 
 			view.SetViewModel(this);
 
@@ -241,7 +244,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			StateCache state,
 			IMessage msg,
 			MetricsCache metrics,
-			Matrix transform,
+			IMatrix transform,
 			ImmutableHashSet<int> selectedArrows,
 			ReadonlyRef<Size> arrowsAreaSize,
 			int rolesCaptionsAreaHeight
@@ -295,7 +298,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return result.ToImmutable();
 		}
 
-		static Point Transform(Matrix m, int x, int y, bool transformVector = false)
+		static Point Transform(IMatrix m, int x, int y, bool transformVector = false)
 		{
 			var pts = new[] { new PointF(x, y) };
 			if (transformVector)
@@ -312,7 +315,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			IMessage focusedMessage,
 			SelectedArrowsCache selectedArrowsCache,
 			MetricsCache metrics,
-			Matrix transform,
+			IMatrix transform,
 			ReadonlyRef<Size> arrowsAreaSize,
 			bool hideResponses
 		)
@@ -1677,7 +1680,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			});
 		}
 
-		static Matrix InvertTransform(Matrix matrix)
+		static IMatrix InvertTransform(IMatrix matrix)
 		{
 			var tmp = matrix.Clone();
 			tmp.Invert();
@@ -1859,7 +1862,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			}
 		}
 
-		void ModifyTransform(Action<Matrix> action)
+		void ModifyTransform(Action<IMatrix> action)
 		{
 			var tmp = effectiveTransform().Clone();
 			action(tmp);
@@ -1867,8 +1870,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			changeNotification.Post();
 		}
 
-		static Matrix GetEffectiveTransform(
-			Matrix transform,
+		static IMatrix GetEffectiveTransform(
+			IMatrix transform,
 			MetricsCache metrics,
 			ReadonlyRef<Rectangle> viewRectRef,
 			int rolesCount,
@@ -1938,7 +1941,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		}
 
 		private static ReadonlyRef<Rectangle> GetSceneRect(
-			Matrix matrix, MetricsCache metrics, int rolesCount, int arrowsCount)
+			IMatrix matrix, MetricsCache metrics, int rolesCount, int arrowsCount)
 		{
 			var sceneRect = new Rectangle(
 				Transform(matrix, -metrics.nodeWidth, -metrics.messageHeight),
@@ -2252,9 +2255,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		struct MetricsUtils
 		{
 			readonly MetricsCache metrics;
-			readonly Matrix transform;
+			readonly IMatrix transform;
 
-			public MetricsUtils(MetricsCache metrics, Matrix transform)
+			public MetricsUtils(MetricsCache metrics, IMatrix transform)
 			{
 				this.metrics = metrics;
 				this.transform = transform;

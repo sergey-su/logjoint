@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace LogJoint.Drawing
 {
 	public struct RectangleF
@@ -284,5 +286,26 @@ namespace LogJoint.Drawing
 		public static Color Salmon = FromArgb (0xFFFA8072);
 		public static Color DarkGreen = FromArgb (0xFF006400);
 		public static Color Transparent = FromArgb(0x00000000);
+	};
+
+	public enum MatrixOrder
+	{
+		Prepend,
+		Append
+	};
+
+	public interface IMatrix: IDisposable
+	{
+		void Translate(float dx, float dy, MatrixOrder order = MatrixOrder.Prepend);
+		void Scale(float sx, float sy);
+		void TransformVectors(PointF[] pts);
+		void TransformPoints(PointF[] pts);
+		void Invert();
+		IMatrix Clone();
+	};
+
+	public interface IMatrixFactory
+	{
+		IMatrix CreateIdentity();
 	};
 }

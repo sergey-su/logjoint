@@ -1,0 +1,80 @@
+<format>
+  <id company="Apache" name="Log4j XML" />
+  <description>XML logs of log4j format</description>
+  <xml>
+    <patterns>
+      <pattern>*.xml</pattern>
+    </patterns>
+    <encoding>utf-8</encoding>	
+    <head-re><![CDATA[\<(log4j\:event)]]></head-re>
+
+	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:lj="http://logjoint.codeplex.com/">
+
+		<xsl:output method="xml"/>
+
+		<xsl:template match='log4j:event' xmlns:log4j="http://jakarta.apache.org/log4j/">
+			<xsl:variable name='newLine'>
+				<xsl:text xml:space='preserve'>
+</xsl:text>
+			</xsl:variable>
+			
+			<m>
+				<xsl:attribute name='t'>
+					<xsl:value-of select='@thread'/>
+				</xsl:attribute>
+				<xsl:attribute name='d'>
+					<xsl:value-of select="lj:EPOCH_TIME_TO_NATIVE_DATETIME_STR(@timestamp)"/>
+				</xsl:attribute>
+				<xsl:attribute name='s'>
+					<xsl:choose>
+						<xsl:when test="@level='ERROR'">e</xsl:when>
+						<xsl:when test="@level='FATAL'">e</xsl:when>
+						<xsl:when test="@level='WARN'">w</xsl:when>
+						<xsl:otherwise>i</xsl:otherwise>
+					</xsl:choose>
+				</xsl:attribute>
+				
+				<xsl:value-of select="log4j:message"/>
+				
+				<xsl:for-each select="log4j:throwable">
+					<xsl:value-of select="$newLine"/>
+					<xsl:text>----------------------------------</xsl:text>
+					<xsl:value-of select="$newLine"/>
+					<xsl:value-of select="text()"/>
+					<xsl:value-of select="$newLine"/>
+					<xsl:text>----------------------------------</xsl:text>
+				</xsl:for-each>
+
+				<xsl:for-each select="@logger | @timestamp">
+					<xsl:value-of select="$newLine"/>
+					<xsl:value-of select="name(.)"/>=<xsl:value-of select="."/>
+				</xsl:for-each>
+							
+				<xsl:for-each select="log4j:properties/log4j:data">
+					<xsl:value-of select="$newLine"/>
+					<xsl:value-of select="@name"/>=<xsl:value-of select="@value"/>
+				</xsl:for-each>
+				
+				<xsl:for-each select="log4j:locationInfo">
+					<xsl:value-of select="$newLine"/>
+					<xsl:text>method=</xsl:text><xsl:value-of select="@class"/>.<xsl:value-of select="@method"/>
+					<xsl:value-of select="$newLine"/>
+					<xsl:text>file=</xsl:text><xsl:value-of select="@file"/>:<xsl:value-of select="@line"/>
+				</xsl:for-each>
+			</m>
+		</xsl:template>
+	</xsl:stylesheet>
+    <sample-log><![CDATA[<log4j:event logger="myLogger" level="INFO" thread="3156" timestamp="1317216571470">
+<log4j:message>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</log4j:message>
+</log4j:event>
+
+<log4j:event logger="myLogger" level="DEBUG" thread="3156" timestamp="1317216571471">
+<log4j:message>Donec a diam lectus.</log4j:message>
+</log4j:event>
+
+<log4j:event logger="myLogger" level="WARN" thread="3156" timestamp="1317216571471">
+<log4j:message>Sed sit amet ipsum mauris.</log4j:message>
+</log4j:event>
+]]></sample-log>
+  </xml>
+</format>

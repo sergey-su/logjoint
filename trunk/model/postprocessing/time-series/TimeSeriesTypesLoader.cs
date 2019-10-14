@@ -6,7 +6,6 @@ using System.Xml.Serialization;
 using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
-using System.CodeDom.Compiler;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {
@@ -244,39 +243,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 
 		public Assembly Load(FileInfo[] sourceFiles, bool debugInfo, IEnumerable<string> dependencies = null)
 		{
-			using (var compiler = new CSharpCodeProvider())
-			{
-				var compilerParams = new CompilerParameters()
-				{
-					TreatWarningsAsErrors = false,
-					GenerateExecutable = false,
-					GenerateInMemory = true,
-					IncludeDebugInformation = false
-				};
-
-				if (debugInfo)
-				{
-					// To be able to debug the dynamically compiled assembly in debug mode, we have to change some compiler flags
-					compilerParams.GenerateInMemory = false;
-					compilerParams.IncludeDebugInformation = true;
-					compilerParams.OutputAssembly = "Custom.TimeSeries." + Guid.NewGuid().ToString() + ".dll";
-				}
-
-				compilerParams.ReferencedAssemblies.AddRange(new string[] { "mscorlib.dll", "System.Core.dll", "Microsoft.CSharp.dll", "System.dll" });
-
-				if (dependencies != null)
-				{
-					compilerParams.ReferencedAssemblies.AddRange(dependencies.ToArray());
-				}
-
-				var results = compiler.CompileAssemblyFromFile(compilerParams, sourceFiles.Select(f => f.FullName).ToArray());
-
-				if (results.Errors.HasErrors)
-				{
-					throw new Exception(string.Format("Compile Errors:\n {0}", string.Join("\n", results.Errors.Cast<object>().ToArray())));
-				}
-				return results.CompiledAssembly;
-			}
+			throw new NotSupportedException("Dynamic time series not supported");
 		}
 	}
 }

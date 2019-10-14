@@ -20,7 +20,7 @@ namespace LogJoint.RegularGrammar
 		public readonly LoadedRegex HeadRe;
 		public readonly LoadedRegex BodyRe;
 		public readonly string Encoding;
-		public readonly FieldsProcessor.InitializationParams FieldsProcessorParams;
+		public readonly FieldsProcessor.IInitializationParams FieldsProcessorParams;
 		public readonly DejitteringParams? DejitteringParams;
 		public readonly TextStreamPositioningParams TextStreamPositioningParams;
 		public readonly static string EmptyBodyReEquivalientTemplate = "^(?<body>.*)$";
@@ -31,7 +31,7 @@ namespace LogJoint.RegularGrammar
 
 		public FormatInfo(
 			LoadedRegex headRe, LoadedRegex bodyRe, 
-			string encoding, FieldsProcessor.InitializationParams fieldsParams, 
+			string encoding, FieldsProcessor.IInitializationParams fieldsParams, 
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
 			DejitteringParams? dejitteringParams,
 			TextStreamPositioningParams textStreamPositioningParams,
@@ -59,20 +59,28 @@ namespace LogJoint.RegularGrammar
 	{
 		readonly ILogSourceThreadsInternal threads;
 		readonly FormatInfo fmtInfo;
-		readonly ITempFilesManager tempFilesManager;
+		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly IRegexFactory regexFactory;
 		readonly Lazy<bool> isBodySingleFieldExpression;
 		readonly LJTraceSource trace;
 
-		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
+		public MessagesReader(
+			MediaBasedReaderParams readerParams,
+			FormatInfo fmt,
+			FieldsProcessor.IFactory fieldsProcessorFactory,
+			IRegexFactory regexFactory,
+			ITraceSourceFactory traceSourceFactory
+		) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
 			this.threads = readerParams.Threads;
-			this.traceSourceFactory = readerParams.TraceSourceFactory;
+			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 			this.fmtInfo = fmt;
-			this.tempFilesManager = readerParams.TempFilesManager;
+			this.fieldsProcessorFactory = fieldsProcessorFactory;
 			this.trace = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 
 			base.Extensions.AttachExtensions();
@@ -83,19 +91,16 @@ namespace LogJoint.RegularGrammar
 			});
 		}
 
-		IFieldsProcessor CreateNewFieldsProcessor()
+		FieldsProcessor.IFieldsProcessor CreateNewFieldsProcessor()
 		{
-			return CreateNewFieldsProcessor(fmtInfo, Extensions, tempFilesManager, trace);
-		}
-
-		internal static IFieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions, ITempFilesManager tempFilesManager, LJTraceSource trace)
-		{
-			return new FieldsProcessor(
+			return fieldsProcessorFactory.CreateProcessor(
 				fmtInfo.FieldsProcessorParams,
 				fmtInfo.HeadRe.Regex.GetGroupNames().Skip(1).Concat(
-					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) : Enumerable.Repeat("body", 1)),
-				extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
-				tempFilesManager,
+					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) :
+					fmtInfo.HeadRe.Regex.GetGroupNames().Contains("body") ? Enumerable.Empty<string>() :
+					Enumerable.Repeat("body", 1)
+				),
+				Extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
 				trace
 			);
 		}
@@ -112,8 +117,8 @@ namespace LogJoint.RegularGrammar
 			IRegex headRe,
 			IRegex bodyRe,
 			ref IMatch bodyMatch,
-			IFieldsProcessor fieldsProcessor,
-			MakeMessageFlags makeMessageFlags,
+			FieldsProcessor.IFieldsProcessor fieldsProcessor,
+			FieldsProcessor.MakeMessageFlags makeMessageFlags,
 			DateTime sourceTime,
 			ITimeOffsets timeOffsets,
 			MessagesBuilderCallback threadLocalCallbackImpl
@@ -163,12 +168,12 @@ namespace LogJoint.RegularGrammar
 		class SingleThreadedStrategyImpl : StreamParsingStrategies.SingleThreadedStrategy
 		{
 			readonly MessagesReader reader;
-			readonly IFieldsProcessor fieldsProcessor;
+			readonly FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			readonly MessagesBuilderCallback callback;
 			readonly IRegex headerRegex, bodyRegex;
 			IMatch bodyMatch;
 
-			MakeMessageFlags currentParserFlags;
+			FieldsProcessor.MakeMessageFlags currentParserFlags;
 
 			public SingleThreadedStrategyImpl(MessagesReader reader) : base(
 				reader.LogMedia,
@@ -208,14 +213,14 @@ namespace LogJoint.RegularGrammar
 			public LoadedRegex headRe;
 			public LoadedRegex bodyRe;
 			public IMatch bodyMatch;
-			public IFieldsProcessor fieldsProcessor;
+			public FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			public MessagesBuilderCallback callback;
 		}
 
 		class MultiThreadedStrategyImpl : StreamParsingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
 		{
 			MessagesReader reader;
-			MakeMessageFlags flags;
+			FieldsProcessor.MakeMessageFlags flags;
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.fmtInfo.HeadRe.Regex,
@@ -285,21 +290,25 @@ namespace LogJoint.RegularGrammar
 				VolatileStream,
 				StreamEncoding,
 				allowPlainTextSearchOptimization,
-				fmtInfo.HeadRe, 
+				fmtInfo.HeadRe,
 				threads,
-				traceSourceFactory
+				traceSourceFactory,
+				regexFactory
 			);
 		}
 	};
 
 	public class UserDefinedFormatFactory : 
 		UserDefinedFactoryBase,
-		IFileBasedLogProviderFactory, IMediaBasedReaderFactory, IUserCodePrecompile
+		IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
 		List<string> patterns = new List<string>();
 		Lazy<FormatInfo> fmtInfo;
 		readonly string uiKey;
 		readonly ITempFilesManager tempFilesManager;
+		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
+		readonly IRegexFactory regexFactory;
+		readonly ITraceSourceFactory traceSourceFactory;
 
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
@@ -316,11 +325,13 @@ namespace LogJoint.RegularGrammar
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			tempFilesManager = createParams.TempFilesManager;
+			fieldsProcessorFactory = createParams.FieldsProcessorFactory;
+			regexFactory = createParams.RegexFactory;
+			traceSourceFactory = createParams.TraceSourceFactory;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
-				Type precompiledUserCode = ReadPrecompiledUserCode(createParams.RootNode);
-				FieldsProcessor.InitializationParams fieldsInitParams = new FieldsProcessor.InitializationParams(
-					formatSpecificNode.Element("fields-config"), true, precompiledUserCode);
+				FieldsProcessor.IInitializationParams fieldsInitParams = fieldsProcessorFactory.CreateInitializationParams(
+					formatSpecificNode.Element("fields-config"), performChecks: true);
 				MessagesReaderExtensions.XmlInitializationParams extensionsInitData = new MessagesReaderExtensions.XmlInitializationParams(
 					formatSpecificNode.Element("extensions"));
 				DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
@@ -351,7 +362,7 @@ namespace LogJoint.RegularGrammar
 
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, fmtInfo.Value);
+			return new MessagesReader(readerParams, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory);
 		}
 		
 		#region ILogReaderFactory Members
@@ -370,7 +381,7 @@ namespace LogJoint.RegularGrammar
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, fmtInfo.Value, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory));
 		}
 
 		public override LogProviderFactoryFlag Flags
@@ -404,17 +415,6 @@ namespace LogJoint.RegularGrammar
 		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
 		{
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
-		}
-
-
-		public Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
-		{
-			using (MessagesReaderExtensions extensions = new MessagesReaderExtensions(null, fmtInfo.Value.ExtensionsInitData))
-			{
-				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions, tempFilesManager, LJTraceSource.EmptyTracer);
-				var type = fieldsProcessor.CompileUserCodeToType(targetFx, assemblyLocationResolver);
-				return type;
-			}
 		}
 	};
 }
