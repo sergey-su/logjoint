@@ -79,7 +79,7 @@ namespace LogJoint.UpdateTool
 							AllocatePlugin(args.Skip(2).ToArray());
 							break;
 						case "index":
-							UpdatePluginsIndex(args.Skip(1).ToArray());
+							UpdatePluginsIndex(args.Skip(2).ToArray());
 							break;
 						default:
 							Console.WriteLine("Unknown plugin command");
