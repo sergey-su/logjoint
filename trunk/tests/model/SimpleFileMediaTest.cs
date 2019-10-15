@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using Rhino.Mocks;
+using NSubstitute;
 using System.IO;
 using LogJoint.LogMedia;
-using LogJoint;
 using NUnit.Framework;
 
 namespace LogJoint.Tests
@@ -23,22 +20,16 @@ namespace LogJoint.Tests
 		[Test]
 		public void ConstructorAndUpdate()
 		{
-			MockRepository rep = new MockRepository();
-
 			DateTime modifTime = new DateTime(2000, 1, 1);
 			long size = 100;
-			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
+			MyFileStream stm = Substitute.For<MyFileStream>(new object());
 
-			Expect.Call(() => stm.Dispose()).Repeat.AtLeastOnce();
+			stm.Length.Returns(size);
+			stm.IsDeleted.Returns(false);
+			stm.LastWriteTime.Returns(modifTime);
 
-			Expect.Call(stm.Length).Return(size);
-			Expect.Call(stm.IsDeleted).Repeat.Any().Return(false);
-			Expect.Call(stm.LastWriteTime).Repeat.Any().Return(modifTime);
-
-			IFileSystem fs = rep.CreateMock<IFileSystem>();
-			Expect.Call(fs.OpenFile("test")).Return(stm);
-
-			rep.ReplayAll();
+			IFileSystem fs = Substitute.For<IFileSystem>();
+			fs.OpenFile("test").Returns(stm);
 
 			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
@@ -46,7 +37,7 @@ namespace LogJoint.Tests
 				Assert.AreEqual(size, media.Size);
 			}
 
-			rep.VerifyAll();
+			stm.Received(1).Dispose();
 		}
 
 		class TestException: Exception
@@ -56,20 +47,14 @@ namespace LogJoint.Tests
 		[Test]
 		public void ExceptionInConstructorMustNotLeakStreams()
 		{
-			MockRepository rep = new MockRepository();
-
-			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
-			stm.Dispose();
-			LastCall.On(stm).Repeat.AtLeastOnce();
+			MyFileStream stm = Substitute.For<MyFileStream>(new object());
 			Exception ex = new TestException();
-			Expect.Call(stm.Length).Repeat.Times(0, 1).Throw(ex);
-			Expect.Call(stm.IsDeleted).Repeat.Times(0, 1).Throw(ex);
-			Expect.Call(stm.LastWriteTime).Repeat.Times(0, 1).Throw(ex);
+			stm.Length.Returns(callInfo => { throw ex; });
+			stm.IsDeleted.Returns(callInfo => { throw ex; });
+			stm.LastWriteTime.Returns(callInfo => { throw ex; });
 
-			IFileSystem fs = rep.CreateMock<IFileSystem>();
-			Expect.Call(fs.OpenFile("test")).Return(stm);
-
-			rep.ReplayAll();
+			IFileSystem fs = Substitute.For<IFileSystem>();
+			fs.OpenFile("test").Returns(stm);
 
 			try
 			{
@@ -79,25 +64,22 @@ namespace LogJoint.Tests
 			{
 			}
 
-			rep.VerifyAll();
+			stm.Received(1).Dispose();
 		}
 
 		[Test]
 		public void UpdatingWhileFileIsGrowing()
 		{
-			MockRepository rep = new MockRepository();
-			IFileSystem fs = rep.CreateMock<IFileSystem>();
-			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
+			IFileSystem fs = Substitute.For<IFileSystem>();
+			MyFileStream stm = Substitute.For<MyFileStream>(new object());
 
-			Expect.Call(fs.OpenFile("test")).Return(stm);
+			fs.OpenFile("test").Returns(stm);
 
 			DateTime time1 = new DateTime(2000, 1, 1);
 			long size1 = 100;
-			Expect.Call(stm.Length).Repeat.Any().Return(size1);
-			Expect.Call(stm.LastWriteTime).Repeat.Any().Return(time1);
-			Expect.Call(stm.IsDeleted).Repeat.Any().Return(false);
-
-			rep.ReplayAll();
+			stm.Length.Returns(size1);
+			stm.LastWriteTime.Returns(time1);
+			stm.IsDeleted.Returns(false);
 
 			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
@@ -105,53 +87,38 @@ namespace LogJoint.Tests
 				Assert.AreEqual(size1, media.Size);
 				Assert.AreEqual(size1, media.DataStream.Length);
 
-				rep.VerifyAll();
-
-				rep.BackToRecordAll();
-
 				DateTime time2 = new DateTime(2000, 2, 2);
 				long size2 = 200;
-				Expect.Call(stm.Length).Repeat.Any().Return(size2);
-				Expect.Call(stm.LastWriteTime).Repeat.Any().Return(time2);
-				Expect.Call(stm.IsDeleted).Repeat.Any().Return(false);
-
-				rep.ReplayAll();
+				stm.Length.Returns(size2);
+				stm.LastWriteTime.Returns(time2);
+				stm.IsDeleted.Returns(false);
 
 				media.Update();
 
 				Assert.AreEqual(time2, media.LastModified);
 				Assert.AreEqual(size2, media.Size);
-
-				rep.VerifyAll();
-				
-				rep.BackToRecordAll();
-				stm.Dispose();
-				LastCall.On(stm).Repeat.AtLeastOnce();
-				rep.ReplayAll();
 			}
 
-			rep.VerifyAll();
+			stm.Received(1).Dispose();
 		}
 
 		[Test]
 		public void FileDeletedByAnotherProcessAndThenNewFileAppeared()
 		{
-			MockRepository rep = new MockRepository();
-
-			IFileSystem fs = rep.CreateMock<IFileSystem>();
+			IFileSystem fs = Substitute.For<IFileSystem>();
 
 			// Create and init the first stream
 			long initialSize1 = 100;
 			DateTime modifTime1 = new DateTime(2000, 3, 4);
-			MyFileStream stm1 = rep.CreateMock<MyFileStream>(rep);
-			Expect.Call(stm1.Length).Repeat.Any().Return(initialSize1);
-			Expect.Call(stm1.IsDeleted).Repeat.Any().Return(false);
-			Expect.Call(stm1.LastWriteTime).Repeat.Any().Return(modifTime1);
+			MyFileStream stm1 = Substitute.For<MyFileStream>(new object());
+			stm1.Length.Returns(initialSize1);
+			stm1.IsDeleted.Returns(false);
+			stm1.LastWriteTime.Returns(modifTime1);
 
 			// Instruct file system to return the first stream
-			Expect.Call(fs.OpenFile("test")).Return(stm1);
+			fs.OpenFile("test").Returns(stm1);
 
-			rep.ReplayAll();
+			MyFileStream stm2 = Substitute.For<MyFileStream>(new object());
 
 			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
@@ -160,24 +127,18 @@ namespace LogJoint.Tests
 				Assert.AreEqual(initialSize1, media.Size);
 				Assert.AreEqual(true, media.IsAvailable);
 
-				rep.VerifyAll();
-
-
-
-				rep.BackToRecordAll();
+				
 				// Simulate file deletion: Length and LastWriteTime keep returning file properties,
 				// but IsDeleted now returns "true".
-				Expect.Call(stm1.Length).Repeat.Any().Return(initialSize1);
-				Expect.Call(stm1.LastWriteTime).Repeat.Any().Return(modifTime1);
-				Expect.Call(stm1.IsDeleted).Repeat.Any().Return(true);
+				stm1.IsDeleted.Returns(true);
 
-				// We expect stream stm1 to be released/disposed
-				stm1.Dispose();
-				LastCall.On(stm1).Repeat.AtLeastOnce();
 
 				// Factory cannot open the file that has been deleted while being locked
-				Expect.Call(fs.OpenFile("test")).Repeat.Any().Throw(new UnauthorizedAccessException());
-				rep.ReplayAll();
+				fs.OpenFile("test").Returns(
+					_ => throw new UnauthorizedAccessException(),
+					_ => throw new UnauthorizedAccessException(),
+					_ => stm2
+					);
 
 
 				// Properties must return previous values as long as Update is not called
@@ -190,6 +151,7 @@ namespace LogJoint.Tests
 				Assert.AreEqual(0, media.Size);
 				Assert.AreEqual(0, media.DataStream.Length);
 				Assert.AreEqual(false, media.IsAvailable);
+				stm1.Received(1).Dispose();
 
 				// Subsequent Updates should change nothing
 				media.Update();
@@ -198,21 +160,13 @@ namespace LogJoint.Tests
 				Assert.AreEqual(0, media.DataStream.Length);
 				Assert.AreEqual(false, media.IsAvailable);
 
-				rep.VerifyAll();
 
-
-				rep.BackToRecordAll();
 				// Simulate that new file with name "test" appeared 
 				long initialSize2 = 200;
 				DateTime modifTime2 = new DateTime(2000, 4, 5);
-				MyFileStream stm2 = rep.CreateMock<MyFileStream>(rep);
-				Expect.Call(stm2.Length).Repeat.Any().Return(initialSize2);
-				Expect.Call(stm2.IsDeleted).Repeat.Any().Return(false);
-				Expect.Call(stm2.LastWriteTime).Repeat.Any().Return(modifTime2);
-				stm2.Dispose();
-				LastCall.On(stm2).Repeat.AtLeastOnce();
-				Expect.Call(fs.OpenFile("test")).Return(stm2);
-				rep.ReplayAll();
+				stm2.Length.Returns(initialSize2);
+				stm2.IsDeleted.Returns(false);
+				stm2.LastWriteTime.Returns(modifTime2);
 
 
 				// Properties must return previous values as long as Update is not called
@@ -234,25 +188,22 @@ namespace LogJoint.Tests
 				Assert.AreEqual(true, media.IsAvailable);
 			}
 
-			rep.VerifyAll();
+			stm2.Received(1).Dispose();
 		}
 
 		[Test]
 		public void MediaPropertiesMustChangeOnlyAfterUpdate()
 		{
-			MockRepository rep = new MockRepository();
-			IFileSystem fs = rep.CreateMock<IFileSystem>();
-			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
+			IFileSystem fs = Substitute.For<IFileSystem>();
+			MyFileStream stm = Substitute.For<MyFileStream>(new object());
 
-			Expect.Call(fs.OpenFile("test")).Return(stm);
+			fs.OpenFile("test").Returns(stm);
 
 			DateTime time1 = new DateTime(2000, 1, 1);
 			long size1 = 100;
-			Expect.Call(stm.Length).Repeat.Any().Return(size1);
-			Expect.Call(stm.LastWriteTime).Repeat.Any().Return(time1);
-			Expect.Call(stm.IsDeleted).Repeat.Any().Return(false);
-
-			rep.ReplayAll();
+			stm.Length.Returns(size1);
+			stm.LastWriteTime.Returns(time1);
+			stm.IsDeleted.Returns(false);
 
 			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
@@ -260,16 +211,12 @@ namespace LogJoint.Tests
 				Assert.AreEqual(time1, media.LastModified);
 				Assert.AreEqual(size1, media.Size);
 
-				rep.VerifyAll();
-
-				rep.BackToRecordAll();
-				// Chnage the properties of stm
+				// Change the properties of stm
 				DateTime time2 = new DateTime(2000, 2, 2);
 				long size2 = 200;
-				Expect.Call(stm.Length).Repeat.Any().Return(size2);
-				Expect.Call(stm.LastWriteTime).Repeat.Any().Return(time2);
-				Expect.Call(stm.IsDeleted).Repeat.Any().Return(false);
-				rep.ReplayAll();
+				stm.Length.Returns(size2);
+				stm.LastWriteTime.Returns(time2);
+				stm.IsDeleted.Returns(false);
 
 				// Properties have not still changed
 				Assert.AreEqual(time1, media.LastModified);
@@ -286,17 +233,9 @@ namespace LogJoint.Tests
 				media.Update();
 				Assert.AreEqual(time2, media.LastModified);
 				Assert.AreEqual(size2, media.Size);
-
-				rep.VerifyAll();
-
-
-				rep.BackToRecordAll();
-				stm.Dispose();
-				LastCall.On(stm).Repeat.AtLeastOnce();
-				rep.ReplayAll();
 			}
 
-			rep.VerifyAll();
+			stm.Received(1).Dispose();
 		}
 
 		[Test] 
@@ -304,20 +243,12 @@ namespace LogJoint.Tests
 		{
 			Assert.Throws<FileNotFoundException>(()=>
 			{
-				MockRepository rep = new MockRepository();
-				IFileSystem fs = rep.CreateMock<IFileSystem>();
+				IFileSystem fs = Substitute.For<IFileSystem>();
 
-				Expect.Call(fs.OpenFile("test")).Throw(new FileNotFoundException());
-
-				rep.ReplayAll();
+				fs.OpenFile("test").Returns(_ => throw new FileNotFoundException());
 
 				SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"));
-			
-				rep.VerifyAll();
 			});
 		}
-
 	}
-
-
 }

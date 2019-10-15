@@ -21,8 +21,6 @@
   <!-- todo: fix excluded tests -->
   <ItemGroup>
     <Compile Remove="nlog/testapp/**" />
-    <Compile Remove="MessagesSplitterTest.cs" />
-    <Compile Remove="SimpleFileMediaTest.cs" />
     <Compile Remove="log4net/Log4netLayoutImporterTest.cs" />
     <Compile Remove="nlog/NLogLayoutImporterTest.cs" />
   </ItemGroup>
