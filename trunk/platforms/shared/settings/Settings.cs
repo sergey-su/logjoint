@@ -50,7 +50,7 @@ namespace LogJoint.Properties
 			TraceListenerConfig = cmdLineTraceListenerConfig ?? appConfigTraceListenerConfig;
 
 			var cmdLineLocalPluginsConfig = GetCommandLineArgumentParams("--plugin").ToArray();
-			LocalPlugins = string.Join(';', new [] { LocalPlugins }.Union(cmdLineLocalPluginsConfig));
+			LocalPlugins = string.Join(";", new [] { LocalPlugins }.Union(cmdLineLocalPluginsConfig));
 		}
 
 		public static Settings Default => settings;
