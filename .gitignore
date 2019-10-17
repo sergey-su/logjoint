@@ -4,7 +4,6 @@ obj
 *.suo
 *.DS_Store
 *.userprefs
-/trunk/extensions/skype
 /trunk/TestResults/*.mdf
 /trunk/TestResults/*.ldf
 packages
@@ -27,3 +26,4 @@ BuildInfo.txt
 /trunk/extensions/packet-analysis/platforms/windows/logjoint.packet-analysis.plugin/deploy.bat
 /trunk/extensions/azure/platforms/windows/logjoint.azure.plugin/deploy.bat
 /trunk/platforms/osx/logjoint.mac/logjoint.mac.csproj.user
+/trunk/platforms/windows/logjoint.winforms/logjoint.csproj.user

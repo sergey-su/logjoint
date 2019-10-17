@@ -25,6 +25,7 @@ namespace LogJoint.AppLaunch
 		async Task ICommandLineHandler.HandleCommandLineArgs(string[] args, CommandLineEventArgs evtArgs)
 		{
 			args = await HandleBatchArg(args, evtArgs);
+			args = RemoveNamedArgs(args).ToArray();
 			OpenArgsAsLogSources(args);
 		}
 
@@ -71,6 +72,21 @@ namespace LogJoint.AppLaunch
 			}
 
 			return argsCopy.Where(a => a != null).ToArray();
+		}
+
+		IEnumerable<string> RemoveNamedArgs(string[] args)
+		{
+
+			bool nextIsNamedArg = false;
+			foreach (var arg in args)
+			{
+				if (arg.StartsWith("--"))
+					nextIsNamedArg = true;
+				else if (nextIsNamedArg)
+					nextIsNamedArg = false;
+				else
+					yield return arg;
+			}
 		}
 
 		class BatchFile
