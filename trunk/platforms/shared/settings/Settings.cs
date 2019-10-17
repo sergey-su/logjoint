@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace LogJoint.Properties
 				this.GetType().InvokeMember(name, BindingFlags.SetProperty, null, this, new [] { value });
 			}
 
-			TraceListenerConfig = config
+			var appConfigTraceListenerConfig = config
 				.Elements("configuration")
 				.Elements("system.diagnostics")
 				.Elements("sharedListeners")
@@ -42,6 +43,14 @@ namespace LogJoint.Properties
 				.Attributes("initializeData")
 				.FirstOrDefault()
 				?.Value;
+			var cmdLineTraceListenerConfig =
+				GetCommandLineArgumentParams("--logging")
+				.FirstOrDefault();
+
+			TraceListenerConfig = cmdLineTraceListenerConfig ?? appConfigTraceListenerConfig;
+
+			var cmdLineLocalPluginsConfig = GetCommandLineArgumentParams("--plugin").ToArray();
+			LocalPlugins = string.Join(';', new [] { LocalPlugins }.Union(cmdLineLocalPluginsConfig));
 		}
 
 		public static Settings Default => settings;
@@ -60,5 +69,26 @@ namespace LogJoint.Properties
 		public string MonospaceBookmarks { get; set; } = "";
 		public string PluginsUrl { get; set; } = "";
 		public string LocalPlugins { get; set; } = "";
+
+
+		private static IEnumerable<string> GetCommandLineArgumentParams(string paramName)
+		{
+			bool nextIsValue = false;
+			foreach (var arg in Environment.GetCommandLineArgs())
+			{
+				if (arg == paramName)
+				{
+					nextIsValue = true;
+				}
+				else
+				{
+					if (nextIsValue)
+					{
+						yield return arg;
+					}
+					nextIsValue = false;
+				}
+			}
+		}
 	}
 }

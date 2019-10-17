@@ -26,3 +26,4 @@ BuildInfo.txt
 /trunk/extensions/packet-analysis/platforms/osx/logjoint.packet-analysis.plugin/deploy.sh
 /trunk/extensions/packet-analysis/platforms/windows/logjoint.packet-analysis.plugin/deploy.bat
 /trunk/extensions/azure/platforms/windows/logjoint.azure.plugin/deploy.bat
+/trunk/platforms/osx/logjoint.mac/logjoint.mac.csproj.user

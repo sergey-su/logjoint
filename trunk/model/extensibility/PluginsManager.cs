@@ -49,9 +49,9 @@ namespace LogJoint.Extensibility
 			shutdown.Cleanup += (s, e) => Dispose();
 		}
 
-		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint, string localPluginsList)
+		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint, string localPluginsListConfig)
 		{
-			InitPlugins(appEntryPoint, localPluginsList);
+			InitPlugins(appEntryPoint, localPluginsListConfig);
 		}
 
 		bool IPluginsManagerInternal.IsConfigured => pluginsIndexDownloader.IsDownloaderConfigured && updateDownloader.IsDownloaderConfigured;
@@ -111,9 +111,10 @@ namespace LogJoint.Extensibility
 				bool pluginsDirectoryExists = Directory.Exists(pluginsDirectory);
 				tracer.Info("plugins directory: {0}{1}", pluginsDirectory, !pluginsDirectoryExists ? " (MISSING!)" : "");
 				var localPluginDirs =
-					localPluginsList.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+					localPluginsList.Split(new [] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
 					.Select(dir => Path.IsPathRooted(dir) ? dir : Path.GetFullPath(Path.Combine(thisPath, dir)))
-					.Select(dir => (dir, exists: Directory.Exists(dir)));
+					.Select(dir => (dir, exists: Directory.Exists(dir)))
+					.ToArray();
 				tracer.Info("local plugin directories: {0}", string.Join(",",
 					localPluginDirs.Select(d => $"{d.dir}{(d.exists ? "" : " (MISSING!)")}"))
 				);

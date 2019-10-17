@@ -66,9 +66,7 @@ namespace LogJoint.UI
 				invokingSynchronization
 			);
 			// todo: consider not depending on mono in the system.
-			// It's required 2 times:
-			//  1. Formats' user code compilation
-			//  2. Start of updater tool during auto-update
+			// It's required to start of updater tool during auto-update
 			var monoChecker = new MonoChecker (
 				presentation.MainFormPresenter,
 				presentation.AlertPopup,
