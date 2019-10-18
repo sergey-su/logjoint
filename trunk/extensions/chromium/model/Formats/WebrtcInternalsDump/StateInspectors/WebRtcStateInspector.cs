@@ -106,11 +106,12 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				ObjectId = peerConnectionId,
 				ConnsRootObjectId = peerConnectionId + ".Connections",
 				CandidatesRootObjectId = peerConnectionId + ".Candidates",
-				SSRCsRootObjectId = peerConnectionId + ".Streams",
+				StreamsRootObjectId = peerConnectionId + ".Streams",
 				ChannelsRootObjectId = peerConnectionId + ".Channels",
 				TracksRootObjectId = peerConnectionId + ".Tracks",
 				CertsRootObjectId = peerConnectionId + ".Certs",
 				DataChannelsRootObjectId = peerConnectionId + ".DataChannels",
+				SourcesRootObjectId = peerConnectionId + ".Sources",
 			};
 			reportedPeerConnection.Add(peerConnectionId, state);
 			buffer.Enqueue(new ObjectCreation(trigger, peerConnectionId, peerConnectionTypeInfo));
@@ -123,12 +124,13 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			};
 
 			reportCategoryRoot(connectionsRootTypeInfo, state.ConnsRootObjectId, "Connections");
-			reportCategoryRoot(ssrcsRootTypeInfo, state.SSRCsRootObjectId, "SSRC");
+			reportCategoryRoot(ssrcsRootTypeInfo, state.StreamsRootObjectId, "Streams");
 			reportCategoryRoot(candidatesRootTypeInfo, state.CandidatesRootObjectId, "Candidates");
 			reportCategoryRoot(channelsRootTypeInfo, state.ChannelsRootObjectId, "Channels");
 			reportCategoryRoot(tracksRootTypeInfo, state.TracksRootObjectId, "Tracks");
 			reportCategoryRoot(certsRootTypeInfo, state.CertsRootObjectId, "Certificates");
 			reportCategoryRoot(dataChannelsRootTypeInfo, state.DataChannelsRootObjectId, "Data channels");
+			reportCategoryRoot(mediaSourcesRootTypeInfo, state.SourcesRootObjectId, "Media sources");
 
 			return state;
 		}
@@ -200,11 +202,12 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			public string ObjectId;
 			public string ConnsRootObjectId;
 			public string CandidatesRootObjectId;
-			public string SSRCsRootObjectId;
+			public string StreamsRootObjectId;
 			public string ChannelsRootObjectId;
 			public string TracksRootObjectId;
 			public string CertsRootObjectId;
 			public string DataChannelsRootObjectId;
+			public string SourcesRootObjectId;
 			public Dictionary<string, ObjectState> ReportedObjects = new Dictionary<string, ObjectState>();
 		};
 
@@ -231,15 +234,19 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		readonly static ObjectTypeInfo channelsRootTypeInfo = new ObjectTypeInfo("webrtc.channels", isTimeless: true);
 		readonly static ObjectTypeInfo certsRootTypeInfo = new ObjectTypeInfo("webrtc.certs", isTimeless: true);
 		readonly static ObjectTypeInfo dataChannelsRootTypeInfo = new ObjectTypeInfo("webrtc.dataChannels", isTimeless: true);
+		readonly static ObjectTypeInfo mediaSourcesRootTypeInfo = new ObjectTypeInfo("webrtc.sources", isTimeless: true);
 
 		readonly static ObjectTypeInfo peerConnectionTypeInfo = new ObjectTypeInfo("webrtc.peerconn");
 		readonly static ObjectTypeInfo connectionTypeInfo = new ObjectTypeInfo("webrtc.conn", displayIdPropertyName: "googActiveConnection");
 		readonly static ObjectTypeInfo candidateTypeInfo = new ObjectTypeInfo("webrtc.candidate", isTimeless: true);
+		readonly static ObjectTypeInfo candidatePairTypeInfo = new ObjectTypeInfo("webrtc.candidatePait", primaryPropertyName: "state");
 		readonly static ObjectTypeInfo ssrcTypeInfo = new ObjectTypeInfo("webrtc.ssrc", displayIdPropertyName: "mediaType");
 		readonly static ObjectTypeInfo trackTypeInfo = new ObjectTypeInfo("webrtc.track", isTimeless: true);
 		readonly static ObjectTypeInfo channelTypeInfo = new ObjectTypeInfo("webrtc.channel", isTimeless: true);
 		readonly static ObjectTypeInfo certTypeInfo = new ObjectTypeInfo("webrtc.cert", isTimeless: true);
 		readonly static ObjectTypeInfo dataChannelTypeInfo = new ObjectTypeInfo("webrtc.dataChannel", primaryPropertyName: "state");
+		readonly static ObjectTypeInfo mediaSourceTypeInfo = new ObjectTypeInfo("webrtc.source");
+		readonly static ObjectTypeInfo mediaStreamTypeInfo = new ObjectTypeInfo("webrtc.stream", isTimeless: true);
 
 		readonly Regex objectIdRegex = new Regex(@"^(?<type>\w+?)[-_].+$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
@@ -249,9 +256,20 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			channelsRootTypeInfo, certsRootTypeInfo
 		}.Select(i => i.TypeName));
 
+		static readonly string[] RtpSteamProps = new []
+		{
+			"ssrc", "r:transportId", "codecId", "r:trackId", "kind",
+			"isRemote", "mediaType"
+		};
+
+		static readonly string[] RemoteInboundRtpStreamProps = new []
+		{
+			"ssrc", "r:transportId", "codecId", "kind", "localId"
+		};
+
 		static readonly Dictionary<string, ObjectType> objectTypes = new []
 		{
-			new ObjectType(
+			new ObjectType( // old format's type
 				"Conn", 
 				connectionTypeInfo, 
 				obj => obj.ConnsRootObjectId,
@@ -266,7 +284,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 					{ "googActiveConnection", val => string.Compare(val, "true", StringComparison.InvariantCultureIgnoreCase) == 0 ? "active" : "inactive" }
 				}
 			),
-			new ObjectType(
+			new ObjectType( // old format's type
 				"Cand",
 				candidateTypeInfo,
 				obj => obj.CandidatesRootObjectId,
@@ -276,9 +294,27 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				}
 			),
 			new ObjectType(
+				"RTCIceCandidate",
+				candidateTypeInfo,
+				obj => obj.CandidatesRootObjectId,
+				new [] 
+				{
+					"ip", "port", "r:transportId", "candidateType", "networkType", "isRemote"
+				}
+			),
+			new ObjectType(
+				"RTCIceCandidatePair",
+				candidatePairTypeInfo,
+				obj => obj.CandidatesRootObjectId,
+				new [] 
+				{
+					"writable", "nominated", "state", "r:remoteCandidateId", "r:localCandidateId", "r:transportId", "priority"
+				}
+			),
+			new ObjectType( // old format's type
 				"ssrc",
 				ssrcTypeInfo,
-				obj => obj.SSRCsRootObjectId,
+				obj => obj.StreamsRootObjectId,
 				new [] 
 				{
 					"ssrc", "r:transportId", "googCodecName", "googTrackId", "googTypingNoiseState",
@@ -286,6 +322,42 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				}
 			),
 			new ObjectType(
+				"RTCInboundRTPAudioStream",
+				ssrcTypeInfo,
+				obj => obj.StreamsRootObjectId,
+				RtpSteamProps
+			),
+			new ObjectType(
+				"RTCOutboundRTPAudioStream",
+				ssrcTypeInfo,
+				obj => obj.StreamsRootObjectId,
+				RtpSteamProps
+			),
+			new ObjectType(
+				"RTCInboundRTPVideoStream",
+				ssrcTypeInfo,
+				obj => obj.StreamsRootObjectId,
+				RtpSteamProps
+			),
+			new ObjectType(
+				"RTCOutboundRTPVideoStream",
+				ssrcTypeInfo,
+				obj => obj.StreamsRootObjectId,
+				RtpSteamProps
+			),
+			new ObjectType(
+				"RTCRemoteInboundRtpAudioStream",
+				ssrcTypeInfo,
+				obj => obj.StreamsRootObjectId,
+				RemoteInboundRtpStreamProps
+			),
+			new ObjectType(
+				"RTCRemoteInboundRtpVideoStream",
+				ssrcTypeInfo,
+				obj => obj.StreamsRootObjectId,
+				RemoteInboundRtpStreamProps
+			),
+			new ObjectType( // old format's type
 				"googTrack",
 				trackTypeInfo,
 				obj => obj.TracksRootObjectId,
@@ -295,6 +367,15 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				}
 			),
 			new ObjectType(
+				"RTCMediaStreamTrack",
+				trackTypeInfo,
+				obj => obj.TracksRootObjectId,
+				new [] 
+				{
+					"kind", "detached", "ended", "remoteSource", "trackIdentifier"
+				}
+			),
+			new ObjectType( // old format's type
 				"Channel",
 				channelTypeInfo,
 				obj => obj.ChannelsRootObjectId,
@@ -305,6 +386,16 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				}
 			),
 			new ObjectType(
+				"RTCTransport",
+				channelTypeInfo,
+				obj => obj.ChannelsRootObjectId,
+				new [] 
+				{
+					"r:selectedCandidatePairId", "dtlsState", "r:localCertificateId", 
+					"r:remoteCertificateId", "transportId"
+				}
+			),
+			new ObjectType( // old format's type
 				"googCertificate",
 				certTypeInfo,
 				obj => obj.CertsRootObjectId,
@@ -314,6 +405,15 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				}
 			),
 			new ObjectType(
+				"RTCCertificate",
+				certTypeInfo,
+				obj => obj.CertsRootObjectId,
+				new []
+				{
+					"base64Certificate", "fingerprintAlgorithm", "fingerprint", "fingerprintAlgorithm"
+				}
+			),
+			new ObjectType( // old format's type
 				"datachannel",
 				dataChannelTypeInfo,
 				obj => obj.DataChannelsRootObjectId,
@@ -321,7 +421,43 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				{
 					"datachannelid", "protocol", "state", "label"
 				}
-			)
+			),
+			new ObjectType(
+				"RTCDataChannel",
+				dataChannelTypeInfo,
+				obj => obj.DataChannelsRootObjectId,
+				new []
+				{
+					"datachannelid", "protocol", "state", "label"
+				}
+			),
+			new ObjectType(
+				"RTCAudioSource",
+				mediaSourceTypeInfo,
+				obj => obj.SourcesRootObjectId,
+				new []
+				{
+					"trackIdentifier", "kind"
+				}
+			),
+			new ObjectType(
+				"RTCVideoSource",
+				mediaSourceTypeInfo,
+				obj => obj.SourcesRootObjectId,
+				new []
+				{
+					"trackIdentifier", "kind", "width", "height"
+				}
+			),
+			new ObjectType(
+				"RTCMediaStream",
+				mediaStreamTypeInfo,
+				obj => obj.StreamsRootObjectId,
+				new []
+				{
+					"streamIdentifier", "trackIds"
+				}
+			),
 		}.ToDictionary(i => i.TypePrefix);
 
 		class ObjectType

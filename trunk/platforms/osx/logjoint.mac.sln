@@ -59,9 +59,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3FA88828
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.plugintool", "..\..\sdk\tools\logjoint.plugintool\logjoint.plugintool.csproj", "{237D4AAE-85F4-439E-82A0-5057C4B8014D}"
 EndProject
-Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "logjoint.chromium.plugin.integration", "..\..\extensions\chromium\tests\integration\logjoint.chromium.plugin.integration.csproj", "{CDBD8575-489A-4656-9E99-564D2A866B02}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin.integration", "..\..\extensions\chromium\tests\integration\logjoint.chromium.plugin.integration.csproj", "{CDBD8575-489A-4656-9E99-564D2A866B02}"
 EndProject
-Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "logjoint.packet-analysis.plugin.integration", "..\..\extensions\packet-analysis\tests\integration\logjoint.packet-analysis.plugin.integration.csproj", "{A50FBF1E-A845-4318-B6CD-BA195524839E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.plugin.integration", "..\..\extensions\packet-analysis\tests\integration\logjoint.packet-analysis.plugin.integration.csproj", "{A50FBF1E-A845-4318-B6CD-BA195524839E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
