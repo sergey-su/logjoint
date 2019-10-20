@@ -20,7 +20,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		IPresenter presenter;
 		IViewModel viewModel;
 		IView view;
-		Postprocessing.StateInspectorVisualizer.IPresenter stateInspectorVisualizer;
+		Postprocessing.StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer;
 		Postprocessing.Common.IPresentationObjectsFactory presentationObjectsFactory;
 		LoadedMessages.IPresenter loadedMessagesPresenter;
 		IBookmarks bookmarks;

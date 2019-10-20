@@ -100,6 +100,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			};
 		}
 
+		void IView.Show() => FindForm()?.Show();
+
 		void IView.Invalidate(ViewAreaFlag flags)
 		{
 			if ((flags & ViewAreaFlag.NavigationPanelView) != 0)

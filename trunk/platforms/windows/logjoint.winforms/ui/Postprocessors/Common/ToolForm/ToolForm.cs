@@ -5,16 +5,11 @@ using System.Windows.Forms;
 
 namespace LogJoint.UI.Postprocessing
 {
-	public partial class ToolForm : Form, IPostprocessorOutputForm
+	public partial class ToolForm : Form
 	{
 		public ToolForm()
 		{
 			InitializeComponent();
-		}
-
-		void IPostprocessorOutputForm.Show()
-		{
-			Show();
 		}
 
 		public new void Show()

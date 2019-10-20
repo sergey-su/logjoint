@@ -32,6 +32,8 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			this.eventsHandler = eventsHandler;
 		}
 
+		void IView.Show() => FindForm()?.Show();
+
 		PlotsViewMetrics IView.PlotsViewMetrics
 		{
 			get { return GetPlotViewMetrics(); }

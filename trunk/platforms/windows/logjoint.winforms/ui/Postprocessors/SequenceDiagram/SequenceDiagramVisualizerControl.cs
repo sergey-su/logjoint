@@ -111,6 +111,8 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			};
 		}
 
+		void IView.Show() => FindForm()?.Show();
+
 		ReadonlyRef<Size> IView.ArrowsAreaSize => arrowsAreaSize;
 
 		int IView.RolesCaptionsAreaHeight { get { return rolesCaptionsPanel.Height; } }

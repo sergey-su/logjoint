@@ -77,32 +77,32 @@ namespace LogJoint.UI.Presenters
 		Postprocessing.Factory.IViewsFactory Factory.IViewsFactory.PostprocessingViewsFactory => this;
 		PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView() => new LogsPreprocessorUI(mainForm, model.SynchronizationContext, this);
 
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.StateInspectorVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateStateInspectorViewObjects()
+		Postprocessing.StateInspectorVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateStateInspectorView()
 		{
 			var impl = new UI.Postprocessing.StateInspector.StateInspectorForm();
 			winFormsComponentsInitializer.InitOwnedForm(impl, takeOwnership: false);
-			return (impl, impl);
+			return impl;
 		}
 
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.TimelineVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateTimelineViewObjects()
+		Postprocessing.TimelineVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateTimelineView()
 		{
 			var impl = new UI.Postprocessing.TimelineVisualizer.TimelineForm();
 			winFormsComponentsInitializer.InitOwnedForm(impl, takeOwnership: false);
-			return (impl, impl.TimelineVisualizerView);
+			return impl.TimelineVisualizerView;
 		}
 
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.SequenceDiagramVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramViewObjects()
+		Postprocessing.SequenceDiagramVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramView()
 		{
 			var impl = new UI.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramForm();
 			winFormsComponentsInitializer.InitOwnedForm(impl, takeOwnership: false);
-			return (impl, impl.SequenceDiagramVisualizerView);
+			return impl.SequenceDiagramVisualizerView;
 		}
 
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.TimeSeriesVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateTimeSeriesViewObjects()
+		Postprocessing.TimeSeriesVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateTimeSeriesView()
 		{
 			var impl = new UI.Postprocessing.TimeSeriesVisualizer.TimeSeriesForm();
 			winFormsComponentsInitializer.InitOwnedForm(impl, takeOwnership: false);
-			return (impl, impl.TimeSeriesVisualizerView);
+			return impl.TimeSeriesVisualizerView;
 		}
 
 		Windows.Reactive.ITreeViewController Windows.Reactive.IReactive.CreateTreeViewController(MultiselectTreeView treeView)
