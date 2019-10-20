@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Foundation;
@@ -10,10 +10,9 @@ using LogJoint.Drawing;
 
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 {
-	public partial class TimeSeriesWindowController : 
+	public partial class TimeSeriesWindowController :
 		AppKit.NSWindowController,
-		IView,
-		Presenters.Postprocessing.IPostprocessorOutputForm
+		IView
 	{
 		IViewEvents eventsHandler;
 		Drawing.Resources resources;
@@ -27,28 +26,28 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 			Initialize ();
 		}
-		
+
 		// Called when created directly from a XIB file
 		[Export ("initWithCoder:")]
 		public TimeSeriesWindowController (NSCoder coder) : base (coder)
 		{
 			Initialize ();
 		}
-		
+
 		// Call to load from the XIB/NIB file
 		public TimeSeriesWindowController () : base ("TimeSeriesWindow")
 		{
 			Initialize ();
 		}
-		
+
 		// Shared initialization code
 		void Initialize ()
 		{
 			var sysFont = NSFont.SystemFontOfSize (NSFont.SystemFontSize);
-			resources = new Drawing.Resources(sysFont.FontName, 
-			                                  (float) NSFont.SystemFontSize, 
-			                                  bookmarkIcon: new LJD.Image(NSImage.ImageNamed("TimelineBookmark.png")));
-			legendDataSource = new CollectionViewDataSource() { Resources = resources };
+			resources = new Drawing.Resources (sysFont.FontName,
+											  (float)NSFont.SystemFontSize,
+											  bookmarkIcon: new LJD.Image (NSImage.ImageNamed ("TimelineBookmark.png")));
+			legendDataSource = new CollectionViewDataSource () { Resources = resources };
 			toastNotifications = new ToastNotificationsViewAdapter ();
 		}
 
@@ -71,15 +70,14 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		IConfigDialogView IView.CreateConfigDialogView (IConfigDialogEventsHandler evts)
 		{
-			return new TimeSeriesConfigWindowController(evts, resources);
+			return new TimeSeriesConfigWindowController (evts, resources);
 		}
 
-		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
-		{
+		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView {
 			get { return toastNotifications; }
 		}
 
-		void IView.SetNotificationsIconVisibility(bool value)
+		void IView.SetNotificationsIconVisibility (bool value)
 		{
 			warningsButton.Hidden = !value;
 		}
@@ -92,26 +90,24 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		void IView.UpdateLegend (IEnumerable<LegendItemInfo> items)
 		{
 			// todo: update incrementally
-			legendDataSource.Data.Clear();
+			legendDataSource.Data.Clear ();
 			foreach (var i in items)
-				legendDataSource.Data.Add(i);
+				legendDataSource.Data.Add (i);
 			if (legendItemsCollectionView != null)
-				legendItemsCollectionView.ReloadData();
+				legendItemsCollectionView.ReloadData ();
 		}
 
-		PlotsViewMetrics IView.PlotsViewMetrics
-		{
-			get { return GetPlotsViewMetrics(); }
+		PlotsViewMetrics IView.PlotsViewMetrics {
+			get { return GetPlotsViewMetrics (); }
 		}
 
-		void Presenters.Postprocessing.IPostprocessorOutputForm.Show ()
+		void IView.Show ()
 		{
-			InvokeOnMainThread(() => eventsHandler.OnShown());
+			InvokeOnMainThread (() => eventsHandler.OnShown ());
 			Window.MakeKeyAndOrderFront (null);
 		}
 
-		public new TimeSeriesWindow Window 
-		{
+		public new TimeSeriesWindow Window {
 			get { return (TimeSeriesWindow)base.Window; }
 		}
 
@@ -122,62 +118,52 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			Window.owner = this;
 
 			configureLinkLabel.StringValue = "configure view...";
-			configureLinkLabel.LinkClicked = (sender, e) => 
-			{
+			configureLinkLabel.LinkClicked = (sender, e) => {
 				eventsHandler.OnConfigViewClicked ();
 			};
 
 			resetAxisLinkLabel.StringValue = "reset axes";
-			resetAxisLinkLabel.LinkClicked = (sender, e) => 
-			{
+			resetAxisLinkLabel.LinkClicked = (sender, e) => {
 				eventsHandler.OnResetAxesClicked ();
 			};
 
-			plotsView.OnPaint = (RectangleF ditryRect) => 
-			{
-				using (var g = new Graphics ())
-				{
-					g.FillRectangle(Brushes.TextBackground, ditryRect);
+			plotsView.OnPaint = (RectangleF ditryRect) => {
+				using (var g = new Graphics ()) {
+					g.FillRectangle (Brushes.TextBackground, ditryRect);
 					if (eventsHandler != null)
 						Drawing.DrawPlotsArea (g, resources,
 							eventsHandler.OnDrawPlotsArea (), GetPlotsViewMetrics ());
 				}
 			};
 
-			xAxisView.OnPaint = (RectangleF ditryRect) => 
-			{
-				using (var g = new Graphics ())
-				{
-					g.FillRectangle(Brushes.TextBackground, ditryRect);
+			xAxisView.OnPaint = (RectangleF ditryRect) => {
+				using (var g = new Graphics ()) {
+					g.FillRectangle (Brushes.TextBackground, ditryRect);
 					if (eventsHandler != null)
 						Drawing.DrawXAxis (g, resources,
 							eventsHandler.OnDrawPlotsArea (), (float)xAxisView.Bounds.Height);
 				}
 			};
 
-			yAxesView.OnPaint = (RectangleF ditryRect) => 
-			{
-				using (var g = new Graphics ())
-				{
-					g.FillRectangle(Brushes.TextBackground, ditryRect);
+			yAxesView.OnPaint = (RectangleF ditryRect) => {
+				using (var g = new Graphics ()) {
+					g.FillRectangle (Brushes.TextBackground, ditryRect);
 					if (eventsHandler != null)
 						Drawing.DrawYAxes (g, resources,
 							eventsHandler.OnDrawPlotsArea (), (float)yAxesView.Bounds.Width, GetPlotsViewMetrics ());
 				}
 			};
 
-			plotsView.OnMouseMove = e =>
-			{
-				var pt = plotsView.ConvertPointFromView(e.LocationInWindow, null).ToPointF();
+			plotsView.OnMouseMove = e => {
+				var pt = plotsView.ConvertPointFromView (e.LocationInWindow, null).ToPointF ();
 				var toolTip = eventsHandler.OnTooltip (pt);
 				if (toolTip != null)
 					plotsView.ToolTip = toolTip;
 				else
-					plotsView.RemoveAllToolTips ();				
+					plotsView.RemoveAllToolTips ();
 			};
 
-			Action<NSCustomizableView> initView = view => 
-			{
+			Action<NSCustomizableView> initView = view => {
 				view.OnMouseDown = (NSEvent evt) => { HandleMouseDown (view, evt); };
 				view.OnMouseUp = (NSEvent evt) => { HandleMouseUp (view, evt); };
 				view.OnMouseDragged = (NSEvent evt) => { HandleMouseMove (view, evt); };
@@ -193,94 +179,90 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 			InitLegendItemsCollectionView ();
 
-			PlaceToastNotificationsView(toastNotifications.View, plotsView);
+			PlaceToastNotificationsView (toastNotifications.View, plotsView);
 		}
 
 		private void InitLegendItemsCollectionView ()
 		{
 			legendItemsCollectionView.DataSource = legendDataSource;
 			legendItemsCollectionView.RegisterClassForItem (typeof (LegendItemController), "LegendItemCell");
-			legendItemsCollectionView.CollectionViewLayout = new NSCollectionViewFlowLayout () 
-			{
+			legendItemsCollectionView.CollectionViewLayout = new NSCollectionViewFlowLayout () {
 				SectionInset = new NSEdgeInsets (2, 2, 2, 2),
 				MinimumInteritemSpacing = 4,
 				MinimumLineSpacing = 1
 			};
 			legendItemsCollectionView.WantsLayer = true;
-			legendItemsCollectionView.Delegate = new CollectionViewDelegate(legendDataSource, resources);
-			legendItemsCollectionView.ReloadData();
+			legendItemsCollectionView.Delegate = new CollectionViewDelegate (legendDataSource, resources);
+			legendItemsCollectionView.ReloadData ();
 		}
 
-		static void PlaceToastNotificationsView(NSView toastNotificationsView, NSView parent)
+		static void PlaceToastNotificationsView (NSView toastNotificationsView, NSView parent)
 		{
 			parent.AddSubview (toastNotificationsView);
 			toastNotificationsView.TranslatesAutoresizingMaskIntoConstraints = false;
-			parent.AddConstraint(NSLayoutConstraint.Create(
+			parent.AddConstraint (NSLayoutConstraint.Create (
 				toastNotificationsView, NSLayoutAttribute.Trailing, NSLayoutRelation.Equal,
 				parent, NSLayoutAttribute.Trailing, 1f, 2f));
-			parent.AddConstraint(NSLayoutConstraint.Create(
+			parent.AddConstraint (NSLayoutConstraint.Create (
 				toastNotificationsView, NSLayoutAttribute.Top, NSLayoutRelation.Equal,
 				parent, NSLayoutAttribute.Top, 1f, 2f));
 		}
 
 		partial void warningButtonClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnActiveNotificationButtonClicked();
+			eventsHandler.OnActiveNotificationButtonClicked ();
 		}
 
-		void HandleMouseDown(NSCustomizableView sender, NSEvent evt)
+		void HandleMouseDown (NSCustomizableView sender, NSEvent evt)
 		{
-			var pt = sender.ConvertPointFromView(evt.LocationInWindow, null).ToPointF();
-			eventsHandler.OnMouseDown(GetViewPart(sender, pt.ToPoint()), pt, (int) evt.ClickCount);
+			var pt = sender.ConvertPointFromView (evt.LocationInWindow, null).ToPointF ();
+			eventsHandler.OnMouseDown (GetViewPart (sender, pt.ToPoint ()), pt, (int)evt.ClickCount);
 		}
 
-		void HandleMouseUp(NSCustomizableView sender, NSEvent evt)
+		void HandleMouseUp (NSCustomizableView sender, NSEvent evt)
 		{
-			var pt = sender.ConvertPointFromView(evt.LocationInWindow, null).ToPointF();
-			eventsHandler.OnMouseUp(GetViewPart(sender, pt.ToPoint()), pt);
+			var pt = sender.ConvertPointFromView (evt.LocationInWindow, null).ToPointF ();
+			eventsHandler.OnMouseUp (GetViewPart (sender, pt.ToPoint ()), pt);
 		}
 
-		void HandleMouseMove(NSCustomizableView sender, NSEvent evt)
+		void HandleMouseMove (NSCustomizableView sender, NSEvent evt)
 		{
-			var pt = sender.ConvertPointFromView(evt.LocationInWindow, null).ToPointF();
-			eventsHandler.OnMouseMove(GetViewPart(sender, pt.ToPoint()), pt);
+			var pt = sender.ConvertPointFromView (evt.LocationInWindow, null).ToPointF ();
+			eventsHandler.OnMouseMove (GetViewPart (sender, pt.ToPoint ()), pt);
 		}
 
-		void HandleScrollWheel(NSCustomizableView sender, NSEvent evt)
+		void HandleScrollWheel (NSCustomizableView sender, NSEvent evt)
 		{
-			var pt = sender.ConvertPointFromView(evt.LocationInWindow, null).ToPointF();
-			eventsHandler.OnMouseWheel(GetViewPart(sender, pt.ToPoint()), 
-				new SizeF(-(float)evt.ScrollingDeltaX, (float)evt.ScrollingDeltaY));
+			var pt = sender.ConvertPointFromView (evt.LocationInWindow, null).ToPointF ();
+			eventsHandler.OnMouseWheel (GetViewPart (sender, pt.ToPoint ()),
+				new SizeF (-(float)evt.ScrollingDeltaX, (float)evt.ScrollingDeltaY));
 		}
 
-		void HandleMagnify(NSCustomizableView sender, NSEvent evt)
+		void HandleMagnify (NSCustomizableView sender, NSEvent evt)
 		{
-			var pt = sender.ConvertPointFromView(evt.LocationInWindow, null).ToPointF();
-			eventsHandler.OnMouseZoom(GetViewPart(sender, pt.ToPoint()), pt, 1f - (float) evt.Magnification);
+			var pt = sender.ConvertPointFromView (evt.LocationInWindow, null).ToPointF ();
+			eventsHandler.OnMouseZoom (GetViewPart (sender, pt.ToPoint ()), pt, 1f - (float)evt.Magnification);
 		}
 
-		ViewPart GetViewPart(object sender, Point pt)
+		ViewPart GetViewPart (object sender, Point pt)
 		{
 			if (sender == plotsView)
-				return new ViewPart()
-			{
-				Part = ViewPart.PartId.Plots
-			};
-			else if (sender == xAxisView)
-				return new ViewPart()
-			{
-				Part = ViewPart.PartId.XAxis,
-				AxisId = eventsHandler.OnDrawPlotsArea().XAxis.Id,
-			};
-			else if (sender == yAxesView)
-				using (var g = new LJD.Graphics())
-					return new ViewPart()
-				{
-					Part = ViewPart.PartId.YAxis,
-					AxisId = Drawing.GetYAxisId(g, resources, eventsHandler.OnDrawPlotsArea(), 
-						pt.X, (float) yAxesView.Bounds.Width)
+				return new ViewPart () {
+					Part = ViewPart.PartId.Plots
 				};
-			return new ViewPart();
+			else if (sender == xAxisView)
+				return new ViewPart () {
+					Part = ViewPart.PartId.XAxis,
+					AxisId = eventsHandler.OnDrawPlotsArea ().XAxis.Id,
+				};
+			else if (sender == yAxesView)
+				using (var g = new LJD.Graphics ())
+					return new ViewPart () {
+						Part = ViewPart.PartId.YAxis,
+						AxisId = Drawing.GetYAxisId (g, resources, eventsHandler.OnDrawPlotsArea (),
+						pt.X, (float)yAxesView.Bounds.Width)
+					};
+			return new ViewPart ();
 		}
 
 		void UpdateYAxesSize ()
@@ -291,22 +273,21 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 						.Select (x => x.Width).Sum ();
 		}
 
-		PlotsViewMetrics GetPlotsViewMetrics()
+		PlotsViewMetrics GetPlotsViewMetrics ()
 		{
-			return new PlotsViewMetrics()
-			{
-				Size = plotsView != null ? plotsView.Bounds.Size.ToSizeF() : new SizeF(1, 1)
+			return new PlotsViewMetrics () {
+				Size = plotsView != null ? plotsView.Bounds.Size.ToSizeF () : new SizeF (1, 1)
 			};
 		}
 
-		internal void OnCancelOp()
+		internal void OnCancelOp ()
 		{
-			Window.Close();
+			Window.Close ();
 		}
 
-		internal void OnKeyEvent(KeyCode key)
+		internal void OnKeyEvent (KeyCode key)
 		{
-			eventsHandler.OnKeyDown(key);
+			eventsHandler.OnKeyDown (key);
 		}
 	}
 }

@@ -13,10 +13,10 @@
 			UI.Presenters.IPromptDialog prompt,
 			UI.Presenters.MainForm.IPresenter mainFormPresenter,
 			UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessorsTabPage,
-			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorsFormFactory,
 			UI.Presenters.IColorTheme theme,
 			UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialog,
-			UI.Presenters.IPromptDialog promptDialog
+			UI.Presenters.IPromptDialog promptDialog,
+			UI.Presenters.Postprocessing.IPresentation postprocessing
 		)
 		{
 			this.LoadedMessages = loadedMessagesPresenter;
@@ -29,10 +29,10 @@
 			this.Prompt = prompt;
 			this.MainFormPresenter = mainFormPresenter;
 			this.PostprocessorsTabPage = postprocessorsTabPage;
-			this.PostprocessorsFormFactory = postprocessorsFormFactory;
 			this.Theme = theme;
 			this.MessagePropertiesDialog = messagePropertiesDialog;
 			this.PromptDialog = promptDialog;
+			this.Postprocessing = postprocessing;
 		}
 
 
@@ -46,10 +46,10 @@
 		public UI.Presenters.IPromptDialog Prompt { get; private set; }
 		public UI.Presenters.MainForm.IPresenter MainFormPresenter { get; private set; }
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter PostprocessorsTabPage { get; private set; }
-		public UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; private set; }
 		public UI.Presenters.IColorTheme Theme { get; private set; }
 		public UI.Presenters.MessagePropertiesDialog.IPresenter MessagePropertiesDialog { get; private set; }
 		public UI.Presenters.IPromptDialog PromptDialog { get; private set; }
+		public UI.Presenters.Postprocessing.IPresentation Postprocessing { get; private set; }
 	};
 
 }

@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
+	public interface IPresenterInternal: IPresenter
+	{
+		bool IsObjectEventPresented(ILogSource source, TextLogEventTrigger eventTrigger);
+		bool TrySelectObject(ILogSource source, TextLogEventTrigger objectEvent, Func<IVisualizerNode, int> disambiguationFunction);
+	};
+
 	public interface IView
 	{
 		void SetEventsHandler(IViewModel eventsHandler);

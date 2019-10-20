@@ -11,21 +11,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	{
 		readonly IManager postprocessorsManager;
 		readonly PostprocessorKind postprocessorKind;
-		readonly Func<IPostprocessorOutputForm> lazyOutputForm;
+		readonly Func<IPostprocessorVisualizerPresenter> visualizerPresenter;
 		readonly LogJoint.UI.Presenters.IShellOpen shellOpen;
 		readonly ITempFilesManager tempFiles;
 
 		public LogSourcePostprocessorControlHandler(
 			IManager postprocessorsManager,
 			PostprocessorKind postprocessorKind,
-			Func<IPostprocessorOutputForm> lazyOutputForm,
+			Func<IPostprocessorVisualizerPresenter> visualizerPresenter,
 			LogJoint.UI.Presenters.IShellOpen shellOpen,
 			ITempFilesManager tempFiles
 		)
 		{
 			this.postprocessorsManager = postprocessorsManager;
 			this.postprocessorKind = postprocessorKind;
-			this.lazyOutputForm = lazyOutputForm;
+			this.visualizerPresenter = visualizerPresenter;
 			this.shellOpen = shellOpen;
 			this.tempFiles = tempFiles;
 		}
@@ -115,7 +115,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				appendReportLinkIfRequired();
 				if (nrOfOutdated > 0)
 					statusText += string.Format(", {0} outdated", nrOfOutdated);
-				if (lazyOutputForm != null && nrOfProcessed > 0)
+				if (nrOfProcessed > 0)
 					isClickableCaption = true;
 				action = "run postprocessor";
 				ret.Color = ControlData.StatusColor.Warning;
@@ -123,7 +123,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			else
 			{
 				statusText = string.Format("all logs processed");
-				if (lazyOutputForm != null && nrOfProcessed > 0)
+				if (nrOfProcessed > 0)
 					isClickableCaption = true;
 				appendReportLinkIfRequired();
 				action = "re-process";
@@ -152,22 +152,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			switch (actionId)
 			{
 				case "show":
-					if (lazyOutputForm != null)
-					{
-						lazyOutputForm().Show();
-					}
+					visualizerPresenter().Show();
 					break;
 				case "action":
 					if (!await this.postprocessorsManager.RunPostprocessors(postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)))
 					{
 						return;
 					}
-					if (lazyOutputForm != null)
 					{
 						var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
 						if (outputs.Any(x => x.OutputStatus == LogSourcePostprocessorOutput.Status.Finished))
 						{
-							lazyOutputForm().Show();
+							visualizerPresenter().Show();
 						}
 					}
 					break;

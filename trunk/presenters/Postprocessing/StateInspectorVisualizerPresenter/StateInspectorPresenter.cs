@@ -10,7 +10,7 @@ using LogJoint.Postprocessing;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
-	public class StateInspectorPresenter: IPresenter, IViewModel
+	public class StateInspectorPresenter: IPresenter, IViewModel, IPresenterInternal
 	{
 		public StateInspectorPresenter(
 			IView view, 
@@ -69,7 +69,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		public event EventHandler<MenuData> OnMenu;
 		public event EventHandler<NodeCreatedEventArgs> OnNodeCreated;
 
-		bool IPresenter.IsObjectEventPresented(ILogSource source, TextLogEventTrigger objectEvent)
+		bool IPresenterInternal.IsObjectEventPresented(ILogSource source, TextLogEventTrigger objectEvent)
 		{
 			return model
 				.Groups
@@ -86,7 +86,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		bool IPresenter.TrySelectObject(ILogSource source, TextLogEventTrigger creationTrigger, Func<IVisualizerNode, int> disambiguationFunction)
+		bool IPresenterInternal.TrySelectObject(ILogSource source, TextLogEventTrigger creationTrigger, Func<IVisualizerNode, int> disambiguationFunction)
 		{
 			EnsureTreeView();
 
@@ -119,7 +119,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return false;
 		}
 
-		void IPresenter.Show()
+		void IPostprocessorVisualizerPresenter.Show()
 		{
 			view.Show();
 		}

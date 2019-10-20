@@ -4,12 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.3</LangVersion>
     <PackageId>logjoint.presentation.sdk</PackageId>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>sergeysu</Authors>
     <Company>private</Company>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\model\logjoint.model.sdk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Postprocessing\TimelineVisualizerPresenter\" />
+    <Folder Include="Postprocessing\SequenceDiagramVisualizerPresenter\" />
   </ItemGroup>
 </Project>

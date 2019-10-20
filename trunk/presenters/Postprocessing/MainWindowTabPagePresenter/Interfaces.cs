@@ -14,6 +14,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		object UIControl { get; }
 	};
 
+	public enum ViewControlId
+	{
+		StateInspector,
+		Timeline,
+		Sequence,
+		TimeSeries,
+		Correlate,
+		AllPostprocessors,
+		LogsCollectionControl1,
+		LogsCollectionControl2,
+		LogsCollectionControl3,
+	};
+
 	public struct ControlData
 	{
 		public enum StatusColor
