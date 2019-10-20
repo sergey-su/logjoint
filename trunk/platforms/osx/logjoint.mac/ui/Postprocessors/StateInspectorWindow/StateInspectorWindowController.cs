@@ -14,7 +14,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	public partial class StateInspectorWindowController : 
 		AppKit.NSWindowController,
 		IView,
-		Presenters.Postprocessing.IPostprocessorOutputForm
+		Presenters.Postprocessing.IPostprocessorVisualizerPresenter
 	{
 		IViewModel eventsHandler;
 		readonly TreeDataSource treeDataSource = new TreeDataSource ();
@@ -367,7 +367,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			get { return false; }
 		}
 
-		void Presenters.Postprocessing.IPostprocessorOutputForm.Show ()
+		void Presenters.Postprocessing.IPostprocessorVisualizerPresenter.Show ()
 		{
 			ShowInternal ();
 		}

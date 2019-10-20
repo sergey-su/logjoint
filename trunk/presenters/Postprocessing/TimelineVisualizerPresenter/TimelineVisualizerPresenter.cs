@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public TimelineVisualizerPresenter(
 			ITimelineVisualizerModel model,
 			IView view,
-			StateInspectorVisualizer.IPresenter stateInspectorVisualizer,
+			StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer,
 			Common.IPresentationObjectsFactory presentationObjectsFactory,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IBookmarks bookmarks,
@@ -790,6 +790,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
+		void IPostprocessorVisualizerPresenter.Show()
+		{
+			view.Show();
+		}
+
 		void IPresenter.Navigate(TimeSpan t1, TimeSpan t2)
 		{
 			SetVisibleRange(t1, t2, realTimePanMode: false);
@@ -844,7 +849,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		static bool IsActivitySelectedInStateInspector(IActivity a, StateInspectorVisualizer.IPresenter stateInspectorVisualizer)
+		static bool IsActivitySelectedInStateInspector(IActivity a, StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer)
 		{
 			return
 				   a != null
@@ -1489,7 +1494,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly IPresentersFacade presentersFacade;
 		readonly LogJoint.UI.Presenters.QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 		readonly TagsList.IPresenter tagsListPresenter;
-		readonly StateInspectorVisualizer.IPresenter stateInspectorVisualizer;
+		readonly StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer;
 		readonly List<VisibileActivityInfo> visibleActivities = new List<VisibileActivityInfo>();
 		ActivitiesGroupInfo unfinishedActivities;
 		readonly Common.PresenterPersistentState persistentState;

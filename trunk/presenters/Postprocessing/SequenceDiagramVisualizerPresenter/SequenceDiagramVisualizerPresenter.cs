@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		readonly IView view;
 		readonly ISequenceDiagramVisualizerModel model;
 		readonly IChainedChangeNotification changeNotification;
-		readonly StateInspectorVisualizer.IPresenter stateInspectorPresenter;
+		readonly StateInspectorVisualizer.IPresenterInternal stateInspectorPresenter;
 		readonly TagsList.IPresenter tagsListPresenter;
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
 		readonly static IComparer<Arrow> arrowComparer = new ArrowComparer();
@@ -62,7 +62,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		public SequenceDiagramVisualizerPresenter(
 			ISequenceDiagramVisualizerModel model, 
 			IView view, 
-			StateInspectorVisualizer.IPresenter stateInspectorPresenter,
+			StateInspectorVisualizer.IPresenterInternal stateInspectorPresenter,
 			Common.IPresentationObjectsFactory presentationObjectsFactory,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IBookmarks bookmarks,
@@ -436,6 +436,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			return result.ToImmutable();
 		}
 
+		void IPostprocessorVisualizerPresenter.Show()
+		{
+			view.Show();
+		}
+
 		void IViewModel.OnArrowsAreaMouseDown(Point pt, bool doubleClick)
 		{
 			if (doubleClick)
@@ -740,7 +745,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		}
 
 		private static CurrentArrowInfo MakeCurrentArrowInfo(
-			Arrow arrow, StateInspectorVisualizer.IPresenter stateInspectorPresenter)
+			Arrow arrow, StateInspectorVisualizer.IPresenterInternal stateInspectorPresenter)
 		{
 			var links = new List<Tuple<object, int, int>>();
 			if (arrow != null)

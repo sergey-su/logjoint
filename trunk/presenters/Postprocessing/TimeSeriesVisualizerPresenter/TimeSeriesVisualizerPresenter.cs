@@ -93,6 +93,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			ShowConfigDialog();
 		}
 
+		void IPostprocessorVisualizerPresenter.Show()
+		{
+			view.Show();
+		}
+
 		bool IPresenter.SelectConfigNode(Predicate<ITreeNodeData> predicate)
 		{
 			EnsureConfigDialog();

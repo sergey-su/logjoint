@@ -5,11 +5,6 @@ using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 {
-	public interface IPresenter
-	{
-		void Navigate(TimeSpan t1, TimeSpan t2);
-	}
-
 	public interface IView
 	{
 		void SetViewModel(IViewModel viewModel);
@@ -17,6 +12,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		Presenters.TagsList.IView TagsListView { get; }
 		Presenters.ToastNotificationPresenter.IView ToastNotificationsView { get; }
 
+		void Show();
 		void Invalidate(ViewAreaFlag flags = ViewAreaFlag.All); // todo: remove, return immutable draw collections instead
 		void Refresh(ViewAreaFlag flags = ViewAreaFlag.All);
 		HitTestResult HitTest(object hitTestToken);

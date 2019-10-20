@@ -1,18 +1,11 @@
-﻿using LogJoint.Postprocessing;
-using LogJoint.Postprocessing.StateInspector;
+﻿using LogJoint.Postprocessing.StateInspector;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
-	public interface IPresenter
+	public interface IPresenter: IPostprocessorVisualizerPresenter
 	{
-		bool IsObjectEventPresented(ILogSource source, TextLogEventTrigger eventTrigger);
-		bool TrySelectObject(ILogSource source, TextLogEventTrigger objectEvent, Func<IVisualizerNode, int> disambiguationFunction);
-		void Show();
 		IVisualizerNode SelectedObject { get; }
 		event EventHandler<MenuData> OnMenu;
 		event EventHandler<NodeCreatedEventArgs> OnNodeCreated;
@@ -22,10 +15,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 	{
 		public class Item
 		{
-			public string Text;
-			public Action Click;
+			public string Text { get; private set; }
+			public Action Click { get; private set; }
+
+			public Item(string text, Action click)
+			{
+				this.Text = text;
+				this.Click = click;
+			}
 		};
-		public List<Item> Items;
+		public List<Item> Items { get; internal set; }
 	};
 
 	public class NodeCreatedEventArgs

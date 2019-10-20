@@ -3,7 +3,7 @@ using AppKit;
 
 namespace LogJoint.UI.Presenters
 {
-	public class ViewsFactory:
+	public class ViewsFactory :
 		Factory.IViewsFactory,
 		FormatsWizard.Factory.IViewsFactory,
 		Postprocessing.Factory.IViewsFactory,
@@ -23,51 +23,32 @@ namespace LogJoint.UI.Presenters
 
 		FormatsWizard.Factory.IViewsFactory Factory.IViewsFactory.FormatsWizardViewFactory => this;
 
-		FormatsWizard.IView FormatsWizard.Factory.IViewsFactory.CreateFormatsWizardView() => new FormatsWizardDialogController ();
-		FormatsWizard.ChooseOperationPage.IView FormatsWizard.Factory.IViewsFactory.CreateChooseOperationPageView() => new ChooseOperationPageController ();
-		FormatsWizard.ImportLog4NetPage.IView FormatsWizard.Factory.IViewsFactory.CreateImportLog4NetPagePageView() => new ImportLog4NetPageController ();
-		FormatsWizard.FormatIdentityPage.IView FormatsWizard.Factory.IViewsFactory.CreateFormatIdentityPageView() => new FormatIdentityPageController ();
-		FormatsWizard.FormatAdditionalOptionsPage.IView FormatsWizard.Factory.IViewsFactory.CreateFormatAdditionalOptionsPage() => new FormatAdditionalOptionsPageController ();
-		FormatsWizard.SaveFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateSaveFormatPageView() => new SaveFormatPageController ();
+		FormatsWizard.IView FormatsWizard.Factory.IViewsFactory.CreateFormatsWizardView () => new FormatsWizardDialogController ();
+		FormatsWizard.ChooseOperationPage.IView FormatsWizard.Factory.IViewsFactory.CreateChooseOperationPageView () => new ChooseOperationPageController ();
+		FormatsWizard.ImportLog4NetPage.IView FormatsWizard.Factory.IViewsFactory.CreateImportLog4NetPagePageView () => new ImportLog4NetPageController ();
+		FormatsWizard.FormatIdentityPage.IView FormatsWizard.Factory.IViewsFactory.CreateFormatIdentityPageView () => new FormatIdentityPageController ();
+		FormatsWizard.FormatAdditionalOptionsPage.IView FormatsWizard.Factory.IViewsFactory.CreateFormatAdditionalOptionsPage () => new FormatAdditionalOptionsPageController ();
+		FormatsWizard.SaveFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateSaveFormatPageView () => new SaveFormatPageController ();
 		FormatsWizard.NLogGenerationLogPage.IView FormatsWizard.Factory.IViewsFactory.CreateNLogGenerationLogPageView () => new NLogGenerationLogPageController ();
-		FormatsWizard.ImportNLogPage.IView FormatsWizard.Factory.IViewsFactory.CreateImportNLogPage() => new ImportNLogPageController ();
-		FormatsWizard.ChooseExistingFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateChooseExistingFormatPageView() => new ChooseExistingFormatPageController ();
-		FormatsWizard.FormatDeleteConfirmPage.IView FormatsWizard.Factory.IViewsFactory.CreateFormatDeleteConfirmPageView() => new FormatDeletionConfirmationPageController ();
-		FormatsWizard.RegexBasedFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateRegexBasedFormatPageView() => new RegexBasedFormatPageController ();
-		FormatsWizard.EditSampleDialog.IView FormatsWizard.Factory.IViewsFactory.CreateEditSampleDialogView() => new EditSampleLogDialogController ();
-		FormatsWizard.TestDialog.IView FormatsWizard.Factory.IViewsFactory.CreateTestDialogView() => new TestFormatDialogController ();
-		FormatsWizard.EditRegexDialog.IView FormatsWizard.Factory.IViewsFactory.CreateEditRegexDialog() => new EditRegexDialogController ();
-		FormatsWizard.EditFieldsMapping.IView FormatsWizard.Factory.IViewsFactory.CreateEditFieldsMappingDialog() => new FieldsMappingDialogController ();
-		FormatsWizard.CustomTransformBasedFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateXmlBasedFormatPageView() => new XmlBasedFormatPageController ();
-		FormatsWizard.CustomTransformBasedFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateJsonBasedFormatPageView() => new XmlBasedFormatPageController ();
-		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateXsltEditorDialog() => new XsltEditorDialogController ();
-		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateJUSTEditorDialog() => new XsltEditorDialogController ();
+		FormatsWizard.ImportNLogPage.IView FormatsWizard.Factory.IViewsFactory.CreateImportNLogPage () => new ImportNLogPageController ();
+		FormatsWizard.ChooseExistingFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateChooseExistingFormatPageView () => new ChooseExistingFormatPageController ();
+		FormatsWizard.FormatDeleteConfirmPage.IView FormatsWizard.Factory.IViewsFactory.CreateFormatDeleteConfirmPageView () => new FormatDeletionConfirmationPageController ();
+		FormatsWizard.RegexBasedFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateRegexBasedFormatPageView () => new RegexBasedFormatPageController ();
+		FormatsWizard.EditSampleDialog.IView FormatsWizard.Factory.IViewsFactory.CreateEditSampleDialogView () => new EditSampleLogDialogController ();
+		FormatsWizard.TestDialog.IView FormatsWizard.Factory.IViewsFactory.CreateTestDialogView () => new TestFormatDialogController ();
+		FormatsWizard.EditRegexDialog.IView FormatsWizard.Factory.IViewsFactory.CreateEditRegexDialog () => new EditRegexDialogController ();
+		FormatsWizard.EditFieldsMapping.IView FormatsWizard.Factory.IViewsFactory.CreateEditFieldsMappingDialog () => new FieldsMappingDialogController ();
+		FormatsWizard.CustomTransformBasedFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateXmlBasedFormatPageView () => new XmlBasedFormatPageController ();
+		FormatsWizard.CustomTransformBasedFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateJsonBasedFormatPageView () => new XmlBasedFormatPageController ();
+		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateXsltEditorDialog () => new XsltEditorDialogController ();
+		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateJUSTEditorDialog () => new XsltEditorDialogController ();
 
 		Postprocessing.Factory.IViewsFactory Factory.IViewsFactory.PostprocessingViewsFactory => this;
 
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.StateInspectorVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateStateInspectorViewObjects ()
-		{
-			var wnd = new UI.Postprocessing.StateInspector.StateInspectorWindowController ();
-			return (wnd, wnd);
-		}
-
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.TimelineVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateTimelineViewObjects ()
-		{
-			var wnd = new UI.Postprocessing.TimelineVisualizer.TimelineWindowController ();
-			return (wnd, wnd);
-		}
-
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.SequenceDiagramVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramViewObjects ()
-		{
-			var wnd = new UI.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramWindowController ();
-			return (wnd, wnd);
-		}
-
-		(Postprocessing.IPostprocessorOutputForm, Postprocessing.TimeSeriesVisualizer.IView) Postprocessing.Factory.IViewsFactory.CreateTimeSeriesViewObjects ()
-		{
-			var wnd = new UI.Postprocessing.TimeSeriesVisualizer.TimeSeriesWindowController ();
-			return (wnd, wnd);
-		}
+		Postprocessing.StateInspectorVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateStateInspectorView () => new UI.Postprocessing.StateInspector.StateInspectorWindowController ();
+		Postprocessing.TimelineVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateTimelineView () => new UI.Postprocessing.TimelineVisualizer.TimelineWindowController ();
+		Postprocessing.SequenceDiagramVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramView () => new UI.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramWindowController ();
+		Postprocessing.TimeSeriesVisualizer.IView Postprocessing.Factory.IViewsFactory.CreateTimeSeriesView () => new UI.Postprocessing.TimeSeriesVisualizer.TimeSeriesWindowController ();
 
 		About.IView Factory.IViewsFactory.CreateAboutView () => new AboutDialogAdapter ();
 
@@ -77,9 +58,9 @@ namespace LogJoint.UI.Presenters
 
 		NewLogSourceDialog.Pages.FileBasedFormat.IView Factory.IViewsFactory.CreateFileBasedFormatView () => new FileBasedFormatPageController ();
 
-		NewLogSourceDialog.Pages.FormatDetection.IView Factory.IViewsFactory.CreateFormatDetectionView () => new FormatDetectionPageController();
+		NewLogSourceDialog.Pages.FormatDetection.IView Factory.IViewsFactory.CreateFormatDetectionView () => new FormatDetectionPageController ();
 
-		FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView)
+		FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView (SearchEditorDialog.IDialogView parentView)
 		{
 			return new FilterDialogController ((AppKit.NSWindowController)parentView);
 		}
@@ -94,9 +75,9 @@ namespace LogJoint.UI.Presenters
 
 		MessagePropertiesDialog.IView Factory.IViewsFactory.CreateMessagePropertiesDialogView () => new MessagePropertiesDialogView ();
 
-		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView () => new NewLogSourceDialogView();
+		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView () => new NewLogSourceDialogView ();
 
-		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView () => new OptionsView(this);
+		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView () => new OptionsView (this);
 
 		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage () => new UI.Postprocessing.MainWindowTabPage.MainWindowTabPageAdapter ();
 

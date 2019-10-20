@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public interface IView
 	{
 		void SetEventsHandler(IViewEvents eventsHandler);
+		void Show();
 		PlotsViewMetrics PlotsViewMetrics { get; }
 		void Invalidate();
 		IConfigDialogView CreateConfigDialogView(IConfigDialogEventsHandler evts);

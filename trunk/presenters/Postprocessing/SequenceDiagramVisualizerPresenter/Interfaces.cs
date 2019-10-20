@@ -7,14 +7,10 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 {
-	public interface IPresenter
-	{
-
-	};
-
 	public interface IView
 	{
 		void SetViewModel(IViewModel eventsHandler);
+		void Show();
 		ViewMetrics GetMetrics();
 		ReadonlyRef<Size> ArrowsAreaSize { get; }
 		int RolesCaptionsAreaHeight { get; }

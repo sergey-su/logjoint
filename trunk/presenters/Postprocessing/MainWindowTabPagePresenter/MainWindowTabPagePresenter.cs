@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	{
 		readonly IView view;
 		readonly IManager postprocessorsManager;
-		readonly IPostprocessorOutputFormFactory outputFormsFactory;
+		readonly IFactory presentersFactory;
 		readonly Dictionary<ViewControlId, IViewControlHandler> viewControlHandlers = new Dictionary<ViewControlId, IViewControlHandler>();
 		readonly ITempFilesManager tempFiles;
 		readonly IShellOpen shellOpen;
@@ -24,7 +24,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		public Presenter(
 			IView view,
 			IManager postprocessorsManager,
-			IPostprocessorOutputFormFactory outputFormsFactory,
+			IFactory presentersFactory,
 			ILogSourcesManager logSourcesManager,
 			ITempFilesManager tempFiles,
 			IShellOpen shellOpen,
@@ -36,7 +36,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		{
 			this.view = view;
 			this.postprocessorsManager = postprocessorsManager;
-			this.outputFormsFactory = outputFormsFactory;
+			this.presentersFactory = presentersFactory;
 			this.tempFiles = tempFiles;
 			this.shellOpen = shellOpen;
 			this.newLogSourceDialog = newLogSourceDialog;
@@ -100,11 +100,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				RefreshView();
 			};
 
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.StateInspector, pm, outputFormsFactory, PostprocessorKind.StateInspector);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Timeline, pm, outputFormsFactory, PostprocessorKind.Timeline);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Sequence, pm, outputFormsFactory, PostprocessorKind.SequenceDiagram);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Correlate, pm, outputFormsFactory, PostprocessorKind.Correlator);
-			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.TimeSeries, pm, outputFormsFactory, PostprocessorKind.TimeSeries);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.StateInspector, presentersFactory, PostprocessorKind.StateInspector);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Timeline, presentersFactory, PostprocessorKind.Timeline);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Sequence, presentersFactory, PostprocessorKind.SequenceDiagram);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Correlate, presentersFactory, PostprocessorKind.Correlator);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.TimeSeries, presentersFactory, PostprocessorKind.TimeSeries);
 
 			foreach (var h in 
 				(logsCollectionControlHandlers.Count == 0 ? new IViewControlHandler[] { new GenericLogsOpenerControlHandler(newLogSourceDialog) } : logsCollectionControlHandlers.ToArray())
@@ -119,8 +119,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		private void InitAndAddProstprocessorHandler(
 			Dictionary<ViewControlId, IViewControlHandler> handlers,
 			ViewControlId postprocessorViewId,
-			IManager postprocessorsManager,
-			IPostprocessorOutputFormFactory outputFormsFactory,
+			IFactory factory,
 			PostprocessorKind postprocessorKind
 		)
 		{
@@ -135,7 +134,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				handler = new LogSourcePostprocessorControlHandler(
 					postprocessorsManager,
 					postprocessorKind,
-					() => outputFormsFactory.GetPostprocessorOutputForm(postprocessorViewId),
+					() =>
+						postprocessorKind == PostprocessorKind.StateInspector ? factory.GetStateInspectorVisualizer(true) :
+						postprocessorKind == PostprocessorKind.Timeline ? factory.GetTimelineVisualizer(true) :
+						postprocessorKind == PostprocessorKind.SequenceDiagram ? factory.GetSequenceDiagramVisualizer(true) :
+						postprocessorKind == PostprocessorKind.TimeSeries ? factory.GetTimeSeriesVisualizer(true) :
+						(IPostprocessorVisualizerPresenter)null,
 					shellOpen,
 					tempFiles
 				);

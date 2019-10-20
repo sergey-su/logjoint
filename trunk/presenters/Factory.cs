@@ -504,7 +504,7 @@ namespace LogJoint.UI.Presenters
 				alertPopup
 			);
 
-			Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorOutputFormFactory = new Postprocessing.Factory(
+			Postprocessing.IFactory postprocessorPresentationFactory = new Postprocessing.Factory(
 				views.PostprocessingViewsFactory,
 				model.PostprocessorsManager,
 				model.LogSourcesManager,
@@ -528,7 +528,7 @@ namespace LogJoint.UI.Presenters
 			Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
 				postprocessingTabPage,
 				model.PostprocessorsManager,
-				postprocessorOutputFormFactory,
+				postprocessorPresentationFactory,
 				model.LogSourcesManager,
 				model.TempFilesManager,
 				shellOpen,
@@ -567,10 +567,10 @@ namespace LogJoint.UI.Presenters
 				promptDialog,
 				mainFormPresenter,
 				postprocessingTabPagePresenter,
-				postprocessorOutputFormFactory,
 				colorTheme,
 				messagePropertiesDialogPresenter,
-				promptDialog
+				promptDialog,
+				new Postprocessing.Presentation(postprocessorPresentationFactory)
 			);
 
 			return new PresentationObjects
