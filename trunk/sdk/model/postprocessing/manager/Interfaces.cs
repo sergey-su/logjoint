@@ -14,12 +14,14 @@ namespace LogJoint.Postprocessing
 	/// </summary>
 	public interface IManager
 	{
-		void RegisterLogType(LogSourceMetadata meta);
-		void RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor);
+		void RegisterLogType(LogSourceMetadata meta); // todo: rename Register
+		void RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor); // todo: remove
+		void Register(ILogPartTokenFactory logPartFactory);
+		void Register(Correlation.ISameNodeDetectionTokenFactory factory);
 		event EventHandler Changed; // todo: remove
-		IEnumerable<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; }
-		IEnumerable<ILogSource> KnownLogSources { get; }
-		IEnumerable<LogSourceMetadata> KnownLogTypes { get; }
+		IEnumerable<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; } // todo: return immutable
+		IEnumerable<ILogSource> KnownLogSources { get; } // todo: return immutable
+		IEnumerable<LogSourceMetadata> KnownLogTypes { get; } // todo: return immutable
 		Task<bool> RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources,
 			object customData = null

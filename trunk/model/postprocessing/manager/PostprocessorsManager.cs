@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing
 {
-	public class PostprocessorsManager : IManager
+	class PostprocessorsManager : IManager
 	{
 		public PostprocessorsManager(
 			ILogSourcesManager logSources,
@@ -17,7 +17,9 @@ namespace LogJoint.Postprocessing
 			Progress.IProgressAggregator progressAggregator,
 			Settings.IGlobalSettingsAccessor settingsAccessor,
 			IOutputDataDeserializer outputDataDeserializer,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			ILogPartTokenFactories logPartTokenFactories,
+			Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories
 		)
 		{
 			this.logSources = logSources;
@@ -28,6 +30,8 @@ namespace LogJoint.Postprocessing
 			this.threadPoolSyncContext = threadPoolSyncContext;
 			this.heartbeat = heartbeat;
 			this.outputDataDeserializer = outputDataDeserializer;
+			this.logPartTokenFactories = logPartTokenFactories;
+			this.sameNodeDetectionTokenFactories = sameNodeDetectionTokenFactories;
 			this.tracer = traceSourceFactory.CreateTraceSource("App", "ppm");
 			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh);
 
@@ -57,6 +61,16 @@ namespace LogJoint.Postprocessing
 		void IManager.RegisterLogType(LogSourceMetadata meta)
 		{
 			this.knownLogTypes[meta.LogProviderFactory] = meta;
+		}
+
+		void IManager.Register(ILogPartTokenFactory logPartFactory)
+		{
+			logPartTokenFactories.Register(logPartFactory);
+		}
+
+		void IManager.Register(Correlation.ISameNodeDetectionTokenFactory factory)
+		{
+			sameNodeDetectionTokenFactories.Register(factory);
 		}
 
 		IEnumerable<LogSourceMetadata> IManager.KnownLogTypes
@@ -283,5 +297,7 @@ namespace LogJoint.Postprocessing
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		private readonly LJTraceSource tracer;
 		private readonly IOutputDataDeserializer outputDataDeserializer;
+		private readonly ILogPartTokenFactories logPartTokenFactories;
+		private readonly Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories;
 	}
 }

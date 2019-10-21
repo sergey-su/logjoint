@@ -3,11 +3,13 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace LogJoint.Chromium.Correlation
 {
 	public class NodeDetectionToken : ISameNodeDetectionToken
 	{
+		readonly Factory factory;
 		readonly HashSet<uint> processIds;
 		readonly Dictionary<string, ICECandidateInfo> iceCandidates;
 		readonly Dictionary<string, ConsoleLogEntry> logEntries;
@@ -21,6 +23,18 @@ namespace LogJoint.Chromium.Correlation
 			this.processIds = new HashSet<uint>(processIds);
 			this.iceCandidates = (iceCandidates ?? Enumerable.Empty<ICECandidateInfo>()).ToDictionary(c => c.Id);
 			this.logEntries = (uniqueLogEntries ?? Enumerable.Empty<ConsoleLogEntry>()).ToDictionary(l => l.LogText);
+		}
+
+		public NodeDetectionToken(
+			XElement node
+		)
+		{
+			// todo
+		}
+
+		void ISameNodeDetectionToken.Serialize(XElement node)
+		{
+			// todo
 		}
 
 		public struct ICECandidateInfo
@@ -50,6 +64,8 @@ namespace LogJoint.Chromium.Correlation
 			}
 		};
 
+		ISameNodeDetectionTokenFactory ISameNodeDetectionToken.Factory => Factory.Instance;
+
 		SameNodeDetectionResult ISameNodeDetectionToken.DetectSameNode(ISameNodeDetectionToken otherNodeToken)
 		{
 			var otherChromiumNode = otherNodeToken as NodeDetectionToken;
@@ -63,10 +79,7 @@ namespace LogJoint.Chromium.Correlation
 				if (otherChromiumNode.iceCandidates.TryGetValue(candidate.Key, out otherCandidate))
 				{
 					var diff = Math.Round((candidate.Value.CreationTime - otherCandidate.CreationTime).TotalMinutes);
-					return new SameNodeDetectionResult()
-					{
-						TimeDiff = TimeSpan.FromMinutes(diff)
-					};
+					return new SameNodeDetectionResult(TimeSpan.FromMinutes(diff));
 				}
 			}
 
@@ -89,13 +102,17 @@ namespace LogJoint.Chromium.Correlation
 			if ((topLogDiffs.Length == 1 && topLogDiffs[0].Value > minLogCount)
 			 || (topLogDiffs.Length == 2 && (topLogDiffs[0].Value - topLogDiffs[1].Value) > minLogCount))
 			{
-				return new SameNodeDetectionResult()
-				{
-					TimeDiff = TimeSpan.FromMinutes(topLogDiffs[0].Key)
-				};
+				return new SameNodeDetectionResult(TimeSpan.FromMinutes(topLogDiffs[0].Key));
 			}
 
 			return null;
 		}
+
+		public class Factory : ISameNodeDetectionTokenFactory
+		{
+			public static readonly Factory Instance = new Factory();
+			string ISameNodeDetectionTokenFactory.Id => "chromium-factory";
+			ISameNodeDetectionToken ISameNodeDetectionTokenFactory.Deserialize(XElement element) => new NodeDetectionToken(element);
+		};
 	};
 }

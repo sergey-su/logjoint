@@ -15,6 +15,7 @@ namespace LogJoint.Postprocessing
 			this IEnumerableAsync<Evt[]> events,
 			Func<Action<object, XElement>, Serializer> serializerFactory,
 			Task<ILogPartToken> rotatedLogPartToken,
+			ILogPartTokenFactories rotatedLogPartFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
 			string rootElementName,
@@ -72,7 +73,7 @@ namespace LogJoint.Postprocessing
 			{
 				outputWriter.WriteStartElement(rootElementName);
 				new PostprocessorOutputETag(contentsEtagAttr).Write(outputWriter);
-				(await rotatedLogPartToken).SafeWriteTo(outputWriter);
+				rotatedLogPartFactories.SafeWriteTo(await rotatedLogPartToken, outputWriter);
 				var readersSettings = new XmlReaderSettings()
 				{
 					ConformanceLevel = ConformanceLevel.Fragment

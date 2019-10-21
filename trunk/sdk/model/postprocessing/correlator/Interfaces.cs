@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using LogJoint.Postprocessing.Messaging.Analisys;
+using M = LogJoint.Postprocessing.Messaging;
 
 namespace LogJoint.Postprocessing.Correlation
 {
-	public interface ICorrelator
+	public interface ICorrelator // todo: remove from sdk
 	{
 		Task<ISolutionResult> Correlate(
 			Dictionary<NodeId,
@@ -149,19 +150,49 @@ namespace LogJoint.Postprocessing.Correlation
 
 	};
 
+	public interface ICorrelatorPostprocessorOutput
+	{
+		HashSet<string> CorrelatedLogsConnectionIds { get; }
+		NodeSolution Solution { get; }
+	};
+
+
 	public class SameNodeDetectionResult
 	{
-		public TimeSpan TimeDiff;
+		public TimeSpan TimeDiff { get; private set; }
+		public SameNodeDetectionResult(TimeSpan timeDiff)
+		{
+			TimeDiff = timeDiff;
+		}
 	};
 
 	public interface ISameNodeDetectionToken
 	{
 		SameNodeDetectionResult DetectSameNode(ISameNodeDetectionToken otherNodeToken);
+		ISameNodeDetectionTokenFactory Factory { get; }
+		void Serialize(XElement node);
 	};
 
-	public interface ICorrelatorPostprocessorOutput 
+	public interface ISameNodeDetectionTokenFactory
 	{
-		HashSet<string> CorrelatedLogsConnectionIds { get; }
-		NodeSolution Solution { get; }
+		/// <summary>
+		/// Permanent unique ID of this factory.
+		/// It's stored in persistent storage. It's used to find the
+		/// factory that can deserialize the stored tokens.
+		/// </summary>
+		string Id { get; }
+		ISameNodeDetectionToken Deserialize(XElement element);
+	};
+
+	public interface IModel
+	{
+		Task SavePostprocessorOutput( // todo: collect args into struct?
+			NodeId nodeId,
+			Task<ILogPartToken> logPartTask,
+			IEnumerableAsync<M.Event[]> events,
+			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,
+			Func<object, TextLogEventTrigger> triggersConverter,
+			LogSourcePostprocessorInput postprocessorInput
+		);
 	};
 }

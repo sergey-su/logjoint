@@ -3,13 +3,15 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
-	public class Model : IModel
+	class Model : IModel
 	{
 		readonly ITempFilesManager tempFiles;
+		readonly ILogPartTokenFactories logPartTokenFactories;
 
-		public Model(ITempFilesManager tempFiles)
+		public Model(ITempFilesManager tempFiles, ILogPartTokenFactories logPartTokenFactories)
 		{
 			this.tempFiles = tempFiles;
+			this.logPartTokenFactories = logPartTokenFactories;
 		}
 
 		Task IModel.SavePostprocessorOutput(
@@ -22,6 +24,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			return StateInspectorOutput.SerializePostprocessorOutput(
 				events,
 				rotatedLogPartToken,
+				logPartTokenFactories,
 				triggersConverter,
 				postprocessorInput.InputContentsEtag,
 				postprocessorInput.OutputFileName,

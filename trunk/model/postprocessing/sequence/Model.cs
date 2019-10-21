@@ -6,13 +6,15 @@ using SI = LogJoint.Postprocessing.StateInspector;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {
-	public class Model : IModel
+	class Model : IModel
 	{
 		readonly ITempFilesManager tempFiles;
+		readonly ILogPartTokenFactories logPartTokenFactories;
 
-		public Model(ITempFilesManager tempFiles)
+		public Model(ITempFilesManager tempFiles, ILogPartTokenFactories logPartTokenFactories)
 		{
 			this.tempFiles = tempFiles;
+			this.logPartTokenFactories = logPartTokenFactories;
 		}
 
 		Task IModel.SavePostprocessorOutput(
@@ -29,6 +31,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				timelineComments,
 				stateInspectorComments,
 				rotatedLogPartToken,
+				logPartTokenFactories,
 				triggersConverter,
 				postprocessorInput.InputContentsEtag,
 				postprocessorInput.OutputFileName,

@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace LogJoint.Postprocessing.Correlation
 {
-	public class CorrelatorPostprocessorOutput : ICorrelatorPostprocessorOutput
+	public class CorrelatorPostprocessorOutput : ICorrelatorPostprocessorOutput // todo: rename, remove from SDK
 	{
 		readonly NodeSolution solution;
 		readonly HashSet<string> correlatedConnectionIds;

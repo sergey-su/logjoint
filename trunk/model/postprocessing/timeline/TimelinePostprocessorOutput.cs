@@ -6,13 +6,13 @@ using System.Threading;
 
 namespace LogJoint.Postprocessing.Timeline
 {
-	public class TimelinePostprocessorOutput: ITimelinePostprocessorOutput
+	class TimelinePostprocessorOutput: ITimelinePostprocessorOutput
 	{
-		public TimelinePostprocessorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory rotatedLogPartFactory = null) :
-			this(p, TimelineEntitiesComparer.Instance, rotatedLogPartFactory)
+		public TimelinePostprocessorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactories logPartTokenFactories) :
+			this(p, TimelineEntitiesComparer.Instance, logPartTokenFactories)
 		{ }
 
-		public TimelinePostprocessorOutput(LogSourcePostprocessorDeserializationParams p, IEntitiesComparer entitiesComparer, ILogPartTokenFactory rotatedLogPartFactory)
+		public TimelinePostprocessorOutput(LogSourcePostprocessorDeserializationParams p, IEntitiesComparer entitiesComparer, ILogPartTokenFactories logPartTokenFactories)
 		{
 			this.logSource = p.LogSource;
 
@@ -26,7 +26,7 @@ namespace LogJoint.Postprocessing.Timeline
 			{
 				if (eventsDeserializer.TryDeserialize(elt, out var evt))
 					events.Add(evt);
-				else if (rotatedLogPartFactory.TryReadLogPartToken(elt, out var tmp))
+				else if (logPartTokenFactories.TryReadLogPartToken(elt, out var tmp))
 					this.rotatedLogPartToken = tmp;
 				p.Cancellation.ThrowIfCancellationRequested();
 			}
@@ -36,6 +36,7 @@ namespace LogJoint.Postprocessing.Timeline
 		public static Task SerializePostprocessorOutput(
 			IEnumerableAsync<Event[]> events,
 			Task<ILogPartToken> rotatedLogPartToken,
+			ILogPartTokenFactories logPartTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
 			string outputFileName,
@@ -46,6 +47,7 @@ namespace LogJoint.Postprocessing.Timeline
 			return events.SerializePostprocessorOutput<Event, EventsSerializer, IEventsVisitor>(
 				triggerSerializer => new EventsSerializer(triggerSerializer),
 				rotatedLogPartToken,
+				logPartTokenFactories,
 				triggersConverter,
 				contentsEtagAttr,
 				"root",

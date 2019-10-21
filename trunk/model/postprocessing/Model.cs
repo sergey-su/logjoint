@@ -15,6 +15,7 @@ namespace LogJoint.Postprocessing
 			Timeline.IModel timeline,
 			SequenceDiagram.IModel sequenceDiagram,
 			TimeSeries.IModel timeSeries,
+			Correlation.IModel correlation,
 			Func<Correlation.Solver.ISolver> solverFactory
 		)
 		{
@@ -24,6 +25,7 @@ namespace LogJoint.Postprocessing
 			Timeline = timeline;
 			SequenceDiagram = sequenceDiagram;
 			TimeSeries = timeSeries;
+			Correlation = correlation;
 			this.solverFactory = solverFactory;
 		}
 
@@ -38,6 +40,8 @@ namespace LogJoint.Postprocessing
 		public SequenceDiagram.IModel SequenceDiagram { get; private set; }
 
 		public TimeSeries.IModel TimeSeries { get; private set; }
+
+		public Correlation.IModel Correlation { get; private set; }
 
 		Correlation.ICorrelator IModel.CreateCorrelator()
 		{

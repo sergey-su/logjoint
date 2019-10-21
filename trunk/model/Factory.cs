@@ -259,6 +259,10 @@ namespace LogJoint
 
 			Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 
+			Postprocessing.ILogPartTokenFactories logPartTokenFactories = new Postprocessing.LogPartTokenFactories();
+
+			Postprocessing.Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories = new Postprocessing.Correlation.SameNodeDetectionTokenFactories();
+
 			Postprocessing.IManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
 				logSourcesManager,
 				telemetryCollector,
@@ -267,17 +271,20 @@ namespace LogJoint
 				heartBeatTimer,
 				progressAggregator,
 				globalSettingsAccessor,
-				new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess),
-				traceSourceFactory
+				new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess, logPartTokenFactories),
+				traceSourceFactory,
+				logPartTokenFactories,
+				sameNodeDetectionTokenFactories
 			);
 
 			Postprocessing.IModel postprocessingModel = new Postprocessing.Model(
 				postprocessorsManager,
 				timeSeriesTypesAccess,
-				new Postprocessing.StateInspector.Model(tempFilesManager),
-				new Postprocessing.Timeline.Model(tempFilesManager),
-				new Postprocessing.SequenceDiagram.Model(tempFilesManager),
+				new Postprocessing.StateInspector.Model(tempFilesManager, logPartTokenFactories),
+				new Postprocessing.Timeline.Model(tempFilesManager, logPartTokenFactories),
+				new Postprocessing.SequenceDiagram.Model(tempFilesManager, logPartTokenFactories),
 				new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess),
+				new Postprocessing.Correlation.Model(tempFilesManager),
 				solverFactory
 			);
 

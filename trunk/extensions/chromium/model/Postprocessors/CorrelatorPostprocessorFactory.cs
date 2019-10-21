@@ -29,6 +29,8 @@ namespace LogJoint.Chromium.Correlator
 			this.ljModel = ljModel;
 			this.modelThreadSync = ljModel.SynchronizationContext;
 			this.postprocessorsManager = ljModel.Postprocessing.Manager;
+
+			postprocessorsManager.Register(Correlation.NodeDetectionToken.Factory.Instance);
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)
@@ -243,7 +245,7 @@ namespace LogJoint.Chromium.Correlator
 				LogPartTask = logPartTask;
 				MessagesTask = messagesTask;
 				SameNodeDetectionTokenTask = sameNodeDetectionTokenTask ??
-					Task.FromResult((ISameNodeDetectionToken)new NullNodeDetectionToken());
+					Task.FromResult((ISameNodeDetectionToken)null);
 			}
 		};
 	}

@@ -1,13 +1,15 @@
 ﻿
 namespace LogJoint.Postprocessing
 {
-	public class OutputDataDeserializer: IOutputDataDeserializer
+	class OutputDataDeserializer: IOutputDataDeserializer
 	{
 		readonly TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess;
+		readonly ILogPartTokenFactories logPartTokenFactories;
 
-		public OutputDataDeserializer(TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess)
+		public OutputDataDeserializer(TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess, ILogPartTokenFactories logPartTokenFactories)
 		{
 			this.timeSeriesTypesAccess = timeSeriesTypesAccess;
+			this.logPartTokenFactories = logPartTokenFactories;
 		}
 
 		public object Deserialize(PostprocessorKind kind, LogSourcePostprocessorDeserializationParams p)
@@ -15,9 +17,9 @@ namespace LogJoint.Postprocessing
 			switch (kind)
 			{
 				case PostprocessorKind.StateInspector:
-					return new StateInspector.StateInspectorOutput(p);
+					return new StateInspector.StateInspectorOutput(p, logPartTokenFactories);
 				case PostprocessorKind.Timeline:
-					return new Timeline.TimelinePostprocessorOutput(p, null);
+					return new Timeline.TimelinePostprocessorOutput(p, logPartTokenFactories);
 				case PostprocessorKind.SequenceDiagram:
 					return new SequenceDiagram.SequenceDiagramPostprocessorOutput(p, null);
 				case PostprocessorKind.TimeSeries:
