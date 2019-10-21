@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing
 {
-	public class PostprocessorsManager : IManager
+	class PostprocessorsManager : IManagerInternal
 	{
 		public PostprocessorsManager(
 			ILogSourcesManager logSources,
@@ -17,7 +18,10 @@ namespace LogJoint.Postprocessing
 			Progress.IProgressAggregator progressAggregator,
 			Settings.IGlobalSettingsAccessor settingsAccessor,
 			IOutputDataDeserializer outputDataDeserializer,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			ILogPartTokenFactories logPartTokenFactories,
+			Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories,
+			IChangeNotification changeNotification
 		)
 		{
 			this.logSources = logSources;
@@ -28,6 +32,9 @@ namespace LogJoint.Postprocessing
 			this.threadPoolSyncContext = threadPoolSyncContext;
 			this.heartbeat = heartbeat;
 			this.outputDataDeserializer = outputDataDeserializer;
+			this.logPartTokenFactories = logPartTokenFactories;
+			this.sameNodeDetectionTokenFactories = sameNodeDetectionTokenFactories;
+			this.changeNotification = changeNotification;
 			this.tracer = traceSourceFactory.CreateTraceSource("App", "ppm");
 			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh);
 
@@ -39,44 +46,51 @@ namespace LogJoint.Postprocessing
 				if ((e.Flags & LogProviderStatsFlag.ContentsEtag) != 0)
 					updater.Invoke();
 			};
+
+			this.visiblePostprocessorsOutputs = Selectors.Create(
+				() => postprocessorsOutputs,
+				() => logSources.Items,
+				(outputs, sources) => {
+					var sourcesMap = sources.ToLookup(s => s);
+					return ImmutableArray.CreateRange(outputs.Where(output => sourcesMap.Contains(output.LogSource)));
+				}
+			);
+
 			Refresh();
 		}
 
 		public event EventHandler Changed;
 
+		IReadOnlyList<LogSourcePostprocessorState> IManagerInternal.LogSourcePostprocessors => visiblePostprocessorsOutputs();
 
-		IEnumerable<LogSourcePostprocessorOutput> IManager.LogSourcePostprocessorsOutputs
+		void IManager.Register(LogSourceMetadata meta)
 		{
-			get
-			{
-				return knownLogSources.Values.SelectMany(rec =>
-					rec.PostprocessorsOutputs.Select(postprocessorRec => postprocessorRec.state.GetData()));
-			}
+			knownLogTypes = this.knownLogTypes.Add(meta.LogProviderFactory, meta);
 		}
 
 		void IManager.RegisterLogType(LogSourceMetadata meta)
 		{
-			this.knownLogTypes[meta.LogProviderFactory] = meta;
+			((IManager)this).Register(meta);
 		}
 
-		IEnumerable<LogSourceMetadata> IManager.KnownLogTypes
+		void IManager.Register(ILogPartTokenFactory logPartFactory)
 		{
-			get { return this.knownLogTypes.Values; }
+			logPartTokenFactories.Register(logPartFactory);
 		}
 
-		void IManager.RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor)
+		void IManager.Register(Correlation.ISameNodeDetectionTokenFactory factory)
 		{
-			this.crossLogSourcePostprocessorsTypes.Add(postprocessor);
+			sameNodeDetectionTokenFactories.Register(factory);
 		}
 
-		async Task<bool> IManager.RunPostprocessor(
-			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] typesAndSources, 
+		async Task IManagerInternal.RunPostprocessors(
+			IReadOnlyList<LogSourcePostprocessorState> typesAndSources, 
 			object customData)
 		{
 			var sources = typesAndSources.Select(typesAndSource =>
 			{
-				var outputType = typesAndSource.Key;
-				var forLogSource = typesAndSource.Value;
+				var outputType = typesAndSource.Postprocessor;
+				var forLogSource = typesAndSource.LogSource;
 
 				if (!knownLogSources.TryGetValue(forLogSource, out LogSourceRecord logSourceRecord))
 					throw new ArgumentException("Log source is unknown");
@@ -94,7 +108,6 @@ namespace LogJoint.Postprocessing
 					outputFileName = section.AbsolutePath;
 
 				bool needsProcessing = logSourceRecord.logSource.Visible && postprocessorRecord.state.PostprocessorNeedsRunning == true;
-				needsProcessing |= crossLogSourcePostprocessorsTypes.Contains(postprocessorRecord.metadata);
 
 				var sourceContentsEtag = logSourceRecord.logSource.Provider.Stats.ContentsEtag?.ToString();
 
@@ -163,12 +176,7 @@ namespace LogJoint.Postprocessing
 
 			await Task.WhenAll(outerTasks);
 
-			return true;
-		}
-
-		IEnumerable<ILogSource> IManager.KnownLogSources
-		{
-			get { return knownLogSources.Keys; }
+			await Task.Yield();
 		}
 
 
@@ -188,7 +196,7 @@ namespace LogJoint.Postprocessing
 							FireChangedEvent, tracer,
 							heartbeat, modelSyncContext, threadPoolSyncContext, telemetry, outputDataDeserializer));
 
-					knownLogSources.Add(src.Key, rec);
+					knownLogSources = knownLogSources.Add(src.Key, rec);
 					somethingChanged = true;
 				}
 				rec.logSourceIsAlive = true;
@@ -207,7 +215,7 @@ namespace LogJoint.Postprocessing
 				{
 					if (!rec.cancellation.IsCancellationRequested)
 						rec.cancellation.Cancel();
-					knownLogSources.Remove(rec.logSource);
+					knownLogSources = knownLogSources.Remove(rec.logSource);
 					rec.PostprocessorsOutputs.ForEach(ppo => ppo.Dispose());
 					somethingChanged = true;
 				}
@@ -217,17 +225,20 @@ namespace LogJoint.Postprocessing
 
 			if (somethingChanged && settingsAccessor.EnableAutoPostprocessing)
 			{
-				var outputs = this.GetAutoPostprocessingCapableOutputs()
-					.Where(x => x.PostprocessorMetadata.Kind != PostprocessorKind.Correlator)
-					.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
-					.ToArray();
+				IManagerInternal intf = this;
+				var outputs = intf.LogSourcePostprocessors.GetAutoPostprocessingCapableOutputs().ToArray();
 				if (outputs.Length > 0)
-					((IManager)this).RunPostprocessor(outputs);
+					intf.RunPostprocessors(outputs);
 			}
 		}
 
 		private void FireChangedEvent()
 		{
+			this.postprocessorsOutputs = ImmutableArray.CreateRange(
+				knownLogSources.Values.SelectMany(rec =>
+					rec.PostprocessorsOutputs.Select(postprocessorRec => postprocessorRec.state.GetData()))
+			);
+			changeNotification.Post();
 			Changed?.Invoke(this, EventArgs.Empty);
 		}
 
@@ -276,12 +287,16 @@ namespace LogJoint.Postprocessing
 		private readonly ISynchronizationContext modelSyncContext;
 		private readonly ISynchronizationContext threadPoolSyncContext;
 		private readonly IHeartBeatTimer heartbeat;
-		private readonly Dictionary<ILogProviderFactory, LogSourceMetadata> knownLogTypes = new Dictionary<ILogProviderFactory, LogSourceMetadata>();
-		private readonly Dictionary<ILogSource, LogSourceRecord> knownLogSources = new Dictionary<ILogSource,LogSourceRecord>();
-		private readonly HashSet<ILogSourcePostprocessor> crossLogSourcePostprocessorsTypes = new HashSet<ILogSourcePostprocessor>();
+		private ImmutableDictionary<ILogProviderFactory, LogSourceMetadata> knownLogTypes = ImmutableDictionary<ILogProviderFactory, LogSourceMetadata>.Empty;
+		private ImmutableDictionary<ILogSource, LogSourceRecord> knownLogSources = ImmutableDictionary<ILogSource,LogSourceRecord>.Empty;
+		private IReadOnlyList<LogSourcePostprocessorState> postprocessorsOutputs = ImmutableArray.Create<LogSourcePostprocessorState>();
+		private readonly Func<ImmutableArray<LogSourcePostprocessorState>> visiblePostprocessorsOutputs;
 		private readonly AsyncInvokeHelper updater;
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		private readonly LJTraceSource tracer;
 		private readonly IOutputDataDeserializer outputDataDeserializer;
+		private readonly ILogPartTokenFactories logPartTokenFactories;
+		private readonly Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories;
+		private readonly IChangeNotification changeNotification;
 	}
 }

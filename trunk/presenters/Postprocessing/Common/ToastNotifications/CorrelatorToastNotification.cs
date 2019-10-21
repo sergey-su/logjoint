@@ -9,15 +9,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
 	public class CorrelatorToastNotification: IToastNotificationItem
 	{
-		IManager ppm;
-		CorrelatorStateSummary lastSummary;
+		IManagerInternal ppm;
+		ICorrelationManager correlationManager;
+		CorrelationStateSummary lastSummary;
 
 		public CorrelatorToastNotification(
-			IManager ppm,
-			ILogSourcesManager lsm
+			IManagerInternal ppm,
+			ILogSourcesManager lsm,
+			ICorrelationManager correlationManager
 		)
 		{
 			this.ppm = ppm;
+			this.correlationManager = correlationManager;
+			// todo: redesign IToastNotificationItem to be reactive
 			ppm.Changed += (s, e) => Update();
 			lsm.OnLogSourceTimeOffsetChanged += (s, e) => Update();
 			Update();
@@ -25,19 +29,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		public event EventHandler<ItemChangeEventArgs> Changed;
 
-		async void IToastNotificationItem.PerformAction (string actionId)
+		void IToastNotificationItem.PerformAction (string actionId)
 		{
 			switch (lastSummary.Status)
 			{
-			case CorrelatorStateSummary.StatusCode.NeedsProcessing:
-			case CorrelatorStateSummary.StatusCode.Processed:
-			case CorrelatorStateSummary.StatusCode.ProcessingFailed:
-
-				await this.ppm.RunPostprocessor(
-					ppm.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator)
-						.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
-						.ToArray()
-				);
+			case CorrelationStateSummary.StatusCode.NeedsProcessing:
+			case CorrelationStateSummary.StatusCode.Processed:
+			case CorrelationStateSummary.StatusCode.ProcessingFailed:
+				correlationManager.Run();
 				break;
 			}
 		}
@@ -53,11 +52,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			{
 				switch (lastSummary.Status)
 				{
-				case CorrelatorStateSummary.StatusCode.NeedsProcessing:
+				case CorrelationStateSummary.StatusCode.NeedsProcessing:
 					return "view may be inaccurate: clocks sync required.  *1 fix*";
-				case CorrelatorStateSummary.StatusCode.ProcessingInProgress:
+				case CorrelationStateSummary.StatusCode.ProcessingInProgress:
 					return "clocks skew is being fixed";
-				case CorrelatorStateSummary.StatusCode.ProcessingFailed:
+				case CorrelationStateSummary.StatusCode.ProcessingFailed:
 					return "view may be inaccurate: clocks cannot be synched";
 				}
 				return "";
@@ -72,7 +71,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		void Update()
 		{
 			bool wasActive = IsActiveImpl ();
-			lastSummary = ppm.GetCorrelatorStateSummary();
+			lastSummary = correlationManager.StateSummary;
 			if (Changed != null)
 			{
 				Changed(this, new ItemChangeEventArgs(isUnsuppressingChange: IsActiveImpl() && !wasActive));
@@ -81,8 +80,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		bool IsActiveImpl ()
 		{
-			if (lastSummary.Status == CorrelatorStateSummary.StatusCode.PostprocessingUnavailable 
-			|| lastSummary.Status == CorrelatorStateSummary.StatusCode.Processed)
+			if (lastSummary.Status == CorrelationStateSummary.StatusCode.PostprocessingUnavailable 
+			|| lastSummary.Status == CorrelationStateSummary.StatusCode.Processed)
 			{
 				return false;
 			}

@@ -10,3 +10,4 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("logjoint.presenters")]
 [assembly: InternalsVisibleTo("logjoint.presentation.sdk")]
 [assembly: InternalsVisibleTo("logjoint.integration.tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

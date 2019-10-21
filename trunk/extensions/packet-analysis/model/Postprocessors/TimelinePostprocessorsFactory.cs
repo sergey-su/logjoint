@@ -48,12 +48,10 @@ namespace LogJoint.PacketAnalysis.Timeline
 				eofEvts
 			);
 
-			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
-				events,
-				null,
-				evtTrigger => TextLogEventTrigger.Make((Pdml.Message)evtTrigger),
-				postprocessorInput
-			);
+			var serialize = postprocessing.Timeline.CreatePostprocessorOutputBuilder()
+				.SetEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((Pdml.Message)evtTrigger))
+				.Build(postprocessorInput);
 
 			await Task.WhenAll(serialize, logMessages.Open());
 		}

@@ -1,5 +1,6 @@
 ﻿using System;
 using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Correlation;
 
 namespace LogJoint.UI.Presenters.Postprocessing
 {
@@ -35,7 +36,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 
 		public Factory(
 			IViewsFactory postprocessingViewsFactory,
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			ISynchronizationContext synchronizationContext,
 			IChangeNotification changeNotification,
@@ -50,7 +51,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 			IPresentersFacade presentersFacade,
 			IAlertPopup alerts,
 			IColorTheme colorTheme,
-			Drawing.IMatrixFactory matrixFactory
+			Drawing.IMatrixFactory matrixFactory,
+			ICorrelationManager correlationManager
 		)
 		{
 			stateInspectorVisualizer = new Lazy<StateInspectorVisualizer.IPresenterInternal>(() =>
@@ -90,7 +92,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 					model,
 					view,
 					stateInspectorVisualizer.Value,
-					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts),
+					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager),
 					loadedMessagesPresenter,
 					bookmarks,
 					storageManager,
@@ -115,7 +117,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 					model,
 					view,
 					stateInspectorVisualizer.Value,
-					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts),
+					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager),
 					loadedMessagesPresenter,
 					bookmarks,
 					storageManager,
@@ -139,7 +141,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 				return new TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
 					model,
 					view,
-					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts),
+					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager),
 					loadedMessagesPresenter.LogViewerPresenter,
 					bookmarks,
 					presentersFacade,

@@ -9,9 +9,9 @@
 			this.runSummary = runSummary;
 		}
 
-		public override LogSourcePostprocessorOutput GetData()
+		public override LogSourcePostprocessorState GetData()
 		{
-			return ctx.owner.BuildData(LogSourcePostprocessorOutput.Status.Failed, null, null, runSummary);
+			return ctx.owner.BuildData(LogSourcePostprocessorState.Status.Failed, null, null, runSummary);
 		}
 
 		public override bool? PostprocessorNeedsRunning => true;

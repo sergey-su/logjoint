@@ -12,7 +12,7 @@ namespace LogJoint.Postprocessing.Correlation
 
 		int IEqualityComparer<ISameNodeDetectionToken>.GetHashCode(ISameNodeDetectionToken obj)
 		{
-			return 0; // all tokens will have same hash code to force slow comparision via Equals(x, y)
+			return 0; // all tokens will have same hash code to force slow comparison via Equals(x, y)
 		}
 	};
 }

@@ -50,14 +50,10 @@ namespace LogJoint.Chromium.SequenceDiagram
 				messagingEvents.GetEvents(input)
 			);
 
-			await postprocessing.SequenceDiagram.SavePostprocessorOutput(
-				events,
-				null,
-				null,
-				null,
-				evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger),
-				postprocessorInput
-			);
+			await postprocessing.SequenceDiagram.CreatePostprocessorOutputBuilder()
+				.SetMessagingEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger))
+				.Build(postprocessorInput);
 		}
 
 		async Task RunForChromeDebug(
@@ -71,17 +67,12 @@ namespace LogJoint.Chromium.SequenceDiagram
 			var extensionSources = pluginModel.ChromeDebugLogMessagingEventSources.Select(src => src(
 				matcher, multiplexedInput, postprocessorInput.TemplatesTracker)).ToArray();
 
-
 			var events = EnumerableAsync.Merge(extensionSources.Select(s => s.Events).ToArray());
 
-			var serialize = postprocessing.SequenceDiagram.SavePostprocessorOutput(
-				events,
-				null,
-				null,
-				null,
-				evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger),
-				postprocessorInput
-			);
+			var serialize = postprocessing.SequenceDiagram.CreatePostprocessorOutputBuilder()
+				.SetMessagingEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger))
+				.Build(postprocessorInput);
 
 			var tasks = new List<Task>();
 			tasks.Add(serialize);

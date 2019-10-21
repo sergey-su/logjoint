@@ -7,77 +7,76 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	class CorrelatorPostprocessorControlHandler : IViewControlHandler
 	{
-		readonly IManager postprocessorsManager;
+		readonly ICorrelationManager correlationManager;
 		readonly ITempFilesManager tempFilesManager;
-		readonly PostprocessorKind postprocessorKind;
 		readonly IShellOpen shellOpen;
+		readonly Func<ControlData> getControlData;
 
 		public CorrelatorPostprocessorControlHandler(
-			IManager postprocessorsManager,
+			ICorrelationManager correlationManager,
 			ITempFilesManager tempFilesManager,
 			IShellOpen shellOpen
 		)
 		{
-			this.postprocessorsManager = postprocessorsManager;
+			this.correlationManager = correlationManager;
 			this.tempFilesManager = tempFilesManager;
-			this.postprocessorKind = PostprocessorKind.Correlator;
 			this.shellOpen = shellOpen;
+			this.getControlData = Selectors.Create(
+				() => correlationManager.StateSummary,
+				GetCurrentData
+			);
 		}
 
-		ControlData IViewControlHandler.GetCurrentData()
-		{
-			var state = postprocessorsManager.GetCorrelatorStateSummary();
+		ControlData IViewControlHandler.GetCurrentData() => getControlData();
 
-			if (state.Status == CorrelatorStateSummary.StatusCode.PostprocessingUnavailable)
+		static ControlData GetCurrentData(CorrelationStateSummary state)
+		{
+			if (state.Status == CorrelationStateSummary.StatusCode.PostprocessingUnavailable)
 			{
-				return new ControlData()
-				{
-					Disabled = true,
-					Content = "Fix clock skew: N/A"
-				};
+				return new ControlData(true, "Fix clock skew: N/A");
 			}
 
-			var ret = new ControlData();
-
-			ret.Disabled = false;
+			string content = null;
+			ControlData.StatusColor color = ControlData.StatusColor.Neutral;
+			double? progress = null;
 
 			switch (state.Status)
 			{
-				case CorrelatorStateSummary.StatusCode.NeedsProcessing:
-					ret.Content = string.Format("Logs clocks may be{0}out of sync.{0}*2 Fix clock skew*", Environment.NewLine);
-					ret.Color = ControlData.StatusColor.Warning;
+				case CorrelationStateSummary.StatusCode.NeedsProcessing:
+					content = string.Format("Logs clocks may be{0}out of sync.{0}*2 Fix clock skew*", Environment.NewLine);
+					color = ControlData.StatusColor.Warning;
 					break;
-				case CorrelatorStateSummary.StatusCode.ProcessingInProgress:
-					ret.Content = "Fixing clock skew...";
-					ret.Progress = state.Progress;
+				case CorrelationStateSummary.StatusCode.ProcessingInProgress:
+					content = "Fixing clock skew...";
+					progress = state.Progress;
 					break;
-				case CorrelatorStateSummary.StatusCode.Processed:
-				case CorrelatorStateSummary.StatusCode.ProcessingFailed:
-					bool wasSuccessful = state.Status == CorrelatorStateSummary.StatusCode.Processed;
-					ret.Content = (wasSuccessful ? "Clock skew is fixed." : "Failed to fix clock skew.") + Environment.NewLine;
+				case CorrelationStateSummary.StatusCode.Processed:
+				case CorrelationStateSummary.StatusCode.ProcessingFailed:
+					bool wasSuccessful = state.Status == CorrelationStateSummary.StatusCode.Processed;
+					content = (wasSuccessful ? "Clock skew is fixed." : "Failed to fix clock skew.") + Environment.NewLine;
 					if (state.Report != null)
-						ret.Content += "*1 View report.* ";
-					ret.Content += wasSuccessful ? "*2 Fix again*" : "*2 Try again*";
+						content += "*1 View report.* ";
+					content += wasSuccessful ? "*2 Fix again*" : "*2 Try again*";
 					if (!wasSuccessful)
-						ret.Color = ControlData.StatusColor.Error;
+						color = ControlData.StatusColor.Error;
 					else
-						ret.Color = ControlData.StatusColor.Success;
+						color = ControlData.StatusColor.Success;
 					break;
 			}
 
-			return ret;
+			return new ControlData(false, content, color, progress);
 		}
 
 		async void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
 		{
-			var state = postprocessorsManager.GetCorrelatorStateSummary();
+			var state = correlationManager.StateSummary;
 			switch (actionId)
 			{
 				case "1":
 					switch (state.Status)
 					{
-						case CorrelatorStateSummary.StatusCode.Processed:
-						case CorrelatorStateSummary.StatusCode.ProcessingFailed:
+						case CorrelationStateSummary.StatusCode.Processed:
+						case CorrelationStateSummary.StatusCode.ProcessingFailed:
 							if (state.Report != null)
 								ShowTextInTextViewer(state.Report);
 							break;
@@ -86,11 +85,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				case "2":
 					switch (state.Status)
 					{
-						case CorrelatorStateSummary.StatusCode.NeedsProcessing:
-						case CorrelatorStateSummary.StatusCode.Processed:
-						case CorrelatorStateSummary.StatusCode.ProcessingFailed:
-							await this.postprocessorsManager.RunPostprocessors(
-								postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind));
+						case CorrelationStateSummary.StatusCode.NeedsProcessing:
+						case CorrelationStateSummary.StatusCode.Processed:
+						case CorrelationStateSummary.StatusCode.ProcessingFailed:
+							this.correlationManager.Run();
 							break;
 					}
 					break;

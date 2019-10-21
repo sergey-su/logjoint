@@ -8,7 +8,7 @@ namespace LogJoint.Postprocessing.StateInspector
 	public class StateInspectorVisualizerModel : IStateInspectorVisualizerModel
 	{
 		public StateInspectorVisualizerModel(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			ISynchronizationContext invokeSync,
 			IUserNamesProvider shortNamesManager)
@@ -40,8 +40,8 @@ namespace LogJoint.Postprocessing.StateInspector
 		void UpdateOutputs()
 		{
 			var newOutputs = new HashSet<IStateInspectorOutput>(
-				postprocessorsManager.LogSourcePostprocessorsOutputs
-					.Where(output => output.OutputStatus == LogSourcePostprocessorOutput.Status.Finished || output.OutputStatus == LogSourcePostprocessorOutput.Status.Outdated)
+				postprocessorsManager.LogSourcePostprocessors
+					.Where(output => output.OutputStatus == LogSourcePostprocessorState.Status.Finished || output.OutputStatus == LogSourcePostprocessorState.Status.Outdated)
 					.Select(output => output.OutputData)
 					.OfType<IStateInspectorOutput>()
 					.Where(output => !output.LogSource.IsDisposed)
@@ -129,7 +129,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			}
 		};
 
-		readonly IManager postprocessorsManager;
+		readonly IManagerInternal postprocessorsManager;
 		readonly IUserNamesProvider shortNamesManager;
 		HashSet<IStateInspectorOutput> outputs = new HashSet<IStateInspectorOutput>();
 		Dictionary<string, RotatedLogGroup> groups = new Dictionary<string, RotatedLogGroup>();

@@ -15,9 +15,9 @@ namespace LogJoint.Postprocessing
 			this.flowCompletion = flowCompletion;
 		}
 
-		public override LogSourcePostprocessorOutput GetData()
+		public override LogSourcePostprocessorState GetData()
 		{
-			return ctx.owner.BuildData(LogSourcePostprocessorOutput.Status.InProgress, progress?.ProgressValue, null, null);
+			return ctx.owner.BuildData(LogSourcePostprocessorState.Status.InProgress, progress?.ProgressValue, null, null);
 		}
 
 		public override bool? PostprocessorNeedsRunning => null;

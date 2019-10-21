@@ -28,7 +28,7 @@ namespace LogJoint.Postprocessing
 		/// Makes data object that is returned from <see cref="PostprocessorsManager"/> API
 		/// for given associated log source and postprocessor
 		/// </summary>
-		public abstract LogSourcePostprocessorOutput GetData();
+		public abstract LogSourcePostprocessorState GetData();
 
 		/// <summary>
 		/// Checks state's exit conditions and return new state is state transition is required.

@@ -25,7 +25,7 @@ namespace LogJoint.Postprocessing.Correlation
 
 		public Task<ISolutionResult> Correlate(
 			Dictionary<NodeId, IEnumerable<Messaging.Event>> input,
-			List<NodesConstraint> fixedConstraints,
+			List<FixedConstraint> fixedConstraints,
 			HashSet<string> allowInstancesMergingForRoles
 		)
 		{
@@ -47,12 +47,12 @@ namespace LogJoint.Postprocessing.Correlation
 			{
 				log.AppendLine("Correlation is not required: only one node is found in the log(s)");
 				solution = new SolutionResult(SolutionStatus.Solved, 
-					nodes.ToDictionary(n => n.Key, n => new NodeSolution(TimeSpan.Zero, new List<TimeDeltaEntry>(), 0)));
+					nodes.ToDictionary(n => n.Key, n => (INodeSolution)new NodeSolution(TimeSpan.Zero, new List<TimeDeltaEntry>(), 0)));
 			}
 			else if (internodeMessages.Count == 0 && fixedConstraints.Count == 0)
 			{
 				log.AppendFormat("Correlation is not possible: no inter-node messages found");
-				solution = new SolutionResult(SolutionStatus.NoInternodeMessages, new Dictionary<NodeId, NodeSolution>());
+				solution = new SolutionResult(SolutionStatus.NoInternodeMessages, new Dictionary<NodeId, INodeSolution>());
 			}
 			else
 			{
@@ -162,7 +162,7 @@ namespace LogJoint.Postprocessing.Correlation
 				log.AppendFormat("#{0}\t{1}{2}", i.Value, i.Key.NodeId, Environment.NewLine);
 		}
 
-		private void PrintFixedConstraints(List<NodesConstraint> fixedConstraints, 
+		private void PrintFixedConstraints(List<FixedConstraint> fixedConstraints, 
 			Dictionary<NodeId, Node> nodes, InternodeMessagesMap map, StringBuilder log)
 		{
 			if (fixedConstraints.Count == 0)

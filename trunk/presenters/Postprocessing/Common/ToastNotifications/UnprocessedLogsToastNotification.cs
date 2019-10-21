@@ -9,13 +9,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
 	public class UnprocessedLogsToastNotification: IToastNotificationItem
 	{
-		IManager ppm;
+		IManagerInternal ppm;
 		PostprocessorKind postprocessorKind;
 		int nrOfUnprocessed;
 		double? progress;
 
 		public UnprocessedLogsToastNotification(
-			IManager ppm,
+			IManagerInternal ppm,
 			ILogSourcesManager lsm,
 			PostprocessorKind postprocessorKind
 		)
@@ -30,10 +30,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		void IToastNotificationItem.PerformAction (string actionId)
 		{
-			ppm.RunPostprocessor(
-				ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)
-				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
-				.ToArray()
+			ppm.RunPostprocessors(
+				ppm.LogSourcePostprocessors.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)
 			);
 		}
 
@@ -61,7 +59,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		void Update()
 		{
-			var outputs = ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
+			var outputs = ppm.LogSourcePostprocessors.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
 
 			int oldNrOfUnprocessed = nrOfUnprocessed;
 
@@ -71,11 +69,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			{
 				switch (output.OutputStatus)
 				{
-				case LogSourcePostprocessorOutput.Status.InProgress:
-				case LogSourcePostprocessorOutput.Status.Loading:
+				case LogSourcePostprocessorState.Status.InProgress:
+				case LogSourcePostprocessorState.Status.Loading:
 					progress = output.Progress;
 					break;
-				case LogSourcePostprocessorOutput.Status.NeverRun:
+				case LogSourcePostprocessorState.Status.NeverRun:
 					++nrOfUnprocessed;
 					break;
 				}

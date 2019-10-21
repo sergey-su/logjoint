@@ -35,7 +35,8 @@ namespace LogJoint
 		public Persistence.IStorageManager StorageManager { get; internal set; }
 		public Telemetry.ITelemetryUploader TelemetryUploader { get; internal set; }
 		public Progress.IProgressAggregator ProgressAggregator { get; internal set; }
-		public Postprocessing.IManager PostprocessorsManager { get; internal set; }
+		public Postprocessing.IManagerInternal PostprocessorsManager { get; internal set; }
+		public Postprocessing.Correlation.ICorrelationManager CorrelationManager { get; internal set; }
 		public IModel ExpensibilityEntryPoint { get; internal set; }
 		public Postprocessing.IUserNamesProvider AnalyticsShortNames { get; internal set; }
 		public ISynchronizationContext SynchronizationContext { get; internal set; }
@@ -259,7 +260,11 @@ namespace LogJoint
 
 			Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 
-			Postprocessing.IManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
+			Postprocessing.ILogPartTokenFactories logPartTokenFactories = new Postprocessing.LogPartTokenFactories();
+
+			Postprocessing.Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories = new Postprocessing.Correlation.SameNodeDetectionTokenFactories();
+
+			Postprocessing.IManagerInternal postprocessorsManager = new Postprocessing.PostprocessorsManager(
 				logSourcesManager,
 				telemetryCollector,
 				modelSynchronizationContext,
@@ -267,18 +272,31 @@ namespace LogJoint
 				heartBeatTimer,
 				progressAggregator,
 				globalSettingsAccessor,
-				new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess),
-				traceSourceFactory
+				new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess, logPartTokenFactories, sameNodeDetectionTokenFactories),
+				traceSourceFactory,
+				logPartTokenFactories,
+				sameNodeDetectionTokenFactories,
+				changeNotification
 			);
+
+			Postprocessing.Correlation.ICorrelationManager correlationManager = new Postprocessing.Correlation.CorrelationManager(
+				postprocessorsManager,
+				solverFactory,
+				modelSynchronizationContext,
+				logSourcesManager,
+				changeNotification,
+				telemetryCollector
+			);
+
 
 			Postprocessing.IModel postprocessingModel = new Postprocessing.Model(
 				postprocessorsManager,
 				timeSeriesTypesAccess,
-				new Postprocessing.StateInspector.Model(tempFilesManager),
-				new Postprocessing.Timeline.Model(tempFilesManager),
-				new Postprocessing.SequenceDiagram.Model(tempFilesManager),
+				new Postprocessing.StateInspector.Model(tempFilesManager, logPartTokenFactories),
+				new Postprocessing.Timeline.Model(tempFilesManager, logPartTokenFactories),
+				new Postprocessing.SequenceDiagram.Model(tempFilesManager, logPartTokenFactories),
 				new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess),
-				solverFactory
+				new Postprocessing.Correlation.Model(tempFilesManager, logPartTokenFactories, sameNodeDetectionTokenFactories)
 			);
 
 			AutoUpdate.IFactory autoUpdateFactory = new AutoUpdate.Factory(
@@ -382,6 +400,7 @@ namespace LogJoint
 				TelemetryUploader = telemetryUploader,
 				ProgressAggregator = progressAggregator,
 				PostprocessorsManager = postprocessorsManager,
+				CorrelationManager = correlationManager,
 				ExpensibilityEntryPoint = expensibilityModel,
 				AnalyticsShortNames = analyticsShortNames,
 				SynchronizationContext = modelSynchronizationContext,

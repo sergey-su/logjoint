@@ -9,7 +9,7 @@ namespace LogJoint.Postprocessing.Timeline
 	public class TimelineVisualizerModel : ITimelineVisualizerModel
 	{
 		public TimelineVisualizerModel(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			IUserNamesProvider shortNames,
 			ILogSourceNamesProvider logSourceNamesProvider)
@@ -63,8 +63,8 @@ namespace LogJoint.Postprocessing.Timeline
 					g.IsInitialized = false;
 
 			var newOutputs = ImmutableHashSet.CreateRange(
-				postprocessorsManager.LogSourcePostprocessorsOutputs
-					.Where(output => output.OutputStatus == LogSourcePostprocessorOutput.Status.Finished || output.OutputStatus == LogSourcePostprocessorOutput.Status.Outdated)
+				postprocessorsManager.LogSourcePostprocessors
+					.Where(output => output.OutputStatus == LogSourcePostprocessorState.Status.Finished || output.OutputStatus == LogSourcePostprocessorState.Status.Outdated)
 					.Select(output => output.OutputData)
 					.OfType<ITimelinePostprocessorOutput>()
 					.Where(output => !output.LogSource.IsDisposed)
@@ -288,7 +288,7 @@ namespace LogJoint.Postprocessing.Timeline
 			public string GroupDisplayName;
 		};
 
-		readonly IManager postprocessorsManager;
+		readonly IManagerInternal postprocessorsManager;
 		readonly IEntitiesComparer entitiesComparer;
 		ImmutableList<IActivity> activities = ImmutableList.Create<IActivity>();
 		ImmutableList<IEvent> events = ImmutableList.Create<IEvent>();

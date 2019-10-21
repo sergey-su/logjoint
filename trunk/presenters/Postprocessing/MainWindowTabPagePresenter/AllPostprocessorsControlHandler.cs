@@ -1,4 +1,5 @@
 ﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Correlation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,33 +8,55 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	class AllPostprocessorsControlHandler : IViewControlHandler
 	{
-		readonly IManager postprocessorsManager;
+		readonly IManagerInternal postprocessorsManager;
+		readonly Func<LogSourcePostprocessorState[]> getOutputs;
+		readonly Func<ControlData> getControlData;
 
-		public AllPostprocessorsControlHandler(IManager postprocessorsManager)
+		public AllPostprocessorsControlHandler(
+			IManagerInternal postprocessorsManager,
+			ICorrelationManager correlationManager
+		)
 		{
 			this.postprocessorsManager = postprocessorsManager;
+			this.getOutputs = Selectors.Create(
+				() => postprocessorsManager.LogSourcePostprocessors,
+				() => correlationManager.StateSummary,
+				(outputs, correlatorSummary) =>
+					outputs.GetAutoPostprocessingCapableOutputs()
+					.Union(GetCorrelationOutputs(outputs, correlatorSummary))
+					.ToArray()
+			);
+			this.getControlData = Selectors.Create(
+				getOutputs,
+				outputs => {
+					var relevantPostprocessorExists = outputs.Any();
+
+					return new ControlData(
+						!relevantPostprocessorExists,
+						"*action Run all postprocessors*",
+						ControlData.StatusColor.Neutral
+					);
+				}
+			);
 		}
 
-		ControlData IViewControlHandler.GetCurrentData()
-		{
-			var ret = new ControlData();
-
-			var relevantPostprocessorExists = GetRelevantLogSourcePostprocessors().Any();
-
-			ret.Disabled = !relevantPostprocessorExists;
-			ret.Content = "*action Run all postprocessors*";
-
-			return ret;
-		}
+		ControlData IViewControlHandler.GetCurrentData() => getControlData();
 
 		async void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
 		{
-			await postprocessorsManager.RunPostprocessors(GetRelevantLogSourcePostprocessors().ToArray());
+			await postprocessorsManager.RunPostprocessors(getOutputs());
 		}
 
-		private IEnumerable<LogSourcePostprocessorOutput> GetRelevantLogSourcePostprocessors()
+		static IEnumerable<LogSourcePostprocessorState> GetCorrelationOutputs(
+			IReadOnlyList<LogSourcePostprocessorState> outputs, CorrelationStateSummary status)
 		{
-			return postprocessorsManager.GetAutoPostprocessingCapableOutputs();
+			if (status.Status == CorrelationStateSummary.StatusCode.NeedsProcessing
+			 || status.Status == CorrelationStateSummary.StatusCode.Processed
+			 || status.Status == CorrelationStateSummary.StatusCode.ProcessingFailed)
+			{
+				return outputs.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator);
+			}
+			return Enumerable.Empty<LogSourcePostprocessorState>();
 		}
 	};
 }

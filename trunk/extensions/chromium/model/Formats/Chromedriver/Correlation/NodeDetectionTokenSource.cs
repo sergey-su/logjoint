@@ -32,7 +32,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			await Task.WhenAll(processIdTask, logsTask);
 
 			if (processIdTask.Result.Length == 0 || logsTask.Result.Count == 0)
-				return new NullNodeDetectionToken();
+				return null;
 
 
 			return new NodeDetectionToken(

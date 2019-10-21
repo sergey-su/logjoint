@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LogJoint.Postprocessing
 {
-	public class AggregatedRunSummary: IPostprocessorRunSummary
+	class AggregatedRunSummary: IPostprocessorRunSummary
 	{
 		string report;
 		bool hasErrors, hasWarnings;

@@ -3,13 +3,32 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
-	public class Model : IModel
+	class Model : IModel
 	{
 		readonly ITempFilesManager tempFiles;
+		readonly ILogPartTokenFactories logPartTokenFactories;
 
-		public Model(ITempFilesManager tempFiles)
+		public Model(ITempFilesManager tempFiles, ILogPartTokenFactories logPartTokenFactories)
 		{
 			this.tempFiles = tempFiles;
+			this.logPartTokenFactories = logPartTokenFactories;
+		}
+
+		PostprocessorOutputBuilder IModel.CreatePostprocessorOutputBuilder()
+		{
+			return new PostprocessorOutputBuilder
+			{
+				build = (postprocessorInput, builder) => StateInspectorOutput.SerializePostprocessorOutput(
+					builder.events,
+					builder.rotatedLogPartToken,
+					logPartTokenFactories,
+					builder.triggersConverter,
+					postprocessorInput.InputContentsEtag,
+					postprocessorInput.OutputFileName,
+					tempFiles,
+					postprocessorInput.CancellationToken
+				)
+			};
 		}
 
 		Task IModel.SavePostprocessorOutput(
@@ -22,6 +41,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			return StateInspectorOutput.SerializePostprocessorOutput(
 				events,
 				rotatedLogPartToken,
+				logPartTokenFactories,
 				triggersConverter,
 				postprocessorInput.InputContentsEtag,
 				postprocessorInput.OutputFileName,

@@ -71,15 +71,14 @@ namespace LogJoint.Postprocessing
 			return input;
 		}
 	
-		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IManager postprocessorsManager, PostprocessorKind postprocessorKind)
+		public static LogSourcePostprocessorState[] GetPostprocessorOutputsByPostprocessorId(this IReadOnlyList<LogSourcePostprocessorState> outputs, PostprocessorKind postprocessorKind)
 		{
-			return postprocessorsManager
-				.LogSourcePostprocessorsOutputs
-				.Where(output => output.PostprocessorMetadata.Kind == postprocessorKind)
+			return outputs
+				.Where(output => output.Postprocessor.Kind == postprocessorKind)
 				.ToArray();
 		}
 
-		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IManager postprocessorsManager)
+		public static IEnumerable<LogSourcePostprocessorState> GetAutoPostprocessingCapableOutputs(this IReadOnlyList<LogSourcePostprocessorState> outputs)
 		{
 			bool isRelevantPostprocessor(PostprocessorKind id)
 			{
@@ -87,34 +86,21 @@ namespace LogJoint.Postprocessing
 					   id == PostprocessorKind.StateInspector
 					|| id == PostprocessorKind.Timeline
 					|| id == PostprocessorKind.SequenceDiagram
-					|| id == PostprocessorKind.TimeSeries
-					|| id == PostprocessorKind.Correlator;
+					|| id == PostprocessorKind.TimeSeries;
 			}
 
-			bool isStatusOk(LogSourcePostprocessorOutput output)
+			bool isStatusOk(LogSourcePostprocessorState output)
 			{
-				if (output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
-				{
-					var status = postprocessorsManager.GetCorrelatorStateSummary().Status;
-					return
-						   status == CorrelatorStateSummary.StatusCode.NeedsProcessing
-						|| status == CorrelatorStateSummary.StatusCode.Processed
-						|| status == CorrelatorStateSummary.StatusCode.ProcessingFailed;
-				}
-				else
-				{
-					var status = output.OutputStatus;
-					return
-						   status == LogSourcePostprocessorOutput.Status.NeverRun
-						|| status == LogSourcePostprocessorOutput.Status.Failed
-						|| status == LogSourcePostprocessorOutput.Status.Outdated;
-				}
+				var status = output.OutputStatus;
+				return
+					   status == LogSourcePostprocessorState.Status.NeverRun
+					|| status == LogSourcePostprocessorState.Status.Failed
+					|| status == LogSourcePostprocessorState.Status.Outdated;
 			}
 
 			return
-				postprocessorsManager
-				.LogSourcePostprocessorsOutputs
-				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.Kind) && isStatusOk(output));
+				outputs
+				.Where(output => isRelevantPostprocessor(output.Postprocessor.Kind) && isStatusOk(output));
 		}
 
 		internal static string MakePostprocessorOutputFileName(this ILogSourcePostprocessor pp)
@@ -137,90 +123,6 @@ namespace LogJoint.Postprocessing
 				}
 			}
 			return false;
-		}
-
-		public static CorrelatorStateSummary GetCorrelatorStateSummary(this IManager postprocessorsManager)
-		{
-			var correlationOutputs =
-				postprocessorsManager
-					.LogSourcePostprocessorsOutputs
-					.Where(output => output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
-					.ToArray();
-			if (correlationOutputs.Length < 2)
-			{
-				return new CorrelatorStateSummary() { Status = CorrelatorStateSummary.StatusCode.PostprocessingUnavailable };
-			}
-			var correlatableLogsIds = postprocessorsManager.GetCorrelatableLogsConnectionIds();
-			int numMissingOutput = 0;
-			int numProgressing = 0;
-			int numFailed = 0;
-			int numCorrelationContextMismatches = 0;
-			int numCorrelationResultMismatches = 0;
-			double? progress = null;
-			foreach (var i in correlationOutputs)
-			{
-				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.InProgress)
-				{
-					numProgressing++;
-					if (progress == null && i.Progress != null)
-						progress = i.Progress;
-				}
-				var typedOutput = i.OutputData as ICorrelatorPostprocessorOutput;
-				if (typedOutput == null)
-				{
-					++numMissingOutput;
-				}
-				else
-				{
-					if (!typedOutput.CorrelatedLogsConnectionIds.IsSupersetOf(correlatableLogsIds))
-						++numCorrelationContextMismatches;
-					var actualOffsets = i.LogSource.IsDisposed ? TimeOffsets.Empty : i.LogSource.Provider.TimeOffsets;
-					if (typedOutput.Solution.BaseDelta != actualOffsets.BaseOffset)
-						++numCorrelationResultMismatches;
-				}
-				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.Failed)
-				{
-					++numFailed;
-				}
-			}
-			if (numProgressing != 0)
-			{
-				return new CorrelatorStateSummary()
-				{
-					Status = CorrelatorStateSummary.StatusCode.ProcessingInProgress,
-					Progress = progress
-				};
-			}
-			IPostprocessorRunSummary reportObject = correlationOutputs.First().LastRunSummary;
-			string report = reportObject != null ? reportObject.Report : null;
-			if (numMissingOutput != 0 || numCorrelationContextMismatches != 0 || numCorrelationResultMismatches != 0)
-			{
-				if (reportObject != null && reportObject.HasErrors)
-				{
-					return new CorrelatorStateSummary()
-					{
-						Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
-						Report = report
-					};
-				}
-				return new CorrelatorStateSummary()
-				{
-					Status = CorrelatorStateSummary.StatusCode.NeedsProcessing
-				};
-			}
-			if (numFailed != 0)
-			{
-				return new CorrelatorStateSummary()
-				{
-					Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
-					Report = report
-				};
-			}
-			return new CorrelatorStateSummary()
-			{
-				Status = CorrelatorStateSummary.StatusCode.Processed,
-				Report = report
-			};
 		}
 	};
 }

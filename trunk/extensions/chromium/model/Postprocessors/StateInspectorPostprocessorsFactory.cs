@@ -74,12 +74,10 @@ namespace LogJoint.Chromium.StateInspector
 
 			var events = postprocessorInput.TemplatesTracker.TrackTemplates(EnumerableAsync.Merge(eventSources.ToArray()));
 
-			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
-				events,
-				null,
-				evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger),
-				postprocessorInput
-			);
+			var serialize = postprocessing.StateInspector.CreatePostprocessorOutputBuilder()
+				.SetEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger))
+				.Build(postprocessorInput);
 
 			var tasks = new List<Task>();
 			tasks.Add(serialize);
@@ -107,12 +105,10 @@ namespace LogJoint.Chromium.StateInspector
 				webRtcEvts
 			));
 
-			var serialize = postprocessing.StateInspector.SavePostprocessorOutput(
-				events,
-				null,
-				evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger),
-				postprocessorInput
-			);
+			var serialize = postprocessing.StateInspector.CreatePostprocessorOutputBuilder()
+				.SetEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger))
+				.Build(postprocessorInput);
 			await Task.WhenAll(serialize, logMessages.Open());
 		}
 	};

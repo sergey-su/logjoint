@@ -15,7 +15,7 @@ namespace LogJoint.Postprocessing.Correlation
 			return '_' + new string(str.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
 		}
 
-		public static void AddFixedConstraints(List<NodesConstraint> fixedConstraints, IDictionary<NodeId, NodeDecision> nodeDecisions, Solver.IModel solverModel)
+		public static void AddFixedConstraints(List<FixedConstraint> fixedConstraints, IDictionary<NodeId, NodeDecision> nodeDecisions, Solver.IModel solverModel)
 		{
 			foreach (var constraint in fixedConstraints)
 			{

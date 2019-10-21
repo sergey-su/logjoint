@@ -20,7 +20,7 @@ namespace LogJoint.Chromium
 				appModel.UserDefinedFormatsManager,
 				new StateInspector.PostprocessorsFactory(appModel.Postprocessing, pluginModel),
 				new TimeSeries.PostprocessorsFactory(appModel.Postprocessing, pluginModel),
-				new Correlator.PostprocessorsFactory(appModel),
+				new Correlator.PostprocessorsFactory(appModel, pluginModel),
 				new Timeline.PostprocessorsFactory(appModel.Postprocessing, pluginModel),
 				new SequenceDiagram.PostprocessorsFactory(appModel.Postprocessing, pluginModel)
 			);

@@ -11,7 +11,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 {
 	public class SequenceDiagramVisualizerModel : ISequenceDiagramVisualizerModel
 	{
-		readonly IManager postprocessorsManager;
+		readonly IManagerInternal postprocessorsManager;
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
 		readonly IChangeNotification changeNotification;
@@ -23,7 +23,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		ImmutableArray<MetadataEntry> metadataEntries = new ImmutableArray<MetadataEntry>();
 
 		public SequenceDiagramVisualizerModel(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourceManager,
 			IUserNamesProvider shortNames,
 			ILogSourceNamesProvider logSourceNamesProvider,
@@ -76,8 +76,8 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		void UpdateOutputs()
 		{
 			var newOutputs = ImmutableHashSet.CreateRange(
-				postprocessorsManager.LogSourcePostprocessorsOutputs
-					.Where(output => output.OutputStatus == LogSourcePostprocessorOutput.Status.Finished || output.OutputStatus == LogSourcePostprocessorOutput.Status.Outdated)
+				postprocessorsManager.LogSourcePostprocessors
+					.Where(output => output.OutputStatus == LogSourcePostprocessorState.Status.Finished || output.OutputStatus == LogSourcePostprocessorState.Status.Outdated)
 					.Select(output => output.OutputData)
 					.OfType<ISequenceDiagramPostprocessorOutput>()
 					.Where(output => !output.LogSource.IsDisposed)

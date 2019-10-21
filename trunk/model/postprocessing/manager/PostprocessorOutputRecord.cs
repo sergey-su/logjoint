@@ -6,6 +6,7 @@ namespace LogJoint.Postprocessing
 	{
 		public readonly ILogSourcePostprocessor metadata;
 		public readonly LogSourceRecord logSourceRecord;
+		private readonly Action fireChangeNotification;
 		public PostprocessorOutputRecordState state { get; private set; }
 
 		public PostprocessorOutputRecord(
@@ -22,6 +23,7 @@ namespace LogJoint.Postprocessing
 		{
 			this.metadata = metadata;
 			this.logSourceRecord = logSourceRecord;
+			this.fireChangeNotification = fireChangeNotification;
 			state = new LoadingState(new PostprocessorOutputRecordState.Context()
 			{
 				owner = this,
@@ -43,6 +45,7 @@ namespace LogJoint.Postprocessing
 			var oldState = state;
 			state = newState;
 			oldState.Dispose();
+			fireChangeNotification();
 			return true;
 		}
 
@@ -51,17 +54,16 @@ namespace LogJoint.Postprocessing
 			state.Dispose();
 		}
 
-		public LogSourcePostprocessorOutput BuildData(
-			LogSourcePostprocessorOutput.Status status,
+		public LogSourcePostprocessorState BuildData(
+			LogSourcePostprocessorState.Status status,
 			double? progress = null,
 			object outputData = null,
 			IPostprocessorRunSummary lastRunSummary = null)
 		{
-			return new LogSourcePostprocessorOutput
+			return new LogSourcePostprocessorState
 			{
 				LogSource = logSourceRecord.logSource,
-				LogSourceMeta = logSourceRecord.metadata,
-				PostprocessorMetadata = metadata,
+				Postprocessor = metadata,
 				OutputStatus = status,
 				Progress = progress,
 				OutputData = outputData,

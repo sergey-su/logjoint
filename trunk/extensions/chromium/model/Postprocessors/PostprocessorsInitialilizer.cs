@@ -28,22 +28,19 @@ namespace LogJoint.Chromium
 			SequenceDiagram.IPostprocessorsFactory sequenceDiagramPostprocessorsFactory
 		)
 		{
-			Func<string, string, IUserDefinedFactory> findFormat = (company, formatName) =>
+			IUserDefinedFactory findFormat(string company, string formatName)
 			{
 				var ret = userDefinedFormatsManager.Items.FirstOrDefault(
 					f => f.CompanyName == company && f.FormatName == formatName);
 				if (ret == null)
 					throw new Exception(string.Format("Log format {0} is not registered in LogJoint", formatName));
 				return ret;
-			};
+			}
 
 			this.chromeDebugLogFormat = findFormat("Google", "Chrome debug log");
 			this.webRtcInternalsDumpFormat = findFormat("Google", "Chrome WebRTC internals dump as log");
 			this.chromeDriverLogFormat = findFormat("Google", "chromedriver");
 			this.httpArchiveFormat = findFormat("W3C", "HTTP Archive (HAR)");
-
-			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
-			postprocessorsManager.RegisterCrossLogSourcePostprocessor(correlatorPostprocessorType);
 
 			this.chromeDebugLogMeta = new LogSourceMetadata(
 				chromeDebugLogFormat,
@@ -51,31 +48,31 @@ namespace LogJoint.Chromium
 				timeSeriesPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				timelinePostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				sequenceDiagramPostprocessorsFactory.CreateChromeDebugPostprocessor(),
-				correlatorPostprocessorType
+				correlatorPostprocessorsFactory.CreateChromeDebugPostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
+			postprocessorsManager.Register(this.chromeDebugLogMeta);
 
 			this.webRtcInternalsDumpMeta = new LogSourceMetadata(
 				webRtcInternalsDumpFormat,
 				stateInspectorPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor(),
 				timeSeriesPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor(),
-				correlatorPostprocessorType
+				correlatorPostprocessorsFactory.CreateWebRtcInternalsPostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.webRtcInternalsDumpMeta);
+			postprocessorsManager.Register(this.webRtcInternalsDumpMeta);
 
 			this.chromeDriverLogMeta = new LogSourceMetadata(
 				chromeDriverLogFormat,
 				timelinePostprocessorsFactory.CreateChromeDriverPostprocessor(),
-				correlatorPostprocessorType
+				correlatorPostprocessorsFactory.CreateChromeDriverPostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.chromeDriverLogMeta);
+			postprocessorsManager.Register(this.chromeDriverLogMeta);
 
 			this.httpArchiveMeta = new LogSourceMetadata(
 				httpArchiveFormat,
 				timelinePostprocessorsFactory.CreateHttpArchivePostprocessor(),
 				sequenceDiagramPostprocessorsFactory.CreateHttpArchivePostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.httpArchiveMeta);
+			postprocessorsManager.Register(this.httpArchiveMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDebugLog

@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml;
 using System.Xml.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
-	public class StateInspectorOutput : IStateInspectorOutput
+	class StateInspectorOutput : IStateInspectorOutput
 	{
-		public StateInspectorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory rotatedLogPartFactory = null)
+		public StateInspectorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactories rotatedLogPartFactories)
 		{
 			this.logSource = p.LogSource;
 
@@ -22,7 +21,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			{
 				if (eventsDeserializer.TryDeserialize(elt, out var evt))
 					events.Add(evt);
-				else if (rotatedLogPartFactory.TryReadLogPartToken(elt, out var tmp))
+				else if (rotatedLogPartFactories.TryReadLogPartToken(elt, out var tmp))
 					this.rotatedLogPartToken = tmp;
 				p.Cancellation.ThrowIfCancellationRequested();
 			}
@@ -31,6 +30,7 @@ namespace LogJoint.Postprocessing.StateInspector
 		public static Task SerializePostprocessorOutput(
 			IEnumerableAsync<Event[]> events,
 			Task<ILogPartToken> rotatedLogPartToken,
+			ILogPartTokenFactories logPartTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
 			string outputFileName,
@@ -41,6 +41,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			return events.SerializePostprocessorOutput<Event, EventsSerializer, IEventsVisitor>(
 				triggerSerializer => new EventsSerializer(triggerSerializer),
 				rotatedLogPartToken,
+				logPartTokenFactories,
 				triggersConverter,
 				contentsEtagAttr,
 				"root",

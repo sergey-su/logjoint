@@ -14,16 +14,11 @@ namespace LogJoint.Postprocessing
 	/// </summary>
 	public interface IManager
 	{
+		void Register(LogSourceMetadata meta);
+		void Register(ILogPartTokenFactory logPartFactory);
+		void Register(Correlation.ISameNodeDetectionTokenFactory factory);
+		[Obsolete]
 		void RegisterLogType(LogSourceMetadata meta);
-		void RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor);
-		event EventHandler Changed; // todo: remove
-		IEnumerable<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; }
-		IEnumerable<ILogSource> KnownLogSources { get; }
-		IEnumerable<LogSourceMetadata> KnownLogTypes { get; }
-		Task<bool> RunPostprocessor(
-			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources,
-			object customData = null
-		);
 	};
 
 	/// <summary>
@@ -49,29 +44,6 @@ namespace LogJoint.Postprocessing
 	{
 		PostprocessorKind Kind { get; }
 		Task<IPostprocessorRunSummary> Run(LogSourcePostprocessorInput[] forLogs);
-	};
-
-	/// <summary>
-	/// Result of a log postprocessor
-	/// </summary>
-	public struct LogSourcePostprocessorOutput
-	{
-		public ILogSource LogSource;
-		public LogSourceMetadata LogSourceMeta;
-		public ILogSourcePostprocessor PostprocessorMetadata;
-		public enum Status
-		{
-			NeverRun,
-			InProgress,
-			Loading,
-			Finished,
-			Failed,
-			Outdated,
-		};
-		public Status OutputStatus;
-		public IPostprocessorRunSummary LastRunSummary;
-		public object OutputData;
-		public double? Progress;
 	};
 
 	public struct LogSourcePostprocessorInput
@@ -107,5 +79,13 @@ namespace LogJoint.Postprocessing
 	{
 		string ETag { get; }
  	};
- 
+
+	public interface IPostprocessorRunSummary
+	{
+		bool HasErrors { get; }
+		bool HasWarnings { get; }
+		string Report { get; }
+		IPostprocessorRunSummary GetLogSpecificSummary(ILogSource ls);
+	};
+
 }

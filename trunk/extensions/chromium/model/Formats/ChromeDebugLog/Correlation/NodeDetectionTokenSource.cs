@@ -36,11 +36,11 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			await Task.WhenAll(processIdTask, candidateEventsTask, logsTask);
 
 			if (processIdTask.Result.Length == 0)
-				return new NullNodeDetectionToken();
+				return null;
 
 			var iceCandidates = candidateEventsTask.Result.ToDictionarySafe(e => e.ObjectId, e => e, (e, e2) => e);
 			if (iceCandidates.Count == 0 && logsTask.Result.Count == 0)
-				return new NullNodeDetectionToken();
+				return null;
 
 			return new NodeDetectionToken(
 				processIdTask.Result,

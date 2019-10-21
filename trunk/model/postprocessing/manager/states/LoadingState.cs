@@ -64,9 +64,9 @@ namespace LogJoint.Postprocessing
 
 		}
 
-		public override LogSourcePostprocessorOutput GetData()
+		public override LogSourcePostprocessorState GetData()
 		{
-			return ctx.owner.BuildData(LogSourcePostprocessorOutput.Status.Loading, progress: progress);
+			return ctx.owner.BuildData(LogSourcePostprocessorState.Status.Loading, progress: progress);
 		}
 
 		public override PostprocessorOutputRecordState Refresh()

@@ -27,7 +27,7 @@ namespace LogJoint.Postprocessing
 				input => RunTimeSeriesPostprocessor(input, postprocessingModel)
 			);
 			timeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(typeof(LJT.ProfilingSeries).Assembly);
-			postprocessorsManager.RegisterLogType(new LogSourceMetadata(fac, new[]
+			postprocessorsManager.Register(new LogSourceMetadata(fac, new[]
 			{
 				timeline,
 				timeSeries
@@ -47,12 +47,10 @@ namespace LogJoint.Postprocessing
 				profilingEvents
 			);
 
-			var serialize = postprocessingModel.Timeline.SavePostprocessorOutput(
-				lister,
-				null,
-				evtTrigger => TextLogEventTrigger.Make((LJT.Message)evtTrigger),
-				input
-			);
+			var serialize = postprocessingModel.Timeline.CreatePostprocessorOutputBuilder()
+				.SetEvents(lister)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((LJT.Message)evtTrigger))
+				.Build(input);
 
 			await Task.WhenAll(serialize, logProducer.Open());
 		}

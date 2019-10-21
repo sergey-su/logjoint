@@ -10,14 +10,14 @@ namespace LogJoint.Postprocessing.Correlation
 	public class SolutionResult : ISolutionResult
 	{
 		readonly SolutionStatus status;
-		readonly IReadOnlyDictionary<NodeId, NodeSolution> nodeSolutions;
+		readonly IReadOnlyDictionary<NodeId, INodeSolution> nodeSolutions;
 		string correlationLog = "";
 		readonly internal static string xmlName = "solution";
 
-		public SolutionResult(SolutionStatus status, Dictionary<NodeId, NodeSolution> nodeSolutions = null)
+		public SolutionResult(SolutionStatus status, Dictionary<NodeId, INodeSolution> nodeSolutions = null)
 		{
 			this.status = status;
-			this.nodeSolutions = nodeSolutions ?? new Dictionary<NodeId, NodeSolution>();
+			this.nodeSolutions = nodeSolutions ?? new Dictionary<NodeId, INodeSolution>();
 		}
 
 		public void SetLog(string correlationLog)
@@ -35,7 +35,7 @@ namespace LogJoint.Postprocessing.Correlation
 			get { return status == SolutionStatus.Solved; }
 		}
 
-		IReadOnlyDictionary<NodeId, NodeSolution> ISolutionResult.NodeSolutions
+		IReadOnlyDictionary<NodeId, INodeSolution> ISolutionResult.NodeSolutions
 		{
 			get { return nodeSolutions; }
 		}
@@ -101,7 +101,7 @@ namespace LogJoint.Postprocessing.Correlation
 		{
 			status = (SolutionStatus)int.Parse(solutionNode.Attribute("status").Value);
 			correlationLog = solutionNode.Elements("log").Select(e => e.Value).FirstOrDefault() ?? "";
-			var nodeDict = new Dictionary<NodeId, NodeSolution>();
+			var nodeDict = new Dictionary<NodeId, INodeSolution>();
 			nodeSolutions = nodeDict;
 			foreach (var nodeElement in solutionNode.Elements("node"))
 			{

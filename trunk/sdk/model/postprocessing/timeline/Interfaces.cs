@@ -4,8 +4,23 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.Timeline
 {
+	public class PostprocessorOutputBuilder
+	{
+		public PostprocessorOutputBuilder SetLogPartToken(Task<ILogPartToken> value) { rotatedLogPartToken = value; return this; }
+		public PostprocessorOutputBuilder SetEvents(IEnumerableAsync<Event[]> value) { events = value; return this; }
+		public PostprocessorOutputBuilder SetTriggersConverter(Func<object, TextLogEventTrigger> value) { triggersConverter = value; return this; }
+		public Task Build(LogSourcePostprocessorInput postprocessorParams) { return build(postprocessorParams, this); }
+
+		internal IEnumerableAsync<Event[]> events;
+		internal Task<ILogPartToken> rotatedLogPartToken;
+		internal Func<object, TextLogEventTrigger> triggersConverter;
+		internal Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+	};
+
 	public interface IModel
 	{
+		PostprocessorOutputBuilder CreatePostprocessorOutputBuilder();
+		[Obsolete]
 		Task SavePostprocessorOutput(
 			IEnumerableAsync<Event[]> events,
 			Task<ILogPartToken> rotatedLogPartToken,

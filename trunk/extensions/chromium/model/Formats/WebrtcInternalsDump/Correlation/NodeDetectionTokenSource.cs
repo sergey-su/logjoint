@@ -42,7 +42,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				.Select(x => new NodeDetectionToken.ICECandidateInfo(x.idMatch.Groups[1].Value, ((ITriggerTime)x.e.Trigger).Timestamp))
 				.ToList();
 			if (iceCandidates.Count == 0)
-				return new NullNodeDetectionToken();
+				return null;
 
 			var processIds = new HashSet<uint>(
 				eventsTask.Result
@@ -54,7 +54,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				.Select(m => uint.Parse(m.Groups[1].Value))
 			);
 			if (processIds.Count == 0)
-				return new NullNodeDetectionToken();
+				return null;
 
 			return new NodeDetectionToken(
 				processIds,

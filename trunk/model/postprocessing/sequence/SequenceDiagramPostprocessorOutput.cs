@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {
-	public class SequenceDiagramPostprocessorOutput: ISequenceDiagramPostprocessorOutput
+	class SequenceDiagramPostprocessorOutput: ISequenceDiagramPostprocessorOutput
 	{
 		public SequenceDiagramPostprocessorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory rotatedLogPartFactory)
 		{
@@ -56,6 +56,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 			IEnumerableAsync<TLBlock.Event[]> timelineComments,
 			IEnumerableAsync<SIBlock.Event[]> stateInspectorComments,
 			Task<ILogPartToken> logPartToken,
+			ILogPartTokenFactories logPartTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
 			string outputFileName,
@@ -74,20 +75,20 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
 			var serializeMessagingEvents = events.SerializePostprocessorOutput<M.Event, M.EventsSerializer, M.IEventsVisitor>(
 				triggerSerializer => new M.EventsSerializer(triggerSerializer),
-				null, triggersConverter, null, messagingEventsElementName, eventsTmpFile, tempFiles, cancellation
+				null, logPartTokenFactories, triggersConverter, null, messagingEventsElementName, eventsTmpFile, tempFiles, cancellation
 			);
 
 			var serializeTimelineComments = timelineComments.SerializePostprocessorOutput<TLBlock.Event, TLBlock.EventsSerializer, TLBlock.IEventsVisitor>(
 				triggerSerializer => new TLBlock.EventsSerializer(triggerSerializer),
-				null, triggersConverter, null, timelineCommentsElementName, timelineCommentsTmpFile, tempFiles, cancellation
+				null, logPartTokenFactories, triggersConverter, null, timelineCommentsElementName, timelineCommentsTmpFile, tempFiles, cancellation
 			);
 
 			var serializeStateInspectorComments = stateInspectorComments.SerializePostprocessorOutput<SIBlock.Event, SIBlock.EventsSerializer, SIBlock.IEventsVisitor>(
 				triggerSerializer => new SIBlock.EventsSerializer(triggerSerializer),
-				null, triggersConverter, null, stateCommentsElementName, stateInsectorCommentsTmpFile, tempFiles, cancellation
+				null, logPartTokenFactories, triggersConverter, null, stateCommentsElementName, stateInsectorCommentsTmpFile, tempFiles, cancellation
 			);
 
-			await Task.WhenAll(serializeMessagingEvents, serializeTimelineComments, serializeStateInspectorComments);
+			await Task.WhenAll(serializeMessagingEvents, serializeTimelineComments, serializeStateInspectorComments, logPartToken);
 
 			using (var outputWriter = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = true, Async = true }))
 			using (var messagingEventsReader = XmlReader.Create(eventsTmpFile))
@@ -97,7 +98,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				outputWriter.WriteStartElement("root");
 
 				new PostprocessorOutputETag(contentsEtagAttr).Write(outputWriter);
-				(await logPartToken).SafeWriteTo(outputWriter);
+				logPartTokenFactories.SafeWriteTo(await logPartToken, outputWriter);
 
 				messagingEventsReader.ReadToFollowing(messagingEventsElementName);
 				await outputWriter.WriteNodeAsync(messagingEventsReader, false);

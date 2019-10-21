@@ -6,7 +6,6 @@ namespace LogJoint.Postprocessing
 	public class Model : IModel
 	{
 		readonly ITextLogParser textLogParser = new TextLogParser();
-		readonly Func<Correlation.Solver.ISolver> solverFactory;
 
 		public Model(
 			IManager postprocessorsManager,
@@ -15,7 +14,7 @@ namespace LogJoint.Postprocessing
 			Timeline.IModel timeline,
 			SequenceDiagram.IModel sequenceDiagram,
 			TimeSeries.IModel timeSeries,
-			Func<Correlation.Solver.ISolver> solverFactory
+			Correlation.IModel correlation
 		)
 		{
 			Manager = postprocessorsManager;
@@ -24,7 +23,7 @@ namespace LogJoint.Postprocessing
 			Timeline = timeline;
 			SequenceDiagram = sequenceDiagram;
 			TimeSeries = timeSeries;
-			this.solverFactory = solverFactory;
+			Correlation = correlation;
 		}
 
 		public IManager Manager { get; private set; }
@@ -39,12 +38,7 @@ namespace LogJoint.Postprocessing
 
 		public TimeSeries.IModel TimeSeries { get; private set; }
 
-		Correlation.ICorrelator IModel.CreateCorrelator()
-		{
-			return new Correlation.Correlator(
-				new Messaging.Analisys.InternodeMessagesDetector(),
-				solverFactory());
-		}
+		public Correlation.IModel Correlation { get; private set; }
 
 		IPrefixMatcher IModel.CreatePrefixMatcher() => new PrefixMatcher();
 

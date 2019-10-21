@@ -21,8 +21,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		)
 		{
 			sessionPrefix = matcher.RegisterPrefix("Session:");
-			connPrefix = matcher.RegisterPrefix("Jingle:Conn[");
-			prefixlessConnPrefix = matcher.RegisterPrefix("Conn[");
+			connPrefix = matcher.RegisterPrefix("Conn[");
 			portPrefix = matcher.RegisterPrefix("Jingle:Port[");
 			audioRecvStreamCtrPrefix = matcher.RegisterPrefix("AudioReceiveStream: {");
 			audioRecvStreamDtrPrefix = matcher.RegisterPrefix("~AudioReceiveStream: {");
@@ -97,10 +96,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 					var objId = UpdateCommonConnectionProps(buffer, msg, m);
 					buffer.Enqueue(new ObjectDeletion(msg, objId, connectionTypeInfo));
 				}
-			}
-			else if (msgPfx.Prefixes.Contains(prefixlessConnPrefix))
-			{
-				if ((m = connDumpRe.Match(msg.Text)).Success)
+				else if ((m = connDumpRe.Match(msg.Text)).Success)
 				{
 					UpdateCommonConnectionProps(buffer, msg, m);
 				}
@@ -379,7 +375,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 
 		#region Constants
 
-		readonly int sessionPrefix, connPrefix, prefixlessConnPrefix, portPrefix, 
+		readonly int sessionPrefix, connPrefix, portPrefix, 
 			audioRecvStreamCtrPrefix, audioRecvStreamDtrPrefix, audioSendStreamCtrPrefix, audioSendStreamDtrPrefix,
 			videoRecvStreamCtrPrefix, videoRecvStreamDtrPrefix, videoSendStreamCtrPrefix, videoSendStreamDtrPrefix;
 
@@ -408,28 +404,30 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		readonly Regex sessionStateChangeRe = new Regex(sessionRe + @" Old state:(?<old>\w+) New state:(?<new>\w+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		readonly Regex sessionDestroyedRe = new Regex(sessionRe + @" is destroyed", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-		readonly static string ipRe = @"(\[[^\]]+?\]:\d+)|([\d+\.:x]+?)";
+		readonly static string ipRe = @"(\[[^\]]+?\]:\d+)|([\d\.\:x]+?)";
 
 		readonly static string candidateRePattern = @"(?<{0}id>[^:]+):(?<{0}component>\d+):(?<{0}generation>\d+):(?<{0}type>\w+):(?<{0}proto>\w+):(?<{0}ip>" + ipRe + @")";
 		readonly static string connRe = 
 			@"Conn\["
 			+ @"(?<id>\w+):"
 			+ @"(?<content_name>\w+):"
+			+ @"Net\[[^\]]+\]:"
 			+ string.Format(candidateRePattern, "local_") 
 			+ @"\-\>" + string.Format(candidateRePattern, "remote_")
 			+ @"\|(?<connected>[\-C])" 
 			+ @"(?<receiving>[\-R])"
 			+ @"(?<write_state>[Ww\-x])" 
 			+ @"(?<ice_state>[WISF])\|"
+			+ @"(?<selected_state>[\-S])\|"
 			+ @"(?<remote_nomination>\d+)\|" 
 			+ @"(?<nomination>\d+)\|" 
 			+ @"(?<prio>\d+)\|" 
 			+ @"(?<rtt>\-|\d+)"
 			+ @"\]";
-		readonly Regex connCreatedRe = new Regex("^Jingle:" + connRe + @": Connection created", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		readonly Regex connStateRe = new Regex("^Jingle:" + connRe + @": UpdateState", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		readonly Regex connCreatedRe = new Regex("^" + connRe + @": Connection created", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		readonly Regex connStateRe = new Regex("^" + connRe + @": UpdateState", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		readonly Regex connDumpRe = new Regex("^" + connRe + "$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		readonly Regex connDestroyed = new Regex("^Jingle:" + connRe + ": Connection destroyed", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		readonly Regex connDestroyed = new Regex("^" + connRe + ": Connection destroyed", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		readonly string[] connReGroupNames;
 
 		readonly static string networkRe = @"Net\[(?<net>[^\]]*)\]";

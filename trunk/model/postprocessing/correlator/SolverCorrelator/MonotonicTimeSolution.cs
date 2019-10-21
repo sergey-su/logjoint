@@ -13,7 +13,7 @@ namespace LogJoint.Postprocessing.Correlation
 		public static ISolutionResult Solve(
 			ISolver solver,
 			IDictionary<NodeId, Node> nodes, InternodeMessagesMap map, List<InternodeMessage> messages,
-			List<NodesConstraint> fixedConstraints, HashSet<string> allowInstancesMergingForRoles)
+			List<FixedConstraint> fixedConstraints, HashSet<string> allowInstancesMergingForRoles)
 		{
 			using (var solverModel = solver.CreateModel())
 			{
@@ -38,7 +38,7 @@ namespace LogJoint.Postprocessing.Correlation
 					SolutionStatus.Solved,
 					decisions.ToDictionary(
 						d => d.Key,
-						d => new NodeSolution(
+						d => (INodeSolution)new NodeSolution(
 							d.Value.TimeDelta,
 							new List<TimeDeltaEntry>(),
 							d.Value.NrOnConstraints
