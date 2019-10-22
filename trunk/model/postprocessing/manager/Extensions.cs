@@ -75,7 +75,7 @@ namespace LogJoint.Postprocessing
 		{
 			return postprocessorsManager
 				.LogSourcePostprocessorsOutputs
-				.Where(output => output.PostprocessorMetadata.Kind == postprocessorKind)
+				.Where(output => output.Postprocessor.Kind == postprocessorKind)
 				.ToArray();
 		}
 
@@ -93,7 +93,7 @@ namespace LogJoint.Postprocessing
 
 			bool isStatusOk(LogSourcePostprocessorOutput output)
 			{
-				if (output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
+				if (output.Postprocessor.Kind == PostprocessorKind.Correlator)
 				{
 					var status = postprocessorsManager.GetCorrelatorStateSummary().Status;
 					return
@@ -114,7 +114,7 @@ namespace LogJoint.Postprocessing
 			return
 				postprocessorsManager
 				.LogSourcePostprocessorsOutputs
-				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.Kind) && isStatusOk(output));
+				.Where(output => isRelevantPostprocessor(output.Postprocessor.Kind) && isStatusOk(output));
 		}
 
 		internal static string MakePostprocessorOutputFileName(this ILogSourcePostprocessor pp)
@@ -144,7 +144,7 @@ namespace LogJoint.Postprocessing
 			var correlationOutputs =
 				postprocessorsManager
 					.LogSourcePostprocessorsOutputs
-					.Where(output => output.PostprocessorMetadata.Kind == PostprocessorKind.Correlator)
+					.Where(output => output.Postprocessor.Kind == PostprocessorKind.Correlator)
 					.ToArray();
 			if (correlationOutputs.Length < 2)
 			{

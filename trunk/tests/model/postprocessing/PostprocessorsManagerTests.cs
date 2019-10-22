@@ -89,7 +89,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			Assert.AreSame(null, exposedOutput.LastRunSummary);
 			Assert.AreSame(new double?(), exposedOutput.Progress);
 			Assert.AreEqual(logSource1, exposedOutput.LogSource);
-			Assert.AreEqual(logSourcePP1, exposedOutput.PostprocessorMetadata);
+			Assert.AreEqual(logSourcePP1, exposedOutput.Postprocessor);
 
 
 			var pp1runResult = new TaskCompletionSource<IPostprocessorRunSummary> ();
@@ -106,7 +106,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			Assert.AreSame(null, exposedOutput.LastRunSummary);
 			Assert.AreSame(new double?(), exposedOutput.Progress);
 			Assert.AreEqual(logSource1, exposedOutput.LogSource);
-			Assert.AreEqual(logSourcePP1, exposedOutput.PostprocessorMetadata);
+			Assert.AreEqual(logSourcePP1, exposedOutput.Postprocessor);
 
 
 			pp1outputXmlSection.Reader.Returns(Substitute.For<XmlReader>());
@@ -120,7 +120,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			Assert.AreSame(pp1RunSummary, exposedOutput.LastRunSummary);
 			Assert.AreSame(new double?(), exposedOutput.Progress);
 			Assert.AreEqual(logSource1, exposedOutput.LogSource);
-			Assert.AreEqual(logSourcePP1, exposedOutput.PostprocessorMetadata);
+			Assert.AreEqual(logSourcePP1, exposedOutput.Postprocessor);
 		}
 
 		[Test]

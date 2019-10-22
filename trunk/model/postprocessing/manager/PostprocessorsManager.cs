@@ -19,7 +19,8 @@ namespace LogJoint.Postprocessing
 			IOutputDataDeserializer outputDataDeserializer,
 			ITraceSourceFactory traceSourceFactory,
 			ILogPartTokenFactories logPartTokenFactories,
-			Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories
+			Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories,
+			ICorrelationManager correlationManager
 		)
 		{
 			this.logSources = logSources;
@@ -171,6 +172,8 @@ namespace LogJoint.Postprocessing
 
 			await Task.WhenAll(outerTasks);
 
+			correlationManager.Refresh();
+
 			return true;
 		}
 
@@ -226,8 +229,8 @@ namespace LogJoint.Postprocessing
 			if (somethingChanged && settingsAccessor.EnableAutoPostprocessing)
 			{
 				var outputs = this.GetAutoPostprocessingCapableOutputs()
-					.Where(x => x.PostprocessorMetadata.Kind != PostprocessorKind.Correlator)
-					.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
+					.Where(x => x.Postprocessor.Kind != PostprocessorKind.Correlator)
+					.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.Postprocessor, output.LogSource))
 					.ToArray();
 				if (outputs.Length > 0)
 					((IManager)this).RunPostprocessor(outputs);
@@ -292,5 +295,6 @@ namespace LogJoint.Postprocessing
 		private readonly IOutputDataDeserializer outputDataDeserializer;
 		private readonly ILogPartTokenFactories logPartTokenFactories;
 		private readonly Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories;
+		private readonly ICorrelationManager correlationManager;
 	}
 }

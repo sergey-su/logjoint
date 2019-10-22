@@ -32,7 +32,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		{
 			ppm.RunPostprocessor(
 				ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)
-				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
+				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.Postprocessor, output.LogSource))
 				.ToArray()
 			);
 		}

@@ -60,8 +60,7 @@ namespace LogJoint.Postprocessing
 			return new LogSourcePostprocessorOutput
 			{
 				LogSource = logSourceRecord.logSource,
-				LogSourceMeta = logSourceRecord.metadata,
-				PostprocessorMetadata = metadata,
+				Postprocessor = metadata,
 				OutputStatus = status,
 				Progress = progress,
 				OutputData = outputData,

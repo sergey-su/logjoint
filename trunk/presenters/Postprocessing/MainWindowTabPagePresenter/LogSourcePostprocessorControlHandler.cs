@@ -135,9 +135,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 			var contentBuilder = new StringBuilder();
 			if (isClickableCaption)
-				contentBuilder.AppendFormat("*show {0}:*", outputs[0].PostprocessorMetadata.Kind.ToDisplayString());
+				contentBuilder.AppendFormat("*show {0}:*", outputs[0].Postprocessor.Kind.ToDisplayString());
 			else
-				contentBuilder.AppendFormat("{0}:", outputs[0].PostprocessorMetadata.Kind.ToDisplayString());
+				contentBuilder.AppendFormat("{0}:", outputs[0].Postprocessor.Kind.ToDisplayString());
 			if (statusText != null)
 				contentBuilder.AppendFormat("  {0}", statusText);
 			if (action != null)

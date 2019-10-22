@@ -19,8 +19,8 @@ namespace LogJoint.Postprocessing
 		void Register(Correlation.ISameNodeDetectionTokenFactory factory);
 		event EventHandler Changed; // todo: remove
 		IEnumerable<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; } // todo: return immutable
-		IEnumerable<ILogSource> KnownLogSources { get; } // todo: return immutable
-		IEnumerable<LogSourceMetadata> KnownLogTypes { get; } // todo: return immutable
+		IEnumerable<ILogSource> KnownLogSources { get; } // todo: return immutable, could be removed?
+		IEnumerable<LogSourceMetadata> KnownLogTypes { get; } // todo: return immutable, could be removed?
 		Task<bool> RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources,
 			object customData = null
@@ -58,8 +58,7 @@ namespace LogJoint.Postprocessing
 	public struct LogSourcePostprocessorOutput
 	{
 		public ILogSource LogSource;
-		public LogSourceMetadata LogSourceMeta;
-		public ILogSourcePostprocessor PostprocessorMetadata;
+		public ILogSourcePostprocessor Postprocessor;
 		public enum Status
 		{
 			NeverRun,

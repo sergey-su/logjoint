@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		{
 			return await postprocessorsManager.RunPostprocessor(
 				logs
-				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
+				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.Postprocessor, output.LogSource))
 				.ToArray()
 			);
 		}
