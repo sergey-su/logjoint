@@ -42,31 +42,27 @@ namespace LogJoint.Chromium
 			this.chromeDriverLogFormat = findFormat("Google", "chromedriver");
 			this.httpArchiveFormat = findFormat("W3C", "HTTP Archive (HAR)");
 
-			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
-			postprocessorsManager.RegisterCrossLogSourcePostprocessor(correlatorPostprocessorType);
-
 			this.chromeDebugLogMeta = new LogSourceMetadata(
 				chromeDebugLogFormat,
 				stateInspectorPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				timeSeriesPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				timelinePostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				sequenceDiagramPostprocessorsFactory.CreateChromeDebugPostprocessor(),
-				correlatorPostprocessorType
+				correlatorPostprocessorsFactory.CreateChromeDebugPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
 
 			this.webRtcInternalsDumpMeta = new LogSourceMetadata(
 				webRtcInternalsDumpFormat,
 				stateInspectorPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor(),
-				timeSeriesPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor(),
-				correlatorPostprocessorType
+				timeSeriesPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.webRtcInternalsDumpMeta);
 
 			this.chromeDriverLogMeta = new LogSourceMetadata(
 				chromeDriverLogFormat,
 				timelinePostprocessorsFactory.CreateChromeDriverPostprocessor(),
-				correlatorPostprocessorType
+				correlatorPostprocessorsFactory.CreateChromeDriverPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDriverLogMeta);
 

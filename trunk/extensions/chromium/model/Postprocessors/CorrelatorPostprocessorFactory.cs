@@ -16,21 +16,35 @@ namespace LogJoint.Chromium.Correlator
 	public interface IPostprocessorsFactory
 	{
 		ILogSourcePostprocessor CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry);
+		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
+		ILogSourcePostprocessor CreateChromeDriverPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
-		readonly IModel ljModel;
+		readonly IModel ljModel; // todo: remove
 		readonly ISynchronizationContext modelThreadSync;
 		readonly IManager postprocessorsManager;
+		readonly Postprocessing.IModel postprocessing;
 
 		public PostprocessorsFactory(IModel ljModel)
 		{
 			this.ljModel = ljModel;
 			this.modelThreadSync = ljModel.SynchronizationContext;
 			this.postprocessorsManager = ljModel.Postprocessing.Manager;
+			this.postprocessing = ljModel.Postprocessing;
 
 			postprocessorsManager.Register(Correlation.NodeDetectionToken.Factory.Instance);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
+		{
+			return new LogSourcePostprocessor(PostprocessorKind.Correlator, RunForChromeDebug);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDriverPostprocessor()
+		{
+			return new LogSourcePostprocessor(PostprocessorKind.Correlator, RunForChromeDriver);
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)
@@ -38,6 +52,56 @@ namespace LogJoint.Chromium.Correlator
 			return new LogSourcePostprocessor(
 				PostprocessorKind.Correlator,
 				inputFiles => Run(inputFiles, postprocessorsRegistry)
+			);
+		}
+
+		async Task RunForChromeDebug(LogSourcePostprocessorInput input)
+		{
+			var reader = new CDL.Reader(postprocessing.TextLogParser, input.CancellationToken).Read(input.LogFileName, input.ProgressHandler);
+
+			IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
+			var nodeId = new NodeId("chrome-debug", /*getUniqueRoleInstanceName(inputFile) todo*/ Guid.NewGuid().ToString("N"));
+			var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
+			var webRtcStateInspector = new CDL.WebRtcStateInspector(prefixMatcher);
+			var processIdDetector = new CDL.ProcessIdDetector();
+			var nodeDetectionTokenTask = (new CDL.NodeDetectionTokenSource(processIdDetector, webRtcStateInspector)).GetToken(matchedMessages);
+			var noMessagingEvents = EnumerableAsync.Empty<M.Event[]>();
+
+			var serialize = postprocessing.Correlation.SavePostprocessorOutput(
+				Task.FromResult(nodeId),
+				null,
+				noMessagingEvents,
+				nodeDetectionTokenTask,
+				evtTrigger => TextLogEventTrigger.Make((CDL.Message)evtTrigger),
+				input
+			);
+
+			await Task.WhenAll(
+				matchedMessages.Open(),
+				serialize
+			);
+		}
+
+		async Task RunForChromeDriver(LogSourcePostprocessorInput input)
+		{
+
+			var reader = (new CD.Reader(ljModel.Postprocessing.TextLogParser, input.CancellationToken)).Read(input.LogFileName, input.ProgressHandler);
+			IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
+			var nodeId = new NodeId("chrome-driver", /*getUniqueRoleInstanceName(inputFile) todo*/ Guid.NewGuid().ToString("N"));
+			var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
+			var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
+			var noMessagingEvents = EnumerableAsync.Empty<M.Event[]>();
+			var serialize = postprocessing.Correlation.SavePostprocessorOutput(
+				Task.FromResult(nodeId),
+				null,
+				noMessagingEvents,
+				nodeDetectionTokenTask,
+				evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger),
+				input
+			);
+			await Task.WhenAll(
+				matchedMessages.Open(),
+				serialize
 			);
 		}
 

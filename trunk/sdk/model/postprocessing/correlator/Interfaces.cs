@@ -187,7 +187,7 @@ namespace LogJoint.Postprocessing.Correlation
 	public interface IModel
 	{
 		Task SavePostprocessorOutput( // todo: collect args into struct?
-			NodeId nodeId,
+			Task<NodeId> nodeIdTask,
 			Task<ILogPartToken> logPartTask,
 			IEnumerableAsync<M.Event[]> events,
 			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,

@@ -12,7 +12,7 @@ namespace LogJoint.Postprocessing
 		{
 		}
 
-		string ILogPartTokenFactory.Id => "default-factory";
+		string ILogPartTokenFactory.Id => "null-factory";
 		ILogPartToken ILogPartTokenFactory.Deserialize(XElement element) => this;
 	};
 }

@@ -11,14 +11,61 @@ using M = LogJoint.Postprocessing.Messaging;
 
 namespace LogJoint.Postprocessing.Correlation
 {
-	class CorrelatorPostprocessorOutput2 // todo: remove 2 from name
+	class CorrelatorPostprocessorOutput2: ICorrelatorOutput // todo: remove 2 from name
 	{
+		readonly NodeId nodeId;
+		readonly ILogSource logSource;
+		readonly List<M.Event> events;
+		readonly ILogPartToken rotatedLogPartToken;
+		readonly ISameNodeDetectionToken sameNodeDetectionToken;
+		readonly PostprocessorOutputETag etag;
+
+		public CorrelatorPostprocessorOutput2(
+			LogSourcePostprocessorDeserializationParams p,
+			ILogPartTokenFactories rotatedLogPartFactories,
+			ISameNodeDetectionTokenFactories nodeDetectionTokenFactories)
+		{
+			this.logSource = p.LogSource;
+			var reader = p.Reader;
+
+			events = new List<M.Event>();
+			rotatedLogPartToken = new NullLogPartToken();
+			sameNodeDetectionToken = new NullSameNodeDetectionToken();
+
+			if (!reader.ReadToFollowing("root"))
+				throw new FormatException();
+			etag.Read(reader);
+
+			foreach (var elt in p.Reader.ReadChildrenElements())
+			{
+				if (rotatedLogPartFactories.TryReadLogPartToken(elt, out var tmp))
+					this.rotatedLogPartToken = tmp;
+				else if (nodeDetectionTokenFactories.TryReadLogPartToken(elt, out var tmp2))
+					sameNodeDetectionToken = tmp2;
+				else if (elt.Name == NodeId.xmlName)
+					nodeId = new NodeId(elt);
+				else if (elt.Name == messagingEventsElementName)
+				{
+					var eventsDeserializer = new M.EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
+					foreach (var me in p.Reader.ReadChildrenElements())
+						if (eventsDeserializer.TryDeserialize(elt, out var evt))
+							events.Add(evt);
+				}
+				p.Cancellation.ThrowIfCancellationRequested();
+			}
+
+			if (nodeId == null)
+				throw new FormatException("no node id found");
+
+		}
+
 		public static async Task SerializePostprocessorOutput(
-			NodeId nodeId,
+			Task<NodeId> nodeId,
 			Task<ILogPartToken> logPartToken,
 			ILogPartTokenFactories logPartTokenFactories,
 			IEnumerableAsync<M.Event[]> events,
 			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,
+			ISameNodeDetectionTokenFactories nodeDetectionTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
 			string outputFileName,
@@ -36,7 +83,7 @@ namespace LogJoint.Postprocessing.Correlation
 				null, logPartTokenFactories, triggersConverter, null, messagingEventsElementName, eventsTmpFile, tempFiles, cancellation
 			);
 
-			await Task.WhenAll(serializeMessagingEvents, logPartToken, sameNodeDetectionTokenTask);
+			await Task.WhenAll(serializeMessagingEvents, logPartToken, sameNodeDetectionTokenTask, nodeId);
 
 			using (var outputWriter = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = true, Async = true }))
 			using (var messagingEventsReader = XmlReader.Create(eventsTmpFile))
@@ -45,6 +92,8 @@ namespace LogJoint.Postprocessing.Correlation
 
 				new PostprocessorOutputETag(contentsEtagAttr).Write(outputWriter);
 				logPartTokenFactories.SafeWriteTo(await logPartToken, outputWriter);
+				nodeDetectionTokenFactories.SafeWriteTo(await sameNodeDetectionTokenTask, outputWriter);
+				(await nodeId).Serialize().WriteTo(outputWriter);
 
 				messagingEventsReader.ReadToFollowing(messagingEventsElementName);
 				await outputWriter.WriteNodeAsync(messagingEventsReader, false);
@@ -56,5 +105,15 @@ namespace LogJoint.Postprocessing.Correlation
 		}
 
 		private const string messagingEventsElementName = "messaging";
+
+		ILogSource ICorrelatorOutput.LogSource => logSource;
+
+		IEnumerable<M.Event> ICorrelatorOutput.Events => events;
+
+		ILogPartToken ICorrelatorOutput.RotatedLogPartToken => rotatedLogPartToken;
+
+		ISameNodeDetectionToken ICorrelatorOutput.SameNodeDetectionToken => sameNodeDetectionToken;
+
+		string IPostprocessorOutputETag.ETag => etag.Value;
 	};
 }

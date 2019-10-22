@@ -10,14 +10,19 @@ namespace LogJoint.Postprocessing.Correlation
 	class Model : IModel
 	{
 		readonly ITempFilesManager tempFiles;
+		readonly ILogPartTokenFactories logPartTokenFactories;
+		readonly ISameNodeDetectionTokenFactories nodeDetectionTokenFactories;
 
-		public Model(ITempFilesManager tempFiles)
+		public Model(ITempFilesManager tempFiles,
+			ILogPartTokenFactories logPartTokenFactories, ISameNodeDetectionTokenFactories nodeDetectionTokenFactories)
 		{
 			this.tempFiles = tempFiles;
+			this.logPartTokenFactories = logPartTokenFactories;
+			this.nodeDetectionTokenFactories = nodeDetectionTokenFactories;
 		}
 
 		Task IModel.SavePostprocessorOutput(
-			NodeId nodeId,
+			Task<NodeId> nodeId,
 			Task<ILogPartToken> logPartTask,
 			IEnumerableAsync<Event[]> events,
 			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,
@@ -25,7 +30,19 @@ namespace LogJoint.Postprocessing.Correlation
 			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-			throw new NotImplementedException();
+			return CorrelatorPostprocessorOutput2.SerializePostprocessorOutput(
+				nodeId,
+				logPartTask,
+				logPartTokenFactories,
+				events,
+				sameNodeDetectionTokenTask,
+				nodeDetectionTokenFactories,
+				triggersConverter,
+				postprocessorInput.InputContentsEtag,
+				postprocessorInput.OutputFileName,
+				tempFiles,
+				postprocessorInput.CancellationToken
+			);
 		}
 	}
 }

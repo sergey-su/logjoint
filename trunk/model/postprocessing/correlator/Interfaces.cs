@@ -1,11 +1,13 @@
-﻿using LogJoint.Postprocessing.Correlation;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using M = LogJoint.Postprocessing.Messaging;
 
-namespace LogJoint.Postprocessing.Correlator
+namespace LogJoint.Postprocessing.Correlation
 {
-	public interface IPostprocessorsFactory
+	public interface ICorrelatorOutput : IPostprocessorOutputETag
 	{
-		void Init(IManager postprocessorsManager);
-		ILogSourcePostprocessor CreatePostprocessor();
+		ILogSource LogSource { get; }
+		IEnumerable<M.Event> Events { get; }
+		ILogPartToken RotatedLogPartToken { get; }
+		ISameNodeDetectionToken SameNodeDetectionToken { get; }
 	};
 }

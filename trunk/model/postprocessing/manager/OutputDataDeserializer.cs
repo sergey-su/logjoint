@@ -5,11 +5,14 @@ namespace LogJoint.Postprocessing
 	{
 		readonly TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess;
 		readonly ILogPartTokenFactories logPartTokenFactories;
+		readonly Correlation.ISameNodeDetectionTokenFactories nodeDetectionTokenFactories;
 
-		public OutputDataDeserializer(TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess, ILogPartTokenFactories logPartTokenFactories)
+		public OutputDataDeserializer(TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess,
+			ILogPartTokenFactories logPartTokenFactories, Correlation.ISameNodeDetectionTokenFactories nodeDetectionTokenFactories)
 		{
 			this.timeSeriesTypesAccess = timeSeriesTypesAccess;
 			this.logPartTokenFactories = logPartTokenFactories;
+			this.nodeDetectionTokenFactories = nodeDetectionTokenFactories;
 		}
 
 		public object Deserialize(PostprocessorKind kind, LogSourcePostprocessorDeserializationParams p)
@@ -25,7 +28,7 @@ namespace LogJoint.Postprocessing
 				case PostprocessorKind.TimeSeries:
 					return new TimeSeries.TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess);
 				case PostprocessorKind.Correlator:
-					return Correlation.CorrelatorPostprocessorOutput.Parse(p.Reader);
+					return new Correlation.CorrelatorPostprocessorOutput2(p, logPartTokenFactories, nodeDetectionTokenFactories);
 				default:
 					return null;
 			}
