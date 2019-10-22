@@ -15,7 +15,6 @@ namespace LogJoint.Postprocessing
 	public interface IManager
 	{
 		void RegisterLogType(LogSourceMetadata meta); // todo: rename Register
-		void RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor); // todo: remove
 		void Register(ILogPartTokenFactory logPartFactory);
 		void Register(Correlation.ISameNodeDetectionTokenFactory factory);
 		event EventHandler Changed; // todo: remove

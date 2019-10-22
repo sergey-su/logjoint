@@ -78,11 +78,6 @@ namespace LogJoint.Postprocessing
 			get { return this.knownLogTypes.Values; }
 		}
 
-		void IManager.RegisterCrossLogSourcePostprocessor(ILogSourcePostprocessor postprocessor)
-		{
-			this.crossLogSourcePostprocessorsTypes.Add(postprocessor);
-		}
-
 		async Task<bool> IManager.RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] typesAndSources, 
 			object customData)
@@ -108,7 +103,6 @@ namespace LogJoint.Postprocessing
 					outputFileName = section.AbsolutePath;
 
 				bool needsProcessing = logSourceRecord.logSource.Visible && postprocessorRecord.state.PostprocessorNeedsRunning == true;
-				needsProcessing |= crossLogSourcePostprocessorsTypes.Contains(postprocessorRecord.metadata);
 
 				var sourceContentsEtag = logSourceRecord.logSource.Provider.Stats.ContentsEtag?.ToString();
 
@@ -292,7 +286,6 @@ namespace LogJoint.Postprocessing
 		private readonly IHeartBeatTimer heartbeat;
 		private readonly Dictionary<ILogProviderFactory, LogSourceMetadata> knownLogTypes = new Dictionary<ILogProviderFactory, LogSourceMetadata>();
 		private readonly Dictionary<ILogSource, LogSourceRecord> knownLogSources = new Dictionary<ILogSource,LogSourceRecord>();
-		private readonly HashSet<ILogSourcePostprocessor> crossLogSourcePostprocessorsTypes = new HashSet<ILogSourcePostprocessor>();
 		private readonly AsyncInvokeHelper updater;
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		private readonly LJTraceSource tracer;

@@ -18,6 +18,7 @@ namespace LogJoint.Chromium.Correlator
 		ILogSourcePostprocessor CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry);
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateChromeDriverPostprocessor();
+		ILogSourcePostprocessor CreateWebRtcInternalsPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -39,12 +40,17 @@ namespace LogJoint.Chromium.Correlator
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDebugPostprocessor()
 		{
-			return new LogSourcePostprocessor(PostprocessorKind.Correlator, RunForChromeDebug);
+			return new LogSourcePostprocessor(PostprocessorKind.Correlator, i => RunForChromeDebug(i));
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDriverPostprocessor()
 		{
-			return new LogSourcePostprocessor(PostprocessorKind.Correlator, RunForChromeDriver);
+			return new LogSourcePostprocessor(PostprocessorKind.Correlator, i => RunForChromeDriver(i));
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsPostprocessor()
+		{
+			return new LogSourcePostprocessor(PostprocessorKind.Correlator, i => RunForWebRtcInternals(i));
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)
@@ -85,8 +91,8 @@ namespace LogJoint.Chromium.Correlator
 		async Task RunForChromeDriver(LogSourcePostprocessorInput input)
 		{
 
-			var reader = (new CD.Reader(ljModel.Postprocessing.TextLogParser, input.CancellationToken)).Read(input.LogFileName, input.ProgressHandler);
-			IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
+			var reader = (new CD.Reader(postprocessing.TextLogParser, input.CancellationToken)).Read(input.LogFileName, input.ProgressHandler);
+			IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
 			var nodeId = new NodeId("chrome-driver", /*getUniqueRoleInstanceName(inputFile) todo*/ Guid.NewGuid().ToString("N"));
 			var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
 			var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
@@ -97,6 +103,29 @@ namespace LogJoint.Chromium.Correlator
 				noMessagingEvents,
 				nodeDetectionTokenTask,
 				evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger),
+				input
+			);
+			await Task.WhenAll(
+				matchedMessages.Open(),
+				serialize
+			);
+		}
+
+		async Task RunForWebRtcInternals(LogSourcePostprocessorInput input)
+		{
+			var reader = (new WRD.Reader(postprocessing.TextLogParser, input.CancellationToken)).Read(input.LogFileName, input.ProgressHandler);
+			IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
+			var nodeId = new NodeId("webrtc-int", /*getUniqueRoleInstanceName(inputFile) todo*/ Guid.NewGuid().ToString("N"));
+			var matchedMessages = WRD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
+			var webRtcStateInspector = new WRD.WebRtcStateInspector(prefixMatcher);
+			var nodeDetectionTokenTask = (new WRD.NodeDetectionTokenSource(webRtcStateInspector)).GetToken(matchedMessages);
+			var noMessagingEvents = EnumerableAsync.Empty<M.Event[]>();
+			var serialize = postprocessing.Correlation.SavePostprocessorOutput(
+				Task.FromResult(nodeId),
+				null,
+				noMessagingEvents,
+				nodeDetectionTokenTask,
+				evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger),
 				input
 			);
 			await Task.WhenAll(
@@ -131,8 +160,8 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.ChromeDebugLog.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new CDL.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
-						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
+						var reader = (new CDL.Reader(postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("chrome-debug", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
 						var webRtcStateInspector = new CDL.WebRtcStateInspector(prefixMatcher);
@@ -157,8 +186,8 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.WebRtcInternalsDump.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new WRD.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
-						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
+						var reader = (new WRD.Reader(postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("webrtc-int", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = WRD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
 						var webRtcStateInspector = new WRD.WebRtcStateInspector(prefixMatcher);
@@ -182,8 +211,8 @@ namespace LogJoint.Chromium.Correlator
 					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.ChromeDriver.LogProviderFactory)
 					.Select(inputFile =>
 					{
-						var reader = (new CD.Reader(ljModel.Postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
-						IPrefixMatcher prefixMatcher = ljModel.Postprocessing.CreatePrefixMatcher();
+						var reader = (new CD.Reader(postprocessing.TextLogParser, inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.ProgressHandler);
+						IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
 						var nodeId = new NodeId("chrome-driver", getUniqueRoleInstanceName(inputFile));
 						var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
 						var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
@@ -228,7 +257,7 @@ namespace LogJoint.Chromium.Correlator
 
 			var allowInstacesMergingForRoles = new HashSet<string>();
 
-			ICorrelator correlator = ljModel.Postprocessing.CreateCorrelator();
+			ICorrelator correlator = postprocessing.CreateCorrelator();
 			var correlatorSolution = await correlator.Correlate(
 				allLogs.ToDictionary(i => i.NodeId, i => (IEnumerable<M.Event>)i.MessagesTask.Result),
 				fixedConstraints,

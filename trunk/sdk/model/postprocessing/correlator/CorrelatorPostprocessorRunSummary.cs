@@ -1,6 +1,6 @@
 ﻿namespace LogJoint.Postprocessing.Correlation
 {
-	public class CorrelatorPostprocessorRunSummary : IPostprocessorRunSummary
+	public class CorrelatorPostprocessorRunSummary : IPostprocessorRunSummary // todo: move to model
 	{
 		bool correlationSucceeded;
 		string details;
