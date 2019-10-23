@@ -17,8 +17,9 @@ namespace LogJoint.Postprocessing.Correlation
 		readonly IChangeNotification changeNotification;
 		readonly IManagerInternal postprocessingManager;
 		readonly Func<ImmutableArray<LogSourcePostprocessorOutput>> getOutputs;
-		readonly Func<ImmutableHashSet<ICorrelatorOutput>> getCurrentOutputs;
-		ImmutableDictionary<ILogSource, ICorrelatorPostprocessorOutput> lastResult = ImmutableDictionary<ILogSource, ICorrelatorPostprocessorOutput>.Empty;
+		readonly Func<CorrelationStateSummary> getStateSummary;
+		readonly Func<ImmutableHashSet<ICorrelatorOutput>> getCurrentOutputs; // todo: remove?
+		ImmutableDictionary<ILogSource, CorrelatorRunResult> lastResult = ImmutableDictionary<ILogSource, CorrelatorRunResult>.Empty;
 
 		public CorrelationManager(
 			IManagerInternal postprocessingManager,
@@ -47,6 +48,13 @@ namespace LogJoint.Postprocessing.Correlation
 					.Select(output => output.OutputData as ICorrelatorOutput)
 					.Where(data => data != null)
 				)
+			);
+			this.getStateSummary = Selectors.Create(
+				getOutputs,
+				() => postprocessingManager.KnownLogTypes,
+				() => postprocessingManager.KnownLogSources,
+				() => lastResult,
+				GetCorrelatorStateSummary
 			);
 		}
 
@@ -124,17 +132,16 @@ namespace LogJoint.Postprocessing.Correlation
 
 			var correlatedLogsConnectionIds = postprocessingManager.GetCorrelatableLogsConnectionIds(timeOffsets.Keys);
 
-			lastResult = timeOffsets.ToDictionary(to => to.Key, to =>
-				(ICorrelatorPostprocessorOutput)new CorrelatorPostprocessorOutput(to.Value, correlatedLogsConnectionIds));
+			lastResult = timeOffsets.ToImmutableDictionary(to => to.Key, to => new CorrelatorRunResult(to.Value, correlatedLogsConnectionIds));
 
-			// todo: needed?
-			var summary = new CorrelatorPostprocessorRunSummary(correlatorSolution.Success,
-				correlatorSolution.CorrelationLog + grouppedLogsReport.ToString());
+			// todo: expose textual summary somehow
+			/*var summary = new CorrelatorPostprocessorRunSummary(correlatorSolution.Success,
+				correlatorSolution.CorrelationLog + grouppedLogsReport.ToString());*/
 
 			changeNotification.Post();
 		}
 
-		CorrelatorStateSummary ICorrelationManager.StateSummary => GetCorrelatorStateSummary();
+		CorrelationStateSummary ICorrelationManager.StateSummary => getStateSummary();
 
 		async void ICorrelationManager.Run()
 		{
@@ -148,16 +155,18 @@ namespace LogJoint.Postprocessing.Correlation
 			await DoCorrelation();
 		}
 
-		static CorrelatorStateSummary GetCorrelatorStateSummary(
+		static CorrelationStateSummary GetCorrelatorStateSummary(
 			ImmutableArray<LogSourcePostprocessorOutput> correlationOutputs,
-			ImmutableDictionary<ILogSource, ICorrelatorPostprocessorOutput> lastResult
+			IReadOnlyList<LogSourceMetadata> knownLogTypes,
+			IReadOnlyList<ILogSource> knownLogSources,
+			ImmutableDictionary<ILogSource, CorrelatorRunResult> lastResult
 		)
 		{
 			if (correlationOutputs.Length < 2)
 			{
-				return new CorrelatorStateSummary { Status = CorrelatorStateSummary.StatusCode.PostprocessingUnavailable };
+				return new CorrelationStateSummary { Status = CorrelationStateSummary.StatusCode.PostprocessingUnavailable };
 			}
-			var correlatableLogsIds = postprocessingManager.GetCorrelatableLogsConnectionIds();
+			var correlatableLogsIds = GetCorrelatableLogsConnectionIds(knownLogTypes, knownLogSources);
 			int numMissingOutput = 0;
 			int numProgressing = 0;
 			int numFailed = 0;
@@ -192,9 +201,9 @@ namespace LogJoint.Postprocessing.Correlation
 			}
 			if (numProgressing != 0)
 			{
-				return new CorrelatorStateSummary()
+				return new CorrelationStateSummary()
 				{
-					Status = CorrelatorStateSummary.StatusCode.ProcessingInProgress,
+					Status = CorrelationStateSummary.StatusCode.ProcessingInProgress,
 					Progress = progress
 				};
 			}
@@ -204,36 +213,52 @@ namespace LogJoint.Postprocessing.Correlation
 			{
 				if (reportObject != null && reportObject.HasErrors)
 				{
-					return new CorrelatorStateSummary()
+					return new CorrelationStateSummary()
 					{
-						Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
+						Status = CorrelationStateSummary.StatusCode.ProcessingFailed,
 						Report = report
 					};
 				}
-				return new CorrelatorStateSummary()
+				return new CorrelationStateSummary()
 				{
-					Status = CorrelatorStateSummary.StatusCode.NeedsProcessing
+					Status = CorrelationStateSummary.StatusCode.NeedsProcessing
 				};
 			}
 			if (numFailed != 0)
 			{
-				return new CorrelatorStateSummary()
+				return new CorrelationStateSummary()
 				{
-					Status = CorrelatorStateSummary.StatusCode.ProcessingFailed,
+					Status = CorrelationStateSummary.StatusCode.ProcessingFailed,
 					Report = report
 				};
 			}
-			return new CorrelatorStateSummary()
+			return new CorrelationStateSummary()
 			{
-				Status = CorrelatorStateSummary.StatusCode.Processed,
+				Status = CorrelationStateSummary.StatusCode.Processed,
 				Report = report
 			};
 		}
 
-		class NodeInfo // todo: unneeded
+		public static ImmutableHashSet<string> GetCorrelatableLogsConnectionIds(
+			IReadOnlyList<LogSourceMetadata> knownLogTypes,
+			IReadOnlyList<ILogSource> logs
+		)
 		{
-			public readonly ILogSource[] LogSources;
+			var correlatableLogSourceTypes =
+				knownLogTypes.Where(t => t.SupportedPostprocessors.Any(pp => pp.Kind == PostprocessorKind.Correlator))
+				.ToLookup(t => t.LogProviderFactory);
+			return ImmutableHashSet.CreateRange(
+				logs
+				.Where(i => !i.IsDisposed) // todo: impure. remove?
+				.Where(i => correlatableLogSourceTypes.Contains(i.Provider.Factory))
+				.Select(i => i.ConnectionId)
+			);
+		}
+
+		class NodeInfo
+		{
 			public readonly NodeId NodeId;
+			public readonly ILogSource[] LogSources;
 			public readonly ILogPartToken LogPart;
 			public readonly ISameNodeDetectionToken SameNodeDetectionToken;
 			public readonly IEnumerable<M.Event> Messages;

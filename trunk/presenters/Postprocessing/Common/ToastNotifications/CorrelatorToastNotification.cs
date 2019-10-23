@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 	public class CorrelatorToastNotification: IToastNotificationItem
 	{
 		IManagerInternal ppm;
-		CorrelatorStateSummary lastSummary;
+		CorrelationStateSummary lastSummary;
 
 		public CorrelatorToastNotification(
 			IManagerInternal ppm,
@@ -29,9 +29,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		{
 			switch (lastSummary.Status)
 			{
-			case CorrelatorStateSummary.StatusCode.NeedsProcessing:
-			case CorrelatorStateSummary.StatusCode.Processed:
-			case CorrelatorStateSummary.StatusCode.ProcessingFailed:
+			case CorrelationStateSummary.StatusCode.NeedsProcessing:
+			case CorrelationStateSummary.StatusCode.Processed:
+			case CorrelationStateSummary.StatusCode.ProcessingFailed:
 
 				await this.ppm.RunPostprocessor(
 					ppm.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator)
@@ -53,11 +53,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			{
 				switch (lastSummary.Status)
 				{
-				case CorrelatorStateSummary.StatusCode.NeedsProcessing:
+				case CorrelationStateSummary.StatusCode.NeedsProcessing:
 					return "view may be inaccurate: clocks sync required.  *1 fix*";
-				case CorrelatorStateSummary.StatusCode.ProcessingInProgress:
+				case CorrelationStateSummary.StatusCode.ProcessingInProgress:
 					return "clocks skew is being fixed";
-				case CorrelatorStateSummary.StatusCode.ProcessingFailed:
+				case CorrelationStateSummary.StatusCode.ProcessingFailed:
 					return "view may be inaccurate: clocks cannot be synched";
 				}
 				return "";
@@ -72,7 +72,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		void Update()
 		{
 			bool wasActive = IsActiveImpl ();
-			lastSummary = ppm.GetCorrelatorStateSummary();
+			// lastSummary = ppm.GetCorrelatorStateSummary(); todo
 			if (Changed != null)
 			{
 				Changed(this, new ItemChangeEventArgs(isUnsuppressingChange: IsActiveImpl() && !wasActive));
@@ -81,8 +81,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		bool IsActiveImpl ()
 		{
-			if (lastSummary.Status == CorrelatorStateSummary.StatusCode.PostprocessingUnavailable 
-			|| lastSummary.Status == CorrelatorStateSummary.StatusCode.Processed)
+			if (lastSummary.Status == CorrelationStateSummary.StatusCode.PostprocessingUnavailable 
+			|| lastSummary.Status == CorrelationStateSummary.StatusCode.Processed)
 			{
 				return false;
 			}

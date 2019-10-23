@@ -95,11 +95,13 @@ namespace LogJoint.Postprocessing
 			{
 				if (output.Postprocessor.Kind == PostprocessorKind.Correlator)
 				{
+					/*
 					var status = postprocessorsManager.GetCorrelatorStateSummary().Status;
 					return
 						   status == CorrelatorStateSummary.StatusCode.NeedsProcessing
 						|| status == CorrelatorStateSummary.StatusCode.Processed
-						|| status == CorrelatorStateSummary.StatusCode.ProcessingFailed;
+						|| status == CorrelatorStateSummary.StatusCode.ProcessingFailed;*/
+					return false; // todo
 				}
 				else
 				{

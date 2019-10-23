@@ -29,9 +29,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		ControlData IViewControlHandler.GetCurrentData() => getControlData();
 
-		static ControlData GetCurrentData(CorrelatorStateSummary state)
+		static ControlData GetCurrentData(CorrelationStateSummary state)
 		{
-			if (state.Status == CorrelatorStateSummary.StatusCode.PostprocessingUnavailable)
+			if (state.Status == CorrelationStateSummary.StatusCode.PostprocessingUnavailable)
 			{
 				return new ControlData(true, "Fix clock skew: N/A");
 			}
@@ -42,17 +42,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 			switch (state.Status)
 			{
-				case CorrelatorStateSummary.StatusCode.NeedsProcessing:
+				case CorrelationStateSummary.StatusCode.NeedsProcessing:
 					content = string.Format("Logs clocks may be{0}out of sync.{0}*2 Fix clock skew*", Environment.NewLine);
 					color = ControlData.StatusColor.Warning;
 					break;
-				case CorrelatorStateSummary.StatusCode.ProcessingInProgress:
+				case CorrelationStateSummary.StatusCode.ProcessingInProgress:
 					content = "Fixing clock skew...";
 					progress = state.Progress;
 					break;
-				case CorrelatorStateSummary.StatusCode.Processed:
-				case CorrelatorStateSummary.StatusCode.ProcessingFailed:
-					bool wasSuccessful = state.Status == CorrelatorStateSummary.StatusCode.Processed;
+				case CorrelationStateSummary.StatusCode.Processed:
+				case CorrelationStateSummary.StatusCode.ProcessingFailed:
+					bool wasSuccessful = state.Status == CorrelationStateSummary.StatusCode.Processed;
 					content = (wasSuccessful ? "Clock skew is fixed." : "Failed to fix clock skew.") + Environment.NewLine;
 					if (state.Report != null)
 						content += "*1 View report.* ";
@@ -75,8 +75,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				case "1":
 					switch (state.Status)
 					{
-						case CorrelatorStateSummary.StatusCode.Processed:
-						case CorrelatorStateSummary.StatusCode.ProcessingFailed:
+						case CorrelationStateSummary.StatusCode.Processed:
+						case CorrelationStateSummary.StatusCode.ProcessingFailed:
 							if (state.Report != null)
 								ShowTextInTextViewer(state.Report);
 							break;
@@ -85,9 +85,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				case "2":
 					switch (state.Status)
 					{
-						case CorrelatorStateSummary.StatusCode.NeedsProcessing:
-						case CorrelatorStateSummary.StatusCode.Processed:
-						case CorrelatorStateSummary.StatusCode.ProcessingFailed:
+						case CorrelationStateSummary.StatusCode.NeedsProcessing:
+						case CorrelationStateSummary.StatusCode.Processed:
+						case CorrelationStateSummary.StatusCode.ProcessingFailed:
 							this.correlationManager.Run();
 							break;
 					}

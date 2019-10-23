@@ -78,7 +78,7 @@ namespace LogJoint.Postprocessing
 			sameNodeDetectionTokenFactories.Register(factory);
 		}
 
-		IReadOnlyList<LogSourceMetadata> IManager.KnownLogTypes => getKnownLogTypes();
+		IReadOnlyList<LogSourceMetadata> IManagerInternal.KnownLogTypes => getKnownLogTypes();
 
 		async Task<bool> IManager.RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] typesAndSources, 
@@ -178,7 +178,7 @@ namespace LogJoint.Postprocessing
 			return true;
 		}
 
-		IReadOnlyList<ILogSource> IManager.KnownLogSources => getKnownLogSources();
+		IReadOnlyList<ILogSource> IManagerInternal.KnownLogSources => getKnownLogSources();
 
 
 		void Refresh()

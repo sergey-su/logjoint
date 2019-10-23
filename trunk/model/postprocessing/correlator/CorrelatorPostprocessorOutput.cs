@@ -11,7 +11,7 @@ using M = LogJoint.Postprocessing.Messaging;
 
 namespace LogJoint.Postprocessing.Correlation
 {
-	class CorrelatorPostprocessorOutput2: ICorrelatorOutput // todo: remove 2 from name
+	class PostprocessorOutput: ICorrelatorOutput
 	{
 		readonly NodeId nodeId;
 		readonly ILogSource logSource;
@@ -21,7 +21,7 @@ namespace LogJoint.Postprocessing.Correlation
 		readonly PostprocessorOutputETag etag;
 		private const string messagingEventsElementName = "messaging";
 
-		public CorrelatorPostprocessorOutput2(
+		public PostprocessorOutput(
 			LogSourcePostprocessorDeserializationParams p,
 			ILogPartTokenFactories rotatedLogPartFactories,
 			ISameNodeDetectionTokenFactories nodeDetectionTokenFactories)

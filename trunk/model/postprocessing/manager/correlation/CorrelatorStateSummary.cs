@@ -3,26 +3,10 @@ using System.Linq;
 
 namespace LogJoint.Postprocessing.Correlation
 {
-	public struct CorrelatorStateSummary // todo: make immutable class
-	{
-		public enum StatusCode
-		{
-			PostprocessingUnavailable,
-			NeedsProcessing,
-			ProcessingInProgress,
-			Processed,
-			ProcessingFailed
-		};
-
-		public StatusCode Status;
-		public double? Progress;
-		public string Report;
-	};
-
 
 	public static class CorrelatorStateSummaryExt
 	{
-		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IManager postprocessorsManager, IEnumerable<ILogSource> logs)
+		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IManagerInternal postprocessorsManager, IEnumerable<ILogSource> logs) // todo: remove
 		{
 			var correlatableLogSourceTypes = 
 				postprocessorsManager
@@ -36,7 +20,7 @@ namespace LogJoint.Postprocessing.Correlation
 			);
 		}
 
-		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IManager postprocessorsManager)
+		public static HashSet<string> GetCorrelatableLogsConnectionIds(this IManagerInternal postprocessorsManager) // todo: remove
 		{
 			return GetCorrelatableLogsConnectionIds(postprocessorsManager, postprocessorsManager.KnownLogSources);
 		}

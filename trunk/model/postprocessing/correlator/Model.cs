@@ -30,7 +30,7 @@ namespace LogJoint.Postprocessing.Correlation
 			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-			return CorrelatorPostprocessorOutput2.SerializePostprocessorOutput(
+			return PostprocessorOutput.SerializePostprocessorOutput(
 				nodeId,
 				logPartTask,
 				logPartTokenFactories,

@@ -15,7 +15,6 @@ namespace LogJoint.Chromium.Correlator
 {
 	public interface IPostprocessorsFactory
 	{
-		ILogSourcePostprocessor CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry);
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateChromeDriverPostprocessor();
 		ILogSourcePostprocessor CreateWebRtcInternalsPostprocessor();
@@ -51,14 +50,6 @@ namespace LogJoint.Chromium.Correlator
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsPostprocessor()
 		{
 			return new LogSourcePostprocessor(PostprocessorKind.Correlator, i => RunForWebRtcInternals(i));
-		}
-
-		ILogSourcePostprocessor IPostprocessorsFactory.CreatePostprocessor(IPostprocessorsRegistry postprocessorsRegistry)
-		{
-			return new LogSourcePostprocessor(
-				PostprocessorKind.Correlator,
-				inputFiles => Run(inputFiles, postprocessorsRegistry)
-			);
 		}
 
 		async Task RunForChromeDebug(LogSourcePostprocessorInput input)
@@ -134,9 +125,10 @@ namespace LogJoint.Chromium.Correlator
 			);
 		}
 
+		/*
+		 todo: review that nothing is forgotten and delete
 		async Task<IPostprocessorRunSummary> Run(LogSourcePostprocessorInput[] inputFiles, IPostprocessorsRegistry postprocessorsRegistry)
 		{
-			/*
 			var usedRoleInstanceNames = new HashSet<string>();
 			Func<LogSourcePostprocessorInput, string> getUniqueRoleInstanceName = inputFile =>
 			{
@@ -320,10 +312,10 @@ namespace LogJoint.Chromium.Correlator
 
 			return new CorrelatorPostprocessorRunSummary(correlatorSolution.Success,
 				correlatorSolution.CorrelationLog + grouppedLogsReport.ToString());
-			*/
 		}
+		*/
 
-		class NodeInfo
+		class NodeInfo // todo: remove
 		{
 			public readonly ILogSource[] LogSources;
 			public readonly NodeId NodeId;

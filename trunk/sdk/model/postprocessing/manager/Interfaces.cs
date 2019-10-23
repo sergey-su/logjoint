@@ -18,10 +18,6 @@ namespace LogJoint.Postprocessing
 		void Register(ILogPartTokenFactory logPartFactory);
 		void Register(Correlation.ISameNodeDetectionTokenFactory factory);
 		IReadOnlyList<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; }
-
-		IReadOnlyList<ILogSource> KnownLogSources { get; } // todo: could be removed?
-		IReadOnlyList<LogSourceMetadata> KnownLogTypes { get; } // todo: could be removed?
-
 		Task<bool> RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources, // todo: use valuetuple
 			object customData = null
@@ -113,5 +109,13 @@ namespace LogJoint.Postprocessing
 	{
 		string ETag { get; }
  	};
- 
+
+	public interface IPostprocessorRunSummary
+	{
+		bool HasErrors { get; }
+		bool HasWarnings { get; }
+		string Report { get; }
+		IPostprocessorRunSummary GetLogSpecificSummary(ILogSource ls);
+	};
+
 }

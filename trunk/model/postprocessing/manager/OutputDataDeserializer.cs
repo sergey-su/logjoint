@@ -28,7 +28,7 @@ namespace LogJoint.Postprocessing
 				case PostprocessorKind.TimeSeries:
 					return new TimeSeries.TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess);
 				case PostprocessorKind.Correlator:
-					return new Correlation.CorrelatorPostprocessorOutput2(p, logPartTokenFactories, nodeDetectionTokenFactories);
+					return new Correlation.PostprocessorOutput(p, logPartTokenFactories, nodeDetectionTokenFactories);
 				default:
 					return null;
 			}

@@ -5,23 +5,23 @@ using System.Xml;
 
 namespace LogJoint.Postprocessing.Correlation
 {
-	public class CorrelatorPostprocessorOutput : ICorrelatorPostprocessorOutput // todo: rename, remove from SDK
+	class CorrelatorRunResult
 	{
 		readonly NodeSolution solution;
 		readonly HashSet<string> correlatedConnectionIds;
 
-		public CorrelatorPostprocessorOutput(NodeSolution solution, HashSet<string> correlatedConnectionIds)
+		public CorrelatorRunResult(NodeSolution solution, HashSet<string> correlatedConnectionIds)
 		{
 			this.solution = solution;
 			this.correlatedConnectionIds = correlatedConnectionIds;
 		}
 
-		public static CorrelatorPostprocessorOutput Parse(XmlReader reader)
+		public static CorrelatorRunResult Parse(XmlReader reader)
 		{
 			return Parse(XDocument.Load(reader));
 		}
 
-		public static CorrelatorPostprocessorOutput Parse(XDocument doc)
+		public static CorrelatorRunResult Parse(XDocument doc)
 		{
 			if (doc == null)
 				return null;
@@ -30,7 +30,7 @@ namespace LogJoint.Postprocessing.Correlation
 				return null;
 			var solution = new NodeSolution(slnNode);
 			var correlatedConnectionIds = new HashSet<string>(doc.Root.Elements("context").Elements("conn-id").Select(e => e.Value));
-			return new CorrelatorPostprocessorOutput(solution, correlatedConnectionIds);
+			return new CorrelatorRunResult(solution, correlatedConnectionIds);
 		}
 
 		public void Save(string fileName)
@@ -43,14 +43,8 @@ namespace LogJoint.Postprocessing.Correlation
 			)).Save(fileName);
 		}
 
-		HashSet<string> ICorrelatorPostprocessorOutput.CorrelatedLogsConnectionIds
-		{
-			get { return correlatedConnectionIds; }
-		}
+		public HashSet<string> CorrelatedLogsConnectionIds => correlatedConnectionIds;
 
-		NodeSolution ICorrelatorPostprocessorOutput.Solution
-		{
-			get { return solution; }
-		}
+		public NodeSolution Solution => solution;
 	};
 }

@@ -295,8 +295,7 @@ namespace LogJoint
 				new Postprocessing.Timeline.Model(tempFilesManager, logPartTokenFactories),
 				new Postprocessing.SequenceDiagram.Model(tempFilesManager, logPartTokenFactories),
 				new Postprocessing.TimeSeries.Model(timeSeriesTypesAccess),
-				new Postprocessing.Correlation.Model(tempFilesManager, logPartTokenFactories, sameNodeDetectionTokenFactories),
-				solverFactory
+				new Postprocessing.Correlation.Model(tempFilesManager, logPartTokenFactories, sameNodeDetectionTokenFactories)
 			);
 
 			AutoUpdate.IFactory autoUpdateFactory = new AutoUpdate.Factory(
