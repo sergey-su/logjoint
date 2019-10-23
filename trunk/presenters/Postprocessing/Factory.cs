@@ -35,7 +35,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 
 		public Factory(
 			IViewsFactory postprocessingViewsFactory,
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			ISynchronizationContext synchronizationContext,
 			IChangeNotification changeNotification,

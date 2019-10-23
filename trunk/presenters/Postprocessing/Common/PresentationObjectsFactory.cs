@@ -20,12 +20,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 	public class PresentationObjectsFactory: IPresentationObjectsFactory
 	{
-		private readonly IManager ppm;
+		private readonly IManagerInternal ppm;
 		private readonly ILogSourcesManager lsm;
 		private readonly IAlertPopup alerts;
 
 		public PresentationObjectsFactory(
-			IManager ppm,
+			IManagerInternal ppm,
 			ILogSourcesManager lsm,
 			IChangeNotification changeNotification,
 			IAlertPopup alerts

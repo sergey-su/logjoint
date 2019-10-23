@@ -8,7 +8,7 @@ namespace LogJoint.Postprocessing.StateInspector
 	public class StateInspectorVisualizerModel : IStateInspectorVisualizerModel
 	{
 		public StateInspectorVisualizerModel(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			ISynchronizationContext invokeSync,
 			IUserNamesProvider shortNamesManager)

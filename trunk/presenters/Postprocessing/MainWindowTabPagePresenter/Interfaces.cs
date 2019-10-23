@@ -5,7 +5,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	public interface IPresenter
 	{
-		void AddLogsCollectionControlHandler(IViewControlHandler value);
 	};
 
 	public interface IView
@@ -27,7 +26,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		LogsCollectionControl3,
 	};
 
-	public struct ControlData
+	public class ControlData
 	{
 		public enum StatusColor
 		{
@@ -36,10 +35,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			Warning,
 			Error
 		};
-		public bool Disabled;
-		public StatusColor Color;
-		public string Content;
-		public double? Progress;
+		public bool Disabled { get; private set; }
+		public StatusColor Color { get; private set; }
+		public string Content { get; private set; }
+		public double? Progress { get; private set; }
+
+		public ControlData(bool disabled, string content,
+			StatusColor color = StatusColor.Neutral, double? progress = null)
+		{
+			Disabled = disabled;
+			Content = content;
+			Color = color;
+			Progress = progress;
+		}
 	};
 
 	public interface IViewModel

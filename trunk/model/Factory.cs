@@ -35,7 +35,8 @@ namespace LogJoint
 		public Persistence.IStorageManager StorageManager { get; internal set; }
 		public Telemetry.ITelemetryUploader TelemetryUploader { get; internal set; }
 		public Progress.IProgressAggregator ProgressAggregator { get; internal set; }
-		public Postprocessing.IManager PostprocessorsManager { get; internal set; }
+		public Postprocessing.IManagerInternal PostprocessorsManager { get; internal set; }
+		public Postprocessing.ICorrelationManager CorrelationManager { get; internal set; }
 		public IModel ExpensibilityEntryPoint { get; internal set; }
 		public Postprocessing.IUserNamesProvider AnalyticsShortNames { get; internal set; }
 		public ISynchronizationContext SynchronizationContext { get; internal set; }
@@ -263,7 +264,7 @@ namespace LogJoint
 
 			Postprocessing.Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories = new Postprocessing.Correlation.SameNodeDetectionTokenFactories();
 
-			Postprocessing.IManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
+			Postprocessing.IManagerInternal postprocessorsManager = new Postprocessing.PostprocessorsManager(
 				logSourcesManager,
 				telemetryCollector,
 				modelSynchronizationContext,
@@ -274,8 +275,18 @@ namespace LogJoint
 				new Postprocessing.OutputDataDeserializer(timeSeriesTypesAccess, logPartTokenFactories, sameNodeDetectionTokenFactories),
 				traceSourceFactory,
 				logPartTokenFactories,
-				sameNodeDetectionTokenFactories
+				sameNodeDetectionTokenFactories,
+				changeNotification
 			);
+
+			Postprocessing.ICorrelationManager correlationManager = new Postprocessing.Correlation.CorrelationManager(
+				postprocessorsManager,
+				solverFactory,
+				modelSynchronizationContext,
+				logSourcesManager,
+				changeNotification
+			);
+
 
 			Postprocessing.IModel postprocessingModel = new Postprocessing.Model(
 				postprocessorsManager,
@@ -389,6 +400,7 @@ namespace LogJoint
 				TelemetryUploader = telemetryUploader,
 				ProgressAggregator = progressAggregator,
 				PostprocessorsManager = postprocessorsManager,
+				CorrelationManager = correlationManager,
 				ExpensibilityEntryPoint = expensibilityModel,
 				AnalyticsShortNames = analyticsShortNames,
 				SynchronizationContext = modelSynchronizationContext,

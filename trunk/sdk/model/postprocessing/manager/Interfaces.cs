@@ -17,12 +17,13 @@ namespace LogJoint.Postprocessing
 		void RegisterLogType(LogSourceMetadata meta); // todo: rename Register
 		void Register(ILogPartTokenFactory logPartFactory);
 		void Register(Correlation.ISameNodeDetectionTokenFactory factory);
-		event EventHandler Changed; // todo: remove
-		IEnumerable<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; } // todo: return immutable
-		IEnumerable<ILogSource> KnownLogSources { get; } // todo: return immutable, could be removed?
-		IEnumerable<LogSourceMetadata> KnownLogTypes { get; } // todo: return immutable, could be removed?
+		IReadOnlyList<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; }
+
+		IReadOnlyList<ILogSource> KnownLogSources { get; } // todo: could be removed?
+		IReadOnlyList<LogSourceMetadata> KnownLogTypes { get; } // todo: could be removed?
+
 		Task<bool> RunPostprocessor(
-			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources,
+			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources, // todo: use valuetuple
 			object customData = null
 		);
 	};
@@ -55,7 +56,7 @@ namespace LogJoint.Postprocessing
 	/// <summary>
 	/// Result of a log postprocessor
 	/// </summary>
-	public struct LogSourcePostprocessorOutput
+	public struct LogSourcePostprocessorOutput // todo: encapsulate to props
 	{
 		public ILogSource LogSource;
 		public ILogSourcePostprocessor Postprocessor;
@@ -72,6 +73,11 @@ namespace LogJoint.Postprocessing
 		public IPostprocessorRunSummary LastRunSummary;
 		public object OutputData;
 		public double? Progress;
+
+		public override string ToString()
+		{
+			return $"{Postprocessor.Kind} for {LogSource.Provider.Factory}, status={OutputStatus}";
+		}
 	};
 
 	public struct LogSourcePostprocessorInput

@@ -528,12 +528,11 @@ namespace LogJoint.UI.Presenters
 			Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
 				postprocessingTabPage,
 				model.PostprocessorsManager,
+				model.CorrelationManager,
 				postprocessorPresentationFactory,
-				model.LogSourcesManager,
 				model.TempFilesManager,
 				shellOpen,
 				newLogSourceDialogPresenter,
-				model.TelemetryCollector,
 				model.ChangeNotification,
 				mainFormPresenter
 			);

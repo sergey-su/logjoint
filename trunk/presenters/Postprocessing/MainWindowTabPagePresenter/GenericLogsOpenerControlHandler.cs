@@ -3,21 +3,17 @@
 	class GenericLogsOpenerControlHandler : IViewControlHandler
 	{
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialog;
+		readonly ControlData controlData;
 
 		public GenericLogsOpenerControlHandler(
 			NewLogSourceDialog.IPresenter newLogSourceDialog
 		)
 		{
 			this.newLogSourceDialog = newLogSourceDialog;
+			this.controlData = new ControlData(false, "*1 Open* logs");
 		}
 
-		ControlData IViewControlHandler.GetCurrentData()
-		{
-			return new ControlData()
-			{
-				Content = "*1 Open* logs"
-			};
-		}
+		ControlData IViewControlHandler.GetCurrentData() => controlData;
 
 		void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
 		{

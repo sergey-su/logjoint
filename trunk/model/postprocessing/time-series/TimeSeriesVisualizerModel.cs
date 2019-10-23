@@ -8,7 +8,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 	public class TimelineVisualizerModel : ITimeSeriesVisualizerModel
 	{
 		public TimelineVisualizerModel(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
 			IUserNamesProvider shortNames,
 			ILogSourceNamesProvider logSourceNamesProvider)

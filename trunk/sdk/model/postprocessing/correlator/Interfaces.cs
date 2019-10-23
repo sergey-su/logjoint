@@ -150,7 +150,7 @@ namespace LogJoint.Postprocessing.Correlation
 
 	};
 
-	public interface ICorrelatorPostprocessorOutput
+	public interface ICorrelatorPostprocessorOutput // todo: remove
 	{
 		HashSet<string> CorrelatedLogsConnectionIds { get; }
 		NodeSolution Solution { get; }

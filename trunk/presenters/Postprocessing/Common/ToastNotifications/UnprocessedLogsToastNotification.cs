@@ -9,13 +9,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
 	public class UnprocessedLogsToastNotification: IToastNotificationItem
 	{
-		IManager ppm;
+		IManagerInternal ppm;
 		PostprocessorKind postprocessorKind;
 		int nrOfUnprocessed;
 		double? progress;
 
 		public UnprocessedLogsToastNotification(
-			IManager ppm,
+			IManagerInternal ppm,
 			ILogSourcesManager lsm,
 			PostprocessorKind postprocessorKind
 		)

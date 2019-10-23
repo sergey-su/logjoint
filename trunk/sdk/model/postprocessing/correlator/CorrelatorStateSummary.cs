@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace LogJoint.Postprocessing.Correlation
 {
-	public struct CorrelatorStateSummary
+	public struct CorrelatorStateSummary // todo: make immutable class
 	{
 		public enum StatusCode
 		{

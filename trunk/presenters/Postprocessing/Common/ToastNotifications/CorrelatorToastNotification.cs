@@ -9,11 +9,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
 	public class CorrelatorToastNotification: IToastNotificationItem
 	{
-		IManager ppm;
+		IManagerInternal ppm;
 		CorrelatorStateSummary lastSummary;
 
 		public CorrelatorToastNotification(
-			IManager ppm,
+			IManagerInternal ppm,
 			ILogSourcesManager lsm
 		)
 		{

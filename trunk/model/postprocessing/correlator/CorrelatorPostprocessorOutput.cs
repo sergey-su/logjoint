@@ -19,6 +19,7 @@ namespace LogJoint.Postprocessing.Correlation
 		readonly ILogPartToken rotatedLogPartToken;
 		readonly ISameNodeDetectionToken sameNodeDetectionToken;
 		readonly PostprocessorOutputETag etag;
+		private const string messagingEventsElementName = "messaging";
 
 		public CorrelatorPostprocessorOutput2(
 			LogSourcePostprocessorDeserializationParams p,
@@ -104,7 +105,7 @@ namespace LogJoint.Postprocessing.Correlation
 			File.Delete(eventsTmpFile);
 		}
 
-		private const string messagingEventsElementName = "messaging";
+		NodeId ICorrelatorOutput.NodeId => nodeId;
 
 		ILogSource ICorrelatorOutput.LogSource => logSource;
 

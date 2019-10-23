@@ -136,6 +136,7 @@ namespace LogJoint.Chromium.Correlator
 
 		async Task<IPostprocessorRunSummary> Run(LogSourcePostprocessorInput[] inputFiles, IPostprocessorsRegistry postprocessorsRegistry)
 		{
+			/*
 			var usedRoleInstanceNames = new HashSet<string>();
 			Func<LogSourcePostprocessorInput, string> getUniqueRoleInstanceName = inputFile =>
 			{
@@ -319,6 +320,7 @@ namespace LogJoint.Chromium.Correlator
 
 			return new CorrelatorPostprocessorRunSummary(correlatorSolution.Success,
 				correlatorSolution.CorrelationLog + grouppedLogsReport.ToString());
+			*/
 		}
 
 		class NodeInfo

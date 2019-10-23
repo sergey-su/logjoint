@@ -23,7 +23,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		ImmutableArray<MetadataEntry> metadataEntries = new ImmutableArray<MetadataEntry>();
 
 		public SequenceDiagramVisualizerModel(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ILogSourcesManager logSourceManager,
 			IUserNamesProvider shortNames,
 			ILogSourceNamesProvider logSourceNamesProvider,

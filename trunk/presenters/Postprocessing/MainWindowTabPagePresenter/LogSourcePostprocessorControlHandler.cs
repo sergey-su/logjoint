@@ -1,6 +1,6 @@
 ﻿using LogJoint.Postprocessing;
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,14 +12,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		readonly IManager postprocessorsManager;
 		readonly PostprocessorKind postprocessorKind;
 		readonly Func<IPostprocessorVisualizerPresenter> visualizerPresenter;
-		readonly LogJoint.UI.Presenters.IShellOpen shellOpen;
+		readonly IShellOpen shellOpen;
 		readonly ITempFilesManager tempFiles;
+		readonly Func<ImmutableList<LogSourcePostprocessorOutput>> getOutputs;
+		readonly Func<ControlData> getControlData;
 
 		public LogSourcePostprocessorControlHandler(
 			IManager postprocessorsManager,
 			PostprocessorKind postprocessorKind,
 			Func<IPostprocessorVisualizerPresenter> visualizerPresenter,
-			LogJoint.UI.Presenters.IShellOpen shellOpen,
+			IShellOpen shellOpen,
 			ITempFilesManager tempFiles
 		)
 		{
@@ -28,19 +30,25 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			this.visualizerPresenter = visualizerPresenter;
 			this.shellOpen = shellOpen;
 			this.tempFiles = tempFiles;
+			this.getOutputs = Selectors.Create(
+				() => postprocessorsManager.LogSourcePostprocessorsOutputs,
+				outputs => ImmutableList.CreateRange(
+					outputs.Where(output => output.Postprocessor.Kind == postprocessorKind)
+				)
+			);
+			this.getControlData = Selectors.Create(
+				getOutputs,
+				outputs => GetCurrentData(outputs, postprocessorKind)
+			);
 		}
 
-		ControlData IViewControlHandler.GetCurrentData()
-		{
-			var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
+		ControlData IViewControlHandler.GetCurrentData() => getControlData();
 
-			if (outputs.Length == 0)
+		static ControlData GetCurrentData(ImmutableList<LogSourcePostprocessorOutput> outputs, PostprocessorKind postprocessorKind)
+		{
+			if (outputs.Count == 0)
 			{
-				return new ControlData()
-				{
-					Disabled = true,
-					Content = postprocessorKind.ToDisplayString() + ": N/A"
-				};
+				return new ControlData(true, postprocessorKind.ToDisplayString() + ": N/A");
 			}
 
 			int nrOfRunning = 0;
@@ -84,12 +92,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				}
 			}
 
-			var ret = new ControlData();
 			var isClickableCaption = false;
 			string action = null;
 			string statusText = null;
 
-			ret.Disabled = false;
+			string controlContent = "";
+			ControlData.StatusColor controlColor = ControlData.StatusColor.Neutral;
+			double? controlProgress = null;
 			
 			Action appendReportLinkIfRequired = () =>
 			{
@@ -102,12 +111,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			if (nrOfLoading > 0 && nrOfRunning == 0)
 			{
 				statusText = string.Format("loading... ({0} of {1} logs completed)", nrOfLoading, nrOfLoading + nrOfProcessed);
-				ret.Progress = progress;
+				controlProgress = progress;
 			}
 			else if (nrOfRunning > 0)
 			{
 				statusText = string.Format("running... ({0} of {1} logs completed)", nrOfProcessed, nrOfRunning + nrOfProcessed + nrOfLoading);
-				ret.Progress = progress;
+				controlProgress = progress;
 			}
 			else if (nrOfUnprocessed > 0 || nrOfOutdated > 0)
 			{
@@ -118,7 +127,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				if (nrOfProcessed > 0)
 					isClickableCaption = true;
 				action = "run postprocessor";
-				ret.Color = ControlData.StatusColor.Warning;
+				controlColor = ControlData.StatusColor.Warning;
 			}
 			else
 			{
@@ -128,9 +137,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				appendReportLinkIfRequired();
 				action = "re-process";
 				if (nrOfProcessedWithErrors > 0)
-					ret.Color = ControlData.StatusColor.Error;
+					controlColor = ControlData.StatusColor.Error;
 				else
-					ret.Color = ControlData.StatusColor.Success;
+					controlColor = ControlData.StatusColor.Success;
 			}
 
 			var contentBuilder = new StringBuilder();
@@ -142,9 +151,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				contentBuilder.AppendFormat("  {0}", statusText);
 			if (action != null)
 				contentBuilder.AppendFormat("  *action {0}*", action);
-			ret.Content += contentBuilder.ToString();
+			controlContent += contentBuilder.ToString();
 
-			return ret;
+			return new ControlData(false, controlContent, controlColor, controlProgress);
 		}
 
 		async void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
@@ -155,12 +164,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					visualizerPresenter().Show();
 					break;
 				case "action":
-					if (!await this.postprocessorsManager.RunPostprocessors(postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)))
+					if (!await this.postprocessorsManager.RunPostprocessors(getOutputs()))
 					{
 						return;
 					}
 					{
-						var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
+						var outputs = getOutputs();
 						if (outputs.Any(x => x.OutputStatus == LogSourcePostprocessorOutput.Status.Finished))
 						{
 							visualizerPresenter().Show();
@@ -169,7 +178,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					break;
 				case "report":
 					{
-						var outputs = postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
+						var outputs = getOutputs();
 						var summaries = 
 							outputs
 								.Select(output => output.LastRunSummary)
