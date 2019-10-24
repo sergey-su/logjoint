@@ -13,7 +13,6 @@ namespace LogJoint.Postprocessing.Correlation
 {
 	class PostprocessorOutput: ICorrelatorOutput
 	{
-		readonly NodeId nodeId;
 		readonly ILogSource logSource;
 		readonly List<M.Event> events;
 		readonly ILogPartToken rotatedLogPartToken;
@@ -43,8 +42,6 @@ namespace LogJoint.Postprocessing.Correlation
 					this.rotatedLogPartToken = tmp;
 				else if (nodeDetectionTokenFactories.TryReadLogPartToken(elt, out var tmp2))
 					sameNodeDetectionToken = tmp2;
-				else if (elt.Name == NodeId.xmlName)
-					nodeId = new NodeId(elt);
 				else if (elt.Name == messagingEventsElementName)
 				{
 					var eventsDeserializer = new M.EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
@@ -54,14 +51,9 @@ namespace LogJoint.Postprocessing.Correlation
 				}
 				p.Cancellation.ThrowIfCancellationRequested();
 			}
-
-			if (nodeId == null)
-				throw new FormatException("no node id found");
-
 		}
 
 		public static async Task SerializePostprocessorOutput(
-			Task<NodeId> nodeId,
 			Task<ILogPartToken> logPartToken,
 			ILogPartTokenFactories logPartTokenFactories,
 			IEnumerableAsync<M.Event[]> events,
@@ -84,7 +76,7 @@ namespace LogJoint.Postprocessing.Correlation
 				null, logPartTokenFactories, triggersConverter, null, messagingEventsElementName, eventsTmpFile, tempFiles, cancellation
 			);
 
-			await Task.WhenAll(serializeMessagingEvents, logPartToken, sameNodeDetectionTokenTask, nodeId);
+			await Task.WhenAll(serializeMessagingEvents, logPartToken, sameNodeDetectionTokenTask);
 
 			using (var outputWriter = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = true, Async = true }))
 			using (var messagingEventsReader = XmlReader.Create(eventsTmpFile))
@@ -94,7 +86,6 @@ namespace LogJoint.Postprocessing.Correlation
 				new PostprocessorOutputETag(contentsEtagAttr).Write(outputWriter);
 				logPartTokenFactories.SafeWriteTo(await logPartToken, outputWriter);
 				nodeDetectionTokenFactories.SafeWriteTo(await sameNodeDetectionTokenTask, outputWriter);
-				(await nodeId).Serialize().WriteTo(outputWriter);
 
 				messagingEventsReader.ReadToFollowing(messagingEventsElementName);
 				await outputWriter.WriteNodeAsync(messagingEventsReader, false);
@@ -104,8 +95,6 @@ namespace LogJoint.Postprocessing.Correlation
 
 			File.Delete(eventsTmpFile);
 		}
-
-		NodeId ICorrelatorOutput.NodeId => nodeId;
 
 		ILogSource ICorrelatorOutput.LogSource => logSource;
 

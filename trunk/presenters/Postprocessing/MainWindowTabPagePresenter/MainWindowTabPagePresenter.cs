@@ -46,7 +46,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			InitAndAddProstprocessorHandler(ViewControlId.Correlate, PostprocessorKind.Correlator);
 			InitAndAddProstprocessorHandler(ViewControlId.TimeSeries, PostprocessorKind.TimeSeries);
 			viewControlHandlers.Add(ViewControlId.LogsCollectionControl1, new GenericLogsOpenerControlHandler(newLogSourceDialog));
-			viewControlHandlers.Add(ViewControlId.AllPostprocessors, new AllPostprocessorsControlHandler(postprocessorsManager));
+			viewControlHandlers.Add(ViewControlId.AllPostprocessors, new AllPostprocessorsControlHandler(postprocessorsManager, correlationManager));
 
 			this.getControlsData = Selectors.Create(
 				() => (

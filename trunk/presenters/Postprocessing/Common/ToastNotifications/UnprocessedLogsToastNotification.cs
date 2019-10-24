@@ -30,10 +30,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		void IToastNotificationItem.PerformAction (string actionId)
 		{
-			ppm.RunPostprocessor(
-				ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)
-				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.Postprocessor, output.LogSource))
-				.ToArray()
+			ppm.RunPostprocessors(
+				ppm.LogSourcePostprocessorsOutputs.GetPostprocessorOutputsByPostprocessorId(postprocessorKind)
 			);
 		}
 
@@ -61,7 +59,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		void Update()
 		{
-			var outputs = ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
+			var outputs = ppm.LogSourcePostprocessorsOutputs.GetPostprocessorOutputsByPostprocessorId(postprocessorKind);
 
 			int oldNrOfUnprocessed = nrOfUnprocessed;
 

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using LogJoint.Postprocessing.Messaging;
-using LogJoint.Postprocessing.Messaging.Analisys;
 
 namespace LogJoint.Postprocessing.Correlation
 {
@@ -22,7 +19,6 @@ namespace LogJoint.Postprocessing.Correlation
 		}
 
 		Task IModel.SavePostprocessorOutput(
-			Task<NodeId> nodeId,
 			Task<ILogPartToken> logPartTask,
 			IEnumerableAsync<Event[]> events,
 			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,
@@ -31,7 +27,6 @@ namespace LogJoint.Postprocessing.Correlation
 		)
 		{
 			return PostprocessorOutput.SerializePostprocessorOutput(
-				nodeId,
 				logPartTask,
 				logPartTokenFactories,
 				events,

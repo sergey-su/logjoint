@@ -18,7 +18,7 @@ namespace LogJoint
 	}
 
 	[DebuggerDisplay("{Value}")]
-	public class Ref<T> where T: struct
+	public class Ref<T>
 	{
 		public T Value;
 
@@ -28,7 +28,7 @@ namespace LogJoint
 	};
 
 	[DebuggerDisplay("{Value}")]
-	public class ReadonlyRef<T> where T : struct
+	public class ReadonlyRef<T>
 	{
 		public readonly T Value;
 

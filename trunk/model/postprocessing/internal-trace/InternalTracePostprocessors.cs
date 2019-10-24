@@ -27,7 +27,7 @@ namespace LogJoint.Postprocessing
 				input => RunTimeSeriesPostprocessor(input, postprocessingModel)
 			);
 			timeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(typeof(LJT.ProfilingSeries).Assembly);
-			postprocessorsManager.RegisterLogType(new LogSourceMetadata(fac, new[]
+			postprocessorsManager.Register(new LogSourceMetadata(fac, new[]
 			{
 				timeline,
 				timeSeries

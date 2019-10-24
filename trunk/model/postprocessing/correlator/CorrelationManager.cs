@@ -18,7 +18,11 @@ namespace LogJoint.Postprocessing.Correlation
 		readonly IManagerInternal postprocessingManager;
 		readonly Func<ImmutableArray<LogSourcePostprocessorOutput>> getOutputs;
 		readonly Func<CorrelationStateSummary> getStateSummary;
-		ImmutableDictionary<ILogSource, CorrelatorRunResult> lastResult = ImmutableDictionary<ILogSource, CorrelatorRunResult>.Empty;
+		 // todo: persist results it in log's local storage to have
+		 // green correlation status when logs are reopen
+		ImmutableDictionary<string, CorrelatorRunResult> logConnectionIdToLastRunResult = ImmutableDictionary<string, CorrelatorRunResult>.Empty;
+		Ref<string> lastRunReport;
+		int logSourceTimeOffsetRevision;
 
 		public CorrelationManager(
 			IManagerInternal postprocessingManager,
@@ -34,6 +38,12 @@ namespace LogJoint.Postprocessing.Correlation
 			this.logSourcesManager = logSourcesManager;
 			this.changeNotification = changeNotification;
 
+			logSourcesManager.OnLogSourceTimeOffsetChanged += (s, e) =>
+			{
+				++logSourceTimeOffsetRevision;
+				changeNotification.Post();
+			};
+
 			this.getOutputs = Selectors.Create(
 				() => postprocessingManager.LogSourcePostprocessorsOutputs,
 				outputs => ImmutableArray.CreateRange(
@@ -42,7 +52,9 @@ namespace LogJoint.Postprocessing.Correlation
 			);
 			this.getStateSummary = Selectors.Create(
 				getOutputs,
-				() => lastResult,
+				() => logConnectionIdToLastRunResult,
+				() => lastRunReport,
+				() => logSourceTimeOffsetRevision,
 				GetCorrelatorStateSummary
 			);
 		}
@@ -53,11 +65,29 @@ namespace LogJoint.Postprocessing.Correlation
 		{
 			var outputs = getOutputs();
 
+			var usedRoleInstanceNames = new HashSet<string>();
+			string getUniqueRoleInstanceName(ILogSource logSource)
+			{
+				for (int tryCount = 0; ; ++tryCount)
+				{
+					var ret = string.Format(
+						tryCount == 0 ? "{0}" : "{0} ({1})",
+						logSource.GetShortDisplayNameWithAnnotation(),
+						tryCount
+					);
+					if (usedRoleInstanceNames.Add(ret))
+						return ret;
+				}
+			}
+
+			NodeId makeNodeId(ILogSource logSource) =>
+				new NodeId(logSource.Provider.Factory.ToString(), getUniqueRoleInstanceName(logSource));
+
 			var allLogs =
 				outputs
 				.Select(output => output.OutputData)
 				.OfType<ICorrelatorOutput>()
-				.Select(data => new NodeInfo(data.LogSource, data.NodeId, data.RotatedLogPartToken, data.Events, data.SameNodeDetectionToken))
+				.Select(data => new NodeInfo(data.LogSource, makeNodeId(data.LogSource), data.RotatedLogPartToken, data.Events, data.SameNodeDetectionToken))
 				.ToArray();
 
 			var fixedConstraints =
@@ -104,7 +134,7 @@ namespace LogJoint.Postprocessing.Correlation
 				(from ns in correlatorSolution.NodeSolutions
 				 from ls in nodeIdToLogSources[ns.Key]
 				 select new { Sln = ns.Value, Ls = ls })
-				.ToDictionary(i => i.Ls, i => i.Sln);
+				.ToImmutableDictionary(i => i.Ls, i => i.Sln);
 
 			await modelThreadSync.Invoke(() =>
 			{
@@ -122,11 +152,11 @@ namespace LogJoint.Postprocessing.Correlation
 				}
 			});
 
-			lastResult = timeOffsets.ToImmutableDictionary(to => to.Key, to => new CorrelatorRunResult(to.Value, GetCorrelatableLogsConnectionIds(outputs)));
-
-			// todo: expose textual summary somehow
-			/*var summary = new CorrelatorPostprocessorRunSummary(correlatorSolution.Success,
-				correlatorSolution.CorrelationLog + grouppedLogsReport.ToString());*/
+			logConnectionIdToLastRunResult = timeOffsets.ToImmutableDictionary(
+				to => to.Key.GetSafeConnectionId(),
+				to => new CorrelatorRunResult(to.Value, GetCorrelatableLogsConnectionIds(outputs))
+			);
+			lastRunReport = new Ref<string>(correlatorSolution.CorrelationLog + grouppedLogsReport);
 
 			changeNotification.Post();
 		}
@@ -135,12 +165,8 @@ namespace LogJoint.Postprocessing.Correlation
 
 		async void ICorrelationManager.Run()
 		{
-			var runArgs =
-				postprocessingManager.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator)
-				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.Postprocessor, output.LogSource))
-				.ToArray();
-
-			await this.postprocessingManager.RunPostprocessor(runArgs);
+			await this.postprocessingManager.RunPostprocessors(
+				postprocessingManager.LogSourcePostprocessorsOutputs.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator));
 
 			await DoCorrelation();
 		}
@@ -156,7 +182,9 @@ namespace LogJoint.Postprocessing.Correlation
 
 		static CorrelationStateSummary GetCorrelatorStateSummary(
 			ImmutableArray<LogSourcePostprocessorOutput> correlationOutputs,
-			ImmutableDictionary<ILogSource, CorrelatorRunResult> lastResult
+			ImmutableDictionary<string, CorrelatorRunResult> lastResult,
+			Ref<string> lastRunReport,
+			int _
 		)
 		{
 			if (correlationOutputs.Length < 2)
@@ -178,7 +206,7 @@ namespace LogJoint.Postprocessing.Correlation
 					if (progress == null && i.Progress != null)
 						progress = i.Progress;
 				}
-				lastResult.TryGetValue(i.LogSource, out var typedOutput);
+				lastResult.TryGetValue(i.LogSource.GetSafeConnectionId(), out var typedOutput);
 				if (typedOutput == null)
 				{
 					++numMissingOutput;
@@ -204,11 +232,11 @@ namespace LogJoint.Postprocessing.Correlation
 					Progress = progress
 				};
 			}
+			string report = lastRunReport?.Value;
 			IPostprocessorRunSummary reportObject = correlationOutputs.First().LastRunSummary;
-			string report = reportObject != null ? reportObject.Report : null;
 			if (numMissingOutput != 0 || numCorrelationContextMismatches != 0 || numCorrelationResultMismatches != 0)
 			{
-				if (reportObject != null && reportObject.HasErrors)
+				if (reportObject != null && reportObject.HasErrors) // todo: check errors in any one?
 				{
 					return new CorrelationStateSummary()
 					{

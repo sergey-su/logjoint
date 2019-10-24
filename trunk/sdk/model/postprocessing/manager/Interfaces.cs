@@ -14,12 +14,12 @@ namespace LogJoint.Postprocessing
 	/// </summary>
 	public interface IManager
 	{
-		void RegisterLogType(LogSourceMetadata meta); // todo: rename Register
+		void Register(LogSourceMetadata meta);
 		void Register(ILogPartTokenFactory logPartFactory);
 		void Register(Correlation.ISameNodeDetectionTokenFactory factory);
 		IReadOnlyList<LogSourcePostprocessorOutput> LogSourcePostprocessorsOutputs { get; }
 		Task<bool> RunPostprocessor(
-			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources, // todo: use valuetuple
+			(ILogSourcePostprocessor, ILogSource)[] forLogSources,
 			object customData = null
 		);
 	};
@@ -52,10 +52,10 @@ namespace LogJoint.Postprocessing
 	/// <summary>
 	/// Result of a log postprocessor
 	/// </summary>
-	public struct LogSourcePostprocessorOutput // todo: encapsulate to props
+	public class LogSourcePostprocessorOutput
 	{
-		public ILogSource LogSource;
-		public ILogSourcePostprocessor Postprocessor;
+		public ILogSource LogSource { get; internal set; }
+		public ILogSourcePostprocessor Postprocessor { get; internal set; }
 		public enum Status
 		{
 			NeverRun,
@@ -65,10 +65,10 @@ namespace LogJoint.Postprocessing
 			Failed,
 			Outdated,
 		};
-		public Status OutputStatus;
-		public IPostprocessorRunSummary LastRunSummary;
-		public object OutputData;
-		public double? Progress;
+		public Status OutputStatus { get; internal set; }
+		public IPostprocessorRunSummary LastRunSummary { get; internal set; }
+		public object OutputData { get; internal set; }
+		public double? Progress { get; internal set; }
 
 		public override string ToString()
 		{

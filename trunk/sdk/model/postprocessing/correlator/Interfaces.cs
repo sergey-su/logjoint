@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using LogJoint.Postprocessing.Messaging.Analisys;
 using M = LogJoint.Postprocessing.Messaging;
 
 namespace LogJoint.Postprocessing.Correlation
@@ -38,7 +37,6 @@ namespace LogJoint.Postprocessing.Correlation
 	public interface IModel
 	{
 		Task SavePostprocessorOutput( // todo: collect args into struct?
-			Task<NodeId> nodeIdTask,
 			Task<ILogPartToken> logPartTask,
 			IEnumerableAsync<M.Event[]> events,
 			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,

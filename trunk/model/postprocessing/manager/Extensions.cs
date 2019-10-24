@@ -71,15 +71,14 @@ namespace LogJoint.Postprocessing
 			return input;
 		}
 	
-		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IManager postprocessorsManager, PostprocessorKind postprocessorKind)
+		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IReadOnlyList<LogSourcePostprocessorOutput> outputs, PostprocessorKind postprocessorKind)
 		{
-			return postprocessorsManager
-				.LogSourcePostprocessorsOutputs
+			return outputs
 				.Where(output => output.Postprocessor.Kind == postprocessorKind)
 				.ToArray();
 		}
 
-		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IManager postprocessorsManager)
+		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IReadOnlyList<LogSourcePostprocessorOutput> outputs)
 		{
 			bool isRelevantPostprocessor(PostprocessorKind id)
 			{
@@ -87,35 +86,20 @@ namespace LogJoint.Postprocessing
 					   id == PostprocessorKind.StateInspector
 					|| id == PostprocessorKind.Timeline
 					|| id == PostprocessorKind.SequenceDiagram
-					|| id == PostprocessorKind.TimeSeries
-					|| id == PostprocessorKind.Correlator;
+					|| id == PostprocessorKind.TimeSeries;
 			}
 
 			bool isStatusOk(LogSourcePostprocessorOutput output)
 			{
-				if (output.Postprocessor.Kind == PostprocessorKind.Correlator)
-				{
-					/*
-					var status = postprocessorsManager.GetCorrelatorStateSummary().Status;
-					return
-						   status == CorrelatorStateSummary.StatusCode.NeedsProcessing
-						|| status == CorrelatorStateSummary.StatusCode.Processed
-						|| status == CorrelatorStateSummary.StatusCode.ProcessingFailed;*/
-					return false; // todo
-				}
-				else
-				{
-					var status = output.OutputStatus;
-					return
-						   status == LogSourcePostprocessorOutput.Status.NeverRun
-						|| status == LogSourcePostprocessorOutput.Status.Failed
-						|| status == LogSourcePostprocessorOutput.Status.Outdated;
-				}
+				var status = output.OutputStatus;
+				return
+					   status == LogSourcePostprocessorOutput.Status.NeverRun
+					|| status == LogSourcePostprocessorOutput.Status.Failed
+					|| status == LogSourcePostprocessorOutput.Status.Outdated;
 			}
 
 			return
-				postprocessorsManager
-				.LogSourcePostprocessorsOutputs
+				outputs
 				.Where(output => isRelevantPostprocessor(output.Postprocessor.Kind) && isStatusOk(output));
 		}
 
@@ -141,5 +125,13 @@ namespace LogJoint.Postprocessing
 			return false;
 		}
 
+		public static Task<bool> RunPostprocessors(this IManager postprocessorsManager, IReadOnlyList<LogSourcePostprocessorOutput> logs)
+		{
+			return postprocessorsManager.RunPostprocessor(
+				logs
+				.Select(output => (output.Postprocessor, output.LogSource))
+				.ToArray()
+			);
+		}
 	};
 }

@@ -61,7 +61,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			manager = new LogJoint.Postprocessing.PostprocessorsManager(
 				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor, outputDataDeserializer, new TraceSourceFactory());
 
-			manager.RegisterLogType(new LogSourceMetadata(logProviderFac1, logSourcePP1));
+			manager.Register(new LogSourceMetadata(logProviderFac1, logSourcePP1));
 		}
 
 		private void EmitTimerUpdate()
@@ -92,11 +92,11 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			Assert.AreEqual(logSourcePP1, exposedOutput.Postprocessor);
 
 
-			var pp1runResult = new TaskCompletionSource<IPostprocessorRunSummary> ();
+			var pp1runResult = new TaskCompletionSource<IPostprocessorRunSummary>();
 			logSourcePP1.Run(null).ReturnsForAnyArgs(pp1runResult.Task);
 
 			Task runTask = manager.RunPostprocessor(
-				new [] { new KeyValuePair<ILogSourcePostprocessor, ILogSource>(logSourcePP1, logSource1) }, null);
+				new[] { (logSourcePP1, logSource1) }, null);
 			mockedSyncContext.Deplete();
 			Assert.IsFalse(runTask.IsCompleted);
 

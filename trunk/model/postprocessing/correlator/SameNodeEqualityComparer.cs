@@ -3,7 +3,7 @@
 namespace LogJoint.Postprocessing.Correlation
 {
 
-	public class SameNodeEqualityComparer : IEqualityComparer<ISameNodeDetectionToken> // todo: move to model
+	public class SameNodeEqualityComparer : IEqualityComparer<ISameNodeDetectionToken>
 	{
 		bool IEqualityComparer<ISameNodeDetectionToken>.Equals(ISameNodeDetectionToken x, ISameNodeDetectionToken y)
 		{

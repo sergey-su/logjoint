@@ -521,7 +521,8 @@ namespace LogJoint.UI.Presenters
 				presentersFacade,
 				alertPopup,
 				colorTheme,
-				model.MatrixFactory
+				model.MatrixFactory,
+				model.CorrelationManager
 			);
 
 			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage();

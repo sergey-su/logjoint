@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
-using TN = LogJoint.UI.Presenters.ToastNotificationPresenter;
+﻿using TN = LogJoint.UI.Presenters.ToastNotificationPresenter;
 using TL = LogJoint.UI.Presenters.TagsList;
 using QS = LogJoint.UI.Presenters.QuickSearchTextBox;
 using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Correlation;
 
 namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
@@ -23,22 +20,25 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		private readonly IManagerInternal ppm;
 		private readonly ILogSourcesManager lsm;
 		private readonly IAlertPopup alerts;
+		private readonly ICorrelationManager correlationManager;
 
 		public PresentationObjectsFactory(
 			IManagerInternal ppm,
 			ILogSourcesManager lsm,
 			IChangeNotification changeNotification,
-			IAlertPopup alerts
+			IAlertPopup alerts,
+			ICorrelationManager correlationManager
 		)
 		{
 			this.ppm = ppm;
 			this.lsm = lsm;
 			this.alerts = alerts;
+			this.correlationManager = correlationManager;
 		}
 
 		TN.IToastNotificationItem IPresentationObjectsFactory.CreateCorrelatorToastNotificationItem ()
 		{
-			return new CorrelatorToastNotification(ppm, lsm);
+			return new CorrelatorToastNotification(ppm, lsm, correlationManager);
 		}
 
 		TN.IToastNotificationItem IPresentationObjectsFactory.CreateUnprocessedLogsToastNotification (PostprocessorKind postprocessorKind)

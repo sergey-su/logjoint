@@ -36,7 +36,7 @@ namespace LogJoint.PacketAnalysis
 				wiresharkPdmlFormat,
 				timelinePostprocessorsFactory.CreateWiresharkDpmlPostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.wiresharkPdml);
+			postprocessorsManager.Registerr((this.wiresharkPdml);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.WiresharkPdml

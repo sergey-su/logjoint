@@ -28,14 +28,14 @@ namespace LogJoint.Chromium
 			SequenceDiagram.IPostprocessorsFactory sequenceDiagramPostprocessorsFactory
 		)
 		{
-			Func<string, string, IUserDefinedFactory> findFormat = (company, formatName) =>
+			IUserDefinedFactory findFormat(string company, string formatName)
 			{
 				var ret = userDefinedFormatsManager.Items.FirstOrDefault(
 					f => f.CompanyName == company && f.FormatName == formatName);
 				if (ret == null)
 					throw new Exception(string.Format("Log format {0} is not registered in LogJoint", formatName));
 				return ret;
-			};
+			}
 
 			this.chromeDebugLogFormat = findFormat("Google", "Chrome debug log");
 			this.webRtcInternalsDumpFormat = findFormat("Google", "Chrome WebRTC internals dump as log");
@@ -50,7 +50,7 @@ namespace LogJoint.Chromium
 				sequenceDiagramPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				correlatorPostprocessorsFactory.CreateChromeDebugPostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
+			postprocessorsManager.Register(this.chromeDebugLogMeta);
 
 			this.webRtcInternalsDumpMeta = new LogSourceMetadata(
 				webRtcInternalsDumpFormat,
@@ -58,21 +58,21 @@ namespace LogJoint.Chromium
 				timeSeriesPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor(),
 				correlatorPostprocessorsFactory.CreateWebRtcInternalsPostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.webRtcInternalsDumpMeta);
+			postprocessorsManager.Register(this.webRtcInternalsDumpMeta);
 
 			this.chromeDriverLogMeta = new LogSourceMetadata(
 				chromeDriverLogFormat,
 				timelinePostprocessorsFactory.CreateChromeDriverPostprocessor(),
 				correlatorPostprocessorsFactory.CreateChromeDriverPostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.chromeDriverLogMeta);
+			postprocessorsManager.Register(this.chromeDriverLogMeta);
 
 			this.httpArchiveMeta = new LogSourceMetadata(
 				httpArchiveFormat,
 				timelinePostprocessorsFactory.CreateHttpArchivePostprocessor(),
 				sequenceDiagramPostprocessorsFactory.CreateHttpArchivePostprocessor()
 			);
-			postprocessorsManager.RegisterLogType(this.httpArchiveMeta);
+			postprocessorsManager.Register(this.httpArchiveMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDebugLog

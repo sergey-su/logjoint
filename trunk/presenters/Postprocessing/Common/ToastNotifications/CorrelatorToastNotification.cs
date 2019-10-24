@@ -10,14 +10,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 	public class CorrelatorToastNotification: IToastNotificationItem
 	{
 		IManagerInternal ppm;
+		ICorrelationManager correlationManager;
 		CorrelationStateSummary lastSummary;
 
 		public CorrelatorToastNotification(
 			IManagerInternal ppm,
-			ILogSourcesManager lsm
+			ILogSourcesManager lsm,
+			ICorrelationManager correlationManager
 		)
 		{
 			this.ppm = ppm;
+			this.correlationManager = correlationManager;
+			// todo: redesign IToastNotificationItem to be reactive
 			ppm.Changed += (s, e) => Update();
 			lsm.OnLogSourceTimeOffsetChanged += (s, e) => Update();
 			Update();
@@ -25,19 +29,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		public event EventHandler<ItemChangeEventArgs> Changed;
 
-		async void IToastNotificationItem.PerformAction (string actionId)
+		void IToastNotificationItem.PerformAction (string actionId)
 		{
 			switch (lastSummary.Status)
 			{
 			case CorrelationStateSummary.StatusCode.NeedsProcessing:
 			case CorrelationStateSummary.StatusCode.Processed:
 			case CorrelationStateSummary.StatusCode.ProcessingFailed:
-
-				await this.ppm.RunPostprocessor(
-					ppm.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator)
-						.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.Postprocessor, output.LogSource))
-						.ToArray()
-				);
+				correlationManager.Run();
 				break;
 			}
 		}
@@ -72,7 +71,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		void Update()
 		{
 			bool wasActive = IsActiveImpl ();
-			// lastSummary = ppm.GetCorrelatorStateSummary(); todo
+			lastSummary = correlationManager.StateSummary;
 			if (Changed != null)
 			{
 				Changed(this, new ItemChangeEventArgs(isUnsuppressingChange: IsActiveImpl() && !wasActive));
