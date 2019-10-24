@@ -36,7 +36,7 @@ namespace LogJoint
 		public Telemetry.ITelemetryUploader TelemetryUploader { get; internal set; }
 		public Progress.IProgressAggregator ProgressAggregator { get; internal set; }
 		public Postprocessing.IManagerInternal PostprocessorsManager { get; internal set; }
-		public Postprocessing.ICorrelationManager CorrelationManager { get; internal set; }
+		public Postprocessing.Correlation.ICorrelationManager CorrelationManager { get; internal set; }
 		public IModel ExpensibilityEntryPoint { get; internal set; }
 		public Postprocessing.IUserNamesProvider AnalyticsShortNames { get; internal set; }
 		public ISynchronizationContext SynchronizationContext { get; internal set; }
@@ -279,7 +279,7 @@ namespace LogJoint
 				changeNotification
 			);
 
-			Postprocessing.ICorrelationManager correlationManager = new Postprocessing.Correlation.CorrelationManager(
+			Postprocessing.Correlation.ICorrelationManager correlationManager = new Postprocessing.Correlation.CorrelationManager(
 				postprocessorsManager,
 				solverFactory,
 				modelSynchronizationContext,

@@ -14,7 +14,7 @@ namespace LogJoint.Postprocessing.Correlation
 			ISolver solver,
 			IDictionary<NodeId, Node> nodes,
 			InternodeMessagesMap map, List<InternodeMessage> messages, 
-			List<NodesConstraint> fixedConstraints,
+			List<FixedConstraint> fixedConstraints,
 			HashSet<string> allowInstancesMergingForRoles)
 		{
 			using (var solverModel = solver.CreateModel())
@@ -52,7 +52,7 @@ namespace LogJoint.Postprocessing.Correlation
 					SolutionStatus.Solved,
 					nodeDecisions.ToDictionary(
 						d => d.Key,
-						d => new NodeSolution(
+						d => (INodeSolution)new NodeSolution(
 							d.Value.TimeDelta,
 							GetNonmonotonicTimeDeltasForNode(msgDecisions, d.Value),
 							d.Value.NrOnConstraints

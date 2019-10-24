@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using LogJoint.Postprocessing.Correlation;
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {

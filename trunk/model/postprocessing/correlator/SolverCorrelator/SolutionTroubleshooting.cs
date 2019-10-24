@@ -21,7 +21,7 @@ namespace LogJoint.Postprocessing.Correlation
 			ISolver solver,
 			IDictionary<NodeId, Node> nodes,
 			List<InternodeMessage> messages,
-			List<NodesConstraint> fixedConstraints,
+			List<FixedConstraint> fixedConstraints,
 			HashSet<string> allowInstacesMergingForRoles
 		)
 		{
@@ -87,7 +87,7 @@ namespace LogJoint.Postprocessing.Correlation
 			return result.ToString();
 		}
 
-		static List<Dictionary<NodeId, Node>> FindInfeasibleNodeCombinations(ISolver solver, IDictionary<NodeId, Node> nodes, List<InternodeMessage> messages, List<NodesConstraint> fixedConstraints,
+		static List<Dictionary<NodeId, Node>> FindInfeasibleNodeCombinations(ISolver solver, IDictionary<NodeId, Node> nodes, List<InternodeMessage> messages, List<FixedConstraint> fixedConstraints,
 			HashSet<string> allowInstacesMergingForRoles)
 		{
 			var infeasibleNodeCombinations = new List<Dictionary<NodeId, Node>>();
@@ -113,7 +113,7 @@ namespace LogJoint.Postprocessing.Correlation
 		}
 
 		static List<List<InternodeMessage>> FindInfeasibleMessagesCombinations(ISolver solver, IDictionary<NodeId, Node> nodes, List<InternodeMessage> messages, 
-			List<NodesConstraint> fixedConstraints, HashSet<string> allowInstacesMergingForRoles)
+			List<FixedConstraint> fixedConstraints, HashSet<string> allowInstacesMergingForRoles)
 		{
 			var ret = new List<HashSet<InternodeMessage>>();
 
@@ -138,7 +138,7 @@ namespace LogJoint.Postprocessing.Correlation
 			return ret.Select(d => d.ToList()).ToList();
 		}
 
-		static Func<ISolver, IDictionary<NodeId, Node>, InternodeMessagesMap, List<InternodeMessage>, List<NodesConstraint>, HashSet<string>, ISolutionResult> solverFn = 
+		static Func<ISolver, IDictionary<NodeId, Node>, InternodeMessagesMap, List<InternodeMessage>, List<FixedConstraint>, HashSet<string>, ISolutionResult> solverFn = 
 			NonmonotonicTimeSolution.Solve;
 	}
 }

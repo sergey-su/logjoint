@@ -7,10 +7,10 @@ namespace LogJoint.Postprocessing.Correlation
 {
 	class CorrelatorRunResult
 	{
-		readonly NodeSolution solution;
+		readonly INodeSolution solution;
 		readonly HashSet<string> correlatedConnectionIds;
 
-		public CorrelatorRunResult(NodeSolution solution, HashSet<string> correlatedConnectionIds)
+		public CorrelatorRunResult(INodeSolution solution, HashSet<string> correlatedConnectionIds)
 		{
 			this.solution = solution;
 			this.correlatedConnectionIds = correlatedConnectionIds;
@@ -45,6 +45,6 @@ namespace LogJoint.Postprocessing.Correlation
 
 		public HashSet<string> CorrelatedLogsConnectionIds => correlatedConnectionIds;
 
-		public NodeSolution Solution => solution;
+		public INodeSolution Solution => solution;
 	};
 }

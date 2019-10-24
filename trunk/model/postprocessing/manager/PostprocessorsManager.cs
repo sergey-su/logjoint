@@ -38,16 +38,6 @@ namespace LogJoint.Postprocessing
 			this.tracer = traceSourceFactory.CreateTraceSource("App", "ppm");
 			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh);
 
-			this.getKnownLogSources = Selectors.Create(
-				() => knownLogSources,
-				values => ImmutableArray.CreateRange(values.Keys)
-			);
-
-			this.getKnownLogTypes = Selectors.Create(
-				() => knownLogTypes,
-				values => ImmutableArray.CreateRange(values.Values)
-			);
-
 			logSources.OnLogSourceAdded += (sender, args) => updater.Invoke();
 			logSources.OnLogSourceRemoved += (sender, args) => updater.Invoke();
 			logSources.OnLogSourceAnnotationChanged += (sender, args) => updater.Invoke();
@@ -77,8 +67,6 @@ namespace LogJoint.Postprocessing
 		{
 			sameNodeDetectionTokenFactories.Register(factory);
 		}
-
-		IReadOnlyList<LogSourceMetadata> IManagerInternal.KnownLogTypes => getKnownLogTypes();
 
 		async Task<bool> IManager.RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] typesAndSources, 
@@ -177,8 +165,6 @@ namespace LogJoint.Postprocessing
 
 			return true;
 		}
-
-		IReadOnlyList<ILogSource> IManagerInternal.KnownLogSources => getKnownLogSources();
 
 
 		void Refresh()
@@ -291,9 +277,7 @@ namespace LogJoint.Postprocessing
 		private readonly ISynchronizationContext threadPoolSyncContext;
 		private readonly IHeartBeatTimer heartbeat;
 		private ImmutableDictionary<ILogProviderFactory, LogSourceMetadata> knownLogTypes = ImmutableDictionary<ILogProviderFactory, LogSourceMetadata>.Empty;
-		private readonly Func<ImmutableArray<LogSourceMetadata>> getKnownLogTypes;
 		private ImmutableDictionary<ILogSource, LogSourceRecord> knownLogSources = ImmutableDictionary<ILogSource,LogSourceRecord>.Empty;
-		private Func<ImmutableArray<ILogSource>> getKnownLogSources;
 		private IReadOnlyList<LogSourcePostprocessorOutput> postprocessorsOutputs = ImmutableArray.Create<LogSourcePostprocessorOutput>();
 		private readonly AsyncInvokeHelper updater;
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;

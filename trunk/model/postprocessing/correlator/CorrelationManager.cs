@@ -18,7 +18,6 @@ namespace LogJoint.Postprocessing.Correlation
 		readonly IManagerInternal postprocessingManager;
 		readonly Func<ImmutableArray<LogSourcePostprocessorOutput>> getOutputs;
 		readonly Func<CorrelationStateSummary> getStateSummary;
-		readonly Func<ImmutableHashSet<ICorrelatorOutput>> getCurrentOutputs; // todo: remove?
 		ImmutableDictionary<ILogSource, CorrelatorRunResult> lastResult = ImmutableDictionary<ILogSource, CorrelatorRunResult>.Empty;
 
 		public CorrelationManager(
@@ -41,18 +40,8 @@ namespace LogJoint.Postprocessing.Correlation
 					outputs.Where(output => output.Postprocessor.Kind == PostprocessorKind.Correlator)
 				)
 			);
-			this.getCurrentOutputs = Selectors.Create(
-				() => postprocessingManager.LogSourcePostprocessorsOutputs,
-				outputs => ImmutableHashSet.CreateRange(
-					outputs.Where(output => output.Postprocessor.Kind == PostprocessorKind.Correlator)
-					.Select(output => output.OutputData as ICorrelatorOutput)
-					.Where(data => data != null)
-				)
-			);
 			this.getStateSummary = Selectors.Create(
 				getOutputs,
-				() => postprocessingManager.KnownLogTypes,
-				() => postprocessingManager.KnownLogSources,
 				() => lastResult,
 				GetCorrelatorStateSummary
 			);
@@ -62,15 +51,19 @@ namespace LogJoint.Postprocessing.Correlation
 
 		async Task DoCorrelation()
 		{
+			var outputs = getOutputs();
+
 			var allLogs =
-				getCurrentOutputs()
+				outputs
+				.Select(output => output.OutputData)
+				.OfType<ICorrelatorOutput>()
 				.Select(data => new NodeInfo(data.LogSource, data.NodeId, data.RotatedLogPartToken, data.Events, data.SameNodeDetectionToken))
 				.ToArray();
 
 			var fixedConstraints =
 				allLogs
 				.GroupBy(l => l.SameNodeDetectionToken, new SameNodeEqualityComparer())
-				.SelectMany(group => LinqUtils.ZipWithNext(group).Select(pair => new NodesConstraint()
+				.SelectMany(group => LinqUtils.ZipWithNext(group).Select(pair => new FixedConstraint()
 				{
 					Node1 = pair.Key.NodeId,
 					Node2 = pair.Value.NodeId,
@@ -117,8 +110,7 @@ namespace LogJoint.Postprocessing.Correlation
 			{
 				foreach (var ls in logSourcesManager.Items)
 				{
-					NodeSolution sln;
-					if (timeOffsets.TryGetValue(ls, out sln))
+					if (timeOffsets.TryGetValue(ls, out var sln))
 					{
 						ITimeOffsetsBuilder builder = logSourcesManager.CreateTimeOffsetsBuilder();
 						builder.SetBaseOffset(sln.BaseDelta);
@@ -130,9 +122,7 @@ namespace LogJoint.Postprocessing.Correlation
 				}
 			});
 
-			var correlatedLogsConnectionIds = postprocessingManager.GetCorrelatableLogsConnectionIds(timeOffsets.Keys);
-
-			lastResult = timeOffsets.ToImmutableDictionary(to => to.Key, to => new CorrelatorRunResult(to.Value, correlatedLogsConnectionIds));
+			lastResult = timeOffsets.ToImmutableDictionary(to => to.Key, to => new CorrelatorRunResult(to.Value, GetCorrelatableLogsConnectionIds(outputs)));
 
 			// todo: expose textual summary somehow
 			/*var summary = new CorrelatorPostprocessorRunSummary(correlatorSolution.Success,
@@ -155,10 +145,17 @@ namespace LogJoint.Postprocessing.Correlation
 			await DoCorrelation();
 		}
 
+		static HashSet<string> GetCorrelatableLogsConnectionIds(ImmutableArray<LogSourcePostprocessorOutput> outputs)
+		{
+			return
+				outputs
+				.Select(output => output.LogSource)
+				.Select(ls => ls.Provider.ConnectionId)
+				.ToHashSet();
+		}
+
 		static CorrelationStateSummary GetCorrelatorStateSummary(
 			ImmutableArray<LogSourcePostprocessorOutput> correlationOutputs,
-			IReadOnlyList<LogSourceMetadata> knownLogTypes,
-			IReadOnlyList<ILogSource> knownLogSources,
 			ImmutableDictionary<ILogSource, CorrelatorRunResult> lastResult
 		)
 		{
@@ -166,7 +163,7 @@ namespace LogJoint.Postprocessing.Correlation
 			{
 				return new CorrelationStateSummary { Status = CorrelationStateSummary.StatusCode.PostprocessingUnavailable };
 			}
-			var correlatableLogsIds = GetCorrelatableLogsConnectionIds(knownLogTypes, knownLogSources);
+			var correlatableLogsIds = GetCorrelatableLogsConnectionIds(correlationOutputs);
 			int numMissingOutput = 0;
 			int numProgressing = 0;
 			int numFailed = 0;
@@ -237,22 +234,6 @@ namespace LogJoint.Postprocessing.Correlation
 				Status = CorrelationStateSummary.StatusCode.Processed,
 				Report = report
 			};
-		}
-
-		public static ImmutableHashSet<string> GetCorrelatableLogsConnectionIds(
-			IReadOnlyList<LogSourceMetadata> knownLogTypes,
-			IReadOnlyList<ILogSource> logs
-		)
-		{
-			var correlatableLogSourceTypes =
-				knownLogTypes.Where(t => t.SupportedPostprocessors.Any(pp => pp.Kind == PostprocessorKind.Correlator))
-				.ToLookup(t => t.LogProviderFactory);
-			return ImmutableHashSet.CreateRange(
-				logs
-				.Where(i => !i.IsDisposed) // todo: impure. remove?
-				.Where(i => correlatableLogSourceTypes.Contains(i.Provider.Factory))
-				.Select(i => i.ConnectionId)
-			);
 		}
 
 		class NodeInfo
