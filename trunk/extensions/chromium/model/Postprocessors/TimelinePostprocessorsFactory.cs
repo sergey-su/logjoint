@@ -78,12 +78,10 @@ namespace LogJoint.Chromium.Timeline
 			events.Add(networkEvts);
 			events.Add(eofEvts);
 
-			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
-				EnumerableAsync.Merge(events.ToArray()),
-				null,
-				evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger),
-				postprocessorInput
-			);
+			var serialize = postprocessing.Timeline.CreatePostprocessorOutputBuilder()
+				.SetEvents(EnumerableAsync.Merge(events.ToArray()))
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger))
+				.Build(postprocessorInput);
 
 			var tasks = new List<Task>();
 			tasks.Add(serialize);
@@ -108,12 +106,10 @@ namespace LogJoint.Chromium.Timeline
 
 			matcher.Freeze();
 
-			var serialize = postprocessing.Timeline.SavePostprocessorOutput(
-				events,
-				null,
-				evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger),
-				postprocessorInput
-			);
+			var serialize = postprocessing.Timeline.CreatePostprocessorOutputBuilder()
+				.SetEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger))
+				.Build(postprocessorInput);
 
 			var tasks = new List<Task>();
 			tasks.Add(serialize);
@@ -133,12 +129,10 @@ namespace LogJoint.Chromium.Timeline
 				postprocessorInput.TemplatesTracker.TrackTemplates(timelineEvents.GetEvents(input))
 			);
 
-			await postprocessing.Timeline.SavePostprocessorOutput(
-				events,
-				null,
-				evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger),
-				postprocessorInput
-			);
+			await postprocessing.Timeline.CreatePostprocessorOutputBuilder()
+				.SetEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger))
+				.Build(postprocessorInput);
 		}
 	};
 }

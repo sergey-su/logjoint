@@ -1,12 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using M = LogJoint.Postprocessing.Messaging;
 
 namespace LogJoint.Postprocessing.Correlation
 {
+	public interface ISameNodeDetectionToken
+	{
+		SameNodeDetectionResult DetectSameNode(ISameNodeDetectionToken otherNodeToken);
+		ISameNodeDetectionTokenFactory Factory { get; }
+		void Serialize(XElement node);
+	};
+
 	public class SameNodeDetectionResult
 	{
 		public TimeSpan TimeDiff { get; private set; }
@@ -16,12 +21,6 @@ namespace LogJoint.Postprocessing.Correlation
 		}
 	};
 
-	public interface ISameNodeDetectionToken
-	{
-		SameNodeDetectionResult DetectSameNode(ISameNodeDetectionToken otherNodeToken);
-		ISameNodeDetectionTokenFactory Factory { get; }
-		void Serialize(XElement node);
-	};
 
 	public interface ISameNodeDetectionTokenFactory
 	{
@@ -34,14 +33,23 @@ namespace LogJoint.Postprocessing.Correlation
 		ISameNodeDetectionToken Deserialize(XElement element);
 	};
 
+	public class PostprocessorOutputBuilder
+	{
+		public PostprocessorOutputBuilder SetLogPartToken(Task<ILogPartToken> value) { logPart = value; return this; }
+		public PostprocessorOutputBuilder SetMessagingEvents(IEnumerableAsync<M.Event[]> value) { events = value; return this; }
+		public PostprocessorOutputBuilder SetSameNodeDetectionToken(Task<ISameNodeDetectionToken> value) { sameNodeDetectionToken = value; return this; }
+		public PostprocessorOutputBuilder SetTriggersConverter(Func<object, TextLogEventTrigger> value) { triggersConverter = value; return this; }
+		public Task Build(LogSourcePostprocessorInput postprocessorParams) { return build(postprocessorParams, this); }
+
+		internal IEnumerableAsync<M.Event[]> events;
+		internal Task<ILogPartToken> logPart;
+		internal Task<ISameNodeDetectionToken> sameNodeDetectionToken;
+		internal Func<object, TextLogEventTrigger> triggersConverter;
+		internal Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+	};
+
 	public interface IModel
 	{
-		Task SavePostprocessorOutput( // todo: collect args into struct?
-			Task<ILogPartToken> logPartTask,
-			IEnumerableAsync<M.Event[]> events,
-			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,
-			Func<object, TextLogEventTrigger> triggersConverter,
-			LogSourcePostprocessorInput postprocessorInput
-		);
+		PostprocessorOutputBuilder CreatePostprocessorOutputBuilder();
 	};
 }

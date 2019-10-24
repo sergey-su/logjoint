@@ -51,13 +51,13 @@ namespace LogJoint.Postprocessing
 			state.Dispose();
 		}
 
-		public LogSourcePostprocessorOutput BuildData(
-			LogSourcePostprocessorOutput.Status status,
+		public LogSourcePostprocessorState BuildData(
+			LogSourcePostprocessorState.Status status,
 			double? progress = null,
 			object outputData = null,
 			IPostprocessorRunSummary lastRunSummary = null)
 		{
-			return new LogSourcePostprocessorOutput
+			return new LogSourcePostprocessorState
 			{
 				LogSource = logSourceRecord.logSource,
 				Postprocessor = metadata,

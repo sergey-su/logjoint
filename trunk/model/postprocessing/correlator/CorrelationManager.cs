@@ -16,12 +16,13 @@ namespace LogJoint.Postprocessing.Correlation
 		readonly ILogSourcesManager logSourcesManager;
 		readonly IChangeNotification changeNotification;
 		readonly IManagerInternal postprocessingManager;
-		readonly Func<ImmutableArray<LogSourcePostprocessorOutput>> getOutputs;
+		readonly Telemetry.ITelemetryCollector telemetryCollector;
+		readonly Func<ImmutableArray<LogSourcePostprocessorState>> getOutputs;
 		readonly Func<CorrelationStateSummary> getStateSummary;
 		 // todo: persist results it in log's local storage to have
 		 // green correlation status when logs are reopen
 		ImmutableDictionary<string, CorrelatorRunResult> logConnectionIdToLastRunResult = ImmutableDictionary<string, CorrelatorRunResult>.Empty;
-		Ref<string> lastRunReport;
+		RunSummary lastRunSummary;
 		int logSourceTimeOffsetRevision;
 
 		public CorrelationManager(
@@ -29,7 +30,8 @@ namespace LogJoint.Postprocessing.Correlation
 			Func<Solver.ISolver> solverFactory,
 			ISynchronizationContext modelThreadSync,
 			ILogSourcesManager logSourcesManager,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			Telemetry.ITelemetryCollector telemetryCollector
 		)
 		{
 			this.postprocessingManager = postprocessingManager;
@@ -37,6 +39,7 @@ namespace LogJoint.Postprocessing.Correlation
 			this.modelThreadSync = modelThreadSync;
 			this.logSourcesManager = logSourcesManager;
 			this.changeNotification = changeNotification;
+			this.telemetryCollector = telemetryCollector;
 
 			logSourcesManager.OnLogSourceTimeOffsetChanged += (s, e) =>
 			{
@@ -45,7 +48,7 @@ namespace LogJoint.Postprocessing.Correlation
 			};
 
 			this.getOutputs = Selectors.Create(
-				() => postprocessingManager.LogSourcePostprocessorsOutputs,
+				() => postprocessingManager.LogSourcePostprocessors,
 				outputs => ImmutableArray.CreateRange(
 					outputs.Where(output => output.Postprocessor.Kind == PostprocessorKind.Correlator)
 				)
@@ -53,13 +56,11 @@ namespace LogJoint.Postprocessing.Correlation
 			this.getStateSummary = Selectors.Create(
 				getOutputs,
 				() => logConnectionIdToLastRunResult,
-				() => lastRunReport,
+				() => lastRunSummary,
 				() => logSourceTimeOffsetRevision,
 				GetCorrelatorStateSummary
 			);
 		}
-
-		// todo CurrentStatus -> reactive getter - combines: status of last run postprocs, own async task status
 
 		async Task DoCorrelation()
 		{
@@ -156,7 +157,7 @@ namespace LogJoint.Postprocessing.Correlation
 				to => to.Key.GetSafeConnectionId(),
 				to => new CorrelatorRunResult(to.Value, GetCorrelatableLogsConnectionIds(outputs))
 			);
-			lastRunReport = new Ref<string>(correlatorSolution.CorrelationLog + grouppedLogsReport);
+			lastRunSummary = new RunSummary { Report = correlatorSolution.CorrelationLog + grouppedLogsReport };
 
 			changeNotification.Post();
 		}
@@ -166,12 +167,20 @@ namespace LogJoint.Postprocessing.Correlation
 		async void ICorrelationManager.Run()
 		{
 			await this.postprocessingManager.RunPostprocessors(
-				postprocessingManager.LogSourcePostprocessorsOutputs.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator));
+				postprocessingManager.LogSourcePostprocessors.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator));
 
-			await DoCorrelation();
+			try
+			{
+				await DoCorrelation();
+			}
+			catch (Exception e)
+			{
+				telemetryCollector.ReportException(e, "correlation");
+				lastRunSummary = new RunSummary { Report = e.Message, IsFailure = true };
+			}
 		}
 
-		static HashSet<string> GetCorrelatableLogsConnectionIds(ImmutableArray<LogSourcePostprocessorOutput> outputs)
+		static HashSet<string> GetCorrelatableLogsConnectionIds(ImmutableArray<LogSourcePostprocessorState> outputs)
 		{
 			return
 				outputs
@@ -181,15 +190,19 @@ namespace LogJoint.Postprocessing.Correlation
 		}
 
 		static CorrelationStateSummary GetCorrelatorStateSummary(
-			ImmutableArray<LogSourcePostprocessorOutput> correlationOutputs,
+			ImmutableArray<LogSourcePostprocessorState> correlationOutputs,
 			ImmutableDictionary<string, CorrelatorRunResult> lastResult,
-			Ref<string> lastRunReport,
-			int _
+			RunSummary lastRunSummary,
+			int _timeShiftsRevision
 		)
 		{
 			if (correlationOutputs.Length < 2)
 			{
 				return new CorrelationStateSummary { Status = CorrelationStateSummary.StatusCode.PostprocessingUnavailable };
+			}
+			if (lastRunSummary?.IsFailure == true)
+			{
+				return new CorrelationStateSummary { Status = CorrelationStateSummary.StatusCode.ProcessingFailed, Report = lastRunSummary.Report };
 			}
 			var correlatableLogsIds = GetCorrelatableLogsConnectionIds(correlationOutputs);
 			int numMissingOutput = 0;
@@ -200,7 +213,7 @@ namespace LogJoint.Postprocessing.Correlation
 			double? progress = null;
 			foreach (var i in correlationOutputs)
 			{
-				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.InProgress)
+				if (i.OutputStatus == LogSourcePostprocessorState.Status.InProgress)
 				{
 					numProgressing++;
 					if (progress == null && i.Progress != null)
@@ -219,7 +232,7 @@ namespace LogJoint.Postprocessing.Correlation
 					if (typedOutput.Solution.BaseDelta != actualOffsets.BaseOffset)
 						++numCorrelationResultMismatches;
 				}
-				if (i.OutputStatus == LogSourcePostprocessorOutput.Status.Failed)
+				if (i.OutputStatus == LogSourcePostprocessorState.Status.Failed)
 				{
 					++numFailed;
 				}
@@ -232,11 +245,15 @@ namespace LogJoint.Postprocessing.Correlation
 					Progress = progress
 				};
 			}
-			string report = lastRunReport?.Value;
-			IPostprocessorRunSummary reportObject = correlationOutputs.First().LastRunSummary;
+			string report = lastRunSummary?.Report;
 			if (numMissingOutput != 0 || numCorrelationContextMismatches != 0 || numCorrelationResultMismatches != 0)
 			{
-				if (reportObject != null && reportObject.HasErrors) // todo: check errors in any one?
+				IPostprocessorRunSummary summaryWithError = correlationOutputs
+					.Select(output => output.LastRunSummary)
+					.OfType<IPostprocessorRunSummary>()
+					.Where(summary => summary.HasErrors)
+					.FirstOrDefault();
+				if (summaryWithError != null)
 				{
 					return new CorrelationStateSummary()
 					{
@@ -281,6 +298,12 @@ namespace LogJoint.Postprocessing.Correlation
 				Messages = messages;
 				SameNodeDetectionToken = sameNodeDetectionToken;
 			}
+		};
+
+		class RunSummary
+		{
+			public bool IsFailure;
+			public string Report;
 		};
 	}
 }

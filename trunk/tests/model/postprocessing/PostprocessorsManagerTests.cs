@@ -3,6 +3,7 @@ using System.Linq;
 using NSubstitute;
 using NUnit.Framework;
 using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.Correlation;
 using System.Xml;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 	[TestFixture]
 	public class PostprocessorsManagerTests
 	{
-		IManager manager;
+		IManagerInternal manager;
 
 		ILogSourcesManager logSources;
 		Telemetry.ITelemetryCollector telemetry;
@@ -28,6 +29,10 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 		IPostprocessorOutputETag pp1PostprocessorOutput;
 		IPostprocessorRunSummary pp1RunSummary;
 		IOutputDataDeserializer outputDataDeserializer;
+		ILogPartTokenFactories logPartTokenFactories;
+		ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories;
+		IChangeNotification changeNotification;
+
 
 		[SetUp]
 		public void BeforeEach()
@@ -57,9 +62,13 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			pp1RunSummary = Substitute.For<IPostprocessorRunSummary>();
 			logSourcePP1.Run(null).ReturnsForAnyArgs(Task.FromResult(pp1RunSummary));
 			pp1RunSummary.GetLogSpecificSummary(null).ReturnsForAnyArgs((IPostprocessorRunSummary)null);
+			logPartTokenFactories = Substitute.For<ILogPartTokenFactories>();
+			sameNodeDetectionTokenFactories = Substitute.For<ISameNodeDetectionTokenFactories>();
+			changeNotification = Substitute.For<IChangeNotification>();
 
 			manager = new LogJoint.Postprocessing.PostprocessorsManager(
-				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor, outputDataDeserializer, new TraceSourceFactory());
+				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor, outputDataDeserializer, new TraceSourceFactory(),
+				logPartTokenFactories, sameNodeDetectionTokenFactories, changeNotification);
 
 			manager.Register(new LogSourceMetadata(logProviderFac1, logSourcePP1));
 		}
@@ -83,9 +92,9 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			EmitLogSource1Addition();
 			mockedSyncContext.Deplete();
 
-			var exposedOutput = manager.LogSourcePostprocessorsOutputs.Single();
+			var exposedOutput = manager.LogSourcePostprocessors.Single();
 			Assert.AreSame(null, exposedOutput.OutputData);
-			Assert.AreEqual(LogSourcePostprocessorOutput.Status.NeverRun, exposedOutput.OutputStatus);
+			Assert.AreEqual(LogSourcePostprocessorState.Status.NeverRun, exposedOutput.OutputStatus);
 			Assert.AreSame(null, exposedOutput.LastRunSummary);
 			Assert.AreSame(new double?(), exposedOutput.Progress);
 			Assert.AreEqual(logSource1, exposedOutput.LogSource);
@@ -95,14 +104,14 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			var pp1runResult = new TaskCompletionSource<IPostprocessorRunSummary>();
 			logSourcePP1.Run(null).ReturnsForAnyArgs(pp1runResult.Task);
 
-			Task runTask = manager.RunPostprocessor(
-				new[] { (logSourcePP1, logSource1) }, null);
+			Task runTask = manager.RunPostprocessors(
+				new[] { exposedOutput }, null);
 			mockedSyncContext.Deplete();
 			Assert.IsFalse(runTask.IsCompleted);
 
-			exposedOutput = manager.LogSourcePostprocessorsOutputs.Single();
+			exposedOutput = manager.LogSourcePostprocessors.Single();
 			Assert.AreSame(null, exposedOutput.OutputData);
-			Assert.AreEqual(LogSourcePostprocessorOutput.Status.InProgress, exposedOutput.OutputStatus);
+			Assert.AreEqual(LogSourcePostprocessorState.Status.InProgress, exposedOutput.OutputStatus);
 			Assert.AreSame(null, exposedOutput.LastRunSummary);
 			Assert.AreSame(new double?(), exposedOutput.Progress);
 			Assert.AreEqual(logSource1, exposedOutput.LogSource);
@@ -114,8 +123,8 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			mockedSyncContext.Deplete();
 			Assert.IsTrue(runTask.IsCompleted);
 
-			exposedOutput = manager.LogSourcePostprocessorsOutputs.Single();
-			Assert.AreEqual(LogSourcePostprocessorOutput.Status.Finished, exposedOutput.OutputStatus);
+			exposedOutput = manager.LogSourcePostprocessors.Single();
+			Assert.AreEqual(LogSourcePostprocessorState.Status.Finished, exposedOutput.OutputStatus);
 			Assert.AreSame(pp1PostprocessorOutput, exposedOutput.OutputData);
 			Assert.AreSame(pp1RunSummary, exposedOutput.LastRunSummary);
 			Assert.AreSame(new double?(), exposedOutput.Progress);

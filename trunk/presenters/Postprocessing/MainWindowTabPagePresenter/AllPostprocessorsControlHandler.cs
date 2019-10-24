@@ -8,18 +8,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	class AllPostprocessorsControlHandler : IViewControlHandler
 	{
-		readonly IManager postprocessorsManager;
-		readonly Func<LogSourcePostprocessorOutput[]> getOutputs;
+		readonly IManagerInternal postprocessorsManager;
+		readonly Func<LogSourcePostprocessorState[]> getOutputs;
 		readonly Func<ControlData> getControlData;
 
 		public AllPostprocessorsControlHandler(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			ICorrelationManager correlationManager
 		)
 		{
 			this.postprocessorsManager = postprocessorsManager;
 			this.getOutputs = Selectors.Create(
-				() => postprocessorsManager.LogSourcePostprocessorsOutputs,
+				() => postprocessorsManager.LogSourcePostprocessors,
 				() => correlationManager.StateSummary,
 				(outputs, correlatorSummary) =>
 					outputs.GetAutoPostprocessingCapableOutputs()
@@ -47,8 +47,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			await postprocessorsManager.RunPostprocessors(getOutputs());
 		}
 
-		static IEnumerable<LogSourcePostprocessorOutput> GetCorrelationOutputs(
-			IReadOnlyList<LogSourcePostprocessorOutput> outputs, CorrelationStateSummary status)
+		static IEnumerable<LogSourcePostprocessorState> GetCorrelationOutputs(
+			IReadOnlyList<LogSourcePostprocessorState> outputs, CorrelationStateSummary status)
 		{
 			if (status.Status == CorrelationStateSummary.StatusCode.NeedsProcessing
 			 || status.Status == CorrelationStateSummary.StatusCode.Processed
@@ -56,7 +56,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			{
 				return outputs.GetPostprocessorOutputsByPostprocessorId(PostprocessorKind.Correlator);
 			}
-			return Enumerable.Empty<LogSourcePostprocessorOutput>();
+			return Enumerable.Empty<LogSourcePostprocessorState>();
 		}
 	};
 }

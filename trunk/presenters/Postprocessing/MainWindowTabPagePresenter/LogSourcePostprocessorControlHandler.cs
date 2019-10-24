@@ -9,16 +9,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	class LogSourcePostprocessorControlHandler : IViewControlHandler
 	{
-		readonly IManager postprocessorsManager;
+		readonly IManagerInternal postprocessorsManager;
 		readonly PostprocessorKind postprocessorKind;
 		readonly Func<IPostprocessorVisualizerPresenter> visualizerPresenter;
 		readonly IShellOpen shellOpen;
 		readonly ITempFilesManager tempFiles;
-		readonly Func<ImmutableList<LogSourcePostprocessorOutput>> getOutputs;
+		readonly Func<ImmutableList<LogSourcePostprocessorState>> getOutputs;
 		readonly Func<ControlData> getControlData;
 
 		public LogSourcePostprocessorControlHandler(
-			IManager postprocessorsManager,
+			IManagerInternal postprocessorsManager,
 			PostprocessorKind postprocessorKind,
 			Func<IPostprocessorVisualizerPresenter> visualizerPresenter,
 			IShellOpen shellOpen,
@@ -31,7 +31,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			this.shellOpen = shellOpen;
 			this.tempFiles = tempFiles;
 			this.getOutputs = Selectors.Create(
-				() => postprocessorsManager.LogSourcePostprocessorsOutputs,
+				() => postprocessorsManager.LogSourcePostprocessors,
 				outputs => ImmutableList.CreateRange(
 					outputs.Where(output => output.Postprocessor.Kind == postprocessorKind)
 				)
@@ -44,7 +44,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		ControlData IViewControlHandler.GetCurrentData() => getControlData();
 
-		static ControlData GetCurrentData(ImmutableList<LogSourcePostprocessorOutput> outputs, PostprocessorKind postprocessorKind)
+		static ControlData GetCurrentData(ImmutableList<LogSourcePostprocessorState> outputs, PostprocessorKind postprocessorKind)
 		{
 			if (outputs.Count == 0)
 			{
@@ -63,8 +63,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			{
 				switch (output.OutputStatus)
 				{
-					case LogSourcePostprocessorOutput.Status.Finished:
-					case LogSourcePostprocessorOutput.Status.Failed:
+					case LogSourcePostprocessorState.Status.Finished:
+					case LogSourcePostprocessorState.Status.Failed:
 						if (output.LastRunSummary != null)
 						{
 							if (output.LastRunSummary.HasWarnings)
@@ -74,19 +74,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						}
 						++nrOfProcessed;
 						break;
-					case LogSourcePostprocessorOutput.Status.Outdated:
+					case LogSourcePostprocessorState.Status.Outdated:
 						++nrOfOutdated;
 						++nrOfProcessed;
 						break;
-					case LogSourcePostprocessorOutput.Status.InProgress:
+					case LogSourcePostprocessorState.Status.InProgress:
 						++nrOfRunning;
 						progress = output.Progress;
 						break;
-					case LogSourcePostprocessorOutput.Status.Loading:
+					case LogSourcePostprocessorState.Status.Loading:
 						++nrOfLoading;
 						progress = output.Progress;
 						break;
-					case LogSourcePostprocessorOutput.Status.NeverRun:
+					case LogSourcePostprocessorState.Status.NeverRun:
 						++nrOfUnprocessed;
 						break;
 				}
@@ -164,13 +164,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					visualizerPresenter().Show();
 					break;
 				case "action":
-					if (!await this.postprocessorsManager.RunPostprocessors(getOutputs()))
 					{
-						return;
-					}
-					{
+						await this.postprocessorsManager.RunPostprocessors(getOutputs());
 						var outputs = getOutputs();
-						if (outputs.Any(x => x.OutputStatus == LogSourcePostprocessorOutput.Status.Finished))
+						if (outputs.Any(x => x.OutputStatus == LogSourcePostprocessorState.Status.Finished))
 						{
 							visualizerPresenter().Show();
 						}

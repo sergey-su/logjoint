@@ -4,9 +4,9 @@
 	{
 		public NeverRunState(Context ctx) : base(ctx) { }
 
-		public override LogSourcePostprocessorOutput GetData()
+		public override LogSourcePostprocessorState GetData()
 		{
-			return ctx.owner.BuildData(LogSourcePostprocessorOutput.Status.NeverRun);
+			return ctx.owner.BuildData(LogSourcePostprocessorState.Status.NeverRun);
 		}
 
 		public override bool? PostprocessorNeedsRunning => true;

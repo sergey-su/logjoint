@@ -61,11 +61,16 @@ namespace LogJoint.Postprocessing
 
 		public event EventHandler Changed;
 
-		IReadOnlyList<LogSourcePostprocessorOutput> IManager.LogSourcePostprocessorsOutputs => visiblePostprocessorsOutputs();
+		IReadOnlyList<LogSourcePostprocessorState> IManagerInternal.LogSourcePostprocessors => visiblePostprocessorsOutputs();
 
 		void IManager.Register(LogSourceMetadata meta)
 		{
 			knownLogTypes = this.knownLogTypes.Add(meta.LogProviderFactory, meta);
+		}
+
+		void IManager.RegisterLogType(LogSourceMetadata meta)
+		{
+			((IManager)this).Register(meta);
 		}
 
 		void IManager.Register(ILogPartTokenFactory logPartFactory)
@@ -78,14 +83,14 @@ namespace LogJoint.Postprocessing
 			sameNodeDetectionTokenFactories.Register(factory);
 		}
 
-		async Task<bool> IManager.RunPostprocessor(
-			(ILogSourcePostprocessor, ILogSource)[] typesAndSources, 
+		async Task IManagerInternal.RunPostprocessors(
+			IReadOnlyList<LogSourcePostprocessorState> typesAndSources, 
 			object customData)
 		{
 			var sources = typesAndSources.Select(typesAndSource =>
 			{
-				var outputType = typesAndSource.Item1;
-				var forLogSource = typesAndSource.Item2;
+				var outputType = typesAndSource.Postprocessor;
+				var forLogSource = typesAndSource.LogSource;
 
 				if (!knownLogSources.TryGetValue(forLogSource, out LogSourceRecord logSourceRecord))
 					throw new ArgumentException("Log source is unknown");
@@ -172,8 +177,6 @@ namespace LogJoint.Postprocessing
 			await Task.WhenAll(outerTasks);
 
 			await Task.Yield();
-
-			return true;
 		}
 
 
@@ -222,8 +225,8 @@ namespace LogJoint.Postprocessing
 
 			if (somethingChanged && settingsAccessor.EnableAutoPostprocessing)
 			{
-				IManager intf = this;
-				var outputs = intf.LogSourcePostprocessorsOutputs.GetAutoPostprocessingCapableOutputs().ToArray();
+				IManagerInternal intf = this;
+				var outputs = intf.LogSourcePostprocessors.GetAutoPostprocessingCapableOutputs().ToArray();
 				if (outputs.Length > 0)
 					intf.RunPostprocessors(outputs);
 			}
@@ -286,8 +289,8 @@ namespace LogJoint.Postprocessing
 		private readonly IHeartBeatTimer heartbeat;
 		private ImmutableDictionary<ILogProviderFactory, LogSourceMetadata> knownLogTypes = ImmutableDictionary<ILogProviderFactory, LogSourceMetadata>.Empty;
 		private ImmutableDictionary<ILogSource, LogSourceRecord> knownLogSources = ImmutableDictionary<ILogSource,LogSourceRecord>.Empty;
-		private IReadOnlyList<LogSourcePostprocessorOutput> postprocessorsOutputs = ImmutableArray.Create<LogSourcePostprocessorOutput>();
-		private readonly Func<ImmutableArray<LogSourcePostprocessorOutput>> visiblePostprocessorsOutputs;
+		private IReadOnlyList<LogSourcePostprocessorState> postprocessorsOutputs = ImmutableArray.Create<LogSourcePostprocessorState>();
+		private readonly Func<ImmutableArray<LogSourcePostprocessorState>> visiblePostprocessorsOutputs;
 		private readonly AsyncInvokeHelper updater;
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		private readonly LJTraceSource tracer;

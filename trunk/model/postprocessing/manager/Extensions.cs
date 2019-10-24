@@ -71,14 +71,14 @@ namespace LogJoint.Postprocessing
 			return input;
 		}
 	
-		public static LogSourcePostprocessorOutput[] GetPostprocessorOutputsByPostprocessorId(this IReadOnlyList<LogSourcePostprocessorOutput> outputs, PostprocessorKind postprocessorKind)
+		public static LogSourcePostprocessorState[] GetPostprocessorOutputsByPostprocessorId(this IReadOnlyList<LogSourcePostprocessorState> outputs, PostprocessorKind postprocessorKind)
 		{
 			return outputs
 				.Where(output => output.Postprocessor.Kind == postprocessorKind)
 				.ToArray();
 		}
 
-		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IReadOnlyList<LogSourcePostprocessorOutput> outputs)
+		public static IEnumerable<LogSourcePostprocessorState> GetAutoPostprocessingCapableOutputs(this IReadOnlyList<LogSourcePostprocessorState> outputs)
 		{
 			bool isRelevantPostprocessor(PostprocessorKind id)
 			{
@@ -89,13 +89,13 @@ namespace LogJoint.Postprocessing
 					|| id == PostprocessorKind.TimeSeries;
 			}
 
-			bool isStatusOk(LogSourcePostprocessorOutput output)
+			bool isStatusOk(LogSourcePostprocessorState output)
 			{
 				var status = output.OutputStatus;
 				return
-					   status == LogSourcePostprocessorOutput.Status.NeverRun
-					|| status == LogSourcePostprocessorOutput.Status.Failed
-					|| status == LogSourcePostprocessorOutput.Status.Outdated;
+					   status == LogSourcePostprocessorState.Status.NeverRun
+					|| status == LogSourcePostprocessorState.Status.Failed
+					|| status == LogSourcePostprocessorState.Status.Outdated;
 			}
 
 			return
@@ -123,15 +123,6 @@ namespace LogJoint.Postprocessing
 				}
 			}
 			return false;
-		}
-
-		public static Task<bool> RunPostprocessors(this IManager postprocessorsManager, IReadOnlyList<LogSourcePostprocessorOutput> logs)
-		{
-			return postprocessorsManager.RunPostprocessor(
-				logs
-				.Select(output => (output.Postprocessor, output.LogSource))
-				.ToArray()
-			);
 		}
 	};
 }

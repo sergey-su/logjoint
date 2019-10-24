@@ -47,12 +47,10 @@ namespace LogJoint.Postprocessing
 				profilingEvents
 			);
 
-			var serialize = postprocessingModel.Timeline.SavePostprocessorOutput(
-				lister,
-				null,
-				evtTrigger => TextLogEventTrigger.Make((LJT.Message)evtTrigger),
-				input
-			);
+			var serialize = postprocessingModel.Timeline.CreatePostprocessorOutputBuilder()
+				.SetEvents(lister)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((LJT.Message)evtTrigger))
+				.Build(input);
 
 			await Task.WhenAll(serialize, logProducer.Open());
 		}

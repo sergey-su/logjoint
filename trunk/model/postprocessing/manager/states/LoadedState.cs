@@ -11,9 +11,9 @@
 			this.lastRunSummary = lastRunSummary;
 		}
 
-		public override LogSourcePostprocessorOutput GetData()
+		public override LogSourcePostprocessorState GetData()
 		{
-			return ctx.owner.BuildData(LogSourcePostprocessorOutput.Status.Finished, null, output, lastRunSummary);
+			return ctx.owner.BuildData(LogSourcePostprocessorState.Status.Finished, null, output, lastRunSummary);
 		}
 
 		public override PostprocessorOutputRecordState Refresh()

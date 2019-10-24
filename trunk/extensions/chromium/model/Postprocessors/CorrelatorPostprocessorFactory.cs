@@ -4,7 +4,6 @@ using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
 using CD = LogJoint.Chromium.ChromeDriver;
 using M = LogJoint.Postprocessing.Messaging;
-using System;
 
 namespace LogJoint.Chromium.Correlator
 {
@@ -52,15 +51,11 @@ namespace LogJoint.Chromium.Correlator
 			var webRtcStateInspector = new CDL.WebRtcStateInspector(prefixMatcher);
 			var processIdDetector = new CDL.ProcessIdDetector();
 			var nodeDetectionTokenTask = (new CDL.NodeDetectionTokenSource(processIdDetector, webRtcStateInspector)).GetToken(matchedMessages);
-			var noMessagingEvents = EnumerableAsync.Empty<M.Event[]>();
 
-			var serialize = postprocessing.Correlation.SavePostprocessorOutput(
-				null,
-				noMessagingEvents,
-				nodeDetectionTokenTask,
-				evtTrigger => TextLogEventTrigger.Make((CDL.Message)evtTrigger),
-				input
-			);
+			var serialize = postprocessing.Correlation.CreatePostprocessorOutputBuilder()
+				.SetSameNodeDetectionToken(nodeDetectionTokenTask)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((CDL.Message)evtTrigger))
+				.Build(input);
 
 			await Task.WhenAll(
 				matchedMessages.Open(),
@@ -70,19 +65,15 @@ namespace LogJoint.Chromium.Correlator
 
 		async Task RunForChromeDriver(LogSourcePostprocessorInput input)
 		{
-
 			var reader = (new CD.Reader(postprocessing.TextLogParser, input.CancellationToken)).Read(input.LogFileName, input.ProgressHandler);
 			IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
 			var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
 			var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
 			var noMessagingEvents = EnumerableAsync.Empty<M.Event[]>();
-			var serialize = postprocessing.Correlation.SavePostprocessorOutput(
-				null,
-				noMessagingEvents,
-				nodeDetectionTokenTask,
-				evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger),
-				input
-			);
+			var serialize = postprocessing.Correlation.CreatePostprocessorOutputBuilder()
+				.SetSameNodeDetectionToken(nodeDetectionTokenTask)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger))
+				.Build(input);
 			await Task.WhenAll(
 				matchedMessages.Open(),
 				serialize
@@ -97,13 +88,10 @@ namespace LogJoint.Chromium.Correlator
 			var webRtcStateInspector = new WRD.WebRtcStateInspector(prefixMatcher);
 			var nodeDetectionTokenTask = (new WRD.NodeDetectionTokenSource(webRtcStateInspector)).GetToken(matchedMessages);
 			var noMessagingEvents = EnumerableAsync.Empty<M.Event[]>();
-			var serialize = postprocessing.Correlation.SavePostprocessorOutput(
-				null,
-				noMessagingEvents,
-				nodeDetectionTokenTask,
-				evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger),
-				input
-			);
+			var serialize = postprocessing.Correlation.CreatePostprocessorOutputBuilder()
+				.SetSameNodeDetectionToken(nodeDetectionTokenTask)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger))
+				.Build(input);
 			await Task.WhenAll(
 				matchedMessages.Open(),
 				serialize

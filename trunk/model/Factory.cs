@@ -284,7 +284,8 @@ namespace LogJoint
 				solverFactory,
 				modelSynchronizationContext,
 				logSourcesManager,
-				changeNotification
+				changeNotification,
+				telemetryCollector
 			);
 
 

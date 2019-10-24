@@ -17,6 +17,25 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 			this.logPartTokenFactories = logPartTokenFactories;
 		}
 
+		PostprocessorOutputBuilder IModel.CreatePostprocessorOutputBuilder()
+		{
+			return new PostprocessorOutputBuilder
+			{
+				build = (postprocessorInput, builder) => SequenceDiagramPostprocessorOutput.SerializePostprocessorOutput(
+					builder.events,
+					builder.timelineComments,
+					builder.stateInspectorComments,
+					builder.logPart,
+					logPartTokenFactories,
+					builder.triggersConverter,
+					postprocessorInput.InputContentsEtag,
+					postprocessorInput.OutputFileName,
+					tempFiles,
+					postprocessorInput.CancellationToken
+				)
+			};
+		}
+
 		Task IModel.SavePostprocessorOutput(
 			IEnumerableAsync<M.Event[]> events,
 			IEnumerableAsync<TL.Event[]> timelineComments,

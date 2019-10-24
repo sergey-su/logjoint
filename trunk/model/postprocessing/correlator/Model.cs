@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using LogJoint.Postprocessing.Messaging;
-
-namespace LogJoint.Postprocessing.Correlation
+﻿namespace LogJoint.Postprocessing.Correlation
 {
 	class Model : IModel
 	{
@@ -18,26 +14,23 @@ namespace LogJoint.Postprocessing.Correlation
 			this.nodeDetectionTokenFactories = nodeDetectionTokenFactories;
 		}
 
-		Task IModel.SavePostprocessorOutput(
-			Task<ILogPartToken> logPartTask,
-			IEnumerableAsync<Event[]> events,
-			Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,
-			Func<object, TextLogEventTrigger> triggersConverter,
-			LogSourcePostprocessorInput postprocessorInput
-		)
+		PostprocessorOutputBuilder IModel.CreatePostprocessorOutputBuilder()
 		{
-			return PostprocessorOutput.SerializePostprocessorOutput(
-				logPartTask,
-				logPartTokenFactories,
-				events,
-				sameNodeDetectionTokenTask,
-				nodeDetectionTokenFactories,
-				triggersConverter,
-				postprocessorInput.InputContentsEtag,
-				postprocessorInput.OutputFileName,
-				tempFiles,
-				postprocessorInput.CancellationToken
-			);
+			return new PostprocessorOutputBuilder
+			{
+				build = (postprocessorInput, builder) => PostprocessorOutput.SerializePostprocessorOutput(
+					builder.logPart,
+					logPartTokenFactories,
+					builder.events,
+					builder.sameNodeDetectionToken,
+					nodeDetectionTokenFactories,
+					builder.triggersConverter,
+					postprocessorInput.InputContentsEtag,
+					postprocessorInput.OutputFileName,
+					tempFiles,
+					postprocessorInput.CancellationToken
+				)
+			};
 		}
 	}
 }

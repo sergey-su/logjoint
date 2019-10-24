@@ -34,8 +34,8 @@ namespace LogJoint.Postprocessing.TimeSeries
 		void UpdateOutputs()
 		{
 			var newOutputs = new HashSet<ITimeSeriesPostprocessorOutput>(
-				postprocessorsManager.LogSourcePostprocessorsOutputs
-					.Where(output => output.OutputStatus == LogSourcePostprocessorOutput.Status.Finished || output.OutputStatus == LogSourcePostprocessorOutput.Status.Outdated)
+				postprocessorsManager.LogSourcePostprocessors
+					.Where(output => output.OutputStatus == LogSourcePostprocessorState.Status.Finished || output.OutputStatus == LogSourcePostprocessorState.Status.Outdated)
 					.Select(output => output.OutputData)
 					.OfType<ITimeSeriesPostprocessorOutput>()
 					.Where(output => !output.LogSource.IsDisposed)
@@ -58,7 +58,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 			Changed?.Invoke(this, EventArgs.Empty);
 		}
 
-		readonly IManager postprocessorsManager;
+		readonly IManagerInternal postprocessorsManager;
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
 		HashSet<ITimeSeriesPostprocessorOutput> outputs = new HashSet<ITimeSeriesPostprocessorOutput>();
