@@ -6,15 +6,27 @@ using LogJoint.Extensibility;
 
 namespace LogJoint.Tests.Integration
 {
-	public class PluginTestRunner
+	public class TestRunner
 	{
-		public static async Task<bool> Run(
-			string pluginDir
-		)
+		static async Task Main(string[] args)
+		{
+			await Run(Assembly.GetExecutingAssembly(), null);
+		}
+
+		public async Task RunPluginTests(string pluginDir)
 		{
 			IPluginManifest manifest = new PluginManifest(pluginDir);
 			var testFile = manifest.Test ?? throw new ArgumentException($"Plug-in does not contain tests: {manifest.AbsolulePath}");
 			var testsAsm = Assembly.LoadFrom(testFile.AbsolulePath);
+			await Run(testsAsm, manifest.PluginDirectory);
+		}
+
+		// todo: test filters
+		static async Task<bool> Run(
+			Assembly testsAsm,
+			string localPluginsList
+		)
+		{
 			var fixtures = 
 				testsAsm
 				.GetTypes()
@@ -66,22 +78,22 @@ namespace LogJoint.Tests.Integration
 					var stage = "";
 					try
 					{
-						stage = "at app startup";
+						stage = " at app startup";
 						var app = await TestAppInstance.Create(new TestAppConfig
 						{
-							LocalPluginsList = manifest.PluginDirectory
+							LocalPluginsList = localPluginsList
 						});
 						try
 						{
 							await app.SynchronizationContext.InvokeAndAwait(async () =>
 							{
 								var methodFlags = BindingFlags.InvokeMethod;
-								stage = "at stage BeforeEach";
+								stage = " at stage BeforeEach";
 								if (beforeEach != null)
 									await toAwaitable(type.InvokeMember(beforeEach.Name, methodFlags, null, fixtureInstance, new[] { app }));
 								stage = "";
 								await toAwaitable(type.InvokeMember(testMethod.Name, methodFlags, null, fixtureInstance, new[] { app }));
-								stage = "at stage AfterEach";
+								stage = " at stage AfterEach";
 								if (afterEach != null)
 									await toAwaitable(type.InvokeMember(afterEach.Name, methodFlags, null, fixtureInstance, new[] { app }));
 							});
@@ -89,7 +101,7 @@ namespace LogJoint.Tests.Integration
 						}
 						finally
 						{
-							stage = "at app cleanup";
+							stage = " at app cleanup";
 							await app.Dispose();
 						}
 					}

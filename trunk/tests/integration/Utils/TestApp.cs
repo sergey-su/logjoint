@@ -1,12 +1,12 @@
 ﻿using NSubstitute;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace LogJoint.Tests.Integration
 {
-	public class Mocks: IMocks
+	public class Mocks: IMocks // todo: make internal
 	{
 		public Preprocessing.ICredentialsCache CredentialsCache;
 		public WebViewTools.IWebViewTools WebBrowserDownloader;
@@ -28,7 +28,7 @@ namespace LogJoint.Tests.Integration
 		UI.Presenters.IClipboardAccess IMocks.ClipboardAccess => ClipboardAccess;
 	};
 
-	public class ViewModelObjects
+	public class ViewModelObjects // todo: make internal
 	{
 		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
 		public UI.Presenters.MainForm.IViewModel MainForm;
@@ -49,16 +49,18 @@ namespace LogJoint.Tests.Integration
 		public string LocalPluginsList;
 	};
 
-	public class TestAppInstance: IContext
+	public class TestAppInstance: IContext, IRegistry // todo: make internal
 	{
 		private bool disposed;
 		private TraceListener traceListener;
+		private Dictionary<Type, object> registry = new Dictionary<Type, object>();
 
 		public ISynchronizationContext SynchronizationContext { get; private set; }
 		public ModelObjects Model { get; private set; }
 		public UI.Presenters.PresentationObjects Presentation { get; private set; }
 		public ViewModelObjects ViewModel { get; private set; }
 		public Mocks Mocks { get; private set; }
+		public ISamples Samples { get; private set; }
 
 		/// <summary>
 		/// Temporary folder where this instance of application stores its state.
@@ -68,10 +70,13 @@ namespace LogJoint.Tests.Integration
 		IModel IContext.Model => Model.ExpensibilityEntryPoint;
 		UI.Presenters.IPresentation IContext.Presentation => Presentation.ExpensibilityEntryPoint;
 		IMocks IContext.Mocks => Mocks;
-		IRegistry IContext.Registry => throw new NotImplementedException(); // todo: impl
-		ISamples IContext.Samples => new SamplesUtils(); // todo: have one object
+		IRegistry IContext.Registry => this;
+		ISamples IContext.Samples => Samples;
 		IUtils IContext.Utils => new TestAppExtensions.UtilsImpl(this); // todo: have one object
 		string IContext.AppDataDirectory => AppDataDirectory;
+
+		T IRegistry.Get<T>() => (T)registry[typeof(T)];
+		void IRegistry.Set<T>(T value) => registry[typeof(T)] = value;
 
 		public static async Task<TestAppInstance> Create(TestAppConfig config = null)
 		{
@@ -161,6 +166,7 @@ namespace LogJoint.Tests.Integration
 				Model = model,
 				Presentation = presentation,
 				ViewModel = viewModel,
+				Samples = new SamplesUtils(),
 				traceListener = traceListener,
 				AppDataDirectory = appDataDir
 			};

@@ -17,7 +17,5 @@
   <file type="dll">HarSharp.dll</file>
   <file type="dll">Newtonsoft.Json.dll</file>
   <file type="test">logjoint.chromium.plugin.integration.dll</file>
-  <file type="test-dll">NSubstitute.dll</file>
-  <file type="test-dll">Castle.Core.dll</file>
   <file type="test-dll">NFluent.dll</file>
 </manifest>

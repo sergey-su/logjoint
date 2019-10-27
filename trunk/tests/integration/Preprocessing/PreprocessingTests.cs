@@ -1,205 +1,157 @@
 ﻿using NSubstitute;
-using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using LogJoint.Preprocessing;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using NFluent;
 
 namespace LogJoint.Tests.Integration
 {
-	[TestFixture]
+	[IntegrationTestFixture]
 	class PreprocessingTests
 	{
-		readonly SamplesUtils samples = new SamplesUtils();
-		TestAppInstance app;
-
-		[SetUp]
-		public async Task BeforeEach()
-		{
-			app = await TestAppInstance.Create();
-		}
-
-		[TearDown]
-		public async Task AfterEach()
-		{
-			await app.Dispose();
-		}
-
-		bool IsXmlWriterTraceListenerLogIsLoaded()
+		static bool IsXmlWriterTraceListenerLogIsLoaded(TestAppInstance app)
 		{
 			var viewLines = app.ViewModel.LoadedMessagesLogViewer.ViewLines;
 			return !viewLines.IsEmpty && viewLines[0].TextLineValue == "File cannot be open which means that it was handled";
 		}
 
-		[Test]
-		public async Task CanLoadAndDetectFormatOfLocalLog()
+		[IntegrationTest]
+		public async Task CanLoadAndDetectFormatOfLocalLog(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
-				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
-			});
+			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
+			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
-		[Test]
-		public async Task CanDownloadAndDetectFormatOfLogFromTheWeb()
+		[IntegrationTest]
+		public async Task CanDownloadAndDetectFormatOfLogFromTheWeb(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListener1.xml").ToString());
-				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
-			});
+			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1.xml").ToString());
+			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
-		[Test]
-		public async Task CanDownloadZipExtractAndFindKnownLogFormatInArchive()
+		[IntegrationTest]
+		public async Task CanDownloadZipExtractAndFindKnownLogFormatInArchive(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip").ToString());
-				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
-			});
+			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip").ToString());
+			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
-		[Test]
-		public async Task CanOpenPasswordProtectedZipExtractAndFindKnownLogFormatInArchive()
+		[IntegrationTest]
+		public async Task CanOpenPasswordProtectedZipExtractAndFindKnownLogFormatInArchive(TestAppInstance app)
 		{
 			app.Mocks.CredentialsCache.QueryCredentials(
 				Arg.Is<Uri>(v => v.ToString().Contains("XmlWriterTraceListener1AndImage.PasswordProtected.zip")), null)
 				.ReturnsForAnyArgs(new System.Net.NetworkCredential("", "Pa$$w0rd"));
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.PasswordProtected.zip"));
-				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
+				await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.PasswordProtected.zip"));
+				await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 			});
 		}
 
-		[Test]
-		public async Task DisplaysProgressDuringUnzipping()
+		[IntegrationTest]
+		public async Task DisplaysProgressDuringUnzipping(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			var preprocessorTask = app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
+			int lastPercent = 0;
+			for (int iter = 0; iter < 3; ++iter)
 			{
-				var preprocessorTask = app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
-				int lastPercent = 0;
-				for (int iter = 0; iter < 3; ++iter)
+				await app.WaitFor(() =>
 				{
-					await app.WaitFor(() =>
+					var displayText = app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "";
+					var m = Regex.Match(displayText, @"Unpacking (\d+)\%");
+					if (m.Success)
 					{
-						var displayText = app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "";
-						var m = Regex.Match(displayText, @"Unpacking (\d+)\%");
-						if (m.Success)
+						var percent = int.Parse(m.Groups[1].Value);
+						if (percent > lastPercent && percent < 100)
 						{
-							var percent = int.Parse(m.Groups[1].Value);
-							if (percent > lastPercent && percent < 100)
-							{
-								lastPercent = percent;
-								return true;
-							}
+							lastPercent = percent;
+							return true;
 						}
-						return false;
-					});
-				}
-			});
+					}
+					return false;
+				});
+			}
 		}
 
-		[Test]
-		public async Task UnzippingCanBeCancelled()
+		[IntegrationTest]
+		public async Task UnzippingCanBeCancelled(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				var preprocessorTask = app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
-				await app.WaitFor(() => (app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "").Contains("Unpacking"));
-				app.ViewModel.SourcesList.OnSelectAllShortcutPressed();
-				app.Mocks.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
-					UI.Presenters.AlertFlags.Yes);
-				var stopwatch = Stopwatch.StartNew();
-				app.ViewModel.SourcesList.OnDeleteButtonPressed();
-				await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 0);
-				stopwatch.Stop();
-				Assert.Less(stopwatch.ElapsedMilliseconds, 1000);
-				Assert.IsTrue(preprocessorTask.IsCanceled);
-			});
+			var preprocessorTask = app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
+			await app.WaitFor(() => (app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "").Contains("Unpacking"));
+			app.ViewModel.SourcesList.OnSelectAllShortcutPressed();
+			app.Mocks.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
+				UI.Presenters.AlertFlags.Yes);
+			var stopwatch = Stopwatch.StartNew();
+			app.ViewModel.SourcesList.OnDeleteButtonPressed();
+			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 0);
+			stopwatch.Stop();
+			Check.That(stopwatch.ElapsedMilliseconds).IsStrictlyLessThan(1000);
+			Check.That(preprocessorTask.IsCanceled).IsTrue();
 		}
 
-		[Test]
-		public async Task CanExtractGZippedLog()
+		[IntegrationTest]
+		public async Task CanExtractGZippedLog(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml.gz"));
-				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
-			});
+			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml.gz"));
+			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
 
-		[Test]
-		public async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen()
+		[IntegrationTest]
+		public async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				var preprocTask = app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
 
-				await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
+			await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
 
-				var userQueryItems = app.ViewModel.PreprocessingUserInteractions.DialogData.Items;
-				Assert.AreEqual(2, userQueryItems.Count);
-				Assert.IsTrue(userQueryItems.Any(x => x.Title.Contains("Microsoft\\XmlWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\XmlWriterTraceListener1.xml")));
-				Assert.IsTrue(userQueryItems.Any(x => x.Title.Contains("Microsoft\\TextWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\TextWriterTraceListener.log")));
-				Assert.IsFalse(preprocTask.IsCompleted);
+			var userQueryItems = app.ViewModel.PreprocessingUserInteractions.DialogData.Items;
+			Check.That(userQueryItems.Count).IsEqualTo(2);
+			Check.That(userQueryItems.Any(x => x.Title.Contains("Microsoft\\XmlWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\XmlWriterTraceListener1.xml"))).IsTrue();
+			Check.That(userQueryItems.Any(x => x.Title.Contains("Microsoft\\TextWriterTraceListener") && x.Title.Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip\\TextWriterTraceListener.log"))).IsTrue();
+			Check.That(preprocTask.IsCompleted).IsFalse();
 
-				app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
-				await preprocTask;
-			});
+			app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
+			await preprocTask;
 		}
 
-		[Test]
-		public async Task CanQuitAppWhileHavingActivePreprocessingUserInteraction()
+		[IntegrationTest]
+		public async Task CanQuitAppWhileHavingActivePreprocessingUserInteraction(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				var preprocTask = app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
 
-				await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
+			await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
 
-				Assert.AreEqual(2, app.ViewModel.PreprocessingUserInteractions.DialogData.Items.Count);
+			Check.That(app.ViewModel.PreprocessingUserInteractions.DialogData.Items.Count).IsEqualTo(2);
 
-				await app.Dispose();
-			});
+			await app.Dispose();
 		}
 
-		[Test]
-		public async Task OpeningTheSameLogTwiceHasNoEffect()
+		[IntegrationTest]
+		public async Task OpeningTheSameLogTwiceHasNoEffect(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
-				await app.WaitFor(IsXmlWriterTraceListenerLogIsLoaded);
+			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
+			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 
-				Assert.AreEqual(1, app.Model.LogSourcesManager.Items.Count());
+			Check.That(app.Model.LogSourcesManager.Items.Count()).IsEqualTo(1);
 
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
-				Assert.AreEqual(1, app.Model.LogSourcesManager.Items.Count());
-			});
+			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
+			Check.That(app.Model.LogSourcesManager.Items.Count()).IsEqualTo(1);
 		}
 
-		[Test]
-		public async Task CanQuitAppWhilePreprocessingIsActive()
+		[IntegrationTest]
+		public async Task CanQuitAppWhilePreprocessingIsActive(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				var downloadingPreprocessing = app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("chrome_debug_1.log").ToString());
+			var downloadingPreprocessing = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("chrome_debug_1.log").ToString());
 
-				await app.Dispose();
+			await app.Dispose();
 
-				Assert.IsTrue(downloadingPreprocessing.IsFaulted);
-				var webEx = downloadingPreprocessing.Exception.InnerException as System.Net.WebException;
-				Assert.IsNotNull(webEx);
-				Assert.AreEqual(System.Net.WebExceptionStatus.RequestCanceled, webEx.Status);
-			});
+			Check.That(downloadingPreprocessing.IsFaulted).IsTrue();
+			var webEx = downloadingPreprocessing.Exception.InnerException as System.Net.WebException;
+			Check.That(webEx).IsNotNull();
+			Check.That(webEx.Status).IsEqualTo(System.Net.WebExceptionStatus.RequestCanceled);
 		}
 	}
 }
