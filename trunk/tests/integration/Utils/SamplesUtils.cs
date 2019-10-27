@@ -1,13 +1,7 @@
-﻿using NSubstitute;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LogJoint.Tests.Integration
@@ -16,7 +10,7 @@ namespace LogJoint.Tests.Integration
 	/// Utilities that manage test samples, such as sample log files.
 	/// Samples are stored on the web.
 	/// </summary>
-	public class SamplesUtils
+	public class SamplesUtils: ISamples
 	{
 		private readonly string cacheDir;
 

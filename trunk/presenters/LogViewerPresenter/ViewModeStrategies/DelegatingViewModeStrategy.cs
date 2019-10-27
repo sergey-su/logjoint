@@ -4,10 +4,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	class DelegatingViewModeStrategy : IViewModeStrategy
 	{
-		readonly IPresenter referencePresenter;
+		readonly IPresenterInternal referencePresenter;
 
 		public DelegatingViewModeStrategy(
-			IPresenter referencePresenter
+			IPresenterInternal referencePresenter
 		)
 		{
 			this.referencePresenter = referencePresenter;

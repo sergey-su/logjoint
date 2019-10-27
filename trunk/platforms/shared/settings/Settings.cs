@@ -14,7 +14,7 @@ namespace LogJoint.Properties
 
 		Settings()
 		{
-			var configFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "logjoint.exe.config");
+			var configFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "logjoint.exe.config");
 			ReadFromFile(configFileName);
 		}
 

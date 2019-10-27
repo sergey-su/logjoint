@@ -1,12 +1,12 @@
 ﻿using NSubstitute;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace LogJoint.Tests.Integration
 {
-	public class Mocks
+	class Mocks: IMocks
 	{
 		public Preprocessing.ICredentialsCache CredentialsCache;
 		public WebViewTools.IWebViewTools WebBrowserDownloader;
@@ -23,9 +23,12 @@ namespace LogJoint.Tests.Integration
 		public UI.Presenters.ISystemThemeDetector SystemThemeDetector;
 
 		public UI.Presenters.Factory.IViewsFactory Views;
+
+		UI.Presenters.IPromptDialog IMocks.PromptDialog => PromptDialog;
+		UI.Presenters.IClipboardAccess IMocks.ClipboardAccess => ClipboardAccess;
 	};
 
-	public class ViewModelObjects
+	class ViewModelObjects
 	{
 		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
 		public UI.Presenters.MainForm.IViewModel MainForm;
@@ -43,23 +46,43 @@ namespace LogJoint.Tests.Integration
 	public class TestAppConfig
 	{
 		public int LogViewerViewSize = 20;
+		public string LocalPluginsList;
 	};
 
-	public class TestAppInstance
+	class TestAppInstance: IContext, IRegistry
 	{
 		private bool disposed;
 		private TraceListener traceListener;
+		private readonly Dictionary<Type, object> registry = new Dictionary<Type, object>();
+		private readonly IUtils utils;
+
+		public TestAppInstance()
+		{
+			utils = new TestAppExtensions.UtilsImpl(this);
+		}
 
 		public ISynchronizationContext SynchronizationContext { get; private set; }
 		public ModelObjects Model { get; private set; }
 		public UI.Presenters.PresentationObjects Presentation { get; private set; }
 		public ViewModelObjects ViewModel { get; private set; }
 		public Mocks Mocks { get; private set; }
+		public ISamples Samples { get; private set; }
 
 		/// <summary>
 		/// Temporary folder where this instance of application stores its state.
 		/// </summary>
 		public string AppDataDirectory { get; private set; }
+
+		IModel IContext.Model => Model.ExpensibilityEntryPoint;
+		UI.Presenters.IPresentation IContext.Presentation => Presentation.ExpensibilityEntryPoint;
+		IMocks IContext.Mocks => Mocks;
+		IRegistry IContext.Registry => this;
+		ISamples IContext.Samples => Samples;
+		IUtils IContext.Utils => utils;
+		string IContext.AppDataDirectory => AppDataDirectory;
+
+		T IRegistry.Get<T>() => (T)registry[typeof(T)];
+		void IRegistry.Set<T>(T value) => registry[typeof(T)] = value;
 
 		public static async Task<TestAppInstance> Create(TestAppConfig config = null)
 		{
@@ -130,6 +153,15 @@ namespace LogJoint.Tests.Integration
 					mocks.Views
 				);
 
+				if (config.LocalPluginsList != null)
+				{
+					modelObjects.PluginsManager.LoadPlugins(new TestApplicationEntryPoint
+					{
+						Model = modelObjects.ExpensibilityEntryPoint,
+						Presentation = presentationObjects.ExpensibilityEntryPoint
+					}, config.LocalPluginsList);
+				}
+
 				return (modelObjects, presentationObjects);
 			});
 
@@ -140,9 +172,10 @@ namespace LogJoint.Tests.Integration
 				Model = model,
 				Presentation = presentation,
 				ViewModel = viewModel,
+				Samples = new SamplesUtils(),
 				traceListener = traceListener,
 				AppDataDirectory = appDataDir
-		};
+			};
 		}
 
 		private static void InitializeMocks(TestAppConfig config, Mocks mocks, ViewModelObjects viewModel)
@@ -198,5 +231,11 @@ namespace LogJoint.Tests.Integration
 			await tcs.Task;
 			traceListener.Flush();
 		}
+
+		class TestApplicationEntryPoint
+		{
+			public IModel Model { get; internal set; }
+			public UI.Presenters.IPresentation Presentation { get; internal set; }
+		};
 	};
 }

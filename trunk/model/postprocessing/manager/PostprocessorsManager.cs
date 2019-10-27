@@ -100,7 +100,7 @@ namespace LogJoint.Postprocessing
 					throw new ArgumentException("Bad Postprocessor output type: " + outputType.Kind.ToString());
 
 				if (postprocessorRecord.state.PostprocessorNeedsRunning == null)
-					throw new InvalidOperationException("Can not start postprocessor in this state");
+					throw new InvalidOperationException($"Can not start postprocessor in this state {postprocessorRecord.state.GetType()}");
 
 				string outputFileName;
 				using (var section = forLogSource.LogSourceSpecificStorageEntry.OpenXMLSection(

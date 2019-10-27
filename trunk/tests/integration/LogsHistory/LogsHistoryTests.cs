@@ -1,46 +1,22 @@
-﻿using NSubstitute;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LogJoint.Preprocessing;
+﻿using System.Threading.Tasks;
+using NFluent;
 
 namespace LogJoint.Tests.Integration
 {
-	[TestFixture]
+	[IntegrationTestFixture]
 	class LogsHistoryTests
 	{
-		readonly SamplesUtils samples = new SamplesUtils();
-		TestAppInstance app;
-
-		[SetUp]
-		public async Task BeforeEach()
+		[IntegrationTest]
+		public async Task WhenLogIsOpenALogHistoryEntryIsAdded(TestAppInstance app)
 		{
-			app = await TestAppInstance.Create();
-		}
+			Check.That(app.Model.RecentlyUsedLogs.GetMRUListSize()).IsEqualTo(0);
 
-		[TearDown]
-		public async Task AfterEach()
-		{
-			await app.Dispose();
-		}
+			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
 
-		[Test]
-		public async Task WhenLogIsOpenALogHistoryEntryIsAdded()
-		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				Assert.AreEqual(0, app.Model.RecentlyUsedLogs.GetMRUListSize());
+			Check.That(app.Model.RecentlyUsedLogs.GetMRUListSize()).IsEqualTo(1);
 
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
-
-				Assert.AreEqual(1, app.Model.RecentlyUsedLogs.GetMRUListSize());
-
-				await app.EmulateUrlDragAndDrop(samples.GetSampleAsUri("XmlWriterTraceListener1.xml").ToString());
-				Assert.AreEqual(2, app.Model.RecentlyUsedLogs.GetMRUListSize());
-			});
+			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1.xml"));
+			Check.That(app.Model.RecentlyUsedLogs.GetMRUListSize()).IsEqualTo(2);
 		}
 
 		// todo: have UI-driven tests

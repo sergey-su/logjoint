@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			IModelThreads threads,
 			ILogSourcesManager logSources,
 			IView view,
-			Presenters.LogViewer.IPresenter viewerPresenter,
+			Presenters.LogViewer.IPresenterInternal viewerPresenter,
 			IPresentersFacade navHandler,
 			IHeartBeatTimer heartbeat,
 			IColorTheme theme)
@@ -207,7 +207,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 		readonly IModelThreads threads;
 		readonly IView view;
-		readonly Presenters.LogViewer.IPresenter viewerPresenter;
+		readonly Presenters.LogViewer.IPresenterInternal viewerPresenter;
 		readonly IPresentersFacade navHandler;
 		readonly IColorTheme theme;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();

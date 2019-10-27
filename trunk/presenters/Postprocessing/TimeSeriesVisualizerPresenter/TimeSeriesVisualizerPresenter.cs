@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		EventLikeObjectStringRepresentation eventLikeObjectsStrCache;
 		readonly IPresentersFacade presentersFacade;
 		readonly IBookmarks bookmarks;
-		readonly LogViewer.IPresenter logViewerPresenter;
+		readonly LogViewer.IPresenterInternal logViewerPresenter;
 		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
 		readonly ThrottlingToastNotificationItem throttlingToastNotificationItem;
 		Dictionary<string, AxisParams> axisParams = new Dictionary<string, AxisParams>();
@@ -42,7 +42,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			ITimeSeriesVisualizerModel model,
 			IView view,
 			Common.IPresentationObjectsFactory presentationObjectsFactory,
-			LogViewer.IPresenter logViewerPresenter,
+			LogViewer.IPresenterInternal logViewerPresenter,
 			IBookmarks bookmarks,
 			IPresentersFacade presentersFacade,
 			IChangeNotification changeNotification

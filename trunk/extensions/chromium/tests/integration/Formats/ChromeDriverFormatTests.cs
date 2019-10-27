@@ -1,113 +1,87 @@
-﻿using NSubstitute;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using LogJoint.Chromium;
-using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
+﻿using System.Threading.Tasks;
 using System.IO;
 using LogJoint.Chromium.ChromeDriver;
 using LogJoint.Postprocessing;
 using System.Threading;
+using NFluent;
 
 namespace LogJoint.Tests.Integration.Chromium
 {
-	[TestFixture]
+	[IntegrationTestFixture]
 	class ChromeDriverFormatTests
 	{
-		SamplesUtils samples = new SamplesUtils();
-		TestAppInstance app;
-
-		[SetUp]
-		public async Task BeforeEach()
+		[IntegrationTest]
+		public async Task LoadsLogFileAndEnablesPostprocessors(IContext context)
 		{
-			app = await TestAppInstance.Create();
-			Factory.Create(app.Model.ExpensibilityEntryPoint);
+			await context.Utils.EmulateFileDragAndDrop(await context.Samples.GetSampleAsLocalFile("chromedriver_1.log"));
+
+			await context.Utils.WaitFor(() => context.Presentation.LoadedMessagesLogViewer.VisibleLines.Count > 0);
+
+			Check.That(context.Presentation.LoadedMessagesLogViewer.VisibleLines[2].Value).IsEqualTo(
+				"[1548250986.197][INFO]: Waiting for pending navigations...");
+
+			var postprocessorsControls = context.Presentation.Postprocessing.SummaryView;
+			Check.That(postprocessorsControls.Timeline.Enabled).IsTrue();
 		}
 
-		[TearDown]
-		public async Task AfterEach()
+		[IntegrationTest]
+		public async Task ChromeDriver_SplitAndComposeTest(IContext context)
 		{
-			await app.Dispose();
-		}
-
-		[Test]
-		public async Task LoadsLogFileAndEnablesPostprocessors()
-		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("chromedriver_1.log"));
-
-				await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
-
-				Assert.AreEqual("[1548250986.197][INFO]: Waiting for pending navigations...", app.ViewModel.LoadedMessagesLogViewer.ViewLines[2].TextLineValue);
-				app.ViewModel.MainForm.OnTabChanging(app.ViewModel.PostprocessingTabPageId);
-				var postprocessorsControls = app.ViewModel.PostprocessingTabPage.ControlsState;
-				Assert.IsFalse(postprocessorsControls[ViewControlId.Timeline].Disabled);
-
-				return 0;
-			});
-		}
-
-		[Test, Category("SplitAndCompose")]
-		public async Task ChromeDriver_SplitAndComposeTest()
-		{
-			using (var testStream = await samples.GetSampleAsStream("chromedriver_2019_01_23.log"))
+			using (var testStream = await context.Samples.GetSampleAsStream("chromedriver_2019_01_23.log"))
 			{
 				var actualContent = new MemoryStream();
 
-				var reader = new Reader(new TextLogParser(), CancellationToken.None);
+				var reader = new Reader(context.Model.Postprocessing.TextLogParser, CancellationToken.None);
 				var writer = new Writer();
 
 				await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));
 
-				Utils.AssertTextsAreEqualLineByLine(
-					Utils.SplitTextStream(testStream),
-					Utils.SplitTextStream(actualContent)
+				Check.That(
+					Helpers.SplitTextStream(actualContent)
+				).ContainsExactly(
+					Helpers.SplitTextStream(testStream)
 				);
 			}
 		}
 
-		[Test, Category("SplitAndCompose")]
-		public async Task ChromeDriver_SplitAndCompose_WithForeignLogging()
+		[IntegrationTest]
+		public async Task ChromeDriver_SplitAndCompose_WithForeignLogging(IContext context)
 		{
-			using (var testStream = await samples.GetSampleAsStream("chromedriver_2019_01_22.log"))
+			using (var testStream = await context.Samples.GetSampleAsStream("chromedriver_2019_01_22.log"))
 			{
 				var actualContent = new MemoryStream();
 
-				var reader = new Reader(new TextLogParser(), CancellationToken.None);
+				var reader = new Reader(context.Model.Postprocessing.TextLogParser, CancellationToken.None);
 				var writer = new Writer();
 
 				await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));
 
-				Utils.AssertTextsAreEqualLineByLine(
-					Utils.SplitTextStream(testStream),
-					Utils.SplitTextStream(actualContent)
+				Check.That(
+					Helpers.SplitTextStream(actualContent)
+				).ContainsExactly(
+					Helpers.SplitTextStream(testStream)
 				);
 			}
 		}
 
-		[Test]
-		public async Task ForeignLoggingAtEndOfMssagesIsIgnored()
+		[IntegrationTest]
+		public async Task ForeignLoggingAtEndOfMssagesIsIgnored(IContext context)
 		{
-			using (var testStream = await samples.GetSampleAsStream("chromedriver_2019_01_22.log"))
+			using (var testStream = await context.Samples.GetSampleAsStream("chromedriver_2019_01_22.log"))
 			{
-				var messages = await (new Reader(new TextLogParser(), CancellationToken.None)).Read(() => testStream, _ => { }).ToFlatList();
+				var messages = await (new Reader(context.Model.Postprocessing.TextLogParser, CancellationToken.None)).Read(() => testStream, _ => { }).ToFlatList();
 
 				var parsedMessage = LogJoint.Chromium.ChromeDriver.DevTools.Events.LogMessage.Parse(messages[1].Text);
-				Assert.AreEqual("loadingFinished", parsedMessage.EventType);
-				Assert.AreEqual("Network", parsedMessage.EventNamespace);
+				Check.That(parsedMessage.EventType.Value).IsEqualTo("loadingFinished");
+				Check.That(parsedMessage.EventNamespace.Value).IsEqualTo("Network");
 
 				var parsedPayload = parsedMessage.ParsePayload<LogJoint.Chromium.ChromeDriver.DevTools.Events.Network.LoadingFinished>();
-				Assert.IsNotNull(parsedPayload);
-				Assert.AreEqual("27949.24", parsedPayload.requestId);
+				Check.That(parsedPayload).IsNotNull();
+				Check.That(parsedPayload.requestId).IsEqualTo("27949.24");
 
 				var parsedTimeStampsPayload = parsedMessage.ParsePayload<LogJoint.Chromium.ChromeDriver.DevTools.Events.TimeStampsInfo>();
-				Assert.IsNotNull(parsedTimeStampsPayload);
-				Assert.AreEqual(597454.928244, parsedTimeStampsPayload.timestamp.Value, 1e-10);
+				Check.That(parsedTimeStampsPayload).IsNotNull();
+				Check.That(parsedTimeStampsPayload.timestamp.Value).IsCloseTo(597454.928244, 1e-10);
 			}
 		}
 	}

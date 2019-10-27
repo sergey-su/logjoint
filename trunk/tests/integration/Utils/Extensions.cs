@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Tests.Integration
 {
-	public static class TestAppExtensions
+	internal static class TestAppExtensions
 	{
 		public static Task EmulateFileDragAndDrop(this TestAppInstance app, string fileName)
 		{
@@ -14,11 +14,11 @@ namespace LogJoint.Tests.Integration
 			);
 		}
 
-		public static Task EmulateUrlDragAndDrop(this TestAppInstance app, string url)
+		public static Task EmulateUrlDragAndDrop(this TestAppInstance app, Uri uri)
 		{
 			return app.Model.LogSourcesPreprocessings.Preprocess(
-				new[] { app.Model.PreprocessingStepsFactory.CreateURLTypeDetectionStep(new Preprocessing.PreprocessingStepParams(url)) },
-				url
+				new[] { app.Model.PreprocessingStepsFactory.CreateURLTypeDetectionStep(new Preprocessing.PreprocessingStepParams(uri.ToString())) },
+				uri.ToString()
 			);
 		}
 
@@ -69,6 +69,35 @@ namespace LogJoint.Tests.Integration
 				Console.WriteLine("Actually displayed log: '{0}'", app.GetDisplayedLog());
 				throw;
 			}
+		}
+
+		public class UtilsImpl : IUtils
+		{
+			TestAppInstance app;
+
+			public UtilsImpl(TestAppInstance app)
+			{
+				this.app = app;
+			}
+
+			Task IUtils.EmulateFileDragAndDrop(string filePath) => app.EmulateFileDragAndDrop(filePath);
+			Task IUtils.EmulateUriDragAndDrop(Uri uri) => app.EmulateUrlDragAndDrop(uri);
+			Task IUtils.WaitFor(Func<bool> condition, string operationName, TimeSpan? timeout) => app.WaitFor(condition, operationName, timeout);
+		};
+
+		public static IDisposable AutoAcceptPreprocessingUserInteration(this TestAppInstance app)
+		{
+			UI.Presenters.PreprocessingUserInteractions.DialogViewData acceptedData = null;
+			var subs = app.Model.ChangeNotification.CreateSubscription(() =>
+			{
+				var currentData = app.ViewModel.PreprocessingUserInteractions.DialogData;
+				if (currentData != null && currentData != acceptedData)
+				{
+					acceptedData = currentData;
+					app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
+				}
+			});
+			return subs;
 		}
 	};
 }

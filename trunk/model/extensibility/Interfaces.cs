@@ -48,7 +48,9 @@ namespace LogJoint.Extensibility
 		Library,
 		FormatDefinition,
 		Nib,
-		SDK
+		SDK,
+		Test,
+		TestLibrary
 	};
 
 	public interface IPluginFile
@@ -69,6 +71,7 @@ namespace LogJoint.Extensibility
 		Version Version { get; }
 		IReadOnlyList<IPluginFile> Files { get; }
 		IPluginFile Entry { get; }
+		IPluginFile Test { get; }
 		IReadOnlyList<string> Dependencies { get; }
 	};
 

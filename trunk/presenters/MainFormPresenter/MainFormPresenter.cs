@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			ILogSourcesManager logSources,
 			Preprocessing.IManager preprocessingsManager,
 			IView view,
-			LogViewer.IPresenter viewerPresenter,
+			LogViewer.IPresenterInternal viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			SearchPanel.IPresenter searchPanelPresenter,
 			SourcesManager.IPresenter sourcesManagerPresenter,
@@ -403,7 +403,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;
-		readonly LogViewer.IPresenter viewerPresenter;
+		readonly LogViewer.IPresenterInternal viewerPresenter;
 		readonly SearchPanel.IPresenter searchPanelPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;

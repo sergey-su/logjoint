@@ -22,6 +22,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		public event EventHandler<NodeCreatedEventArgs> OnNodeCreated;
 
 		IVisualizerNode IPresenter.SelectedObject => Get()?.SelectedObject;
+		IEnumerableAsync<IVisualizerNode> IPresenter.Roots => GetOrCreate().Roots;
 		void IPostprocessorVisualizerPresenter.Show() => GetOrCreate().Show();
 
 		IPresenter Get() => factory.GetStateInspectorVisualizer(false);

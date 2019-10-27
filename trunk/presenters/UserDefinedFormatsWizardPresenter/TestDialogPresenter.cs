@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		readonly ISynchronizationContext synchronizationContext;
 		ILogProvider provider;
 		LogViewer.DummyModel model;
-		LogViewer.IPresenter logPresenter;
+		LogViewer.IPresenterInternal logPresenter;
 		bool statusOk;
 
 		public Presenter(

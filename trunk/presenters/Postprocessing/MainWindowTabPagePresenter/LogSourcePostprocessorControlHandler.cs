@@ -144,13 +144,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 			var contentBuilder = new StringBuilder();
 			if (isClickableCaption)
-				contentBuilder.AppendFormat("*show {0}:*", outputs[0].Postprocessor.Kind.ToDisplayString());
+				contentBuilder.AppendFormat("*{1} {0}:*", outputs[0].Postprocessor.Kind.ToDisplayString(), Constants.ShowVisualizerActionId);
 			else
 				contentBuilder.AppendFormat("{0}:", outputs[0].Postprocessor.Kind.ToDisplayString());
 			if (statusText != null)
 				contentBuilder.AppendFormat("  {0}", statusText);
 			if (action != null)
-				contentBuilder.AppendFormat("  *action {0}*", action);
+				contentBuilder.AppendFormat("  *{1} {0}*", action, Constants.RunActionId);
 			controlContent += contentBuilder.ToString();
 
 			return new ControlData(false, controlContent, controlColor, controlProgress);
@@ -160,10 +160,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		{
 			switch (actionId)
 			{
-				case "show":
+				case Constants.ShowVisualizerActionId:
 					visualizerPresenter().Show();
 					break;
-				case "action":
+				case Constants.RunActionId:
 					{
 						await this.postprocessorsManager.RunPostprocessors(getOutputs());
 						var outputs = getOutputs();

@@ -150,7 +150,7 @@ namespace LogJoint.UI.Presenters
 				model.SynchronizationContext
 			);
 
-			LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
+			LogViewer.IPresenterInternal viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
 			ITabUsageTracker tabUsageTracker = new TabUsageTracker();
 
@@ -526,7 +526,7 @@ namespace LogJoint.UI.Presenters
 			);
 
 			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage();
-			Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
+			Postprocessing.SummaryView.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
 				postprocessingTabPage,
 				model.PostprocessorsManager,
 				model.CorrelationManager,
@@ -566,11 +566,11 @@ namespace LogJoint.UI.Presenters
 				alertPopup,
 				promptDialog,
 				mainFormPresenter,
-				postprocessingTabPagePresenter,
 				colorTheme,
 				messagePropertiesDialogPresenter,
 				promptDialog,
-				new Postprocessing.Presentation(postprocessorPresentationFactory)
+				new Postprocessing.Presentation(postprocessorPresentationFactory, postprocessingTabPagePresenter),
+				loadedMessagesPresenter.LogViewerPresenter
 			);
 
 			return new PresentationObjects

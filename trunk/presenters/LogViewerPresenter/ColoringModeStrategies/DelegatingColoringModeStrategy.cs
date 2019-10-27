@@ -5,10 +5,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	class DelegatingColoringModeStrategy : IColoringModeStrategy
 	{
-		readonly IPresenter referencePresenter;
+		readonly IPresenterInternal referencePresenter;
 
 		public DelegatingColoringModeStrategy(
-			IPresenter referencePresenter
+			IPresenterInternal referencePresenter
 		)
 		{
 			this.referencePresenter = referencePresenter;

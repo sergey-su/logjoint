@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly ISearchManager searchManager;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
-		readonly LogViewer.IPresenter viewerPresenter;
+		readonly LogViewer.IPresenterInternal viewerPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;
@@ -47,7 +47,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			ISearchManager searchManager,
 			IBookmarks bookmarks,
 			IView view,
-			LogViewer.IPresenter viewerPresenter,
+			LogViewer.IPresenterInternal viewerPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			ITabUsageTracker tabUsageTracker,
 			IHeartBeatTimer heartbeat,

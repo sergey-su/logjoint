@@ -1,4 +1,5 @@
-﻿using LogJoint.Postprocessing.StateInspector;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Postprocessing.StateInspector;
 using System;
 using System.Collections.Generic;
 
@@ -7,6 +8,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 	public interface IPresenter: IPostprocessorVisualizerPresenter
 	{
 		IVisualizerNode SelectedObject { get; }
+		IEnumerableAsync<IVisualizerNode> Roots { get; }
 		event EventHandler<MenuData> OnMenu;
 		event EventHandler<NodeCreatedEventArgs> OnNodeCreated;
 	};
@@ -41,5 +43,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		IVisualizerNode Parent { get; }
 		bool BelongsToSource(ILogSource logSource);
 		IEnumerable<PropertyChange> ChangeHistory { get; }
+		IEnumerableAsync<IVisualizerNode> Children { get; }
 	};
 }

@@ -81,6 +81,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.packet-analysis.pl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.plugintool", "..\..\sdk\tools\logjoint.plugintool\logjoint.plugintool.csproj", "{1FCFA8A8-639A-43B5-A94E-BD525FE92C68}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.testing.sdk", "..\..\sdk\testing\logjoint.testing.sdk.csproj", "{7B2E2170-501E-456E-BCC0-8EBBB721C217}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -289,8 +291,8 @@ Global
 		{A19AE1C4-8BAE-4074-B880-15FBAFBE34CE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A19AE1C4-8BAE-4074-B880-15FBAFBE34CE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{A19AE1C4-8BAE-4074-B880-15FBAFBE34CE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Debug|Any CPU.ActiveCfg = DebugWithWinHost|Any CPU
+		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Debug|Any CPU.Build.0 = DebugWithWinHost|Any CPU
 		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{F65929F3-86D5-479A-8DBE-FC00C1C2BB69}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -321,6 +323,14 @@ Global
 		{1FCFA8A8-639A-43B5-A94E-BD525FE92C68}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1FCFA8A8-639A-43B5-A94E-BD525FE92C68}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{1FCFA8A8-639A-43B5-A94E-BD525FE92C68}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -354,6 +364,7 @@ Global
 		{26ACA903-32CE-4029-AA91-ACCCFB533D60} = {09B349A1-3052-4DC3-A2C5-70506B5FE2A2}
 		{956959C8-9031-4532-9FA7-10D11239F7CA} = {26ACA903-32CE-4029-AA91-ACCCFB533D60}
 		{1FCFA8A8-639A-43B5-A94E-BD525FE92C68} = {54ED413E-138D-4FC9-853B-29C3476F9ECB}
+		{7B2E2170-501E-456E-BCC0-8EBBB721C217} = {54ED413E-138D-4FC9-853B-29C3476F9ECB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F60C2567-FE95-48E5-95F5-0AB036505E21}

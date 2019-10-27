@@ -2,22 +2,36 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <IsPackable>false</IsPackable>
     <LangVersion>7.3</LangVersion>
+    <OutputType>Exe</OutputType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Debug;Release;DebugWithWinHost;DebugWithMacHost</Configurations>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugWithMacHost|AnyCPU' ">
+    <OutputPath>..\..\platforms\osx\bin\debug\logjoint.app\Contents\MonoBundle</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugWithWinHost|AnyCPU' ">
+    <OutputPath>../../platforms/windows/bin/debug</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="nunit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="NFluent" Version="2.6.0" />
     <PackageReference Include="NSubstitute" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../sdk/model/logjoint.model.sdk.csproj" />
     <ProjectReference Include="../../sdk/presentation/logjoint.presentation.sdk.csproj" />
+    <ProjectReference Include="../../sdk/testing/logjoint.testing.sdk.csproj" />
     <ProjectReference Include="../../model/logjoint.model.csproj" />
     <ProjectReference Include="../../presenters/logjoint.presenters.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\platforms\shared\settings\Settings.cs">
+      <Link>Utils\Settings.cs</Link>
+    </Compile>
+  </ItemGroup>
 </Project>

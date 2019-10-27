@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using LogJoint.Postprocessing.Correlation;
+using LogJoint.UI.Presenters.Postprocessing.SummaryView;
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
@@ -17,7 +18,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		readonly ITempFilesManager tempFiles;
 		readonly IShellOpen shellOpen;
 		readonly IChainedChangeNotification changeNotification;
-		Func<IImmutableDictionary<ViewControlId, ControlData>> getControlsData;
+		readonly Func<IImmutableDictionary<ViewControlId, ControlData>> getControlsData;
+		readonly Func<IImmutableDictionary<ViewControlId, ActionState>> getActionStates;
 
 		public Presenter(
 			IView view,
@@ -64,6 +66,27 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 				}
 			);
 
+			this.getActionStates = Selectors.Create(
+				getControlsData,
+				ctrlData => ImmutableDictionary.CreateRange(
+					ctrlData.Select(h => {
+						Action makeAction(string id) =>
+							h.Value.Content.Contains($"*{id}")
+							? () => viewControlHandlers[h.Key].ExecuteAction(id, ClickFlags.None)
+							: (Action)null;
+						return new KeyValuePair<ViewControlId, ActionState>(
+							h.Key,
+							new ActionState
+							{
+								Enabled = !h.Value.Disabled,
+								Run = makeAction(Constants.RunActionId),
+								Show = makeAction(Constants.ShowVisualizerActionId)
+							}
+						);
+					})
+				)
+			);
+
 			this.view.SetViewModel(this);
 
 			// todo: create when there a least one postprocessor exists. Postprocessors may come from plugins or it can be internal trace.
@@ -75,6 +98,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 		IImmutableDictionary<ViewControlId, ControlData> IViewModel.ControlsState => getControlsData();
+
+		ActionState IPresenter.StateInspector => getActionStates()[ViewControlId.StateInspector];
+		ActionState IPresenter.Timeline => getActionStates()[ViewControlId.Timeline];
+		ActionState IPresenter.SequenceDiagram => getActionStates()[ViewControlId.Sequence];
+		ActionState IPresenter.TimeSeries => getActionStates()[ViewControlId.TimeSeries];
+		ActionState IPresenter.Correlation => getActionStates()[ViewControlId.Correlate];
 
 		void IViewModel.OnActionClick(string actionId, ViewControlId viewId, ClickFlags flags)
 		{

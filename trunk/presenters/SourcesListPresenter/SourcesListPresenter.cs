@@ -41,7 +41,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IView view,
 			IManager logSourcesPreprocessings,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
-			LogViewer.IPresenter logViewerPresenter,
+			LogViewer.IPresenterInternal logViewerPresenter,
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs,
 			IClipboardAccess clipboard,

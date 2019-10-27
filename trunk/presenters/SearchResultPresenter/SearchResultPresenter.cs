@@ -103,7 +103,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			UpdateExpandedState();
 		}
 
-		Presenters.LogViewer.IPresenter IPresenter.LogViewerPresenter { get { return messagesPresenter; } }
+		Presenters.LogViewer.IPresenterInternal IPresenter.LogViewerPresenter { get { return messagesPresenter; } }
 
 		IMessage IPresenter.FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
 		IBookmark IPresenter.FocusedMessageBookmark => messagesPresenter.FocusedMessageBookmark;
@@ -413,7 +413,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
 		ImmutableArray<ViewItem> items = ImmutableArray.Create<ViewItem>();
 		bool anySearchIsActive;
-		LogViewer.IPresenter messagesPresenter;
+		LogViewer.IPresenterInternal messagesPresenter;
 		StatusReports.IReport searchingStatusReport;
 		bool isSearchesListExpanded;
 	};

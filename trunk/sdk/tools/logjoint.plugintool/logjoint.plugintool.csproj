@@ -2,14 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>dotnet-logjoint.plugintool</AssemblyName>
     <PackageId>logjoint.plugintool</PackageId>
     <PackageType>DotnetCliTool</PackageType>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>0.0.3</Version>
+    <Version>0.0.4</Version>
     <Authors>sergeysu</Authors>
     <Company>private</Company>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
 </Project>

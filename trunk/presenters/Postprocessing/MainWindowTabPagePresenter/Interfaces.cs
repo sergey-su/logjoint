@@ -3,10 +3,6 @@ using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
-	public interface IPresenter
-	{
-	};
-
 	public interface IView
 	{
 		void SetViewModel(IViewModel viewModel);
@@ -68,5 +64,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	{
 		ControlData GetCurrentData();
 		void ExecuteAction(string actionId, ClickFlags flags);
+	};
+
+	public static class Constants
+	{
+		public const string RunActionId = "action";
+		public const string ShowVisualizerActionId = "show";
 	};
 }

@@ -1,101 +1,84 @@
 ﻿using NSubstitute;
-using NUnit.Framework;
+using NFluent;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using LogJoint.Preprocessing;
 using System.IO;
 using LogJoint.UI.Presenters.SourcesList;
 
 namespace LogJoint.Tests.Integration
 {
-	[TestFixture]
+	[IntegrationTestFixture]
 	class ZipContainerInSourcesListTests
 	{
-		readonly SamplesUtils samples = new SamplesUtils();
-		TestAppInstance app;
+		TestAppInstance appInstance;
 
-		[SetUp]
-		public async Task BeforeEach()
+		[BeforeEach]
+		public async Task BeforeEach(TestAppInstance app)
 		{
-			app = await TestAppInstance.Create();
+			this.appInstance = app;
 
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				var preprocTask = app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
+			var preprocTask = app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
 
-				await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
-				app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
+			await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
+			app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
 
-				await preprocTask;
+			await preprocTask;
 
-				await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
-			});
+			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
 		}
 
-		[TearDown]
-		public async Task AfterEach()
-		{
-			await app.Dispose();
-		}
+		IViewItem ListRoot => appInstance.ViewModel.SourcesList.RootItem;
 
-		IViewItem ListRoot => app.ViewModel.SourcesList.RootItem;
-
-		[Test]
-		public void SourceListIsPopulated()
+		[IntegrationTest]
+		public void SourceListIsPopulated(TestAppInstance app)
 		{
-			Assert.AreEqual(1, ListRoot.Children.Count);
+			Check.That(ListRoot.Children.Count).IsEqualTo(1);
 			var container = (IViewItem)ListRoot.Children[0];
-			Assert.AreEqual(2, container.Children.Count);
-			Assert.IsFalse(container.IsExpanded);
-			Assert.IsTrue(container.Checked);
-			Assert.IsTrue(container.ToString().Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
-			Assert.IsTrue(container.ToString().EndsWith("(2 logs)", StringComparison.InvariantCultureIgnoreCase));
-			Assert.IsTrue(container.Children[0].ToString().ToLower().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\xmlwritertracelistener1.xml"));
-			Assert.IsTrue(((IViewItem)container.Children[0]).Checked);
-			Assert.IsTrue(container.Children[1].ToString().ToLower().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\textwritertracelistener.log"));
-			Assert.IsTrue(((IViewItem)container.Children[1]).Checked);
+			Check.That(container.Children.Count).IsEqualTo(2);
+			Check.That(container.IsExpanded).IsFalse();
+			Check.That(container.Checked).IsEqualTo(true);
+			Check.That(container.ToString()).Contains("XmlWriterTraceListenerAndTextWriterTraceListener.zip");
+			Check.That(container.ToString()).EndsWith("(2 logs)");
+			Check.That(container.Children[0].ToString().ToLower().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\xmlwritertracelistener1.xml")).IsTrue();
+			Check.That(((IViewItem)container.Children[0]).Checked).IsEqualTo(true);
+			Check.That(container.Children[1].ToString().ToLower().Contains(@"xmlwritertracelistenerandtextwritertracelistener.zip\textwritertracelistener.log")).IsTrue();
+			Check.That(((IViewItem)container.Children[1]).Checked).IsEqualTo(true);
 		}
 
 		async Task ExpandContainer()
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				app.ViewModel.SourcesList.OnItemExpand(
-					(IViewItem)ListRoot.Children[0]);
-				await app.WaitFor(() => ListRoot.Children[0].IsExpanded);
-			});
+			appInstance.ViewModel.SourcesList.OnItemExpand(
+				(IViewItem)ListRoot.Children[0]);
+			await appInstance.WaitFor(() => ListRoot.Children[0].IsExpanded);
 		}
 
-		[Test]
-		public async Task CanRemoveOneLogFromContainer()
+		[IntegrationTest]
+		public async Task CanRemoveOneLogFromContainer(TestAppInstance app)
 		{
 			await ExpandContainer();
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				app.ViewModel.SourcesList.OnSelectionChange(
-					new[] { (IViewItem)ListRoot.Children[0].Children[0] });
-				await app.WaitFor(() => ListRoot.Children[0].Children[0].IsSelected);
 
-				Assert.IsTrue(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled);
-				Assert.IsTrue(app.ViewModel.SourcesManager.PropertiesButtonEnabled);
+			app.ViewModel.SourcesList.OnSelectionChange(
+				new[] { (IViewItem)ListRoot.Children[0].Children[0] });
+			await app.WaitFor(() => ListRoot.Children[0].Children[0].IsSelected);
 
-				app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
-				app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
+			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
+			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsTrue();
 
-				app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 1 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
+			app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
 
-				await app.WaitFor(() =>
-					   ListRoot.Children.Count == 1
-					&& ListRoot.Children[0].Children.Count == 0
-					&& ListRoot.Children[0].IsSelected == false);
+			app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 1 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
 
-				Assert.IsFalse(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled);
-				Assert.IsFalse(app.ViewModel.SourcesManager.PropertiesButtonEnabled);
+			await app.WaitFor(() =>
+					ListRoot.Children.Count == 1
+				&& ListRoot.Children[0].Children.Count == 0
+				&& ListRoot.Children[0].IsSelected == false);
 
-				await app.WaitForLogDisplayed(
+			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
+			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+
+			await app.WaitForLogDisplayed(
 @"No free data file found. Going sleep.
 Searching for data files
 No free data file found. Going sleep.
@@ -103,80 +86,73 @@ File cannot be open which means that it was handled
 Timestamp parsed and ignored
 Test frame
 "
-				);
-			});
+			);
 		}
 
-		[Test]
-		public async Task CanRemoveBothLogsFromContainer()
+		[IntegrationTest]
+		public async Task CanRemoveBothLogsFromContainer(TestAppInstance app)
 		{
 			await ExpandContainer();
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				app.ViewModel.SourcesList.OnSelectionChange(new[] {
-					(IViewItem)ListRoot.Children[0].Children[0],
-					(IViewItem)ListRoot.Children[0].Children[1]
-				});
-				await app.WaitFor(() =>
-					   ListRoot.Children[0].Children[0].IsSelected
-					&& ListRoot.Children[0].Children[1].IsSelected
-				);
 
-				Assert.IsTrue(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled);
-				Assert.IsFalse(app.ViewModel.SourcesManager.PropertiesButtonEnabled);
-
-				app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
-				app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
-
-				app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
-
-				await app.WaitFor(() => ListRoot.Children.Count == 0);
-
-				Assert.IsFalse(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled);
-				Assert.IsFalse(app.ViewModel.SourcesManager.PropertiesButtonEnabled);
-
-				await app.WaitForLogDisplayed("");
+			app.ViewModel.SourcesList.OnSelectionChange(new[] {
+				(IViewItem)ListRoot.Children[0].Children[0],
+				(IViewItem)ListRoot.Children[0].Children[1]
 			});
+			await app.WaitFor(() =>
+					ListRoot.Children[0].Children[0].IsSelected
+				&& ListRoot.Children[0].Children[1].IsSelected
+			);
+
+			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
+			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+
+			app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
+
+			app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
+
+			await app.WaitFor(() => ListRoot.Children.Count == 0);
+
+			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
+			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+
+			await app.WaitForLogDisplayed("");
 		}
 
-		[Test]
-		public async Task CanRemoveContainer()
+		[IntegrationTest]
+		public async Task CanRemoveContainer(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				app.ViewModel.SourcesList.OnSelectionChange(new[] {
-					(IViewItem)ListRoot.Children[0]
-				});
-				await app.WaitFor(() => ListRoot.Children[0].IsSelected);
-
-				Assert.IsTrue(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled);
-				Assert.IsFalse(app.ViewModel.SourcesManager.PropertiesButtonEnabled);
-
-				app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
-				app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
-
-				app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
-
-				await app.WaitFor(() => ListRoot.Children.Count == 0);
-
-				Assert.IsFalse(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled);
-				Assert.IsFalse(app.ViewModel.SourcesManager.PropertiesButtonEnabled);
-
-				await app.WaitForLogDisplayed("");
+			app.ViewModel.SourcesList.OnSelectionChange(new[] {
+				(IViewItem)ListRoot.Children[0]
 			});
+			await app.WaitFor(() => ListRoot.Children[0].IsSelected);
+
+			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
+			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+
+			app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
+
+			app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
+
+			await app.WaitFor(() => ListRoot.Children.Count == 0);
+
+			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
+			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+
+			await app.WaitForLogDisplayed("");
 		}
 
-		[Test]
-		public async Task CanHideOneLogInContainer()
+		[IntegrationTest]
+		public async Task CanHideOneLogInContainer(TestAppInstance app)
 		{
 			await ExpandContainer();
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
-			{
-				app.ViewModel.SourcesList.OnItemCheck(
-					(IViewItem)ListRoot.Children[0].Children[0], false);
-				await app.WaitFor(() => ((IViewItem)ListRoot.Children[0].Children[0]).Checked == false);
 
-				await app.WaitForLogDisplayed(
+			app.ViewModel.SourcesList.OnItemCheck(
+				(IViewItem)ListRoot.Children[0].Children[0], false);
+			await app.WaitFor(() => ((IViewItem)ListRoot.Children[0].Children[0]).Checked == false);
+
+			await app.WaitForLogDisplayed(
 @"No free data file found. Going sleep.
 Searching for data files
 No free data file found. Going sleep.
@@ -184,42 +160,37 @@ File cannot be open which means that it was handled
 Timestamp parsed and ignored
 Test frame
 "
-				);
+			);
 
-				Assert.IsFalse(((IViewItem)ListRoot.Children[0]).Checked, "Container must be unchecked");
-			});
+			Check.WithCustomMessage("Container must be unchecked").That(((IViewItem)ListRoot.Children[0]).Checked).IsEqualTo(false);
 		}
 
-		[Test]
-		public async Task SanSaveMergedLog()
+		[IntegrationTest]
+		public async Task SanSaveMergedLog(TestAppInstance app)
 		{
-			await app.SynchronizationContext.InvokeAndAwait(async () =>
+			var destinationFileName = Path.GetTempFileName();
+			try
 			{
-				var destinationFileName = Path.GetTempFileName();
-				try
+				var expectedJoinedLog = File.ReadAllBytes(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListenerAndTextWriterTraceListenerJoined.log"));
+				app.Mocks.FileDialogs.SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>()).ReturnsForAnyArgs(destinationFileName);
+				var (visibleItems, checkedItems) = app.ViewModel.SourcesList.OnMenuItemOpening(ctrl: false);
+				Check.That((visibleItems & MenuItem.SaveMergedFilteredLog) != 0).IsTrue();
+				app.ViewModel.SourcesList.OnSaveMergedFilteredLogMenuItemClicked();
+				var match = false;
+				for (var iter = 0; iter < 25; ++iter)
 				{
-					var expectedJoinedLog = File.ReadAllBytes(await samples.GetSampleAsLocalFile("XmlWriterTraceListenerAndTextWriterTraceListenerJoined.log"));
-					app.Mocks.FileDialogs.SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>()).ReturnsForAnyArgs(destinationFileName);
-					var (visibleItems, checkedItems) = app.ViewModel.SourcesList.OnMenuItemOpening(ctrl: false);
-					Assert.IsTrue((visibleItems & MenuItem.SaveMergedFilteredLog) != 0);
-					app.ViewModel.SourcesList.OnSaveMergedFilteredLogMenuItemClicked();
-					var match = false;
-					for (var iter = 0; iter < 25; ++iter)
-					{
-						await Task.Delay(100);
-						var actualJoinedLog = File.ReadAllBytes(destinationFileName);
-						if ((match = actualJoinedLog.SequenceEqual(expectedJoinedLog)) == true)
-							break;
-					}
-					Assert.IsTrue(match);
+					await Task.Delay(100);
+					var actualJoinedLog = File.ReadAllBytes(destinationFileName);
+					if ((match = actualJoinedLog.SequenceEqual(expectedJoinedLog)) == true)
+						break;
 				}
-				finally
-				{
-					if (File.Exists(destinationFileName))
-						File.Delete(destinationFileName);
-				}
-			});
+				Check.That(match).IsTrue();
+			}
+			finally
+			{
+				if (File.Exists(destinationFileName))
+					File.Delete(destinationFileName);
+			}
 		}
-
 	}
 }

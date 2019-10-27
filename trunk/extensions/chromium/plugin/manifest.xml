@@ -16,4 +16,6 @@
   <file type="sdk">logjoint.chromium.plugin.model.sdk.dll</file>
   <file type="dll">HarSharp.dll</file>
   <file type="dll">Newtonsoft.Json.dll</file>
+  <file type="test">logjoint.chromium.plugin.integration.dll</file>
+  <file type="test-dll">NFluent.dll</file>
 </manifest>
