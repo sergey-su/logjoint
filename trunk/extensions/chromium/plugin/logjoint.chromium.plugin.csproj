@@ -16,6 +16,7 @@
     <ProjectReference Include="../model.sdk/logjoint.chromium.plugin.model.sdk.csproj" />
     <ProjectReference Include="../model/logjoint.chromium.plugin.model.csproj" />
     <ProjectReference Include="../presentation/logjoint.chromium.plugin.presentation.csproj" />
+    <ProjectReference Include="../tests/integration/logjoint.chromium.plugin.integration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

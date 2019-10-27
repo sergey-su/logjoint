@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		IBookmark FocusedMessageBookmark { get; }
 		IBookmark MasterFocusedMessage { get; set; }
 		void FindCurrentTime();
-		Presenters.LogViewer.IPresenter LogViewerPresenter { get; }
+		Presenters.LogViewer.IPresenterInternal LogViewerPresenter { get; }
 
 		event EventHandler OnClose;
 		event EventHandler OnResizingStarted;

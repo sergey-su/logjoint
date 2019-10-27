@@ -3,7 +3,7 @@
 	public interface IPostprocessorVisualizerPresenter
 	{
 		/// <summary>
-		/// Shows the view that displays the visualizer. 
+		/// Shows the view that displays the visualizer.
 		/// </summary>
 		void Show();
 	};
@@ -14,5 +14,6 @@
 		TimelineVisualizer.IPresenter Timeline { get; }
 		SequenceDiagramVisualizer.IPresenter SequenceDiagram { get; }
 		TimeSeriesVisualizer.IPresenter TimeSeries { get; }
+		SummaryView.IPresenter SummaryView { get; }
 	};
 }

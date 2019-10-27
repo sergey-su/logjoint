@@ -18,6 +18,7 @@
     <ProjectReference Include="../../sdk/presentation/logjoint.presentation.sdk.csproj" />
     <ProjectReference Include="../../model/logjoint.model.csproj" />
     <ProjectReference Include="../../presenters/logjoint.presenters.csproj" />
+    <ProjectReference Include="..\..\sdk\testing\logjoint.testing.sdk.csproj" />
   </ItemGroup>
 
 </Project>

@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			IView view,
 			FiltersListBox.IPresenter filtersListPresenter,
 			FilterDialog.IPresenter filtersDialogPresenter,
-			LogViewer.IPresenter logViewerPresenter,
+			LogViewer.IPresenterInternal logViewerPresenter,
 			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory,
 			IAlertPopup alerts
@@ -231,7 +231,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		readonly IHeartBeatTimer heartbeat;
 		readonly FilterDialog.IPresenter filtersDialogPresenter;
 		readonly FiltersListBox.IPresenter filtersListPresenter;
-		readonly LogViewer.IPresenter logViewerPresenter;
+		readonly LogViewer.IPresenterInternal logViewerPresenter;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		readonly IAlertPopup alerts;
 		int lastFilterIndex;

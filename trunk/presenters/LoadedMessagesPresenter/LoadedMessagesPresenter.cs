@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		readonly ILogSourcesManager logSources;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
-		readonly LogViewer.IPresenter messagesPresenter;
+		readonly LogViewer.IPresenterInternal messagesPresenter;
 		readonly IChangeNotification changeNotification;
 		readonly Func<ViewState> viewState;
 		readonly (ColoringMode Mode, string Text, string Tooltip)[] coloringOptions = {
@@ -88,7 +88,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			messagesPresenter.Coloring = coloringOptions[modeIndex].Mode;
 		}
 
-		LogViewer.IPresenter IPresenter.LogViewerPresenter
+		LogViewer.IPresenterInternal IPresenter.LogViewerPresenter
 		{
 			get { return messagesPresenter; }
 		}

@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public class Presenter : IPresenter, IViewModel, IPresentationProperties, IDisposable
+	public class Presenter : IPresenterInternal, IViewModel, IPresentationProperties, IDisposable
 	{
 		public Presenter(
 			IModel model,
@@ -71,6 +71,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			viewLines = CreateViewLinesSelector();
 			viewLinesText = Selectors.Create(viewLines, lines => lines.Aggregate(
 				new StringBuilder(), (sb, vl) => sb.AppendLine(vl.TextLineValue)).ToString());
+
+			visibleLines = Selectors.Create(viewLines, lines => ImmutableArray.CreateRange(lines.Select(line => new VisibleLine { Value = line.TextLineValue })));
 
 			this.focusedMessageBookmark = Selectors.Create(
 				() => selectionManager.Selection,
@@ -183,13 +185,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler FocusedMessageBookmarkChanged;
 
-		LogFontSize IPresenter.FontSize
+		LogFontSize IPresenterInternal.FontSize
 		{
 			get { return font.Size; }
 			set { SetFontSize(value); }
 		}
 
-		string IPresenter.FontName
+		string IPresenterInternal.FontName
 		{
 			get { return font.Name; }
 			set { SetFontName(value); }
@@ -200,24 +202,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 			get { return selectionManager.Selection?.First?.Message; }
 		}
 
-		IBookmark IPresenter.FocusedMessageBookmark => focusedMessageBookmark();
+		IBookmark IPresenterInternal.FocusedMessageBookmark => focusedMessageBookmark();
 
-		bool IPresenter.NavigationIsInProgress
+		bool IPresenterInternal.NavigationIsInProgress
 		{
 			get { return navigationManager.NavigationIsInProgress; }
 		}
 
-		PreferredDblClickAction IPresenter.DblClickAction { get; set; }
+		PreferredDblClickAction IPresenterInternal.DblClickAction { get; set; }
 
-		FocusedMessageDisplayModes IPresenter.FocusedMessageDisplayMode
+		FocusedMessageDisplayModes IPresenterInternal.FocusedMessageDisplayMode
 		{
 			get { return focusedMessageDisplayMode; }
 			set { focusedMessageDisplayMode = value; changeNotification.Post(); }
 		}
 
-		string IPresenter.DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
+		string IPresenterInternal.DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
 
-		bool IPresenter.ShowTime
+		bool IPresenterInternal.ShowTime
 		{
 			get { return showTime; }
 			set
@@ -229,7 +231,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		bool IPresenter.ShowMilliseconds
+		bool IPresenterInternal.ShowMilliseconds
 		{
 			get
 			{
@@ -244,33 +246,33 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		bool IPresenter.ShowRawMessages
+		bool IPresenterInternal.ShowRawMessages
 		{
 			get => viewModeStrategy.IsRawMessagesMode;
 			set => viewModeStrategy.IsRawMessagesMode = value;
 		}
 
-		bool IPresenter.RawViewAllowed => viewModeStrategy.IsRawMessagesModeAllowed;
+		bool IPresenterInternal.RawViewAllowed => viewModeStrategy.IsRawMessagesModeAllowed;
 
-		bool IPresenter.ViewTailMode
+		bool IPresenterInternal.ViewTailMode
 		{
 			get { return viewTailMode; }
 			set { SetViewTailMode(value, externalCall: true); }
 		}
 
-		UserInteraction IPresenter.DisabledUserInteractions
+		UserInteraction IPresenterInternal.DisabledUserInteractions
 		{
 			get { return disabledUserInteractions; }
 			set { disabledUserInteractions = value; }
 		}
 
-		ColoringMode IPresenter.Coloring
+		ColoringMode IPresenterInternal.Coloring
 		{
 			get => coloringModeStrategy.Coloring;
 			set => coloringModeStrategy.Coloring = value;
 		}
 
-		async Task<Dictionary<IMessagesSource, long>> IPresenter.GetCurrentPositions(CancellationToken cancellation)
+		async Task<Dictionary<IMessagesSource, long>> IPresenterInternal.GetCurrentPositions(CancellationToken cancellation)
 		{
 			if (selectionManager.Selection == null)
 				return null;
@@ -280,7 +282,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
 		}
 
-		async Task<IMessage> IPresenter.Search(SearchOptions opts)
+		async Task<IMessage> IPresenterInternal.Search(SearchOptions opts)
 		{
 			using (var bulkProcessing = opts.Filters.StartBulkProcessing(screenBuffer.DisplayTextGetter, opts.ReverseSearch))
 			{
@@ -312,7 +314,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		Task IPresenter.SelectMessageAt(DateTime date, ILogSource[] preferredSources)
+		Task IPresenterInternal.SelectMessageAt(DateTime date, ILogSource[] preferredSources)
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
@@ -367,27 +369,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		Task IPresenter.GoToNextMessageInThread()
+		Task IPresenterInternal.GoToNextMessageInThread()
 		{
 			return FindMessageInCurrentThread(EnumMessagesFlag.Forward);
 		}
 
-		Task IPresenter.GoToPrevMessageInThread()
+		Task IPresenterInternal.GoToPrevMessageInThread()
 		{
 			return FindMessageInCurrentThread(EnumMessagesFlag.Backward);
 		}
 
-		Task IPresenter.GoToNextHighlightedMessage()
+		Task IPresenterInternal.GoToNextHighlightedMessage()
 		{
 			return GoToNextHighlightedMessage(reverse: false);
 		}
 
-		Task IPresenter.GoToPrevHighlightedMessage()
+		Task IPresenterInternal.GoToPrevHighlightedMessage()
 		{
 			return GoToNextHighlightedMessage(reverse: true);
 		}
 
-		async Task<bool> IPresenter.SelectMessageAt(IBookmark bmk)
+		async Task<bool> IPresenterInternal.SelectMessageAt(IBookmark bmk)
 		{
 			if (bmk == null)
 				return false;
@@ -404,7 +406,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		Task IPresenter.GoHome()
+		Task IPresenterInternal.GoHome()
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
@@ -414,7 +416,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		Task IPresenter.GoToEnd()
+		Task IPresenterInternal.GoToEnd()
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
@@ -424,7 +426,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		async Task IPresenter.GoToNextMessage()
+		async Task IPresenterInternal.GoToNextMessage()
 		{
 			if (selectionManager.Selection != null)
 				await MoveSelection(
@@ -433,7 +435,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				);
 		}
 
-		async Task IPresenter.GoToPrevMessage()
+		async Task IPresenterInternal.GoToPrevMessage()
 		{
 			if (selectionManager.Selection != null)
 				await MoveSelection(
@@ -442,32 +444,32 @@ namespace LogJoint.UI.Presenters.LogViewer
 				);
 		}
 
-		Task<string> IPresenter.GetSelectedText()
+		Task<string> IPresenterInternal.GetSelectedText()
 		{
 			return selectionManager.GetSelectedText();
 		}
 
-		Task IPresenter.CopySelectionToClipboard()
+		Task IPresenterInternal.CopySelectionToClipboard()
 		{
 			return selectionManager.CopySelectionToClipboard();
 		}
 
-		bool IPresenter.IsSinglelineNonEmptySelection
+		bool IPresenterInternal.IsSinglelineNonEmptySelection
 		{
 			get { return selectionManager.Selection != null && !selectionManager.Selection.IsEmpty && selectionManager.Selection.IsSingleLine; }
 		}
 
-		bool IPresenter.HasInputFocus
+		bool IPresenterInternal.HasInputFocus
 		{
 			get { return view.HasInputFocus; }
 		}
 
-		void IPresenter.ReceiveInputFocus()
+		void IPresenterInternal.ReceiveInputFocus()
 		{
 			view.ReceiveInputFocus();
 		}
 
-		IBookmark IPresenter.SlaveModeFocusedMessage
+		IBookmark IPresenterInternal.SlaveModeFocusedMessage
 		{
 			get
 			{
@@ -482,7 +484,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		Task IPresenter.SelectSlaveModeFocusedMessage()
+		Task IPresenterInternal.SelectSlaveModeFocusedMessage()
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
@@ -514,7 +516,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		void IPresenter.SelectFirstMessage()
+		void IPresenterInternal.SelectFirstMessage()
 		{
 			if (screenBuffer.Messages.Count > 0)
 			{
@@ -522,7 +524,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		void IPresenter.SelectLastMessage()
+		void IPresenterInternal.SelectLastMessage()
 		{
 			if (screenBuffer.Messages.Count > 0)
 			{
@@ -530,7 +532,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		void IPresenter.MakeFirstLineFullyVisible()
+		void IPresenterInternal.MakeFirstLineFullyVisible()
 		{
 			screenBuffer.MakeFirstLineFullyVisible();
 		}
@@ -691,6 +693,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		int[] IViewModel.FocusedMessageMark => focusedMessageMark();
 
 		ImmutableArray<ViewLine> IViewModel.ViewLines => viewLines();
+
+		IReadOnlyList<VisibleLine> IPresenter.VisibleLines => visibleLines();
 
 		string IViewModel.ViewLinesAggregaredText => viewLinesText();
 
@@ -1375,7 +1379,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		private IPresenter ThisIntf { get { return this; } }
+		private IPresenterInternal ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
 
 		readonly IModel model;
@@ -1421,5 +1425,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly Func<Func<IMessage, MessageDisplayTextInfo>> displayTextGetterSelector;
 		static readonly MessageTextLinesMapper identityTextLinesMapper = i => i;
 		readonly Func<IBookmark> focusedMessageBookmark;
+		readonly Func<ImmutableArray<VisibleLine>> visibleLines;
 	};
 };

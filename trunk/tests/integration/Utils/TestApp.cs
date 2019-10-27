@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Tests.Integration
 {
-	public class Mocks
+	public class Mocks: IMocks
 	{
 		public Preprocessing.ICredentialsCache CredentialsCache;
 		public WebViewTools.IWebViewTools WebBrowserDownloader;
@@ -23,6 +23,9 @@ namespace LogJoint.Tests.Integration
 		public UI.Presenters.ISystemThemeDetector SystemThemeDetector;
 
 		public UI.Presenters.Factory.IViewsFactory Views;
+
+		UI.Presenters.IPromptDialog IMocks.PromptDialog => PromptDialog;
+		UI.Presenters.IClipboardAccess IMocks.ClipboardAccess => ClipboardAccess;
 	};
 
 	public class ViewModelObjects
@@ -43,9 +46,10 @@ namespace LogJoint.Tests.Integration
 	public class TestAppConfig
 	{
 		public int LogViewerViewSize = 20;
+		public string LocalPluginsList;
 	};
 
-	public class TestAppInstance
+	public class TestAppInstance: IContext
 	{
 		private bool disposed;
 		private TraceListener traceListener;
@@ -60,6 +64,14 @@ namespace LogJoint.Tests.Integration
 		/// Temporary folder where this instance of application stores its state.
 		/// </summary>
 		public string AppDataDirectory { get; private set; }
+
+		IModel IContext.Model => Model.ExpensibilityEntryPoint;
+		UI.Presenters.IPresentation IContext.Presentation => Presentation.ExpensibilityEntryPoint;
+		IMocks IContext.Mocks => Mocks;
+		IRegistry IContext.Registry => throw new NotImplementedException(); // todo: impl
+		ISamples IContext.Samples => new SamplesUtils(); // todo: have one object
+		IUtils IContext.Utils => new TestAppExtensions.UtilsImpl(this); // todo: have one object
+		string IContext.AppDataDirectory => AppDataDirectory;
 
 		public static async Task<TestAppInstance> Create(TestAppConfig config = null)
 		{
@@ -130,6 +142,15 @@ namespace LogJoint.Tests.Integration
 					mocks.Views
 				);
 
+				if (config.LocalPluginsList != null)
+				{
+					modelObjects.PluginsManager.LoadPlugins(new TestApplicationEntryPoint
+					{
+						Model = modelObjects.ExpensibilityEntryPoint,
+						Presentation = presentationObjects.ExpensibilityEntryPoint
+					}, config.LocalPluginsList);
+				}
+
 				return (modelObjects, presentationObjects);
 			});
 
@@ -142,7 +163,7 @@ namespace LogJoint.Tests.Integration
 				ViewModel = viewModel,
 				traceListener = traceListener,
 				AppDataDirectory = appDataDir
-		};
+			};
 		}
 
 		private static void InitializeMocks(TestAppConfig config, Mocks mocks, ViewModelObjects viewModel)
@@ -198,5 +219,11 @@ namespace LogJoint.Tests.Integration
 			await tcs.Task;
 			traceListener.Flush();
 		}
+
+		class TestApplicationEntryPoint
+		{
+			public IModel Model { get; internal set; }
+			public UI.Presenters.IPresentation Presentation { get; internal set; }
+		};
 	};
 }

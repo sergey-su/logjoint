@@ -16,7 +16,7 @@ namespace LogJoint.Tests.Integration
 	/// Utilities that manage test samples, such as sample log files.
 	/// Samples are stored on the web.
 	/// </summary>
-	public class SamplesUtils
+	public class SamplesUtils: ISamples
 	{
 		private readonly string cacheDir;
 

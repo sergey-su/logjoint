@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			IBookmarks bookmarks,
 			IFiltersList hlFilters,
 			IView view,
-			LogViewer.IPresenter viewerPresenter,
+			LogViewer.IPresenterInternal viewerPresenter,
 			IPresentersFacade navHandler,
 			IColorTheme theme,
 			IChangeNotification parentChangeNotification,
@@ -244,7 +244,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
-		readonly LogViewer.IPresenter viewerPresenter;
+		readonly LogViewer.IPresenterInternal viewerPresenter;
 		readonly IPresentersFacade navHandler;
 		readonly Func<IMessage> getFocusedMessage;
 		readonly Func<DialogData> getDialogData;

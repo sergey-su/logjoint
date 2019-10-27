@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <PackageId>logjoint.testing.sdk</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>sergeysu</Authors>
+    <Company>private</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\model\logjoint.model.sdk.csproj" />
+    <ProjectReference Include="..\presentation\logjoint.presentation.sdk.csproj" />
+  </ItemGroup>
+</Project>

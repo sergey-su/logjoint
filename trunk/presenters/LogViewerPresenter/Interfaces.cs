@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public interface IPresenter: IDisposable
+	public interface IPresenterInternal: IPresenter, IDisposable
 	{
 		LogFontSize FontSize { get; set; }
 		string FontName { get; set; }
@@ -41,7 +41,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void SelectLastMessage();
 		void MakeFirstLineFullyVisible();
 
-		IMessage FocusedMessage { get; }
 		IBookmark FocusedMessageBookmark { get; }
 		Task<Dictionary<IMessagesSource, long>> GetCurrentPositions(CancellationToken cancellation);
 		IBookmark SlaveModeFocusedMessage { get; set; }
@@ -341,10 +340,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IPresenterFactory
 	{
-		IPresenter CreateLoadedMessagesPresenter(IView view);
-		(IPresenter Presenter, ISearchResultModel Model) CreateSearchResultsPresenter(
-			IView view, IPresenter loadedMessagesPresenter);
-		IPresenter CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme = null);
+		IPresenterInternal CreateLoadedMessagesPresenter(IView view);
+		(IPresenterInternal Presenter, ISearchResultModel Model) CreateSearchResultsPresenter(
+			IView view, IPresenterInternal loadedMessagesPresenter);
+		IPresenterInternal CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme = null);
 	};
 
 	public class ContextMenuEventArgs : EventArgs

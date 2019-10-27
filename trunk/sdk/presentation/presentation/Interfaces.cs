@@ -8,5 +8,6 @@ namespace LogJoint.UI.Presenters
 		IClipboardAccess ClipboardAccess { get; }
 		IPromptDialog PromptDialog { get; }
 		Postprocessing.IPresentation Postprocessing { get; }
+		LogViewer.IPresenter LoadedMessagesLogViewer { get; }
 	}
 }

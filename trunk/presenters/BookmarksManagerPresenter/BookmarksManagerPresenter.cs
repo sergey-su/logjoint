@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		public Presenter(
 			IBookmarks bookmarks,
 			IView view,
-			LogViewer.IPresenter viewerPresenter,
+			LogViewer.IPresenterInternal viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			BookmarksList.IPresenter listPresenter,
 			StatusReports.IPresenter statusReportFactory,
@@ -205,7 +205,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LJTraceSource tracer;
-		readonly LogViewer.IPresenter viewerPresenter;
+		readonly LogViewer.IPresenterInternal viewerPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly IPresentersFacade navHandler;

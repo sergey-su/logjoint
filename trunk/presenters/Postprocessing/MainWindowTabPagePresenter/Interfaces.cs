@@ -3,10 +3,6 @@ using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
-	public interface IPresenter
-	{
-	};
-
 	public interface IView
 	{
 		void SetViewModel(IViewModel viewModel);

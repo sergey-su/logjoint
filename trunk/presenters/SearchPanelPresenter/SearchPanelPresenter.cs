@@ -128,7 +128,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		async void IPresenter.ReceiveInputFocusByShortcut(bool forceSearchAllOccurencesMode)
 		{
-			LogViewer.IPresenter focusedPresenter = 
+			LogViewer.IPresenterInternal focusedPresenter = 
 				loadedMessagesPresenter.LogViewerPresenter.HasInputFocus ? loadedMessagesPresenter.LogViewerPresenter :
 				searchResultPresenter.LogViewerPresenter.HasInputFocus ? searchResultPresenter.LogViewerPresenter : null;
 

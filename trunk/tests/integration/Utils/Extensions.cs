@@ -14,7 +14,7 @@ namespace LogJoint.Tests.Integration
 			);
 		}
 
-		public static Task EmulateUrlDragAndDrop(this TestAppInstance app, string url)
+		public static Task EmulateUrlDragAndDrop(this TestAppInstance app, string url) // todo: Uri arg
 		{
 			return app.Model.LogSourcesPreprocessings.Preprocess(
 				new[] { app.Model.PreprocessingStepsFactory.CreateURLTypeDetectionStep(new Preprocessing.PreprocessingStepParams(url)) },
@@ -70,5 +70,18 @@ namespace LogJoint.Tests.Integration
 				throw;
 			}
 		}
+
+		public class UtilsImpl : IUtils
+		{
+			TestAppInstance app;
+
+			public UtilsImpl(TestAppInstance app)
+			{
+				this.app = app;
+			}
+
+			Task IUtils.EmulateFileDragAndDrop(string filePath) => app.EmulateFileDragAndDrop(filePath);
+			Task IUtils.WaitFor(Func<bool> condition, string operationName, TimeSpan? timeout) => app.WaitFor(condition, operationName, timeout);
+		};
 	};
 }

@@ -197,7 +197,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly IView view;
 		readonly IGlobalSettingsAccessor settingsAccessor;
 		readonly LogViewer.IViewFonts viewFonts;
-		readonly LogViewer.IPresenter sampleLogViewerPresenter;
+		readonly LogViewer.IPresenterInternal sampleLogViewerPresenter;
 		readonly TemporaryColorTheme temporaryColorTheme;
 		readonly IModelThreadsInternal sampleThreads;
 		LogViewer.DummyModel dummyModel;

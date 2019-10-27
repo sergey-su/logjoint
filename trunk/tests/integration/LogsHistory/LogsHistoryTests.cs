@@ -44,5 +44,11 @@ namespace LogJoint.Tests.Integration
 		}
 
 		// todo: have UI-driven tests
+
+		[Test]
+		public async Task RunPluginTests() // todo: remove
+		{
+			await PluginTestRunner.Run(@"C:\Users\sergeysu\logjoint\trunk\extensions\chromium\plugin\bin\Debug\netstandard2.0");
+		}
 	}
 }

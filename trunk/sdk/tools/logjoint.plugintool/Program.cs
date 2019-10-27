@@ -10,8 +10,6 @@ namespace LogJoint.PluginTool
 {
 	class Program
 	{
-		static readonly string PackageFileName = "plugin.zip";
-
 		static int Main(string[] args)
 		{
 			if (args.Length == 0)
@@ -21,6 +19,7 @@ namespace LogJoint.PluginTool
 				Console.WriteLine("  pack <path to manifest.xml> <zip-name> [prod]       Collects plug-in files referenced in the manifest and zips them into a deployable package.");
 				Console.WriteLine("                                                      Once package is deployed, if prod flag is not specified, the package will be verified, but not published to users.");
 				Console.WriteLine("  deploy <zip-name> <inbox url>                       Sends the plug-in package into the plug-ins inbox.");
+				Console.WriteLine("  test <path to manifest.xml> <host app directory>    Runs plug-in's integration tests");
 				return 0;
 			}
 
@@ -30,6 +29,8 @@ namespace LogJoint.PluginTool
 					return Pack(args.Skip(1).ToArray());
 				case "deploy":
 					return Deploy(args.Skip(1).ToArray());
+				case "test":
+					return Test(args.Skip(1).ToArray());
 				default:
 					Console.WriteLine("Unknown command");
 					return 1;
@@ -113,6 +114,11 @@ namespace LogJoint.PluginTool
 				}
 			}
 			Console.WriteLine("Deployed successfully");
+			return 0;
+		}
+
+		static int Test(string[] args)
+		{
 			return 0;
 		}
 	}

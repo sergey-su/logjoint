@@ -41,7 +41,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.regexFactory = regexFactory;
 		}
 
-		IPresenter IPresenterFactory.CreateLoadedMessagesPresenter(IView view)
+		IPresenterInternal IPresenterFactory.CreateLoadedMessagesPresenter(IView view)
 		{
 			IModel model = new LoadedMessages.PresentationModel(
 				logSources,
@@ -55,7 +55,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
-		(IPresenter, ISearchResultModel) IPresenterFactory.CreateSearchResultsPresenter(IView view, IPresenter loadedMessagesPresenter)
+		(IPresenterInternal, ISearchResultModel) IPresenterFactory.CreateSearchResultsPresenter(IView view, IPresenterInternal loadedMessagesPresenter)
 		{
 			ISearchResultModel model = new SearchResult.SearchResultMessagesModel(
 				logSources,
@@ -77,7 +77,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
-		IPresenter IPresenterFactory.CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme)
+		IPresenterInternal IPresenterFactory.CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme)
 		{
 			IFiltersList highlightFilter = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting, null);
 			highlightFilter.FilteringEnabled = false;
