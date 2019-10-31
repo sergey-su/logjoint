@@ -27,3 +27,4 @@ BuildInfo.txt
 /trunk/extensions/azure/platforms/windows/logjoint.azure.plugin/deploy.bat
 /trunk/platforms/osx/logjoint.mac/logjoint.mac.csproj.user
 /trunk/platforms/windows/logjoint.winforms/logjoint.csproj.user
+launchSettings.json

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LogJoint.Extensibility;
 
@@ -10,21 +12,38 @@ namespace LogJoint.Tests.Integration
 	{
 		static async Task Main(string[] args)
 		{
-			await Run(Assembly.GetExecutingAssembly(), null);
+			string filter = null;
+			Action<string> consumeValue = null;
+			foreach (var arg in args)
+			{
+				if (consumeValue != null)
+					consumeValue(arg);
+				else if (arg == "--filter" || arg == "--f")
+					consumeValue = val => filter = val;
+			}
+			await RunTests(Assembly.GetExecutingAssembly(), null, filter);
 		}
 
-		public async Task RunPluginTests(string pluginDir)
+		public async Task RunPluginTests(string pluginDir, string filters = null)
 		{
 			IPluginManifest manifest = new PluginManifest(pluginDir);
 			var testFile = manifest.Test ?? throw new ArgumentException($"Plug-in does not contain tests: {manifest.AbsolulePath}");
 			var testsAsm = Assembly.LoadFrom(testFile.AbsolulePath);
-			await Run(testsAsm, manifest.PluginDirectory);
+			await RunTests(testsAsm, manifest.PluginDirectory, filters);
 		}
 
-		// todo: test filters
-		static async Task<bool> Run(
+		static string FilterToRegexTemplate(string f) =>
+			f.Split('*')
+			.Aggregate(
+				(i: 0, sb: new StringBuilder()),
+				(agg, part) => (i: agg.i + 1, sb: agg.sb.Append(agg.i > 0 ? ".*?" : "").Append(Regex.Escape(part))),
+				agg => $@"^{agg.sb}$"
+			);
+
+		static async Task<bool> RunTests(
 			Assembly testsAsm,
-			string localPluginsList
+			string localPluginsList,
+			string filters
 		)
 		{
 			var fixtures = 
@@ -55,6 +74,7 @@ namespace LogJoint.Tests.Integration
 					);
 				})
 				.ToArray();
+			var filtersRegex = filters != null ? new Regex(FilterToRegexTemplate(filters)) : new Regex(".");
 			Task toAwaitable(object methodResult) => methodResult is Task task ? task : Task.FromResult(0);
 			bool anyFailed = false;
 			foreach (var (type, fixtureDisplayName, fixtureIgnore, tests, beforeEach, afterEach) in fixtures)
@@ -64,7 +84,10 @@ namespace LogJoint.Tests.Integration
 				var fixtureInstance = Activator.CreateInstance(type);
 				foreach (var (testMethod, testDisplayName, testIgnore) in tests)
 				{
-					Console.Write($"{fixtureDisplayName} {testDisplayName} ... ");
+					var fullTestName = $"{fixtureDisplayName} {testDisplayName}";
+					if (!filtersRegex.IsMatch(fullTestName))
+						continue;
+					Console.Write($"{fullTestName} ... ");
 					if (!string.IsNullOrEmpty(fixtureIgnore))
 					{
 						Console.Write($"Fixture ignored ({fixtureIgnore})");

@@ -121,9 +121,17 @@ namespace LogJoint.PluginTool
 
 		static int Test(string[] args)
 		{
-			var asm = Assembly.LoadFrom(@"C:\Users\sergeysu\logjoint\trunk\tests\integration\bin\Debug\netcoreapp2.0\logjoint.integration.tests.dll");
+			var asm = Assembly.LoadFrom(
+				args[0] //  @"C:\Users\sergeysu\logjoint\trunk\tests\integration\bin\Debug\netcoreapp2.0\logjoint.integration.tests.dll"
+			);
 			var runner = asm.CreateInstance("LogJoint.Tests.Integration.TestRunner");
-			var task = (Task)runner.GetType().InvokeMember("RunPluginTests", BindingFlags.InvokeMethod, null, runner, new object[] { @"C:\Users\sergeysu\logjoint\trunk\extensions\chromium\plugin\bin\Debug\netstandard2.0" });
+			var task = (Task)runner.GetType().InvokeMember("RunPluginTests", BindingFlags.InvokeMethod, null, runner,
+				new object[]
+				{
+					args[1],
+					null
+					// @"C:\Users\sergeysu\logjoint\trunk\extensions\chromium\plugin\bin\Debug\netstandard2.0"
+				});
 			task.Wait();
 			return 0;
 		}
