@@ -25,4 +25,9 @@
     <ProjectReference Include="../../presenters/logjoint.presenters.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\platforms\shared\settings\Settings.cs">
+      <Link>Utils\Settings.cs</Link>
+    </Compile>
+  </ItemGroup>
 </Project>

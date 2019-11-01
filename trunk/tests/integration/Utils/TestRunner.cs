@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using LogJoint.Extensibility;
+using NSubstitute;
 
 namespace LogJoint.Tests.Integration
 {
@@ -24,12 +30,52 @@ namespace LogJoint.Tests.Integration
 			await RunTests(Assembly.GetExecutingAssembly(), null, filter);
 		}
 
-		public async Task RunPluginTests(string pluginDir, string filters = null)
+		public async Task DownloadPluginDependencies(IPluginManifest manifest, List<string> result)
+		{
+			using (var http = new HttpClient())
+			{
+				IPluginsIndexFactory indexFactory = new PluginsIndex.Factory(Substitute.For<Telemetry.ITelemetryCollector>());
+				IPluginsIndex index;
+				using (var indexResponseStream = await http.GetStreamAsync(Properties.Settings.Default.PluginsUrl))
+					index = indexFactory.Create(indexResponseStream, "dummy");
+				var pluginsLookup = index.Plugins.ToDictionary(p => p.Id);
+				foreach (var depId in manifest.Dependencies) // no support for nested deps for now
+				{
+					if (!pluginsLookup.TryGetValue(depId, out var dep))
+						throw new Exception($"Can not resolve dependency {dep}");
+					var tempFilePath = Path.GetTempFileName();
+					using (var tempFileStream = new FileStream(tempFilePath, FileMode.Create))
+					using (var networkStream = await http.GetStreamAsync(dep.Location))
+						await networkStream.CopyToAsync(tempFileStream);
+					var tempDir = Path.Combine(Path.GetTempPath(),
+						$"logjoint.int.tests.bin.{Guid.NewGuid().ToString("N")}");
+					ZipFile.ExtractToDirectory(tempFilePath, tempDir);
+					File.Delete(tempFilePath);
+					result.Add(tempDir);
+				}
+			}
+		}
+
+		public async Task RunPluginTests(string pluginDir, string filters, bool needsDepsDownload)
 		{
 			IPluginManifest manifest = new PluginManifest(pluginDir);
 			var testFile = manifest.Test ?? throw new ArgumentException($"Plug-in does not contain tests: {manifest.AbsolulePath}");
 			var testsAsm = Assembly.LoadFrom(testFile.AbsolulePath);
-			await RunTests(testsAsm, manifest.PluginDirectory, filters);
+			var downloadedDependenciesDirs = new List<string>();
+			try
+			{
+				if (manifest.Dependencies.Count > 0 && needsDepsDownload)
+					await DownloadPluginDependencies(manifest, downloadedDependenciesDirs);
+				await RunTests(
+					testsAsm,
+					string.Join(';', downloadedDependenciesDirs.Union(new[] { manifest.PluginDirectory })),
+					filters
+				);
+			}
+			finally
+			{
+				downloadedDependenciesDirs.ForEach(Directory.Delete);
+			}
 		}
 
 		static string FilterToRegexTemplate(string f) =>

@@ -209,7 +209,8 @@ namespace LogJoint.PluginTool
 				var runnerTask = (Task)runner.GetType().InvokeMember("RunPluginTests", BindingFlags.InvokeMethod, null, runner, new object[]
 				{
 					pluginDirectory.Path,
-					filters
+					filters,
+					hostDirectory.IsTemporary
 				});
 				await runnerTask;
 			}
