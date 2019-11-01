@@ -19,13 +19,11 @@ namespace LogJoint.Tests.Integration
 		static async Task Main(string[] args)
 		{
 			string filter = null;
-			Action<string> consumeValue = null;
 			foreach (var arg in args)
 			{
-				if (consumeValue != null)
-					consumeValue(arg);
-				else if (arg == "--filter" || arg == "--f")
-					consumeValue = val => filter = val;
+				var split = arg.Split('=');
+				if (split.ElementAtOrDefault(0) == "--filter")
+					filter = split.ElementAtOrDefault(1);
 			}
 			await RunTests(Assembly.GetExecutingAssembly(), null, filter);
 		}

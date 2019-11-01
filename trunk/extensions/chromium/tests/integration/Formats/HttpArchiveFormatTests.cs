@@ -8,7 +8,7 @@ namespace LogJoint.Tests.Integration.Chromium
 	public class HttpArchiveFormatTests
 	{
 		[IntegrationTest]
-		async Task LoadsLogFileAndEnablesPostprocessors(IContext context)
+		public async Task LoadsLogFileAndEnablesPostprocessors(IContext context)
 		{
 			await context.Utils.EmulateFileDragAndDrop(await context.Samples.GetSampleAsLocalFile("www.hemnet.se.har"));
 

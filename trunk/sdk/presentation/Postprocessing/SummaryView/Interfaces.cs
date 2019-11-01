@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LogJoint.UI.Presenters.Postprocessing.SummaryView
+﻿namespace LogJoint.UI.Presenters.Postprocessing.SummaryView
 {
 	public interface IPresenter
 	{

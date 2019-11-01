@@ -81,6 +81,7 @@ namespace LogJoint.Tests.Integration
 			}
 
 			Task IUtils.EmulateFileDragAndDrop(string filePath) => app.EmulateFileDragAndDrop(filePath);
+			Task IUtils.EmulateUriDragAndDrop(Uri uri) => app.EmulateUrlDragAndDrop(uri.ToString());
 			Task IUtils.WaitFor(Func<bool> condition, string operationName, TimeSpan? timeout) => app.WaitFor(condition, operationName, timeout);
 		};
 	};

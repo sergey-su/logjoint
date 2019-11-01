@@ -1,1 +1,2 @@
 dotnet run --project ../../../sdk/tools/logjoint.plugintool pack bin/Debug/netstandard2.0/manifest.xml bin/chromium.zip $1
+dotnet run --project ../../../sdk/tools/logjoint.plugintool test bin/chromium.zip https://publogjoint.blob.core.windows.net/updates/logjoint-mac-staging.zip

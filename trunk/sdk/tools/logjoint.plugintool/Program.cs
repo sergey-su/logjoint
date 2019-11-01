@@ -22,7 +22,7 @@ namespace LogJoint.PluginTool
 				Console.WriteLine("  pack <path to manifest.xml> <zip-name> [prod]       Collects plug-in files referenced in the manifest and zips them into a deployable package.");
 				Console.WriteLine("                                                      Once package is deployed, if prod flag is not specified, the package will be verified, but not published to users.");
 				Console.WriteLine("  deploy <zip-name> <inbox url>                       Sends the plug-in package into the plug-ins inbox.");
-				Console.WriteLine("  test <plugin> <host> [--filter <value>]             Runs plug-in's integration tests with specified host app installation.");
+				Console.WriteLine("  test <plugin> <host> [--filter=<value>]             Runs plug-in's integration tests with specified host app installation.");
 				Console.WriteLine("                                                         <plugin> - local folder, or zip archive with packed plugin");
 				Console.WriteLine("                                                         <host> - local folder, or url of zip archive with logjoing binaries");
 				return 0;
@@ -199,7 +199,13 @@ namespace LogJoint.PluginTool
 		{
 			var pluginLocation = args.ElementAtOrDefault(0);
 			var hostLocation = args.ElementAtOrDefault(1);
-			var filters = args.ElementAtOrDefault(2);
+			string filter = null;
+			foreach (var arg in args.Skip(2))
+			{
+				var split = arg.Split('=');
+				if (split.ElementAtOrDefault(0) == "--filter")
+					filter = split.ElementAtOrDefault(1);
+			}
 
 			using (var pluginDirectory = await LocationArgumentToDirectory(pluginLocation, "plugin"))
 			using (var hostDirectory = await LocationArgumentToDirectory(hostLocation, "host"))
@@ -209,7 +215,7 @@ namespace LogJoint.PluginTool
 				var runnerTask = (Task)runner.GetType().InvokeMember("RunPluginTests", BindingFlags.InvokeMethod, null, runner, new object[]
 				{
 					pluginDirectory.Path,
-					filters,
+					filter,
 					hostDirectory.IsTemporary
 				});
 				await runnerTask;
