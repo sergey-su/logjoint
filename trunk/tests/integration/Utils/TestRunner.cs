@@ -37,7 +37,7 @@ namespace LogJoint.Tests.Integration
 			.Aggregate(
 				(i: 0, sb: new StringBuilder()),
 				(agg, part) => (i: agg.i + 1, sb: agg.sb.Append(agg.i > 0 ? ".*?" : "").Append(Regex.Escape(part))),
-				agg => $@"^{agg.sb}$"
+				agg => agg.sb.ToString()
 			);
 
 		static async Task<bool> RunTests(
