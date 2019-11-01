@@ -1,13 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <IsPackable>false</IsPackable>
     <LangVersion>7.3</LangVersion>
     <OutputType>Exe</OutputType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugWithMacHost|AnyCPU' ">
+    <OutputPath>..\..\platforms\osx\bin\debug\logjoint.app\Contents\MonoBundle</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NFluent" Version="2.6.0" />
     <PackageReference Include="NSubstitute" Version="2.0.3" />

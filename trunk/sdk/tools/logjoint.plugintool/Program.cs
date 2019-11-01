@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -12,7 +13,7 @@ namespace LogJoint.PluginTool
 {
 	class Program
 	{
-		static int Main(string[] args)
+		static async Task<int> Main(string[] args)
 		{
 			if (args.Length == 0)
 			{
@@ -21,7 +22,9 @@ namespace LogJoint.PluginTool
 				Console.WriteLine("  pack <path to manifest.xml> <zip-name> [prod]       Collects plug-in files referenced in the manifest and zips them into a deployable package.");
 				Console.WriteLine("                                                      Once package is deployed, if prod flag is not specified, the package will be verified, but not published to users.");
 				Console.WriteLine("  deploy <zip-name> <inbox url>                       Sends the plug-in package into the plug-ins inbox.");
-				Console.WriteLine("  test <path to manifest.xml> <host app directory>    Runs plug-in's integration tests");
+				Console.WriteLine("  test <plugin> <host> [--filter <value>]             Runs plug-in's integration tests with specified host app installation.");
+				Console.WriteLine("                                                         <plugin> - local folder, or zip archive with packed plugin");
+				Console.WriteLine("                                                         <host> - local folder, or url of zip archive with logjoing binaries");
 				return 0;
 			}
 
@@ -32,7 +35,8 @@ namespace LogJoint.PluginTool
 				case "deploy":
 					return Deploy(args.Skip(1).ToArray());
 				case "test":
-					return Test(args.Skip(1).ToArray());
+					await Test(args.Skip(1).ToArray());
+					return 0;
 				default:
 					Console.WriteLine("Unknown command");
 					return 1;
@@ -119,21 +123,96 @@ namespace LogJoint.PluginTool
 			return 0;
 		}
 
-		static int Test(string[] args)
+		static async Task<ArgumentDirectory> LocationArgumentToDirectory(string location, string locationName)
 		{
-			var asm = Assembly.LoadFrom(
-				args[0] //  @"C:\Users\sergeysu\logjoint\trunk\tests\integration\bin\Debug\netcoreapp2.0\logjoint.integration.tests.dll"
-			);
-			var runner = asm.CreateInstance("LogJoint.Tests.Integration.TestRunner");
-			var task = (Task)runner.GetType().InvokeMember("RunPluginTests", BindingFlags.InvokeMethod, null, runner,
-				new object[]
+			if (string.IsNullOrEmpty(location))
+			{
+				throw new ArgumentException($"{locationName} location is not specified");
+			}
+			ArgumentDirectory UnzipToTempFolder(string zipFileName)
+			{
+				var tempDir = Path.Combine(Path.GetTempPath(), $"logjoint.int.tests.bin.{Guid.NewGuid().ToString("N")}");
+				ZipFile.ExtractToDirectory(zipFileName, tempDir);
+				return new ArgumentDirectory { Path = tempDir, IsTemporary = true };
+			}
+			if (Directory.Exists(location))
+			{
+				return new ArgumentDirectory { Path = location };
+			}
+			else if (File.Exists(location))
+			{
+				return UnzipToTempFolder(location);
+			}
+			else if (Uri.TryCreate(location, UriKind.Absolute, out var hostUri))
+			{
+				var tempZipFileName = Path.GetTempFileName();
+				try
 				{
-					args[1],
-					null
-					// @"C:\Users\sergeysu\logjoint\trunk\extensions\chromium\plugin\bin\Debug\netstandard2.0"
+					using (var cli = new HttpClient())
+					using (var zipFs = new FileStream(tempZipFileName, FileMode.Create))
+					{
+						var responseStream = await cli.GetStreamAsync(hostUri);
+						await responseStream.CopyToAsync(zipFs);
+					}
+					return UnzipToTempFolder(tempZipFileName);
+				}
+				finally
+				{
+					if (File.Exists(tempZipFileName))
+						File.Delete(tempZipFileName);
+				}
+			}
+			else
+			{
+				throw new ArgumentException($"Unsupported {locationName} location: '{location}'");
+			}
+		}
+
+		class ArgumentDirectory: IDisposable
+		{
+			public string Path;
+			public bool IsTemporary;
+
+			public void Dispose()
+			{
+				if (IsTemporary)
+					Directory.Delete(Path, true);
+			}
+		};
+
+		static string FindHostIntegrationTestsAsm(string startDirectory)
+		{
+			var testsAsmName = "logjoint.integration.tests.dll";
+			if (File.Exists(Path.Combine(startDirectory, testsAsmName)))
+				return Path.Combine(startDirectory, testsAsmName);
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				if (Directory.Exists(Path.Combine(startDirectory, "Contents")))
+					return FindHostIntegrationTestsAsm(Path.Combine(startDirectory, "Contents", "MonoBundle"));
+				if (Directory.Exists(Path.Combine(startDirectory, "MonoBundle")))
+					return FindHostIntegrationTestsAsm(Path.Combine(startDirectory, "MonoBundle"));
+			}
+			throw new ArgumentException($"Can not find required {testsAsmName} in location: {startDirectory}");
+		}
+
+		static async Task Test(string[] args)
+		{
+			var pluginLocation = args.ElementAtOrDefault(0);
+			var hostLocation = args.ElementAtOrDefault(1);
+			var filters = args.ElementAtOrDefault(2);
+
+			using (var pluginDirectory = await LocationArgumentToDirectory(pluginLocation, "plugin"))
+			using (var hostDirectory = await LocationArgumentToDirectory(hostLocation, "host"))
+			{
+				var hostTestsAssembly = Assembly.LoadFrom(FindHostIntegrationTestsAsm(hostDirectory.Path));
+				var runner = hostTestsAssembly.CreateInstance("LogJoint.Tests.Integration.TestRunner");
+				var runnerTask = (Task)runner.GetType().InvokeMember("RunPluginTests", BindingFlags.InvokeMethod, null, runner, new object[]
+				{
+					pluginDirectory.Path,
+					filters
 				});
-			task.Wait();
-			return 0;
+				await runnerTask;
+			}
 		}
 	}
 }

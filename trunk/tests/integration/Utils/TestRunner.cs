@@ -99,6 +99,7 @@ namespace LogJoint.Tests.Integration
 						continue;
 					}
 					var stage = "";
+					string appDataDirectory = null;
 					try
 					{
 						stage = " at app startup";
@@ -108,6 +109,7 @@ namespace LogJoint.Tests.Integration
 						});
 						try
 						{
+							appDataDirectory = app.AppDataDirectory;
 							await app.SynchronizationContext.InvokeAndAwait(async () =>
 							{
 								var methodFlags = BindingFlags.InvokeMethod;
@@ -132,7 +134,12 @@ namespace LogJoint.Tests.Integration
 					{
 						anyFailed = true;
 						Console.WriteLine($"Failed{stage}");
-						Console.WriteLine($"Exception of type {e.GetType().Name}: {e.Message}{Environment.NewLine}Stack: {e.StackTrace}");
+						if (appDataDirectory != null)
+						{
+							Console.WriteLine($"Logs and app data can be found in:'");
+							Console.WriteLine($"    {appDataDirectory}");
+						}
+						Console.WriteLine($"Exception of type {e.GetType().Name} was thrown: {e.Message}{Environment.NewLine}Stack: {e.StackTrace}");
 						for (; ; )
 						{
 							Exception inner = e.InnerException;
