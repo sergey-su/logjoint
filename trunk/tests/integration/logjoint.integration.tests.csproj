@@ -7,10 +7,14 @@
     <LangVersion>7.3</LangVersion>
     <OutputType>Exe</OutputType>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Debug;Release;DebugWithWinHost;DebugWithMacHost</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugWithMacHost|AnyCPU' ">
     <OutputPath>..\..\platforms\osx\bin\debug\logjoint.app\Contents\MonoBundle</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugWithWinHost|AnyCPU' ">
+    <OutputPath>../../platforms/windows/bin/debug</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NFluent" Version="2.6.0" />

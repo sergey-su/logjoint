@@ -153,14 +153,6 @@ namespace LogJoint.UpdateTool.Properties {
 		}
 
 		[ApplicationScopedSetting]
-		public string NUnitRunner
-		{
-			get {
-				return ((string)(this["NUnitRunner"]));
-			}
-		}
-
-		[ApplicationScopedSetting]
 		public string PluginsInboxBlobContainerName
 		{
 			get

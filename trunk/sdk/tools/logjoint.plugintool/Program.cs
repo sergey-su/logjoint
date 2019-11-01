@@ -123,6 +123,21 @@ namespace LogJoint.PluginTool
 			return 0;
 		}
 
+		static void DeleteTemporarySafe(string path)
+		{
+			try
+			{
+				if (File.Exists(path))
+					File.Delete(path);
+				else if (Directory.Exists(path))
+					Directory.Delete(path, true);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Failed to delete temporary {0}: {1}", path, e.Message);
+			}
+		}
+
 		static async Task<ArgumentDirectory> LocationArgumentToDirectory(string location, string locationName)
 		{
 			if (string.IsNullOrEmpty(location))
@@ -145,21 +160,24 @@ namespace LogJoint.PluginTool
 			}
 			else if (Uri.TryCreate(location, UriKind.Absolute, out var hostUri))
 			{
+				if (hostUri.Scheme != "https")
+					throw new ArgumentException($"Only https is allowed in {locationName} location url. Given: '{location}'");
 				var tempZipFileName = Path.GetTempFileName();
 				try
 				{
+					Console.Write("Downloading {0} ... ", location);
 					using (var cli = new HttpClient())
 					using (var zipFs = new FileStream(tempZipFileName, FileMode.Create))
 					{
 						var responseStream = await cli.GetStreamAsync(hostUri);
 						await responseStream.CopyToAsync(zipFs);
 					}
+					Console.WriteLine("Done");
 					return UnzipToTempFolder(tempZipFileName);
 				}
 				finally
 				{
-					if (File.Exists(tempZipFileName))
-						File.Delete(tempZipFileName);
+					DeleteTemporarySafe(tempZipFileName);
 				}
 			}
 			else
@@ -176,7 +194,7 @@ namespace LogJoint.PluginTool
 			public void Dispose()
 			{
 				if (IsTemporary)
-					Directory.Delete(Path, true);
+					DeleteTemporarySafe(Path);
 			}
 		};
 

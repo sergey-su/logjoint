@@ -42,7 +42,7 @@ namespace LogJoint.Tests.Integration
 		/// </summary>
 		IUtils Utils { get; }
 		/// <summary>
-		/// Directory where the headless logjoint instance is confocured to
+		/// Directory where the headless logjoint instance is configured to
 		/// store its data. Internal logjoint logs are stored there too.
 		/// </summary>
 		string AppDataDirectory { get; }
@@ -115,16 +115,16 @@ namespace LogJoint.Tests.Integration
 	{
 		/// <summary>
 		/// Performs API calls that are made when user drags a file
-		/// to logjoint from from Explorer or Finder.
+		/// to logjoint from Explorer or Finder.
 		/// </summary>
-		/// <param name="filePath">Absolure local path to the file</param>
+		/// <param name="filePath">Absolute local path to the file</param>
 		/// <returns>A Task that is complete when preprocessing of given file has completed.</returns>
 		Task EmulateFileDragAndDrop(string filePath);
 		/// <summary>
 		/// Performs API calls that are made when user drags a URL
 		/// to logjoint from a browser.
 		/// </summary>
-		/// <param name="uri">Absolure URL</param>
+		/// <param name="uri">Absolute URL</param>
 		/// <returns>A Task that is complete when preprocessing of given URL has completed,
 		/// which usually includes downloading and format detection.</returns>
 		Task EmulateUriDragAndDrop(Uri uri);

@@ -10,6 +10,7 @@
     <Version>0.0.4</Version>
     <Authors>sergeysu</Authors>
     <Company>private</Company>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
 </Project>
