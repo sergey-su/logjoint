@@ -65,4 +65,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		ControlData GetCurrentData();
 		void ExecuteAction(string actionId, ClickFlags flags);
 	};
+
+	public static class Constants
+	{
+		public const string RunActionId = "action";
+		public const string ShowVisualizerActionId = "show";
+	};
 }

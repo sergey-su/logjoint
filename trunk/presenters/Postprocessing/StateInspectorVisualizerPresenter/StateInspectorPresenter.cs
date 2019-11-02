@@ -86,6 +86,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
+		IEnumerableAsync<IVisualizerNode> IPresenter.Roots
+		{
+			get
+			{
+				return EnumRoots().ToAsync().Select(c => (IVisualizerNode)VisualizerNode.FromObject(c));
+			}
+		}
+
 		bool IPresenterInternal.TrySelectObject(ILogSource source, TextLogEventTrigger creationTrigger, Func<IVisualizerNode, int> disambiguationFunction)
 		{
 			EnsureTreeView();
@@ -1009,6 +1017,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				get
 				{
 					return obj.StateChangeHistory.Select(i => i.OriginalEvent).OfType<PropertyChange>();
+				}
+			}
+
+			IEnumerableAsync<IVisualizerNode> IVisualizerNode.Children
+			{
+				get
+				{
+					return obj.Children.ToAsync().Select(c => (IVisualizerNode)FromObject(c));
 				}
 			}
 		};

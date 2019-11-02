@@ -72,7 +72,7 @@ namespace LogJoint.Tests.Integration
 			}
 			finally
 			{
-				downloadedDependenciesDirs.ForEach(Directory.Delete);
+				downloadedDependenciesDirs.ForEach(d => Directory.Delete(d, true));
 			}
 		}
 
@@ -83,6 +83,12 @@ namespace LogJoint.Tests.Integration
 				(agg, part) => (i: agg.i + 1, sb: agg.sb.Append(agg.i > 0 ? ".*?" : "").Append(Regex.Escape(part))),
 				agg => agg.sb.ToString()
 			);
+
+		static void Log(string message)
+		{
+			System.Diagnostics.Debug.Print(message + Environment.NewLine);
+			Console.WriteLine(message);
+		}
 
 		static async Task<bool> RunTests(
 			Assembly testsAsm,
@@ -120,7 +126,10 @@ namespace LogJoint.Tests.Integration
 				.ToArray();
 			var filtersRegex = filters != null ? new Regex(FilterToRegexTemplate(filters)) : new Regex(".");
 			Task toAwaitable(object methodResult) => methodResult is Task task ? task : Task.FromResult(0);
-			bool anyFailed = false;
+			int testsCount = 0;
+			int skippedCount = 0;
+			int failedCount = 0;
+			int passedCount = 0;
 			foreach (var (type, fixtureDisplayName, fixtureIgnore, tests, beforeEach, afterEach) in fixtures)
 			{
 				if (tests.Length == 0)
@@ -131,15 +140,18 @@ namespace LogJoint.Tests.Integration
 					var fullTestName = $"{fixtureDisplayName} {testDisplayName}";
 					if (!filtersRegex.IsMatch(fullTestName))
 						continue;
-					Console.Write($"{fullTestName} ... ");
+					++testsCount;
+					Log($"{fullTestName} ... ");
 					if (!string.IsNullOrEmpty(fixtureIgnore))
 					{
-						Console.Write($"Fixture ignored ({fixtureIgnore})");
+						Log($"    Fixture ignored ({fixtureIgnore})");
+						++skippedCount;
 						continue;
 					}
 					if (!string.IsNullOrEmpty(testIgnore))
 					{
-						Console.Write($"Ignored ({testIgnore})");
+						Log($"    Ignored ({testIgnore})");
+						++skippedCount;
 						continue;
 					}
 					var stage = "";
@@ -166,7 +178,8 @@ namespace LogJoint.Tests.Integration
 								if (afterEach != null)
 									await toAwaitable(type.InvokeMember(afterEach.Name, methodFlags, null, fixtureInstance, new[] { app }));
 							});
-							Console.WriteLine($"Passed");
+							Log($"    Passed");
+							++passedCount;
 						}
 						finally
 						{
@@ -176,26 +189,27 @@ namespace LogJoint.Tests.Integration
 					}
 					catch (Exception e)
 					{
-						anyFailed = true;
-						Console.WriteLine($"Failed{stage}");
+						failedCount++;
+						Log($"    Failed{stage}");
 						if (appDataDirectory != null)
 						{
-							Console.WriteLine($"Logs and app data can be found in:'");
-							Console.WriteLine($"    {appDataDirectory}");
+							Log($"Logs and app data can be found in:'");
+							Log($"    {appDataDirectory}");
 						}
-						Console.WriteLine($"Exception of type {e.GetType().Name} was thrown: {e.Message}{Environment.NewLine}Stack: {e.StackTrace}");
+						Log($"Exception of type {e.GetType().Name} was thrown: {e.Message}{Environment.NewLine}Stack: {e.StackTrace}");
 						for (; ; )
 						{
 							Exception inner = e.InnerException;
 							if (inner == null)
 								break;
-							Console.WriteLine($"--- inner: {inner.GetType().Name} '{inner.Message}'{Environment.NewLine}{inner.StackTrace}{Environment.NewLine}");
+							Log($"--- inner: {inner.GetType().Name} '{inner.Message}'{Environment.NewLine}{inner.StackTrace}{Environment.NewLine}");
 							e = inner;
 						}
 					}
 				}
 			}
-			return anyFailed;
+			Log($"Summary: {testsCount} test(s) matched test filters, passed {passedCount}, skipped {skippedCount}, failed {failedCount}");
+			return failedCount != 0;
 		}
 	}
 }

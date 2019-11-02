@@ -134,7 +134,7 @@ namespace LogJoint.Tests.Integration
 		/// <param name="condition">A predicate that detects if expected condition is met</param>
 		/// <param name="operationName">Free-form name for logging purpose</param>
 		/// <param name="timeout">Time to wait for condition. If condition is not met
-		/// during the timeout, the result Task is failed. Timeout is infinite if
+		/// during the timeout, the result Task is failed. Timeout is default 15s if
 		/// value is not specified or null is passed.</param>
 		/// <returns>Task that is completed when <paramref name="condition"/> returns true
 		/// first time. Task is failed if condition was never met during the timeout</returns>

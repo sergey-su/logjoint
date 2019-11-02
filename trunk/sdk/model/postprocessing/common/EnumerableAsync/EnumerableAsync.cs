@@ -123,6 +123,23 @@ namespace LogJoint.Postprocessing
 			}));
 		}
 
+		public static async Task<T> FirstOrDefault<T>(this IEnumerableAsync<T> input, Func<T, bool> predecate)
+		{
+			T result = default;
+			bool resultSet = false;
+			await input.ForEach(i =>
+			{
+				if (!predecate(i))
+					return Task.FromResult(true);
+				if (resultSet)
+					return Task.FromResult(false);
+				result = i;
+				resultSet = true;
+				return Task.FromResult(false);
+			});
+			return result;
+		}
+
 		public static async Task<bool> Any<T>(this IEnumerableAsync<T> input, Func<T, bool> predecate)
 		{
 			bool ret = false;

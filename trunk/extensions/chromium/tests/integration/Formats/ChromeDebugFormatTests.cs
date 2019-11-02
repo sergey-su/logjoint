@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using LogJoint.Chromium.ChromeDebugLog;
 using NFluent;
+using LogJoint.Postprocessing;
 
 namespace LogJoint.Tests.Integration.Chromium
 {
@@ -22,6 +23,26 @@ namespace LogJoint.Tests.Integration.Chromium
 			Check.That(postprocessorsControls.Timeline.Enabled).IsTrue();
 			Check.That(postprocessorsControls.StateInspector.Enabled).IsTrue();
 			Check.That(postprocessorsControls.TimeSeries.Enabled).IsTrue();
+		}
+
+		[IntegrationTest]
+		public async Task CanRunStateInspectorPostprocessor(IContext context)
+		{
+			await context.Utils.EmulateFileDragAndDrop(await context.Samples.GetSampleAsLocalFile("chrome_debug_1.log"));
+
+			var postprocessorsControls = context.Presentation.Postprocessing.SummaryView;
+			await context.Utils.WaitFor(() => postprocessorsControls.StateInspector.Run != null);
+
+			postprocessorsControls.StateInspector.Run();
+
+			await context.Utils.WaitFor(() => postprocessorsControls.StateInspector.Show != null);
+
+			var webRtc = await context.Presentation.Postprocessing.StateInspector.Roots.FirstOrDefault(n => n.Id == "WebRTC");
+			Check.That(webRtc).IsNotNull();
+			var streams = await webRtc.Children.FirstOrDefault(n => n.Id == "Streams");
+			Check.That(streams).IsNotNull();
+			var ssrc1 = await streams.Children.FirstOrDefault(n => n.Id == "970030813");
+			Check.That(ssrc1).IsNotNull();
 		}
 
 		[IntegrationTest]

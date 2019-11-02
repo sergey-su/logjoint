@@ -27,14 +27,14 @@ namespace LogJoint.Tests.Integration
 		[IntegrationTest]
 		public async Task CanDownloadAndDetectFormatOfLogFromTheWeb(TestAppInstance app)
 		{
-			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1.xml").ToString());
+			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1.xml"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
 		[IntegrationTest]
 		public async Task CanDownloadZipExtractAndFindKnownLogFormatInArchive(TestAppInstance app)
 		{
-			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip").ToString());
+			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
@@ -103,7 +103,7 @@ namespace LogJoint.Tests.Integration
 		[IntegrationTest]
 		public async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen(TestAppInstance app)
 		{
-			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
 
 			await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
 
@@ -120,7 +120,7 @@ namespace LogJoint.Tests.Integration
 		[IntegrationTest]
 		public async Task CanQuitAppWhileHavingActivePreprocessingUserInteraction(TestAppInstance app)
 		{
-			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip").ToString());
+			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
 
 			await app.WaitFor(() => app.ViewModel.PreprocessingUserInteractions.DialogData != null);
 
@@ -144,7 +144,7 @@ namespace LogJoint.Tests.Integration
 		[IntegrationTest]
 		public async Task CanQuitAppWhilePreprocessingIsActive(TestAppInstance app)
 		{
-			var downloadingPreprocessing = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("chrome_debug_1.log").ToString());
+			var downloadingPreprocessing = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("chrome_debug_1.log"));
 
 			await app.Dispose();
 

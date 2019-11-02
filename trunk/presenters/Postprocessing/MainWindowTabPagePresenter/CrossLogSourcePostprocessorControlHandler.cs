@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			switch (state.Status)
 			{
 				case CorrelationStateSummary.StatusCode.NeedsProcessing:
-					content = string.Format("Logs clocks may be{0}out of sync.{0}*2 Fix clock skew*", Environment.NewLine);
+					content = string.Format("Logs clocks may be{0}out of sync.{0}*{1} Fix clock skew*", Environment.NewLine, Constants.RunActionId);
 					color = ControlData.StatusColor.Warning;
 					break;
 				case CorrelationStateSummary.StatusCode.ProcessingInProgress:
@@ -56,7 +56,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					content = (wasSuccessful ? "Clock skew is fixed." : "Failed to fix clock skew.") + Environment.NewLine;
 					if (state.Report != null)
 						content += "*1 View report.* ";
-					content += wasSuccessful ? "*2 Fix again*" : "*2 Try again*";
+					content += wasSuccessful ? $"*{Constants.RunActionId} Fix again*" : $"*{Constants.RunActionId} Try again*";
 					if (!wasSuccessful)
 						color = ControlData.StatusColor.Error;
 					else
@@ -82,7 +82,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 							break;
 					}
 					break;
-				case "2":
+				case Constants.RunActionId:
 					switch (state.Status)
 					{
 						case CorrelationStateSummary.StatusCode.NeedsProcessing:

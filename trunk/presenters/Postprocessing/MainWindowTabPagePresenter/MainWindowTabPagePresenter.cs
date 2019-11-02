@@ -69,7 +69,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			this.getActionStates = Selectors.Create(
 				getControlsData,
 				ctrlData => ImmutableDictionary.CreateRange(
-					ctrlData.Select(h => new KeyValuePair<ViewControlId, ActionState>(h.Key, new ActionState { Enabled = !h.Value.Disabled }))
+					ctrlData.Select(h => {
+						Action makeAction(string id) =>
+							h.Value.Content.Contains($"*{id}")
+							? () => viewControlHandlers[h.Key].ExecuteAction(id, ClickFlags.None)
+							: (Action)null;
+						return new KeyValuePair<ViewControlId, ActionState>(
+							h.Key,
+							new ActionState
+							{
+								Enabled = !h.Value.Disabled,
+								Run = makeAction(Constants.RunActionId),
+								Show = makeAction(Constants.ShowVisualizerActionId)
+							}
+						);
+					})
 				)
 			);
 
@@ -89,6 +103,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		ActionState IPresenter.Timeline => getActionStates()[ViewControlId.Timeline];
 		ActionState IPresenter.SequenceDiagram => getActionStates()[ViewControlId.Sequence];
 		ActionState IPresenter.TimeSeries => getActionStates()[ViewControlId.TimeSeries];
+		ActionState IPresenter.Correlation => getActionStates()[ViewControlId.Correlate];
 
 		void IViewModel.OnActionClick(string actionId, ViewControlId viewId, ClickFlags flags)
 		{

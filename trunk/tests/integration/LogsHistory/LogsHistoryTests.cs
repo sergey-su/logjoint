@@ -15,7 +15,7 @@ namespace LogJoint.Tests.Integration
 
 			Check.That(app.Model.RecentlyUsedLogs.GetMRUListSize()).IsEqualTo(1);
 
-			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1.xml").ToString());
+			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1.xml"));
 			Check.That(app.Model.RecentlyUsedLogs.GetMRUListSize()).IsEqualTo(2);
 		}
 

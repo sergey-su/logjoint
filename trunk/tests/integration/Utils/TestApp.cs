@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Tests.Integration
 {
-	public class Mocks: IMocks // todo: make internal
+	class Mocks: IMocks
 	{
 		public Preprocessing.ICredentialsCache CredentialsCache;
 		public WebViewTools.IWebViewTools WebBrowserDownloader;
@@ -28,7 +28,7 @@ namespace LogJoint.Tests.Integration
 		UI.Presenters.IClipboardAccess IMocks.ClipboardAccess => ClipboardAccess;
 	};
 
-	public class ViewModelObjects // todo: make internal
+	class ViewModelObjects
 	{
 		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
 		public UI.Presenters.MainForm.IViewModel MainForm;
@@ -49,11 +49,17 @@ namespace LogJoint.Tests.Integration
 		public string LocalPluginsList;
 	};
 
-	public class TestAppInstance: IContext, IRegistry // todo: make internal
+	class TestAppInstance: IContext, IRegistry
 	{
 		private bool disposed;
 		private TraceListener traceListener;
-		private Dictionary<Type, object> registry = new Dictionary<Type, object>();
+		private readonly Dictionary<Type, object> registry = new Dictionary<Type, object>();
+		private readonly IUtils utils;
+
+		public TestAppInstance()
+		{
+			utils = new TestAppExtensions.UtilsImpl(this);
+		}
 
 		public ISynchronizationContext SynchronizationContext { get; private set; }
 		public ModelObjects Model { get; private set; }
@@ -72,7 +78,7 @@ namespace LogJoint.Tests.Integration
 		IMocks IContext.Mocks => Mocks;
 		IRegistry IContext.Registry => this;
 		ISamples IContext.Samples => Samples;
-		IUtils IContext.Utils => new TestAppExtensions.UtilsImpl(this); // todo: have one object
+		IUtils IContext.Utils => utils;
 		string IContext.AppDataDirectory => AppDataDirectory;
 
 		T IRegistry.Get<T>() => (T)registry[typeof(T)];
