@@ -63,6 +63,7 @@ namespace LogJoint
 		public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 		public string AppDataDirectory;
 		public TraceListener[] TraceListeners;
+		public bool DisableLogjointInstancesCounting;
 	};
 
 	public static class ModelFactory
@@ -82,7 +83,9 @@ namespace LogJoint
 			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer, shutdown);
 			ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-			MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
+			MultiInstance.IInstancesCounter instancesCounter = config.DisableLogjointInstancesCounting ?
+				(MultiInstance.IInstancesCounter)new MultiInstance.DummyInstancesCounter() :
+				(MultiInstance.IInstancesCounter)new MultiInstance.InstancesCounter(shutdown);
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);

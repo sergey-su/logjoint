@@ -130,7 +130,8 @@ namespace LogJoint.Tests.Integration
 						WebContentCacheConfig = mocks.WebContentCacheConfig,
 						LogsDownloaderConfig = mocks.LogsDownloaderConfig,
 						AppDataDirectory = appDataDir,
-						TraceListeners = new[] { traceListener }
+						TraceListeners = new[] { traceListener },
+						DisableLogjointInstancesCounting = true
 					},
 					serialSynchronizationContext,
 					(_1) => mocks.CredentialsCache,
