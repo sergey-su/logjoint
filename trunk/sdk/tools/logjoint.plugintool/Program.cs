@@ -125,16 +125,24 @@ namespace LogJoint.PluginTool
 
 		static void DeleteTemporarySafe(string path)
 		{
-			try
+			for (int attempt = 0; ; ++attempt)
 			{
-				if (File.Exists(path))
-					File.Delete(path);
-				else if (Directory.Exists(path))
-					Directory.Delete(path, true);
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Failed to delete temporary {0}: {1}", path, e.Message);
+				try
+				{
+					if (File.Exists(path))
+						File.Delete(path);
+					else if (Directory.Exists(path))
+						Directory.Delete(path, true);
+					break;
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine("Failed to delete temporary {0} at attempt {1}: {2}", path, attempt + 1, e.Message);
+					if (attempt < 5)
+						System.Threading.Thread.Sleep(1000);
+					else
+						break;
+				}
 			}
 		}
 
