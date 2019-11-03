@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace LogJoint.UI
 {
 	public static class ComponentsInitializer
@@ -36,8 +35,7 @@ namespace LogJoint.UI
 					traceSourceFactory
 				),
 				new Drawing.Matrix.Factory(),
-				RegularExpressions.LJRegexFactory.Instance,
-				() => new LogJoint.Postprocessing.Correlation.EmbeddedSolver.EmbeddedSolver()
+				RegularExpressions.LJRegexFactory.Instance
 			);
 
 			var viewsFactory = new Presenters.ViewsFactory (mainWindow, model);

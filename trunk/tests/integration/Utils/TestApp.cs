@@ -136,8 +136,7 @@ namespace LogJoint.Tests.Integration
 					(_1) => mocks.CredentialsCache,
 					(_1, _2, _3) => mocks.WebBrowserDownloader,
 					Substitute.For<Drawing.IMatrixFactory>(), // todo: won't work for SequenceDiagram presenter tests
-					RegularExpressions.FCLRegexFactory.Instance,
-					() => Substitute.For<Postprocessing.Correlation.Solver.ISolver>() // todo: won't work if correlation is to be tested
+					RegularExpressions.FCLRegexFactory.Instance
 				);
 
 				var presentationObjects = UI.Presenters.Factory.Create(

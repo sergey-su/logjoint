@@ -98,9 +98,6 @@
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.3.3.1\lib\netstandard2.0\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.3.3.1\lib\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -114,6 +111,7 @@
     <Reference Include="Google.OrTools">
       <HintPath>../packages/Google.OrTools.runtime.osx-x64.7.3.7083/runtimes/osx-x64/lib/netstandard2.0/Google.OrTools.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -192,7 +190,6 @@
     <Folder Include="ui\OptionsDialog\" />
     <Folder Include="regexp\" />
     <Folder Include="dataProtection\" />
-    <Folder Include="solver\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -694,18 +691,6 @@
     </Compile>
     <Compile Include="..\..\shared\dataProtection\DataProtection.cs">
       <Link>dataProtection\DataProtection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\shared\solvers\EmbeddedSolver.cs">
-      <Link>solver\EmbeddedSolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\shared\solvers\ExternalSolverBase.cs">
-      <Link>solver\ExternalSolverBase.cs</Link>
-    </Compile>
-    <Compile Include="..\..\shared\solvers\OrToolsSolverCore.cs">
-      <Link>solver\OrToolsSolverCore.cs</Link>
-    </Compile>
-    <Compile Include="..\..\shared\solvers\Protocol.cs">
-      <Link>solver\Protocol.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
