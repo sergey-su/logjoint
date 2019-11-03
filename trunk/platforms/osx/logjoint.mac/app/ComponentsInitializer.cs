@@ -76,7 +76,7 @@ namespace LogJoint.UI
 				model.ExpensibilityEntryPoint,
 				presentation.ExpensibilityEntryPoint,
 				viewsFactory
-			), Properties.Settings.Default.LocalPlugins);
+			), Properties.Settings.Default.LocalPlugins, false);
 
 			foreach (var asm in model.PluginsManager.PluginAssemblies)
 				ObjCRuntime.Runtime.RegisterAssembly(asm);

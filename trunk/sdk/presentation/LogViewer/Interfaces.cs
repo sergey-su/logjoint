@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -7,6 +8,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		IMessage FocusedMessage { get; }
 		IReadOnlyList<VisibleLine> VisibleLines { get; }
+		Task GoHome();
+		Task GoToEnd();
 	}
 
 	[DebuggerDisplay("{Value}")]

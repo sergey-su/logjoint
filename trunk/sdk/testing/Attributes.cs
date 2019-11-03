@@ -29,6 +29,18 @@ namespace LogJoint.Tests.Integration
 	}
 
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public class BeforeAllAttribute : Attribute
+	{
+		public BeforeAllAttribute() { }
+	}
+
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public class AfterAllAttribute : Attribute
+	{
+		public AfterAllAttribute() { }
+	}
+
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class IntegrationTestAttribute : Attribute
 	{
 		public IntegrationTestAttribute() { }

@@ -49,9 +49,9 @@ namespace LogJoint.Extensibility
 			shutdown.Cleanup += (s, e) => Dispose();
 		}
 
-		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint, string localPluginsListConfig)
+		void IPluginsManagerInternal.LoadPlugins(object appEntryPoint, string localPluginsListConfig, bool preferTestPluginEntryPoints)
 		{
-			InitPlugins(appEntryPoint, localPluginsListConfig);
+			InitPlugins(appEntryPoint, localPluginsListConfig, preferTestPluginEntryPoints);
 		}
 
 		bool IPluginsManagerInternal.IsConfigured => pluginsIndexDownloader.IsDownloaderConfigured && updateDownloader.IsDownloaderConfigured;
@@ -102,7 +102,7 @@ namespace LogJoint.Extensibility
 			return new PluginInstallationRequestsBuilder(this);
 		}
 
-		private void InitPlugins(object appEntryPoint, string localPluginsList)
+		private void InitPlugins(object appEntryPoint, string localPluginsList, bool preferTestPluginEntryPoints)
 		{
 			using (tracer.NewFrame)
 			{
@@ -144,7 +144,8 @@ namespace LogJoint.Extensibility
 
 				void LoadPlugin(IPluginManifest manifest)
 				{
-					var pluginPath = manifest.Entry.AbsolulePath;
+					var pluginEntry = (preferTestPluginEntryPoints ? manifest.TestEntry : null) ?? manifest.Entry;
+					var pluginPath = pluginEntry.AbsolulePath;
 
 					tracer.Info("Loading plugin {0} from '{1}'", manifest.Id, pluginPath);
 

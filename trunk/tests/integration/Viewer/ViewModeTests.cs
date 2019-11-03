@@ -13,10 +13,10 @@ namespace LogJoint.Tests.Integration
 			await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
 
 			// todo: emulate UI clicks for search
-			var filters = app.Model.FiltersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
-			filters.Insert(0, app.Model.FiltersFactory.CreateFilter(FilterAction.Include, "", true, new Search.Options { Template = "file" }));
-			app.Model.SearchManager.SubmitSearch(new SearchAllOptions { Filters = filters });
-			await app.WaitFor(() => !app.ViewModel.SearchResultLogViewer.ViewLines.IsEmpty && app.Model.SearchManager.Results[0].Status == SearchResultStatus.Finished);
+			var filters = app.ModelObjects.FiltersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
+			filters.Insert(0, app.ModelObjects.FiltersFactory.CreateFilter(FilterAction.Include, "", true, new Search.Options { Template = "file" }));
+			app.ModelObjects.SearchManager.SubmitSearch(new SearchAllOptions { Filters = filters });
+			await app.WaitFor(() => !app.ViewModel.SearchResultLogViewer.ViewLines.IsEmpty && app.ModelObjects.SearchManager.Results[0].Status == SearchResultStatus.Finished);
 		}
 
 		[IntegrationTest]

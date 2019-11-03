@@ -13,7 +13,7 @@ namespace LogJoint
 	{
 		public Plugin(IApplication app)
 		{
-			M.PluginInitializer.Init(app, new ViewsFactory(app));
+			M.PluginInitializer.Init(app.Model, app.Presentation, new ViewsFactory(app));
 		}
 
 		class ViewsFactory : P.Factory.IViewsFactory

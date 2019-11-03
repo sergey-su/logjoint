@@ -12,8 +12,4 @@
   <ItemGroup>
     <ProjectReference Include="..\model\logjoint.model.sdk.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Postprocessing\TimelineVisualizerPresenter\" />
-    <Folder Include="Postprocessing\SequenceDiagramVisualizerPresenter\" />
-  </ItemGroup>
 </Project>

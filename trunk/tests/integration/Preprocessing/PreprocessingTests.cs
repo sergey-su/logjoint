@@ -135,10 +135,10 @@ namespace LogJoint.Tests.Integration
 			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 
-			Check.That(app.Model.LogSourcesManager.Items.Count()).IsEqualTo(1);
+			Check.That(app.ModelObjects.LogSourcesManager.Items.Count()).IsEqualTo(1);
 
 			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
-			Check.That(app.Model.LogSourcesManager.Items.Count()).IsEqualTo(1);
+			Check.That(app.ModelObjects.LogSourcesManager.Items.Count()).IsEqualTo(1);
 		}
 
 		[IntegrationTest]

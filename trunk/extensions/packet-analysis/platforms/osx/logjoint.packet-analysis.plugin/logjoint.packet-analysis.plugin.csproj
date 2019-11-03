@@ -112,6 +112,10 @@
       <Project>{731F60CB-87A0-4C4E-8553-EE9259A05AAF}</Project>
       <Name>logjoint.presentation.sdk</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\tests\integration\logjoint.packet-analysis.plugin.integration.csproj">
+      <Project>{A50FBF1E-A845-4318-B6CD-BA195524839E}</Project>
+      <Name>logjoint.packet-analysis.plugin.integration</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="UI\copy_nibs.sh" />

@@ -84,7 +84,7 @@ namespace LogJoint
 				)
 			);
 
-			model.PluginsManager.LoadPlugins(pluginEntryPoint, Properties.Settings.Default.LocalPlugins);
+			model.PluginsManager.LoadPlugins(pluginEntryPoint, Properties.Settings.Default.LocalPlugins, preferTestPluginEntryPoints: false);
 
 			new PluggableProtocolManager(
 				model.TraceSourceFactory,

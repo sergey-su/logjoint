@@ -40,6 +40,7 @@ namespace LogJoint.UpdateTool
 				Console.WriteLine("  encrypt <str>               encrypts a string with configured encryption certificate (thumbprint={0})", settings.StorageAccountKeyEncryptionCertThumbprint);
 				Console.WriteLine("  plugin alloc [id]           allocates new plugin id, or if id is specified, only allocates inbox url");
 				Console.WriteLine("  plugin index [prod]         updates plugins index blob");
+				Console.WriteLine("  plugin test [prod]          run integration tests for all plugins from inbox against prod or staging host app");
 				return;
 			}
 
@@ -80,6 +81,9 @@ namespace LogJoint.UpdateTool
 							break;
 						case "index":
 							UpdatePluginsIndex(args.Skip(2).ToArray());
+							break;
+						case "test":
+							TestPlugins(args.Skip(2).ToArray());
 							break;
 						default:
 							Console.WriteLine("Unknown plugin command");
@@ -707,6 +711,24 @@ namespace LogJoint.UpdateTool
 			var prod = args.FirstOrDefault() == "prod";
 			var packagesSuffix = $"{(int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds}";
 			Console.WriteLine("Updating {0} plugins index ... ", prod ? "PRODUCTION" : "STAGING");
+
+			var indexBlob = CreatePluginsBlob(prod);
+			XDocument existingIndex;
+			if (indexBlob.Exists())
+			{
+				using (var tmpStream = new MemoryStream())
+				{
+					indexBlob.DownloadToStream(tmpStream);
+					tmpStream.Position = 0;
+					existingIndex = XDocument.Load(tmpStream);
+				}
+			}
+			else
+			{
+				existingIndex = new XDocument();
+			}
+
+			var anythingChanged = false;
 			var result = new XDocument(new XElement("plugins"));
 			var inbox = CreatePluginsInboxBlobContainer();
 			foreach (var item in inbox.ListBlobs())
@@ -718,9 +740,6 @@ namespace LogJoint.UpdateTool
 					var tempZipFile = Path.GetTempFileName();
 					pluginBlob.DownloadToFile(tempZipFile, FileMode.Create);
 
-					// todo: validate stuff from inbox
-					// todo: handle inbox and accepted blobs e-tags
-
 					XElement manifest;
 
 					using (var zip = ZipFile.OpenRead(tempZipFile))
@@ -731,13 +750,39 @@ namespace LogJoint.UpdateTool
 					}
 
 					bool productionPackage = manifest.Attribute("production")?.Value == "true";
+					var sourceETag = UnquoteETag(pluginBlob.Properties.ETag);
+					var existingPlugin = existingIndex
+						.Elements("plugins")
+						.Elements("plugin")
+						.Where(p => p.Element("id")?.Value == manifest.Element("id").Value)
+						.FirstOrDefault();
+					var existingSourceETag = existingPlugin?.Element("source-etag")?.Value;
 
-					Console.Write(" ver={0}, platf={1} {2}... ",
+					Console.Write(" ver={0}, platf={1} src-etag={2} {3}... ",
 						manifest.Element("version").Value,
 						manifest.Element("platform").Value,
+						sourceETag,
 						productionPackage ? "" : "DRY RUN");
 
-					if (productionPackage)
+					string status;
+					if (!productionPackage)
+					{
+						if (existingPlugin != null)
+						{
+							status = "UNCHANGED (dry run)";
+							result.Root.Add(existingPlugin);
+						}
+						else
+						{
+							status = "SKIPPED (dry run)";
+						}
+					}
+					else if (sourceETag == existingSourceETag)
+					{
+						status = "UNCHANGED (same etag)";
+						result.Root.Add(existingPlugin);
+					}
+					else
 					{
 						var acceptedPluginBlob = CreateBlob($"{pluginBlob.Name}-{packagesSuffix}", backup: false);
 						acceptedPluginBlob.Properties.ContentType = "application/zip";
@@ -750,17 +795,19 @@ namespace LogJoint.UpdateTool
 							manifest.Element("description"),
 							manifest.Element("platform"),
 							new XElement("location", acceptedPluginBlob.Uri),
-							new XElement("etag", UnquoteETag(acceptedPluginBlob.Properties.ETag))
+							new XElement("etag", UnquoteETag(acceptedPluginBlob.Properties.ETag)),
+							new XElement("source-etag", sourceETag)
 						);
 						foreach (var dep in manifest.Elements("dependency"))
 							plugin.Add(dep);
 
 						result.Root.Add(plugin);
+						status = "DONE";
+						anythingChanged = true;
 					}
-					// todo: else, take link to current package from current index
 
 					File.Delete(tempZipFile);
-					Console.WriteLine(productionPackage ? "DONE" : "SKIPPED (dry run)");
+					Console.WriteLine(status);
 				}
 				catch (Exception e)
 				{
@@ -769,18 +816,76 @@ namespace LogJoint.UpdateTool
 				}
 			}
 
-			var indexBlob = CreatePluginsBlob(prod);
-			indexBlob.Properties.ContentType = "text/xml";
-			if (indexBlob.Exists())
-				BackupBlob(indexBlob, CreateUpdateBlob(prod, backup: true));
-			Console.Write("Writing index ... ");
-			using (var indexStream = new MemoryStream())
+			if (anythingChanged)
 			{
-				result.Save(indexStream);
-				indexStream.Position = 0;
-				indexBlob.UploadFromStream(indexStream);
+				indexBlob.Properties.ContentType = "text/xml";
+				if (indexBlob.Exists())
+					BackupBlob(indexBlob, CreateUpdateBlob(prod, backup: true));
+				Console.Write("Writing index ... ");
+				using (var indexStream = new MemoryStream())
+				{
+					result.Save(indexStream);
+					indexStream.Position = 0;
+					indexBlob.UploadFromStream(indexStream);
+				}
+				Console.WriteLine("DONE");
 			}
-			Console.WriteLine("DONE");
+			else
+			{
+				Console.WriteLine("No changes needed");
+			}
+		}
+
+		static void TestPlugins(string[] args)
+		{
+			var prod = args.FirstOrDefault() == "prod";
+
+			var mainAppTempZipFile = Path.GetTempFileName();
+			var mainAppBlob = CreateUpdateBlob(prod, prod);
+			mainAppBlob.DownloadToFile(mainAppTempZipFile, FileMode.Create);
+
+			var inbox = CreatePluginsInboxBlobContainer();
+			var nrFailed = 0;
+			foreach (var item in inbox.ListBlobs())
+			{
+				var pluginBlob = inbox.GetBlobReference(new CloudBlockBlob(item.Uri).Name);
+				Console.WriteLine("----------------------------------------------");
+				Console.WriteLine("Handling {0}", pluginBlob.Name);
+				try
+				{
+					var pluginTempZipFile = Path.GetTempFileName();
+					pluginBlob.DownloadToFile(pluginTempZipFile, FileMode.Create);
+					var pluginToolPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), settings.PluginToolLocation));
+
+					var pi = new ProcessStartInfo
+					{
+						FileName = "dotnet",
+						Arguments = $"\"{pluginToolPath}\" test \"{pluginTempZipFile}\" \"{mainAppTempZipFile}\"",
+						UseShellExecute = false,
+					};
+					Console.WriteLine("Running {0} {1}", pi.FileName, pi.Arguments);
+					bool passed;
+					using (var proc = Process.Start(pi))
+					{
+						proc.WaitForExit();
+						passed = proc.ExitCode == 0;
+					}
+
+					Console.WriteLine("Finished {0} {1}", pluginBlob.Name, passed ? "PASSED" : "FAILED");
+					nrFailed += (passed ? 0 : 1);
+
+					File.Delete(pluginTempZipFile);
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine("Failed {0}", e.Message);
+					throw;
+				}
+			}
+
+			File.Delete(mainAppTempZipFile);
+
+			Console.WriteLine("Done. {0} plugin(s) failed.", nrFailed);
 		}
 	}
 }

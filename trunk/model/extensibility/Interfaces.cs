@@ -10,7 +10,7 @@ namespace LogJoint.Extensibility
 	public interface IPluginsManagerInternal: IPluginsManager
 	{
 		bool IsConfigured { get; }
-		void LoadPlugins(object appEntryPoint, string localPluginsListConfig);
+		void LoadPlugins(object appEntryPoint, string localPluginsListConfig, bool preferTestPluginEntryPoints);
 		IReadOnlyList<IPluginManifest> InstalledPlugins { get; }
 		Task<IReadOnlyList<IPluginInfo>> FetchAllPlugins(CancellationToken cancellation);
 		/// <summary>
@@ -50,6 +50,7 @@ namespace LogJoint.Extensibility
 		Nib,
 		SDK,
 		Test,
+		TestEntry,
 		TestLibrary
 	};
 
@@ -72,6 +73,7 @@ namespace LogJoint.Extensibility
 		IReadOnlyList<IPluginFile> Files { get; }
 		IPluginFile Entry { get; }
 		IPluginFile Test { get; }
+		IPluginFile TestEntry { get; }
 		IReadOnlyList<string> Dependencies { get; }
 	};
 

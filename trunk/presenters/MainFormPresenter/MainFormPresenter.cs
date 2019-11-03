@@ -78,7 +78,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
 				viewerPresenter.DefaultFocusedMessageAction += (s, e) =>
 				{
-					messagePropertiesDialogPresenter.ShowDialog();
+					messagePropertiesDialogPresenter.Show();
 				};
 			}
 
@@ -282,6 +282,8 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IViewModel.OnRestartPictureClicked()
 		{
+			if (autoUpdater?.State != AutoUpdateState.WaitingRestart)
+				return;
 			if (alerts.ShowPopup(
 				"App restart",
 				"Updated application binaries have been downloaded and they are ready for use. " +

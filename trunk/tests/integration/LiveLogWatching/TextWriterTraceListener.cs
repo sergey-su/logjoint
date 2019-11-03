@@ -23,7 +23,7 @@ namespace LogJoint.Tests.Integration
 		[IntegrationTest]
 		public async Task LiveLogIsFollowed(TestAppInstance app)
 		{
-			var testLog = app.Model.TempFilesManager.GenerateNewName();
+			var testLog = app.ModelObjects.TempFilesManager.GenerateNewName();
 
 			using (var logWriter = new StreamWriter(testLog, append: false))
 			{
@@ -48,7 +48,7 @@ namespace LogJoint.Tests.Integration
 		[IntegrationTest]
 		public async Task LiveLogCanBeDeletedAndRecreated(TestAppInstance app)
 		{
-			var testLog = app.Model.TempFilesManager.GenerateNewName();
+			var testLog = app.ModelObjects.TempFilesManager.GenerateNewName();
 
 			using (var logWriter = new StreamWriter(testLog, append: false))
 			{
@@ -78,7 +78,7 @@ namespace LogJoint.Tests.Integration
 		[IntegrationTest]
 		public async Task LiveLogCanBeRewritten(TestAppInstance app)
 		{
-			var testLog = app.Model.TempFilesManager.GenerateNewName();
+			var testLog = app.ModelObjects.TempFilesManager.GenerateNewName();
 
 			using (var stream = new FileStream(testLog,
 				FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite))
