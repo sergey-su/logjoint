@@ -37,7 +37,7 @@ namespace LogJoint.UI.Presenters
 
 		void IPresentersFacade.ShowMessageProperties()
 		{
-			messagePropertiesDialogPresenter.ShowDialog();
+			messagePropertiesDialogPresenter.Show();
 		}
 
 		Task<bool> IPresentersFacade.ShowMessage(

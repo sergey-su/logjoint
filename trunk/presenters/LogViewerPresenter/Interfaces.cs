@@ -28,8 +28,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		Task<bool> SelectMessageAt(IBookmark bmk);
 		Task SelectMessageAt(DateTime date, ILogSource[] preferredSources);
-		Task GoHome();
-		Task GoToEnd();
 		Task GoToNextMessageInThread();
 		Task GoToPrevMessageInThread();
 		Task GoToNextHighlightedMessage();

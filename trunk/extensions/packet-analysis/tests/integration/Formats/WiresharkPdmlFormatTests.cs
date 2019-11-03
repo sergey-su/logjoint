@@ -16,7 +16,7 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 		PA.UI.Presenters.MessagePropertiesDialog.IViewModel messagePropertiesViewModel;
 		object messagePropertiesOSView;
 
-		[BeforeEach]
+		[BeforeAll]
 		public async Task BeforeEach(IContext context)
 		{
 			viewsFactory = context.Registry.Get<PA.UI.Presenters.Factory.IViewsFactory>();
@@ -25,7 +25,6 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 			messagePropertiesOSView = new object();
 			viewsFactory.CreateMessageContentView().OSView.Returns(messagePropertiesOSView);
 
-			// todo: support BeforeAll
 			await context.Utils.EmulateFileDragAndDrop(await context.Samples.GetSampleAsLocalFile("network_trace_with_keys_3.tar.gz"));
 			await context.Utils.WaitFor(() => context.Presentation.LoadedMessagesLogViewer.VisibleLines.Count > 0);
 		}
@@ -47,20 +46,21 @@ namespace LogJoint.Tests.Integration.PacketAnalysis
 		}
 
 		[IntegrationTest]
-		public void MessagePropertiesDialogExtensionIsRegistered(IContext context)
+		public async Task MessagePropertiesDialogExtensionIsRegistered(IContext context)
 		{
+			await context.Presentation.LoadedMessagesLogViewer.GoToEnd();
+			Check.That(context.Presentation.LoadedMessagesLogViewer.FocusedMessage).IsNotNull();
+
 			var dlg = context.Presentation.MessagePropertiesDialog;
-			dlg.ShowDialog();
+			dlg.Show();
 
-			/*Assert.AreEqual(3, dlg.Data.ContentViewModes.Count); todo
-			Assert.AreEqual("Packet protocols", dlg.Data.ContentViewModes[2]);
+			Check.That(dlg.ContentViewModes.Count).IsEqualTo(3);
+			Check.That(dlg.ContentViewModes[2]).IsEqualTo("Packet protocols");
 
-			dlg.OnContentViewModeChange(2);
-			Assert.AreEqual(2, dlg.Data.ContentViewModeIndex);
-			Assert.IsNotNull(dlg.Data.CustomView);
-			Assert.AreSame(messagePropertiesOSView, dlg.Data.CustomView);
+			dlg.SelectedContentViewMode = 2;
+			Check.That(dlg.SelectedContentViewMode).IsEqualTo(2);
 
-			Assert.AreEqual(4, messagePropertiesViewModel.Root.Children.Count);*/
+			Check.That(messagePropertiesViewModel.Root.Children.Count).IsEqualTo(4);
 		}
 	};
 }

@@ -129,21 +129,35 @@ namespace LogJoint.Tests.Integration
 							.FirstOrDefault(m => m.GetCustomAttributes(typeof(BeforeEachAttribute)).Any()),
 						afterEach:
 							allMembers
-							.FirstOrDefault(m => m.GetCustomAttributes(typeof(AfterEachAttribute)).Any())
+							.FirstOrDefault(m => m.GetCustomAttributes(typeof(AfterEachAttribute)).Any()),
+						beforeAll:
+							allMembers
+							.FirstOrDefault(m => m.GetCustomAttributes(typeof(BeforeAllAttribute)).Any()),
+						afterAll:
+							allMembers
+							.FirstOrDefault(m => m.GetCustomAttributes(typeof(AfterAllAttribute)).Any())
 					);
 				})
 				.ToArray();
+
 			var filtersRegex = filters != null ? new Regex(FilterToRegexTemplate(filters)) : new Regex(".");
-			Task toAwaitable(object methodResult) => methodResult is Task task ? task : Task.FromResult(0);
+
 			int testsCount = 0;
 			int skippedCount = 0;
 			int failedCount = 0;
 			int passedCount = 0;
-			foreach (var (type, fixtureDisplayName, fixtureIgnore, tests, beforeEach, afterEach) in fixtures)
+			foreach (var (type, fixtureDisplayName, fixtureIgnore, tests, beforeEach, afterEach, beforeAll, afterAll) in fixtures)
 			{
 				if (tests.Length == 0)
 					continue;
 				var fixtureInstance = Activator.CreateInstance(type);
+
+				Task toAwaitable(object methodResult) => methodResult is Task task ? task : Task.FromResult(0);
+				Task runFixtureMethod(MemberInfo methodInfo, TestAppInstance app) => methodInfo != null ?
+					toAwaitable(type.InvokeMember(methodInfo.Name, BindingFlags.InvokeMethod, null, fixtureInstance, new[] { app })) :
+					Task.FromResult(0);
+
+				HeadlessApp fixtureLevelApp = null;
 				foreach (var (testMethod, testDisplayName, testIgnore) in tests)
 				{
 					var fullTestName = $"{fixtureDisplayName} {testDisplayName}";
@@ -168,59 +182,96 @@ namespace LogJoint.Tests.Integration
 					try
 					{
 						stage = " at app startup";
-						var app = await TestAppInstance.Create(new TestAppConfig
+						if (beforeAll != null || afterAll != null)
 						{
-							LocalPluginsList = localPluginsList
-						});
-						Action finalizeApp = null;
+							if (fixtureLevelApp == null)
+							{
+								fixtureLevelApp = await HeadlessApp.Create(localPluginsList, prepareApp);
+								await fixtureLevelApp.instance.SynchronizationContext.InvokeAndAwait(() => runFixtureMethod(beforeAll, fixtureLevelApp.instance));
+							}
+						}
+						var headlessApp = fixtureLevelApp ?? await HeadlessApp.Create(localPluginsList, prepareApp);
 						try
 						{
-							finalizeApp = prepareApp?.Invoke(app);
-							appDataDirectory = app.AppDataDirectory;
-							await app.SynchronizationContext.InvokeAndAwait(async () =>
+							appDataDirectory = headlessApp.instance.AppDataDirectory;
+							await headlessApp.instance.SynchronizationContext.InvokeAndAwait(async () =>
 							{
-								var methodFlags = BindingFlags.InvokeMethod;
 								stage = " at stage BeforeEach";
-								if (beforeEach != null)
-									await toAwaitable(type.InvokeMember(beforeEach.Name, methodFlags, null, fixtureInstance, new[] { app }));
+								await runFixtureMethod(beforeEach, headlessApp.instance);
 								stage = "";
-								await toAwaitable(type.InvokeMember(testMethod.Name, methodFlags, null, fixtureInstance, new[] { app }));
+								await runFixtureMethod(testMethod, headlessApp.instance);
 								stage = " at stage AfterEach";
-								if (afterEach != null)
-									await toAwaitable(type.InvokeMember(afterEach.Name, methodFlags, null, fixtureInstance, new[] { app }));
+								await runFixtureMethod(afterEach, headlessApp.instance);
 							});
 							Log($"    Passed");
 							++passedCount;
 						}
 						finally
 						{
-							finalizeApp?.Invoke();
-							await app.Dispose();
+							if (fixtureLevelApp == null)
+								await headlessApp.Dispose();
 						}
 					}
 					catch (Exception e)
 					{
 						failedCount++;
-						Log($"    Failed{stage}");
-						if (appDataDirectory != null)
-						{
-							Log($"Logs and app data can be found in:'");
-							Log($"    {appDataDirectory}");
-						}
-						Log($"Exception of type {e.GetType().Name} was thrown: {e.Message}{Environment.NewLine}Stack: {e.StackTrace}");
-						for (; ; )
-						{
-							Exception inner = e.InnerException;
-							if (inner == null)
-								break;
-							Log($"--- inner: {inner.GetType().Name} '{inner.Message}'{Environment.NewLine}{inner.StackTrace}{Environment.NewLine}");
-							e = inner;
-						}
+						e = LogTestFailure(stage, appDataDirectory, e);
 					}
+				}
+				if (fixtureLevelApp != null)
+				{
+					await fixtureLevelApp.instance.SynchronizationContext.InvokeAndAwait(() => runFixtureMethod(afterAll, fixtureLevelApp.instance));
+					await fixtureLevelApp.Dispose();
 				}
 			}
 			Log($"Summary: {testsCount} test(s) matched test filters, passed {passedCount}, skipped {skippedCount}, failed {failedCount}");
 			return failedCount != 0;
 		}
+
+		private static Exception LogTestFailure(string stage, string appDataDirectory, Exception e)
+		{
+			Log($"    Failed{stage}");
+			if (appDataDirectory != null)
+			{
+				Log($"Logs and app data can be found in:'");
+				Log($"    {appDataDirectory}");
+			}
+			Log($"Exception of type {e.GetType().Name} was thrown: {e.Message}{Environment.NewLine}Stack: {e.StackTrace}");
+			for (; ; )
+			{
+				Exception inner = e.InnerException;
+				if (inner == null)
+					break;
+				Log($"--- inner: {inner.GetType().Name} '{inner.Message}'{Environment.NewLine}{inner.StackTrace}{Environment.NewLine}");
+				e = inner;
+			}
+
+			return e;
+		}
+
+		class HeadlessApp
+		{
+			public TestAppInstance instance;
+			public Action finalizeApp;
+
+			public static async Task<HeadlessApp> Create(
+				string localPluginsList,
+				Func<TestAppInstance, Action> prepareApp
+			)
+			{
+				var app = await TestAppInstance.Create(new TestAppConfig
+				{
+					LocalPluginsList = localPluginsList
+				});
+				var finalizeApp = prepareApp?.Invoke(app);
+				return new HeadlessApp { instance = app, finalizeApp = finalizeApp };
+			}
+
+			public async Task Dispose()
+			{
+				finalizeApp?.Invoke();
+				await instance.Dispose();
+			}
+		};
 	}
 }

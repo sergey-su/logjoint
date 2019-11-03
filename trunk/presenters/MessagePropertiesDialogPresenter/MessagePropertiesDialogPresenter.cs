@@ -124,7 +124,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			});
 		}
 
-		void IPresenter.ShowDialog()
+		void IPresenter.Show()
 		{
 			if (GetPropertiesForm() == null)
 			{
@@ -135,6 +135,14 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		}
 
 		IExtensionsRegistry IPresenter.ExtensionsRegistry => this;
+
+		IReadOnlyList<string> IPresenter.ContentViewModes => getDialogData().ContentViewModes;
+
+		int? IPresenter.SelectedContentViewMode
+		{
+			get => getDialogData().ContentViewModeIndex;
+			set => ((IDialogViewModel)this).OnContentViewModeChange(value.GetValueOrDefault(0));
+		}
 
 		IChangeNotification IDialogViewModel.ChangeNotification => changeNotification;
 

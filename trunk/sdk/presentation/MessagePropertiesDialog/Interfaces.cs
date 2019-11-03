@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
 	public interface IPresenter
 	{
-		void ShowDialog();
+		void Show();
 		IExtensionsRegistry ExtensionsRegistry { get; }
+		IReadOnlyList<string> ContentViewModes { get; }
+		int? SelectedContentViewMode { get; set; }
 	};
 
 	public interface IExtensionsRegistry

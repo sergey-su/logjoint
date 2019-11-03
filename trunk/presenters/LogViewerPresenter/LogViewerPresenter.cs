@@ -406,7 +406,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		Task IPresenterInternal.GoHome()
+		Task IPresenter.GoHome()
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
@@ -416,7 +416,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		Task IPresenterInternal.GoToEnd()
+		Task IPresenter.GoToEnd()
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
