@@ -18,6 +18,7 @@ namespace LogJoint.Extensibility
 		readonly IReadOnlyList<IPluginFile> files;
 		readonly IPluginFile entry;
 		readonly IPluginFile test;
+		readonly IPluginFile testEntry;
 		readonly IReadOnlyList<string> dependencies;
 
 		public PluginManifest(string pluginDirectory)
@@ -60,6 +61,7 @@ namespace LogJoint.Extensibility
 					case "sdk": type = PluginFileType.SDK; break;
 					case "nib": type = PluginFileType.Nib; break;
 					case "test": type = PluginFileType.Test; break;
+					case "test-entry": type = PluginFileType.TestEntry; break;
 					case "test-dll": type = PluginFileType.TestLibrary; break;
 					case "unspecified": type = PluginFileType.Unspecified; break;
 					default: throw new BadManifestException($"Bad file type {typeStr}");
@@ -73,7 +75,8 @@ namespace LogJoint.Extensibility
 			}).ToArray().AsReadOnly();
 			this.entry = this.files.FirstOrDefault(f => f.Type == PluginFileType.Entry)
 				?? throw new BadManifestException($"Plugin entry is missing from manifest");
-			this.test = this.files.FirstOrDefault(f => f.Type == PluginFileType.Test);
+			this.testEntry = this.files.FirstOrDefault(f => f.Type == PluginFileType.TestEntry);
+			this.test = this.files.FirstOrDefault(f => f.Type == PluginFileType.Test) ?? this.testEntry;
 			this.dependencies = root.Elements("dependency").Select(depNode =>
 			{
 				return !string.IsNullOrWhiteSpace(depNode.Value) ? depNode.Value : throw new BadManifestException($"Bad dependency {depNode}");
@@ -97,6 +100,8 @@ namespace LogJoint.Extensibility
 		IPluginFile IPluginManifest.Entry => entry;
 
 		IPluginFile IPluginManifest.Test => test;
+
+		IPluginFile IPluginManifest.TestEntry => testEntry;
 
 		IReadOnlyList<string> IPluginManifest.Dependencies => dependencies;
 

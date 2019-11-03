@@ -8,16 +8,16 @@ namespace LogJoint.Tests.Integration
 	{
 		public static Task EmulateFileDragAndDrop(this TestAppInstance app, string fileName)
 		{
-			return app.Model.LogSourcesPreprocessings.Preprocess(
-				new[] { app.Model.PreprocessingStepsFactory.CreateFormatDetectionStep(new Preprocessing.PreprocessingStepParams(fileName)) },
+			return app.ModelObjects.LogSourcesPreprocessings.Preprocess(
+				new[] { app.ModelObjects.PreprocessingStepsFactory.CreateFormatDetectionStep(new Preprocessing.PreprocessingStepParams(fileName)) },
 				fileName
 			);
 		}
 
 		public static Task EmulateUrlDragAndDrop(this TestAppInstance app, Uri uri)
 		{
-			return app.Model.LogSourcesPreprocessings.Preprocess(
-				new[] { app.Model.PreprocessingStepsFactory.CreateURLTypeDetectionStep(new Preprocessing.PreprocessingStepParams(uri.ToString())) },
+			return app.ModelObjects.LogSourcesPreprocessings.Preprocess(
+				new[] { app.ModelObjects.PreprocessingStepsFactory.CreateURLTypeDetectionStep(new Preprocessing.PreprocessingStepParams(uri.ToString())) },
 				uri.ToString()
 			);
 		}
@@ -27,7 +27,7 @@ namespace LogJoint.Tests.Integration
 			if (condition())
 				return;
 			var tcs = new TaskCompletionSource<int>();
-			using (var subs = app.Model.ChangeNotification.CreateSubscription(() =>
+			using (var subs = app.ModelObjects.ChangeNotification.CreateSubscription(() =>
 			{
 				if (condition())
 					tcs.TrySetResult(0);
@@ -88,7 +88,7 @@ namespace LogJoint.Tests.Integration
 		public static IDisposable AutoAcceptPreprocessingUserInteration(this TestAppInstance app)
 		{
 			UI.Presenters.PreprocessingUserInteractions.DialogViewData acceptedData = null;
-			var subs = app.Model.ChangeNotification.CreateSubscription(() =>
+			var subs = app.ModelObjects.ChangeNotification.CreateSubscription(() =>
 			{
 				var currentData = app.ViewModel.PreprocessingUserInteractions.DialogData;
 				if (currentData != null && currentData != acceptedData)

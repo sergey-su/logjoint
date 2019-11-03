@@ -62,19 +62,22 @@ namespace LogJoint.Tests.Integration
 		}
 
 		public ISynchronizationContext SynchronizationContext { get; private set; }
-		public ModelObjects Model { get; private set; }
-		public UI.Presenters.PresentationObjects Presentation { get; private set; }
+		public ModelObjects ModelObjects { get; private set; }
+		public UI.Presenters.PresentationObjects PresentationObjects { get; private set; }
 		public ViewModelObjects ViewModel { get; private set; }
 		public Mocks Mocks { get; private set; }
 		public ISamples Samples { get; private set; }
+
+		public IModel Model => ModelObjects.ExpensibilityEntryPoint; // logjoint API entry point prop
+		public UI.Presenters.IPresentation Presentation => PresentationObjects.ExpensibilityEntryPoint; // logjoint API entry point prop
 
 		/// <summary>
 		/// Temporary folder where this instance of application stores its state.
 		/// </summary>
 		public string AppDataDirectory { get; private set; }
 
-		IModel IContext.Model => Model.ExpensibilityEntryPoint;
-		UI.Presenters.IPresentation IContext.Presentation => Presentation.ExpensibilityEntryPoint;
+		IModel IContext.Model => ModelObjects.ExpensibilityEntryPoint;
+		UI.Presenters.IPresentation IContext.Presentation => PresentationObjects.ExpensibilityEntryPoint;
 		IMocks IContext.Mocks => Mocks;
 		IRegistry IContext.Registry => this;
 		ISamples IContext.Samples => Samples;
@@ -118,7 +121,7 @@ namespace LogJoint.Tests.Integration
 
 			ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
 
-			var (model, presentation) = await serialSynchronizationContext.Invoke(() =>
+			var app = await serialSynchronizationContext.Invoke(() =>
 			{
 				var modelObjects = ModelFactory.Create(
 					new ModelConfig
@@ -153,29 +156,25 @@ namespace LogJoint.Tests.Integration
 					mocks.Views
 				);
 
-				if (config.LocalPluginsList != null)
+				return new TestAppInstance
 				{
-					modelObjects.PluginsManager.LoadPlugins(new TestApplicationEntryPoint
-					{
-						Model = modelObjects.ExpensibilityEntryPoint,
-						Presentation = presentationObjects.ExpensibilityEntryPoint
-					}, config.LocalPluginsList);
-				}
-
-				return (modelObjects, presentationObjects);
+					SynchronizationContext = serialSynchronizationContext,
+					Mocks = mocks,
+					ModelObjects = modelObjects,
+					PresentationObjects = presentationObjects,
+					ViewModel = viewModel,
+					Samples = new SamplesUtils(),
+					traceListener = traceListener,
+					AppDataDirectory = appDataDir
+				};
 			});
 
-			return new TestAppInstance
+			if (config.LocalPluginsList != null)
 			{
-				SynchronizationContext = serialSynchronizationContext,
-				Mocks = mocks,
-				Model = model,
-				Presentation = presentation,
-				ViewModel = viewModel,
-				Samples = new SamplesUtils(),
-				traceListener = traceListener,
-				AppDataDirectory = appDataDir
-			};
+				app.ModelObjects.PluginsManager.LoadPlugins(app, config.LocalPluginsList, preferTestPluginEntryPoints: true);
+			}
+
+			return app;
 		}
 
 		private static void InitializeMocks(TestAppConfig config, Mocks mocks, ViewModelObjects viewModel)
@@ -222,7 +221,7 @@ namespace LogJoint.Tests.Integration
 				return;
 			disposed = true;
 			var tcs = new TaskCompletionSource<int>();
-			await this.Model.SynchronizationContext.Invoke(() =>
+			await this.ModelObjects.SynchronizationContext.Invoke(() =>
 			{
 				var mainFormView = Mocks.Views.CreateMainFormView();
 				mainFormView.When(x => x.ForceClose()).Do(x => tcs.SetResult(0));
@@ -231,11 +230,5 @@ namespace LogJoint.Tests.Integration
 			await tcs.Task;
 			traceListener.Flush();
 		}
-
-		class TestApplicationEntryPoint
-		{
-			public IModel Model { get; internal set; }
-			public UI.Presenters.IPresentation Presentation { get; internal set; }
-		};
 	};
 }

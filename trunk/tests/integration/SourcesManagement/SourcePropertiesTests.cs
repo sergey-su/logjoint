@@ -172,7 +172,7 @@ namespace LogJoint.Tests.Integration
 		public async Task CanSaveAsLogFromZipContainer(TestAppInstance app)
 		{
 			CloseDialog();
-			app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.PresentationObjects.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
 			app.ViewModel.SourcesManager.OnDeleteAllLogSourcesButtonClicked();
 			await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.zip"));
 			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
@@ -184,7 +184,7 @@ namespace LogJoint.Tests.Integration
 			Check.That(DialogState.SaveAsButton.Disabled).IsFalse();
 			Check.That(DialogState.SaveAsButton.Hidden).IsFalse();
 
-			var destinationFileName = app.Model.TempFilesManager.GenerateNewName();
+			var destinationFileName = app.ModelObjects.TempFilesManager.GenerateNewName();
 			app.Mocks.FileDialogs.SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>()).ReturnsForAnyArgs(destinationFileName);
 			ViewModel.OnSaveAsButtonClicked();
 			app.Mocks.FileDialogs.Received(1).SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>());

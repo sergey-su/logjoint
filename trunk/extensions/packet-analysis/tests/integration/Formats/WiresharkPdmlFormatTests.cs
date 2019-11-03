@@ -1,99 +1,66 @@
-﻿using NSubstitute;
-using NUnit.Framework;
+﻿using NFluent;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PA = LogJoint.PacketAnalysis;
-using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
-using LogJoint.Extensibility;
 
 namespace LogJoint.Tests.Integration.PacketAnalysis
 {
-	[TestFixture]
+	[IntegrationTestFixture]
 	class WiresharkPdmlFormatTests
 	{
-		readonly SamplesUtils samples = new SamplesUtils();
-		TestAppInstance app;
-
 		PA.UI.Presenters.Factory.IViewsFactory viewsFactory;
 		PA.UI.Presenters.MessagePropertiesDialog.IViewModel messagePropertiesViewModel;
 		object messagePropertiesOSView;
 
-		[OneTimeSetUp]
-		public async Task Before()
+		[BeforeEach]
+		public async Task BeforeEach(IContext context)
 		{
-			viewsFactory = Substitute.For<PA.UI.Presenters.Factory.IViewsFactory>();
+			viewsFactory = context.Registry.Get<PA.UI.Presenters.Factory.IViewsFactory>();
 			viewsFactory.CreateMessageContentView().SetViewModel(
 				Arg.Do<PA.UI.Presenters.MessagePropertiesDialog.IViewModel>(x => messagePropertiesViewModel = x));
 			messagePropertiesOSView = new object();
 			viewsFactory.CreateMessageContentView().OSView.Returns(messagePropertiesOSView);
 
-			app = await TestAppInstance.Create();
-			PA.UI.Presenters.Factory.Create(
-				PA.Factory.Create(app.Model.ExpensibilityEntryPoint),
-				app.Presentation.ExpensibilityEntryPoint,
-				app.Model.ExpensibilityEntryPoint,
-				viewsFactory
-			);
-
-			await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("network_trace_with_keys_3.tar.gz"));
-			await app.WaitFor(() => !app.ViewModel.LoadedMessagesLogViewer.ViewLines.IsEmpty);
+			// todo: support BeforeAll
+			await context.Utils.EmulateFileDragAndDrop(await context.Samples.GetSampleAsLocalFile("network_trace_with_keys_3.tar.gz"));
+			await context.Utils.WaitFor(() => context.Presentation.LoadedMessagesLogViewer.VisibleLines.Count > 0);
 		}
 
-		[OneTimeTearDown]
-		public async Task After()
+
+		[IntegrationTest]
+
+		public void FormatIsDetectedAndLoaded(IContext context)
 		{
-			await app.Dispose();
+			Check.That(context.Presentation.LoadedMessagesLogViewer.VisibleLines[0].Value)
+				.IsEqualTo("        IP Option - Router Alert (4 bytes): Router shall examine packet (0)");
 		}
 
-		[Test]
+		[IntegrationTest]
 
-		public async Task FormatIsDetectedAndLoaded()
+		public void PostprocessorsEnabled(IContext context)
 		{
-			await app.SynchronizationContext.Invoke(() =>
-			{
-				Assert.AreEqual("        IP Option - Router Alert (4 bytes): Router shall examine packet (0)", app.ViewModel.LoadedMessagesLogViewer.ViewLines[0].TextLineValue);
-			});
+			Check.That(context.Presentation.Postprocessing.SummaryView.Timeline.Enabled).IsTrue();
 		}
 
-		[Test]
-
-		public async Task PostprocessorsEnabled()
+		[IntegrationTest]
+		public void MessagePropertiesDialogExtensionIsRegistered(IContext context)
 		{
-			await app.SynchronizationContext.Invoke(() =>
-			{
-				app.ViewModel.MainForm.OnTabChanging(app.ViewModel.PostprocessingTabPageId);
-				var postprocessorsControls = app.ViewModel.PostprocessingTabPage.ControlsState;
-				Assert.IsFalse(postprocessorsControls[ViewControlId.Timeline].Disabled);
-			});
-		}
+			var dlg = context.Presentation.MessagePropertiesDialog;
+			dlg.ShowDialog();
 
-		[Test]
-		public async Task MessagePropertiesDialogExtensionIsRegistered()
-		{
-			await app.SynchronizationContext.Invoke(() =>
-			{
-				var lv = app.ViewModel.LoadedMessagesLogViewer;
-				lv.OnMessageMouseEvent(lv.ViewLines[0], 0, UI.Presenters.LogViewer.MessageMouseEventFlag.None, new object());
+			/*Assert.AreEqual(3, dlg.Data.ContentViewModes.Count); todo
+			Assert.AreEqual("Packet protocols", dlg.Data.ContentViewModes[2]);
 
-				var menu = lv.OnMenuOpening();
-				Assert.IsTrue((menu.VisibleItems & UI.Presenters.LogViewer.ContextMenuItem.DefaultAction) != 0);
-				lv.OnMenuItemClicked(UI.Presenters.LogViewer.ContextMenuItem.DefaultAction);
+			dlg.OnContentViewModeChange(2);
+			Assert.AreEqual(2, dlg.Data.ContentViewModeIndex);
+			Assert.IsNotNull(dlg.Data.CustomView);
+			Assert.AreSame(messagePropertiesOSView, dlg.Data.CustomView);
 
-				var dlg = app.ViewModel.MessagePropertiesDialog;
-
-				Assert.AreEqual(3, dlg.Data.ContentViewModes.Count);
-				Assert.AreEqual("Packet protocols", dlg.Data.ContentViewModes[2]);
-
-				dlg.OnContentViewModeChange(2);
-				Assert.AreEqual(2, dlg.Data.ContentViewModeIndex);
-				Assert.IsNotNull(dlg.Data.CustomView);
-				Assert.AreSame(messagePropertiesOSView, dlg.Data.CustomView);
-
-				Assert.AreEqual(4, messagePropertiesViewModel.Root.Children.Count);
-			});
+			Assert.AreEqual(4, messagePropertiesViewModel.Root.Children.Count);*/
 		}
 	};
 }

@@ -65,10 +65,10 @@ namespace LogJoint.Tests.Integration
 			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
 			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsTrue();
 
-			app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.PresentationObjects.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
 			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
 
-			app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 1 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
+			app.PresentationObjects.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 1 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
 
 			await app.WaitFor(() =>
 					ListRoot.Children.Count == 1
@@ -106,10 +106,10 @@ Test frame
 			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
 			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
 
-			app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.PresentationObjects.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
 			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
 
-			app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
+			app.PresentationObjects.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
 
 			await app.WaitFor(() => ListRoot.Children.Count == 0);
 
@@ -130,10 +130,10 @@ Test frame
 			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
 			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
 
-			app.Presentation.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.PresentationObjects.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
 			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
 
-			app.Presentation.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
+			app.PresentationObjects.AlertPopup.Received(1).ShowPopup("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
 
 			await app.WaitFor(() => ListRoot.Children.Count == 0);
 

@@ -34,6 +34,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\platforms\windows\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -84,6 +87,10 @@
       <Project>{107111dd-cb76-467d-ae8a-ac63a4fd8e5b}</Project>
       <Name>logjoint.packet-analysis.plugin.presentation</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\tests\integration\logjoint.packet-analysis.plugin.integration.csproj">
+      <Project>{956959c8-9031-4532-9fa7-10d11239f7ca}</Project>
+      <Name>logjoint.packet-analysis.plugin.integration</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="UI\MessageContentView.resx">
@@ -100,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="pack.bat" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
