@@ -1,9 +1,10 @@
-﻿using GLS = Google.OrTools.LinearSolver;
-using Google.OrTools.LinearSolver;
+﻿// using GLS = Google.OrTools.LinearSolver;
+// using Google.OrTools.LinearSolver;
 using LogJoint.Postprocessing.Correlation.ExternalSolver.Protocol;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 {
@@ -11,9 +12,15 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 	{
 		public static Response Solve(Request rq)
 		{
-			var solver = GLS.Solver.CreateSolver("IntegerProgramming", "GLOP_LINEAR_PROGRAMMING");
+			var solverAsm = Assembly.Load ("Google.OrTools");
+			var solverType = solverAsm.GetType ("Google.OrTools.LinearSolver.Solver");
+			dynamic /*GLS.Solver*/ solver = solverType.InvokeMember ("CreateSolver",
+				BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public, null, null,
+				new [] { "IntegerProgramming", "GLOP_LINEAR_PROGRAMMING" });
+			// var solver = GLS.Solver.CreateSolver("IntegerProgramming", "GLOP_LINEAR_PROGRAMMING");
 
-			var vars = new Dictionary<string, Variable>();
+
+			var vars = new Dictionary<string, dynamic /*Variable*/>();
 			foreach (var c in rq.constraints)
 				CollectVariables(c, vars, solver);
 			CollectVariables(rq.goal.expr, vars, solver);
@@ -25,11 +32,15 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 
 			solver.Minimize(ToLinearExpr(rq.goal.expr, vars));
 
-			GLS.Solver.ResultStatus resultStatus = solver.Solve();
+			dynamic /*GLS.Solver.ResultStatus*/ resultStatus = solver.Solve();
 
 			var rsp = new Response();
 
-			if (resultStatus == GLS.Solver.ResultStatus.INFEASIBLE) // todo: detect positive result
+			bool isSolved(dynamic /* GLS.Solver.ResultStatus */ result) =>
+				   result.ToString () == "OPTIMAL"
+				|| result.ToString () == "FEASIBLE";
+
+			if (!isSolved(resultStatus))
 			{
 				rsp.status = Response.Infeasible;
 			}
@@ -38,7 +49,7 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 				rsp.status = Response.Solved;
 				rsp.variables = vars
 					.Where(v => v.Key != identityConstant)
-					.ToDictionary(v => v.Key, v => v.Value.SolutionValue());
+					.ToDictionary(v => v.Key, v => (double) v.Value.SolutionValue());
 			}
 
 			return rsp;
@@ -46,7 +57,7 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 
 		const string identityConstant = "__constant__";
 
-		static void CollectVariables(Request.Expr e, Dictionary<string, Variable> vars, GLS.Solver solver)
+		static void CollectVariables(Request.Expr e, Dictionary<string, dynamic /*Variable*/> vars, dynamic /*GLS.Solver*/ solver)
 		{
 			if (e.variable != null && !vars.ContainsKey(e.variable))
 				vars[e.variable] = solver.MakeNumVar(0.0, double.PositiveInfinity, e.variable);
@@ -57,7 +68,7 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 		}
 
 
-		static LinearExpr ToLinearExpr(LinearExpr l, LinearExpr r, string op)
+		static dynamic /*LinearExpr*/ ToLinearExpr (dynamic /*LinearExpr*/ l, dynamic /*LinearExpr*/ r, string op)
 		{
 			switch (op)
 			{
@@ -67,7 +78,7 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 			}
 		}
 
-		static LinearExpr ToLinearExpr(Request.Expr e, Dictionary<string, Variable> vars)
+		static dynamic /*LinearExpr*/ ToLinearExpr (Request.Expr e, Dictionary<string, dynamic /*Variable*/> vars)
 		{
 			if (e.variable != null)
 				return vars[e.variable];
@@ -78,7 +89,7 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 			throw new ArgumentException();
 		}
 
-		static LinearConstraint ToLinearConstraint(Request.Expr e, Dictionary<string, Variable> vars)
+		static dynamic /*LinearConstraint*/ ToLinearConstraint (Request.Expr e, Dictionary<string, dynamic /*Variable*/> vars)
 		{
 			if (e.op == null)
 				throw new ArgumentException();

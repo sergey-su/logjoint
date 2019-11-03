@@ -73,8 +73,7 @@ namespace LogJoint
 			Func<Persistence.IStorageManager, Preprocessing.ICredentialsCache> createPreprocessingCredentialsCache,
 			Func<IShutdownSource, Persistence.IWebContentCache, ITraceSourceFactory, WebViewTools.IWebViewTools> createWebBrowserDownloader,
 			Drawing.IMatrixFactory matrixFactory,
-			RegularExpressions.IRegexFactory regexFactory,
-			Func<Postprocessing.Correlation.Solver.ISolver> solverFactory
+			RegularExpressions.IRegexFactory regexFactory
 		)
 		{
 			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners);
@@ -281,7 +280,7 @@ namespace LogJoint
 
 			Postprocessing.Correlation.ICorrelationManager correlationManager = new Postprocessing.Correlation.CorrelationManager(
 				postprocessorsManager,
-				solverFactory,
+				() => new LogJoint.Postprocessing.Correlation.EmbeddedSolver.EmbeddedSolver(),
 				modelSynchronizationContext,
 				logSourcesManager,
 				changeNotification,

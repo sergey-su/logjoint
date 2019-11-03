@@ -116,18 +116,6 @@
     <Compile Include="..\..\shared\settings\WebContentConfig.cs">
       <Link>Properties\WebContentConfig.cs</Link>
     </Compile>
-    <Compile Include="..\..\shared\solvers\EmbeddedSolver.cs">
-      <Link>solver\EmbeddedSolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\shared\solvers\ExternalSolverBase.cs">
-      <Link>solver\ExternalSolverBase.cs</Link>
-    </Compile>
-    <Compile Include="..\..\shared\solvers\OrToolsSolverCore.cs">
-      <Link>solver\OrToolsSolverCore.cs</Link>
-    </Compile>
-    <Compile Include="..\..\shared\solvers\Protocol.cs">
-      <Link>solver\Protocol.cs</Link>
-    </Compile>
     <Compile Include="..\..\shared\ui\LogViewerControl\GraphicsResource.cs">
       <Link>ui\LogViewerControl\GraphicsResource.cs</Link>
     </Compile>
