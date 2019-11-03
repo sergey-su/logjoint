@@ -213,7 +213,8 @@ namespace LogJoint.Postprocessing.Correlation
 			double? progress = null;
 			foreach (var i in correlationOutputs)
 			{
-				if (i.OutputStatus == LogSourcePostprocessorState.Status.InProgress)
+				if (i.OutputStatus == LogSourcePostprocessorState.Status.InProgress
+				 || i.OutputStatus == LogSourcePostprocessorState.Status.Loading)
 				{
 					numProgressing++;
 					if (progress == null && i.Progress != null)

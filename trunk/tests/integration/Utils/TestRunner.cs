@@ -25,7 +25,7 @@ namespace LogJoint.Tests.Integration
 				if (split.ElementAtOrDefault(0) == "--filter")
 					filter = split.ElementAtOrDefault(1);
 			}
-			await RunTests(Assembly.GetExecutingAssembly(), null, filter);
+			await RunTests(Assembly.GetExecutingAssembly(), null, filter, null);
 		}
 
 		public async Task DownloadPluginDependencies(IPluginManifest manifest, List<string> result)
@@ -67,7 +67,15 @@ namespace LogJoint.Tests.Integration
 				await RunTests(
 					testsAsm,
 					string.Join(';', downloadedDependenciesDirs.Union(new[] { manifest.PluginDirectory })),
-					filters
+					filters,
+					app =>
+					{
+						var autoAccept = app.AutoAcceptPreprocessingUserInteration();
+						return () =>
+						{
+							autoAccept.Dispose();
+						};
+					}
 				);
 			}
 			finally
@@ -93,7 +101,8 @@ namespace LogJoint.Tests.Integration
 		static async Task<bool> RunTests(
 			Assembly testsAsm,
 			string localPluginsList,
-			string filters
+			string filters,
+			Func<TestAppInstance, Action> prepareApp
 		)
 		{
 			var fixtures = 
@@ -163,8 +172,10 @@ namespace LogJoint.Tests.Integration
 						{
 							LocalPluginsList = localPluginsList
 						});
+						Action finalizeApp = null;
 						try
 						{
+							finalizeApp = prepareApp?.Invoke(app);
 							appDataDirectory = app.AppDataDirectory;
 							await app.SynchronizationContext.InvokeAndAwait(async () =>
 							{
@@ -183,7 +194,7 @@ namespace LogJoint.Tests.Integration
 						}
 						finally
 						{
-							stage = " at app cleanup";
+							finalizeApp?.Invoke();
 							await app.Dispose();
 						}
 					}

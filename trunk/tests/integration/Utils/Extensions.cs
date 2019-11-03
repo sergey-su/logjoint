@@ -84,5 +84,20 @@ namespace LogJoint.Tests.Integration
 			Task IUtils.EmulateUriDragAndDrop(Uri uri) => app.EmulateUrlDragAndDrop(uri);
 			Task IUtils.WaitFor(Func<bool> condition, string operationName, TimeSpan? timeout) => app.WaitFor(condition, operationName, timeout);
 		};
+
+		public static IDisposable AutoAcceptPreprocessingUserInteration(this TestAppInstance app)
+		{
+			UI.Presenters.PreprocessingUserInteractions.DialogViewData acceptedData = null;
+			var subs = app.Model.ChangeNotification.CreateSubscription(() =>
+			{
+				var currentData = app.ViewModel.PreprocessingUserInteractions.DialogData;
+				if (currentData != null && currentData != acceptedData)
+				{
+					acceptedData = currentData;
+					app.ViewModel.PreprocessingUserInteractions.OnCloseDialog(accept: true);
+				}
+			});
+			return subs;
+		}
 	};
 }
