@@ -2,6 +2,7 @@
 using System.Linq;
 using LogJoint.Postprocessing;
 using HAR = LogJoint.Chromium.HttpArchive;
+using GA = LogJoint.Google.Analog;
 using System.Collections.Generic;
 
 namespace LogJoint.Chromium.SequenceDiagram
@@ -10,6 +11,7 @@ namespace LogJoint.Chromium.SequenceDiagram
 	{
 		ILogSourcePostprocessor CreateHttpArchivePostprocessor();
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
+		ILogSourcePostprocessor CreateAnalogPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -36,6 +38,14 @@ namespace LogJoint.Chromium.SequenceDiagram
 			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
 				i => RunForChromeDebug(new ChromeDebugLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateAnalogPostprocessor()
+		{
+			return new LogSourcePostprocessor(
+				PostprocessorKind.SequenceDiagram,
+				i => RunForAnalog(new GA.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
 		}
 
@@ -79,6 +89,23 @@ namespace LogJoint.Chromium.SequenceDiagram
 			tasks.AddRange(extensionSources.SelectMany(s => s.MultiplexingEnumerables.Select(e => e.Open())));
 			tasks.Add(multiplexedInput.Open());
 			await Task.WhenAll(tasks);
+		}
+
+		async Task RunForAnalog(
+			IEnumerableAsync<GA.Message[]> input,
+			LogSourcePostprocessorInput postprocessorInput
+		)
+		{
+			GA.MediaRouter.IMessagingEvents messagingEvents = new GA.MediaRouter.MessagingEvents();
+
+			var events = EnumerableAsync.Merge(
+				messagingEvents.GetEvents(input)
+			);
+
+			await postprocessing.SequenceDiagram.CreatePostprocessorOutputBuilder()
+				.SetMessagingEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((GA.Message)evtTrigger))
+				.Build(postprocessorInput);
 		}
 	};
 }

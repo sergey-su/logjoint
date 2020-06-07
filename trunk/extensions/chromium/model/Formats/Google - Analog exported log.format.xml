@@ -1,0 +1,30 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[I 0528 01:16:28.061846  27185 switchto-default-SDomainT endpoint.cc:525] GAIwAkoKcHFjKzt9UO646Q::: GAIwAkoKcHFjKzt9UO646Q: CreateAudioReceiveEndpoint name: c2029221966585154786_NMS/1 channel_config: { stream_name: c2029221966585154786_NMS/1; type_name: LENS; feedback_ssrc: 0; facing_client: 1; stream_senders_options: route_audio_experiment: true media_router_experiment: true bandwidth_allocation_strategy: ALLOCATION_GROUP_BASED should_process_in_reverie_pipeline: true send_audio_transport_sequence_numbers: true reduce_padding_when_using_probing: true use_unified_bitrate_calculator: true default_packet_overhead: 38 use_chrome_congestion_window_parameters: true resend_fir_sequence_number: true reduced_framerate_low_prio_streams: 12 enable_reduce_framerate_for_low_prio_streams: true speaker_switching_field_trials: ""; extensions: { uri: "urn:ietf:params:rtp-hdrext:ssrc-audio-level", id: 1}, { uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", id: 3}}
+W 0528 01:16:28.061864  27185 switchto-default-SDomainT rtp_receiver_controller.cc:59] GAIwAkoKcHFjKzt9UO646Q::: Missing feedback ssrc for { ssrc: 1323563510}
+I 0528 01:16:28.062099  27185 switchto-default-SDomainT rtp_rtcp_sender.cc:821] GAIwAkoKcHFjKzt9UO646Q:::c2029221966585154786_NMS/1: CreateRtpRtcpSender(type_name: ROUTER; ssrc: 1323563510; rtx_ssrc: 0; participant_options: route_audio_experiment: true media_router_experiment: true bandwidth_allocation_strategy: ALLOCATION_GROUP_BASED should_process_in_reverie_pipeline: true send_audio_transport_sequence_numbers: true reduce_padding_when_using_probing: true use_unified_bitrate_calculator: true default_packet_overhead: 38 use_chrome_congestion_window_parameters: true resend_fir_sequence_number: true reduced_framerate_low_prio_streams: 12 enable_reduce_framerate_for_low_prio_streams: true speaker_switching_field_trials: ""; extensions: [{uri: "urn:ietf:params:rtp-hdrext:ssrc-audio-level", id: 1}]; adjust_rtp_timestamp: true)
+I 0528 01:16:28.062136  27185 switchto-default-SDomainT endpoint.cc:508] GAIwAkoKcHFjKzt9UO646Q::: GAIwAkoKcHFjKzt9UO646Q: CreateVideoReceiveEndpoint name: c2029221966585154786_NMS/2 channel_config: { stream_name: c2029221966585154786_NMS/2; type_name: LENS; feedback_ssrc: 1; facing_client: 1; stream_senders_options: route_audio_experiment: true media_router_experiment: true bandwidth_allocation_strategy: ALLOCATION_GROUP_BASED should_process_in_reverie_pipeline: true send_audio_transport_sequence_numbers: true reduce_padding_when_using_probing: true use_unified_bitrate_calculator: true default_packet_overhead: 38 use_chrome_congestion_window_parameters: true resend_fir_sequence_number: true reduced_framerate_low_prio_streams: 12 enable_reduce_framerate_for_low_prio_streams: true speaker_switching_field_trials: ""; extensions: { uri: "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time", id: 2}, { uri: "urn:3gpp:video-orientation", id: 13}, { uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", id: 3}, { uri: "http://www.webrtc.org/experiments/rtp-hdrext/video-content-type", id: 6}, { uri: "http://www.webrtc.org/experiments/rtp-hdrext/video-timing", id: 7}} ]]></sample-log>
+    <head-re><![CDATA[^(?<sev>[WEIV])\s(?<date>\d{4}\s\d{2}\:\d{2}\:\d{2}\.\d{6})\s+(?<tid>\d+)\s(?<tname>\S*)\s(?<src>[^\]]+)\]]]></head-re>
+    <body-re><![CDATA[]]></body-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(date, @"MMdd HH\:mm\:ss\.ffffff")]]></field>
+      <field name="Thread"><![CDATA[tid]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sev[0])
+{
+case 'W': return Severity.Warning;
+case 'E': 
+case 'F': return Severity.Error;
+default: return Severity.Info;
+}
+]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.txt</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="Google" name="Analog exported log" />
+  <description>
+  </description>
+</format>

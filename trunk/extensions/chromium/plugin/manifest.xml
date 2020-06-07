@@ -10,6 +10,7 @@
   <file type="format">Formats/Chromium-webrtc_internals_dump.format.xml</file>
   <file type="format">Formats/W3C - HTTP Archive.format.xml</file>
   <file type="format">Formats/Atlassian-JitsiVideoBridge log.format.xml</file>
+  <file type="format">Formats/Google - Analog exported log.format.xml</file>
   <file type="entry">logjoint.chromium.plugin.dll</file>
   <file type="dll">logjoint.chromium.plugin.presentation.dll</file>
   <file type="dll">logjoint.chromium.plugin.model.dll</file>

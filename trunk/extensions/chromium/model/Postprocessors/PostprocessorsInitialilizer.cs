@@ -14,8 +14,8 @@ namespace LogJoint.Chromium
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly IUserDefinedFactory chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, httpArchiveFormat;
-		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, httpArchiveMeta;
+		private readonly IUserDefinedFactory chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, httpArchiveFormat, analogFormat;
+		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, httpArchiveMeta, analogMeta;
 
 
 		public PostprocessorsInitializer(
@@ -41,6 +41,7 @@ namespace LogJoint.Chromium
 			this.webRtcInternalsDumpFormat = findFormat("Google", "Chrome WebRTC internals dump as log");
 			this.chromeDriverLogFormat = findFormat("Google", "chromedriver");
 			this.httpArchiveFormat = findFormat("W3C", "HTTP Archive (HAR)");
+			this.analogFormat = findFormat("Google", "Analog exported log");
 
 			this.chromeDebugLogMeta = new LogSourceMetadata(
 				chromeDebugLogFormat,
@@ -73,6 +74,13 @@ namespace LogJoint.Chromium
 				sequenceDiagramPostprocessorsFactory.CreateHttpArchivePostprocessor()
 			);
 			postprocessorsManager.Register(this.httpArchiveMeta);
+
+			this.analogMeta = new LogSourceMetadata(
+				analogFormat,
+				stateInspectorPostprocessorsFactory.CreateAnalogPostprocessor(),
+				sequenceDiagramPostprocessorsFactory.CreateAnalogPostprocessor()
+			);
+			postprocessorsManager.Register(this.analogMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDebugLog

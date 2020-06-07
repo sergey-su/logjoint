@@ -3,6 +3,7 @@ using System.Linq;
 using LogJoint.Postprocessing;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
+using GA = LogJoint.Google.Analog;
 using LogJoint.Postprocessing.StateInspector;
 using System.Threading;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace LogJoint.Chromium.StateInspector
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
+		ILogSourcePostprocessor CreateAnalogPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -42,6 +44,15 @@ namespace LogJoint.Chromium.StateInspector
 				PostprocessorKind.StateInspector,
 				i => RunForWebRTCDump(new WRD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
 			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateAnalogPostprocessor()
+		{
+			return new LogSourcePostprocessor(
+				PostprocessorKind.StateInspector,
+				i => RunForAnalog(new GA.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+		);
+
 		}
 
 		async Task RunForChromeDebug(
@@ -108,6 +119,31 @@ namespace LogJoint.Chromium.StateInspector
 			var serialize = postprocessing.StateInspector.CreatePostprocessorOutputBuilder()
 				.SetEvents(events)
 				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((WRD.Message)evtTrigger))
+				.Build(postprocessorInput);
+			await Task.WhenAll(serialize, logMessages.Open());
+		}
+
+		async Task RunForAnalog(
+			IEnumerableAsync<GA.Message[]> inputMessages,
+			LogSourcePostprocessorInput postprocessorInput
+		)
+		{
+			IPrefixMatcher matcher = postprocessing.CreatePrefixMatcher();
+			var logMessages = GA.Helpers.MatchPrefixes(inputMessages, matcher).Multiplex();
+
+			GA.MediaRouter.IStateInspector mrStateInspector = new GA.MediaRouter.StateInspector(matcher);
+
+			var mrEvts = mrStateInspector.GetEvents(logMessages);
+
+			matcher.Freeze();
+
+			var events = postprocessorInput.TemplatesTracker.TrackTemplates(EnumerableAsync.Merge(
+				mrEvts
+			));
+
+			var serialize = postprocessing.StateInspector.CreatePostprocessorOutputBuilder()
+				 .SetEvents(events)
+				.SetTriggersConverter(evtTrigger => TextLogEventTrigger.Make((GA.Message)evtTrigger))
 				.Build(postprocessorInput);
 			await Task.WhenAll(serialize, logMessages.Open());
 		}
