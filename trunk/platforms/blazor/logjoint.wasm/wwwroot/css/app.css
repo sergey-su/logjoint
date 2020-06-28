@@ -183,21 +183,21 @@ app {
 }
 
 
-.logline {
+.logview {
+    display: inline-flex;
+    justify-content: space-between;
+    font-family: monospace;
+    user-select: none;
+    border: 2px grey solid;
+    position: relative;
+    overflow: hidden;
+}
+.logview .logline {
     padding: 0px;
     margin: 0px;
     cursor: text;
     white-space: nowrap;
-
     position: relative;
-}
-.logview {
-    font-family: monospace;
-    user-select: none;
-    border: 2px grey solid;
-    display: inline-block;
-    position: relative;
-    overflow: hidden;
 }
 .logview .scroll-inner {
     display: inline-flex;
@@ -259,7 +259,8 @@ app {
     white-space: pre;
 }
 .logview .vsroller {
-    width: 13pt;
+    width: 10pt;
+    min-width: 10pt;
     position: relative;
     background-color: rgb(243, 243, 243);
     padding-bottom: 10pt;

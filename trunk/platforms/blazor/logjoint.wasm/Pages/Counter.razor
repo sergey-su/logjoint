@@ -36,7 +36,7 @@
 
 <div class="logview" tabindex="0" @onkeydown="@(e => viewModel.LoadedMessagesLogViewer.OnKeyPressed(GetKey(e)))" style="width:300px; height: 300px; display: inline-flex;">
     <span class="measure-text" @ref="measureElement"> </span>
-    <div class="scroll-outer" onwheel="wheel()">
+    <div class="scroll-outer" @onwheel="@(e => viewModel.LoadedMessagesLogViewer.OnIncrementalVScroll((float)(e.DeltaY / chatHeight)))">
         <div class="scroll-inner">
             @foreach (var item in @viewModel.LoadedMessagesLogViewer.ViewLines)
             {
@@ -80,6 +80,7 @@
     private ISubscription subscription;
     ElementReference measureElement;
     double charWidth = 1;
+    double chatHeight = 1;
 
     private void LoadLog()
     {
@@ -96,7 +97,8 @@
         if (firstRender)
         {
             charWidth = await jsRuntime.InvokeAsync<double>("logjoint.getElementWidth", measureElement);
-            Console.WriteLine("Char w={0}", charWidth);
+            chatHeight = await jsRuntime.InvokeAsync<double>("logjoint.getElementHeight", measureElement);
+            Console.WriteLine("Char w={0} h={1}", charWidth, chatHeight);
         }
     }
 
@@ -185,8 +187,8 @@
 
     int GetClickedCharIndex(LogJoint.UI.Presenters.LogViewer.ViewLine viewLine, MouseEventArgs mouseEventArgs)
     {
-        // var clickedChar = Math.Round(mouseEventArgs.OffsetX / charWidth);
-        return 0;
+        var clickedChar = (int)Math.Round(mouseEventArgs.OffsetX / charWidth);
+        return clickedChar;
     }
 
     static string GetBackgroundColor(LogJoint.Drawing.Color? contextColor)
