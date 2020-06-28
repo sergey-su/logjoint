@@ -145,9 +145,16 @@ namespace LogJoint
 			if (name == null)
 			{
 				MethodBase m = new StackFrame(2).GetMethod();
-				underlyingSource.TraceEvent(TraceEventType.Start, 0,
-					m.DeclaringType != null ? "{0}: {1}, {2}" : "{0}: {1}",
-					prefix, m, m.DeclaringType);
+				if (m != null)
+				{
+					underlyingSource.TraceEvent(TraceEventType.Start, 0,
+						m.DeclaringType != null ? "{0}: {1}, {2}" : "{0}: {1}",
+						prefix, m, m.DeclaringType);
+				}
+				else
+				{
+					underlyingSource.TraceEvent(TraceEventType.Start, 0, "{0}: <no frame>", prefix);
+				}
 			}
 			else
 			{

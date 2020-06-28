@@ -56,7 +56,7 @@ namespace LogJoint
 			using (var localCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
 			{
 				var candidateFactories = GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry).ToArray();
-				var ret = candidateFactories.Select((factory, index) => (factory, index)).AsParallel().Select(candidate =>
+				var ret = candidateFactories.Select((factory, index) => (factory, index))/*.AsParallel()*/.Select(candidate =>
 				{
 					var (factory, idx) = candidate;
 					try

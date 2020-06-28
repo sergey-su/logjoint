@@ -21,16 +21,29 @@ namespace LogJoint
 		{
 			return Path.GetFullPath(path).ToLower();
 		}
-	
+
 		public static void CopyStreamWithProgress(Stream src, Stream dest, Action<long> progress, CancellationToken cancellation)
 		{
-			for (byte[] buf = new byte[16 * 1024]; ; )
+			for (byte[] buf = new byte[16 * 1024]; ;)
 			{
 				int read = src.Read(buf, 0, buf.Length);
 				if (read == 0)
 					break;
 				cancellation.ThrowIfCancellationRequested();
 				dest.Write(buf, 0, read);
+				progress(dest.Length);
+			}
+		}
+
+		public static async Task CopyStreamWithProgressAsync(Stream src, Stream dest, Action<long> progress, CancellationToken cancellation)
+		{
+			for (byte[] buf = new byte[16 * 1024]; ; )
+			{
+				int read = await src.ReadAsync(buf, 0, buf.Length);
+				if (read == 0)
+					break;
+				cancellation.ThrowIfCancellationRequested();
+				await dest.WriteAsync(buf, 0, read);
 				progress(dest.Length);
 			}
 		}

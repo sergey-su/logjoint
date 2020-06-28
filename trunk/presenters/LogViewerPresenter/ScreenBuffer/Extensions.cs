@@ -20,6 +20,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Settings.Appearance.ColoringMode coloring,
 			ImmutableArray<Color> threadColors,
 			int? cursorCharIndex,
+			bool cursorVisible,
 			IHighlightingHandler searchResultHighlightingHandler,
 			IHighlightingHandler selectionHighlightingHandler,
 			IHighlightingHandler highlightingFiltersHandler
@@ -49,6 +50,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				HasMessageSeparator = text.IsMultiline && text.GetLinesCount() == e.TextLineIndex + 1,
 				SelectedBackground = GetSelection(e.Index, textLine, selectionViewLinesRange, normalizedSelection),
 				CursorCharIndex = cursorCharIndex,
+				CursorVisible = cursorVisible,
 				searchResultHighlightingHandler = searchResultHighlightingHandler,
 				selectionHighlightingHandler = selectionHighlightingHandler,
 				highlightingFiltersHandler = highlightingFiltersHandler

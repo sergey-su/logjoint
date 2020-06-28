@@ -1302,7 +1302,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 									screenBufferEntry.Message, displayTextInfo.LinesMapper(screenBufferEntry.TextLineIndex)),
 								coloring: displayProps.coloring,
 								threadColors: displayProps.threadColors,
-								cursorCharIndex: selectionProps.CursorState && selectionProps.CursorViewLine == screenBufferEntry.Index ? selectionProps.Selection?.First?.LineCharIndex : new int?(),
+								cursorCharIndex: selectionProps.CursorViewLine == screenBufferEntry.Index ? selectionProps.Selection?.First?.LineCharIndex : new int?(),
+								cursorVisible: selectionProps.CursorState,
 								searchResultHighlightingHandler: highlightingProps.SearchResultHandler,
 								selectionHighlightingHandler: highlightingProps.SelectionHandler,
 								highlightingFiltersHandler: highlightingProps.HighlightingFiltersHandler

@@ -127,6 +127,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public Color? ContextColor;
 		public (int, int)? SelectedBackground;
 		public int? CursorCharIndex;
+		public bool CursorVisible;
 		public bool HasMessageSeparator;
 		public IEnumerable<(int, int, Color)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
 		public IEnumerable<(int, int, Color)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);

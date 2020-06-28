@@ -64,6 +64,7 @@ namespace LogJoint
 		public string AppDataDirectory;
 		public TraceListener[] TraceListeners;
 		public bool DisableLogjointInstancesCounting;
+		public System.Reflection.Assembly FormatsRepositoryAssembly;
 	};
 
 	public static class ModelFactory
@@ -82,7 +83,8 @@ namespace LogJoint
 			var tracer = traceSourceFactory.CreateTraceSource("App", "model");
 			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer, shutdown);
 			ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
-			IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
+			IFormatDefinitionsRepository formatDefinitionsRepository = config.FormatsRepositoryAssembly != null ?
+				(IFormatDefinitionsRepository)new ResourcesFormatsRepository(config.FormatsRepositoryAssembly) : new DirectoryFormatsRepository(null);
 			MultiInstance.IInstancesCounter instancesCounter = config.DisableLogjointInstancesCounting ?
 				(MultiInstance.IInstancesCounter)new MultiInstance.DummyInstancesCounter() :
 				(MultiInstance.IInstancesCounter)new MultiInstance.InstancesCounter(shutdown);

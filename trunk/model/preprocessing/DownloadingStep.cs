@@ -74,12 +74,12 @@ namespace LogJoint.Preprocessing
 				string tmpFileName = callback.TempFilesManager.GenerateNewName();
 				trace.Info("Temporary filename to download to: {0}", tmpFileName);
 
-				Action<Stream, long, string> writeToTempFile = (fromStream, contentLength, description) =>
+				Func<Stream, long, string, Task> writeToTempFile = async (fromStream, contentLength, description) =>
 				{
 					using (FileStream fs = new FileStream(tmpFileName, FileMode.Create))
 					using (var progress = contentLength != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null)
 					{
-						IOUtils.CopyStreamWithProgress(fromStream, fs, downloadedBytes =>
+						await IOUtils.CopyStreamWithProgressAsync(fromStream, fs, downloadedBytes =>
 						{
 							callback.SetStepDescription(string.Format("{2} {0}: {1}",
 									IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath, description));
@@ -95,7 +95,7 @@ namespace LogJoint.Preprocessing
 				{
 					if (cachedValue != null)
 					{
-						writeToTempFile(cachedValue, cachedValue.Length, "Loading from cache");
+						await writeToTempFile(cachedValue, cachedValue.Length, "Loading from cache");
 					}
 					else if ((logDownloaderRule = config.GetLogDownloaderConfig(uri)) != null && logDownloaderRule.UseWebBrowserDownloader)
 					{
@@ -108,7 +108,17 @@ namespace LogJoint.Preprocessing
 							IsLoginUrl = testUri => logDownloaderRule.LoginUrls.Any(loginUrl => testUri.GetLeftPart(UriPartial.Path).Contains(loginUrl))
 						}))
 						{
-							writeToTempFile(stream, 0, "Downloading");
+							await writeToTempFile(stream, 0, "Downloading");
+						}
+					}
+					else if (useHttpClient)
+					{
+						using (var client = new System.Net.Http.HttpClient())
+						{
+							trace.Info("Start downloading {0}", sourceFile.Location);
+							var response = await client.GetAsync(uri);
+							await writeToTempFile(await response.Content.ReadAsStreamAsync(),
+								response.Content.Headers.ContentLength.GetValueOrDefault(0), "Downloading");
 						}
 					}
 					else
@@ -140,7 +150,7 @@ namespace LogJoint.Preprocessing
 									{
 										long contentLength;
 										long.TryParse(client.ResponseHeaders["Content-Length"] ?? "", out contentLength);
-										writeToTempFile(evt.Result, contentLength, "Downloading");
+										writeToTempFile(evt.Result, contentLength, "Downloading").Wait();
 									}
 									catch (Exception e)
 									{
@@ -212,6 +222,7 @@ namespace LogJoint.Preprocessing
 		readonly ICredentialsCache credCache;
 		readonly WebViewTools.IWebViewTools webBrowserDownloader;
 		readonly ILogsDownloaderConfig config;
+		readonly bool useHttpClient = true; // todo: only in blazor?
 		internal const string name = "download";
 	};
 }
