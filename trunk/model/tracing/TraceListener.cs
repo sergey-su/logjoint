@@ -19,6 +19,7 @@ namespace LogJoint
 		int writeToStreamScheduled;
 		bool disposed;
 		readonly bool enableMemBuffer;
+		readonly bool enableConsole;
 		readonly uint memBufMaxSize = 128 * 1024;
 		CircularBuffer memBuffer;
 		static TraceListener lastInstance;
@@ -28,6 +29,7 @@ namespace LogJoint
 		{
 			public readonly string FileName;
 			public readonly bool EnableMemBuffer;
+			public readonly bool EnableConsole;
 			public readonly bool EnableLogicalThread;
 		
 			public InitializationParams(string str)
@@ -42,6 +44,8 @@ namespace LogJoint
 						continue;
 					if (argSplit[0] == "membuf")
 						EnableMemBuffer = argSplit[1]=="1";
+					else if (argSplit[0] == "console")
+						EnableConsole = argSplit[1] == "1";
 					else if (argSplit[0] == "logical-thread")
 						EnableLogicalThread = argSplit[1] == "1";
 				}
@@ -233,6 +237,7 @@ namespace LogJoint
 				enableMemBuffer = true;
 				memBuffer = new CircularBuffer(memBufMaxSize);
 			}
+			enableConsole = initializationParams.EnableConsole;
 			this.enableLogicalThread = initializationParams.EnableLogicalThread;
 
 			lastInstance = this;
@@ -264,6 +269,7 @@ namespace LogJoint
 			entries.Enqueue(e);
 			TryScheduleProcessing();
 			AddEntryToMemBuffer(e);
+			MaybeLogEntryToConsole(e);
 		}
 
 		void TryScheduleProcessing()
@@ -294,6 +300,14 @@ namespace LogJoint
 			if (tmp != null && e.type == EntryType.LogMessage)
 			{
 				tmp.Push(e);
+			}
+		}
+
+		void MaybeLogEntryToConsole(Entry e)
+		{
+			if (enableConsole)
+			{
+				e.Write(Console.Out);
 			}
 		}
 

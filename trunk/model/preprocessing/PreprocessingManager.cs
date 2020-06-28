@@ -348,7 +348,7 @@ namespace LogJoint.Preprocessing
 					var postponeTasks = new List<Task>();
 					var eventArg = new LogSourcePreprocessingWillYieldEventArg(
 						this, yieldedProviders.AsReadOnly(), postponeTasks);
-					owner?.PreprocessingWillYieldProviders(owner, eventArg);
+					owner?.PreprocessingWillYieldProviders?.Invoke(owner, eventArg);
 					if (postponeTasks.Count > 0)
 					{
 						((IPreprocessingStepCallback)this).SetStepDescription("Waiting");

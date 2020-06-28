@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RazorLangVersion>3.0</RazorLangVersion>
+    <AssemblyName>logjoint</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="3.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Build" Version="3.2.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="3.2.0" PrivateAssets="all" />
+    <PackageReference Include="System.Net.Http.Json" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../../shared/settings/WebContentConfig.cs">
+      <Link>settings/WebContentConfig.cs</Link>
+    </Compile>
+    <Compile Include="../../shared/settings/Settings.cs">
+      <Link>settings/Settings.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../sdk/model/logjoint.model.sdk.csproj" />
+    <ProjectReference Include="../../../model/logjoint.model.csproj" />
+    <ProjectReference Include="../../../presenters/logjoint.presenters.csproj" />
+    <PackageReference Include="NSubstitute" Version="2.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml" Link="Formats\LogJoint - LogJoint debug trace.format.xml" />
+    <EmbeddedResource Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml" Link="Formats\MS-TextWriterTraceListener.format.xml" />
+    <EmbeddedResource Include="..\..\..\model\formats\MS-XmlWriterTraceListener.format.xml" Link="Formats\MS-XmlWriterTraceListener.format.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Formats\" />
+  </ItemGroup>
+</Project>

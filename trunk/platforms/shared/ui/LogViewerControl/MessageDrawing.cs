@@ -153,7 +153,7 @@ namespace LogJoint.UI.LogViewer
 
 		void DrawCursorIfNeeded(bool controlIsFocused)
 		{
-			if (!controlIsFocused || msg.CursorCharIndex == null)
+			if (!controlIsFocused || msg.CursorCharIndex == null || !msg.CursorVisible)
 				return;
 
 			var lineValue = msg.TextLineValue;
