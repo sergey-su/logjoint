@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -69,7 +70,7 @@ namespace LogJoint
 		/// <param name="streamEncoding">Manadatory encoding information of the stream</param>
 		/// <param name="stream"></param>
 		/// <returns>Valid TextStreamPosition object</returns>
-		public static TextStreamPosition StreamPositionToTextStreamPosition(long streamPosition, Encoding streamEncoding, Stream stream, TextStreamPositioningParams textStreamPositioningParams)
+		public static async Task<TextStreamPosition> StreamPositionToTextStreamPosition(long streamPosition, Encoding streamEncoding, Stream stream, TextStreamPositioningParams textStreamPositioningParams)
 		{
 			if (streamEncoding == null)
 				throw new ArgumentNullException("streamEncoding");
@@ -94,7 +95,7 @@ namespace LogJoint
 			boundedStream.SetStream(stream, false);
 			boundedStream.SetBounds(null, streamPosition);
 			StreamTextAccess tmpTextAccess = new StreamTextAccess(boundedStream, streamEncoding, textStreamPositioningParams);
-			tmpTextAccess.BeginReading(tmp.StreamPositionAlignedToBlockSize, TextAccessDirection.Forward);
+			await tmpTextAccess.BeginReading(tmp.StreamPositionAlignedToBlockSize, TextAccessDirection.Forward);
 			tmp = tmpTextAccess.CharIndexToPosition(tmpTextAccess.BufferString.Length);
 			tmpTextAccess.EndReading();
 
@@ -106,7 +107,7 @@ namespace LogJoint
 		/// The object is loaded with peice of text that contains the character pointer by <paramref name="initialPosition"/>.
 		/// Data is loaded from the underlying stream.
 		/// </summary>
-		public void BeginReading(long initialPosition, TextAccessDirection direction)
+		public async Task BeginReading(long initialPosition, TextAccessDirection direction)
 		{
 			if (readingStarted)
 				throw new InvalidOperationException("Cannot start reading session. Another reading session has already been started");
@@ -128,7 +129,7 @@ namespace LogJoint
 			charsCutFromBeginningOfTextBuffer = 0;
 			charsCutFromEndOfTextBuffer = 0;
 
-			AdvanceBufferInternal(0);
+			await AdvanceBufferInternal(0);
 		}
 
 		/// <summary>
@@ -148,7 +149,7 @@ namespace LogJoint
 		/// </summary>
 		/// <param name="charsToDiscard">Amount of already laoded characters to be discarder</param>
 		/// <returns>true if buffer successfully adnvanced, false if there is no more data in the stream.</returns>
-		public bool Advance(int charsToDiscard)
+		public ValueTask<bool> Advance(int charsToDiscard)
 		{
 			return AdvanceBufferInternal(charsToDiscard);
 		}
@@ -233,11 +234,11 @@ namespace LogJoint
 
 		#region ITextAccess members
 
-		public ITextAccessIterator OpenIterator(long initialPosition, TextAccessDirection direction)
+		public async Task<ITextAccessIterator> OpenIterator(long initialPosition, TextAccessDirection direction)
 		{
 			if (readingStarted)
 				throw new InvalidOperationException("Another iterator already exists. Dispose it first.");
-			BeginReading(initialPosition, direction);
+			await BeginReading(initialPosition, direction);
 			iterator.Open();
 			return iterator;
 		}
@@ -256,7 +257,7 @@ namespace LogJoint
 
 		#region Implementation
 
-		bool AdvanceBufferInternal(int charsToDiscard)
+		async ValueTask<bool> AdvanceBufferInternal(int charsToDiscard)
 		{
 			CheckIsReading();
 
@@ -267,8 +268,8 @@ namespace LogJoint
 
 			if (!CheckPreconditionsToMoveBuffer())
 				return false;
-			PositionateStreamAndReloadDecoderIfNeeded();
-			int charsDecoded = ReadAndDecodeNextBinaryBlock();
+			await PositionateStreamAndReloadDecoderIfNeeded();
+			int charsDecoded = await ReadAndDecodeNextBinaryBlock();
 			if (charsDecoded == 0)
 			{
 				AdvanceStreamPositionToReadFromNextTime();
@@ -297,7 +298,7 @@ namespace LogJoint
 #endif
 		}
 
-		void PositionateStreamAndReloadDecoderIfNeeded()
+		async ValueTask PositionateStreamAndReloadDecoderIfNeeded()
 		{
 			if (decoderNeedsReloading)
 			{
@@ -305,7 +306,7 @@ namespace LogJoint
 				if (streamPositionToReadFromNextTime != 0 && maxBytesPerChar > 1)
 				{
 					stream.Position = streamPositionToReadFromNextTime - maxBytesPerChar;
-					stream.Read(binaryBuffer, 0, maxBytesPerChar);
+					await stream.ReadAsync(binaryBuffer, 0, maxBytesPerChar);
 					decoder.GetChars(binaryBuffer, 0, maxBytesPerChar, charBuffer, 0);
 					// Decoder reloaded and stream has right position. Leaving.
 					return;
@@ -318,9 +319,9 @@ namespace LogJoint
 				stream.Position = streamPositionToReadFromNextTime;
 		}
 
-		int ReadAndDecodeNextBinaryBlock()
+		async ValueTask<int> ReadAndDecodeNextBinaryBlock()
 		{
-			int bytesRead = stream.Read(binaryBuffer, 0, binaryBufferSize);
+			int bytesRead = await stream.ReadAsync(binaryBuffer, 0, binaryBufferSize);
 			int charsDecoded = decoder.GetChars(binaryBuffer, 0, bytesRead, charBuffer, 0);
 
 			return charsDecoded;
@@ -485,7 +486,7 @@ namespace LogJoint
 				get { CheckDisposed(); return impl.AdvanceDirection; }
 			}
 
-			public bool Advance(int charsToDiscard)
+			public ValueTask<bool> Advance(int charsToDiscard)
 			{
 				CheckDisposed();
 				return impl.Advance(charsToDiscard);

@@ -98,7 +98,7 @@ namespace LogJoint.DebugOutput
 			public static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, UInt32 dwDesiredAccess, UInt32 dwFileOffsetHigh, UInt32 dwFileOffsetLow, UInt32 dwNumberOfBytesToMap);
 		};
 
-		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		protected override Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (this.trace.NewFrame)
 			{
@@ -138,6 +138,7 @@ namespace LogJoint.DebugOutput
 					this.trace.Error(e, "DebugOutput listening thread failed");
 				}
 			}
+			return Task.CompletedTask;
 		}
 	}
 

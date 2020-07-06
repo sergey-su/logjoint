@@ -7,6 +7,7 @@ using System.Linq;
 using System.Xml;
 using JUST;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.JsonFormat
 {
@@ -233,9 +234,9 @@ namespace LogJoint.JsonFormat
 				this.callback = reader.CreateMessageBuilderCallback();
 				this.bodyRegex = reader.formatInfo.BodyRe.Regex;
 			}
-			public override void ParserCreated(CreateParserParams p)
+			public override Task ParserCreated(CreateParserParams p)
 			{
-				base.ParserCreated(p);
+				return base.ParserCreated(p);
 			}
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
@@ -266,9 +267,9 @@ namespace LogJoint.JsonFormat
 			{
 				this.reader = reader;
 			}
-			public override void ParserCreated(CreateParserParams p)
+			public override Task ParserCreated(CreateParserParams p)
 			{
-				base.ParserCreated(p);
+				return base.ParserCreated(p);
 			}
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{

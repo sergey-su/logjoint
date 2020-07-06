@@ -65,7 +65,7 @@ namespace LogJoint.Preprocessing
 			var readerFactory = factory as IMediaBasedReaderFactory;
 			if (readerFactory == null)
 				throw new InvalidDataException("bad factory: " + factoryName);
-			using (ILogMedia fileMedia = new SimpleFileMedia(
+			using (ILogMedia fileMedia = await SimpleFileMedia.Create(
 				SimpleFileMedia.CreateConnectionParamsFromFileName(@params.Location)))
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (var reader = readerFactory.CreateMessagesReader(
@@ -74,13 +74,13 @@ namespace LogJoint.Preprocessing
 				var readerImpl = reader as MediaBasedPositionedMessagesReader; // todo: do not use real classes; have stream encoding in an interface.
 				if (readerImpl == null)
 					throw new InvalidDataException("bad reader was made by factory " + factoryName);
-				reader.UpdateAvailableBounds(false);
+				await reader.UpdateAvailableBounds(false);
 				var range = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
 				double rangeLen = range.Length;
 				using (var progress = progressAggregator.CreateProgressSink())
-				using (var parser = reader.CreateParser(new CreateParserParams(reader.BeginPosition, 
-					flags: MessagesParserFlag.DisableDejitter | MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading)))
 				using (var writer = new StreamWriter(tmpFileName, false, readerImpl.StreamEncoding))
+				await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.BeginPosition,
+					flags: MessagesParserFlag.DisableDejitter | MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading)), async parser =>
 				{
 					var queue = new VCSKicksCollection.PriorityQueue<IMessage>(
 						new MessagesComparer(ignoreConnectionIds: true));
@@ -91,7 +91,7 @@ namespace LogJoint.Preprocessing
 					{
 						if (cancellation.IsCancellationRequested)
 							break;
-						var msg = parser.ReadNext();
+						var msg = await parser.ReadNext();
 						if (msg == null)
 							break;
 						if ((msgIdx % progressUpdateThreshold) == 0 && rangeLen > 0)
@@ -110,7 +110,7 @@ namespace LogJoint.Preprocessing
 					}
 					while (queue.Count > 0)
 						dequeue();
-				}
+				});
 			}
 
 			return new PreprocessingStepParams(

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using LogJoint.LogMedia;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -23,34 +24,37 @@ namespace LogJoint
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		public SimpleFileMedia(IConnectionParams connectParams)
-			:
-			this(LogMedia.FileSystemImpl.Instance, connectParams)
+		public static Task<SimpleFileMedia> Create(IConnectionParams connectParams)
 		{
+			return Create(LogMedia.FileSystemImpl.Instance, connectParams);
 		}
 
-		public SimpleFileMedia(IFileSystem fileSystem, IConnectionParams connectParams)
-		{
-			if (fileSystem == null)
-				throw new ArgumentNullException("fileSystem");
+		public static async Task<SimpleFileMedia> Create(IFileSystem fileSystem, IConnectionParams connectParams)
+        {
+			var media = new SimpleFileMedia(fileSystem, connectParams);
+			try
+            {
+				await media.Update();
+				return media;
+			}
+			catch
+            {
+				media.Dispose();
+				throw;
+            }
+		}
 
-			this.fileSystem = fileSystem;
+
+		private SimpleFileMedia(IFileSystem fileSystem, IConnectionParams connectParams)
+		{
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException("fileSystem");
 			this.fileName = connectParams[fileNameParam];
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("Invalid or incomplete connection params");
 
-			try
-			{
-				Stream fs = fileSystem.OpenFile(fileName);
-				this.stream.SetStream(fs, true);
-				this.fsInfo = (IFileStreamInfo)fs;
-				Update();
-			}
-			catch (Exception)
-			{
-				Dispose();
-				throw;
-			}
+			Stream fs = fileSystem.OpenFile(fileName);
+			this.stream.SetStream(fs, true);
+			this.fsInfo = (IFileStreamInfo)fs;
 		}
 
 		public string FileName
@@ -65,7 +69,7 @@ namespace LogJoint
 			get { return fsInfo != null; }
 		}
 
-		public void Update()
+		public Task Update()
 		{
 			CheckDisposed();
 
@@ -78,7 +82,7 @@ namespace LogJoint
 				}
 				catch
 				{
-					return;
+					return Task.CompletedTask;
 				}
 				this.stream.SetStream(fs, true);
 				this.fsInfo = (IFileStreamInfo)fs;
@@ -90,11 +94,12 @@ namespace LogJoint
 				lastModified = new DateTime();
 				stream.SetStream(emptyMemoryStream, false);
 				fsInfo = null;
-				return;
+				return Task.CompletedTask;
 			}
 
 			size = stream.Length;
 			lastModified = fsInfo.LastWriteTime;
+			return Task.CompletedTask;
 		}
 
 		public Stream DataStream

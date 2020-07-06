@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -116,7 +117,7 @@ namespace LogJoint
 			get { return true; }
 		}
 
-		public void Update()
+		public async Task Update()
 		{
 			using (trace.NewFrame)
 			{
@@ -146,7 +147,7 @@ namespace LogJoint
 				foreach (LogPart part in parts.Values)
 				{
 					trace.Info("Handing {0}", part.DictionaryKey);
-					if (!part.Update())
+					if (!await part.Update())
 					{
 						trace.Info("The part is not valid anymore. Disposing it");
 						part.Dispose();
@@ -266,7 +267,7 @@ namespace LogJoint
 				get { return isDisposed; }
 			}
 
-			public bool Update()
+			public async Task<bool> Update()
 			{
 				using (owner.trace.NewNamedFrame("Updating {0}", this.fileName))
 				{
@@ -277,14 +278,14 @@ namespace LogJoint
 						if (simpleMedia == null)
 						{
 							owner.trace.Info("SimpleMedia object not created yet. Creating");
-							simpleMedia = new SimpleFileMedia(
+							simpleMedia = await SimpleFileMedia.Create(
 								owner.fileSystem,
 								SimpleFileMedia.CreateConnectionParamsFromFileName(Path.Combine(owner.baseDirectory, FileName))
 							);
 						}
 
 						owner.trace.Info("Updating simple media");
-						simpleMedia.Update();
+						await simpleMedia.Update();
 
 						if (!simpleMedia.IsAvailable)
 						{
@@ -300,10 +301,10 @@ namespace LogJoint
 							{
 								owner.trace.Info("Reader created");
 
-								reader.UpdateAvailableBounds(false);
+								await reader.UpdateAvailableBounds(false);
 								owner.trace.Info("Bounds found");
 
-								IMessage first = PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
+								IMessage first = await PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
 								if (first == null)
 								{
 									owner.trace.Warning("No messages found");

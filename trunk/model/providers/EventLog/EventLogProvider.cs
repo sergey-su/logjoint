@@ -49,7 +49,7 @@ namespace LogJoint.WindowsEventLog
 			return eventLogIdentity.LogName;
 		}
 
-		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (this.trace.NewFrame)
 			{

@@ -12,19 +12,19 @@ namespace LogJoint
 	public static class PositionedMessagesUtils
 	{
 
-		public static long NormalizeMessagePosition(IPositionedMessagesReader reader,
+		public static async Task<long> NormalizeMessagePosition(IPositionedMessagesReader reader,
 			long position)
 		{
 			if (position == reader.BeginPosition)
 				return position;
-			IMessage m = ReadNearestMessage(reader, position,
+			IMessage m = await ReadNearestMessage(reader, position,
 				MessagesParserFlag.HintMessageTimeIsNotNeeded | MessagesParserFlag.HintMessageContentIsNotNeeed);
 			if (m != null)
 				return m.Position;
 			return reader.EndPosition;
 		}
 
-		public static long? FindNextMessagePosition(IPositionedMessagesReader reader,
+		public static async Task<long?> FindNextMessagePosition(IPositionedMessagesReader reader,
 			long originalMessagePos)
 		{
 			// Validate the input.
@@ -32,47 +32,47 @@ namespace LogJoint
 				return null;
 			if (originalMessagePos >= reader.EndPosition)
 				return null;
-			using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(originalMessagePos,
-				null, MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageTimeIsNotNeeded, 
-				MessagesParserDirection.Forward, null)))
+			return await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(originalMessagePos,
+				null, MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageTimeIsNotNeeded,
+				MessagesParserDirection.Forward, null)), async parser =>
 			{
 				if (parser.ReadNext() == null)
-					return null;
-				IMessage p = parser.ReadNext();
+					return (long?)null;
+				IMessage p = await parser.ReadNext();
 				if (p == null)
 					return null;
 				return p.Position;
-			}
+			});
 		}
 
-		public static long? FindPrevMessagePosition(IPositionedMessagesReader reader,
+		public static async Task<long?> FindPrevMessagePosition(IPositionedMessagesReader reader,
 			long originalMessagePos)
 		{
-			long nextMessagePos;
-			using (IPositionedMessagesParser p = reader.CreateParser(new CreateParserParams(originalMessagePos, null,
+			long nextMessagePos = 0;
+			await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(originalMessagePos, null,
 				MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
-				MessagesParserDirection.Forward)))
+				MessagesParserDirection.Forward)), async p =>
 			{
-				var msgAtOriginalPos = p.ReadNext();
+				var msgAtOriginalPos = await p.ReadNext();
 				if (msgAtOriginalPos != null)
 					nextMessagePos = msgAtOriginalPos.Position;
 				else
 					nextMessagePos = reader.EndPosition;
-			}
-			using (IPositionedMessagesParser p = reader.CreateParser(new CreateParserParams(nextMessagePos, null,
+			});
+			return await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(nextMessagePos, null,
 				MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
-				MessagesParserDirection.Backward)))
+				MessagesParserDirection.Backward)), async p =>
 			{
-				IMessage msg = p.ReadNext();
+				IMessage msg = await p.ReadNext();
 				if (msg != null)
 					return msg.Position;
-				return null;
-			}
+				return (long?)null;
+			});
 		}
 
-		public static MessageTimestamp? ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
+		public static async Task<MessageTimestamp?> ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
 		{
-			IMessage m = ReadNearestMessage(reader, position, MessagesParserFlag.HintMessageContentIsNotNeeed);
+			IMessage m = await ReadNearestMessage(reader, position, MessagesParserFlag.HintMessageContentIsNotNeeed);
 			if (m != null)
 				return m.Time;
 			return null;
@@ -92,14 +92,14 @@ namespace LogJoint
 		/// the message with the smallest available position.</param>
 		/// <param name="lastMessage">When the function returns 
 		/// <paramref name="lastMessage"/> receives the message with the largest available position.</param>
-		public static void GetBoundaryMessages(
+		public static async Task<(IMessage firstMessage, IMessage lastMessage)> GetBoundaryMessages(
 			IPositionedMessagesReader reader,
-			IMessage cachedFirstMessage,
-			out IMessage firstMessage, out IMessage lastMessage)
+			IMessage cachedFirstMessage)
 		{
+			IMessage firstMessage, lastMessage;
 			if (cachedFirstMessage == null)
 			{
-				firstMessage = ReadNearestMessage(reader, reader.BeginPosition);
+				firstMessage = await ReadNearestMessage(reader, reader.BeginPosition);
 			}
 			else
 			{
@@ -108,21 +108,22 @@ namespace LogJoint
 
 			lastMessage = firstMessage;
 
-			using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(reader.EndPosition, 
-				null, MessagesParserFlag.Default, MessagesParserDirection.Backward)))
+			await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.EndPosition,
+				null, MessagesParserFlag.Default, MessagesParserDirection.Backward)), async parser =>
 			{
-				IMessage tmp = parser.ReadNext();
+				IMessage tmp = await parser.ReadNext();
 				if (tmp != null)
 					lastMessage = tmp;
-			}
+			});
+			return (firstMessage, lastMessage);
 		}
 
-		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound)
+		public static async Task<long> LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound)
 		{
-			return LocateDateBound(reader, date, bound, CancellationToken.None);
+			return await LocateDateBound(reader, date, bound, CancellationToken.None);
 		}
 		
-		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound, CancellationToken cancellation)
+		public static async Task<long> LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound, CancellationToken cancellation)
 		{
 			var d = new MessageTimestamp(date);
 
@@ -136,7 +137,7 @@ namespace LogJoint
 			{
 				long count2 = count / 2;
 
-				MessageTimestamp d2 = ReadNearestMessageTimestamp(reader, pos + count2).GetValueOrDefault(MessageTimestamp.MaxValue);
+				MessageTimestamp d2 = (await ReadNearestMessageTimestamp(reader, pos + count2)).GetValueOrDefault(MessageTimestamp.MaxValue);
 				bool moveRight = false;
 				switch (bound)
 				{
@@ -164,7 +165,7 @@ namespace LogJoint
 
 			if (bound == ValueBound.LowerReversed || bound == ValueBound.UpperReversed)
 			{
-				long? tmp = FindPrevMessagePosition(reader, pos);
+				long? tmp = await FindPrevMessagePosition(reader, pos);
 				if (tmp == null)
 					return begin - 1;
 				pos = tmp.Value;
@@ -173,18 +174,18 @@ namespace LogJoint
 			return pos;
 		}
 
-		static public IMessage ReadNearestMessage(IPositionedMessagesReader reader, long position)
+		static public Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position)
 		{
 			return ReadNearestMessage(reader, position, MessagesParserFlag.Default);
 		}
 
-		static public IMessage ReadNearestMessage(IPositionedMessagesReader reader, long position, MessagesParserFlag flags)
+		static public async Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position, MessagesParserFlag flags)
 		{
-			using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(position, null, flags, MessagesParserDirection.Forward)))
+			return await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(position, null, flags, MessagesParserDirection.Forward)), async parser =>
 			{
-				IMessage ret = parser.ReadNext();
+				IMessage ret = await parser.ReadNext();
 				return ret;
-			}
+			});
 		}
 	}
 }

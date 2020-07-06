@@ -1,6 +1,8 @@
-﻿using System;
+﻿using LogJoint.Postprocessing;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LogJoint
@@ -39,19 +41,36 @@ namespace LogJoint
 	/// </summary>
 	public class DejitteringMessagesParser : IPositionedMessagesParser
 	{
-		public DejitteringMessagesParser(Func<CreateParserParams, IPositionedMessagesParser> underlyingParserFactory,
-			CreateParserParams originalParams, DejitteringParams config): 
-			this(underlyingParserFactory, originalParams, config.JitterBufferSize)
+		public static Task<DejitteringMessagesParser> Create(Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory,
+			CreateParserParams originalParams, DejitteringParams config)
+        {
+			return Create(underlyingParserFactory, originalParams, config.JitterBufferSize);
+        }
+
+		public static async Task<DejitteringMessagesParser> Create(Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory,
+			CreateParserParams originalParams, int jitterBufferSize)
 		{
+			if (underlyingParserFactory == null)
+				throw new ArgumentNullException("underlyingParserFactory");
+
+			var parser = new DejitteringMessagesParser(originalParams, jitterBufferSize);
+			try
+			{
+				await parser.CreateUnderlyingParserAndInitJitterBuffer(underlyingParserFactory);
+			}
+			catch
+			{
+				await parser.Dispose();
+				throw;
+			}
+			return parser;
 		}
 
-		public DejitteringMessagesParser(Func<CreateParserParams, IPositionedMessagesParser> underlyingParserFactory, 
-			CreateParserParams originalParams, int jitterBufferSize)
+
+		private DejitteringMessagesParser(CreateParserParams originalParams, int jitterBufferSize)
 		{
 			if (jitterBufferSize < 1)
 				throw new ArgumentException("jitterBufferSize must be equal to or geater than 1");
-			if (underlyingParserFactory == null)
-				throw new ArgumentNullException("underlyingParserFactory");
 			if (originalParams.Range == null)
 				throw new ArgumentNullException("DejitteringMessagesParser does not support unspecified positions range", "originalParams.Range");
 
@@ -61,17 +80,16 @@ namespace LogJoint
 			this.jitterBufferSize = jitterBufferSize;
 			this.jitterBuffer = new VCSKicksCollection.PriorityQueue<Entry>(new Comparer(originalParams.Direction, jitterBufferSize));
 			this.positionsBuffer = new Generic.CircularBuffer<MessagesPositions>(jitterBufferSize + 1);
-			CreateUnderlyingParserAndInitJitterBuffer(underlyingParserFactory);
 		}
 
 		#region IPositionedMessagesParser Members
 
-		public IMessage ReadNext()
+		public async ValueTask<IMessage> ReadNext()
 		{
-			return ReadNextAndPostprocess().Message;
+			return (await ReadNextAndPostprocess()).Message;
 		}
 
-		public PostprocessedMessage ReadNextAndPostprocess()
+		public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
 		{
 			CheckDisposed();
 			for (; ; )
@@ -90,24 +108,20 @@ namespace LogJoint
 						return new PostprocessedMessage();
 					}
 				}
-				LoadNextMessage();
+				await LoadNextMessage();
 				return ret.data;
 			}
 		}
 
 		#endregion
 
-		#region IDisposable Members
-
-		public void Dispose()
+		public async Task Dispose()
 		{
 			if (disposed)
 				return;
 			disposed = true;
-			enumerator.Dispose();
+			await enumerator.Dispose();
 		}
-
-		#endregion
 
 		class Comparer : IComparer<Entry>
 		{
@@ -151,7 +165,7 @@ namespace LogJoint
 			return direction == MessagesParserDirection.Backward ? MessagesParserDirection.Forward : MessagesParserDirection.Backward;
 		}
 
-		void CreateUnderlyingParserAndInitJitterBuffer(Func<CreateParserParams, IPositionedMessagesParser> underlyingParserFactory)
+		async Task CreateUnderlyingParserAndInitJitterBuffer(Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory)
 		{
 			CreateParserParams reversedParserParams = originalParams;
 			reversedParserParams.Range = null;
@@ -160,12 +174,12 @@ namespace LogJoint
 
 			int reversedMessagesQueued = 0;
 
-			using (IPositionedMessagesParser reversedParser = underlyingParserFactory(reversedParserParams))
+			await DisposableAsync.Using(await underlyingParserFactory(reversedParserParams), async reversedParser =>
 			{
 				var tmp = new List<PostprocessedMessage>();
 				for (int i = 0; i < jitterBufferSize; ++i)
 				{
-					var tmpMsg = reversedParser.ReadNextAndPostprocess();
+					var tmpMsg = await reversedParser.ReadNextAndPostprocess();
 					if (tmpMsg.Message == null)
 						break;
 					tmp.Add(tmpMsg);
@@ -177,12 +191,12 @@ namespace LogJoint
 					positionsBuffer.Push(new MessagesPositions(tmpMsg.Message));
 					++reversedMessagesQueued;
 				}
-			}
+			});
 
-			enumerator = ReadAddMessagesFromRangeCompleteJitterBuffer(underlyingParserFactory).GetEnumerator();
+			enumerator = await ReadAddMessagesFromRangeCompleteJitterBuffer(underlyingParserFactory).GetEnumerator();
 			for (int i = 0; i < jitterBufferSize; ++i)
 			{
-				var tmp = LoadNextMessage();
+				var tmp = await LoadNextMessage();
 				reversedMessagesQueued -= tmp.DequeuedMessages;
 				if (tmp.LoadedMessage == null)
 					break;
@@ -194,35 +208,39 @@ namespace LogJoint
 			}
 		}
 
-		IEnumerable<PostprocessedMessage> ReadAddMessagesFromRangeCompleteJitterBuffer(Func<CreateParserParams, IPositionedMessagesParser> underlyingParserFactory)
+		IEnumerableAsync<PostprocessedMessage> ReadAddMessagesFromRangeCompleteJitterBuffer(
+			Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory)
 		{
-			CreateParserParams mainParserParams = originalParams;
-			//mainParserParams.Range = null;
-			using (var mainParser = underlyingParserFactory(mainParserParams))
+			return EnumerableAsync.Produce<PostprocessedMessage>(async yieldAsync =>
 			{
-				for (; ; )
+				CreateParserParams mainParserParams = originalParams;
+				//mainParserParams.Range = null;
+				await DisposableAsync.Using(await underlyingParserFactory(mainParserParams), async mainParser =>
 				{
-					var msg = mainParser.ReadNextAndPostprocess();
-					if (msg.Message == null)
-						break;
-					yield return msg;
-				}
-			}
+					for (; ; )
+					{
+						var msg = await mainParser.ReadNextAndPostprocess();
+						if (msg.Message == null)
+							break;
+						await yieldAsync.YieldAsync(msg);
+					}
+				});
 
-			CreateParserParams jitterBufferCompletionParams = originalParams;
-			jitterBufferCompletionParams.Flags |= MessagesParserFlag.DisableMultithreading;
-			jitterBufferCompletionParams.Range = null;
-			jitterBufferCompletionParams.StartPosition = originalParams.Direction == MessagesParserDirection.Forward ? originalParams.Range.Value.End : originalParams.Range.Value.Begin;
-			using (var completionParser = underlyingParserFactory(jitterBufferCompletionParams))
-			{
-				for (int i = 0; i < jitterBufferSize; ++i)
+				CreateParserParams jitterBufferCompletionParams = originalParams;
+				jitterBufferCompletionParams.Flags |= MessagesParserFlag.DisableMultithreading;
+				jitterBufferCompletionParams.Range = null;
+				jitterBufferCompletionParams.StartPosition = originalParams.Direction == MessagesParserDirection.Forward ? originalParams.Range.Value.End : originalParams.Range.Value.Begin;
+				await DisposableAsync.Using(await underlyingParserFactory(jitterBufferCompletionParams), async completionParser =>
 				{
-					var msg = completionParser.ReadNextAndPostprocess();
-					if (msg.Message == null)
-						break;
-					yield return msg;
-				}
-			}
+					for (int i = 0; i < jitterBufferSize; ++i)
+					{
+						var msg = await completionParser.ReadNextAndPostprocess();
+						if (msg.Message == null)
+							break;
+						await yieldAsync.YieldAsync(msg);
+					}
+				});
+			});
 		}
 
 		struct LoadNextMessageResult
@@ -231,12 +249,12 @@ namespace LogJoint
 			public int DequeuedMessages;
 		};
 
-		LoadNextMessageResult LoadNextMessage()
+		async ValueTask<LoadNextMessageResult> LoadNextMessage()
 		{
 			LoadNextMessageResult ret = new LoadNextMessageResult();
 			if (eofReached)
 				return ret;
-			if (!enumerator.MoveNext())
+			if (!await enumerator.MoveNext())
 			{
 				eofReached = true;
 			}
@@ -277,7 +295,7 @@ namespace LogJoint
 		readonly VCSKicksCollection.PriorityQueue<Entry> jitterBuffer;
 		readonly Generic.CircularBuffer<MessagesPositions> positionsBuffer;
 		readonly int jitterBufferSize;
-		IEnumerator<PostprocessedMessage> enumerator;
+		IEnumeratorAsync<PostprocessedMessage> enumerator;
 		long currentIndex;
 		bool eofReached;
 		bool disposed;

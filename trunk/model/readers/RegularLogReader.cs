@@ -5,6 +5,8 @@ using LogJoint.RegularExpressions;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace LogJoint.RegularGrammar
 {
@@ -189,9 +191,9 @@ namespace LogJoint.RegularGrammar
 				this.headerRegex = headerRe;
 				this.bodyRegex = CloneRegex(reader.fmtInfo.BodyRe).Regex;
 			}
-			public override void ParserCreated(CreateParserParams p)
+			public override async Task ParserCreated(CreateParserParams p)
 			{
-				base.ParserCreated(p);
+				await base.ParserCreated(p);
 				currentParserFlags = ParserFlagsToMakeMessageFlags(p.Flags);
 			}
 			protected override IMessage MakeMessage(TextMessageCapture capture)
@@ -228,9 +230,9 @@ namespace LogJoint.RegularGrammar
 			{
 				this.reader = reader;
 			}
-			public override void ParserCreated(CreateParserParams p)
+			public override async Task ParserCreated(CreateParserParams p)
 			{
-				base.ParserCreated(p);
+				await base.ParserCreated(p);
 				flags = ParserFlagsToMakeMessageFlags(p.Flags);
 			}
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)

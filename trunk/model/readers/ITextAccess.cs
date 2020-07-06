@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -16,12 +17,12 @@ namespace LogJoint
 		long CharIndexToPosition(int idx);
 		int PositionToCharIndex(long position);
 		TextAccessDirection AdvanceDirection { get; }
-		bool Advance(int charsToDiscard);
+		ValueTask<bool> Advance(int charsToDiscard);
 	};
 
 	public interface ITextAccess
 	{
-		ITextAccessIterator OpenIterator(long initialPosition, TextAccessDirection direction);
+		Task<ITextAccessIterator> OpenIterator(long initialPosition, TextAccessDirection direction);
 		int AverageBufferLength { get; }
 		int MaximumSequentialAdvancesAllowed { get; }
 	};

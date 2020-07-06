@@ -60,23 +60,22 @@ namespace LogJoint
 			return finishedSynchroniously;
 		}
 
-		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			var parserFlags = (flags & EnumMessagesFlag.IsSequentialScanningHint) != 0 ? MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading : MessagesParserFlag.None;
-			using (var parser = ctx.Reader.CreateParser(
-				new CreateParserParams(positionToContinueAsync, null, parserFlags, direction)))
+			await DisposableAsync.Using(await ctx.Reader.CreateParser(
+				new CreateParserParams(positionToContinueAsync, null, parserFlags, direction)), async parser =>
 			{
 				for (; ; )
 				{
 					ctx.Cancellation.ThrowIfCancellationRequested();
-					var m = parser.ReadNext();
+					var m = await parser.ReadNext();
 					if (m == null)
 						break;
 					if (!callback(m))
 						break;
 				}
-			}
-			return Task.FromResult(0);
+			});
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

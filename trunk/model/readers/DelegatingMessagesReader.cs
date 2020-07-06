@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -26,7 +27,7 @@ namespace LogJoint
 			get { return underliyingReader.EndPosition; }
 		}
 
-		public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
+		public Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
 		{
 			return underliyingReader.UpdateAvailableBounds(incrementalMode);
 		}
@@ -52,7 +53,7 @@ namespace LogJoint
 			set { underliyingReader.TimeOffsets = value; }
 		}
 
-		public IPositionedMessagesParser CreateParser(CreateParserParams p)
+		public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
 		{
 			return underliyingReader.CreateParser(p);
 		}

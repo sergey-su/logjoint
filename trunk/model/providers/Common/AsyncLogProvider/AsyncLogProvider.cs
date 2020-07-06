@@ -24,13 +24,12 @@ namespace LogJoint
 				LazyThreadSafetyMode.ExecutionAndPublication);
 		}
 
-		protected void StartAsyncReader(string threadName, IPositionedMessagesReader reader)
+		protected void StartAsyncReader(Func<Task<IPositionedMessagesReader>> readerFactory)
 		{
 			Debug.Assert(this.thread == null);
 			Debug.Assert(reader != null);
 
-			this.reader = reader;
-			this.thread = Task.Run(() => Run());
+			this.thread = Task.Run(() => Run(readerFactory));
 		}
 
 		ILogProviderFactory ILogProvider.Factory
@@ -67,7 +66,7 @@ namespace LogJoint
 			get
 			{
 				CheckDisposed();
-				return reader.TimeOffsets;
+				return reader?.TimeOffsets ?? TimeOffsets.Empty;
 			}
 		}
 
@@ -280,10 +279,11 @@ namespace LogJoint
 			cmd.Complete();
 		}
 
-		async Task Run()
+		async Task Run(Func<Task<IPositionedMessagesReader>> readerFactory)
 		{
 			try
 			{
+				reader = await readerFactory();
 				StatsTransaction(stats =>
 				{
 					stats.State = LogProviderState.DetectingAvailableTime;
@@ -482,7 +482,7 @@ namespace LogJoint
 			bool itIsFirstUpdate = firstUpdateFlag;
 			firstUpdateFlag = false;
 
-			UpdateBoundsStatus status = reader.UpdateAvailableBounds(incrementalMode);
+			UpdateBoundsStatus status = await reader.UpdateAvailableBounds(incrementalMode);
 
 			if (status == UpdateBoundsStatus.NothingUpdated && incrementalMode)
 			{
@@ -495,8 +495,7 @@ namespace LogJoint
 			}
 
 			// Get new boundary values into temporary variables
-			IMessage newFirst, newLast;
-			PositionedMessagesUtils.GetBoundaryMessages(reader, null, out newFirst, out newLast);
+			(IMessage newFirst, IMessage newLast) = await PositionedMessagesUtils.GetBoundaryMessages(reader, null);
 
 			if (firstMessage != null)
 			{

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using LogJoint.RegularExpressions;
 
 namespace LogJoint.StreamParsingStrategies
@@ -16,10 +17,10 @@ namespace LogJoint.StreamParsingStrategies
 			this.textStreamPositioningParams = textStreamPositioningParams;
 		}
 
-		public virtual void ParserCreated(CreateParserParams p) { }
+		public virtual Task ParserCreated(CreateParserParams p) { return Task.CompletedTask; }
 		public virtual void ParserDestroyed() { }
-		public virtual IMessage ReadNext() { return null; }
-		public virtual PostprocessedMessage ReadNextAndPostprocess() { return new PostprocessedMessage(ReadNext(), null); }
+		public virtual ValueTask<IMessage> ReadNext() { return new ValueTask<IMessage>((IMessage)null); }
+		public virtual async ValueTask<PostprocessedMessage> ReadNextAndPostprocess() { return new PostprocessedMessage(await ReadNext(), null); }
 
 		protected readonly ILogMedia media;
 		protected readonly Encoding encoding;

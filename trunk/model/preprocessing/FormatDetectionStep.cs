@@ -16,7 +16,7 @@ namespace LogJoint.Preprocessing
 			this.extentions = extentions;
 		}
 
-		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			var header = new StreamHeader(sourceFile.Location);
 			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile, header)).FirstOrDefault(x => x != null);
@@ -29,8 +29,7 @@ namespace LogJoint.Preprocessing
 			else if (IsTar(sourceFile, header))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateUntarStep(sourceFile));
 			else
-				AutodetectFormatAndYield(sourceFile, callback);
-			return Task.FromResult(0);
+				await AutodetectFormatAndYield(sourceFile, callback);
 		}
 
 		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
@@ -99,11 +98,11 @@ namespace LogJoint.Preprocessing
 				|| tarHeader.Magic?.Contains(ICSharpCode.SharpZipLib.Tar.TarHeader.TMAGIC) == true;
 		}
 
-		static void AutodetectFormatAndYield(PreprocessingStepParams file, IPreprocessingStepCallback callback)
+		static async Task AutodetectFormatAndYield(PreprocessingStepParams file, IPreprocessingStepCallback callback)
 		{
 			callback.SetStepDescription(string.Format("Detecting format: {0}", file.FullPath));
 			var progressHandler = new ProgressHandler() { callback = callback };
-			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Location, file.FullPath, progressHandler.cancellation.Token, progressHandler);
+			var detectedFormat = await callback.FormatAutodetect.DetectFormat(file.Location, file.FullPath, progressHandler.cancellation.Token, progressHandler);
 			if (detectedFormat != null)
 			{
 				file.DumpToConnectionParams(detectedFormat.ConnectParams);

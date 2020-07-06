@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -19,7 +20,7 @@ namespace LogJoint
 
 	public interface IFormatAutodetect
 	{
-		DetectedFormat DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress);
+		Task<DetectedFormat> DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress);
 		IFormatAutodetect Clone();
 	};
 

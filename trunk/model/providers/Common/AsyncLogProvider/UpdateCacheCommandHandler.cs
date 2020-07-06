@@ -47,7 +47,7 @@ namespace LogJoint
 			return false;
 		}
 
-		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			this.reader = ctx.Reader;
 			this.currentStats = owner.Stats;
@@ -58,8 +58,7 @@ namespace LogJoint
 				startFrom - cacheSize / 2,
 				startFrom + cacheSize / 2 + (cacheSize % 2) // add remainder to ensure that the diff between positions equals exactly cacheSize
 			);
-			FillCacheRanges(ctx.Preemption);
-			return Task.FromResult(0);
+			await FillCacheRanges(ctx.Preemption);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)
@@ -120,7 +119,7 @@ namespace LogJoint
 			}
 		}
 
-		void FillCacheRanges(CancellationToken cancellationToken)
+		async Task FillCacheRanges(CancellationToken cancellationToken)
 		{
 			using (tracer.NewFrame)
 			using (var perfop = new Profiling.Operation(tracer, "FillRanges"))
@@ -153,13 +152,12 @@ namespace LogJoint
 
 						ResetFlags();
 
-						// Start reading elements
-						using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(
+						await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(
 								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
 								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
-								MessagesParserDirection.Forward, 
-								postprocessor: null, 
-								cancellation: cancellationToken)))
+								MessagesParserDirection.Forward,
+								postprocessor: null,
+								cancellation: cancellationToken)), async parser =>
 						{
 							tracer.Info("parser created");
 							for (; ; )
@@ -168,7 +166,7 @@ namespace LogJoint
 
 								ResetFlags();
 
-								if (!ReadNextMessage(parser))
+								if (!await ReadNextMessage(parser))
 								{
 									cancellationToken.ThrowIfCancellationRequested();
 									break;
@@ -178,7 +176,7 @@ namespace LogJoint
 
 								++messagesRead;
 							}
-						}
+						});
 
 						tracer.Info("reading finished");
 
@@ -271,9 +269,9 @@ namespace LogJoint
 			lastReadMessage = null;
 		}
 
-		bool ReadNextMessage(IPositionedMessagesParser parser)
+		async Task<bool> ReadNextMessage(IPositionedMessagesParser parser)
 		{
-			var tmp = parser.ReadNextAndPostprocess();
+			var tmp = await parser.ReadNextAndPostprocess();
 			lastReadMessage = tmp.Message;
 			return lastReadMessage != null;
 		}

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using LogJoint.RegularExpressions;
 
 namespace LogJoint.StreamParsingStrategies
@@ -14,10 +16,10 @@ namespace LogJoint.StreamParsingStrategies
 			this.textSplitter = new ReadMessageFromTheMiddleProblem(new MessagesSplitter(new StreamTextAccess(media.DataStream, encoding, textStreamPositioningParams), headerRe, splitterFlags));
 		}
 
-		public override void ParserCreated(CreateParserParams p)
+		public override async Task ParserCreated(CreateParserParams p)
 		{
 			postprocessor = p.PostprocessorsFactory?.Invoke();
-			textSplitter.BeginSplittingSession(p.Range.Value, p.StartPosition, p.Direction);
+			await textSplitter.BeginSplittingSession(p.Range.Value, p.StartPosition, p.Direction);
 
 			// todo
 			//if (textSplitter.CurrentMessageIsEmpty)
@@ -43,16 +45,16 @@ namespace LogJoint.StreamParsingStrategies
 			postprocessor?.Dispose();
 		}
 
-		public override IMessage ReadNext()
+		public override async ValueTask<IMessage> ReadNext()
 		{
-			if (!textSplitter.GetCurrentMessageAndMoveToNextOne(capture))
+			if (!await textSplitter.GetCurrentMessageAndMoveToNextOne(capture))
 				return null;
 			return MakeMessage(capture);
 		}
 
-		public override PostprocessedMessage ReadNextAndPostprocess() 
+		public override async ValueTask<PostprocessedMessage> ReadNextAndPostprocess() 
 		{
-			var msg = ReadNext();
+			var msg = await ReadNext();
 			return new PostprocessedMessage(
 				msg, 
 				msg != null ? postprocessor?.Postprocess(msg) : null

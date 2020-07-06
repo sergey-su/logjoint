@@ -5,6 +5,7 @@ using System.IO;
 using System.Xml;
 using System.Threading;
 using LogJoint.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace LogJoint.PlainText
 {
@@ -31,9 +32,9 @@ namespace LogJoint.PlainText
 			return sizeInBytesStat;
 		}
 
-		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (ILogMedia media = new SimpleFileMedia(
+			using (ILogMedia media = await SimpleFileMedia.Create(
 				LogMedia.FileSystemImpl.Instance, 
 				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
 			using (FileSystemWatcher watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName), 
@@ -63,7 +64,7 @@ namespace LogJoint.PlainText
 					if (WaitHandle.WaitAny(events, 250, false) == 0)
 						break;
 
-					media.Update();
+					await media.Update();
 
 					if (media.Size == lastStreamLength)
 						continue;
@@ -73,12 +74,12 @@ namespace LogJoint.PlainText
 
 					DateTime lastModified = media.LastModified;
 
-					splitter.BeginSplittingSession(new FileRange.Range(0, lastStreamLength), lastLinePosition, MessagesParserDirection.Forward);
+					await splitter.BeginSplittingSession(new FileRange.Range(0, lastStreamLength), lastLinePosition, MessagesParserDirection.Forward);
 					try
 					{
 						for (; ; )
 						{
-							if (!splitter.GetCurrentMessageAndMoveToNextOne(capture))
+							if (!await splitter.GetCurrentMessageAndMoveToNextOne(capture))
 								break;
 							lastLinePosition = capture.BeginPosition;
 

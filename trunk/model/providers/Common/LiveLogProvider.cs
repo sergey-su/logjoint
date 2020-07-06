@@ -132,7 +132,7 @@ namespace LogJoint
 		protected readonly LJTraceSource trace;
 		private IConnectionParams originalConnectionParams;
 		CancellationTokenSource stopEvt;
-		Thread listeningThread;
+		Task listeningThread;
 		LiveLogXMLWriter output;
 		readonly long defaultBackupMaxFileSize = 0;//16 * 1024 * 1024;
 
@@ -180,8 +180,6 @@ namespace LogJoint
 					trace.Info("Output created");
 
 					stopEvt = new CancellationTokenSource();
-
-					listeningThread = new Thread(ListeningThreadProc);
 				}
 				catch (Exception e)
 				{
@@ -201,9 +199,8 @@ namespace LogJoint
 		{
 			using (trace.NewFrame)
 			{
-				listeningThread.Name = threadName;
-				listeningThread.Start();
-				trace.Info("Thread started. Thread ID={0}", listeningThread.ManagedThreadId);
+				listeningThread = TaskUtils.StartInThreadPoolTaskScheduler(ListeningThreadProc);
+				trace.Info("Thread started");
 			}
 		}
 
@@ -219,7 +216,7 @@ namespace LogJoint
 
 				if (listeningThread != null)
 				{
-					if (!listeningThread.IsAlive)
+					if (listeningThread.IsCompleted)
 					{
 						trace.Info("Thread is not alive.");
 					}
@@ -227,7 +224,7 @@ namespace LogJoint
 					{
 						trace.Info("Thread has been created. Setting stop event and joining the thread.");
 						stopEvt.Cancel();
-						listeningThread.Join();
+						await listeningThread;
 						trace.Info("Thread finished");
 					}
 				}
@@ -242,7 +239,7 @@ namespace LogJoint
 			}
 		}
 
-		abstract protected void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output);
+		abstract protected Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output);
 
 		protected void ReportBackgroundActivityStatus(bool active)
 		{
@@ -258,13 +255,13 @@ namespace LogJoint
 			});
 		}
 
-		void ListeningThreadProc()
+		async Task ListeningThreadProc()
 		{
 			using (trace.NewFrame)
 			{
 				try
 				{
-					LiveLogListen(this.stopEvt.Token, this.output);
+					await LiveLogListen(this.stopEvt.Token, this.output);
 				}
 				catch (Exception e)
 				{

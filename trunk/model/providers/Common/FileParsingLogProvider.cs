@@ -18,13 +18,13 @@ namespace LogJoint
 	public class StreamLogProvider : AsyncLogProvider, ISaveAs
 	{
 		ILogMedia media;
-		readonly IPositionedMessagesReader reader;
+		IPositionedMessagesReader reader;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
 		string taskbarFileName;
 
 		public StreamLogProvider(
-			ILogProviderHost host, 
+			ILogProviderHost host,
 			ILogProviderFactory factory,
 			IConnectionParams connectParams,
 			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator
@@ -33,27 +33,28 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
-				if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
-					media = new RollingFilesMedia(
-						LogMedia.FileSystemImpl.Instance,
-						readerCreator, 
-						tracer,
-						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam])
-					);
-				else
-					media = new SimpleFileMedia(connectParams);
+				StartAsyncReader(async () => {
+					if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
+						media = new RollingFilesMedia(
+							LogMedia.FileSystemImpl.Instance,
+							readerCreator,
+							tracer,
+							new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam])
+						);
+					else
+						media = await SimpleFileMedia.Create(connectParams);
 
-				reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
-						settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix));
+					reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
+							settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix));
 
-				ITimeOffsets initialTimeOffset;
-				if (LogJoint.TimeOffsets.TryParse(
-					connectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] ?? "", out initialTimeOffset))
-				{
-					reader.TimeOffsets = initialTimeOffset;
-				}
-
-				StartAsyncReader("Reader thread: " + connectParams.ToString(), reader);
+					ITimeOffsets initialTimeOffset;
+					if (LogJoint.TimeOffsets.TryParse(
+						connectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] ?? "", out initialTimeOffset))
+					{
+						reader.TimeOffsets = initialTimeOffset;
+					}
+					return reader;
+				});
 
 				InitPathDependentMembers(connectParams);
 			}
