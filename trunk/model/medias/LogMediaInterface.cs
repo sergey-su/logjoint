@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -24,7 +23,7 @@ namespace LogJoint
 		/// the stream referenced by DataStream property. The properties of 
 		/// the stream may change unpredictably regardless any calls to Update().
 		/// </remarks>
-		void Update();
+		Task Update();
 		/// <summary>
 		/// Returns false when the media becomes unavailable. This may happen
 		/// when, for example, the log file gets deleted. Property value 

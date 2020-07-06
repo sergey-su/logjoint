@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using LogJoint.RegularExpressions;
 using System.Xml.Linq;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.XmlFormat 
 {
@@ -508,9 +509,9 @@ namespace LogJoint.XmlFormat
 				this.callback = reader.CreateMessageBuilderCallback();
 				this.bodyRegex = reader.formatInfo.BodyRe.Regex;
 			}
-			public override void ParserCreated(CreateParserParams p)
+			public override Task ParserCreated(CreateParserParams p)
 			{
-				base.ParserCreated(p);
+				return base.ParserCreated(p);
 			}
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
@@ -541,9 +542,9 @@ namespace LogJoint.XmlFormat
 			{
 				this.reader = reader;
 			}
-			public override void ParserCreated(CreateParserParams p)
+			public override Task ParserCreated(CreateParserParams p)
 			{
-				base.ParserCreated(p);
+				return base.ParserCreated(p);
 			}
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{

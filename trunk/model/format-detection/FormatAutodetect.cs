@@ -6,6 +6,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using LogJoint.MRU;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -26,7 +27,7 @@ namespace LogJoint
 			this.traceSourceFactory = traceSourceFactory;
 		}
 
-		DetectedFormat IFormatAutodetect.DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
+		Task<DetectedFormat> IFormatAutodetect.DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
 		{
 			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, traceSourceFactory);
 		}
@@ -36,7 +37,7 @@ namespace LogJoint
 			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, traceSourceFactory);
 		}
 
-		static DetectedFormat DetectFormat(
+		static async Task<DetectedFormat> DetectFormat(
 			string fileName,
 			string loggableName,
 			Func<ILogProviderFactory, int> mruIndexGetter,
@@ -49,20 +50,20 @@ namespace LogJoint
 				throw new ArgumentException("fileName");
 			if (mruIndexGetter == null)
 				throw new ArgumentNullException("mru");
-			Func<SimpleFileMedia> createFileMedia = () => new SimpleFileMedia(SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
+			Func<Task<SimpleFileMedia>> createFileMedia = () => SimpleFileMedia.Create(SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
 			var log = traceSourceFactory.CreateTraceSource("App", string.Format("fdtc.{0}", Interlocked.Increment(ref lastPerfOp)));
 			using (new Profiling.Operation(log, string.Format("format detection of {0}", loggableName)))
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (var localCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
 			{
 				var candidateFactories = GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry).ToArray();
-				var ret = candidateFactories.Select((factory, index) => (factory, index))/*.AsParallel()*/.Select(candidate =>
+				var ret = (await Task.WhenAll(candidateFactories.Select((factory, index) => (factory, index)).Select(async candidate =>
 				{
 					var (factory, idx) = candidate;
 					try
 					{
 						using (var perfOp = new Profiling.Operation(log, factory.ToString()))
-						using (var fileMedia = createFileMedia())
+						using (var fileMedia = await createFileMedia())
 						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
 							new MediaBasedReaderParams(threads, fileMedia,
 								MessagesReaderFlags.QuickFormatDetectionMode, parentLoggingPrefix: log.Prefix)))
@@ -74,18 +75,23 @@ namespace LogJoint
 								perfOp.Milestone("cancelled");
 								return (fmt: (DetectedFormat)null, idx);
 							}
-							reader.UpdateAvailableBounds(false);
+							await reader.UpdateAvailableBounds(false);
 							perfOp.Milestone("bounds detected");
-							using (var parser = reader.CreateParser(new CreateParserParams(0, null, 
-								MessagesParserFlag.DisableMultithreading| MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward)))
+							var parser = await reader.CreateParser(new CreateParserParams(0, null,
+								MessagesParserFlag.DisableMultithreading | MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward));
+							try
 							{
-								if (parser.ReadNext() != null)
+								if (await parser.ReadNext() != null)
 								{
 									log.Info("Autodetected format of {0}: {1}", fileName, factory);
 									localCancellation.Cancel();
 									return (fmt: new DetectedFormat(factory, ((IFileBasedLogProviderFactory)factory).CreateParams(fileName)), idx);
 								}
 							}
+							finally
+                            {
+								await parser.Dispose();
+                            }
 						}
 					}
 					catch (Exception e)
@@ -93,10 +99,10 @@ namespace LogJoint
 						log.Error(e, "Failed to load '{0}' as {1}", fileName, factory);
 					}
 					return (fmt: (DetectedFormat)null, idx);
-				}).Where(x => x.fmt != null).OrderBy(x => x.idx).Select(x => x.fmt).FirstOrDefault();
+				}))).Where(x => x.fmt != null).OrderBy(x => x.idx).Select(x => x.fmt).FirstOrDefault();
 				if (ret != null)
 					return ret;
-				using (var fileMedia = createFileMedia())
+				using (var fileMedia = await createFileMedia())
 				{
 					if (!IOUtils.IsBinaryFile(fileMedia.DataStream))
 					{

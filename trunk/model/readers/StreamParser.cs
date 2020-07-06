@@ -1,6 +1,7 @@
 ﻿using System;
 using LogJoint.StreamParsingStrategies;
 using LogJoint.Settings;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -12,7 +13,19 @@ namespace LogJoint
 		protected readonly CreateParserParams InitialParams;
 		protected readonly StreamParsingStrategies.BaseStrategy Strategy;
 
-		public StreamParser(
+		public static async Task<StreamParser> Create(
+			IPositionedMessagesReader owner,
+			CreateParserParams p,
+			TextStreamPositioningParams textStreamPositioningParams,
+			IGlobalSettingsAccessor globalSettings,
+			StrategiesCache strategiesCache)
+        {
+			var parser = new StreamParser(owner, p, textStreamPositioningParams, globalSettings, strategiesCache);
+			await parser.Strategy.ParserCreated(parser.InitialParams);
+			return parser;
+		}
+
+		private StreamParser(
 			IPositionedMessagesReader owner,
 			CreateParserParams p,
 			TextStreamPositioningParams textStreamPositioningParams,
@@ -29,8 +42,6 @@ namespace LogJoint
 				|| globalSettings.MultithreadedParsingDisabled;
 
 			CreateParsingStrategy(p, textStreamPositioningParams, strategiesCache, out this.Strategy);
-
-			this.Strategy.ParserCreated(p);
 		}
 
 		public struct StrategiesCache
@@ -43,7 +54,7 @@ namespace LogJoint
 			TextStreamPositioningParams textStreamPositioningParams)
 		{
 #if SILVERLIGHT
-				return false;
+			return false;
 #else
 			if (System.Environment.ProcessorCount == 1)
 			{
@@ -110,20 +121,21 @@ namespace LogJoint
 			get { return disposed; }
 		}
 
-		public virtual void Dispose()
+		public virtual Task Dispose()
 		{
 			if (disposed)
-				return;
+				return Task.CompletedTask;
 			disposed = true;
 			Strategy.ParserDestroyed();
+			return Task.CompletedTask;
 		}
 
-		public IMessage ReadNext()
+		public ValueTask<IMessage> ReadNext()
 		{
 			return Strategy.ReadNext();
 		}
 
-		public PostprocessedMessage ReadNextAndPostprocess()
+		public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
 		{
 			return Strategy.ReadNextAndPostprocess();
 		}

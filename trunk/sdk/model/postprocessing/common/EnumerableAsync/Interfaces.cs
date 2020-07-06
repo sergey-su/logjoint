@@ -2,7 +2,7 @@
 
 namespace LogJoint.Postprocessing
 {
-	public interface IDisposableAsync
+	public interface IDisposableAsync  // todo: move out of Postprocessing
 	{
 		Task Dispose();
 	};

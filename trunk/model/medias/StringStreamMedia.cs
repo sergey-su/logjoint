@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -38,8 +39,9 @@ namespace LogJoint
 
 		#region ILogMedia Members
 
-		public void Update()
+		public Task Update()
 		{
+			return Task.CompletedTask;
 		}
 
 		public bool IsAvailable

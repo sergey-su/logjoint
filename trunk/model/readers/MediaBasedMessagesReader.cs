@@ -3,6 +3,7 @@ using System.Text;
 using System.IO;
 using LogJoint.StreamParsingStrategies;
 using LogJoint.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -75,19 +76,20 @@ namespace LogJoint
 			set { timeOffsets = value; }
 		}
 
-		public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
+		public async Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
 		{
-			var ret = UpdateAvailableBoundsInternal(ref incrementalMode);
+			var incrementalModeRef = new Ref<bool>(incrementalMode);
+			var ret = await UpdateAvailableBoundsInternal(incrementalModeRef);
 			Extensions.NotifyExtensionsAboutUpdatedAvailableBounds(new AvailableBoundsUpdateNotificationArgs()
 			{
 				Status = ret,
-				IsIncrementalMode = incrementalMode,
+				IsIncrementalMode = incrementalModeRef.Value,
 				IsQuickFormatDetectionMode = this.IsQuickFormatDetectionMode
 			});
 			return ret;
 		}
 
-		public IPositionedMessagesParser CreateParser(CreateParserParams parserParams)
+		public async Task<IPositionedMessagesParser> CreateParser(CreateParserParams parserParams)
 		{
 			parserParams.EnsureRangeIsSet(this);
 
@@ -100,8 +102,8 @@ namespace LogJoint
 			DejitteringParams? dejitteringParams = GetDejitteringParams();
 			if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
 			{
-				return new DejitteringMessagesParser(
-					underlyingParserParams => new StreamParser(
+				return await DejitteringMessagesParser.Create(
+					async underlyingParserParams => await StreamParser.Create(
 						this,
 						EnsureParserRangeDoesNotExceedReadersBoundaries(underlyingParserParams),
 						textStreamPositioningParams,
@@ -112,7 +114,7 @@ namespace LogJoint
 					dejitteringParams.Value
 				);
 			}
-			return new StreamParser(
+			return await StreamParser.Create(
 				this, 
 				parserParams,
 				textStreamPositioningParams,
@@ -256,15 +258,15 @@ namespace LogJoint
 			return pos.Value;
 		}
 
-		private TextStreamPosition DetectEndPositionFromMediaSize()
+		private Task<TextStreamPosition> DetectEndPositionFromMediaSize()
 		{
 			return StreamTextAccess.StreamPositionToTextStreamPosition(mediaSize, StreamEncoding, VolatileStream, textStreamPositioningParams);
 		}
 
-		private void FindLogicalBounds(bool incrementalMode)
+		private async Task FindLogicalBounds(bool incrementalMode)
 		{
 			TextStreamPosition defaultBegin = new TextStreamPosition(0, TextStreamPosition.AlignMode.BeginningOfContainingBlock, textStreamPositioningParams);
-			TextStreamPosition defaultEnd = DetectEndPositionFromMediaSize();
+			TextStreamPosition defaultEnd = await DetectEndPositionFromMediaSize();
 
 			TextStreamPosition newBegin = incrementalMode ? beginPosition : defaultBegin;
 			TextStreamPosition newEnd = defaultEnd;
@@ -289,9 +291,9 @@ namespace LogJoint
 			}
 		}
 
-		UpdateBoundsStatus UpdateAvailableBoundsInternal(ref bool incrementalMode)
+		async Task<UpdateBoundsStatus> UpdateAvailableBoundsInternal(Ref<bool> incrementalMode)
 		{
-			media.Update();
+			await media.Update();
 
 			// Save the current physical stream end
 			long prevMediaSize = mediaSize;
@@ -312,11 +314,11 @@ namespace LogJoint
 				// we have loaded so far and start loading the file from the beginning.
 				// Otherwise there is a high possibility of messages' integrity violation.
 				// Fall to non-incremental mode
-				incrementalMode = false;
+				incrementalMode.Value = false;
 				oldMessagesAreInvalid = true;
 			}
 
-			FindLogicalBounds(incrementalMode);
+			await FindLogicalBounds(incrementalMode.Value);
 
 			if (oldMessagesAreInvalid)
 				return UpdateBoundsStatus.OldMessagesAreInvalid;

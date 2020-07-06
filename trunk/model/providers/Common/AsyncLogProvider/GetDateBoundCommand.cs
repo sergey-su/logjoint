@@ -97,11 +97,11 @@ namespace LogJoint
 			return true;
 		}
 
-		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			result = new DateBoundPositionResponseData();
 
-			result.Position = PositionedMessagesUtils.LocateDateBound(ctx.Reader, date, bound, ctx.Cancellation);
+			result.Position = await PositionedMessagesUtils.LocateDateBound(ctx.Reader, date, bound, ctx.Cancellation);
 			ctx.Tracer.Info("Position to return: {0}", result.Position);
 
 			if (result.Position == ctx.Reader.EndPosition)
@@ -119,13 +119,11 @@ namespace LogJoint
 				ctx.Cancellation.ThrowIfCancellationRequested();
 				if (messageRequested)
 				{
-					result.Message = PositionedMessagesUtils.ReadNearestMessage(ctx.Reader, result.Position, MessagesParserFlag.HintMessageContentIsNotNeeed);
+					result.Message = await PositionedMessagesUtils.ReadNearestMessage(ctx.Reader, result.Position, MessagesParserFlag.HintMessageContentIsNotNeeed);
 					ctx.Tracer.Info("Details to return: {0} at {1}", result.Message?.Time, result.Message?.Position);
 				}
 			}
 			dateBoundsCache.Set(date, result);
-
-			return System.Threading.Tasks.Task.FromResult(0);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

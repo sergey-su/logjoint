@@ -5,6 +5,7 @@ using LogJoint.RegularExpressions;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LogJoint.StreamParsingStrategies
 {
@@ -34,28 +35,28 @@ namespace LogJoint.StreamParsingStrategies
 
 		#region BaseStrategy overrides
 
-		public override IMessage ReadNext()
+		public override async ValueTask<IMessage> ReadNext()
 		{
-			return ReadNextAndPostprocess().Message;
+			return (await ReadNextAndPostprocess()).Message;
 		}
 
-		public override PostprocessedMessage ReadNextAndPostprocess()
+		public override ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
 		{
 			if (!attachedToParser)
 				throw new InvalidOperationException("Cannot read messages when not attached to a parser");
 			if (enumer == null)
 				enumer = MessagesEnumerator().GetEnumerator();
 			if (!enumer.MoveNext())
-				return new PostprocessedMessage();
-			return enumer.Current;
+				return new ValueTask<PostprocessedMessage>(new PostprocessedMessage());
+			return new ValueTask<PostprocessedMessage>(enumer.Current);
 		}
 
-		public override void ParserCreated(CreateParserParams p)
+		public override Task ParserCreated(CreateParserParams p)
 		{
 			tracer.Info("Parser created");
 			attachedToParser = true;
 			currentParams = p;
-			base.ParserCreated(p);
+			return base.ParserCreated(p);
 		}
 
 		public override void ParserDestroyed()
@@ -398,11 +399,11 @@ namespace LogJoint.StreamParsingStrategies
 				tls.splitter.BeginSplittingSession(
 					owner.currentParams.Range.Value, 
 					pieceOfWork.startTextPosition, 
-					direction);
+					direction).Wait(); // Wait() could be a problem in blazor, but blazor won't use multi-threaded strategy
 				for (; ; )
 				{
 					cancellationToken.ThrowIfCancellationRequested();
-					if (!tls.splitter.GetCurrentMessageAndMoveToNextOne(tls.capture))
+					if (!tls.splitter.GetCurrentMessageAndMoveToNextOne(tls.capture).Result) // Result - see comment above for Wait()
 						break;
 					bool stopPositionReached = direction == MessagesParserDirection.Forward ?
 						tls.capture.BeginPosition >= pieceOfWork.stopTextPosition : tls.capture.EndPosition <= pieceOfWork.stopTextPosition;

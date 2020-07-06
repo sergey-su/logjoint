@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.Azure
 {
@@ -41,7 +42,7 @@ namespace LogJoint.Azure
 			}
 		}
 
-		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (trace.NewFrame)
 			{

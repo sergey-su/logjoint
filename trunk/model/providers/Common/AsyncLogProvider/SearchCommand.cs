@@ -59,7 +59,7 @@ namespace LogJoint
 			return true;
 		}
 
-		Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
+		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			using (var innerCancellation = CancellationTokenSource.CreateLinkedTokenSource(ctx.Cancellation, ctx.Preemption))
 			{
@@ -81,7 +81,7 @@ namespace LogJoint
 					{
 						for (; ; )
 						{
-							var msg = parser.GetNext();
+							var msg = await parser.GetNext();
 							if (msg.Message == null || !callback(msg))
 								break;
 						}
@@ -94,7 +94,6 @@ namespace LogJoint
 					throw;
 				}
 			}
-			return Task.FromResult(0);
 		}
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)

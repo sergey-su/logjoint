@@ -4,6 +4,8 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using LogJoint.RegularExpressions;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace LogJoint
 {
@@ -43,10 +45,10 @@ namespace LogJoint
 	public interface IMessagesSplitter
 	{
 		IRegex MessageHeaderRegex { get; }
-		void BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction);
+		Task BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction);
 		void EndSplittingSession();
 		bool CurrentMessageIsEmpty { get; }
-		bool GetCurrentMessageAndMoveToNextOne(TextMessageCapture capture);
+		ValueTask<bool> GetCurrentMessageAndMoveToNextOne(TextMessageCapture capture);
 	};
 
 	public class MessagesSplitter : IMessagesSplitter
@@ -77,14 +79,14 @@ namespace LogJoint
 			get { return forwardModeRe; }
 		}
 
-		public void BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+		public async Task BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
 		{
 			if (sessionIsOpen)
 				throw new InvalidOperationException("Cannot start more than one reading session for a single splitter");
 
 			try
 			{
-				TryBeginSplittingSession(range, startPosition, direction);
+				await TryBeginSplittingSession(range, startPosition, direction);
 			}
 			catch
 			{
@@ -108,7 +110,7 @@ namespace LogJoint
 			get { return CurrentMessageHeaderIsEmpty; }
 		}
 
-		public bool GetCurrentMessageAndMoveToNextOne(TextMessageCapture capture)
+		public async ValueTask<bool> GetCurrentMessageAndMoveToNextOne(TextMessageCapture capture)
 		{
 			if (capture == null)
 				throw new ArgumentNullException("capture");
@@ -122,16 +124,16 @@ namespace LogJoint
 				capture.HeaderMatch = re.CreateEmptyMatch();
 
 			if (direction == MessagesParserDirection.Forward)
-				return GetCurrentMessageAndMoveToNextOneFwd(capture);
+				return await GetCurrentMessageAndMoveToNextOneFwd(capture);
 			else
-				return GetCurrentMessageAndMoveToNextOneBwd(capture);
+				return await GetCurrentMessageAndMoveToNextOneBwd(capture);
 		}
 
 
 #region Implementation
-		bool MoveBuffer(int distance)
+		async ValueTask<bool> MoveBuffer(int distance)
 		{
-			bool moved = textIterator.Advance(distance);
+			bool moved = await textIterator.Advance(distance);
 			if (moved)
 				UpdateCachedCurrentBuffer();
 			return moved;
@@ -172,7 +174,7 @@ namespace LogJoint
 				return headerPointer1 < bufferLengthThreshold;
 		}
 
-		bool FindNextMessageStart()
+		async ValueTask<bool> FindNextMessageStart()
 		{
 			bool timeToMoveBuffer = ItsTimeToMoveBuffer();
 			bool matched = false;
@@ -187,12 +189,12 @@ namespace LogJoint
 			{
 				if (direction == MessagesParserDirection.Forward)
 				{
-					if (MoveBuffer(headerPointer1))
+					if (await MoveBuffer(headerPointer1))
 						headerPointer1 = 0;
 				}
 				else
 				{
-					if (MoveBuffer(cachedCurrentBuffer.Length - prevHeaderPointer1))
+					if (await MoveBuffer(cachedCurrentBuffer.Length - prevHeaderPointer1))
 						headerPointer1 += (cachedCurrentBuffer.Length - prevHeaderPointer1);
 				}
 
@@ -278,7 +280,7 @@ namespace LogJoint
 			}
 		}
 
-		void TryBeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+		async Task TryBeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
 		{
 			bool posIsOutOfRange = DetectOutOfRangeCondition(range, startPosition, direction);
 
@@ -287,7 +289,7 @@ namespace LogJoint
 				TextAccessDirection accessDirection = direction == MessagesParserDirection.Forward ?
 					TextAccessDirection.Forward : TextAccessDirection.Backward;
 
-				textIterator = textAccess.OpenIterator(startPosition, accessDirection);
+				textIterator = await textAccess.OpenIterator(startPosition, accessDirection);
 
 				try
 				{
@@ -314,7 +316,7 @@ namespace LogJoint
 				this.range = range;
 				SetCurrentDirection(direction);
 				UpdateCachedCurrentBuffer();
-				FindNextMessageStart();
+				await FindNextMessageStart();
 			}
 		}
 
@@ -352,7 +354,7 @@ namespace LogJoint
 			}
 		}
 
-		bool GetCurrentMessageAndMoveToNextOneFwd(TextMessageCapture capture)
+		async ValueTask<bool> GetCurrentMessageAndMoveToNextOneFwd(TextMessageCapture capture)
 		{
 			if (headerBeginPosition >= range.End)
 				return false;
@@ -361,7 +363,7 @@ namespace LogJoint
 			capture.HeaderMatch.CopyFrom(currentMessageHeaderMatch);
 			capture.BeginPosition = headerBeginPosition;
 
-			bool nextMessageFound = FindNextMessageStart();
+			bool nextMessageFound = await FindNextMessageStart();
 			
 			capture.BodyBuffer = cachedCurrentBuffer;
 
@@ -388,7 +390,7 @@ namespace LogJoint
 			return true;
 		}
 
-		bool GetCurrentMessageAndMoveToNextOneBwd(TextMessageCapture capture)
+		async ValueTask<bool> GetCurrentMessageAndMoveToNextOneBwd(TextMessageCapture capture)
 		{
 			int headerEnd = headerPointer2;
 			long captureEndPos;
@@ -419,7 +421,7 @@ namespace LogJoint
 				capture.IsLastMessage = false;
 			}
 
-			FindNextMessageStart();
+			await FindNextMessageStart();
 
 			return true;
 		}
@@ -473,18 +475,18 @@ namespace LogJoint
 			get { return underlyingSplitter.MessageHeaderRegex; }
 		}
 
-		public void BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+		public async Task BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
 		{
 			if (direction == MessagesParserDirection.Forward)
 			{
 				if (startPosition > range.Begin)
 				{
 					long? fixedStartPosition = null;
-					underlyingSplitter.BeginSplittingSession(range, startPosition, MessagesParserDirection.Backward);
+					await underlyingSplitter.BeginSplittingSession(range, startPosition, MessagesParserDirection.Backward);
 					try
 					{
 						TextMessageCapture capt = new TextMessageCapture();
-						if (underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
+						if (await underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
 							fixedStartPosition = capt.EndPosition;
 					}
 					finally
@@ -493,11 +495,11 @@ namespace LogJoint
 					}
 					if (fixedStartPosition != null)
 					{
-						underlyingSplitter.BeginSplittingSession(range, fixedStartPosition.Value, direction);
+						await underlyingSplitter.BeginSplittingSession(range, fixedStartPosition.Value, direction);
 						try
 						{
 							TextMessageCapture capt = new TextMessageCapture();
-							while (underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
+							while (await underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
 							{
 								if (capt.BeginPosition >= startPosition)
 									break;
@@ -517,11 +519,11 @@ namespace LogJoint
 				if (startPosition < range.End)
 				{
 					long? fixedStartPosition = null;
-					underlyingSplitter.BeginSplittingSession(range, startPosition, MessagesParserDirection.Forward);
+					await underlyingSplitter.BeginSplittingSession(range, startPosition, MessagesParserDirection.Forward);
 					try
 					{
 						TextMessageCapture capt = new TextMessageCapture();
-						if (underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
+						if (await underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
 							fixedStartPosition = capt.BeginPosition;
 					}
 					finally
@@ -530,11 +532,11 @@ namespace LogJoint
 					}
 					if (fixedStartPosition != null)
 					{
-						underlyingSplitter.BeginSplittingSession(range, fixedStartPosition.Value, direction);
+						await underlyingSplitter.BeginSplittingSession(range, fixedStartPosition.Value, direction);
 						try
 						{
 							TextMessageCapture capt = new TextMessageCapture();
-							while (underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
+							while (await underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capt))
 							{
 								if (capt.EndPosition <= startPosition)
 									break;
@@ -550,7 +552,7 @@ namespace LogJoint
 				}
 			}
 
-			underlyingSplitter.BeginSplittingSession(range, startPosition, direction);
+			await underlyingSplitter.BeginSplittingSession(range, startPosition, direction);
 		}
 
 		public void EndSplittingSession()
@@ -566,11 +568,11 @@ namespace LogJoint
 			}
 		}
 
-		public bool GetCurrentMessageAndMoveToNextOne(TextMessageCapture capture)
+		public ValueTask<bool> GetCurrentMessageAndMoveToNextOne(TextMessageCapture capture)
 		{
 			return underlyingSplitter.GetCurrentMessageAndMoveToNextOne(capture);
 		}
 
-		private IMessagesSplitter underlyingSplitter;
+		private readonly IMessagesSplitter underlyingSplitter;
 	};
 }

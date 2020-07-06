@@ -1,8 +1,10 @@
-﻿using LogJoint.Settings;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Settings;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -141,7 +143,7 @@ namespace LogJoint
 		/// the operation with assumption that the boundaries have been calculated already and
 		/// need to be recalculated only if the actual media has changed.</param>
 		/// <returns>Returns <value>true</value> if the boundaries have actually changed. Return value can be used for optimization.</returns>
-		UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode);
+		Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode);
 
 		long MaximumMessageSize { get; }
 
@@ -161,7 +163,7 @@ namespace LogJoint
 		/// CreateParserParams.StartPosition doesn't have to point to the beginning of a message.
 		/// It is reader's responsibility to guarantee that the correct nearest message is read.
 		/// </remarks>
-		IPositionedMessagesParser CreateParser(CreateParserParams p);
+		Task<IPositionedMessagesParser> CreateParser(CreateParserParams p);
 
 		ISearchingParser CreateSearchingParser(CreateSearchingParserParams p);
 	};
@@ -182,15 +184,15 @@ namespace LogJoint
 		}
 	};
 
-	public interface IPositionedMessagesParser : IDisposable
+	public interface IPositionedMessagesParser : IDisposableAsync
 	{
-		IMessage ReadNext();
-		PostprocessedMessage ReadNextAndPostprocess();
+		ValueTask<IMessage> ReadNext();
+		ValueTask<PostprocessedMessage> ReadNextAndPostprocess();
 	};
 
 	public interface ISearchingParser : IDisposable
 	{
-		SearchResultMessage GetNext();
+		ValueTask<SearchResultMessage> GetNext();
 	};
 
 	[Flags]
