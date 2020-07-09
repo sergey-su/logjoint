@@ -36,13 +36,13 @@ namespace LogJoint
 				StartAsyncReader(async () => {
 					if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 						media = new RollingFilesMedia(
-							LogMedia.FileSystemImpl.Instance,
+							host.FileSystem,
 							readerCreator,
 							tracer,
 							new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam])
 						);
 					else
-						media = await SimpleFileMedia.Create(connectParams);
+						media = await SimpleFileMedia.Create(host.FileSystem, connectParams);
 
 					reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
 							settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix));

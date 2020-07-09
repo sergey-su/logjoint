@@ -17,6 +17,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly IViewsFactory viewFactories;
 		readonly ISynchronizationContext synchronizationContext;
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
+		readonly LogMedia.IFileSystem fileSystem;
 
 		public interface IViewsFactory
 		{
@@ -54,7 +55,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IViewsFactory viewFactories,
 			ISynchronizationContext synchronizationContext,
-			FieldsProcessor.IFactory fieldsProcessorFactory
+			FieldsProcessor.IFactory fieldsProcessorFactory,
+			LogMedia.IFileSystem fileSystem
 		)
 		{
 			this.viewFactories = viewFactories;
@@ -70,6 +72,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.regexFactory = regexFactory;
 			this.synchronizationContext = synchronizationContext;
 			this.fieldsProcessorFactory = fieldsProcessorFactory;
+			this.fileSystem = fileSystem;
 		}
 
 		IView IFactory.CreateWizardView()
@@ -177,7 +180,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		TestDialog.IPresenter IFactory.CreateTestDialog()
 		{
 			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
-				tempFilesManager, traceSourceFactory, regexFactory, logViewerPresenterFactory, synchronizationContext);
+				tempFilesManager, traceSourceFactory, regexFactory, logViewerPresenterFactory, synchronizationContext, fileSystem);
 		}
 
 		EditRegexDialog.IPresenter IFactory.CreateEditRegexDialog()

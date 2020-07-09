@@ -35,7 +35,7 @@ namespace LogJoint.PlainText
 		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (ILogMedia media = await SimpleFileMedia.Create(
-				LogMedia.FileSystemImpl.Instance, 
+				host.FileSystem,
 				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
 			using (FileSystemWatcher watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName), 
 				Path.GetFileName(fileName)))

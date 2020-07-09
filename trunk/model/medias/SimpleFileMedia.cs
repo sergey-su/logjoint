@@ -24,11 +24,6 @@ namespace LogJoint
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		public static Task<SimpleFileMedia> Create(IConnectionParams connectParams)
-		{
-			return Create(LogMedia.FileSystemImpl.Instance, connectParams);
-		}
-
 		public static async Task<SimpleFileMedia> Create(IFileSystem fileSystem, IConnectionParams connectParams)
         {
 			var media = new SimpleFileMedia(fileSystem, connectParams);

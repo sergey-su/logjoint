@@ -29,6 +29,7 @@ namespace LogJoint
 		WebViewTools.IWebViewTools WebViewTools { get; }
 		IPluginsManager PluginsManager { get; }
 		ITraceSourceFactory TraceSourceFactory { get; }
+		LogMedia.IFileSystem FileSystem { get; }
 	};
 }
 

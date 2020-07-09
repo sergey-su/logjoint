@@ -15,6 +15,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		readonly IModelThreadsInternal threads;
 		readonly ILogSourceThreadsInternal logSourceThreads;
 		readonly ISynchronizationContext synchronizationContext;
+		readonly LogMedia.IFileSystem fileSystem;
 		ILogProvider provider;
 		LogViewer.DummyModel model;
 		LogViewer.IPresenterInternal logPresenter;
@@ -26,7 +27,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			ITraceSourceFactory traceSourceFactory,
 			RegularExpressions.IRegexFactory regexFactory,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
-			ISynchronizationContext synchronizationContext
+			ISynchronizationContext synchronizationContext,
+			LogMedia.IFileSystem fileSystem
 		)
 		{
 			this.view = view;
@@ -35,6 +37,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.synchronizationContext = synchronizationContext;
+			this.fileSystem = fileSystem;
 
 			this.threads = new ModelThreads();
 			this.logSourceThreads = new LogSourceThreads(
@@ -71,6 +74,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		RegularExpressions.IRegexFactory ILogProviderHost.RegexFactory => regexFactory;
 
 		ISynchronizationContext ILogProviderHost.ModelSynchronizationContext => synchronizationContext;
+
+		LogMedia.IFileSystem ILogProviderHost.FileSystem => fileSystem;
 
 		ITimeOffsets ILogProviderHost.TimeOffsets
 		{

@@ -50,6 +50,7 @@ namespace LogJoint
 		public Drawing.IMatrixFactory MatrixFactory { get; internal set; }
 		public RegularExpressions.IRegexFactory RegexFactory { get; internal set; }
 		public FieldsProcessor.IFactory FieldsProcessorFactory { get; internal set; }
+		public LogMedia.IFileSystem FileSystem { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -65,6 +66,7 @@ namespace LogJoint
 		public TraceListener[] TraceListeners;
 		public bool DisableLogjointInstancesCounting;
 		public System.Reflection.Assembly FormatsRepositoryAssembly;
+		public LogMedia.IFileSystem FileSystem;
 	};
 
 	public static class ModelFactory
@@ -82,6 +84,7 @@ namespace LogJoint
 			IShutdownSource shutdown = new Shutdown();
 			var tracer = traceSourceFactory.CreateTraceSource("App", "model");
 			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer, shutdown);
+			LogMedia.IFileSystem fileSystem = config.FileSystem ?? LogMedia.FileSystemImpl.Instance;
 			ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 			IFormatDefinitionsRepository formatDefinitionsRepository = config.FormatsRepositoryAssembly != null ?
 				(IFormatDefinitionsRepository)new ResourcesFormatsRepository(config.FormatsRepositoryAssembly) : new DirectoryFormatsRepository(null);
@@ -163,7 +166,8 @@ namespace LogJoint
 				shutdown,
 				traceSourceFactory,
 				changeNotification,
-				regexFactory
+				regexFactory,
+				fileSystem
 			);
 
 			telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);
@@ -173,7 +177,8 @@ namespace LogJoint
 			IFormatAutodetect formatAutodetect = new FormatAutodetect(
 				recentlyUsedLogs,
 				logProviderFactoryRegistry,
-				traceSourceFactory
+				traceSourceFactory,
+				fileSystem
 			);
 
 			Workspaces.Backend.IBackendAccess workspacesBackendAccess = new Workspaces.Backend.AzureWorkspacesBackend(
@@ -214,7 +219,8 @@ namespace LogJoint
 				logProviderFactoryRegistry,
 				webBrowserDownloader,
 				logsDownloaderConfig,
-				regexFactory
+				regexFactory,
+				fileSystem
 			);
 
 			Preprocessing.IManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -367,7 +373,8 @@ namespace LogJoint
 				webBrowserDownloader,
 				postprocessingModel,
 				pluginsManager,
-				traceSourceFactory
+				traceSourceFactory,
+				fileSystem
 			);
 
 			tracer.Info("model creation completed");
@@ -418,6 +425,7 @@ namespace LogJoint
 				MatrixFactory = matrixFactory,
 				RegexFactory = regexFactory,
 				FieldsProcessorFactory = fieldsProcessorFactory,
+				FileSystem = fileSystem
 			};
 		}
 

@@ -16,13 +16,15 @@ namespace LogJoint.Preprocessing
 			Progress.IProgressAggregator progressAggregator,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			IStepsFactory preprocessingStepsFactory,
-			RegularExpressions.IRegexFactory regexFactory)
+			RegularExpressions.IRegexFactory regexFactory,
+			LogMedia.IFileSystem fileSystem)
 		{
 			this.@params = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAggregator;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.regexFactory = regexFactory;
+			this.fileSystem = fileSystem;
 		}
 
 		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
@@ -65,7 +67,7 @@ namespace LogJoint.Preprocessing
 			var readerFactory = factory as IMediaBasedReaderFactory;
 			if (readerFactory == null)
 				throw new InvalidDataException("bad factory: " + factoryName);
-			using (ILogMedia fileMedia = await SimpleFileMedia.Create(
+			using (ILogMedia fileMedia = await SimpleFileMedia.Create(fileSystem,
 				SimpleFileMedia.CreateConnectionParamsFromFileName(@params.Location)))
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (var reader = readerFactory.CreateMessagesReader(
@@ -125,6 +127,7 @@ namespace LogJoint.Preprocessing
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly RegularExpressions.IRegexFactory regexFactory;
+		readonly LogMedia.IFileSystem fileSystem;
 		internal const string name = "reorder";
 		const int progressUpdateThreshold = 1024;
 		const int queueSize = 1024 * 128;

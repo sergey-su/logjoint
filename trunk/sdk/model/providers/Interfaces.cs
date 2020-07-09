@@ -127,6 +127,7 @@ namespace LogJoint
 		ITimeOffsets TimeOffsets { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		ISynchronizationContext ModelSynchronizationContext { get; }
+		LogMedia.IFileSystem FileSystem { get; }
 
 		void OnStatisticsChanged(LogProviderStats value,
 			LogProviderStats oldValue, LogProviderStatsFlag flags);

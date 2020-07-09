@@ -14,6 +14,7 @@ namespace LogJoint
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
+		readonly LogMedia.IFileSystem fileSystem;
 
 		public LogSourceFactory(
 			IModelThreadsInternal threads,
@@ -23,7 +24,8 @@ namespace LogJoint
 			ITempFilesManager tempFilesManager,
 			Settings.IGlobalSettingsAccessor globalSettingsAccess,
 			ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory
+			RegularExpressions.IRegexFactory regexFactory,
+			LogMedia.IFileSystem fileSystem
 		)
 		{
 			this.threads = threads;
@@ -34,6 +36,7 @@ namespace LogJoint
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
+			this.fileSystem = fileSystem;
 		}
 
 		ILogSourceInternal ILogSourceFactory.CreateLogSource (
@@ -54,7 +57,8 @@ namespace LogJoint
 				globalSettingsAccess,
 				bookmarks,
 				traceSourceFactory,
-				regexFactory
+				regexFactory,
+				fileSystem
 			);
 		}
 	}
