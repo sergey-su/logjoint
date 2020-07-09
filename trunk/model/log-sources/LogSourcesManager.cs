@@ -19,9 +19,10 @@ namespace LogJoint
 			IShutdown shutdown,
 			ITraceSourceFactory traceSourceFactory,
 			IChangeNotification changeNotification,
-			RegularExpressions.IRegexFactory regexFactory
+			RegularExpressions.IRegexFactory regexFactory,
+			LogMedia.IFileSystem fileSystem
 		) : this(heartbeat, recentlyUsedEntities, shutdown, traceSourceFactory, changeNotification,
-			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess, traceSourceFactory, regexFactory))
+			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess, traceSourceFactory, regexFactory, fileSystem))
 		{
 		}
 

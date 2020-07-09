@@ -14,27 +14,28 @@ namespace LogJoint
 	{
 		static int lastPerfOp;
 
-		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITraceSourceFactory traceSourceFactory) :
-			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, traceSourceFactory)
+		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITraceSourceFactory traceSourceFactory, LogMedia.IFileSystem fileSystem) :
+			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, traceSourceFactory, fileSystem)
 		{
 		}
 
 		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory, LogMedia.IFileSystem fileSystem)
 		{
 			this.mruIndexGetter = mruIndexGetter;
 			this.factoriesRegistry = factoriesRegistry;
 			this.traceSourceFactory = traceSourceFactory;
+			this.fileSystem = fileSystem;
 		}
 
 		Task<DetectedFormat> IFormatAutodetect.DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
 		{
-			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, traceSourceFactory);
+			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, traceSourceFactory, fileSystem);
 		}
 
 		IFormatAutodetect IFormatAutodetect.Clone()
 		{
-			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, traceSourceFactory);
+			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, traceSourceFactory, fileSystem);
 		}
 
 		static async Task<DetectedFormat> DetectFormat(
@@ -44,13 +45,14 @@ namespace LogJoint
 			ILogProviderFactoryRegistry factoriesRegistry,
 			CancellationToken cancellation,
 			IFormatAutodetectionProgress progress,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory,
+			LogMedia.IFileSystem fileSystem)
 		{
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("fileName");
 			if (mruIndexGetter == null)
 				throw new ArgumentNullException("mru");
-			Func<Task<SimpleFileMedia>> createFileMedia = () => SimpleFileMedia.Create(SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
+			Func<Task<SimpleFileMedia>> createFileMedia = () => SimpleFileMedia.Create(fileSystem, SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
 			var log = traceSourceFactory.CreateTraceSource("App", string.Format("fdtc.{0}", Interlocked.Increment(ref lastPerfOp)));
 			using (new Profiling.Operation(log, string.Format("format detection of {0}", loggableName)))
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
@@ -151,5 +153,6 @@ namespace LogJoint
 		readonly Func<ILogProviderFactory, int> mruIndexGetter;
 		readonly ILogProviderFactoryRegistry factoriesRegistry;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly LogMedia.IFileSystem fileSystem;
 	}
 }

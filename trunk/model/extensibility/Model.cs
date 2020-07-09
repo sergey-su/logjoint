@@ -23,7 +23,8 @@ namespace LogJoint
 			WebViewTools.IWebViewTools webViewTools,
 			Postprocessing.IModel postprocessingModel,
 			IPluginsManager pluginsManager,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			LogMedia.IFileSystem fileSystem
 		)
 		{
 			this.SynchronizationContext = threadSync;
@@ -46,6 +47,7 @@ namespace LogJoint
 			this.Postprocessing = postprocessingModel;
 			this.PluginsManager = pluginsManager;
 			this.TraceSourceFactory = traceSourceFactory;
+			this.FileSystem = fileSystem;
 		}
 
 		public ISynchronizationContext SynchronizationContext { get; private set; }
@@ -68,5 +70,6 @@ namespace LogJoint
 		public Postprocessing.IModel Postprocessing { get; private set; }
 		public IPluginsManager PluginsManager { get; private set; }
 		public ITraceSourceFactory TraceSourceFactory { get; private set; }
+		public LogMedia.IFileSystem FileSystem { get; private set; }
 	};
 }

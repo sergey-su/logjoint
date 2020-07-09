@@ -345,7 +345,8 @@ namespace LogJoint.UI.Presenters
 						logViewerPresenterFactory,
 						views.FormatsWizardViewFactory,
 						model.SynchronizationContext,
-						model.FieldsProcessorFactory
+						model.FieldsProcessorFactory,
+						model.FileSystem
 					)
 				)
 			);

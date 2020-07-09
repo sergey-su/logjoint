@@ -37,7 +37,7 @@ namespace LogJoint
 					if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 					{
 						media = new RollingFilesMedia(
-							LogMedia.FileSystemImpl.Instance,
+							host.FileSystem,
 							readerCreator,
 							tracer,
 							new GenericRollingMediaStrategy(
@@ -48,7 +48,7 @@ namespace LogJoint
 					}
 					else
 					{
-						media = await SimpleFileMedia.Create(connectParams);
+						media = await SimpleFileMedia.Create(host.FileSystem, connectParams);
 					}
 
 					reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
