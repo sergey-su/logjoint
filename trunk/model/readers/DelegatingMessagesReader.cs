@@ -63,7 +63,7 @@ namespace LogJoint
 			return underliyingReader.CreateSearchingParser(p);
 		}
 
-		int IPositionedMessagesReader.GetContentsEtag()
+		ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
 		{
 			return underliyingReader.GetContentsEtag();
 		}
