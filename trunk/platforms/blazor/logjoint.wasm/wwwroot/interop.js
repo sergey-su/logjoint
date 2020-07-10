@@ -38,6 +38,9 @@
         getSize: function (handle) {
             return this._get(handle).size;
         },
+        getLastModified: function (handle) {
+            return this._get(handle).lastModified;
+        },
         read: async function (handle, position, count) {
             const blob = this._get(handle).slice(position, position + count);
             return String.fromCharCode.apply(null, new Uint8Array(await blob.arrayBuffer()));

@@ -11,6 +11,7 @@ using LogJoint;
 using LogJoint.Preprocessing;
 using LogJoint.Persistence;
 using NSubstitute;
+using Microsoft.JSInterop;
 
 namespace LogJoint
 {
@@ -99,60 +100,69 @@ namespace logjoint.wasm
 
         public static async Task Main(string[] args)
         {
-            ISynchronizationContext invokingSynchronization = new BlazorSynchronizationContext();
-            WebContentConfig webContentConfig = new WebContentConfig ();
-
-            var model = ModelFactory.Create (
-                new ModelConfig {
-					WorkspacesUrl = "",
-					TelemetryUrl = "",
-					IssuesUrl = "",
-					AutoUpdateUrl = "",
-					PluginsUrl = "",
-					WebContentCacheConfig = webContentConfig,
-					LogsDownloaderConfig = webContentConfig,
-					TraceListeners = new [] {new TraceListener(";console=1")},
-                    FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly()
-                },
-                invokingSynchronization,
-                (storageManager) => null /*new PreprocessingCredentialsCache (
-                    mainWindow.Window,
-                    storageManager.GlobalSettingsEntry,
-                    invokingSynchronization
-                )*/,
-                (shutdown, webContentCache, traceSourceFactory) => null /*new Presenters.WebViewTools.Presenter (
-                    new WebBrowserDownloaderWindowController (),
-                    invokingSynchronization,
-                    webContentCache,
-                    shutdown,
-                    traceSourceFactory
-                )*/,
-                null/*new Drawing.Matrix.Factory()*/,
-                LogJoint.RegularExpressions.FCLRegexFactory.Instance
-            );
-
-            var viewModel = new ViewModelObjects();
-			var mocks = new Mocks(viewModel);
-
-            var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
-                model,
-                mocks.ClipboardAccess,
-                mocks.ShellOpen,
-                mocks.AlertPopup,
-                mocks.FileDialogs,
-                mocks.PromptDialog,
-                mocks.AboutConfig,
-                mocks.DragDropHandler,
-                mocks.SystemThemeDetector,
-                mocks.Views
-            );
-
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
 
             builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            builder.Services.AddSingleton<ModelObjects>(_ => model);
-            builder.Services.AddSingleton<ViewModelObjects>(_ => viewModel);
+            builder.Services.AddSingleton<ModelObjects>(serviceProvider =>
+            {
+                ISynchronizationContext invokingSynchronization = new BlazorSynchronizationContext();
+                WebContentConfig webContentConfig = new WebContentConfig();
+
+                var model = ModelFactory.Create(
+                    new ModelConfig
+                    {
+                        WorkspacesUrl = "",
+                        TelemetryUrl = "",
+                        IssuesUrl = "",
+                        AutoUpdateUrl = "",
+                        PluginsUrl = "",
+                        WebContentCacheConfig = webContentConfig,
+                        LogsDownloaderConfig = webContentConfig,
+                        TraceListeners = new[] { new TraceListener(";console=1") },
+                        FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
+                        FileSystem = new LogJoint.Wasm.FileSystem(serviceProvider.GetService<IJSRuntime>())
+                    },
+                        invokingSynchronization,
+                        (storageManager) => null /*new PreprocessingCredentialsCache (
+                        mainWindow.Window,
+                        storageManager.GlobalSettingsEntry,
+                        invokingSynchronization
+                    )*/,
+                        (shutdown, webContentCache, traceSourceFactory) => null /*new Presenters.WebViewTools.Presenter (
+                        new WebBrowserDownloaderWindowController (),
+                        invokingSynchronization,
+                        webContentCache,
+                        shutdown,
+                        traceSourceFactory
+                    )*/,
+                    null/*new Drawing.Matrix.Factory()*/,
+                    LogJoint.RegularExpressions.FCLRegexFactory.Instance
+                );
+                return model;
+            });
+            builder.Services.AddSingleton<ViewModelObjects>(serviceProvider =>
+            {
+                var model = serviceProvider.GetService<ModelObjects>();
+
+                var viewModel = new ViewModelObjects();
+                var mocks = new Mocks(viewModel);
+
+                var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
+                    model,
+                    mocks.ClipboardAccess,
+                    mocks.ShellOpen,
+                    mocks.AlertPopup,
+                    mocks.FileDialogs,
+                    mocks.PromptDialog,
+                    mocks.AboutConfig,
+                    mocks.DragDropHandler,
+                    mocks.SystemThemeDetector,
+                    mocks.Views
+                );
+
+                return viewModel;
+            });
 
             await builder.Build().RunAsync();
         }

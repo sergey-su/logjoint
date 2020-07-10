@@ -77,6 +77,7 @@
 
 <input type="file" @ref="fileInputReference" />
 <button class="btn btn-primary" @onclick="LoadByUrl">Load by blob URL</button>
+<button class="btn btn-primary" @onclick="LoadStream">Load Stream</button>
 
 @code {
     private int currentCount = 0;
@@ -220,82 +221,6 @@
         return result;
     }
 
-    class HtmlInputFileStream : System.IO.Stream
-    {
-        readonly IJSRuntime jsRuntime;
-        readonly long handle;
-        readonly long size;
-        long position;
-
-        private HtmlInputFileStream(IJSRuntime jsRuntime, long handle, long size)
-        {
-            this.jsRuntime = jsRuntime;
-            this.handle = handle;
-            this.size = size;
-            this.position = 0;
-        }
-
-        public static async Task<HtmlInputFileStream> Create(IJSRuntime jsRuntime, ElementReference inputElement)
-        {
-            var handle = await jsRuntime.InvokeAsync<long>("logjoint.files.open", inputElement);
-            var size = await jsRuntime.InvokeAsync<long>("logjoint.files.getSize", handle);
-            Console.WriteLine("created file {0} {1}", handle, size);
-            return new HtmlInputFileStream(jsRuntime, handle, size);
-        }
-
-        public override long Length => size;
-        public override bool CanRead => true;
-        public override bool CanWrite => false;
-        public override bool CanSeek => true;
-
-        public override long Position
-        {
-            get { return position; }
-            set
-            {
-                if (value < 0 || value >= size)
-                    throw new ArgumentOutOfRangeException($"Position {value} is outside of valid range [0-{size})");
-                position = value;
-            }
-        }
-
-        public override long Seek(long offset, System.IO.SeekOrigin origin)
-        {
-            if (origin == System.IO.SeekOrigin.Begin)
-                Position = offset;
-            else if (origin == System.IO.SeekOrigin.Current)
-                Position = Position + offset;
-            else
-                Position = size - offset;
-            return Position;
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, System.Threading.CancellationToken cancellationToken = default)
-        {
-            var str = await jsRuntime.InvokeAsync<string>("logjoint.files.read", handle, position, buffer.Length);
-            var read = str.Length;
-            for (int i = 0; i < read; ++i)
-            {
-                buffer.Span[i] = (byte)str[i];
-            }
-            position += read;
-            return read;
-        }
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
-        {
-            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
-        }
-
-        public override void SetLength(long value) => throw new NotImplementedException();
-        public override void Flush() => throw new NotImplementedException();
-        public override void Write(byte[] buffer, int offset, int count) => throw new NotImplementedException();
-    }
-
     async void LoadByUrl()
     {
         var url = await jsRuntime.InvokeAsync<string>("logjoint.files.getUrl", fileInputReference);
@@ -303,6 +228,17 @@
         var task = model.LogSourcesPreprocessings.Preprocess(
             new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(url)) },
             "Processing blob URL test"
+        );
+    }
+
+    async void LoadStream()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.AddFileFromInput(fileInputReference);
+        Console.WriteLine("Virtual file name : {0}", fileName);
+        var task = model.LogSourcesPreprocessings.Preprocess(
+            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
+            "Processing virtual file name"
         );
     }
 }
