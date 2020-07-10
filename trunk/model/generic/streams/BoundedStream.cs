@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -23,6 +25,11 @@ namespace LogJoint
 		public override int Read(byte[] buffer, int offset, int count)
 		{
 			return base.Read(buffer, offset, Math.Min(count, (int)Math.Max(0, Length - Position)));
+		}
+
+		public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		{
+			return base.ReadAsync(buffer, offset, Math.Min(count, (int)Math.Max(0, Length - Position)), cancellationToken);
 		}
 
 		public override long Seek(long offset, System.IO.SeekOrigin origin)

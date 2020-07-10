@@ -153,7 +153,7 @@ namespace LogJoint
 
 		ITimeOffsets TimeOffsets { get; set; }
 
-		int GetContentsEtag();
+		ValueTask<int> GetContentsEtag();
 
 		/// <summary>
 		/// Creates an object that reads messages from reader's media.

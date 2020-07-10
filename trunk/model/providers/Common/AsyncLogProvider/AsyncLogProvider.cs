@@ -528,7 +528,7 @@ namespace LogJoint
 
 			if (!incrementalMode)
 			{
-				readerContentsEtag = reader.GetContentsEtag();
+				readerContentsEtag = await reader.GetContentsEtag();
 			}
 
 			int contentsEtag = 

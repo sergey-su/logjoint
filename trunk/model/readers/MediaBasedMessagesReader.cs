@@ -128,11 +128,11 @@ namespace LogJoint
 			return null;
 		}
 
-		int IPositionedMessagesReader.GetContentsEtag()
+		async ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
 		{
 			VolatileStream.Position = 0;
 			byte[] buf = new byte[1024];
-			int read = VolatileStream.Read(buf, 0, buf.Length);
+			int read = await VolatileStream.ReadAsync(buf, 0, buf.Length);
 			return Hashing.GetStableHashCode(buf, 0, read);
 		}
 
