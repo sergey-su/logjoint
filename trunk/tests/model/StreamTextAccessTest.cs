@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace LogJoint.Tests
 {
@@ -52,100 +53,100 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void AdvanceBufferTest_ASCII()
+		public async Task AdvanceBufferTest_ASCII()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz).Add('b', blockSz).ToStream(Encoding.ASCII),
 				Encoding.ASCII
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			Assert.AreEqual(new Str().Add('a', blockSz).ToString(), buf.BufferString);
-			buf.Advance(blockSz - 5);
+			await buf.Advance(blockSz - 5);
 			Assert.AreEqual("aaaaabbbbb", buf.BufferString.Substring(0, 10));
 		}
 
 		[Test]
-		public void AdvanceBufferTest_ReverseDirection_StreamLenIsMultipleOfAlignmentSize()
+		public async Task AdvanceBufferTest_ReverseDirection_StreamLenIsMultipleOfAlignmentSize()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('1', blockSz).Add('2', blockSz).ToStream(Encoding.ASCII),
 				Encoding.ASCII
 			);
-			buf.BeginReading(blockSz * 2, TextAccessDirection.Backward);
+			await buf.BeginReading(blockSz * 2, TextAccessDirection.Backward);
 			Assert.AreEqual("", buf.BufferString);
-			buf.Advance(0);
+			await buf.Advance(0);
 			Assert.AreEqual(new Str().Add('2', blockSz).ToString(), buf.BufferString);
-			buf.Advance(blockSz);
+			await buf.Advance(blockSz);
 			Assert.AreEqual(new Str().Add('1', blockSz).ToString(), buf.BufferString);
 		}
 
 		[Test]
-		public void AdvanceBufferTest_ReverseDirection_StartFromBlockBoundary()
+		public async Task AdvanceBufferTest_ReverseDirection_StartFromBlockBoundary()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('1', blockSz).Add('2', blockSz).ToStream(Encoding.ASCII),
 				Encoding.ASCII
 			);
-			buf.BeginReading(blockSz, TextAccessDirection.Backward);
+			await buf.BeginReading(blockSz, TextAccessDirection.Backward);
 			Assert.AreEqual("", buf.BufferString);
-			buf.Advance(0);
+			await buf.Advance(0);
 			Assert.AreEqual(new Str().Add('1', blockSz).ToString(), buf.BufferString);
-			Assert.IsFalse(buf.Advance(blockSz));
+			Assert.IsFalse(await buf.Advance(blockSz));
 		}
 
 
 		[Test]
-		public void AdvanceBufferTest_UTF16()
+		public async Task AdvanceBufferTest_UTF16()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz / 2).Add('b', blockSz / 2).ToStream(Encoding.Unicode),
 				Encoding.Unicode
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			Assert.AreEqual(new Str().Add('a', blockSz/2).ToString(), buf.BufferString);
-			buf.Advance(blockSz/2 - 5);
+			await buf.Advance(blockSz/2 - 5);
 			Assert.AreEqual("aaaaabbbbb", buf.BufferString.Substring(0, 10));
 		}
 
 		[Test]
-		public void AdvanceBufferTest_BufferEndsAtTheMiddleOfUTF8Char()
+		public async Task AdvanceBufferTest_BufferEndsAtTheMiddleOfUTF8Char()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz - 1).Add('Θ').Add('b', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
-			buf.Advance(blockSz - 5);
+			await buf.Advance(blockSz - 5);
 			Assert.AreEqual("aaaaΘbbbbb", buf.BufferString.Substring(0, 10));
 		}
 
 		[Test]
-		public void AdvanceBufferTest_DetectOverflow()
+		public async Task AdvanceBufferTest_DetectOverflow()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz).Add('b', blockSz).Add('c', blockSz).Add('d', blockSz).Add('e', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
-			buf.Advance(0);
-			buf.Advance(0);
-			buf.Advance(0);
-			Assert.Throws<OverflowException>(() => buf.Advance(0));
+			await buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.Advance(0);
+			await buf.Advance(0);
+			await buf.Advance(0);
+			Assert.ThrowsAsync<OverflowException>(async () => await buf.Advance(0));
 		}
 
 		[Test]
-		public void AdvanceBufferTest_DetectOverflowReverse()
+		public async Task AdvanceBufferTest_DetectOverflowReverse()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz).Add('b', blockSz).Add('c', blockSz).Add('d', blockSz).Add('e', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(blockSz * 4 + 123, TextAccessDirection.Backward);
-			buf.Advance(0);
-			buf.Advance(0);
-			buf.Advance(0);
-			Assert.Throws<OverflowException>(() => buf.Advance(0));
+			await buf.BeginReading(blockSz * 4 + 123, TextAccessDirection.Backward);
+			await buf.Advance(0);
+			await buf.Advance(0);
+			await buf.Advance(0);
+			Assert.ThrowsAsync<OverflowException>(async () => await buf.Advance(0));
 		}
 
 		[Test]
@@ -155,204 +156,204 @@ namespace LogJoint.Tests
 				new Str().Add('a', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			Assert.Throws<InvalidOperationException>(() => buf.Advance(1));
+			Assert.ThrowsAsync<InvalidOperationException>(async () => await buf.Advance(1));
 		}
 
 		[Test]
-		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Forward()
+		public async Task LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Forward()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz - 1).Add('Θ').Add('b', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(blockSz, TextAccessDirection.Forward);
+			await buf.BeginReading(blockSz, TextAccessDirection.Forward);
 			Assert.AreEqual("Θbbbbbbbbb", buf.BufferString.Substring(0, 10));
 		}
 
 		[Test]
-		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed()
+		public async Task LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz - 1).Add('Θ').Add('b', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(new TextStreamPosition(blockSz, 0).Value, TextAccessDirection.Backward);
+			await buf.BeginReading(new TextStreamPosition(blockSz, 0).Value, TextAccessDirection.Backward);
 			Assert.AreEqual("", buf.BufferString);
-			buf.Advance(0);
+			await buf.Advance(0);
 			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
 		}
 
 		[Test]
-		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed2()
+		public async Task LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed2()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz - 1).Add('Θ').Add('b', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(new TextStreamPosition(blockSz, 1).Value, TextAccessDirection.Backward);
+			await buf.BeginReading(new TextStreamPosition(blockSz, 1).Value, TextAccessDirection.Backward);
 			Assert.AreEqual("Θ", buf.BufferString);
-			buf.Advance(0);
+			await buf.Advance(0);
 			Assert.AreEqual(new Str().Add('a', blockSz - 1).Add('Θ').ToString(), buf.BufferString);
 		}
 
 		[Test]
-		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed3()
+		public async Task LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed3()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz - 1).Add('Θ').Add('b', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(new TextStreamPosition(blockSz, 1).Value, TextAccessDirection.Backward);
+			await buf.BeginReading(new TextStreamPosition(blockSz, 1).Value, TextAccessDirection.Backward);
 			Assert.AreEqual("Θ", buf.BufferString);
-			buf.Advance(1);
+			await buf.Advance(1);
 			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
 		}
 
 		[Test]
-		public void LoadBufferTest_EndReached()
+		public async Task LoadBufferTest_EndReached()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz).Add('b', 100).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			Assert.AreEqual(S().Add('a', blockSz).ToString(), buf.BufferString);
-			Assert.IsTrue(buf.Advance(20));
+			Assert.IsTrue(await buf.Advance(20));
 			Assert.AreEqual(S().Add('a', blockSz-20).Add('b', 100).ToString(), buf.BufferString);
-			Assert.IsFalse(buf.Advance(20));
+			Assert.IsFalse(await buf.Advance(20));
 		}
 
 		[Test]
-		public void LoadBufferTest_Reverse_StartReadingFromBeginning()
+		public async Task LoadBufferTest_Reverse_StartReadingFromBeginning()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', 100).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Backward);
+			await buf.BeginReading(0, TextAccessDirection.Backward);
 			Assert.AreEqual("", buf.BufferString);
-			buf.Advance(0);
+			await buf.Advance(0);
 			Assert.AreEqual("", buf.BufferString);
 		}
 
 		[Test]
-		public void LoadBufferTest_Reverse_StartReadingFromMiddle_BeginReached()
+		public async Task LoadBufferTest_Reverse_StartReadingFromMiddle_BeginReached()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz).Add('b', 200).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(blockSz + 100, TextAccessDirection.Backward);
+			await buf.BeginReading(blockSz + 100, TextAccessDirection.Backward);
 			Assert.AreEqual(S().Add('b', 100).ToString(), buf.BufferString);
-			Assert.IsTrue(buf.Advance(10));
+			Assert.IsTrue(await buf.Advance(10));
 			Assert.AreEqual(S().Add('a', blockSz).Add('b', 90).ToString(), buf.BufferString);
-			Assert.IsFalse(buf.Advance(90));
+			Assert.IsFalse(await buf.Advance(90));
 		}
 
 
 		[Test]
-		public void CharIndexToStreamPositionTest()
+		public async Task CharIndexToStreamPositionTest()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz).Add('b', 200).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			TestCharPosMapping(buf, new TextStreamPosition(0, 20), 20);
-			Assert.IsTrue(buf.Advance(10));
+			Assert.IsTrue(await buf.Advance(10));
 			Assert.AreEqual(S().Add('a', blockSz-10).Add('b', 200).ToString(), buf.BufferString);
 			TestCharPosMapping(buf, new TextStreamPosition(0, 20), 10);
 			TestCharPosMapping(buf, new TextStreamPosition(blockSz, 20), blockSz+10);
 		}
 
 		[Test]
-		public void CharIndexToStreamPositionTest_NegativeIdx()
+		public async Task CharIndexToStreamPositionTest_NegativeIdx()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			Assert.Throws<ArgumentOutOfRangeException>(() => buf.CharIndexToPosition(-1));
 		}
 
 		[Test]
-		public void CharIndexToStreamPositionTest_TooBigIdx()
+		public async Task CharIndexToStreamPositionTest_TooBigIdx()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			Assert.Throws<ArgumentOutOfRangeException>(() => buf.CharIndexToPosition(blockSz + 10));
 		}
 
 		[Test]
-		public void StreamPositionToCharIndexTest_IdxFromPrevBlock()
+		public async Task StreamPositionToCharIndexTest_IdxFromPrevBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz*3).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
-			buf.Advance(100);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.Advance(100);
 			Assert.Throws<ArgumentOutOfRangeException>(() => buf.PositionToCharIndex(new TextStreamPosition(50)));
 		}
 
 		[Test]
-		public void StreamPositionToCharIndexTest_InvalidBigTextStreamPositionIsMappedToPastTheEndCharIndex()
+		public async Task StreamPositionToCharIndexTest_InvalidBigTextStreamPositionIsMappedToPastTheEndCharIndex()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz * 3).ToStream(Encoding.Unicode),
 				Encoding.Unicode
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			// valid Unicode text stream positions are from 0 to blockSz/2. below is invalid position.
 			var invalidTextStreamPosition = new TextStreamPosition(blockSz - 10);
 			Assert.AreEqual(blockSz/2, buf.PositionToCharIndex(invalidTextStreamPosition));
 		}
 
 		[Test]
-		public void CharIndexToStreamPositionTest_Reversed()
+		public async Task CharIndexToStreamPositionTest_Reversed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz).Add('b', 200).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(blockSz + 200, TextAccessDirection.Backward);
+			await buf.BeginReading(blockSz + 200, TextAccessDirection.Backward);
 			TestCharPosMapping(buf, new TextStreamPosition(blockSz, 20), 20);
-			Assert.IsTrue(buf.Advance(10));
+			Assert.IsTrue(await buf.Advance(10));
 			TestCharPosMapping(buf, new TextStreamPosition(blockSz, 20), blockSz + 20);
 			TestCharPosMapping(buf, new TextStreamPosition(20), 20);
 		}
 
 		[Test]
-		public void ChangeDirectionTest()
+		public async Task ChangeDirectionTest()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz+100).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(20, TextAccessDirection.Forward);
-			buf.Advance(10);
+			await buf.BeginReading(20, TextAccessDirection.Forward);
+			await buf.Advance(10);
 			Assert.AreEqual(buf.AdvanceDirection, TextAccessDirection.Forward);
 			buf.EndReading();
 
-			buf.BeginReading(20, TextAccessDirection.Backward);
-			buf.Advance(10);
+			await buf.BeginReading(20, TextAccessDirection.Backward);
+			await buf.Advance(10);
 			Assert.AreEqual(buf.AdvanceDirection, TextAccessDirection.Backward);
 			buf.EndReading();
 		}
 
 		[Test]
-		public void NestedBeginReadingSessionNotAllowed()
+		public async Task NestedBeginReadingSessionNotAllowed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz + 100).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(2, TextAccessDirection.Forward);
-			Assert.Throws<InvalidOperationException>(() => buf.BeginReading(2, TextAccessDirection.Forward));
+			await buf.BeginReading(2, TextAccessDirection.Forward);
+			Assert.ThrowsAsync<InvalidOperationException>(async () => await buf.BeginReading(2, TextAccessDirection.Forward));
 		}
 
 		[Test]
@@ -366,13 +367,13 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void StartPositionAtFirstBlock()
+		public async Task StartPositionAtFirstBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', 100).Add('b', 100).Add('c', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(50, TextAccessDirection.Forward);
+			await buf.BeginReading(50, TextAccessDirection.Forward);
 			Assert.AreEqual(S().Add('a', 50).Add('b', 100).Add('c', blockSz - 200).ToString(), buf.BufferString);
 			TestCharPosMapping(buf, new TextStreamPosition(50), 0);
 			TestCharPosMapping(buf, new TextStreamPosition(100), 50);
@@ -380,13 +381,13 @@ namespace LogJoint.Tests
 
 
 		[Test]
-		public void EndStreamAtFirstBlock()
+		public async Task EndStreamAtFirstBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', 100).Add('b', 100).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(10, TextAccessDirection.Forward);
+			await buf.BeginReading(10, TextAccessDirection.Forward);
 			Assert.AreEqual(S().Add('a', 90).Add('b', 100).ToString(), buf.BufferString);
 			TestCharPosMapping(buf, new TextStreamPosition(10), 0);
 			TestCharPosMapping(buf, new TextStreamPosition(60), 50);
@@ -394,58 +395,58 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void GettingPositionOfPastTheEndCharIsAllowed()
+		public async Task GettingPositionOfPastTheEndCharIsAllowed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', 100).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			TestCharPosMapping(buf, new TextStreamPosition(100), 100);
 		}
 
 		[Test]
-		public void GettingPositionOfPastTheEndCharIsAllowed_ZeroLengthBuffer()
+		public async Task GettingPositionOfPastTheEndCharIsAllowed_ZeroLengthBuffer()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', 0).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(0, TextAccessDirection.Forward);
+			await buf.BeginReading(0, TextAccessDirection.Forward);
 			TestCharPosMapping(buf, new TextStreamPosition(0), 0);
 		}
 
 		[Test]
-		public void StartPositionPointsToNonExistingCharachter_Forward()
+		public async Task StartPositionPointsToNonExistingCharachter_Forward()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', 10).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(11, TextAccessDirection.Forward);
+			await buf.BeginReading(11, TextAccessDirection.Forward);
 			Assert.AreEqual("", buf.BufferString);
 		}
 
 		[Test]
-		public void StartPositionPointsToNonExistingCharachter_Backward()
+		public async Task StartPositionPointsToNonExistingCharachter_Backward()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', 10).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(11, TextAccessDirection.Backward);
+			await buf.BeginReading(11, TextAccessDirection.Backward);
 			Assert.AreEqual(S().Add('a', 10).ToString(), buf.BufferString);
 			int idx = buf.PositionToCharIndex(new TextStreamPosition(11));
 		}
 
 		[Test]
-		public void StartPositionPointsToNonExistingCharachter_Backward_SecondBlock()
+		public async Task StartPositionPointsToNonExistingCharachter_Backward_SecondBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz).Add('b', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.BeginReading(blockSz*2, TextAccessDirection.Backward);
+			await buf.BeginReading(blockSz*2, TextAccessDirection.Backward);
 			Assert.AreEqual("", buf.BufferString);
 			int idx = buf.PositionToCharIndex(new TextStreamPosition(blockSz*2));
 			Assert.AreEqual(0, idx);

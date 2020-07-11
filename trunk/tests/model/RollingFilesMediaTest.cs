@@ -7,6 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using LogJoint.Settings;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace LogJoint.Tests
 {
@@ -247,7 +248,7 @@ namespace LogJoint.Tests
 				get { return media.Size; }
 			}
 
-			public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
+			public async Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
 			{
 				media.Update();
 				return UpdateBoundsStatus.NewMessagesAvailable;
@@ -279,12 +280,12 @@ namespace LogJoint.Tests
 				set { }
 			}
 
-			int IPositionedMessagesReader.GetContentsEtag()
+			async ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
 			{
 				return 0;
 			}
 
-			public IPositionedMessagesParser CreateParser(CreateParserParams p)
+			public async Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
 			{
 				return new Parser(media);
 			}
@@ -327,18 +328,18 @@ namespace LogJoint.Tests
 						time = startOfTime.Add(TimeSpan.FromHours(val));
 					}
 				}
-				public IMessage ReadNext()
+				public async ValueTask<IMessage> ReadNext()
 				{
 					if (messageRead)
 						return null;
 					messageRead = true;
 					return new Message(0, 1, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
 				}
-				public PostprocessedMessage ReadNextAndPostprocess()
+				public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
 				{
-					return new PostprocessedMessage(ReadNext(), null);
+					return new PostprocessedMessage(await ReadNext(), null);
 				}
-				public void Dispose()
+				public async Task Dispose()
 				{
 				}
 			};
@@ -365,7 +366,7 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void OpeningFilesThatAreEnumeratedInValidOrder()
+		public async Task OpeningFilesThatAreEnumeratedInValidOrder()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -373,13 +374,13 @@ namespace LogJoint.Tests
 			fs.AddFile("a2.log", 3);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "123");
 			}
 		}
 
 		[Test]
-		public void OpeningFilesThatAreEnumeratedInInvalidOrder()
+		public async Task OpeningFilesThatAreEnumeratedInInvalidOrder()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 2);
@@ -388,13 +389,13 @@ namespace LogJoint.Tests
 			fs.AddFile("a3.log", 3);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "1234");
 			}
 		}
 
 		[Test]
-		public void InvaidFileInTheGroupMustBeIgnored()
+		public async Task InvaidFileInTheGroupMustBeIgnored()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -403,13 +404,13 @@ namespace LogJoint.Tests
 			fs.AddFile("a3.log", 4);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "124");
 			}
 		}
 
 		[Test]
-		public void EmptyFileInTheGroupMustBeIgnored()
+		public async Task EmptyFileInTheGroupMustBeIgnored()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", MessagesReader.EmptyFileContent);
@@ -418,13 +419,13 @@ namespace LogJoint.Tests
 			fs.AddFile("a3.log", 4);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "24");
 			}
 		}
 
 		[Test]
-		public void LastFileGrowing()
+		public async Task LastFileGrowing()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -433,17 +434,17 @@ namespace LogJoint.Tests
 			fs.AddFile("a3.log", 4);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "1234");
 				
 				fs.SetData("a3.log", 89);
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "12389");
 			}
 		}
 
 		[Test]
-		public void LastFileGetsSmaller()
+		public async Task LastFileGetsSmaller()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -452,17 +453,17 @@ namespace LogJoint.Tests
 			fs.AddFile("a3.log", 89);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "12389");
 
 				fs.SetData("a3.log", 4);
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "1234");
 			}
 		}
 
 		[Test]
-		public void NewLastFileCreated()
+		public async Task NewLastFileCreated()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -470,17 +471,17 @@ namespace LogJoint.Tests
 			fs.AddFile("a2.log", 3);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "123");
 
 				fs.AddFile("a3.log", 4);
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "1234");
 			}
 		}
 
 		[Test]
-		public void NewIntermediateFileCreated()
+		public async Task NewIntermediateFileCreated()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -488,17 +489,17 @@ namespace LogJoint.Tests
 			fs.AddFile("a3.log", 4);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "124");
 
 				fs.AddFile("a2.log", 3);
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "1234");
 			}
 		}
 
 		[Test]
-		public void IntermediateFileDeleted()
+		public async Task IntermediateFileDeleted()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -506,17 +507,17 @@ namespace LogJoint.Tests
 			fs.AddFile("a2.log", 3);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "123");
 
 				fs.RemoveFile("a1.log");
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "13");
 			}
 		}
 
 		[Test]
-		public void RepeatedCreationNotificationsAreHandledCorrectly()
+		public async Task RepeatedCreationNotificationsAreHandledCorrectly()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("a0.log", 1);
@@ -524,31 +525,31 @@ namespace LogJoint.Tests
 			fs.AddFile("a2.log", 3);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "123");
 
 				// Create new file over existing one
 				fs.AddFile("a1.log", 4);
-				media.Update();
+				await media.Update();
 
 				CheckMedia(media, "134");
 			}
 		}
 
 		[Test]
-		public void FileNamesAreNotCaseSensitive()
+		public async Task FileNamesAreNotCaseSensitive()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("abc1.log", 1);
 			fs.AddFile("abc2.log", 2);
 			using (var media = CreateMedia(fs))
 			{
-				media.Update();
+				await media.Update();
 				CheckMedia(media, "12");
 
 				// Create new file over existing one
 				fs.AddFile("aBC1.log", 4);
-				media.Update();
+				await media.Update();
 
 				CheckMedia(media, "24");
 			}

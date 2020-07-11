@@ -6,6 +6,7 @@ using NSubstitute;
 using System.Threading;
 using Range = LogJoint.FileRange.Range;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace LogJoint.Tests.Providers.AsyncLogProvider
 {
@@ -27,22 +28,22 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 		};
 
 		[Test]
-		public void TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz3()
+		public async Task TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz3()
 		{
-			TestSyncResults(new Range(20, 45), expectedSyncResultsWhenMiddleOfAvailableRangeIsCached);
+			await TestSyncResults(new Range(20, 45), expectedSyncResultsWhenMiddleOfAvailableRangeIsCached);
 		}
 
 		[Test]
-		public void TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz2()
+		public async Task TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz2()
 		{
-			TestSyncResults(new Range(20, 40), expectedSyncResultsWhenMiddleOfAvailableRangeIsCached);
+			await TestSyncResults(new Range(20, 40), expectedSyncResultsWhenMiddleOfAvailableRangeIsCached);
 		}
 
 		[Test]
-		public void TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz1()
+		public async Task TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz1()
 		{
 			// cache of size 1 is useless. it can be in the middle of date equal range
-			TestSyncResults(new Range(30, 40),
+			await TestSyncResults(new Range(30, 40),
 				"0LR", "0UR",
 				"1LR", "1UR",
 				"2UR",
@@ -70,21 +71,21 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 		};
 
 		[Test]
-		public void TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz3()
+		public async Task TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz3()
 		{
-			TestSyncResults(new Range(0, 30), expectedSyncResultsWhenBeginningOfAvailableRangeIsCached);
+			await TestSyncResults(new Range(0, 30), expectedSyncResultsWhenBeginningOfAvailableRangeIsCached);
 		}
 
 		[Test]
-		public void TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz2()
+		public async Task TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz2()
 		{
-			TestSyncResults(new Range(0, 20), expectedSyncResultsWhenBeginningOfAvailableRangeIsCached);
+			await TestSyncResults(new Range(0, 20), expectedSyncResultsWhenBeginningOfAvailableRangeIsCached);
 		}
 
 		[Test]
-		public void TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz1()
+		public async Task TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz1()
 		{
-			TestSyncResults(new Range(0, 10),
+			await TestSyncResults(new Range(0, 10),
 				"0L", "0U", "0LR", "0UR",
 				"1L", "1U", "1LR", "1UR",
 				"2L", "2UR",
@@ -118,21 +119,21 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 		};
 
 		[Test]
-		public void TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz3()
+		public async Task TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz3()
 		{
-			TestSyncResults(new Range(40, 61), expectedSyncResultsWhenEndOfAvailableRangeIsCached);
+			await TestSyncResults(new Range(40, 61), expectedSyncResultsWhenEndOfAvailableRangeIsCached);
 		}
 
 		[Test]
-		public void TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz2()
+		public async Task TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz2()
 		{
-			TestSyncResults(new Range(50, 61), expectedSyncResultsWhenEndOfAvailableRangeIsCached);
+			await TestSyncResults(new Range(50, 61), expectedSyncResultsWhenEndOfAvailableRangeIsCached);
 		}
 
 		[Test]
-		public void TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz1()
+		public async Task TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz1()
 		{
-			TestSyncResults(new Range(60, 61), 
+			await TestSyncResults(new Range(60, 61), 
 				"0LR", "0UR",
 				"1LR", "1UR",
 				"2UR",
@@ -151,9 +152,9 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 		}
 
 		[Test]
-		public void TestSyncResultsWhenEverythingIsCache()
+		public async Task TestSyncResultsWhenEverythingIsCache()
 		{
-			TestSyncResults(new Range(0, 61),
+			await TestSyncResults(new Range(0, 61),
 				Enumerable.Range(0, 17).SelectMany(d => new [] {"L", "U", "LR", "UR"}.Select(b => string.Format("{0}{1}", d, b))).ToArray()
 			);
 		}
@@ -176,7 +177,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 			}
 		}
 
-		void TestSyncResults(CommandContext ctx, params string[] expectedSyncResults)
+		async Task TestSyncResults(CommandContext ctx, params string[] expectedSyncResults)
 		{
 			var cache = ctx.Cache;
 			var cachedRange = cache.Messages.DatesRange;
@@ -232,8 +233,8 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 					if (syncResult != null)
 					{
 						Assert.AreEqual(
-							PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, syncResult.Position),
-							PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, asyncResult.Position),
+							await PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, syncResult.Position),
+							await PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, asyncResult.Position),
 							"Position mismatch " + testId
 						);
 						Assert.AreEqual(syncResult.IsBeforeBeginPosition, asyncResult.IsBeforeBeginPosition, "IsBeforeBeginPosition mismatch " + testId);
@@ -244,11 +245,10 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 			}
 		}
 
-		void TestSyncResults(FileRange.Range cachedRange, params string[] expectedSyncResults)
+		async Task TestSyncResults(FileRange.Range cachedRange, params string[] expectedSyncResults)
 		{
 			IPositionedMessagesReader reader = new PositionedMessagesUtilsTests.TestReader(new long[] { 0, 10, 20, 30, 40, 50, 60 });
-			IMessage firstMsg, lastMsg;
-			PositionedMessagesUtils.GetBoundaryMessages(reader, null, out firstMsg, out lastMsg);
+			var (firstMsg, lastMsg) = await PositionedMessagesUtils.GetBoundaryMessages(reader, null);
 			var availableTime = DateRange.MakeFromBoundaryValues(
 				firstMsg.Time.ToLocalDateTime(),
 				lastMsg.Time.ToLocalDateTime()
@@ -271,23 +271,23 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 				Reader = reader,
 				Tracer = LJTraceSource.EmptyTracer
 			};
-			using (var parser = reader.CreateParser(new CreateParserParams()
+			await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams()
 			{
 				Direction = MessagesParserDirection.Forward,
 				StartPosition = cachedRange.Begin,
 				Range = cachedRange
-			}))
+			}), async parser =>
 			{
 				for (; ; )
 				{
-					IMessage msg = parser.ReadNext();
+					IMessage msg = await parser.ReadNext();
 					if (msg == null)
 						break;
 					else
 						ctx.Cache.Messages.Add(msg);
 				}
-			}
-			TestSyncResults(ctx, expectedSyncResults);
+			});
+			await TestSyncResults(ctx, expectedSyncResults);
 		}
 	}
 }
