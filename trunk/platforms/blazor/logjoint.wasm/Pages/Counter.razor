@@ -46,7 +46,7 @@
         currentCount++;
         var task = model.LogSourcesPreprocessings.Preprocess(
             new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(
-                await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "xmlwritertracelistener1.xml"))) },
+                await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "test_chrome_debug.log"))) },
             "Processing test"
         );
         while (!task.IsCompleted)
