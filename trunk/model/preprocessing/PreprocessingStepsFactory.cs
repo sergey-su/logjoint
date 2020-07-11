@@ -52,7 +52,7 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
 		{
-			return new FormatDetectionStep(p, extentions, this);
+			return new FormatDetectionStep(p, extentions, this, fileSystem);
 		}
 
 		IPreprocessingStep IStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)

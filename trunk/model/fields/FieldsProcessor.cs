@@ -61,14 +61,17 @@ namespace LogJoint.FieldsProcessor
 		{
 			readonly Persistence.IStorageEntry cacheEntry;
 			readonly Telemetry.ITelemetryCollector telemetryCollector;
+			readonly IMetadataReferencesProvider metadataReferencesProvider;
 
 			public Factory(
 				Persistence.IStorageManager storageManager,
-				Telemetry.ITelemetryCollector telemetryCollector
+				Telemetry.ITelemetryCollector telemetryCollector,
+				IMetadataReferencesProvider metadataReferencesProvider
 			)
 			{
 				this.cacheEntry = storageManager.GetEntry("user-code-cache", 0x81012232);
 				this.telemetryCollector = telemetryCollector;
+				this.metadataReferencesProvider = metadataReferencesProvider ?? new DefaultMetadataReferencesProvider();
 			}
 
 			IInitializationParams IFactory.CreateInitializationParams(
@@ -87,18 +90,37 @@ namespace LogJoint.FieldsProcessor
 					extensions,
 					cacheEntry,
 					trace,
-					telemetryCollector
+					telemetryCollector,
+					metadataReferencesProvider
 				);
 			}
 		};
 
-		public FieldsProcessorImpl(
+        private class DefaultMetadataReferencesProvider : IMetadataReferencesProvider
+        {
+			IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences(IEnumerable<string> assemblyNames)
+            {
+				MetadataReference assemblyLocationResolver(string asmName) => MetadataReference.CreateFromFile(Assembly.Load(asmName).Location);
+
+				var metadataReferences = new List<MetadataReference>();
+				metadataReferences.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+				metadataReferences.Add(assemblyLocationResolver("System.Runtime"));
+				metadataReferences.Add(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"));
+				metadataReferences.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
+				metadataReferences.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
+				metadataReferences.AddRange(assemblyNames.Select(assemblyLocationResolver));
+				return metadataReferences;
+			}
+		};
+
+        public FieldsProcessorImpl(
 			InitializationParams initializationParams, 
 			IEnumerable<string> inputFieldNames, 
 			IEnumerable<ExtensionInfo> extensions,
 			Persistence.IStorageEntry cacheEntry,
 			LJTraceSource trace,
-			Telemetry.ITelemetryCollector telemetryCollector
+			Telemetry.ITelemetryCollector telemetryCollector,
+			IMetadataReferencesProvider metadataReferencesProvider
 		)
 		{
 			if (inputFieldNames == null)
@@ -110,6 +132,7 @@ namespace LogJoint.FieldsProcessor
 			this.cacheEntry = cacheEntry;
 			this.trace = trace;
 			this.telemetryCollector = telemetryCollector;
+			this.metadataReferencesProvider = metadataReferencesProvider;
 		}
 
 		void IFieldsProcessor.Reset()
@@ -207,7 +230,14 @@ namespace LogJoint.FieldsProcessor
 				{
 					if (!builderTypesCache.TryGetValue(builderTypeHash, out builderTypeTask))
 					{
-						builderTypeTask = Task.Run(() => GenerateType(builderTypeHash));
+						if (System.Runtime.InteropServices.RuntimeInformation.OSDescription == "web")
+						{
+							builderTypeTask = Task.FromResult(GenerateType(builderTypeHash));
+						}
+						else
+						{
+							builderTypeTask = Task.Run(() => GenerateType(builderTypeHash));
+						}
 						builderTypesCache.Add(builderTypeHash, builderTypeTask);
 					}
 				}
@@ -265,17 +295,10 @@ namespace LogJoint.FieldsProcessor
 			{
 				List<string> refs = new List<string>();
 				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields, refs);
-				MetadataReference assemblyLocationResolver(string asmName) => MetadataReference.CreateFromFile(Assembly.Load(asmName).Location);
 
 				var syntaxTree = CSharpSyntaxTree.ParseText(fullCode);
 
-				var metadataReferences = new List<MetadataReference>();
-				metadataReferences.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
-				metadataReferences.Add(assemblyLocationResolver("System.Runtime"));
-				metadataReferences.Add(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"));
-				metadataReferences.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
-				metadataReferences.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
-				metadataReferences.AddRange(refs.Select(assemblyLocationResolver));
+				var metadataReferences = metadataReferencesProvider.GetMetadataReferences(refs);
 
 				CSharpCompilation compilation = CSharpCompilation.Create(
 					$"UserCode{Guid.NewGuid().ToString("N")}",
@@ -672,6 +695,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly Persistence.IStorageEntry cacheEntry;
 		readonly Telemetry.ITelemetryCollector telemetryCollector;
 		readonly LJTraceSource trace;
+		readonly IMetadataReferencesProvider metadataReferencesProvider;
 		Type precompiledBuilderType;
 
 		#endregion

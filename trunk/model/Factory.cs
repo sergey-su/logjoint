@@ -68,6 +68,7 @@ namespace LogJoint
 		public string[] AdditionalFormatDirectories;
 		public System.Reflection.Assembly FormatsRepositoryAssembly;
 		public LogMedia.IFileSystem FileSystem;
+		public FieldsProcessor.IMetadataReferencesProvider FieldsProcessorMetadataReferencesProvider;
 	};
 
 	public static class ModelFactory
@@ -118,7 +119,8 @@ namespace LogJoint
 				traceSourceFactory
 			);
 			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
-			FieldsProcessor.IFactory fieldsProcessorFactory = new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, telemetryCollector);
+			FieldsProcessor.IFactory fieldsProcessorFactory = new FieldsProcessor.FieldsProcessorImpl.Factory(
+				storageManager, telemetryCollector, config.FieldsProcessorMetadataReferencesProvider);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);

@@ -34,6 +34,11 @@ namespace LogJoint.FieldsProcessor
 		bool IsBodySingleFieldExpression();
 	};
 
+	public interface IMetadataReferencesProvider
+    {
+		IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference> GetMetadataReferences(IEnumerable<string> assemblyNames);
+	};
+
 	public interface IInitializationParams
 	{
 	}

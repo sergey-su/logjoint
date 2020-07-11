@@ -53,9 +53,10 @@ namespace LogJoint
 		static bool HeuristicallyDetectWhetherMultithreadingMakesSense(CreateParserParams parserParams,
 			TextStreamPositioningParams textStreamPositioningParams)
 		{
-#if SILVERLIGHT
-			return false;
-#else
+			if (System.Runtime.InteropServices.RuntimeInformation.OSDescription == "web")
+			{
+				return false;
+			}
 			if (System.Environment.ProcessorCount == 1)
 			{
 				return false;
@@ -78,7 +79,6 @@ namespace LogJoint
 			}
 
 			return true;
-#endif
 		}
 
 		void CreateParsingStrategy(
