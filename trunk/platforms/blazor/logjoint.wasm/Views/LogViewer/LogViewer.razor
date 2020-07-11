@@ -1,0 +1,205 @@
+﻿@namespace LogJoint.Wasm.UI.LogViewer
+@using LogJoint
+@using LogJoint.UI.Presenters.LogViewer
+@using LogJoint.Settings
+@implements IDisposable
+@implements IView
+@inject LogJoint.ModelObjects model
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject IJSRuntime jsRuntime
+
+<button class="btn btn-primary" @onclick="@(_ => viewModel.OnIncrementalVScroll(-1))">up</button>
+<button class="btn btn-primary" @onclick="@(_ => viewModel.OnIncrementalVScroll(+1))">down</button>
+<p>@viewModel.ViewLines.Length</p>
+<div class="logview" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" style="width:300px; height: 300px; display: inline-flex;">
+    <span class="measure-text" @ref="measureElement"> </span>
+    <div class="scroll-outer" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / chatHeight)))" @ref="scrollOuter">
+        <div class="scroll-inner">
+            @foreach (var item in @viewModel.ViewLines)
+            {
+                <div class="logline"
+                     @key="item.LineIndex"
+                     style="background-color: @GetBackgroundColor(item.ContextColor)"
+                     @onmousedown="@(e => viewModel.OnMessageMouseEvent(
+                                                            item, GetClickedCharIndex(item, e),
+                                                            GetMessageMouseEventFlags(e), null))">
+                    @if (item.SelectedBackground.HasValue)
+                    {
+                        <span class="pad">@Spaces(item.SelectedBackground.Value.Item1)<span class="sel">@Spaces(item.SelectedBackground.Value.Item2 - item.SelectedBackground.Value.Item1)</span></span>
+                    }
+                    @if (item.SelectionHighlightingRanges != null)
+                    {
+                        @foreach (var r in item.SelectionHighlightingRanges)
+                        {
+                            <span class="pad">@Spaces(r.Item1)<span class="selhl">@Spaces(r.Item2 - r.Item1)</span></span>
+                        }
+                    }
+                    @if (item.CursorCharIndex.HasValue)
+                    {
+                        <span class="pad">@Spaces(item.CursorCharIndex.Value)<span class="@(item.CursorVisible ? "cur" : "curhid")"></span></span>
+                    }
+                    <span class="txt">@(item.TextLineValue.Length != 0 ? item.TextLineValue : " ")</span>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="outline">
+        @foreach (var item in @viewModel.ViewLines)
+        {
+            <div @key="item.LineIndex" class="item">@GetOutlineContents(item)</div>
+        }
+    </div>
+    <div class="vsroller"><div class="slider" style="top: @string.Format("{0}%", viewModel.VerticalScrollerPosition.GetValueOrDefault(0)*100)"></div></div>
+</div>
+
+@code {
+    IViewModel viewModel;
+    private ISubscription subscription;
+    ElementReference measureElement, scrollOuter;
+    double charWidth = 1;
+    double chatHeight = 1;
+
+
+    protected override void OnInitialized()
+    {
+        viewProxies.LoadedMessagesLogViewerViewProxy.SetComponent(this);
+
+        var updateLines = Updaters.Create(
+            () => viewModel.ViewLines,
+            _ => StateHasChanged()
+        );
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(() =>
+        {
+            updateLines();
+        });
+    }
+
+    public void Dispose()
+    {
+        viewProxies.LoadedMessagesLogViewerViewProxy.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            charWidth = await jsRuntime.InvokeAsync<double>("logjoint.getElementWidth", measureElement);
+            chatHeight = await jsRuntime.InvokeAsync<double>("logjoint.getElementHeight", measureElement);
+            Console.WriteLine("LogViewer char w={0} h={1}", charWidth, chatHeight);
+        }
+    }
+
+    float IView.DisplayLinesPerPage => 10;
+
+    bool IView.HasInputFocus => true;
+
+    string[] IViewFonts.AvailablePreferredFamilies => new string[0];
+
+    KeyValuePair<Appearance.LogFontSize, int>[] IViewFonts.FontSizes => new KeyValuePair<Appearance.LogFontSize, int>[0];
+
+    object IView.GetContextMenuPopupData(int? viewLineIndex) => null;
+
+    void IView.HScrollToSelectedText(int charIndex)
+    {
+        ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.setScrollLeft", scrollOuter, charWidth * charIndex);
+    }
+
+    void IView.PopupContextMenu(object contextMenuPopupData)
+    {
+    }
+
+    void IView.ReceiveInputFocus()
+    {
+        // todo
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    static string Spaces(int count)
+    {
+        return new string(' ', count);
+    }
+
+    Key GetKey(KeyboardEventArgs keyboardEventArgs)
+    {
+        return GetMainKey(keyboardEventArgs) | GetModidifierKeys(keyboardEventArgs);
+    }
+
+    Key GetModidifierKeys(KeyboardEventArgs keyboardEventArgs)
+    {
+        var result = Key.None;
+        if (keyboardEventArgs.ShiftKey)
+        {
+            result |= Key.ModifySelectionModifier;
+        }
+        if (keyboardEventArgs.CtrlKey)
+        {
+            result |= Key.JumpOverWordsModifier;
+        }
+        return result;
+    }
+
+    Key GetMainKey(KeyboardEventArgs keyboardEventArgs)
+    {
+        switch (keyboardEventArgs.Key)
+        {
+            case "ArrowUp": return Key.Up;
+            case "ArrowDown": return Key.Down;
+            case "ArrowLeft": return Key.Left;
+            case "ArrowRight": return Key.Right;
+            case "Home": return Key.BeginOfLine;
+            case "End": return Key.EndOfLine;
+            case "PageUp": return Key.PageUp;
+            case "PageDown": return Key.PageDown;
+            case "B": return Key.BookmarkShortcut;
+            case "b": return Key.BookmarkShortcut;
+            default: return Key.None;
+        }
+    }
+
+    LogJoint.UI.Presenters.LogViewer.MessageMouseEventFlag GetMessageMouseEventFlags(MouseEventArgs mouseEventArgs)
+    {
+        var result = MessageMouseEventFlag.None;
+        if (mouseEventArgs.Detail > 1)
+            result |= MessageMouseEventFlag.DblClick;
+        else
+            result |= MessageMouseEventFlag.SingleClick;
+        if (mouseEventArgs.ShiftKey)
+            result |= MessageMouseEventFlag.ShiftIsHeld;
+        if (mouseEventArgs.AltKey)
+            result |= MessageMouseEventFlag.AltIsHeld;
+        if (mouseEventArgs.CtrlKey)
+            result |= MessageMouseEventFlag.CtrlIsHeld;
+        return result;
+    }
+
+    int GetClickedCharIndex(LogJoint.UI.Presenters.LogViewer.ViewLine viewLine, MouseEventArgs mouseEventArgs)
+    {
+        var clickedChar = (int)Math.Round(mouseEventArgs.OffsetX / charWidth);
+        return clickedChar;
+    }
+
+    static string GetBackgroundColor(LogJoint.Drawing.Color? contextColor)
+    {
+        return contextColor.HasValue ? LogJoint.Drawing.ColorExtensions.ToHtmlColor(contextColor.Value) : "white";
+    }
+
+    static string GetOutlineContents(LogJoint.UI.Presenters.LogViewer.ViewLine viewLine)
+    {
+        string result = "";
+        if (viewLine.Severity == LogJoint.UI.Presenters.LogViewer.SeverityIcon.Error)
+            result = "e";
+        else if (viewLine.Severity == LogJoint.UI.Presenters.LogViewer.SeverityIcon.Error)
+            result = "w";
+        if (viewLine.IsBookmarked)
+            result += "b";
+        if (result == "")
+            result = " ";
+        return result;
+    }
+}
