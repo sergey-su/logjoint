@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogJoint.LogMedia;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,16 +10,17 @@ namespace LogJoint.Preprocessing
 {
 	public class FormatDetectionStep: IPreprocessingStep
 	{
-		internal FormatDetectionStep(PreprocessingStepParams srcFile, IExtensionsRegistry extentions, IStepsFactory preprocessingStepsFactory)
+		internal FormatDetectionStep(PreprocessingStepParams srcFile, IExtensionsRegistry extentions, IStepsFactory preprocessingStepsFactory, IFileSystem fileSystem)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.extentions = extentions;
+			this.fileSystem = fileSystem;
 		}
 
 		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			var header = new StreamHeader(sourceFile.Location);
+			var header = await StreamHeader.Create(sourceFile.Location, fileSystem);
 			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile, header)).FirstOrDefault(x => x != null);
 			if (detectedFormatStep != null)
 				callback.YieldNextStep(detectedFormatStep);
@@ -134,36 +136,29 @@ namespace LogJoint.Preprocessing
 
 		class StreamHeader : IStreamHeader
 		{
-			string fileName;
 			byte[] header;
 
-			public StreamHeader(string fileName)
+			public static async ValueTask<StreamHeader> Create(string fileName, IFileSystem fs)
 			{
-				this.fileName = fileName;
+				var tmp = new byte[1024];
+				using (var fstm = fs.OpenFile(fileName))
+				{
+					int read = await fstm.ReadAsync(tmp, 0, tmp.Length);
+					if (read < tmp.Length)
+						tmp = tmp.Take(read).ToArray();
+				}
+				return new StreamHeader()
+				{
+					header = tmp
+				};
 			}
 
-			byte[] IStreamHeader.Header
-			{
-				get
-				{
-					if (header == null)
-					{
-						var tmp = new byte[1024];
-						using (var fstm = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256))
-						{
-							int read = fstm.Read(tmp, 0, tmp.Length);
-							if (read < tmp.Length)
-								tmp = tmp.Take(read).ToArray();
-						}
-						header = tmp;
-					}
-					return header;
-				}
-			}
+			byte[] IStreamHeader.Header => header;
 		};
 
 		readonly PreprocessingStepParams sourceFile;
 		readonly IStepsFactory preprocessingStepsFactory;
 		readonly IExtensionsRegistry extentions;
+		readonly IFileSystem fileSystem;
 	};
 }
