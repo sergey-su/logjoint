@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text;
+using System.Linq;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,12 +13,18 @@ using LogJoint.Preprocessing;
 using LogJoint.Persistence;
 using NSubstitute;
 using Microsoft.JSInterop;
+using System.Reflection;
+using ICSharpCode.SharpZipLib.Zip;
+using Microsoft.CodeAnalysis;
+using LogJoint.FieldsProcessor;
 
 namespace LogJoint.Wasm
 {
 
 	public class ViewModelObjects // todo: renam to ViewProxies
 	{
+        public LogJoint.UI.Presenters.PresentationObjects PresentationObjects;
+
         public UI.LogViewer.ViewProxy LoadedMessagesLogViewerViewProxy = new UI.LogViewer.ViewProxy();
         public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
 		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
@@ -77,6 +84,32 @@ namespace LogJoint.Wasm
 
 namespace LogJoint.Wasm
 {
+    namespace Extensibility
+    {
+        public interface IApplication
+        {
+            IModel Model { get; }
+            LogJoint.UI.Presenters.IPresentation Presentation { get; }
+            object View { get; }
+        };
+
+        class Application : IApplication
+        {
+            public Application(
+                IModel model,
+                LogJoint.UI.Presenters.IPresentation presentation
+            )
+            {
+                this.Model = model;
+                this.Presentation = presentation;
+            }
+
+            public LogJoint.UI.Presenters.IPresentation Presentation { get; private set; }
+            public IModel Model { get; private set; }
+            public object View { get; private set; }
+        }
+    }
+
     public class Program
     {
         class BlazorSynchronizationContext: ISynchronizationContext
@@ -94,11 +127,35 @@ namespace LogJoint.Wasm
             void ILogsDownloaderConfig.AddRule(Uri uri, LogDownloaderRule rule) {}
         };
 
+        class MetadataReferencesProvider : FieldsProcessor.IMetadataReferencesProvider
+        {
+            List<MetadataReference> references = new List<MetadataReference>();
+
+            public async Task Init(IJSRuntime jsRuntime)
+            {
+                var httpClient = new HttpClient();
+                async Task<MetadataReference> resolve(string asmName) => MetadataReference.CreateFromStream(
+                    await httpClient.GetStreamAsync(
+                        await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", $"_framework/_bin/{asmName}")));
+                references.AddRange(await Task.WhenAll(
+                    resolve("mscorlib.dll"),
+                    resolve("System.Runtime.dll"),
+                    resolve("netstandard.dll"),
+                    resolve("logjoint.model.dll"),
+                    resolve("logjoint.model.sdk.dll")
+                ));
+            }
+
+            IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences(IEnumerable<string> assemblyNames) => references;
+        };
+
 
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
+
+            var fieldsProcessorMetadataReferencesProvider = new MetadataReferencesProvider();
 
             builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddSingleton<ModelObjects>(serviceProvider =>
@@ -118,7 +175,8 @@ namespace LogJoint.Wasm
                         LogsDownloaderConfig = webContentConfig,
                         TraceListeners = new[] { new TraceListener(";console=1") },
                         FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
-                        FileSystem = new LogJoint.Wasm.FileSystem(serviceProvider.GetService<IJSRuntime>())
+                        FileSystem = new LogJoint.Wasm.FileSystem(serviceProvider.GetService<IJSRuntime>()),
+                        FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider
                     },
                         invokingSynchronization,
                         (storageManager) => null /*new PreprocessingCredentialsCache (
@@ -136,6 +194,7 @@ namespace LogJoint.Wasm
                     null/*new Drawing.Matrix.Factory()*/,
                     LogJoint.RegularExpressions.FCLRegexFactory.Instance
                 );
+
                 return model;
             });
             builder.Services.AddSingleton<ViewModelObjects>(serviceProvider =>
@@ -158,10 +217,34 @@ namespace LogJoint.Wasm
                     mocks.Views
                 );
 
+                viewModel.PresentationObjects = presentationObjects;
+
                 return viewModel;
             });
 
-            await builder.Build().RunAsync();
+            var wasmHost = builder.Build();
+
+            await fieldsProcessorMetadataReferencesProvider.Init(wasmHost.Services.GetService<IJSRuntime>());
+
+            {
+                var pluginsDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "plugins"); // folder in memory, powered by emscripten MEMFS.
+                var resourcesAssembly = Assembly.GetExecutingAssembly();
+                foreach (string resourceName in resourcesAssembly.GetManifestResourceNames().Where(f => f.StartsWith("LogJoint.Wasm.Plugins")))
+                {
+                    Console.WriteLine("Found plugin in resources: {0}", resourceName);
+                    var fz = new FastZip();
+                    fz.ExtractZip(resourcesAssembly.GetManifestResourceStream(resourceName), pluginsDir,
+                        FastZip.Overwrite.Always, null, null, null, false, false);
+                    Console.WriteLine("Exactracted plugin: {0}", resourceName);
+                }
+                var model = wasmHost.Services.GetService<ModelObjects>();
+                var view = wasmHost.Services.GetService<ViewModelObjects>();
+                model.PluginsManager.LoadPlugins(new Extensibility.Application(
+                    model.ExpensibilityEntryPoint,
+                    view.PresentationObjects.ExpensibilityEntryPoint), pluginsDir, false);
+            }
+
+            await wasmHost.RunAsync();
         }
     }
 }

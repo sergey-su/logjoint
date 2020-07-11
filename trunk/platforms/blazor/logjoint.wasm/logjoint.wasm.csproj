@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -34,9 +34,11 @@
     <EmbeddedResource Include="..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml" Link="Formats\LogJoint - LogJoint debug trace.format.xml" />
     <EmbeddedResource Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml" Link="Formats\MS-TextWriterTraceListener.format.xml" />
     <EmbeddedResource Include="..\..\..\model\formats\MS-XmlWriterTraceListener.format.xml" Link="Formats\MS-XmlWriterTraceListener.format.xml" />
+	<EmbeddedResource Include="../../../extensions/chromium/plugin/bin/chromium.zip" Link="Plugins\chromium.zip" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Formats\" />
+    <Folder Include="Plugins\" />
   </ItemGroup>
 </Project>
