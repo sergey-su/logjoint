@@ -9,6 +9,7 @@ using EM = LogJoint.Tests.ExpectedMessage;
 using NUnit.Framework;
 using System.Xml.Linq;
 using NSubstitute;
+using System.Threading.Tasks;
 
 namespace LogJoint.Tests
 {
@@ -110,7 +111,7 @@ namespace LogJoint.Tests
 			var cacheSection = Substitute.For<Persistence.IRawStreamStorageSection>();
 			cacheSection.Data.Returns(new MemoryStream());
 			cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(cacheSection);
-			return new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, Substitute.For<Telemetry.ITelemetryCollector>());
+			return new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, Substitute.For<Telemetry.ITelemetryCollector>(), null);
 		}
 	};
 
@@ -133,25 +134,25 @@ namespace LogJoint.Tests
 			return factory as IMediaBasedReaderFactory;
 		}
 
-		public static void Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
+		public static async Task Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
 		{
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
-				reader.UpdateAvailableBounds(false);
+				await reader.UpdateAvailableBounds(false);
 
 				List<IMessage> msgs = new List<IMessage>();
 
-				using (var parser = reader.CreateParser(new CreateParserParams(reader.BeginPosition)))
+				await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.BeginPosition)), async parser =>
 				{
 					for (; ; )
 					{
-						var msg = parser.ReadNext();
+						var msg = await parser.ReadNext();
 						if (msg == null)
 							break;
 						msgs.Add(msg);
 					}
-				}
+				});
 
 				expectation.StartVerification();
 				for (int i = 0; i < msgs.Count; ++i)
@@ -162,26 +163,26 @@ namespace LogJoint.Tests
 			}
 		}
 
-		public static void Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation)
+		public static async Task Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation)
 		{
-			Test(factory, testLog, expectation, Encoding.ASCII);
+			await Test(factory, testLog, expectation, Encoding.ASCII);
 		}
 
-		public static void Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation, Encoding encoding)
+		public static async Task Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation, Encoding encoding)
 		{
 			using (StringStreamMedia media = new StringStreamMedia(testLog, encoding))
 			{
-				Test(factory, media, expectation);
+				await Test(factory, media, expectation);
 			}
 		}
 
-		public static void Test(IMediaBasedReaderFactory factory, System.IO.Stream testLogStream, ExpectedLog expectation)
+		public static async Task Test(IMediaBasedReaderFactory factory, System.IO.Stream testLogStream, ExpectedLog expectation)
 		{
 			using (StringStreamMedia media = new StringStreamMedia())
 			{
 				media.SetData(testLogStream);
 
-				Test(factory, media, expectation);
+				await Test(factory, media, expectation);
 			}
 		}
 	}
@@ -194,22 +195,22 @@ namespace LogJoint.Tests
 			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "TextWriterTraceListener");
 		}
 
-		void DoTest(string testLog, ExpectedLog expectedLog)
+		async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
-			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
 			ExpectedLog expectedLog = new ExpectedLog();
 			expectedLog.Add(0, expectedMessages);
-			DoTest(testLog, expectedLog);
+			await DoTest(testLog, expectedLog);
 		}
 
 		[Test]
-		public void TextWriterTraceListenerSmokeTest()
+		public async Task TextWriterTraceListenerSmokeTest()
 		{
-			DoTest(
+			await DoTest(
 				@"
 SampleApp Information: 0 : No free data file found. Going sleep.
   ProcessId=4756
@@ -252,7 +253,7 @@ SampleApp Information: 0 : Timestamp parsed and ignored
 		}
 		
 		[Test]
-		public void TextWriterTraceListener_FindPrevMessagePositionTest()
+		public async Task TextWriterTraceListener_FindPrevMessagePositionTest()
 		{
 			var testLog = 
 @"SampleApp Information: 0 : No free data file found. Going sleep.
@@ -272,8 +273,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
 			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
-				reader.UpdateAvailableBounds(false);
-				long? prevMessagePos = PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
+				await reader.UpdateAvailableBounds(false);
+				long? prevMessagePos = await PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
 				Assert.IsTrue(prevMessagePos.HasValue);
 				Assert.AreEqual(0, prevMessagePos.Value);
 			}
@@ -291,20 +292,20 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				"Microsoft", "XmlWriterTraceListener");
 		}
 
-		void DoTest(string testLog, ExpectedLog expectedLog)
+		async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
-			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
-			DoTest(testLog, new ExpectedLog().Add(0, expectedMessages));
+			await DoTest(testLog, new ExpectedLog().Add(0, expectedMessages));
 		}
 
 		[Test]
-		public void XmlWriterTraceListenerSmokeTest()
+		public async Task XmlWriterTraceListenerSmokeTest()
 		{
-			DoTest(
+			await DoTest(
 				@"
 <E2ETraceEvent xmlns='http://schemas.microsoft.com/2004/06/E2ETraceEvent'>
  <System xmlns='http://schemas.microsoft.com/2004/06/windows/eventlog/system'>
@@ -343,9 +344,9 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		}
 
 		[Test]
-		public void RealLogTest()
+		public async Task RealLogTest()
 		{
-			ReaderIntegrationTest.Test(
+			await ReaderIntegrationTest.Test(
 				CreateFactory(),
 				Assembly.GetExecutingAssembly().GetManifestResourceStream(
 					Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(n => n.Contains("XmlWriterTraceListener1.xml"))),
@@ -372,22 +373,22 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "HTTPERR");
 		}
 
-		void DoTest(string testLog, ExpectedLog expectedLog)
+		async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
-			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
 			ExpectedLog expectedLog = new ExpectedLog();
 			expectedLog.Add(0, expectedMessages);
-			DoTest(testLog, expectedLog);
+			await DoTest(testLog, expectedLog);
 		}
 
 		[Test]
-		public void HTTPERR_SmokeTest()
+		public async Task HTTPERR_SmokeTest()
 		{
-			DoTest(
+			await DoTest(
 				@"
 #Software: Microsoft HTTP API 2.0
 #Version: 1.0
@@ -426,22 +427,22 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "IIS");
 		}
 
-		void DoTest(string testLog, ExpectedLog expectedLog)
+		async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
-			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
 			ExpectedLog expectedLog = new ExpectedLog();
 			expectedLog.Add(0, expectedMessages);
-			DoTest(testLog, expectedLog);
+			await DoTest(testLog, expectedLog);
 		}
 
 		[Test]
-		public void IIS_SmokeTest()
+		public async Task IIS_SmokeTest()
 		{
-			DoTest(
+			await DoTest(
 @"192.168.114.201, -, 03/20/01, 7:55:20, W3SVC2, SERVER, 172.21.13.45, 4502, 163, 3223, 200, 0, GET, /DeptLogo.gif, -,
 192.168.110.54, -, 03/20/01, 7:57:20, W3SVC2, SERVER, 172.21.13.45, 411, 221, 1967, 200, 0, GET, /style.css, -,
 192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 0, 261, 1913, 401, 2148074254, GET, /, -, 
@@ -456,9 +457,9 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		}
 
 		[Test]
-		public void IIS7_Test()
+		public async Task IIS7_Test()
 		{
-			DoTest(
+			await DoTest(
 @"::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 324, 285, 935, 200, 0, GET, /, -,
 ::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 5, 337, 185196, 200, 0, GET, /welcome.png, -,
 ::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 3, 238, 5375, 404, 2, GET, /favicon.ico, -,
@@ -481,22 +482,22 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "WindowsUpdate.log");
 		}
 
-		void DoTest(string testLog, ExpectedLog expectedLog)
+		async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
-			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
 			ExpectedLog expectedLog = new ExpectedLog();
 			expectedLog.Add(0, expectedMessages);
-			DoTest(testLog, expectedLog);
+			await DoTest(testLog, expectedLog);
 		}
 
 		[Test]
-		public void WindowsUpdate_SmokeTest()
+		public async Task WindowsUpdate_SmokeTest()
 		{
-			DoTest(
+			await DoTest(
 				@"
 2013-01-27	10:55:33:204	1160	3ca0	DnldMgr	  * BITS job initialized, JobId = {082DB2AF-902B-4457-810C-62B6E2D3A034}
 2013-01-27	10:55:33:207	1160	3ca0	DnldMgr	  * Downloading from http://sup-eu1-nlb.europe.corp.microsoft.com/Content/E7/BA6933C31C37166A9CAAC87AA635AB5A5BFDF7E7.exe to C:\windows\SoftwareDistribution\Download\29e9d7b4b531db72a29aea5b8094b5cd\ba6933c31c37166a9caac87aa635ab5a5bfdf7e7 (full file).
@@ -527,22 +528,22 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "W3C", "Extended Log Format");
 		}
 
-		void DoTest(string testLog, ExpectedLog expectedLog)
+		async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
-			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
 			ExpectedLog expectedLog = new ExpectedLog();
 			expectedLog.Add(0, expectedMessages);
-			DoTest(testLog, expectedLog);
+			await DoTest(testLog, expectedLog);
 		}
 
 		[Test]
-		public void W3CExtendedLogFormat_SmokeTest()
+		public async Task W3CExtendedLogFormat_SmokeTest()
 		{
-			DoTest(
+			await DoTest(
 @"#Software: Microsoft Internet Information Services 7.5
 #Version: 1.0
 #Date: 2013-02-07 08:35:37
@@ -554,7 +555,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37))
 			);
 
-			DoTest(
+			await DoTest(
 @"#Software: Microsoft Internet Information Services 7.5
 #Version: 1.0
 #Date: 2013-02-07 08:35:37
@@ -566,7 +567,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 0))
 			);
 
-			DoTest(
+			await DoTest(
 @"#Software: Microsoft Internet Information Services 7.5
 #Version: 1.0
 #Date: 2013-02-07 08:35:37
@@ -614,17 +615,17 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			return factory as IMediaBasedReaderFactory;
 		}
 
-		void DoTest(string formatDescription, string testLog, params EM[] expectedMessages)
+		async Task DoTest(string formatDescription, string testLog, params EM[] expectedMessages)
 		{
 			ExpectedLog expectedLog = new ExpectedLog();
 			expectedLog.Add(0, expectedMessages);
-			ReaderIntegrationTest.Test(CreateFactory(formatDescription), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(formatDescription), testLog, expectedLog);
 		}
 
 		[Test]
-		public void SerilogJsonTest()
+		public async Task SerilogJsonTest()
 		{
-			DoTest(
+			await DoTest(
 				@"
 <format>
   <json>
@@ -648,9 +649,9 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		}
 
 		[Test]
-		public void CustomJsonFunctionsTest()
+		public async Task CustomJsonFunctionsTest()
 		{
-			DoTest(
+			await DoTest(
 				@"
 <format>
   <json>
@@ -672,9 +673,9 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		}
 
 		[Test]
-		public void MalformedInput_ExtraCharachtersBetweenObjects()
+		public async Task MalformedInput_ExtraCharachtersBetweenObjects()
 		{
-			DoTest(
+			await DoTest(
 				@"
 <format>
   <json>

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using LogJoint.Settings;
 using NUnit.Framework;
 
@@ -40,10 +41,10 @@ namespace LogJoint.Tests
 
 			public long SizeInBytes => 0xffff;
 
-			public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
+			public Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
 			{
 				CheckDisposed();
-				return UpdateBoundsStatus.NewMessagesAvailable;
+				return Task.FromResult(UpdateBoundsStatus.NewMessagesAvailable);
 			}
 
 			public long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings)
@@ -66,10 +67,10 @@ namespace LogJoint.Tests
 				return range.Length;
 			}
 
-			int IPositionedMessagesReader.GetContentsEtag()
+			ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
 			{
 				CheckDisposed();
-				return 0;
+				return new ValueTask<int>(0);
 			}
 
 			class Parser : IPositionedMessagesParser
@@ -98,7 +99,7 @@ namespace LogJoint.Tests
 					}
 				}
 
-				public IMessage ReadNext()
+				public async ValueTask<IMessage> ReadNext()
 				{
 					CheckDisposed();
 					reader.CheckDisposed();
@@ -130,14 +131,15 @@ namespace LogJoint.Tests
 					return new Message(currPos, currPos + 1, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
 				}
 
-				public PostprocessedMessage ReadNextAndPostprocess()
+				public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
 				{
-					return new PostprocessedMessage(ReadNext(), null);
+					return new PostprocessedMessage(await ReadNext(), null);
 				}
 
-				public void Dispose()
+				public Task Dispose()
 				{
 					isDisposed = true;
+					return Task.CompletedTask;
 				}
 
 				void CheckDisposed()
@@ -153,7 +155,7 @@ namespace LogJoint.Tests
 				bool isDisposed;
 			};
 
-			public IPositionedMessagesParser CreateParser(CreateParserParams p)
+			public async Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
 			{
 				CheckDisposed();
 				return new Parser(this, p.StartPosition, p.Range, p.Direction);
@@ -187,101 +189,101 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void ReadNearestDate_Test1()
+		public async Task ReadNearestDate_Test1()
 		{
 			TestReader reader = CreateTestReader1();
 
 			// Exact hit to a position
-			Assert.AreEqual(TestReader.PositionToDate(5), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 5).Value.ToLocalDateTime());
+			Assert.AreEqual(TestReader.PositionToDate(5), (await PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 5)).Value.ToLocalDateTime());
 
 			// Needing to move forward to find the nearest position
-			Assert.AreEqual(TestReader.PositionToDate(10), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 7).Value.ToLocalDateTime());
+			Assert.AreEqual(TestReader.PositionToDate(10), (await PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 7)).Value.ToLocalDateTime());
 
 			// Over-the-end position
-			Assert.AreEqual(new MessageTimestamp?(), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 55));
+			Assert.AreEqual(new MessageTimestamp?(), await PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 55));
 
 			//Begore the begin position
-			Assert.AreEqual(TestReader.PositionToDate(0), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, -5).Value.ToLocalDateTime());
+			Assert.AreEqual(TestReader.PositionToDate(0), (await PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, -5)).Value.ToLocalDateTime());
 		}
 
 		[Test]
-		public void LocateDateBound_LowerBound_Test1()
+		public async Task LocateDateBound_LowerBound_Test1()
 		{
 			TestReader reader = CreateTestReader1();
 
 			// Exact hit to a position
-			Assert.AreEqual(5, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(5), ValueBound.Lower));
+			Assert.AreEqual(5, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(5), ValueBound.Lower));
 
 			// Test that LowerBound returns the first (smallest) position that yields the messages with date <= date in question
-			Assert.AreEqual(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(7), ValueBound.Lower));
-			Assert.AreEqual(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), ValueBound.Lower));
-			Assert.AreEqual(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(9), ValueBound.Lower));
+			Assert.AreEqual(7, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(7), ValueBound.Lower));
+			Assert.AreEqual(7, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), ValueBound.Lower));
+			Assert.AreEqual(7, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(9), ValueBound.Lower));
 
 			// Before begin position
-			Assert.AreEqual(0, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ValueBound.Lower));
+			Assert.AreEqual(0, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ValueBound.Lower));
 
 			// After end position
-			Assert.AreEqual(51, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ValueBound.Lower));
+			Assert.AreEqual(51, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ValueBound.Lower));
 		}
 
 		[Test]
-		public void LocateDateBound_UpperBound_Test1()
+		public async Task LocateDateBound_UpperBound_Test1()
 		{
 			TestReader reader = CreateTestReader1();
 
-			Assert.AreEqual(16, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(15), ValueBound.Upper));
+			Assert.AreEqual(16, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(15), ValueBound.Upper));
 
-			Assert.AreEqual(16, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(16), ValueBound.Upper));
+			Assert.AreEqual(16, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(16), ValueBound.Upper));
 
-			Assert.AreEqual(1, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), ValueBound.Upper));
+			Assert.AreEqual(1, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), ValueBound.Upper));
 
-			Assert.AreEqual(5, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(4), ValueBound.Upper));
+			Assert.AreEqual(5, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(4), ValueBound.Upper));
 
 			// Before begin position
-			Assert.AreEqual(0, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ValueBound.Upper));
+			Assert.AreEqual(0, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ValueBound.Upper));
 
 			// After end position
-			Assert.AreEqual(51, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ValueBound.Upper));
+			Assert.AreEqual(51, await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ValueBound.Upper));
 		}
 
 		[Test]
-		public void LocateDateBound_LowerRevBound_Test1()
+		public async Task LocateDateBound_LowerRevBound_Test1()
 		{
 			TestReader reader = CreateTestReader1();
 
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(30), ValueBound.LowerReversed) == 30);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), ValueBound.LowerReversed) == 6);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), ValueBound.LowerReversed) == 0);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-1), ValueBound.LowerReversed) == -1);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ValueBound.LowerReversed) == -1);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(50), ValueBound.LowerReversed) == 50);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ValueBound.LowerReversed) == 50);
+			Assert.IsTrue(await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(30), ValueBound.LowerReversed) == 30);
+			Assert.IsTrue(await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), ValueBound.LowerReversed) == 6);
+			Assert.IsTrue(await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), ValueBound.LowerReversed) == 0);
+			Assert.IsTrue(await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-1), ValueBound.LowerReversed) == -1);
+			Assert.IsTrue(await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ValueBound.LowerReversed) == -1);
+			Assert.IsTrue(await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(50), ValueBound.LowerReversed) == 50);
+			Assert.IsTrue(await PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ValueBound.LowerReversed) == 50);
 		}
 
 		[Test]
-		public void NormalizeMessagePosition_Test1()
+		public async Task NormalizeMessagePosition_Test1()
 		{
 			TestReader reader = CreateTestReader1();
 
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 0) == 0);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 4) == 4);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 2) == 4);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 3) == 4);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, -1) == 0);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, -5) == 0);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 16) == 20);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 50) == 50);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 51) == 51);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 52) == 51);
-			Assert.IsTrue(PositionedMessagesUtils.NormalizeMessagePosition(reader, 888) == 51);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 0) == 0);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 4) == 4);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 2) == 4);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 3) == 4);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, -1) == 0);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, -5) == 0);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 16) == 20);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 50) == 50);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 51) == 51);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 52) == 51);
+			Assert.IsTrue(await PositionedMessagesUtils.NormalizeMessagePosition(reader, 888) == 51);
 		}
 
 		[Test]
-		public void FindPrevMessagePosition_Test1()
+		public async Task FindPrevMessagePosition_Test1()
 		{
 			TestReader reader = CreateTestReader1();
 
-			Assert.IsTrue(PositionedMessagesUtils.FindPrevMessagePosition(reader, 1) == 0);
+			Assert.IsTrue(await PositionedMessagesUtils.FindPrevMessagePosition(reader, 1) == 0);
 		}
 	}
 }

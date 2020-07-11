@@ -3,6 +3,7 @@ using NSubstitute;
 using System.IO;
 using LogJoint.LogMedia;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace LogJoint.Tests
 {
@@ -18,7 +19,7 @@ namespace LogJoint.Tests
 		};
 
 		[Test]
-		public void ConstructorAndUpdate()
+		public async Task ConstructorAndUpdate()
 		{
 			DateTime modifTime = new DateTime(2000, 1, 1);
 			long size = 100;
@@ -31,7 +32,7 @@ namespace LogJoint.Tests
 			IFileSystem fs = Substitute.For<IFileSystem>();
 			fs.OpenFile("test").Returns(stm);
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
+			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				Assert.AreEqual(modifTime, media.LastModified);
 				Assert.AreEqual(size, media.Size);
@@ -45,7 +46,7 @@ namespace LogJoint.Tests
 		};
 
 		[Test]
-		public void ExceptionInConstructorMustNotLeakStreams()
+		public async Task ExceptionInConstructorMustNotLeakStreams()
 		{
 			MyFileStream stm = Substitute.For<MyFileStream>(new object());
 			Exception ex = new TestException();
@@ -58,7 +59,7 @@ namespace LogJoint.Tests
 
 			try
 			{
-				(new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"))).Dispose();
+				(await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"))).Dispose();
 			}
 			catch (TestException)
 			{
@@ -68,7 +69,7 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void UpdatingWhileFileIsGrowing()
+		public async Task UpdatingWhileFileIsGrowing()
 		{
 			IFileSystem fs = Substitute.For<IFileSystem>();
 			MyFileStream stm = Substitute.For<MyFileStream>(new object());
@@ -81,7 +82,7 @@ namespace LogJoint.Tests
 			stm.LastWriteTime.Returns(time1);
 			stm.IsDeleted.Returns(false);
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
+			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				Assert.AreEqual(time1, media.LastModified);
 				Assert.AreEqual(size1, media.Size);
@@ -93,7 +94,7 @@ namespace LogJoint.Tests
 				stm.LastWriteTime.Returns(time2);
 				stm.IsDeleted.Returns(false);
 
-				media.Update();
+				await media.Update();
 
 				Assert.AreEqual(time2, media.LastModified);
 				Assert.AreEqual(size2, media.Size);
@@ -103,7 +104,7 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void FileDeletedByAnotherProcessAndThenNewFileAppeared()
+		public async Task FileDeletedByAnotherProcessAndThenNewFileAppeared()
 		{
 			IFileSystem fs = Substitute.For<IFileSystem>();
 
@@ -120,7 +121,7 @@ namespace LogJoint.Tests
 
 			MyFileStream stm2 = Substitute.For<MyFileStream>(new object());
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
+			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				// Check that media refers to the first stream stm1
 				Assert.AreEqual(initialSize1, media.DataStream.Length);
@@ -147,15 +148,15 @@ namespace LogJoint.Tests
 				Assert.AreEqual(true, media.IsAvailable);
 
 				// This update should detect file deletion and release it
-				media.Update();
+				await media.Update();
 				Assert.AreEqual(0, media.Size);
 				Assert.AreEqual(0, media.DataStream.Length);
 				Assert.AreEqual(false, media.IsAvailable);
 				stm1.Received(1).Dispose();
 
 				// Subsequent Updates should change nothing
-				media.Update();
-				media.Update();
+				await media.Update();
+				await media.Update();
 				Assert.AreEqual(0, media.Size);
 				Assert.AreEqual(0, media.DataStream.Length);
 				Assert.AreEqual(false, media.IsAvailable);
@@ -175,14 +176,14 @@ namespace LogJoint.Tests
 				Assert.AreEqual(false, media.IsAvailable);
 
 				// This Update will pick up new file
-				media.Update();
+				await media.Update();
 				Assert.AreEqual(initialSize2, media.DataStream.Length);
 				Assert.AreEqual(initialSize2, media.Size);
 				Assert.AreEqual(true, media.IsAvailable);
 
 				// Subsequent Updates should change nothing
-				media.Update();
-				media.Update();
+				await media.Update();
+				await media.Update();
 				Assert.AreEqual(initialSize2, media.Size);
 				Assert.AreEqual(initialSize2, media.DataStream.Length);
 				Assert.AreEqual(true, media.IsAvailable);
@@ -192,7 +193,7 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void MediaPropertiesMustChangeOnlyAfterUpdate()
+		public async Task MediaPropertiesMustChangeOnlyAfterUpdate()
 		{
 			IFileSystem fs = Substitute.For<IFileSystem>();
 			MyFileStream stm = Substitute.For<MyFileStream>(new object());
@@ -205,7 +206,7 @@ namespace LogJoint.Tests
 			stm.LastWriteTime.Returns(time1);
 			stm.IsDeleted.Returns(false);
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
+			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				// Media properties are the same as stm's ones
 				Assert.AreEqual(time1, media.LastModified);
@@ -223,14 +224,14 @@ namespace LogJoint.Tests
 				Assert.AreEqual(size1, media.Size);
 
 				// This Update should refresh media's properties
-				media.Update();
+				await media.Update();
 
 				Assert.AreEqual(time2, media.LastModified);
 				Assert.AreEqual(size2, media.Size);
 
 				// Subsequent calls change nothing
-				media.Update();
-				media.Update();
+				await media.Update();
+				await media.Update();
 				Assert.AreEqual(time2, media.LastModified);
 				Assert.AreEqual(size2, media.Size);
 			}
@@ -241,13 +242,13 @@ namespace LogJoint.Tests
 		[Test] 
 		public void InitialUpdateWithInvalidFileNameMustResultInException()
 		{
-			Assert.Throws<FileNotFoundException>(()=>
+			Assert.ThrowsAsync<FileNotFoundException>(async () =>
 			{
 				IFileSystem fs = Substitute.For<IFileSystem>();
 
 				fs.OpenFile("test").Returns(_ => throw new FileNotFoundException());
 
-				SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"));
+				SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"));
 			});
 		}
 	}
