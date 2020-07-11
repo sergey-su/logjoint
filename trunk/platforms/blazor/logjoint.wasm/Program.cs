@@ -13,22 +13,22 @@ using LogJoint.Persistence;
 using NSubstitute;
 using Microsoft.JSInterop;
 
-namespace LogJoint
+namespace LogJoint.Wasm
 {
 
-	public class ViewModelObjects
+	public class ViewModelObjects // todo: renam to ViewProxies
 	{
-		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
-		public UI.Presenters.MainForm.IViewModel MainForm;
-		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
-		public UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
+        public UI.LogViewer.ViewProxy LoadedMessagesLogViewerViewProxy = new UI.LogViewer.ViewProxy();
+        public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
+		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
+		public LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
 		public string PostprocessingTabPageId;
-		public UI.Presenters.LoadedMessages.IViewModel LoadedMessages;
-		public UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
-		public UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
-		public UI.Presenters.SourcesManager.IViewModel SourcesManager;
-		public UI.Presenters.SourcesList.IViewModel SourcesList;
-		public UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
+		public LogJoint.UI.Presenters.LoadedMessages.IViewModel LoadedMessages;
+		public LogJoint.UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
+		public LogJoint.UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
+		public LogJoint.UI.Presenters.SourcesManager.IViewModel SourcesManager;
+		public LogJoint.UI.Presenters.SourcesList.IViewModel SourcesList;
+		public LogJoint.UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
 	};
 
     class Mocks
@@ -38,16 +38,16 @@ namespace LogJoint
         public Persistence.IWebContentCacheConfig WebContentCacheConfig;
         public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 
-        public UI.Presenters.IClipboardAccess ClipboardAccess;
-        public UI.Presenters.IShellOpen ShellOpen;
-        public UI.Presenters.IAlertPopup AlertPopup;
-        public UI.Presenters.IFileDialogs FileDialogs;
-        public UI.Presenters.IPromptDialog PromptDialog;
-        public UI.Presenters.About.IAboutConfig AboutConfig;
-        public UI.Presenters.MainForm.IDragDropHandler DragDropHandler;
-        public UI.Presenters.ISystemThemeDetector SystemThemeDetector;
+        public LogJoint.UI.Presenters.IClipboardAccess ClipboardAccess;
+        public LogJoint.UI.Presenters.IShellOpen ShellOpen;
+        public LogJoint.UI.Presenters.IAlertPopup AlertPopup;
+        public LogJoint.UI.Presenters.IFileDialogs FileDialogs;
+        public LogJoint.UI.Presenters.IPromptDialog PromptDialog;
+        public LogJoint.UI.Presenters.About.IAboutConfig AboutConfig;
+        public LogJoint.UI.Presenters.MainForm.IDragDropHandler DragDropHandler;
+        public LogJoint.UI.Presenters.ISystemThemeDetector SystemThemeDetector;
 
-        public UI.Presenters.Factory.IViewsFactory Views;
+        public LogJoint.UI.Presenters.Factory.IViewsFactory Views;
 
         public Mocks(ViewModelObjects viewModel)
         {
@@ -56,29 +56,26 @@ namespace LogJoint
             WebContentCacheConfig = Substitute.For<Persistence.IWebContentCacheConfig>();
             LogsDownloaderConfig = Substitute.For<Preprocessing.ILogsDownloaderConfig>();
 
-            ClipboardAccess = Substitute.For<UI.Presenters.IClipboardAccess>();
-            ShellOpen = Substitute.For<UI.Presenters.IShellOpen>();
-            AlertPopup = Substitute.For<UI.Presenters.IAlertPopup>();
-            FileDialogs = Substitute.For<UI.Presenters.IFileDialogs>();
-            PromptDialog = Substitute.For<UI.Presenters.IPromptDialog>();
-            AboutConfig = Substitute.For<UI.Presenters.About.IAboutConfig>();
-            DragDropHandler = Substitute.For<UI.Presenters.MainForm.IDragDropHandler>();
-            SystemThemeDetector = Substitute.For<UI.Presenters.ISystemThemeDetector>();
-            Views = Substitute.For<UI.Presenters.Factory.IViewsFactory>();
+            ClipboardAccess = Substitute.For<LogJoint.UI.Presenters.IClipboardAccess>();
+            ShellOpen = Substitute.For<LogJoint.UI.Presenters.IShellOpen>();
+            AlertPopup = Substitute.For<LogJoint.UI.Presenters.IAlertPopup>();
+            FileDialogs = Substitute.For<LogJoint.UI.Presenters.IFileDialogs>();
+            PromptDialog = Substitute.For<LogJoint.UI.Presenters.IPromptDialog>();
+            AboutConfig = Substitute.For<LogJoint.UI.Presenters.About.IAboutConfig>();
+            DragDropHandler = Substitute.For<LogJoint.UI.Presenters.MainForm.IDragDropHandler>();
+            SystemThemeDetector = Substitute.For<LogJoint.UI.Presenters.ISystemThemeDetector>();
+            Views = Substitute.For<LogJoint.UI.Presenters.Factory.IViewsFactory>();
 
-			Views.CreateLoadedMessagesView().MessagesView.SetViewModel(
-				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.LoadedMessagesLogViewer = x));
-            Views.CreateLoadedMessagesView().MessagesView.DisplayLinesPerPage.Returns(10);
-            Views.CreateLoadedMessagesView().MessagesView.HasInputFocus.Returns(true);
+            Views.CreateLoadedMessagesView().MessagesView.Returns(viewModel.LoadedMessagesLogViewerViewProxy);
 			Views.CreateSourcesManagerView().SetViewModel(
-				Arg.Do<UI.Presenters.SourcesManager.IViewModel>(x => viewModel.SourcesManager = x));
+				Arg.Do<LogJoint.UI.Presenters.SourcesManager.IViewModel>(x => viewModel.SourcesManager = x));
 			Views.CreateSourcesListView().SetViewModel(
-				Arg.Do<UI.Presenters.SourcesList.IViewModel>(x => viewModel.SourcesList = x));
+				Arg.Do<LogJoint.UI.Presenters.SourcesList.IViewModel>(x => viewModel.SourcesList = x));
         }
     };
 }
 
-namespace logjoint.wasm
+namespace LogJoint.Wasm
 {
     public class Program
     {

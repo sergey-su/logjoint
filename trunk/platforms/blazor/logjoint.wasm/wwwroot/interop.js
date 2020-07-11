@@ -11,6 +11,9 @@
     getResourceUrl: function (resourceName) {
         return (new URL(resourceName, window.location)).href;
     },
+    setScrollLeft: function (element, value) {
+        element.scrollLeft = value;
+    },
 
     files: {
         _lastHandle: 0,
