@@ -222,7 +222,8 @@ namespace LogJoint
 						var msg = await mainParser.ReadNextAndPostprocess();
 						if (msg.Message == null)
 							break;
-						await yieldAsync.YieldAsync(msg);
+						if (!await yieldAsync.YieldAsync(msg))
+							break;
 					}
 				});
 
@@ -237,7 +238,8 @@ namespace LogJoint
 						var msg = await completionParser.ReadNextAndPostprocess();
 						if (msg.Message == null)
 							break;
-						await yieldAsync.YieldAsync(msg);
+						if (!await yieldAsync.YieldAsync(msg))
+							break;
 					}
 				});
 			});
