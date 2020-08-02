@@ -139,7 +139,7 @@ namespace LogJoint.Wasm
                         await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", $"_framework/_bin/{asmName}")));
                 references.AddRange(await Task.WhenAll(
                     resolve("mscorlib.dll"),
-                    resolve("System.Runtime.dll"),
+                    // resolve("System.Runtime.dll"),
                     resolve("netstandard.dll"),
                     resolve("logjoint.model.dll"),
                     resolve("logjoint.model.sdk.dll")
@@ -194,6 +194,8 @@ namespace LogJoint.Wasm
                     null/*new Drawing.Matrix.Factory()*/,
                     LogJoint.RegularExpressions.FCLRegexFactory.Instance
                 );
+
+                model.GlobalSettingsAccessor.FileSizes = new Settings.FileSizes() { Threshold = 4, WindowSize = 1 };
 
                 return model;
             });
