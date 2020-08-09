@@ -5,7 +5,8 @@ namespace LogJoint.Google.Analog
 {
 	public static class Helpers
 	{
-		public const string SessionLogidPrefixRegex = @"^(?<sessionId>[^\:]+)\:(?<plid>[^\:]*)\:((?<thirdId>[^\:]*)\:)?";
+		public const string IdsPrefixRegex = @"^(?<sessionId>[^\:]+)\:(?<plid>[^\:]*)\:((?<thirdId>[^\:]*)\:)?((?<fourthId>[^\:]*)\:)?";
+		public const string PeerIdRegex = @"((?<peerId>\S+) \(0x(?<peerIdFingerprint>\w+)\))";
 
 		public static IEnumerableAsync<MessagePrefixesPair<Message>[]> MatchPrefixes(this IEnumerableAsync<Message[]> input, IPrefixMatcher prefixMatcher)
 		{

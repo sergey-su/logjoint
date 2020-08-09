@@ -56,7 +56,7 @@ namespace LogJoint.Google.Analog.MediaRouter
 		};
 
 		readonly Dictionary</*thread id*/string, PendingRequest> requests = new Dictionary<string, PendingRequest>();
-		readonly Regex requestRegex = new Regex(Helpers.SessionLogidPrefixRegex + @" REQ\: (?<body>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		readonly Regex responseRegex= new Regex(Helpers.SessionLogidPrefixRegex + @" Response\: (?<body>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		readonly Regex requestRegex = new Regex(Helpers.IdsPrefixRegex + @" REQ\: (?<body>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		readonly Regex responseRegex= new Regex(Helpers.IdsPrefixRegex + @" Response\: (?<body>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 	}
 }
