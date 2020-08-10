@@ -8,10 +8,7 @@
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @inject IJSRuntime jsRuntime
 
-<button class="btn btn-primary" @onclick="@(_ => viewModel.OnIncrementalVScroll(-1))">up</button>
-<button class="btn btn-primary" @onclick="@(_ => viewModel.OnIncrementalVScroll(+1))">down</button>
-<p>@viewModel.ViewLines.Length</p>
-<div class="logview" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" style="width:300px; height: 300px; display: inline-flex;">
+<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
     <span class="measure-text" @ref="measureElement"> </span>
     <div class="scroll-outer" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / chatHeight)))" @ref="scrollOuter">
         <div class="scroll-inner">
@@ -60,6 +57,9 @@
     double chatHeight = 1;
 
 
+    [Parameter]
+    public string Class { get; set; } = "";
+
     protected override void OnInitialized()
     {
         viewProxies.LoadedMessagesLogViewerViewProxy.SetComponent(this);
@@ -103,7 +103,7 @@
 
     void IView.HScrollToSelectedText(int charIndex)
     {
-        ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.setScrollLeft", scrollOuter, charWidth * charIndex);
+        // ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.setScrollLeft", scrollOuter, charWidth * charIndex);
     }
 
     void IView.PopupContextMenu(object contextMenuPopupData)
