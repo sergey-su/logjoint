@@ -106,7 +106,7 @@ namespace LogJoint
 					return ret;
 				using (var fileMedia = await createFileMedia())
 				{
-					if (!IOUtils.IsBinaryFile(fileMedia.DataStream))
+					if (!await IOUtils.IsBinaryFile(fileMedia.DataStream))
 					{
 						log.Info("File does not look binary");
 						var factory = factoriesRegistry.Find(
