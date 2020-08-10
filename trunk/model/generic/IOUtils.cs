@@ -103,7 +103,7 @@ namespace LogJoint
 				throw new Exception("python not found. install it and put to PATH");
 		}
 
-		public static bool IsBinaryFile(Stream stm)
+		public static async ValueTask<bool> IsBinaryFile(Stream stm)
 		{
 			int nrOfProbs = 8;
 			int probeSz = 1024;
@@ -116,7 +116,7 @@ namespace LogJoint
 			for (int probeIdx = 0; probeIdx < nrOfProbs; ++probeIdx)
 			{
 				stm.Position = probeIdx * Math.Max(0, stmSz - probeSz) / nrOfProbs;
-				int read = stm.Read(buf, 0, probeSz);
+				int read = await stm.ReadAsync(buf, 0, probeSz);
 				for (int i = 0; i < read; ++i)
 					if (isBinary(buf[i]))
 						return true;
