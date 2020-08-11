@@ -7,6 +7,7 @@
 @inject LogJoint.ModelObjects model
 @inject LogJoint.Wasm.ViewModelObjects viewModel
 @inject IJSRuntime jsRuntime;
+@inject TraceListener traceListener;
 
 <p>Responsiveness meter: @currentCount</p>
 
@@ -14,6 +15,7 @@
 <input type="file" @ref="fileInputReference" />
 <button @onclick="LoadByUrl">Load by blob URL</button>
 <button @onclick="LoadStream">Load Stream</button>
+<button @onclick="DownloadDebugLog">Download debug log</button>
 
 <table>
     <thead>
@@ -32,7 +34,7 @@
         }
     </tbody>
 </table>
-<LogJoint.Wasm.UI.LogViewer.LogViewer Class="loaded_messages_logview"/>
+<LogJoint.Wasm.UI.LogViewer.LogViewer Class="loaded_messages_logview" />
 
 @code {
     private int currentCount = 0;
@@ -95,5 +97,15 @@
             new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
             "Processing virtual file name"
         );
+    }
+
+    async void DownloadDebugLog()
+    {
+        var entries = traceListener.ClearMemBufferAndGetCurrentEntries();
+        using (var writer = new System.IO.StringWriter())
+        {
+            entries.ForEach(e => e.Write(writer));
+            await jsRuntime.InvokeVoidAsync("logjoint.saveAs", writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
+        }
     }
 }
