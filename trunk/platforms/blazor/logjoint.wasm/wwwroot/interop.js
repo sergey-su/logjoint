@@ -56,4 +56,14 @@
             return URL.createObjectURL(file);
         },
     },
+
+    saveAs: function(content, name) {
+        let a = document.createElement('a');
+        a.download = name;
+        a.rel = 'noopener';
+        let blob = new Blob([content], { type: 'text/plain' });
+        a.href = URL.createObjectURL(blob);
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 60000);
+        setTimeout(function () { a.dispatchEvent(new MouseEvent('click')); }, 0);
+    }
 };

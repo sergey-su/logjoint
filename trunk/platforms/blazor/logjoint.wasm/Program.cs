@@ -158,6 +158,7 @@ namespace LogJoint.Wasm
             var fieldsProcessorMetadataReferencesProvider = new MetadataReferencesProvider();
 
             builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddSingleton<TraceListener>(serviceProvider => new TraceListener(";membuf=1"));
             builder.Services.AddSingleton<ModelObjects>(serviceProvider =>
             {
                 ISynchronizationContext invokingSynchronization = new BlazorSynchronizationContext();
@@ -173,7 +174,7 @@ namespace LogJoint.Wasm
                         PluginsUrl = "",
                         WebContentCacheConfig = webContentConfig,
                         LogsDownloaderConfig = webContentConfig,
-                        TraceListeners = new[] { new TraceListener(";console=1") },
+                        TraceListeners = new[] { serviceProvider.GetService<TraceListener>() },
                         FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
                         FileSystem = new LogJoint.Wasm.FileSystem(serviceProvider.GetService<IJSRuntime>()),
                         FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider
