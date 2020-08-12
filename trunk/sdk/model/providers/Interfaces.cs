@@ -26,7 +26,7 @@ namespace LogJoint
 
 		/// <summary>
 		/// Returns factory instance that this log provider was created by.
-		/// It shared by call log providers of one type. Factory reference can
+		/// It shared by all log providers of one type. Factory reference can
 		/// be used as provider type identifier.
 		/// Thread safe. Can be called on disposed object.
 		/// </summary>

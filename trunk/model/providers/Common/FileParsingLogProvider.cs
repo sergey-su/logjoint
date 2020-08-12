@@ -27,7 +27,7 @@ namespace LogJoint
 			ILogProviderHost host, 
 			ILogProviderFactory factory,
 			IConnectionParams connectParams,
-			Func<MediaBasedReaderParams, IPositionedMessagesReader> createrCreator
+			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator
 		):
 			base (host, factory, connectParams)
 		{
@@ -36,14 +36,14 @@ namespace LogJoint
 				if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 					media = new RollingFilesMedia(
 						LogMedia.FileSystemImpl.Instance,
-						createrCreator, 
+						readerCreator, 
 						tracer,
 						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam])
 					);
 				else
 					media = new SimpleFileMedia(connectParams);
 
-				reader = createrCreator(new MediaBasedReaderParams(this.threads, media,
+				reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
 						settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix));
 
 				ITimeOffsets initialTimeOffset;
