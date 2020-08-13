@@ -9,32 +9,61 @@
 @inject IJSRuntime jsRuntime;
 @inject TraceListener traceListener;
 
-<p>Responsiveness meter: @currentCount</p>
+<div class='main-window'>
+    <div class='container-1'>
+        <div class='top'>
+            <p>Responsiveness meter: @currentCount</p>
 
-<button @onclick="LoadLog">Load log</button>
-<input type="file" @ref="fileInputReference" />
-<button @onclick="LoadByUrl">Load by blob URL</button>
-<button @onclick="LoadStream">Load Stream</button>
-<button @onclick="DownloadDebugLog">Download debug log</button>
+            <button @onclick="LoadLog">Load log</button>
+            <input type="file" @ref="fileInputReference" />
+            <button @onclick="LoadByUrl">Load by blob URL</button>
+            <button @onclick="LoadStream">Load Stream</button>
+            <button @onclick="DownloadDebugLog">Download debug log</button>
 
-<table>
-    <thead>
-        <tr>
-            <th>check</th>
-            <th>Summary</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (IViewItem item in @viewModel.SourcesList.RootItem.Children)
-        {
-            <tr @key=@item.Key>
-                <td><input type="checkbox" checked=@item.Checked @onchange="@((_) => viewModel.SourcesList.OnItemCheck(item, !item.Checked.GetValueOrDefault()))" /></td>
-                <td>@item.ToString()</td>
-            </tr>
-        }
-    </tbody>
-</table>
-<LogJoint.Wasm.UI.LogViewer.LogViewer Class="loaded_messages_logview" />
+            <table>
+                <thead>
+                    <tr>
+                        <th>check</th>
+                        <th>Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (IViewItem item in @viewModel.SourcesList.RootItem.Children)
+                    {
+                        <tr @key=@item.Key>
+                            <td><input type="checkbox" checked=@item.Checked @onchange="@((_) => viewModel.SourcesList.OnItemCheck(item, !item.Checked.GetValueOrDefault()))" /></td>
+                            <td>@item.ToString()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class='bottom container-2'>
+            <div class='timeline left'>timeline</div>
+            <div class='right container-3'>
+
+                <div class='top loaded-messages'>
+                    <div class='toolbar'>
+                        <button class='bookmark'></button>
+                        <button>raw log</button>
+                        <span>coloring:</span>
+                        <select>
+                            <option>None</option>
+                            <option>Threads</option>
+                            <option>Log Sources</option>
+                        </select>
+                        <button>tail</button>
+                    </div>
+                    <div class='viewer'>
+                        <LogJoint.Wasm.UI.LogViewer.LogViewer Class="viewer-grow" />
+                    </div>
+                </div>
+
+                <div class='bottom'>search results</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     private int currentCount = 0;
