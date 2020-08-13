@@ -134,12 +134,21 @@ namespace LogJoint.Persistence.Implementation
 		/// </summary>
 		static ulong GetStringHash(string str)
 		{
-			SHA1 sha1 = new SHA1CryptoServiceProvider();
-			var longHash = sha1.ComputeHash(Encoding.Unicode.GetBytes(str));
-			var shortHash = new byte[8];
-			for (int i = 0; i < longHash.Length; ++i)
-				shortHash[i % shortHash.Length] ^= longHash[i];
-			return BitConverter.ToUInt64(shortHash, 0);
+			if (IsBrowser.Value)
+			{
+				return (ulong)Hashing.GetStableHashCode(str);
+			}
+			else
+			{
+				using (SHA1 sha1 = new SHA1CryptoServiceProvider())
+				{
+					var longHash = sha1.ComputeHash(Encoding.Unicode.GetBytes(str));
+					var shortHash = new byte[8];
+					for (int i = 0; i < longHash.Length; ++i)
+						shortHash[i % shortHash.Length] ^= longHash[i];
+					return BitConverter.ToUInt64(shortHash, 0);
+				}
+			}
 		}
 
 		/// <summary>

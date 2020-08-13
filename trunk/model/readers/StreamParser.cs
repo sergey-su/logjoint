@@ -53,7 +53,7 @@ namespace LogJoint
 		static bool HeuristicallyDetectWhetherMultithreadingMakesSense(CreateParserParams parserParams,
 			TextStreamPositioningParams textStreamPositioningParams)
 		{
-			if (System.Runtime.InteropServices.RuntimeInformation.OSDescription == "web")
+			if (IsBrowser.Value)
 			{
 				return false;
 			}

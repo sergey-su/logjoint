@@ -230,7 +230,7 @@ namespace LogJoint.FieldsProcessor
 				{
 					if (!builderTypesCache.TryGetValue(builderTypeHash, out builderTypeTask))
 					{
-						if (System.Runtime.InteropServices.RuntimeInformation.OSDescription == "web")
+						if (IsBrowser.Value)
 						{
 							builderTypeTask = Task.FromResult(GenerateType(builderTypeHash));
 						}
