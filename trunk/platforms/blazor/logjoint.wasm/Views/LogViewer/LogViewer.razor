@@ -4,8 +4,6 @@
 @using LogJoint.Settings
 @implements IDisposable
 @implements IView
-@inject LogJoint.ModelObjects model
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
 @inject IJSRuntime jsRuntime
 
 <div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
@@ -60,9 +58,12 @@
     [Parameter]
     public string Class { get; set; } = "";
 
+    [Parameter]
+    public UI.LogViewer.ViewProxy ViewProxy { get; set; }
+
     protected override void OnInitialized()
     {
-        viewProxies.LoadedMessagesLogViewerViewProxy.SetComponent(this);
+        ViewProxy.SetComponent(this);
 
         var updateLines = Updaters.Create(
             () => viewModel.ViewLines,
@@ -77,7 +78,7 @@
 
     public void Dispose()
     {
-        viewProxies.LoadedMessagesLogViewerViewProxy.SetComponent(null);
+        ViewProxy.SetComponent(null);
         subscription?.Dispose();
     }
 

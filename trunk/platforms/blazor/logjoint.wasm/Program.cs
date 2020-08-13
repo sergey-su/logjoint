@@ -21,21 +21,27 @@ using LogJoint.FieldsProcessor;
 namespace LogJoint.Wasm
 {
 
-	public class ViewModelObjects // todo: renam to ViewProxies
+	public class ViewModelObjects // todo: rename to ViewProxies
 	{
         public LogJoint.UI.Presenters.PresentationObjects PresentationObjects;
 
         public UI.LogViewer.ViewProxy LoadedMessagesLogViewerViewProxy = new UI.LogViewer.ViewProxy();
+        public UI.LoadedMessages.ViewProxy LoadedMessagesViewProxy;
+
         public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
 		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 		public LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
 		public string PostprocessingTabPageId;
-		public LogJoint.UI.Presenters.LoadedMessages.IViewModel LoadedMessages;
 		public LogJoint.UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
 		public LogJoint.UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
 		public LogJoint.UI.Presenters.SourcesManager.IViewModel SourcesManager;
 		public LogJoint.UI.Presenters.SourcesList.IViewModel SourcesList;
 		public LogJoint.UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
+
+        public ViewModelObjects()
+        {
+            this.LoadedMessagesViewProxy = new UI.LoadedMessages.ViewProxy(LoadedMessagesLogViewerViewProxy);
+        }
 	};
 
     class Mocks
@@ -73,7 +79,7 @@ namespace LogJoint.Wasm
             SystemThemeDetector = Substitute.For<LogJoint.UI.Presenters.ISystemThemeDetector>();
             Views = Substitute.For<LogJoint.UI.Presenters.Factory.IViewsFactory>();
 
-            Views.CreateLoadedMessagesView().MessagesView.Returns(viewModel.LoadedMessagesLogViewerViewProxy);
+            Views.CreateLoadedMessagesView().Returns(viewModel.LoadedMessagesViewProxy);
 			Views.CreateSourcesManagerView().SetViewModel(
 				Arg.Do<LogJoint.UI.Presenters.SourcesManager.IViewModel>(x => viewModel.SourcesManager = x));
 			Views.CreateSourcesListView().SetViewModel(

@@ -41,24 +41,7 @@
         <div class='bottom container-2'>
             <div class='timeline left'>timeline</div>
             <div class='right container-3'>
-
-                <div class='top loaded-messages'>
-                    <div class='toolbar'>
-                        <button class='bookmark'></button>
-                        <button>raw log</button>
-                        <span>coloring:</span>
-                        <select>
-                            <option>None</option>
-                            <option>Threads</option>
-                            <option>Log Sources</option>
-                        </select>
-                        <button>tail</button>
-                    </div>
-                    <div class='viewer'>
-                        <LogJoint.Wasm.UI.LogViewer.LogViewer Class="viewer-grow" />
-                    </div>
-                </div>
-
+                <LogJoint.Wasm.UI.LoadedMessages.LoadedMessages Class="top" />
                 <div class='bottom'>search results</div>
             </div>
         </div>
@@ -122,10 +105,8 @@
         var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
         var fileName = await fs.AddFileFromInput(fileInputReference);
         Console.WriteLine("Virtual file name : {0}", fileName);
-        var task = model.LogSourcesPreprocessings.Preprocess(
-            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
-            "Processing virtual file name"
-        );
+        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
+        model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
     }
 
     async void DownloadDebugLog()
