@@ -1,0 +1,62 @@
+@namespace LogJoint.Wasm.UI.LoadedMessages
+@using LogJoint
+@using LogJoint.UI.Presenters.LoadedMessages
+@using LogJoint.Settings
+@implements IDisposable
+@implements IView
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject IJSRuntime jsRuntime
+
+<div class='loaded-messages @Class'>
+    <div class='toolbar'>
+        @{var viewState = viewModel.ViewState;}
+        @{var bookmarkState = viewState.ToggleBookmark;}
+        <button class='bookmark' @onclick="@(viewModel.OnToggleBookmark)" hidden="@(!bookmarkState.Visible)" tooltip="@bookmarkState.Tooltip"></button>
+        @{var rawModeState = viewState.RawViewButton;}
+        <button class='raw-view @(rawModeState.Checked ? "checked" : "")' @onclick="@(viewModel.OnToggleRawView)" hidden="@(!rawModeState.Visible)" tooltip="@rawModeState.Tooltip">raw log</button>
+        @{var coloringState = viewState.Coloring;}
+        <span hidden="@(!coloringState.Visible)">
+            coloring:
+            <select @onchange="@(e => viewModel.OnColoringButtonClicked(Convert.ToInt32(e.Value)))">
+                @foreach (var (idx, item) in @coloringState.Options.Select((opt, idx) => (idx, opt)))
+                {
+                    <option selected="@(idx == coloringState.Selected)" value="@idx" label="@item.Text" title="@item.Tooltip"/>
+                }
+            </select>
+        </span>
+    </div>
+    <div class='viewer'>
+        <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.LoadedMessagesLogViewerViewProxy" Class="viewer-grow" />
+    </div>
+</div>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        viewProxies.LoadedMessagesViewProxy.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.ViewState,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewProxies.LoadedMessagesViewProxy.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    LogJoint.UI.Presenters.LogViewer.IView IView.MessagesView => throw new NotImplementedException();
+}
