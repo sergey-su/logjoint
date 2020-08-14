@@ -44,7 +44,7 @@ namespace LogJoint.Persistence
 			/// Opens file stream specified by its relative path.
 			/// OpenFile may fail because of for example lack of space or
 			/// concurrent access to the file by another instance of LogJoint.
-			/// In case of failre the method returns null if file is being open 
+			/// In case of failure the method returns null if file is being open 
 			/// for reading. The method throws an exception if file is being open for writing.
 			/// OpenFile does the best to handle concurrent access and fails only
 			/// if something really bad happens.

@@ -65,5 +65,12 @@
         a.href = URL.createObjectURL(blob);
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 60000);
         setTimeout(function () { a.dispatchEvent(new MouseEvent('click')); }, 0);
+    },
+
+    getLocalStorageItem: function(key) {
+        return window.localStorage.getItem(key);
+    },
+    setLocalStorageItem: function(key, value) {
+        return window.localStorage.setItem(key, value);
     }
 };

@@ -17,14 +17,14 @@ namespace LogJoint.Wasm
         void ReleaseFile(string fileName);
     };
 
-    public class FileSystem : IFileSystem, IWasmFileSystemConfig
+    public class LogMediaFileSystem : IFileSystem, IWasmFileSystemConfig
     {
         readonly IJSRuntime jsRuntime;
         const string htmlInputFileNamePrefix = "/html-input/";
         int lastHtmlInputStreamId = 0;
         readonly Dictionary<string, HtmlInputFileInfo> htmlInputFiles = new Dictionary<string, HtmlInputFileInfo>();
 
-        public FileSystem(IJSRuntime jsRuntime)
+        public LogMediaFileSystem(IJSRuntime jsRuntime)
         {
             this.jsRuntime = jsRuntime;
         }
