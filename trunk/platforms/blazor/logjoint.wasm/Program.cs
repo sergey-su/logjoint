@@ -203,7 +203,7 @@ namespace LogJoint.Wasm
                     LogJoint.RegularExpressions.FCLRegexFactory.Instance
                 );
 
-                model.GlobalSettingsAccessor.FileSizes = new Settings.FileSizes() { Threshold = 4, WindowSize = 1 };
+                model.GlobalSettingsAccessor.FileSizes = new Settings.FileSizes() { Threshold = 1, WindowSize = 1 };
 
                 return model;
             });
