@@ -12,8 +12,6 @@
 <div class='main-window'>
     <div class='container-1'>
         <div class='top'>
-            <p>Responsiveness meter: @currentCount</p>
-
             <button @onclick="LoadLog">Load log</button>
             <input type="file" @ref="fileInputReference" />
             <button @onclick="LoadByUrl">Load by blob URL</button>
@@ -49,25 +47,16 @@
 </div>
 
 @code {
-    private int currentCount = 0;
     private ISubscription subscription;
     ElementReference fileInputReference;
 
     private async Task LoadLog()
     {
-        currentCount++;
-        var task = model.LogSourcesPreprocessings.Preprocess(
+        await model.LogSourcesPreprocessings.Preprocess(
             new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(
                 await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "test_chrome_debug.log"))) },
             "Processing test"
         );
-        while (!task.IsCompleted)
-        {
-            await Task.Delay(100);
-            currentCount++;
-            StateHasChanged();
-        }
-        await task;
     }
 
     protected override void OnInitialized()
