@@ -65,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.packet-analysis.pl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.testing.sdk", "..\..\sdk\testing\logjoint.testing.sdk.csproj", "{1398641F-E175-4BB2-A3CA-550B6B7EA1CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.wasm", "..\blazor\logjoint.wasm\logjoint.wasm.csproj", "{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -265,6 +267,14 @@ Global
 		{1398641F-E175-4BB2-A3CA-550B6B7EA1CE}.Debug|x86.Build.0 = Debug|Any CPU
 		{1398641F-E175-4BB2-A3CA-550B6B7EA1CE}.Release|x86.ActiveCfg = Release|Any CPU
 		{1398641F-E175-4BB2-A3CA-550B6B7EA1CE}.Release|x86.Build.0 = Release|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Debug|x86.Build.0 = Debug|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Release|x86.ActiveCfg = Release|Any CPU
+		{58B18D14-E86D-4E6A-88AA-34BCE1FA1795}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0

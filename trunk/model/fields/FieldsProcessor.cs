@@ -268,6 +268,7 @@ namespace LogJoint.FieldsProcessor
 				Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				var cachedRawAsmSize = cacheSection.Data.Length;
+				trace.Info("Type hash: {0}. Cache size: {1}", builderTypeHash, cachedRawAsmSize);
 				if (cachedRawAsmSize > 0)
 				{
 					try

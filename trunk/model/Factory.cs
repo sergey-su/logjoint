@@ -68,6 +68,7 @@ namespace LogJoint
 		public System.Reflection.Assembly FormatsRepositoryAssembly;
 		public LogMedia.IFileSystem FileSystem;
 		public FieldsProcessor.IMetadataReferencesProvider FieldsProcessorMetadataReferencesProvider;
+		public Persistence.Implementation.IFileSystemAccess PersistenceFileSystem;
 	};
 
 	public static class ModelFactory
@@ -95,7 +96,8 @@ namespace LogJoint
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);
-			var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
+			Persistence.Implementation.IFileSystemAccess persistentUserDataFileSystem =
+				config.PersistenceFileSystem ?? Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 			userDataStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(),
@@ -128,7 +130,7 @@ namespace LogJoint
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
 			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
 			var bookmarks = bookmarksFactory.CreateBookmarks();
-			Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
+			Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem as Persistence.IFirstStartDetector;
 			Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
 			contentCacheStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(),
@@ -148,7 +150,6 @@ namespace LogJoint
 
 			var threadColorsLease = new ColorLease(1);
 			IModelThreadsInternal modelThreads = new ModelThreads(threadColorsLease);
-
 
 			MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
 				storageManager,

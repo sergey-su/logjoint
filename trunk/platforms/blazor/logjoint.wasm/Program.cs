@@ -182,8 +182,9 @@ namespace LogJoint.Wasm
                         LogsDownloaderConfig = webContentConfig,
                         TraceListeners = new[] { serviceProvider.GetService<TraceListener>() },
                         FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
-                        FileSystem = new LogJoint.Wasm.FileSystem(serviceProvider.GetService<IJSRuntime>()),
-                        FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider
+                        FileSystem = new LogJoint.Wasm.LogMediaFileSystem(serviceProvider.GetService<IJSRuntime>()),
+                        FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider,
+                        PersistenceFileSystem = new LogJoint.Wasm.PersistenceFileSystem((IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>()),
                     },
                         invokingSynchronization,
                         (storageManager) => null /*new PreprocessingCredentialsCache (
