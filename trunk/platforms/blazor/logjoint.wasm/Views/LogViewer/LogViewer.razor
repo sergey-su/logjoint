@@ -8,9 +8,8 @@
 
 <div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
-    <div class="scroll-outer" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / chatHeight)))"
-		 @onwheel:preventDefault="true" @ref="scrollOuter">
-        <div class="scroll-inner">
+    <div class="scroll-outer" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
+        <div class="scroll-inner" style="top: @(string.Format("{0:000}px", -viewModel.FirstDisplayMessageScrolledLines*charHeight))">
             @foreach (var item in @viewModel.ViewLines)
             {
                 <div class="logline"
@@ -49,12 +48,14 @@
 </div>
 
 @code {
-		IViewModel viewModel;
+	private IViewModel viewModel;
 	private ISubscription subscription;
-	ElementReference measureElement, scrollOuter;
-	double charWidth = 1;
-	double chatHeight = 1;
-
+	private ElementReference measureElement, scrollOuter;
+	private double charWidth = 1;
+	private double charHeight = 1;
+	private long resizeObserverHandle;
+	private DotNetObjectReference<LogViewer> selfRef;
+	private float displayLinesPerPage = 1;
 
 	[Parameter]
 	public string Class { get; set; } = "";
@@ -64,6 +65,8 @@
 
 	protected override void OnInitialized()
 	{
+		selfRef = DotNetObjectReference.Create(this);
+
 		ViewProxy.SetComponent(this);
 
 		var updateLines = Updaters.Create(
@@ -81,6 +84,8 @@
 	{
 		ViewProxy.SetComponent(null);
 		subscription?.Dispose();
+		jsRuntime.InvokeVoidAsync("logjoint.resize.unobserve", resizeObserverHandle);
+		selfRef?.Dispose();
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -88,12 +93,15 @@
 		if (firstRender)
 		{
 			charWidth = await jsRuntime.InvokeAsync<double>("logjoint.getElementWidth", measureElement);
-			chatHeight = await jsRuntime.InvokeAsync<double>("logjoint.getElementHeight", measureElement);
-			Console.WriteLine("LogViewer char w={0} h={1}", charWidth, chatHeight);
+			charHeight = await jsRuntime.InvokeAsync<double>("logjoint.getElementHeight", measureElement);
+			Console.WriteLine("LogViewer char w={0} h={1}", charWidth, charHeight);
+			UpdateDisplayLinesPerPage();
+			resizeObserverHandle = await jsRuntime.InvokeAsync<long>("logjoint.resize.observe", scrollOuter, selfRef);
+			await jsRuntime.InvokeVoidAsync("logjoint.addDefaultPreventingWheelHandler", scrollOuter);
 		}
 	}
 
-	float IView.DisplayLinesPerPage => 10;
+	float IView.DisplayLinesPerPage => displayLinesPerPage;
 
 	bool IView.HasInputFocus => true;
 
@@ -129,10 +137,10 @@
 
 	Key GetKey(KeyboardEventArgs keyboardEventArgs)
 	{
-		return GetMainKey(keyboardEventArgs) | GetModidifierKeys(keyboardEventArgs);
+		return GetMainKey(keyboardEventArgs) | GetModifierKeys(keyboardEventArgs);
 	}
 
-	Key GetModidifierKeys(KeyboardEventArgs keyboardEventArgs)
+	Key GetModifierKeys(KeyboardEventArgs keyboardEventArgs)
 	{
 		var result = Key.None;
 		if (keyboardEventArgs.ShiftKey)
@@ -203,5 +211,18 @@
 		if (result == "")
 			result = " ";
 		return result;
+	}
+
+	void UpdateDisplayLinesPerPage()
+	{
+		var height = ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.getElementHeight", scrollOuter);
+		displayLinesPerPage = (float)(height / charHeight);
+	}
+
+	[JSInvokable]
+	public void OnResize()
+	{
+		UpdateDisplayLinesPerPage();
+		viewModel?.ChangeNotification?.Post();
 	}
 }
