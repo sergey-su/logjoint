@@ -72,5 +72,28 @@
     },
     setLocalStorageItem: function(key, value) {
         return window.localStorage.setItem(key, value);
+    },
+
+    resize: {
+        _lastHandle: 0,
+        observe: function (element, handler) {
+            const handle = ++this._lastHandle;
+            this[handle] = new ResizeObserver(entries => {
+                handler.invokeMethod('OnResize');
+            });
+            this[handle].observe(element);
+            return handle;
+        },
+        unobserve: function (handle) {
+            if (this[handle]) {
+                this[handle].disconnect();
+                delete this[handle];
+            }
+        }
+    },
+
+    addDefaultPreventingWheelHandler: function (element) {
+        element.addEventListener("wheel",
+            e => e.deltaY != 0 ? e.preventDefault() : 0, { passive: false });
     }
 };

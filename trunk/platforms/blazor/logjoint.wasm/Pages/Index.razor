@@ -46,65 +46,66 @@
     </div>
 </div>
 
+
 @code {
-    private ISubscription subscription;
-    ElementReference fileInputReference;
+	private ISubscription subscription;
+	ElementReference fileInputReference;
 
-    private async Task LoadLog()
-    {
-        await model.LogSourcesPreprocessings.Preprocess(
-            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(
-                await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "test_chrome_debug.log"))) },
-            "Processing test"
-        );
-    }
+	private async Task LoadLog()
+	{
+		await model.LogSourcesPreprocessings.Preprocess(
+			new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(
+				await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "test_chrome_debug.log"))) },
+			"Processing test"
+		);
+	}
 
-    protected override void OnInitialized()
-    {
-        var vm = viewModel.SourcesList;
+	protected override void OnInitialized()
+	{
+		var vm = viewModel.SourcesList;
 
-        var updateLines = Updaters.Create(
-            () => vm.RootItem,
-            _ => StateHasChanged()
-        );
+		var updateLines = Updaters.Create(
+			() => vm.RootItem,
+			_ => StateHasChanged()
+		);
 
-        subscription = vm.ChangeNotification.CreateSubscription(() =>
-        {
-            updateLines();
-        });
-    }
+		subscription = vm.ChangeNotification.CreateSubscription(() =>
+		{
+			updateLines();
+		});
+	}
 
-    public void Dispose()
-    {
-        subscription?.Dispose();
-    }
+	public void Dispose()
+	{
+		subscription?.Dispose();
+	}
 
-    async void LoadByUrl()
-    {
-        var url = await jsRuntime.InvokeAsync<string>("logjoint.files.getUrl", fileInputReference);
-        Console.WriteLine("Blob url: {0}", url);
-        var task = model.LogSourcesPreprocessings.Preprocess(
-            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(url)) },
-            "Processing blob URL test"
-        );
-    }
+	async void LoadByUrl()
+	{
+		var url = await jsRuntime.InvokeAsync<string>("logjoint.files.getUrl", fileInputReference);
+		Console.WriteLine("Blob url: {0}", url);
+		var task = model.LogSourcesPreprocessings.Preprocess(
+			new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(url)) },
+			"Processing blob URL test"
+		);
+	}
 
-    async void LoadStream()
-    {
-        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
-        var fileName = await fs.AddFileFromInput(fileInputReference);
-        Console.WriteLine("Virtual file name : {0}", fileName);
-        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
-        model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
-    }
+	async void LoadStream()
+	{
+		var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+		var fileName = await fs.AddFileFromInput(fileInputReference);
+		Console.WriteLine("Virtual file name : {0}", fileName);
+		var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
+		model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
+	}
 
-    async void DownloadDebugLog()
-    {
-        var entries = traceListener.ClearMemBufferAndGetCurrentEntries();
-        using (var writer = new System.IO.StringWriter())
-        {
-            entries.ForEach(e => e.Write(writer));
-            await jsRuntime.InvokeVoidAsync("logjoint.saveAs", writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
-        }
-    }
+	async void DownloadDebugLog()
+	{
+		var entries = traceListener.ClearMemBufferAndGetCurrentEntries();
+		using (var writer = new System.IO.StringWriter())
+		{
+			entries.ForEach(e => e.Write(writer));
+			await jsRuntime.InvokeVoidAsync("logjoint.saveAs", writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
+		}
+	}
 }
