@@ -165,7 +165,7 @@ app {
     background-color: lightgreen;
 }
 .main-window .container-1>.top {
-    height: 100px;
+    height: 150px;
 
     background-color: lightblue;
 }
@@ -236,4 +236,80 @@ app {
 
 .loaded-messages .raw-view.checked {
     border: inset;
+}
+
+
+
+
+.tabs-control {
+    display: flex;
+    flex-flow: column nowrap;
+}
+.tabs-control>.tab-content {
+    height: 1px;
+    flex-grow: 2;
+}
+
+.tabs-control>.tab-captions {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+}
+
+.tabs-control>.tab-captions>button {
+    margin: 0 5px;
+}
+
+.tabs-control>.tab-captions>button.checked {
+    border-style: inset;
+}
+
+
+
+.log-sources-manager {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.log-sources-manager>.actions {
+    width: 30px;
+    display: flex;
+    flex-flow: column nowrap;
+}
+.log-sources-manager.actions>button {
+    width: 20px;
+}
+
+.log-sources-manager>.list {
+    width: 1px;
+    flex-grow: 2;
+}
+
+
+
+
+.tree {
+    display: flex;
+    flex-flow: column nowrap;
+    overflow: auto;
+}
+.tree-node {
+    display: flex;
+    flex-flow: column nowrap;
+}
+.tree-node>.node {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.tree-node>.node>.triangle {
+    font-size: 0.8em;
+    width: 1em;
+}
+.tree-node>.node>.contents {
+    width: 1px;
+    flex-grow: 2;
+}
+.tree-node>.child {
+    padding-left: 20px;
 }

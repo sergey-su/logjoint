@@ -1,0 +1,38 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+
+    <div class='tabs-control @Class'>
+        <div class='tab-captions'>
+            <button class="@(selectedTab == 0 ? "checked" : "")" @onclick="@(e => SetSelectedTab(0))">Log Sources</button>
+            <button class="@(selectedTab == 1 ? "checked" : "")" @onclick="@(e => SetSelectedTab(1))">Bookmarks</button>
+            <button class="@(selectedTab == 2 ? "checked" : "")" @onclick="@(e => SetSelectedTab(2))">Search</button>
+            <button class="@(selectedTab == 3 ? "checked" : "")" @onclick="@(e => SetSelectedTab(3))">Debug</button>
+        </div>
+        @switch (selectedTab)
+        {
+            case 0:
+                <LogJoint.Wasm.UI.LogSourcesManager Class="tab-content" />
+                break;
+            case 1:
+                <h3 class="tab-content">Bookmarks</h3>
+                break;
+            case 2:
+                <h3 class="tab-content">Search</h3>
+                break;
+            case 3:
+                <LogJoint.Wasm.UI.DebugTab Class="tab-content" />
+                break;
+        }
+    </div>
+
+@code {
+	[Parameter]
+	public string Class { get; set; } = "";
+
+	int selectedTab = 0;
+
+	void SetSelectedTab(int value)
+	{
+        selectedTab = value;
+	}
+}
