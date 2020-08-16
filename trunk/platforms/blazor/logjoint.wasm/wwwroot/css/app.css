@@ -313,3 +313,8 @@ app {
 .tree-node>.child {
     padding-left: 20px;
 }
+.tree-node.selected {
+    background-color: darkblue;
+    color: white;
+}
+

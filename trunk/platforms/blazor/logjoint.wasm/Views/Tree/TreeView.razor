@@ -6,7 +6,7 @@
     {
         @foreach (var topLevelNode in Root.Children)
         {
-            <TreeNode Node="@topLevelNode" @key="@topLevelNode.Key"/>
+            <TreeNode Node="@topLevelNode" Owner="@this" @key="@topLevelNode.Key"/>
         }
     }
 </div>
@@ -17,4 +17,12 @@
 
     [Parameter]
     public ITreeNode Root { get; set; }
+
+    [Parameter]
+    public Action<ITreeNode[]> OnSelect { get; set; }
+
+    public void TrySelectNode(ITreeNode node)
+    {
+        OnSelect?.Invoke(new[] { node });
+    }
 }
