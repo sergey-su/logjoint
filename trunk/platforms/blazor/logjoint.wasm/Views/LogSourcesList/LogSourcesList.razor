@@ -4,7 +4,9 @@
 @implements IView
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 
-<TreeView Root="@viewModel.RootItem" class="@Class" />
+<TreeView class="@Class"
+          Root="@viewModel.RootItem"
+          OnSelect="@(nodes => viewModel.OnSelectionChange(nodes.OfType<IViewItem>().ToArray()))"/>
 
 @code {
     private IViewModel viewModel;

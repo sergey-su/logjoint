@@ -9,8 +9,10 @@
 <div class='log-sources-manager @Class'>
     <div class='actions'>
         <button>+</button>
-        <button>-</button>
-        <button>G</button>
+        <button disabled="@(!viewModel.DeleteSelectedSourcesButtonEnabled)"
+                @onclick="@viewModel.OnDeleteSelectedLogSourcesButtonClicked">-</button>
+        <button disabled="@(!viewModel.PropertiesButtonEnabled)"
+                @onclick="@viewModel.OnPropertiesButtonClicked">⚙</button>
     </div>
     <LogSourcesList Class="list"/>
 </div>
@@ -24,18 +26,18 @@
 
     protected override void OnInitialized()
     {
-        /*viewProxies.LoadedMessagesViewProxy.SetComponent(this);
+        viewProxies.SourcesManagerViewProxy.SetComponent(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => viewModel.ViewState,
+            () => (viewModel.DeleteSelectedSourcesButtonEnabled),
             _ => StateHasChanged()
-        ));*/
+        ));
     }
 
     public void Dispose()
     {
-        //viewProxies.LoadedMessagesViewProxy.SetComponent(null);
-        //subscription?.Dispose();
+        viewProxies.SourcesManagerViewProxy.SetComponent(null);
+        subscription?.Dispose();
     }
 
     void IView.SetViewModel(IViewModel value)
@@ -45,5 +47,6 @@
 
     void IView.ShowMRUMenu(List<MRUMenuItem> items)
     {
+        // todo
     }
 }

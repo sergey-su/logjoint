@@ -1,22 +1,29 @@
 ﻿@namespace  LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.Reactive
 
-<div class="tree-node @Class">
+<div class="tree-node @Class @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse">
     <div class="node">
         <div class="triangle">@(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▲"))</div>
-        <input type="checkbox" />
         <div class="contents">@(Node.ToString())</div>
     </div>
     @foreach (var child in Node.Children)
     {
-        <TreeNode Node="@child" Class="child" @key="@child.Key" />
+        <TreeNode Node="@child" Class="child" Owner="@Owner" @key="@child.Key" />
     }
 </div>
 
 @code {
-	[Parameter]
-	public ITreeNode Node { get; set; }
+    [Parameter]
+    public ITreeNode Node { get; set; }
 
-	[Parameter]
-	public string Class { get; set; } = "";
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public TreeView Owner { get; set; }
+
+    void TrySelectNodeByMouse(MouseEventArgs e)
+    {
+        Owner?.TrySelectNode(Node);
+    }
 }
