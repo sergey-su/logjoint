@@ -1,0 +1,41 @@
+﻿@namespace  LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.SourcesList
+@implements IDisposable
+@implements IView
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+<TreeView Root="@viewModel.RootItem" class="@Class" />
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        viewProxies.SourcesListViewProxy.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.RootItem,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewProxies.SourcesListViewProxy.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    void IView.SetTopItem(IViewItem item)
+    {
+        // todo
+    }
+}

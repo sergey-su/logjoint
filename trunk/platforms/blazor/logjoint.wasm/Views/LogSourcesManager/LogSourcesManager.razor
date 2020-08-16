@@ -1,0 +1,49 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.SourcesManager
+@using LogJoint.Settings
+@implements IDisposable
+@implements IView
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+<div class='log-sources-manager @Class'>
+    <div class='actions'>
+        <button>+</button>
+        <button>-</button>
+        <button>G</button>
+    </div>
+    <LogSourcesList Class="list"/>
+</div>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        /*viewProxies.LoadedMessagesViewProxy.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.ViewState,
+            _ => StateHasChanged()
+        ));*/
+    }
+
+    public void Dispose()
+    {
+        //viewProxies.LoadedMessagesViewProxy.SetComponent(null);
+        //subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    void IView.ShowMRUMenu(List<MRUMenuItem> items)
+    {
+    }
+}
