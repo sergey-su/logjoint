@@ -127,14 +127,19 @@ namespace LogJoint.Wasm
                 throw new NotImplementedException();
             }
 
+            static int CopyStr(string s, Memory<byte> buffer)
+            {
+                int read = s.Length;
+                var dest = buffer.Span;
+                for (int i = 0; i < read; ++i)
+                    dest[i] = unchecked((byte)s[i]);
+                return read;
+            }
+
             public override async ValueTask<int> ReadAsync(Memory<byte> buffer, System.Threading.CancellationToken cancellationToken = default)
             {
                 var str = await jsRuntime.InvokeAsync<string>("logjoint.files.read", fileInfo.handle, position, buffer.Length);
-                var read = str.Length;
-                for (int i = 0; i < read; ++i)
-                {
-                    buffer.Span[i] = (byte)str[i];
-                }
+                var read = CopyStr(str, buffer);
                 position += read;
                 return read;
             }
