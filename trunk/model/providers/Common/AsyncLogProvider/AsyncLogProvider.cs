@@ -27,7 +27,7 @@ namespace LogJoint
 		protected void StartAsyncReader(Func<Task<IPositionedMessagesReader>> readerFactory)
 		{
 			Debug.Assert(this.thread == null);
-			Debug.Assert(reader != null);
+			Debug.Assert(reader == null);
 
 			this.thread = Task.Run(() => Run(readerFactory));
 		}
