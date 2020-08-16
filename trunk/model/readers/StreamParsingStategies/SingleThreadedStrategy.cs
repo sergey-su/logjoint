@@ -10,9 +10,11 @@ namespace LogJoint.StreamParsingStrategies
 {
 	public abstract class SingleThreadedStrategy : BaseStrategy
 	{
-		public SingleThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, TextStreamPositioningParams textStreamPositioningParams)
+		public SingleThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, TextStreamPositioningParams textStreamPositioningParams,
+				ITraceSourceFactory traceSourceFactory = null)
 			: base(media, encoding, headerRe, textStreamPositioningParams)
 		{
+			this.trace = traceSourceFactory?.CreateTraceSource("App", "strat") ?? LJTraceSource.EmptyTracer;
 			this.textSplitter = new ReadMessageFromTheMiddleProblem(new MessagesSplitter(new StreamTextAccess(media.DataStream, encoding, textStreamPositioningParams), headerRe, splitterFlags));
 		}
 
@@ -47,9 +49,17 @@ namespace LogJoint.StreamParsingStrategies
 
 		public override async ValueTask<IMessage> ReadNext()
 		{
-			if (!await textSplitter.GetCurrentMessageAndMoveToNextOne(capture))
-				return null;
-			return MakeMessage(capture);
+			using (var perfop = new Profiling.Operation(trace, "ReadNext"))
+			{
+				var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+				if (!await textSplitter.GetCurrentMessageAndMoveToNextOne(capture))
+					return null;
+				perfop.Milestone("got capture in " + stopwatch.Elapsed.TotalMilliseconds.ToString());
+				stopwatch.Restart();
+				var msg = MakeMessage(capture);
+				perfop.Milestone("made message in " + stopwatch.Elapsed.TotalMilliseconds.ToString());
+				return msg;
+			}
 		}
 
 		public override async ValueTask<PostprocessedMessage> ReadNextAndPostprocess() 
@@ -66,5 +76,6 @@ namespace LogJoint.StreamParsingStrategies
 		IMessagesSplitter textSplitter;
 		TextMessageCapture capture = new TextMessageCapture();
 		IMessagesPostprocessor postprocessor;
+		LJTraceSource trace;
 	}
 }

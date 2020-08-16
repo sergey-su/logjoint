@@ -182,7 +182,8 @@ namespace LogJoint.RegularGrammar
 				reader.StreamEncoding,
 				CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None).Regex,
 				reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(),
-				reader.fmtInfo.TextStreamPositioningParams
+				reader.fmtInfo.TextStreamPositioningParams,
+				reader.traceSourceFactory
 			)
 			{
 				this.reader = reader;
