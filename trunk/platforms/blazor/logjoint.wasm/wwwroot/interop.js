@@ -41,6 +41,9 @@
         getSize: function (handle) {
             return this._get(handle).size;
         },
+        getName: function (handle) {
+            return this._get(handle).name;
+        },
         getLastModified: function (handle) {
             return this._get(handle).lastModified;
         },

@@ -4,56 +4,68 @@
 @inject TraceListener traceListener;
 
 <div class='@Class'>
-	<button @onclick="LoadLog">Load log from resources</button>
-	<br />
-	<input type="file" @ref="fileInputReference" />
-	<button @onclick="LoadByUrl">Load by blob URL</button>
-	<button @onclick="LoadStream">Load Stream</button>
-	<br />
-	<button @onclick="DownloadDebugLog">Download debug log</button>
+    <button @onclick="LoadLog">Load log from resources</button>
+    <br />
+    <input type="file" @ref="fileInputReference" />
+    <button @onclick="LoadByUrl">Load by blob URL</button>
+    <button @onclick="LoadChromeDebugLog">Load Stream as Chrome debug log</button>
+    <button @onclick="LoadUnspecifiedStream">Load unspecified stream</button>
+    <br />
+    <button @onclick="DownloadDebugLog">Download debug log</button>
 </div>
 
 @code {
-	[Parameter]
-	public string Class { get; set; } = "";
+    [Parameter]
+    public string Class { get; set; } = "";
 
-	ElementReference fileInputReference;
+    ElementReference fileInputReference;
 
-	private async Task LoadLog()
-	{
-		await model.LogSourcesPreprocessings.Preprocess(
-			new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(
-				await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "test_chrome_debug.log"))) },
-			"Processing test"
-		);
-	}
+    private async Task LoadLog()
+    {
+        await model.LogSourcesPreprocessings.Preprocess(
+            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(
+                await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "test_chrome_debug.log"))) },
+            "Processing test"
+        );
+    }
 
-	async void LoadByUrl()
-	{
-		var url = await jsRuntime.InvokeAsync<string>("logjoint.files.getUrl", fileInputReference);
-		Console.WriteLine("Blob url: {0}", url);
-		var task = model.LogSourcesPreprocessings.Preprocess(
-			new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(url)) },
-			"Processing blob URL test"
-		);
-	}
+    async void LoadByUrl()
+    {
+        var url = await jsRuntime.InvokeAsync<string>("logjoint.files.getUrl", fileInputReference);
+        Console.WriteLine("Blob url: {0}", url);
+        var task = model.LogSourcesPreprocessings.Preprocess(
+            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(url)) },
+            "Processing blob URL test"
+        );
+    }
 
-	async void LoadStream()
-	{
-		var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
-		var fileName = await fs.AddFileFromInput(fileInputReference);
-		Console.WriteLine("Virtual file name : {0}", fileName);
-		var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
-		model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
-	}
+    async void LoadChromeDebugLog()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.AddFileFromInput(fileInputReference);
+        Console.WriteLine("Virtual file name : {0}", fileName);
+        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
+        model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
+    }
 
-	async void DownloadDebugLog()
-	{
-		var entries = traceListener.ClearMemBufferAndGetCurrentEntries();
-		using (var writer = new System.IO.StringWriter())
-		{
-			entries.ForEach(e => e.Write(writer));
-			await jsRuntime.InvokeVoidAsync("logjoint.saveAs", writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
-		}
-	}
+    async void LoadUnspecifiedStream()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.AddFileFromInput(fileInputReference);
+        Console.WriteLine("Virtual file name : {0}", fileName);
+        var task = model.LogSourcesPreprocessings.Preprocess(
+            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
+            "Processing Unspecified file"
+        );
+    }
+
+    async void DownloadDebugLog()
+    {
+        var entries = traceListener.ClearMemBufferAndGetCurrentEntries();
+        using (var writer = new System.IO.StringWriter())
+        {
+            entries.ForEach(e => e.Write(writer));
+            await jsRuntime.InvokeVoidAsync("logjoint.saveAs", writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
+        }
+    }
 }
