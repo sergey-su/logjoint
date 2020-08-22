@@ -318,3 +318,15 @@ app {
     color: white;
 }
 
+
+
+
+.postprocessings-tabpage {
+    display: flex;
+    flex-flow: column nowrap;
+    overflow: scroll;
+}
+
+.postprocessings-tabpage .control.disabled {
+    color: gray;
+}

@@ -37,5 +37,37 @@ namespace LogJoint.UI.Presenters
 				Links = links 
 			};
 		}
+
+		public struct LinkLabelPart
+		{
+			public string Text;
+			public string LinkData; // null if the part is not a link
+		};
+
+		public static IEnumerable<LinkLabelPart> SplitLinkLabelString(string value)
+		{
+			ParsedLinkLabelString parsed = ParseLinkLabelString(value);
+			var lastIndex = 0;
+			foreach (var (lpos, llen, ldata) in parsed.Links)
+			{
+				if (lpos > lastIndex)
+					yield return new LinkLabelPart
+					{
+						Text = parsed.Text.Substring(lastIndex, lpos - lastIndex)
+					};
+				yield return new LinkLabelPart
+				{
+					Text = parsed.Text.Substring(lpos, llen),
+					LinkData = ldata
+				};
+				lastIndex = lpos + llen;
+			}
+			if (lastIndex < parsed.Text.Length)
+				yield return new LinkLabelPart
+				{
+					Text = parsed.Text.Substring(lastIndex,
+						parsed.Text.Length - lastIndex)
+				};
+		}
 	};
 };

@@ -29,10 +29,10 @@ namespace LogJoint.Wasm
         public UI.LoadedMessages.ViewProxy LoadedMessagesViewProxy;
         public UI.SourcesListViewProxy SourcesListViewProxy = new UI.SourcesListViewProxy();
         public UI.SourcesManagerViewProxy SourcesManagerViewProxy = new UI.SourcesManagerViewProxy();
+        public UI.Postprocessing.ViewProxy PostprocessingTabPage = new UI.Postprocessing.ViewProxy();
 
         public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
 		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
-		public LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
 		public string PostprocessingTabPageId;
 		public LogJoint.UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
 		public LogJoint.UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
@@ -82,6 +82,7 @@ namespace LogJoint.Wasm
             Views.CreateLoadedMessagesView().Returns(viewModel.LoadedMessagesViewProxy);
             Views.CreateSourcesManagerView().Returns(viewModel.SourcesManagerViewProxy);
             Views.CreateSourcesListView().Returns(viewModel.SourcesListViewProxy);
+            Views.CreatePostprocessingTabPage().Returns(viewModel.PostprocessingTabPage);
         }
     };
 }
