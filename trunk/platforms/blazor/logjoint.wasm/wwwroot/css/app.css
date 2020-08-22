@@ -70,6 +70,7 @@ app {
     border: 2px grey solid;
     position: relative;
     overflow: hidden;
+    line-height: normal;
 }
 .logview .logline {
     padding: 0px;
