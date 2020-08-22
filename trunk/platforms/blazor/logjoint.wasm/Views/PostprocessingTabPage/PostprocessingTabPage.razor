@@ -1,0 +1,62 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
+@inject IJSRuntime jsRuntime;
+@implements IDisposable
+@implements IView;
+@inject LogJoint.Wasm.ViewModelObjects viewProxies;
+
+<div class='postprocessings-tabpage @Class'>
+    @foreach (var control in viewModel.ControlsState)
+    {
+        <div class='control @(control.Value.Disabled ? "disabled" : "")'>
+            @foreach (var part in LogJoint.UI.Presenters.LinkLabelUtils.SplitLinkLabelString(control.Value.Content))
+            {
+                @if (part.LinkData != null)
+                {
+                    <a href="#"
+                       @onclick="@(e => viewModel.OnActionClick(part.LinkData, control.Key, ClickFlags.None))" 
+                       @onclick:stopPropagation="true">@part.Text</a>
+                }
+                @if (part.LinkData == null)
+                {
+                    <span>@part.Text</span>
+                }
+            }
+            @if (control.Value.Progress.HasValue)
+			{
+                <span>@(control.Value.Progress.Value)%</span>
+			}
+        </div>
+    }
+</div>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        viewProxies.PostprocessingTabPage.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.ControlsState,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewProxies.SourcesManagerViewProxy.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    object IView.UIControl => null;
+}
