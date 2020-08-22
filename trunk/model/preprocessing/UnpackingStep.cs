@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Net;
 using System.Threading.Tasks;
+using LogJoint.LogMedia;
 
 namespace LogJoint.Preprocessing
 {
@@ -15,12 +16,14 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile,
 			Progress.IProgressAggregator progressAggregator,
 			ICredentialsCache credCache,
-			IStepsFactory preprocessingStepsFactory)
+			IStepsFactory preprocessingStepsFactory,
+			IFileSystem fileSystem)
 		{
 			this.@params = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAggregator;
 			this.credCache = credCache;
+			this.fileSystem = fileSystem;
 		}
 
 		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
@@ -50,7 +53,7 @@ namespace LogJoint.Preprocessing
 			{
 				try
 				{
-					DoExtract(callback, specificFileToExtract, onNext, password);
+					await DoExtract(callback, specificFileToExtract, onNext, password, fileSystem);
 					break;
 				}
 				catch (PasswordException)
@@ -73,13 +76,28 @@ namespace LogJoint.Preprocessing
 
 		class PasswordException : Exception { };
 
-		private void DoExtract(
+		private async Task DoExtract(
 			IPreprocessingStepCallback callback,
 			string specificFileToExtract,
 			Func<PreprocessingStepParams, bool> onNext,
-			string password)
+			string password,
+			IFileSystem fileSystem)
 		{
-			using (var zipFile = new ICSharpCode.SharpZipLib.Zip.ZipFile(@params.Location))
+			async Task<ICSharpCode.SharpZipLib.Zip.ZipFile> CreateZipFile()
+			{
+				if (!IsBrowser.Value)
+				{
+					return new ICSharpCode.SharpZipLib.Zip.ZipFile(@params.Location);
+				}
+				else
+				{
+					var ms = new MemoryStream();
+					using (var fileStream = fileSystem.OpenFile(@params.Location))
+						await IOUtils.CopyStreamWithProgressAsync(fileStream, ms, _ => { }, callback.Cancellation);
+					return new ICSharpCode.SharpZipLib.Zip.ZipFile(ms, leaveOpen: false);
+				}
+			}
+			using (var zipFile = await CreateZipFile())
 			{
 				if (password != null)
 					zipFile.Password = password;
@@ -127,6 +145,7 @@ namespace LogJoint.Preprocessing
 		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly ICredentialsCache credCache;
+		readonly IFileSystem fileSystem;
 		internal const string name = "unzip";
 	};
 }

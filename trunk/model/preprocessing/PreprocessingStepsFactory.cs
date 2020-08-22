@@ -62,7 +62,7 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)
 		{
-			return new UnpackingStep(p, progressAggregator, credCache, this);
+			return new UnpackingStep(p, progressAggregator, credCache, this, fileSystem);
 		}
 
 		IPreprocessingStep IStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)
