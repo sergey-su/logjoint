@@ -78,6 +78,7 @@ app {
     cursor: text;
     white-space: nowrap;
     position: relative;
+    line-height: 1;
 }
 .logview .scroll-inner {
     display: inline-flex;
@@ -137,6 +138,7 @@ app {
 .logview .measure-text {
     position: absolute;
     white-space: pre;
+    line-height: 1;
 }
 .logview .vsroller {
     width: 10pt;
