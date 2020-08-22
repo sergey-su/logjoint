@@ -29,7 +29,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 					logPartTokenFactories,
 					builder.triggersConverter,
 					postprocessorInput.InputContentsEtag,
-					postprocessorInput.OutputFileName,
+					postprocessorInput.openOutputFile,
 					tempFiles,
 					postprocessorInput.CancellationToken
 				)
@@ -53,7 +53,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				logPartTokenFactories,
 				triggersConverter,
 				postprocessorInput.InputContentsEtag,
-				postprocessorInput.OutputFileName,
+				postprocessorInput.openOutputFile,
 				tempFiles,
 				postprocessorInput.CancellationToken
 			);

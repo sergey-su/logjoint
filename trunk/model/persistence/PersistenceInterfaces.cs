@@ -71,5 +71,10 @@ namespace LogJoint.Persistence
 		{
 			bool ExistsInFileSystem { get; }
 		};
+
+		public interface IStorageEntryInternal: IStorageEntry
+		{
+			IRawStreamStorageSection OpenRawXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey);
+		};
 	}
 }

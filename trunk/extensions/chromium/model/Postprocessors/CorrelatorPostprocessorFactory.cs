@@ -48,7 +48,7 @@ namespace LogJoint.Chromium.Correlator
 
 		async Task RunForChromeDebug(LogSourcePostprocessorInput input)
 		{
-			var reader = new CDL.Reader(postprocessing.TextLogParser, input.CancellationToken).Read(input.LogFileName, input.ProgressHandler);
+			var reader = new CDL.Reader(postprocessing.TextLogParser, input.CancellationToken).Read(input.OpenLogFile, s => s.Dispose(), input.ProgressHandler);
 			var multiplexedInput = reader.Multiplex();
 
 			IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();

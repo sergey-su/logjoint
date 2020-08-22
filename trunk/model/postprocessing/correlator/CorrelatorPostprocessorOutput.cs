@@ -61,7 +61,7 @@ namespace LogJoint.Postprocessing.Correlation
 			ISameNodeDetectionTokenFactories nodeDetectionTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
-			string outputFileName,
+			Func<Task<Stream>> openOutputStream,
 			ITempFilesManager tempFiles,
 			CancellationToken cancellation
 		)
@@ -72,14 +72,16 @@ namespace LogJoint.Postprocessing.Correlation
 
 			var eventsTmpFile = tempFiles.GenerateNewName();
 
+			Func<Task<Stream>> openTempFile(string fileName) => () => Task.FromResult<Stream>(new FileStream(fileName, FileMode.OpenOrCreate));
+
 			var serializeMessagingEvents = events.SerializePostprocessorOutput<M.Event, M.EventsSerializer, M.IEventsVisitor>(
 				triggerSerializer => new M.EventsSerializer(triggerSerializer),
-				null, logPartTokenFactories, triggersConverter, null, messagingEventsElementName, eventsTmpFile, tempFiles, cancellation
+				null, logPartTokenFactories, triggersConverter, null, messagingEventsElementName, openTempFile(eventsTmpFile), tempFiles, cancellation
 			);
 
 			await Task.WhenAll(serializeMessagingEvents, logPartToken, sameNodeDetectionTokenTask);
 
-			using (var outputWriter = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = true, Async = true }))
+			using (var outputWriter = XmlWriter.Create(await openOutputStream(), new XmlWriterSettings() { Indent = true, Async = true, CloseOutput = true }))
 			using (var messagingEventsReader = XmlReader.Create(eventsTmpFile))
 			{
 				outputWriter.WriteStartElement("root");

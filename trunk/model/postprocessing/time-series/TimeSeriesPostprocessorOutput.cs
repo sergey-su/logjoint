@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using TSBlocks = LogJoint.Postprocessing.TimeSeries;
+using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {
@@ -18,11 +21,12 @@ namespace LogJoint.Postprocessing.TimeSeries
 			timeSeries.ForEach(Sanitize);
 		}
 
-		public static void SerializePostprocessorOutput(
-			IEnumerable<TSBlocks.TimeSeriesData> series, IEnumerable<TSBlocks.EventBase> events, string outputFileName, 
+		public static async Task SerializePostprocessorOutput(
+			IEnumerable<TSBlocks.TimeSeriesData> series, IEnumerable<TSBlocks.EventBase> events, Func<Task<Stream>> openOutputStream, 
 			TSBlocks.ITimeSeriesTypesAccess timeSeriesTypesAccess)
 		{
-			using (var writer = XmlWriter.Create(outputFileName))
+			using (var stream = await openOutputStream())
+			using (var writer = XmlWriter.Create(stream))
 			{
 				writer.WriteStartElement("Data");
 				timeSeriesTypesAccess.GetEventsSerializer().Serialize(writer, events.ToList());

@@ -184,8 +184,8 @@ namespace LogJoint.Persistence.Implementation
 	{
 		public const string KeyPrefix = "b";
 
-		public BinaryStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
-			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)
+		public BinaryStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string keyPrefix = null) :
+			base(manager, entry, key, additionalNumericKey, keyPrefix ?? KeyPrefix, openFlags)
 		{
 			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{

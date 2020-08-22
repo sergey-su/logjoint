@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -39,7 +40,7 @@ namespace LogJoint.Postprocessing.Timeline
 			ILogPartTokenFactories logPartTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
-			string outputFileName,
+			Func<Task<Stream>> openOutputStream,
 			ITempFilesManager tempFiles,
 			CancellationToken cancellation
 		)
@@ -51,7 +52,7 @@ namespace LogJoint.Postprocessing.Timeline
 				triggersConverter,
 				contentsEtagAttr,
 				"root",
-				outputFileName,
+				openOutputStream,
 				tempFiles,
 				cancellation
 			);

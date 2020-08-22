@@ -12,6 +12,7 @@ namespace LogJoint
 		Stream impl;
 		bool ownImpl;
 		bool disposed;
+		Action dispose;
 
 		void CheckImpl()
 		{
@@ -21,6 +22,7 @@ namespace LogJoint
 
 		void Reset()
 		{
+			dispose?.Invoke();
 			if (impl != null && ownImpl)
 			{
 				impl.Dispose();
@@ -29,9 +31,9 @@ namespace LogJoint
 			ownImpl = false;
 		}
 
-		public DelegatingStream(Stream stream = null, bool ownStream = false)
+		public DelegatingStream(Stream stream = null, bool ownStream = false, Action dispose = null)
 		{
-			SetStream(stream, ownStream);
+			SetStream(stream, ownStream, dispose);
 		}
 
 		protected override void Dispose(bool disposing)
@@ -44,11 +46,12 @@ namespace LogJoint
 			base.Dispose(disposing);
 		}
 
-		public void SetStream(Stream value, bool ownStream)
+		public void SetStream(Stream value, bool ownStream, Action dispose = null)
 		{
 			Reset();
-			impl = value;
-			ownImpl = ownStream;
+			this.impl = value;
+			this.ownImpl = ownStream;
+			this.dispose = dispose;
 		}
 
 		public bool IsDisposed

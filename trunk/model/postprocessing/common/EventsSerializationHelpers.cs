@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace LogJoint.Postprocessing
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
 			string rootElementName,
-			string outputFileName,
+			Func<Task<Stream>> openOutputStream,
 			ITempFilesManager tempFiles,
 			CancellationToken cancellation
 		) where Evt : IVisitable<EvtVisitor> where Serializer : class, IEventsSerializer, EvtVisitor
@@ -66,9 +67,10 @@ namespace LogJoint.Postprocessing
 			if (cancellation.IsCancellationRequested)
 				return;
 
-			using (var outputWriter = XmlWriter.Create(outputFileName, new XmlWriterSettings()
+			using (var outputWriter = XmlWriter.Create(await openOutputStream(), new XmlWriterSettings()
 			{
-				Indent = true
+				Indent = true,
+				CloseOutput = true
 			}))
 			{
 				outputWriter.WriteStartElement(rootElementName);

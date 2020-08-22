@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,14 +50,18 @@ namespace LogJoint.Postprocessing
 	public struct LogSourcePostprocessorInput
 	{
 		public ILogSource LogSource;
+		[Obsolete("Use OpenLogFile() instead")]
 		public string LogFileName;
-		public string OutputFileName;
+		public Task<Stream> OpenLogFile() => openLogFile();
 		public CancellationToken CancellationToken;
 		public Action<double> ProgressHandler;
 		public Progress.IProgressAggregator ProgressAggregator;
 		public ICodepathTracker TemplatesTracker;
 		public string InputContentsEtag;
 		public object CustomData;
+
+		internal Func<Task<Stream>> openLogFile;
+		internal Func<Task<Stream>> openOutputFile;
 	};
 
 	public struct LogSourcePostprocessorDeserializationParams

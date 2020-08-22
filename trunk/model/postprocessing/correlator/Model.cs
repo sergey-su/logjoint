@@ -26,7 +26,7 @@
 					nodeDetectionTokenFactories,
 					builder.triggersConverter,
 					postprocessorInput.InputContentsEtag,
-					postprocessorInput.OutputFileName,
+					postprocessorInput.openOutputFile,
 					tempFiles,
 					postprocessorInput.CancellationToken
 				)

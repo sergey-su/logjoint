@@ -59,7 +59,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 			ILogPartTokenFactories logPartTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
-			string outputFileName,
+			Func<Task<Stream>> openOutputStream,
 			ITempFilesManager tempFiles,
 			CancellationToken cancellation
 		)
@@ -73,24 +73,26 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 			var timelineCommentsTmpFile = tempFiles.GenerateNewName();
 			var stateInsectorCommentsTmpFile = tempFiles.GenerateNewName();
 
+			Func<Task<Stream>> openTempFile(string fileName) => () => Task.FromResult<Stream>(new FileStream(fileName, FileMode.OpenOrCreate));
+
 			var serializeMessagingEvents = events.SerializePostprocessorOutput<M.Event, M.EventsSerializer, M.IEventsVisitor>(
 				triggerSerializer => new M.EventsSerializer(triggerSerializer),
-				null, logPartTokenFactories, triggersConverter, null, messagingEventsElementName, eventsTmpFile, tempFiles, cancellation
+				null, logPartTokenFactories, triggersConverter, null, messagingEventsElementName, openTempFile(eventsTmpFile), tempFiles, cancellation
 			);
 
 			var serializeTimelineComments = timelineComments.SerializePostprocessorOutput<TLBlock.Event, TLBlock.EventsSerializer, TLBlock.IEventsVisitor>(
 				triggerSerializer => new TLBlock.EventsSerializer(triggerSerializer),
-				null, logPartTokenFactories, triggersConverter, null, timelineCommentsElementName, timelineCommentsTmpFile, tempFiles, cancellation
+				null, logPartTokenFactories, triggersConverter, null, timelineCommentsElementName, openTempFile(timelineCommentsTmpFile), tempFiles, cancellation
 			);
 
 			var serializeStateInspectorComments = stateInspectorComments.SerializePostprocessorOutput<SIBlock.Event, SIBlock.EventsSerializer, SIBlock.IEventsVisitor>(
 				triggerSerializer => new SIBlock.EventsSerializer(triggerSerializer),
-				null, logPartTokenFactories, triggersConverter, null, stateCommentsElementName, stateInsectorCommentsTmpFile, tempFiles, cancellation
+				null, logPartTokenFactories, triggersConverter, null, stateCommentsElementName, openTempFile(stateInsectorCommentsTmpFile), tempFiles, cancellation
 			);
 
 			await Task.WhenAll(serializeMessagingEvents, serializeTimelineComments, serializeStateInspectorComments, logPartToken);
 
-			using (var outputWriter = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = true, Async = true }))
+			using (var outputWriter = XmlWriter.Create(await openOutputStream(), new XmlWriterSettings() { Indent = true, Async = true, CloseOutput = true }))
 			using (var messagingEventsReader = XmlReader.Create(eventsTmpFile))
 			using (var timelineCommentsReader = XmlReader.Create(timelineCommentsTmpFile))
 			using (var stateInspectorCommentsReader = XmlReader.Create(stateInsectorCommentsTmpFile))
