@@ -70,6 +70,12 @@ namespace LogJoint
 			long MB = 1024 * 1024;
 			long sizeThreshold = settings.FileSizes.Threshold * MB;
 			long partialLoadingSize = settings.FileSizes.WindowSize * MB;
+			if (IsBrowser.Value)
+			{
+				long kB = 1024;
+				sizeThreshold = 128 * kB;
+				partialLoadingSize = 64 * kB;
+			}
 
 			long currentSize = availableRange.End - availableRange.Begin;
 
