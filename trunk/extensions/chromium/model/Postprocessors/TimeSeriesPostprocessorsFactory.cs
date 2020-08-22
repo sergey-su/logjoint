@@ -32,7 +32,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.TimeSeries,
-				i => RunForChromeDebug(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForChromeDebug(new CDL.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.OpenLogFile, s => s.Dispose(), i.ProgressHandler), i)
 			);
 		}
 

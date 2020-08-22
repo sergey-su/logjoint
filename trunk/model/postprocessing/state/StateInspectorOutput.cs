@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Threading;
@@ -33,7 +34,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			ILogPartTokenFactories logPartTokenFactories,
 			Func<object, TextLogEventTrigger> triggersConverter,
 			string contentsEtagAttr,
-			string outputFileName,
+			Func<Task<Stream>> openOutputStream,
 			ITempFilesManager tempFiles,
 			CancellationToken cancellation
 		)
@@ -45,7 +46,7 @@ namespace LogJoint.Postprocessing.StateInspector
 				triggersConverter,
 				contentsEtagAttr,
 				"root",
-				outputFileName,
+				openOutputStream,
 				tempFiles,
 				cancellation
 			);

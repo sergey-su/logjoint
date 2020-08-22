@@ -24,7 +24,7 @@ namespace LogJoint.Postprocessing.Timeline
 					logPartTokenFactories,
 					builder.triggersConverter,
 					postprocessorInput.InputContentsEtag,
-					postprocessorInput.OutputFileName,
+					postprocessorInput.openOutputFile,
 					tempFiles,
 					postprocessorInput.CancellationToken
 				)
@@ -44,7 +44,7 @@ namespace LogJoint.Postprocessing.Timeline
 				logPartTokenFactories,
 				triggersConverter,
 				postprocessorInput.InputContentsEtag,
-				postprocessorInput.OutputFileName,
+				postprocessorInput.openOutputFile,
 				tempFiles,
 				postprocessorInput.CancellationToken
 			);

@@ -37,7 +37,6 @@ namespace LogJoint.Postprocessing
 		static async Task RunTimelinePostprocessor(
 			LogSourcePostprocessorInput input, IModel postprocessingModel)
 		{
-			string outputFileName = input.OutputFileName;
 			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
 				input.ProgressHandler).Multiplex();
 
@@ -60,7 +59,6 @@ namespace LogJoint.Postprocessing
 			IModel postprocessingModel
 		)
 		{
-			string outputFileName = input.OutputFileName;
 			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
 				input.ProgressHandler).Multiplex();
 

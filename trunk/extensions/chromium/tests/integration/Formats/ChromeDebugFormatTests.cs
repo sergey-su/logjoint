@@ -55,7 +55,7 @@ namespace LogJoint.Tests.Integration.Chromium
 				var reader = new Reader(context.Model.Postprocessing.TextLogParser, CancellationToken.None);
 				var writer = new Writer();
 
-				await writer.Write(() => actualContent, _ => { }, reader.Read(() => testStream, _ => { }));
+				await writer.Write(() => actualContent, _ => { }, reader.Read(() => Task.FromResult(testStream), _ => { }));
 
 				Check.That(
 					Helpers.SplitTextStream(actualContent)

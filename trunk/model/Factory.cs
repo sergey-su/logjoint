@@ -291,7 +291,8 @@ namespace LogJoint
 				traceSourceFactory,
 				logPartTokenFactories,
 				sameNodeDetectionTokenFactories,
-				changeNotification
+				changeNotification,
+				fileSystem
 			);
 
 			Postprocessing.Correlation.ICorrelationManager correlationManager = new Postprocessing.Correlation.CorrelationManager(

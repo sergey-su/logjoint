@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace LogJoint.Persistence.Implementation
 {
-	internal class StorageEntry: IStorageEntry
+	internal class StorageEntry: IStorageEntry, IStorageEntryInternal
 	{
 		public StorageEntry(StorageManagerImplementation owner, string path)
 		{
@@ -64,6 +64,11 @@ namespace LogJoint.Persistence.Implementation
 		IRawStreamStorageSection IStorageEntry.OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
 			return new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
+		}
+
+		IRawStreamStorageSection IStorageEntryInternal.OpenRawXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		{
+			return new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags, XmlStorageSection.KeyPrefix);
 		}
 
 		void IStorageEntry.AllowCleanup()

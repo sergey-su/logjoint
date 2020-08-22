@@ -22,12 +22,11 @@ namespace LogJoint.Postprocessing.TimeSeries
 			LogSourcePostprocessorInput postprocessorInput
 		)
 		{
-			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
+			return TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
 				parser.GetParsedTimeSeries(),
 				parser.GetParsedEvents(),
-				postprocessorInput.OutputFileName,
+				postprocessorInput.openOutputFile,
 				timeSeriesTypesAccess);
-			return Task.FromResult(0);
 		}
 
 		void IModel.RegisterTimeSeriesTypesAssembly(System.Reflection.Assembly asm)

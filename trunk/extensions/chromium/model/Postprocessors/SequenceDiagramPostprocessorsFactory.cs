@@ -35,7 +35,7 @@ namespace LogJoint.Chromium.SequenceDiagram
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
-				i => RunForChromeDebug(new ChromeDebugLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForChromeDebug(new ChromeDebugLog.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.OpenLogFile, s => s.Dispose(), i.ProgressHandler), i)
 			);
 		}
 

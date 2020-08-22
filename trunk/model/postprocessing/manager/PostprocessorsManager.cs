@@ -21,7 +21,8 @@ namespace LogJoint.Postprocessing
 			ITraceSourceFactory traceSourceFactory,
 			ILogPartTokenFactories logPartTokenFactories,
 			Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			LogMedia.IFileSystem logFileSystem
 		)
 		{
 			this.logSources = logSources;
@@ -35,6 +36,7 @@ namespace LogJoint.Postprocessing
 			this.logPartTokenFactories = logPartTokenFactories;
 			this.sameNodeDetectionTokenFactories = sameNodeDetectionTokenFactories;
 			this.changeNotification = changeNotification;
+			this.logFileSystem = logFileSystem;
 			this.tracer = traceSourceFactory.CreateTraceSource("App", "ppm");
 			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh);
 
@@ -102,10 +104,12 @@ namespace LogJoint.Postprocessing
 				if (postprocessorRecord.state.PostprocessorNeedsRunning == null)
 					throw new InvalidOperationException($"Can not start postprocessor in this state {postprocessorRecord.state.GetType()}");
 
-				string outputFileName;
-				using (var section = forLogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
-						outputType.MakePostprocessorOutputFileName(), Persistence.StorageSectionOpenFlag.ReadOnly))
-					outputFileName = section.AbsolutePath;
+				Task<System.IO.Stream> openOutputStream()
+				{
+					var section = ((Persistence.Implementation.IStorageEntryInternal)forLogSource.LogSourceSpecificStorageEntry).OpenRawXMLSection(
+							outputType.MakePostprocessorOutputFileName(), Persistence.StorageSectionOpenFlag.ReadWrite, 0);
+					return Task.FromResult<System.IO.Stream>(new DelegatingStream(section.Data, ownStream: false, dispose: section.Dispose));
+				};
 
 				bool needsProcessing = logSourceRecord.logSource.Visible && postprocessorRecord.state.PostprocessorNeedsRunning == true;
 
@@ -115,7 +119,7 @@ namespace LogJoint.Postprocessing
 				{
 					OutputType = outputType,
 					PostprocessorInput = logSourceRecord.ToPostprocessorInput(
-						outputFileName, sourceContentsEtag, customData
+						openOutputStream, sourceContentsEtag, customData
 					),
 					PostprocessorRecord = postprocessorRecord,
 					LogSourceMeta = logSourceRecord.metadata,
@@ -189,7 +193,7 @@ namespace LogJoint.Postprocessing
 			{
 				if (!knownLogSources.TryGetValue(src.Key, out LogSourceRecord rec))
 				{
-					rec = new LogSourceRecord(src.Key, src.Value);
+					rec = new LogSourceRecord(src.Key, src.Value, logFileSystem);
 					foreach (var postprocessorType in rec.metadata.SupportedPostprocessors)
 						rec.PostprocessorsOutputs.Add(new PostprocessorOutputRecord(
 							postprocessorType, rec, updater.Invoke,
@@ -298,5 +302,6 @@ namespace LogJoint.Postprocessing
 		private readonly ILogPartTokenFactories logPartTokenFactories;
 		private readonly Correlation.ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories;
 		private readonly IChangeNotification changeNotification;
+		private readonly LogMedia.IFileSystem logFileSystem;
 	}
 }
