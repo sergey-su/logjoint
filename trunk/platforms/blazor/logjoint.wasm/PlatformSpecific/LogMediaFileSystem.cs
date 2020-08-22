@@ -171,7 +171,8 @@ namespace LogJoint.Wasm
             var handle = await jsRuntime.InvokeAsync<long>("logjoint.files.open", inputElement);
             var size = await jsRuntime.InvokeAsync<long>("logjoint.files.getSize", handle);
             var lastModified = await jsRuntime.InvokeAsync<long>("logjoint.files.getLastModified", handle);
-            string fileName = $"{htmlInputFileNamePrefix}{++lastHtmlInputStreamId}";
+            var name = await jsRuntime.InvokeAsync<string>("logjoint.files.getName", handle);
+            string fileName = $"{htmlInputFileNamePrefix}{++lastHtmlInputStreamId}-{name}";
             htmlInputFiles.Add(fileName, new HtmlInputFileInfo()
             {
                 jsRuntime = jsRuntime,
