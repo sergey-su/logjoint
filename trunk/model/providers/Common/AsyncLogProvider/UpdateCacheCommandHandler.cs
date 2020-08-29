@@ -37,7 +37,7 @@ namespace LogJoint
 				return false;
 			if (!currentRange.IsInRange(owner.ActivePositionHint))
 				return false;
-			var delta = (currentRange.Begin + currentRange.End) / 2 - owner.ActivePositionHint;
+			var delta = owner.ActivePositionHint - (currentRange.Begin + currentRange.End) / 2;
 			if (Math.Abs(delta) < cacheSize / 6)
 				return true;
 			if (delta < 0 && currentRange.Begin == avaRange.Begin)
