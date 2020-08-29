@@ -39,6 +39,11 @@ namespace LogJoint.FieldsProcessor
 		IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference> GetMetadataReferences(IEnumerable<string> assemblyNames);
 	};
 
+	public interface IAssemblyLoader
+	{
+		System.Reflection.Assembly Load(byte[] image);
+	};
+
 	public interface IInitializationParams
 	{
 	}

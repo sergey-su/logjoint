@@ -62,16 +62,19 @@ namespace LogJoint.FieldsProcessor
 			readonly Persistence.IStorageEntry cacheEntry;
 			readonly Telemetry.ITelemetryCollector telemetryCollector;
 			readonly IMetadataReferencesProvider metadataReferencesProvider;
+			readonly IAssemblyLoader assemblyLoader;
 
 			public Factory(
 				Persistence.IStorageManager storageManager,
 				Telemetry.ITelemetryCollector telemetryCollector,
-				IMetadataReferencesProvider metadataReferencesProvider
+				IMetadataReferencesProvider metadataReferencesProvider,
+				IAssemblyLoader assemblyLoader
 			)
 			{
 				this.cacheEntry = storageManager.GetEntry("user-code-cache", 0x81012232);
 				this.telemetryCollector = telemetryCollector;
 				this.metadataReferencesProvider = metadataReferencesProvider ?? new DefaultMetadataReferencesProvider();
+				this.assemblyLoader = assemblyLoader ?? new DefaultAssemblyLoader();
 			}
 
 			IInitializationParams IFactory.CreateInitializationParams(
@@ -91,15 +94,17 @@ namespace LogJoint.FieldsProcessor
 					cacheEntry,
 					trace,
 					telemetryCollector,
-					metadataReferencesProvider
+					metadataReferencesProvider,
+					assemblyLoader
 				);
 			}
 		};
 
-        private class DefaultMetadataReferencesProvider : IMetadataReferencesProvider
-        {
+		private class DefaultMetadataReferencesProvider : IMetadataReferencesProvider
+		{
+			
 			IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences(IEnumerable<string> assemblyNames)
-            {
+			{
 				MetadataReference assemblyLocationResolver(string asmName) => MetadataReference.CreateFromFile(Assembly.Load(asmName).Location);
 
 				var metadataReferences = new List<MetadataReference>();
@@ -113,14 +118,23 @@ namespace LogJoint.FieldsProcessor
 			}
 		};
 
-        public FieldsProcessorImpl(
+		private class DefaultAssemblyLoader: IAssemblyLoader
+		{
+			Assembly IAssemblyLoader.Load(byte[] image)
+			{
+				return Assembly.Load(image);
+			}
+		};
+
+		public FieldsProcessorImpl(
 			InitializationParams initializationParams, 
 			IEnumerable<string> inputFieldNames, 
 			IEnumerable<ExtensionInfo> extensions,
 			Persistence.IStorageEntry cacheEntry,
 			LJTraceSource trace,
 			Telemetry.ITelemetryCollector telemetryCollector,
-			IMetadataReferencesProvider metadataReferencesProvider
+			IMetadataReferencesProvider metadataReferencesProvider,
+			IAssemblyLoader assemblyLoader
 		)
 		{
 			if (inputFieldNames == null)
@@ -133,6 +147,7 @@ namespace LogJoint.FieldsProcessor
 			this.trace = trace;
 			this.telemetryCollector = telemetryCollector;
 			this.metadataReferencesProvider = metadataReferencesProvider;
+			this.assemblyLoader = assemblyLoader;
 		}
 
 		void IFieldsProcessor.Reset()
@@ -275,7 +290,7 @@ namespace LogJoint.FieldsProcessor
 					{
 						var cachedRawAsm = new byte[cachedRawAsmSize];
 						cacheSection.Data.Read(cachedRawAsm, 0, (int)cachedRawAsmSize);
-						return Assembly.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
+						return assemblyLoader.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
 					}
 					catch (Exception e)
 					{
@@ -697,6 +712,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly Telemetry.ITelemetryCollector telemetryCollector;
 		readonly LJTraceSource trace;
 		readonly IMetadataReferencesProvider metadataReferencesProvider;
+		readonly IAssemblyLoader assemblyLoader;
 		Type precompiledBuilderType;
 
 		#endregion
