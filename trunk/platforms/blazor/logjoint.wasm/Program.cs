@@ -132,6 +132,16 @@ namespace LogJoint.Wasm
             void ILogsDownloaderConfig.AddRule(Uri uri, LogDownloaderRule rule) {}
         };
 
+        class AssemblyLoader: FieldsProcessor.IAssemblyLoader
+        {
+            Assembly FieldsProcessor.IAssemblyLoader.Load(byte[] image)
+            {
+                var context = System.Runtime.Loader.AssemblyLoadContext.Default;
+                using (var ms = new System.IO.MemoryStream(image))
+                    return context.LoadFromStream(ms);
+            }
+        };
+
         class MetadataReferencesProvider : FieldsProcessor.IMetadataReferencesProvider
         {
             List<MetadataReference> references = new List<MetadataReference>();
@@ -141,7 +151,7 @@ namespace LogJoint.Wasm
                 var httpClient = new HttpClient();
                 async Task<MetadataReference> resolve(string asmName) => MetadataReference.CreateFromStream(
                     await httpClient.GetStreamAsync(
-                        await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", $"_framework/_bin/{asmName}")));
+                        await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", $"_framework/{asmName}")));
                 references.AddRange(await Task.WhenAll(
                     resolve("mscorlib.dll"),
                     // resolve("System.Runtime.dll"),
@@ -183,6 +193,7 @@ namespace LogJoint.Wasm
                         FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
                         FileSystem = new LogJoint.Wasm.LogMediaFileSystem(serviceProvider.GetService<IJSRuntime>()),
                         FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider,
+                        FieldsProcessorAssemblyLoader = new AssemblyLoader(),
                         PersistenceFileSystem = new LogJoint.Wasm.PersistenceFileSystem((IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>()),
                     },
                         invokingSynchronization,
