@@ -1,0 +1,57 @@
+﻿@using System
+@using LogJoint.Postprocessing;
+@namespace LogJoint.Wasm.UI
+@inject IJSRuntime jsRuntime;
+
+<div class='@ResizerClass' @ref="toolsResizerElement"></div>
+<div class='tool-container @Class' @ref='toolsElement'>
+    <div class='header'>
+        <div class='tabs'>
+            @foreach (var tool in visibleTools)
+            {
+                <button class="@(tool == selectedTool ? "checked" : "")" @onclick="@(e => SetSelectedTool(tool))">@tool</button>
+            }
+        </div>
+        <div class='actions'>
+            <button @onclick="HideTools">&gt;</button>
+        </div>
+    </div>
+    @switch (selectedTool)
+    {
+        case PostprocessorKind.StateInspector:
+            <LogJoint.Wasm.UI.Postprocessing.StateInspector Class='body' />
+            break;
+        case PostprocessorKind.SequenceDiagram:
+            <LogJoint.Wasm.UI.Postprocessing.SequenceDiagram Class='body' />
+            break;
+    }
+</div>
+
+@code {
+    private ElementReference toolsResizerElement, toolsElement;
+    private List<PostprocessorKind> visibleTools = new List<PostprocessorKind>
+        {PostprocessorKind.StateInspector, PostprocessorKind.SequenceDiagram};
+    private PostprocessorKind? selectedTool = PostprocessorKind.StateInspector;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public string ResizerClass { get; set; } = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("logjoint.resize.initNWResizer",
+            toolsResizerElement, toolsElement, /*invserse=*/true);
+    }
+
+    private async void HideTools()
+    {
+        await jsRuntime.InvokeVoidAsync("logjoint.setElementWidth", toolsElement, 0);
+    }
+
+    private void SetSelectedTool(PostprocessorKind tool)
+    {
+        selectedTool = tool;
+    }
+}

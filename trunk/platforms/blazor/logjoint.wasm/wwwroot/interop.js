@@ -2,6 +2,9 @@
     getElementWidth: function (e) {
         return e.getBoundingClientRect().width;
     },
+    setElementWidth: function (e, value) {
+        e.style.width = `${value}px`;
+    },
     getElementHeight: function (e) {
         return e.getBoundingClientRect().height;
     },
@@ -92,7 +95,30 @@
                 this[handle].disconnect();
                 delete this[handle];
             }
-        }
+        },
+
+        initNWResizer: function (resizer, target, inverse) {
+            let startX, startWidth;
+
+            const doResize = (e) => {
+                target.style.width = `${startWidth + (inverse ? -1 : 1) * (e.clientX - startX)}px`;
+                e.preventDefault();
+            };
+
+            const stopResize = () => {
+                document.documentElement.removeEventListener('mousemove', doResize, false);
+                document.documentElement.removeEventListener('mouseup', stopResize, false);
+            };
+
+            const startResize = (e) => {
+                startX = e.clientX;
+                startWidth = parseInt(document.defaultView.getComputedStyle(target).width, 10);
+                document.documentElement.addEventListener('mousemove', doResize, false);
+                document.documentElement.addEventListener('mouseup', stopResize, false);
+            };
+
+            resizer.addEventListener('mousedown', startResize, false);
+        },
     },
 
     addDefaultPreventingWheelHandler: function (element) {
