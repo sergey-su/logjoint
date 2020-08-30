@@ -1,36 +1,18 @@
 ﻿@page "/"
 
-@using System
-@using LogJoint
-@using LogJoint.UI.Presenters.SourcesList
-@implements IDisposable
-@inject LogJoint.ModelObjects model
-@inject LogJoint.Wasm.ViewModelObjects viewModel
-@inject IJSRuntime jsRuntime;
-@inject TraceListener traceListener;
-
 <div class='main-window'>
     <div class='container-1'>
         <LogJoint.Wasm.UI.MainWindowTabs Class="top" />
         <div class='bottom container-2'>
-            <div class='timeline left'>timeline</div>
-            <div class='right container-3'>
+            <div class='left timeline'>timeline</div>
+            <div class='mid container-3'>
                 <LogJoint.Wasm.UI.LoadedMessages.LoadedMessages Class="top" />
                 <div class='bottom'>search results</div>
             </div>
+            <LogJoint.Wasm.UI.ToolsContainer Class='right' ResizerClass='right-separator'/>
         </div>
     </div>
 </div>
 
 @code {
-	private ISubscription subscription;
-
-	protected override void OnInitialized()
-	{
-	}
-
-	public void Dispose()
-	{
-		subscription?.Dispose();
-	}
 }

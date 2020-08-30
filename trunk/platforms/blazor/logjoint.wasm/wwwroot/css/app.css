@@ -184,10 +184,16 @@ app {
 
     background-color: lightsalmon;
 }
-.main-window .container-2>.right {
+.main-window .container-2>.mid {
     flex-grow: 2;
-
-    background-color: lightseagreen;
+}
+.main-window .container-2>.right-separator {
+    width: 4px;
+    cursor: ew-resize;
+}
+.main-window .container-2>.right {
+    width: 300px;
+    max-width: 70%;
 }
 .main-window .container-3 {
     display: flex;
@@ -330,4 +336,33 @@ app {
 
 .postprocessings-tabpage .control.disabled {
     color: gray;
+}
+
+
+.tool-container {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.tool-container>.body {
+    flex-grow: 2;
+}
+
+.tool-container>.header {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.tool-container>.header>.tabs {
+    flex-grow: 2;
+    flex-shrink: 2;
+    overflow-x: hidden;
+
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: flex-start;
+}
+
+.tool-container>.header>.tabs>.checked {
+    border: inset;
 }
