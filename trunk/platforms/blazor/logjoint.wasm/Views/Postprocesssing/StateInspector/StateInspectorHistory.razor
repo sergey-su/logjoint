@@ -1,0 +1,23 @@
+﻿@namespace LogJoint.Wasm.UI.Postprocessing
+@inject IJSRuntime jsRuntime
+
+<div class=@ResizerClass @ref="resizerElement"></div>
+<div class='history @Class' @ref="element">
+    History
+</div>
+
+@code {
+    private ElementReference resizerElement, element;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public string ResizerClass { get; set; } = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
+            resizerElement, element, /*invserse=*/true, /*relativeToParent=*/true);
+    }
+}

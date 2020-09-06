@@ -366,3 +366,53 @@ app {
 .tool-container>.header>.tabs>.checked {
     border: inset;
 }
+
+
+.state-inspector {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.state-inspector>.left {
+    width: 1px;
+    flex-grow: 2;
+}
+
+.state-inspector>.v-resizer {
+    width: 4px;
+    cursor: ew-resize;
+}
+
+.state-inspector>.right {
+    width: 50%;
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+
+.state-inspector>.right>.top {
+    height: 1px;
+    flex-grow: 2;
+}
+
+.state-inspector>.right>.h-resizer {
+    height: 4px;
+    cursor: ns-resize;
+}
+
+.state-inspector>.right>.bottom {
+    height: 50%;
+}
+
+
+.state-inspector .objects-tree {
+    background-color: lightgray;
+}
+
+.state-inspector .properties {
+    background-color: lightsalmon;
+}
+
+.state-inspector .history {
+    background-color: lightyellow;
+}
