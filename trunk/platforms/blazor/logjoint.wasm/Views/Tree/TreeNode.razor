@@ -1,14 +1,19 @@
 ﻿@namespace  LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.Reactive
 
-<div class="tree-node @Class @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse">
+<div class="tree-node @Class @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
     <div class="node">
-        <div class="triangle">@(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▲"))</div>
+        <div class="triangle" @onclick="TryExtractCollapseByMouse" @onclick:stopPropagation>
+            @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▲"))
+        </div>
         <div class="contents">@(Node.ToString())</div>
     </div>
-    @foreach (var child in Node.Children)
+    @if (Node.IsExpanded)
     {
-        <TreeNode Node="@child" Class="child" Owner="@Owner" @key="@child.Key" />
+        @foreach (var child in Node.Children)
+        {
+            <TreeNode Node="@child" Class="child" Owner="@Owner" @key="@child.Key" />
+        }
     }
 </div>
 
@@ -25,5 +30,13 @@
     void TrySelectNodeByMouse(MouseEventArgs e)
     {
         Owner?.TrySelectNode(Node);
+    }
+
+    void TryExtractCollapseByMouse(MouseEventArgs e)
+    {
+        if (Node.IsExpanded)
+            Owner?.TryCollapseNode(Node);
+        else
+            Owner?.TryExpandNode(Node);
     }
 }

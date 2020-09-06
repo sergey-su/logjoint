@@ -6,8 +6,9 @@
 @implements IView
 
 <div class="state-inspector @Class">
-    <LogJoint.Wasm.UI.Postprocessing.StateInspectorObjectsTree Class="left"
-                                                               ObjectsTreeRoot="@viewModel.ObjectsTreeRoot" ViewModel="@viewModel" />
+    <StateInspectorObjectsTree Class="left"
+                               ObjectsTreeRoot="@viewModel.ObjectsTreeRoot"
+                               ViewModel="@viewModel" />
     <div class="v-resizer" @ref="verticalResizerElement"></div>
     <div class="right" @ref="rightContainer">
         <LogJoint.Wasm.UI.Postprocessing.StateInspectorProperties Class="top" />

@@ -299,6 +299,7 @@ app {
     display: flex;
     flex-flow: column nowrap;
     overflow: auto;
+    cursor: default;
 }
 .tree-node {
     display: flex;
@@ -320,7 +321,7 @@ app {
 .tree-node>.child {
     padding-left: 20px;
 }
-.tree-node.selected>.node {
+.tree-node.selected>.node>.contents {
     background-color: darkblue;
     color: white;
 }
