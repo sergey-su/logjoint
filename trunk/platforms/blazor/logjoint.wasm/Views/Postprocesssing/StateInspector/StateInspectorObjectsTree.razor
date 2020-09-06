@@ -1,10 +1,18 @@
 ﻿@namespace LogJoint.Wasm.UI.Postprocessing
+@using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
-<div class='objects-tree @Class'>
-Tree
+<div class="objects-tree @Class">
+    <div class="toolbar">Objects:</div>
+    <TreeView Class="the-tree" Root="@ObjectsTreeRoot" />
 </div>
 
 @code {
     [Parameter]
     public string Class { get; set; } = "";
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+    [Parameter]
+    public IObjectsTreeNode ObjectsTreeRoot { get; set; }
 }

@@ -320,7 +320,7 @@ app {
 .tree-node>.child {
     padding-left: 20px;
 }
-.tree-node.selected {
+.tree-node.selected>.node {
     background-color: darkblue;
     color: white;
 }
@@ -406,7 +406,15 @@ app {
 
 
 .state-inspector .objects-tree {
+    display: flex;
+    flex-flow: column nowrap;
+
     background-color: lightgray;
+}
+
+.state-inspector .objects-tree>.the-tree {
+    height: 1px;
+    flex-grow: 2;
 }
 
 .state-inspector .properties {

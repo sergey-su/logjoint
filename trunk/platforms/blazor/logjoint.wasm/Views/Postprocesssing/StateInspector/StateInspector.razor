@@ -1,17 +1,24 @@
 ﻿@namespace LogJoint.Wasm.UI.Postprocessing
-@inject IJSRuntime jsRuntime;
+@inject IJSRuntime jsRuntime
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
+@implements IDisposable
+@implements IView
 
 <div class="state-inspector @Class">
-    <LogJoint.Wasm.UI.Postprocessing.StateInspectorObjectsTree Class="left" />
+    <LogJoint.Wasm.UI.Postprocessing.StateInspectorObjectsTree Class="left"
+                                                               ObjectsTreeRoot="@viewModel.ObjectsTreeRoot" ViewModel="@viewModel" />
     <div class="v-resizer" @ref="verticalResizerElement"></div>
     <div class="right" @ref="rightContainer">
-        <LogJoint.Wasm.UI.Postprocessing.StateInspectorProperties Class="top"/>
-        <LogJoint.Wasm.UI.Postprocessing.StateInspectorHistory Class="bottom" ResizerClass="h-resizer"/>
+        <LogJoint.Wasm.UI.Postprocessing.StateInspectorProperties Class="top" />
+        <LogJoint.Wasm.UI.Postprocessing.StateInspectorHistory Class="bottom" ResizerClass="h-resizer" />
     </div>
 </div>
 
 @code {
     private ElementReference verticalResizerElement, rightContainer;
+    private IViewModel viewModel;
+    private ISubscription subscription;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -20,5 +27,39 @@
     {
         await jsRuntime.InvokeVoidAsync("logjoint.resize.initEWResizer",
             verticalResizerElement, rightContainer, /*invserse=*/true, /*relativeToParent=*/true);
+    }
+
+    protected override void OnInitialized()
+    {
+        viewProxies.PostprocesssingStateInspectorViewProxy.SetComponent(this);
+
+        viewProxies.PresentationObjects.ExpensibilityEntryPoint.Postprocessing.StateInspector.Show();
+        viewModel.OnVisibleChanged(true);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.ObjectsTreeRoot,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewProxies.PostprocesssingStateInspectorViewProxy.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.ScrollStateHistoryItemIntoView(int itemIndex)
+    {
+        // todo
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    void IView.Show()
+    {
+        // todo
     }
 }
