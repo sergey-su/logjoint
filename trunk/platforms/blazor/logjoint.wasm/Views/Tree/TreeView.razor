@@ -21,8 +21,24 @@
     [Parameter]
     public Action<ITreeNode[]> OnSelect { get; set; }
 
+    [Parameter]
+    public Action<ITreeNode> OnExpand { get; set; }
+
+    [Parameter]
+    public Action<ITreeNode> OnCollapse { get; set; }
+
     public void TrySelectNode(ITreeNode node)
     {
         OnSelect?.Invoke(new[] { node });
+    }
+
+    public void TryExpandNode(ITreeNode node)
+    {
+        OnExpand?.Invoke(node);
+    }
+
+    public void TryCollapseNode(ITreeNode node)
+    {
+        OnCollapse?.Invoke(node);
     }
 }

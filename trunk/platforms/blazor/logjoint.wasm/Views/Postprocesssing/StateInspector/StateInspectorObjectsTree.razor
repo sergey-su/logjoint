@@ -3,7 +3,10 @@
 
 <div class="objects-tree @Class">
     <div class="toolbar">Objects:</div>
-    <TreeView Class="the-tree" Root="@ObjectsTreeRoot" />
+    <TreeView Class="the-tree" Root="@ObjectsTreeRoot"
+              OnSelect="@(nodes => ViewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray()))"
+              OnExpand="@(node => ViewModel.OnExpandNode(node as IObjectsTreeNode))"
+              OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))"/>
 </div>
 
 @code {
