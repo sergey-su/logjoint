@@ -97,11 +97,11 @@
             }
         },
 
-        initNWResizer: function (resizer, target, inverse) {
-            let startX, startWidth;
+        _initResizer: function (resizer, target, resize) {
+            let startX, startY, startWidth, startHeight;
 
             const doResize = (e) => {
-                target.style.width = `${startWidth + (inverse ? -1 : 1) * (e.clientX - startX)}px`;
+                resize(startWidth, startHeight, e.clientX - startX, e.clientY - startY);
                 e.preventDefault();
             };
 
@@ -112,12 +112,39 @@
 
             const startResize = (e) => {
                 startX = e.clientX;
-                startWidth = parseInt(document.defaultView.getComputedStyle(target).width, 10);
+                startY = e.clientY;
+                const style = document.defaultView.getComputedStyle(target);
+                startWidth = parseInt(style.width, 10);
+                startHeight = parseInt(style.height, 10);
                 document.documentElement.addEventListener('mousemove', doResize, false);
                 document.documentElement.addEventListener('mouseup', stopResize, false);
             };
 
             resizer.addEventListener('mousedown', startResize, false);
+        },
+
+        initEWResizer: function (resizer, target, inverse, relativeToParent) {
+            this._initResizer(resizer, target, (startWidth, startHeight, deltaWidth, deltaHeight) => {
+                const newWidthPx = startWidth + (inverse ? -1 : 1) * deltaWidth;
+                if (relativeToParent) {
+                    const parentWidthPx = parseInt(document.defaultView.getComputedStyle(target.parentElement).width);
+                    target.style.width = `${100 * newWidthPx / parentWidthPx}%`;
+                } else {
+                    target.style.width = `${newWidthPx}px`;
+                }
+            });
+        },
+
+        initNSResizer: function (resizer, target, inverse, relativeToParent) {
+            this._initResizer(resizer, target, (startWidth, startHeight, deltaWidth, deltaHeight) => {
+                const newHeightPx = startHeight + (inverse ? -1 : 1) * deltaHeight;
+                if (relativeToParent) {
+                    const parentHeightPx = parseInt(document.defaultView.getComputedStyle(target.parentElement).height);
+                    target.style.height = `${100 * newHeightPx / parentHeightPx}%`;
+                } else {
+                    target.style.height = `${newHeightPx}px`;
+                }
+            });
         },
     },
 
