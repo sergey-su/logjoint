@@ -4,7 +4,7 @@
 <div class="tree-node @Class @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
     <div class="node">
         <div class="triangle" @onclick="TryExtractCollapseByMouse" @onclick:stopPropagation>
-            @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▲"))
+            @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▶"))
         </div>
         <div class="contents">@(Node.ToString())</div>
     </div>
