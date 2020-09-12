@@ -318,10 +318,7 @@ app {
     width: 1px;
     flex-grow: 2;
 }
-.tree-node>.child {
-    padding-left: 20px;
-}
-.tree-node.selected>.node>.contents {
+.tree-node.selected>.node {
     background-color: darkblue;
     color: white;
 }

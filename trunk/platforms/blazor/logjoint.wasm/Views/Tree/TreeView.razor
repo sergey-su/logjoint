@@ -6,7 +6,7 @@
     {
         @foreach (var topLevelNode in Root.Children)
         {
-            <TreeNode Node="@topLevelNode" Owner="@this" @key="@topLevelNode.Key"/>
+            <TreeNode Node="@topLevelNode" Owner="@this" @key="@topLevelNode.Key" Level=0/>
         }
     }
 </div>

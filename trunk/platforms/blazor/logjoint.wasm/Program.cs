@@ -17,6 +17,7 @@ using System.Reflection;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.CodeAnalysis;
 using LogJoint.FieldsProcessor;
+using LogJoint.Wasm.UI;
 
 namespace LogJoint.Wasm
 {
@@ -247,6 +248,7 @@ namespace LogJoint.Wasm
 
                 return viewModel;
             });
+            builder.Services.AddSingleton<TreeStyles>();
 
             var wasmHost = builder.Build();
 

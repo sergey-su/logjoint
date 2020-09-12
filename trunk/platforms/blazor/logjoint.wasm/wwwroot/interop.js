@@ -151,5 +151,11 @@
     addDefaultPreventingWheelHandler: function (element) {
         element.addEventListener("wheel",
             e => e.deltaY != 0 ? e.preventDefault() : 0, { passive: false });
+    },
+
+    adoptStyle: function (cssString) {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(cssString);
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
     }
 };
