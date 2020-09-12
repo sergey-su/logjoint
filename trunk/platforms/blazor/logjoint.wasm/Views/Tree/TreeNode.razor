@@ -1,8 +1,9 @@
-﻿@namespace  LogJoint.Wasm.UI
+﻿@namespace LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.Reactive
+@inject TreeStyles styles
 
-<div class="tree-node @Class @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
-    <div class="node">
+<div class="tree-node @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
+    <div class="node @($"c{Level}")">
         <div class="triangle" @onclick="TryExtractCollapseByMouse" @onclick:stopPropagation>
             @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▶"))
         </div>
@@ -12,7 +13,7 @@
     {
         @foreach (var child in Node.Children)
         {
-            <TreeNode Node="@child" Class="child" Owner="@Owner" @key="@child.Key" />
+            <TreeNode Node="@child" Owner="@Owner" @key="@child.Key" Level="@(Level + 1)" />
         }
     }
 </div>
@@ -22,10 +23,15 @@
     public ITreeNode Node { get; set; }
 
     [Parameter]
-    public string Class { get; set; } = "";
+    public TreeView Owner { get; set; }
 
     [Parameter]
-    public TreeView Owner { get; set; }
+    public int Level { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await styles.EnsureNodeStyleExists(Level);
+    }
 
     void TrySelectNodeByMouse(MouseEventArgs e)
     {
