@@ -88,4 +88,10 @@ namespace LogJoint.Postprocessing
 		IPostprocessorRunSummary GetLogSpecificSummary(ILogSource ls);
 	};
 
+	public interface IPostprocessorRunSummaryBuilder
+	{
+		void AddWarning(string message);
+		void AddError(string message);
+		IPostprocessorRunSummary ToSummary();
+	};
 }

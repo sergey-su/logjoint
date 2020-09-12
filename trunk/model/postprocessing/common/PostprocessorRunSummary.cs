@@ -4,11 +4,17 @@ using System.Text;
 
 namespace LogJoint.Postprocessing
 {
-	public class PostprocessorRunSummary : IPostprocessorRunSummary
+	public class PostprocessorRunSummary : IPostprocessorRunSummary, IPostprocessorRunSummaryBuilder
 	{
-		List<Entry> entries = new List<Entry>();
+		readonly List<Entry> entries = new List<Entry>();
 
-		public void AddMessage(string message, bool isError)
+		void IPostprocessorRunSummaryBuilder.AddWarning(string message) => AddMessage(message, isError: false);
+
+		void IPostprocessorRunSummaryBuilder.AddError(string message) => AddMessage(message, isError: true);
+
+		IPostprocessorRunSummary IPostprocessorRunSummaryBuilder.ToSummary() => this;
+
+		private void AddMessage(string message, bool isError)
 		{
 			entries.Add(new Entry() { message = message, isError = isError });
 		}

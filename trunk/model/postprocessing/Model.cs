@@ -43,5 +43,7 @@ namespace LogJoint.Postprocessing
 		IPrefixMatcher IModel.CreatePrefixMatcher() => new PrefixMatcher();
 
 		ITextLogParser IModel.TextLogParser => textLogParser;
+
+		IPostprocessorRunSummaryBuilder IModel.CreatePostprocessorRunSummaryBuilder() => new PostprocessorRunSummary();
 	}
 }

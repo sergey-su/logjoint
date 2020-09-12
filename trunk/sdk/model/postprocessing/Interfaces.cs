@@ -10,5 +10,6 @@
 		SequenceDiagram.IModel SequenceDiagram { get; }
 		TimeSeries.IModel TimeSeries { get; }
 		Correlation.IModel Correlation { get; }
+		IPostprocessorRunSummaryBuilder CreatePostprocessorRunSummaryBuilder();
 	};
 }
