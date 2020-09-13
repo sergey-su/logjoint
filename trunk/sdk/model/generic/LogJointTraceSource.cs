@@ -16,22 +16,28 @@ namespace LogJoint
 
 	public class LJTraceSource
 	{
-		internal LJTraceSource(string configName, string prefix, TraceListener[] programmaticListeners)
+		internal LJTraceSource(string configName, string prefix, TraceListener[] programmaticListeners,
+			bool removeDefaultTraceListener)
 		{
 			if (programmaticListeners == null)
 			{
 				this.underlyingSource = new FCLTraceSource(configName, SourceLevels.Off);
+				if (removeDefaultTraceListener)
+					underlyingSource.Listeners.Clear();
 			}
 			else
 			{
 				this.underlyingSource = new FCLTraceSource(configName, SourceLevels.All);
+				if (removeDefaultTraceListener)
+					underlyingSource.Listeners.Clear();
 				underlyingSource.Listeners.AddRange(programmaticListeners);
 			}
 			this.autoFrame = new AutoFrame(this);
 			this.prefix = string.IsNullOrEmpty(prefix) ? configName : prefix;
 		}
 
-		public static readonly LJTraceSource EmptyTracer = new LJTraceSource("LogJoint.EmptyTracer", "", null);
+		public static readonly LJTraceSource EmptyTracer = new LJTraceSource(
+			"LogJoint.EmptyTracer", "", null, removeDefaultTraceListener: true);
 
 		public string Prefix { get { return prefix; } }
 

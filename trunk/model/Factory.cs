@@ -64,6 +64,7 @@ namespace LogJoint
 		public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 		public string AppDataDirectory;
 		public TraceListener[] TraceListeners;
+		public bool RemoveDefaultTraceListener;
 		public bool DisableLogjointInstancesCounting;
 		public string[] AdditionalFormatDirectories;
 		public System.Reflection.Assembly FormatsRepositoryAssembly;
@@ -84,7 +85,7 @@ namespace LogJoint
 			RegularExpressions.IRegexFactory regexFactory
 		)
 		{
-			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners);
+			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory(config.TraceListeners, config.RemoveDefaultTraceListener);
 			IShutdownSource shutdown = new Shutdown();
 			var tracer = traceSourceFactory.CreateTraceSource("App", "model");
 			Telemetry.UnhandledExceptionsReporter.SetupLogging(tracer, shutdown);
