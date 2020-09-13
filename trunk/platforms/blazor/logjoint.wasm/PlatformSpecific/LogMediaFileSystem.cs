@@ -81,6 +81,7 @@ namespace LogJoint.Wasm
                 this.jsRuntime = jsRuntime;
                 this.fileInfo = fileInfo;
                 this.position = 0;
+                fileInfo.AddRef();
             }
 
             protected override void Dispose(bool disposing)
