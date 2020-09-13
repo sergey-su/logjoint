@@ -24,7 +24,7 @@ namespace LogJoint.Postprocessing.InternalTrace
 		{ }
 
 
-		public IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
+		public IEnumerableAsync<Message[]> Read(Func<Task<Stream>> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())
 				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, textLogParser, cancellation, progressHandler), false);
@@ -48,10 +48,10 @@ namespace LogJoint.Postprocessing.InternalTrace
 			{
 			}
 
-			public async Task Read(IYieldAsync<Message[]> yieldAsync, Func<Stream> getStream, Action<Stream> releaseStream, ITextLogParser textLogParser, 
+			public async Task Read(IYieldAsync<Message[]> yieldAsync, Func<Task<Stream>> getStream, Action<Stream> releaseStream, ITextLogParser textLogParser, 
 				CancellationToken cancellation, Action<double> progressHandler)
 			{
-				var inputStream = getStream();
+				var inputStream = await getStream();
 				try
 				{
 					await textLogParser.ParseStream(
