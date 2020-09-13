@@ -20,6 +20,7 @@
 
     files: {
         _lastHandle: 0,
+        _lastTempBuffer: 0,
         _get: function (handle) {
             const file = this[handle];
             if (!file) {
@@ -27,6 +28,7 @@
             }
             return file;
         },
+        _tempBuffers: {},
 
         open: function (fileInput) {
             const file = fileInput.files[0];
@@ -53,6 +55,20 @@
         read: async function (handle, position, count) {
             const blob = this._get(handle).slice(position, position + count);
             return String.fromCharCode.apply(null, new Uint8Array(await blob.arrayBuffer()));
+        },
+        readIntoTempBuffer: async function (handle, position, count) {
+            const blob = this._get(handle).slice(position, position + count);
+            const tempBufferId = ++this._lastTempBuffer;
+            this._tempBuffers[tempBufferId] = new Uint8Array(await blob.arrayBuffer());
+            return tempBufferId;
+        },
+        readTempBuffer: function (tempBufferId) {
+            const tempBuffer = this._tempBuffers[tempBufferId];
+            if (!tempBuffer) {
+                throw new Error(`Temp buffer ${tempBufferId} does not exist`);
+            }
+            delete this._tempBuffers[tempBufferId];
+            return BINDING.js_typed_array_to_array(tempBuffer);
         },
         getUrl: function (fileInput) {
             const file = fileInput.files[0];

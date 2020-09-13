@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WebAssemblyJSRuntime = Microsoft.JSInterop.WebAssembly.WebAssemblyJSRuntime;
 
 namespace LogJoint.Wasm
 {
@@ -72,6 +73,7 @@ namespace LogJoint.Wasm
         class HtmlInputFileStream : Stream, IFileStreamInfo
         {
             readonly IJSRuntime jsRuntime;
+            readonly WebAssemblyJSRuntime webAssemblyJSRuntime;
             readonly HtmlInputFileInfo fileInfo;
             bool disposed;
             long position;
@@ -79,6 +81,7 @@ namespace LogJoint.Wasm
             public HtmlInputFileStream(IJSRuntime jsRuntime, HtmlInputFileInfo fileInfo)
             {
                 this.jsRuntime = jsRuntime;
+                this.webAssemblyJSRuntime = jsRuntime as WebAssemblyJSRuntime;
                 this.fileInfo = fileInfo;
                 this.position = 0;
                 fileInfo.AddRef();
@@ -139,10 +142,21 @@ namespace LogJoint.Wasm
 
             public override async ValueTask<int> ReadAsync(Memory<byte> buffer, System.Threading.CancellationToken cancellationToken = default)
             {
-                var str = await jsRuntime.InvokeAsync<string>("logjoint.files.read", fileInfo.handle, position, buffer.Length);
-                var read = CopyStr(str, buffer);
-                position += read;
-                return read;
+                if (webAssemblyJSRuntime != null)
+                {
+                    var tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.files.readIntoTempBuffer", fileInfo.handle, position, buffer.Length);
+                    var read = webAssemblyJSRuntime.InvokeUnmarshalled<int, byte[]>("logjoint.files.readTempBuffer", tempBufferId);
+                    read.CopyTo(buffer.Span);
+                    position += read.Length;
+                    return read.Length;
+                }
+                else
+                {
+                    var str = await jsRuntime.InvokeAsync<string>("logjoint.files.read", fileInfo.handle, position, buffer.Length);
+                    var read = CopyStr(str, buffer);
+                    position += read;
+                    return read;
+                }
             }
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
             {
