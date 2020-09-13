@@ -37,7 +37,7 @@ namespace LogJoint.Postprocessing
 		static async Task RunTimelinePostprocessor(
 			LogSourcePostprocessorInput input, IModel postprocessingModel)
 		{
-			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
+			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.OpenLogFile,
 				input.ProgressHandler).Multiplex();
 
 			var profilingEvents = (new LJT.ProfilingTimelineEventsSource()).GetEvents(logProducer);
@@ -59,7 +59,7 @@ namespace LogJoint.Postprocessing
 			IModel postprocessingModel
 		)
 		{
-			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.LogFileName,
+			var logProducer = LJT.Extensions.Read(new LJT.Reader(postprocessingModel.TextLogParser), input.OpenLogFile,
 				input.ProgressHandler).Multiplex();
 
 			ICombinedParser parser = postprocessingModel.TimeSeries.CreateParser();
