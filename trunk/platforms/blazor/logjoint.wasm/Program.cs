@@ -193,6 +193,7 @@ namespace LogJoint.Wasm
                         WebContentCacheConfig = webContentConfig,
                         LogsDownloaderConfig = webContentConfig,
                         TraceListeners = new[] { serviceProvider.GetService<TraceListener>() },
+                        RemoveDefaultTraceListener = true, // it's expensive in wasm
                         FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
                         FileSystem = new LogJoint.Wasm.LogMediaFileSystem(serviceProvider.GetService<IJSRuntime>()),
                         FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider,
