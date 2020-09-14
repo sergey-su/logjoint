@@ -298,7 +298,8 @@ app {
 .tree {
     display: flex;
     flex-flow: column nowrap;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     cursor: default;
 }
 .tree-node {
@@ -317,6 +318,7 @@ app {
 .tree-node>.node>.contents {
     width: 1px;
     flex-grow: 2;
+    white-space: nowrap;
 }
 .tree-node.selected>.node {
     background-color: darkblue;
