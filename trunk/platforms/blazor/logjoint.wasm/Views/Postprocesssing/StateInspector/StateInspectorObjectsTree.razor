@@ -3,10 +3,19 @@
 
 <div class="objects-tree @Class">
     <div class="toolbar">Objects:</div>
-    <TreeView Class="the-tree" Root="@ObjectsTreeRoot"
+    <TreeView Class="the-tree" NodeClass="si-node" Root="@ObjectsTreeRoot"
               OnSelect="@(nodes => ViewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray()))"
               OnExpand="@(node => ViewModel.OnExpandNode(node as IObjectsTreeNode))"
-              OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))"/>
+              OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))">
+        <NodeTemplate>
+            @{var paintInfo = PaintNode((IObjectsTreeNode)context, getPrimaryPropValue: true);}
+            <span class="n">@context.ToString()</span>
+            @if (!string.IsNullOrEmpty(paintInfo.PrimaryPropValue))
+            {
+                <span class="p"><span>@paintInfo.PrimaryPropValue</span></span>
+            }
+        </NodeTemplate>
+    </TreeView>
 </div>
 
 @code {
@@ -18,4 +27,7 @@
 
     [Parameter]
     public IObjectsTreeNode ObjectsTreeRoot { get; set; }
+
+    [Parameter]
+    public PaintNodeDelegate PaintNode { get; set; }
 }

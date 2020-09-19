@@ -42,7 +42,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await jsRuntime.InvokeVoidAsync("logjoint.resize.initEWResizer",
-            toolsResizerElement, toolsElement, /*invserse=*/true);
+            toolsResizerElement, toolsElement, /*inverse=*/true);
     }
 
     private async void HideTools()

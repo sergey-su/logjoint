@@ -18,6 +18,6 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
-            resizerElement, element, /*invserse=*/true, /*relativeToParent=*/true);
+            resizerElement, element, /*inverse=*/true, /*relativeToParent=*/true);
     }
 }

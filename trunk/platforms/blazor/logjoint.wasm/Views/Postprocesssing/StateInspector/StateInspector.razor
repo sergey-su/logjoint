@@ -8,6 +8,7 @@
 <div class="state-inspector @Class">
     <StateInspectorObjectsTree Class="left"
                                ObjectsTreeRoot="@viewModel.ObjectsTreeRoot"
+                               PaintNode="@viewModel.PaintNode"
                                ViewModel="@viewModel" />
     <div class="v-resizer" @ref="verticalResizerElement"></div>
     <div class="right" @ref="rightContainer">
@@ -27,7 +28,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await jsRuntime.InvokeVoidAsync("logjoint.resize.initEWResizer",
-            verticalResizerElement, rightContainer, /*invserse=*/true, /*relativeToParent=*/true);
+            verticalResizerElement, rightContainer, /*inverse=*/true, /*relativeToParent=*/true);
     }
 
     protected override void OnInitialized()
@@ -38,7 +39,7 @@
         viewModel.OnVisibleChanged(true);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => viewModel.ObjectsTreeRoot,
+            () => (viewModel.ObjectsTreeRoot, viewModel.PaintNode),
             _ => StateHasChanged()
         ));
     }

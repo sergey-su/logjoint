@@ -7,13 +7,15 @@
         <div class="triangle" @onclick="TryExtractCollapseByMouse" @onclick:stopPropagation>
             @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▶"))
         </div>
-        <div class="contents">@(Node.ToString())</div>
+        <div class="contents @NodeClass">@NodeTemplate(Node)</div>
     </div>
     @if (Node.IsExpanded)
     {
         @foreach (var child in Node.Children)
         {
-            <TreeNode Node="@child" Owner="@Owner" @key="@child.Key" Level="@(Level + 1)" />
+            <TreeNode Node="@child" Owner="@Owner" @key="@child.Key" Level="@(Level + 1)" NodeClass="@NodeClass">
+                <NodeTemplate>@NodeTemplate(context)</NodeTemplate>
+            </TreeNode>
         }
     }
 </div>
@@ -27,6 +29,12 @@
 
     [Parameter]
     public int Level { get; set; }
+
+    [Parameter]
+    public RenderFragment<ITreeNode> NodeTemplate { get; set; }
+
+    [Parameter]
+    public string NodeClass { get; set; } = "";
 
     protected override async Task OnParametersSetAsync()
     {

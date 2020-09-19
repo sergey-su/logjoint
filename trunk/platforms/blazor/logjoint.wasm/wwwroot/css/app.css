@@ -319,6 +319,8 @@ app {
     width: 1px;
     flex-grow: 2;
     white-space: nowrap;
+}
+.tree-node>.node>.contents.str {
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -417,6 +419,24 @@ app {
 .state-inspector .objects-tree>.the-tree {
     height: 1px;
     flex-grow: 2;
+}
+.state-inspector .si-node {
+    display: flex;
+    flex-flow: row nowrap;
+}
+.si-node>.n {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 2;
+}
+.si-node>.p {
+    flex-shrink: 1000000;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: gray;
+}
+.si-node>.p>span {
+    padding-left: 5px;
 }
 
 .state-inspector .properties {

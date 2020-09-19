@@ -6,12 +6,25 @@
     {
         @foreach (var topLevelNode in Root.Children)
         {
-            <TreeNode Node="@topLevelNode" Owner="@this" @key="@topLevelNode.Key" Level=0/>
+            <TreeNode Node="@topLevelNode" Owner="@this" @key="@topLevelNode.Key" Level=0 NodeClass="@nodeClass">
+                <NodeTemplate>
+                    @if (NodeTemplate != null)
+                    {
+                        @NodeTemplate(context);
+                    }
+                    else
+                    {
+                        @context.ToString()
+                    }
+                </NodeTemplate>
+            </TreeNode>
         }
     }
 </div>
 
 @code {
+    private string nodeClass = "";
+
     [Parameter]
     public string Class { get; set; } = "";
 
@@ -26,6 +39,18 @@
 
     [Parameter]
     public Action<ITreeNode> OnCollapse { get; set; }
+
+    [Parameter]
+    public RenderFragment<ITreeNode> NodeTemplate { get; set; }
+
+    [Parameter]
+    public string NodeClass { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        nodeClass = $"{NodeClass} {(NodeTemplate == null ? "str" : "")}";
+        base.OnParametersSet();
+    }
 
     public void TrySelectNode(ITreeNode node)
     {
