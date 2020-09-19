@@ -106,7 +106,7 @@ namespace LogJoint.Extensibility
 		{
 			using (tracer.NewFrame)
 			{
-				string thisPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+				string thisPath = !IsBrowser.Value ? Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) : "";
 				string pluginsDirectory = Path.Combine(thisPath, "Plugins");
 				bool pluginsDirectoryExists = Directory.Exists(pluginsDirectory);
 				tracer.Info("plugins directory: {0}{1}", pluginsDirectory, !pluginsDirectoryExists ? " (MISSING!)" : "");

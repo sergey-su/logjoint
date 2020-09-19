@@ -73,7 +73,7 @@ namespace LogJoint.Wasm
         class HtmlInputFileStream : Stream, IFileStreamInfo
         {
             readonly IJSRuntime jsRuntime;
-            readonly WebAssemblyJSRuntime webAssemblyJSRuntime;
+            readonly IJSUnmarshalledRuntime webAssemblyJSRuntime;
             readonly HtmlInputFileInfo fileInfo;
             bool disposed;
             long position;
@@ -81,7 +81,7 @@ namespace LogJoint.Wasm
             public HtmlInputFileStream(IJSRuntime jsRuntime, HtmlInputFileInfo fileInfo)
             {
                 this.jsRuntime = jsRuntime;
-                this.webAssemblyJSRuntime = jsRuntime as WebAssemblyJSRuntime;
+                this.webAssemblyJSRuntime = jsRuntime as IJSUnmarshalledRuntime;
                 this.fileInfo = fileInfo;
                 this.position = 0;
                 fileInfo.AddRef();
