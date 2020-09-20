@@ -2,23 +2,21 @@
 @using LogJoint.UI.Presenters.Reactive
 @inject TreeStyles styles
 
-<div class="tree-node @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
-    <div class="node @($"c{Level}")">
-        <div class="triangle" @onclick="TryExtractCollapseByMouse" @onclick:stopPropagation>
-            @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▶"))
-        </div>
-        <div class="contents @NodeClass">@NodeTemplate(Node)</div>
+<div class="node @($"c{Level}") @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
+    <div class="triangle" @onclick="TryExpandCollapseByMouse" @onclick:stopPropagation>
+        @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▶"))
     </div>
-    @if (Node.IsExpanded)
-    {
-        @foreach (var child in Node.Children)
-        {
-            <TreeNode Node="@child" Owner="@Owner" @key="@child.Key" Level="@(Level + 1)" NodeClass="@NodeClass">
-                <NodeTemplate>@NodeTemplate(context)</NodeTemplate>
-            </TreeNode>
-        }
-    }
+    <div class="contents @NodeClass">@NodeTemplate(Node)</div>
 </div>
+@if (Node.IsExpanded)
+{
+    @foreach (var child in Node.Children)
+    {
+        <TreeNode Node="@child" Owner="@Owner" @key="@child.Key" Level="@(Level + 1)" NodeClass="@NodeClass">
+            <NodeTemplate>@NodeTemplate(context)</NodeTemplate>
+        </TreeNode>
+    }
+}
 
 @code {
     [Parameter]
@@ -46,7 +44,7 @@
         Owner?.TrySelectNode(Node);
     }
 
-    void TryExtractCollapseByMouse(MouseEventArgs e)
+    void TryExpandCollapseByMouse(MouseEventArgs e)
     {
         if (Node.IsExpanded)
             Owner?.TryCollapseNode(Node);

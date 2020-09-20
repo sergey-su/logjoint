@@ -302,29 +302,25 @@ app {
     overflow-x: hidden;
     cursor: default;
 }
-.tree-node {
-    display: flex;
-    flex-flow: column nowrap;
-}
-.tree-node>.node {
+.tree>.node {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
 }
-.tree-node>.node>.triangle {
+.tree>.node>.triangle {
     font-size: 0.8em;
     width: 1em;
 }
-.tree-node>.node>.contents {
+.tree>.node>.contents {
     width: 1px;
     flex-grow: 2;
     white-space: nowrap;
 }
-.tree-node>.node>.contents.str {
+.tree>.node>.contents.str {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.tree-node.selected>.node {
+.tree>.node.selected {
     background-color: darkblue;
     color: white;
 }

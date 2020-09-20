@@ -23,7 +23,7 @@ namespace LogJoint.Wasm.UI
 				for (int i = 0; i < stylesToGenerate; ++i)
 				{
 					int l = maxLevelStyleGenerated + 1 + i;
-					styleBuilder.AppendLine($".node.c{l} {{ padding-left: {20*l}px; }}");
+					styleBuilder.AppendLine($".tree>.node.c{l} {{ padding-left: {10*l}px; }}");
 				}
 				maxLevelStyleGenerated += stylesToGenerate;
 				await jsRuntime.InvokeVoidAsync("logjoint.adoptStyle", styleBuilder.ToString());
