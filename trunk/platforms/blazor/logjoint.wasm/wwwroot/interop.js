@@ -169,9 +169,36 @@
             e => e.deltaY != 0 ? e.preventDefault() : 0, { passive: false });
     },
 
+    addDefaultPreventingKeyHandler: function (element, preventingKeys) {
+        element.addEventListener('keydown', e => {
+            if (preventingKeys.indexOf(e.key) >= 0) {
+                e.preventDefault();
+            }
+        }, false);
+    },
+
     adoptStyle: function (cssString) {
         const sheet = new CSSStyleSheet();
         sheet.replaceSync(cssString);
         document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
-    }
+    },
+
+    list: {
+        scrollListItemIntoView: function (listElement, itemIndex, itemHeight) {
+            const viewTop = listElement.scrollTop;
+            const viewHeight = listElement.getBoundingClientRect().height;
+            const viewBottom = viewTop + viewHeight;
+            const itemTop = itemIndex * itemHeight;
+            const itemBottom = (itemIndex + 1) * itemHeight;
+            if (itemBottom > viewBottom || itemTop < viewTop) {
+                listElement.scrollTop = (itemTop + itemBottom) / 2 - viewHeight / 2;
+            }
+        },
+        focusSelectedListItem: function (listElement) {
+            const selected = listElement.querySelector('li.selected');
+            if (selected) {
+                selected.focus();
+            }
+        },
+    },
 };

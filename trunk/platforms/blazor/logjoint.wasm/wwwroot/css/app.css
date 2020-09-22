@@ -442,3 +442,22 @@ app {
 .state-inspector .history {
     background-color: lightyellow;
 }
+
+
+
+
+.list {
+    list-style: none;
+    padding: 0;
+    overflow-y: auto;
+}
+.list>li {
+    height: 25px; /* todo: do not hardcode */
+}
+.list>li.selected {
+    background-color: blue;
+    color: white;
+}
+.list>li:focus-within {
+    background-color: darkblue;
+}

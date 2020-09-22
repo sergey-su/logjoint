@@ -1,0 +1,88 @@
+﻿@namespace  LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.Reactive
+@using Microsoft.JSInterop
+
+<ul class="list @Class" @onkeydown="HandleKey" @ref="ListRef">
+    @{var itemIndex = 0;}
+    @foreach (var item in Items)
+    {
+    <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "")"
+        @onmousedown="@(e => SelectByMouse(itemIndex))"
+        tabindex="@(focused == itemIndex ? 0 : -1)">
+        @if (ItemTemplate != null)
+        {
+            ItemTemplate(item);
+        }
+        else
+        {
+            @item.ToString()
+        }
+    </li>
+        @{++itemIndex;}
+     }
+</ul>
+
+@code {
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
+    private ElementReference ListRef { get; set; }
+    private int focused;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public IReadOnlyList<IListItem> Items { get; set; }
+
+    [Parameter]
+    public Action<IListItem[]> OnSelect { get; set; }
+
+    [Parameter]
+    public RenderFragment<IListItem> ItemTemplate { get; set; } // todo: pass focus to item template
+
+    [Parameter]
+    public string ItemClass { get; set; } = "";
+
+    public void TrySelectItem(IListItem item)
+    {
+        OnSelect?.Invoke(new[] { item });
+    }
+
+    void SelectByMouse(int i)
+    {
+        MaybeSetSelected(i);
+    }
+
+    void HandleKey(KeyboardEventArgs eventArgs)
+    {
+        Console.WriteLine(eventArgs.Key);
+        if (eventArgs.Key == "ArrowUp")
+        {
+            MaybeSetSelected(Math.Max(0, focused - 1));
+        }
+        else if (eventArgs.Key == "ArrowDown")
+        {
+            MaybeSetSelected(Math.Min(Items.Count - 1, focused + 1));
+        }
+    }
+
+    async void MaybeSetSelected(int value)
+    {
+        TrySelectItem(Items[value]);
+
+        if (focused != value)
+        {
+            focused = value;
+            await JSRuntime.InvokeVoidAsync("logjoint.scroll.scrollListItemIntoView", ListRef, focused, 25 /* todo: do not hardcode */);
+            await JSRuntime.InvokeVoidAsync("logjoint.list.focusSelectedListItem", ListRef);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("logjoint.addDefaultPreventingKeyHandler", ListRef, "ArrowUp,ArrowDown");
+        }
+    }
+}
