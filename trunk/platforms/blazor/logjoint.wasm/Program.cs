@@ -256,21 +256,27 @@ namespace LogJoint.Wasm
             await fieldsProcessorMetadataReferencesProvider.Init(wasmHost.Services.GetService<IJSRuntime>());
 
             {
+                var pluginsDirsList = new List<string>();
                 var pluginsDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "plugins"); // folder in memory, powered by emscripten MEMFS.
                 var resourcesAssembly = Assembly.GetExecutingAssembly();
+
                 foreach (string resourceName in resourcesAssembly.GetManifestResourceNames().Where(f => f.StartsWith("LogJoint.Wasm.Plugins")))
                 {
-                    Console.WriteLine("Found plugin in resources: {0}", resourceName);
+                    var resourceStream = resourcesAssembly.GetManifestResourceStream(resourceName);
+                    var pluginDir = System.IO.Path.Combine(pluginsDir, resourceName);
+                    Console.WriteLine("Found plugin in resources: {0}, extracting to {1}", resourceName, pluginDir);
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
                     var fz = new FastZip();
-                    fz.ExtractZip(resourcesAssembly.GetManifestResourceStream(resourceName), pluginsDir,
+                    fz.ExtractZip(resourceStream, pluginDir,
                         FastZip.Overwrite.Always, null, null, null, false, false);
-                    Console.WriteLine("Exactracted plugin: {0}", resourceName);
+                    Console.WriteLine("Extracted plugin: {0}, took {1}", resourceName, sw.Elapsed);
+                    pluginsDirsList.Add(pluginDir);
                 }
                 var model = wasmHost.Services.GetService<ModelObjects>();
                 var view = wasmHost.Services.GetService<ViewModelObjects>();
                 model.PluginsManager.LoadPlugins(new Extensibility.Application(
                     model.ExpensibilityEntryPoint,
-                    view.PresentationObjects.ExpensibilityEntryPoint), pluginsDir, false);
+                    view.PresentationObjects.ExpensibilityEntryPoint), string.Join(',', pluginsDirsList), false);
             }
 
             await wasmHost.RunAsync();
