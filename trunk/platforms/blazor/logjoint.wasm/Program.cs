@@ -14,10 +14,11 @@ using LogJoint.Persistence;
 using NSubstitute;
 using Microsoft.JSInterop;
 using System.Reflection;
-using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.CodeAnalysis;
 using LogJoint.FieldsProcessor;
 using LogJoint.Wasm.UI;
+using System.IO;
+using System.IO.Compression;
 
 namespace LogJoint.Wasm
 {
@@ -140,7 +141,7 @@ namespace LogJoint.Wasm
             Assembly FieldsProcessor.IAssemblyLoader.Load(byte[] image)
             {
                 var context = System.Runtime.Loader.AssemblyLoadContext.Default;
-                using (var ms = new System.IO.MemoryStream(image))
+                using (var ms = new MemoryStream(image))
                     return context.LoadFromStream(ms);
             }
         };
@@ -229,7 +230,7 @@ namespace LogJoint.Wasm
                 var mocks = new Mocks(viewModel);
                 mocks.ShellOpen.When(s => s.OpenInTextEditor(Arg.Any<string>())).Do(x =>
                 {
-                    serviceProvider.GetService<IJSRuntime>().InvokeVoidAsync("alert", System.IO.File.ReadAllText(x.Arg<string>()));
+                    serviceProvider.GetService<IJSRuntime>().InvokeVoidAsync("alert", File.ReadAllText(x.Arg<string>()));
                 });
 
                 var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
@@ -257,18 +258,33 @@ namespace LogJoint.Wasm
 
             {
                 var pluginsDirsList = new List<string>();
-                var pluginsDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "plugins"); // folder in memory, powered by emscripten MEMFS.
+                var pluginsDir = Path.Combine(Path.GetTempPath(), "plugins"); // folder in memory, powered by emscripten MEMFS.
                 var resourcesAssembly = Assembly.GetExecutingAssembly();
 
                 foreach (string resourceName in resourcesAssembly.GetManifestResourceNames().Where(f => f.StartsWith("LogJoint.Wasm.Plugins")))
                 {
                     var resourceStream = resourcesAssembly.GetManifestResourceStream(resourceName);
-                    var pluginDir = System.IO.Path.Combine(pluginsDir, resourceName);
-                    Console.WriteLine("Found plugin in resources: {0}, extracting to {1}", resourceName, pluginDir);
+                    var pluginDir = Path.Combine(pluginsDir, resourceName);
                     var sw = System.Diagnostics.Stopwatch.StartNew();
-                    var fz = new FastZip();
-                    fz.ExtractZip(resourceStream, pluginDir,
-                        FastZip.Overwrite.Always, null, null, null, false, false);
+                    using (var archive = new ZipArchive(resourceStream, ZipArchiveMode.Read, leaveOpen: true))
+                    {
+                        var createdDirectories = new HashSet<string>();
+                        void ensureDirectoryCreated(string dir)
+                        {
+                            if (createdDirectories.Add(dir))
+                                Directory.CreateDirectory(dir);
+                        };
+                        foreach (var e in archive.Entries)
+                        {
+                            var fileName = Path.Combine(pluginDir, e.FullName);
+                            ensureDirectoryCreated(Path.GetDirectoryName(fileName));
+                            using (var sourceStream = e.Open())
+                            using (var targetStream = File.OpenWrite(fileName))
+                            {
+                                sourceStream.CopyTo(targetStream);
+                            }
+                        }
+                    }
                     Console.WriteLine("Extracted plugin: {0}, took {1}", resourceName, sw.Elapsed);
                     pluginsDirsList.Add(pluginDir);
                 }
