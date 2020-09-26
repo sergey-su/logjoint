@@ -6,19 +6,19 @@
     @{var itemIndex = 0;}
     @foreach (var item in Items)
     {
-    <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "")"
-        @onmousedown="@(e => SelectByMouse(itemIndex))"
-        tabindex="@(focused == itemIndex ? 0 : -1)">
-        @if (ItemTemplate != null)
-        {
-            ItemTemplate(item);
-        }
-        else
-        {
-            @item.ToString()
-        }
-    </li>
-        @{++itemIndex;}
+        <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "")"
+            @onmousedown="@(e => SelectByMouse(itemIndex))"
+            tabindex="@(focused == itemIndex ? 0 : -1)">
+            @if (ItemTemplate != null)
+            {
+                ItemTemplate(item);
+            }
+            else
+            {
+                @item.ToString()
+            }
+        </li>
+        itemIndex++;
      }
 </ul>
 
