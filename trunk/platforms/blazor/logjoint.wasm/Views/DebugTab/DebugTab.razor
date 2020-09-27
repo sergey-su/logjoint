@@ -13,6 +13,8 @@
     <br />
     <button @onclick="DownloadDebugLog">Download debug log</button>
     <button @onclick="TestLogFs">Test log fs</button>
+    <button @onclick="ChooseFile">Choose file</button>
+    <button @onclick="OpenMostRecent">Reopen last</button>
 </div>
 
 @code {
@@ -81,5 +83,21 @@
             var hash = LogJoint.Hashing.GetStableHashCode(buf);
             Console.WriteLine("{0} {1}", read, hash);
         }
+    }
+
+    async Task ChooseFile()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.ChooseFile();
+        Console.WriteLine("Virtual file name : {0}", fileName);
+        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
+        model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
+    }
+
+    async Task OpenMostRecent()
+    {
+        var item = model.RecentlyUsedLogs.GetMRUList().FirstOrDefault();
+        if (item != null)
+            await model.LogSourcesPreprocessings.Preprocess(item);
     }
 }

@@ -29,6 +29,22 @@
             return file;
         },
         _tempBuffers: {},
+        _readFile: async function (file, position, count) {
+            const blob = file.slice(position, position + count);
+            return String.fromCharCode.apply(null, new Uint8Array(await blob.arrayBuffer()));
+        },
+        _readIntoTempBuffer: async function (file, position, count) {
+            const blob = file.slice(position, position + count);
+            const array = new Uint8Array(await blob.arrayBuffer())
+            const tempBufferId = ++this._lastTempBuffer;
+            this._tempBuffers[tempBufferId] = array;
+            return tempBufferId;
+        },
+        _allocateEmptyTempBuffer: function () {
+            const tempBufferId = ++this._lastTempBuffer;
+            this._tempBuffers[tempBufferId] = new Uint8Array();
+            return tempBufferId;
+        },
 
         open: function (fileInput) {
             const file = fileInput.files[0];
@@ -53,14 +69,10 @@
             return this._get(handle).lastModified;
         },
         read: async function (handle, position, count) {
-            const blob = this._get(handle).slice(position, position + count);
-            return String.fromCharCode.apply(null, new Uint8Array(await blob.arrayBuffer()));
+            return this._readFile(this._get(handle), position, count);
         },
         readIntoTempBuffer: async function (handle, position, count) {
-            const blob = this._get(handle).slice(position, position + count);
-            const tempBufferId = ++this._lastTempBuffer;
-            this._tempBuffers[tempBufferId] = new Uint8Array(await blob.arrayBuffer());
-            return tempBufferId;
+            return this._readIntoTempBuffer(this._get(handle), position, count);
         },
         readTempBuffer: function (tempBufferId) {
             const tempBuffer = this._tempBuffers[tempBufferId];
@@ -76,6 +88,114 @@
                 throw new Error(`Can not open file: <input> has no files`);
             }
             return URL.createObjectURL(file);
+        },
+    },
+
+    // https://web.dev/native-file-system/
+    nativeFiles: {
+        _lastHandle: 0,
+        _get: function (handle) {
+            const nativeHandle = this[handle];
+            if (!nativeHandle) {
+                throw new Error(`Invalid native file handle ${id}`);
+            }
+            return nativeHandle;
+        },
+        _refresh: async function(entry) {
+            try {
+                entry.file = await entry.nativeHandle.getFile();
+                entry.name = entry.file.name;
+                entry.size = entry.file.size;
+                entry.lastModified = entry.file.lastModified;
+            } catch (e) {
+                // todo: handle this way only the valid errors - file modification, file deletion.
+                // rethrow other errors.
+                entry.file = undefined;
+                entry.size = 0;
+            }
+        },
+        _read: async function(handle, readCallback, noFileCallback) {
+            const entry = this._get(handle);
+            for (;;) { // todo: do not loop forever
+                if (!entry.file) {
+                    return noFileCallback();
+                } else {
+                    try {
+                        return await readCallback(entry.file);
+                    } catch (e) {
+                        await this._refresh(entry);
+                    }
+                }
+            }
+        },
+
+        isSupported: function() {
+            // todo: check support
+            return true;
+        },
+        choose: async function () {
+            const nativeHandle = await window.chooseFileSystemEntries();
+            const entry = {
+                nativeHandle: nativeHandle,
+                file: undefined,
+                name: undefined,
+                size: undefined,
+                lastModified: undefined
+            };
+            await this._refresh(entry);
+            const handle = ++this._lastHandle;
+            this[handle] = entry;
+            return handle;
+        },
+        close: function (handle) {
+            this._get(handle);
+            delete this[handle];
+        },
+        getSize: function (handle) {
+            return this._get(handle).size;
+        },
+        getName: function (handle) {
+            return this._get(handle).name;
+        },
+        getLastModified: function (handle) {
+            return this._get(handle).lastModified;
+        },
+        read: async function (handle, position, count) {
+            return this._read(handle,
+                file => logjoint.files._readFile(file, position, count),
+                () => ''
+            );
+        },
+        readIntoTempBuffer: async function (handle, position, count) {
+            return this._read(handle,
+                file => logjoint.files._readIntoTempBuffer(file, position, count),
+                logjoint.files._allocateEmptyTempBuffer
+            );
+        },
+        readTempBuffer: function (tempBufferId) {
+            return logjoint.files.readTempBuffer(tempBufferId);
+        },
+        ensureStoredInDatabase: async function(handle) {
+            const entry = this._get(handle);
+            const db = window.logjoint.db;
+            for (const record of await db.queryIndex("file-handles", "name", entry.name)) {
+                if (await entry.nativeHandle.isSameEntry(record.fileHandle)) {
+                    return record.id;
+                }
+            }
+            return await db.set("file-handles", {
+                name: entry.name,
+                fileHandle: entry.nativeHandle,
+            });
+        },
+
+        // todo: remove the two
+        getNativeHandle: function (handle) {
+            return this._get(handle).nativeHandle;
+        },
+        areNativeHandleTheSame: function(nativeHandle1, nativeHandle2) {
+            console.log(nativeHandle1, nativeHandle2);
+            return nativeHandle1.isSameEntry(nativeHandle2);
         },
     },
 
@@ -199,6 +319,76 @@
             if (selected) {
                 selected.focus();
             }
+        },
+    },
+
+    db: {
+        // the singleton promise that resolves when the database is open
+        _dbOpen: undefined,
+        // resolves when the transation completes
+        _transact: function(storeName, mode, transactionBody) {
+            if (!this._dbOpen) {
+                this._dbOpen = new Promise((resolve, reject) => {
+                    const request = window.indexedDB.open('logjoint', 1);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                    request.onupgradeneeded = (event) => {
+                        const db = request.result;
+                        if (event.oldVersion < 1) {
+                            const fileHandlesStore = db.createObjectStore(
+                                'file-handles', { keyPath: 'id', autoIncrement: true });
+                            fileHandlesStore.createIndex("name", "name");
+
+                            db.createObjectStore('blobs');
+                        }
+                    };
+                });
+            }
+            return this._dbOpen.then(db => new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, mode);
+                transaction.oncomplete = () => resolve();
+                transaction.onabort = transaction.onerror = () => reject(transaction.error);
+                transactionBody(transaction.objectStore(storeName));
+            }));
+        },
+
+        get: function(storeName, key) {
+            let getRequest;
+            return this._transact(storeName, 'readonly', store => {
+                getRequest = store.get(key);
+            }).then(() => getRequest.result);
+        },
+        set: function(storeName, value, key) {
+            let putRequest;
+            return this._transact(storeName, 'readwrite', store => {
+                putRequest = store.put(value, key);
+            }).then(() => putRequest.result);
+        },
+        queryIndex: function(storeName, indexName, value) {
+            const result = [];
+            return this._transact(storeName, 'readonly', store => {
+                const index = store.index(indexName);
+                const custorRequest = index.openCursor(value);
+                custorRequest.onsuccess = function(event) {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        result.push(cursor.value);
+                        cursor.continue();
+                    }
+                };
+            }).then(() => result);
+        },
+        keys: function(storeName) {
+            const result = [];
+            return this._transact(storeName, 'readonly', store => {
+                store.openKeyCursor().onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        result.push(cursor.key);
+                        cursor.continue();
+                    }
+                };
+            }).then(() => result);
         },
     },
 };

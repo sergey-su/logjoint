@@ -182,6 +182,7 @@ namespace LogJoint.Wasm
             {
                 ISynchronizationContext invokingSynchronization = new BlazorSynchronizationContext();
                 WebContentConfig webContentConfig = new WebContentConfig();
+                var logMediaFileSystem = new LogJoint.Wasm.LogMediaFileSystem(serviceProvider.GetService<IJSRuntime>());
 
                 var model = ModelFactory.Create(
                     new ModelConfig
@@ -196,7 +197,7 @@ namespace LogJoint.Wasm
                         TraceListeners = new[] { serviceProvider.GetService<TraceListener>() },
                         RemoveDefaultTraceListener = true, // it's expensive in wasm
                         FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
-                        FileSystem = new LogJoint.Wasm.LogMediaFileSystem(serviceProvider.GetService<IJSRuntime>()),
+                        FileSystem = logMediaFileSystem,
                         FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider,
                         FieldsProcessorAssemblyLoader = new AssemblyLoader(),
                         PersistenceFileSystem = new LogJoint.Wasm.PersistenceFileSystem((IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>()),
@@ -218,6 +219,7 @@ namespace LogJoint.Wasm
                     LogJoint.RegularExpressions.FCLRegexFactory.Instance
                 );
 
+                logMediaFileSystem.Init(model.TraceSourceFactory);
                 model.GlobalSettingsAccessor.FileSizes = new Settings.FileSizes() { Threshold = 1, WindowSize = 1 };
 
                 return model;

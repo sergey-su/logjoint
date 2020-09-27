@@ -15,19 +15,28 @@ namespace LogJoint.Wasm
     public interface IWasmFileSystemConfig
     {
         Task<string> AddFileFromInput(ElementReference inputElement);
+        Task<string> ChooseFile();
         void ReleaseFile(string fileName);
     };
 
     public class LogMediaFileSystem : IFileSystem, IWasmFileSystemConfig
     {
         readonly IJSRuntime jsRuntime;
+        LJTraceSource traceSource = LJTraceSource.EmptyTracer;
         const string htmlInputFileNamePrefix = "/html-input/";
+        const string nativeFileSystemNamePrefix = "/native-file-system/";
         int lastHtmlInputStreamId = 0;
         readonly Dictionary<string, HtmlInputFileInfo> htmlInputFiles = new Dictionary<string, HtmlInputFileInfo>();
+        readonly Dictionary<string, NativeFileSystemFileInfo> nativeFileSystemFiles = new Dictionary<string, NativeFileSystemFileInfo>();
 
         public LogMediaFileSystem(IJSRuntime jsRuntime)
         {
             this.jsRuntime = jsRuntime;
+        }
+
+        public void Init(ITraceSourceFactory traceFactory)
+        {
+            this.traceSource = traceFactory.CreateTraceSource("App", "bl-lmfs");
         }
 
         class HtmlInputFileInfo
@@ -53,6 +62,32 @@ namespace LogJoint.Wasm
             private async void Delete()
             {
                 await jsRuntime.InvokeVoidAsync("logjoint.files.close", handle);
+            }
+        };
+
+        class NativeFileSystemFileInfo
+        {
+            public IJSRuntime jsRuntime;
+            public long handle;
+            public long size;
+            public DateTime lastModified;
+
+            private int refCount;
+
+            public void AddRef()
+            {
+                Interlocked.Increment(ref refCount);
+            }
+
+            public void Release()
+            {
+                if (Interlocked.Decrement(ref refCount) == 0)
+                    Delete();
+            }
+
+            private async void Delete()
+            {
+                await jsRuntime.InvokeVoidAsync("logjoint.nativeFiles.close", handle);
             }
         };
 
@@ -131,15 +166,6 @@ namespace LogJoint.Wasm
                 throw new NotImplementedException();
             }
 
-            static int CopyStr(string s, Memory<byte> buffer)
-            {
-                int read = s.Length;
-                var dest = buffer.Span;
-                for (int i = 0; i < read; ++i)
-                    dest[i] = unchecked((byte)s[i]);
-                return read;
-            }
-
             public override async ValueTask<int> ReadAsync(Memory<byte> buffer, System.Threading.CancellationToken cancellationToken = default)
             {
                 if (webAssemblyJSRuntime != null)
@@ -168,6 +194,94 @@ namespace LogJoint.Wasm
             public override void Write(byte[] buffer, int offset, int count) => throw new NotImplementedException();
         }
 
+        class NativeFileSystemStream : Stream, IFileStreamInfo
+        {
+            readonly IJSRuntime jsRuntime;
+            readonly IJSUnmarshalledRuntime webAssemblyJSRuntime;
+            readonly NativeFileSystemFileInfo fileInfo;
+            bool disposed;
+            long position;
+
+            public NativeFileSystemStream(IJSRuntime jsRuntime, NativeFileSystemFileInfo fileInfo)
+            {
+                this.jsRuntime = jsRuntime;
+                this.webAssemblyJSRuntime = jsRuntime as IJSUnmarshalledRuntime;
+                this.fileInfo = fileInfo;
+                this.position = 0;
+                fileInfo.AddRef();
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                if (!disposed)
+                {
+                    disposed = true;
+                    fileInfo.Release();
+                }
+            }
+
+            public override long Length => fileInfo.size;
+            public override bool CanRead => true;
+            public override bool CanWrite => false;
+            public override bool CanSeek => true;
+
+            public override long Position
+            {
+                get { return position; }
+                set
+                {
+                    position = Math.Clamp(value, 0, fileInfo.size);
+                }
+            }
+
+            DateTime IFileStreamInfo.LastWriteTime => fileInfo.lastModified;
+
+            bool IFileStreamInfo.IsDeleted => false; // todo: read it from JS
+
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                if (origin == SeekOrigin.Begin)
+                    Position = offset;
+                else if (origin == SeekOrigin.Current)
+                    Position = Position + offset;
+                else
+                    Position = fileInfo.size - offset;
+                return Position;
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override async ValueTask<int> ReadAsync(Memory<byte> buffer, System.Threading.CancellationToken cancellationToken = default)
+            {
+                if (webAssemblyJSRuntime != null)
+                {
+                    var tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.nativeFiles.readIntoTempBuffer", fileInfo.handle, position, buffer.Length);
+                    var read = webAssemblyJSRuntime.InvokeUnmarshalled<int, byte[]>("logjoint.nativeFiles.readTempBuffer", tempBufferId);
+                    read.CopyTo(buffer.Span);
+                    position += read.Length;
+                    return read.Length;
+                }
+                else
+                {
+                    var str = await jsRuntime.InvokeAsync<string>("logjoint.nativeFiles.read", fileInfo.handle, position, buffer.Length);
+                    var read = CopyStr(str, buffer);
+                    position += read;
+                    return read;
+                }
+            }
+            public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
+            {
+                return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+            }
+
+            public override void SetLength(long value) => throw new NotImplementedException();
+            public override void Flush() => throw new NotImplementedException();
+            public override void Write(byte[] buffer, int offset, int count) => throw new NotImplementedException();
+        }
 
         IFileSystemWatcher IFileSystem.CreateWatcher() => throw new NotImplementedException();
 
@@ -177,6 +291,10 @@ namespace LogJoint.Wasm
         {
             if (htmlInputFiles.TryGetValue(fileName, out var fileInfo))
                 return new HtmlInputFileStream(jsRuntime, fileInfo);
+            else if (nativeFileSystemFiles.TryGetValue(fileName, out var nativeFileInfo))
+                return new NativeFileSystemStream(jsRuntime, nativeFileInfo);
+            //else if (fileName.StartsWith(nativeFileSystemNamePrefix))
+            //    return new NativeFileSystemStream(jsRuntime, await RestoreNativeFileHandle(fileName.Split('/')[1]));
             else
                 return new StreamImpl(fileName);
         }
@@ -198,6 +316,34 @@ namespace LogJoint.Wasm
             return fileName;
         }
 
+        class FileHandlesDbEntry {
+            public long? id;
+            public string name;
+            public JSObjectReference fileHandle;
+        };
+
+        async Task<string> IWasmFileSystemConfig.ChooseFile()
+        {
+            var handle = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.choose");
+            var name = await jsRuntime.InvokeAsync<string>("logjoint.nativeFiles.getName", handle);
+            var dbId = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.ensureStoredInDatabase", handle);
+            string fileName = $"{nativeFileSystemNamePrefix}{dbId}/{name}";
+            if (!nativeFileSystemFiles.ContainsKey(fileName))
+            {
+                var size = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.getSize", handle);
+                var lastModified = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.getLastModified", handle);
+                nativeFileSystemFiles.Add(fileName, new NativeFileSystemFileInfo()
+                {
+                    jsRuntime = jsRuntime,
+                    handle = handle,
+                    size = size,
+                    lastModified = DateTime.UnixEpoch.AddMilliseconds(lastModified)
+                });
+            }
+            traceSource.Info("chosen file has been given name '{0}' and stored in database with id {1}", fileName, dbId);
+            return fileName;
+        }
+
         void IWasmFileSystemConfig.ReleaseFile(string fileName)
         {
             if (htmlInputFiles.TryGetValue(fileName, out var stream))
@@ -205,6 +351,15 @@ namespace LogJoint.Wasm
                 htmlInputFiles.Remove(fileName);
                 stream.Release();
             }
+        }
+
+        static int CopyStr(string s, Memory<byte> buffer)
+        {
+            int read = s.Length;
+            var dest = buffer.Span;
+            for (int i = 0; i < read; ++i)
+                dest[i] = unchecked((byte)s[i]);
+            return read;
         }
     }
 }
