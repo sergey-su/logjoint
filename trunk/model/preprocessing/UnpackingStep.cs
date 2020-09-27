@@ -92,7 +92,7 @@ namespace LogJoint.Preprocessing
 				else
 				{
 					var ms = new MemoryStream();
-					using (var fileStream = fileSystem.OpenFile(@params.Location))
+					using (var fileStream = await fileSystem.OpenFile(@params.Location))
 						await IOUtils.CopyStreamWithProgressAsync(fileStream, ms, _ => { }, callback.Cancellation);
 					return new ICSharpCode.SharpZipLib.Zip.ZipFile(ms, leaveOpen: false);
 				}

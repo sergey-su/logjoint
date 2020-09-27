@@ -34,7 +34,7 @@ namespace LogJoint.Postprocessing
 			return new LogSourcePostprocessorInput()
 			{
 				LogFileName = logFileName,
-				openLogFile = () => Task.FromResult(fileSystem.OpenFile(logFileName)),
+				openLogFile = () => fileSystem.OpenFile(logFileName),
 				LogSource = logSource,
 				openOutputFile = openOutputStream,
 				CancellationToken = cancellation.Token,

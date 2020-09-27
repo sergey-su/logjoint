@@ -25,29 +25,33 @@ namespace LogJoint
 		}
 
 		public static async Task<SimpleFileMedia> Create(IFileSystem fileSystem, IConnectionParams connectParams)
-        {
+		{
 			var media = new SimpleFileMedia(fileSystem, connectParams);
 			try
-            {
+			{
+				await media.Init();
 				await media.Update();
 				return media;
 			}
 			catch
-            {
+			{
 				media.Dispose();
 				throw;
-            }
+			}
 		}
 
 
 		private SimpleFileMedia(IFileSystem fileSystem, IConnectionParams connectParams)
 		{
-            this.fileSystem = fileSystem ?? throw new ArgumentNullException("fileSystem");
+			this.fileSystem = fileSystem ?? throw new ArgumentNullException("fileSystem");
 			this.fileName = connectParams[fileNameParam];
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("Invalid or incomplete connection params");
+		}
 
-			Stream fs = fileSystem.OpenFile(fileName);
+		async Task Init()
+		{
+			Stream fs = await fileSystem.OpenFile(fileName);
 			this.stream.SetStream(fs, true);
 			this.fsInfo = (IFileStreamInfo)fs;
 		}
@@ -64,7 +68,7 @@ namespace LogJoint
 			get { return fsInfo != null; }
 		}
 
-		public Task Update()
+		public async Task Update()
 		{
 			CheckDisposed();
 
@@ -73,11 +77,11 @@ namespace LogJoint
 				Stream fs;
 				try
 				{
-					fs = fileSystem.OpenFile(fileName);
+					fs = await fileSystem.OpenFile(fileName);
 				}
 				catch
 				{
-					return Task.CompletedTask;
+					return;
 				}
 				this.stream.SetStream(fs, true);
 				this.fsInfo = (IFileStreamInfo)fs;
@@ -89,12 +93,11 @@ namespace LogJoint
 				lastModified = new DateTime();
 				stream.SetStream(emptyMemoryStream, false);
 				fsInfo = null;
-				return Task.CompletedTask;
+				return;
 			}
 
 			size = stream.Length;
 			lastModified = fsInfo.LastWriteTime;
-			return Task.CompletedTask;
 		}
 
 		public Stream DataStream

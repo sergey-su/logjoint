@@ -141,7 +141,7 @@ namespace LogJoint.Preprocessing
 			public static async ValueTask<StreamHeader> Create(string fileName, IFileSystem fs)
 			{
 				var tmp = new byte[1024];
-				using (var fstm = fs.OpenFile(fileName))
+				using (var fstm = await fs.OpenFile(fileName))
 				{
 					int read = await fstm.ReadAsync(tmp, 0, tmp.Length);
 					if (read < tmp.Length)

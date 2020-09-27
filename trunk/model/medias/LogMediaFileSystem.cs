@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace LogJoint.LogMedia
 {
@@ -172,9 +173,9 @@ namespace LogJoint.LogMedia
 			long lastTimeFileWasReopened;
 		};
 
-		public Stream OpenFile(string fileName)
+		public Task<Stream> OpenFile(string fileName)
 		{
-			return new StreamImpl(fileName);
+			return Task.FromResult<Stream>(new StreamImpl(fileName));
 		}
 		public string[] GetFiles(string path, string searchPattern)
 		{

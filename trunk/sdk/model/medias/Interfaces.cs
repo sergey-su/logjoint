@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace LogJoint.LogMedia
 {
@@ -14,7 +15,7 @@ namespace LogJoint.LogMedia
 
 	public interface IFileSystem
 	{
-		Stream OpenFile(string fileName);
+		Task<Stream> OpenFile(string fileName);
 		string[] GetFiles(string path, string searchPattern);
 		IFileSystemWatcher CreateWatcher();
 	};
