@@ -76,7 +76,7 @@
     {
         var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
         var fileName = await fs.AddFileFromInput(fileInputReference);
-        using (var stream = model.FileSystem.OpenFile(fileName))
+        using (var stream = await model.FileSystem.OpenFile(fileName))
         {
             byte[] buf = new byte[1024];
             var read = await stream.ReadAsync(buf, 0, buf.Length);

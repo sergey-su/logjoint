@@ -101,17 +101,32 @@
             }
             return nativeHandle;
         },
+        _makeDetached: function(entry) {
+            entry.file = undefined;
+            entry.size = 0;
+        },
         _refresh: async function(entry) {
             try {
-                entry.file = await entry.nativeHandle.getFile();
-                entry.name = entry.file.name;
-                entry.size = entry.file.size;
-                entry.lastModified = entry.file.lastModified;
+                const permissionOptions = {
+                    writable: false
+                };
+                let permitted = await entry.nativeHandle.queryPermission(permissionOptions) === 'granted';
+                if (!permitted) {
+                    permitted = await entry.nativeHandle.requestPermission(permissionOptions) === 'granted';
+                }
+                if (permitted) {
+                    entry.file = await entry.nativeHandle.getFile();
+                    entry.name = entry.file.name;
+                    entry.size = entry.file.size;
+                    entry.lastModified = entry.file.lastModified;
+                } else {
+                    this._makeDetached(entry);
+                }
             } catch (e) {
                 // todo: handle this way only the valid errors - file modification, file deletion.
                 // rethrow other errors.
-                entry.file = undefined;
-                entry.size = 0;
+                console.error("failed to refresh", e);
+                this._makeDetached(entry);
             }
         },
         _read: async function(handle, readCallback, noFileCallback) {
@@ -128,13 +143,7 @@
                 }
             }
         },
-
-        isSupported: function() {
-            // todo: check support
-            return true;
-        },
-        choose: async function () {
-            const nativeHandle = await window.chooseFileSystemEntries();
+        _add: async function(nativeHandle) {
             const entry = {
                 nativeHandle: nativeHandle,
                 file: undefined,
@@ -146,6 +155,15 @@
             const handle = ++this._lastHandle;
             this[handle] = entry;
             return handle;
+        },
+
+        isSupported: function() {
+            // todo: check support
+            return true;
+        },
+        choose: async function () {
+            const nativeHandle = await window.chooseFileSystemEntries();
+            return await this._add(nativeHandle);
         },
         close: function (handle) {
             this._get(handle);
@@ -188,14 +206,10 @@
                 fileHandle: entry.nativeHandle,
             });
         },
-
-        // todo: remove the two
-        getNativeHandle: function (handle) {
-            return this._get(handle).nativeHandle;
-        },
-        areNativeHandleTheSame: function(nativeHandle1, nativeHandle2) {
-            console.log(nativeHandle1, nativeHandle2);
-            return nativeHandle1.isSameEntry(nativeHandle2);
+        restoreFromDatabase: async function(dbId) {
+            const db = window.logjoint.db;
+            const record = await db.get("file-handles", dbId);
+            return await this._add(record.fileHandle);
         },
     },
 

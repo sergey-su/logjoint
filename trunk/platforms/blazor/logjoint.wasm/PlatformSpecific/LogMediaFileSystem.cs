@@ -287,16 +287,23 @@ namespace LogJoint.Wasm
 
         string[] IFileSystem.GetFiles(string path, string searchPattern) => throw new NotImplementedException();
 
-        Stream IFileSystem.OpenFile(string fileName)
+        async Task<Stream> IFileSystem.OpenFile(string fileName)
         {
             if (htmlInputFiles.TryGetValue(fileName, out var fileInfo))
                 return new HtmlInputFileStream(jsRuntime, fileInfo);
             else if (nativeFileSystemFiles.TryGetValue(fileName, out var nativeFileInfo))
                 return new NativeFileSystemStream(jsRuntime, nativeFileInfo);
-            //else if (fileName.StartsWith(nativeFileSystemNamePrefix))
-            //    return new NativeFileSystemStream(jsRuntime, await RestoreNativeFileHandle(fileName.Split('/')[1]));
+            else if (fileName.StartsWith(nativeFileSystemNamePrefix))
+                return new NativeFileSystemStream(jsRuntime, await RestoreNativeFileHandle(long.Parse(fileName.Split('/')[2])));
             else
                 return new StreamImpl(fileName);
+        }
+
+        async Task<NativeFileSystemFileInfo> RestoreNativeFileHandle(long dbId)
+        {
+            var handle = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.restoreFromDatabase", dbId);
+            var (fileName, fileInfo) = await EnsureNativeFileSystemFileInfoExists(handle, dbId);
+            return fileInfo;
         }
 
         async Task<string> IWasmFileSystemConfig.AddFileFromInput(ElementReference inputElement)
@@ -315,24 +322,24 @@ namespace LogJoint.Wasm
             });
             return fileName;
         }
-
-        class FileHandlesDbEntry {
-            public long? id;
-            public string name;
-            public JSObjectReference fileHandle;
-        };
-
         async Task<string> IWasmFileSystemConfig.ChooseFile()
         {
             var handle = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.choose");
-            var name = await jsRuntime.InvokeAsync<string>("logjoint.nativeFiles.getName", handle);
             var dbId = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.ensureStoredInDatabase", handle);
+            var (fileName, fileInfo) = await EnsureNativeFileSystemFileInfoExists(handle, dbId);
+            traceSource.Info("chosen file has been given name '{0}' and stored in database with id {1}", fileName, dbId);
+            return fileName;
+        }
+
+        async Task<(string fileName, NativeFileSystemFileInfo fileInfo)> EnsureNativeFileSystemFileInfoExists(long handle, long dbId)
+        {
+            var name = await jsRuntime.InvokeAsync<string>("logjoint.nativeFiles.getName", handle);
             string fileName = $"{nativeFileSystemNamePrefix}{dbId}/{name}";
-            if (!nativeFileSystemFiles.ContainsKey(fileName))
+            if (!nativeFileSystemFiles.TryGetValue(fileName, out var fileInfo))
             {
                 var size = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.getSize", handle);
                 var lastModified = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.getLastModified", handle);
-                nativeFileSystemFiles.Add(fileName, new NativeFileSystemFileInfo()
+                nativeFileSystemFiles.Add(fileName, fileInfo = new NativeFileSystemFileInfo()
                 {
                     jsRuntime = jsRuntime,
                     handle = handle,
@@ -340,8 +347,7 @@ namespace LogJoint.Wasm
                     lastModified = DateTime.UnixEpoch.AddMilliseconds(lastModified)
                 });
             }
-            traceSource.Info("chosen file has been given name '{0}' and stored in database with id {1}", fileName, dbId);
-            return fileName;
+            return (fileName, fileInfo);
         }
 
         void IWasmFileSystemConfig.ReleaseFile(string fileName)
