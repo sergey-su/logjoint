@@ -12,7 +12,9 @@
                                ViewModel="@viewModel" />
     <div class="v-resizer" @ref="verticalResizerElement"></div>
     <div class="right" @ref="rightContainer">
-        <LogJoint.Wasm.UI.Postprocessing.StateInspectorProperties Class="top"/>
+        <StateInspectorProperties Class="top"
+                                  Items="@viewModel.PropertyItems"
+                                  ViewModel="@viewModel"/>
         <StateInspectorHistory Class="bottom"
                                ResizerClass="h-resizer"
                                Items="@viewModel.ChangeHistoryItems"
@@ -44,7 +46,8 @@
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.ObjectsTreeRoot, viewModel.PaintNode,
-                viewModel.ChangeHistoryItems, viewModel.IsChangeHistoryItemBookmarked),
+                viewModel.ChangeHistoryItems, viewModel.IsChangeHistoryItemBookmarked,
+                viewModel.PropertyItems),
             _ => StateHasChanged()
         ));
     }

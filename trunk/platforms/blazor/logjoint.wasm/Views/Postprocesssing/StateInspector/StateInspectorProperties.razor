@@ -5,12 +5,21 @@
     <div class="toolbar">Properties:</div>
     <ListView Class="the-list"
               Items="@Items"
-              OnSelect="@(items => ViewModel.????(items.OfType<>()))"
-              OnDoubleClick="@(item => ViewModel.OnPropertiesRowDoubleClicked(...))">
+              OnSelect="@(items => ViewModel.OnSelectProperty(items.OfType<IPropertyListItem>().FirstOrDefault()))"
+              OnDoubleClick="@(item => ViewModel.OnPropertyDoubleClicked(item as IPropertyListItem))">
         <ItemTemplate>
-            @{var item = ()context;}
-            <div>@item.Time</div>
-            <div>@item.Message</div>
+            @{var item = (IPropertyListItem)context;}
+            <div>@item.Name</div>
+            <div>
+                @if (@item.IsLink)
+                {
+                    <a @onclick:preventDefault @onclick="@(e => ViewModel.OnPropertyCellClicked(item))" href="#">@item.Value</a>
+                }
+                else
+                {
+                    @item.Value
+                }
+            </div>
         </ItemTemplate>
     </ListView>
 </div>
@@ -23,5 +32,5 @@
     public IViewModel ViewModel { get; set; }
 
     [Parameter]
-    public IReadOnlyList<> Items { get; set; }
+    public IReadOnlyList<IPropertyListItem> Items { get; set; }
 }

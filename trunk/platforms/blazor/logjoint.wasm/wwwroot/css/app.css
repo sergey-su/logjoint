@@ -436,19 +436,33 @@ app {
 }
 
 .state-inspector .properties {
+    display: flex;
+    flex-flow: column nowrap;
+
     background-color: lightsalmon;
 }
+
+.state-inspector .properties>.the-list {
+    height: 1px;
+    flex-grow: 2;
+}
+
+.state-inspector .properties>.the-list>li {
+    display: table-row;
+}
+
+.state-inspector .properties>.the-list>li>div {
+    display: table-cell;
+    white-space: nowrap;
+}
+
+
 
 .state-inspector .history {
     display: flex;
     flex-flow: column nowrap;
 
     background-color: lightyellow;
-}
-
-.state-inspector .history>.the-list {
-    height: 1px;
-    flex-grow: 2;
 }
 
 .state-inspector .history>.the-list {
@@ -483,7 +497,8 @@ app {
 .list {
     list-style: none;
     padding: 0;
-    overflow-y: auto;
+    margin: 0;
+    overflow: auto;
 }
 .list>li {
     height: 25px; /* todo: do not hardcode */
