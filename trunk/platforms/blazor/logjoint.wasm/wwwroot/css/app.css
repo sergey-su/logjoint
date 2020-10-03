@@ -440,8 +440,42 @@ app {
 }
 
 .state-inspector .history {
+    display: flex;
+    flex-flow: column nowrap;
+
     background-color: lightyellow;
 }
+
+.state-inspector .history>.the-list {
+    height: 1px;
+    flex-grow: 2;
+}
+
+.state-inspector .history>.the-list {
+    height: 1px;
+    flex-grow: 2;
+}
+
+.state-inspector .history>.the-list>li {
+    display: table-row;
+}
+.state-inspector .history>.the-list>li>div {
+    display: table-cell;
+    white-space: nowrap;
+}
+/* bookmark area */
+.state-inspector .history>.the-list>li>div:nth-child(1) {
+    width: 10px;
+    max-width: 10px;
+    min-width: 10px;
+}
+/* focus mark area */
+.state-inspector .history>.the-list>li>div:nth-child(2) {
+    width: 5px;
+    max-width: 5px;
+    min-width: 5px;
+}
+
 
 
 

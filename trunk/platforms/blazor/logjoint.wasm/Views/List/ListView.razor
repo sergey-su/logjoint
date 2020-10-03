@@ -6,12 +6,13 @@
     @{var itemIndex = 0;}
     @foreach (var item in Items)
     {
+        var itemIndexCopy = itemIndex;
         <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "")"
-            @onmousedown="@(e => SelectByMouse(itemIndex))"
+            @onmousedown="@(e => SelectByMouse(itemIndexCopy, e.Detail > 1))"
             tabindex="@(focused == itemIndex ? 0 : -1)">
             @if (ItemTemplate != null)
             {
-                ItemTemplate(item);
+                @ItemTemplate(item);
             }
             else
             {
@@ -38,6 +39,9 @@
     public Action<IListItem[]> OnSelect { get; set; }
 
     [Parameter]
+    public Action<IListItem> OnDoubleClick { get; set; }
+
+    [Parameter]
     public RenderFragment<IListItem> ItemTemplate { get; set; } // todo: pass focus to item template
 
     [Parameter]
@@ -48,9 +52,13 @@
         OnSelect?.Invoke(new[] { item });
     }
 
-    void SelectByMouse(int i)
+    void SelectByMouse(int i, bool doubleClick)
     {
         MaybeSetSelected(i);
+        if (doubleClick)
+        {
+            OnDoubleClick?.Invoke(Items[i]);
+        }
     }
 
     void HandleKey(KeyboardEventArgs eventArgs)
@@ -73,7 +81,7 @@
         if (focused != value)
         {
             focused = value;
-            await JSRuntime.InvokeVoidAsync("logjoint.scroll.scrollListItemIntoView", ListRef, focused, 25 /* todo: do not hardcode */);
+            await JSRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", ListRef, focused, 25 /* todo: do not hardcode */);
             await JSRuntime.InvokeVoidAsync("logjoint.list.focusSelectedListItem", ListRef);
         }
     }

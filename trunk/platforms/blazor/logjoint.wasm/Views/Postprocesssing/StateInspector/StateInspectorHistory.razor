@@ -1,9 +1,22 @@
-﻿@namespace LogJoint.Wasm.UI.Postprocessing
+﻿@using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
+@namespace LogJoint.Wasm.UI.Postprocessing
 @inject IJSRuntime jsRuntime
 
 <div class=@ResizerClass @ref="resizerElement"></div>
 <div class='history @Class' @ref="element">
-    History
+    <div class="toolbar">History:</div>
+    <ListView Class="the-list"
+              Items="@Items"
+              OnSelect="@(items => ViewModel.OnChangeHistoryChangeSelection(items.OfType<IStateHistoryItem>()))"
+              OnDoubleClick="@(item => ViewModel.OnChangeHistoryItemDoubleClicked((IStateHistoryItem)item))">
+        <ItemTemplate>
+            @{var item = (IStateHistoryItem)context;}
+            <div>@(IsItemBookmarked(item) ? "b" : "")</div>
+            <div></div>
+            <div>@item.Time</div>
+            <div>@item.Message</div>
+        </ItemTemplate>
+    </ListView>
 </div>
 
 @code {
@@ -14,6 +27,15 @@
 
     [Parameter]
     public string ResizerClass { get; set; } = "";
+
+    [Parameter]
+    public IReadOnlyList<IStateHistoryItem> Items { get; set; }
+
+    [Parameter]
+    public Predicate<IStateHistoryItem> IsItemBookmarked { get; set; }
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
