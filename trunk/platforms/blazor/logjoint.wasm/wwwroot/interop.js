@@ -105,7 +105,7 @@
             entry.file = undefined;
             entry.size = 0;
         },
-        _refresh: async function(entry) {
+        _refresh: async function(entry, initialRefresh) {
             try {
                 const permissionOptions = {
                     writable: false
@@ -119,26 +119,33 @@
                     entry.name = entry.file.name;
                     entry.size = entry.file.size;
                     entry.lastModified = entry.file.lastModified;
+                } else if (initialRefresh) {
+                    throw new Error("Access not permitted by user");
                 } else {
                     this._makeDetached(entry);
                 }
             } catch (e) {
-                // todo: handle this way only the valid errors - file modification, file deletion.
-                // rethrow other errors.
-                console.error("failed to refresh", e);
-                this._makeDetached(entry);
+                if (!initialRefresh && (e.name === "NotReadableError" || e.name === "NotFoundError")) {
+                    this._makeDetached(entry);
+                } else {
+                    throw e;
+                }
             }
         },
         _read: async function(handle, readCallback, noFileCallback) {
             const entry = this._get(handle);
-            for (;;) { // todo: do not loop forever
+            for (let attempt = 0;;++attempt) {
                 if (!entry.file) {
                     return noFileCallback();
                 } else {
                     try {
                         return await readCallback(entry.file);
                     } catch (e) {
-                        await this._refresh(entry);
+                        if (attempt > 0) {
+                            throw e;
+                        } else {
+                            await this._refresh(entry, /*initialRefresh=*/false);
+                        }
                     }
                 }
             }
@@ -151,7 +158,7 @@
                 size: undefined,
                 lastModified: undefined
             };
-            await this._refresh(entry);
+            await this._refresh(entry, /*initialRefresh=*/true);
             const handle = ++this._lastHandle;
             this[handle] = entry;
             return handle;
