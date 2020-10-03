@@ -487,6 +487,7 @@ app {
 }
 .list>li {
     height: 25px; /* todo: do not hardcode */
+    user-select: none;
 }
 .list>li.selected {
     background-color: blue;

@@ -1,10 +1,27 @@
-﻿@namespace LogJoint.Wasm.UI.Postprocessing
+﻿@using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
+@namespace LogJoint.Wasm.UI.Postprocessing
 
 <div class='properties @Class'>
-Properties
+    <div class="toolbar">Properties:</div>
+    <ListView Class="the-list"
+              Items="@Items"
+              OnSelect="@(items => ViewModel.????(items.OfType<>()))"
+              OnDoubleClick="@(item => ViewModel.OnPropertiesRowDoubleClicked(...))">
+        <ItemTemplate>
+            @{var item = ()context;}
+            <div>@item.Time</div>
+            <div>@item.Message</div>
+        </ItemTemplate>
+    </ListView>
 </div>
 
 @code {
     [Parameter]
     public string Class { get; set; } = "";
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<> Items { get; set; }
 }
