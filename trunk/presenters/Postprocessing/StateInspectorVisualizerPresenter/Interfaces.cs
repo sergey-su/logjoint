@@ -62,6 +62,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		PropertyCellPaintInfo OnPropertyCellPaint(int rowIndex);
 		void OnPropertyCellClicked(int rowIndex);
 		void OnPropertyCellCopyShortcutPressed(int propertyIndex);
+		// Below are reactive-friendly version of properties API above
+		IReadOnlyList<IPropertyListItem> PropertyItems { get; }
+		void OnSelectProperty(IPropertyListItem property);
+		void OnPropertyDoubleClicked(IPropertyListItem property);
+		void OnPropertyCellClicked(IPropertyListItem property);
 
 
 		IReadOnlyList<IStateHistoryItem> ChangeHistoryItems { get; }
@@ -93,5 +98,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 	{
 		string Time { get; }
 		string Message { get; }
+	};
+
+	public interface IPropertyListItem : IListItem
+	{
+		string Name { get; }
+		string Value { get; }
+		bool IsLink { get; }
+		bool IsLeftPadded { get; }
 	};
 }

@@ -178,7 +178,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.getCurrentProperties = Selectors.Create(
 				getSelectedInspectedObjects,
 				getFocusedMessageEqualRange,
+				() => selectedProperty,
 				MakeCurrentProperties
+			);
+
+			this.getPropertyItems = Selectors.Create(
+				getCurrentProperties,
+				props => (IReadOnlyList<IPropertyListItem>)props.Cast<IPropertyListItem>().ToImmutableArray()
 			);
 
 			this.getObjectsProperties = Selectors.Create(
@@ -267,13 +273,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		void IViewModel.OnPropertiesRowDoubleClicked(int rowIndex)
 		{
-			var selectedProp = getCurrentProperties().ElementAtOrDefault(rowIndex);
-			if (selectedProp.PropertyView == null)
-				return;
-			var evt = selectedProp.PropertyView.GetTrigger() as StateInspectorEvent;
-			if (evt == null)
-				return;
-			ShowPropertyChange(evt, false);
+			HandlePropertyDoubleClick(getCurrentProperties().ElementAtOrDefault(rowIndex));
 		}
 
 		PropertyCellPaintInfo IViewModel.OnPropertyCellPaint(int rowIndex)
@@ -288,44 +288,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return ret;
 		}
 
+
 		void IViewModel.OnPropertyCellClicked(int rowIndex)
 		{
-			var currentProperties = getCurrentProperties();
-			if (rowIndex >= 0 && rowIndex < currentProperties.Length)
-			{
-				var pcView = currentProperties[rowIndex].PropertyView;
-				if (pcView == null)
-					return;
-				if (pcView.GetTrigger() is StateInspectorEvent evt)
-				{
-					if (!(evt.OriginalEvent is PropertyChange pc))
-						return;
-					if (pc.ValueType == SI.ValueType.Reference)
-					{
-						var preferredRoot = pcView.InspectedObject.GetRoot();
-						var query =
-							from obj in EnumRoots().OrderBy(root => root == preferredRoot ? 0 : 1).SelectMany(EnumTree)
-							where obj.Id == pc.Value
-							select FindOrCreateNode(obj);
-						var nodeToSelect = query.FirstOrDefault();
-						if (nodeToSelect == null)
-							return;
-						SetSelection(new[] { nodeToSelect });
-					}
-					else if (pc.ValueType == SI.ValueType.ThreadReference)
-					{
-						var thread = threads.Items.FirstOrDefault(t => t.ID == pc.Value);
-						if (thread != null)
-							presentersFacade.ShowThread(thread);
-					}
-					return;
-				}
-				if (pcView.GetTrigger() is ILogSource ls)
-				{
-					presentersFacade.ShowLogSource(ls);
-					return;
-				}
-			}
+			HandlePropertyCellClick(getCurrentProperties().ElementAtOrDefault(rowIndex));
 		}
 
 		PaintNodeDelegate IViewModel.PaintNode => getPaintNode();
@@ -382,14 +348,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		IReadOnlyList<KeyValuePair<string, object>> IViewModel.ObjectsProperties => getObjectsProperties();
 
+		IReadOnlyList<IPropertyListItem> IViewModel.PropertyItems => getPropertyItems();
+
+		void IViewModel.OnSelectProperty(IPropertyListItem property)
+		{
+			var prop = property as PropertyInfo;
+			selectedProperty = prop != null ? new SelectedProperty(prop.Object, prop.PropertyKey) : null;
+			changeNotification.Post();
+		}
+
+		void IViewModel.OnPropertyDoubleClicked(IPropertyListItem property)
+		{
+			HandlePropertyDoubleClick(property as PropertyInfo);
+		}
+
+		void IViewModel.OnPropertyCellClicked(IPropertyListItem property)
+		{
+			HandlePropertyCellClick(property as PropertyInfo);
+		}
+
 		void IViewModel.OnPropertyCellCopyShortcutPressed(int propertyIndex)
 		{
-			var sel = getCurrentProperties().ElementAtOrDefault(propertyIndex);
-			if (sel.PropertyView == null)
-				return;
-			var str = sel.PropertyView.ToClipboardString();
-			if (!string.IsNullOrEmpty(str))
-				clipboardAccess.SetClipboard(str);
+			CopyPropertyToClipboard(getCurrentProperties().ElementAtOrDefault(propertyIndex));
 		}
 
 		void IViewModel.OnNodeDeleteKeyPressed()
@@ -605,7 +585,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		static ImmutableArray<PropertyInfo> MakeCurrentProperties(
 			ImmutableArray<IInspectedObject> objs,
-			Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> getFocusedMessageEqualRange
+			Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> getFocusedMessageEqualRange,
+			SelectedProperty selectedProperty
 		)
 		{
 			var result = ImmutableArray.CreateBuilder<PropertyInfo>();
@@ -617,10 +598,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				{
 					var idProperty = dynamicProperty.Value as IdPropertyView;
 					result.Add(new PropertyInfo(
-						obj, 
+						obj,
 						dynamicProperty.Key,
 						dynamicProperty.Value,
-						isChildProperty: isMultiObjectMode && idProperty == null
+						isChildProperty: isMultiObjectMode && idProperty == null,
+						isSelected: selectedProperty != null 
+							&& selectedProperty.Object == obj && selectedProperty.PropertyName == dynamicProperty.Key
 					));
 					if (idProperty != null)
 					{
@@ -701,19 +684,74 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return evt.Trigger.Timestamp.ToUserFrendlyString(showMilliseconds: true, showDate: false);
 		}
 
-		struct PropertyInfo
+		void CopyPropertyToClipboard(PropertyInfo property)
 		{
-			public IInspectedObject Object;
-			public string PropertyKey;
-			public PropertyViewBase PropertyView;
-			public bool IsChildProperty;
+			var str = property?.PropertyView?.ToClipboardString();
+			if (!string.IsNullOrEmpty(str))
+				clipboardAccess.SetClipboard(str);
+		}
 
-			public PropertyInfo(IInspectedObject obj, string propKey, PropertyViewBase propView, bool isChildProperty)
+		void HandlePropertyDoubleClick(PropertyInfo property)
+		{
+			if (property?.PropertyView == null)
+				return;
+			var evt = property.PropertyView.GetTrigger() as StateInspectorEvent;
+			if (evt == null)
+				return;
+			ShowPropertyChange(evt, false);
+		}
+
+		void HandlePropertyCellClick(PropertyInfo property)
+		{
+			var pcView = property?.PropertyView;
+			if (pcView == null)
+				return;
+			if (pcView.GetTrigger() is StateInspectorEvent evt)
+			{
+				if (!(evt.OriginalEvent is PropertyChange pc))
+					return;
+				if (pc.ValueType == SI.ValueType.Reference)
+				{
+					var preferredRoot = pcView.InspectedObject.GetRoot();
+					var query =
+						from obj in EnumRoots().OrderBy(root => root == preferredRoot ? 0 : 1).SelectMany(EnumTree)
+						where obj.Id == pc.Value
+						select FindOrCreateNode(obj);
+					var nodeToSelect = query.FirstOrDefault();
+					if (nodeToSelect == null)
+						return;
+					SetSelection(new[] { nodeToSelect });
+				}
+				else if (pc.ValueType == SI.ValueType.ThreadReference)
+				{
+					var thread = threads.Items.FirstOrDefault(t => t.ID == pc.Value);
+					if (thread != null)
+						presentersFacade.ShowThread(thread);
+				}
+				return;
+			}
+			if (pcView.GetTrigger() is ILogSource ls)
+			{
+				presentersFacade.ShowLogSource(ls);
+				return;
+			}
+		}
+
+		class PropertyInfo : IPropertyListItem
+		{
+			public readonly IInspectedObject Object;
+			public readonly string PropertyKey;
+			public readonly PropertyViewBase PropertyView;
+			public readonly bool IsChildProperty;
+			public readonly bool IsSelected;
+
+			public PropertyInfo(IInspectedObject obj, string propKey, PropertyViewBase propView, bool isChildProperty, bool isSelected)
 			{
 				this.Object = obj;
 				this.PropertyKey = propKey;
 				this.PropertyView = propView;
 				this.IsChildProperty = isChildProperty;
+				this.IsSelected = isSelected;
 			}
 
 			public static bool Equal(PropertyInfo p1, PropertyInfo p2)
@@ -725,6 +763,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			{
 				return new KeyValuePair<string, object>(PropertyKey, PropertyView);
 			}
+
+			string IPropertyListItem.Name => PropertyKey;
+			string IPropertyListItem.Value => PropertyView.ToString();
+			bool IPropertyListItem.IsLink => PropertyView.IsLink();
+			bool IPropertyListItem.IsLeftPadded => IsChildProperty;
+
+			string IListItem.Key => $"{Object.Id}.{PropertyKey}";
+			bool IListItem.IsSelected => IsSelected;
 		};
 
 		class InspectedObjectPath
@@ -964,6 +1010,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			bool IListItem.IsSelected => isSelected;
 		};
 
+		class SelectedProperty
+		{
+			public readonly IInspectedObject Object;
+			public readonly string PropertyName;
+			public SelectedProperty(IInspectedObject obj, string propertyName)
+			{
+				Object = obj;
+				PropertyName = propertyName;
+			}
+		};
+
 		readonly IView view;
 		readonly IStateInspectorVisualizerModel model;
 		readonly IUserNamesProvider shortNames;
@@ -989,5 +1046,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		ImmutableArray<StateInspectorEvent> selectedHistoryEvents = ImmutableArray<StateInspectorEvent>.Empty;
 		readonly Func<ImmutableArray<PropertyInfo>> getCurrentProperties;
 		readonly Func<IReadOnlyList<KeyValuePair<string, object>>> getObjectsProperties;
+		readonly Func<IReadOnlyList<IPropertyListItem>> getPropertyItems;
+		SelectedProperty selectedProperty;
 	}
 }
