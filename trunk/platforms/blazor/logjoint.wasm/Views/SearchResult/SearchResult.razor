@@ -1,0 +1,50 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.SearchResult
+@using ViewerP = LogJoint.UI.Presenters.LogViewer
+@implements IDisposable
+@implements IView
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+<div class='search-result @Class'>
+    <div class="toolbar">search toolbar</div>
+    <div class="viewer">
+        <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.SearchResultLogViewer" Class="viewer-grow" />
+    </div>
+</div>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        viewProxies.SearchResult.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.Items),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewProxies.SearchResult.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    ViewerP.IView IView.MessagesView => null;
+
+    void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
+    {
+        // todo
+    }
+}

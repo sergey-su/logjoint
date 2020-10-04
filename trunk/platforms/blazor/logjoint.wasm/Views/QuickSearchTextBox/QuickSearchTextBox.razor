@@ -1,0 +1,57 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.QuickSearchTextBox
+@implements IDisposable
+@implements IView
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+<div class='quick-search-textbox @Class'>
+    <input value="@viewModel.Text" @onchange="@(e => viewModel.OnChangeText(e.Value.ToString()))" />
+</div>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public QuickSearchTextBoxViewProxy ViewProxy { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ViewProxy.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.Text),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        ViewProxy.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    void IView.ReceiveInputFocus()
+    {
+        // todo
+    }
+
+    void IView.SelectAll()
+    {
+        // todo
+    }
+
+    void IView.SelectEnd()
+    {
+        // todo
+    }
+}

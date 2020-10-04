@@ -1,0 +1,42 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.SearchPanel
+@implements IDisposable
+@implements IView
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+<div class='search-panel @Class'>
+    <QuickSearchTextBox ViewProxy="@viewProxies.SearchPanelQuickSearchTextBox"/>
+    <button @onclick="@viewModel.OnSearchButtonClicked">Search</button>
+</div>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        viewProxies.SearchPanel.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.EnableCheckableControls),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewProxies.SearchPanel.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.SearchTextBox => null;
+}

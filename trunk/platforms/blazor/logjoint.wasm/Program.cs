@@ -33,17 +33,22 @@ namespace LogJoint.Wasm
         public UI.SourcesManagerViewProxy SourcesManagerViewProxy = new UI.SourcesManagerViewProxy();
         public UI.Postprocessing.ViewProxy PostprocessingTabPage = new UI.Postprocessing.ViewProxy();
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new UI.Postprocesssing.StateInspector.ViewProxy();
+        public UI.QuickSearchTextBoxViewProxy SearchPanelQuickSearchTextBox = new UI.QuickSearchTextBoxViewProxy();
+        public UI.SearchPanelViewProxy SearchPanel;
+        public UI.SearchResultViewProxy SearchResult;
+        public UI.LogViewer.ViewProxy SearchResultLogViewer = new UI.LogViewer.ViewProxy();
 
         public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
 		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 		public string PostprocessingTabPageId;
-		public LogJoint.UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
 		public LogJoint.UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
 		public LogJoint.UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
 
         public ViewModelObjects()
         {
             this.LoadedMessagesViewProxy = new UI.LoadedMessages.ViewProxy(LoadedMessagesLogViewerViewProxy);
+            this.SearchPanel = new UI.SearchPanelViewProxy(SearchPanelQuickSearchTextBox);
+            this.SearchResult = new UI.SearchResultViewProxy(SearchResultLogViewer);
         }
 	};
 
@@ -87,6 +92,8 @@ namespace LogJoint.Wasm
             Views.CreateSourcesListView().Returns(viewModel.SourcesListViewProxy);
             Views.CreatePostprocessingTabPage().Returns(viewModel.PostprocessingTabPage);
             Views.PostprocessingViewsFactory.CreateStateInspectorView().Returns(viewModel.PostprocesssingStateInspectorViewProxy);
+            Views.CreateSearchPanelView().Returns(viewModel.SearchPanel);
+            Views.CreateSearchResultView().Returns(viewModel.SearchResult);
         }
     };
 }

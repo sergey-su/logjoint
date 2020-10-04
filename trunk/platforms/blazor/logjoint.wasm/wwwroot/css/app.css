@@ -206,7 +206,6 @@ app {
 }
 .main-window .container-3>.bottom {
     height: 200px;
-    display: none;
 }
 
 .loaded-messages {
@@ -510,4 +509,25 @@ app {
 }
 .list>li:focus-within {
     background-color: darkblue;
+}
+
+
+.search-result {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.search-result>.toolbar {
+}
+
+.search-result>.viewer {
+    height: 1px;
+    flex-grow: 2;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.search-result>.viewer>.viewer-grow {
+    width: 1px;
+    flex-grow: 2;
 }
