@@ -13,9 +13,10 @@ namespace LogJoint.UI.Presenters.Tests
 	[TestFixture]
 	public class QuickSearchTextBoxPresenterTests
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		IPresenter presenter;
 		IView view;
+		IChangeNotification changeNotification;
 		const int nrOfSuggestions = 50;
 		const int nrOfNonTextualSuggestions = 3;
 		const int nrOfViewItems = nrOfSuggestions + 2; // +2 is category captions
@@ -25,9 +26,10 @@ namespace LogJoint.UI.Presenters.Tests
 		public void Init()
 		{
 			view = Substitute.For<IView>();
-			view.When(v => v.SetPresenter(Arg.Any<IViewEvents>())).Do(
-				x => eventsHandler = x.Arg<IViewEvents>());
-			presenter = new Presenter(view);
+			view.When(v => v.SetViewModel(Arg.Any<IViewModel>())).Do(
+				x => viewModel = x.Arg<IViewModel>());
+			changeNotification = Substitute.For<IChangeNotification>();
+			presenter = new Presenter(view, changeNotification);
 			onSearchNowRaised = 0;
 			presenter.OnSearchNow += (sender, e) => ++onSearchNowRaised;
 			onCurrentSuggestionChanged = 0;
@@ -67,20 +69,21 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			presenter.SetSuggestionsHandler((sender, e) => { /* does not provide any suggestions */});
 
-			eventsHandler.OnKeyDown(Key.ShowListShortcut);
-			eventsHandler.OnKeyDown(Key.Down);
+			viewModel.OnKeyDown(Key.ShowListShortcut);
+			viewModel.OnKeyDown(Key.Down);
 
-			// none of these is called to avoid unnecessary creation of view's objects
+			// availablity must be false to avoid unnecessary creation of view's objects
 			// for suggestions-less SearchTextBox-es
-			view.DidNotReceive().SetListVisibility(true);
-			view.DidNotReceiveWithAnyArgs().SetListItems(null);
-			view.DidNotReceiveWithAnyArgs().SetListSelectedItem(0);
+			Assert.IsFalse(viewModel.SuggestionsListAvailabile);
+			Assert.IsFalse(viewModel.SuggestionsListVisibile);
+			Assert.IsEmpty(viewModel.SuggestionsListItems);
+			Assert.IsNull(viewModel.SelectedSuggestionsListItem);
 		}
 
 		[Test]
 		public void ClickingDropdownButtonMakesInputBoxFocused()
 		{
-			eventsHandler.OnDropDownButtonClicked();
+			viewModel.OnDropDownButtonClicked();
 
 			view.Received().ReceiveInputFocus();
 		}
@@ -90,11 +93,11 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			SetSuggestionsEventHandler();
 
-			eventsHandler.OnKeyDown(Key.ShowListShortcut);
+			viewModel.OnKeyDown(Key.ShowListShortcut);
 
-			view.Received().SetListVisibility(true);
-			view.Received().SetListItems(Arg.Is<List<ViewListItem>>(l => l.Count == nrOfViewItems));
-			view.Received().SetListSelectedItem(1);
+			Assert.IsTrue(viewModel.SuggestionsListVisibile);
+			Assert.AreEqual(nrOfViewItems, viewModel.SuggestionsListItems.Count);
+			Assert.AreEqual(1, viewModel.SelectedSuggestionsListItem);
 		}
 
 		[Test]
@@ -102,11 +105,11 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			SetSuggestionsEventHandler();
 
-			eventsHandler.OnKeyDown(Key.Down);
+			viewModel.OnKeyDown(Key.Down);
 
-			view.Received().SetListVisibility(true);
-			view.Received().SetListItems(Arg.Is<List<ViewListItem>>(l => l.Count == nrOfViewItems));
-			view.Received().SetListSelectedItem(1);
+			Assert.IsTrue(viewModel.SuggestionsListVisibile);
+			Assert.AreEqual(nrOfViewItems, viewModel.SuggestionsListItems.Count);
+			Assert.AreEqual(1, viewModel.SelectedSuggestionsListItem);
 		}
 
 		[Test]
@@ -114,10 +117,10 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			SetSuggestionsEventHandler();
 
-			view.Text.Returns("test 20");
-			eventsHandler.OnKeyDown(Key.ShowListShortcut);
+			viewModel.OnChangeText("test 20");
+			viewModel.OnKeyDown(Key.ShowListShortcut);
 
-			view.Received().SetListSelectedItem(21);
+			Assert.AreEqual(21, viewModel.SelectedSuggestionsListItem);
 		}
 
 		[Test]
@@ -125,12 +128,13 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			SetSuggestionsEventHandler();
 
-			eventsHandler.OnKeyDown(Key.ShowListShortcut);
-			eventsHandler.OnSuggestionClicked(6);
+			viewModel.OnKeyDown(Key.ShowListShortcut);
+			viewModel.OnSuggestionClicked(6);
 
-			view.Received().SetListVisibility(false);
-			view.Received().Text = "search 5";
+			Assert.IsFalse(viewModel.SuggestionsListVisibile);
+			Assert.AreEqual("search 5", viewModel.Text);
 		}
+
 
 		[Test]
 		[Category("user use cases")]
@@ -138,11 +142,9 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			SetSuggestionsEventHandler();
 
-			view.Text.Returns("foo");
-			eventsHandler.OnTextChanged();
-			view.Text.Returns("foo bar");
-			eventsHandler.OnTextChanged();
-			eventsHandler.OnKeyDown(Key.Enter);
+			viewModel.OnChangeText("foo");
+			viewModel.OnChangeText("foo bar");
+			viewModel.OnKeyDown(Key.Enter);
 
 			Assert.AreEqual(1, onSearchNowRaised);
 		}
@@ -154,9 +156,9 @@ namespace LogJoint.UI.Presenters.Tests
 			SetSuggestionsEventHandler();
 
 			presenter.Focus("foo bar");
-			eventsHandler.OnKeyDown(Key.Enter);
+			viewModel.OnKeyDown(Key.Enter);
 
-			view.Received().Text = "foo bar";
+			Assert.AreEqual("foo bar", viewModel.Text);
 			Assert.AreEqual(1, onSearchNowRaised);
 		}
 
@@ -167,11 +169,11 @@ namespace LogJoint.UI.Presenters.Tests
 			SetSuggestionsEventHandler();
 
 			presenter.Focus("");
-			eventsHandler.OnKeyDown(Key.Down);
-			eventsHandler.OnKeyDown(Key.Enter);
-			eventsHandler.OnKeyDown(Key.Enter);
+			viewModel.OnKeyDown(Key.Down);
+			viewModel.OnKeyDown(Key.Enter);
+			viewModel.OnKeyDown(Key.Enter);
 
-			view.Received().Text = "search 0";
+			Assert.AreEqual("search 0", viewModel.Text);
 			Assert.AreEqual(1, onCurrentSuggestionChanged);
 			Assert.AreEqual(1, onSearchNowRaised);
 			Assert.AreEqual("search 0", presenter.CurrentSuggestion.Value.SearchString);
@@ -184,20 +186,17 @@ namespace LogJoint.UI.Presenters.Tests
 			SetSuggestionsEventHandler();
 
 			presenter.Focus("");
-			eventsHandler.OnKeyDown(Key.ShowListShortcut);
-			view.Text.Returns("test");
-			eventsHandler.OnTextChanged();
-			view.Text.Returns("test 4");
-			eventsHandler.OnTextChanged();
-			eventsHandler.OnKeyDown(Key.Enter);
-			eventsHandler.OnKeyDown(Key.Enter);
+			viewModel.OnKeyDown(Key.ShowListShortcut);
+			viewModel.OnChangeText("test");
+			viewModel.OnChangeText("test 4");
+			viewModel.OnKeyDown(Key.Enter);
+			viewModel.OnKeyDown(Key.Enter);
 
-			view.Received().Text = "search 4";
+			Assert.AreEqual("search 4", viewModel.Text);
 			Assert.AreEqual(1, onCurrentSuggestionChanged);
 			Assert.AreEqual(1, onSearchNowRaised);
 			Assert.AreEqual("search 4", presenter.CurrentSuggestion.Value.SearchString);
 		}
-
 
 		[Test]
 		[Category("user use cases")]
@@ -206,11 +205,11 @@ namespace LogJoint.UI.Presenters.Tests
 			SetSuggestionsEventHandler();
 
 			presenter.Focus("");
-			eventsHandler.OnKeyDown(Key.ShowListShortcut);
-			eventsHandler.OnSuggestionClicked(nrOfViewItems - 1);
-			eventsHandler.OnKeyDown(Key.Enter);
+			viewModel.OnKeyDown(Key.ShowListShortcut);
+			viewModel.OnSuggestionClicked(nrOfViewItems - 1);
+			viewModel.OnKeyDown(Key.Enter);
 
-			view.Received().Text = "non-textual 2";
+			Assert.AreEqual("non-textual 2", viewModel.Text);
 			Assert.AreEqual(1, onCurrentSuggestionChanged);
 			Assert.AreEqual(1, onSearchNowRaised);
 			Assert.AreEqual("cat2.2", (string)presenter.CurrentSuggestion.Value.Data);
@@ -223,14 +222,13 @@ namespace LogJoint.UI.Presenters.Tests
 			SetSuggestionsEventHandler();
 
 			presenter.Focus("");
-			eventsHandler.OnKeyDown(Key.ShowListShortcut);
-			eventsHandler.OnSuggestionClicked(nrOfViewItems - 1);
+			viewModel.OnKeyDown(Key.ShowListShortcut);
+			viewModel.OnSuggestionClicked(nrOfViewItems - 1);
 
 			Assert.AreEqual(1, onCurrentSuggestionChanged);
 			Assert.AreEqual("cat2.2", (string)presenter.CurrentSuggestion.Value.Data);
 
-			view.Text.Returns("");
-			eventsHandler.OnTextChanged();
+			viewModel.OnChangeText("");
 			Assert.AreEqual(2, onCurrentSuggestionChanged);
 			Assert.IsNull(presenter.CurrentSuggestion);
 		}

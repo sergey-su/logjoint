@@ -16,6 +16,7 @@
 			if (disposing && (components != null))
 			{
 				components.Dispose();
+				subscription?.Dispose();
 			}
 			base.Dispose(disposing);
 		}

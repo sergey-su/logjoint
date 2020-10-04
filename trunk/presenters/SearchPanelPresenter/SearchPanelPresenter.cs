@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			StatusReports.IPresenter statusReportFactory,
 			SearchEditorDialog.IPresenter searchEditorDialog,
 			SearchesManagerDialog.IPresenter searchesManagerDialog,
-			IAlertPopup alerts
+			IAlertPopup alerts,
+			IChangeNotification changeNotification
 		)
 		{
 			this.view = view;
@@ -35,7 +36,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.sourcesManager = sourcesManager;
 			this.searchesManagerDialog = searchesManagerDialog;
 			this.alerts = alerts;
-			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(view.SearchTextBox);
+			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(view.SearchTextBox, changeNotification);
 			this.searchEditorDialog = searchEditorDialog;
 
 			InvalidateSearchHistoryList();

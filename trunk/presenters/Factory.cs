@@ -251,7 +251,8 @@ namespace LogJoint.UI.Presenters
 				statusReportFactory,
 				searchEditorDialog,
 				searchesManagerDialogPresenter,
-				alertPopup
+				alertPopup,
+				model.ChangeNotification
 			);
 
 			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter =
@@ -312,7 +313,7 @@ namespace LogJoint.UI.Presenters
 				model.LogSourcesPreprocessings,
 				model.PreprocessingStepsFactory,
 				model.RecentlyUsedLogs,
-				new QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox),
+				new QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox, model.ChangeNotification),
 				alertPopup,
 				model.TraceSourceFactory
 			);

@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			this.model = model;
 			this.view = view;
 			this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(initiallyActive: false);
-			this.quickSearchTextBoxPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox);
+			this.quickSearchTextBoxPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox, changeNotification);
 			this.stateInspectorVisualizer = stateInspectorVisualizer;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.presentersFacade = presentersFacade;

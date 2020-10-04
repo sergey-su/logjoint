@@ -1,29 +1,51 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using LogJoint.Postprocessing;
+using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Presenters.QuickSearchTextBox
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		readonly IView view;
+		readonly IChangeNotification changeNotification;
+		string text = "";
+		bool textEditingRestricted = false;
 		string realtimeSearchCachedText;
 		EventHandler<SearchSuggestionsEventArgs> onSuggest;
-		List<ViewListItem> suggestions = new List<ViewListItem>();
+		ImmutableArray<SuggestionsListItem> suggestions = ImmutableArray<SuggestionsListItem>.Empty;
+		int suggestionsListVersion;
 		string suggestionsEtag;
 		bool suggestionsListVisible;
-		bool viewSuggestionsListValid;
 		int selectedSuggestion;
 		SuggestionItem? currentSuggestion;
-		bool currentSuggestionUpdateLock, textChangeHandlingLock;
+		bool currentSuggestionUpdateLock;
+		Task quickSearchTimerTask;
+		int currentQuickSearchTimerId = 0;
+		readonly Func<IReadOnlyList<ISuggestionsListItem>> viewListItems;
 
-		public Presenter(IView view)
+		public Presenter(IView view, IChangeNotification changeNotification)
 		{
 			this.view = view;
+			this.changeNotification = changeNotification;
 
-			view.SetPresenter(this);
+			this.viewListItems = Selectors.Create(
+				() => suggestions,
+				() => selectedSuggestion,
+				() => suggestionsListVisible,
+				(presentationObjects, selected, visible) =>
+				{
+					return visible ?
+						(IReadOnlyList<ISuggestionsListItem>)presentationObjects.Select((obj, idx) => new SuggestionsViewListItem(obj, idx == selected)).ToImmutableArray()
+						: ImmutableList<ISuggestionsListItem>.Empty;
+				}
+			);
+
+			view.SetViewModel(this);
 		}
 
 		public event EventHandler<SearchEventArgs> OnSearchNow;
@@ -33,10 +55,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		public event EventHandler<SearchSuggestionEventArgs> OnSuggestionLinkClicked;
 		public event EventHandler<CategoryLinkEventArgs> OnCategoryLinkClicked;
 
-		string IPresenter.Text
-		{
-			get { return view.Text; }
-		}
+		string IPresenter.Text => text;
 
 		void IPresenter.SetSuggestionsHandler(EventHandler<SearchSuggestionsEventArgs> handler)
 		{
@@ -48,7 +67,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		void IPresenter.Focus(string initialSearchString)
 		{
 			if (initialSearchString != null)
-				SetViewText(initialSearchString);
+				SetText(initialSearchString);
 			view.SelectEnd();
 			view.ReceiveInputFocus();
 		}
@@ -60,7 +79,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		void IPresenter.Reset()
 		{
-			if (view.Text != "")
+			if (text != "")
 			{
 				CancelInternal();
 			}
@@ -83,7 +102,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			}
 		}
 
-		void IViewEvents.OnKeyDown(Key key)
+		void IViewModel.OnKeyDown(Key key)
 		{
 			int suggestionsListPageSz = 20;
 			switch (key)
@@ -99,7 +118,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					}
 					else
 					{
-						this.realtimeSearchCachedText = view.Text;
+						this.realtimeSearchCachedText = text;
 						OnSearchNow?.Invoke(this, new SearchEventArgs()
 						{
 							ReverseSearchModifier = key == Key.EnterWithReverseSearchModifier
@@ -124,7 +143,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			}
 		}
 
-		void IViewEvents.OnSuggestionClicked(int suggestionIndex)
+		void IViewModel.OnSuggestionClicked(int suggestionIndex)
 		{
 			TryUseSuggestion(
 				suggestionIndex, 
@@ -132,12 +151,12 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			);
 		}
 
-		void IViewEvents.OnSuggestionLinkClicked(int suggestionIndex)
+		void IViewModel.OnSuggestionLinkClicked(int suggestionIndex)
 		{
 			TryHandleLinkClick(suggestionIndex);
 		}
 
-		void IViewEvents.OnDropDownButtonClicked()
+		void IViewModel.OnDropDownButtonClicked()
 		{
 			if (suggestionsListVisible)
 			{
@@ -150,45 +169,72 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			}
 		}
 
-		void IViewEvents.OnLostFocus()
+		void IViewModel.OnLostFocus()
 		{
 			TryHideSuggestions();
 		}
 
-		void IViewEvents.OnQuickSearchTimerTriggered()
+		void IViewModel.OnChangeText(string value)
 		{
-			if (view.Text != realtimeSearchCachedText)
+			SetText(value);
+		}
+
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		string IViewModel.Text => text;
+
+		bool IViewModel.TextEditingRestricted => textEditingRestricted;
+
+		bool IViewModel.SuggestionsListAvailabile => suggestions.Length != 0;
+
+		bool IViewModel.SuggestionsListVisibile => suggestionsListVisible;
+
+		IReadOnlyList<ISuggestionsListItem> IViewModel.SuggestionsListItems => viewListItems();
+
+		int? IViewModel.SelectedSuggestionsListItem => suggestionsListVisible ? selectedSuggestion : new int?();
+
+		int IViewModel.SuggestionsListContentVersion => suggestionsListVersion;
+
+		bool IViewModel.ClearTextIconVisible => text.Length > 0;
+
+		void IViewModel.OnClearTextIconClicked()
+		{
+			SetText("");
+		}
+
+		void OnQuickSearchTimerTriggered()
+		{
+			if (text != realtimeSearchCachedText)
 			{
-				realtimeSearchCachedText = view.Text;
+				realtimeSearchCachedText = text;
 				OnRealtimeSearch?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
-		void IViewEvents.OnTextChanged()
+		async Task QuickSearchTimer(int id)
 		{
-			HandleTextChange ();
+			await Task.Delay(500);
+			if (id == currentQuickSearchTimerId)
+				OnQuickSearchTimerTriggered();
 		}
 
-		void HandleTextChange ()
+		void HandleTextChange()
 		{
-			if (textChangeHandlingLock)
-				return;
-			
-			view.ResetQuickSearchTimer (500);
+			quickSearchTimerTask = QuickSearchTimer(++currentQuickSearchTimerId);
 
 			TryUpdateSelectedSuggestion ();
 
 			if (!currentSuggestionUpdateLock && currentSuggestion != null) 
 			{
 				currentSuggestion = null;
-				view.RestrictTextEditing (false);
+				textEditingRestricted = false;
 				OnCurrentSuggestionChanged?.Invoke (this, EventArgs.Empty);
 			}
 		}
 
 		void CancelInternal()
 		{
-			SetViewText("");
+			SetText("");
 			this.realtimeSearchCachedText = "";
 			OnCancelled?.Invoke(this, EventArgs.Empty);
 		}
@@ -197,8 +243,9 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			if (!suggestionsListVisible)
 				return false;
-			view.SetListVisibility(false);
 			suggestionsListVisible = false;
+			suggestionsListVersion++;
+			changeNotification.Post();
 			return true;
 		}
 
@@ -207,12 +254,12 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			if (suggestionsListVisible)
 				return false;
 			UpdateSuggestions();
-			if (suggestions.Count == 0)
+			if (suggestions.IsEmpty)
 				return false;
 			suggestionsListVisible = true;
-			view.SetListVisibility(true);
-			UpdateViewSuggestionsList();
+			suggestionsListVersion++;
 			TryUpdateSelectedSuggestion();
+			changeNotification.Post();
 			return true;
 		}
 
@@ -220,7 +267,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			if (suggestions == null)
 				return false;
-			if (suggestionIndex < 0 || suggestionIndex >= suggestions.Count)
+			if (suggestionIndex < 0 || suggestionIndex >= suggestions.Length)
 				return false;
 			if (!ignoreSelectability && !suggestions[suggestionIndex].IsSelectable)
 				return false;
@@ -238,8 +285,8 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 				() => currentSuggestionUpdateLock = true,
 				() => currentSuggestionUpdateLock = false))
 			{
-				SetViewText(suggestion.SearchString ?? suggestion.DisplayString);
-				view.RestrictTextEditing(suggestion.SearchString == null);
+				SetText(suggestion.SearchString ?? suggestion.DisplayString);
+				textEditingRestricted = suggestion.SearchString == null;
 				currentSuggestion = suggestion;
 				OnCurrentSuggestionChanged?.Invoke(this, EventArgs.Empty);
 			}
@@ -252,7 +299,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			if (!ValidateSuggestionIndex(suggestionIndex, ignoreSelectability: true))
 				return false;
 			var suggestion = suggestions[suggestionIndex];
-			if (string.IsNullOrEmpty(suggestion.LinkText))
+			if (string.IsNullOrEmpty(suggestion.linkText))
 				return false;
 			if (suggestion.IsSelectable)
 				OnSuggestionLinkClicked?.Invoke(this, new SearchSuggestionEventArgs()
@@ -267,12 +314,14 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			return true;
 		}
 
-		void SetViewText(string value)
+		void SetText(string value)
 		{
-			textChangeHandlingLock = true;
-			view.Text = value;
-			textChangeHandlingLock = false;
-			HandleTextChange();
+			if (text != value)
+			{
+				text = value;
+				HandleTextChange();
+				changeNotification.Post();
+			}
 		}
 
 		void UpdateSuggestions()
@@ -295,36 +344,25 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 				}))
 				.GroupBy(i => i.Category)
 				.SelectMany(g => 
-					Enumerable.Repeat(new ViewListItem()
+					Enumerable.Repeat(new SuggestionsListItem()
 					{
-						Text = g.Key,
-						LinkText = evt.categoryLinks.TryGeyValue(g.Key),
+						text = g.Key,
+						linkText = evt.categoryLinks.TryGeyValue(g.Key),
 						data = null,
-						category = g.Key,
+						category = g.Key
 					}, 1)
-					.Union(g.Where(i => i.Data != categoryPlaceholderTag).Select(i => new ViewListItem()
+					.Union(g.Where(i => i.Data != categoryPlaceholderTag).Select(i => new SuggestionsListItem()
 					{
-						Text = i.DisplayString,
-						LinkText = i.LinkText,
+						text = i.DisplayString,
+						linkText = i.LinkText,
 						data = i
 					}))
 				)
-				.ToList();
+				.ToImmutableArray();
+			suggestionsListVersion++;
 			suggestionsEtag = evt.Etag;
-			view.SetListAvailability(suggestions.Count != 0);
 
-			viewSuggestionsListValid = false;
-			UpdateViewSuggestionsList();
-		}
-
-		void UpdateViewSuggestionsList()
-		{
-			if (!suggestionsListVisible)
-				return;
-			if (viewSuggestionsListValid)
-				return;
-			viewSuggestionsListValid = true;
-			view.SetListItems(suggestions);
+			changeNotification.Post();
 		}
 
 		static int GetSuggestionRating(string suggestionText, string userInput, string[] userInputSplit) 
@@ -358,7 +396,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			if (!suggestionsListVisible)
 				return false;
-			if (suggestions.Count == 0)
+			if (suggestions.IsEmpty)
 				return false;
 			if (delta == null)
 			{
@@ -366,14 +404,14 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					suggestions
 					.Select((s, i) => new KeyValuePair<int, string>(i, s.IsSelectable ? s.data.Value.DisplayString : null))
 					.Where(x => x.Value != null),
-					view.Text
+					text
 				);
 			}
 			else if (Math.Abs(delta.Value) == 1)
 			{
 				for (;;)
 				{
-					selectedSuggestion = (selectedSuggestion + delta.Value + suggestions.Count) % suggestions.Count;
+					selectedSuggestion = (selectedSuggestion + delta.Value + suggestions.Length) % suggestions.Length;
 					if (suggestions[selectedSuggestion].IsSelectable)
 						break;
 				}
@@ -382,7 +420,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			{
 				Func<int, bool> trySet = val =>
 				{
-					val = RangeUtils.PutInRange(0, suggestions.Count - 1, val);
+					val = RangeUtils.PutInRange(0, suggestions.Length - 1, val);
 					if (!suggestions[val].IsSelectable)
 						return false;
 					selectedSuggestion = val;
@@ -394,8 +432,39 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 						break;
 				}
 			}
-			view.SetListSelectedItem(selectedSuggestion);
+			changeNotification.Post();
 			return true;
 		}
+
+		class SuggestionsListItem
+		{
+			internal string text;
+			internal string linkText;
+			internal SuggestionItem? data;
+			internal string category;
+			internal bool IsSelectable => data != null;
+		};
+
+		class SuggestionsViewListItem : ISuggestionsListItem
+		{
+			public SuggestionsViewListItem(SuggestionsListItem presentationObject, bool isSelected)
+			{
+				this.presentationObject = presentationObject;
+				this.isSelected = isSelected;
+				this.key = $"t:{presentationObject.text}.l:{presentationObject.linkText}";
+			}
+
+			string ISuggestionsListItem.Text => presentationObject.text;
+			bool ISuggestionsListItem.IsSelectable => presentationObject.IsSelectable;
+			string ISuggestionsListItem.LinkText => presentationObject.linkText;
+			bool IListItem.IsSelected => isSelected;
+			string IListItem.Key => key;
+			public override string ToString() => presentationObject.text;
+
+			readonly SuggestionsListItem presentationObject;
+			readonly bool isSelected;
+			readonly string key;
+		};
+
 	};
 };

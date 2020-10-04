@@ -1,3 +1,4 @@
+using LogJoint.UI.Presenters.Reactive;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,39 +24,39 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 	public interface IView
 	{
-		void SetPresenter(IViewEvents viewEvents);
+		void SetViewModel(IViewModel viewModel);
 
-		string Text { get; set; }
 		void SelectEnd();
 		void SelectAll();
 		void ReceiveInputFocus();
-		void ResetQuickSearchTimer(int due);
-		void SetListAvailability(bool value);
-		void SetListVisibility(bool value);
-		void SetListItems(List<ViewListItem> items);
-		void SetListSelectedItem(int index);
-		void RestrictTextEditing(bool restrict);
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
-		void OnTextChanged();
-		void OnQuickSearchTimerTriggered();
+		IChangeNotification ChangeNotification { get; }
+		string Text { get; }
+		bool TextEditingRestricted { get; }
+		bool ClearTextIconVisible { get; }
+		bool SuggestionsListAvailabile { get; }
+		bool SuggestionsListVisibile { get; }
+		IReadOnlyList<ISuggestionsListItem> SuggestionsListItems { get; }
+		// The two below are to support non-reactive views
+		int SuggestionsListContentVersion { get; } // changes when SuggestionsListItems change for the reason different from selection change
+		int? SelectedSuggestionsListItem { get; }
+		void OnChangeText(string value);
 		void OnKeyDown(Key key);
 		void OnLostFocus();
 		void OnSuggestionClicked(int suggestionIndex);
 		void OnSuggestionLinkClicked(int suggestionIndex);
 		void OnDropDownButtonClicked();
+		void OnClearTextIconClicked();
 	};
 
-	public struct ViewListItem
+	public interface ISuggestionsListItem: IListItem
 	{
-		public string Text { get; internal set; }
-		public bool IsSelectable => data != null;
-		public string LinkText { get; internal set; }
-
-		internal SuggestionItem? data;
-		internal string category;
+		string Text { get; }
+		bool IsSelectable { get; }
+		string LinkText { get; }
 	};
 
 	public enum Key

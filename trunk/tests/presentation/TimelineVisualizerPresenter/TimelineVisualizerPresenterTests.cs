@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			changeNotification = Substitute.For<IChangeNotification>();
 			theme = Substitute.For<IColorTheme>();
 			theme.ThreadColors.Returns(ImmutableArray.Create(new Color(1), new Color(2)));
-			presentationObjectsFactory.CreateQuickSearch(Arg.Any<QuickSearchTextBox.IView>()).Returns(quickSearchTextBoxPresenter);
+			presentationObjectsFactory.CreateQuickSearch(Arg.Any<QuickSearchTextBox.IView>(), Arg.Any<IChangeNotification>()).Returns(quickSearchTextBoxPresenter);
 		}
 
 		protected void MakePresenter(ITimelineVisualizerModel model)

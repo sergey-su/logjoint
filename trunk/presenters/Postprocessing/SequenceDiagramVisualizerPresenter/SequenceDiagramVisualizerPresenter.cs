@@ -78,7 +78,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			this.view = view;
 			this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(initiallyActive: false);
 			this.stateInspectorPresenter = stateInspectorPresenter;
-			this.quickSearchPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox);
+			this.quickSearchPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox, changeNotification);
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.bookmarks = bookmarks;
 			this.presentersFacade = presentersFacade;

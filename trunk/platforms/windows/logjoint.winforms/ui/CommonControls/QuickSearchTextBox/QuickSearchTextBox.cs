@@ -24,9 +24,9 @@ namespace LogJoint.UI.QuickSearchTextBox
 			this.picture.Image = QuickSearchTextBoxResources.search_small;
 			this.picture.Click += (s, e) =>
 			{
-				if (clearSearchIconSet)
-					this.Text = "";
-				else if (CanFocus)
+				if (viewModel.ClearTextIconVisible)
+					viewModel.OnClearTextIconClicked();
+				if (CanFocus)
 					Focus();
 			};
 
@@ -60,13 +60,63 @@ namespace LogJoint.UI.QuickSearchTextBox
 			};
 			this.dropDownButton.Click += (s, e) =>
 			{
-				viewEvents.OnDropDownButtonClicked();
+				viewModel.OnDropDownButtonClicked();
 			};
 		}
 
-		void IView.SetPresenter(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewModel = viewModel;
+
+			var updateListAvailability = Updaters.Create(
+				() => viewModel.SuggestionsListAvailabile,
+				SetListAvailability
+			);
+			var updateListVisibility = Updaters.Create(
+				() => viewModel.SuggestionsListVisibile,
+				SetListVisibility
+			);
+			var updateList = Updaters.Create(
+				() => viewModel.SuggestionsListItems,
+				() => viewModel.SuggestionsListAvailabile,
+				(items, available) =>
+				{
+					if (available && viewModel.SuggestionsListContentVersion != listVersion)
+					{
+						listVersion = viewModel.SuggestionsListContentVersion;
+						SetListItems(items);
+					}
+				}
+			);
+			var updateSelectedListItem = Updaters.Create(
+				() => viewModel.SelectedSuggestionsListItem,
+				SetListSelectedItem
+			);
+			var udateText = Updaters.Create(
+				() => viewModel.Text,
+				value =>
+				{
+					using (new ScopedGuard(() => lockTextChange = true, () => lockTextChange = false))
+						base.Text = value;
+				}
+			);
+			var updateClearIcon = Updaters.Create(
+				() => viewModel.ClearTextIconVisible,
+				value =>
+				{
+					picture.Image = value ?
+						QuickSearchTextBoxResources.close_16x16 : QuickSearchTextBoxResources.search_small;
+				}
+			);
+			subscription = viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				updateListAvailability();
+				updateListVisibility();
+				updateList();
+				updateSelectedListItem();
+				udateText();
+				updateClearIcon();
+			});
 		}
 
 		void IView.SelectEnd()
@@ -85,38 +135,16 @@ namespace LogJoint.UI.QuickSearchTextBox
 				this.Focus();
 		}
 
-		void IView.ResetQuickSearchTimer(int due)
-		{
-			if (realtimeSearchTimer == null)
-			{
-				realtimeSearchTimer = new Timer() { Interval = 500 };
-				realtimeSearchTimer.Tick += (timer, timerEvt) =>
-				{
-					realtimeSearchTimer.Enabled = false;
-					viewEvents.OnQuickSearchTimerTriggered();
-				};
-			}
-			realtimeSearchTimer.Enabled = false;
-			realtimeSearchTimer.Enabled = true;
-		}
-
-		string IView.Text
-		{
-			get { return base.Text; }
-			set { base.Text = value; }
-		}
-
-		void IView.SetListAvailability(bool value)
+		void SetListAvailability(bool value)
 		{
 			if (!value && suggestionsList == null)
 				return;
 			EnsureSuggestionsList();
 			dropDownButton.Visible = value;
-			listAvailable = value;
 			LayoutChildren();
 		}
 
-		void IView.SetListVisibility(bool value)
+		void SetListVisibility(bool value)
 		{
 			if (!value && suggestionsList == null)
 				return;
@@ -130,30 +158,24 @@ namespace LogJoint.UI.QuickSearchTextBox
 			dropDownButton.Invalidate();
 		}
 
-		void IView.SetListItems(List<ViewListItem> items)
+		void SetListItems(IReadOnlyList<ISuggestionsListItem> items)
 		{
 			EnsureSuggestionsList();
 			suggestionsList.Items.Clear();
-			suggestionsList.Items.AddRange(items.Select(i => new SuggestionsListItem()
-			{
-				PresentationObject = i
-			}).ToArray());
+			suggestionsList.Items.AddRange(items.ToArray());
 		}
 
-		void IView.SetListSelectedItem(int index)
+		void SetListSelectedItem(int? index)
 		{
+			if (index == null && suggestionsList == null)
+				return;
 			EnsureSuggestionsList();
-			suggestionsList.SelectedIndex = index;
-		}
-
-		void IView.RestrictTextEditing(bool restrict)
-		{
-			editingRestricted = restrict;
+			suggestionsList.SelectedIndex = index.GetValueOrDefault(-1);
 		}
 
 		protected override void OnLostFocus(EventArgs e)
 		{
-			viewEvents.OnLostFocus();
+			viewModel.OnLostFocus();
 			base.OnLostFocus(e);
 		}
 
@@ -167,7 +189,7 @@ namespace LogJoint.UI.QuickSearchTextBox
 				key = Key.HideListShortcut;
 			if (key != Key.None)
 			{
-				viewEvents.OnKeyDown(key);
+				viewModel.OnKeyDown(key);
 				return;
 			}
 			base.OnPreviewKeyDown(e);
@@ -190,10 +212,10 @@ namespace LogJoint.UI.QuickSearchTextBox
 				key = Key.Enter;
 			if (key != Key.None) 
 			{
-				viewEvents.OnKeyDown(key);
+				viewModel.OnKeyDown(key);
 				return true; // this suppresses "ding" sound on ENTER
 			}
-			if (editingRestricted)
+			if (viewModel.TextEditingRestricted)
 			{
 				bool allowChange =
 					// text navigation
@@ -218,20 +240,11 @@ namespace LogJoint.UI.QuickSearchTextBox
 
 		protected override void OnTextChanged(EventArgs e)
 		{
-			if (prevText != this.Text)
+			if (!lockTextChange && prevText != this.Text)
 			{
-				viewEvents.OnTextChanged();
+				viewModel.OnChangeText(this.Text);
 				prevText = this.Text;
 			}
-
-			bool needToSetClearSearchIcon = this.Text != "";
-			if (clearSearchIconSet != needToSetClearSearchIcon)
-			{
-				this.picture.Image = needToSetClearSearchIcon ?
-					QuickSearchTextBoxResources.close_16x16 : QuickSearchTextBoxResources.search_small;
-				clearSearchIconSet = needToSetClearSearchIcon;
-			}
-
 			base.OnTextChanged(e);
 		}
 
@@ -252,7 +265,7 @@ namespace LogJoint.UI.QuickSearchTextBox
 			var childY = (cliSz.Height - childSz) / 2;
 			var childX = cliSz.Width - cliSz.Height + (cliSz.Height - childSz) / 2;
 
-			if (listAvailable)
+			if (viewModel.SuggestionsListAvailabile)
 			{
 				dropDownButton.Size = new Size(childSz, childSz);
 				dropDownButton.Location = new Point(childX, childY);
@@ -298,15 +311,15 @@ namespace LogJoint.UI.QuickSearchTextBox
 			suggestionsList.DrawItem += (s, e) =>
 			{
 				e.DrawBackground();
-				var item = suggestionsList.Items.Cast<SuggestionsListItem>().ElementAtOrDefault(e.Index);
+				var item = suggestionsList.Items.Cast<ISuggestionsListItem>().ElementAtOrDefault(e.Index);
 				if (item == null)
 					return;
 
 				using (var b = new SolidBrush(e.ForeColor))
-					e.Graphics.DrawString(item.PresentationObject.Text ?? "", this.Font,
-						item.PresentationObject.IsSelectable ? b : Brushes.LightGray, e.Bounds);
+					e.Graphics.DrawString(item.Text ?? "", this.Font,
+						item.IsSelectable ? b : Brushes.LightGray, e.Bounds);
 
-				var lnk = item.PresentationObject.LinkText;
+				var lnk = item.LinkText;
 				if (!string.IsNullOrEmpty(lnk))
 				{
 					using (var sf = new StringFormat() { Alignment = StringAlignment.Far })
@@ -323,20 +336,20 @@ namespace LogJoint.UI.QuickSearchTextBox
 					var r = suggestionsList.GetItemRectangle(i);
 					if (r.Contains(e.Location))
 					{
-						var item = (SuggestionsListItem)suggestionsList.Items[i];
-						if (item.PresentationObject.LinkText != null)
+						var item = (ISuggestionsListItem)suggestionsList.Items[i];
+						if (item.LinkText != null)
 						{
 							using (var g = CreateGraphics())
 							{
-								var linkW = (int)g.MeasureString(item.PresentationObject.LinkText, this.Font).Width;
+								var linkW = (int)g.MeasureString(item.LinkText, this.Font).Width;
 								if (new Rectangle(r.Right - linkW, r.Y, linkW, r.Height).Contains(e.Location))
 								{
-									viewEvents.OnSuggestionLinkClicked(i);
+									viewModel.OnSuggestionLinkClicked(i);
 									break;
 								}
 							}
 						}
-						viewEvents.OnSuggestionClicked(i);
+						viewModel.OnSuggestionClicked(i);
 						break;
 					}
 				}
@@ -353,11 +366,6 @@ namespace LogJoint.UI.QuickSearchTextBox
 			);
 		}
 
-		class SuggestionsListItem
-		{
-			public ViewListItem PresentationObject;
-		};
-
 		class SuggestionsList:  ListBox
 		{
 		};
@@ -372,12 +380,11 @@ namespace LogJoint.UI.QuickSearchTextBox
 
 		readonly PictureBox picture = new PictureBox();
 		readonly Button dropDownButton = new DropDownButton();
-		bool clearSearchIconSet;
-		bool listAvailable;
-		IViewEvents viewEvents;
-		Timer realtimeSearchTimer;
+		IViewModel viewModel;
+		ISubscription subscription;
 		ListBox suggestionsList;
-		bool editingRestricted;
 		string prevText;
+		int? listVersion;
+		bool lockTextChange;
 	}
 }
