@@ -16,6 +16,7 @@
 			if (disposing && (components != null))
 			{
 				components.Dispose();
+				subscription?.Dispose();
 			}
 			base.Dispose(disposing);
 		}
@@ -55,6 +56,7 @@
 			this.searchInSearchResultsCheckBox.TabIndex = 50;
 			this.searchInSearchResultsCheckBox.Text = "In search results";
 			this.searchInSearchResultsCheckBox.UseVisualStyleBackColor = true;
+			this.searchInSearchResultsCheckBox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// fromCurrentPositionCheckBox
 			// 
@@ -66,6 +68,7 @@
 			this.fromCurrentPositionCheckBox.TabIndex = 52;
 			this.fromCurrentPositionCheckBox.Text = "From current position";
 			this.fromCurrentPositionCheckBox.UseVisualStyleBackColor = true;
+			this.fromCurrentPositionCheckBox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// searchNextMessageRadioButton
 			// 
@@ -77,7 +80,7 @@
 			this.searchNextMessageRadioButton.TabIndex = 48;
 			this.searchNextMessageRadioButton.Text = "Quick search:";
 			this.searchNextMessageRadioButton.UseVisualStyleBackColor = true;
-			this.searchNextMessageRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButton_CheckedChanged);
+			this.searchNextMessageRadioButton.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// searchAllOccurencesRadioButton
 			// 
@@ -91,7 +94,7 @@
 			this.searchAllOccurencesRadioButton.TabStop = true;
 			this.searchAllOccurencesRadioButton.Text = "Search all occurences:";
 			this.searchAllOccurencesRadioButton.UseVisualStyleBackColor = true;
-			this.searchAllOccurencesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButton_CheckedChanged);
+			this.searchAllOccurencesRadioButton.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// searchWithinCurrentThreadCheckbox
 			// 
@@ -103,6 +106,7 @@
 			this.searchWithinCurrentThreadCheckbox.TabIndex = 46;
 			this.searchWithinCurrentThreadCheckbox.Text = "current thread";
 			this.searchWithinCurrentThreadCheckbox.UseVisualStyleBackColor = true;
+			this.searchWithinCurrentThreadCheckbox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// doSearchButton
 			// 
@@ -126,6 +130,7 @@
 			this.regExpCheckBox.TabIndex = 45;
 			this.regExpCheckBox.Text = "Regexp";
 			this.regExpCheckBox.UseVisualStyleBackColor = true;
+			this.regExpCheckBox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// searchUpCheckbox
 			// 
@@ -137,6 +142,7 @@
 			this.searchUpCheckbox.TabIndex = 49;
 			this.searchUpCheckbox.Text = "Search up";
 			this.searchUpCheckbox.UseVisualStyleBackColor = true;
+			this.searchUpCheckbox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// wholeWordCheckbox
 			// 
@@ -148,6 +154,7 @@
 			this.wholeWordCheckbox.TabIndex = 44;
 			this.wholeWordCheckbox.Text = "Whole word";
 			this.wholeWordCheckbox.UseVisualStyleBackColor = true;
+			this.wholeWordCheckbox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// matchCaseCheckbox
 			// 
@@ -159,6 +166,7 @@
 			this.matchCaseCheckbox.TabIndex = 43;
 			this.matchCaseCheckbox.Text = "Match case";
 			this.matchCaseCheckbox.UseVisualStyleBackColor = true;
+			this.matchCaseCheckbox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// searchTextBox
 			// 
@@ -180,6 +188,7 @@
 			this.searchWithinCurrentLogCheckBox.TabIndex = 47;
 			this.searchWithinCurrentLogCheckBox.Text = "current log";
 			this.searchWithinCurrentLogCheckBox.UseVisualStyleBackColor = true;
+			this.searchWithinCurrentLogCheckBox.CheckedChanged += new System.EventHandler(this.checkableControlCheckedChanged);
 			// 
 			// label1
 			// 

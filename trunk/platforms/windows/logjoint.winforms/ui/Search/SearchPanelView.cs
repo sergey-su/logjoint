@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SearchPanel;
 
@@ -9,16 +10,40 @@ namespace LogJoint.UI
 {
 	public partial class SearchPanelView : UserControl, IView
 	{
-		IViewEvents presenter;
+		IViewModel viewModel;
+		ISubscription subscription;
 
 		public SearchPanelView()
 		{
 			InitializeComponent();
 		}
 
-		void IView.SetPresenter(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.presenter = presenter;
+			this.viewModel = viewModel;
+
+			var updateChecked = Updaters.Create(() => viewModel.CheckableControlsState, value => 
+			{
+				foreach (var ctrl in EnumCheckableControls())
+					ctrl.ControlChecked = (value & ctrl.ID) != 0;
+			});
+			var updateEnabled = Updaters.Create(() => viewModel.EnableCheckableControls, value =>
+			{
+				foreach (var ctrl in EnumCheckableControls())
+					ctrl.Control.Enabled = (value & ctrl.ID) != 0;
+			});
+			var updateFilterLink = Updaters.Create(() => viewModel.FiltersLink, link =>
+			{
+				currentSuggestionLinkLabel.Visible = link.isVisible;
+				currentSuggestionLinkLabel.Text = link.text ?? "";
+			});
+
+			this.subscription = viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				updateChecked();
+				updateEnabled();
+				updateFilterLink();
+			});
 		}
 
 		Presenters.QuickSearchTextBox.IView IView.SearchTextBox => searchTextBox.InnerTextBox;
@@ -52,30 +77,6 @@ namespace LogJoint.UI
 			public CheckableCtrl(ViewCheckableControl id, ButtonBase ctrl) { ID = id; Control = ctrl; }
 		};
 
-		ViewCheckableControl IView.GetCheckableControlsState()
-		{
-			return EnumCheckableControls().Aggregate(ViewCheckableControl.None, 
-				(checkedCtrls, ctrl) => checkedCtrls | (ctrl.ControlChecked ? ctrl.ID : ViewCheckableControl.None));
-		}
-
-		void IView.SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls)
-		{
-			foreach (var affectedCtrl in EnumCheckableControls().Where(ctrl => (affectedControls & ctrl.ID) != 0))
-				affectedCtrl.ControlChecked = (checkedControls & affectedCtrl.ID) != 0;
-		}
-
-		void IView.EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls)
-		{
-			foreach (var affectedCtrl in EnumCheckableControls().Where(ctrl => (affectedControls & ctrl.ID) != 0))
-				affectedCtrl.Control.Enabled = (affectedCtrl.ID & enabledControls) != 0;
-		}
-
-		void IView.SetFiltersLink(bool isVisible, string text)
-		{
-			currentSuggestionLinkLabel.Visible = isVisible;
-			currentSuggestionLinkLabel.Text = text ?? "";
-		}
-
 		IEnumerable<CheckableCtrl> EnumCheckableControls()
 		{
 			yield return new CheckableCtrl(ViewCheckableControl.MatchCase, matchCaseCheckbox);
@@ -92,18 +93,19 @@ namespace LogJoint.UI
 
 		private void doSearchButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnSearchButtonClicked();
+			viewModel.OnSearchButtonClicked();
 		}
 
-		private void searchModeRadioButton_CheckedChanged(object sender, EventArgs e)
+		private void checkableControlCheckedChanged(object sender, EventArgs e)
 		{
-			presenter.OnSearchModeControlChecked(
-				sender == searchAllOccurencesRadioButton ? ViewCheckableControl.SearchAllOccurences : ViewCheckableControl.QuickSearch);
+			var ctrl = EnumCheckableControls().FirstOrDefault(c => c.Control == sender);
+			if (ctrl != null)
+				viewModel.OnCheckControl(ctrl.ID, ctrl.ControlChecked);
 		}
 
 		private void currentSuggestionLinkLabel_LinkClicked(object sender, System.Windows.Forms.LinkLabelLinkClickedEventArgs e)
 		{
-			presenter.OnFiltersLinkClicked();
+			viewModel.OnFiltersLinkClicked();
 		}
 	}
 

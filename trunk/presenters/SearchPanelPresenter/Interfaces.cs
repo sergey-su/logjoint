@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 
 namespace LogJoint.UI.Presenters.SearchPanel
 {
@@ -17,12 +13,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 	public interface IView
 	{
-		void SetPresenter(IViewEvents presenter);
-		ViewCheckableControl GetCheckableControlsState();
-		void SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls);
-		void EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls);
-		void SetFiltersLink(bool isVisible, string text);
-
+		void SetViewModel(IViewModel viewModel);
 		QuickSearchTextBox.IView SearchTextBox { get; }
 	};
 
@@ -51,10 +42,16 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		SearchWithinCurrentLog = 8192,
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+
+		ViewCheckableControl CheckableControlsState { get; } // bitmask. Bit is set if control is checked.
+		ViewCheckableControl EnableCheckableControls { get; } // bitmask. Bit is set if control is enabled.
+		(bool isVisible, string text) FiltersLink { get; }
+
 		void OnSearchButtonClicked();
-		void OnSearchModeControlChecked(ViewCheckableControl ctrl);
+		void OnCheckControl(ViewCheckableControl ctrl, bool checkedValue);
 		void OnFiltersLinkClicked();
 	};
 };

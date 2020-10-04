@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace LogJoint.UI.Presenters.SearchPanel
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		public Presenter(
 			IView view,
@@ -26,6 +26,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		)
 		{
 			this.view = view;
+			this.changeNotification = changeNotification;
 			this.searchManager = searchManager;
 			this.searchHistory = searchHistory;
 			this.filtersFactory = filtersFactory;
@@ -48,7 +49,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 			UpdateUserDefinedSearchDependentControls(false);
 
-			view.SetPresenter(this);
+			view.SetViewModel(this);
 
 			quickSearchPresenter.OnSearchNow += (sender, args) =>
 			{
@@ -137,7 +138,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 			if (forceSearchAllOccurencesMode)
 			{
-				view.SetCheckableControlsState(ViewCheckableControl.SearchAllOccurences, ViewCheckableControl.SearchAllOccurences);
+				SetCheckableControlsState(ViewCheckableControl.SearchAllOccurences, ViewCheckableControl.SearchAllOccurences);
 			}
 
 			if (focusedPresenter != null && focusedPresenter.IsSinglelineNonEmptySelection)
@@ -168,17 +169,24 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			ShowSearchResultPanel(false);
 		}
 
-		void IViewEvents.OnSearchButtonClicked()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		ViewCheckableControl IViewModel.CheckableControlsState => checkedControls;
+		ViewCheckableControl IViewModel.EnableCheckableControls => enabledControls;
+		(bool isVisible, string text) IViewModel.FiltersLink => filtersLink;
+
+		void IViewModel.OnSearchButtonClicked()
 		{
 			DoSearch(false);
 		}
 
-		void IViewEvents.OnSearchModeControlChecked(ViewCheckableControl ctrl)
+		void IViewModel.OnCheckControl(ViewCheckableControl ctrl, bool checkedValue)
 		{
+			checkedControls = (checkedControls & ~ctrl) | (checkedValue ? ctrl : 0);
 			UpdateSearchControls();
 		}
 
-		void IViewEvents.OnFiltersLinkClicked()
+		void IViewModel.OnFiltersLinkClicked()
 		{
 			var datum = quickSearchPresenter.CurrentSuggestion?.Data;
 			IUserDefinedSearch uds;
@@ -262,7 +270,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		async void DoSearch(bool reverseDirection)
 		{
-			var controlsState = view.GetCheckableControlsState();
+			var controlsState = this.checkedControls;
 
 			var uds = quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearch;
 			if (uds == null)
@@ -390,7 +398,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		private void UpdateSearchControls()
 		{
-			var controlsState = view.GetCheckableControlsState();
+			var controlsState = this.checkedControls;
 			ViewCheckableControl enabledControls = ViewCheckableControl.None;
 			if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
 			{
@@ -406,7 +414,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			{
 				enabledControls |= ViewCheckableControl.SearchWithinCurrentLog;
 			}
-			view.EnableCheckableControls(
+			EnableCheckableControls(
 				ViewCheckableControl.SearchUp | ViewCheckableControl.SearchInSearchResult 
 				| ViewCheckableControl.SearchFromCurrentPosition | ViewCheckableControl.SearchWithinCurrentLog,
 				enabledControls
@@ -433,7 +441,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			foreach (var i in checkListBoxAndFlags)
 				if ((opts.ContentTypes & i.Value) == i.Value)
 					checkedControls |= i.Key;
-			view.SetCheckableControlsState(
+			SetCheckableControlsState(
 				checkListBoxAndFlags.Aggregate(
 					ViewCheckableControl.RegExp | ViewCheckableControl.MatchCase | ViewCheckableControl.WholeWord,
 					(c, i) => c | i.Key
@@ -445,21 +453,21 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		void UpdateUserDefinedSearchDependentControls(bool predefinedSearchIsSelected)
 		{
 			var mask = ViewCheckableControl.RegExp | ViewCheckableControl.MatchCase | ViewCheckableControl.WholeWord;
-			view.EnableCheckableControls(
+			EnableCheckableControls(
 				mask,
 				predefinedSearchIsSelected ? ViewCheckableControl.None : mask
 			);
 			if (predefinedSearchIsSelected)
 			{
-				view.SetCheckableControlsState(
+				SetCheckableControlsState(
 					mask,
 					ViewCheckableControl.None
 				);
 			}
 			if (predefinedSearchIsSelected)
-				view.SetFiltersLink(isVisible: true, text: "edit selected filter...");
+				SetFiltersLink(isVisible: true, text: "edit selected filter...");
 			else
-				view.SetFiltersLink(isVisible: true, text: "manage filters...");
+				SetFiltersLink(isVisible: true, text: "manage filters...");
 		}
 
 		void HandleSearchesManagerDialog()
@@ -474,6 +482,24 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			}
 		}
 
+		void SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls)
+		{
+			this.checkedControls = (checkedControls & affectedControls) | (this.checkedControls & ~affectedControls);
+			changeNotification.Post();
+		}
+
+		void EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls)
+		{
+			this.enabledControls = (enabledControls & affectedControls) | (this.enabledControls & ~affectedControls);
+			changeNotification.Post();
+		}
+
+		void SetFiltersLink(bool isVisible, string text)
+		{
+			filtersLink = (isVisible, text);
+			changeNotification.Post();
+		}
+
 		static Presenter()
 		{
 			checkListBoxAndFlags = new KeyValuePair<ViewCheckableControl, MessageFlag>[]
@@ -485,6 +511,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		}
 
 		readonly IView view;
+		readonly IChangeNotification changeNotification;
 		readonly ISearchManager searchManager;
 		readonly ISearchHistory searchHistory;
 		readonly ILogSourcesManager sourcesManager;
@@ -499,6 +526,11 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly IAlertPopup alerts;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;
 		string searchListEtag;
+		ViewCheckableControl enabledControls =
+			ViewCheckableControl.QuickSearch | ViewCheckableControl.SearchAllOccurences |
+			ViewCheckableControl.SearchWithinThisThread | ViewCheckableControl.SearchWithinCurrentLog;
+		ViewCheckableControl checkedControls = ViewCheckableControl.SearchAllOccurences;
+		(bool isVisible, string text) filtersLink = (false, "");
 
 		#endregion
 	};
