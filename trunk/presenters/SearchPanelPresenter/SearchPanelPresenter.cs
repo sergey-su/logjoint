@@ -182,7 +182,15 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		void IViewModel.OnCheckControl(ViewCheckableControl ctrl, bool checkedValue)
 		{
-			checkedControls = (checkedControls & ~ctrl) | (checkedValue ? ctrl : 0);
+			void setBit(ViewCheckableControl c, bool value) 
+			{
+				checkedControls = (checkedControls & ~c) | (value ? c : 0);
+			};
+			setBit(ctrl, checkedValue);
+			if (ctrl == ViewCheckableControl.QuickSearch)
+				setBit(ViewCheckableControl.SearchAllOccurences, false);
+			else if (ctrl == ViewCheckableControl.SearchAllOccurences)
+				setBit(ViewCheckableControl.QuickSearch, false);
 			UpdateSearchControls();
 		}
 
