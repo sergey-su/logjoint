@@ -151,6 +151,15 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			);
 		}
 
+		void IViewModel.OnSuggestionClicked(ISuggestionsListItem item)
+		{
+			// todo: remove index version of OnSuggestionClicked in favor of this one
+			TryUseSuggestion(
+				viewListItems().IndexOf(i => i == item).GetValueOrDefault(-1),
+				ignoreListVisibility: true
+			);
+		}
+
 		void IViewModel.OnSuggestionLinkClicked(int suggestionIndex)
 		{
 			TryHandleLinkClick(suggestionIndex);

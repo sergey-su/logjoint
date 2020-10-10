@@ -47,6 +47,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		void OnKeyDown(Key key);
 		void OnLostFocus();
 		void OnSuggestionClicked(int suggestionIndex);
+		void OnSuggestionClicked(ISuggestionsListItem item);
 		void OnSuggestionLinkClicked(int suggestionIndex);
 		void OnDropDownButtonClicked();
 		void OnClearTextIconClicked();
