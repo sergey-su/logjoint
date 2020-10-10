@@ -69,7 +69,7 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("logjoint.addDefaultPreventingKeyHandler", InputRef, "ArrowUp,ArrowDown");
+            await JSRuntime.InvokeVoidAsync("logjoint.addDefaultPreventingKeyHandler", InputRef, new string[] { "ArrowUp", "ArrowDown" });
         }
     }
 
