@@ -37,6 +37,7 @@ namespace LogJoint.Wasm
         public UI.SearchPanelViewProxy SearchPanel;
         public UI.SearchResultViewProxy SearchResult;
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new UI.LogViewer.ViewProxy();
+        public UI.BookmarksListViewProxy BookmarksList = new UI.BookmarksListViewProxy();
 
         public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
 		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
@@ -94,6 +95,7 @@ namespace LogJoint.Wasm
             Views.PostprocessingViewsFactory.CreateStateInspectorView().Returns(viewModel.PostprocesssingStateInspectorViewProxy);
             Views.CreateSearchPanelView().Returns(viewModel.SearchPanel);
             Views.CreateSearchResultView().Returns(viewModel.SearchResult);
+            Views.CreateBookmarksListView().Returns(viewModel.BookmarksList);
         }
     };
 }

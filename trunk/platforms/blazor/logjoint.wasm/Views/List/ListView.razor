@@ -7,7 +7,7 @@
     @foreach (var item in Items)
     {
         var itemIndexCopy = itemIndex;
-        <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "")"
+        <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "") @ItemClass"
             @onmousedown="@(e => SelectByMouse(itemIndexCopy, e.Detail > 1))"
             tabindex="@(focused == itemIndex ? 0 : -1)">
             @if (ItemTemplate != null)

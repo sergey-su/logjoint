@@ -648,3 +648,21 @@ app {
     color: gray;
     font-size: 90%;
 }
+
+
+
+
+.bookmarks-list-item {
+    display: table-row;
+}
+
+.bookmarks-list-item>div {
+    display: table-cell;
+    white-space: nowrap;
+}
+
+.bookmarks-list-item>div:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
