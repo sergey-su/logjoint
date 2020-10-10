@@ -207,6 +207,12 @@ app {
 .main-window .container-3>.bottom {
     height: 200px;
 }
+.main-window .container-3>.bottom-separator {
+    height: 4px;
+    cursor: ns-resize;
+}
+
+
 
 .loaded-messages {
     display: flex;
@@ -518,6 +524,20 @@ app {
 }
 
 .search-result>.toolbar {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.search-result>.toolbar>.resizer {
+    flex-grow: 2;
+    text-align: center;
+    cursor: ns-resize;
+    padding: 0px 10px;
+}
+
+.search-result>.toolbar>.result {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjEuM40k/WcAAAAMSURBVBhXY2CY8h8AAisBlPryuBEAAAAASUVORK5CYII=);
+    background-repeat-x: no-repeat;
 }
 
 .search-result>.viewer {

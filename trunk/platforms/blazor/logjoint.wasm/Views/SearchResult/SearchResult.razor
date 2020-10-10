@@ -5,9 +5,23 @@
 @implements IDisposable
 @implements IView
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject IJSRuntime jsRuntime
 
-<div class='search-result @Class'>
-    <div class="toolbar">search toolbar</div>
+<div class='@ResizerClass' @ref="resizerElement"></div>
+<div class='search-result @Class' @ref="resultsElement">
+    <div class="toolbar">
+        <button class="current-time">Curr</button>
+        <button class="bookmark">Bmk</button>
+            @{var result = viewModel.Items.FirstOrDefault();}
+            @if (result != null)
+            {
+                <div class="result" style="background-size: @ProgressToBackgroundSize(result)">
+                    @result.Text
+                </div>
+            }
+        <div class="resizer" @ref="toolBarResizerElement">:::::::::</div>
+        <button class="close">🗙</button>
+    </div>
     <div class="viewer">
         <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.SearchResultLogViewer" Class="viewer-grow" />
     </div>
@@ -16,9 +30,13 @@
 @code {
     private IViewModel viewModel;
     private ISubscription subscription;
+    private ElementReference resizerElement, resultsElement, toolBarResizerElement;
 
     [Parameter]
     public string Class { get; set; } = "";
+
+    [Parameter]
+    public string ResizerClass { get; set; } = "";
 
     protected override void OnInitialized()
     {
@@ -46,5 +64,18 @@
     void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
     {
         // todo
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
+            resizerElement, resultsElement, /*inverse=*/true);
+        await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
+            toolBarResizerElement, resultsElement, /*inverse=*/true);
+    }
+
+    static string ProgressToBackgroundSize(ViewItem result)
+    {
+        return result.ProgressVisible ? $"{result.ProgressValue:0.00}%" : "0px";
     }
 }
