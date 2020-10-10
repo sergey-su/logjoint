@@ -60,7 +60,6 @@ namespace LogJoint.Wasm
         public Persistence.IWebContentCacheConfig WebContentCacheConfig;
         public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 
-        public LogJoint.UI.Presenters.IClipboardAccess ClipboardAccess;
         public LogJoint.UI.Presenters.IShellOpen ShellOpen;
         public LogJoint.UI.Presenters.IAlertPopup AlertPopup;
         public LogJoint.UI.Presenters.IFileDialogs FileDialogs;
@@ -78,7 +77,6 @@ namespace LogJoint.Wasm
             WebContentCacheConfig = Substitute.For<Persistence.IWebContentCacheConfig>();
             LogsDownloaderConfig = Substitute.For<Preprocessing.ILogsDownloaderConfig>();
 
-            ClipboardAccess = Substitute.For<LogJoint.UI.Presenters.IClipboardAccess>();
             ShellOpen = Substitute.For<LogJoint.UI.Presenters.IShellOpen>();
             AlertPopup = Substitute.For<LogJoint.UI.Presenters.IAlertPopup>();
             FileDialogs = Substitute.For<LogJoint.UI.Presenters.IFileDialogs>();
@@ -236,6 +234,7 @@ namespace LogJoint.Wasm
             builder.Services.AddSingleton<ViewModelObjects>(serviceProvider =>
             {
                 var model = serviceProvider.GetService<ModelObjects>();
+                var jsRuntime = serviceProvider.GetService<IJSRuntime>();
 
                 var viewModel = new ViewModelObjects();
                 var mocks = new Mocks(viewModel);
@@ -246,7 +245,7 @@ namespace LogJoint.Wasm
 
                 var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
                     model,
-                    mocks.ClipboardAccess,
+                    new Clipboard(jsRuntime),
                     mocks.ShellOpen,
                     mocks.AlertPopup,
                     mocks.FileDialogs,

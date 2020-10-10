@@ -412,4 +412,10 @@
             }).then(() => result);
         },
     },
+
+    clipboard: {
+        setText: function (value) {
+            return navigator.clipboard.writeText(value);
+        }
+    },
 };
