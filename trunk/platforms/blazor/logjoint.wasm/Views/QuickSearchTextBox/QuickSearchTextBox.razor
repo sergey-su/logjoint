@@ -5,7 +5,7 @@
 @implements IView
 
 <div class='quick-search-textbox @Class'>
-    <input value="@viewModel.Text" @onchange="@(e => viewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" />
+    <input value="@viewModel.Text" @oninput="@(e => viewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" @ref="InputRef"/>
     @if (viewModel.ClearTextIconVisible)
     {
         <button class="clear-button" @onclick="@viewModel.OnClearTextIconClicked">🗙</button>
@@ -19,6 +19,9 @@
 @code {
     private IViewModel viewModel;
     private ISubscription subscription;
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
+    private ElementReference InputRef { get; set; }
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -60,6 +63,14 @@
     void IView.SelectEnd()
     {
         // todo
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("logjoint.addDefaultPreventingKeyHandler", InputRef, "ArrowUp,ArrowDown");
+        }
     }
 
     void HandleKeyDown(KeyboardEventArgs e)
