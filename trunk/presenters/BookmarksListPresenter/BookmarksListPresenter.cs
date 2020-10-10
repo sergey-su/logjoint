@@ -9,6 +9,7 @@ using LogJoint.Profiling;
 using System.Collections.Immutable;
 using static LogJoint.Settings.Appearance;
 using LogJoint.Drawing;
+using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -69,9 +70,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			ClickSelectedLink(focusMessagesView: true, actionName: "dblclick");
 		}
 
-		void IViewModel.OnBookmarkLeftClicked(ViewItem bmk)
+		void IViewModel.OnBookmarkLeftClicked(IViewItem bmk)
 		{
-			NavigateTo(bmk.Bookmark, "click");
+			NavigateTo(((ViewItem)bmk).bookmark, "click");
 		}
 
 		void IViewModel.OnMenuItemClicked(ContextMenuItem item)
@@ -107,7 +108,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			DeleteSelectedBookmarks();
 		}
 
-		IReadOnlyList<ViewItem> IViewModel.Items => itemsSelector();
+		IReadOnlyList<IViewItem> IViewModel.Items => itemsSelector();
 
 		void IViewModel.OnSelectAllShortcutPressed()
 		{
@@ -115,9 +116,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			changeNotification.Post();
 		}
 
-		void IViewModel.OnChangeSelection(IEnumerable<ViewItem> selected)
+		void IViewModel.OnChangeSelection(IEnumerable<IViewItem> selected)
 		{
-			var lookup = selected.ToLookup(v => v.Bookmark);
+			var lookup = selected.OfType<ViewItem>().ToLookup(v => v.bookmark);
 			selectedBookmarks = ImmutableHashSet.CreateRange(bookmarks.Items.Where(lookup.Contains));
 			changeNotification.Post();
 		}
@@ -159,14 +160,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return bookmarks.FindBookmark(focusedMessage);
 		}
 
-		static ImmutableArray<ViewItem> CreateViewItems(
+		static ImmutableArray<IViewItem> CreateViewItems(
 			IEnumerable<IBookmark> bookmarks,
 			IImmutableSet<IBookmark> selected,
 			ImmutableArray<Color> threadColors,
 			ColoringMode coloring
 		)
 		{
-			var resultBuilder = ImmutableArray.CreateBuilder<ViewItem>();
+			var resultBuilder = ImmutableArray.CreateBuilder<IViewItem>();
 			DateTime? prevTimestamp = null;
 			DateTime? prevSelectedTimestamp = null;
 			bool multiSelection = selected.Count >= 2;
@@ -189,13 +190,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
 						colorIndex = thread.LogSource.ColorIndex;
 				resultBuilder.Add(new ViewItem()
 				{
-					Bookmark = bmk,
-					Text = bmk.ToString(),
-					Delta = TimeUtils.TimeDeltaToString(delta),
-					AltDelta = TimeUtils.TimeDeltaToString(altDelta),
-					IsSelected = isSelected,
-					IsEnabled = isEnabled,
-					ContextColor = threadColors.GetByIndex(colorIndex)
+					bookmark = bmk,
+					key = bmk.GetHashCode().ToString(),
+					text = bmk.ToString(),
+					delta = TimeUtils.TimeDeltaToString(delta),
+					altDelta = TimeUtils.TimeDeltaToString(altDelta),
+					isSelected = isSelected,
+					isEnabled = isEnabled,
+					contextColor = threadColors.GetByIndex(colorIndex)
 				});
 				prevTimestamp = ts;
 				if (isSelected)
@@ -240,7 +242,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					Index = i,
 					Delta = copyTimeDeltas ? b.Delta : "",
 					Text = b.Text,
-					Bookmark = b.Bookmark
+					Bookmark = ((ViewItem)b).bookmark
 				})
 				.ToArray();
 			if (texts.Length == 0)
@@ -299,6 +301,34 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return bookmarks.Items.Where(selectedBookmarks.Contains);
 		}
 
+		class ViewItem : IViewItem
+		{
+			string IViewItem.Delta => delta;
+
+			string IViewItem.AltDelta => altDelta;
+
+			bool IViewItem.IsEnabled => isEnabled;
+
+			string IViewItem.Text => text;
+
+			Color? IViewItem.ContextColor => contextColor;
+
+			string IListItem.Key => key;
+
+			bool IListItem.IsSelected => isSelected;
+
+			public override string ToString() => text;
+
+			internal IBookmark bookmark;
+			internal string text;
+			internal string delta;
+			internal string altDelta;
+			internal bool isSelected;
+			internal bool isEnabled;
+			internal Color? contextColor;
+			internal string key;
+		};
+
 		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LJTraceSource trace;
@@ -307,7 +337,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		readonly IColorTheme colorTheme;
 		readonly IChangeNotification changeNotification;
 		ImmutableHashSet<IBookmark> selectedBookmarks = ImmutableHashSet.Create<IBookmark>();
-		readonly Func<ImmutableArray<ViewItem>> itemsSelector;
+		readonly Func<ImmutableArray<IViewItem>> itemsSelector;
 		readonly Func<Tuple<int, int>> focusedMessagePositionSelector;
 
 		#endregion

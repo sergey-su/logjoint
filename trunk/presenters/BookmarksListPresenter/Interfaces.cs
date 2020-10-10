@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LogJoint.Drawing;
+using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -17,15 +18,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void SetViewModel(IViewModel viewModel);
 	};
 
-	public struct ViewItem
+	public interface IViewItem: IListItem
 	{
-		public string Delta, AltDelta;
-		public bool IsSelected;
-		public bool IsEnabled;
-		public string Text;
-		public Color? ContextColor;
-
-		internal IBookmark Bookmark;
+		string Delta { get; }
+		string AltDelta { get; }
+		bool IsEnabled { get; }
+		string Text { get; }
+		Color? ContextColor { get; }
 	};
 
 	public interface IViewModel
@@ -33,18 +32,18 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		IChangeNotification ChangeNotification { get; }
 		string FontName { get; }
 		ColorThemeMode Theme { get; }
-		IReadOnlyList<ViewItem> Items { get; }
+		IReadOnlyList<IViewItem> Items { get; }
 		Tuple<int, int> FocusedMessagePosition { get; }
 
 		void OnEnterKeyPressed();
 		void OnViewDoubleClicked();
-		void OnBookmarkLeftClicked(ViewItem item);
+		void OnBookmarkLeftClicked(IViewItem item);
 		void OnMenuItemClicked(ContextMenuItem item);
 		ContextMenuItem OnContextMenu();
 		void OnCopyShortcutPressed();
 		void OnDeleteButtonPressed();
 		void OnSelectAllShortcutPressed();
-		void OnChangeSelection(IEnumerable<ViewItem> selected);
+		void OnChangeSelection(IEnumerable<IViewItem> selected);
 	};
 
 	[Flags]

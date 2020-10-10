@@ -53,7 +53,7 @@ namespace LogJoint.UI
 						var itemIdx = 0;
 						foreach (var i in items)
 						{
-							listBox.Items[itemIdx] = new BookmarkItem(i);
+							listBox.Items[itemIdx] = i;
 							if (i.IsSelected)
 								listBox.SelectedIndices.Add(itemIdx);
 							++itemIdx;
@@ -64,7 +64,7 @@ namespace LogJoint.UI
 						listBox.Items.Clear();
 						foreach (var i in items)
 						{
-							var itemIdx = listBox.Items.Add(new BookmarkItem(i));
+							var itemIdx = listBox.Items.Add(i);
 							if (i.IsSelected)
 								listBox.SelectedIndices.Add(itemIdx);
 						}
@@ -123,7 +123,7 @@ namespace LogJoint.UI
 			var item = GetItem(idx);
 			if (item == null)
 				return null;
-			if (enabledOnly && !item.Data.IsEnabled)
+			if (enabledOnly && !item.IsEnabled)
 				return null;
 			return idx;
 		}
@@ -154,8 +154,8 @@ namespace LogJoint.UI
 				m.DeltaStringWidth = (int)
 					 EnumItems()
 					.Select(i => Math.Max(
-						g.MeasureString(i.Data.Delta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width,
-						g.MeasureString(i.Data.AltDelta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width
+						g.MeasureString(i.Delta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width,
+						g.MeasureString(i.AltDelta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width
 					))
 					.Union(Enumerable.Repeat(0f, 1))
 					.Max() + 2;
@@ -191,8 +191,8 @@ namespace LogJoint.UI
 				}
 				else
 				{
-					if (item.Data.ContextColor != null)
-						bkBrush = UIUtils.GetPaletteColorBrush(item.Data.ContextColor.Value);
+					if (item.ContextColor != null)
+						bkBrush = UIUtils.GetPaletteColorBrush(item.ContextColor.Value);
 				}
 
 				g.FillRectangle(bkBrush, e.Bounds);
@@ -203,7 +203,7 @@ namespace LogJoint.UI
 				r.X = m.DeltaStringX;
 				r.Width = m.DeltaStringWidth;
 
-				var deltaStr = item.Data.Delta;
+				var deltaStr = item.Delta;
 				if (deltaStr != null)
 				{
 					g.DrawString(
@@ -224,8 +224,8 @@ namespace LogJoint.UI
 
 				r.X = m.TextX;
 				r.Width = ClientSize.Width - m.TextX;
-				g.DrawString(item.Data.Text, linkDisplayFont,
-					item.Data.IsEnabled ? Brushes.Blue : Brushes.Gray, r, displayStringFormat);
+				g.DrawString(item.Text, linkDisplayFont,
+					item.IsEnabled ? Brushes.Blue : Brushes.Gray, r, displayStringFormat);
 				if ((e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.Focus) != 0)
 				{
 					ControlPaint.DrawFocusRectangle(g, r, Color.Black, Color.White);
@@ -273,7 +273,7 @@ namespace LogJoint.UI
 				{
 					var item = Get(linkUnderMouse.Value);
 					if (item != null)
-						presenter.OnBookmarkLeftClicked(item.Value);
+						presenter.OnBookmarkLeftClicked(item);
 				}
 				else if (rightClick)
 				{
@@ -288,21 +288,21 @@ namespace LogJoint.UI
 			listBox.Cursor = linkUnderMouse.HasValue ? Cursors.Hand : Cursors.Default;
 		}
 
-		IEnumerable<BookmarkItem> EnumItems()
+		IEnumerable<IViewItem> EnumItems()
 		{
 			return Enumerable.Range(0, listBox.Items.Count).Select(GetItem);
 		}
 
-		BookmarkItem GetItem(int index)
+		IViewItem GetItem(int index)
 		{
 			if (index >= 0 && index < listBox.Items.Count)
-				return listBox.Items[index] as BookmarkItem;
+				return listBox.Items[index] as IViewItem;
 			return null;
 		}
 
-		ViewItem? Get(int index)
+		IViewItem Get(int index)
 		{
-			return GetItem(index)?.Data;
+			return GetItem(index);
 		}
 
 		private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -340,24 +340,9 @@ namespace LogJoint.UI
 			var first = listBox.SelectedIndex;
 			var selected = new[] { Get(first) }.Union(
 				listBox.SelectedIndices.OfType<int>().Where(i => i != first).Select(Get)
-			).Where(i => i.HasValue).Select(i => i.Value).ToArray();
+			).Where(i => i != null).ToArray();
 			presenter.OnChangeSelection(selected);
 		}
-
-		class BookmarkItem
-		{
-			readonly public ViewItem Data;
-
-			public BookmarkItem(ViewItem item)
-			{
-				Data = item;
-			}
-
-			public override string ToString()
-			{
-				return Data.Text;
-			}
-		};
 
 		Metrics GetMetrics()
 		{
