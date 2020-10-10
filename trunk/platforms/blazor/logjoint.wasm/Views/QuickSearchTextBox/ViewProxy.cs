@@ -13,6 +13,8 @@ namespace LogJoint.Wasm.UI
 			component?.SetViewModel(viewModel);
 		}
 
+		public IViewModel ViewModel => viewModel;
+
 		void IView.ReceiveInputFocus()
 		{
 			component?.ReceiveInputFocus();

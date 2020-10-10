@@ -3,10 +3,17 @@
 @using LogJoint.UI.Presenters.QuickSearchTextBox
 @implements IDisposable
 @implements IView
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
 
 <div class='quick-search-textbox @Class'>
-    <input value="@viewModel.Text" @onchange="@(e => viewModel.OnChangeText(e.Value.ToString()))" />
+    <input value="@viewModel.Text" @onchange="@(e => viewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" />
+    @if (viewModel.ClearTextIconVisible)
+    {
+        <button class="clear-button" @onclick="@viewModel.OnClearTextIconClicked">🗙</button>
+    }
+    @if (viewModel.SuggestionsListAvailabile)
+    {
+        <button class="suggesions-button" @onclick="@viewModel.OnDropDownButtonClicked">@(viewModel.SuggestionsListVisibile ? "▴" : "▾")</button>
+    }
 </div>
 
 @code {
@@ -24,7 +31,7 @@
         ViewProxy.SetComponent(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.Text),
+            () => (viewModel.Text, viewModel.SuggestionsListAvailabile, viewModel.SuggestionsListVisibile, viewModel.ClearTextIconVisible),
             _ => StateHasChanged()
         ));
     }
@@ -53,5 +60,24 @@
     void IView.SelectEnd()
     {
         // todo
+    }
+
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        Key key =
+            (e.Key == "Enter" && e.ShiftKey) ? Key.EnterWithReverseSearchModifier :
+            e.Key == "Enter" ? Key.Enter :
+            e.Key == "Escape" ? Key.Escape :
+            (e.Key == "ArrowDown" && e.AltKey) ? Key.ShowListShortcut :
+            (e.Key == "ArrowUp" && e.AltKey) ? Key.HideListShortcut :
+            e.Key == "ArrowDown" ? Key.Down :
+            e.Key == "ArrowUp" ? Key.Up :
+            e.Key == "PageDown" ? Key.PgDown :
+            e.Key == "PageUp" ? Key.PgUp :
+            Key.None;
+        if (key != Key.None)
+        {
+            viewModel.OnKeyDown(key);
+        }
     }
 }

@@ -533,11 +533,22 @@ app {
 }
 
 
-.quick-search-textbox>input {
-    width: 100%;
+.quick-search-textbox {
+    display: flex;
+    flex-flow: row nowrap;
 }
 
+.quick-search-textbox>input {
+    flex-grow: 2;
+}
 
+.quick-search-textbox>.suggesions-button {
+    border: none;
+}
+
+.quick-search-textbox>.clear-button {
+    border: none;
+}
 
 
 
@@ -619,4 +630,21 @@ app {
 
 .search-panel .options label.disabled {
     color: gray;
+}
+
+.search-panel-suggesions {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    top: 60px;
+    bottom: 50%;
+    min-height: 50px;
+    background-color: white;
+    padding: 1px;
+    border: 1px solid gray;
+}
+
+.search-panel-suggesions .not-selectable {
+    color: gray;
+    font-size: 90%;
 }

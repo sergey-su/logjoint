@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
 
 <div class='main-window'>
     <div class='container-1'>
@@ -9,9 +10,10 @@
                 <LogJoint.Wasm.UI.LoadedMessages.LoadedMessages Class="top" />
                 <LogJoint.Wasm.UI.SearchResult Class="bottom" />
             </div>
-            <LogJoint.Wasm.UI.ToolsContainer Class='right' ResizerClass='right-separator'/>
+            <LogJoint.Wasm.UI.ToolsContainer Class='right' ResizerClass='right-separator' />
         </div>
     </div>
+    <LogJoint.Wasm.UI.QuickSearchSuggestionsList ViewProxy="@viewProxies.SearchPanelQuickSearchTextBox" Class="search-panel-suggesions"/>
 </div>
 
 @code {

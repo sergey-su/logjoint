@@ -1,0 +1,40 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.QuickSearchTextBox
+@implements IDisposable
+
+@if (ViewModel.SuggestionsListVisibile)
+{
+    <ListView Items="@ViewModel.SuggestionsListItems" Class="@ListClass" OnSelect="@(i => ViewModel.OnSuggestionClicked(i.First() as ISuggestionsListItem))">
+        <ItemTemplate>
+            @{var item = (ISuggestionsListItem)context;}
+            <span class="@(item.IsSelectable ? "" : "not-selectable")">@item.Text</span>
+        </ItemTemplate>
+    </ListView>
+}
+
+@code {
+    private ISubscription subscription;
+    private IViewModel ViewModel => ViewProxy.ViewModel;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public QuickSearchTextBoxViewProxy ViewProxy { get; set; }
+
+    protected override void OnInitialized()
+    {
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (ViewModel.SuggestionsListVisibile, ViewModel.SuggestionsListItems),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+    string ListClass => $"quick-search-suggesions {Class}";
+}
