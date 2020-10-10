@@ -1,0 +1,29 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.SearchPanel
+
+<label class="@(IsDisabled ? "disabled" : "")">
+    <input type="@Type" checked="@IsChecked" disabled="@IsDisabled" @onchange="@(e => OnCheck(e.Value))">
+    @Text
+</label>
+
+@code {
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+    [Parameter]
+    public ViewCheckableControl Control { get; set; }
+
+    [Parameter]
+    public string Type { get; set; } = "checkbox";
+
+    [Parameter]
+    public string Text { get; set; }
+
+    bool IsChecked => (ViewModel.CheckableControlsState & Control) != 0;
+    bool IsDisabled => (ViewModel.EnableCheckableControls & Control) == 0;
+
+    void OnCheck(object value)
+    {
+        ViewModel.OnCheckControl(Control, value?.ToString() == "on" || value is bool x && x);
+    }
+}

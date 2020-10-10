@@ -531,3 +531,92 @@ app {
     width: 1px;
     flex-grow: 2;
 }
+
+
+.quick-search-textbox>input {
+    width: 100%;
+}
+
+
+
+
+
+.search-panel .search-input {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.search-panel .search-input>.quick-search-textbox {
+    flex-grow: 2;
+}
+
+.search-panel .options {
+    display: grid;
+    grid-auto-rows: max-content;
+    grid-auto-columns: max-content;
+    row-gap: 2px;
+    column-gap: 20px;
+}
+
+.search-panel .options>.pad {
+    padding-left: 15px;
+}
+
+.search-panel .options>.case {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.search-panel .options>.whole-word {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.search-panel .options>.regex {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.search-panel .options>.search-scope {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.search-panel .options>.curr-thread {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.search-panel .options>.curr-log {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.search-panel .options>.quick-search {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+.search-panel .options>.up {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.search-panel .options>.in-search-results {
+    grid-column: 3;
+    grid-row: 3;
+}
+
+.search-panel .options>.search-all {
+    grid-column: 4;
+    grid-row: 1;
+}
+
+.search-panel .options>.from-current-pos {
+    grid-column: 4;
+    grid-row: 2;
+}
+
+.search-panel .options label.disabled {
+    color: gray;
+}

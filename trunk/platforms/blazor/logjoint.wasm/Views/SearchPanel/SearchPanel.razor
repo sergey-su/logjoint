@@ -6,8 +6,43 @@
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 
 <div class='search-panel @Class'>
-    <QuickSearchTextBox ViewProxy="@viewProxies.SearchPanelQuickSearchTextBox"/>
-    <button @onclick="@viewModel.OnSearchButtonClicked">Search</button>
+    <div class="search-input">
+        <QuickSearchTextBox ViewProxy="@viewProxies.SearchPanelQuickSearchTextBox"/>
+        <button @onclick="@viewModel.OnSearchButtonClicked">Search</button>
+    </div>
+    <div class="options">
+        <div class="case">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.MatchCase" Text="Case" />
+        </div>
+        <div class="whole-word">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.WholeWord" Text="Whole word" />
+        </div>
+        <div class="regex">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.RegExp" Text="Regexp" />
+        </div>
+        <div class="search-scope">Search within:</div>
+        <div class="curr-thread pad">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.SearchWithinThisThread" Text="current thread" />
+        </div>
+        <div class="curr-log pad">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.SearchWithinCurrentLog" Text="current log" />
+        </div>
+        <div class="quick-search">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.QuickSearch" Text="Quick search:" Type="radio"  />
+        </div>
+        <div class="up pad">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.SearchUp" Text="Search up" />
+        </div>
+        <div class="in-search-results pad">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.SearchInSearchResult" Text="In search results" />
+        </div>
+        <div class="search-all">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.SearchAllOccurences" Text="Search all occurences:" Type="radio" />
+        </div>
+        <div class="from-current-pos pad">
+            <SearchPanelOption ViewModel="@viewModel" Control="@ViewCheckableControl.SearchFromCurrentPosition" Text="From current position" />
+        </div>
+    </div>
 </div>
 
 @code {
@@ -22,7 +57,7 @@
         viewProxies.SearchPanel.SetComponent(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.EnableCheckableControls),
+            () => (viewModel.EnableCheckableControls, viewModel.CheckableControlsState),
             _ => StateHasChanged()
         ));
     }
@@ -39,4 +74,6 @@
     }
 
     LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.SearchTextBox => null;
+
+    bool IsChecked(ViewCheckableControl ctrl) => (viewModel.CheckableControlsState & ctrl) != 0;
 }
