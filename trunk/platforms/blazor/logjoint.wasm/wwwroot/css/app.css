@@ -273,9 +273,10 @@ body {
     width: 20px;
 }
 
-.log-sources-manager>.list {
+.log-sources-manager>.the-list {
     width: 1px;
     flex-grow: 2;
+    margin: 0px 4px 4px 4px;
 }
 
 
@@ -350,8 +351,9 @@ body {
     overflow-x: hidden;
 }
 
-
-
+.tool-container>.header>.actions {
+    overflow-x: hidden;
+}
 
 
 .state-inspector {
@@ -400,6 +402,7 @@ body {
 
 .state-inspector .objects-tree .toolbar {
     background: var(--control-face-background);
+    overflow: hidden;
 }
 
 .state-inspector .objects-tree>.the-tree {
@@ -446,6 +449,7 @@ body {
 
 .state-inspector .properties .toolbar {
     background: var(--control-face-background);
+    overflow: hidden;
 }
 
 
@@ -485,6 +489,7 @@ body {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
+    overflow: hidden;
 }
 
 .state-inspector .history .toolbar>.resizer {
@@ -677,6 +682,9 @@ body {
 
 
 
+.bookmarks-list {
+    margin: 0px 4px 4px 4px;
+}
 
 .bookmarks-list-item {
     display: table-row;
@@ -713,7 +721,7 @@ body {
 }
 
 .tabs>button.selected {
-    border-bottom-style: 3px solid steelblue;
+    border-bottom: 3px solid steelblue;
 }
 
 .tabs>button:not(.selected) {
