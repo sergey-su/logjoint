@@ -48,7 +48,21 @@
     <div class="outline" style="top: @TopProperty">
         @foreach (var item in @viewModel.ViewLines)
         {
-            <div @key="item.LineIndex" class="item">@GetOutlineContents(item)</div>
+            <div @key="item.LineIndex" class="item">
+                @if (item.Severity == SeverityIcon.Error)
+                {
+                    <span class="i e" />
+                }
+                else if (item.Severity == SeverityIcon.Warning)
+                {
+                    <span class="i w" />
+                }
+                @if (item.IsBookmarked)
+                {
+                    <span class="i b" />
+                }
+                @(" ")
+            </div>
         }
     </div>
     <div class="vsroller"><div class="slider" style="top: @string.Format("{0}%", viewModel.VerticalScrollerPosition.GetValueOrDefault(0)*100)"></div></div>
@@ -209,20 +223,6 @@
     static string GetBackgroundColor(LogJoint.Drawing.Color? contextColor)
     {
         return contextColor.HasValue ? LogJoint.Drawing.ColorExtensions.ToHtmlColor(contextColor.Value) : "white";
-    }
-
-    static string GetOutlineContents(LogJoint.UI.Presenters.LogViewer.ViewLine viewLine)
-    {
-        string result = "";
-        if (viewLine.Severity == LogJoint.UI.Presenters.LogViewer.SeverityIcon.Error)
-            result = "e";
-        else if (viewLine.Severity == LogJoint.UI.Presenters.LogViewer.SeverityIcon.Error)
-            result = "w";
-        if (viewLine.IsBookmarked)
-            result += "b";
-        if (result == "")
-            result = " ";
-        return result;
     }
 
     void UpdateDisplayLinesPerPage()

@@ -22,6 +22,7 @@ body {
     --control-client-border: 1px solid gray; /* border around client area */
     --resizable-separator-background: linen; /* background of areas that user can drag to resize */
     --resize-grip-color: darkgray; /* color of "grip" indicator (dots that show the user they can drag it) */
+    --error-image: url(data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAuMCAwLjAgNDMzLjgyNjc3MTY1MzU0MzMgNDI5LjE4NjM1MTcwNjAzNjc2IiBmaWxsPSJub25lIiBzdHJva2U9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNsaXBQYXRoIGlkPSJwLjAiPjxwYXRoIGQ9Im0wIDBsNDMzLjgyNjc4IDBsMCA0MjkuMTg2MzRsLTQzMy44MjY3OCAwbDAgLTQyOS4xODYzNHoiIGNsaXAtcnVsZT0ibm9uemVybyIvPjwvY2xpcFBhdGg+PGcgY2xpcC1wYXRoPSJ1cmwoI3AuMCkiPjxwYXRoIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wIiBkPSJtMCAwbDQzMy44MjY3OCAwbDAgNDI5LjE4NjM0bC00MzMuODI2NzggMHoiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjxwYXRoIGZpbGw9IiNjYzQxMjUiIGQ9Im05LjI4MDg0IDIxMy4yNDY3MmwwIDBjMCAtMTEzLjA3NDg3IDkxLjY2NTI5IC0yMDQuNzQwMTYgMjA0Ljc0MDE2IC0yMDQuNzQwMTZsMCAwYzU0LjMwMDQ3NiAwIDEwNi4zNzY5MiAyMS41NzA3NzYgMTQ0Ljc3MzE2IDU5Ljk2NzAwM2MzOC4zOTYyMSAzOC4zOTYyMzMgNTkuOTY3MDEgOTAuNDcyNjk0IDU5Ljk2NzAxIDE0NC43NzMxNmwwIDBjMCAxMTMuMDc0ODc1IC05MS42NjUzMSAyMDQuNzQwMTYgLTIwNC43NDAxNyAyMDQuNzQwMTZsMCAwYy0xMTMuMDc0ODcgMCAtMjA0Ljc0MDE2IC05MS42NjUyOCAtMjA0Ljc0MDE2IC0yMDQuNzQwMTZ6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJtMTc1LjIyODM1IDY2LjI3NTU5bDc3LjU4NTMgMGwwIDE4Ni43MTEyOWwtNzcuNTg1MyAweiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0ibTE2Ny4wNzYxNCAzMzkuNTM1NDNsMCAwYzAgLTI1LjkyNjk0IDIxLjAxNzk0NCAtNDYuOTQ0ODg1IDQ2Ljk0NDg4NSAtNDYuOTQ0ODg1bDAgMGMxMi40NTA1NjIgMCAyNC4zOTExNzQgNC45NDU5ODQgMzMuMTk1MDM4IDEzLjc0OTg0N2M4LjgwMzg2NCA4LjgwMzg2NCAxMy43NDk4NDcgMjAuNzQ0NDc2IDEzLjc0OTg0NyAzMy4xOTUwMzhsMCAwYzAgMjUuOTI2OTQgLTIxLjAxNzk0NCA0Ni45NDQ4ODUgLTQ2Ljk0NDg4NSA0Ni45NDQ4ODVsMCAwYy0yNS45MjY5NCAwIC00Ni45NDQ4ODUgLTIxLjAxNzk0NCAtNDYuOTQ0ODg1IC00Ni45NDQ4ODV6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L2c+PC9zdmc+);
 }
 
 :focus {
@@ -106,6 +107,15 @@ body {
 }
 .logview .outline .item {
     white-space: pre;
+}
+.logview .outline .item>.i {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background-repeat: no-repeat;
+}
+.logview .outline .item>.e {
+    background-image: var(--error-image);
 }
 .bg1 {
     background-color: burlywood;
