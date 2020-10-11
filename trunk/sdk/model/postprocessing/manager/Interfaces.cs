@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -50,6 +51,7 @@ namespace LogJoint.Postprocessing
 	{
 		public ILogSource LogSource;
 		public string LogFileName;
+		public Task<Stream> OpenLogFile() => null;
 		public string OutputFileName;
 		public CancellationToken CancellationToken;
 		public Action<double> ProgressHandler;
