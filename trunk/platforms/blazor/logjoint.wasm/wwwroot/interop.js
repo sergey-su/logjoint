@@ -24,7 +24,7 @@
         _get: function (handle) {
             const file = this[handle];
             if (!file) {
-                throw new Error(`Invalid file handle ${id}`);
+                throw new Error(`Invalid file handle ${handle}`);
             }
             return file;
         },

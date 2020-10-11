@@ -56,7 +56,7 @@
         var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
         var fileName = await fs.ChooseFile();
         Console.WriteLine("Virtual file name : {0}", fileName);
-        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
+        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Analog exported log");
         model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
     }
 }

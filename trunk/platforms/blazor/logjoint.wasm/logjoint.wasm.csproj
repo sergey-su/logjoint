@@ -34,6 +34,7 @@
     <EmbeddedResource Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml" Link="Formats\MS-TextWriterTraceListener.format.xml" />
     <EmbeddedResource Include="..\..\..\model\formats\MS-XmlWriterTraceListener.format.xml" Link="Formats\MS-XmlWriterTraceListener.format.xml" />
     <EmbeddedResource Include="../../../extensions/chromium/plugin/bin/chromium.zip" Link="Plugins\chromium.zip" />
+    <EmbeddedResource Include="../../../../../logjoint-google-plugin/plugin/bin/google.zip" Link="Plugins\google.zip" />
   </ItemGroup>
 
   <ItemGroup>
