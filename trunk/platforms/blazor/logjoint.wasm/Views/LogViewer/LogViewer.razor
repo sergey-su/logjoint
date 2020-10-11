@@ -8,7 +8,7 @@
 
 <div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
-    <div class="scroll-outer" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
+    <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
         <div class="scroll-inner" style="top: @(string.Format("{0:000}px", -viewModel.FirstDisplayMessageScrolledLines*charHeight))">
             @foreach (var item in @viewModel.ViewLines)
             {
