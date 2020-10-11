@@ -2,7 +2,7 @@
 @using LogJoint.UI.Presenters.Reactive
 @using Microsoft.JSInterop
 
-<ul class="list @Class" @onkeydown="HandleKey" @ref="ListRef">
+<ul class="list nice-scroll @Class" @onkeydown="HandleKey" @ref="ListRef">
     @{var itemIndex = 0;}
     @foreach (var item in Items)
     {

@@ -1,5 +1,5 @@
 ﻿html, body {
-    font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: Tahoma, Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 13px;
 }
 
@@ -14,7 +14,14 @@ body {
 }
 
 :root {
-    --items-height: 16px; /* height of the list or tree items */
+    --item-height: 16px; /* height of the list or tree items */
+    --selected-item-background-color: steelblue; /* background of a selectd list or tree item */
+    --selected-item-color: white; /* text color of a selectd list or tree item */
+    --control-face-background: linen; /* background of non-interactive part of a UI element */
+    --control-client-background: #FDFAF7; /* background of UI element part where the content is listed (client area) */
+    --control-client-border: 1px solid gray; /* border around client area */
+    --resizable-separator-background: linen; /* background of areas that user can drag to resize */
+    --resize-grip-color: darkgray; /* color of "grip" indicator (dots that show the user they can drag it) */
 }
 
 #blazor-error-ui {
@@ -36,6 +43,16 @@ body {
     top: 0.5rem;
 }
 
+.nice-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background-color: #f1f1f1;
+}
+
+.nice-scroll::-webkit-scrollbar-thumb {
+    background-color: #aaa;
+    border-radius: 3px;
+}
 
 
 
@@ -47,10 +64,11 @@ body {
     justify-content: space-between;
     font-family: monospace;
     user-select: none;
-    border: 2px grey solid;
     position: relative;
     overflow: hidden;
     line-height: normal;
+    background: var(--control-client-background);
+    border: var(--control-client-border);
 }
 .logview .logline {
     padding: 0px;
@@ -142,18 +160,12 @@ body {
     display: flex;
     flex-flow: column nowrap;
     height: 100%;
-
-    background-color: lightgreen;
 }
 .main-window .container-1>.top {
     height: 150px;
-
-    background-color: lightblue;
 }
 .main-window .container-1>.bottom {
     flex-grow: 2;
-
-    background-color: lightgrey;
 }
 .main-window .container-2 {
     display: flex;
@@ -161,8 +173,7 @@ body {
 }
 .main-window .container-2>.left {
     width: 100px;
-
-    background-color: lightsalmon;
+    display: none; /* timeline not implemented yet */
 }
 .main-window .container-2>.mid {
     flex-grow: 2;
@@ -170,6 +181,7 @@ body {
 .main-window .container-2>.right-separator {
     width: 4px;
     cursor: ew-resize;
+    background: var(--resizable-separator-background);
 }
 .main-window .container-2>.right {
     width: 300px;
@@ -181,8 +193,6 @@ body {
 }
 .main-window .container-3>.top {
     flex-grow: 2;
-
-    background-color: lightpink;
 }
 .main-window .container-3>.bottom {
     height: 200px;
@@ -190,6 +200,7 @@ body {
 .main-window .container-3>.bottom-separator {
     height: 4px;
     cursor: ns-resize;
+    background: var(--resizable-separator-background);
 }
 
 
@@ -203,8 +214,7 @@ body {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
-
-    background-color: linen;
+    background: var(--control-face-background);
 }
 .loaded-messages>.viewer {
     height: 1px;
@@ -246,6 +256,7 @@ body {
     display: flex;
     flex-flow: row nowrap;
     justify-content: center;
+    background: var(--control-face-background);
 }
 
 .tabs-control>.tab-captions>button {
@@ -261,6 +272,7 @@ body {
 .log-sources-manager {
     display: flex;
     flex-flow: row nowrap;
+    background: var(--control-face-background);
 }
 
 .log-sources-manager>.actions {
@@ -286,11 +298,13 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     cursor: default;
+    background: var(--control-client-background);
+    border: var(--control-client-border);
 }
 .tree>.node {
     display: flex;
     flex-flow: row nowrap;
-    height: var(--items-height);
+    height: var(--item-height);
 }
 .tree>.node>.triangle {
     font-size: 0.8em;
@@ -307,8 +321,8 @@ body {
     text-overflow: ellipsis;
 }
 .tree>.node.selected {
-    background-color: darkblue;
-    color: white;
+    background-color: var(--selected-item-background-color);
+    color: var(--selected-item-color);
 }
 
 
@@ -318,6 +332,7 @@ body {
     display: flex;
     flex-flow: column nowrap;
     overflow: scroll;
+    background: var(--control-face-background);
 }
 
 .postprocessings-tabpage .control.disabled {
@@ -337,6 +352,7 @@ body {
 .tool-container>.header {
     display: flex;
     flex-flow: row nowrap;
+    background: var(--control-face-background);
 }
 
 .tool-container>.header>.tabs {
@@ -367,6 +383,7 @@ body {
 .state-inspector>.v-resizer {
     width: 4px;
     cursor: ew-resize;
+    background: var(--resizable-separator-background);
 }
 
 .state-inspector>.right {
@@ -384,6 +401,7 @@ body {
 .state-inspector>.right>.h-resizer {
     height: 4px;
     cursor: ns-resize;
+    background: var(--resizable-separator-background);
 }
 
 .state-inspector>.right>.bottom {
@@ -394,8 +412,10 @@ body {
 .state-inspector .objects-tree {
     display: flex;
     flex-flow: column nowrap;
+}
 
-    background-color: lightgray;
+.state-inspector .objects-tree .toolbar {
+    background: var(--control-face-background);
 }
 
 .state-inspector .objects-tree>.the-tree {
@@ -424,8 +444,6 @@ body {
 .state-inspector .properties {
     display: flex;
     flex-flow: column nowrap;
-
-    background-color: lightsalmon;
 }
 
 .state-inspector .properties>.the-list {
@@ -442,13 +460,15 @@ body {
     white-space: nowrap;
 }
 
+.state-inspector .properties .toolbar {
+    background: var(--control-face-background);
+}
+
 
 
 .state-inspector .history {
     display: flex;
     flex-flow: column nowrap;
-
-    background-color: lightyellow;
 }
 
 .state-inspector .history>.the-list {
@@ -476,6 +496,10 @@ body {
     min-width: 5px;
 }
 
+.state-inspector .history .toolbar {
+    background: var(--control-face-background);
+}
+
 
 
 
@@ -485,18 +509,21 @@ body {
     padding: 0;
     margin: 0;
     overflow: auto;
+    background: var(--control-client-background);
+    border: var(--control-client-border);
 }
 .list>li {
-    height: var(--items-height);
+    height: var(--item-height);
     user-select: none;
 }
 .list>li.selected {
-    background-color: blue;
-    color: white;
+    background-color: var(--selected-item-background-color);
+    color: var(--selected-item-color);
 }
+/* todo: remove when focus management has been debugged
 .list>li:focus-within {
     background-color: darkblue;
-}
+}*/
 
 
 .search-result {
@@ -507,6 +534,8 @@ body {
 .search-result>.toolbar {
     display: flex;
     flex-flow: row nowrap;
+    align-items: center;
+    background: var(--control-face-background);
 }
 
 .search-result>.toolbar>.resizer {
@@ -514,6 +543,7 @@ body {
     text-align: center;
     cursor: ns-resize;
     padding: 0px 10px;
+    color: var(--resize-grip-color);
 }
 
 .search-result>.toolbar>.result {
@@ -552,6 +582,9 @@ body {
 }
 
 
+.search-panel {
+    background: var(--control-face-background);
+}
 
 .search-panel .search-input {
     display: flex;
