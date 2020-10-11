@@ -325,10 +325,15 @@
     },
 
     list: {
-        scrollListItemIntoView: function (listElement, itemIndex, itemHeight) {
+        scrollListItemIntoView: function (listElement, itemIndex) {
+            const firstItem = listElement.firstElementChild;
+            if (!firstItem) {
+                return; // empty list, nothing to scroll
+            }
             const viewTop = listElement.scrollTop;
             const viewHeight = listElement.getBoundingClientRect().height;
             const viewBottom = viewTop + viewHeight;
+            const itemHeight = firstItem.getBoundingClientRect().height;
             const itemTop = itemIndex * itemHeight;
             const itemBottom = (itemIndex + 1) * itemHeight;
             if (itemBottom > viewBottom || itemTop < viewTop) {

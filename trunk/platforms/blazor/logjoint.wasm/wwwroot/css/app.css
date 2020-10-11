@@ -13,7 +13,8 @@ body {
     margin: 0;
 }
 
-app {
+:root {
+    --items-height: 16px; /* height of the list or tree items */
 }
 
 #blazor-error-ui {
@@ -34,6 +35,11 @@ app {
     right: 0.75rem;
     top: 0.5rem;
 }
+
+
+
+
+
 
 
 .logview {
@@ -284,11 +290,12 @@ app {
 .tree>.node {
     display: flex;
     flex-flow: row nowrap;
-    align-items: center;
+    height: var(--items-height);
 }
 .tree>.node>.triangle {
     font-size: 0.8em;
     width: 1em;
+    align-self: center;
 }
 .tree>.node>.contents {
     width: 1px;
@@ -480,7 +487,7 @@ app {
     overflow: auto;
 }
 .list>li {
-    height: 25px; /* todo: do not hardcode */
+    height: var(--items-height);
     user-select: none;
 }
 .list>li.selected {

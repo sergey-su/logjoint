@@ -81,7 +81,7 @@
         if (focused != value)
         {
             focused = value;
-            await JSRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", ListRef, focused, 25 /* todo: do not hardcode */);
+            await JSRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", ListRef, focused);
             await JSRuntime.InvokeVoidAsync("logjoint.list.focusSelectedListItem", ListRef);
         }
     }
