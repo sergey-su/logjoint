@@ -97,7 +97,7 @@
         _get: function (handle) {
             const nativeHandle = this[handle];
             if (!nativeHandle) {
-                throw new Error(`Invalid native file handle ${id}`);
+                throw new Error(`Invalid native file handle ${handle}`);
             }
             return nativeHandle;
         },

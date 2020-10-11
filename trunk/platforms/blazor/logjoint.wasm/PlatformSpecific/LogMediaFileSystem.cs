@@ -16,7 +16,6 @@ namespace LogJoint.Wasm
     {
         Task<string> AddFileFromInput(ElementReference inputElement);
         Task<string> ChooseFile();
-        void ReleaseFile(string fileName);
     };
 
     public class LogMediaFileSystem : IFileSystem, IWasmFileSystemConfig
@@ -68,9 +67,11 @@ namespace LogJoint.Wasm
         class NativeFileSystemFileInfo
         {
             public IJSRuntime jsRuntime;
+            public string fileName;
             public long handle;
             public long size;
             public DateTime lastModified;
+            public LogMediaFileSystem owner;
 
             private int refCount;
 
@@ -82,7 +83,10 @@ namespace LogJoint.Wasm
             public void Release()
             {
                 if (Interlocked.Decrement(ref refCount) == 0)
+                {
+                    owner.nativeFileSystemFiles.Remove(fileName);
                     Delete();
+                }
             }
 
             private async void Delete()
@@ -341,6 +345,8 @@ namespace LogJoint.Wasm
                 var lastModified = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.getLastModified", handle);
                 nativeFileSystemFiles.Add(fileName, fileInfo = new NativeFileSystemFileInfo()
                 {
+                    owner = this,
+                    fileName = fileName,
                     jsRuntime = jsRuntime,
                     handle = handle,
                     size = size,
@@ -348,15 +354,6 @@ namespace LogJoint.Wasm
                 });
             }
             return (fileName, fileInfo);
-        }
-
-        void IWasmFileSystemConfig.ReleaseFile(string fileName)
-        {
-            if (htmlInputFiles.TryGetValue(fileName, out var stream))
-            {
-                htmlInputFiles.Remove(fileName);
-                stream.Release();
-            }
         }
 
         static int CopyStr(string s, Memory<byte> buffer)
