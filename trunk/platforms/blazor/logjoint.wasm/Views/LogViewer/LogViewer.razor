@@ -9,7 +9,7 @@
 <div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
-        <div class="scroll-inner" style="top: @(string.Format("{0:000}px", -viewModel.FirstDisplayMessageScrolledLines*charHeight))">
+        <div class="scroll-inner" style="top: @TopProperty">
             @foreach (var item in @viewModel.ViewLines)
             {
                 <div class="logline"
@@ -29,6 +29,13 @@
                             <span class="pad">@Spaces(r.Item1)<span class="selhl">@Spaces(r.Item2 - r.Item1)</span></span>
                         }
                     }
+                    @if (item.SearchResultHighlightingRanges != null)
+                    {
+                        @foreach (var r in item.SearchResultHighlightingRanges)
+                        {
+                            <span class="pad">@Spaces(r.Item1)<span class="srhl">@Spaces(r.Item2 - r.Item1)</span></span>
+                        }
+                    }
                     @if (item.CursorCharIndex.HasValue)
                     {
                         <span class="pad">@Spaces(item.CursorCharIndex.Value)<span class="@(item.CursorVisible ? "cur" : "curhid")"></span></span>
@@ -38,7 +45,7 @@
             }
         </div>
     </div>
-    <div class="outline">
+    <div class="outline" style="top: @TopProperty">
         @foreach (var item in @viewModel.ViewLines)
         {
             <div @key="item.LineIndex" class="item">@GetOutlineContents(item)</div>
@@ -113,7 +120,7 @@
 
     void IView.HScrollToSelectedText(int charIndex)
     {
-        // ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.setScrollLeft", scrollOuter, charWidth * charIndex);
+        ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.scrollLeftIntoView", scrollOuter, charWidth * charIndex);
     }
 
     void IView.PopupContextMenu(object contextMenuPopupData)
@@ -162,8 +169,10 @@
             case "ArrowDown": return Key.Down;
             case "ArrowLeft": return Key.Left;
             case "ArrowRight": return Key.Right;
-            case "Home": return Key.BeginOfLine;
-            case "End": return Key.EndOfLine;
+            case "Home": 
+                return keyboardEventArgs.CtrlKey ? Key.BeginOfDocument : Key.BeginOfLine;
+            case "End":
+                return keyboardEventArgs.CtrlKey ? Key.EndOfDocument : Key.EndOfLine;
             case "PageUp": return Key.PageUp;
             case "PageDown": return Key.PageDown;
             case "B": return Key.BookmarkShortcut;
@@ -228,4 +237,6 @@
         UpdateDisplayLinesPerPage();
         viewModel?.ChangeNotification?.Post();
     }
+
+    string TopProperty => string.Format("{0:000}px", -viewModel.FirstDisplayMessageScrolledLines * charHeight);
 }

@@ -14,8 +14,14 @@
     getResourceUrl: function (resourceName) {
         return (new URL(resourceName, window.location)).href;
     },
-    setScrollLeft: function (element, value) {
-        element.scrollLeft = value;
+    scrollLeftIntoView: function (element, targetX) {
+        const w = element.getBoundingClientRect().width;
+        const x = element.scrollLeft;
+        if (targetX < x) {
+            element.scrollLeft = targetX;
+        } else if (targetX > x + w) {
+            element.scrollLeft = targetX - w;
+        }
     },
 
     files: {
