@@ -1,0 +1,26 @@
+﻿@namespace  LogJoint.Wasm.UI
+@using System.Collections.Immutable 
+
+<div class="tabs @Class">
+    @{var index = 0;}
+    @foreach (var tab in Tabs)
+    {
+        var captureIndex = index;
+        <button @onclick="@(e => OnSelect?.Invoke(captureIndex))" class="@(index == SelectedTab ? "selected" : "")">@tab</button>
+        ++index;
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public int SelectedTab { get; set; } = 0;
+
+    [Parameter]
+    public IReadOnlyList<string> Tabs { get; set; } = ImmutableList<string>.Empty;
+
+    [Parameter]
+    public Action<int> OnSelect { get; set; }
+}

@@ -1,13 +1,7 @@
 ﻿@namespace LogJoint.Wasm.UI
 
-<div class='tabs-control @Class'>
-    <div class='tab-captions'>
-        <button class="@(selectedTab == 0 ? "checked" : "")" @onclick="@(e => SetSelectedTab(0))">Log Sources</button>
-        <button class="@(selectedTab == 1 ? "checked" : "")" @onclick="@(e => SetSelectedTab(1))">Bookmarks</button>
-        <button class="@(selectedTab == 2 ? "checked" : "")" @onclick="@(e => SetSelectedTab(2))">Search</button>
-        <button class="@(selectedTab == 3 ? "checked" : "")" @onclick="@(e => SetSelectedTab(3))">Postprocessing</button>
-        <button class="@(selectedTab == 4 ? "checked" : "")" @onclick="@(e => SetSelectedTab(4))">Debug</button>
-    </div>
+<div class='main-window-tabs @Class'>
+    <TabsView SelectedTab="@selectedTab" Tabs="@tabs" OnSelect="SetSelectedTab" />
     @switch (selectedTab)
     {
         case 0:
@@ -29,13 +23,16 @@
 </div>
 
 @code {
-	[Parameter]
-	public string Class { get; set; } = "";
+    private static string[] tabs = new[] { "Log Sources", "Bookmarks", "Search", "Postprocessing", "Debug" };
 
-	int selectedTab = 0;
+    [Parameter]
+    public string Class { get; set; } = "";
 
-	void SetSelectedTab(int value)
-	{
+    int selectedTab = 0;
+
+    void SetSelectedTab(int value)
+    {
         selectedTab = value;
-	}
+        StateHasChanged();
+    }
 }

@@ -4,7 +4,10 @@
 
 <div class=@ResizerClass @ref="resizerElement"></div>
 <div class='history @Class' @ref="element">
-    <div class="toolbar">History:</div>
+    <div class="toolbar">
+        <div>Change history:</div>
+        <div class="resizer" @ref="toolBarResizerElement">::::::</div>
+    </div>
     <ListView Class="the-list"
               Items="@Items"
               OnSelect="@(items => ViewModel.OnChangeHistoryChangeSelection(items.OfType<IStateHistoryItem>()))"
@@ -20,7 +23,7 @@
 </div>
 
 @code {
-    private ElementReference resizerElement, element;
+    private ElementReference resizerElement, element, toolBarResizerElement;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -41,5 +44,7 @@
     {
         await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
             resizerElement, element, /*inverse=*/true, /*relativeToParent=*/true);
+        await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
+            toolBarResizerElement, element, /*inverse=*/true, /*relativeToParent=*/true);
     }
 }

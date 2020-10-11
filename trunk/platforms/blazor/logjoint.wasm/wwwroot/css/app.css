@@ -24,6 +24,10 @@ body {
     --resize-grip-color: darkgray; /* color of "grip" indicator (dots that show the user they can drag it) */
 }
 
+:focus {
+    outline: none;
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
@@ -243,28 +247,13 @@ body {
 
 
 
-.tabs-control {
+.main-window-tabs {
     display: flex;
     flex-flow: column nowrap;
 }
-.tabs-control>.tab-content {
+.main-window-tabs>.tab-content {
     height: 1px;
     flex-grow: 2;
-}
-
-.tabs-control>.tab-captions {
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: center;
-    background: var(--control-face-background);
-}
-
-.tabs-control>.tab-captions>button {
-    margin: 0 5px;
-}
-
-.tabs-control>.tab-captions>button.checked {
-    border-style: inset;
 }
 
 
@@ -331,7 +320,7 @@ body {
 .postprocessings-tabpage {
     display: flex;
     flex-flow: column nowrap;
-    overflow: scroll;
+    overflow: auto;
     background: var(--control-face-background);
 }
 
@@ -359,15 +348,10 @@ body {
     flex-grow: 2;
     flex-shrink: 2;
     overflow-x: hidden;
-
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: flex-start;
 }
 
-.tool-container>.header>.tabs>.checked {
-    border: inset;
-}
+
+
 
 
 .state-inspector {
@@ -498,9 +482,17 @@ body {
 
 .state-inspector .history .toolbar {
     background: var(--control-face-background);
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
 }
 
-
+.state-inspector .history .toolbar>.resizer {
+    flex-grow: 2;
+    text-align: center;
+    cursor: ns-resize;
+    color: var(--resize-grip-color);
+}
 
 
 
@@ -700,3 +692,30 @@ body {
     text-overflow: ellipsis;
 }
 
+
+
+
+
+.tabs {
+    display: flex;
+    flex-flow: row nowrap;
+    background: var(--control-face-background);
+    padding-bottom: 2px;
+    justify-content: center;
+}
+
+.tabs>button {
+    border: none;
+    background-color: var(--control-face-background);
+    cursor: pointer;
+    padding: 5px 5px 1px 5px;
+    margin: 0 2px;
+}
+
+.tabs>button.selected {
+    border-bottom-style: 3px solid steelblue;
+}
+
+.tabs>button:not(.selected) {
+    color: #555;
+}

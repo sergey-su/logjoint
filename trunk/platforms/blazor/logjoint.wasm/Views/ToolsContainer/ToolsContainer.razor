@@ -6,17 +6,12 @@
 <div class='@ResizerClass' @ref="toolsResizerElement"></div>
 <div class='tool-container @Class' @ref='toolsElement'>
     <div class='header'>
-        <div class='tabs'>
-            @foreach (var tool in visibleTools)
-            {
-                <button class="@(tool == selectedTool ? "checked" : "")" @onclick="@(e => SetSelectedTool(tool))">@tool</button>
-            }
-        </div>
+        <TabsView SelectedTab="@selectedTool" OnSelect="i => SetSelectedTool(i)" Tabs="@tabs" />
         <div class='actions'>
             <button @onclick="HideTools">&gt;</button>
         </div>
     </div>
-    @switch (selectedTool)
+    @switch (visibleTools[selectedTool])
     {
         case PostprocessorKind.StateInspector:
             <LogJoint.Wasm.UI.Postprocessing.StateInspector Class='body' />
@@ -31,7 +26,8 @@
     private ElementReference toolsResizerElement, toolsElement;
     private List<PostprocessorKind> visibleTools = new List<PostprocessorKind>
         {PostprocessorKind.StateInspector, PostprocessorKind.SequenceDiagram};
-    private PostprocessorKind? selectedTool = PostprocessorKind.StateInspector;
+    private int selectedTool = 0;
+    private static string[] tabs = new[] { "StateInspector", "SequenceDiagram" };
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -50,8 +46,9 @@
         await jsRuntime.InvokeVoidAsync("logjoint.setElementWidth", toolsElement, 0);
     }
 
-    private void SetSelectedTool(PostprocessorKind tool)
+    private void SetSelectedTool(int tool)
     {
         selectedTool = tool;
+        StateHasChanged();
     }
 }
