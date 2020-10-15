@@ -114,7 +114,7 @@
         _refresh: async function(entry, initialRefresh) {
             try {
                 const permissionOptions = {
-                    writable: false
+                    mode: 'read'
                 };
                 let permitted = await entry.nativeHandle.queryPermission(permissionOptions) === 'granted';
                 if (!permitted) {
@@ -175,7 +175,7 @@
             return true;
         },
         choose: async function () {
-            const nativeHandle = await window.chooseFileSystemEntries();
+            const nativeHandle = await window.showOpenFilePicker();
             return await this._add(nativeHandle);
         },
         close: function (handle) {
