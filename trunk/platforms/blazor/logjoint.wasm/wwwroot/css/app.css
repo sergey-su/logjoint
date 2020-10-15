@@ -433,7 +433,15 @@ body {
     flex-shrink: 1000000;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.node:not(.selected) .si-node>.p {
     color: gray;
+}
+.si-node>.l {
+    background-color: #e9ffe9;
+}
+.si-node>.d {
+    background-color: #ececec;
 }
 .si-node>.p>span {
     padding-left: 5px;
@@ -456,11 +464,13 @@ body {
 .state-inspector .properties>.the-list>li>div {
     display: table-cell;
     white-space: nowrap;
+    padding: 0px 4px;
 }
 
 .state-inspector .properties .toolbar {
     background: var(--control-face-background);
     overflow: hidden;
+    padding-bottom: 4px;
 }
 
 
@@ -494,7 +504,12 @@ body {
     max-width: 5px;
     min-width: 5px;
 }
-
+.state-inspector .history>.the-list>li>div:nth-child(3) {
+    padding: 0px 4px;
+}
+.state-inspector .history>.the-list>li>div:nth-child(4) {
+    padding: 0px 4px;
+}
 .state-inspector .history .toolbar {
     background: var(--control-face-background);
     display: flex;

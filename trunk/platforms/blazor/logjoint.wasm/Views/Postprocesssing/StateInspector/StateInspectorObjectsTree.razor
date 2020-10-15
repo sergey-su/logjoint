@@ -8,11 +8,17 @@
               OnExpand="@(node => ViewModel.OnExpandNode(node as IObjectsTreeNode))"
               OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))">
         <NodeTemplate>
-            @{var paintInfo = PaintNode((IObjectsTreeNode)context, getPrimaryPropValue: true);}
-            <span class="n">@context.ToString()</span>
+            @{var node = (IObjectsTreeNode)context;}
+            @{var paintInfo = PaintNode(node, getPrimaryPropValue: true);}
+            @{var coloringClass = 
+                node.IsSelected ? "" : 
+                paintInfo.Coloring == NodeColoring.Alive ? "l" : 
+                paintInfo.Coloring == NodeColoring.Deleted ? "d" : 
+                ""; }
+            <span class="n @coloringClass">@context.ToString()</span>
             @if (!string.IsNullOrEmpty(paintInfo.PrimaryPropValue))
             {
-                <span class="p"><span>@paintInfo.PrimaryPropValue</span></span>
+                <span class="p @coloringClass"><span>@paintInfo.PrimaryPropValue</span></span>
             }
         </NodeTemplate>
     </TreeView>
