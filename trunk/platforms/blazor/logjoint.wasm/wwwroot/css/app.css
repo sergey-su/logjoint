@@ -265,6 +265,7 @@ body {
 .main-window-tabs>.tab-content {
     height: 1px;
     flex-grow: 2;
+    padding: 0px 5px;
 }
 
 
@@ -289,7 +290,20 @@ body {
     flex-grow: 2;
     margin: 0px 4px 4px 4px;
 }
-
+.log-sources-list-item {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.log-sources-list-item>span {
+    flex-grow: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.log-sources-list-item>input {
+    margin: 0px 5px 0px 0px;
+    padding: 0;
+}
 
 
 
@@ -693,7 +707,7 @@ body {
     position: absolute;
     left: 3px;
     right: 3px;
-    top: 60px;
+    top: 50px;
     bottom: 50%;
     min-height: 50px;
     background-color: white;

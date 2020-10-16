@@ -6,7 +6,17 @@
 
 <TreeView class="@Class"
           Root="@viewModel.RootItem"
-          OnSelect="@(nodes => viewModel.OnSelectionChange(nodes.OfType<IViewItem>().ToArray()))"/>
+          OnSelect="@(nodes => viewModel.OnSelectionChange(nodes.OfType<IViewItem>().ToArray()))"
+          NodeClass="log-sources-list-item">
+    <NodeTemplate>
+        @{var item = (IViewItem)context;}
+        @if (item.Checked != null)
+        {
+            <input type="checkbox" checked="@item.Checked" @oninput="@(e => viewModel.OnItemCheck(item, e.Value is bool x && x))" />
+        }
+        <span>@item.ToString()</span>
+    </NodeTemplate>
+</TreeView>
 
 @code {
     private IViewModel viewModel;
