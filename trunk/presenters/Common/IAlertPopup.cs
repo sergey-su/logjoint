@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters
 {
@@ -21,6 +22,7 @@ namespace LogJoint.UI.Presenters
 	public interface IAlertPopup
 	{
 		AlertFlags ShowPopup(string caption, string text, AlertFlags flags);
+		Task<AlertFlags> ShowPopupAsync(string caption, string text, AlertFlags flags);
 	}
 }
 

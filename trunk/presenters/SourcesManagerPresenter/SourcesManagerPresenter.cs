@@ -260,7 +260,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					toDelete2.Count(p => p.Failure == null);
 				if (goodItemsCount > 0) // do not ask about failed preprocessors or sources
 				{
-					if (alerts.ShowPopup(
+					if (await alerts.ShowPopupAsync(
 						"Delete",
 						string.Format("Are you sure you want to close {0} log (s)", toDelete.Count + toDelete2.Count),
 						AlertFlags.YesNoCancel

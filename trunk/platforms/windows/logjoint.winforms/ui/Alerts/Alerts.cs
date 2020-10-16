@@ -1,6 +1,7 @@
 ﻿using LogJoint.UI.Presenters;
 using System.Windows.Forms;
 using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -35,6 +36,11 @@ namespace LogJoint.UI
 			if (browseFileDialog.ShowDialog() == DialogResult.OK)
 				return browseFileDialog.FileName;
 			return null;
+		}
+
+		Task<AlertFlags> IAlertPopup.ShowPopupAsync(string caption, string text, AlertFlags flags)
+		{
+			return Task.FromResult(((IAlertPopup)this).ShowPopup(caption, text, flags));
 		}
 
 		AlertFlags IAlertPopup.ShowPopup(string caption, string text, AlertFlags flags)
