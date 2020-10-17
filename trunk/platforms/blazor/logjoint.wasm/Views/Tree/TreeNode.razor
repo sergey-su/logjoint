@@ -4,7 +4,7 @@
 
 <div class="node @($"c{Level}") @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
     <div class="triangle" @onclick="TryExpandCollapseByMouse" @onclick:stopPropagation>
-        @(Node.Children.Count == 0 ? " " : (Node.IsExpanded ? "▼" : "▶"))
+        @(!SupportsExpansion(Node) ? " " : (Node.IsExpanded ? "▼" : "▶"))
     </div>
     <div class="contents @NodeClass">@NodeTemplate(Node)</div>
 </div>
@@ -46,9 +46,12 @@
 
     void TryExpandCollapseByMouse(MouseEventArgs e)
     {
-        if (Node.IsExpanded)
-            Owner?.TryCollapseNode(Node);
-        else
-            Owner?.TryExpandNode(Node);
+        if (SupportsExpansion(Node))
+            if (Node.IsExpanded)
+                Owner?.TryCollapseNode(Node);
+            else
+                Owner?.TryExpandNode(Node);
     }
+
+    static bool SupportsExpansion(ITreeNode node) => node.Children.Count != 0 && node.IsExpandable;
 }
