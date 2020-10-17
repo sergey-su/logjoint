@@ -25,19 +25,23 @@ namespace LogJoint.UI.Presenters
 		Task<AlertFlags> ShowPopupAsync(string caption, string text, AlertFlags flags);
 	}
 
-	public interface IViewModel
+	namespace AlertPopup
 	{
-		IChangeNotification ChangeNotification { get; }
-		IViewState ViewState { get; } // if null, alert is not visible
-		void OnButtonClicked(AlertFlags button);
-	};
+		public interface IViewModel
+		{
+			IChangeNotification ChangeNotification { get; }
+			IViewState ViewState { get; } // if null, the popup is not visible
+			void OnButtonClicked(AlertFlags button);
+			void OnClickOutside();
+		};
 
-	public interface IViewState
-	{
-		string Caption { get; }
-		string Text { get; }
-		AlertFlags Buttons { get; }
-		AlertFlags Icon { get; }
-	};
+		public interface IViewState
+		{
+			string Caption { get; }
+			string Text { get; }
+			AlertFlags Buttons { get; }
+			AlertFlags Icon { get; }
+		};
+	}
 }
 

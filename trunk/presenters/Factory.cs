@@ -120,6 +120,11 @@ namespace LogJoint.UI.Presenters
 
 			var highlightColorsTable = new HighlightBackgroundColorsTable(colorTheme);
 
+			if (alertPopup == null)
+			{
+				alertPopup = new AlertPopup.Presenter(model.ChangeNotification);
+			}
+
 			LogViewer.IPresenterFactory logViewerPresenterFactory = new LogViewer.PresenterFactory(
 				model.ChangeNotification,
 				model.HeartBeatTimer,
@@ -588,7 +593,7 @@ namespace LogJoint.UI.Presenters
 				AlertPopup = alertPopup,
 				ShellOpen = shellOpen,
 				ColorTheme = colorTheme,
-				PreprocessingUserInteractions = preprocessingUserInteractions
+				PreprocessingUserInteractions = preprocessingUserInteractions,
 			};
 		}
 
