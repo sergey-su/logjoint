@@ -252,8 +252,8 @@ namespace LogJoint.FieldsProcessor
 						else
 						{
 							builderTypeTask = Task.Run(() => GenerateType(builderTypeHash));
+							builderTypesCache.Add(builderTypeHash, builderTypeTask);
 						}
-						builderTypesCache.Add(builderTypeHash, builderTypeTask);
 					}
 				}
 
