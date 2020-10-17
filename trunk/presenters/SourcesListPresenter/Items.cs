@@ -18,6 +18,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		bool Reactive.ITreeNode.IsExpanded => GetIsExpanded();
 		bool Reactive.ITreeNode.IsSelected => IsSelected;
 		IReadOnlyList<Reactive.ITreeNode> Reactive.ITreeNode.Children => GetChildren();
+		bool Reactive.ITreeNode.IsExpandable => true;
 
 		bool? IViewItem.Checked => Checked;
 		(Color, bool) IViewItem.Color => (ItemColor, IsFailed);
@@ -76,6 +77,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		IReadOnlyList<Reactive.ITreeNode> Reactive.ITreeNode.Children => Items;
 		bool Reactive.ITreeNode.IsExpanded => true;
 		bool Reactive.ITreeNode.IsSelected => false;
+		bool Reactive.ITreeNode.IsExpandable => true;
 		IViewItem IViewItem.Parent => null;
 	};
 };

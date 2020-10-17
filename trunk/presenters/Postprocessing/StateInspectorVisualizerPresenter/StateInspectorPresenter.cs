@@ -886,6 +886,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			public bool IsSelected => selected;
 			public bool HasSelectedNodes => hasSelectedNodes;
 			public IReadOnlyList<VisualizerNode> Children => children;
+			public bool IsExpandable => true;
 
 			public void SetInitialProps(EventHandler<NodeCreatedEventArgs> nodeCreationHandler)
 			{

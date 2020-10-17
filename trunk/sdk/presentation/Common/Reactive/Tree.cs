@@ -33,6 +33,10 @@ namespace LogJoint.UI.Presenters.Reactive
 		/// in one of the tree versions.
 		/// </summary>
 		bool IsSelected { get; }
+		/// <summary>
+		/// Determines if the node can be collapsed/expanded. Is consulted only when Children is not empty.
+		/// </summary>
+		bool IsExpandable { get; }
 	};
 
 	public class EmptyTreeNode : ITreeNode
@@ -43,6 +47,7 @@ namespace LogJoint.UI.Presenters.Reactive
 		IReadOnlyList<ITreeNode> ITreeNode.Children => empty;
 		bool ITreeNode.IsExpanded => true;
 		bool ITreeNode.IsSelected => false;
+		bool ITreeNode.IsExpandable => true;
 
 		static readonly IReadOnlyList<ITreeNode> empty = new List<ITreeNode>().AsReadOnly();
 	};

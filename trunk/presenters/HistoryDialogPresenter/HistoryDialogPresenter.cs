@@ -323,11 +323,6 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		static ViewItem MakeRootItem(ImmutableList<ViewItem> displayItems,
 			ImmutableHashSet<string> selected, ImmutableHashSet<string> expanded)
 		{
-			var result = new ViewItem()
-			{
-				type = ViewItemType.ItemsContainer,
-				key = "root",
-			};
 			void copyChildren(ViewItem target, IEnumerable<ViewItem> source)
 			{
 				foreach (var src in source)
@@ -339,12 +334,17 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 						text = src.text,
 						annotation = src.annotation,
 						data = src.data,
-						expanded = expanded.Contains(src.key),
+						expanded = src.type == ViewItemType.Comment || expanded.Contains(src.key),
 						selected = selected.Contains(src.key)
 					};
 					target.children.Add(dst);
 					copyChildren(dst, src.children);
 				}
+			};
+			var result = new ViewItem()
+			{
+				type = ViewItemType.ItemsContainer,
+				key = "root",
 			};
 			copyChildren(result, displayItems);
 			return result;
@@ -384,6 +384,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			IReadOnlyList<ITreeNode> ITreeNode.Children => children;
 			bool ITreeNode.IsExpanded => expanded;
 			bool ITreeNode.IsSelected => selected;
+			bool ITreeNode.IsExpandable => type == ViewItemType.ItemsContainer;
 
 			internal IEnumerable<ViewItem> Flatten()
 			{
