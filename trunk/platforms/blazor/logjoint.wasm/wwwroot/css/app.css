@@ -779,7 +779,7 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.4);
 }
 .modal>.contents {
     position: absolute;
@@ -793,18 +793,20 @@ body {
 
 
 .alert {
-    border: 1px solid gray;
+    border: 2px #444 solid;
     padding: 10px;
     min-height: 100px;
     max-width: 40%;
     display: flex;
-    flex-flow: column nowrap;
+    flex-flow: column wrap;
     background: var(--control-face-background);
 }
 .alert>.text {
     flex-grow: 2;
 
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .alert>.buttons {
     display: flex;
@@ -812,6 +814,6 @@ body {
     justify-content: space-evenly;
 }
 .alert>.buttons>button {
-    margin: 0px 5px;
+    margin: 2px 5px;
     padding: 0px 10px;
 }

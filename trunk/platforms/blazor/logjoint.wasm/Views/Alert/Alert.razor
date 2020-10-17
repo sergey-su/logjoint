@@ -1,15 +1,41 @@
-﻿@namespace  LogJoint.Wasm.UI
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.AlertPopup
+@using LogJoint.UI.Presenters 
+@implements IDisposable
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
 
-<Modal Visible="@true" Class="alert">
+<Modal Visible="@(viewModel.ViewState != null)" Class="alert" ClickOutside="@(() => viewModel?.OnClickOutside())">
     <div class="text">
-        second  here aksjdkajsk djklasjdkl jaskljd kljaskldj klajskldjklasjdkljaskjd aksdjkasjdk ljasdj klasjkdj askj
+        @viewModel.ViewState.Text
     </div>
     <div class="buttons">
-        <button>Yes</button>
-        <button>No</button>
-        <button>Cancel</button>
+        @foreach (var button in allButton)
+        {
+            @if ((viewModel.ViewState.Buttons & button) != 0)
+            {
+                <button @onclick="@(e => viewModel.OnButtonClicked(button))">@button</button>
+            }
+        }
     </div>
 </Modal>
 
 @code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+    private static AlertFlags[] allButton = new [] { AlertFlags.Yes, AlertFlags.No, AlertFlags.Ok, AlertFlags.Cancel };
+
+    protected override void OnInitialized()
+    {
+        viewModel = (IViewModel)viewProxies.PresentationObjects.AlertPopup;
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.ViewState,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
 }

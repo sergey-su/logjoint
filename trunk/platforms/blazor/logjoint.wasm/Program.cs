@@ -61,7 +61,6 @@ namespace LogJoint.Wasm
         public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 
         public LogJoint.UI.Presenters.IShellOpen ShellOpen;
-        public LogJoint.UI.Presenters.IAlertPopup AlertPopup;
         public LogJoint.UI.Presenters.IFileDialogs FileDialogs;
         public LogJoint.UI.Presenters.IPromptDialog PromptDialog;
         public LogJoint.UI.Presenters.About.IAboutConfig AboutConfig;
@@ -78,7 +77,6 @@ namespace LogJoint.Wasm
             LogsDownloaderConfig = Substitute.For<Preprocessing.ILogsDownloaderConfig>();
 
             ShellOpen = Substitute.For<LogJoint.UI.Presenters.IShellOpen>();
-            AlertPopup = Substitute.For<LogJoint.UI.Presenters.IAlertPopup>();
             FileDialogs = Substitute.For<LogJoint.UI.Presenters.IFileDialogs>();
             PromptDialog = Substitute.For<LogJoint.UI.Presenters.IPromptDialog>();
             AboutConfig = Substitute.For<LogJoint.UI.Presenters.About.IAboutConfig>();
@@ -248,7 +246,7 @@ namespace LogJoint.Wasm
                     model,
                     new Clipboard(jsRuntime),
                     mocks.ShellOpen,
-                    mocks.AlertPopup,
+                    /*alertPopup=*/null,
                     mocks.FileDialogs,
                     mocks.PromptDialog,
                     mocks.AboutConfig,

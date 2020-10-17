@@ -2,8 +2,8 @@
 
 @if (Visible)
 {
-    <div class="modal">
-        <div class="contents @Class">
+    <div class="modal" @onmousedown="HandleClickOutside">
+        <div class="contents @Class" @onmousedown:stopPropagation>
             @ChildContent
         </div>
     </div>
@@ -18,4 +18,13 @@
 
     [Parameter]
     public string Class { get; set; } = "";
+
+    [Parameter]
+    public Action ClickOutside { get; set; }
+
+    async void HandleClickOutside()
+    {
+        await Task.Yield();
+        ClickOutside?.Invoke();
+    }
 }
