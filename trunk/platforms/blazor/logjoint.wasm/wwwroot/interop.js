@@ -175,7 +175,7 @@
             return true;
         },
         choose: async function () {
-            const nativeHandle = await window.showOpenFilePicker();
+            const [nativeHandle] = await window.showOpenFilePicker();
             return await this._add(nativeHandle);
         },
         close: function (handle) {

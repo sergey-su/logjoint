@@ -767,3 +767,51 @@ body {
 .tabs>button:not(.selected) {
     color: #555;
 }
+
+
+
+.modal-host {
+    position: relative;
+}
+.modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.modal>.contents {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+}
+
+
+
+
+.alert {
+    border: 1px solid gray;
+    padding: 10px;
+    min-height: 100px;
+    max-width: 40%;
+    display: flex;
+    flex-flow: column nowrap;
+    background: var(--control-face-background);
+}
+.alert>.text {
+    flex-grow: 2;
+
+    text-align: center;
+}
+.alert>.buttons {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-evenly;
+}
+.alert>.buttons>button {
+    margin: 0px 5px;
+    padding: 0px 10px;
+}

@@ -1,0 +1,21 @@
+﻿@namespace  LogJoint.Wasm.UI
+
+@if (Visible)
+{
+    <div class="modal">
+        <div class="contents @Class">
+            @ChildContent
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool Visible { get; set; } = false;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+}
