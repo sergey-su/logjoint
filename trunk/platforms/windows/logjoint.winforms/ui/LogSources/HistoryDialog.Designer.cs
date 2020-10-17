@@ -48,6 +48,7 @@
 			this.cancelButton.TabIndex = 4;
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
+			this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
 			// 
 			// openButton
 			// 
@@ -148,8 +149,8 @@
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "History";
 			this.Shown += new System.EventHandler(this.HistoryDialog_Shown);
-			this.VisibleChanged += new System.EventHandler(this.HistoryDialog_VisibileChanged);
 			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.HistoryDialog_KeyDown);
+			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.HistoryDialog_Closing);
 			this.ResumeLayout(false);
 
 		}

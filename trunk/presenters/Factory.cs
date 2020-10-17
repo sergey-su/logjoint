@@ -309,6 +309,7 @@ namespace LogJoint.UI.Presenters
 
 			HistoryDialog.IPresenter historyDialogPresenter = new HistoryDialog.Presenter(
 				model.LogSourcesManager,
+				model.ChangeNotification,
 				historyDialogView,
 				model.LogSourcesPreprocessings,
 				model.PreprocessingStepsFactory,

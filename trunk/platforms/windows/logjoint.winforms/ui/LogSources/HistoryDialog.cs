@@ -13,7 +13,7 @@ namespace LogJoint.UI
 {
 	public partial class HistoryDialog : Form, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		bool refreshColumnHeaderPosted;
 
 		public HistoryDialog()
@@ -26,17 +26,29 @@ namespace LogJoint.UI
 			get { return quickSearchTextBox.InnerTextBox; }
 		}
 
-		void IView.SetEventsHandler(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.eventsHandler = presenter;
+			this.viewModel = viewModel;
+
+			var updateItems = Updaters.Create(() => viewModel.ItemsIgnoringTreeState, UpdateItems);
+			var updateVisible = Updaters.Create(() => viewModel.IsVisible, value =>
+			{
+				if (value)
+					ShowDialog();
+				else
+					Hide();
+			});
+			var updateOpenButton = Updaters.Create(() => viewModel.OpenButtonEnabled, value => openButton.Enabled = value);
+
+			viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				updateItems();
+				updateVisible();
+				updateOpenButton();
+			});
 		}
 
-		void IView.Show()
-		{
-			ShowDialog();
-		}
-
-		ViewItem[] IView.SelectedItems
+		IViewItem[] SelectedItems
 		{
 			get
 			{
@@ -57,11 +69,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.AboutToShow()
-		{
-		}
-
-		void IView.Update(ViewItem[] items)
+		void UpdateItems(IReadOnlyList<IViewItem> items)
 		{
 			listView.BeginUpdate();
 			listView.Items.Clear();
@@ -77,17 +85,12 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.EnableOpenButton(bool enable)
-		{
-			openButton.Enabled = enable;
-		}
-
 		static string GetTreeControlText(bool? collapsed)
 		{
 			return collapsed.HasValue ? (collapsed.Value ? "\u25B6" : "\u25BC") : "";
 		}
 
-		private IEnumerable<ListViewItem> MakeListViewItems(IEnumerable<ViewItem> viewItems, TagData parent)
+		private IEnumerable<ListViewItem> MakeListViewItems(IEnumerable<IViewItem> viewItems, TagData parent)
 		{
 			foreach (var presentationItem in viewItems)
 			{
@@ -126,7 +129,7 @@ namespace LogJoint.UI
 
 				if (presentationItem.Children != null)
 				{
-					foreach (var child in MakeListViewItems(presentationItem.Children, tag))
+					foreach (var child in MakeListViewItems(presentationItem.Children.OfType<IViewItem>(), tag))
 						yield return child;
 				}
 			}
@@ -155,41 +158,44 @@ namespace LogJoint.UI
 
 		private void openButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnOpenClicked();
+			viewModel.OnOpenClicked();
+		}
+
+		private void cancelButton_Click(object sender, EventArgs e)
+		{
+			viewModel.OnCancelClicked();
 		}
 
 		private void listView_DoubleClick(object sender, EventArgs e)
 		{
-			eventsHandler.OnDoubleClick();
+			viewModel.OnDoubleClick();
 		}
 
 		private void HistoryDialog_Shown(object sender, EventArgs e)
 		{
-			eventsHandler.OnDialogShown();
+			viewModel.OnDialogShown();
 		}
 
-		private void HistoryDialog_VisibileChanged(object sender, EventArgs e)
+		private void HistoryDialog_Closing(object sender, FormClosingEventArgs e)
 		{
-			if (!this.Visible)
-			{
-				eventsHandler.OnDialogHidden();
-			}
+			e.Cancel = true;
+			viewModel.OnCancelClicked();
 		}
 
 		private void HistoryDialog_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.Control && e.KeyCode == Keys.F)
-				eventsHandler.OnFindShortcutPressed();
+				viewModel.OnFindShortcutPressed();
 		}
 
 		private void listView_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
 		{
-			eventsHandler.OnSelectedItemsChanged();
+			viewModel.OnSelect(SelectedItems);
 		}
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnClearHistoryButtonClicked();
+			viewModel.OnClearHistoryButtonClicked();
 		}
 
 		private void listView_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
@@ -256,7 +262,7 @@ namespace LogJoint.UI
 		class TagData
 		{
 			public ListViewItem ViewObject;
-			public ViewItem PresentationObject;
+			public IViewItem PresentationObject;
 			public bool? Collapsed;
 			public TagData Parent;
 			public List<TagData> Children;

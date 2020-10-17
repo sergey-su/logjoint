@@ -8,10 +8,12 @@ using LogJoint.Preprocessing;
 using LogJoint.MRU;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using LogJoint.UI.Presenters.Reactive;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.HistoryDialog
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		readonly IView view;
 		readonly ILogSourcesManager logSourcesManager;
@@ -21,11 +23,22 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		readonly QuickSearchTextBox.IPresenter searchBoxPresenter;
 		readonly LJTraceSource trace;
 		readonly IAlertPopup alerts;
-		List<ViewItem> items, displayItems;
-		bool itemsFiltered;
+		readonly IChangeNotification changeNotification;
+
+		bool visible;
+		string acceptedFilter = "";
+		ImmutableHashSet</* item key */string> selected = ImmutableHashSet<string>.Empty;
+		ImmutableHashSet</* item key */string> expanded = ImmutableHashSet<string>.Empty;
+		int lastKey = 0;
+
+		readonly Func<Items> items;
+		readonly Func<ViewItem> rootViewItem;
+		readonly Func<IReadOnlyList<ViewItem>> actuallySelected;
+		readonly Func<bool> openButtonEnabled;
 
 		public Presenter(
 			ILogSourcesManager logSourcesManager,
+			IChangeNotification changeNotification,
 			IView view,
 			Preprocessing.IManager sourcesPreprocessingManager,
 			Preprocessing.IStepsFactory preprocessingStepsFactory,
@@ -36,6 +49,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		)
 		{
 			this.view = view;
+			this.changeNotification = changeNotification;
 			this.logSourcesManager = logSourcesManager;
 			this.sourcesPreprocessingManager = sourcesPreprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
@@ -44,72 +58,112 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			this.trace = traceSourceFactory.CreateTraceSource("UI", "hist-dlg");
 			this.alerts = alerts;
 
+			items = Selectors.Create(() => visible, () => acceptedFilter, MakeItems);
+			actuallySelected = Selectors.Create(() => items().displayItems, () => selected,
+				(items, selected) => items.SelectMany(i => i.Flatten()).Where(i => selected.Contains(i.key)).ToImmutableList());
+			openButtonEnabled = Selectors.Create(actuallySelected, selected => selected.Any(IsOpenable));
+			rootViewItem = Selectors.Create(() => items().displayItems, () => selected, () => expanded, MakeRootItem);
+
 			searchBoxPresenter.OnSearchNow += (s, e) =>
 			{
-				UpdateItems();
+				acceptedFilter = searchBoxPresenter.Text;
 				FocusItemsListAndSelectFirstItem();
+				changeNotification.Post();
 			};
-			searchBoxPresenter.OnRealtimeSearch += (s, e) => UpdateItems();
+			searchBoxPresenter.OnRealtimeSearch += (s, e) =>
+			{
+				acceptedFilter = searchBoxPresenter.Text;
+				changeNotification.Post();
+			};
 			searchBoxPresenter.OnCancelled += (s, e) =>
 			{
-				if (itemsFiltered)
+				if (acceptedFilter != "")
 				{
-					UpdateItems();
+					acceptedFilter = "";
 					searchBoxPresenter.Focus(null);
 				}
 				else
 				{
-					view.Hide();
+					visible = false;
 				}
+				changeNotification.Post();
 			};
 
-			view.SetEventsHandler(this);
+			view.SetViewModel(this);
 		}
 
 
 		void IPresenter.ShowDialog()
 		{
-			view.AboutToShow();
-			UpdateItems(ignoreFilter: true);
-			view.Show();
+			if (!visible)
+			{
+				visible = true;
+				changeNotification.Post();
+			}
 		}
 
-		void IViewEvents.OnDialogShown()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		bool IViewModel.IsVisible => visible;
+
+		IViewItem IViewModel.RootViewItem => rootViewItem();
+
+		IReadOnlyList<IViewItem> IViewModel.ItemsIgnoringTreeState => items().displayItems;
+
+		bool IViewModel.OpenButtonEnabled => openButtonEnabled();
+
+		void IViewModel.OnSelect(IEnumerable<IViewItem> items)
+		{
+			selected = ImmutableHashSet.CreateRange(items.Select(i => i.Key));
+			changeNotification.Post();
+		}
+
+		void IViewModel.OnExpand(IViewItem item)
+		{
+			expanded = expanded.Add(item.Key);
+			changeNotification.Post();
+		}
+
+		void IViewModel.OnCollapse(IViewItem item)
+		{
+			expanded = expanded.Remove(item.Key);
+			changeNotification.Post();
+		}
+
+		void IViewModel.OnDialogShown()
 		{
 			searchBoxPresenter.Focus("");
-			UpdateOpenButton();
 		}
 
-		void IViewEvents.OnDialogHidden()
-		{
-			Cleanup();
-		}
-
-		void IViewEvents.OnOpenClicked()
+		void IViewModel.OnOpenClicked()
 		{
 			OpenEntries();
 		}
 
-		void IViewEvents.OnDoubleClick()
+		void IViewModel.OnCancelClicked()
+		{
+			if (visible)
+			{
+				visible = false;
+				changeNotification.Post();
+			}
+		}
+
+		void IViewModel.OnDoubleClick()
 		{
 			OpenEntries();
 		}
 
-		void IViewEvents.OnFindShortcutPressed()
+		void IViewModel.OnFindShortcutPressed()
 		{
 			searchBoxPresenter.Focus(null);
 		}
 
-		void IViewEvents.OnSelectedItemsChanged()
-		{
-			UpdateOpenButton();
-		}
-
-		void IViewEvents.OnClearHistoryButtonClicked()
+		void IViewModel.OnClearHistoryButtonClicked()
 		{
 			if (alerts.ShowPopup(
 				"Clear history",
-				string.Format("Do you want to clear the history ({0} items)?", items.Count),
+				string.Format("Do you want to clear the history ({0} items)?", items().items.Count),
 				AlertFlags.YesNoCancel | AlertFlags.WarningIcon
 			) == AlertFlags.Yes)
 			{
@@ -119,11 +173,12 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 
 		private async void OpenEntries()
 		{
-			var selected = view.SelectedItems;
-			if (selected.All(i => i.Data == null))
+			var selected = actuallySelected();
+			if (selected.All(i => i.data == null))
 				return;
-			view.Hide();
-			if (selected.Any(i => i.Data is RecentWorkspaceEntry))
+			visible = false;
+			changeNotification.Post();
+			if (selected.Any(i => i.data is RecentWorkspaceEntry))
 			{
 				await Task.WhenAll(logSourcesManager.DeleteAllLogs(), sourcesPreprocessingManager.DeleteAllPreprocessings());
 			}
@@ -131,40 +186,42 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			{
 				try
 				{
-					if (item.Data is RecentLogEntry log)
+					if (item.data is RecentLogEntry log)
 						await sourcesPreprocessingManager.Preprocess(log);
-					else if (item.Data is RecentWorkspaceEntry ws)
+					else if (item.data is RecentWorkspaceEntry ws)
 						await sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
-					else if (item.Data is IRecentlyUsedEntity[] container)
+					else if (item.data is IRecentlyUsedEntity[] container)
 						await Task.WhenAll(container.OfType<RecentLogEntry>().Select(innerLog => sourcesPreprocessingManager.Preprocess(innerLog)));
 				}
 				catch (Exception e)
 				{
-					trace.Error(e, "failed to open '{0}'", item.Text);
-					alerts.ShowPopup("Error", "Failed to open " + item.Text, AlertFlags.Ok | AlertFlags.WarningIcon);
+					trace.Error(e, "failed to open '{0}'", item.text);
+					alerts.ShowPopup("Error", "Failed to open " + item.text, AlertFlags.Ok | AlertFlags.WarningIcon);
 				}
 			});
 			await Task.WhenAll(tasks);
 		}
 
-		private void Cleanup()
-		{
-			items.Clear();
-			items.Capacity = 0;
-			displayItems.Clear();
-			displayItems.Capacity = 0;
-			view.Update(new ViewItem[0]);
-		}
+		string NextKey() => (++lastKey).ToString();
 
-		private void UpdateItems(bool ignoreFilter = false)
+		private Items MakeItems(bool visible, string filter)
 		{
-			var filter = ignoreFilter ? "" : searchBoxPresenter.Text;
-			this.itemsFiltered = !string.IsNullOrEmpty(filter);
-			this.items = new List<ViewItem>();
-			this.displayItems = new List<ViewItem>();
+			var itemsBuilder = ImmutableList<ViewItem>.Empty.ToBuilder();
+			var displayItemsBuilder = ImmutableList<ViewItem>.Empty.ToBuilder();
+			Items makeResult() => new Items
+			{
+				displayItems = displayItemsBuilder.ToImmutable(),
+				items = itemsBuilder.ToImmutable()
+			};
+			if (!visible)
+			{
+				return makeResult();
+			}
+
 			var timeGroups = MakeTimeGroups();
+			var itemsFiltered = filter != "";
 			foreach (
-				var i in 
+				var i in
 				mru.GetMRUList()
 				.Where(e =>
 					!itemsFiltered
@@ -180,12 +237,12 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			{
 				var timeGroupItem = new ViewItem()
 				{
-					Type = ViewItemType.Comment,
-					Text = timeGroup.name,
-					Children = new List<ViewItem>()
+					type = ViewItemType.Comment,
+					text = timeGroup.name,
+					key = NextKey()
 				};
-				displayItems.Add(timeGroupItem);
-				foreach (var containerGroup in timeGroup.items.GroupBy(i => 
+				displayItemsBuilder.Add(timeGroupItem);
+				foreach (var containerGroup in timeGroup.items.GroupBy(i =>
 				{
 					string containerName = null;
 					var cp = i.ConnectionParams;
@@ -202,30 +259,30 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 					{
 						containerGroupItem = new ViewItem()
 						{
-							Type = ViewItemType.ItemsContainer,
-							Text = containerGroup.Key,
-							Children = new List<ViewItem>(),
-							Data = groupItems
+							key = NextKey(),
+							type = ViewItemType.ItemsContainer,
+							text = containerGroup.Key,
+							data = groupItems
 						};
-						items.Add(containerGroupItem);
-						timeGroupItem.Children.Add(containerGroupItem);
+						itemsBuilder.Add(containerGroupItem);
+						timeGroupItem.children.Add(containerGroupItem);
 					}
 					foreach (var e in groupItems)
 					{
 						var vi = new ViewItem()
 						{
-							Type = ViewItemType.Leaf,
-							Text = e.UserFriendlyName,
-							Annotation = e.Annotation,
-							Data = e
+							key = NextKey(),
+							type = ViewItemType.Leaf,
+							text = e.UserFriendlyName,
+							annotation = e.Annotation,
+							data = e
 						};
-						items.Add(vi);
-						containerGroupItem.Children.Add(vi);
+						itemsBuilder.Add(vi);
+						containerGroupItem.children.Add(vi);
 					}
 				}
 			}
-			view.Update(displayItems.ToArray());
-			UpdateOpenButton();
+			return makeResult();
 		}
 
 		static List<ItemsGroup> MakeTimeGroups()
@@ -263,18 +320,44 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			return groups;
 		}
 
+		static ViewItem MakeRootItem(ImmutableList<ViewItem> displayItems,
+			ImmutableHashSet<string> selected, ImmutableHashSet<string> expanded)
+		{
+			var result = new ViewItem()
+			{
+				type = ViewItemType.ItemsContainer,
+				key = "root",
+			};
+			void copyChildren(ViewItem target, IEnumerable<ViewItem> source)
+			{
+				foreach (var src in source)
+				{
+					var dst = new ViewItem()
+					{
+						type = src.type,
+						key = src.key,
+						text = src.text,
+						annotation = src.annotation,
+						data = src.data,
+						expanded = expanded.Contains(src.key),
+						selected = selected.Contains(src.key)
+					};
+					target.children.Add(dst);
+					copyChildren(dst, src.children);
+				}
+			};
+			copyChildren(result, displayItems);
+			return result;
+		}
+
 		private void FocusItemsListAndSelectFirstItem()
 		{
 			view.PutInputFocusToItemsList();
-			view.SelectedItems = items.Take(1).ToArray();
+			selected = items().displayItems.SelectMany(i => i.Flatten()).Where(IsOpenable).Take(1).Select(i => i.key).ToImmutableHashSet();
+			changeNotification.Post();
 		}
 
-		void UpdateOpenButton()
-		{
-			var canOpen = view.SelectedItems.Any(i => 
-				i.Type == ViewItemType.Leaf || i.Type == ViewItemType.ItemsContainer);
-			view.EnableOpenButton(canOpen);
-		}
+		static bool IsOpenable(ViewItem i) => i.type == ViewItemType.Leaf || i.type == ViewItemType.ItemsContainer;
 
 		[DebuggerDisplay("{name} {begin}")]
 		class ItemsGroup
@@ -282,6 +365,39 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			public string name;
 			public DateTime begin;
 			public List<IRecentlyUsedEntity> items = new List<IRecentlyUsedEntity>();
+		};
+
+		class ViewItem : IViewItem
+		{
+			internal ViewItemType type;
+			internal string key = "";
+			internal string text = "";
+			internal string annotation = "";
+			internal object data;
+			internal List<ViewItem> children = new List<ViewItem>();
+			internal bool expanded, selected;
+
+			ViewItemType IViewItem.Type => type;
+			string IViewItem.Text => text;
+			string IViewItem.Annotation => annotation;
+			string ITreeNode.Key => key;
+			IReadOnlyList<ITreeNode> ITreeNode.Children => children;
+			bool ITreeNode.IsExpanded => expanded;
+			bool ITreeNode.IsSelected => selected;
+
+			internal IEnumerable<ViewItem> Flatten()
+			{
+				yield return this;
+				foreach (var c in children)
+					foreach (var i in c.Flatten())
+						yield return i;
+			}
+		};
+
+		class Items
+		{
+			public ImmutableList<ViewItem> items;
+			public ImmutableList<ViewItem> displayItems;
 		};
 	};
 };

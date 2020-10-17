@@ -1,3 +1,4 @@
+using LogJoint.UI.Presenters.Reactive;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,15 +8,9 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 {
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents presenter);
+		void SetViewModel(IViewModel viewModel);
 		QuickSearchTextBox.IView QuickSearchTextBox { get; }
-		void AboutToShow();
-		void Update(ViewItem[] items);
-		void Show();
-		void Hide();
-		ViewItem[] SelectedItems { get; set;  }
 		void PutInputFocusToItemsList();
-		void EnableOpenButton(bool enable);
 	};
 
 	public interface IPresenter
@@ -23,24 +18,32 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		void ShowDialog();
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		bool IsVisible { get; }
+		bool OpenButtonEnabled { get; }
+		IViewItem RootViewItem { get; }
+
+		// support for non-reactive UIs
+		IReadOnlyList<IViewItem> ItemsIgnoringTreeState { get; }
+
+		void OnSelect(IEnumerable<IViewItem> items);
+		void OnExpand(IViewItem item);
+		void OnCollapse(IViewItem item);
 		void OnOpenClicked();
+		void OnCancelClicked();
 		void OnDoubleClick();
 		void OnDialogShown();
-		void OnDialogHidden();
 		void OnFindShortcutPressed();
-		void OnSelectedItemsChanged();
 		void OnClearHistoryButtonClicked();
 	};
 
-	public class ViewItem
+	public interface IViewItem: ITreeNode
 	{
-		public ViewItemType Type;
-		public string Text;
-		public string Annotation;
-		public object Data;
-		public List<ViewItem> Children;
+		ViewItemType Type { get; }
+		string Text { get; }
+		string Annotation { get; }
 	};
 
 	public enum ViewItemType
