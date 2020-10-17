@@ -1,0 +1,70 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.HistoryDialog
+@implements IDisposable
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@implements IView
+
+<Modal Visible="@viewModel.IsVisible" Class="history-dialog" ClickOutside="@viewModel.OnCancelClicked">
+    <QuickSearchTextBox ViewProxy="@viewProxies.HistoryDialogQuickSearchTextBox" @ref="searchTextBox"/>
+    <FirstRenderDetector OnFirstRender="OnFirstRender" />
+    <TreeView Root="@viewModel.RootViewItem" Class="the-tree"
+              OnExpand="@(n => viewModel.OnExpand((IViewItem)n))" OnCollapse="@(n => viewModel.OnCollapse((IViewItem)n))"
+              OnSelect="@(nodes => viewModel.OnSelect(nodes.OfType<IViewItem>()))">
+        <NodeTemplate>
+            @{var item = (IViewItem)context;}
+            <div class="item @GetItemClass(item.Type)" @ondblclick="@(e => viewModel.OnDoubleClick())">
+                @item.Text
+            </div>
+        </NodeTemplate>
+    </TreeView>
+    <div class="buttons">
+        <button @onclick="@(e => viewModel.OnOpenClicked())" disabled="@(!viewModel.OpenButtonEnabled)">Open selected</button>
+        <button @onclick="@(e => viewModel.OnCancelClicked())">Cancel</button>
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+    private QuickSearchTextBox searchTextBox;
+
+    protected override void OnInitialized()
+    {
+        viewProxies.HistoryDialog.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.IsVisible, viewModel.OpenButtonEnabled, viewModel.RootViewItem),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel viewModel)
+    {
+        this.viewModel = viewModel;
+    }
+
+    string GetItemClass(ViewItemType t) => t switch
+    {
+        ViewItemType.Comment => "comment",
+        ViewItemType.ItemsContainer => "container",
+        ViewItemType.Leaf => "leaf",
+        _ => ""
+    };
+
+    LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox => null;
+
+    void IView.PutInputFocusToItemsList()
+    {
+        // todo
+    }
+
+    async Task OnFirstRender()
+    {
+        await searchTextBox.FocusAsync();
+    }
+}

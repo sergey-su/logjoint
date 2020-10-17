@@ -38,6 +38,8 @@ namespace LogJoint.Wasm
         public UI.SearchResultViewProxy SearchResult;
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new UI.LogViewer.ViewProxy();
         public UI.BookmarksListViewProxy BookmarksList = new UI.BookmarksListViewProxy();
+        public UI.QuickSearchTextBoxViewProxy HistoryDialogQuickSearchTextBox = new UI.QuickSearchTextBoxViewProxy();
+        public UI.HistoryDialogViewProxy HistoryDialog;
 
         public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
 		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
@@ -50,6 +52,7 @@ namespace LogJoint.Wasm
             this.LoadedMessagesViewProxy = new UI.LoadedMessages.ViewProxy(LoadedMessagesLogViewerViewProxy);
             this.SearchPanel = new UI.SearchPanelViewProxy(SearchPanelQuickSearchTextBox);
             this.SearchResult = new UI.SearchResultViewProxy(SearchResultLogViewer);
+            this.HistoryDialog = new UI.HistoryDialogViewProxy(HistoryDialogQuickSearchTextBox);
         }
 	};
 
@@ -92,6 +95,7 @@ namespace LogJoint.Wasm
             Views.CreateSearchPanelView().Returns(viewModel.SearchPanel);
             Views.CreateSearchResultView().Returns(viewModel.SearchResult);
             Views.CreateBookmarksListView().Returns(viewModel.BookmarksList);
+            Views.CreateHistoryDialogView().Returns(viewModel.HistoryDialog);
         }
     };
 }

@@ -29,6 +29,8 @@
     [Parameter]
     public QuickSearchTextBoxViewProxy ViewProxy { get; set; }
 
+    public ValueTask FocusAsync() => InputRef.FocusAsync();
+
     protected override void OnInitialized()
     {
         ViewProxy.SetComponent(this);
@@ -50,9 +52,9 @@
         viewModel = value;
     }
 
-    void IView.ReceiveInputFocus()
+    async void IView.ReceiveInputFocus()
     {
-        // todo
+        await InputRef.FocusAsync();
     }
 
     void IView.SelectAll()

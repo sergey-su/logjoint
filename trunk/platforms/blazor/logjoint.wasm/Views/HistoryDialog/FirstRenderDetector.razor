@@ -1,0 +1,16 @@
+﻿@namespace LogJoint.Wasm.UI
+
+<span></span>
+
+@code {
+    [Parameter]
+    public Func<Task> OnFirstRender { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && OnFirstRender != null)
+        {
+            await OnFirstRender();
+        }
+    }
+}
