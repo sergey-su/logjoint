@@ -1,4 +1,6 @@
 ﻿
+using ICSharpCode.SharpZipLib.Zip;
+
 namespace LogJoint.Postprocessing.StateInspector
 {
 	public class PropertyViewBase
@@ -49,6 +51,7 @@ namespace LogJoint.Postprocessing.StateInspector
 	{
 		public readonly StateInspectorEvent Change;
 		public readonly DisplayMode Mode;
+		public readonly IInspectedObject Object;
 		readonly IUserNamesProvider shortNames;
 
 		public enum DisplayMode
@@ -63,6 +66,7 @@ namespace LogJoint.Postprocessing.StateInspector
 		public PropertyChangeView(IInspectedObject obj, StateInspectorEvent change, DisplayMode mode, IUserNamesProvider shortNames): base(obj)
 		{
 			this.Change = change;
+			this.Object = obj;
 			this.Mode = mode;
 			this.shortNames = shortNames;
 		}
@@ -72,9 +76,14 @@ namespace LogJoint.Postprocessing.StateInspector
 			if (Change == null)
 				return "";
 
-			if (Mode == DisplayMode.Value || Mode == DisplayMode.Reference || Mode == DisplayMode.ThreadReference)
+			if (Mode == DisplayMode.Value || Mode == DisplayMode.ThreadReference)
 			{
 				return ((PropertyChange)Change.OriginalEvent).Value;
+			}
+			if (Mode == DisplayMode.Reference)
+			{
+				var id = ((PropertyChange)Change.OriginalEvent).Value;
+				return Object.Owner.TryGetDisplayName(id, out var displayName) ? displayName : id;
 			}
 			if (Mode == DisplayMode.Date)
 			{

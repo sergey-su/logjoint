@@ -52,5 +52,6 @@ namespace LogJoint.Postprocessing.StateInspector
 		IReadOnlyList<IInspectedObject> Roots { get; }
 		IReadOnlyList<StateInspectorEvent> Events { get; }
 		IReadOnlyList<IStateInspectorOutput> Outputs { get; }
+		bool TryGetDisplayName(string objectId, out string displayName);
 	};
 }

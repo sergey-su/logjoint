@@ -100,10 +100,24 @@ namespace LogJoint.Postprocessing.StateInspector
 					TreeBuilder treeBuilder = new TreeBuilder(group, shortNamesManager);
 					treeBuilder.AddEventsFrom(group);
 					group.roots = treeBuilder.Build();
+					group.displayNames = MakeDisplayNamesMap(group.events);
 
 					group.isInitialized = true;
 				}
 			}
+		}
+
+		Dictionary<string, string> MakeDisplayNamesMap(IEnumerable<StateInspectorEvent> events)
+		{
+			var result = new Dictionary<string, string>();
+			foreach (var e in events)
+			{
+				if (e.OriginalEvent is ObjectCreation creation && !string.IsNullOrEmpty(creation.DisplayName))
+				{
+					result[creation.ObjectId] = creation.DisplayName;
+				}
+			}
+			return result;
 		}
 
 		class RotatedLogGroup : IStateInspectorOutputsGroup
@@ -113,6 +127,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			public List<IStateInspectorOutput> parts;
 			public List<StateInspectorEvent> events;
 			public IReadOnlyList<IInspectedObject> roots;
+			public Dictionary<string, string> displayNames;
 
 			string IStateInspectorOutputsGroup.Key
 			{
@@ -132,6 +147,12 @@ namespace LogJoint.Postprocessing.StateInspector
 			IReadOnlyList<IStateInspectorOutput> IStateInspectorOutputsGroup.Outputs
 			{
 				get { return parts; }
+			}
+
+			bool IStateInspectorOutputsGroup.TryGetDisplayName(string objectId, out string displayName)
+			{
+				displayName = null;
+				return objectId != null && displayNames.TryGetValue(objectId, out displayName);
 			}
 		};
 

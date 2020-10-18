@@ -573,6 +573,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			StateInspectorEvent prevSelectedEvent = null;
 			foreach (var change in changes.ZipWithIndex())
 			{
+				messageFormatter.currentObject = change.Value.Object;
 				bool isSelected = isEventSelected(change.Value.Event);
 				result.Add(MakeStateHistoryItem(change.Value, isSelected,
 					showTimeDeltas, prevSelectedEvent, messageFormatter));
@@ -817,6 +818,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		{
 			public string message = "";
 			public IUserNamesProvider shortNames;
+			public IInspectedObject currentObject;
 
 			public void Reset()
 			{
@@ -834,7 +836,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			void IEventsVisitor.Visit (PropertyChange change)
 			{
 				message = string.Format("'{0}'->'{1}'", change.PropertyName,
-					change.ValueType == SI.ValueType.UserHash ? shortNames.AddShortNameToUserHash(change.Value) : change.Value);
+					change.ValueType == SI.ValueType.UserHash ? shortNames.AddShortNameToUserHash(change.Value) :
+					change.ValueType == SI.ValueType.Reference && currentObject.Owner.TryGetDisplayName(change.Value, out var displayName) ? displayName :
+					change.Value);
 			}
 			void IEventsVisitor.Visit (ParentChildRelationChange parentChildRelationChange)
 			{
