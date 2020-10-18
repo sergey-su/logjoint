@@ -11,9 +11,9 @@
     <div class='toolbar'>
         @{var viewState = viewModel.ViewState;}
         @{var bookmarkState = viewState.ToggleBookmark;}
-        <button class='bookmark' @onclick="@(viewModel.OnToggleBookmark)" hidden="@(!bookmarkState.Visible)" tooltip="@bookmarkState.Tooltip"></button>
+        <button class='bookmark' @onclick="@(viewModel.OnToggleBookmark)" hidden="@(!bookmarkState.Visible)" title="@bookmarkState.Tooltip"></button>
         @{var rawModeState = viewState.RawViewButton;}
-        <button class='raw-view @(rawModeState.Checked ? "checked" : "")' @onclick="@(viewModel.OnToggleRawView)" hidden="@(!rawModeState.Visible)" tooltip="@rawModeState.Tooltip">raw log</button>
+        <button class='raw-view @(rawModeState.Checked ? "checked" : "")' @onclick="@(viewModel.OnToggleRawView)" hidden="@(!rawModeState.Visible)" title="@rawModeState.Tooltip">raw log</button>
         @{var coloringState = viewState.Coloring;}
         <span hidden="@(!coloringState.Visible)">
             coloring:
