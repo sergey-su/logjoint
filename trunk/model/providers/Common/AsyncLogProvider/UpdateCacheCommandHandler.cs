@@ -73,8 +73,8 @@ namespace LogJoint
 			if (IsBrowser.Value)
 			{
 				long kB = 1024;
-				sizeThreshold = 128 * kB;
-				partialLoadingSize = 64 * kB;
+				sizeThreshold = 512 * kB;
+				partialLoadingSize = 256 * kB;
 			}
 
 			long currentSize = availableRange.End - availableRange.Begin;
