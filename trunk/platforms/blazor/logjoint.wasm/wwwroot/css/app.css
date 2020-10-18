@@ -865,16 +865,22 @@ body {
 
 
 
-
-.history-dialog {
-    display: flex;
-    flex-flow: column nowrap;
+.resizable-dialog {
     min-width: 400px;
     min-height: 300px;
     background: var(--control-face-background);
     border: var(--modal-border);
     padding: 8px;
     resize: both;
+}
+.resizable-dialog>header {
+    font-size: 1.3em;
+    margin-bottom: 6px;
+}
+
+.history-dialog {
+    display: flex;
+    flex-flow: column nowrap;
 }
 .history-dialog>.the-tree {
     height: 1px;
@@ -894,5 +900,39 @@ body {
     justify-content: flex-end;
 }
 .history-dialog>.buttons>button {
+    margin: 0px 10px;
+}
+
+
+
+
+
+.postprocessing-open-dialog {
+    display: flex;
+    flex-flow: column nowrap;
+}
+.postprocessing-open-dialog>.the-list {
+    height: 1px;
+    flex-grow: 2;
+}
+.postprocessing-open-dialog>.the-list .the-item {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.postprocessing-open-dialog>.the-list .the-item>span {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-grow: 2;
+    width: 1px;
+}
+.postprocessing-open-dialog>.buttons {
+    margin-top: 10px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+}
+.postprocessing-open-dialog>.buttons>button {
     margin: 0px 10px;
 }

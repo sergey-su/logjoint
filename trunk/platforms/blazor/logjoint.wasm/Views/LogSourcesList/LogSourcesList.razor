@@ -7,6 +7,8 @@
 <TreeView class="@Class"
           Root="@viewModel.RootItem"
           OnSelect="@(nodes => viewModel.OnSelectionChange(nodes.OfType<IViewItem>().ToArray()))"
+          OnExpand="@(node => viewModel.OnItemExpand((IViewItem)node))"
+          OnCollapse="@(node => viewModel.OnItemCollapse((IViewItem)node))"
           NodeClass="log-sources-list-item">
     <NodeTemplate>
         @{var item = (IViewItem)context;}

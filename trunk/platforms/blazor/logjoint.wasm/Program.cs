@@ -40,9 +40,9 @@ namespace LogJoint.Wasm
         public UI.BookmarksListViewProxy BookmarksList = new UI.BookmarksListViewProxy();
         public UI.QuickSearchTextBoxViewProxy HistoryDialogQuickSearchTextBox = new UI.QuickSearchTextBoxViewProxy();
         public UI.HistoryDialogViewProxy HistoryDialog;
+        public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new PreprocessingUserInteractionsViewProxy();
 
         public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
-		public LogJoint.UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 		public string PostprocessingTabPageId;
 		public LogJoint.UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
 		public LogJoint.UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
@@ -92,6 +92,7 @@ namespace LogJoint.Wasm
             Views.CreateSourcesListView().Returns(viewModel.SourcesListViewProxy);
             Views.CreatePostprocessingTabPage().Returns(viewModel.PostprocessingTabPage);
             Views.PostprocessingViewsFactory.CreateStateInspectorView().Returns(viewModel.PostprocesssingStateInspectorViewProxy);
+            Views.CreatePreprocessingView().Returns(viewModel.PreprocessingUserInteractions);
             Views.CreateSearchPanelView().Returns(viewModel.SearchPanel);
             Views.CreateSearchResultView().Returns(viewModel.SearchResult);
             Views.CreateBookmarksListView().Returns(viewModel.BookmarksList);

@@ -4,7 +4,8 @@
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @implements IView
 
-<Modal Visible="@viewModel.IsVisible" Class="history-dialog" ClickOutside="@viewModel.OnCancelClicked">
+<Modal Visible="@viewModel.IsVisible" Class="resizable-dialog history-dialog" ClickOutside="@viewModel.OnCancelClicked">
+    <header>Recent logs</header>
     <QuickSearchTextBox ViewProxy="@viewProxies.HistoryDialogQuickSearchTextBox" @ref="searchTextBox"/>
     <FirstRenderDetector OnFirstRender="OnFirstRender" />
     <TreeView Root="@viewModel.RootViewItem" Class="the-tree"
@@ -12,7 +13,7 @@
               OnSelect="@(nodes => viewModel.OnSelect(nodes.OfType<IViewItem>()))">
         <NodeTemplate>
             @{var item = (IViewItem)context;}
-            <div class="item @GetItemClass(item.Type)" @ondblclick="@(e => viewModel.OnDoubleClick())">
+            <div class="item @GetItemClass(item.Type)" @ondblclick="@(e => viewModel.OnDoubleClick())" title="@item.Text">
                 @item.Text
             </div>
         </NodeTemplate>

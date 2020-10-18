@@ -4,8 +4,6 @@
 @inject TraceListener traceListener;
 
 <div class='@Class'>
-    <button @onclick="LoadLog">Load log from resources</button>
-    <br />
     <input type="file" @ref="fileInputReference" />
     <button @onclick="LoadByUrl">Load by blob URL</button>
     <button @onclick="LoadChromeDebugLog">Load Stream as Chrome debug log</button>
@@ -13,8 +11,6 @@
     <br />
     <button @onclick="DownloadDebugLog">Download debug log</button>
     <button @onclick="TestLogFs">Test log fs</button>
-    <button @onclick="ChooseFile">Choose file</button>
-    <button @onclick="OpenMostRecent">Reopen last</button>
 </div>
 
 @code {
@@ -22,15 +18,6 @@
     public string Class { get; set; } = "";
 
     ElementReference fileInputReference;
-
-    private async Task LoadLog()
-    {
-        await model.LogSourcesPreprocessings.Preprocess(
-            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(
-                await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", "test_chrome_debug.log"))) },
-            "Processing test"
-        );
-    }
 
     async void LoadByUrl()
     {
@@ -56,10 +43,14 @@
         var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
         var fileName = await fs.AddFileFromInput(fileInputReference);
         Console.WriteLine("Virtual file name : {0}", fileName);
-        var task = model.LogSourcesPreprocessings.Preprocess(
-            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
-            "Processing Unspecified file"
-        );
+        using (var keepAlive = model.FileSystem.OpenFile(fileName))
+        {
+            var task = model.LogSourcesPreprocessings.Preprocess(
+                new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
+                "Processing Unspecified file"
+            );
+            await task;
+        }
     }
 
     async void DownloadDebugLog()
@@ -83,21 +74,5 @@
             var hash = LogJoint.Hashing.GetStableHashCode(buf);
             Console.WriteLine("{0} {1}", read, hash);
         }
-    }
-
-    async Task ChooseFile()
-    {
-        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
-        var fileName = await fs.ChooseFile();
-        Console.WriteLine("Virtual file name : {0}", fileName);
-        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
-        model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
-    }
-
-    async Task OpenMostRecent()
-    {
-        var item = model.RecentlyUsedLogs.GetMRUList().FirstOrDefault();
-        if (item != null)
-            await model.LogSourcesPreprocessings.Preprocess(item);
     }
 }

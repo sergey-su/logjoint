@@ -57,7 +57,13 @@
         var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
         var fileName = await fs.ChooseFile();
         Console.WriteLine("Virtual file name : {0}", fileName);
-        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Analog exported log");
-        model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
+        using (var keepAlive = model.FileSystem.OpenFile(fileName))
+        {
+            var task = model.LogSourcesPreprocessings.Preprocess(
+                new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
+                "Processing file"
+            );
+            await task;
+        }
     }
 }

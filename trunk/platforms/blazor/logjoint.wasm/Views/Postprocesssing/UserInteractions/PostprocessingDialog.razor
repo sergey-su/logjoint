@@ -1,0 +1,45 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.PreprocessingUserInteractions
+@implements IDisposable
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@implements IView
+
+<Modal Visible="@(viewModel.DialogData != null)" Class="resizable-dialog postprocessing-open-dialog" ClickOutside="@(() => viewModel.OnCloseDialog(false))">
+    <header>@viewModel.DialogData.Title</header>
+    <ListView Items="viewModel.DialogData.Items" OnSelect="@(i => viewModel.OnSelect(i.OfType<IDialogItem>().FirstOrDefault()))" Class="the-list" ItemClass="the-item">
+        <ItemTemplate>
+            @{var item = (IDialogItem)context;}
+            <input type="checkbox" checked="@item.IsChecked" @oninput="@(e => viewModel.OnCheck(item, e.Value is bool x && x))" />
+            <span title="@item.Title">@item.Title</span>
+        </ItemTemplate>
+    </ListView>
+    <div class="buttons">
+        <button @onclick="@(e => viewModel.OnCloseDialog(true))">Ok</button>
+        <button @onclick="@(e => viewModel.OnCloseDialog(false))">Cancel</button>
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        viewProxies.PreprocessingUserInteractions.SetComponent(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.DialogData),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel viewModel)
+    {
+        this.viewModel = viewModel;
+    }
+}
