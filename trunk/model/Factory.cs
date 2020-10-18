@@ -249,7 +249,6 @@ namespace LogJoint
 				modelSynchronizationContext,
 				globalSettingsAccessor,
 				telemetryCollector,
-				heartBeatTimer,
 				changeNotification,
 				traceSourceFactory
 			);

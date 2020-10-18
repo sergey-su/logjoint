@@ -26,7 +26,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter;
 		readonly IChangeNotification changeNotification;
 
-		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
 		ImmutableHashSet<string> selectedKeys = ImmutableHashSet.Create<string>();
 		ImmutableHashSet<string> expandedKeys = ImmutableHashSet.Create<string>();
 		int itemsRevision;
@@ -49,7 +48,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter,
 			IColorTheme theme,
 			IChangeNotification changeNotification,
-			IHeartBeatTimer heartbeat
+			ISynchronizationContext uiSynchronizationContext
 		)
 		{
 			this.logSources = logSources;
@@ -69,23 +68,19 @@ namespace LogJoint.UI.Presenters.SourcesList
 				changeNotification.Post();
 			}
 
+			var invokeUpdateHelper = new AsyncInvokeHelper(uiSynchronizationContext, updateItems);
+
 			logSources.OnLogSourceVisiblityChanged += (s, e) => updateItems();
 			logSources.OnLogSourceAnnotationChanged += (s, e) => updateItems();
 			logSources.OnLogSourceColorChanged += (s, e) => updateItems();
 
-			logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => pendingUpdateFlag.Invalidate();
+			logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => invokeUpdateHelper.Invoke();
 			logSources.OnLogSourceStatsChanged += (s, e) =>
 			{
 				if ((e.Flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.CachedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount | LogProviderStatsFlag.BackgroundAcivityStatus)) != 0)
 				{
-					pendingUpdateFlag.Invalidate();
+					invokeUpdateHelper.Invoke();
 				}
-			};
-
-			heartbeat.OnTimer += (s, e) =>
-			{
-				if (pendingUpdateFlag.Validate())
-					updateItems();
 			};
 
 			this.getRoot = Selectors.Create(

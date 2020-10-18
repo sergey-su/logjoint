@@ -89,9 +89,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 			this.view.SetViewModel(this);
 
-			// todo: create when there a least one postprocessor exists. Postprocessors may come from plugins or it can be internal trace.
-			mainFormPresenter.AddCustomTab(view.UIControl, TabCaption, this);
-			mainFormPresenter.TabChanging += (sender, e) => this.changeNotification.Active = e.CustomTabTag == this;
+			if (IsBrowser.Value)
+			{
+				this.changeNotification.Active = true;
+			}
+			else
+			{
+				// todo: create when there a least one postprocessor exists. Postprocessors may come from plugins or it can be internal trace.
+				mainFormPresenter.AddCustomTab(view.UIControl, TabCaption, this);
+				mainFormPresenter.TabChanging += (sender, e) => this.changeNotification.Active = e.CustomTabTag == this;
+			}
 		}
 
 		public static string TabCaption => "Postprocessing";

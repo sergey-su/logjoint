@@ -13,7 +13,6 @@ namespace LogJoint
 		readonly ISearchObjectsFactory factory;
 		ImmutableList<ISearchResultInternal> results = ImmutableList.Create<ISearchResultInternal>();
 		readonly AsyncInvokeHelper combinedResultUpdateInvoker;
-		readonly LazyUpdateFlag combinedResultNeedsLazyUpdateFlag;
 		readonly IChangeNotification changeNotification;
 		int lastId;
 		ICombinedSearchResultInternal combinedSearchResult;
@@ -26,13 +25,11 @@ namespace LogJoint
 			ISynchronizationContext modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
 			Telemetry.ITelemetryCollector telemetryCollector,
-			IHeartBeatTimer heartBeat,
 			IChangeNotification changeNotification,
 			ITraceSourceFactory traceSourceFactory
 		) :this(
 			sources,
 			modelSynchronization, 
-			heartBeat,
 			new SearchObjectsFactory(progressAggregatorFactory, modelSynchronization, settings, telemetryCollector, traceSourceFactory),
 			changeNotification
 		)
@@ -42,7 +39,6 @@ namespace LogJoint
 		internal SearchManager(
 			ILogSourcesManager sources,
 			ISynchronizationContext modelSynchronization,
-			IHeartBeatTimer heartBeat,
 			ISearchObjectsFactory factory,
 			IChangeNotification changeNotification
 		)
@@ -54,7 +50,6 @@ namespace LogJoint
 			this.combinedSearchResult = factory.CreateCombinedSearchResult(this);
 			this.combinedResultUpdateInvoker = new AsyncInvokeHelper(
 				modelSynchronization, UpdateCombinedResult);
-			this.combinedResultNeedsLazyUpdateFlag = new LazyUpdateFlag();
 
 			sources.OnLogSourceAdded += (s, e) =>
 			{
@@ -75,13 +70,8 @@ namespace LogJoint
 				if (nrOfFullyDisposedResults > 0)
 				{
 					changeNotification.Post();
-					combinedResultNeedsLazyUpdateFlag.Invalidate();
-				}
-			};
-			heartBeat.OnTimer += (s, e) =>
-			{
-				if (e.IsNormalUpdate && combinedResultNeedsLazyUpdateFlag.Validate())
 					combinedResultUpdateInvoker.Invoke();
+				}
 			};
 		}
 
@@ -132,7 +122,7 @@ namespace LogJoint
 			SearchResultsChanged?.Invoke (this, EventArgs.Empty);
 			changeNotification.Post();
 			if (rsltInternal.HitsCount > 0)
-				combinedResultNeedsLazyUpdateFlag.Invalidate();
+				combinedResultUpdateInvoker.Invoke();
 			DisposeResults(new[] { rsltInternal }.ToHashSet());
 		}
 
@@ -146,7 +136,7 @@ namespace LogJoint
 			if ((flags & SearchResultChangeFlag.ResultsCollectionChanged) != 0
 			  ||(flags & SearchResultChangeFlag.HitCountChanged) != 0)
 			{
-				combinedResultNeedsLazyUpdateFlag.Invalidate();
+				combinedResultUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(300));
 			}
 			SearchResultChanged?.Invoke (rslt, new SearchResultChangeEventArgs (flags));
 			changeNotification.Post();
@@ -178,7 +168,6 @@ namespace LogJoint
 
 		void UpdateCombinedResult()
 		{
-			combinedResultNeedsLazyUpdateFlag.Validate();
 			if (combinedResultUpdaterCancellation != null)
 				combinedResultUpdaterCancellation.Cancel();
 			var rslts = results.Where(r => r.Visible).SelectMany(r => r.Results.Where(

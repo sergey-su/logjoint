@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -12,11 +13,15 @@ namespace LogJoint
 			this.methodToInvoke = InvokeInternal;
 		}
 
-		public void Invoke()
+		public void Invoke(TimeSpan? delay = null)
 		{
 			if (Interlocked.Exchange(ref methodInvoked, 1) == 0)
 			{
-				sync.Post(methodToInvoke);
+				if (delay != null)
+					// todo: support invoking earlier than after `delay` if such invokation is requested after this call
+					PostWithDelay(delay.Value);
+				else
+					sync.Post(methodToInvoke);
 			}
 		}
 
@@ -24,6 +29,12 @@ namespace LogJoint
 		{
 			methodInvoked = 0;
 			method();
+		}
+
+		async void PostWithDelay(TimeSpan delay)
+		{
+			await Task.Delay(delay);
+			sync.Post(methodToInvoke);
 		}
 
 		private readonly ISynchronizationContext sync;

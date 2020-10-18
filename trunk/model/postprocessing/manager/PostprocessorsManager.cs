@@ -196,7 +196,7 @@ namespace LogJoint.Postprocessing
 					rec = new LogSourceRecord(src.Key, src.Value, logFileSystem);
 					foreach (var postprocessorType in rec.metadata.SupportedPostprocessors)
 						rec.PostprocessorsOutputs.Add(new PostprocessorOutputRecord(
-							postprocessorType, rec, updater.Invoke,
+							postprocessorType, rec, () => updater.Invoke(),
 							FireChangedEvent, tracer,
 							heartbeat, modelSyncContext, threadPoolSyncContext, telemetry, outputDataDeserializer));
 
