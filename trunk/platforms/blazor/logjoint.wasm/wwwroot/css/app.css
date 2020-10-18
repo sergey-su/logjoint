@@ -590,6 +590,10 @@ body {
     background-color: var(--selected-item-background-color);
     color: var(--selected-item-color);
 }
+.list>li.selected a {
+    color: var(--selected-item-color);
+}
+
 /* todo: remove when focus management has been debugged
 .list>li:focus-within {
     background-color: darkblue;
