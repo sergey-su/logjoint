@@ -6,7 +6,7 @@
 @implements IView
 @inject IJSRuntime jsRuntime
 
-<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
+<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" @onkeydown:preventDefault>
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
         <div class="scroll-inner" style="top: @TopProperty">
@@ -177,23 +177,28 @@
 
     Key GetMainKey(KeyboardEventArgs keyboardEventArgs)
     {
+        var ctrlOrCommand = keyboardEventArgs.CtrlKey || keyboardEventArgs.MetaKey;
         switch (keyboardEventArgs.Key)
         {
-            case "ArrowUp": return Key.Up;
-            case "ArrowDown": return Key.Down;
-            case "ArrowLeft": return Key.Left;
-            case "ArrowRight": return Key.Right;
-            case "Home": 
-                return keyboardEventArgs.CtrlKey ? Key.BeginOfDocument : Key.BeginOfLine;
+            case "ArrowUp":
+                return ctrlOrCommand ? Key.BeginOfDocument : Key.Up;
+            case "ArrowDown":
+                return ctrlOrCommand ? Key.EndOfDocument : Key.Down;
+            case "ArrowLeft":
+                return keyboardEventArgs.MetaKey ? Key.BeginOfLine : Key.Left;
+            case "ArrowRight":
+                return keyboardEventArgs.MetaKey ? Key.EndOfLine : Key.Right;
+            case "Home":
+                return ctrlOrCommand ? Key.BeginOfDocument : Key.BeginOfLine;
             case "End":
-                return keyboardEventArgs.CtrlKey ? Key.EndOfDocument : Key.EndOfLine;
+                return ctrlOrCommand ? Key.EndOfDocument : Key.EndOfLine;
             case "PageUp": return Key.PageUp;
             case "PageDown": return Key.PageDown;
             case "B": return Key.BookmarkShortcut;
             case "b": return Key.BookmarkShortcut;
             case "c":
             case "C":
-                return keyboardEventArgs.CtrlKey ? Key.Copy : Key.None;
+                return ctrlOrCommand ? Key.Copy : Key.None;
             default: return Key.None;
         }
     }
