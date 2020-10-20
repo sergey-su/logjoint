@@ -20,7 +20,9 @@
                 </div>
             }
         <div class="resizer" @ref="toolBarResizerElement">:::::::::</div>
-        <button class="close">🗙</button>
+        <button class="close tool-button">
+            <div>&gt;</div>
+        </button>
     </div>
     <div class="viewer">
         <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.SearchResultLogViewer" Class="viewer-grow" />

@@ -8,7 +8,7 @@
     <input value="@viewModel.Text" @oninput="@(e => viewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" @ref="InputRef"/>
     @if (viewModel.ClearTextIconVisible)
     {
-        <button class="clear-button" @onclick="@viewModel.OnClearTextIconClicked">🗙</button>
+        <button class="clear-button" @onclick="@viewModel.OnClearTextIconClicked">✕</button>
     }
     @if (viewModel.SuggestionsListAvailabile)
     {

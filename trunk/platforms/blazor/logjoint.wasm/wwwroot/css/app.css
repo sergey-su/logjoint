@@ -66,6 +66,12 @@ body {
 
 
 
+.tool-button {
+    border: 1px solid gray;
+    background: inherit;
+    color: #555;
+    padding: 0px 7px;
+}
 
 
 
@@ -637,6 +643,10 @@ body {
     background-repeat-x: no-repeat;
 }
 
+.search-result>.toolbar>.close>div {
+    transform: rotate(90deg);
+}
+
 .search-result>.viewer {
     height: 1px;
     flex-grow: 2;
@@ -661,10 +671,12 @@ body {
 
 .quick-search-textbox>.suggesions-button {
     border: none;
+    background: inherit;
 }
 
 .quick-search-textbox>.clear-button {
     border: none;
+    background: inherit;
 }
 
 

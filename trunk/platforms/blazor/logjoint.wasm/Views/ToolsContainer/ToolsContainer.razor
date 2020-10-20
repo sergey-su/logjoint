@@ -8,7 +8,7 @@
     <div class='header'>
         <TabsView SelectedTab="@selectedTool" OnSelect="i => SetSelectedTool(i)" Tabs="@tabs" />
         <div class='actions'>
-            <button @onclick="HideTools">&gt;</button>
+            <button class='tool-button' @onclick="HideTools">&gt;</button>
         </div>
     </div>
     @switch (visibleTools[selectedTool])
