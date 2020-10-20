@@ -311,11 +311,6 @@
         },
     },
 
-    addDefaultPreventingWheelHandler: function (element) {
-        element.addEventListener("wheel",
-            e => e.deltaY != 0 ? e.preventDefault() : 0, { passive: false });
-    },
-
     addDefaultPreventingKeyHandler: function (element, preventingKeys) {
         element.addEventListener('keydown', e => {
             if (preventingKeys.indexOf(e.key) >= 0) {

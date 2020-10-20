@@ -118,7 +118,6 @@
             Console.WriteLine("LogViewer char w={0} h={1}", charWidth, charHeight);
             UpdateDisplayLinesPerPage();
             resizeObserverHandle = await jsRuntime.InvokeAsync<long>("logjoint.resize.observe", scrollOuter, selfRef);
-            await jsRuntime.InvokeVoidAsync("logjoint.addDefaultPreventingWheelHandler", scrollOuter);
         }
     }
 
