@@ -48,21 +48,30 @@
     <div class="outline" style="top: @TopProperty">
         @foreach (var item in @viewModel.ViewLines)
         {
-            <div @key="item.LineIndex" class="item">
-                @if (item.Severity == SeverityIcon.Error)
-                {
-                    <span class="i e" />
-                }
-                else if (item.Severity == SeverityIcon.Warning)
-                {
-                    <span class="i w" />
-                }
-                @if (item.IsBookmarked)
-                {
-                    <span class="i b" />
-                }
-                @(" ")
-            </div>
+        <div @key="item.LineIndex" class="item">
+            @{var f = viewModel.FocusedMessageMark; }
+            @{var focusedMarkClass =
+                      f == null ? "" :
+                      f.Length == 1 ? (f[0] == item.LineIndex ? "f" : "") :
+                      f[1] == item.LineIndex + 1 ? (f[0] != f[1] ? "fs" : "fs l") :
+                      (f[0] == 0 && f[1] == 0 && item.LineIndex == 0) ? "fs r" :
+                      "";}
+            @{Console.WriteLine("FocusedMessageMark: {0}", f != null ? string.Join(",", f) : "");}
+            <span class="p @focusedMarkClass" />
+            @if (item.IsBookmarked)
+            {
+                <span class="i b" />
+            }
+            @if (item.Severity == SeverityIcon.Error)
+            {
+                <span class="i e" />
+            }
+            else if (item.Severity == SeverityIcon.Warning)
+            {
+                <span class="i w" />
+            }
+            @(" ")
+        </div>
         }
     </div>
     <div class="vsroller"><div class="slider" style="top: @string.Format("{0}%", viewModel.VerticalScrollerPosition.GetValueOrDefault(0)*100)"></div></div>
@@ -91,7 +100,7 @@
         ViewProxy.SetComponent(this);
 
         var updateLines = Updaters.Create(
-            () => viewModel.ViewLines,
+            () => (viewModel.ViewLines, viewModel.FirstDisplayMessageScrolledLines, viewModel.FocusedMessageMark),
             _ => StateHasChanged()
         );
 
