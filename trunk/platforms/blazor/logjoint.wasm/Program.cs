@@ -244,7 +244,7 @@ namespace LogJoint.Wasm
                 var mocks = new Mocks(viewModel);
                 mocks.ShellOpen.When(s => s.OpenInTextEditor(Arg.Any<string>())).Do(x =>
                 {
-                    serviceProvider.GetService<IJSRuntime>().InvokeVoidAsync("alert", File.ReadAllText(x.Arg<string>()));
+                    jsRuntime.InvokeVoidAsync("logjoint.saveAs", File.ReadAllText(x.Arg<string>()), x.Arg<string>());
                 });
 
                 var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
