@@ -1,0 +1,36 @@
+@namespace LogJoint.Wasm.UI
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject IJSRuntime jsRuntime
+
+<div class='main-window' @ref="element">
+    <div class='container-1'>
+        <MainWindowTabs Class="top" />
+        <div class='bottom container-2'>
+            <div class='left timeline'>timeline</div>
+            <div class='mid container-3'>
+                <LogJoint.Wasm.UI.LoadedMessages.LoadedMessages Class="top" />
+                <SearchResult Class="bottom" ResizerClass="bottom-separator" />
+            </div>
+            <ToolsContainer Class='right' ResizerClass='right-separator' />
+        </div>
+    </div>
+    <QuickSearchSuggestionsList ViewProxy="@viewProxies.SearchPanelQuickSearchTextBox" Class="search-panel-suggesions" />
+</div>
+<HistoryDialog />
+<PostprocessingDialog />
+<Alert />
+<div class="drag-drop-overlay">
+    <p>Drop logs to open</p>
+</div>
+
+@code {
+    private ElementReference element;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("logjoint.dragDrop.registerHandler", element, "drag-drop-overlay", null);
+        }
+    }
+}
