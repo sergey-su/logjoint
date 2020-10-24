@@ -845,6 +845,7 @@ body {
 .bookmarks-list-item>div {
     display: table-cell;
     white-space: nowrap;
+    padding-right: 5px;
 }
 
 .bookmarks-list-item>div:last-child {
