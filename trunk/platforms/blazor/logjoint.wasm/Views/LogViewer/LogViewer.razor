@@ -56,18 +56,18 @@
                       f[1] == item.LineIndex + 1 ? (f[0] != f[1] ? "fs" : "fs l") :
                       (f[0] == 0 && f[1] == 0 && item.LineIndex == 0) ? "fs r" :
                       "";}
-            <span class="p @focusedMarkClass" />
+            <span class="p @focusedMarkClass">@(" ")</span>
             @if (item.IsBookmarked)
             {
-                <span class="i b" />
+                <span class="i b">@(" ")</span>
             }
             @if (item.Severity == SeverityIcon.Error)
             {
-                <span class="i e" />
+                <span class="i e">@(" ")</span>
             }
             else if (item.Severity == SeverityIcon.Warning)
             {
-                <span class="i w" />
+                <span class="i w">@(" ")</span>
             }
             @(" ")
         </div>
