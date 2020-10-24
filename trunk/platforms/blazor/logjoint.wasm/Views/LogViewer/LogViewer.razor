@@ -74,13 +74,13 @@
         </div>
         }
     </div>
-    <div class="vsroller"><div class="slider" style="top: @string.Format("{0}%", viewModel.VerticalScrollerPosition.GetValueOrDefault(0)*100)"></div></div>
+    <div class="vsroller"><div class="slider" @ref="sliderElement" style="top: @string.Format("{0}%", viewModel.VerticalScrollerPosition.GetValueOrDefault(0)*100)"></div></div>
 </div>
 
 @code {
     private IViewModel viewModel;
     private ISubscription subscription;
-    private ElementReference measureElement, scrollOuter;
+    private ElementReference measureElement, scrollOuter, sliderElement;
     private double charWidth = 1;
     private double charHeight = 1;
     private long resizeObserverHandle;
@@ -124,9 +124,9 @@
         {
             charWidth = await jsRuntime.InvokeAsync<double>("logjoint.getElementWidth", measureElement);
             charHeight = await jsRuntime.InvokeAsync<double>("logjoint.getElementHeight", measureElement);
-            Console.WriteLine("LogViewer char w={0} h={1}", charWidth, charHeight);
             UpdateDisplayLinesPerPage();
             resizeObserverHandle = await jsRuntime.InvokeAsync<long>("logjoint.resize.observe", scrollOuter, selfRef);
+            await jsRuntime.InvokeVoidAsync("logjoint.logViewer.initVScroller", sliderElement, selfRef);
         }
     }
 
@@ -249,6 +249,12 @@
     {
         UpdateDisplayLinesPerPage();
         viewModel?.ChangeNotification?.Post();
+    }
+
+    [JSInvokable]
+    public void OnVScroll(double value)
+    {
+        viewModel?.OnVScroll(value, true);
     }
 
     string TopProperty => string.Format("{0:000}px", -viewModel.FirstDisplayMessageScrolledLines * charHeight);

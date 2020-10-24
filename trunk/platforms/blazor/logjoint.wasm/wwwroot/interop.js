@@ -473,4 +473,32 @@
             element.addEventListener('drop', dropHandler);
         }
     },
+
+    logViewer: {
+        initVScroller: function (slider, handler) {
+            let startY, startTop, startParentHeight;
+    
+            const doScroll = (e) => {
+                if (startParentHeight != 0) {
+                    handler.invokeMethod('OnVScroll', (startTop + (e.clientY - startY)) / startParentHeight);
+                }
+                e.preventDefault();
+            };
+
+            const stopScroll = () => {
+                document.documentElement.removeEventListener('mousemove', doScroll, false);
+                document.documentElement.removeEventListener('mouseup', stopScroll, false);
+            };
+
+            const startScroll = (e) => {
+                startY = e.clientY;
+                startTop = parseInt(document.defaultView.getComputedStyle(slider).top, 10);
+                startParentHeight = parseInt(document.defaultView.getComputedStyle(slider.parentElement).height, 10);
+                document.documentElement.addEventListener('mousemove', doScroll, false);
+                document.documentElement.addEventListener('mouseup', stopScroll, false);
+            };
+
+            slider.addEventListener('mousedown', startScroll, false);
+        }
+    },
 };
