@@ -1,7 +1,8 @@
 ﻿@page "/"
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject IJSRuntime jsRuntime
 
-<div class='main-window'>
+<div class='main-window' @ref="element">
     <div class='container-1'>
         <LogJoint.Wasm.UI.MainWindowTabs Class="top" />
         <div class='bottom container-2'>
@@ -18,6 +19,18 @@
 <LogJoint.Wasm.UI.HistoryDialog />
 <LogJoint.Wasm.UI.PostprocessingDialog />
 <LogJoint.Wasm.UI.Alert />
+<div class="drag-drop-overlay">
+    <p>Drop logs to open</p>
+</div>
 
 @code {
+    private ElementReference element;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("logjoint.dragDrop.registerHandler", element, "drag-drop-overlay", null);
+        }
+    }
 }

@@ -178,6 +178,9 @@
             const [nativeHandle] = await window.showOpenFilePicker();
             return await this._add(nativeHandle);
         },
+        add: async function(nativeHandle) {
+            return await this._add(nativeHandle);
+        },
         close: function (handle) {
             this._get(handle);
             delete this[handle];
@@ -422,6 +425,52 @@
     clipboard: {
         setText: function (value) {
             return navigator.clipboard.writeText(value);
+        }
+    },
+
+    dragDrop: {
+        registerHandler: function(element, overlayClass, handler) {
+            const overlay = document.getElementsByClassName("drag-drop-overlay")[0];
+            if (!overlay) {
+                throw new Error(`drag drop overlay ${overlayClass} not found`);
+            }
+    
+            function getFileItems(dataTransfer) {
+                return [...(dataTransfer.items || [])].filter(i => i.kind === 'file');
+            }
+    
+            async function dropHandler(ev) {
+                ev.preventDefault();
+                for (const item of getFileItems(ev.dataTransfer)) {
+                    const nativeHandle = await item.getAsFileSystemHandle();
+                    const handle = await logjoint.nativeFiles.add(nativeHandle);
+                    console.log('item handle', handle);
+                }
+            }
+    
+            let dragTimeout = undefined;
+            function dragOverHandler(ev) {
+                const firstDrag = dragTimeout == undefined;
+                if (dragTimeout) {
+                    clearTimeout(dragTimeout);
+                }
+                if (getFileItems(ev.dataTransfer).length > 0) {
+                    if (firstDrag) {
+                        overlay.style.display = "block";
+                    }
+                    dragTimeout = setTimeout(() => {
+                        dragTimeout = undefined;
+                        overlay.style.display = "none";
+                    }, 100);
+                    ev.dataTransfer.dropEffect = "copy";
+                } else {
+                    ev.dataTransfer.dropEffect = "none";
+                }
+                ev.preventDefault();
+            }
+    
+            element.addEventListener('dragover', dragOverHandler);
+            element.addEventListener('drop', dropHandler);
         }
     },
 };
