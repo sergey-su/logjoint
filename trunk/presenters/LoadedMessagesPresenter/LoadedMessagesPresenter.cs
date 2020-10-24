@@ -49,7 +49,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				() => messagesPresenter.NavigationIsInProgress,
 				(raw, viewTailMode, sources, coloring, navigation) => new ViewState
 				{
-					ToggleBookmark = (Visible: sources.Count > 0, Tooltip: "Log coloring"),
+					ToggleBookmark = (Visible: sources.Count > 0, Tooltip: "Toggle bookmark on the selected log line"),
 					RawViewButton = (Visible: raw.RawViewAllowed, Checked: raw.ShowRawMessages, Tooltip: "Toggle raw log view"),
 					ViewTailButton = (Visible: sources.Count > 0, Checked: viewTailMode, Tooltip: viewTailMode ? "Stop autoscrolling to log end" : "Autoscroll to log end"),
 					Coloring = (Visible: sources.Count > 0, Options: viewColoringOptions, Selected: coloringOptions.IndexOf(option => option.Mode == coloring).GetValueOrDefault(0)),
