@@ -10,8 +10,8 @@
 <div class='@ResizerClass' @ref="resizerElement"></div>
 <div class='search-result @Class' @ref="resultsElement">
     <div class="toolbar">
-        <button class="current-time" @onclick="@(e => viewModel.OnFindCurrentTimeButtonClicked())">Curr</button>
-        <button class="bookmark" @onclick="@(e => viewModel.OnToggleBookmarkButtonClicked())"></button>
+        <button class="current-time" @onclick="@(e => viewModel.OnFindCurrentTimeButtonClicked())" title="Find current time in the seaech results"></button>
+        <button class="bookmark" @onclick="@(e => viewModel.OnToggleBookmarkButtonClicked())" title="Toggle bookmark"></button>
             @{var result = viewModel.Items.FirstOrDefault();}
             @if (result != null)
             {
