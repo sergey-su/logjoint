@@ -663,6 +663,7 @@ body {
     flex-flow: row nowrap;
     align-items: center;
     background: var(--control-face-background);
+    padding-bottom: 2px;
 }
 
 .search-result>.toolbar>.resizer {
