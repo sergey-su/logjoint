@@ -30,6 +30,7 @@ body {
     --bookmark-image: url(data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAuMCAwLjAgMjI3LjkyNjUwOTE4NjM1MTcgMjYwLjY2OTI5MTMzODU4MjciIGZpbGw9Im5vbmUiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2xpcFBhdGggaWQ9InAuMCI+PHBhdGggZD0ibTAgMGwyMjcuOTI2NTEgMGwwIDI2MC42NjkyOGwtMjI3LjkyNjUxIDBsMCAtMjYwLjY2OTI4eiIgY2xpcC1ydWxlPSJub256ZXJvIi8+PC9jbGlwUGF0aD48ZyBjbGlwLXBhdGg9InVybCgjcC4wKSI+PHBhdGggZmlsbD0iIzAwMDAwMCIgZmlsbC1vcGFjaXR5PSIwLjAiIGQ9Im0wIDBsMjI3LjkyNjUxIDBsMCAyNjAuNjY5MjhsLTIyNy45MjY1MSAweiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PHBhdGggZmlsbD0iIzU1Y2VmMyIgZD0ibTI4LjM3NzcyOCAyMzAuMDM4NzZsMCAtMjA3Ljk2MTZsMTc2LjAwOCAwbDAgMjA3Ljk2MTZsLTg5LjYwNDM3IC02OS4yNjExNTR6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48cGF0aCBzdHJva2U9IiM1NWNlZjMiIHN0cm9rZS13aWR0aD0iMTIuMCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIGQ9Im0yOC4zNzc3MjggMjMwLjAzODc2bDAgLTIwNy45NjE2bDE3Ni4wMDggMGwwIDIwNy45NjE2bC04OS42MDQzNyAtNjkuMjYxMTU0eiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9nPjwvc3ZnPg==);
     --focused-message-image: url(data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAuMCAwLjAgMjc1LjI1NDU5MzE3NTg1MyA1MzYuOTUwMTMxMjMzNTk1OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJub25lIiBzdHJva2UtbGluZWNhcD0ic3F1YXJlIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxjbGlwUGF0aCBpZD0icC4wIj48cGF0aCBkPSJtMCAwbDI3NS4yNTQ2IDBsMCA1MzYuOTUwMTNsLTI3NS4yNTQ2IDBsMCAtNTM2Ljk1MDEzeiIgY2xpcC1ydWxlPSJub256ZXJvIi8+PC9jbGlwUGF0aD48ZyBjbGlwLXBhdGg9InVybCgjcC4wKSI+PHBhdGggZmlsbD0iIzAwMDAwMCIgZmlsbC1vcGFjaXR5PSIwLjAiIGQ9Im0wIDBsMjc1LjI1NDYgMGwwIDUzNi45NTAxM2wtMjc1LjI1NDYgMHoiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjxwYXRoIGZpbGw9IiM0YTg2ZTgiIGQ9Im0xNy44MjY3NyA5LjI4NjA4OWwyNDEuMTY1MzYgMjU5Ljc2Mzc2bC0yNDEuMTY1MzYgMjU5Ljc2Mzh6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L2c+PC9zdmc+);
     --vscroll-slider-height: 10pt; /* height of the slider in the log viewer's vertical scroller */
+    --log-viewer-line-height: 15px;
 }
 
 :focus:not(:focus-visible) {
@@ -93,6 +94,7 @@ body {
     cursor: text;
     white-space: nowrap;
     position: relative;
+    height: var(--log-viewer-line-height);
 }
 .logview .scroll-inner {
     display: inline-flex;
@@ -117,15 +119,18 @@ body {
     top: 0px;
     width: 30px;
     background-color: white;
+    display: flex;
+    flex-flow: column nowrap;
 }
 .logview .outline .item {
     white-space: pre;
     direction: rtl;
+    height: var(--log-viewer-line-height);
 }
 .logview .outline .item>.i { /* base icon */
     display: inline-block;
-    width: 0.9em;
-    height: 0.9em;
+    width: 11px;
+    height: var(--log-viewer-line-height);
     background-repeat: no-repeat;
     background-position: center;
     margin: 0px 0.5px;
@@ -141,25 +146,20 @@ body {
 }
 .logview .outline .item>.p { /* padding on the right that holds focused message mark */
     display: inline-block;
-    position: relative;
-    width: 5px;
-    right: -2px;
-}
-.logview .outline .item>.p:before { /* placeholder for a focused message mark */
-    background-image: none;
+    background-position-y: center;
     background-repeat: no-repeat;
-    background-position: center;
-    content: ' ';
-    width: 7px;
-    display: inline-block;
+    position: relative;
+    width: 6px;
+    height: var(--log-viewer-line-height);
 }
-.logview .outline .item>.p.f:before { /* master (big) focused message mark */
+.logview .outline .item>.p.f { /* master (big) focused message mark */
     background-image: var(--focused-message-image);
-    background-size: 7px;
+    background-size: 6px;
 }
-.logview .outline .item>.p.fs:before { /* slave (small) focused message mark */
+.logview .outline .item>.p.fs { /* slave (small) focused message mark */
     background-image: var(--focused-message-image);
     background-size: 4px;
+    left: 2px;
 }
 .logview .outline .item>.p.l { /* lowered focused message mark */
     top: 0.5em;
@@ -584,11 +584,24 @@ body {
     max-width: 10px;
     min-width: 10px;
 }
+.state-inspector .history>.the-list .b {
+    background: center / contain no-repeat var(--bookmark-image);
+}
 /* focus mark area */
 .state-inspector .history>.the-list>li>div:nth-child(2) {
     width: 5px;
     max-width: 5px;
     min-width: 5px;
+}
+.state-inspector .history>.the-list .f {
+    background: center / contain no-repeat var(--focused-message-image);
+    position: relative;
+}
+.state-inspector .history>.the-list .f.l {
+    top: 0.5em;
+}
+.state-inspector .history>.the-list .f.r {
+    top: -0.5em;
 }
 .state-inspector .history>.the-list>li>div:nth-child(3) {
     padding: 0px 4px;

@@ -14,8 +14,14 @@
               OnDoubleClick="@(item => ViewModel.OnChangeHistoryItemDoubleClicked((IStateHistoryItem)item))">
         <ItemTemplate>
             @{var item = (IStateHistoryItem)context;}
-            <div>@(IsItemBookmarked(item) ? "b" : "")</div>
-            <div></div>
+            @{var f = FocusedMessagePositionInChangeHistory; }
+            @{var focusedMarkClass =
+                      f == null ? "" :
+                      f.Item2 == item.Index + 1 ? (f.Item1 != f.Item2 ? "f" : "f l") :
+                      (f.Item1 == 0 && f.Item2 == 0 && item.Index == 0) ? "f r" :
+                      "";}
+            <div class="@(IsItemBookmarked(item) ? "b" : "")"></div>
+            <div class="@focusedMarkClass"></div>
             <div>@item.Time</div>
             <div>@item.Message</div>
         </ItemTemplate>
@@ -36,6 +42,9 @@
 
     [Parameter]
     public Predicate<IStateHistoryItem> IsItemBookmarked { get; set; }
+
+    [Parameter]
+    public Tuple<int, int> FocusedMessagePositionInChangeHistory { get; set; }
 
     [Parameter]
     public IViewModel ViewModel { get; set; }

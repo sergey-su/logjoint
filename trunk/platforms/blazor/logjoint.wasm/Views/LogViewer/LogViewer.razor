@@ -56,7 +56,6 @@
                       f[1] == item.LineIndex + 1 ? (f[0] != f[1] ? "fs" : "fs l") :
                       (f[0] == 0 && f[1] == 0 && item.LineIndex == 0) ? "fs r" :
                       "";}
-            @{Console.WriteLine("FocusedMessageMark: {0}", f != null ? string.Join(",", f) : "");}
             <span class="p @focusedMarkClass" />
             @if (item.IsBookmarked)
             {

@@ -19,6 +19,7 @@
                                ResizerClass="h-resizer"
                                Items="@viewModel.ChangeHistoryItems"
                                IsItemBookmarked="@viewModel.IsChangeHistoryItemBookmarked"
+                               FocusedMessagePositionInChangeHistory="@viewModel.FocusedMessagePositionInChangeHistory"
                                ViewModel="@viewModel"/>
     </div>
 </div>
@@ -47,7 +48,7 @@
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.ObjectsTreeRoot, viewModel.PaintNode,
                 viewModel.ChangeHistoryItems, viewModel.IsChangeHistoryItemBookmarked,
-                viewModel.PropertyItems),
+                viewModel.PropertyItems, viewModel.FocusedMessagePositionInChangeHistory),
             _ => StateHasChanged()
         ));
     }
