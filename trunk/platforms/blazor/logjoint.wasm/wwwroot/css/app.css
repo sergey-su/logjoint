@@ -838,13 +838,39 @@ body {
     display: table-row;
 }
 
-.bookmarks-list-item>div {
+.bookmarks-list-item>div,
+.bookmarks-list-item>a {
     display: table-cell;
-    white-space: nowrap;
-    padding-right: 5px;
+    white-space: pre;
 }
 
-.bookmarks-list-item>div:last-child {
+.bookmarks-list-item > .icon {
+    padding: 0px 3px;
+}
+.bookmarks-list-item>.icon:after {
+    content: ' ';
+    background: center / contain no-repeat var(--bookmark-image);
+    display: inline-block;
+    width: 9px;
+}
+
+.bookmarks-list-item>.p:after {
+    content: ' ';
+    display: inline-block;
+    width: 5px;
+    position: relative;
+}
+.bookmarks-list-item>.f:after {
+    background: center / contain no-repeat var(--focused-message-image);
+}
+.bookmarks-list-item>.f.l:after {
+    top: 0.5em;
+}
+.bookmarks-list-item>.f.r:after {
+    top: -0.5em;
+}
+
+.bookmarks-list-item>a {
     overflow: hidden;
     text-overflow: ellipsis;
 }

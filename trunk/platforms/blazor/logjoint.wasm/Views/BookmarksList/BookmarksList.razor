@@ -10,8 +10,16 @@
           OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())">
     <ItemTemplate>
         @{var item = (IViewItem)context;}
+        @{var f = viewModel.FocusedMessagePosition; }
+        @{var focusedMarkClass =
+                    f == null ? "" :
+                    f.Item2 == item.Index + 1 ? (f.Item1 != f.Item2 ? "f" : "f l") :
+                    (f.Item1 == 0 && f.Item2 == 0 && item.Index == 0) ? "f r" :
+                    "";}
         <div>@(item.Delta ?? item.AltDelta)</div>
-        <div>@item.Text</div>
+        <div class="icon"></div>
+        <div class="p @focusedMarkClass"></div>
+        <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))">@item.Text</a>
     </ItemTemplate>
 </ListView>
 

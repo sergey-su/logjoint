@@ -15,7 +15,7 @@
                 {
                     <a href="#"
                        @onclick="@(e => viewModel.OnActionClick(part.LinkData, control.Key, ClickFlags.None))" 
-                       @onclick:stopPropagation="true">@part.Text</a>
+                       @onclick:preventDefault>@part.Text</a>
                 }
                 @if (part.LinkData == null)
                 {
