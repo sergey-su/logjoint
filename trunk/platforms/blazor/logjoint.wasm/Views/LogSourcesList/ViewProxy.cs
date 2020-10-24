@@ -16,7 +16,7 @@ namespace LogJoint.Wasm.UI
 
 		void IView.SetTopItem(IViewItem item)
 		{
-			component.SetTopItem(item);
+			component?.SetTopItem(item);
 		}
 
 		void IView.SetViewModel(IViewModel value)

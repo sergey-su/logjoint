@@ -1,0 +1,54 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.MessagePropertiesDialog
+@implements IDisposable
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+
+<div class="message-properties @Class">
+    @{var d = viewModel.Data;}
+    <div class="grid">
+        <div>Time:</div>
+        <div class="value">@d.TimeValue</div>
+
+        <div>Log source:</div>
+        <a class="value" href="@(d.SourceLinkEnabled ? "#" : "")" @onclick:preventDefault @onclick="@(e => viewModel.OnSourceLinkClicked())">@d.SourceLinkValue</a>
+
+        <div>Bookmarked:</div>
+        <div class="value">
+            <span class="bookmark-status">@d.BookmarkedStatusText</span>
+            <a href="@(d.BookmarkActionLinkEnabled ? "#" : "")" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkActionClicked())">@d.BookmarkActionLinkText</a>
+        </div>
+
+        <div class="contents-label">Contents</div>
+        <TabsView Tabs=@d.ContentViewModes SelectedTab=d.ContentViewModeIndex.GetValueOrDefault() OnSelect=viewModel.OnContentViewModeChange />
+    </div>
+    <textarea readonly class="contents">@d.TextValue</textarea>
+</div>
+
+@code {
+    private IDialogViewModel viewModel;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        if (viewProxies.MessageProperties.ViewModel == null)
+        {
+            viewProxies.PresentationObjects.PresentersFacade.ShowMessageProperties();
+        }
+        viewModel = viewProxies.MessageProperties.ViewModel;
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.Data,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}

@@ -1,6 +1,4 @@
-﻿@using System
-@using LogJoint.Postprocessing;
-@namespace LogJoint.Wasm.UI
+﻿@namespace LogJoint.Wasm.UI
 @inject IJSRuntime jsRuntime;
 
 <div class='@ResizerClass' @ref="toolsResizerElement"></div>
@@ -13,10 +11,13 @@
     </div>
     @switch (visibleTools[selectedTool])
     {
-        case PostprocessorKind.StateInspector:
+        case ToolKind.StateInspector:
             <LogJoint.Wasm.UI.Postprocessing.StateInspector Class='body' />
             break;
-        case PostprocessorKind.SequenceDiagram:
+        case ToolKind.MessageProperties:
+            <MessageProperties Class='body' />
+            break;
+        case ToolKind.SequenceDiagram:
             <LogJoint.Wasm.UI.Postprocessing.SequenceDiagram Class='body' />
             break;
     }
@@ -24,10 +25,17 @@
 
 @code {
     private ElementReference toolsResizerElement, toolsElement;
-    private List<PostprocessorKind> visibleTools = new List<PostprocessorKind>
-        {PostprocessorKind.StateInspector, PostprocessorKind.SequenceDiagram};
+    enum ToolKind
+    {
+        None,
+        StateInspector,
+        MessageProperties,
+        SequenceDiagram
+    }
+    private List<ToolKind> visibleTools = new List<ToolKind>
+        {ToolKind.StateInspector, ToolKind.MessageProperties};
     private int selectedTool = 0;
-    private static string[] tabs = new[] { "StateInspector", "SequenceDiagram" };
+    private static string[] tabs = new[] { "StateInspector", "Message details" };
 
     [Parameter]
     public string Class { get; set; } = "";

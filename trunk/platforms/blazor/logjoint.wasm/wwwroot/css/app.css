@@ -443,6 +443,7 @@ body {
     flex-grow: 2;
     flex-shrink: 2;
     overflow-x: hidden;
+    margin-bottom: 3px;
 }
 
 .tool-container>.header>.actions {
@@ -1052,4 +1053,43 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 2em;
+}
+
+
+
+
+
+
+
+.message-properties {
+    display: flex;
+    flex-flow: column nowrap;
+    overflow-x: hidden;
+}
+.message-properties>.grid {
+    display: grid;
+    grid-auto-rows: max-content;
+    grid-template-columns: max-content auto;
+    column-gap: 10px;
+    background: var(--control-face-background);
+}
+.message-properties>.grid>.value {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.message-properties>.contents {
+    flex-grow: 2;
+    height: 1px;
+    resize: none;
+    background-color: var(--control-client-background);
+    border: var(--control-client-border);
+    overflow: auto;
+}
+.message-properties .bookmark-status {
+    margin-right: 10px;
+}
+.message-properties .contents-label {
+    display: flex;
+    align-items: center;
 }

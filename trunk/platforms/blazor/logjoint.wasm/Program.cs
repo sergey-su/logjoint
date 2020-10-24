@@ -41,11 +41,7 @@ namespace LogJoint.Wasm
         public UI.QuickSearchTextBoxViewProxy HistoryDialogQuickSearchTextBox = new UI.QuickSearchTextBoxViewProxy();
         public UI.HistoryDialogViewProxy HistoryDialog;
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new PreprocessingUserInteractionsViewProxy();
-
-        public LogJoint.UI.Presenters.MainForm.IViewModel MainForm;
-		public string PostprocessingTabPageId;
-		public LogJoint.UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
-		public LogJoint.UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
+        public UI.MessagePropertiesViewProxy MessageProperties = new MessagePropertiesViewProxy();
 
         public ViewModelObjects()
         {
@@ -97,6 +93,7 @@ namespace LogJoint.Wasm
             Views.CreateSearchResultView().Returns(viewModel.SearchResult);
             Views.CreateBookmarksListView().Returns(viewModel.BookmarksList);
             Views.CreateHistoryDialogView().Returns(viewModel.HistoryDialog);
+            Views.CreateMessagePropertiesDialogView().Returns(viewModel.MessageProperties);
         }
     };
 }
