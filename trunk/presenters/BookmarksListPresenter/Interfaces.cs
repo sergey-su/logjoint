@@ -25,6 +25,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		bool IsEnabled { get; }
 		string Text { get; }
 		Color? ContextColor { get; }
+		int Index { get; }
 	};
 
 	public interface IViewModel

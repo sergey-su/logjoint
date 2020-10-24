@@ -171,6 +171,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			DateTime? prevTimestamp = null;
 			DateTime? prevSelectedTimestamp = null;
 			bool multiSelection = selected.Count >= 2;
+			int index = 0;
 			foreach (IBookmark bmk in bookmarks)
 			{
 				var ts = bmk.Time.ToUniversalTime();
@@ -197,11 +198,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					altDelta = TimeUtils.TimeDeltaToString(altDelta),
 					isSelected = isSelected,
 					isEnabled = isEnabled,
-					contextColor = threadColors.GetByIndex(colorIndex)
+					contextColor = threadColors.GetByIndex(colorIndex),
+					index = index
 				});
 				prevTimestamp = ts;
 				if (isSelected)
 					prevSelectedTimestamp = ts;
+				++index;
 			}
 			return resultBuilder.ToImmutable();
 		}
@@ -313,6 +316,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 			Color? IViewItem.ContextColor => contextColor;
 
+			int IViewItem.Index => index;
+
 			string IListItem.Key => key;
 
 			bool IListItem.IsSelected => isSelected;
@@ -327,6 +332,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			internal bool isEnabled;
 			internal Color? contextColor;
 			internal string key;
+			internal int index;
 		};
 
 		readonly IBookmarks bookmarks;
