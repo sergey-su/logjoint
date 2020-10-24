@@ -522,7 +522,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo,
 			bool isSelected, bool showTimeDeltas, StateInspectorEvent prevSelectedEvent,
-			StateHistoryMessageFormatter messageFormatter)
+			StateHistoryMessageFormatter messageFormatter, int index)
 		{
 			var evt = evtInfo.Event;
 			string time;
@@ -542,7 +542,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				message = string.Format("#{0}: {1}", evtInfo.InspectedObjectNr, messageFormatter.message);
 			else
 				message = messageFormatter.message;
-			return new StateHistoryItem(evt, time, message, isSelected);
+			return new StateHistoryItem(evt, time, message, isSelected, index);
 		}
 
 		ImmutableArray<StateHistoryItem> MakeSelectedObjectHistory(
@@ -576,7 +576,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				messageFormatter.currentObject = change.Value.Object;
 				bool isSelected = isEventSelected(change.Value.Event);
 				result.Add(MakeStateHistoryItem(change.Value, isSelected,
-					showTimeDeltas, prevSelectedEvent, messageFormatter));
+					showTimeDeltas, prevSelectedEvent, messageFormatter, change.Key));
 				if (isSelected)
 					prevSelectedEvent = change.Value.Event;
 			}
@@ -994,19 +994,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			readonly bool isSelected;
 			readonly StateInspectorEvent @event;
 			readonly string key;
+			readonly int index;
 
-			public StateHistoryItem(StateInspectorEvent @event, string time, string message, bool isSelected)
+			public StateHistoryItem(StateInspectorEvent @event, string time, string message, bool isSelected, int index)
 			{
 				this.time = time;
 				this.message = message;
 				this.isSelected = isSelected;
 				this.@event = @event;
 				this.key = @event.GetHashCode().ToString();
+				this.index = index;
 			}
 
 			public StateInspectorEvent Event => @event;
 
 			string IStateHistoryItem.Time => time;
+
+			int IStateHistoryItem.Index => index;
 
 			string IStateHistoryItem.Message => message;
 

@@ -98,6 +98,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 	{
 		string Time { get; }
 		string Message { get; }
+		int Index { get; }
 	};
 
 	public interface IPropertyListItem : IListItem
