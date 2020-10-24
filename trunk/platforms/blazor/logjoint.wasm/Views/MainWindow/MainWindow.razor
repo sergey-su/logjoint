@@ -1,6 +1,8 @@
 @namespace LogJoint.Wasm.UI
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @inject IJSRuntime jsRuntime
+@inject LogJoint.ModelObjects model
+@implements IDisposable
 
 <div class='main-window' @ref="element">
     <div class='container-1'>
@@ -25,12 +27,45 @@
 
 @code {
     private ElementReference element;
+    private DotNetObjectReference<DropHandler> dropHandler;
+
+    class DropHandler
+    {
+        internal LogJoint.ModelObjects model;
+
+        [JSInvokable]
+        public async Task HandleDrop(long[] handles)
+        {
+            await Task.WhenAll(handles.Select(OpenHandle));
+        }
+
+        async Task OpenHandle(long handle)
+        {
+            var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+            var fileName = await fs.AddDroppedFile(handle);
+            Console.WriteLine("Virtual file name for dropped file: {0}", fileName);
+            using (var keepAlive = model.FileSystem.OpenFile(fileName))
+            {
+                var task = model.LogSourcesPreprocessings.Preprocess(
+                    new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
+                    $"Processing dropped file {handle}"
+                );
+                await task;
+            }
+        }
+    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await jsRuntime.InvokeVoidAsync("logjoint.dragDrop.registerHandler", element, "drag-drop-overlay", null);
+            dropHandler = DotNetObjectReference.Create(new DropHandler { model = model });
+            await jsRuntime.InvokeVoidAsync("logjoint.dragDrop.registerHandler", element, "drag-drop-overlay", dropHandler);
         }
+    }
+
+    public void Dispose()
+    {
+        dropHandler?.Dispose();
     }
 }

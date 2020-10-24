@@ -16,6 +16,7 @@ namespace LogJoint.Wasm
     {
         Task<string> AddFileFromInput(ElementReference inputElement);
         Task<string> ChooseFile();
+        Task<string> AddDroppedFile(long handle);
     };
 
     public class LogMediaFileSystem : IFileSystem, IWasmFileSystemConfig
@@ -332,6 +333,14 @@ namespace LogJoint.Wasm
             var dbId = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.ensureStoredInDatabase", handle);
             var (fileName, fileInfo) = await EnsureNativeFileSystemFileInfoExists(handle, dbId);
             traceSource.Info("chosen file has been given name '{0}' and stored in database with id {1}", fileName, dbId);
+            return fileName;
+        }
+
+        async Task<string> IWasmFileSystemConfig.AddDroppedFile(long handle)
+        {
+            var dbId = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.ensureStoredInDatabase", handle);
+            var (fileName, fileInfo) = await EnsureNativeFileSystemFileInfoExists(handle, dbId);
+            traceSource.Info("dropped file has been given name '{0}' and stored in database with id {1}", fileName, dbId);
             return fileName;
         }
 

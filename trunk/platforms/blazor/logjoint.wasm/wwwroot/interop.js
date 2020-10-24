@@ -441,11 +441,11 @@
     
             async function dropHandler(ev) {
                 ev.preventDefault();
-                for (const item of getFileItems(ev.dataTransfer)) {
-                    const nativeHandle = await item.getAsFileSystemHandle();
-                    const handle = await logjoint.nativeFiles.add(nativeHandle);
-                    console.log('item handle', handle);
-                }
+                const handles = await Promise.all(
+                    getFileItems(ev.dataTransfer).map(
+                        item => item.getAsFileSystemHandle().then(
+                            nativeHandle => logjoint.nativeFiles.add(nativeHandle))));
+                await handler.invokeMethodAsync('HandleDrop', handles);
             }
     
             let dragTimeout = undefined;
