@@ -297,21 +297,18 @@ body {
     margin: 0px 6px;
     white-space: nowrap;
 }
-.loaded-messages>.toolbar>.bookmark {
-    background-image: var(--bookmark-image);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 0.8em;
-    width: 2em;
+.loaded-messages>.toolbar>button {
     height: 1.2em;
-    border: 1px solid black;
+    border: 1px solid gray;
     border-radius: 3px;
 }
+.loaded-messages>.toolbar>.bookmark {
+    background: center / 0.8em no-repeat var(--bookmark-image);
+    width: 2em;
+}
 .loaded-messages .raw-view {
-    height: 1.2em;
+    background: var(--control-face-background);
     padding: 0px 8px;
-    border: 1px solid black;
-    border-radius: 3px;
 }
 .loaded-messages .raw-view.checked {
     background: var(--selected-item-background-color);
@@ -344,14 +341,14 @@ body {
     display: flex;
     flex-flow: column nowrap;
 }
-.log-sources-manager.actions>button {
-    width: 20px;
+.log-sources-manager>.actions>button {
+    background: var(--control-face-background);
+    margin-bottom: 3px;
+    border: 1px solid gray;
+    border-radius: 3px;
 }
-.log-sources-manager .history-button {
-    background-image: var(--history-image);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 1.3em;
+.log-sources-manager>.actions>.history-button {
+    background: center / 1.3em no-repeat var(--history-image);
 }
 
 .log-sources-manager>.the-list {
@@ -678,12 +675,10 @@ body {
     margin: 0 2px;
 }
 .search-result>.toolbar>.bookmark {
-    background: center / contain no-repeat var(--bookmark-image);
-    background-size: 0.8em;
+    background: center / 0.8em no-repeat var(--bookmark-image);
 }
 .search-result>.toolbar>.current-time {
-    background: center / contain no-repeat var(--find-current-message-image);
-    background-size: 0.8em;
+    background: center / 0.8em no-repeat var(--find-current-message-image);
 }
 
 .search-result>.toolbar>.result {
