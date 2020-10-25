@@ -253,7 +253,7 @@
     [JSInvokable]
     public void OnVScroll(double value)
     {
-        viewModel?.OnVScroll(value, true);
+        viewModel?.OnVScroll(Math.Clamp(value, 0, 1), true);
     }
 
     string TopProperty => string.Format("{0:000}px", -viewModel.FirstDisplayMessageScrolledLines * charHeight);
