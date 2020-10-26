@@ -108,15 +108,4 @@ namespace LogJoint.UI
 			viewModel.OnFiltersLinkClicked();
 		}
 	}
-
-	class SearchResultsPanelView : ISearchResultsPanelView
-	{
-		public SplitContainer container;
-
-		bool ISearchResultsPanelView.Collapsed
-		{
-			get { return container.Panel2Collapsed; }
-			set { container.Panel2Collapsed = value; }
-		}
-	};
 }

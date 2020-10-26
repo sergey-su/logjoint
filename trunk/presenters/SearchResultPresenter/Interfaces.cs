@@ -35,6 +35,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		IBookmark MasterFocusedMessage { get; set; }
 		void FindCurrentTime();
 		Presenters.LogViewer.IPresenterInternal LogViewerPresenter { get; }
+		bool IsSearchResultVisible { get; set; }
 
 		event EventHandler OnClose;
 		event EventHandler OnResizingStarted;
@@ -59,16 +60,24 @@ namespace LogJoint.UI.Presenters.SearchResult
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		bool IsSearchResultsVisible { get; } // if the whole search results panel visible
 		ColorThemeMode ColorTheme { get; }
 		IReadOnlyList<ViewItem> Items { get; }
 		bool IsCombinedProgressIndicatorVisible { get; }
+		double? Size { get; }
+		string CloseSearchResultsButtonTooltip { get; }
+		string OpenSearchResultsButtonTooltip { get; }
+		string ResizerTooltip { get; }
+		string ToggleBookmarkButtonTooltip { get; }
+		string FindCurrentTimeButtonTooltip { get; }
 
 		void OnResizingStarted();
 		void OnResizingFinished();
-		void OnResizing(int delta);
+		void OnResizing(double size);
 		void OnToggleBookmarkButtonClicked();
 		void OnFindCurrentTimeButtonClicked();
 		void OnCloseSearchResultsButtonClicked();
+		void OnOpenSearchResultsButtonClicked();
 		void OnRefreshButtonClicked();
 		void OnExpandSearchesListClicked();
 		void OnVisibilityCheckboxClicked(ViewItem item);

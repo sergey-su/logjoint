@@ -17,11 +17,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		QuickSearchTextBox.IView SearchTextBox { get; }
 	};
 
-	public interface ISearchResultsPanelView
-	{
-		bool Collapsed { get; set; }
-	};
-
 	[Flags]
 	public enum ViewCheckableControl
 	{

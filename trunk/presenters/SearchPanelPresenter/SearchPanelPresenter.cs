@@ -15,7 +15,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			IUserDefinedSearches userDefinedSearches,
 			ILogSourcesManager sourcesManager,
 			IFiltersFactory filtersFactory,
-			ISearchResultsPanelView searchResultsPanelView,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			StatusReports.IPresenter statusReportFactory,
@@ -30,7 +29,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.searchManager = searchManager;
 			this.searchHistory = searchHistory;
 			this.filtersFactory = filtersFactory;
-			this.searchResultsPanelView = searchResultsPanelView;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.searchResultPresenter = searchResultPresenter;
 			this.statusReportFactory = statusReportFactory;
@@ -411,7 +409,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
 			{
 				enabledControls |= ViewCheckableControl.SearchUp;
-				if (searchResultsPanelView != null && !searchResultsPanelView.Collapsed)
+				if (searchResultPresenter.IsSearchResultVisible)
 					enabledControls |= ViewCheckableControl.SearchInSearchResult;
 			}
 			else
@@ -431,8 +429,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		void ShowSearchResultPanel(bool show)
 		{
-			if (searchResultsPanelView != null)
-				searchResultsPanelView.Collapsed = !show;
+			searchResultPresenter.IsSearchResultVisible = show;
 			UpdateSearchControls();
 		}
 
@@ -524,7 +521,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly ISearchHistory searchHistory;
 		readonly ILogSourcesManager sourcesManager;
 		readonly IFiltersFactory filtersFactory;
-		readonly ISearchResultsPanelView searchResultsPanelView;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;

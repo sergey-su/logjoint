@@ -19,6 +19,7 @@ namespace LogJoint.UI
 		bool updateLock;
 		string expandButtonHint;
 		string unexpandButtonHint;
+		internal SplitContainer SearchResultsSplitContainer;
 
 		public SearchResultView()
 		{
@@ -105,9 +106,15 @@ namespace LogJoint.UI
 					}
 				}
 			);
+			var updateVisiblity = Updaters.Create(() => viewModel.IsSearchResultsVisible, value =>
+			{
+				if (SearchResultsSplitContainer != null)
+					SearchResultsSplitContainer.Panel2Collapsed = !value;
+			});
 			viewModel.ChangeNotification.CreateSubscription(() =>
 			{
 				itemsUpdater();
+				updateVisiblity();
 			});
 		}
 

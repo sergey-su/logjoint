@@ -131,10 +131,30 @@ namespace LogJoint.UI.Presenters.SearchResult
 			FindCurrentTime();
 		}
 
+		bool IPresenter.IsSearchResultVisible
+		{
+			get => isVisible;
+			set
+			{
+				if (isVisible != value)
+				{
+					isVisible = value;
+					changeNotification.Post();
+				}
+			}
+		}
+
 		public event EventHandler OnClose;
 		public event EventHandler OnResizingStarted;
-		public event EventHandler<ResizingEventArgs> OnResizing;
 		public event EventHandler OnResizingFinished;
+
+		bool IViewModel.IsSearchResultsVisible => isVisible;
+		double? IViewModel.Size => size;
+		string IViewModel.CloseSearchResultsButtonTooltip => "Hide search results";
+		string IViewModel.OpenSearchResultsButtonTooltip => "Show search results";
+		string IViewModel.ResizerTooltip => "Resize the search results panel";
+		string IViewModel.ToggleBookmarkButtonTooltip => "Toggle bookmark the log line selected in the search results";
+		string IViewModel.FindCurrentTimeButtonTooltip => "Locate the current time in the search results";
 
 		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 
@@ -145,7 +165,21 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewModel.OnCloseSearchResultsButtonClicked()
 		{
+			if (isVisible)
+			{
+				isVisible = false;
+				changeNotification.Post();
+			}
 			OnClose?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IViewModel.OnOpenSearchResultsButtonClicked()
+		{
+			if (!isVisible)
+			{
+				isVisible = true;
+				changeNotification.Post();
+			}
 		}
 
 		void IViewModel.OnResizingFinished()
@@ -153,9 +187,13 @@ namespace LogJoint.UI.Presenters.SearchResult
 			OnResizingFinished?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IViewModel.OnResizing(int delta)
+		void IViewModel.OnResizing(double size)
 		{
-			OnResizing?.Invoke(this, new ResizingEventArgs() { Delta = delta });
+			if (isVisible)
+			{
+				this.size = Math.Max(0, size);
+				changeNotification.Post();
+			}
 		}
 
 		void IViewModel.OnResizingStarted()
@@ -411,6 +449,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly IColorTheme theme;
 		readonly IChangeNotification changeNotification;
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
+		bool isVisible = false;
+		double? size = null;
 		ImmutableArray<ViewItem> items = ImmutableArray.Create<ViewItem>();
 		bool anySearchIsActive;
 		LogViewer.IPresenterInternal messagesPresenter;
