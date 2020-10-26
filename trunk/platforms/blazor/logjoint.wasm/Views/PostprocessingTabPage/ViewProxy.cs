@@ -19,8 +19,6 @@ namespace LogJoint.Wasm.UI.Postprocessing
             viewModel = value;
         }
 
-        object IView.UIControl => null;
-
         public IViewModel viewModel;
         IView component;
     }

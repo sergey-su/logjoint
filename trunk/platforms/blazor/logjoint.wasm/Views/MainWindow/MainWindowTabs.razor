@@ -1,38 +1,49 @@
 ﻿@namespace LogJoint.Wasm.UI
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@using LogJoint.UI.Presenters.MainForm; 
 
 <div class='main-window-tabs @Class'>
-    <TabsView SelectedTab="@selectedTab" Tabs="@tabs" OnSelect="SetSelectedTab" />
-    @switch (selectedTab)
+    <TabsView SelectedTab="@ViewModel.ActiveTab" Tabs="@tabNames()" OnSelect="@(i => ViewModel.OnChangeTab(ViewModel.VisibleTabs[i].Id))" />
+    @switch (ViewModel.VisibleTabs[ViewModel.ActiveTab].Id)
     {
-        case 0:
+        case TabIDs.Sources:
             <LogSourcesManager Class="tab-content" />
             break;
-        case 1:
+        case TabIDs.Bookmarks:
             <BookmarksList Class="tab-content" />
             break;
-        case 2:
+        case TabIDs.Search:
             <SearchPanel Class="tab-content"/>
             break;
-        case 3:
+        case TabIDs.Postprocessing:
             <PostprocessingTabPage Class="tab-content" />
             break;
-        case 4:
+        case TabIDs.Debug:
             <DebugTab Class="tab-content" />
             break;
     }
 </div>
 
 @code {
-    private static string[] tabs = new[] { "Log Sources", "Bookmarks", "Search", "Postprocessing", "Debug" };
+    private ISubscription subscription;
+    private IViewModel ViewModel => viewProxies.PresentationObjects.ViewModels.MainForm;
+    private Func<IReadOnlyList<string>> tabNames;
 
     [Parameter]
     public string Class { get; set; } = "";
 
-    int selectedTab = 0;
-
-    void SetSelectedTab(int value)
+    protected override void OnInitialized()
     {
-        selectedTab = value;
-        StateHasChanged();
+        tabNames = Selectors.Create(() => ViewModel.VisibleTabs, tabs => tabs.Select(t => t.Caption).ToArray());
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (ViewModel.VisibleTabs, ViewModel.ActiveTab),
+            _ => StateHasChanged()
+        ));
     }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
 }
