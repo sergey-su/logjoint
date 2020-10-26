@@ -25,9 +25,12 @@
             <div>&gt;</div>
         </button>
     </div>
-    <div class="viewer">
-        <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.SearchResultLogViewer" Class="viewer-grow" />
-    </div>
+    @if (viewModel.IsSearchResultsVisible)
+    {
+        <div class="viewer">
+            <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.SearchResultLogViewer" Class="viewer-grow" />
+        </div>
+    }
 </div>
 
 @code {
