@@ -2,9 +2,10 @@
 @using LogJoint
 @using LogJoint.UI.Presenters.LogViewer
 @using LogJoint.Settings
-@implements IDisposable
+@implements IAsyncDisposable
 @implements IView
 @inject IJSRuntime jsRuntime
+@inject JsInterop jsInterop
 
 <div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" @onkeydown:preventDefault>
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
@@ -48,29 +49,29 @@
     <div class="outline" style="top: @TopProperty">
         @foreach (var item in @viewModel.ViewLines)
         {
-        <div @key="item.LineIndex" class="item">
-            @{var f = viewModel.FocusedMessageMark; }
-            @{var focusedMarkClass =
-                      f == null ? "" :
-                      f.Length == 1 ? (f[0] == item.LineIndex ? "f" : "") :
-                      f[1] == item.LineIndex + 1 ? (f[0] != f[1] ? "fs" : "fs l") :
-                      (f[0] == 0 && f[1] == 0 && item.LineIndex == 0) ? "fs r" :
-                      "";}
-            <span class="p @focusedMarkClass">@(" ")</span>
-            @if (item.IsBookmarked)
-            {
-                <span class="i b">@(" ")</span>
-            }
-            @if (item.Severity == SeverityIcon.Error)
-            {
-                <span class="i e">@(" ")</span>
-            }
-            else if (item.Severity == SeverityIcon.Warning)
-            {
-                <span class="i w">@(" ")</span>
-            }
-            @(" ")
-        </div>
+            <div @key="item.LineIndex" class="item">
+                @{var f = viewModel.FocusedMessageMark; }
+                @{var focusedMarkClass =
+                            f == null ? "" :
+                            f.Length == 1 ? (f[0] == item.LineIndex ? "f" : "") :
+                            f[1] == item.LineIndex + 1 ? (f[0] != f[1] ? "fs" : "fs l") :
+                            (f[0] == 0 && f[1] == 0 && item.LineIndex == 0) ? "fs r" :
+                            "";}
+                <span class="p @focusedMarkClass">@(" ")</span>
+                @if (item.IsBookmarked)
+                {
+                    <span class="i b">@(" ")</span>
+                }
+                @if (item.Severity == SeverityIcon.Error)
+                {
+                    <span class="i e">@(" ")</span>
+                }
+                else if (item.Severity == SeverityIcon.Warning)
+                {
+                    <span class="i w">@(" ")</span>
+                }
+                @(" ")
+            </div>
         }
     </div>
     <div class="vsroller"><div class="slider" @ref="sliderElement" style="top: @string.Format("{0}%", viewModel.VerticalScrollerPosition.GetValueOrDefault(0)*100)"></div></div>
@@ -82,7 +83,7 @@
     private ElementReference measureElement, scrollOuter, sliderElement;
     private double charWidth = 1;
     private double charHeight = 1;
-    private long resizeObserverHandle;
+    private IAsyncDisposable resizeObserverHandle;
     private DotNetObjectReference<LogViewer> selfRef;
     private float displayLinesPerPage = 1;
 
@@ -109,11 +110,11 @@
         });
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         ViewProxy.SetComponent(null);
         subscription?.Dispose();
-        jsRuntime.InvokeVoidAsync("logjoint.resize.unobserve", resizeObserverHandle);
+        await resizeObserverHandle.DisposeAsync();
         selfRef?.Dispose();
     }
 
@@ -124,7 +125,11 @@
             charWidth = await jsRuntime.InvokeAsync<double>("logjoint.getElementWidth", measureElement);
             charHeight = await jsRuntime.InvokeAsync<double>("logjoint.getElementHeight", measureElement);
             UpdateDisplayLinesPerPage();
-            resizeObserverHandle = await jsRuntime.InvokeAsync<long>("logjoint.resize.observe", scrollOuter, selfRef);
+            resizeObserverHandle = await jsInterop.Resize.ObserveResize(scrollOuter, () =>
+            {
+                UpdateDisplayLinesPerPage();
+                viewModel?.ChangeNotification?.Post();
+            });
             await jsRuntime.InvokeVoidAsync("logjoint.logViewer.initVScroller", sliderElement, selfRef);
         }
     }
@@ -241,13 +246,6 @@
     {
         var height = ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.getElementHeight", scrollOuter);
         displayLinesPerPage = (float)(height / charHeight);
-    }
-
-    [JSInvokable]
-    public void OnResize()
-    {
-        UpdateDisplayLinesPerPage();
-        viewModel?.ChangeNotification?.Post();
     }
 
     [JSInvokable]

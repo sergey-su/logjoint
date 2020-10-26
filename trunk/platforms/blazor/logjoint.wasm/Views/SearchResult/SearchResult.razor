@@ -84,9 +84,9 @@
     {
         if (firstRender)
         {
-            resizeHandler1 = await jsInterop.Resize.AddResizeHandler(resizerElement, resultsElement,
+            resizeHandler1 = await jsInterop.Resize.InitResizer(resizerElement, resultsElement,
                 ResizeInterop.Direction.Vertical, inverse: true, relativeToParent: true, handler: viewModel.OnResizing);
-            resizeHandler2 = await jsInterop.Resize.AddResizeHandler(toolBarResizerElement, resultsElement,
+            resizeHandler2 = await jsInterop.Resize.InitResizer(toolBarResizerElement, resultsElement,
                 ResizeInterop.Direction.Vertical, inverse: true, relativeToParent: true, handler: viewModel.OnResizing);
         }
     }

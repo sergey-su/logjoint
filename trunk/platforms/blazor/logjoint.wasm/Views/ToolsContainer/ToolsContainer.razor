@@ -70,7 +70,7 @@
     {
         if (firstRender)
         {
-            resizeHandler = await jsInterop.Resize.AddResizeHandler(toolsResizerElement, toolsElement,
+            resizeHandler = await jsInterop.Resize.InitResizer(toolsResizerElement, toolsElement,
                 ResizeInterop.Direction.Horizonal, inverse: true, relativeToParent: false, handler: viewModel.OnResize);
         }
     }
