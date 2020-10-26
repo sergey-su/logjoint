@@ -1,5 +1,5 @@
 ﻿@namespace LogJoint.Wasm.UI
-@inject IJSRuntime jsRuntime
+@inject JsInterop jsInterop
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @using LogJoint.UI.Presenters.ToolsContainer
 @implements IDisposable
@@ -34,7 +34,7 @@
     private ElementReference toolsResizerElement, toolsElement;
     private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.ToolsContainer;
     private ISubscription subscription;
-    private DotNetObjectReference<ResizeInvokeHelper> resizeInvokeHelper;
+    private IDisposable resizeHandler;
     private Func<IReadOnlyList<string>> tabNames;
 
     [Parameter]
@@ -54,7 +54,6 @@
     protected override void OnInitialized()
     {
         tabNames = Selectors.Create(() => viewModel.AvailableTools, tabs => tabs.Select(t => t.Name).ToArray());
-        resizeInvokeHelper = DotNetObjectReference.Create(new ResizeInvokeHelper { action = viewModel.OnResize });
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.IsVisible, viewModel.SelectedToolIndex, viewModel.Size),
             _ => StateHasChanged()
@@ -64,23 +63,15 @@
     public void Dispose()
     {
         subscription?.Dispose();
-        resizeInvokeHelper.Dispose();
-    }
-
-    public class ResizeInvokeHelper
-    {
-        public Action<double> action;
-
-        [JSInvokable]
-        public void Invoke(double value) => action.Invoke(value);
+        resizeHandler?.Dispose();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await jsRuntime.InvokeVoidAsync("logjoint.resize.initEWResizer",
-                toolsResizerElement, toolsElement, /*inverse=*/true, /*relativeToParent=*/false, resizeInvokeHelper);
+            resizeHandler = await jsInterop.Resize.AddResizeHandler(toolsResizerElement, toolsElement,
+                ResizeInterop.Direction.Horizonal, inverse: false, relativeToParent: false, handler: viewModel.OnResize);
         }
     }
 }

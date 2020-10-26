@@ -185,6 +185,7 @@ namespace LogJoint.Wasm
             var fieldsProcessorMetadataReferencesProvider = new MetadataReferencesProvider();
 
             builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddSingleton<JsInterop>(serviceProvider => new JsInterop(serviceProvider.GetService<IJSRuntime>()));
             builder.Services.AddSingleton<TraceListener>(serviceProvider => new TraceListener(";membuf=1"));
             builder.Services.AddSingleton<ModelObjects>(serviceProvider =>
             {
