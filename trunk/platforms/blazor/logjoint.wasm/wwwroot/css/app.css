@@ -258,6 +258,7 @@ body {
 .main-window .container-2>.right {
     width: 300px;
     max-width: 70%;
+    min-width: 50px;
 }
 .main-window .container-3 {
     display: flex;

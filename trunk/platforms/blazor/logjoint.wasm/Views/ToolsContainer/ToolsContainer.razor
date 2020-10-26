@@ -4,14 +4,15 @@
 @using LogJoint.UI.Presenters.ToolsContainer
 @implements IDisposable
 
-<div class='@(viewModel.IsVisible ? ResizerClass : CollapsedResizerClass)' @ref="toolsResizerElement" @onclick="viewModel.OnShowButtonClicked"></div>
+<div class='@(viewModel.IsVisible ? ResizerClass : CollapsedResizerClass)' @ref="toolsResizerElement"
+     @onclick="viewModel.OnShowButtonClicked" title="@(viewModel.IsVisible ? viewModel.ResizerTooltip : viewModel.ShowButtonTooltip)"></div>
 <div class='tool-container @Class' @ref='toolsElement' style="@GetStyle()">
     @if (viewModel.IsVisible)
     {
         <div class='header'>
-            <TabsView SelectedTab="@viewModel.SelectedToolIndex" OnSelect="viewModel.OnSelectTool" Tabs="@viewModel.AvailableTools.Select(t => t.Name).ToArray()" />
+            <TabsView SelectedTab="@viewModel.SelectedToolIndex" OnSelect="viewModel.OnSelectTool" Tabs="@tabNames()" />
             <div class='actions'>
-                <button class='tool-button' @onclick="viewModel.OnHideButtonClicked">&gt;</button>
+                <button class='tool-button' @onclick="viewModel.OnHideButtonClicked" title="@viewModel.HideButtonTooltip">&gt;</button>
             </div>
         </div>
         @switch (viewModel.AvailableTools[viewModel.SelectedToolIndex].Kind)
@@ -34,6 +35,7 @@
     private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.ToolsContainer;
     private ISubscription subscription;
     private DotNetObjectReference<ResizeInvokeHelper> resizeInvokeHelper;
+    private Func<IReadOnlyList<string>> tabNames;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -51,6 +53,7 @@
 
     protected override void OnInitialized()
     {
+        tabNames = Selectors.Create(() => viewModel.AvailableTools, tabs => tabs.Select(t => t.Name).ToArray());
         resizeInvokeHelper = DotNetObjectReference.Create(new ResizeInvokeHelper { action = viewModel.OnResize });
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.IsVisible, viewModel.SelectedToolIndex, viewModel.Size),
