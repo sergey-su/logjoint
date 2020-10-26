@@ -1,5 +1,5 @@
 ﻿@namespace LogJoint.Wasm.UI.Postprocessing
-@inject IJSRuntime jsRuntime
+@inject JsInterop jsInterop
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 @implements IDisposable
@@ -11,12 +11,13 @@
                                PaintNode="@viewModel.PaintNode"
                                ViewModel="@viewModel" />
     <div class="v-resizer" @ref="verticalResizerElement"></div>
-    <div class="right" @ref="rightContainer">
+    <div class="right" @ref="rightContainer" style="@GetRightStyle()">
         <StateInspectorProperties Class="top"
                                   Items="@viewModel.PropertyItems"
                                   ViewModel="@viewModel"/>
         <StateInspectorHistory Class="bottom"
                                ResizerClass="h-resizer"
+                               Size="@viewModel.HistorySize"
                                Items="@viewModel.ChangeHistoryItems"
                                IsItemBookmarked="@viewModel.IsChangeHistoryItemBookmarked"
                                FocusedMessagePositionInChangeHistory="@viewModel.FocusedMessagePositionInChangeHistory"
@@ -28,14 +29,20 @@
     private ElementReference verticalResizerElement, rightContainer;
     private IViewModel viewModel;
     private ISubscription subscription;
+    private IDisposable resizeHandler;
 
     [Parameter]
     public string Class { get; set; } = "";
 
+    string GetRightStyle() => viewModel.ObjectsTreeSize.HasValue ? $"width: {100*viewModel.ObjectsTreeSize.Value}%" : "";
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await jsRuntime.InvokeVoidAsync("logjoint.resize.initEWResizer",
-            verticalResizerElement, rightContainer, /*inverse=*/true, /*relativeToParent=*/true);
+        if (firstRender)
+        {
+            resizeHandler = await jsInterop.Resize.AddResizeHandler(verticalResizerElement, rightContainer,
+                ResizeInterop.Direction.Horizonal, inverse: true, relativeToParent: true, handler: viewModel.OnResizeObjectsTree);
+        }
     }
 
     protected override void OnInitialized()
@@ -48,7 +55,8 @@
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.ObjectsTreeRoot, viewModel.PaintNode,
                 viewModel.ChangeHistoryItems, viewModel.IsChangeHistoryItemBookmarked,
-                viewModel.PropertyItems, viewModel.FocusedMessagePositionInChangeHistory),
+                viewModel.PropertyItems, viewModel.FocusedMessagePositionInChangeHistory, 
+                viewModel.ObjectsTreeSize, viewModel.HistorySize),
             _ => StateHasChanged()
         ));
     }
@@ -57,6 +65,7 @@
     {
         viewProxies.PostprocesssingStateInspectorViewProxy.SetComponent(null);
         subscription?.Dispose();
+        resizeHandler?.Dispose();
     }
 
     void IView.ScrollStateHistoryItemIntoView(int itemIndex)

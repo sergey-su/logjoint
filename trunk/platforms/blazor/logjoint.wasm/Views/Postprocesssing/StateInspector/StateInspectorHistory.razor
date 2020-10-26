@@ -1,9 +1,10 @@
 ﻿@using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 @namespace LogJoint.Wasm.UI.Postprocessing
-@inject IJSRuntime jsRuntime
+@inject JsInterop jsInterop
+@implements IDisposable
 
 <div class=@ResizerClass @ref="resizerElement"></div>
-<div class='history @Class' @ref="element">
+<div class='history @Class' @ref="element" style="@GetHistoryStyle()">
     <div class="toolbar">
         <div>Change history:</div>
         <div class="resizer" @ref="toolBarResizerElement">::::::</div>
@@ -30,12 +31,16 @@
 
 @code {
     private ElementReference resizerElement, element, toolBarResizerElement;
+    private IDisposable resizeHandler1, resizeHandler2;
 
     [Parameter]
     public string Class { get; set; } = "";
 
     [Parameter]
     public string ResizerClass { get; set; } = "";
+
+    [Parameter]
+    public double? Size { get; set; } = null;
 
     [Parameter]
     public IReadOnlyList<IStateHistoryItem> Items { get; set; }
@@ -49,11 +54,22 @@
     [Parameter]
     public IViewModel ViewModel { get; set; }
 
+    private string GetHistoryStyle() => Size.HasValue ? $"height: {100 * Size.Value}%" : "";
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
-            resizerElement, element, /*inverse=*/true, /*relativeToParent=*/true);
-        await jsRuntime.InvokeVoidAsync("logjoint.resize.initNSResizer",
-            toolBarResizerElement, element, /*inverse=*/true, /*relativeToParent=*/true);
+        if (firstRender)
+        {
+            resizeHandler1 = await jsInterop.Resize.AddResizeHandler(
+                resizerElement, element, ResizeInterop.Direction.Vertical, inverse: true, relativeToParent: true, handler: ViewModel.OnResizeHistory);
+            resizeHandler2 = await jsInterop.Resize.AddResizeHandler(
+                toolBarResizerElement, element, ResizeInterop.Direction.Vertical, inverse: true, relativeToParent: true, handler: ViewModel.OnResizeHistory);
+        }
+    }
+
+    public void Dispose()
+    {
+        resizeHandler1?.Dispose();
+        resizeHandler2?.Dispose();
     }
 }
