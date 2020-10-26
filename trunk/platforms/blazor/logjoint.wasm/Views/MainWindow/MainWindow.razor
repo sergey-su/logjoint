@@ -3,8 +3,10 @@
 @inject IJSRuntime jsRuntime
 @inject LogJoint.ModelObjects model
 @implements IDisposable
+@using LogJoint.UI.Presenters.MainForm
+@inject JsInterop jsInterop
 
-<div class='main-window' @ref="element">
+<div class='main-window' @ref="element" @onkeydown="HandleKeyDown">
     <div class='container-1'>
         <MainWindowTabs Class="top" />
         <div class='bottom container-2'>
@@ -61,11 +63,20 @@
         {
             dropHandler = DotNetObjectReference.Create(new DropHandler { model = model });
             await jsRuntime.InvokeVoidAsync("logjoint.dragDrop.registerHandler", element, "drag-drop-overlay", dropHandler);
+            await jsInterop.Keyboard.AddDefaultPreventingHandler(element, "Ctrl+F", "Ctrl+f", "Meta+F", "Meta+f");
         }
     }
 
     public void Dispose()
     {
         dropHandler?.Dispose();
+    }
+
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if ((e.Key == "F" || e.Key == "f") && (e.CtrlKey || e.MetaKey))
+        {
+            viewProxies.PresentationObjects.ViewModels.MainForm.OnKeyPressed(KeyCode.FindShortcut);
+        }
     }
 }

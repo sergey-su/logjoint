@@ -7,7 +7,7 @@
 @inject IJSRuntime jsRuntime
 @inject JsInterop jsInterop
 
-<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" @onkeydown:preventDefault>
+<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" @ref="element">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
         <div class="scroll-inner" style="top: @TopProperty">
@@ -80,7 +80,7 @@
 @code {
     private IViewModel viewModel;
     private ISubscription subscription;
-    private ElementReference measureElement, scrollOuter, sliderElement;
+    private ElementReference measureElement, scrollOuter, sliderElement, element;
     private double charWidth = 1;
     private double charHeight = 1;
     private IAsyncDisposable resizeObserverHandle;
@@ -153,9 +153,9 @@
     {
     }
 
-    void IView.ReceiveInputFocus()
+    async void IView.ReceiveInputFocus()
     {
-        // todo
+        await element.FocusAsync();
     }
 
     void IView.SetViewModel(IViewModel value)

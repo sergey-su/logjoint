@@ -23,6 +23,14 @@
             element.scrollLeft = targetX - w;
         }
     },
+    isFocusWithin: function (element) {
+        for (let e = document.activeElement; e; e = e.parentElement) {
+            if (e == element) {
+                return true;
+            }
+        }
+        return false;
+    },
 
     files: {
         _lastHandle: 0,
@@ -330,12 +338,39 @@
         },
     },
 
-    addDefaultPreventingKeyHandler: function (element, preventingKeys) {
-        element.addEventListener('keydown', e => {
-            if (preventingKeys.indexOf(e.key) >= 0) {
-                e.preventDefault();
-            }
-        }, false);
+    keyboard: {
+        addDefaultPreventingHandler: function (element, preventedKeyStrs) {
+            const preventedKeys = preventedKeyStrs.map(preventedKeyStr => {
+                const split = preventedKeyStr.split("+");
+                if (split.length < 1) {
+                    throw new Error(`Bad key string: '${preventedKeyStr}'`);
+                }
+                return {
+                    key: split[split.length - 1],
+                    modifiers: split.slice(0, split.length - 1),
+                };
+            });
+            element.addEventListener('keydown', e => {
+                for (const preventedKey of preventedKeys) {
+                    if (preventedKey.key == e.key) {
+                        let allMatch = true;
+                        for (const modifier of preventedKey.modifiers) {
+                            const modifierMatch =
+                                (modifier == "Control" || modifier == "Ctrl") ? e.ctrlKey :
+                                modifier == "Alt" ? e.altKey :
+                                modifier == "Shift" ? e.shiftKey :
+                                modifier == "Meta" ? e.metaKey :
+                                true;
+                            allMatch = allMatch && modifierMatch;
+                        }
+                        if (allMatch) {
+                            e.preventDefault();
+                            break;
+                        }
+                    }
+                }
+            }, false);
+        },
     },
 
     adoptStyle: function (cssString) {

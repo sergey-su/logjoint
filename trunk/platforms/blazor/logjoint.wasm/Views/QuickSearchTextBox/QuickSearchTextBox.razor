@@ -3,9 +3,10 @@
 @using LogJoint.UI.Presenters.QuickSearchTextBox
 @implements IDisposable
 @implements IView
+@inject JsInterop jsInterop
 
-<div class='quick-search-textbox @Class'>
-    <input value="@viewModel.Text" @oninput="@(e => viewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" @ref="InputRef"/>
+<div class='quick-search-textbox @Class' @onfocusout="HandleFocusOut" @ref="ContainerRef">
+    <input value="@viewModel.Text" @oninput="@(e => viewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" @ref="InputRef" />
     @if (viewModel.ClearTextIconVisible)
     {
         <button class="clear-button" @onclick="@viewModel.OnClearTextIconClicked">✕</button>
@@ -22,6 +23,7 @@
     [Inject]
     private IJSRuntime JSRuntime { get; set; }
     private ElementReference InputRef { get; set; }
+    private ElementReference ContainerRef { get; set; }
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -71,7 +73,7 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("logjoint.addDefaultPreventingKeyHandler", InputRef, new string[] { "ArrowUp", "ArrowDown" });
+            await jsInterop.Keyboard.AddDefaultPreventingHandler(InputRef, "ArrowUp", "ArrowDown");
         }
     }
 
@@ -92,5 +94,12 @@
         {
             viewModel.OnKeyDown(key);
         }
+    }
+
+    async void HandleFocusOut()
+    {
+        await Task.Yield(); // skip one JS frame to let the new element be focused before checking if focus left this component.
+        if (!await jsInterop.Keyboard.IsFocusWithin(ContainerRef))
+             viewModel.OnLostFocus();
     }
 }

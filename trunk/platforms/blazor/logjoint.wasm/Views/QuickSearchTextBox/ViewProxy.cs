@@ -1,4 +1,6 @@
 ﻿using LogJoint.UI.Presenters.QuickSearchTextBox;
+using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.Wasm.UI
 {
@@ -15,8 +17,14 @@ namespace LogJoint.Wasm.UI
 
 		public IViewModel ViewModel => viewModel;
 
-		void IView.ReceiveInputFocus()
+		async void IView.ReceiveInputFocus()
 		{
+			if (component == null)
+			{
+				// Wait one JS frame for the textbox may be rendered.
+				// Example when it helps: Ctrl+F activates the search page and puts the focus to the text box.
+				await Task.Yield();
+			}
 			component?.ReceiveInputFocus();
 		}
 

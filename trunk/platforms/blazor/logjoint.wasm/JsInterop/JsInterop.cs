@@ -1,8 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace LogJoint.Wasm
 {
@@ -12,9 +8,11 @@ namespace LogJoint.Wasm
 		{
 			Resize = new ResizeInterop(jsRuntime);
 			SaveAs = new SaveAsInterop(jsRuntime);
+			Keyboard = new KeyboardInterop(jsRuntime);
 		}
 
 		public ResizeInterop Resize { get; private set; }
 		public SaveAsInterop SaveAs { get; private set; }
+		public KeyboardInterop Keyboard { get; private set; }
 	}
 }
