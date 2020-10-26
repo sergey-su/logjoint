@@ -4,6 +4,7 @@ using System.Linq;
 using System.Diagnostics;
 using LogJoint.AutoUpdate;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.UI.Presenters.MainForm
 {
@@ -57,6 +58,24 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.statusRepors = statusReportFactory;
 			this.theme = theme;
 			this.changeNotification = changeNotification;
+
+			var sourcesTab = new TabInfo { Id = TabIDs.Sources, Caption = "Log Sources" };
+			var threadsTab = new TabInfo { Id = TabIDs.Threads, Caption = "Threads" };
+			var highlightingRulesTab = new TabInfo { Id = TabIDs.HighlightingFilteringRules, Caption = "Highlighting Rules" };
+			var searchTab = new TabInfo { Id = TabIDs.Search, Caption = "Search" };
+			var bookmarksTab = new TabInfo { Id = TabIDs.Bookmarks, Caption = "Bookmarks" };
+			var postprocessingTab = new TabInfo { Id = TabIDs.Postprocessing, Caption = "Postprocessing" };
+			var debugTab = new TabInfo { Id = TabIDs.Debug, Caption = "[Debug]" };
+
+			visibleTabs =
+				IsBrowser.Value ?
+					new [] { sourcesTab, bookmarksTab, searchTab, postprocessingTab, debugTab } :
+				RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
+					new [] { sourcesTab, bookmarksTab, highlightingRulesTab, searchTab, postprocessingTab }
+				:
+					new [] { sourcesTab, threadsTab, highlightingRulesTab, searchTab, bookmarksTab, postprocessingTab };
+			activeTab = Selectors.Create(() => visibleTabs, () => lastActivatedTab,
+				(visible, lastActivated) => visible.IndexOf(i => i.Id == lastActivated).GetValueOrDefault(0));
 
 			view.SetViewModel(this);
 
@@ -157,7 +176,8 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IPresenter.ActivateTab(string tabId)
 		{
-			view.ActivateTab(tabId);
+			this.lastActivatedTab = tabId;
+			changeNotification.Post();
 		}
 
 		void IPresenter.Close()
@@ -165,15 +185,11 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.Close();
 		}
 
-		string IPresenter.AddCustomTab(object uiControl, string caption, object tag)
-		{
-			string tabId = string.Format ("tab#{0}", ++lastCustomTabId);
-			customTabsTags[tabId] = tag;
-			view.AddTab(tabId, caption, uiControl);
-			return tabId;
-		}
-
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		IReadOnlyList<TabInfo> IViewModel.VisibleTabs => visibleTabs;
+
+		int IViewModel.ActiveTab => activeTab();
 
 		async void IViewModel.OnClosing()
 		{
@@ -199,10 +215,15 @@ namespace LogJoint.UI.Presenters.MainForm
 				Loaded(this, EventArgs.Empty);
 		}
 
-		void IViewModel.OnTabChanging(string tabId)
+		void IViewModel.OnChangeTab(string tabId)
 		{
-			customTabsTags.TryGetValue(tabId, out var tag);
-			TabChanging?.Invoke(this, new TabChangingEventArgs(tabId, tag));
+			var old = activeTab();
+			lastActivatedTab = tabId;
+			changeNotification.Post();
+			if (old != activeTab())
+			{
+				TabChanging?.Invoke(this, new TabChangingEventArgs(visibleTabs[activeTab()].Id));
+			}
 		}
 
 		void IViewModel.OnTabPressed()
@@ -228,8 +249,9 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 			if (key == KeyCode.FindShortcut)
 			{
+				lastActivatedTab = TabIDs.Search;
+				changeNotification.Post();
 				searchPanelPresenter.ReceiveInputFocusByShortcut(forceSearchAllOccurencesMode: false);
-				view.ActivateTab(TabIDs.Search);
 			}
 			else if (key == KeyCode.FindNextShortcut)
 			{
@@ -421,12 +443,12 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;
 		readonly IColorTheme theme;
 		readonly IChangeNotification changeNotification;
+		readonly IReadOnlyList<TabInfo> visibleTabs;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalyzing;
-		int lastCustomTabId;
-		Dictionary<string, object> customTabsTags = new Dictionary<string, object>();
-
+		string lastActivatedTab;
+		readonly Func<int> activeTab;
 
 		#endregion
 	};

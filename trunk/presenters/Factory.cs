@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters
 	public class ViewModels
 	{
 		public ToolsContainer.IViewModel ToolsContainer { get; internal set; }
+		public MainForm.IViewModel MainForm { get; internal set; }
 	};
 
 	public static class Factory
@@ -481,7 +482,7 @@ namespace LogJoint.UI.Presenters
 			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter =
 				new IssueReportDialogPresenter.Presenter(model.TelemetryCollector, model.TelemetryUploader, promptDialog);
 
-			MainForm.IPresenter mainFormPresenter = new MainForm.Presenter(
+			var mainFormPresenter = new MainForm.Presenter(
 				model.LogSourcesManager,
 				model.LogSourcesPreprocessings,
 				mainFormView,
@@ -603,7 +604,8 @@ namespace LogJoint.UI.Presenters
 
 				ViewModels = new ViewModels()
 				{
-					ToolsContainer = toolsContainer
+					ToolsContainer = toolsContainer,
+					MainForm = mainFormPresenter
 				}
 			};
 		}

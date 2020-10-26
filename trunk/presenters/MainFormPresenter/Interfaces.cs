@@ -10,7 +10,6 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		void ExecuteThreadPropertiesDialog(IThread thread); // todo: move to a separate presenter
 		void ActivateTab(string tabId);
-		string AddCustomTab(object uiControl, string caption, object tag);
 		void Close();
 
 		event EventHandler Loaded;
@@ -25,8 +24,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		void SetAnalyzingIndicationVisibility(bool value);
 		void BeginSplittingSearchResults();
 		void BeginSplittingTabsPanel();
-		void ActivateTab(string tabId);
-		void AddTab(string tabId, string caption, object uiControl);
 		void EnableFormControls(bool enable);
 		void EnableOwnedForms(bool enable);
 		void ShowOptionsMenu();
@@ -51,6 +48,8 @@ namespace LogJoint.UI.Presenters.MainForm
 		public const string HighlightingFilteringRules = "highlightingFilteringRules";
 		public const string Bookmarks = "bookmarks";
 		public const string Search = "search";
+		public const string Postprocessing = "postprocessing";
+		public const string Debug = "debug";
 	};
 
 	public enum KeyCode
@@ -74,11 +73,18 @@ namespace LogJoint.UI.Presenters.MainForm
 		FindCurrentTimeShortcut,
 	};
 
+	public struct TabInfo
+	{
+		public string Id;
+		public string Caption;
+	};
 
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
 		(AutoUpdateButtonState state, string tooltip) AutoUpdateButton { get; }
+		IReadOnlyList<TabInfo> VisibleTabs { get; }
+		int ActiveTab { get; }
 		void OnClosing();
 		void OnLoad();
 		void OnTabPressed();
@@ -91,7 +97,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnConfigurationMenuClicked();
 		void OnRestartPictureClicked();
 		void OnOpenRecentMenuClicked();
-		void OnTabChanging(string tabId);
+		void OnChangeTab(string tabId);
 		void OnShareButtonClicked();
 		void OnReportProblemMenuItemClicked();
 	};
@@ -118,12 +124,10 @@ namespace LogJoint.UI.Presenters.MainForm
 	public class TabChangingEventArgs: EventArgs
 	{
 		public string TabID { get; private set; }
-		public object CustomTabTag { get; private set; }
 
-		public TabChangingEventArgs(string tabId, object customTabTag)
+		public TabChangingEventArgs(string tabId)
 		{
 			this.TabID = tabId;
-			this.CustomTabTag = customTabTag;
 		}
 	};
 };

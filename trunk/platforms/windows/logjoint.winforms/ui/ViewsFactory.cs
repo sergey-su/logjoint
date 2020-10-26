@@ -72,7 +72,7 @@ namespace LogJoint.UI.Presenters
 		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView() => new OptionsDialogView(this);
 		About.IView Factory.IViewsFactory.CreateAboutView() => new AboutBox();
 		MainForm.IView Factory.IViewsFactory.CreateMainFormView() => mainForm;
-		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage() => new UI.Postprocessing.MainWindowTabPage.TabPage();
+		Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage() => mainForm.postprocessingView;
 		Postprocessing.Factory.IViewsFactory Factory.IViewsFactory.PostprocessingViewsFactory => this;
 		PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView() => new LogsPreprocessorUI(mainForm, model.SynchronizationContext, this);
 

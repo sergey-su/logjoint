@@ -52,6 +52,7 @@ namespace LogJoint.UI
 			this.highlightTabPage = new System.Windows.Forms.TabPage();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
 			this.navigationTabPage = new System.Windows.Forms.TabPage();
+			this.postprocessingTabPage = new System.Windows.Forms.TabPage();
 			this.splitContainer_Timeline_Log = new System.Windows.Forms.ExtendedSplitContainer();
 			this.optionsContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -66,6 +67,7 @@ namespace LogJoint.UI
 			this.hlFiltersManagementView = new LogJoint.UI.FiltersManagerView();
 			this.searchPanelView = new LogJoint.UI.SearchPanelView();
 			this.bookmarksManagerView = new LogJoint.UI.BookmarksManagerView();
+			this.postprocessingView = new Postprocessing.MainWindowTabPage.TabPage();
 			this.timeLinePanel = new LogJoint.UI.TimelinePanel();
 			this.splitContainer_Log_SearchResults = new System.Windows.Forms.ExtendedSplitContainer();
 			this.loadedMessagesControl = new LogJoint.UI.LoadedMessagesControl();
@@ -82,6 +84,7 @@ namespace LogJoint.UI
 			this.highlightTabPage.SuspendLayout();
 			this.searchTabPage.SuspendLayout();
 			this.navigationTabPage.SuspendLayout();
+			this.postprocessingTabPage.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Timeline_Log)).BeginInit();
 			this.splitContainer_Timeline_Log.Panel1.SuspendLayout();
 			this.splitContainer_Timeline_Log.Panel2.SuspendLayout();
@@ -268,6 +271,7 @@ namespace LogJoint.UI
 			this.menuTabControl.Controls.Add(this.highlightTabPage);
 			this.menuTabControl.Controls.Add(this.searchTabPage);
 			this.menuTabControl.Controls.Add(this.navigationTabPage);
+			this.menuTabControl.Controls.Add(this.postprocessingTabPage);
 			this.menuTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.menuTabControl.Location = new System.Drawing.Point(0, 0);
 			this.menuTabControl.Margin = new System.Windows.Forms.Padding(2);
@@ -281,7 +285,7 @@ namespace LogJoint.UI
 			this.sourcesTabPage.Controls.Add(this.sourcesListView);
 			this.sourcesTabPage.Location = new System.Drawing.Point(4, 26);
 			this.sourcesTabPage.Margin = new System.Windows.Forms.Padding(0);
-			this.sourcesTabPage.Name = "sourcesTabPage";
+			this.sourcesTabPage.Name = "sources";
 			this.sourcesTabPage.Size = new System.Drawing.Size(890, 133);
 			this.sourcesTabPage.TabIndex = 0;
 			this.sourcesTabPage.Text = "Log Sources";
@@ -292,7 +296,7 @@ namespace LogJoint.UI
 			this.threadsTabPage.Controls.Add(this.threadsListView);
 			this.threadsTabPage.Location = new System.Drawing.Point(4, 26);
 			this.threadsTabPage.Margin = new System.Windows.Forms.Padding(0);
-			this.threadsTabPage.Name = "threadsTabPage";
+			this.threadsTabPage.Name = "threads";
 			this.threadsTabPage.Size = new System.Drawing.Size(890, 133);
 			this.threadsTabPage.TabIndex = 1;
 			this.threadsTabPage.Text = "Threads";
@@ -303,7 +307,7 @@ namespace LogJoint.UI
 			this.highlightTabPage.Controls.Add(this.hlFiltersManagementView);
 			this.highlightTabPage.Location = new System.Drawing.Point(4, 26);
 			this.highlightTabPage.Margin = new System.Windows.Forms.Padding(0);
-			this.highlightTabPage.Name = "highlightTabPage";
+			this.highlightTabPage.Name = "highlightingFilteringRules";
 			this.highlightTabPage.Size = new System.Drawing.Size(890, 133);
 			this.highlightTabPage.TabIndex = 5;
 			this.highlightTabPage.Text = "Highlighting Rules";
@@ -314,7 +318,7 @@ namespace LogJoint.UI
 			this.searchTabPage.Controls.Add(this.searchPanelView);
 			this.searchTabPage.Location = new System.Drawing.Point(4, 26);
 			this.searchTabPage.Margin = new System.Windows.Forms.Padding(0);
-			this.searchTabPage.Name = "searchTabPage";
+			this.searchTabPage.Name = "search";
 			this.searchTabPage.Size = new System.Drawing.Size(890, 133);
 			this.searchTabPage.TabIndex = 2;
 			this.searchTabPage.Text = "Search";
@@ -325,11 +329,22 @@ namespace LogJoint.UI
 			this.navigationTabPage.Controls.Add(this.bookmarksManagerView);
 			this.navigationTabPage.Location = new System.Drawing.Point(4, 26);
 			this.navigationTabPage.Margin = new System.Windows.Forms.Padding(0);
-			this.navigationTabPage.Name = "navigationTabPage";
+			this.navigationTabPage.Name = "bookmarks";
 			this.navigationTabPage.Size = new System.Drawing.Size(890, 133);
 			this.navigationTabPage.TabIndex = 3;
 			this.navigationTabPage.Text = "Bookmarks";
 			this.navigationTabPage.UseVisualStyleBackColor = true;
+			// 
+			// postprocessingTabPage
+			// 
+			this.postprocessingTabPage.Controls.Add(this.postprocessingView);
+			this.postprocessingTabPage.Location = new System.Drawing.Point(4, 26);
+			this.postprocessingTabPage.Margin = new System.Windows.Forms.Padding(0);
+			this.postprocessingTabPage.Name = "postprocessing";
+			this.postprocessingTabPage.Size = new System.Drawing.Size(890, 133);
+			this.postprocessingTabPage.TabIndex = 3;
+			this.postprocessingTabPage.Text = "Postprocessing";
+			this.postprocessingTabPage.UseVisualStyleBackColor = true;
 			// 
 			// splitContainer_Timeline_Log
 			// 
@@ -473,6 +488,16 @@ namespace LogJoint.UI
 			this.bookmarksManagerView.Size = new System.Drawing.Size(890, 134);
 			this.bookmarksManagerView.TabIndex = 10;
 			// 
+			// postprocessingView
+			// 
+			this.postprocessingView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.postprocessingView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.postprocessingView.Location = new System.Drawing.Point(0, 0);
+			this.postprocessingView.Margin = new System.Windows.Forms.Padding(0);
+			this.postprocessingView.Name = "postprocessingView";
+			this.postprocessingView.Size = new System.Drawing.Size(890, 134);
+			this.postprocessingView.TabIndex = 10;
+			// 
 			// timeLinePanel
 			// 
 			this.timeLinePanel.BackColor = System.Drawing.Color.White;
@@ -558,6 +583,7 @@ namespace LogJoint.UI
 			this.highlightTabPage.ResumeLayout(false);
 			this.searchTabPage.ResumeLayout(false);
 			this.navigationTabPage.ResumeLayout(false);
+			this.postprocessingTabPage.ResumeLayout(false);
 			this.splitContainer_Timeline_Log.Panel1.ResumeLayout(false);
 			this.splitContainer_Timeline_Log.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Timeline_Log)).EndInit();
@@ -580,6 +606,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.TabPage sourcesTabPage;
 		private System.Windows.Forms.TabPage threadsTabPage;
 		private System.Windows.Forms.TabPage searchTabPage;
+		private System.Windows.Forms.TabPage postprocessingTabPage;
 		internal UI.TimelinePanel timeLinePanel;
 		private System.Windows.Forms.ExtendedSplitContainer splitContainer_Timeline_Log;
 		private System.Windows.Forms.StatusStrip statusStrip1;
@@ -609,6 +636,7 @@ namespace LogJoint.UI
 		internal FiltersManagerView hlFiltersManagementView;
 		internal SearchPanelView searchPanelView;
 		internal LogJoint.UI.BookmarksManagerView bookmarksManagerView;
+		internal LogJoint.UI.Postprocessing.MainWindowTabPage.TabPage postprocessingView;
 		private System.Windows.Forms.ContextMenuStrip optionsContextMenu;
 		private System.Windows.Forms.ToolStripMenuItem configurationToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;

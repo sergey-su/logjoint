@@ -40,8 +40,6 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			}
 		}
 
-		object IView.UIControl => this;
-
 		void IView.SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;

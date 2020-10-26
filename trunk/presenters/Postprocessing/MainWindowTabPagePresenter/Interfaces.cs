@@ -6,7 +6,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	public interface IView
 	{
 		void SetViewModel(IViewModel viewModel);
-		object UIControl { get; }
 	};
 
 	public enum ViewControlId
