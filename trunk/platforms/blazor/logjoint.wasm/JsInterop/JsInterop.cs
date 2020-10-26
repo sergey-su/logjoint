@@ -11,8 +11,10 @@ namespace LogJoint.Wasm
 		public JsInterop(IJSRuntime jsRuntime)
 		{
 			Resize = new ResizeInterop(jsRuntime);
+			SaveAs = new SaveAsInterop(jsRuntime);
 		}
 
 		public ResizeInterop Resize { get; private set; }
+		public SaveAsInterop SaveAs { get; private set; }
 	}
 }

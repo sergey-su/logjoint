@@ -242,7 +242,7 @@ namespace LogJoint.Wasm
                 var mocks = new Mocks(viewModel);
                 mocks.ShellOpen.When(s => s.OpenInTextEditor(Arg.Any<string>())).Do(x =>
                 {
-                    jsRuntime.InvokeVoidAsync("logjoint.saveAs", File.ReadAllText(x.Arg<string>()), x.Arg<string>());
+                    serviceProvider.GetService<JsInterop>().SaveAs.SaveAs(File.ReadAllText(x.Arg<string>()), x.Arg<string>());
                 });
 
                 var presentationObjects = LogJoint.UI.Presenters.Factory.Create(

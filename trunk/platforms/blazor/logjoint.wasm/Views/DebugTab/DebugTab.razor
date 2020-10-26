@@ -2,6 +2,7 @@
 @inject IJSRuntime jsRuntime;
 @inject LogJoint.ModelObjects model;
 @inject TraceListener traceListener;
+@inject JsInterop jsInterop;
 
 <div class='@Class'>
     <input type="file" @ref="fileInputReference" />
@@ -59,7 +60,7 @@
         using (var writer = new System.IO.StringWriter())
         {
             entries.ForEach(e => e.Write(writer));
-            await jsRuntime.InvokeVoidAsync("logjoint.saveAs", writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
+            await jsInterop.SaveAs.SaveAs(writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
         }
     }
 
