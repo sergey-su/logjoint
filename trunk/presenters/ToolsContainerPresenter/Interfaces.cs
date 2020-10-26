@@ -11,6 +11,9 @@ namespace LogJoint.UI.Presenters.ToolsContainer
         IReadOnlyList<ToolInfo> AvailableTools { get; }
         int SelectedToolIndex { get; }
         double? Size { get; }
+        string HideButtonTooltip { get; }
+        string ShowButtonTooltip { get; }
+        string ResizerTooltip { get; }
 
         void OnSelectTool(int index);
         void OnResize(double size);

@@ -47,7 +47,7 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 		{
 			if (isVisible)
 			{
-				this.size = size;
+				this.size = Math.Max(0, size);
 				changeNotification.Post();
 			}
 		}
@@ -66,6 +66,12 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 				changeNotification.Post();
 			}
 		}
+
+		string IViewModel.HideButtonTooltip => "Hide tools panel";
+
+		string IViewModel.ShowButtonTooltip => "Show tools panel";
+
+		string IViewModel.ResizerTooltip => "Resize tools panel";
 
 		static ToolInfo ToToolInfo(ToolKind kind)
 		{
