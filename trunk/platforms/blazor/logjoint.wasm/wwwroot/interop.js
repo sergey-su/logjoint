@@ -289,26 +289,42 @@
             resizer.addEventListener('mousedown', startResize, false);
         },
 
-        initEWResizer: function (resizer, target, inverse, relativeToParent) {
+        initEWResizer: function (resizer, target, inverse, relativeToParent, setter) {
             this._initResizer(resizer, target, (startWidth, startHeight, deltaWidth, deltaHeight) => {
                 const newWidthPx = startWidth + (inverse ? -1 : 1) * deltaWidth;
                 if (relativeToParent) {
                     const parentWidthPx = parseInt(document.defaultView.getComputedStyle(target.parentElement).width);
-                    target.style.width = `${100 * newWidthPx / parentWidthPx}%`;
+                    if (setter) {
+                        setter.invokeMethodAsync('Invoke', newWidthPx / parentWidthPx);
+                    } else {
+                        target.style.width = `${100 * newWidthPx / parentWidthPx}%`;
+                    }
                 } else {
-                    target.style.width = `${newWidthPx}px`;
+                    if (setter) {
+                        setter.invokeMethodAsync('Invoke', newWidthPx);
+                    } else {
+                        target.style.width = `${newWidthPx}px`;
+                    }
                 }
             });
         },
 
-        initNSResizer: function (resizer, target, inverse, relativeToParent) {
+        initNSResizer: function (resizer, target, inverse, relativeToParent, setter) {
             this._initResizer(resizer, target, (startWidth, startHeight, deltaWidth, deltaHeight) => {
                 const newHeightPx = startHeight + (inverse ? -1 : 1) * deltaHeight;
                 if (relativeToParent) {
                     const parentHeightPx = parseInt(document.defaultView.getComputedStyle(target.parentElement).height);
-                    target.style.height = `${100 * newHeightPx / parentHeightPx}%`;
+                    if (setter) {
+                        setter.invokeMethodAsync('Invoke', newHeightPx / parentHeightPx);
+                    } else {
+                        target.style.height = `${100 * newHeightPx / parentHeightPx}%`;
+                    }
                 } else {
-                    target.style.height = `${newHeightPx}px`;
+                    if (setter) {
+                        setter.invokeMethodAsync('Invoke', newHeightPx);
+                    } else {
+                        target.style.height = `${newHeightPx}px`;
+                    }
                 }
             });
         },

@@ -1,41 +1,39 @@
 ﻿@namespace LogJoint.Wasm.UI
-@inject IJSRuntime jsRuntime;
+@inject IJSRuntime jsRuntime
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@using LogJoint.UI.Presenters.ToolsContainer
+@implements IDisposable
 
-<div class='@ResizerClass' @ref="toolsResizerElement"></div>
-<div class='tool-container @Class' @ref='toolsElement'>
-    <div class='header'>
-        <TabsView SelectedTab="@selectedTool" OnSelect="i => SetSelectedTool(i)" Tabs="@tabs" />
-        <div class='actions'>
-            <button class='tool-button' @onclick="HideTools">&gt;</button>
-        </div>
-    </div>
-    @switch (visibleTools[selectedTool])
+<div class='@(viewModel.IsVisible ? ResizerClass : CollapsedResizerClass)' @ref="toolsResizerElement" @onclick="viewModel.OnShowButtonClicked"></div>
+<div class='tool-container @Class' @ref='toolsElement' style="@GetStyle()">
+    @if (viewModel.IsVisible)
     {
-        case ToolKind.StateInspector:
-            <LogJoint.Wasm.UI.Postprocessing.StateInspector Class='body' />
-            break;
-        case ToolKind.MessageProperties:
-            <MessageProperties Class='body' />
-            break;
-        case ToolKind.SequenceDiagram:
-            <LogJoint.Wasm.UI.Postprocessing.SequenceDiagram Class='body' />
-            break;
+        <div class='header'>
+            <TabsView SelectedTab="@viewModel.SelectedToolIndex" OnSelect="viewModel.OnSelectTool" Tabs="@viewModel.AvailableTools.Select(t => t.Name).ToArray()" />
+            <div class='actions'>
+                <button class='tool-button' @onclick="viewModel.OnHideButtonClicked">&gt;</button>
+            </div>
+        </div>
+        @switch (viewModel.AvailableTools[viewModel.SelectedToolIndex].Kind)
+        {
+            case ToolKind.StateInspector:
+                <LogJoint.Wasm.UI.Postprocessing.StateInspector Class='body' />
+                break;
+            case ToolKind.MessageProperties:
+                <MessageProperties Class='body' />
+                break;
+            case ToolKind.SequenceDiagram:
+                <LogJoint.Wasm.UI.Postprocessing.SequenceDiagram Class='body' />
+                break;
+        }
     }
 </div>
 
 @code {
     private ElementReference toolsResizerElement, toolsElement;
-    enum ToolKind
-    {
-        None,
-        StateInspector,
-        MessageProperties,
-        SequenceDiagram
-    }
-    private List<ToolKind> visibleTools = new List<ToolKind>
-        {ToolKind.StateInspector, ToolKind.MessageProperties};
-    private int selectedTool = 0;
-    private static string[] tabs = new[] { "StateInspector", "Message details" };
+    private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.ToolsContainer;
+    private ISubscription subscription;
+    private DotNetObjectReference<ResizeInvokeHelper> resizeInvokeHelper;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -43,20 +41,43 @@
     [Parameter]
     public string ResizerClass { get; set; } = "";
 
+    [Parameter]
+    public string CollapsedResizerClass { get; set; } = "";
+
+    string GetStyle() =>
+        !viewModel.IsVisible ? "display: none" :
+        viewModel.Size.HasValue ? $"width: {viewModel.Size}px" :
+        "";
+
+    protected override void OnInitialized()
+    {
+        resizeInvokeHelper = DotNetObjectReference.Create(new ResizeInvokeHelper { action = viewModel.OnResize });
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.IsVisible, viewModel.SelectedToolIndex, viewModel.Size),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+        resizeInvokeHelper.Dispose();
+    }
+
+    public class ResizeInvokeHelper
+    {
+        public Action<double> action;
+
+        [JSInvokable]
+        public void Invoke(double value) => action.Invoke(value);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await jsRuntime.InvokeVoidAsync("logjoint.resize.initEWResizer",
-            toolsResizerElement, toolsElement, /*inverse=*/true);
-    }
-
-    private async void HideTools()
-    {
-        await jsRuntime.InvokeVoidAsync("logjoint.setElementWidth", toolsElement, 0);
-    }
-
-    private void SetSelectedTool(int tool)
-    {
-        selectedTool = tool;
-        StateHasChanged();
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("logjoint.resize.initEWResizer",
+                toolsResizerElement, toolsElement, /*inverse=*/true, /*relativeToParent=*/false, resizeInvokeHelper);
+        }
     }
 }
