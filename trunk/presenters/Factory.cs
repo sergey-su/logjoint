@@ -16,6 +16,13 @@ namespace LogJoint.UI.Presenters
 		public IColorTheme ColorTheme { get; internal set; }
 		public IShellOpen ShellOpen { get; internal set; }
 		public PreprocessingUserInteractions.IPresenter PreprocessingUserInteractions { get; internal set; }
+
+		public ViewModels ViewModels { get; internal set; }
+	};
+
+	public class ViewModels
+	{
+		public ToolsContainer.IViewModel ToolsContainer { get; internal set; }
 	};
 
 	public static class Factory
@@ -581,6 +588,8 @@ namespace LogJoint.UI.Presenters
 				loadedMessagesPresenter.LogViewerPresenter
 			);
 
+			var toolsContainer = new ToolsContainer.Presenter(model.ChangeNotification);
+
 			return new PresentationObjects
 			{
 				StatusReportsPresenter = statusReportsPresenter,
@@ -594,6 +603,11 @@ namespace LogJoint.UI.Presenters
 				ShellOpen = shellOpen,
 				ColorTheme = colorTheme,
 				PreprocessingUserInteractions = preprocessingUserInteractions,
+
+				ViewModels = new ViewModels()
+				{
+					ToolsContainer = toolsContainer
+				}
 			};
 		}
 
