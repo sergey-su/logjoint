@@ -52,6 +52,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void OnSelect(IReadOnlyCollection<IObjectsTreeNode> value);
 		MenuData OnNodeMenuOpening();
 		void OnNodeDeleteKeyPressed();
+		double? HistorySize { get; }
+		double? ObjectsTreeSize { get; }
 
 
 		string CurrentTimeLabelText { get; }
@@ -76,6 +78,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void OnChangeHistoryItemKeyEvent(IStateHistoryItem item, Key key);
 		void OnChangeHistoryChangeSelection(IEnumerable<IStateHistoryItem> items);
 		void OnFindCurrentPositionInChangeHistory();
+		void OnResizeHistory(double value);
+		void OnResizeObjectsTree(double value);
 	};
 
 	public struct PropertyCellPaintInfo

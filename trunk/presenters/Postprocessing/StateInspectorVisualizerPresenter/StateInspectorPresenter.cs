@@ -266,6 +266,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 
+		double? IViewModel.HistorySize => historySize;
+
+		double? IViewModel.ObjectsTreeSize => objectsTreeSize;
+
 		void IViewModel.OnVisibleChanged(bool value)
 		{
 			changeNotification.Active = value;
@@ -274,6 +278,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void IViewModel.OnPropertiesRowDoubleClicked(int rowIndex)
 		{
 			HandlePropertyDoubleClick(getCurrentProperties().ElementAtOrDefault(rowIndex));
+		}
+
+		void IViewModel.OnResizeHistory(double value)
+		{
+			historySize = value;
+			changeNotification.Post();
+		}
+
+		void IViewModel.OnResizeObjectsTree(double value)
+		{
+			objectsTreeSize = value;
+			changeNotification.Post();
 		}
 
 		PropertyCellPaintInfo IViewModel.OnPropertyCellPaint(int rowIndex)
@@ -1057,5 +1073,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly Func<IReadOnlyList<KeyValuePair<string, object>>> getObjectsProperties;
 		readonly Func<IReadOnlyList<IPropertyListItem>> getPropertyItems;
 		SelectedProperty selectedProperty;
+		double? objectsTreeSize, historySize;
 	}
 }
