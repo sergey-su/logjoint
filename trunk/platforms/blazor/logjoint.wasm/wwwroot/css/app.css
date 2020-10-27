@@ -96,7 +96,20 @@ body {
     cursor: text;
     white-space: nowrap;
     position: relative;
-    
+}
+.logview .logline>.end-of-multiline-message {
+    display: block;
+    position: relative;
+    height: 0px;
+    overflow: visible;
+}
+.logview .logline>.end-of-multiline-message:after {
+    content: ' ';
+    display: block;
+    background: gray;
+    position: relative;
+    height: 1px;
+    top: -1px;
 }
 .logview .scroll-inner {
     display: inline-flex;

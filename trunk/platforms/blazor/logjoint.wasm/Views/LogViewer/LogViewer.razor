@@ -42,6 +42,10 @@
                         <span class="pad">@Spaces(item.CursorCharIndex.Value)<span class="@(item.CursorVisible ? "cur" : "curhid")"></span></span>
                     }
                     <span class="txt">@(item.TextLineValue.Length != 0 ? item.TextLineValue : " ")</span>
+                    @if (item.HasMessageSeparator)
+                    {
+                        <div class="end-of-multiline-message"></div>
+                    }
                 </div>
             }
         </div>
