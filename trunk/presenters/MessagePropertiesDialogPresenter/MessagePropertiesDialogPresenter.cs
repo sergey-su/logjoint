@@ -90,9 +90,10 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 				contentViewModes.AddRange(extensionViewModes);
 				int? effectiveContentViewMode =
 					contentViewModes.Count == 0 ? new int?() :
-					RangeUtils.PutInRange(0, contentViewModes.Count, setContentViewMode);
+					RangeUtils.PutInRange(0, contentViewModes.Count - 1, setContentViewMode);
 				ContentViewMode contentViewMode = effectiveContentViewMode == null ? null :
 						contentViewModes[effectiveContentViewMode.Value];
+				var customView = contentViewMode?.CustomPresenter?.View;
 				return new DialogData()
 				{
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
@@ -115,9 +116,10 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					ContentViewModeIndex = effectiveContentViewMode,
 					TextValue =
 						contentViewMode == null ? "" :
+						customView is string customViewStr ? customViewStr :
 						contentViewMode.TextGetter == null ? null :
 						contentViewMode.TextGetter(message).Text.Value,
-					CustomView = contentViewMode?.CustomPresenter?.View,
+					CustomView = customView is string ? null : customView,
 
 					HighlightedCheckboxEnabled = hlEnabled
 				};
