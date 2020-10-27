@@ -17,6 +17,7 @@ namespace LogJoint
 	/// by blocks of size TextStreamPosition.AlignmentBlockSize. However if the encoding requires more than 1 byte per 
 	/// character extra bytes are read from the beginning of a block. By that StreamTextAccess implements the following rule:
 	///    If a (multibyte) characher starts at block i and has at least one byte at block block i+1 - the character belongs to block i+1.
+	/// The object is single-threaded - can be used from one thread at a time. This restriction applies to the passed Stream too.
 	/// </remarks>
 	public class StreamTextAccess: ITextAccess
 	{
@@ -268,7 +269,7 @@ namespace LogJoint
 
 			if (!CheckPreconditionsToMoveBuffer())
 				return false;
-			await PositionateStreamAndReloadDecoderIfNeeded();
+			await ReloadDecoderIfNeeded();
 			int charsDecoded = await ReadAndDecodeNextBinaryBlock();
 			if (charsDecoded == 0)
 			{
@@ -291,14 +292,20 @@ namespace LogJoint
 
 		bool EncodingNeedsReloading()
 		{
-#if !SILVERLIGHT
 			return !encoding.IsSingleByte;
-#else
-			return true;
-#endif
 		}
 
-		async ValueTask PositionateStreamAndReloadDecoderIfNeeded()
+		void PositionateStream()
+		{
+			// Stream.Position may have inifficient implementation. Check to avoid unneded work.
+			// Note: normally when reading forward the position is updated automatically to correct value by Stream.Read()
+			if (stream.Position != streamPositionToReadFromNextTime)
+			{
+				stream.Position = streamPositionToReadFromNextTime;
+			}
+		}
+
+		async ValueTask ReloadDecoderIfNeeded()
 		{
 			if (decoderNeedsReloading)
 			{
@@ -308,19 +315,14 @@ namespace LogJoint
 					stream.Position = streamPositionToReadFromNextTime - maxBytesPerChar;
 					await stream.ReadAsync(binaryBuffer, 0, maxBytesPerChar);
 					decoder.GetChars(binaryBuffer, 0, maxBytesPerChar, charBuffer, 0);
-					// Decoder reloaded and stream has right position. Leaving.
-					return;
 				}
 			}
-
-			// Stream.Position may have unifficient implementation. Check to avoid unneded work.
-			// Note: normally when reading forward the position is updated automatically to correct value by Stream.Read()
-			if (stream.Position != streamPositionToReadFromNextTime)
-				stream.Position = streamPositionToReadFromNextTime;
 		}
 
 		async ValueTask<int> ReadAndDecodeNextBinaryBlock()
 		{
+			// Set position synchronously before reading. This ensures the position is not overwritten by other co-routines.
+			PositionateStream();
 			int bytesRead = await stream.ReadAsync(binaryBuffer, 0, binaryBufferSize);
 			int charsDecoded = decoder.GetChars(binaryBuffer, 0, bytesRead, charBuffer, 0);
 
@@ -510,7 +512,7 @@ namespace LogJoint
 			void CheckDisposed()
 			{
 				if (disposed)
-					throw new ObjectDisposedException("ITextAccessIterator");
+					throw new ObjectDisposedException("TextAccessIterator");
 			}
 
 			StreamTextAccess impl;
