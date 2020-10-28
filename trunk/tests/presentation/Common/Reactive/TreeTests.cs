@@ -72,6 +72,7 @@ namespace LogJoint.UI.Presenters.Reactive.Tests
 			public IReadOnlyList<ITreeNode> Children { get; private set; }
 			public bool IsExpanded { get; private set; }
 			public bool IsSelected { get; private set; }
+			public bool IsExpandable { get; private set; }
 		};
 	}
 }

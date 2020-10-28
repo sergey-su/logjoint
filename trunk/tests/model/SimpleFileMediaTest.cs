@@ -246,7 +246,9 @@ namespace LogJoint.Tests
 			{
 				IFileSystem fs = Substitute.For<IFileSystem>();
 
-				fs.OpenFile("test").Returns(_ => throw new FileNotFoundException());
+				Task<Stream> throwNotFound() => throw new FileNotFoundException();
+
+				fs.OpenFile("test").Returns(_ => throwNotFound());
 
 				SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"));
 			});

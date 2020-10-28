@@ -7,6 +7,7 @@ using LogJoint.Postprocessing.Correlation;
 using System.Xml;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LogJoint.LogMedia;
 
 namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 {
@@ -32,6 +33,7 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 		ILogPartTokenFactories logPartTokenFactories;
 		ISameNodeDetectionTokenFactories sameNodeDetectionTokenFactories;
 		IChangeNotification changeNotification;
+		IFileSystem fileSystem;
 
 
 		[SetUp]
@@ -65,10 +67,11 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			logPartTokenFactories = Substitute.For<ILogPartTokenFactories>();
 			sameNodeDetectionTokenFactories = Substitute.For<ISameNodeDetectionTokenFactories>();
 			changeNotification = Substitute.For<IChangeNotification>();
+			fileSystem = Substitute.For<IFileSystem>();
 
 			manager = new LogJoint.Postprocessing.PostprocessorsManager(
 				logSources, telemetry, mockedSyncContext, mockedSyncContext, heartbeat, progressAggregator, settingsAccessor, outputDataDeserializer, new TraceSourceFactory(),
-				logPartTokenFactories, sameNodeDetectionTokenFactories, changeNotification);
+				logPartTokenFactories, sameNodeDetectionTokenFactories, changeNotification, fileSystem);
 
 			manager.Register(new LogSourceMetadata(logProviderFac1, logSourcePP1));
 		}

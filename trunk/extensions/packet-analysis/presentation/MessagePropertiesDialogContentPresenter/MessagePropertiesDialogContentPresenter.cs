@@ -170,6 +170,8 @@ namespace LogJoint.PacketAnalysis.UI.Presenters.MessagePropertiesDialog
 
 			public bool IsExpanded { get; internal set; }
 
+			public bool IsExpandable { get; internal set; }
+
 			internal string Id { get; set; }
 
 			public override string ToString() => Text;

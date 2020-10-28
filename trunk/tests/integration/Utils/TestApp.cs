@@ -193,11 +193,6 @@ namespace LogJoint.Tests.Integration
 
 			mocks.Views.CreateMainFormView().SetViewModel(
 				Arg.Do<UI.Presenters.MainForm.IViewModel>(x => viewModel.MainForm = x));
-			mocks.Views.CreateMainFormView().AddTab(
-				Arg.Do<string>(tabId => viewModel.PostprocessingTabPageId = tabId),
-				UI.Presenters.Postprocessing.MainWindowTabPage.Presenter.TabCaption,
-				Arg.Any<object>()
-			);
 
 			mocks.Views.CreatePreprocessingView().SetViewModel(
 				Arg.Do<UI.Presenters.PreprocessingUserInteractions.IViewModel>(x => viewModel.PreprocessingUserInteractions = x));

@@ -2,7 +2,7 @@ namespace LogJoint
 {
 	public class Plugin
 	{
-		public Plugin(IApplication app)
+		public Plugin()
 		{
 		}
 	}

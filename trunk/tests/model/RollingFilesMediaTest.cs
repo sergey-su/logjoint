@@ -163,14 +163,14 @@ namespace LogJoint.Tests
 
 			#region IFileSystem
 
-			public Stream OpenFile(string fileName)
+			public Task<Stream> OpenFile(string fileName)
 			{
 				Assert.AreEqual(baseDir.ToLower(), Path.GetDirectoryName(fileName).ToLower());
 				FileImpl ret;
 				if (!files.TryGetValue(Path.GetFileName(fileName).ToLower(), out ret))
 					throw new FileNotFoundException();
 				ret.openCounter++;
-				return ret;
+				return Task.FromResult<Stream>(ret);
 			}
 
 			public static string WildcardToRegex(string pattern)
@@ -250,7 +250,7 @@ namespace LogJoint.Tests
 
 			public async Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
 			{
-				media.Update();
+				await media.Update();
 				return UpdateBoundsStatus.NewMessagesAvailable;
 			}
 
