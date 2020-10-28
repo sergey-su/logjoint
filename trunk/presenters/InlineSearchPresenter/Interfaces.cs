@@ -9,6 +9,7 @@ namespace LogJoint.UI.Presenters.InlineSearch
 		void Show(string initialSearchString);
 		void Hide();
 		IViewModel ViewModel { get; }
+		bool IsVisible { get; }
 	};
 
 	public interface IViewModel

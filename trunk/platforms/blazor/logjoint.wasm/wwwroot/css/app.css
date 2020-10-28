@@ -1115,6 +1115,15 @@ body {
     background-color: var(--control-client-background);
     border: var(--control-client-border);
     overflow: auto;
+    white-space: pre-wrap;
+    font-family: monospace;
+    word-break: break-all;
+}
+.message-properties>.contents>.hl {
+    background-color: yellow;
+}
+.message-properties>.contents>.hl-primary {
+    background-color: salmon;
 }
 .message-properties .bookmark-status {
     margin-right: 10px;

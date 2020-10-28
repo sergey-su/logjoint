@@ -64,7 +64,6 @@
 
     void HandleKey(KeyboardEventArgs eventArgs)
     {
-        Console.WriteLine(eventArgs.Key);
         if (eventArgs.Key == "ArrowUp")
         {
             MaybeSetSelected(Math.Max(0, focused - 1));

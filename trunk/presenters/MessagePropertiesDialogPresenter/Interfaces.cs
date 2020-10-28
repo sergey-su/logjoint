@@ -36,6 +36,12 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		void OnSearchShortcutPressed();
 	};
 
+	public class TextHighlight
+	{
+		public int Begin, End;
+		public bool IsPrimary;
+	};
+
 	public class DialogData
 	{
 		public string TimeValue;
@@ -57,6 +63,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		public IReadOnlyList<string> ContentViewModes;
 		public int? ContentViewModeIndex;
 		public string TextValue;
+		public IReadOnlyList<TextHighlight> TextHighlights; // sorted, ranges are disjoint
 		public object CustomView;
 
 		public bool HighlightedCheckboxEnabled;

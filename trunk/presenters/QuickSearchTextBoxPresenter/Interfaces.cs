@@ -21,6 +21,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		SuggestionItem? CurrentSuggestion { get; set; }
 		void SelectAll();
 		IViewModel ViewModel { get; }
+		void HideClearButton();
 	};
 
 	public interface IView

@@ -24,13 +24,20 @@
         <TabsView Tabs=@d.ContentViewModes SelectedTab=d.ContentViewModeIndex.GetValueOrDefault() OnSelect=viewModel.OnContentViewModeChange />
     </div>
     <InlineSearch ViewModel="@viewModel.InlineSearch" />
-    <textarea readonly class="contents" @onkeydown="HandleKeyDown" @ref="textRef">@d.TextValue</textarea>
+    <div class="contents" @ref="textRef" tabindex="0">
+        @foreach (var segment in SplitTextByDisdjointRanges(d.TextValue, d.TextHighlights.Select(r => (r.Begin, r.End, r))))
+        {
+            <MessagePropertiesTextSegment class="@(segment.data == null ? "" : segment.data.IsPrimary ? "hl-primary" : "hl")"
+                                          Text=@segment.segment IsPrimary="@(segment.data?.IsPrimary == true)" />
+        }
+    </div>
 </div>
 
 @code {
     private IDialogViewModel viewModel;
     private ISubscription subscription;
     private ElementReference textRef;
+    private IDisposable keyHandler;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -52,21 +59,33 @@
     public void Dispose()
     {
         subscription?.Dispose();
+        keyHandler?.Dispose();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await jsInterop.Keyboard.AddDefaultPreventingHandler(textRef, "Ctrl+F", "Ctrl+f", "Meta+F", "Meta+f");
+            keyHandler = await jsInterop.Keyboard.AddHandler(textRef, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                StopPropagation = true,
+                Handler = viewModel.OnSearchShortcutPressed
+            }, "Edit+F/i");
         }
     }
 
-    void HandleKeyDown(KeyboardEventArgs e)
+    IEnumerable<(string segment, T data)> SplitTextByDisdjointRanges<T>(string text, IEnumerable<(int begin, int end, T data)> ranges)
     {
-        if (e.Key.ToLower() == "f" && (e.CtrlKey || e.MetaKey))
+        int lastRangeEnd = 0;
+        foreach (var r in ranges)
         {
-            viewModel.OnSearchShortcutPressed();
+            if (r.begin > lastRangeEnd)
+                yield return (text.Substring(lastRangeEnd, r.begin - lastRangeEnd), default(T));
+            yield return (text.Substring(r.begin, r.end - r.begin), r.data);
+            lastRangeEnd = r.end;
         }
+        if (lastRangeEnd < text.Length)
+            yield return (text.Substring(lastRangeEnd, text.Length - lastRangeEnd), default(T));
     }
 }

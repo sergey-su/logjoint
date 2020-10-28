@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Schema;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,6 +26,16 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.navHandler = navHandler;
 			this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(false);
 			this.inlineSearch = new InlineSearch.Presenter(changeNotification);
+
+			inlineSearch.OnSearch += (s, e) =>
+			{
+				inlineSearchText = e.Query;
+				if (e.Reverse)
+					inlineSearchIndex--;
+				else
+					inlineSearchIndex++;
+				changeNotification.Post();
+			};
 
 			this.getFocusedMessage = Selectors.Create(() => viewerPresenter.FocusedMessage,
 				message => message?.GetLogSource() == null ? null : message);
@@ -77,13 +88,18 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					}
 				}).Where(contentPresenter => contentPresenter != null))
 			);
+			var effectiveInlineSearchData = Selectors.Create(
+				() => inlineSearchIndex, () => inlineSearch.IsVisible, () => inlineSearchText,
+				(index, visible, text) => visible && text != "" ?
+					new InlineSearchData() { Index = index, Query = text } : null);
 			this.getDialogData = Selectors.Create(
 				getFocusedMessage,
 				getBookmarkData,
 				getHlFilteringEnabled,
 				getExtensionViewModes,
 				() => lastSetContentViewModeIndex,
-				(message, bmk, hlEnabled, extensionViewModes, setContentViewMode) =>
+				effectiveInlineSearchData,
+				(message, bmk, hlEnabled, extensionViewModes, setContentViewMode, inlineSearchData) =>
 			{
 				var (bookmarkedStatus, bookmarkAction) = bmk;
 				ILogSource ls = message?.GetLogSource();
@@ -95,6 +111,31 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 				ContentViewMode contentViewMode = effectiveContentViewMode == null ? null :
 						contentViewModes[effectiveContentViewMode.Value];
 				var customView = contentViewMode?.CustomPresenter?.View;
+				var textValue =
+					contentViewMode == null ? "" :
+					customView is string customViewStr ? customViewStr :
+					contentViewMode.TextGetter == null ? null :
+					contentViewMode.TextGetter(message).Text.Value;
+
+				int Mod(int i, int q) => ((i % q) + q) % q; // supports negative i
+
+				IReadOnlyList<TextHighlight> textHighlights = ImmutableList<TextHighlight>.Empty;
+				if (inlineSearchData != null && textValue != null)
+				{
+					var builder = ImmutableList.CreateBuilder<TextHighlight>();
+					for (int textPos = 0; ;)
+					{
+						var matchPos = textValue.IndexOf(inlineSearchData.Query, textPos);
+						if (matchPos == -1)
+							break;
+						builder.Add(new TextHighlight { Begin = matchPos, End = matchPos + inlineSearchData.Query.Length });
+						textPos = matchPos + inlineSearchData.Query.Length;
+					}
+					if (builder.Count > 0)
+						builder[Mod(inlineSearchData.Index, builder.Count)].IsPrimary = true;
+					textHighlights = builder.ToImmutable();
+				}
+
 				return new DialogData()
 				{
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
@@ -115,11 +156,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 					ContentViewModes = ImmutableArray.CreateRange(contentViewModes.Select(m => m.Name)),
 					ContentViewModeIndex = effectiveContentViewMode,
-					TextValue =
-						contentViewMode == null ? "" :
-						customView is string customViewStr ? customViewStr :
-						contentViewMode.TextGetter == null ? null :
-						contentViewMode.TextGetter(message).Text.Value,
+					TextValue = textValue,
+					TextHighlights = textHighlights,
 					CustomView = customView is string ? null : customView,
 
 					HighlightedCheckboxEnabled = hlEnabled
@@ -219,7 +257,9 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		void IDialogViewModel.OnSearchShortcutPressed()
 		{
-			inlineSearch.Show("");
+			inlineSearchText = "";
+			inlineSearchIndex = 0;
+			inlineSearch.Show(inlineSearchText);
 		}
 
 		void IExtensionsRegistry.Register(IExtension extension)
@@ -258,6 +298,12 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			};
 		};
 
+		class InlineSearchData
+		{
+			public string Query;
+			public int Index;
+		};
+
 		readonly IChainedChangeNotification changeNotification;
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;
@@ -269,6 +315,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		readonly HashSet<IExtension> extensions = new HashSet<IExtension>();
 		readonly InlineSearch.IPresenter inlineSearch;
 		int lastSetContentViewModeIndex;
+		int inlineSearchIndex;
+		string inlineSearchText = "";
 		IDialog propertiesForm;
 		static readonly string noSelection = "<no selection>";
 	};

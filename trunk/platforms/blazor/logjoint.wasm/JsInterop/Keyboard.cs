@@ -16,20 +16,45 @@ namespace LogJoint.Wasm
             this.jsRuntime = jsRuntime;
         }
 
+        public struct Options
+        {
+            public Action Handler;
+            public bool PreventDefault;
+            public bool StopPropagation;
+        };
+
         /// <summary>
-        /// Adds a keydown handler prevents default action for specified keys.
+        /// Adds a keydown handler for specified keys.
         /// The keys are specified in the format of https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key.
         /// Additionally a key can contains modifiers, for example, "Ctrl+F", "Meta+C".
-        /// That's an alternative for the inflexible all-or-nothing @keydown:preventDefault mean.
+        /// Each key can have options, for example, "Ctrl+F/i" for case-insensitive match for F key.
+        /// That's an alternative for the inflexible all-or-nothing @keydown:preventDefault / @keydown:stopPropagation.
         /// </summary>
-        public ValueTask AddDefaultPreventingHandler(ElementReference element, params string[] keys)
+        public async ValueTask<IDisposable> AddHandler(ElementReference element, Options options,  params string[] keys)
         {
-            return jsRuntime.InvokeVoidAsync("logjoint.keyboard.addDefaultPreventingHandler", element, keys);
+            var resizeInvokeHelper = options.Handler != null ?
+                DotNetObjectReference.Create(new Helper { action = options.Handler }) : null;
+            await jsRuntime.InvokeVoidAsync("logjoint.keyboard.addHandler", element, keys,
+                resizeInvokeHelper, options.PreventDefault, options.StopPropagation);
+            return resizeInvokeHelper;
+        }
+
+        public async ValueTask AddDefaultPreventingHandler(ElementReference element, params string[] keys)
+        {
+            await AddHandler(element, new Options { PreventDefault = true }, keys);
         }
 
         public ValueTask<bool> IsFocusWithin(ElementReference element)
         {
             return jsRuntime.InvokeAsync<bool>("logjoint.isFocusWithin", element);
+        }
+
+        class Helper
+        {
+            public Action action;
+
+            [JSInvokable]
+            public void Invoke() => action.Invoke();
         }
     }
 }

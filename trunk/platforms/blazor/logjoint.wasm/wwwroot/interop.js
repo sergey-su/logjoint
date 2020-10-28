@@ -14,15 +14,6 @@
     getResourceUrl: function (resourceName) {
         return (new URL(resourceName, window.location)).href;
     },
-    scrollLeftIntoView: function (element, targetX) {
-        const w = element.getBoundingClientRect().width;
-        const x = element.scrollLeft;
-        if (targetX < x) {
-            element.scrollLeft = targetX;
-        } else if (targetX > x + w) {
-            element.scrollLeft = targetX - w;
-        }
-    },
     isFocusWithin: function (element) {
         for (let e = document.activeElement; e; e = e.parentElement) {
             if (e == element) {
@@ -30,6 +21,25 @@
             }
         }
         return false;
+    },
+
+    scroll: {
+        scrollIntoView: function (element) {
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest',
+            });
+        },
+        scrollLeftIntoView: function (element, targetX) {
+            const w = element.getBoundingClientRect().width;
+            const x = element.scrollLeft;
+            if (targetX < x) {
+                element.scrollLeft = targetX;
+            } else if (targetX > x + w) {
+                element.scrollLeft = targetX - w;
+            }
+        },
     },
 
     files: {
@@ -339,32 +349,45 @@
     },
 
     keyboard: {
-        addDefaultPreventingHandler: function (element, preventedKeyStrs) {
-            const preventedKeys = preventedKeyStrs.map(preventedKeyStr => {
-                const split = preventedKeyStr.split("+");
+        addHandler: function (element, keysStr, handler, preventDefault, stopPropagation) {
+            const keys = keysStr.map(keyStr => {
+                const split = keyStr.split("+");
                 if (split.length < 1) {
                     throw new Error(`Bad key string: '${preventedKeyStr}'`);
                 }
+                const keySplit = split[split.length - 1].split('/');
+                const keyOptions = keySplit[1] || '';
                 return {
-                    key: split[split.length - 1],
+                    key: keySplit[0],
+                    caseInsensitive: keyOptions.includes('i'),
                     modifiers: split.slice(0, split.length - 1),
                 };
             });
             element.addEventListener('keydown', e => {
-                for (const preventedKey of preventedKeys) {
-                    if (preventedKey.key == e.key) {
+                for (const key of keys) {
+                    const norm = k => key.caseInsensitive ? k.toLowerCase() : k;
+                    if (norm(key.key) == norm(e.key)) {
                         let allMatch = true;
-                        for (const modifier of preventedKey.modifiers) {
+                        for (const modifier of key.modifiers) {
                             const modifierMatch =
                                 (modifier == "Control" || modifier == "Ctrl") ? e.ctrlKey :
                                 modifier == "Alt" ? e.altKey :
                                 modifier == "Shift" ? e.shiftKey :
                                 modifier == "Meta" ? e.metaKey :
+                                modifier == "Edit" ? (e.metaKey || e.ctrlKey):
                                 true;
                             allMatch = allMatch && modifierMatch;
                         }
                         if (allMatch) {
-                            e.preventDefault();
+                            if (preventDefault) {
+                                e.preventDefault();
+                            }
+                            if (stopPropagation) {
+                                e.stopPropagation();
+                            }
+                            if (handler) {
+                                handler.invokeMethodAsync('Invoke');
+                            }
                             break;
                         }
                     }

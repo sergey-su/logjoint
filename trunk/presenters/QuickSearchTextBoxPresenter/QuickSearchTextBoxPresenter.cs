@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		bool suggestionsListVisible;
 		int selectedSuggestion;
 		SuggestionItem? currentSuggestion;
+		bool clearButtonHiddenProgrammatically;
 		bool currentSuggestionUpdateLock;
 		Task quickSearchTimerTask;
 		int currentQuickSearchTimerId = 0;
@@ -88,6 +89,11 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			{
 				CancelInternal();
 			}
+		}
+		void IPresenter.HideClearButton()
+		{
+			clearButtonHiddenProgrammatically = true;
+			changeNotification.Post();
 		}
 
 		SuggestionItem? IPresenter.CurrentSuggestion
@@ -214,7 +220,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		int IViewModel.SuggestionsListContentVersion => suggestionsListVersion;
 
-		bool IViewModel.ClearTextIconVisible => text.Length > 0;
+		bool IViewModel.ClearTextIconVisible => !clearButtonHiddenProgrammatically && text.Length > 0;
 
 		void IViewModel.OnClearTextIconClicked()
 		{

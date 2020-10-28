@@ -150,7 +150,7 @@
 
     void IView.HScrollToSelectedText(int charIndex)
     {
-        ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.scrollLeftIntoView", scrollOuter, charWidth * charIndex);
+        jsInterop.Scroll.ScrollLeftIntoView(scrollOuter, charWidth * charIndex);
     }
 
     void IView.PopupContextMenu(object contextMenuPopupData)

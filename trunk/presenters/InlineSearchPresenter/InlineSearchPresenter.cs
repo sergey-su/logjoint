@@ -12,6 +12,7 @@ namespace LogJoint.UI.Presenters.InlineSearch
 		{
 			this.changeNotification = changeNotification;
 			this.searchBox = new QuickSearchTextBox.Presenter(null, changeNotification);
+			searchBox.HideClearButton();
 
 			searchBox.OnCancelled += (s, e) => DoHide();
 			searchBox.OnSearchNow += (s, e) => DoSearch(e.ReverseSearchModifier);
@@ -26,6 +27,8 @@ namespace LogJoint.UI.Presenters.InlineSearch
 		public event EventHandler<SearchEventArgs> OnSearch;
 
 		void IPresenter.Hide() => DoHide();
+
+		bool IPresenter.IsVisible => isVisible;
 
 		IViewModel IPresenter.ViewModel => this;
 
