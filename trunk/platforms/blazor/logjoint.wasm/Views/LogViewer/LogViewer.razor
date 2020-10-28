@@ -10,7 +10,9 @@
 <div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" @ref="element">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
-        <div class="scroll-inner" style="top: @TopProperty">
+        <div class="scroll-inner" style="top: @TopProperty" @ref="scrollInner"
+                @ongotpointercapture="@(e => { pointerCaptured = true; })" @onlostpointercapture="@(e => { pointerCaptured = false; })"
+                @onpointermove="@(pointerCaptured ? HandleCapturedMove : null)">
             @foreach (var item in @viewModel.ViewLines)
             {
                 <div class="logline"
@@ -21,25 +23,25 @@
                                                             GetMessageMouseEventFlags(e), null))">
                     @if (item.SelectedBackground.HasValue)
                     {
-                        <span class="pad">@Spaces(item.SelectedBackground.Value.Item1)<span class="sel">@Spaces(item.SelectedBackground.Value.Item2 - item.SelectedBackground.Value.Item1)</span></span>
+                        <span class="pad sel" style=@PadStyle(item.SelectedBackground.Value.Item1, item.SelectedBackground.Value.Item2)></span>
                     }
                     @if (item.SelectionHighlightingRanges != null)
                     {
                         @foreach (var r in item.SelectionHighlightingRanges)
                         {
-                            <span class="pad">@Spaces(r.Item1)<span class="selhl">@Spaces(r.Item2 - r.Item1)</span></span>
+                            <span class="pad selhl" style=@PadStyle(r.Item1, r.Item2)></span>
                         }
                     }
                     @if (item.SearchResultHighlightingRanges != null)
                     {
                         @foreach (var r in item.SearchResultHighlightingRanges)
                         {
-                            <span class="pad">@Spaces(r.Item1)<span class="srhl">@Spaces(r.Item2 - r.Item1)</span></span>
+                            <span class="pad srhl" style=@PadStyle(r.Item1, r.Item2)></span>
                         }
                     }
                     @if (item.CursorCharIndex.HasValue)
                     {
-                        <span class="pad">@Spaces(item.CursorCharIndex.Value)<span class="@(item.CursorVisible ? "cur" : "curhid")"></span></span>
+                        <span class="@(item.CursorVisible ? "pad cur" : "pad curhid")" style=@PadStyle(item.CursorCharIndex.Value, item.CursorCharIndex.Value)></span>
                     }
                     <span class="txt">@(item.TextLineValue.Length != 0 ? item.TextLineValue : " ")</span>
                     @if (item.HasMessageSeparator)
@@ -53,7 +55,9 @@
     <div class="outline" style="top: @TopProperty">
         @foreach (var item in @viewModel.ViewLines)
         {
-            <div @key="item.LineIndex" class="item">
+            <div @key="item.LineIndex" class="item"
+                 @onmousedown="@(e => viewModel.OnMessageMouseEvent(item, 0,
+                                GetMessageMouseEventFlags(e) | MessageMouseEventFlag.OulineBoxesArea, null))">
                 @{var f = viewModel.FocusedMessageMark; }
                 @{var focusedMarkClass =
                             f == null ? "" :
@@ -84,12 +88,13 @@
 @code {
     private IViewModel viewModel;
     private ISubscription subscription;
-    private ElementReference measureElement, scrollOuter, sliderElement, element;
+    private ElementReference measureElement, scrollOuter, sliderElement, element, scrollInner;
     private double charWidth = 1;
     private double charHeight = 1;
     private IAsyncDisposable resizeObserverHandle;
     private DotNetObjectReference<LogViewer> selfRef;
     private float displayLinesPerPage = 1;
+    private bool pointerCaptured;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -135,6 +140,7 @@
                 viewModel?.ChangeNotification?.Post();
             });
             await jsRuntime.InvokeVoidAsync("logjoint.logViewer.initVScroller", sliderElement, selfRef);
+            await jsInterop.Mouse.SetMouseCapturingHandler(scrollInner);
         }
     }
 
@@ -167,9 +173,9 @@
         viewModel = value;
     }
 
-    static string Spaces(int count)
+    string PadStyle(int beginIdx, int endIdx)
     {
-        return new string(' ', count);
+        return $"left: {beginIdx * charWidth}px; width: {(endIdx - beginIdx) * charWidth}px";
     }
 
     Key GetKey(KeyboardEventArgs keyboardEventArgs)
@@ -259,4 +265,15 @@
     }
 
     string TopProperty => string.Format("{0:000}px", -viewModel.FirstDisplayMessageScrolledLines * charHeight);
+
+    void HandleCapturedMove(MouseEventArgs e)
+    {
+        var lineIndex = (int)Math.Round(e.OffsetY / charHeight);
+        if (lineIndex >= 0 && lineIndex < viewModel.ViewLines.Length)
+        {
+            var line = viewModel.ViewLines[lineIndex];
+            viewModel.OnMessageMouseEvent(line, GetClickedCharIndex(line, e),
+                MessageMouseEventFlag.ShiftIsHeld | MessageMouseEventFlag.CapturedMouseMove, null);
+        }
+    }
 }

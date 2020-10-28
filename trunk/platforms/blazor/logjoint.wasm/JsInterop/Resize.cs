@@ -32,7 +32,7 @@ namespace LogJoint.Wasm
             var resizeInvokeHelper = DotNetObjectReference.Create(new ResizerHelper { action = handler });
             await jsRuntime.InvokeVoidAsync(
                 direction == Direction.Horizonal ? "logjoint.resize.initEWResizer" : "logjoint.resize.initNSResizer",
-                resizerElement, targetElement, inverse, relativeToParent, handler != null ? resizeInvokeHelper : null);
+                resizerElement, targetElement, inverse, relativeToParent, resizeInvokeHelper);
             return resizeInvokeHelper;
         }
 

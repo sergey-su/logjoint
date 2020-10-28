@@ -193,6 +193,10 @@ body {
 .logline .pad {
     position: absolute;
     white-space: pre;
+    display: inline-block;
+}
+.logline .pad:after {
+    content: ' ';
 }
 .logline .selhl {
     background-color: cyan;

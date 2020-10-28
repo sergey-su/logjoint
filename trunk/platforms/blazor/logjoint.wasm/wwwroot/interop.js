@@ -312,17 +312,9 @@
                 const newWidthPx = startWidth + (inverse ? -1 : 1) * deltaWidth;
                 if (relativeToParent) {
                     const parentWidthPx = parseInt(document.defaultView.getComputedStyle(target.parentElement).width);
-                    if (setter) {
-                        setter.invokeMethodAsync('Invoke', newWidthPx / parentWidthPx);
-                    } else {
-                        target.style.width = `${100 * newWidthPx / parentWidthPx}%`;
-                    }
+                    setter.invokeMethodAsync('Invoke', newWidthPx / parentWidthPx);
                 } else {
-                    if (setter) {
-                        setter.invokeMethodAsync('Invoke', newWidthPx);
-                    } else {
-                        target.style.width = `${newWidthPx}px`;
-                    }
+                    setter.invokeMethodAsync('Invoke', newWidthPx);
                 }
             });
         },
@@ -332,17 +324,9 @@
                 const newHeightPx = startHeight + (inverse ? -1 : 1) * deltaHeight;
                 if (relativeToParent) {
                     const parentHeightPx = parseInt(document.defaultView.getComputedStyle(target.parentElement).height);
-                    if (setter) {
-                        setter.invokeMethodAsync('Invoke', newHeightPx / parentHeightPx);
-                    } else {
-                        target.style.height = `${100 * newHeightPx / parentHeightPx}%`;
-                    }
+                    setter.invokeMethodAsync('Invoke', newHeightPx / parentHeightPx);
                 } else {
-                    if (setter) {
-                        setter.invokeMethodAsync('Invoke', newHeightPx);
-                    } else {
-                        target.style.height = `${newHeightPx}px`;
-                    }
+                    setter.invokeMethodAsync('Invoke', newHeightPx);
                 }
             });
         },
@@ -575,4 +559,11 @@
             slider.addEventListener('mousedown', startScroll, false);
         }
     },
+
+    mouse: {
+        setMouseCapturingHandler: function (element) {
+            const handler = e => element.setPointerCapture(e.pointerId);
+            element.addEventListener('pointerdown', handler, false);
+        }
+    }
 };
