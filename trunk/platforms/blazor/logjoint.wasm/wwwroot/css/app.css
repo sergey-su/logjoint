@@ -209,7 +209,7 @@ body {
     background-color: rgb(167, 176, 201);
 }
 .logline .cur {
-    border-right: 1pt black solid;
+    border-right: 2px black solid;
 }
 .logline .curhid {
     border-right: none;
