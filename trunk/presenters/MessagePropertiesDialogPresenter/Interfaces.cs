@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		void OnClosed();
 
-		void OnSearchShortcutPressed();
+		void OnSearchShortcutPressed(string selection);
 	};
 
 	public class TextHighlight

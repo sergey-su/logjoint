@@ -70,7 +70,11 @@
             {
                 PreventDefault = true,
                 StopPropagation = true,
-                Handler = viewModel.OnSearchShortcutPressed
+                Handler = async () =>
+                {
+                    var selection = await jsInterop.Selection.GetSelectionInElement(textRef);
+                    viewModel.OnSearchShortcutPressed(selection);
+                }
             }, "Edit+F/i");
         }
     }

@@ -565,5 +565,19 @@
             const handler = e => element.setPointerCapture(e.pointerId);
             element.addEventListener('pointerdown', handler, false);
         }
-    }
+    },
+
+    selection: {
+        getSelectedTextInElement: function (element) {
+            const selection = window.getSelection();
+            const isParentedByElement = n =>
+                !n ? false :
+                n === element ? true :
+                isParentedByElement(n.parentElement);
+            if (selection && isParentedByElement(selection.anchorNode) && isParentedByElement(selection.focusNode)) {
+                return selection.toString();
+            }
+            return null;
+        }
+    },
 };

@@ -255,9 +255,9 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			changeNotification.Active = false;
 		}
 
-		void IDialogViewModel.OnSearchShortcutPressed()
+		void IDialogViewModel.OnSearchShortcutPressed(string selection)
 		{
-			inlineSearchText = "";
+			inlineSearchText = selection ?? "";
 			inlineSearchIndex = 0;
 			inlineSearch.Show(inlineSearchText);
 		}
