@@ -169,6 +169,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
+		QuickSearchTextBox.IViewModel IViewModel.QuickSearchTextBox => quickSearchPresenter.ViewModel;
+
 		ViewCheckableControl IViewModel.CheckableControlsState => checkedControls;
 		ViewCheckableControl IViewModel.EnableCheckableControls => enabledControls;
 		(bool isVisible, string text) IViewModel.FiltersLink => filtersLink;
@@ -525,6 +527,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
+		readonly QuickSearchTextBox.IPresenter quickSearchViewModel;
 		readonly SearchEditorDialog.IPresenter searchEditorDialog;
 		readonly SearchesManagerDialog.IPresenter searchesManagerDialog;
 		readonly IAlertPopup alerts;

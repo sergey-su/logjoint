@@ -7,11 +7,9 @@ namespace LogJoint.Wasm.UI
 	{
 		IViewModel viewModel;
 		IView component;
-		readonly QuickSearchTextBoxP.IView searchTextBox;
 
-		public HistoryDialogViewProxy(QuickSearchTextBoxP.IView searchTextBox)
+		public HistoryDialogViewProxy()
 		{
-			this.searchTextBox = searchTextBox;
 		}
 
 		public void SetComponent(IView component)
@@ -25,7 +23,7 @@ namespace LogJoint.Wasm.UI
 			viewModel = value;
 		}
 
-		QuickSearchTextBoxP.IView IView.QuickSearchTextBox => searchTextBox;
+		QuickSearchTextBoxP.IView IView.QuickSearchTextBox => null;
 
 		void IView.PutInputFocusToItemsList() => component?.PutInputFocusToItemsList();
 	}

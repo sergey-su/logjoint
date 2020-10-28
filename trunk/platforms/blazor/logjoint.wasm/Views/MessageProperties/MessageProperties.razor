@@ -3,7 +3,7 @@
 @using LogJoint.UI.Presenters.MessagePropertiesDialog
 @implements IDisposable
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
-
+@inject JsInterop jsInterop
 
 <div class="message-properties @Class">
     @{var d = viewModel.Data;}
@@ -23,12 +23,14 @@
         <div class="contents-label">Contents</div>
         <TabsView Tabs=@d.ContentViewModes SelectedTab=d.ContentViewModeIndex.GetValueOrDefault() OnSelect=viewModel.OnContentViewModeChange />
     </div>
-    <textarea readonly class="contents">@d.TextValue</textarea>
+    <InlineSearch ViewModel="@viewModel.InlineSearch" />
+    <textarea readonly class="contents" @onkeydown="HandleKeyDown" @ref="textRef">@d.TextValue</textarea>
 </div>
 
 @code {
     private IDialogViewModel viewModel;
     private ISubscription subscription;
+    private ElementReference textRef;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -50,5 +52,21 @@
     public void Dispose()
     {
         subscription?.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsInterop.Keyboard.AddDefaultPreventingHandler(textRef, "Ctrl+F", "Ctrl+f", "Meta+F", "Meta+f");
+        }
+    }
+
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key.ToLower() == "f" && (e.CtrlKey || e.MetaKey))
+        {
+            viewModel.OnSearchShortcutPressed();
+        }
     }
 }

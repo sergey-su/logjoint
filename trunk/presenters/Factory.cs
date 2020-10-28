@@ -24,6 +24,7 @@ namespace LogJoint.UI.Presenters
 	{
 		public ToolsContainer.IViewModel ToolsContainer { get; internal set; }
 		public MainForm.IViewModel MainForm { get; internal set; }
+		public SearchPanel.IViewModel SearchPanel { get; internal set; }
 	};
 
 	public static class Factory
@@ -249,7 +250,7 @@ namespace LogJoint.UI.Presenters
 				searchEditorDialog
 			);
 
-			SearchPanel.IPresenter searchPanelPresenter = new SearchPanel.Presenter(
+			var searchPanelPresenter = new SearchPanel.Presenter(
 				searchPanelView,
 				model.SearchManager,
 				model.SearchHistory,
@@ -605,7 +606,8 @@ namespace LogJoint.UI.Presenters
 				ViewModels = new ViewModels()
 				{
 					ToolsContainer = toolsContainer,
-					MainForm = mainFormPresenter
+					MainForm = mainFormPresenter,
+					SearchPanel = searchPanelPresenter,
 				}
 			};
 		}

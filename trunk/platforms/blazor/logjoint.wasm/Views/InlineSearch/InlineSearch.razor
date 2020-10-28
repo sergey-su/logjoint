@@ -1,0 +1,38 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.InlineSearch
+@implements IDisposable
+@inject JsInterop jsInterop
+
+@if (ViewModel.IsVisible)
+{
+    <div class='inline-search @Class'>
+        <QuickSearchTextBox Class="text" ViewModel="@ViewModel.QuickSearchTextBox" />
+        <button class="prev" @onclick="@ViewModel.OnPrevClicked">▴</button>
+        <button class="next" @onclick="@ViewModel.OnNextClicked">▾</button>
+        <button class="close" @onclick="@ViewModel.OnHideClicked">✕</button>
+    </div>
+}
+
+@code {
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+    protected override void OnInitialized()
+    {
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (ViewModel.IsVisible),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}

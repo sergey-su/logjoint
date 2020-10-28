@@ -6,7 +6,7 @@
 
 <Modal Visible="@viewModel.IsVisible" Class="resizable-dialog history-dialog" ClickOutside="@viewModel.OnCancelClicked">
     <header>Recent logs</header>
-    <QuickSearchTextBox ViewProxy="@viewProxies.HistoryDialogQuickSearchTextBox" @ref="searchTextBox"/>
+    <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" @ref="searchTextBox"/>
     <FirstRenderDetector OnFirstRender="OnFirstRender" />
     <TreeView Root="@viewModel.RootViewItem" Class="the-tree"
               OnExpand="@(n => viewModel.OnExpand((IViewItem)n))" OnCollapse="@(n => viewModel.OnCollapse((IViewItem)n))"

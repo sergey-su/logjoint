@@ -20,11 +20,12 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		void SetSuggestionsHandler(EventHandler<SearchSuggestionsEventArgs> handler);
 		SuggestionItem? CurrentSuggestion { get; set; }
 		void SelectAll();
+		IViewModel ViewModel { get; }
 	};
 
 	public interface IView
 	{
-		void SetViewModel(IViewModel viewModel);
+		void SetViewModel(IViewModel viewModel); // todo: remove; use IViewModel.SetView() pattern.
 
 		void SelectEnd();
 		void SelectAll();
@@ -43,6 +44,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		// The two below are to support non-reactive views
 		int SuggestionsListContentVersion { get; } // changes when SuggestionsListItems change for the reason different from selection change
 		int? SelectedSuggestionsListItem { get; }
+		void SetView(IView view);
 		void OnChangeText(string value);
 		void OnKeyDown(Key key);
 		void OnLostFocus();

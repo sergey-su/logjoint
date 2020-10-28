@@ -24,6 +24,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
 			this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(false);
+			this.inlineSearch = new InlineSearch.Presenter(changeNotification);
 
 			this.getFocusedMessage = Selectors.Create(() => viewerPresenter.FocusedMessage,
 				message => message?.GetLogSource() == null ? null : message);
@@ -148,6 +149,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		IChangeNotification IDialogViewModel.ChangeNotification => changeNotification;
 
+		InlineSearch.IViewModel IDialogViewModel.InlineSearch => inlineSearch.ViewModel;
+
 		DialogData IDialogViewModel.Data
 		{
 			get { return getDialogData(); }
@@ -214,6 +217,11 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			changeNotification.Active = false;
 		}
 
+		void IDialogViewModel.OnSearchShortcutPressed()
+		{
+			inlineSearch.Show("");
+		}
+
 		void IExtensionsRegistry.Register(IExtension extension)
 		{
 			extensions.Add(extension);
@@ -259,6 +267,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		readonly Func<IMessage> getFocusedMessage;
 		readonly Func<DialogData> getDialogData;
 		readonly HashSet<IExtension> extensions = new HashSet<IExtension>();
+		readonly InlineSearch.IPresenter inlineSearch;
 		int lastSetContentViewModeIndex;
 		IDialog propertiesForm;
 		static readonly string noSelection = "<no selection>";

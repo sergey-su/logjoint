@@ -6,19 +6,18 @@
 @inject JsInterop jsInterop
 
 <div class='quick-search-textbox @Class' @onfocusout="HandleFocusOut" @ref="ContainerRef">
-    <input value="@viewModel.Text" @oninput="@(e => viewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" @ref="InputRef" />
-    @if (viewModel.ClearTextIconVisible)
+    <input value="@ViewModel.Text" @oninput="@(e => ViewModel.OnChangeText(e.Value.ToString()))" @onkeydown="HandleKeyDown" @ref="InputRef" />
+    @if (ViewModel.ClearTextIconVisible)
     {
-        <button class="clear-button" @onclick="@viewModel.OnClearTextIconClicked">✕</button>
+        <button class="clear-button" @onclick="@ViewModel.OnClearTextIconClicked">✕</button>
     }
-    @if (viewModel.SuggestionsListAvailabile)
+    @if (ViewModel.SuggestionsListAvailabile)
     {
-        <button class="suggesions-button" @onclick="@viewModel.OnDropDownButtonClicked">@(viewModel.SuggestionsListVisibile ? "▴" : "▾")</button>
+        <button class="suggesions-button" @onclick="@ViewModel.OnDropDownButtonClicked">@(ViewModel.SuggestionsListVisibile ? "▴" : "▾")</button>
     }
 </div>
 
 @code {
-    private IViewModel viewModel;
     private ISubscription subscription;
     [Inject]
     private IJSRuntime JSRuntime { get; set; }
@@ -29,29 +28,29 @@
     public string Class { get; set; } = "";
 
     [Parameter]
-    public QuickSearchTextBoxViewProxy ViewProxy { get; set; }
+    public IViewModel ViewModel { get; set; }
 
     public ValueTask FocusAsync() => InputRef.FocusAsync();
 
     protected override void OnInitialized()
     {
-        ViewProxy.SetComponent(this);
+        ViewModel.SetView(this);
 
-        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.Text, viewModel.SuggestionsListAvailabile, viewModel.SuggestionsListVisibile, viewModel.ClearTextIconVisible),
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (ViewModel.Text, ViewModel.SuggestionsListAvailabile, ViewModel.SuggestionsListVisibile, ViewModel.ClearTextIconVisible),
             _ => StateHasChanged()
         ));
     }
 
     public void Dispose()
     {
-        ViewProxy.SetComponent(null);
+        ViewModel.SetView(null);
         subscription?.Dispose();
     }
 
     void IView.SetViewModel(IViewModel value)
     {
-        viewModel = value;
+        ViewModel = value;
     }
 
     async void IView.ReceiveInputFocus()
@@ -92,7 +91,7 @@
             Key.None;
         if (key != Key.None)
         {
-            viewModel.OnKeyDown(key);
+            ViewModel.OnKeyDown(key);
         }
     }
 
@@ -100,6 +99,6 @@
     {
         await Task.Yield(); // skip one JS frame to let the new element be focused before checking if focus left this component.
         if (!await jsInterop.Keyboard.IsFocusWithin(ContainerRef))
-             viewModel.OnLostFocus();
+            ViewModel.OnLostFocus();
     }
 }

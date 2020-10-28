@@ -33,12 +33,10 @@ namespace LogJoint.Wasm
         public UI.SourcesManagerViewProxy SourcesManagerViewProxy = new UI.SourcesManagerViewProxy();
         public UI.Postprocessing.ViewProxy PostprocessingTabPage = new UI.Postprocessing.ViewProxy();
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new UI.Postprocesssing.StateInspector.ViewProxy();
-        public UI.QuickSearchTextBoxViewProxy SearchPanelQuickSearchTextBox = new UI.QuickSearchTextBoxViewProxy();
         public UI.SearchPanelViewProxy SearchPanel;
         public UI.SearchResultViewProxy SearchResult;
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new UI.LogViewer.ViewProxy();
         public UI.BookmarksListViewProxy BookmarksList = new UI.BookmarksListViewProxy();
-        public UI.QuickSearchTextBoxViewProxy HistoryDialogQuickSearchTextBox = new UI.QuickSearchTextBoxViewProxy();
         public UI.HistoryDialogViewProxy HistoryDialog;
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new PreprocessingUserInteractionsViewProxy();
         public UI.MessagePropertiesViewProxy MessageProperties = new MessagePropertiesViewProxy();
@@ -46,9 +44,9 @@ namespace LogJoint.Wasm
         public ViewModelObjects()
         {
             this.LoadedMessagesViewProxy = new UI.LoadedMessages.ViewProxy(LoadedMessagesLogViewerViewProxy);
-            this.SearchPanel = new UI.SearchPanelViewProxy(SearchPanelQuickSearchTextBox);
+            this.SearchPanel = new UI.SearchPanelViewProxy();
             this.SearchResult = new UI.SearchResultViewProxy(SearchResultLogViewer);
-            this.HistoryDialog = new UI.HistoryDialogViewProxy(HistoryDialogQuickSearchTextBox);
+            this.HistoryDialog = new UI.HistoryDialogViewProxy();
         }
 	};
 

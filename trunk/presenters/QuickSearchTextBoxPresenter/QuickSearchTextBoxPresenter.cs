@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 {
 	public class Presenter : IPresenter, IViewModel
 	{
-		readonly IView view;
+		IView view;
 		readonly IChangeNotification changeNotification;
 		string text = "";
 		bool textEditingRestricted = false;
@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 				}
 			);
 
-			view.SetViewModel(this);
+			view?.SetViewModel(this);
 		}
 
 		public event EventHandler<SearchEventArgs> OnSearchNow;
@@ -56,6 +56,8 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		public event EventHandler<CategoryLinkEventArgs> OnCategoryLinkClicked;
 
 		string IPresenter.Text => text;
+
+		IViewModel IPresenter.ViewModel => this;
 
 		void IPresenter.SetSuggestionsHandler(EventHandler<SearchSuggestionsEventArgs> handler)
 		{
@@ -68,13 +70,16 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			if (initialSearchString != null)
 				SetText(initialSearchString);
-			view.SelectEnd();
-			view.ReceiveInputFocus();
+			Utils.PerformViewAction(() => view, view =>
+			{
+				view.SelectEnd();
+				view.ReceiveInputFocus();
+			});
 		}
 
 		void IPresenter.SelectAll()
 		{
-			view.SelectAll();
+			Utils.PerformViewAction(() => view, view => view.SelectAll());
 		}
 
 		void IPresenter.Reset()
@@ -100,6 +105,11 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					ignoreListVisibility: true
 				);
 			}
+		}
+
+		void IViewModel.SetView(IView view)
+		{
+			this.view = view;
 		}
 
 		void IViewModel.OnKeyDown(Key key)
@@ -173,7 +183,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			}
 			else
 			{
-				view.ReceiveInputFocus();
+				Utils.PerformViewAction(() => view, view => view.ReceiveInputFocus());
 				TryShowSuggestions();
 			}
 		}

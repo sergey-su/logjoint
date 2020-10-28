@@ -15,13 +15,12 @@
 
 @code {
     private ISubscription subscription;
-    private IViewModel ViewModel => ViewProxy.ViewModel;
 
     [Parameter]
     public string Class { get; set; } = "";
 
     [Parameter]
-    public QuickSearchTextBoxViewProxy ViewProxy { get; set; }
+    public IViewModel ViewModel { get; set; }
 
     protected override void OnInitialized()
     {

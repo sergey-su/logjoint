@@ -104,6 +104,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
+		QuickSearchTextBox.IViewModel IViewModel.QuickSearchTextBox => searchBoxPresenter.ViewModel;
+
 		bool IViewModel.IsVisible => visible;
 
 		IViewItem IViewModel.RootViewItem => rootViewItem();

@@ -40,6 +40,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		QuickSearchTextBox.IViewModel QuickSearchTextBox { get; }
 
 		ViewCheckableControl CheckableControlsState { get; } // bitmask. Bit is set if control is checked.
 		ViewCheckableControl EnableCheckableControls { get; } // bitmask. Bit is set if control is enabled.

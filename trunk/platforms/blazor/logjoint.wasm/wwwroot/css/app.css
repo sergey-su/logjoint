@@ -1095,13 +1095,13 @@ body {
     display: flex;
     flex-flow: column nowrap;
     overflow-x: hidden;
+    background: var(--control-face-background);
 }
 .message-properties>.grid {
     display: grid;
     grid-auto-rows: max-content;
     grid-template-columns: max-content auto;
     column-gap: 10px;
-    background: var(--control-face-background);
 }
 .message-properties>.grid>.value {
     white-space: nowrap;
@@ -1122,4 +1122,23 @@ body {
 .message-properties .contents-label {
     display: flex;
     align-items: center;
+}
+
+
+
+
+
+
+
+
+.inline-search {
+    display: flex;
+    flex-flow: row nowrap;
+}
+.inline-search>.text {
+    flex-grow: 2;
+}
+.inline-search>button {
+    background: inherit;
+    border: none;
 }

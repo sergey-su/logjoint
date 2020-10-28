@@ -21,6 +21,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		QuickSearchTextBox.IViewModel QuickSearchTextBox { get; }
+
 		bool IsVisible { get; }
 		bool OpenButtonEnabled { get; }
 		IViewItem RootViewItem { get; }

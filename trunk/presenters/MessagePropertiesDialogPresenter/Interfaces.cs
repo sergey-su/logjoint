@@ -17,6 +17,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 	public interface IDialogViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		InlineSearch.IViewModel InlineSearch { get; }
 		DialogData Data { get; }
 
 		void OnNextClicked(bool highlightedChecked);
@@ -31,6 +32,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		void OnContentViewModeChange(int value);
 
 		void OnClosed();
+
+		void OnSearchShortcutPressed();
 	};
 
 	public class DialogData

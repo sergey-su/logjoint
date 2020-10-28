@@ -7,7 +7,7 @@
 
 <div class='search-panel @Class'>
     <div class="search-input">
-        <QuickSearchTextBox ViewProxy="@viewProxies.SearchPanelQuickSearchTextBox"/>
+        <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox"/>
         <button @onclick="@viewModel.OnSearchButtonClicked">Search</button>
     </div>
     <div class="options">
