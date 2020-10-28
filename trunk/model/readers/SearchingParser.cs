@@ -472,7 +472,7 @@ namespace LogJoint
 							var filterMaxMatchLength = filter.Options.Regexp 
 								? textStreamPositioningParams.AlignmentBlockSize
 								: filter.Options.Template.Length;
-							maxMatchLength = Math.Max(maxMatchLength, filter.Options.Template.Length);
+							maxMatchLength = Math.Max(maxMatchLength, filterMaxMatchLength);
 							var tmp = filter.Options;
 							tmp.ReverseSearch = false;
 							fixedOptions.Add(tmp);
