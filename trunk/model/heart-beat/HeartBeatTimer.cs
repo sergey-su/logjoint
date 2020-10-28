@@ -52,7 +52,11 @@ namespace LogJoint
 
 		async Task Worker()
 		{
-			/*for (; ; )
+			if (IsBrowser.Value)
+			{
+				return;
+			}
+			for (; ; )
 			{
 				await Task.Delay(TimeSpan.FromMilliseconds(400)); // this works even if there is open modal dialog
 				try
@@ -63,7 +67,7 @@ namespace LogJoint
 				{
 					collector?.ReportException(e, "periodic timer");
 				}
-			}*/
+			}
 		}
 
 		int suspended = 0;
