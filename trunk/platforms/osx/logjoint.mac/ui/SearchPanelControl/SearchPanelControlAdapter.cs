@@ -9,7 +9,7 @@ namespace LogJoint.UI
 {
 	public partial class SearchPanelControlAdapter: NSViewController, IView
 	{
-		IViewEvents viewEvents;
+		IViewModel viewEvents;
 		Dictionary<ViewCheckableControl, NSButton> checkableControls = new Dictionary<ViewCheckableControl, NSButton>();
 		QuickSearchTextBoxAdapter quickSearchTextBox;
 
@@ -32,37 +32,40 @@ namespace LogJoint.UI
 			quickSearchTextBox.View.MoveToPlaceholder(quickSearchPlaceholder);
 		}
 
-		void IView.SetPresenter(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewEvents = viewModel;
+
+			var updateControls = Updaters.Create (
+				() => viewModel.CheckableControlsState,
+				SetCheckableControlsState);
+			var enableControls = Updaters.Create (
+				() => viewModel.EnableCheckableControls,
+				EnableCheckableControls);
+			var updateFilter = Updaters.Create (
+				() => viewModel.FiltersLink,
+				value => {
+					filtersLink.Hidden = !value.isVisible;
+					filtersLink.StringValue = value.text;
+				});
+
+			viewModel.ChangeNotification.CreateSubscription (() => {
+				updateControls ();
+				enableControls ();
+				updateFilter ();
+			});
 		}
 
-		ViewCheckableControl IView.GetCheckableControlsState()
-		{
-			return checkableControls.Aggregate(0, 
-				(i, ctrl) => ctrl.Value.State == NSCellStateValue.On ? i | (int)ctrl.Key : i,
-				i => (ViewCheckableControl)i
-			);
-		}
-
-		void IView.SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls)
+		void SetCheckableControlsState(ViewCheckableControl checkedControls)
 		{
 			foreach (var ctrl in checkableControls)
-				if ((ctrl.Key & affectedControls) != 0)
-					ctrl.Value.State = (ctrl.Key & checkedControls) != 0 ? NSCellStateValue.On : NSCellStateValue.Off;
+				ctrl.Value.State = (ctrl.Key & checkedControls) != 0 ? NSCellStateValue.On : NSCellStateValue.Off;
 		}
 
-		void IView.EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls)
+		void EnableCheckableControls(ViewCheckableControl enabledControls)
 		{
 			foreach (var ctrl in checkableControls)
-				if ((ctrl.Key & affectedControls) != 0)
-					ctrl.Value.Enabled = (ctrl.Key & enabledControls) != 0;
-		}
-
-		void IView.SetFiltersLink (bool isVisible, string text)
-		{
-			filtersLink.Hidden = !isVisible;
-			filtersLink.StringValue = text;
+				ctrl.Value.Enabled = (ctrl.Key & enabledControls) != 0;
 		}
 
 		Presenters.QuickSearchTextBox.IView IView.SearchTextBox
@@ -72,7 +75,8 @@ namespace LogJoint.UI
 
 		partial void OnSearchModeChanged (NSObject sender)
 		{
-			viewEvents.OnSearchModeControlChecked(checkableControls.FirstOrDefault(ctrl => ctrl.Value == sender).Key);
+			var c = checkableControls.FirstOrDefault (ctrl => ctrl.Value == sender);
+			viewEvents.OnCheckControl(c.Key, c.Value.State == NSCellStateValue.On);
 		}
 
 		partial void OnFindClicked (NSObject sender)

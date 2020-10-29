@@ -50,6 +50,8 @@ namespace LogJoint.UI
 
 		#endregion
 
+		public Action<bool> VisibilitySetter;
+
 		//strongly typed view accessor
 		public new SearchResultsControl View
 		{
@@ -111,7 +113,13 @@ namespace LogJoint.UI
 				}
 			);
 
+			var updateVisibility = Updaters.Create (
+				() => viewModel.IsSearchResultsVisible,
+				value => VisibilitySetter (value)
+			);
+
 			viewModel.ChangeNotification.CreateSubscription (() => {
+				updateVisibility ();
 				updateItems ();
 				updateSearchInProgressIndicator ();
 			});

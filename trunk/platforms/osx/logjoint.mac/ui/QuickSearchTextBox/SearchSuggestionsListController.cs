@@ -49,7 +49,7 @@ namespace LogJoint.UI
 
 		public NSOutlineView ListView => list;
 
-		public void SetListItems(List<ViewListItem> items)
+		public void SetListItems(IReadOnlyList<ISuggestionsListItem> items)
 		{
 			dataSource.Items = items.Select(
 				(i, idx) => new Item { PresenationItem = i, Index = idx }).ToList();
@@ -79,7 +79,7 @@ namespace LogJoint.UI
 		class Item: NSObject
 		{
 			public int Index;
-			public ViewListItem PresenationItem;
+			public ISuggestionsListItem PresenationItem;
 		};
 
 		class DataSource: NSOutlineViewDataSource
@@ -125,7 +125,7 @@ namespace LogJoint.UI
 					view.LinkClicked = (sender, e) => 
 					{
 						e.SuppressDefault = true;
-						owner.owner.viewEvents.OnSuggestionClicked(sourceItem.Index);
+						owner.owner.viewModel.OnSuggestionClicked(sourceItem.Index);
 					};
 					view.StringValue = sourceItem.PresenationItem.Text;
 					if (sourceItem.PresenationItem.IsSelectable)
@@ -159,7 +159,7 @@ namespace LogJoint.UI
 					view.LinkClicked = (sender, e) => 
 					{
 						e.SuppressDefault = true;
-						owner.owner.viewEvents.OnSuggestionLinkClicked(sourceItem.Index);
+						owner.owner.viewModel.OnSuggestionLinkClicked(sourceItem.Index);
 					};
 					view.StringValue = sourceItem.PresenationItem.LinkText;
 					return view;

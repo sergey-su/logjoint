@@ -48,9 +48,9 @@ namespace LogJoint.UI
 			base.AwakeFromNib();
 
 			quickSearchTextBoxAdapter.View.MoveToPlaceholder(quickSearchTextBoxPlaceholder);
-			outlineView.Delegate = new HistoryViewDelegate() { owner = this };
-			Window.DefaultButtonCell = openButton.Cell;
-			outlineView.SizeLastColumnToFit();
+			// outlineView.Delegate = new HistoryViewDelegate() { owner = this };
+			// Window.DefaultButtonCell = openButton.Cell;
+			// outlineView.SizeLastColumnToFit();
 		}
 
 		public new HistoryDialog Window
@@ -58,12 +58,20 @@ namespace LogJoint.UI
 			get { return (HistoryDialog)base.Window; }
 		}
 
-		void IView.SetEventsHandler(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
+			this.viewEvents = viewModel;
 		}
 
-		void IView.Update(ViewItem[] items)
+		Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox => quickSearchTextBoxAdapter;
+
+		void IView.PutInputFocusToItemsList ()
+		{
+			outlineViewContainer.BecomeFirstResponder ();
+		}
+
+		/*
+		void IView.Update(IViewItem[] items)
 		{
 			WillChangeValue(DataProp);
 			data.RemoveAllObjects();
@@ -90,11 +98,6 @@ namespace LogJoint.UI
 		{
 			NSApplication.SharedApplication.AbortModal();
 			this.Close();
-		}
-
-		void IView.PutInputFocusToItemsList()
-		{
-			outlineViewContainer.BecomeFirstResponder();
 		}
 
 		void IView.EnableOpenButton(bool enable)
@@ -183,7 +186,8 @@ namespace LogJoint.UI
 			viewEvents.OnOpenClicked();
 		}
 
-		class HistoryViewDelegate: NSOutlineViewDelegate
+
+		class HistoryViewDelegate : NSOutlineViewDelegate
 		{
 			public HistoryDialogAdapter owner;
 
@@ -194,10 +198,10 @@ namespace LogJoint.UI
 		};
 
 
-		[Register("Item")]
+		[Register ("Item")]
 		public class DataItem : NSObject
 		{
-			public ViewItem data;
+			public IViewItem data;
 			public NSMutableArray children = new NSMutableArray();
 			const string ChildrenProp = "Children";
 
@@ -243,15 +247,16 @@ namespace LogJoint.UI
 				get { return data.Type == ViewItemType.Comment ? NSColor.FromDeviceRgba(0.7f, 0.7f, 0.7f, 1.0f) : NSColor.Text; }
 			}
 
-			public DataItem(ViewItem item)
+			public DataItem(IViewItem item)
 			{
 				this.data = item;
-				foreach (var c in item.Children ?? Enumerable.Empty<ViewItem>())
+				foreach (var c in item.Children.OfType<IViewItem>() ?? Enumerable.Empty<IViewItem> ())
 					children.Add(new DataItem(c));
 			}
 		}
+		*/
 
-		IViewEvents viewEvents;
+		IViewModel viewEvents;
 		QuickSearchTextBoxAdapter quickSearchTextBoxAdapter;
 
 		private NSMutableArray data = new NSMutableArray();

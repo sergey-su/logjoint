@@ -2,11 +2,17 @@
 using System.Collections.Generic;
 using LogJoint.UI.Presenters;
 using AppKit;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
 	public class AlertPopup: IAlertPopup
 	{
+		Task<AlertFlags> IAlertPopup.ShowPopupAsync (string caption, string text, AlertFlags flags)
+		{
+			return Task.FromResult (((IAlertPopup)this).ShowPopup (caption, text, flags));
+		}
+
 		AlertFlags IAlertPopup.ShowPopup(string caption, string text, AlertFlags flags)
 		{
 			NSAlertStyle style = NSAlertStyle.Informational;

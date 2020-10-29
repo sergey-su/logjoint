@@ -52,12 +52,6 @@ namespace LogJoint.UI
 			return true;
 		}
 
-		public async void SetTimer(TimeSpan ts,  Action a)
-		{
-			await System.Threading.Tasks.Task.Delay(ts);
-			a();
-		}
-
 		MainWindowAdapter owner;
 	}
 }

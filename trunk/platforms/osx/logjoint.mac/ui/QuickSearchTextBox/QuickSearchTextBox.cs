@@ -69,7 +69,7 @@ namespace LogJoint.UI
 			}
 			if (key != Key.None)
 			{
-				owner.viewEvents.OnKeyDown(key);
+				owner.viewModel.OnKeyDown(key);
 				return true;
 			}
 			return base.PerformKeyEquivalent (theEvent);;

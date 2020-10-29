@@ -31,8 +31,6 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			viewModel.ChangeNotification.CreateSubscription (updateControls);
 		}
 
-		object IView.UIControl => this.View;
-
 		void UpdateControl (ViewControlId id, ControlData data)
 		{
 			var controls = GetControlsSet (id);

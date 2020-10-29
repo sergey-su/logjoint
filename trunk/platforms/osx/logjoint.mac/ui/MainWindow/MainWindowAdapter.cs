@@ -9,7 +9,6 @@ namespace LogJoint.UI
 {
 	public partial class MainWindowAdapter : AppKit.NSWindowController,
 		IView,
-		LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView,
 		Presenters.ISystemThemeDetector
 	{
 		IViewModel viewModel;
@@ -145,8 +144,12 @@ namespace LogJoint.UI
 				}
 			);
 
+			var updateActiveTab = Updaters.Create (() => viewModel.ActiveTab,
+				value => ActivateTab(viewModel.VisibleTabs[value].Id));
+
 			viewModel.ChangeNotification.CreateSubscription (() => {
 				updateAutoUpdateButton ();
+				updateActiveTab ();
 			});
 		}
 
@@ -197,7 +200,7 @@ namespace LogJoint.UI
 			NSApplication.SharedApplication.Terminate (this);
 		}
 
-		void IView.ActivateTab(string tabId)
+		void ActivateTab(string tabId)
 		{
 			int tabIdx;
 			switch (tabId)
@@ -214,23 +217,14 @@ namespace LogJoint.UI
 				case TabIDs.Search:
 					tabIdx = 3;
 					break;
+				case TabIDs.Postprocessing:
+					tabIdx = 4;
+					break;
 				default:
 					return;
 			}
 			this.toolbarTabsSelector.SelectedSegment = tabIdx;
 			this.tabView.SelectAt(tabIdx); 
-		}
-
-		void IView.AddTab(string tabId, string caption, object uiControl)
-		{
-			var nativeView = uiControl as NSView;
-			if (nativeView == null)
-				throw new ArgumentException("view of wrong type passed");
-			this.toolbarTabsSelector.SegmentCount += 1;
-			this.toolbarTabsSelector.SetLabel(caption, toolbarTabsSelector.SegmentCount - 1);
-			var tabItem = new TabViewItem { id = tabId };
-			this.tabView.Add(tabItem);
-			nativeView.MoveToPlaceholder(tabItem.View);
 		}
 
 		void IView.EnableFormControls(bool enable)
@@ -267,12 +261,6 @@ namespace LogJoint.UI
 		void IView.SetShareButtonState(bool visible, bool enabled, bool progress)
 		{
 			shareToolbarItem.Enabled = visible && enabled;
-		}
-
-		bool LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView.Collapsed
-		{
-			get { return searchResultsPlaceholder.Hidden; }
-			set { searchResultsPlaceholder.Hidden = value; searchResultsSplitter.AdjustSubviews(); }
 		}
 
 		public LoadedMessagesControlAdapter LoadedMessagesControlAdapter => loadedMessagesControlAdapter;
@@ -326,6 +314,11 @@ namespace LogJoint.UI
 
 			timelinePanelControlAdapter = new TimelinePanelControlAdapter ();
 			timelinePanelControlAdapter.View.MoveToPlaceholder (timelinePanelPlaceholder);
+
+			searchResultsControlAdapter.VisibilitySetter = value => {
+				searchResultsPlaceholder.Hidden = value;
+				searchResultsSplitter.AdjustSubviews ();
+			};
 
 			SetToolbarItemVisibility (pendingUpdateNotificationButton, false);
 
@@ -445,7 +438,7 @@ namespace LogJoint.UI
 			public override void WillSelect(NSTabView tabView, NSTabViewItem item)
 			{
 				if (item is TabViewItem tabViewItem)
-					owner.viewModel.OnTabChanging (tabViewItem.id);
+					owner.viewModel.OnChangeTab (tabViewItem.id);
 			}
 		};
 

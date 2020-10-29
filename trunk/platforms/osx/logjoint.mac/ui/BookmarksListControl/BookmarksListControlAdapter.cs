@@ -143,13 +143,13 @@ namespace LogJoint.UI
 			}
 		}
 
-		IEnumerable<ViewItem> GetSelectedItems()
+		IEnumerable<IViewItem> GetSelectedItems()
 		{
 			var selectedRow = (int)tableView.SelectedRow;
 			var selectedItem = GetItem(selectedRow)?.Data;
-			if (!selectedItem.HasValue)
-				return Enumerable.Empty<ViewItem>();
-			return (new [] { selectedItem.Value }).Union(
+			if (selectedItem == null)
+				return Enumerable.Empty<IViewItem> ();
+			return (new [] { selectedItem }).Union(
 				dataSource.items
 				.Where(i => tableView.IsRowSelected((int)i.Index) && i.Index != selectedRow)
 				.Select(i => i.Data)
@@ -158,16 +158,16 @@ namespace LogJoint.UI
 
 		class Item: NSObject
 		{
-			readonly ViewItem data;
+			readonly IViewItem data;
 			readonly int index;
 
-			public Item(BookmarksListControlAdapter owner, ViewItem data, int index)
+			public Item(BookmarksListControlAdapter owner, IViewItem data, int index)
 			{
 				this.data = data;
 				this.index = index;
 			}
 
-			public ViewItem Data
+			public IViewItem Data
 			{
 				get { return data; }
 			}

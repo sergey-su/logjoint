@@ -87,8 +87,6 @@ namespace LogJoint.UI.Presenters
 
 		SearchPanel.IView Factory.IViewsFactory.CreateSearchPanelView () => mainWindow.SearchPanelControlAdapter;
 
-		SearchPanel.ISearchResultsPanelView Factory.IViewsFactory.CreateSearchResultsPanelView () => mainWindow;
-
 		SearchResult.IView Factory.IViewsFactory.CreateSearchResultView () => mainWindow.SearchResultsControlAdapter;
 
 		SharingDialog.IView Factory.IViewsFactory.CreateSharingDialogView () => new SharingDialogController ();

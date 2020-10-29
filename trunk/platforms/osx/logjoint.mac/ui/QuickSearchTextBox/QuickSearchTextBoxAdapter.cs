@@ -10,9 +10,10 @@ namespace LogJoint.UI
 {
 	public partial class QuickSearchTextBoxAdapter : AppKit.NSViewController, IView
 	{
-		internal IViewEvents viewEvents;
+		internal IViewModel viewModel;
 		SearchSuggestionsListController suggestions;
 		RestrictingFormatter formatter;
+		ISubscription subscription;
 			
 		#region Constructors
 
@@ -30,20 +31,58 @@ namespace LogJoint.UI
 
 		#endregion
 
+		protected override void Dispose (bool disposing)
+		{
+			if (disposing) {
+				subscription.Dispose ();
+			}
+			base.Dispose (disposing);
+		}
+
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
 			TextBox.owner = this;
 			TextBox.Delegate = new Delegate() { owner = this };
 			TextBox.Formatter = formatter = new RestrictingFormatter();
-			((IView)this).SetListAvailability(false);
+			SetListAvailability(false);
 		}
 
 		public QuickSearchTextBox TextBox => searchField;
 
-		void IView.SetPresenter(IViewEvents viewEvents)
-		{
-			this.viewEvents = viewEvents;
+		void IView.SetViewModel (IViewModel viewModel) {
+			View.EnsureCreated ();
+
+			this.viewModel = viewModel;
+
+			var updateListAvailability = Updaters.Create (
+				() => viewModel.SuggestionsListAvailable, SetListAvailability);
+			var updateListVisibility = Updaters.Create (
+				() => viewModel.SuggestionsListVisibile, SetListVisibility);
+			var updateRestriction = Updaters.Create (
+				() => viewModel.TextEditingRestricted, RestrictTextEditing);
+			var listItemsUpdater = Updaters.Create (
+				() => viewModel.SuggestionsListContentVersion,
+				_ => SetListItems (viewModel.SuggestionsListItems));
+			var listSelectionUpdater = Updaters.Create (
+				() => viewModel.SelectedSuggestionsListItem,
+				value => SetListSelectedItem (value.GetValueOrDefault ()));
+			var updateText = Updaters.Create (
+				() => viewModel.Text,
+				value => {
+					if (TextBox.StringValue != value)
+						TextBox.StringValue = value;
+				}
+			);
+
+			subscription = viewModel.ChangeNotification.CreateSubscription (() => {
+				updateListAvailability ();
+				updateListVisibility ();
+				updateRestriction ();
+				listItemsUpdater ();
+				listSelectionUpdater ();
+				updateText ();
+			});
 		}
 
 		void IView.SelectEnd()
@@ -65,12 +104,7 @@ namespace LogJoint.UI
 				View.Window.MakeFirstResponder(TextBox);
 		}
 
-		void IView.ResetQuickSearchTimer(int due)
-		{
-			// timer functionality is implemented natively by Cocoa control
-		}
-
-		void IView.SetListVisibility(bool value)
+		void SetListVisibility(bool value)
 		{
 			if (value)
 				EnsureListCreated();
@@ -80,32 +114,30 @@ namespace LogJoint.UI
 			dropDownButton.ToolTip = value ? "Hide suggestions ⌘↑" : "Display suggestions ⌘↓";
 		}
 
-		void IView.SetListAvailability(bool value)
+		void SetListAvailability(bool value)
 		{
 			dropDownButton.Hidden = !value;
 			trailingConstraint.Constant = !value ? 0 : 26;
 		}
 
-		void IView.RestrictTextEditing(bool restrict)
+		void RestrictTextEditing(bool restrict)
 		{
 			formatter.RestrictionEnabled = restrict;
 		}
 
-		string IView.Text
+		void SetListItems(IReadOnlyList<ISuggestionsListItem> items)
 		{
-			get { return TextBox.StringValue; }
-			set { TextBox.StringValue = value; }
-		}
-
-		void IView.SetListItems(List<ViewListItem> items)
-		{
-			EnsureListCreated();
+			if (!viewModel.SuggestionsListVisibile)
+				return;
+			EnsureListCreated ();
 			suggestions.SetListItems(items);
 		}
 
-		void IView.SetListSelectedItem(int index)
+		void SetListSelectedItem(int index)
 		{
-			EnsureListCreated();
+			if (!viewModel.SuggestionsListVisibile)
+				return;
+			EnsureListCreated ();
 			suggestions.SetListSelectedItem(index);
 		}
 
@@ -140,12 +172,12 @@ namespace LogJoint.UI
 
 		partial void OnSearchAction (NSObject sender)
 		{
-			viewEvents.OnQuickSearchTimerTriggered();
+			viewModel.OnKeyDown(Key.Enter);
 		}
 
 		partial void dropDownButtonClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnDropDownButtonClicked();
+			viewModel.OnDropDownButtonClicked();
 		}
 
 		class Delegate: NSSearchFieldDelegate
@@ -155,7 +187,7 @@ namespace LogJoint.UI
 			[Export("controlTextDidChange:")]
 			void TextDidChange(NSObject _)
 			{
-				owner.viewEvents.OnTextChanged();
+				owner.viewModel.OnChangeText(owner.TextBox.StringValue);
 			}
 
 			[Export("controlTextDidEndEditing:")]
@@ -165,16 +197,16 @@ namespace LogJoint.UI
 				if (textMovement == (nint)(long)NSTextMovement.Return)
 				{
 					if ((NSEvent.CurrentModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0)
-						owner.viewEvents.OnKeyDown(Key.EnterWithReverseSearchModifier);
+						owner.viewModel.OnKeyDown(Key.EnterWithReverseSearchModifier);
 					else
-						owner.viewEvents.OnKeyDown(Key.Enter);
+						owner.viewModel.OnKeyDown(Key.Enter);
 					return;
 				}
 				var focusTakenOverBy = evt.UserInfo.ValueForKey ((NSString)"_NSFirstResponderReplacingFieldEditor");
 				if (focusTakenOverBy != this && 
 				    !(owner.suggestions != null && focusTakenOverBy == owner.suggestions.ListView)) 
 				{
-					owner.viewEvents.OnLostFocus();
+					owner.viewModel.OnLostFocus();
 					return;
 				}
 			}
