@@ -87,8 +87,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.JsonBasedFormatPage
 
 		void IGenericViewEvents.OnChangeTransformButtonClicked()
 		{
-			using (var interation = objectsFactory.CreateJUSTEditorDialog())
-				interation.ShowDialog(formatRoot, sampleLogAccess);
+			using (var interaction = objectsFactory.CreateJUSTEditorDialog())
+				interaction.ShowDialog(formatRoot, sampleLogAccess);
 			UpdateView();
 		}
 

@@ -57,8 +57,8 @@ namespace LogJoint.Tests.Integration
 		public async Task RunPluginTests(string pluginDir, string filters, bool needsDepsDownload)
 		{
 			IPluginManifest manifest = new PluginManifest(pluginDir);
-			var testFile = manifest.Test ?? throw new ArgumentException($"Plug-in does not contain tests: {manifest.AbsolulePath}");
-			var testsAsm = Assembly.LoadFrom(testFile.AbsolulePath);
+			var testFile = manifest.Test ?? throw new ArgumentException($"Plug-in does not contain tests: {manifest.AbsolutePath}");
+			var testsAsm = Assembly.LoadFrom(testFile.AbsolutePath);
 			var downloadedDependenciesDirs = new List<string>();
 			try
 			{
@@ -70,7 +70,7 @@ namespace LogJoint.Tests.Integration
 					filters,
 					app =>
 					{
-						var autoAccept = app.AutoAcceptPreprocessingUserInteration();
+						var autoAccept = app.AutoAcceptPreprocessingUserInteraction();
 						return () =>
 						{
 							autoAccept.Dispose();

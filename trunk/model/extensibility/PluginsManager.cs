@@ -145,7 +145,7 @@ namespace LogJoint.Extensibility
 				void LoadPlugin(IPluginManifest manifest)
 				{
 					var pluginEntry = (preferTestPluginEntryPoints ? manifest.TestEntry : null) ?? manifest.Entry;
-					var pluginPath = pluginEntry.AbsolulePath;
+					var pluginPath = pluginEntry.AbsolutePath;
 
 					tracer.Info("Loading plugin {0} from '{1}'", manifest.Id, pluginPath);
 
@@ -254,11 +254,11 @@ namespace LogJoint.Extensibility
 							var sdkFile = sdks.FirstOrDefault(f => Path.GetFileName(f.RelativePath) == fileName);
 							try
 							{
-								return sdkFile != null ? Assembly.LoadFrom(sdkFile.AbsolulePath) : null;
+								return sdkFile != null ? Assembly.LoadFrom(sdkFile.AbsolutePath) : null;
 							}
 							catch (Exception ex)
 							{
-								throw new Exception($"Failed to load SDK asm '{sdkFile.AbsolulePath}' requested by {manifest.Id}", ex);
+								throw new Exception($"Failed to load SDK asm '{sdkFile.AbsolutePath}' requested by {manifest.Id}", ex);
 							}
 						}
 						AppDomain.CurrentDomain.AssemblyResolve += dependencyResolveHandler;

@@ -39,7 +39,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		string Text { get; }
 		bool TextEditingRestricted { get; }
 		bool ClearTextIconVisible { get; }
-		bool SuggestionsListAvailabile { get; }
+		bool SuggestionsListAvailable { get; }
 		bool SuggestionsListVisibile { get; }
 		IReadOnlyList<ISuggestionsListItem> SuggestionsListItems { get; }
 		// The two below are to support non-reactive views

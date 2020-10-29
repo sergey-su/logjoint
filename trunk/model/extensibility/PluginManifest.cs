@@ -87,7 +87,7 @@ namespace LogJoint.Extensibility
 
 		string IPluginManifest.PluginDirectory => pluginDirectory;
 
-		string IPluginManifest.AbsolulePath => absolutePath;
+		string IPluginManifest.AbsolutePath => absolutePath;
 
 		string IPluginManifest.Id => id;
 		Version IPluginManifest.Version => version;
@@ -119,7 +119,7 @@ namespace LogJoint.Extensibility
 
 			string IPluginFile.RelativePath => relativePath;
 
-			string IPluginFile.AbsolulePath => Path.Combine(manifest.pluginDirectory, relativePath);
+			string IPluginFile.AbsolutePath => Path.Combine(manifest.pluginDirectory, relativePath);
 
 			public override string ToString() => $"{type} {relativePath}";
 		};

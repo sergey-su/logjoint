@@ -85,7 +85,7 @@ namespace LogJoint.Tests.Integration
 			Task IUtils.WaitFor(Func<bool> condition, string operationName, TimeSpan? timeout) => app.WaitFor(condition, operationName, timeout);
 		};
 
-		public static IDisposable AutoAcceptPreprocessingUserInteration(this TestAppInstance app)
+		public static IDisposable AutoAcceptPreprocessingUserInteraction(this TestAppInstance app)
 		{
 			UI.Presenters.PreprocessingUserInteractions.DialogViewData acceptedData = null;
 			var subs = app.ModelObjects.ChangeNotification.CreateSubscription(() =>

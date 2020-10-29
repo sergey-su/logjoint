@@ -89,8 +89,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 
 		void IGenericViewEvents.OnChangeTransformButtonClicked()
 		{
-			using (var interation = objectsFactory.CreateXsltEditorDialog())
-				interation.ShowDialog(formatRoot, sampleLogAccess);
+			using (var interaction = objectsFactory.CreateXsltEditorDialog())
+				interaction.ShowDialog(formatRoot, sampleLogAccess);
 			UpdateView();
 		}
 

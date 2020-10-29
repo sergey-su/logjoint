@@ -185,7 +185,7 @@ namespace LogJoint.AutoUpdate
 					Extensibility.IPluginManifest manifest = new Extensibility.PluginManifest(pluginFolder);
 					pluginFormats.UnionWith(manifest.Files
 						.Where(f => f.Type == Extensibility.PluginFileType.FormatDefinition)
-						.Select(f => Path.GetFileName(f.AbsolulePath).ToLower()));
+						.Select(f => Path.GetFileName(f.AbsolutePath).ToLower()));
 				}
 				catch (Extensibility.BadManifestException)
 				{

@@ -74,7 +74,7 @@ namespace LogJoint.UI.Presenters.Tests
 
 			// availablity must be false to avoid unnecessary creation of view's objects
 			// for suggestions-less SearchTextBox-es
-			Assert.IsFalse(viewModel.SuggestionsListAvailabile);
+			Assert.IsFalse(viewModel.SuggestionsListAvailable);
 			Assert.IsFalse(viewModel.SuggestionsListVisibile);
 			Assert.IsEmpty(viewModel.SuggestionsListItems);
 			Assert.IsNull(viewModel.SelectedSuggestionsListItem);

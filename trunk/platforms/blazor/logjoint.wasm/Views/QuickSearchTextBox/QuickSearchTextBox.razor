@@ -11,7 +11,7 @@
     {
         <button class="clear-button" @onclick="@ViewModel.OnClearTextIconClicked">✕</button>
     }
-    @if (ViewModel.SuggestionsListAvailabile)
+    @if (ViewModel.SuggestionsListAvailable)
     {
         <button class="suggesions-button" @onclick="@ViewModel.OnDropDownButtonClicked">@(ViewModel.SuggestionsListVisibile ? "▴" : "▾")</button>
     }
@@ -37,7 +37,7 @@
         ViewModel.SetView(this);
 
         subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (ViewModel.Text, ViewModel.SuggestionsListAvailabile, ViewModel.SuggestionsListVisibile, ViewModel.ClearTextIconVisible),
+            () => (ViewModel.Text, ViewModel.SuggestionsListAvailable, ViewModel.SuggestionsListVisibile, ViewModel.ClearTextIconVisible),
             _ => StateHasChanged()
         ));
     }

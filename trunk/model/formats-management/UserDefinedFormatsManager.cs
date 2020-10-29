@@ -89,13 +89,13 @@ namespace LogJoint
 		{
 			foreach (var formatFile in manifest.Files.Where(f => f.Type == Extensibility.PluginFileType.FormatDefinition))
 			{
-				var root = XDocument.Load(formatFile.AbsolulePath).Element("format");
+				var root = XDocument.Load(formatFile.AbsolutePath).Element("format");
 				pluginFactories.AddRange(
 					from factoryNodeCandidate in root.Elements()
 					where nodeNameToType.ContainsKey(factoryNodeCandidate.Name.LocalName)
 					let createParams = new UserDefinedFactoryParams()
 					{
-						Location = formatFile.AbsolulePath,
+						Location = formatFile.AbsolutePath,
 						FactoryRegistry = registry,
 						TempFilesManager = tempFilesManager,
 						TraceSourceFactory = traceSourceFactory,

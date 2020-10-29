@@ -69,7 +69,7 @@ namespace LogJoint.UI.QuickSearchTextBox
 			this.viewModel = viewModel;
 
 			var updateListAvailability = Updaters.Create(
-				() => viewModel.SuggestionsListAvailabile,
+				() => viewModel.SuggestionsListAvailable,
 				SetListAvailability
 			);
 			var updateListVisibility = Updaters.Create(
@@ -78,7 +78,7 @@ namespace LogJoint.UI.QuickSearchTextBox
 			);
 			var updateList = Updaters.Create(
 				() => viewModel.SuggestionsListItems,
-				() => viewModel.SuggestionsListAvailabile,
+				() => viewModel.SuggestionsListAvailable,
 				(items, available) =>
 				{
 					if (available && viewModel.SuggestionsListContentVersion != listVersion)
@@ -265,7 +265,7 @@ namespace LogJoint.UI.QuickSearchTextBox
 			var childY = (cliSz.Height - childSz) / 2;
 			var childX = cliSz.Width - cliSz.Height + (cliSz.Height - childSz) / 2;
 
-			if (viewModel.SuggestionsListAvailabile)
+			if (viewModel.SuggestionsListAvailable)
 			{
 				dropDownButton.Size = new Size(childSz, childSz);
 				dropDownButton.Location = new Point(childX, childY);

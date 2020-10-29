@@ -210,7 +210,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		bool IViewModel.TextEditingRestricted => textEditingRestricted;
 
-		bool IViewModel.SuggestionsListAvailabile => suggestions.Length != 0;
+		bool IViewModel.SuggestionsListAvailable => suggestions.Length != 0;
 
 		bool IViewModel.SuggestionsListVisibile => suggestionsListVisible;
 

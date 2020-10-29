@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters
 		/// </summary>
 		void OpenInTextEditor(string filePath);
 		/// <summary>
-		/// Awaitable file editor interation
+		/// Awaitable file editor interaction
 		/// </summary>
 		Task EditFile(string filePath, CancellationToken cancel);
 	}

@@ -59,13 +59,13 @@ namespace LogJoint.Extensibility
 		IPluginManifest Manifest { get; }
 		PluginFileType Type { get; }
 		string RelativePath { get; }
-		string AbsolulePath { get; }
+		string AbsolutePath { get; }
 	};
 
 	public interface IPluginManifest
 	{
 		string PluginDirectory { get; }
-		string AbsolulePath { get; }
+		string AbsolutePath { get; }
 		string Id { get; }
 		string Name { get; }
 		string Description { get; }
