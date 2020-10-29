@@ -383,9 +383,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			HandlePropertyCellClick(property as PropertyInfo);
 		}
 
-		void IViewModel.OnPropertyCellCopyShortcutPressed(int propertyIndex)
+		void IViewModel.OnPropertyCellCopyShortcutPressed()
 		{
-			CopyPropertyToClipboard(getCurrentProperties().ElementAtOrDefault(propertyIndex));
+			var prop = getCurrentProperties().FirstOrDefault(p => p.IsSelected);
+			if (prop != null)
+				CopyPropertyToClipboard(prop);
 		}
 
 		void IViewModel.OnNodeDeleteKeyPressed()

@@ -2,6 +2,7 @@
 @using LogJoint.UI.Presenters.Reactive
 @using Microsoft.JSInterop
 @inject JsInterop jsInterop
+@implements IDisposable
 
 <ul class="list nice-scroll @Class" @onkeydown="HandleKey" @ref="ListRef">
     @{var itemIndex = 0;}
@@ -28,6 +29,7 @@
     [Inject]
     private IJSRuntime JSRuntime { get; set; }
     private ElementReference ListRef { get; set; }
+    private IDisposable copyHandler;
     private int focused;
 
     [Parameter]
@@ -47,6 +49,9 @@
 
     [Parameter]
     public string ItemClass { get; set; } = "";
+
+    [Parameter]
+    public Action OnCopy { get; set; }
 
     public void TrySelectItem(IListItem item)
     {
@@ -86,11 +91,22 @@
         }
     }
 
+    public void Dispose()
+    {
+        copyHandler?.Dispose();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await jsInterop.Keyboard.AddDefaultPreventingHandler(ListRef, "ArrowUp", "ArrowDown");
+            copyHandler = await jsInterop.Keyboard.AddHandler(ListRef, new KeyboardInterop.Options
+            {
+                StopPropagation = true,
+                PreventDefault = true,
+                Handler = OnCopy
+            }, "Edit+C/i");
         }
     }
 }

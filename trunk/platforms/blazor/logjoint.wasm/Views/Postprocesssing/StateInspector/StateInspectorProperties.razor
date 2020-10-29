@@ -6,7 +6,8 @@
     <ListView Class="the-list"
               Items="@Items"
               OnSelect="@(items => ViewModel.OnSelectProperty(items.OfType<IPropertyListItem>().FirstOrDefault()))"
-              OnDoubleClick="@(item => ViewModel.OnPropertyDoubleClicked(item as IPropertyListItem))">
+              OnDoubleClick="@(item => ViewModel.OnPropertyDoubleClicked(item as IPropertyListItem))"
+              OnCopy="ViewModel.OnPropertyCellCopyShortcutPressed">
         <ItemTemplate>
             @{var item = (IPropertyListItem)context;}
             <div>@item.Name</div>

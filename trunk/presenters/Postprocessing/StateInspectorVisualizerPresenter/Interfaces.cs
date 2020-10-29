@@ -63,7 +63,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void OnPropertiesRowDoubleClicked(int rowIndex);
 		PropertyCellPaintInfo OnPropertyCellPaint(int rowIndex);
 		void OnPropertyCellClicked(int rowIndex);
-		void OnPropertyCellCopyShortcutPressed(int propertyIndex);
+		void OnPropertyCellCopyShortcutPressed();
 		// Below are reactive-friendly version of properties API above
 		IReadOnlyList<IPropertyListItem> PropertyItems { get; }
 		void OnSelectProperty(IPropertyListItem property);
