@@ -222,7 +222,7 @@ namespace LogJoint.Preprocessing
 		readonly ICredentialsCache credCache;
 		readonly WebViewTools.IWebViewTools webBrowserDownloader;
 		readonly ILogsDownloaderConfig config;
-		readonly bool useHttpClient = true; // todo: only in blazor?
+		readonly bool useHttpClient = IsBrowser.Value;
 		internal const string name = "download";
 	};
 }

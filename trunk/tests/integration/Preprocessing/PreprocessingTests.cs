@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using NFluent;
+using System.Threading;
 
 namespace LogJoint.Tests.Integration
 {
@@ -82,13 +83,14 @@ namespace LogJoint.Tests.Integration
 			var preprocessorTask = app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
 			await app.WaitFor(() => (app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "").Contains("Unpacking"));
 			app.ViewModel.SourcesList.OnSelectAllShortcutPressed();
-			app.Mocks.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
-				UI.Presenters.AlertFlags.Yes);
+			app.Mocks.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
+				Task.FromResult(UI.Presenters.AlertFlags.Yes));
 			var stopwatch = Stopwatch.StartNew();
 			app.ViewModel.SourcesList.OnDeleteButtonPressed();
 			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 0);
 			stopwatch.Stop();
 			Check.That(stopwatch.ElapsedMilliseconds).IsStrictlyLessThan(1000);
+			await preprocessorTask.WithTimeout(TimeSpan.FromMilliseconds(1000)).IgnoreCancellationAsync();
 			Check.That(preprocessorTask.IsCanceled).IsTrue();
 		}
 
@@ -148,6 +150,7 @@ namespace LogJoint.Tests.Integration
 
 			await app.Dispose();
 
+			
 			Check.That(downloadingPreprocessing.IsFaulted).IsTrue();
 			var webEx = downloadingPreprocessing.Exception.InnerException as System.Net.WebException;
 			Check.That(webEx).IsNotNull();

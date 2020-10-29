@@ -172,7 +172,7 @@ namespace LogJoint.Tests.Integration
 		public async Task CanSaveAsLogFromZipContainer(TestAppInstance app)
 		{
 			CloseDialog();
-			app.PresentationObjects.AlertPopup.ShowPopup(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
+			app.PresentationObjects.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(Task.FromResult(UI.Presenters.AlertFlags.Yes));
 			app.ViewModel.SourcesManager.OnDeleteAllLogSourcesButtonClicked();
 			await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.zip"));
 			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
