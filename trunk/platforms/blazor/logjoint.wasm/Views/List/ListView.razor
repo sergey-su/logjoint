@@ -32,7 +32,6 @@
     private IJSRuntime JSRuntime { get; set; }
     private ElementReference ListRef { get; set; }
     private ISubscription subscription;
-    private IDisposable copyHandler;
     private Func<ImmutableHashSet<int>> getSelected;
     private int? candidatePrimary;
     private int? establishedPrimary;
@@ -57,14 +56,14 @@
     public string ItemClass { get; set; } = "";
 
     [Parameter]
-    public Action OnCopy { get; set; }
+    public Action<KeyboardEventArgs, IListItem> OnKeyDown { get; set; }
 
     [Parameter]
     public IChangeNotification ChangeNotification { get; set; }
 
     protected override void OnInitialized()
     {
-        getSelected = Selectors.Create(() => Items, items => 
+        getSelected = Selectors.Create(() => Items, items =>
             ImmutableHashSet.CreateRange(items
                 .Select((item, idx) => item.IsSelected ? new int?(idx) : new int?())
                 .Where(i => i.HasValue)
@@ -72,8 +71,8 @@
 
         var updateEstablishedPrimary = Updaters.Create(getSelected, selected => {
             if (candidatePrimary != null) {
-                establishedPrimary = 
-                    selected.Contains(candidatePrimary.Value) ? candidatePrimary : 
+                establishedPrimary =
+                    selected.Contains(candidatePrimary.Value) ? candidatePrimary :
                     selected.Count > 0 ? selected.First() :
                     new int?();
             }
@@ -84,7 +83,6 @@
             if (!p.HasValue)
                 return;
             await JSRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", ListRef, p.Value);
-            // todo: do that if focus is inside the list
             await JSRuntime.InvokeVoidAsync("logjoint.list.focusPrimaryListItem", ListRef);
         });
 
@@ -133,28 +131,33 @@
 
     void HandleKey(KeyboardEventArgs eventArgs)
     {
-        int? delta =
+        int? selectionDelta =
             eventArgs.Key == "ArrowUp" ? -1 :
             eventArgs.Key == "ArrowDown" ? +1 :
             null;
-        if (delta != null && establishedPrimary != null && Items.Count > 0)
+        if (selectionDelta != null)
         {
-            var i = Math.Clamp(establishedPrimary.Value + delta.Value, 0, Items.Count - 1);
-            candidatePrimary = i;
-            if (eventArgs.ShiftKey)
+            if (establishedPrimary != null && Items.Count > 0)
             {
-                OnSelect?.Invoke(getSelected().Add(i).Select(i => Items[i]));
+                var i = Math.Clamp(establishedPrimary.Value + selectionDelta.Value, 0, Items.Count - 1);
+                candidatePrimary = i;
+                if (eventArgs.ShiftKey)
+                {
+                    OnSelect?.Invoke(getSelected().Add(i).Select(i => Items[i]));
+                }
+                else
+                {
+                    OnSelect?.Invoke(new[] { Items[i] });
+                }
             }
-            else
-            {
-                OnSelect?.Invoke(new[] { Items[i] });
-            }
+            return;
         }
+
+        OnKeyDown?.Invoke(eventArgs, Items.ElementAtOrDefault(establishedPrimary.GetValueOrDefault(-1)));
     }
 
     public void Dispose()
     {
-        copyHandler?.Dispose();
         subscription?.Dispose();
     }
 
@@ -163,12 +166,6 @@
         if (firstRender)
         {
             await jsInterop.Keyboard.AddDefaultPreventingHandler(ListRef, "ArrowUp", "ArrowDown");
-            copyHandler = await jsInterop.Keyboard.AddHandler(ListRef, new KeyboardInterop.Options
-            {
-                StopPropagation = true,
-                PreventDefault = true,
-                Handler = OnCopy
-            }, "Edit+C/i");
         }
     }
 

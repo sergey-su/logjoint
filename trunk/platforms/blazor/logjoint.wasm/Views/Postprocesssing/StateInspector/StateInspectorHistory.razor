@@ -13,7 +13,8 @@
               Items="@Items"
               OnSelect="@(items => ViewModel.OnChangeHistoryChangeSelection(items.OfType<IStateHistoryItem>()))"
               OnDoubleClick="@(item => ViewModel.OnChangeHistoryItemDoubleClicked((IStateHistoryItem)item))"
-              ChangeNotification="@ViewModel.ChangeNotification">
+              ChangeNotification="@ViewModel.ChangeNotification"
+              OnKeyDown="HandleKeyDown">
         <ItemTemplate>
             @{var item = (IStateHistoryItem)context;}
             @{var f = FocusedMessagePositionInChangeHistory; }
@@ -72,5 +73,20 @@
     {
         resizeHandler1?.Dispose();
         resizeHandler2?.Dispose();
+    }
+
+    void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.IListItem item)
+    {
+        if (item is IStateHistoryItem historyItem)
+        {
+            if (eventArgs.Key == "Enter")
+            {
+                ViewModel.OnChangeHistoryItemKeyEvent(historyItem, Key.Enter);
+            }
+            else if (eventArgs.Key == "b" || eventArgs.Key == "B")
+            {
+                ViewModel.OnChangeHistoryItemKeyEvent(historyItem, Key.BookmarkShortcut);
+            }
+        }
     }
 }

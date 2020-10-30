@@ -1,5 +1,6 @@
 ﻿@using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 @namespace LogJoint.Wasm.UI.Postprocessing
+@inject JsInterop jsInterop
 
 <div class='properties @Class'>
     <div class="toolbar">Properties:</div>
@@ -7,8 +8,8 @@
               Items="@Items"
               OnSelect="@(items => ViewModel.OnSelectProperty(items.OfType<IPropertyListItem>().FirstOrDefault()))"
               OnDoubleClick="@(item => ViewModel.OnPropertyDoubleClicked(item as IPropertyListItem))"
-              OnCopy="ViewModel.OnPropertyCellCopyShortcutPressed"
-              ChangeNotification="ViewModel.ChangeNotification">
+              ChangeNotification="ViewModel.ChangeNotification"
+              OnKeyDown="HandleKeyDown">
         <ItemTemplate>
             @{var item = (IPropertyListItem)context;}
             <div>@item.Name</div>
@@ -35,4 +36,16 @@
 
     [Parameter]
     public IReadOnlyList<IPropertyListItem> Items { get; set; }
+
+    void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.IListItem item)
+    {
+        if (eventArgs.Key.ToLower() == "c" && jsInterop.Browser.HasEditKey(eventArgs))
+        {
+            ViewModel.OnPropertyCellCopyShortcutPressed();
+        }
+        if (eventArgs.Key == "Enter")
+        {
+            ViewModel.OnPropertyDoubleClicked(item as IPropertyListItem);
+        }
+    }
 }
