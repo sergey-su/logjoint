@@ -50,7 +50,8 @@
             using (var keepAlive = model.FileSystem.OpenFile(fileName))
             {
                 var task = model.LogSourcesPreprocessings.Preprocess(
-                    new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
+                    new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(
+                        new LogJoint.Preprocessing.PreprocessingStepParams(fileName, displayName: System.IO.Path.GetFileName(fileName))) },
                     $"Processing dropped file {handle}"
                 );
                 await task;

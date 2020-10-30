@@ -213,11 +213,12 @@ namespace LogJoint.Preprocessing
 			Argument = argument;
 		}
 
-		public PreprocessingStepParams(string originalSource)
+		public PreprocessingStepParams(string originalSource, string displayName = null)
 		{
 			PreprocessingHistory = ImmutableList.Create(new PreprocessingHistoryItem(DefaultStepName, originalSource));
 			Location = originalSource;
 			FullPath = originalSource;
+			DisplayName = displayName;
 		}
 	};
 

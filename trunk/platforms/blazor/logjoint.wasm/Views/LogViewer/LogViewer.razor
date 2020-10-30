@@ -51,6 +51,10 @@
                 </div>
             }
         </div>
+        @if (viewModel.EmptyViewMessage != null)
+        {
+            <div class="empty-view-message">Drag log files here to open</div>
+        }
     </div>
     <div class="outline" style="top: @TopProperty">
         @foreach (var item in @viewModel.ViewLines)

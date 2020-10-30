@@ -126,6 +126,21 @@ body {
     background-color: white;
     margin-left: 30px;
     flex-grow: 2;
+    position: relative;
+}
+.logview .scroll-outer .empty-view-message {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px dashed gray;
+    border-radius: 20px;
+    padding: 50px 20px;
+    font-family: tahoma,arial;
+    color: gray;
+    font-size: 20px;
+    width: 30%;}
 }
 .logview .outline {
     font-family: monospace;
