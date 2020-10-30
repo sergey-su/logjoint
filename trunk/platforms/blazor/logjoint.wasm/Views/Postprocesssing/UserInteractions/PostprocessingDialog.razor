@@ -6,7 +6,7 @@
 
 <Modal Visible="@(viewModel.DialogData != null)" Class="resizable-dialog postprocessing-open-dialog" ClickOutside="@(() => viewModel.OnCloseDialog(false))">
     <header>@viewModel.DialogData.Title</header>
-    <ListView Items="viewModel.DialogData.Items" OnSelect="@(i => viewModel.OnSelect(i.OfType<IDialogItem>().FirstOrDefault()))" Class="the-list" ItemClass="the-item">
+    <ListView Items="viewModel.DialogData.Items" OnSelect="@(i => viewModel.OnSelect(i.OfType<IDialogItem>().FirstOrDefault()))" Class="the-list" ItemClass="the-item" ChangeNotification="@viewModel.ChangeNotification">
         <ItemTemplate>
             @{var item = (IDialogItem)context;}
             <input type="checkbox" checked="@item.IsChecked" @oninput="@(e => viewModel.OnCheck(item, e.Value is bool x && x))" />

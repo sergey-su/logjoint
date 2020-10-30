@@ -402,10 +402,12 @@
                 listElement.scrollTop = (itemTop + itemBottom) / 2 - viewHeight / 2;
             }
         },
-        focusSelectedListItem: function (listElement) {
-            const selected = listElement.querySelector('li.selected');
-            if (selected) {
-                selected.focus();
+        focusPrimaryListItem: function (listElement) {
+            if (logjoint.isFocusWithin(listElement)) {
+                const selected = listElement.querySelector('li.primary');
+                if (selected) {
+                    selected.focus();
+                }
             }
         },
     },
@@ -579,5 +581,11 @@
             }
             return null;
         }
+    },
+
+    browser: {
+        isMac: function() {
+            return navigator.appVersion.indexOf("Mac") > -1;
+        },
     },
 };

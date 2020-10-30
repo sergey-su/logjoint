@@ -12,7 +12,8 @@
     <ListView Class="the-list"
               Items="@Items"
               OnSelect="@(items => ViewModel.OnChangeHistoryChangeSelection(items.OfType<IStateHistoryItem>()))"
-              OnDoubleClick="@(item => ViewModel.OnChangeHistoryItemDoubleClicked((IStateHistoryItem)item))">
+              OnDoubleClick="@(item => ViewModel.OnChangeHistoryItemDoubleClicked((IStateHistoryItem)item))"
+              ChangeNotification="@ViewModel.ChangeNotification">
         <ItemTemplate>
             @{var item = (IStateHistoryItem)context;}
             @{var f = FocusedMessagePositionInChangeHistory; }

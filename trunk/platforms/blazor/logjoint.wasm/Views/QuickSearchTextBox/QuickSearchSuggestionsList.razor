@@ -5,7 +5,7 @@
 
 @if (ViewModel.SuggestionsListVisibile)
 {
-    <ListView Items="@ViewModel.SuggestionsListItems" Class="@ListClass" OnSelect="@(i => ViewModel.OnSuggestionClicked(i.First() as ISuggestionsListItem))">
+    <ListView Items="@ViewModel.SuggestionsListItems" Class="@ListClass" OnSelect="@(i => ViewModel.OnSuggestionClicked(i.First() as ISuggestionsListItem))" ChangeNotification="@ViewModel.ChangeNotification">
         <ItemTemplate>
             @{var item = (ISuggestionsListItem)context;}
             <span class="@(item.IsSelectable ? "" : "not-selectable")">@item.Text</span>

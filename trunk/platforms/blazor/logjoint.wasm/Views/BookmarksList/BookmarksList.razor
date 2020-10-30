@@ -7,7 +7,8 @@
 
 <ListView Items="@viewModel.Items" OnSelect="@(items => viewModel.OnChangeSelection(items.OfType<IViewItem>()))" 
           Class="@ListClass" ItemClass="bookmarks-list-item"
-          OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())">
+          OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())"
+          ChangeNotification="@viewModel.ChangeNotification">
     <ItemTemplate>
         @{var item = (IViewItem)context;}
         @{var f = viewModel.FocusedMessagePosition; }

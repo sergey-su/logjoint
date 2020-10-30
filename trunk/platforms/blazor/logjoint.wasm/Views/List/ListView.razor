@@ -1,5 +1,7 @@
 ﻿@namespace  LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.Reactive
+@using System.Collections.Generic;
+@using System.Collections.Immutable;
 @using Microsoft.JSInterop
 @inject JsInterop jsInterop
 @implements IDisposable
@@ -9,9 +11,9 @@
     @foreach (var item in Items)
     {
         var itemIndexCopy = itemIndex;
-        <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "") @ItemClass"
-            @onmousedown="@(e => SelectByMouse(itemIndexCopy, e.Detail > 1))"
-            tabindex="@(focused == itemIndex ? 0 : -1)">
+        <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "") @(itemIndex == establishedPrimary ? "primary" : "") @ItemClass"
+            @onmousedown="@(e => SelectByMouse(itemIndexCopy, e))"
+            tabindex="@(itemIndex == establishedPrimary ? 0 : -1)">
             @if (ItemTemplate != null)
             {
                 @ItemTemplate(item);
@@ -29,8 +31,12 @@
     [Inject]
     private IJSRuntime JSRuntime { get; set; }
     private ElementReference ListRef { get; set; }
+    private ISubscription subscription;
     private IDisposable copyHandler;
-    private int focused;
+    private Func<ImmutableHashSet<int>> getSelected;
+    private int? candidatePrimary;
+    private int? establishedPrimary;
+    private Action primaryChangeSideEffects;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -39,7 +45,7 @@
     public IReadOnlyList<IListItem> Items { get; set; }
 
     [Parameter]
-    public Action<IListItem[]> OnSelect { get; set; }
+    public Action<IEnumerable<IListItem>> OnSelect { get; set; }
 
     [Parameter]
     public Action<IListItem> OnDoubleClick { get; set; }
@@ -53,14 +59,72 @@
     [Parameter]
     public Action OnCopy { get; set; }
 
-    public void TrySelectItem(IListItem item)
+    [Parameter]
+    public IChangeNotification ChangeNotification { get; set; }
+
+    protected override void OnInitialized()
     {
-        OnSelect?.Invoke(new[] { item });
+        getSelected = Selectors.Create(() => Items, items => 
+            ImmutableHashSet.CreateRange(items
+                .Select((item, idx) => item.IsSelected ? new int?(idx) : new int?())
+                .Where(i => i.HasValue)
+                .Select(i => i.Value)));
+
+        var updateEstablishedPrimary = Updaters.Create(getSelected, selected => {
+            if (candidatePrimary != null) {
+                establishedPrimary = 
+                    selected.Contains(candidatePrimary.Value) ? candidatePrimary : 
+                    selected.Count > 0 ? selected.First() :
+                    new int?();
+            }
+        });
+
+        primaryChangeSideEffects = Updaters.Create(() => establishedPrimary, async p =>
+        {
+            if (!p.HasValue)
+                return;
+            await JSRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", ListRef, p.Value);
+            // todo: do that if focus is inside the list
+            await JSRuntime.InvokeVoidAsync("logjoint.list.focusPrimaryListItem", ListRef);
+        });
+
+        var updateOnPrimaryChange = Updaters.Create(() => establishedPrimary, async p =>
+        {
+            StateHasChanged();
+        });
+
+        subscription = ChangeNotification.CreateSubscription(() =>
+        {
+            updateEstablishedPrimary();
+            updateOnPrimaryChange();
+        });
     }
 
-    void SelectByMouse(int i, bool doubleClick)
+    void SelectByMouse(int i, MouseEventArgs e)
     {
-        MaybeSetSelected(i);
+        candidatePrimary = i;
+        if (jsInterop.Browser.HasEditKey(e))
+        {
+            var currentlySelected = getSelected();
+            var proposedSelection = currentlySelected.Contains(i) ?
+                currentlySelected.Remove(i) : currentlySelected.Add(i);
+            OnSelect?.Invoke(proposedSelection.Select(i => Items[i]));
+        }
+        else if (e.ShiftKey)
+        {
+            if (establishedPrimary != null)
+            {
+                int from = Math.Min(establishedPrimary.Value, i);
+                int to = Math.Max(establishedPrimary.Value, i);
+                OnSelect?.Invoke(Enumerable.Range(from, to - from + 1).Select(i => Items[i]));
+            }
+        }
+        else
+        {
+            OnSelect?.Invoke(new[] { Items[i] });
+        }
+
+        bool doubleClick = e.Detail > 1;
         if (doubleClick)
         {
             OnDoubleClick?.Invoke(Items[i]);
@@ -69,31 +133,29 @@
 
     void HandleKey(KeyboardEventArgs eventArgs)
     {
-        if (eventArgs.Key == "ArrowUp")
+        int? delta =
+            eventArgs.Key == "ArrowUp" ? -1 :
+            eventArgs.Key == "ArrowDown" ? +1 :
+            null;
+        if (delta != null && establishedPrimary != null && Items.Count > 0)
         {
-            MaybeSetSelected(Math.Max(0, focused - 1));
-        }
-        else if (eventArgs.Key == "ArrowDown")
-        {
-            MaybeSetSelected(Math.Min(Items.Count - 1, focused + 1));
-        }
-    }
-
-    async void MaybeSetSelected(int value)
-    {
-        TrySelectItem(Items[value]);
-
-        if (focused != value)
-        {
-            focused = value;
-            await JSRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", ListRef, focused);
-            await JSRuntime.InvokeVoidAsync("logjoint.list.focusSelectedListItem", ListRef);
+            var i = Math.Clamp(establishedPrimary.Value + delta.Value, 0, Items.Count - 1);
+            candidatePrimary = i;
+            if (eventArgs.ShiftKey)
+            {
+                OnSelect?.Invoke(getSelected().Add(i).Select(i => Items[i]));
+            }
+            else
+            {
+                OnSelect?.Invoke(new[] { Items[i] });
+            }
         }
     }
 
     public void Dispose()
     {
         copyHandler?.Dispose();
+        subscription?.Dispose();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -108,5 +170,10 @@
                 Handler = OnCopy
             }, "Edit+C/i");
         }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        primaryChangeSideEffects();
     }
 }

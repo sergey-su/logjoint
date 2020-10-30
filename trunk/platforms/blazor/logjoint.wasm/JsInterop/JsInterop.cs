@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using System.Threading.Tasks;
 
 namespace LogJoint.Wasm
 {
@@ -12,6 +13,12 @@ namespace LogJoint.Wasm
 			Scroll = new ScrollInterop(jsRuntime);
 			Mouse = new MouseInterop(jsRuntime);
 			Selection = new SelectionInterop(jsRuntime);
+			Browser = new BrowserInterop(jsRuntime);
+		}
+
+		public async Task Init()
+		{
+			await Browser.Init();
 		}
 
 		public ResizeInterop Resize { get; private set; }
@@ -20,5 +27,6 @@ namespace LogJoint.Wasm
 		public ScrollInterop Scroll { get; private set; }
 		public MouseInterop Mouse { get; private set; }
 		public SelectionInterop Selection { get; private set; }
+		public BrowserInterop Browser { get; private set; }
 	}
 }

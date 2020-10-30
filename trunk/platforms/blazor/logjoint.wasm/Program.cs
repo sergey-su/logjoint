@@ -264,6 +264,9 @@ namespace LogJoint.Wasm
 
             var wasmHost = builder.Build();
 
+            var jsInterop = wasmHost.Services.GetService<JsInterop>();
+            await jsInterop.Init();
+
             var jsRuntime = wasmHost.Services.GetService<IJSRuntime>();
             await fieldsProcessorMetadataReferencesProvider.Init(jsRuntime);
 
