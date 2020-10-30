@@ -46,7 +46,7 @@
         viewProxies.LoadedMessagesViewProxy.SetComponent(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => viewModel.ViewState,
+            () => (viewModel.ViewState),
             _ => StateHasChanged()
         ));
     }

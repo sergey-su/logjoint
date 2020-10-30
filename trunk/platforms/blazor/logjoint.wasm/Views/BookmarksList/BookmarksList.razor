@@ -4,11 +4,13 @@
 @implements IDisposable
 @implements IView
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject JsInterop jsInterop
 
 <ListView Items="@viewModel.Items" OnSelect="@(items => viewModel.OnChangeSelection(items.OfType<IViewItem>()))" 
           Class="@ListClass" ItemClass="bookmarks-list-item"
           OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())"
-          ChangeNotification="@viewModel.ChangeNotification">
+          ChangeNotification="@viewModel.ChangeNotification"
+          OnKeyDown="HandleKeyDown">
     <ItemTemplate>
         @{var item = (IViewItem)context;}
         @{var f = viewModel.FocusedMessagePosition; }
@@ -53,4 +55,24 @@
     }
 
     string ListClass => $"bookmarks-list {Class}";
+
+    void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.IListItem item)
+    {
+        if (eventArgs.Key == "Enter")
+        {
+            viewModel.OnEnterKeyPressed();
+        }
+        else if (eventArgs.Key.ToLower() == "c" && jsInterop.Browser.HasEditKey(eventArgs))
+        {
+            viewModel.OnCopyShortcutPressed();
+        }
+        else if (eventArgs.Key == "Delete")
+        {
+            viewModel.OnDeleteButtonPressed();
+        }
+        else if (eventArgs.Key.ToLower() == "a" && jsInterop.Browser.HasEditKey(eventArgs))
+        {
+            viewModel.OnSelectAllShortcutPressed();
+        }
+    }
 }
