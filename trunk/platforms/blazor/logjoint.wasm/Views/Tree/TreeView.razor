@@ -1,29 +1,41 @@
 ﻿@namespace  LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.Reactive
+@inject JsInterop jsInterop
+@using System.Collections.Generic
+@using System.Collections.Immutable
 
-<div class="tree nice-scroll @Class">
-    @if (Root != null)
+<div class="tree nice-scroll @Class" @ref="TreeRef" @onkeydown="HandleKeyDown">
+    @{var nodeIndex = 0;}
+    @foreach (var node in getDisplayNodes())
     {
-        @foreach (var topLevelNode in Root.Children)
-        {
-            <TreeNode Node="@topLevelNode" Owner="@this" @key="@topLevelNode.Key" Level=0 NodeClass="@nodeClass">
-                <NodeTemplate>
-                    @if (NodeTemplate != null)
-                    {
-                        @NodeTemplate(context);
-                    }
-                    else
-                    {
-                        @context.ToString()
-                    }
-                </NodeTemplate>
-            </TreeNode>
-        }
+        <TreeNode Node=node.node Owner=this @key=node.node.Key NodeClass="@nodeClass" 
+                  Level=node.level Index=nodeIndex IsPrimary=@(nodeIndex == establishedPrimary)>
+            <NodeTemplate>
+                @if (NodeTemplate != null)
+                {
+                    @NodeTemplate(context);
+                }
+                else
+                {
+                    @context.ToString()
+                }
+            </NodeTemplate>
+        </TreeNode>
+        ++nodeIndex;
     }
 </div>
 
 @code {
     private string nodeClass = "";
+    private ElementReference TreeRef;
+    private ISubscription subscription;
+    [Inject]
+    private IJSRuntime jsRuntime { get; set; }
+    private Func<ImmutableArray<(ITreeNode node, int level)>> getDisplayNodes;
+    private Func<ImmutableHashSet<int>> getSelected;
+    private int? candidatePrimary;
+    private int? establishedPrimary;
+    private Action primaryChangeSideEffects;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -32,7 +44,7 @@
     public ITreeNode Root { get; set; }
 
     [Parameter]
-    public Action<ITreeNode[]> OnSelect { get; set; }
+    public Action<IEnumerable<ITreeNode>> OnSelect { get; set; }
 
     [Parameter]
     public Action<ITreeNode> OnExpand { get; set; }
@@ -46,15 +58,102 @@
     [Parameter]
     public string NodeClass { get; set; } = "";
 
+    [Parameter]
+    public IChangeNotification ChangeNotification { get; set; }
+
+    [Parameter]
+    public Action<KeyboardEventArgs, ITreeNode> OnKeyDown { get; set; }
+
+    // todo: remove linear runtime. use tree augmentation to map node->displayIndex and back.
+    int TraverseChildren(ITreeNode node, int firstChildDisplayIndex, int level, Action<ITreeNode, int> action)
+    {
+        if (node == null || !node.IsExpanded)
+            return firstChildDisplayIndex;
+        var currentDisplayIndex = firstChildDisplayIndex;
+        foreach (var c in node.Children)
+        {
+            action(c, level);
+            currentDisplayIndex = TraverseChildren(c, currentDisplayIndex + 1, level + 1, action);
+        }
+        return currentDisplayIndex;
+    }
+
+    protected override void OnInitialized()
+    {
+        getDisplayNodes = Selectors.Create(() => Root, root =>
+        {
+            var builder = ImmutableArray.CreateBuilder<(ITreeNode, int)>();
+            TraverseChildren(Root, 0, 0, (n, level) => builder.Add((n, level)));
+            return builder.ToImmutable();
+        });
+        getSelected = Selectors.Create(getDisplayNodes, displayNodes =>
+        {
+            var builder = ImmutableHashSet.CreateBuilder<int>();
+            int idx = 0;
+            foreach (var n in displayNodes)
+            {
+                if (n.node.IsSelected)
+                    builder.Add(idx);
+                ++idx;
+            };
+            return builder.ToImmutable();
+        });
+
+        var updateEstablishedPrimary = Updaters.Create(getSelected, selected =>
+        {
+            establishedPrimary =
+                (candidatePrimary.HasValue && selected.Contains(candidatePrimary.Value)) ? candidatePrimary :
+                selected.Count > 0 ? selected.First() :
+                new int?();
+        });
+
+        primaryChangeSideEffects = Updaters.Create(() => establishedPrimary, async p =>
+        {
+            if (!p.HasValue)
+                return;
+            await jsRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", TreeRef, p.Value);
+            await jsRuntime.InvokeVoidAsync("logjoint.tree.focusPrimaryTreeItem", TreeRef);
+        });
+
+        var updateOnPrimaryChange = Updaters.Create(() => establishedPrimary, p =>
+        {
+            StateHasChanged();
+        });
+
+        subscription = ChangeNotification.CreateSubscription(() =>
+        {
+            updateEstablishedPrimary();
+            updateOnPrimaryChange();
+        });
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
     protected override void OnParametersSet()
     {
         nodeClass = $"{NodeClass} {(NodeTemplate == null ? "str" : "")}";
         base.OnParametersSet();
     }
 
-    public void TrySelectNode(ITreeNode node)
+    public void TrySelectNode(int nodeIndex, bool expandSelection)
     {
-        OnSelect?.Invoke(new[] { node });
+        var displayNodes = getDisplayNodes();
+        var node = displayNodes.ElementAtOrDefault(nodeIndex).node;
+        if (node != null)
+        {
+            candidatePrimary = nodeIndex;
+            if (expandSelection)
+            {
+                OnSelect?.Invoke(getSelected().Add(nodeIndex).Select(i => displayNodes[i].node));
+            }
+            else
+            {
+                OnSelect?.Invoke(new[] { node });
+            }
+        }
     }
 
     public void TryExpandNode(ITreeNode node)
@@ -65,5 +164,40 @@
     public void TryCollapseNode(ITreeNode node)
     {
         OnCollapse?.Invoke(node);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsInterop.Keyboard.AddDefaultPreventingHandler(TreeRef, "ArrowUp", "ArrowDown");
+        }
+        primaryChangeSideEffects();
+    }
+
+    void HandleKeyDown(KeyboardEventArgs eventArgs)
+    {
+        var node = getDisplayNodes().ElementAtOrDefault(establishedPrimary.GetValueOrDefault(-1)).node;
+        if (node == null)
+            return;
+        if (eventArgs.Key == "ArrowLeft")
+        {
+            if (TreeNode.SupportsExpansion(node) && node.IsExpanded)
+                TryCollapseNode(node);
+        }
+        else if (eventArgs.Key == "ArrowRight")
+        {
+            if (TreeNode.SupportsExpansion(node) && !node.IsExpanded)
+                TryExpandNode(node);
+        }
+        else if (eventArgs.Key == "ArrowDown")
+        {
+            TrySelectNode(establishedPrimary.Value + 1, expandSelection: false);
+        }
+        else if (eventArgs.Key == "ArrowUp")
+        {
+            TrySelectNode(establishedPrimary.Value - 1, expandSelection: false);
+        }
+        OnKeyDown?.Invoke(eventArgs, node);
     }
 }

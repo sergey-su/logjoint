@@ -9,6 +9,7 @@
     <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" @ref="searchTextBox"/>
     <FirstRenderDetector OnFirstRender="OnFirstRender" />
     <TreeView Root="@viewModel.RootViewItem" Class="the-tree"
+              ChangeNotification="@viewModel.ChangeNotification"
               OnExpand="@(n => viewModel.OnExpand((IViewItem)n))" OnCollapse="@(n => viewModel.OnCollapse((IViewItem)n))"
               OnSelect="@(nodes => viewModel.OnSelect(nodes.OfType<IViewItem>()))">
         <NodeTemplate>

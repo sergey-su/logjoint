@@ -404,9 +404,20 @@
         },
         focusPrimaryListItem: function (listElement) {
             if (logjoint.isFocusWithin(listElement)) {
-                const selected = listElement.querySelector('li.primary');
-                if (selected) {
-                    selected.focus();
+                const primary = listElement.querySelector('li.primary');
+                if (primary) {
+                    primary.focus();
+                }
+            }
+        },
+    },
+
+    tree: {
+        focusPrimaryTreeItem: function (treeElement) {
+            if (logjoint.isFocusWithin(treeElement)) {
+                const primary = treeElement.querySelector('.node.primary');
+                if (primary) {
+                    primary.focus();
                 }
             }
         },

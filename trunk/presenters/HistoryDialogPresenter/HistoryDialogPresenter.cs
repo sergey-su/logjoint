@@ -347,6 +347,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			{
 				type = ViewItemType.ItemsContainer,
 				key = "root",
+				expanded = true,
 			};
 			copyChildren(result, displayItems);
 			return result;

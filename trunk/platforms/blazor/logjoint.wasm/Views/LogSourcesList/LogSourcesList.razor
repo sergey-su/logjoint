@@ -3,12 +3,15 @@
 @implements IDisposable
 @implements IView
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject JsInterop jsInterop
 
 <TreeView class="@Class"
+          ChangeNotification="@viewModel.ChangeNotification"
           Root="@viewModel.RootItem"
           OnSelect="@(nodes => viewModel.OnSelectionChange(nodes.OfType<IViewItem>().ToArray()))"
           OnExpand="@(node => viewModel.OnItemExpand((IViewItem)node))"
           OnCollapse="@(node => viewModel.OnItemCollapse((IViewItem)node))"
+          OnKeyDown="HandleKeyDown"
           NodeClass="log-sources-list-item">
     <NodeTemplate>
         @{var item = (IViewItem)context;}
@@ -51,5 +54,17 @@
     void IView.SetTopItem(IViewItem item)
     {
         // todo
+    }
+
+    void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.ITreeNode node)
+    {
+        if (eventArgs.Key == "Delete")
+            viewModel.OnDeleteButtonPressed();
+        else if (eventArgs.Key == "Enter")
+            viewModel.OnEnterKeyPressed();
+        else if (eventArgs.Key.ToLower() == "c" && jsInterop.Browser.HasEditKey(eventArgs))
+            viewModel.OnCopyShortcutPressed();
+        else if (eventArgs.Key.ToLower() == "a" && jsInterop.Browser.HasEditKey(eventArgs))
+            viewModel.OnSelectAllShortcutPressed();
     }
 }

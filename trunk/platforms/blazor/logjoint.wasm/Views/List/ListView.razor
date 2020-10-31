@@ -86,7 +86,7 @@
             await JSRuntime.InvokeVoidAsync("logjoint.list.focusPrimaryListItem", ListRef);
         });
 
-        var updateOnPrimaryChange = Updaters.Create(() => establishedPrimary, async p =>
+        var updateOnPrimaryChange = Updaters.Create(() => establishedPrimary, p =>
         {
             StateHasChanged();
         });

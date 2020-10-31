@@ -4,6 +4,7 @@
 <div class="objects-tree @Class">
     <div class="toolbar">Objects:</div>
     <TreeView Class="the-tree" NodeClass="si-node" Root="@ObjectsTreeRoot"
+              ChangeNotification="@ViewModel.ChangeNotification"
               OnSelect="@(nodes => ViewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray()))"
               OnExpand="@(node => ViewModel.OnExpandNode(node as IObjectsTreeNode))"
               OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))">

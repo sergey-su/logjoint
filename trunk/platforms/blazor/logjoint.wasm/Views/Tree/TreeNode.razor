@@ -1,22 +1,15 @@
 ﻿@namespace LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.Reactive
 @inject TreeStyles styles
+@inject JsInterop jsInterop
 
-<div class="node @($"c{Level}") @(Node.IsSelected ? "selected" : "")" @onclick="TrySelectNodeByMouse" @onclick:stopPropagation>
+<div class="node @($"c{Level}") @(Node.IsSelected ? "selected" : "") @(IsPrimary ? "primary" : "")"
+     @onclick="TrySelectNodeByMouse" @onclick:stopPropagation tabindex="@(IsPrimary ? 0 : -1)">
     <div class="triangle" @onclick="TryExpandCollapseByMouse" @onclick:stopPropagation>
         @(!SupportsExpansion(Node) ? " " : (Node.IsExpanded ? "▼" : "▶"))
     </div>
     <div class="contents @NodeClass">@NodeTemplate(Node)</div>
 </div>
-@if (Node.IsExpanded)
-{
-    @foreach (var child in Node.Children)
-    {
-        <TreeNode Node="@child" Owner="@Owner" @key="@child.Key" Level="@(Level + 1)" NodeClass="@NodeClass">
-            <NodeTemplate>@NodeTemplate(context)</NodeTemplate>
-        </TreeNode>
-    }
-}
 
 @code {
     [Parameter]
@@ -27,6 +20,12 @@
 
     [Parameter]
     public int Level { get; set; }
+
+    [Parameter]
+    public int Index { get; set; }
+
+    [Parameter]
+    public bool IsPrimary { get; set; }
 
     [Parameter]
     public RenderFragment<ITreeNode> NodeTemplate { get; set; }
@@ -41,7 +40,7 @@
 
     void TrySelectNodeByMouse(MouseEventArgs e)
     {
-        Owner?.TrySelectNode(Node);
+        Owner?.TrySelectNode(Index, expandSelection: jsInterop.Browser.HasEditKey(e));
     }
 
     void TryExpandCollapseByMouse(MouseEventArgs e)
@@ -53,5 +52,5 @@
                 Owner?.TryExpandNode(Node);
     }
 
-    static bool SupportsExpansion(ITreeNode node) => node.Children.Count != 0 && node.IsExpandable;
+    internal static bool SupportsExpansion(ITreeNode node) => node.Children.Count != 0 && node.IsExpandable;
 }
