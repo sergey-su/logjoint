@@ -384,6 +384,10 @@ body {
     padding: 0px 5px;
 }
 
+.main-window-tabs .tabs .debug {
+    position: absolute;
+    right: 0;
+}
 
 
 .log-sources-manager {

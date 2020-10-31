@@ -5,13 +5,13 @@
 @inject JsInterop jsInterop;
 
 <div class='@Class'>
-    <input type="file" @ref="fileInputReference" />
-    <button @onclick="LoadByUrl">Load by blob URL</button>
-    <button @onclick="LoadChromeDebugLog">Load Stream as Chrome debug log</button>
-    <button @onclick="LoadUnspecifiedStream">Load unspecified stream</button>
-    <br />
+    <a href="https://github.com/sergey-su/logjoint">github</a>
     <button @onclick="DownloadDebugLog">Download debug log</button>
-    <button @onclick="TestLogFs">Test log fs</button>
+    <input type="file" @ref="fileInputReference" hidden />
+    <button @onclick="LoadByUrl" hidden>Load by blob URL</button>
+    <button @onclick="LoadChromeDebugLog" hidden>Load Stream as Chrome debug log</button>
+    <button @onclick="LoadUnspecifiedStream" hidden>Load unspecified stream</button>
+    <button @onclick="TestLogFs" hidden>Test log fs</button>
 </div>
 
 @code {

@@ -21,7 +21,7 @@
         </div>
 
         <div class="contents-label">Contents</div>
-        <TabsView Tabs=@d.ContentViewModes SelectedTab=d.ContentViewModeIndex.GetValueOrDefault() OnSelect=viewModel.OnContentViewModeChange />
+        <TabsView Tabs=@tabInfos() SelectedTab=d.ContentViewModeIndex.GetValueOrDefault() OnSelect=viewModel.OnContentViewModeChange />
     </div>
     <InlineSearch ViewModel="@viewModel.InlineSearch" />
     <div class="contents" @ref="textRef" tabindex="0">
@@ -38,6 +38,7 @@
     private ISubscription subscription;
     private ElementReference textRef;
     private IDisposable keyHandler;
+    private Func<IReadOnlyList<TabsView.TabInfo>> tabInfos;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -49,6 +50,11 @@
             viewProxies.PresentationObjects.PresentersFacade.ShowMessageProperties();
         }
         viewModel = viewProxies.MessageProperties.ViewModel;
+
+        tabInfos = Selectors.Create(() => viewModel.Data.ContentViewModes, modes => modes.Select(m => new TabsView.TabInfo
+        {
+            Caption = m
+        }).ToArray());
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => viewModel.Data,

@@ -27,14 +27,18 @@
 @code {
     private ISubscription subscription;
     private IViewModel ViewModel => viewProxies.PresentationObjects.ViewModels.MainForm;
-    private Func<IReadOnlyList<string>> tabNames;
+    private Func<IReadOnlyList<TabsView.TabInfo>> tabNames;
 
     [Parameter]
     public string Class { get; set; } = "";
 
     protected override void OnInitialized()
     {
-        tabNames = Selectors.Create(() => ViewModel.VisibleTabs, tabs => tabs.Select(t => t.Caption).ToArray());
+        tabNames = Selectors.Create(() => ViewModel.VisibleTabs, tabs => tabs.Select(t => new TabsView.TabInfo
+        {
+            Caption = t.Id == TabIDs.Debug ? "⚙️" : t.Caption,
+            Class = t.Id == TabIDs.Debug ? "debug" : null
+        }).ToArray());
         subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (ViewModel.VisibleTabs, ViewModel.ActiveTab),
             _ => StateHasChanged()

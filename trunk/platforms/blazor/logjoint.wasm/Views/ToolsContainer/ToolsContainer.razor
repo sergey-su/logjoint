@@ -10,7 +10,7 @@
     @if (viewModel.IsVisible)
     {
         <div class='header'>
-            <TabsView SelectedTab="@viewModel.SelectedToolIndex" OnSelect="viewModel.OnSelectTool" Tabs="@tabNames()" />
+            <TabsView SelectedTab="@viewModel.SelectedToolIndex" OnSelect="viewModel.OnSelectTool" Tabs="@tabInfos()" />
             <div class='actions'>
                 <button class='tool-button' @onclick="viewModel.OnHideButtonClicked" title="@viewModel.HideButtonTooltip">&gt;</button>
             </div>
@@ -35,7 +35,7 @@
     private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.ToolsContainer;
     private ISubscription subscription;
     private IDisposable resizeHandler;
-    private Func<IReadOnlyList<string>> tabNames;
+    private Func<IReadOnlyList<TabsView.TabInfo>> tabInfos;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -53,7 +53,11 @@
 
     protected override void OnInitialized()
     {
-        tabNames = Selectors.Create(() => viewModel.AvailableTools, tabs => tabs.Select(t => t.Name).ToArray());
+        tabInfos = Selectors.Create(() => viewModel.AvailableTools, tabs => tabs.Select(t => new TabsView.TabInfo
+        {
+            Caption = t.Name,
+            Tooltip = t.Tooltip
+        }).ToArray());
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.IsVisible, viewModel.SelectedToolIndex, viewModel.Size),
             _ => StateHasChanged()

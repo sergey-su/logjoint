@@ -78,9 +78,9 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 			switch (kind)
 			{
 				case ToolKind.StateInspector:
-					return new ToolInfo { Kind = kind, Name = "StateInspector", Tooltip = "StateInspector tooltip" };
+					return new ToolInfo { Kind = kind, Name = "StateInspector", Tooltip = null };
 				case ToolKind.MessageProperties:
-					return new ToolInfo { Kind = kind, Name = "Message properties", Tooltip = "MessageProperties tooltip" };
+					return new ToolInfo { Kind = kind, Name = "Message properties", Tooltip = null };
 				default:
 					return new ToolInfo { Kind = kind, Name = "?", Tooltip = "?" };
 			}

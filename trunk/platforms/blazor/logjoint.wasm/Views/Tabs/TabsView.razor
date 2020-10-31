@@ -6,12 +6,19 @@
     @foreach (var tab in Tabs)
     {
         var captureIndex = index;
-        <button @onclick="@(e => OnSelect?.Invoke(captureIndex))" class="@(index == SelectedTab ? "selected" : "")">@tab</button>
+        <button @onclick="@(e => OnSelect?.Invoke(captureIndex))" class="@(index == SelectedTab ? "selected" : "") @tab.Class" title=@tab.Tooltip>@tab.Caption</button>
         ++index;
     }
 </div>
 
 @code {
+    public struct TabInfo
+    {
+        public string Caption;
+        public string Tooltip;
+        public string Class;
+    };
+
     [Parameter]
     public string Class { get; set; } = "";
 
@@ -19,7 +26,7 @@
     public int SelectedTab { get; set; } = 0;
 
     [Parameter]
-    public IReadOnlyList<string> Tabs { get; set; } = ImmutableList<string>.Empty;
+    public IReadOnlyList<TabInfo> Tabs { get; set; } = ImmutableList<TabInfo>.Empty;
 
     [Parameter]
     public Action<int> OnSelect { get; set; }
