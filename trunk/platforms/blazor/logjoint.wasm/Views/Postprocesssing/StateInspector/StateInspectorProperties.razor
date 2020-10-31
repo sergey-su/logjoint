@@ -3,7 +3,7 @@
 @inject JsInterop jsInterop
 
 <div class='properties @Class'>
-    <div class="toolbar">Properties:</div>
+    <div class="toolbar">Properties: @(ViewModel.CurrentTimeLabelText)</div>
     <ListView Class="the-list"
               Items="@Items"
               OnSelect="@(items => ViewModel.OnSelectProperty(items.OfType<IPropertyListItem>().FirstOrDefault()))"

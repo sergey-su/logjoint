@@ -607,6 +607,8 @@ body {
 .state-inspector .properties .toolbar {
     background: var(--control-face-background);
     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 
