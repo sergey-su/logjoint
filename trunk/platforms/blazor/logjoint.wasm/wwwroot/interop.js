@@ -413,8 +413,8 @@
     },
 
     tree: {
-        focusPrimaryTreeItem: function (treeElement) {
-            if (logjoint.isFocusWithin(treeElement)) {
+        focusPrimaryTreeNode: function (treeElement, allowFocusStealing) {
+            if (allowFocusStealing || logjoint.isFocusWithin(treeElement)) {
                 const primary = treeElement.querySelector('.node.primary');
                 if (primary) {
                     primary.focus();

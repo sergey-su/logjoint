@@ -4,14 +4,16 @@
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @implements IView
 
-<Modal Visible="@viewModel.IsVisible" Class="resizable-dialog history-dialog" ClickOutside="@viewModel.OnCancelClicked">
+<Modal Visible="@viewModel.IsVisible" Class="resizable-dialog history-dialog" ClickOutside="@viewModel.OnCancelClicked" OnCancel="@viewModel.OnCancelClicked">
     <header>Recent logs</header>
     <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" @ref="searchTextBox"/>
     <FirstRenderDetector OnFirstRender="OnFirstRender" />
-    <TreeView Root="@viewModel.RootViewItem" Class="the-tree"
+    <TreeView Root="@viewModel.RootViewItem" Class="the-tree" @ref="tree"
               ChangeNotification="@viewModel.ChangeNotification"
               OnExpand="@(n => viewModel.OnExpand((IViewItem)n))" OnCollapse="@(n => viewModel.OnCollapse((IViewItem)n))"
-              OnSelect="@(nodes => viewModel.OnSelect(nodes.OfType<IViewItem>()))">
+              OnSelect="@(nodes => viewModel.OnSelect(nodes.OfType<IViewItem>()))"
+              OnKeyDown="HandleTreeKeyDown"
+              OnDoubleClick="@(n => viewModel.OnDoubleClick())">
         <NodeTemplate>
             @{var item = (IViewItem)context;}
             <div class="item @GetItemClass(item.Type)" @ondblclick="@(e => viewModel.OnDoubleClick())" title="@item.Text">
@@ -29,6 +31,7 @@
     private IViewModel viewModel;
     private ISubscription subscription;
     private QuickSearchTextBox searchTextBox;
+    private TreeView tree;
 
     protected override void OnInitialized()
     {
@@ -42,6 +45,7 @@
 
     public void Dispose()
     {
+        viewProxies.HistoryDialog.SetComponent(null);
         subscription?.Dispose();
     }
 
@@ -60,13 +64,21 @@
 
     LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox => null;
 
-    void IView.PutInputFocusToItemsList()
+    async void IView.PutInputFocusToItemsList()
     {
-        // todo
+        await tree.FocusAsync();
     }
 
     async Task OnFirstRender()
     {
         await searchTextBox.FocusAsync();
+    }
+
+    void HandleTreeKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.ITreeNode node)
+    {
+        if (eventArgs.Key == "Enter")
+        {
+            viewModel.OnOpenClicked();
+        }
     }
 }

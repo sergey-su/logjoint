@@ -64,6 +64,12 @@
     [Parameter]
     public Action<KeyboardEventArgs, ITreeNode> OnKeyDown { get; set; }
 
+    [Parameter]
+    public Action<ITreeNode> OnDoubleClick { get; set; }
+
+
+    public ValueTask FocusAsync() => FocusPrimaryNode(allowFocusStealing: true);
+
     // todo: remove linear runtime. use tree augmentation to map node->displayIndex and back.
     int TraverseChildren(ITreeNode node, int firstChildDisplayIndex, int level, Action<ITreeNode, int> action)
     {
@@ -99,11 +105,12 @@
             return builder.ToImmutable();
         });
 
-        var updateEstablishedPrimary = Updaters.Create(getSelected, selected =>
+        var updateEstablishedPrimary = Updaters.Create(getSelected, () => Root != null && Root.Children.Count > 0, (selected, displayNodesNotEmpty) =>
         {
             establishedPrimary =
                 (candidatePrimary.HasValue && selected.Contains(candidatePrimary.Value)) ? candidatePrimary :
                 selected.Count > 0 ? selected.First() :
+                displayNodesNotEmpty ? 0 :
                 new int?();
         });
 
@@ -112,7 +119,7 @@
             if (!p.HasValue)
                 return;
             await jsRuntime.InvokeVoidAsync("logjoint.list.scrollListItemIntoView", TreeRef, p.Value);
-            await jsRuntime.InvokeVoidAsync("logjoint.tree.focusPrimaryTreeItem", TreeRef);
+            await FocusPrimaryNode(allowFocusStealing: false);
         });
 
         var updateOnPrimaryChange = Updaters.Create(() => establishedPrimary, p =>
@@ -130,6 +137,11 @@
     public void Dispose()
     {
         subscription?.Dispose();
+    }
+
+    ValueTask FocusPrimaryNode(bool allowFocusStealing)
+    {
+        return jsRuntime.InvokeVoidAsync("logjoint.tree.focusPrimaryTreeNode", TreeRef, allowFocusStealing);
     }
 
     protected override void OnParametersSet()

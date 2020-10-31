@@ -2,7 +2,7 @@
 
 @if (Visible)
 {
-    <div class="modal" @onmousedown="HandleClickOutside">
+    <div class="modal" @onmousedown="HandleClickOutside" @onkeydown="HandleKeyDown">
         <div class="contents @Class" @onmousedown:stopPropagation>
             @ChildContent
         </div>
@@ -22,9 +22,21 @@
     [Parameter]
     public Action ClickOutside { get; set; }
 
+    [Parameter]
+    public Action OnCancel { get; set; }
+
     async void HandleClickOutside()
     {
         await Task.Yield();
         ClickOutside?.Invoke();
+    }
+
+    async void HandleKeyDown(KeyboardEventArgs eventArgs)
+    {
+        if (eventArgs.Key == "Escape")
+        {
+            await Task.Yield();
+            OnCancel?.Invoke();
+        }
     }
 }

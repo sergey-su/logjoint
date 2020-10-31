@@ -4,7 +4,7 @@
 @implements IDisposable
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 
-<Modal Visible="@(viewModel.ViewState != null)" Class="alert" ClickOutside="@(() => viewModel?.OnClickOutside())">
+<Modal Visible="@(viewModel.ViewState != null)" Class="alert" ClickOutside="@(() => viewModel?.OnClickOutside())" OnCancel="HandleCancel">
     <div class="text">
         @viewModel.ViewState.Text
     </div>
@@ -37,5 +37,13 @@
     public void Dispose()
     {
         subscription?.Dispose();
+    }
+
+    void HandleCancel()
+    {
+        if (((viewModel?.ViewState?.Buttons).GetValueOrDefault(AlertFlags.None) & AlertFlags.Cancel) != 0)
+        {
+            viewModel.OnButtonClicked(AlertFlags.Cancel);
+        }
     }
 }

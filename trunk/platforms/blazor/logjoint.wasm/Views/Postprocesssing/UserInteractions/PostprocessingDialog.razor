@@ -4,7 +4,7 @@
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @implements IView
 
-<Modal Visible="@(viewModel.DialogData != null)" Class="resizable-dialog postprocessing-open-dialog" ClickOutside="@(() => viewModel.OnCloseDialog(false))">
+<Modal Visible="@(viewModel.DialogData != null)" Class="resizable-dialog postprocessing-open-dialog" ClickOutside="@(() => viewModel.OnCloseDialog(false))" OnCancel="@(() => viewModel.OnCloseDialog(false))">
     <header>@viewModel.DialogData.Title</header>
     <ListView Items="viewModel.DialogData.Items" OnSelect="@(i => viewModel.OnSelect(i.OfType<IDialogItem>().FirstOrDefault()))" Class="the-list" ItemClass="the-item" ChangeNotification="@viewModel.ChangeNotification">
         <ItemTemplate>
