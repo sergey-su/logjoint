@@ -1,8 +1,10 @@
 ﻿@namespace  LogJoint.Wasm.UI
+@inject JsInterop jsInterop
 
 @if (Visible)
 {
-    <div class="modal" @onmousedown="HandleClickOutside" @onkeydown="HandleKeyDown">
+    <div class="modal" @onmousedown="HandleClickOutside" @onkeydown="HandleKeyDown" @ref="element">
+        <FirstRenderDetector OnFirstRender="OnFirstRender" OnDispose="OnDispose" />
         <div class="contents @Class" @onmousedown:stopPropagation>
             @ChildContent
         </div>
@@ -10,6 +12,9 @@
 }
 
 @code {
+    private ElementReference element;
+    private IAsyncDisposable focusTrap;
+
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
@@ -37,6 +42,19 @@
         {
             await Task.Yield();
             OnCancel?.Invoke();
+        }
+    }
+
+    async Task OnFirstRender()
+    {
+        focusTrap = await jsInterop.Keyboard.TrapFocusInModal(element);
+    }
+
+    async Task OnDispose()
+    {
+        if (focusTrap != null)
+        {
+            await focusTrap.DisposeAsync();
         }
     }
 }

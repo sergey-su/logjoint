@@ -1,4 +1,5 @@
 ﻿@namespace LogJoint.Wasm.UI
+@implements IAsyncDisposable
 
 <span></span>
 
@@ -6,11 +7,22 @@
     [Parameter]
     public Func<Task> OnFirstRender { get; set; }
 
+    [Parameter]
+    public Func<Task> OnDispose { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && OnFirstRender != null)
         {
             await OnFirstRender();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (OnDispose != null)
+        {
+            await OnDispose();
         }
     }
 }

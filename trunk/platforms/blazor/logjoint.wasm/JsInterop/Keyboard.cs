@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LogJoint.Wasm
@@ -46,7 +44,16 @@ namespace LogJoint.Wasm
 
         public ValueTask<bool> IsFocusWithin(ElementReference element)
         {
-            return jsRuntime.InvokeAsync<bool>("logjoint.isFocusWithin", element);
+            return jsRuntime.InvokeAsync<bool>("logjoint.focus.isFocusWithin", element);
+        }
+
+        public async ValueTask<IAsyncDisposable> TrapFocusInModal(ElementReference modalElement)
+        {
+            var modal = await jsRuntime.InvokeAsync<JSObjectReference>("logjoint.focus.trapFocusInModal", modalElement);
+            return new ModalHandle
+            {
+                dispose = () => modal.InvokeVoidAsync("dispose")
+            };
         }
 
         class Helper
@@ -56,5 +63,11 @@ namespace LogJoint.Wasm
             [JSInvokable]
             public void Invoke() => action.Invoke();
         }
+
+        class ModalHandle: IAsyncDisposable
+        {
+            public Func<ValueTask> dispose;
+            public ValueTask DisposeAsync() => dispose();
+        };
     }
 }

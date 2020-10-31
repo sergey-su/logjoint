@@ -6,8 +6,7 @@
 
 <Modal Visible="@viewModel.IsVisible" Class="resizable-dialog history-dialog" ClickOutside="@viewModel.OnCancelClicked" OnCancel="@viewModel.OnCancelClicked">
     <header>Recent logs</header>
-    <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" @ref="searchTextBox"/>
-    <FirstRenderDetector OnFirstRender="OnFirstRender" />
+    <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" />
     <TreeView Root="@viewModel.RootViewItem" Class="the-tree" @ref="tree"
               ChangeNotification="@viewModel.ChangeNotification"
               OnExpand="@(n => viewModel.OnExpand((IViewItem)n))" OnCollapse="@(n => viewModel.OnCollapse((IViewItem)n))"
@@ -30,7 +29,6 @@
 @code {
     private IViewModel viewModel;
     private ISubscription subscription;
-    private QuickSearchTextBox searchTextBox;
     private TreeView tree;
 
     protected override void OnInitialized()
@@ -67,11 +65,6 @@
     async void IView.PutInputFocusToItemsList()
     {
         await tree.FocusAsync();
-    }
-
-    async Task OnFirstRender()
-    {
-        await searchTextBox.FocusAsync();
     }
 
     void HandleTreeKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.ITreeNode node)

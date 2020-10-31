@@ -14,14 +14,6 @@
     getResourceUrl: function (resourceName) {
         return (new URL(resourceName, window.location)).href;
     },
-    isFocusWithin: function (element) {
-        for (let e = document.activeElement; e; e = e.parentElement) {
-            if (e == element) {
-                return true;
-            }
-        }
-        return false;
-    },
 
     scroll: {
         scrollIntoView: function (element) {
@@ -403,7 +395,7 @@
             }
         },
         focusPrimaryListItem: function (listElement) {
-            if (logjoint.isFocusWithin(listElement)) {
+            if (logjoint.focus.isFocusWithin(listElement)) {
                 const primary = listElement.querySelector('li.primary');
                 if (primary) {
                     primary.focus();
@@ -414,7 +406,7 @@
 
     tree: {
         focusPrimaryTreeNode: function (treeElement, allowFocusStealing) {
-            if (allowFocusStealing || logjoint.isFocusWithin(treeElement)) {
+            if (allowFocusStealing || logjoint.focus.isFocusWithin(treeElement)) {
                 const primary = treeElement.querySelector('.node.primary');
                 if (primary) {
                     primary.focus();
@@ -599,4 +591,67 @@
             return navigator.appVersion.indexOf("Mac") > -1;
         },
     },
+
+    focus: {
+        isFocusWithin: function (element) {
+            return element.contains(document.activeElement);
+        },
+
+        trapFocusInModal: function (modalElement) {
+            let lastFocusedModalDescendent;
+            let suppressFocusHandling;
+
+            function enumFocusableDescendants(node) {
+                const focusableQuery =
+                     `a[href]:not([tabindex='-1']),
+                      area[href]:not([tabindex='-1']),
+                      input:not([disabled]):not([tabindex='-1']),
+                      select:not([disabled]):not([tabindex='-1']),
+                      textarea:not([disabled]):not([tabindex='-1']),
+                      button:not([disabled]):not([tabindex='-1']),
+                      iframe:not([tabindex='-1']),
+                      [tabindex]:not([tabindex='-1']),
+                      [contentEditable=true]:not([tabindex='-1'])`
+                return node.querySelectorAll(focusableQuery);
+            }
+
+            function handleDocumentFocus(event) {
+                if (suppressFocusHandling) {
+                    return;
+                }
+                if (modalElement.contains(event.target)) {
+                    lastFocusedModalDescendent = event.target;
+                } else {
+                    suppressFocusHandling = true;
+                    try {
+                        const focusable = enumFocusableDescendants(modalElement);
+                        if (focusable.length >= 1) {
+                            focusable[0].focus();
+                            if (document.activeElement === lastFocusedModalDescendent) {
+                                focusable[focusable.length - 1].focus();
+                            }
+                            lastFocusedModalDescendent = document.activeElement;
+                        }
+                    } finally {
+                        suppressFocusHandling = false;
+                    }
+                }
+            }
+
+            function focusInitialDescendant() {
+                const focusable = enumFocusableDescendants(modalElement);
+                if (focusable.length >= 1) {
+                    focusable[0].focus();
+                }
+            }
+
+            focusInitialDescendant();
+
+            document.addEventListener('focus', handleDocumentFocus, true);
+
+            return {
+                dispose: () => document.removeEventListener('focus', handleDocumentFocus, true)
+            }
+        },
+    }
 };
