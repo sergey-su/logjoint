@@ -1182,3 +1182,12 @@ body {
     background: inherit;
     border: none;
 }
+
+
+
+
+
+
+.debug-panel {
+    background: var(--control-face-background);
+}
