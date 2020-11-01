@@ -145,6 +145,7 @@
             });
             await jsRuntime.InvokeVoidAsync("logjoint.logViewer.initVScroller", sliderElement, selfRef);
             await jsInterop.Mouse.SetMouseCapturingHandler(scrollInner);
+            await jsInterop.Keyboard.AddDefaultPreventingHandler(element, "Meta+ArrowLeft", "Meta+ArrowRight"); // to disable unwanted navigation
         }
     }
 
