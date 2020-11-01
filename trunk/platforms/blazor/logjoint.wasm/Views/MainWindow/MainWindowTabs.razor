@@ -36,7 +36,7 @@
     {
         tabNames = Selectors.Create(() => ViewModel.VisibleTabs, tabs => tabs.Select(t => new TabsView.TabInfo
         {
-            Caption = t.Id == TabIDs.Debug ? "⚙️" : t.Caption,
+            Caption = t.Id == TabIDs.Debug ? "⚙" : t.Caption,
             Class = t.Id == TabIDs.Debug ? "debug" : null
         }).ToArray());
         subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(

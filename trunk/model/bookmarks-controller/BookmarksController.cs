@@ -4,24 +4,21 @@ namespace LogJoint
 {
 	public class BookmarkController : IBookmarksController
 	{
-		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
+		readonly AsyncInvokeHelper bookmarksPurge;
 		readonly LJTraceSource tracer;
 
 		public BookmarkController(
 			IBookmarks bookmarks,
 			IModelThreads threads,
-			IHeartBeatTimer heartbeat
+			IHeartBeatTimer heartbeat,
+			ISynchronizationContext synchronization
 		)
 		{
 			tracer = LJTraceSource.EmptyTracer;
+			bookmarksPurge = new AsyncInvokeHelper(synchronization, bookmarks.PurgeBookmarksForDisposedThreads);
 			threads.OnThreadListChanged += (s, e) => 
 			{
-				bookmarksNeedPurgeFlag.Invalidate();
-			};
-			heartbeat.OnTimer += (sender, args) =>
-			{
-				if (args.IsNormalUpdate && bookmarksNeedPurgeFlag.Validate())
-					bookmarks.PurgeBookmarksForDisposedThreads();
+				bookmarksPurge.Invoke();
 			};
 			bookmarks.OnBookmarksChanged += (sender, e) => 
 			{

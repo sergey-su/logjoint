@@ -70,7 +70,6 @@
                 PreventDefault = true,
                 Handler = () => viewProxies.PresentationObjects.ViewModels.MainForm.OnKeyPressed(KeyCode.FindShortcut)
             }, "Edit+F/i");
-            await jsInterop.Keyboard.AddDefaultPreventingHandler(element, "Edit+A/i");
         }
     }
 

@@ -260,7 +260,8 @@ namespace LogJoint
 			IBookmarksController bookmarksController = new BookmarkController(
 				bookmarks,
 				modelThreads,
-				heartBeatTimer
+				heartBeatTimer,
+				modelSynchronizationContext
 			);
 
 			IFiltersManager filtersManager = new FiltersManager(
