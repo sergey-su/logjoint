@@ -302,6 +302,7 @@ namespace LogJoint.Wasm
                     Console.WriteLine("Extracted plugin: {0}, took {1}", resourceName, sw.Elapsed);
                     pluginsDirsList.Add(pluginDir);
                 }
+
                 var model = wasmHost.Services.GetService<ModelObjects>();
                 var view = wasmHost.Services.GetService<ViewModelObjects>();
                 model.PluginsManager.LoadPlugins(new Extensibility.Application(
