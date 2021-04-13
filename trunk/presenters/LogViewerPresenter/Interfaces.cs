@@ -22,6 +22,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ShowRawMessages { get; set; }
 		bool RawViewAllowed { get; }
 		bool ViewTailMode { get; set; }
+		bool EmptyViewMessageAllowed { get; set; }
 		UserInteraction DisabledUserInteractions { get; set; }
 		ColoringMode Coloring { get; set; }
 		bool NavigationIsInProgress { get; }

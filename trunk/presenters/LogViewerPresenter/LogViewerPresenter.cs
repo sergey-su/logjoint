@@ -254,6 +254,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool IPresenterInternal.RawViewAllowed => viewModeStrategy.IsRawMessagesModeAllowed;
 
+		bool IPresenterInternal.EmptyViewMessageAllowed
+		{
+			get => enableEmptyViewMessage;
+			set => enableEmptyViewMessage = value;
+		}
+
 		bool IPresenterInternal.ViewTailMode
 		{
 			get { return viewTailMode; }
@@ -711,6 +717,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		double? IViewModel.VerticalScrollerPosition => screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?();
 
 		string IViewModel.EmptyViewMessage =>
+			!enableEmptyViewMessage ? null :
 			screenBuffer.Messages.Count != 0 ? null :
 			searchResultModel != null ? null :
 			"No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
@@ -1410,6 +1417,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		FontData font = new FontData();
 		bool showTime;
 		bool showMilliseconds = true;
+		bool enableEmptyViewMessage = true;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
 		FocusedMessageDisplayModes focusedMessageDisplayMode;
 		int slaveMessagePositionAnimationStep;

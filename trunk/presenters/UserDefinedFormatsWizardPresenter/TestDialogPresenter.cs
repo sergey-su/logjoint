@@ -42,6 +42,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			this.model = new Presenters.LogViewer.DummyModel();
 			this.logPresenter = logViewerPresenterFactory.CreateIsolatedPresenter(model, view.LogViewer);
 			logPresenter.ShowTime = true;
+			logPresenter.EmptyViewMessageAllowed = false;
 		}
 
 		void IDisposable.Dispose ()
