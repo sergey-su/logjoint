@@ -24,7 +24,7 @@ namespace LogJoint.PluginTool
 				Console.WriteLine("  deploy <zip-name> <inbox url>                       Sends the plug-in package into the plug-ins inbox.");
 				Console.WriteLine("  test <plugin> <host> [--filter=<value>]             Runs plug-in's integration tests with specified host app installation.");
 				Console.WriteLine("                                                         <plugin> - local folder, or zip archive with packed plugin");
-				Console.WriteLine("                                                         <host> - local folder, or url of zip archive with logjoing binaries");
+				Console.WriteLine("                                                         <host> - local folder, or url of zip archive with logjoint binaries");
 				return 0;
 			}
 
