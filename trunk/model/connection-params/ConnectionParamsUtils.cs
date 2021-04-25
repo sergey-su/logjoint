@@ -1,4 +1,6 @@
 
+using System.Collections.Generic;
+
 namespace LogJoint
 {
 	public static class ConnectionParamsUtils
@@ -8,21 +10,26 @@ namespace LogJoint
 			string displayName = cp[ConnectionParamsKeys.DisplayNameConnectionParam];
 			if (!string.IsNullOrEmpty(displayName))
 				return displayName;
+			string rotatedLogFolder = cp[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam];
+			if (!string.IsNullOrEmpty(rotatedLogFolder))
+			{
+				var patterns = string.Join(";", GetRotatedLogPatterns(cp));
+				if (patterns != "")
+					patterns = $" ({patterns})";
+				return rotatedLogFolder + patterns;
+			}
 			string id = cp[ConnectionParamsKeys.IdentityConnectionParam];
 			if (!string.IsNullOrEmpty(id))
 				return id;
-			string rotatedLogFolder = cp[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam];
-			if (!string.IsNullOrEmpty(rotatedLogFolder))
-				return rotatedLogFolder;
 			return cp[ConnectionParamsKeys.PathConnectionParam] ?? "";
 		}
 		public static string CreateFileBasedConnectionIdentityFromFileName(string fileName)
 		{
 			return IOUtils.NormalizePath(fileName);
 		}
-		public static string CreateFolderBasedConnectionIdentityFromFolderPath(string folder)
+		public static string CreateFolderBasedConnectionIdentityFromFolderPath(string logFormatKey, string folder)
 		{
-			return IOUtils.NormalizePath(folder);
+			return $"{logFormatKey} {IOUtils.NormalizePath(folder)}";
 		}
 		public static IConnectionParams CreateFileBasedConnectionParamsFromFileName(string fileName)
 		{
@@ -31,12 +38,32 @@ namespace LogJoint
 			p[ConnectionParamsKeys.IdentityConnectionParam] = CreateFileBasedConnectionIdentityFromFileName(fileName);
 			return p;
 		}
-		public static IConnectionParams CreateRotatedLogConnectionParamsFromFolderPath(string folder)
+		public static IConnectionParams CreateRotatedLogConnectionParamsFromFolderPath(string folder, ILogProviderFactory logFormat, IEnumerable<string> patterns)
 		{
 			ConnectionParams p = new ConnectionParams();
 			p[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] = folder;
-			p[ConnectionParamsKeys.IdentityConnectionParam] = CreateFolderBasedConnectionIdentityFromFolderPath(folder);
+			int patternIndex = 0;
+			foreach (var pattern in patterns)
+			{
+				if (!string.IsNullOrWhiteSpace(pattern))
+				{
+					p[$"{ConnectionParamsKeys.RotatedLogPatternParamPrefix}{patternIndex}"] = pattern;
+					++patternIndex;
+				}
+			}
+			p[ConnectionParamsKeys.IdentityConnectionParam] = CreateFolderBasedConnectionIdentityFromFolderPath(
+				$"{logFormat.CompanyName}\\{logFormat.FormatName}", folder);
 			return p;
+		}
+		public static IEnumerable<string> GetRotatedLogPatterns(IConnectionParams cp)
+		{
+			for (int patternIndex = 0; ;++patternIndex)
+			{
+				string p = cp[$"{ConnectionParamsKeys.RotatedLogPatternParamPrefix}{patternIndex}"];
+				if (string.IsNullOrEmpty(p))
+					break;
+				yield return p;
+			}
 		}
 		public static string GetConnectionIdentity(IConnectionParams cp)
 		{

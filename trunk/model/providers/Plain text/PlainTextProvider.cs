@@ -120,7 +120,7 @@ namespace LogJoint.PlainText
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
+		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder, IEnumerable<string> patterns)
 		{
 			throw new NotImplementedException();
 		}

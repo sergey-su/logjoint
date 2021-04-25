@@ -613,9 +613,9 @@ namespace LogJoint.XmlFormat
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
+		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder, IEnumerable<string> patterns)
 		{
-			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
+			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder, this, patterns);
 		}
 
 		string ILogProviderFactory.CompanyName
@@ -784,9 +784,9 @@ namespace LogJoint.XmlFormat
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
+		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder, IEnumerable<string> patterns)
 		{
-			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
+			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder, this, patterns);
 		}
 
 		#endregion

@@ -33,9 +33,9 @@ namespace LogJoint.Log4net
 			get { return baseDirectory; }
 		}
 
-		public string InitialSearchFilter
+		public IEnumerable<string> SearchPatterns
 		{
-			get { return baseFileNameFirstChar + "*"; }
+			get { yield return baseFileNameFirstChar + "*"; }
 		}
 
 		public bool IsFileARolledLog(string fileNameToTest)

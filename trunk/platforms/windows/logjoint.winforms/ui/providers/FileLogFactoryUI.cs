@@ -40,6 +40,8 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 					return filePathTextBox.Text;
 				case ControlId.FolderSelector:
 					return folderPartTextBox.Text;
+				case ControlId.PatternsSelector:
+					return folderPatternsTextBox.Text;
 			}
 			return null;
 		}
@@ -80,6 +82,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 				case ControlId.FolderSelector:
 					folderPartTextBox.Enabled = value;
 					browseFolderButton.Enabled = value;
+					break;
+				case ControlId.PatternsSelector:
+					folderPatternsTextBox.Enabled = value;
 					break;
 			}
 		}

@@ -10,7 +10,10 @@ namespace LogJoint
 	public interface IRollingFilesMediaStrategy
 	{
 		string BaseDirectory { get; }
-		string InitialSearchFilter { get; }
+		/// <summary>
+		/// Never empty collection of search patterns.
+		/// </summary>
+		IEnumerable<string> SearchPatterns { get; }
 		bool IsFileARolledLog(string fileNameToTest);
 	};
 
@@ -124,7 +127,7 @@ namespace LogJoint
 
 				if (Interlocked.CompareExchange(ref folderNeedsRescan, 0, 1) != 0)
 				{
-					trace.Info("Folder will be rescaned. First, disposing existing parts");
+					trace.Info("Folder will be re-scanned. First, disposing existing parts");
 					foreach (var p in parts)
 					{
 						trace.Info("Disposing: {0}", p.Key);
@@ -132,7 +135,8 @@ namespace LogJoint
 					}
 					parts.Clear();
 					trace.Info("Scanning the folder and discovering new parts");
-					foreach (string fname in fileSystem.GetFiles(baseDirectory, rollingStrategy.InitialSearchFilter))
+					foreach (string fname in
+						rollingStrategy.SearchPatterns.SelectMany(pattern => fileSystem.GetFiles(baseDirectory, pattern)).Distinct())
 					{
 						trace.Info("Found: {0}", fname);
 						LogPart part = new LogPart(this, Path.GetFileName(fname));

@@ -34,6 +34,8 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			this.rotatedLogModeRadioButton = new System.Windows.Forms.RadioButton();
 			this.folderPartTextBox = new System.Windows.Forms.TextBox();
 			this.browseFolderButton = new System.Windows.Forms.Button();
+			this.folderPatternsLabel = new System.Windows.Forms.Label();
+			this.folderPatternsTextBox = new System.Windows.Forms.TextBox();
 			this.SuspendLayout();
 			// 
 			// filePathTextBox
@@ -104,6 +106,25 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			this.browseFolderButton.Text = "Browse...";
 			this.browseFolderButton.UseVisualStyleBackColor = true;
 			this.browseFolderButton.Click += new System.EventHandler(this.browseFolderButton_Click);
+			//
+			// folderPatternsLabel
+			//
+			this.folderPatternsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left))));
+			this.folderPatternsLabel.Location = new System.Drawing.Point(27, 140);
+			this.folderPatternsLabel.Name = "folderPatternsLabel";
+			this.folderPatternsLabel.Size = new System.Drawing.Size(120, 24);
+			this.folderPatternsLabel.Text = "Search patterns:";
+			this.folderPatternsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			//
+			// folderPatternsTextBox
+			//
+			this.folderPatternsTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+			| System.Windows.Forms.AnchorStyles.Right)));
+			this.folderPatternsTextBox.Location = new System.Drawing.Point(147, 140);
+			this.folderPatternsTextBox.Margin = new System.Windows.Forms.Padding(4);
+			this.folderPatternsTextBox.Name = "folderPatternsTextBox";
+			this.folderPatternsTextBox.Size = new System.Drawing.Size(369, 24);
+			this.folderPatternsTextBox.TabIndex = 5;
 			// 
 			// FileLogFactoryUI
 			// 
@@ -115,6 +136,8 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			this.Controls.Add(this.browseFileButton);
 			this.Controls.Add(this.folderPartTextBox);
 			this.Controls.Add(this.filePathTextBox);
+			this.Controls.Add(this.folderPatternsLabel);
+			this.Controls.Add(this.folderPatternsTextBox);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.Margin = new System.Windows.Forms.Padding(4);
 			this.Name = "FileLogFactoryUI";
@@ -132,5 +155,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 		private System.Windows.Forms.RadioButton rotatedLogModeRadioButton;
 		private System.Windows.Forms.TextBox folderPartTextBox;
 		private System.Windows.Forms.Button browseFolderButton;
+		private System.Windows.Forms.Label folderPatternsLabel;
+		private System.Windows.Forms.TextBox folderPatternsTextBox;
 	}
 }

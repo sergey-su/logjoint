@@ -51,9 +51,15 @@ namespace LogJoint
 		public static readonly string DisplayNameConnectionParam = "display-as";
 		/// <summary>
 		/// An IConnectionParams key.
-		/// Specifies a path to folder that will be monitored for parts of rotated log.
+		/// Specifies the path to a folder that will be monitored for the parts of the rotated log.
 		/// </summary>
 		public static readonly string RotatedLogFolderPathConnectionParam = "rotated-log-folder-path";
+		/// <summary>
+		/// A prefix for connection params that specify the search patterns, like my-log-*.txt,
+		/// that will be matched to find the rotated log parts in the folder
+		/// specified in <see cref="RotatedLogFolderPathConnectionParam"/>.
+		/// </summary>
+		public static readonly string RotatedLogPatternParamPrefix = "rotated-log-pattern-";
 		/// <summary>
 		/// An IConnectionParams key.
 		/// When specified defines an initial time offset of a provider.

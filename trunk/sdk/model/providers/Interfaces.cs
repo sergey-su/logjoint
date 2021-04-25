@@ -150,7 +150,7 @@ namespace LogJoint
 	{
 		IEnumerable<string> SupportedPatterns { get; }
 		IConnectionParams CreateParams(string fileName);
-		IConnectionParams CreateRotatedLogParams(string folder);
+		IConnectionParams CreateRotatedLogParams(string folder, IEnumerable<string> patterns);
 	};
 
 	public enum LogProviderState

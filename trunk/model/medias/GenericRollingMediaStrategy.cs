@@ -1,30 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 
 namespace LogJoint
 {
 	class GenericRollingMediaStrategy : IRollingFilesMediaStrategy
 	{
 		readonly string baseDirectory;
+		readonly IEnumerable<string> searchPatterns;
 
-		public GenericRollingMediaStrategy(string baseDirectory)
+		public GenericRollingMediaStrategy(string baseDirectory, IEnumerable<string> searchPatterns)
 		{
-			if (baseDirectory == null)
-				throw new ArgumentNullException("baseDirectory");
-			this.baseDirectory = baseDirectory;
+			this.baseDirectory = baseDirectory ?? throw new ArgumentNullException(nameof(baseDirectory));
+			var searchPatternsSet = searchPatterns.ToHashSet();
+			if (searchPatternsSet.Count == 0)
+			{
+				searchPatternsSet.Add("*.*");
+			}
+			this.searchPatterns = searchPatternsSet;
 		}
 
-		string IRollingFilesMediaStrategy.BaseDirectory
-		{
-			get { return baseDirectory; }
-		}
+		string IRollingFilesMediaStrategy.BaseDirectory => baseDirectory;
 
-		string IRollingFilesMediaStrategy.InitialSearchFilter
-		{
-			get { return "*.*"; }
-		}
+		IEnumerable<string> IRollingFilesMediaStrategy.SearchPatterns => searchPatterns;
 
 		bool IRollingFilesMediaStrategy.IsFileARolledLog(string fileNameToTest)
 		{

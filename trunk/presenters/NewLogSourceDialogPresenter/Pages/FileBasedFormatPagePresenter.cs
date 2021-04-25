@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 
 namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
@@ -18,6 +19,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 		RotatedLogModeButton,
 		FileSelector,
 		FolderSelector,
+		PatternsSelector,
 	};
 
 	public interface IViewEvents
@@ -150,6 +152,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 				view.WriteControlValue(ControlId.IndependentLogsModeButton, true);
 			view.SetEnabled(ControlId.FileSelector, (bool)view.ReadControlValue(ControlId.IndependentLogsModeButton));
 			view.SetEnabled(ControlId.FolderSelector, (bool)view.ReadControlValue(ControlId.RotatedLogModeButton));
+			view.SetEnabled(ControlId.PatternsSelector, (bool)view.ReadControlValue(ControlId.RotatedLogModeButton));
 		}
 
 		void ApplyIndependentLogsMode()
@@ -187,9 +190,12 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 			view.WriteControlValue(ControlId.FolderSelector, "");
 
-			folder = folder.TrimEnd('\\');
+			folder = folder.TrimEnd(System.IO.Path.DirectorySeparatorChar);
 
-			IConnectionParams connectParams = factory.CreateRotatedLogParams(folder);
+			var patters = (string)view.ReadControlValue(ControlId.PatternsSelector);
+
+			IConnectionParams connectParams = factory.CreateRotatedLogParams(folder,
+				patters.Split(';').Where(s => !string.IsNullOrWhiteSpace(s)));
 
 			try
 			{

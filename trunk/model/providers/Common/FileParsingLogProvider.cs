@@ -34,14 +34,21 @@ namespace LogJoint
 			using (tracer.NewFrame)
 			{
 				if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
+				{
 					media = new RollingFilesMedia(
 						LogMedia.FileSystemImpl.Instance,
-						readerCreator, 
+						readerCreator,
 						tracer,
-						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam])
+						new GenericRollingMediaStrategy(
+							connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam],
+							ConnectionParamsUtils.GetRotatedLogPatterns(connectParams)
+						)
 					);
+				}
 				else
+				{
 					media = new SimpleFileMedia(connectParams);
+				}
 
 				reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
 						settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix));
