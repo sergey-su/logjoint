@@ -62,6 +62,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 				case ControlId.FolderSelector:
 					folderPartTextBox.Text = (string)value;
 					break;
+				case ControlId.PatternsSelector:
+					folderPatternsTextBox.Text = (string)value;
+					break;
 			}
 		}
 

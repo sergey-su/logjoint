@@ -64,7 +64,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 		void IPagePresenter.Activate()
 		{
-			UpdateView();
+			UpdateView(initialUpdate: true);
 		}
 
 		void IPagePresenter.Deactivate()
@@ -82,7 +82,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 		void IViewEvents.OnSelectedModeChanged()
 		{
-			UpdateView();
+			UpdateView(initialUpdate: false);
 		}
 
 		void IViewEvents.OnBrowseFilesButtonClicked()
@@ -144,7 +144,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 				view.WriteControlValue(ControlId.FolderSelector, folder[0]);
 		}
 
-		void UpdateView()
+		void UpdateView(bool initialUpdate)
 		{
 			bool supportsRotation = (factory.Flags & LogProviderFactoryFlag.SupportsRotation) != 0;
 			view.SetEnabled(ControlId.RotatedLogModeButton, supportsRotation);
@@ -153,6 +153,10 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			view.SetEnabled(ControlId.FileSelector, (bool)view.ReadControlValue(ControlId.IndependentLogsModeButton));
 			view.SetEnabled(ControlId.FolderSelector, (bool)view.ReadControlValue(ControlId.RotatedLogModeButton));
 			view.SetEnabled(ControlId.PatternsSelector, (bool)view.ReadControlValue(ControlId.RotatedLogModeButton));
+			if (initialUpdate && supportsRotation)
+			{
+				view.WriteControlValue(ControlId.PatternsSelector, string.Join(";", factory.SupportedPatterns));
+			}
 		}
 
 		void ApplyIndependentLogsMode()
