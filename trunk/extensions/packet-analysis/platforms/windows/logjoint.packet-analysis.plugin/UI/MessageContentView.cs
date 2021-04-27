@@ -6,12 +6,12 @@ namespace LogJoint.PacketAnalysis.UI
 {
 	public partial class MessageContentView : UserControl, IView
 	{
-		readonly LogJoint.UI.Windows.Reactive.ITreeViewController treeViewController;
+		readonly LogJoint.UI.Windows.Reactive.ITreeViewController<IViewTreeNode> treeViewController;
 
 		public MessageContentView(LogJoint.UI.Windows.IView appViewLayer)
 		{
 			InitializeComponent();
-			treeViewController = appViewLayer.Reactive.CreateTreeViewController(treeView);
+			treeViewController = appViewLayer.Reactive.CreateTreeViewController<IViewTreeNode>(treeView);
 		}
 
 		object IView.OSView => this;
@@ -22,9 +22,9 @@ namespace LogJoint.PacketAnalysis.UI
 
 			viewModel.ChangeNotification.CreateSubscription(updatesTree);
 
-			treeViewController.OnCollapse = n => viewModel.OnCollapse((IViewTreeNode)n);
-			treeViewController.OnExpand = n => viewModel.OnExpand((IViewTreeNode)n);
-			treeViewController.OnSelect = n => viewModel.OnSelect(n.OfType<IViewTreeNode>().FirstOrDefault());
+			treeViewController.OnCollapse = n => viewModel.OnCollapse(n);
+			treeViewController.OnExpand = n => viewModel.OnExpand(n);
+			treeViewController.OnSelect = n => viewModel.OnSelect(n.FirstOrDefault());
 		}
 	}
 }
