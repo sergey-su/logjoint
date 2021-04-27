@@ -10,15 +10,14 @@ namespace LogJoint
 {
 	public class DirectoryFormatsRepository : IFormatDefinitionsRepository
 	{
-		public DirectoryFormatsRepository(string directoryPath)
+		public DirectoryFormatsRepository(string directoryPath, string[] additionalDirectories = null)
 		{
-			this.directoryPath = string.IsNullOrEmpty(directoryPath) ? DefaultRepositoryLocation : directoryPath;
+			this.directoryPaths.Add(string.IsNullOrEmpty(directoryPath) ? DefaultRepositoryLocation : directoryPath);
+			if (additionalDirectories != null)
+				this.directoryPaths.AddRange(additionalDirectories);
 		}
 
-		public string RepositoryLocation
-		{
-			get { return directoryPath; }
-		}
+		public string RepositoryLocation => directoryPaths[0];
 
 		public static string RelativeFormatsLocation
 		{
@@ -43,19 +42,22 @@ namespace LogJoint
 		{
 			get
 			{
-				if (Directory.Exists(directoryPath))
+				foreach (string directoryPath in directoryPaths)
 				{
-					foreach (string fullFileName in Directory.GetFiles(directoryPath, "*.format.xml"))
+					if (Directory.Exists(directoryPath))
 					{
-						var fname = Path.GetFileName(fullFileName);
-						if (string.Compare(fname, "Skype - Caf‚ Log.format.xml", ignoreCase: true) == 0
-						 || string.Compare(fname, "Skype - Café Log.format.xml", ignoreCase: true) == 0
-						 || string.Compare(fname, "Skype - Caf%E9 Log.format.xml", ignoreCase: true) == 0)
+						foreach (string fullFileName in Directory.GetFiles(directoryPath, "*.format.xml"))
 						{
-							// todo: dirty hack. intro configurable blacklist instead.
-							continue;
+							var fname = Path.GetFileName(fullFileName);
+							if (string.Compare(fname, "Skype - Caf‚ Log.format.xml", ignoreCase: true) == 0
+							 || string.Compare(fname, "Skype - Café Log.format.xml", ignoreCase: true) == 0
+							 || string.Compare(fname, "Skype - Caf%E9 Log.format.xml", ignoreCase: true) == 0)
+							{
+								// todo: dirty hack. intro configurable blacklist instead.
+								continue;
+							}
+							yield return new Entry(fullFileName);
 						}
-						yield return new Entry(fullFileName);
 					}
 				}
 			}
@@ -87,6 +89,6 @@ namespace LogJoint
 			readonly string fileName;
 		};
 
-		readonly string directoryPath;
+		readonly List<string> directoryPaths = new List<string>();
 	};
 }

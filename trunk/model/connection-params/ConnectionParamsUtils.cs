@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using System.Text;
 
 namespace LogJoint
 {
@@ -27,9 +28,9 @@ namespace LogJoint
 		{
 			return IOUtils.NormalizePath(fileName);
 		}
-		public static string CreateFolderBasedConnectionIdentityFromFolderPath(string logFormatKey, string folder)
+		public static string CreateFolderBasedConnectionIdentityFromFolderPath(string logFormatKey, string folder, string patterns)
 		{
-			return $"{logFormatKey} {IOUtils.NormalizePath(folder)}";
+			return $"{logFormatKey} {IOUtils.NormalizePath(folder)} {patterns}";
 		}
 		public static IConnectionParams CreateFileBasedConnectionParamsFromFileName(string fileName)
 		{
@@ -43,16 +44,18 @@ namespace LogJoint
 			ConnectionParams p = new ConnectionParams();
 			p[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] = folder;
 			int patternIndex = 0;
+			var mergedPatterns = new StringBuilder();
 			foreach (var pattern in patterns)
 			{
 				if (!string.IsNullOrWhiteSpace(pattern))
 				{
 					p[$"{ConnectionParamsKeys.RotatedLogPatternParamPrefix}{patternIndex}"] = pattern;
 					++patternIndex;
+					mergedPatterns.AppendFormat("{0}|", pattern);
 				}
 			}
 			p[ConnectionParamsKeys.IdentityConnectionParam] = CreateFolderBasedConnectionIdentityFromFolderPath(
-				$"{logFormat.CompanyName}\\{logFormat.FormatName}", folder);
+				$"{logFormat.CompanyName}\\{logFormat.FormatName}", folder, mergedPatterns.ToString());
 			return p;
 		}
 		public static IEnumerable<string> GetRotatedLogPatterns(IConnectionParams cp)

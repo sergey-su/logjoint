@@ -75,6 +75,10 @@ namespace LogJoint.Tests.Integration
 		/// Temporary folder where this instance of application stores its state.
 		/// </summary>
 		public string AppDataDirectory { get; private set; }
+		/// <summary>
+		/// Temporary folder where a test can put custom format definitions.
+		/// </summary>
+		public string TestFormatDirectory { get; private set; }
 
 		IModel IContext.Model => ModelObjects.ExpensibilityEntryPoint;
 		UI.Presenters.IPresentation IContext.Presentation => PresentationObjects.ExpensibilityEntryPoint;
@@ -115,8 +119,10 @@ namespace LogJoint.Tests.Integration
 
 			var appDataDir = Path.Combine(Path.GetTempPath(),
 				$"logjoint.int.test.workdir.{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff")}");
+			var testFormatsDir = Path.Combine(appDataDir, "TestFormats");
 
 			Directory.CreateDirectory(appDataDir);
+			Directory.CreateDirectory(testFormatsDir);
 			var traceListener = new TraceListener(Path.Combine(appDataDir, "test-debug.log") + ";logical-thread=1");
 
 			ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
@@ -134,7 +140,8 @@ namespace LogJoint.Tests.Integration
 						LogsDownloaderConfig = mocks.LogsDownloaderConfig,
 						AppDataDirectory = appDataDir,
 						TraceListeners = new[] { traceListener },
-						DisableLogjointInstancesCounting = true
+						DisableLogjointInstancesCounting = true,
+						AdditionalFormatDirectories = new[] { testFormatsDir },
 					},
 					serialSynchronizationContext,
 					(_1) => mocks.CredentialsCache,
@@ -165,7 +172,8 @@ namespace LogJoint.Tests.Integration
 					ViewModel = viewModel,
 					Samples = new SamplesUtils(),
 					traceListener = traceListener,
-					AppDataDirectory = appDataDir
+					AppDataDirectory = appDataDir,
+					TestFormatDirectory = testFormatsDir,
 				};
 			});
 

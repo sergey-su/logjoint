@@ -99,5 +99,33 @@ namespace LogJoint.Tests.Integration
 			});
 			return subs;
 		}
+
+		private static readonly string TestCustomFormatDefinition = @"
+<format>
+  <regular-grammar>
+    <head-re><![CDATA[^
+(?<d>[\d\/]{10}\ [\d\:\.]{12})\ 
+(?<th>T\#\d+)\ ]]></head-re>
+    <fields-config>
+      <field name='Time'><![CDATA[TO_DATETIME(d, ""yyyy/MM/dd HH:mm:ss.fff"")]]></field>
+      <field name='Thread'><![CDATA[th]]></field>
+      <field name='Body'><![CDATA[body]]></field>
+    </fields-config>
+  </regular-grammar>
+  <id company='LogJoint' name='Test123' />
+</format>";
+
+		/// <summary>
+		/// Adds custom format LogJoint/Test123 that is formatted as
+		/// 2021/04/26 19:21:58.285 T#32 Hello world!
+		/// </summary>
+		public static async Task AddTestCustomFormat(this TestAppInstance app)
+		{
+			await System.IO.File.WriteAllTextAsync(
+				System.IO.Path.Combine(app.TestFormatDirectory, "test.format.xml"),
+				TestCustomFormatDefinition
+			);
+			app.ModelObjects.UserDefinedFormatsManager.ReloadFactories();
+		}
 	};
 }
