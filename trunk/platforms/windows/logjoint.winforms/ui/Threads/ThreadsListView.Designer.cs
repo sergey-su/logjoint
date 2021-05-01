@@ -35,7 +35,7 @@ namespace LogJoint.UI
 			this.firstMsgColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.lastMsgColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.searchThisThreadMessagesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.discoverThreadsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenuStrip1.SuspendLayout();
@@ -86,7 +86,7 @@ namespace LogJoint.UI
 			// contextMenuStrip1
 			// 
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.searchThisThreadMessagesMenuItem,
+            this.discoverThreadsMenuItem,
             this.propertiesToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
 			this.contextMenuStrip1.Size = new System.Drawing.Size(227, 92);
@@ -94,10 +94,10 @@ namespace LogJoint.UI
 			// 
 			// showOnlyThisThreadMenuItem1
 			// 
-			this.searchThisThreadMessagesMenuItem.Name = "searchThisThreadMessagesMenuItem";
-			this.searchThisThreadMessagesMenuItem.Size = new System.Drawing.Size(226, 22);
-			this.searchThisThreadMessagesMenuItem.Text = "Find all message from this thread";
-			this.searchThisThreadMessagesMenuItem.Click += new System.EventHandler(this.searchThisThreadMessagesMenuItem_Click);
+			this.discoverThreadsMenuItem.Name = "searchThisThreadMessagesMenuItem";
+			this.discoverThreadsMenuItem.Size = new System.Drawing.Size(226, 22);
+			this.discoverThreadsMenuItem.Text = "Scan logs to discover threads";
+			this.discoverThreadsMenuItem.Click += new System.EventHandler(this.discoverThreadsMenuItem_Click);
 			// 
 			// propertiesToolStripMenuItem
 			// 
@@ -134,6 +134,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
 		private System.Windows.Forms.ImageList imageList1;
-		private System.Windows.Forms.ToolStripMenuItem searchThisThreadMessagesMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem discoverThreadsMenuItem;
 	}
 }

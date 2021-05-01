@@ -130,7 +130,9 @@ namespace LogJoint
 		{
 			CheckDisposed();
 			var ret = new EnumMessagesCommand(startFrom, flags, callback);
-			Command cmd = new Command(Command.CommandType.Get, priority, tracer, cancellation, ret);
+			Command cmd = new Command(
+				(flags & EnumMessagesFlag.Preemptable) != 0 ? Command.CommandType.PreemptableGet : Command.CommandType.Get,
+				priority, tracer, cancellation, ret);
 			PostCommand(cmd);
 			if ((flags & EnumMessagesFlag.IsActiveLogPositionHint) != 0)
 			{
@@ -324,12 +326,13 @@ namespace LogJoint
 					lock (sync)
 					{
 						cmd = commands.Dequeue();
-						if (cmd.Type == Command.CommandType.Search || cmd.Type == Command.CommandType.UpdateCache)
+						if (cmd.Type == Command.CommandType.Search || cmd.Type == Command.CommandType.UpdateCache ||
+							cmd.Type == Command.CommandType.PreemptableGet)
 						{
 							cmdPreemption = currentCommandPreemption = new CurrentCommandPreemption(cmd);
 						}
 					}
-							
+
 					cmd.Perfop.Milestone("handling");
 
 					switch (cmd.Type)
@@ -574,6 +577,7 @@ namespace LogJoint
 				PeriodicUpdate,
 				SetTimeOffset,
 				Refresh,
+				PreemptableGet,
 			};
 			public Command(
 				CommandType t,

@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.ThreadsList
 {
@@ -22,6 +25,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
+			this.logSources = logSources;
 			this.theme = theme;
 
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
@@ -83,12 +87,28 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		}
 
 
-		public void OnSearchThisThreadMessagesMenuItemClicked(IViewItem item)
+		public async void OnDiscoverThreadsMenuItemClicked(IViewItem item)
 		{
-			IThread t = item.Thread;
-			if (t.IsDisposed)
-				return;
-			// todo: implement me
+			try
+			{
+				view.SetThreadsDiscoveryState(true);
+				await Task.WhenAll(logSources.Items.Select(logSource => logSource.Provider.EnumMessages(0,
+					msg =>
+					{
+						msg.Thread.RegisterKnownMessage(msg);
+						return true;
+					},
+					EnumMessagesFlag.Forward | EnumMessagesFlag.IsSequentialScanningHint | EnumMessagesFlag.Preemptable,
+					LogProviderCommandPriority.BackgroundActivity,
+					CancellationToken.None)));
+			}
+			catch (Exception)
+			{
+			}
+			finally
+			{
+				view.SetThreadsDiscoveryState(false);
+			}
 		}
 
 
@@ -210,6 +230,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		readonly Presenters.LogViewer.IPresenterInternal viewerPresenter;
 		readonly IPresentersFacade navHandler;
 		readonly IColorTheme theme;
+		readonly ILogSourcesManager logSources;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		int updateLock = 0;
 		int sortColumn = -1;

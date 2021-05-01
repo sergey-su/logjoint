@@ -69,6 +69,7 @@ namespace LogJoint
 				for (; ; )
 				{
 					ctx.Cancellation.ThrowIfCancellationRequested();
+					ctx.Preemption.ThrowIfCancellationRequested();
 					var m = parser.ReadNext();
 					if (m == null)
 						break;

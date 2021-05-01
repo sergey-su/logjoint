@@ -189,6 +189,7 @@ namespace LogJoint
 		/// Log provider can pre-fetch more messages around given position to speed up browsing.
 		/// </summary>
 		IsActiveLogPositionHint = 8,
+		Preemptable = 16,
 	};
 
 	public class LogProviderStats

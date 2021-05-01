@@ -32,6 +32,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		IViewItem TopItem { get; set; }
 		void SortItems();
 		void UpdateFocusedThreadView();
+		void SetThreadsDiscoveryState(bool inProgress);
 	};
 
 	public interface IViewEvents

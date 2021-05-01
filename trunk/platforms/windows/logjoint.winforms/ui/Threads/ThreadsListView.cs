@@ -103,6 +103,8 @@ namespace LogJoint.UI
 			return null;
 		}
 
+		public void SetThreadsDiscoveryState(bool inProgress) { }
+
 		void list_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
 		{
 			if (e.ColumnIndex == 0)
@@ -221,11 +223,11 @@ namespace LogJoint.UI
 			presenter.OnListColumnClicked(e.Column);
 		}
 
-		private void searchThisThreadMessagesMenuItem_Click(object sender, EventArgs e)
+		private void discoverThreadsMenuItem_Click(object sender, EventArgs e)
 		{
 			var item = Get();
 			if (item != null)
-				presenter.OnSearchThisThreadMessagesMenuItemClicked(item);
+				presenter.OnDiscoverThreadsMenuItemClicked(item);
 		}
 
 
