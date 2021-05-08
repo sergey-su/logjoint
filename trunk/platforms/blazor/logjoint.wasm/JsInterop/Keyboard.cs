@@ -49,7 +49,7 @@ namespace LogJoint.Wasm
 
         public async ValueTask<IAsyncDisposable> TrapFocusInModal(ElementReference modalElement)
         {
-            var modal = await jsRuntime.InvokeAsync<JSObjectReference>("logjoint.focus.trapFocusInModal", modalElement);
+            var modal = await jsRuntime.InvokeAsync<IJSObjectReference>("logjoint.focus.trapFocusInModal", modalElement);
             return new ModalHandle
             {
                 dispose = () => modal.InvokeVoidAsync("dispose")

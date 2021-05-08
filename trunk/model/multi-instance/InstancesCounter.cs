@@ -13,7 +13,13 @@ namespace LogJoint.MultiInstance
 
 		public InstancesCounter(IShutdown shutdown)
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			if (IsBrowser.Value)
+			{
+				isFirstInstance = true;
+				mutualExecutionKey = "web";
+				count = () => 1;
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				const string processName = "logjoint";
 				mutualExecutionKey = processName;

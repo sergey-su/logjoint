@@ -152,6 +152,10 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		void UpdateControls()
 		{
+			if (IsBrowser.Value)
+			{
+				return;
+			}
 			ViewControl visibleCtrls = 
 				ViewControl.AddFilterButton | ViewControl.RemoveFilterButton | 
 				ViewControl.MoveUpButton | ViewControl.MoveDownButton | ViewControl.FilterOptions;
