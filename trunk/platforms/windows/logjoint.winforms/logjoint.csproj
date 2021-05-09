@@ -81,7 +81,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Google.OrTools">
-      <HintPath>..\packages\Google.OrTools.runtime.win-x64.7.3.7083\runtimes\win-x64\lib\netstandard2.0\Google.OrTools.dll</HintPath>
+      <HintPath>$(PkgGoogle_OrTools_runtime_win-x64)\runtimes\win-x64\lib\netstandard2.0\Google.OrTools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -1144,9 +1144,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Google.OrTools.runtime.win-x64">
-      <Version>7.3.7083</Version>
-    </PackageReference>
+    <PackageReference Include="Google.OrTools.runtime.win-x64" Version="7.3.7083" GeneratePathProperty="true" />
     <PackageReference Include="System.Collections.Immutable">
       <Version>1.5.0</Version>
     </PackageReference>
@@ -1159,7 +1157,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(SolutionDir)\packages\Google.OrTools.runtime.win-x64.7.3.7083\runtimes\win-x64\native\Google.OrTools.runtime.win-x64.dll $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent>copy $(PkgGoogle_OrTools_runtime_win-x64)\runtimes\win-x64\native\Google.OrTools.runtime.win-x64.dll $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
