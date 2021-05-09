@@ -56,10 +56,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">
-      <HintPath>..\..\..\model\tests\log4net\2.0\log4net.dll</HintPath>
+      <HintPath>..\..\..\tests\model\log4net\2.0\log4net.dll</HintPath>
     </Reference>
     <Reference Include="NLog">
-      <HintPath>..\..\..\model\tests\nlog\4.4\NLog.dll</HintPath>
+      <HintPath>..\..\..\tests\model\nlog\4.6\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
