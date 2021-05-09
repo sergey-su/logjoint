@@ -350,7 +350,7 @@ namespace LogJoint.Tests
 				fs,
 				@params => new MessagesReader(@params, new StreamBasedFormatInfo(null)), 
 				LJTraceSource.EmptyTracer,
-				new GenericRollingMediaStrategy(fs.BaseDir)
+				new GenericRollingMediaStrategy(fs.BaseDir, new string[0])
 			);
 			return media;
 		}
