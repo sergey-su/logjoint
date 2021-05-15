@@ -190,7 +190,7 @@ namespace LogJoint
 		ValueTask<PostprocessedMessage> ReadNextAndPostprocess();
 	};
 
-	public interface ISearchingParser : IDisposable
+	public interface ISearchingParser : IDisposableAsync
 	{
 		ValueTask<SearchResultMessage> GetNext();
 	};

@@ -82,9 +82,10 @@ namespace LogJoint
 			return enumerator.Current;
 		}
 
-		public void Dispose()
+		async Task IDisposableAsync.Dispose()
 		{
-			enumerator?.Dispose(); //  todo: await
+			if (enumerator != null)
+				await enumerator.Dispose();
 		}
 
 		class MessagesPostprocessor : IMessagesPostprocessor

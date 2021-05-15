@@ -77,7 +77,8 @@ namespace LogJoint
 
 				try
 				{
-					using (var parser = ctx.Reader.CreateSearchingParser(parserParams))
+					var parser = ctx.Reader.CreateSearchingParser(parserParams);
+					try
 					{
 						for (; ; )
 						{
@@ -85,6 +86,10 @@ namespace LogJoint
 							if (msg.Message == null || !callback(msg))
 								break;
 						}
+					}
+					finally
+					{
+						await parser.Dispose();
 					}
 				}
 				catch (SearchCancelledException e) // todo: impl it for xml reader
