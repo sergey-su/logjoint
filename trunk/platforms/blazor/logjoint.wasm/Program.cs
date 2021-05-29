@@ -162,7 +162,6 @@ namespace LogJoint.Wasm
                     await httpClient.GetStreamAsync(
                         await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", $"_framework/{asmName}")));
                 references.AddRange(await Task.WhenAll(
-                    resolve("mscorlib.dll"),
                     resolve("System.Runtime.dll"),
                     resolve("System.Private.CoreLib.dll"),
                     resolve("netstandard.dll"),

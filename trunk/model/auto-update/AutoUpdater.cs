@@ -61,7 +61,7 @@ namespace LogJoint.AutoUpdate
 			this.trace = traceSourceFactory.CreateTraceSource("AutoUpdater");
 
 			var entryAssemblyLocation = Assembly.GetEntryAssembly()?.Location;
-			if (entryAssemblyLocation != null)
+			if (!string.IsNullOrEmpty(entryAssemblyLocation))
 			{
 				this.managedAssembliesPath = Path.GetDirectoryName(entryAssemblyLocation);
 				this.updateInfoFilePath = Path.Combine(managedAssembliesPath, Constants.updateInfoFileName);

@@ -273,7 +273,7 @@
 
     void HandleCapturedMove(MouseEventArgs e)
     {
-        var lineIndex = (int)Math.Round(e.OffsetY / charHeight);
+        var lineIndex = (int)Math.Floor(e.OffsetY / charHeight);
         if (lineIndex >= 0 && lineIndex < viewModel.ViewLines.Length)
         {
             var line = viewModel.ViewLines[lineIndex];
