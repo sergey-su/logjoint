@@ -94,7 +94,6 @@ body {
 .logview .logline {
     padding: 0px;
     margin: 0px;
-    cursor: text;
     white-space: nowrap;
     position: relative;
 }
@@ -119,6 +118,7 @@ body {
     position: relative;
     top: 0px;
     min-width: 100%;
+    cursor: text;
 }
 .logview .scroll-outer {
     overflow-x: auto;
