@@ -595,7 +595,7 @@
 
     focus: {
         isFocusWithin: function (element) {
-            return element.contains(document.activeElement);
+            return !!element && element.contains(document.activeElement);
         },
 
         getFocusedElementTag: function() {
