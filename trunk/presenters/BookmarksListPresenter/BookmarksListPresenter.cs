@@ -35,6 +35,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			this.clipboardAccess = clipboardAccess;
 			this.colorTheme = colorTheme;
 			this.changeNotification = changeNotification;
+			this.sourcesManager = sourcesManager;
 			this.trace = traceSourceFactory.CreateTraceSource("UI", "bmks");
 
 			itemsSelector = Selectors.Create(
@@ -42,6 +43,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				() => selectedBookmarks,
 				() => colorTheme.ThreadColors,
 				() => loadedMessagesPresenter.LogViewerPresenter.Coloring,
+				() => sourcesManager.VisibleItems,
 				CreateViewItems
 			);
 			focusedMessagePositionSelector = Selectors.Create(
@@ -164,7 +166,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			IEnumerable<IBookmark> bookmarks,
 			IImmutableSet<IBookmark> selected,
 			ImmutableArray<Color> threadColors,
-			ColoringMode coloring
+			ColoringMode coloring,
+			IReadOnlyList<ILogSource> visibleLogSources
 		)
 		{
 			var resultBuilder = ImmutableArray.CreateBuilder<IViewItem>();
@@ -239,7 +242,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			var texts = 
 				CreateViewItems(
 					GetValidSelectedBookmarks(), ImmutableHashSet.Create<IBookmark>(),
-					colorTheme.ThreadColors, loadedMessagesPresenter.LogViewerPresenter.Coloring)
+					colorTheme.ThreadColors, loadedMessagesPresenter.LogViewerPresenter.Coloring,
+					sourcesManager.VisibleItems)
 				.Select((b, i) => new 
 				{ 
 					Index = i,
@@ -342,6 +346,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		readonly IClipboardAccess clipboardAccess;
 		readonly IColorTheme colorTheme;
 		readonly IChangeNotification changeNotification;
+		readonly ILogSourcesManager sourcesManager;
 		ImmutableHashSet<IBookmark> selectedBookmarks = ImmutableHashSet.Create<IBookmark>();
 		readonly Func<ImmutableArray<IViewItem>> itemsSelector;
 		readonly Func<Tuple<int, int>> focusedMessagePositionSelector;
