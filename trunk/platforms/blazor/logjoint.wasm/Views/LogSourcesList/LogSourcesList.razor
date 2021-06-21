@@ -15,6 +15,7 @@
           NodeClass="log-sources-list-item">
     <NodeTemplate>
         @{var item = (IViewItem)context;}
+        <div class="p @GetFocusedMarkClass(item)"></div>
         @if (item.Checked != null)
         {
             <input type="checkbox" checked="@item.Checked" @oninput="@(e => viewModel.OnItemCheck(item, e.Value is bool x && x))" />
@@ -35,7 +36,7 @@
         viewProxies.SourcesListViewProxy.SetComponent(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => viewModel.RootItem,
+            () => (viewModel.RootItem, viewModel.FocusedMessageItem),
             _ => StateHasChanged()
         ));
     }
@@ -83,5 +84,10 @@
     static string GetBackgroundColor(IViewItem item)
     {
         return item.IsSelected ? "inherit" : LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.Color.value);
+    }
+
+    string GetFocusedMarkClass(IViewItem item)
+    {
+        return item == viewModel.FocusedMessageItem ? "f" : "";
     }
 }

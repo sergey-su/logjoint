@@ -430,6 +430,16 @@ body {
     margin: 0px 5px 0px 0px;
     padding: 0;
 }
+.log-sources-list-item>.p:after {
+    content: ' ';
+    display: inline-block;
+    white-space: pre;
+    width: 5px;
+    margin-right: 2px;
+}
+.log-sources-list-item>.f:after {
+    background: center / contain no-repeat var(--focused-message-image-bordered);
+}
 
 
 
