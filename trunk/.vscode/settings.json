@@ -1,0 +1,6 @@
+{
+	"search.exclude": {
+		"platforms/blazor/logjoint.wasm/bin": true,
+		"platforms/blazor/logjoint.wasm/obj": true
+	}
+}

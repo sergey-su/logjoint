@@ -135,8 +135,8 @@
     {
         if (firstRender)
         {
-            charWidth = await jsRuntime.InvokeAsync<double>("logjoint.getElementWidth", measureElement);
-            charHeight = await jsRuntime.InvokeAsync<double>("logjoint.getElementHeight", measureElement);
+            charWidth = jsInterop.Layout.GetElementWidth(measureElement);
+            charHeight = jsInterop.Layout.GetElementHeight(measureElement);
             UpdateDisplayLinesPerPage();
             resizeObserverHandle = await jsInterop.Resize.ObserveResize(scrollOuter, () =>
             {
@@ -259,7 +259,7 @@
 
     void UpdateDisplayLinesPerPage()
     {
-        var height = ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.getElementHeight", scrollOuter);
+        var height = Math.Max(0, jsInterop.Layout.GetElementHeight(scrollOuter) - jsInterop.Layout.GetElementScrollerHeight(scrollOuter));
         displayLinesPerPage = (float)(height / charHeight);
     }
 

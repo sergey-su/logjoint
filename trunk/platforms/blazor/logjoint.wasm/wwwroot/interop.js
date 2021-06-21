@@ -1,18 +1,19 @@
 ﻿window.logjoint = {
-    getElementWidth: function (e) {
-        return e.getBoundingClientRect().width;
-    },
-    setElementWidth: function (e, value) {
-        e.style.width = `${value}px`;
-    },
-    getElementHeight: function (e) {
-        return e.getBoundingClientRect().height;
-    },
-    getElementLeft: function (e) {
-        return e.getBoundingClientRect().left;
-    },
     getResourceUrl: function (resourceName) {
         return (new URL(resourceName, window.location)).href;
+    },
+
+    layout: {
+        getElementWidth: function (e) {
+            return e.getBoundingClientRect().width;
+        },
+        getElementHeight: function (e) {
+            return e.getBoundingClientRect().height;
+        },
+        getElementScrollerHeight(e) {
+            const style = document.defaultView.getComputedStyle(e, '::-webkit-scrollbar');
+            return style ? parseInt(style.height, 10) : 0;
+        },
     },
 
     scroll: {

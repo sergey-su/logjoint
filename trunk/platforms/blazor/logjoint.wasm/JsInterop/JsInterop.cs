@@ -14,6 +14,7 @@ namespace LogJoint.Wasm
 			Mouse = new MouseInterop(jsRuntime);
 			Selection = new SelectionInterop(jsRuntime);
 			Browser = new BrowserInterop(jsRuntime);
+			Layout = new LayoutInterop(jsRuntime);
 		}
 
 		public async Task Init()
@@ -28,5 +29,6 @@ namespace LogJoint.Wasm
 		public MouseInterop Mouse { get; private set; }
 		public SelectionInterop Selection { get; private set; }
 		public BrowserInterop Browser { get; private set; }
+		public LayoutInterop Layout { get; private set; }
 	}
 }
