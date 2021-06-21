@@ -19,7 +19,7 @@
         {
             <input type="checkbox" checked="@item.Checked" @oninput="@(e => viewModel.OnItemCheck(item, e.Value is bool x && x))" />
         }
-        <span>@item.ToString()</span>
+        <span style="background-color: @GetBackgroundColor(item)">@item.ToString()</span>
     </NodeTemplate>
 </TreeView>
 
@@ -78,5 +78,10 @@
         {
             viewModel.OnItemCheck(item, !item.Checked.GetValueOrDefault(true));
         }
+    }
+
+    static string GetBackgroundColor(IViewItem item)
+    {
+        return item.IsSelected ? "inherit" : LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.Color.value);
     }
 }

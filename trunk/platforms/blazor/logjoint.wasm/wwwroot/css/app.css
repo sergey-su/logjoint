@@ -904,7 +904,7 @@ body {
     white-space: pre;
 }
 
-.bookmarks-list-item > .icon {
+.bookmarks-list-item>.icon {
     padding: 0px 3px;
 }
 .bookmarks-list-item>.icon:after {
@@ -935,6 +935,9 @@ body {
     text-overflow: ellipsis;
 }
 
+.bookmarks-list-item>a.disabled {
+    color: gray;
+}
 
 
 

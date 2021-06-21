@@ -22,7 +22,15 @@
         <div>@(item.Delta ?? item.AltDelta)</div>
         <div class="icon"></div>
         <div class="p @focusedMarkClass"></div>
-        <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))">@item.Text</a>
+        @if (item.IsEnabled)
+        {
+            <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))"
+                style="background-color: @GetBackgroundColor(item)">@item.Text</a>
+        }
+        else
+        {
+            <a style="background-color: @GetBackgroundColor(item)" class="disabled">@item.Text</a>
+        }
     </ItemTemplate>
 </ListView>
 
@@ -74,5 +82,11 @@
         {
             viewModel.OnSelectAllShortcutPressed();
         }
+    }
+
+    static string GetBackgroundColor(IViewItem item)
+    {
+        return item.IsSelected || !item.ContextColor.HasValue ? "inherit" :
+            LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.ContextColor.Value);
     }
 }
