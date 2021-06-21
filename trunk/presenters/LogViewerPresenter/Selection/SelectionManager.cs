@@ -153,7 +153,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			if (setSelection == null)
 			{
-				return null;
+				return createForViewLineIndex(0);
 			}
 			else if (belongsToNonExistingSource(setSelection.First) || belongsToNonExistingSource(setSelection.Last))
 			{
