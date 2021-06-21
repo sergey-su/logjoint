@@ -598,6 +598,10 @@
             return element.contains(document.activeElement);
         },
 
+        getFocusedElementTag: function() {
+            return document.activeElement ? document.activeElement.tagName : "";
+        },
+
         trapFocusInModal: function (modalElement) {
             let lastFocusedModalDescendent;
             let suppressFocusHandling;

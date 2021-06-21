@@ -58,13 +58,25 @@
 
     void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.ITreeNode node)
     {
-        if (eventArgs.Key == "Delete")
+        if (eventArgs.Key == "Delete" || eventArgs.Key == "Backspace")
             viewModel.OnDeleteButtonPressed();
         else if (eventArgs.Key == "Enter")
             viewModel.OnEnterKeyPressed();
+        else if (eventArgs.Key == " ")
+            MaybeToggleCheckedStateByKeyboardShortcut(node);
         else if (eventArgs.Key.ToLower() == "c" && jsInterop.Browser.HasEditKey(eventArgs))
             viewModel.OnCopyShortcutPressed();
         else if (eventArgs.Key.ToLower() == "a" && jsInterop.Browser.HasEditKey(eventArgs))
             viewModel.OnSelectAllShortcutPressed();
+    }
+
+    async void MaybeToggleCheckedStateByKeyboardShortcut(LogJoint.UI.Presenters.Reactive.ITreeNode node)
+    {
+        var item = node as IViewItem;
+        if (item != null && item.Checked.HasValue &&
+            await jsInterop.Keyboard.GetFocusedElementTag() != "INPUT") // if checkbox is focused, it'll handle the keyboard itself
+        {
+            viewModel.OnItemCheck(item, !item.Checked.GetValueOrDefault(true));
+        }
     }
 }

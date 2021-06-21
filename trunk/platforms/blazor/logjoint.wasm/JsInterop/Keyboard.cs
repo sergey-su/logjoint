@@ -47,6 +47,11 @@ namespace LogJoint.Wasm
             return jsRuntime.InvokeAsync<bool>("logjoint.focus.isFocusWithin", element);
         }
 
+        public ValueTask<string> GetFocusedElementTag()
+        {
+            return jsRuntime.InvokeAsync<string>("logjoint.focus.getFocusedElementTag");
+        }
+
         public async ValueTask<IAsyncDisposable> TrapFocusInModal(ElementReference modalElement)
         {
             var modal = await jsRuntime.InvokeAsync<IJSObjectReference>("logjoint.focus.trapFocusInModal", modalElement);
