@@ -7,7 +7,8 @@
 @inject IJSRuntime jsRuntime
 @inject JsInterop jsInterop
 
-<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))" @ref="element">
+<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))"
+        @onfocus="@(e => focused = true)" @onblur="@(e => focused = false)" @ref="element">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
         <div class="scroll-inner" style="top: @TopProperty" @ref="scrollInner"
@@ -99,6 +100,7 @@
     private DotNetObjectReference<LogViewer> selfRef;
     private float displayLinesPerPage = 1;
     private bool pointerCaptured;
+    private bool focused;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -151,7 +153,7 @@
 
     float IView.DisplayLinesPerPage => displayLinesPerPage;
 
-    bool IView.HasInputFocus => true;
+    bool IView.HasInputFocus => focused;
 
     string[] IViewFonts.AvailablePreferredFamilies => new string[0];
 
