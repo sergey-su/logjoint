@@ -190,7 +190,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						}
 						if (text.Length > 0)
 						{
-							var fname = Path.ChangeExtension(tempFiles.GenerateNewName(), ".txt");
+							var fname = Path.Combine(Path.GetDirectoryName(tempFiles.GenerateNewName()),
+								$"{postprocessorKind}-errors-{DateTime.Now:O}.txt");
 							File.WriteAllText(fname, text.ToString());
 							shellOpen.OpenInTextEditor(fname);
 						}

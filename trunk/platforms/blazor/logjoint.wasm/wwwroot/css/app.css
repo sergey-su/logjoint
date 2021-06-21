@@ -1191,3 +1191,27 @@ body {
 .debug-panel {
     background: var(--control-face-background);
 }
+
+
+.file-editor-dialog {
+    display: flex;
+    flex-flow: column nowrap;
+    width: 85%;
+    height: 75%;
+}
+.file-editor-dialog>textarea {
+    height: 1px;
+    flex-grow: 2;
+    margin: 10px 0px;
+    resize: none;
+    white-space: pre;
+    overflow: auto;    
+}
+.file-editor-dialog>.buttons {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+}
+.file-editor-dialog>.buttons>button {
+    margin: 0px 10px;
+}

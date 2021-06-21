@@ -1,0 +1,43 @@
+@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.FileEditor
+@implements IDisposable
+@implements IView
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+<Modal Visible="@viewModel.IsVisible" Class="resizable-dialog file-editor-dialog" ClickOutside="@viewModel.OnClose" OnCancel="@viewModel.OnClose">
+    <header>@viewModel.Caption</header>
+    <textarea readonly="@viewModel.IsReadOnly">@viewModel.Contents</textarea>
+    <div class="buttons">
+        @if (viewModel.IsDownloadButtonVisible)
+        {
+            <button @onclick="@(e => viewModel.OnDownload())">Download</button>
+        }
+        @if (viewModel.IsSaveButtonVisible)
+        {
+            <button @onclick="@(e => viewModel.OnSave())">Save</button>
+        }
+        <button @onclick="@(e => viewModel.OnClose())">Close</button>
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        viewModel = viewProxies.PresentationObjects.ViewModels.FileEditor;
+        viewModel.SetView(this);
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.IsVisible, viewModel.Contents),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewModel.SetView(null);
+        subscription?.Dispose();
+    }
+}

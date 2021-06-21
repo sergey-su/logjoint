@@ -16,6 +16,7 @@ namespace LogJoint.UI.Presenters
 		public IColorTheme ColorTheme { get; internal set; }
 		public IShellOpen ShellOpen { get; internal set; }
 		public PreprocessingUserInteractions.IPresenter PreprocessingUserInteractions { get; internal set; }
+		public FileEditor.IPresenter FileEditor { get; internal set; }
 
 		public ViewModels ViewModels { get; internal set; }
 	};
@@ -25,6 +26,7 @@ namespace LogJoint.UI.Presenters
 		public ToolsContainer.IViewModel ToolsContainer { get; internal set; }
 		public MainForm.IViewModel MainForm { get; internal set; }
 		public SearchPanel.IViewModel SearchPanel { get; internal set; }
+		public FileEditor.IViewModel FileEditor { get; internal set; }
 	};
 
 	public static class Factory
@@ -552,6 +554,8 @@ namespace LogJoint.UI.Presenters
 				mainFormPresenter
 			);
 
+			var fileEditorPresenter = new FileEditor.Presenter(model.ChangeNotification, model.TempFilesManager);
+
 			PreprocessingUserInteractions.IPresenter preprocessingUserInteractions = new PreprocessingUserInteractions.PreprocessingInteractionsPresenter(
 				views.CreatePreprocessingView(),
 				model.LogSourcesPreprocessings,
@@ -602,12 +606,14 @@ namespace LogJoint.UI.Presenters
 				ShellOpen = shellOpen,
 				ColorTheme = colorTheme,
 				PreprocessingUserInteractions = preprocessingUserInteractions,
+				FileEditor = fileEditorPresenter,
 
 				ViewModels = new ViewModels()
 				{
 					ToolsContainer = toolsContainer,
 					MainForm = mainFormPresenter,
 					SearchPanel = searchPanelPresenter,
+					FileEditor = fileEditorPresenter,
 				}
 			};
 		}
