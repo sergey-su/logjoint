@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;
 		readonly IColorTheme theme;
-		readonly LazyUpdateFlag gapsUpdateFlag = new LazyUpdateFlag();
+		readonly AsyncInvokeHelper gapsUpdateInvoker;
 		readonly LazyUpdateFlag viewUpdateFlag = new LazyUpdateFlag();
 
 		readonly CacheDictionary<ILogSource, ITimeLineDataSource> sourcesCache1 = 
@@ -42,6 +42,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		#endregion
 
 		public Presenter(
+			ISynchronizationContext synchronizationContext,
 			ILogSourcesManager sourcesManager,
 			Preprocessing.IManager preprocMgr,
 			ISearchManager searchManager,
@@ -65,23 +66,25 @@ namespace LogJoint.UI.Presenters.Timeline
 			this.heartbeat = heartbeat;
 			this.theme = theme;
 
+			this.gapsUpdateInvoker = new AsyncInvokeHelper(synchronizationContext, UpdateTimeGaps);
+
 			viewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
 				view.Invalidate();
 			};
 			sourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
 			{
-				gapsUpdateFlag.Invalidate();
+				ScheduleTimeGapsUpdate();
 				viewUpdateFlag.Invalidate();
 			};
 			sourcesManager.OnLogSourceRemoved += (sender, args) =>
 			{
-				gapsUpdateFlag.Invalidate();
+				ScheduleTimeGapsUpdate();
 				viewUpdateFlag.Invalidate();
 			};
 			sourcesManager.OnLogSourceAdded += (sender, args) =>
 			{
-				gapsUpdateFlag.Invalidate();
+				ScheduleTimeGapsUpdate();
 				viewUpdateFlag.Invalidate();
 			};
 			sourcesManager.OnLogSourceColorChanged += (sender, args) =>
@@ -106,7 +109,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				if ((args.Flags & SearchResultChangeFlag.VisibleOnTimelineChanged) != 0)
 				{
-					gapsUpdateFlag.Invalidate();
+					ScheduleTimeGapsUpdate();
 					view.Invalidate();
 				}
 			};
@@ -117,8 +120,6 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
-				if (args.IsNormalUpdate && gapsUpdateFlag.Validate())
-					UpdateTimeGaps();
 				if (args.IsNormalUpdate && viewUpdateFlag.Validate())
 					UpdateView();
 			};
@@ -463,7 +464,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		void IViewModel.OnTimelineClientSizeChanged()
 		{
-			gapsUpdateFlag.Invalidate();
+			ScheduleTimeGapsUpdate();
 		}
 
 		#endregion
@@ -472,7 +473,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		void OnRangeChanged()
 		{
-			gapsUpdateFlag.Invalidate();
+			ScheduleTimeGapsUpdate();
 		}
 
 		private ITimeLineDataSource GetCurrentSource()
@@ -823,6 +824,11 @@ namespace LogJoint.UI.Presenters.Timeline
 				yield return sourcesCache2.Get(sr, arg => new SearchResultDataSource(arg));
 			sourcesCache1.Cleanup();
 			sourcesCache2.Cleanup();
+		}
+
+		void ScheduleTimeGapsUpdate()
+		{
+			gapsUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(150));
 		}
 
 		void UpdateTimeGaps()

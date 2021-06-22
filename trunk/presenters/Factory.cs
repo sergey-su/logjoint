@@ -175,6 +175,7 @@ namespace LogJoint.UI.Presenters
 			StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
 
 			Timeline.IPresenter timelinePresenter = new Timeline.Presenter(
+				model.SynchronizationContext,
 				model.LogSourcesManager,
 				model.LogSourcesPreprocessings,
 				model.SearchManager,
