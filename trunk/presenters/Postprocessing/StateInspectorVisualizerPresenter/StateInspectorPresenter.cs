@@ -335,6 +335,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 					ShowPropertyChange(historyItem.Event, retainFocus: true);
 				else if (key == Key.BookmarkShortcut)
 					ToggleBookmark(historyItem.Event);
+				else if (key == Key.CopyShortcut)
+					clipboardAccess.SetClipboard(historyItem.Message);
 			}
 		}
 
@@ -1030,7 +1032,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			int IStateHistoryItem.Index => index;
 
-			string IStateHistoryItem.Message => message;
+			public string Message => message;
 
 			string IListItem.Key => key;
 

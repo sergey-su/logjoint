@@ -35,6 +35,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		None,
 		Enter,
 		BookmarkShortcut,
+		CopyShortcut,
 	};
 
 	public interface IViewModel
