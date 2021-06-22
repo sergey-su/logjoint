@@ -554,7 +554,7 @@ namespace LogJoint.UI.Presenters
 				mainFormPresenter
 			);
 
-			var fileEditorPresenter = new FileEditor.Presenter(model.ChangeNotification, model.TempFilesManager);
+			var fileEditorPresenter = new FileEditor.Presenter(model.ChangeNotification, model.TempFilesManager, fileDialogs);
 
 			PreprocessingUserInteractions.IPresenter preprocessingUserInteractions = new PreprocessingUserInteractions.PreprocessingInteractionsPresenter(
 				views.CreatePreprocessingView(),

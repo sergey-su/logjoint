@@ -57,8 +57,6 @@ namespace LogJoint.Wasm
         public Persistence.IWebContentCacheConfig WebContentCacheConfig;
         public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
 
-        public LogJoint.UI.Presenters.IShellOpen ShellOpen;
-        public LogJoint.UI.Presenters.IFileDialogs FileDialogs;
         public LogJoint.UI.Presenters.IPromptDialog PromptDialog;
         public LogJoint.UI.Presenters.About.IAboutConfig AboutConfig;
         public LogJoint.UI.Presenters.MainForm.IDragDropHandler DragDropHandler;
@@ -73,8 +71,6 @@ namespace LogJoint.Wasm
             WebContentCacheConfig = Substitute.For<Persistence.IWebContentCacheConfig>();
             LogsDownloaderConfig = Substitute.For<Preprocessing.ILogsDownloaderConfig>();
 
-            ShellOpen = Substitute.For<LogJoint.UI.Presenters.IShellOpen>();
-            FileDialogs = Substitute.For<LogJoint.UI.Presenters.IFileDialogs>();
             PromptDialog = Substitute.For<LogJoint.UI.Presenters.IPromptDialog>();
             AboutConfig = Substitute.For<LogJoint.UI.Presenters.About.IAboutConfig>();
             DragDropHandler = Substitute.For<LogJoint.UI.Presenters.MainForm.IDragDropHandler>();
@@ -235,20 +231,19 @@ namespace LogJoint.Wasm
                 var model = serviceProvider.GetService<ModelObjects>();
                 var jsRuntime = serviceProvider.GetService<IJSRuntime>();
 
+                var fileDialogs = new FileDialogs(serviceProvider.GetService<JsInterop>());
+
                 var viewModel = new ViewModelObjects();
+                var shellOpen = new ShellOpen();
+
                 var mocks = new Mocks(viewModel);
-                mocks.ShellOpen.When(s => s.OpenInTextEditor(Arg.Any<string>())).Do(x =>
-                {
-                    viewModel.PresentationObjects.FileEditor.ShowDialog(x.Arg<string>(), true);
-                    // serviceProvider.GetService<JsInterop>().SaveAs.SaveAs(File.ReadAllText(x.Arg<string>()), x.Arg<string>());
-                });
 
                 var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
                     model,
                     new Clipboard(jsRuntime),
-                    mocks.ShellOpen,
+                    shellOpen,
                     /*alertPopup=*/null,
-                    mocks.FileDialogs,
+                    fileDialogs,
                     mocks.PromptDialog,
                     mocks.AboutConfig,
                     mocks.DragDropHandler,
@@ -257,6 +252,8 @@ namespace LogJoint.Wasm
                 );
 
                 viewModel.PresentationObjects = presentationObjects;
+
+                shellOpen.SetFileEditor(presentationObjects.FileEditor);
 
                 return viewModel;
             });

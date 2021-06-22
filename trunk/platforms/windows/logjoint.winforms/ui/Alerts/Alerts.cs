@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using System;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace LogJoint.UI
 {
@@ -36,6 +37,14 @@ namespace LogJoint.UI
 			if (browseFileDialog.ShowDialog() == DialogResult.OK)
 				return browseFileDialog.FileName;
 			return null;
+		}
+
+		async Task IFileDialogs.SaveOrDownloadFile(Func<Stream, Task> saver, SaveFileDialogParams p)
+		{
+			var fileName = ((IFileDialogs)this).SaveFileDialog(p);
+			if (fileName != null)
+				using (var fs = new FileStream(fileName, FileMode.Create))
+					await saver(fs);
 		}
 
 		Task<AlertFlags> IAlertPopup.ShowPopupAsync(string caption, string text, AlertFlags flags)

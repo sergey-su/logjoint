@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.FileEditor
 		IView view;
 		readonly IChangeNotification changeNotification;
 		readonly ITempFilesManager tempFiles;
+		readonly IFileDialogs fileDialogs;
 
 		bool visible = false;
 		bool readOnly = true;
@@ -22,11 +23,13 @@ namespace LogJoint.UI.Presenters.FileEditor
 
 		public Presenter(
 			IChangeNotification changeNotification,
-			ITempFilesManager tempFiles
+			ITempFilesManager tempFiles,
+			IFileDialogs fileDialogs
 		)
 		{
 			this.changeNotification = changeNotification;
 			this.tempFiles = tempFiles;
+			this.fileDialogs = fileDialogs;
 		}
 
 
@@ -51,7 +54,7 @@ namespace LogJoint.UI.Presenters.FileEditor
 		string IViewModel.Contents => contents;
 		string IViewModel.Caption => caption;
 		bool IViewModel.IsSaveButtonVisible => !readOnly;
-		bool IViewModel.IsDownloadButtonVisible => false; // TODO: show in web
+		bool IViewModel.IsDownloadButtonVisible => IsBrowser.Value;
 
 		void IViewModel.OnClose()
 		{
@@ -69,7 +72,13 @@ namespace LogJoint.UI.Presenters.FileEditor
 
 		void IViewModel.OnDownload()
 		{
-			// TODO
+			fileDialogs.SaveOrDownloadFile(async stream =>
+			{
+				using (var textWriter = new StreamWriter(stream, Encoding.UTF8, 1024, leaveOpen: true))
+				{
+					await textWriter.WriteAsync(contents);
+				}
+			}, new SaveFileDialogParams() { SuggestedFileName = Path.GetFileName(fileName) });
 		}
 
 		void IViewModel.OnChange(string value)

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters
 {
@@ -6,6 +8,7 @@ namespace LogJoint.UI.Presenters
 	{
 		string[] OpenFileDialog(OpenFileDialogParams p);
 		string SaveFileDialog(SaveFileDialogParams p);
+		Task SaveOrDownloadFile(Func<Stream, Task> saver, SaveFileDialogParams p);
 	}
 
 	public struct OpenFileDialogParams
