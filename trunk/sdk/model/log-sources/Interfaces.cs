@@ -72,7 +72,7 @@ namespace LogJoint
 		event EventHandler OnLogSourceAnnotationChanged;
 		event EventHandler OnLogSourceColorChanged;
 		event EventHandler OnLogSourceTimeOffsetChanged;
-		event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
+		event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged; // fired from non-model threads
 		event EventHandler OnLogTimeGapsChanged;
 	};
 

@@ -176,6 +176,7 @@ namespace LogJoint.UI.Presenters
 
 			Timeline.IPresenter timelinePresenter = new Timeline.Presenter(
 				model.SynchronizationContext,
+				model.ChangeNotification,
 				model.LogSourcesManager,
 				model.LogSourcesPreprocessings,
 				model.SearchManager,

@@ -18,15 +18,12 @@ namespace LogJoint.UI.Presenters.Timeline
 	{
 		void SetViewModel(IViewModel viewModel);
 
-		void Invalidate();
-		void RepaintNow();
 		void UpdateDragViewPositionDuringAnimation(int y, bool topView);
 		PresentationMetrics GetPresentationMetrics();
 		HitTestResult HitTest(int x, int y);
 		void TryBeginDrag(int x, int y);
 		void InterruptDrag();
 		void ResetToolTipPoint(int x, int y);
-		void SetHScoll(bool isVisible, int innerViewWidth);
 	};
 
 	public class PresentationMetrics
@@ -160,6 +157,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
 		ColorThemeMode ColorTheme { get; }
 		DrawInfo OnDraw();
 		DragAreaDrawInfo OnDrawDragArea(DateTime dt);

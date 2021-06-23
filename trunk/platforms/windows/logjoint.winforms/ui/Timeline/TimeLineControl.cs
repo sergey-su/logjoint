@@ -21,6 +21,7 @@ namespace LogJoint.UI
 		int containerControlSize;
 		Point? dragPoint;
 		TimeLineDragForm dragForm;
+		PresentationMetrics presentationMetrics;
 
 
 		Point? lastToolTipPoint;
@@ -71,16 +72,16 @@ namespace LogJoint.UI
 				using (LJD.Graphics g = new LJD.Graphics(this.CreateGraphics(), true))
 					return drawing.MeasureDatesAreaHeight(g);
 			});
-		}
 
-		void IView.Invalidate()
-		{
-			base.Invalidate();
+			var updater = Updaters.Create(() => viewModel.OnDraw(), _ => base.Invalidate());
+			viewModel.ChangeNotification.OnChange += (s, e) => updater();
 		}
 
 		PresentationMetrics IView.GetPresentationMetrics()
 		{
-			return ToPresentationMetrics(GetMetrics());
+			if (presentationMetrics == null)
+				presentationMetrics = ToPresentationMetrics(GetMetrics());
+			return presentationMetrics;
 		}
 
 		HitTestResult IView.HitTest(int x, int y)
@@ -119,18 +120,9 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.RepaintNow()
-		{
-			this.Refresh();
-		}
-
 		void IView.InterruptDrag()
 		{
 			StopDragging(false);
-		}
-
-		void IView.SetHScoll(bool isVisible, int innerViewWidth)
-		{
 		}
 
 		#endregion
@@ -300,6 +292,13 @@ namespace LogJoint.UI
 		{
 			viewModel.OnMouseLeave();
 			base.OnMouseLeave(e);
+		}
+
+		protected override void OnClientSizeChanged(EventArgs e)
+		{
+			base.OnClientSizeChanged(e);
+			presentationMetrics = null;
+			viewModel?.ChangeNotification?.Post();
 		}
 
 		#endregion
