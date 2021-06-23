@@ -1,43 +1,80 @@
 
+using System;
+
 namespace LogJoint.UI.Presenters.TimelinePanel
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
-		readonly IView view;
 		readonly Timeline.IPresenter timelinePresenter;
+		readonly IChangeNotification changeNotification;
+		bool isVisible = true;
+		double? size = null;
 
 		public Presenter(
 			IView view,
+			IChangeNotification changeNotification,
 			Timeline.IPresenter timelinePresenter)
 		{
-			this.view = view;
 			this.timelinePresenter = timelinePresenter;
+			this.changeNotification = changeNotification;
 
-			timelinePresenter.Updated += (s, e) => UpdateView();
-
-			view.SetPresenter(this);
-			view.SetEnabled(false);
+			view.SetViewModel(this);
 		}
 
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
-		void IViewEvents.OnZoomToolButtonClicked(int delta)
+		bool IViewModel.IsEnabled => !timelinePresenter.IsEmpty;
+
+		bool IViewModel.IsVisible => isVisible;
+
+		double? IViewModel.Size => size;
+
+		string IViewModel.HideButtonTooltip => "Hide timeline";
+
+		string IViewModel.ShowButtonTooltip => "Show timeline";
+
+		string IViewModel.ResizerTooltip => "Resize timeline";
+
+		void IViewModel.OnZoomToolButtonClicked(int delta)
 		{
 			timelinePresenter.Zoom(delta);
 		}
 
-		void IViewEvents.OnZoomToViewAllToolButtonClicked()
+		void IViewModel.OnZoomToViewAllToolButtonClicked()
 		{
 			timelinePresenter.ZoomToViewAll();
 		}
 
-		void IViewEvents.OnScrollToolButtonClicked(int delta)
+		void IViewModel.OnScrollToolButtonClicked(int delta)
 		{
 			timelinePresenter.Scroll(delta);
 		}
 
-		void UpdateView()
+		void IViewModel.OnResize(double size)
 		{
-			view.SetEnabled(!timelinePresenter.IsEmpty);
+			if (isVisible)
+			{
+				this.size = Math.Max(0, size);
+				changeNotification.Post();
+			}
 		}
-	};
+
+		void IViewModel.OnHideButtonClicked()
+		{
+			if (isVisible)
+			{
+				isVisible = false;
+				changeNotification.Post();
+			}
+		}
+
+		void IViewModel.OnShowButtonClicked()
+		{
+			if (!isVisible)
+			{
+				isVisible = true;
+				changeNotification.Post();
+			}
+		}
+	}
 };

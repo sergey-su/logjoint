@@ -27,6 +27,8 @@ namespace LogJoint.UI.Presenters
 		public MainForm.IViewModel MainForm { get; internal set; }
 		public SearchPanel.IViewModel SearchPanel { get; internal set; }
 		public FileEditor.IViewModel FileEditor { get; internal set; }
+		public Timeline.IViewModel Timeline { get; internal set; }
+		public TimelinePanel.IViewModel TimelinePanel { get; internal set; }
 	};
 
 	public static class Factory
@@ -174,7 +176,7 @@ namespace LogJoint.UI.Presenters
 			);
 			StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
 
-			Timeline.IPresenter timelinePresenter = new Timeline.Presenter(
+			var timelinePresenter = new Timeline.Presenter(
 				model.SynchronizationContext,
 				model.ChangeNotification,
 				model.LogSourcesManager,
@@ -188,8 +190,9 @@ namespace LogJoint.UI.Presenters
 				model.HeartBeatTimer,
 				colorTheme);
 
-			TimelinePanel.IPresenter timelinePanelPresenter = new TimelinePanel.Presenter(
+			var timelinePanelPresenter = new TimelinePanel.Presenter(
 				timelinePanelView,
+				model.ChangeNotification,
 				timelinePresenter);
 
 			SearchResult.IPresenter searchResultPresenter = new SearchResult.Presenter(
@@ -616,6 +619,8 @@ namespace LogJoint.UI.Presenters
 					MainForm = mainFormPresenter,
 					SearchPanel = searchPanelPresenter,
 					FileEditor = fileEditorPresenter,
+					Timeline = timelinePresenter,
+					TimelinePanel = timelinePanelPresenter,
 				}
 			};
 		}

@@ -32,7 +32,7 @@ namespace LogJoint.UI
 			scrollDownToolStripButton.Tag = (Action)(() => { presenter.OnScrollToolButtonClicked(-1); });
 		}
 
-		public void SetPresenter(IViewEvents presenter)
+		public void SetPresenter(IViewModel presenter)
 		{
 			this.presenter = presenter;
 		}
@@ -107,6 +107,6 @@ namespace LogJoint.UI
 		enum RepeatitionState { None, InitialWaiting, Repeating };
 		RepeatitionState repeatitionState;
 
-		IViewEvents presenter;
+		IViewModel presenter;
 	}
 }

@@ -12,17 +12,14 @@ namespace LogJoint.UI
 
 		public TimeLineControl TimelineControl { get { return timeLineControl; } }
 
-		void IView.SetPresenter(IViewEvents presenter)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.presenter = presenter;
-			this.timelineToolBox.SetPresenter(presenter);
-		}
+			this.timelineToolBox.SetPresenter(viewModel);
 
-		void IView.SetEnabled(bool value)
-		{
-			timelineToolBox.Enabled = value;
+			viewModel.ChangeNotification.CreateSubscription(Updaters.Create(() => viewModel.IsEnabled, enabled =>
+			{
+				timelineToolBox.Enabled = enabled;
+			}));
 		}
-
-		IViewEvents presenter;
 	}
 }

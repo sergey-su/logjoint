@@ -6,7 +6,6 @@ namespace LogJoint.UI.Presenters.Timeline
 {
 	public interface IPresenter
 	{
-		event EventHandler<EventArgs> Updated;
 		void Zoom(int delta);
 		void Scroll(int delta);
 		void ZoomToViewAll();

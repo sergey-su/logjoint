@@ -128,16 +128,10 @@ namespace LogJoint.UI.Presenters.Timeline
 			view.SetViewModel(this);
 
 			var updateRange = Updaters.Create(range, _ => ScheduleTimeGapsUpdate());
-			var fireUpdated = Updaters.Create(isEmpty, _ =>
-			{
-				// todo: make the user of this event reactive
-				Updated?.Invoke(this, EventArgs.Empty);
-			});
 			var updateStatusReport = Updaters.Create(range, () => setStatusText, UpdateStatusReport);
 			changeNotification.OnChange += (sender, e) =>
 			{
 				updateRange();
-				fireUpdated();
 				updateStatusReport();
 			};
 		}
