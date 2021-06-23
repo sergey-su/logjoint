@@ -1,0 +1,66 @@
+﻿@namespace LogJoint.Wasm.UI
+@inject JsInterop jsInterop
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@using LogJoint.UI.Presenters.TimelinePanel
+@implements IDisposable
+
+<div class='timeline-panel @Class' @ref='panelElement' style="@GetStyle()">
+    @if (viewModel.IsVisible)
+    {
+        <div class='toolbar'>
+            <button class='tool-button close' @onclick="viewModel.OnHideButtonClicked" title="@viewModel.HideButtonTooltip">&lt;</button>
+            @if (viewModel.IsEnabled)
+            {
+                <button class='tool-button actions' @onclick="() => viewModel.OnZoomToolButtonClicked(+1)" title="Zoom in">+</button>
+                <button class='tool-button actions' @onclick="() => viewModel.OnZoomToolButtonClicked(-1)" title="Zoom out">-</button>
+            }
+        </div>
+        <div>Timeline</div>
+    }
+</div>
+<div class='@(viewModel.IsVisible ? ResizerClass : CollapsedResizerClass)' @ref="resizerElement"
+     @onclick="viewModel.OnShowButtonClicked" title="@(viewModel.IsVisible ? viewModel.ResizerTooltip : viewModel.ShowButtonTooltip)"></div>
+
+@code {
+    private ElementReference resizerElement, panelElement;
+    private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.TimelinePanel;
+    private ISubscription subscription;
+    private IDisposable resizeHandler;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public string ResizerClass { get; set; } = "";
+
+    [Parameter]
+    public string CollapsedResizerClass { get; set; } = "";
+
+    string GetStyle() =>
+        !viewModel.IsVisible ? "display: none" :
+        viewModel.Size.HasValue ? $"width: {viewModel.Size}px" :
+        "";
+
+    protected override void OnInitialized()
+    {
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.IsVisible, viewModel.IsEnabled, viewModel.Size),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+        resizeHandler?.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            resizeHandler = await jsInterop.Resize.InitResizer(resizerElement, panelElement,
+                ResizeInterop.Direction.Horizonal, inverse: false, relativeToParent: false, handler: viewModel.OnResize);
+        }
+    }
+}
