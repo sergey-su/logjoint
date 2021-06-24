@@ -168,7 +168,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		void OnEndTimeRangeDrag(DateTime? date, bool isFromTopDragArea);
 		void OnResetTimeLineMenuItemClicked();
 		void OnZoomToMenuItemClicked(object menuItemTag);
-		void OnTimelineClientSizeChanged();
 	};
 
 	internal interface ITimeLineDataSource

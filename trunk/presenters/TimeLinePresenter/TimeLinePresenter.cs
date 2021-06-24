@@ -89,18 +89,6 @@ namespace LogJoint.UI.Presenters.Timeline
 				() => (bookmarks.Items, viewerPresenter.FocusedMessage),
 				() => (setHotTrackDate, hotTrackRange), () => timeGapsRevision, GetDrawInfo);
 
-			sourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
-			{
-				ScheduleTimeGapsUpdate();
-			};
-			sourcesManager.OnLogSourceRemoved += (sender, args) =>
-			{
-				ScheduleTimeGapsUpdate();
-			};
-			sourcesManager.OnLogSourceAdded += (sender, args) =>
-			{
-				ScheduleTimeGapsUpdate();
-			};
 			sourcesManager.OnLogSourceStatsChanged += (sender, args) =>
 			{
 				if ((args.Flags & (LogProviderStatsFlag.CachedTime | LogProviderStatsFlag.AvailableTime)) != 0)
@@ -121,13 +109,13 @@ namespace LogJoint.UI.Presenters.Timeline
 				{
 					++timeGapsRevision;
 					changeNotification.Post();
-					ScheduleTimeGapsUpdate();
 				}
 			};
 
 			view.SetViewModel(this);
 
-			var updateRange = Updaters.Create(range, _ => ScheduleTimeGapsUpdate());
+			var updateRange = Updaters.Create(range, sources,
+				(r, s) => gapsUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(150)));
 			var updateStatusReport = Updaters.Create(range, () => setStatusText, UpdateStatusReport);
 			changeNotification.OnChange += (sender, e) =>
 			{
@@ -135,10 +123,6 @@ namespace LogJoint.UI.Presenters.Timeline
 				updateStatusReport();
 			};
 		}
-
-		#region IPresenter
-
-		public event EventHandler<EventArgs> Updated;
 
 		void IPresenter.Zoom(int delta)
 		{
@@ -165,9 +149,6 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		bool IPresenter.IsEmpty => isEmpty();
 
-		#endregion
-
-		#region View events
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
@@ -467,13 +448,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			return DrawDragArea(FindRulerIntervals(presentationData()), dt);
 		}
-
-		void IViewModel.OnTimelineClientSizeChanged()
-		{
-			ScheduleTimeGapsUpdate();
-		}
-
-		#endregion
 
 		#region Implementation
 
@@ -825,11 +799,6 @@ namespace LogJoint.UI.Presenters.Timeline
 			sourcesCache1.Cleanup();
 			sourcesCache2.Cleanup();
 			return builder.ToImmutable();
-		}
-
-		void ScheduleTimeGapsUpdate()
-		{
-			gapsUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(150));
 		}
 
 		void UpdateTimeGaps()

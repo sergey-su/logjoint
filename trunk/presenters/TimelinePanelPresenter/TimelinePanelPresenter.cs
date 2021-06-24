@@ -6,17 +6,18 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 	public class Presenter : IPresenter, IViewModel
 	{
 		readonly Timeline.IPresenter timelinePresenter;
-		readonly IChangeNotification changeNotification;
-		bool isVisible = true;
+		readonly IChainedChangeNotification changeNotification;
+		bool isVisible = !IsBrowser.Value;
 		double? size = null;
 
 		public Presenter(
 			IView view,
-			IChangeNotification changeNotification,
+			IChainedChangeNotification changeNotification,
 			Timeline.IPresenter timelinePresenter)
 		{
 			this.timelinePresenter = timelinePresenter;
 			this.changeNotification = changeNotification;
+			changeNotification.Active = isVisible;
 
 			view.SetViewModel(this);
 		}
@@ -65,6 +66,7 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 			{
 				isVisible = false;
 				changeNotification.Post();
+				changeNotification.Active = false;
 			}
 		}
 
@@ -74,6 +76,7 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 			{
 				isVisible = true;
 				changeNotification.Post();
+				changeNotification.Active = true;
 			}
 		}
 	}

@@ -176,9 +176,11 @@ namespace LogJoint.UI.Presenters
 			);
 			StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
 
+			var timelineChangeNotification = model.ChangeNotification.CreateChainedChangeNotification();
+
 			var timelinePresenter = new Timeline.Presenter(
 				model.SynchronizationContext,
-				model.ChangeNotification,
+				timelineChangeNotification,
 				model.LogSourcesManager,
 				model.LogSourcesPreprocessings,
 				model.SearchManager,
@@ -192,7 +194,7 @@ namespace LogJoint.UI.Presenters
 
 			var timelinePanelPresenter = new TimelinePanel.Presenter(
 				timelinePanelView,
-				model.ChangeNotification,
+				timelineChangeNotification,
 				timelinePresenter);
 
 			SearchResult.IPresenter searchResultPresenter = new SearchResult.Presenter(
