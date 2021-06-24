@@ -1278,18 +1278,21 @@ body {
     position: relative;
     overflow: hidden;
 }
-.timeline-panel .timeline>.client>.date {
+.timeline-panel .timeline>.date {
     text-align: center;
+    cursor: default;
 }
 .timeline-panel .timeline>.client>.source {
     position: absolute;
     border-radius: 5px;
     border: solid gray 1px;
+    pointer-events: none;
 }
 .timeline-panel .timeline>.client>.gap {
     position: absolute;
     border-top: dotted 2px gray;
     border-bottom: dotted 2px gray;
+    pointer-events: none;
 }
 .timeline-panel .timeline>.client>.gap::after {
     content: ' ';
@@ -1300,6 +1303,7 @@ body {
     right: 0;
     top: 0;
     bottom: 0;
+    pointer-events: none;
 }
 .timeline-panel .timeline>.client>.mark {
     position: absolute;
@@ -1322,6 +1326,7 @@ body {
     left: 0;
     right: 0;
     border-top: solid 1px blue;
+    pointer-events: none;
 }
 .timeline-panel .timeline>.client>.cur-source {
     position: absolute;
@@ -1334,7 +1339,23 @@ body {
     border-top-style: solid;
     border-top-width: 1px;
     border-top-color: var(--bookmark-color);
+    pointer-events: none;
 }
 .timeline-panel .timeline>.client>.bmk.hidden {
     border-top-style: dashed;
+}
+.timeline-panel .timeline>.client>.container-line {
+    position: absolute;
+    border-width: 1px;
+    border-color: gray;
+    border-style: solid solid none solid;
+    pointer-events: none;
+}
+.timeline-panel .timeline>.client>.container-box {
+    position: absolute;
+    border: 1px solid gray;
+    background: white;
+    pointer-events: none;
+    text-align: center;
+    font-size: 7px;
 }

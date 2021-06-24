@@ -7,8 +7,8 @@
 
 <div class='timeline @Class'>
     @{var drawInfo = viewModel.OnDraw();}
-    <div class="date">@drawInfo?.TopDragArea.ShortText</div>
-    <div class="client" @ref="element">
+    <div class="date" @onclick="@(() => viewModel?.OnLeftMouseDown(0, 0, ViewArea.TopDate))">@drawInfo?.TopDragArea.ShortText</div>
+    <div class="client" @ref="element" @onclick="@(e => viewModel.OnLeftMouseDown((int)e.OffsetX, (int)e.OffsetY, ViewArea.Timeline))">
         @if (drawInfo != null)
         {
             @foreach (SourceDrawInfo source in drawInfo.Sources)
@@ -36,9 +36,17 @@
             {
                 <div class='bmk@(bmk.IsHidden ? " hidden" : "")' style="@GetBookmarkStyle(bmk)"></div>
             }
+            @foreach (ContainerControlDrawInfo cnt in drawInfo.ContainerControls.Controls)
+            {
+                if (cnt.HintLine.IsVisible)
+                {
+                    <div class='container-line' style="@GetContainerHintLineStyle(cnt.HintLine)"></div>
+                }
+                <div class='container-box' style="@GetContainerBoxStyle(cnt.ControlBox)">@(cnt.ControlBox.IsExpanded ? "‒" : "+")</div>
+            }
         }
     </div>
-    <div class="date">@drawInfo?.BottomDragArea.ShortText</div>
+    <div class="date" @onclick="@(() => viewModel?.OnLeftMouseDown(0, 0, ViewArea.BottomDate))">@drawInfo?.BottomDragArea.ShortText</div>
 </div>
 
 @code {
@@ -114,6 +122,18 @@
     string GetBookmarkStyle(BookmarkDrawInfo bmk)
     {
         return $"top: {bmk.Y}px;";
+    }
+
+    string GetContainerHintLineStyle(ContainerControlDrawInfo.HintLineDrawInfo info)
+    {
+        return $"top: {info.BaselineY}px; height: {info.Bottom - info.BaselineY}px; " +
+               $"left: {info.X1}px; width: {info.X2 - info.X1}px;";
+    }
+
+    string GetContainerBoxStyle(ContainerControlDrawInfo.ControlBoxDrawInfo info)
+    {
+        return $"top: {info.Bounds.Top}px; height: {info.Bounds.Width}px; " +
+               $"left: {info.Bounds.Left}px; width: {info.Bounds.Height}px;";
     }
 
     void IView.SetViewModel(IViewModel viewModel) { }
