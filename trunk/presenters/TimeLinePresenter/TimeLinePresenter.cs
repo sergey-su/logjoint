@@ -194,13 +194,12 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void IViewModel.OnLeftMouseDown(int x, int y)
+		void IViewModel.OnLeftMouseDown(int x, int y, ViewArea area)
 		{
 			var range = this.range().Value;
 			if (range.IsEmpty)
 				return;
 
-			var area = view.HitTest(x, y).Area;
 			var m = presentationData();
 			if (area == ViewArea.Timeline)
 			{
@@ -275,10 +274,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			changeNotification.Post();
 		}
 
-		CursorShape IViewModel.OnMouseMove(int x, int y)
+		CursorShape IViewModel.OnMouseMove(int x, int y, ViewArea area)
 		{
 			CursorShape cursor;
-			var area = view.HitTest(x, y).Area;
 			if (area == ViewArea.TopDrag || area == ViewArea.BottomDrag)
 			{
 				cursor = CursorShape.SizeNS;
@@ -305,17 +303,16 @@ namespace LogJoint.UI.Presenters.Timeline
 			else
 			{
 				cursor = IsBusy() ? CursorShape.Wait : CursorShape.Arrow;
-				UpdateHotTrackDate(presentationData(), x, y);
+				UpdateHotTrackDate(presentationData(), x, y, area);
 				view.ResetToolTipPoint(x, y);
 			}
 			return cursor;
 		}
 
-		void IViewModel.OnMouseDblClick(int x, int y)
+		void IViewModel.OnMouseDblClick(int x, int y, ViewArea area)
 		{
 			var range = this.range().Value;
 			var availableRange = this.availableRange().Value;
-			var area = view.HitTest(x, y).Area;
 			if (area == ViewArea.TopDrag)
 			{
 				if (range.Begin != availableRange.Begin)
@@ -334,7 +331,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void IViewModel.OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed)
+		void IViewModel.OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed, ViewArea area)
 		{
 			if (range().Value.IsEmpty)
 				return;
@@ -348,7 +345,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			else
 			{
 				ShiftRangeInternal(delta);
-				UpdateHotTrackDate(m, x, y);
+				UpdateHotTrackDate(m, x, y, area);
 			}
 		}
 
@@ -1045,13 +1042,13 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void UpdateHotTrackDate(PresentationData m, int x, int y)
+		void UpdateHotTrackDate(PresentationData m, int x, int y, ViewArea area)
 		{
 			var range = this.range().Value;
 			var availableRange = this.availableRange().Value;
 			setHotTrackDate = new Ref<DateTime>(range.PutInRange(GetDateFromYCoord(m, y)));
 			string msg = "";
-			if (range.End == availableRange.End && view.HitTest(x, y).Area == ViewArea.BottomDate)
+			if (range.End == availableRange.End && area == ViewArea.BottomDate)
 				msg = string.Format("Click to stick to the end of the log");
 			else if (!availableRange.IsEmpty)
 				msg = string.Format("Click to see what was happening at around {0}.{1}",

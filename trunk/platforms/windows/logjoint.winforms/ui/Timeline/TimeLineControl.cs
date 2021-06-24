@@ -84,11 +84,6 @@ namespace LogJoint.UI
 			return presentationMetrics;
 		}
 
-		HitTestResult IView.HitTest(int x, int y)
-		{
-			return GetMetrics().HitTest(new Point(x, y));
-		}
-
 		void IView.TryBeginDrag(int x, int y)
 		{
 			dragPoint = new Point(x, y);
@@ -175,13 +170,13 @@ namespace LogJoint.UI
 			this.Focus();
 
 			if (e.Button == MouseButtons.Left)
-				viewModel.OnLeftMouseDown(e.X, e.Y);
+				viewModel.OnLeftMouseDown(e.X, e.Y, GetMetrics().HitTest(new Point(e.X, e.Y)));
 		}
 
 		protected override void OnDoubleClick(EventArgs e)
 		{
 			var pt = this.PointToClient(Control.MousePosition);
-			viewModel.OnMouseDblClick(pt.X, pt.Y);
+			viewModel.OnMouseDblClick(pt.X, pt.Y, GetMetrics().HitTest(pt.ToPoint()));
 		}
 
 		protected override void OnMouseMove(MouseEventArgs e)
@@ -233,7 +228,7 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				var cursor = viewModel.OnMouseMove(e.X, e.Y);
+				var cursor = viewModel.OnMouseMove(e.X, e.Y, m.HitTest(new Point(e.X, e.Y)));
 
 				if (cursor == CursorShape.SizeNS)
 					this.Cursor = Cursors.SizeNS;
@@ -246,10 +241,11 @@ namespace LogJoint.UI
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
+			var area = GetMetrics().HitTest(new Point(e.X, e.Y));
 			if (Control.ModifierKeys == Keys.Control)
-				viewModel.OnMouseWheel(e.X, e.Y, -(double)e.Delta / 400, true);
+				viewModel.OnMouseWheel(e.X, e.Y, -(double)e.Delta / 400, true, area);
 			else
-				viewModel.OnMouseWheel(e.X, e.Y, -(double)e.Delta / (2d * (double)Height), false);
+				viewModel.OnMouseWheel(e.X, e.Y, -(double)e.Delta / (2d * (double)Height), false, area);
 		}
 
 		protected override void OnMouseUp(MouseEventArgs e)

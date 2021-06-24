@@ -43,20 +43,20 @@ namespace LogJoint.UI.Timeline
 			ContainerControlSize = containerControlSize;
 		}
 
-		public HitTestResult HitTest(Point pt)
+		public ViewArea HitTest(Point pt)
 		{
 			if (TimeLine.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.Timeline };
+				return ViewArea.Timeline;
 			else if (TopDate.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.TopDate };
+				return ViewArea.TopDate;
 			else if (BottomDate.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.BottomDate };
+				return ViewArea.BottomDate;
 			else if (TopDrag.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.TopDrag };
+				return ViewArea.TopDrag;
 			else if (BottomDrag.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.BottomDrag };
+				return ViewArea.BottomDrag;
 			else
-				return new HitTestResult() { Area = ViewArea.None };
+				return ViewArea.None;
 		}
 
 		public PresentationMetrics ToPresentationMetrics()

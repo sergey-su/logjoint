@@ -19,7 +19,6 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		void UpdateDragViewPositionDuringAnimation(int y, bool topView);
 		PresentationMetrics GetPresentationMetrics();
-		HitTestResult HitTest(int x, int y);
 		void TryBeginDrag(int x, int y);
 		void InterruptDrag();
 		void ResetToolTipPoint(int x, int y);
@@ -136,11 +135,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		BottomDrag,
 	};
 
-	public struct HitTestResult
-	{
-		public ViewArea Area;
-	};
-
 	public enum CursorShape
 	{
 		SizeNS,
@@ -163,12 +157,12 @@ namespace LogJoint.UI.Presenters.Timeline
 		ContextMenuInfo OnContextMenu(int x, int y);
 		void OnContextMenuClosed();
 		string OnTooltip(int x, int y);
-		void OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed);
+		void OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed, ViewArea area);
 		void OnMagnify(int x, int y, double magnification);
-		void OnLeftMouseDown(int x, int y);
-		void OnMouseDblClick(int x, int y);
+		void OnLeftMouseDown(int x, int y, ViewArea area);
+		void OnMouseDblClick(int x, int y, ViewArea area);
 		DraggingHandlingResult OnDragging(ViewArea area, int y);
-		CursorShape OnMouseMove(int x, int y);
+		CursorShape OnMouseMove(int x, int y, ViewArea area);
 		void OnMouseLeave();
 		void OnBeginTimeRangeDrag();
 		void OnEndTimeRangeDrag(DateTime? date, bool isFromTopDragArea);

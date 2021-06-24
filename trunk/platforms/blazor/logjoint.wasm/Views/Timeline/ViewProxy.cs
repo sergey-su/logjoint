@@ -19,11 +19,6 @@ namespace LogJoint.Wasm.UI
 
 		PresentationMetrics IView.GetPresentationMetrics() => component?.GetPresentationMetrics() ?? new PresentationMetrics();
 
-		HitTestResult IView.HitTest(int x, int y)
-		{
-			return component != null ? component.HitTest(x, y) : new HitTestResult() { Area = ViewArea.None };
-		}
-
 		void IView.InterruptDrag() => component?.InterruptDrag();
 
 		void IView.ResetToolTipPoint(int x, int y) => component?.ResetToolTipPoint(x, y);
