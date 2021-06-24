@@ -1,0 +1,149 @@
+﻿@namespace LogJoint.Wasm.UI
+@inject JsInterop jsInterop
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@using LogJoint.UI.Presenters.Timeline
+@implements IAsyncDisposable
+@implements IView
+
+<div class='timeline @Class'>
+    @{var drawInfo = viewModel.OnDraw();}
+    <div class="date">@drawInfo?.TopDragArea.ShortText</div>
+    <div class="client" @ref="element">
+        @if (drawInfo != null)
+        {
+            @foreach (SourceDrawInfo source in drawInfo.Sources)
+            {
+                <div class="source" style="@GetSourceStyle(source)"></div>
+                @foreach (GapDrawInfo gap in source.Gaps)
+                {
+                    <div class="gap" style="@GetGapStyle(source, gap)"></div>
+                }
+            }
+            @foreach (RulerMarkDrawInfo mark in drawInfo.RulerMarks)
+            {
+                <div class='mark@(mark.IsMajor ? " major" : "")' style="@GetMarkStyle(mark)">@mark.Label</div>
+            }
+            @if (drawInfo.CurrentTime.HasValue)
+            {
+                var t = drawInfo.CurrentTime.Value;
+                <div class='cur' style="@GetCurrentTimeStyle(t)"></div>
+                @if (t.CurrentSource.HasValue)
+                {
+                    <div class='cur-source' style="@GetCurrentSourceStyle(t)"></div>
+                }
+            }
+            @foreach (BookmarkDrawInfo bmk in drawInfo.Bookmarks)
+            {
+                <div class='bmk@(bmk.IsHidden ? " hidden" : "")' style="@GetBookmarkStyle(bmk)"></div>
+            }
+        }
+    </div>
+    <div class="date">@drawInfo?.BottomDragArea.ShortText</div>
+</div>
+
+@code {
+    private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.Timeline;
+    private ElementReference element;
+    private ISubscription subscription;
+    private IAsyncDisposable resizeObserverHandle;
+    private PresentationMetrics presentationMetrics;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        viewProxies.Timeline.SetComponent(this);
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            viewModel.OnDraw,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        subscription?.Dispose();
+        viewProxies.Timeline.SetComponent(null);
+        await resizeObserverHandle.DisposeAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            presentationMetrics = null;
+            resizeObserverHandle = await jsInterop.Resize.ObserveResize(element, () =>
+            {
+                presentationMetrics = null;
+                viewModel?.ChangeNotification?.Post();
+            });
+        }
+    }
+
+    string GetSourceStyle(SourceDrawInfo source)
+    {
+        return
+            $"left: {source.X}px; top: {source.AvaTimeY1}px; " +
+            $"width: {source.Right - source.X - 2 /* border */}px; height: {source.AvaTimeY2 - source.AvaTimeY1 - 2 /* borders */}px; " +
+            $"background: {LogJoint.Drawing.ColorExtensions.ToHtmlColor(source.Color)};";
+    }
+
+    string GetGapStyle(SourceDrawInfo source, GapDrawInfo gap)
+    {
+        return
+            $"left: {source.X}px; top: {gap.Y1 + 3}px; " +
+            $"width: {source.Right - source.X}px; height: {gap.Y2 - gap.Y1 - 6}px;";
+    }
+
+    string GetMarkStyle(RulerMarkDrawInfo mark)
+    {
+        return $"top: {mark.Y}px;";
+    }
+
+    string GetCurrentTimeStyle(CurrentTimeDrawInfo t)
+    {
+        return $"top: {t.Y}px;";
+    }
+
+    string GetCurrentSourceStyle(CurrentTimeDrawInfo t)
+    {
+        var s = t.CurrentSource.Value;
+        return $"top: {t.Y - 1}px; left: {s.X}px; width: {s.Right - s.X}px";
+    }
+
+    string GetBookmarkStyle(BookmarkDrawInfo bmk)
+    {
+        return $"top: {bmk.Y}px;";
+    }
+
+    void IView.SetViewModel(IViewModel viewModel) { }
+    void IView.UpdateDragViewPositionDuringAnimation(int y, bool topView) { }
+    void IView.TryBeginDrag(int x, int y) { }
+    void IView.InterruptDrag() { }
+    void IView.ResetToolTipPoint(int x, int y) { }
+
+    PresentationMetrics IView.GetPresentationMetrics()
+    {
+        if (presentationMetrics == null)
+        {
+            presentationMetrics = new PresentationMetrics()
+            {
+                ClientArea = element.Id != null ?
+                    new Drawing.Rectangle(
+                        0, 0, (int)jsInterop.Layout.GetElementWidth(element), (int)jsInterop.Layout.GetElementHeight(element)
+                    ) : new Drawing.Rectangle(),
+                DistanceBetweenSources = 4,
+                SourcesHorizontalPadding = 2,
+                MinimumTimeSpanHeight = 6,
+                MinMarkHeight = 40,
+                ContainersHeaderAreaHeight = 10,
+                ContainerControlSize = 8
+            };
+        }
+        return presentationMetrics;
+    }
+    HitTestResult IView.HitTest(int x, int y)
+    {
+        return new HitTestResult();
+    }
+}

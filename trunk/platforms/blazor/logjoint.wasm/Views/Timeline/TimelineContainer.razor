@@ -15,7 +15,7 @@
                 <button class='tool-button actions' @onclick="() => viewModel.OnZoomToolButtonClicked(-1)" title="Zoom out">-</button>
             }
         </div>
-        <div>Timeline</div>
+        <Timeline/>
     }
 </div>
 <div class='@(viewModel.IsVisible ? ResizerClass : CollapsedResizerClass)' @ref="resizerElement"

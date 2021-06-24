@@ -40,6 +40,7 @@ namespace LogJoint.Wasm
         public UI.HistoryDialogViewProxy HistoryDialog;
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new PreprocessingUserInteractionsViewProxy();
         public UI.MessagePropertiesViewProxy MessageProperties = new MessagePropertiesViewProxy();
+        public UI.TimelineViewProxy Timeline = new TimelineViewProxy();
 
         public ViewModelObjects()
         {
@@ -88,6 +89,7 @@ namespace LogJoint.Wasm
             Views.CreateBookmarksListView().Returns(viewModel.BookmarksList);
             Views.CreateHistoryDialogView().Returns(viewModel.HistoryDialog);
             Views.CreateMessagePropertiesDialogView().Returns(viewModel.MessageProperties);
+            Views.CreateTimelineView().Returns(viewModel.Timeline);
         }
     };
 }
