@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>logjoint</AssemblyName>
     <RootNamespace>LogJoint.Wasm</RootNamespace>
+    <RunAOTCompilation>true</RunAOTCompilation>
   </PropertyGroup>
 
   <ItemGroup>
@@ -47,4 +48,10 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
+
+  <Target Name="RemoveSatelliteAssemblies" BeforeTargets="WasmBuildApp">
+    <ItemGroup>
+      <WasmAssembliesToBundle Remove="@(WasmAssembliesToBundle)" Condition="$([System.String]::Copy('%(Identity)').EndsWith('.resources.dll'))" />
+    </ItemGroup>
+  </Target>
 </Project>
