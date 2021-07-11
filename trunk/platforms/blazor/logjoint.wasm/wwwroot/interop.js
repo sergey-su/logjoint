@@ -84,6 +84,15 @@
             this[handle] = file;
             return handle;
         },
+        openBlobFromDb: async function (key) {
+            const blob = await logjoint.db.get('blobs', key);
+            if (!blob) {
+                throw new Error(`Can not open blob from db by key '${key}'`);
+            }
+            const handle = ++this._lastHandle;
+            this[handle] = blob;
+            return handle;
+        },
         close: function (handle) {
             this._get(handle);
             delete this[handle];
@@ -709,5 +718,36 @@
                 dispose: () => document.removeEventListener('focus', handleDocumentFocus, true)
             }
         },
+    },
+
+    chrome_extension: {
+        _port: undefined,
+        init: function(callback) {
+            const connectInfo = {
+                name: "logjoint.wasm",
+            };
+            for (let extId of [
+                "hakgmeclhiipohohmoghhmbjlicdnbbb" // dev extension id
+            ]) {
+                try {
+                    this._port = chrome.runtime.connect(extId, connectInfo);
+                } catch {
+                    continue;
+                }
+            }
+            if (this._port) {
+                this._port.onMessage.addListener(async function(msg) {
+                    if (msg.type === "open_log") {
+                        const db = window.logjoint.db;
+                        console.log("Got open log request from chrome extension. Log len=", msg.text.length);
+                        const blob = new Blob([msg.text]);
+                        const id = "test"; // todo: identity to be provided by the caller
+                        await db.set("blobs", blob, id);
+                        callback.invokeMethodAsync('Open', id);
+                    }
+                });
+            }
+            return !!this._port;
+        }
     }
 };

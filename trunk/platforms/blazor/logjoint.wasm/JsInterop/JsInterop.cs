@@ -16,11 +16,13 @@ namespace LogJoint.Wasm
 			Browser = new BrowserInterop(jsRuntime);
 			Layout = new LayoutInterop(jsRuntime);
 			Style = new Style(jsRuntime);
+			ChromeExtension = new ChromeExtensionInterop(jsRuntime);
 		}
 
 		public async Task Init()
 		{
 			await Browser.Init();
+			await ChromeExtension.Init();
 		}
 
 		public ResizeInterop Resize { get; private set; }
@@ -32,5 +34,6 @@ namespace LogJoint.Wasm
 		public BrowserInterop Browser { get; private set; }
 		public LayoutInterop Layout { get; private set; }
 		public Style Style { get; private set; }
+		public ChromeExtensionInterop ChromeExtension { get; private set; }
 	}
 }

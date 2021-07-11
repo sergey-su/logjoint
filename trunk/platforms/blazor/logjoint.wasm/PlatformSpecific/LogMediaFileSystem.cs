@@ -24,8 +24,9 @@ namespace LogJoint.Wasm
         LJTraceSource traceSource = LJTraceSource.EmptyTracer;
         const string htmlInputFileNamePrefix = "/html-input/";
         const string nativeFileSystemNamePrefix = "/native-file-system/";
+        const string blobsPrefix = "/blobs/";
         int lastHtmlInputStreamId = 0;
-        readonly Dictionary<string, HtmlInputFileInfo> htmlInputFiles = new Dictionary<string, HtmlInputFileInfo>();
+        readonly Dictionary<string, BlobInfo> htmlInputFiles = new Dictionary<string, BlobInfo>();
         readonly Dictionary<string, NativeFileSystemFileInfo> nativeFileSystemFiles = new Dictionary<string, NativeFileSystemFileInfo>();
 
         public LogMediaFileSystem(IJSRuntime jsRuntime)
@@ -38,7 +39,7 @@ namespace LogJoint.Wasm
             this.traceSource = traceFactory.CreateTraceSource("App", "bl-lmfs");
         }
 
-        class HtmlInputFileInfo
+        class BlobInfo
         {
             public IJSRuntime jsRuntime;
             public long handle;
@@ -109,21 +110,21 @@ namespace LogJoint.Wasm
             bool IFileStreamInfo.IsDeleted => false;
         }
 
-        class HtmlInputFileStream : Stream, IFileStreamInfo
+        class BlobFileStream : Stream, IFileStreamInfo
         {
             readonly IJSRuntime jsRuntime;
             readonly IJSInProcessRuntime webAssemblyJSRuntime;
-            readonly HtmlInputFileInfo fileInfo;
+            readonly BlobInfo blobInfo;
             bool disposed;
             long position;
 
-            public HtmlInputFileStream(IJSRuntime jsRuntime, HtmlInputFileInfo fileInfo)
+            public BlobFileStream(IJSRuntime jsRuntime, BlobInfo blobInfo)
             {
                 this.jsRuntime = jsRuntime;
                 this.webAssemblyJSRuntime = jsRuntime as IJSInProcessRuntime;
-                this.fileInfo = fileInfo;
+                this.blobInfo = blobInfo;
                 this.position = 0;
-                fileInfo.AddRef();
+                blobInfo.AddRef();
             }
 
             protected override void Dispose(bool disposing)
@@ -132,11 +133,11 @@ namespace LogJoint.Wasm
                 if (!disposed)
                 {
                     disposed = true;
-                    fileInfo.Release();
+                    blobInfo.Release();
                 }
             }
 
-            public override long Length => fileInfo.size;
+            public override long Length => blobInfo.size;
             public override bool CanRead => true;
             public override bool CanWrite => false;
             public override bool CanSeek => true;
@@ -146,11 +147,11 @@ namespace LogJoint.Wasm
                 get { return position; }
                 set
                 {
-                    position = Math.Clamp(value, 0, fileInfo.size);
+                    position = Math.Clamp(value, 0, blobInfo.size);
                 }
             }
 
-            DateTime IFileStreamInfo.LastWriteTime => fileInfo.lastModified;
+            DateTime IFileStreamInfo.LastWriteTime => blobInfo.lastModified;
 
             bool IFileStreamInfo.IsDeleted => false;
 
@@ -161,7 +162,7 @@ namespace LogJoint.Wasm
                 else if (origin == SeekOrigin.Current)
                     Position = Position + offset;
                 else
-                    Position = fileInfo.size - offset;
+                    Position = blobInfo.size - offset;
                 return Position;
             }
 
@@ -174,7 +175,7 @@ namespace LogJoint.Wasm
             {
                 if (webAssemblyJSRuntime != null)
                 {
-                    var tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.files.readIntoTempBuffer", fileInfo.handle, position, buffer.Length);
+                    var tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.files.readIntoTempBuffer", blobInfo.handle, position, buffer.Length);
                     var read = webAssemblyJSRuntime.Invoke<byte[]>("logjoint.files.readTempBuffer", tempBufferId);
                     read.CopyTo(buffer.Span);
                     position += read.Length;
@@ -182,7 +183,7 @@ namespace LogJoint.Wasm
                 }
                 else
                 {
-                    var read = await jsRuntime.InvokeAsync<byte[]>("logjoint.files.read", fileInfo.handle, position, buffer.Length);
+                    var read = await jsRuntime.InvokeAsync<byte[]>("logjoint.files.read", blobInfo.handle, position, buffer.Length);
                     read.CopyTo(buffer.Span);
                     position += read.Length;
                     return read.Length;
@@ -294,11 +295,13 @@ namespace LogJoint.Wasm
         async Task<Stream> IFileSystem.OpenFile(string fileName)
         {
             if (htmlInputFiles.TryGetValue(fileName, out var fileInfo))
-                return new HtmlInputFileStream(jsRuntime, fileInfo);
+                return new BlobFileStream(jsRuntime, fileInfo);
             else if (nativeFileSystemFiles.TryGetValue(fileName, out var nativeFileInfo))
                 return new NativeFileSystemStream(jsRuntime, nativeFileInfo);
             else if (fileName.StartsWith(nativeFileSystemNamePrefix))
                 return new NativeFileSystemStream(jsRuntime, await RestoreNativeFileHandle(long.Parse(fileName.Split('/')[2])));
+            else if (fileName.StartsWith(blobsPrefix))
+                return new BlobFileStream(jsRuntime, await OpenBlobFromDb(fileName));
             else
                 return new StreamImpl(fileName);
         }
@@ -310,6 +313,18 @@ namespace LogJoint.Wasm
             return fileInfo;
         }
 
+        async Task<BlobInfo> OpenBlobFromDb(string dbKey)
+        {
+            var handle = await jsRuntime.InvokeAsync<long>("logjoint.files.openBlobFromDb", dbKey);
+            var size = await jsRuntime.InvokeAsync<long>("logjoint.files.getSize", handle);
+            return new BlobInfo()
+            {
+                jsRuntime = jsRuntime,
+                handle = handle,
+                size = size,
+            };
+        }
+
         async Task<string> IWasmFileSystemConfig.AddFileFromInput(ElementReference inputElement)
         {
             var handle = await jsRuntime.InvokeAsync<long>("logjoint.files.open", inputElement);
@@ -317,7 +332,7 @@ namespace LogJoint.Wasm
             var lastModified = await jsRuntime.InvokeAsync<long>("logjoint.files.getLastModified", handle);
             var name = await jsRuntime.InvokeAsync<string>("logjoint.files.getName", handle);
             string fileName = $"{htmlInputFileNamePrefix}{++lastHtmlInputStreamId}-{name}";
-            htmlInputFiles.Add(fileName, new HtmlInputFileInfo()
+            htmlInputFiles.Add(fileName, new BlobInfo()
             {
                 jsRuntime = jsRuntime,
                 handle = handle,
