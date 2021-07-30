@@ -159,7 +159,9 @@
             candidatePrimary = nodeIndex;
             if (expandSelection)
             {
-                OnSelect?.Invoke(getSelected().Add(nodeIndex).Select(i => displayNodes[i].node));
+                var currentSelection = getSelected();
+                var newSelection = currentSelection.Contains(nodeIndex) ? currentSelection.Remove(nodeIndex) : currentSelection.Add(nodeIndex);
+                OnSelect?.Invoke(newSelection.Select(i => displayNodes[i].node));
             }
             else
             {
