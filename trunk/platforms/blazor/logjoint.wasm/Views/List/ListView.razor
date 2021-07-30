@@ -70,12 +70,10 @@
                 .Select(i => i.Value)));
 
         var updateEstablishedPrimary = Updaters.Create(getSelected, selected => {
-            if (candidatePrimary != null) {
-                establishedPrimary =
-                    selected.Contains(candidatePrimary.Value) ? candidatePrimary :
-                    selected.Count > 0 ? selected.First() :
-                    new int?();
-            }
+            establishedPrimary =
+                candidatePrimary.HasValue && selected.Contains(candidatePrimary.Value) ? candidatePrimary :
+                selected.Count > 0 ? selected.First() :
+                new int?();
         });
 
         primaryChangeSideEffects = Updaters.Create(() => establishedPrimary, async p =>
