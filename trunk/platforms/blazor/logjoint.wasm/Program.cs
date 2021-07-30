@@ -313,6 +313,22 @@ namespace LogJoint.Wasm
                     view.PresentationObjects.ExpensibilityEntryPoint), string.Join(',', pluginsDirsList), false);
             }
 
+            jsInterop.ChromeExtension.OnOpen += async (sender, evt) =>
+            {
+                Console.WriteLine("Opening blob id: {0}, displayName: {1}", evt.Id, evt.DisplayName);
+                var model = wasmHost.Services.GetService<ModelObjects>();
+                var fileName = "/blobs/" + evt.Id;
+                using (var keepAlive = model.FileSystem.OpenFile(fileName))
+                {
+                    var task = model.LogSourcesPreprocessings.Preprocess(
+                        new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(
+                            new LogJoint.Preprocessing.PreprocessingStepParams(fileName, displayName: evt.DisplayName)) },
+                        "Processing file"
+                    );
+                    await task;
+                }
+            };
+
             await wasmHost.RunAsync();
         }
     }

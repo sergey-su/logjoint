@@ -15,9 +15,11 @@ namespace LogJoint.Wasm
         public class OpenLogEventArgs: EventArgs
         {
             public string Id { get; private set; }
-            public OpenLogEventArgs(string id)
+            public string DisplayName { get; private set; }
+            public OpenLogEventArgs(string id, string displayName)
             {
                 Id = id;
+                DisplayName = displayName;
             }
         }
 
@@ -28,7 +30,7 @@ namespace LogJoint.Wasm
 
         public ValueTask Init()
         {
-            callbackObject = DotNetObjectReference.Create(new CallbackHelper());
+            callbackObject = DotNetObjectReference.Create(new CallbackHelper() { owner = this });
             return jsRuntime.InvokeVoidAsync("logjoint.chrome_extension.init", callbackObject);
         }
 
@@ -39,7 +41,10 @@ namespace LogJoint.Wasm
             public ChromeExtensionInterop owner;
 
             [JSInvokable]
-            public void Open(string id) => owner.OnOpen?.Invoke(owner, new OpenLogEventArgs(id));
+            public void Open(string id, string displayName)
+            {
+                owner.OnOpen?.Invoke(owner, new OpenLogEventArgs(id, displayName));
+            }
         }
     }
 }

@@ -739,11 +739,11 @@
                 this._port.onMessage.addListener(async function(msg) {
                     if (msg.type === "open_log") {
                         const db = window.logjoint.db;
-                        console.log("Got open log request from chrome extension. Log len=", msg.text.length);
+                        const id = encodeURIComponent(msg.id);
+                        console.log("Got open log request from chrome extension. Log len=", msg.text.length, " id=", id);
                         const blob = new Blob([msg.text]);
-                        const id = "test"; // todo: identity to be provided by the caller
                         await db.set("blobs", blob, id);
-                        callback.invokeMethodAsync('Open', id);
+                        callback.invokeMethodAsync('Open', id, msg.displayName || msg.id);
                     }
                 });
             }
