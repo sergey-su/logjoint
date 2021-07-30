@@ -726,27 +726,41 @@
             const connectInfo = {
                 name: "logjoint.wasm",
             };
-            for (let extId of [
-                "hakgmeclhiipohohmoghhmbjlicdnbbb" // dev extension id
-            ]) {
-                try {
-                    this._port = chrome.runtime.connect(extId, connectInfo);
-                } catch {
-                    continue;
+            const connect = () => {
+                let lastErrror = undefined;
+                for (let extId of [
+                    "hakgmeclhiipohohmoghhmbjlicdnbbb" // dev extension id
+                ]) {
+                    try {
+                        this._port = chrome.runtime.connect(extId, connectInfo);
+                    } catch (e) {
+                        lastErrror = e;
+                        continue;
+                    }
+                }
+                if (this._port) {
+                    console.log('Connected to chrome extension');
+                    this._port.onMessage.addListener(async function(msg) {
+                        if (msg.type === "open_log") {
+                            const db = window.logjoint.db;
+                            const id = encodeURIComponent(msg.id);
+                            console.log("Got open log request from chrome extension. Log len=", msg.text.length, " id=", id);
+                            const blob = new Blob([msg.text]);
+                            await db.set("blobs", blob, id);
+                            callback.invokeMethodAsync('Open', id, msg.displayName || msg.id);
+                        }
+                    });
+                    this._port.onDisconnect.addListener((p) => {
+                        console.log('Got disconnected from chrome extension',
+                            p.error ? ` with error ${p.error.message}` : '', '. Reconnecting soon.');
+                        this._port = undefined;
+                        setTimeout(connect, 1000);
+                    });
+                } else {
+                    console.log('Failed to connect to chrome extension', lastErrror);
                 }
             }
-            if (this._port) {
-                this._port.onMessage.addListener(async function(msg) {
-                    if (msg.type === "open_log") {
-                        const db = window.logjoint.db;
-                        console.log("Got open log request from chrome extension. Log len=", msg.text.length);
-                        const blob = new Blob([msg.text]);
-                        const id = "test"; // todo: identity to be provided by the caller
-                        await db.set("blobs", blob, id);
-                        callback.invokeMethodAsync('Open', id);
-                    }
-                });
-            }
+            connect();
             return !!this._port;
         }
     }

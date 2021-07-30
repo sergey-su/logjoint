@@ -301,7 +301,7 @@ namespace LogJoint.Wasm
             else if (fileName.StartsWith(nativeFileSystemNamePrefix))
                 return new NativeFileSystemStream(jsRuntime, await RestoreNativeFileHandle(long.Parse(fileName.Split('/')[2])));
             else if (fileName.StartsWith(blobsPrefix))
-                return new BlobFileStream(jsRuntime, await OpenBlobFromDb(fileName));
+                return new BlobFileStream(jsRuntime, await OpenBlobFromDb(fileName.Split('/')[2]));
             else
                 return new StreamImpl(fileName);
         }
@@ -341,6 +341,7 @@ namespace LogJoint.Wasm
             });
             return fileName;
         }
+
         async Task<string> IWasmFileSystemConfig.ChooseFile()
         {
             var handle = await jsRuntime.InvokeAsync<long>("logjoint.nativeFiles.choose");
