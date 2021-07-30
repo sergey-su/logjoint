@@ -1,8 +1,9 @@
 ﻿@namespace LogJoint.Wasm.UI
 @inject LogJoint.Wasm.ViewModelObjects viewProxies
 @using LogJoint.UI.Presenters.MainForm; 
+@inject JsInterop jsInterop
 
-<div class='main-window-tabs @Class'>
+<div class='main-window-tabs @Class' @ref="tabsElement" style="@GetStyle()">
     <TabsView SelectedTab="@ViewModel.ActiveTab" Tabs="@tabNames()" OnSelect="@(i => ViewModel.OnChangeTab(ViewModel.VisibleTabs[i].Id))" />
     @switch (ViewModel.VisibleTabs[ViewModel.ActiveTab].Id)
     {
@@ -23,14 +24,20 @@
             break;
     }
 </div>
+<div class='@ResizerClass' @ref="resizerElement" title="@ViewModel.ResizerTooltip"></div>
 
 @code {
     private ISubscription subscription;
     private IViewModel ViewModel => viewProxies.PresentationObjects.ViewModels.MainForm;
     private Func<IReadOnlyList<TabsView.TabInfo>> tabNames;
+    private ElementReference resizerElement, tabsElement;
+    private IDisposable resizeHandler;
 
     [Parameter]
     public string Class { get; set; } = "";
+
+    [Parameter]
+    public string ResizerClass { get; set; } = "";
 
     protected override void OnInitialized()
     {
@@ -40,14 +47,25 @@
             Class = t.Id == TabIDs.Debug ? "debug" : null
         }).ToArray());
         subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (ViewModel.VisibleTabs, ViewModel.ActiveTab),
+            () => (ViewModel.VisibleTabs, ViewModel.ActiveTab, ViewModel.Size),
             _ => StateHasChanged()
         ));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            resizeHandler = await jsInterop.Resize.InitResizer(resizerElement, tabsElement,
+                ResizeInterop.Direction.Vertical, inverse: false, relativeToParent: true, handler: ViewModel.OnResizing);
+        }
     }
 
     public void Dispose()
     {
         subscription?.Dispose();
+        resizeHandler?.Dispose();
     }
 
+    string GetStyle() => ViewModel.Size.HasValue ? $"height: {100*ViewModel.Size}%" : "";
 }

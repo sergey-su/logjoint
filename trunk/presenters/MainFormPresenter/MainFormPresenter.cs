@@ -355,6 +355,16 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
+		double? IViewModel.Size => size;
+
+		void IViewModel.OnResizing(double size)
+		{
+			this.size = Math.Max(0, size);
+			changeNotification.Post();
+		}
+
+		string IViewModel.ResizerTooltip => "Resize the tabs panel";
+
 		#region Implementation
 
 		void UpdateFormCaption()
@@ -449,6 +459,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		bool isAnalyzing;
 		string lastActivatedTab;
 		readonly Func<int> activeTab;
+		double? size = null;
 
 		#endregion
 	};

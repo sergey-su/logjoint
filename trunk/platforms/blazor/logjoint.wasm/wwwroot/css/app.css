@@ -265,6 +265,7 @@ body {
 }
 .main-window .container-1>.top {
     height: 150px;
+    min-height: 150px;
 }
 .main-window .container-1>.bottom {
     flex-grow: 2;
@@ -337,6 +338,11 @@ body {
 .main-window .container-3>.bottom-separator-collapsed:hover {
     background-color: #ddd;
 }
+.main-window .container-1>.top-separator {
+    height: 4px;
+    cursor: ns-resize;
+    background: var(--resizable-separator-background);
+}
 
 
 
@@ -393,6 +399,7 @@ body {
 .main-window-tabs {
     display: flex;
     flex-flow: column nowrap;
+    background: var(--control-face-background);
 }
 .main-window-tabs>.tab-content {
     height: 1px;
@@ -430,7 +437,7 @@ body {
 .log-sources-manager>.the-list {
     width: 1px;
     flex-grow: 2;
-    margin: 0px 4px 4px 4px;
+    margin: 0px 4px 2px 4px;
 }
 .log-sources-list-item {
     display: flex;
@@ -917,7 +924,7 @@ body {
 
 
 .bookmarks-list {
-    margin: 0px 4px 4px 4px;
+    margin: 0px 9px 2px 8px;
 }
 
 .bookmarks-list-item {
@@ -971,7 +978,6 @@ body {
 .tabs {
     display: flex;
     flex-flow: row nowrap;
-    background: var(--control-face-background);
     padding-bottom: 2px;
     justify-content: center;
 }

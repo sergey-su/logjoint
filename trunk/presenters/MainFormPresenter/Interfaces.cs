@@ -85,6 +85,8 @@ namespace LogJoint.UI.Presenters.MainForm
 		(AutoUpdateButtonState state, string tooltip) AutoUpdateButton { get; }
 		IReadOnlyList<TabInfo> VisibleTabs { get; }
 		int ActiveTab { get; }
+		double? Size { get; }
+		string ResizerTooltip { get; }
 		void OnClosing();
 		void OnLoad();
 		void OnTabPressed();
@@ -100,6 +102,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnChangeTab(string tabId);
 		void OnShareButtonClicked();
 		void OnReportProblemMenuItemClicked();
+		void OnResizing(double size);
 	};
 
 	public interface IDragDropHandler
