@@ -41,6 +41,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.theme = theme;
 			this.changeNotification = changeNotification.CreateChainedChangeNotification(initiallyActive: false);
+			this.inlineSearch = new InlineSearch.Presenter(changeNotification);
 
 			var annotationsVersion = 0;
 			logSources.OnLogSourceAnnotationChanged += (sender, e) =>
@@ -403,6 +404,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 					sourcesManagerPresenter.StartDeletionInteraction(logSources);
 				}
 			}
+		}
+
+		InlineSearch.IViewModel IViewModel.InlineSearch => inlineSearch.ViewModel;
+
+		void IViewModel.OnSearchShortcutPressed()
+		{
+			inlineSearch.Show("");
 		}
 
 		static VisualizerNode MakeRootNode(
@@ -1078,5 +1086,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly Func<IReadOnlyList<IPropertyListItem>> getPropertyItems;
 		SelectedProperty selectedProperty;
 		double? objectsTreeSize, historySize;
+		readonly InlineSearch.IPresenter inlineSearch;
 	}
 }

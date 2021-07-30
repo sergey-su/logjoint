@@ -5,31 +5,35 @@
 @implements IDisposable
 @implements IView
 
-<div class="state-inspector @Class">
-    <StateInspectorObjectsTree Class="left"
-                               ObjectsTreeRoot="@viewModel.ObjectsTreeRoot"
-                               PaintNode="@viewModel.PaintNode"
-                               ViewModel="@viewModel" />
-    <div class="v-resizer" @ref="verticalResizerElement"></div>
-    <div class="right" @ref="rightContainer" style="@GetRightStyle()">
-        <StateInspectorProperties Class="top"
-                                  Items="@viewModel.PropertyItems"
-                                  ViewModel="@viewModel"/>
-        <StateInspectorHistory Class="bottom"
-                               ResizerClass="h-resizer"
-                               Size="@viewModel.HistorySize"
-                               Items="@viewModel.ChangeHistoryItems"
-                               IsItemBookmarked="@viewModel.IsChangeHistoryItemBookmarked"
-                               FocusedMessagePositionInChangeHistory="@viewModel.FocusedMessagePositionInChangeHistory"
-                               ViewModel="@viewModel"/>
+<div class="state-inspector @Class" @ref="stateInspectorElement">
+    <InlineSearch ViewModel="@viewModel.InlineSearch" />
+    <div class="contents">
+        <StateInspectorObjectsTree Class="left"
+                                ObjectsTreeRoot="@viewModel.ObjectsTreeRoot"
+                                PaintNode="@viewModel.PaintNode"
+                                ViewModel="@viewModel" />
+        <div class="v-resizer" @ref="verticalResizerElement"></div>
+        <div class="right" @ref="rightContainer" style="@GetRightStyle()">
+            <StateInspectorProperties Class="top"
+                                    Items="@viewModel.PropertyItems"
+                                    ViewModel="@viewModel"/>
+            <StateInspectorHistory Class="bottom"
+                                ResizerClass="h-resizer"
+                                Size="@viewModel.HistorySize"
+                                Items="@viewModel.ChangeHistoryItems"
+                                IsItemBookmarked="@viewModel.IsChangeHistoryItemBookmarked"
+                                FocusedMessagePositionInChangeHistory="@viewModel.FocusedMessagePositionInChangeHistory"
+                                ViewModel="@viewModel"/>
+        </div>
     </div>
 </div>
 
 @code {
-    private ElementReference verticalResizerElement, rightContainer;
+    private ElementReference verticalResizerElement, rightContainer, stateInspectorElement;
     private IViewModel viewModel;
     private ISubscription subscription;
     private IDisposable resizeHandler;
+    private IDisposable keyHandler;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -42,6 +46,13 @@
         {
             resizeHandler = await jsInterop.Resize.InitResizer(verticalResizerElement, rightContainer,
                 ResizeInterop.Direction.Horizonal, inverse: true, relativeToParent: true, handler: viewModel.OnResizeObjectsTree);
+
+            keyHandler = await jsInterop.Keyboard.AddHandler(stateInspectorElement, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                StopPropagation = true,
+                Handler = () => viewModel.OnSearchShortcutPressed(),
+            }, "Edit+F/i");
         }
     }
 
@@ -66,6 +77,7 @@
         viewProxies.PostprocesssingStateInspectorViewProxy.SetComponent(null);
         subscription?.Dispose();
         resizeHandler?.Dispose();
+        keyHandler?.Dispose();
     }
 
     void IView.ScrollStateHistoryItemIntoView(int itemIndex)

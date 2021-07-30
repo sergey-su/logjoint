@@ -81,6 +81,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void OnFindCurrentPositionInChangeHistory();
 		void OnResizeHistory(double value);
 		void OnResizeObjectsTree(double value);
+
+		InlineSearch.IViewModel InlineSearch { get; }
+		void OnSearchShortcutPressed();
 	};
 
 	public struct PropertyCellPaintInfo

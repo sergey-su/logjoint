@@ -543,39 +543,49 @@ body {
 
 .state-inspector {
     display: flex;
-    flex-flow: row nowrap;
+    flex-flow: column nowrap;
 }
 
-.state-inspector>.left {
+.state-inspector>.inline-search  {
+    background: var(--control-face-background);
+}
+
+.state-inspector>.contents {
+    display: flex;
+    flex-flow: row nowrap;
+    flex-grow: 2;
+}
+
+.state-inspector>.contents>.left {
     width: 1px;
     flex-grow: 2;
 }
 
-.state-inspector>.v-resizer {
+.state-inspector>.contents>.v-resizer {
     width: 4px;
     cursor: ew-resize;
     background: var(--resizable-separator-background);
 }
 
-.state-inspector>.right {
+.state-inspector>.contents>.right {
     width: 50%;
     display: flex;
     flex-flow: column nowrap;
 }
 
 
-.state-inspector>.right>.top {
+.state-inspector>.contents>.right>.top {
     height: 1px;
     flex-grow: 2;
 }
 
-.state-inspector>.right>.h-resizer {
+.state-inspector>.contents>.right>.h-resizer {
     height: 4px;
     cursor: ns-resize;
     background: var(--resizable-separator-background);
 }
 
-.state-inspector>.right>.bottom {
+.state-inspector>.contents>.right>.bottom {
     height: 50%;
 }
 
