@@ -23,6 +23,10 @@
             {
                 <div class='mark@(mark.IsMajor ? " major" : "")' style="@GetMarkStyle(mark)">@mark.Label</div>
             }
+            @foreach (BookmarkDrawInfo bmk in drawInfo.Bookmarks)
+            {
+                <div class='bmk@(bmk.IsHidden ? " hidden" : "")' style="@GetBookmarkStyle(bmk)"></div>
+            }
             @if (drawInfo.CurrentTime.HasValue)
             {
                 var t = drawInfo.CurrentTime.Value;
@@ -31,10 +35,6 @@
                 {
                     <div class='cur-source' style="@GetCurrentSourceStyle(t)"></div>
                 }
-            }
-            @foreach (BookmarkDrawInfo bmk in drawInfo.Bookmarks)
-            {
-                <div class='bmk@(bmk.IsHidden ? " hidden" : "")' style="@GetBookmarkStyle(bmk)"></div>
             }
             @foreach (ContainerControlDrawInfo cnt in drawInfo.ContainerControls.Controls)
             {
