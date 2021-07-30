@@ -922,6 +922,10 @@ body {
 }
 
 
+.quick-search-suggesions>li {
+    white-space: nowrap;
+}
+
 
 .bookmarks-list {
     margin: 0px 9px 2px 8px;
