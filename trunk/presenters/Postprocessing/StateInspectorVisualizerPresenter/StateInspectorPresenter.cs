@@ -193,6 +193,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				props => (IReadOnlyList<KeyValuePair<string, object>>)props.Select(p => p.ToDataSourceItem()).ToImmutableArray()
 			);
 
+			inlineSearch.OnSearch += (s, e) => PerformInlineSearch(e.Query, e.Reverse);
+
 			view.SetViewModel(this);
 		}
 
@@ -766,6 +768,57 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
+		void PerformInlineSearch(string searchText, bool reverse)
+		{
+			ImmutableArray<VisualizerNode> selectedNodes = getSelectedNodes();
+			VisualizerNode root = getRootNode();
+			VisualizerNode searchStartNode = selectedNodes.FirstOrDefault() ?? root;
+			StateHistoryItem selectedHistoryItem = getStateHistoryItems().FirstOrDefault(i => i.IsSelected);
+			if (searchStartNode == null)
+				return;
+			IEnumerable<VisualizerNode> traverse(VisualizerNode node)
+			{
+				yield return node;
+				foreach (var c in node.Children)
+					foreach (var n in traverse(c))
+						yield return n;
+			};
+			IEnumerable<VisualizerNode> traverseBackwards(VisualizerNode node)
+			{
+				for (int i = node.Children.Count - 1; i >= 0; --i)
+					foreach (var n in traverseBackwards(node.Children[i]))
+						yield return n;
+				yield return node;
+			};
+			VisualizerNode candidateBeforeStart = null;
+			VisualizerNode candidateAfterStart = null;
+			bool foundStartPosition = false;
+			foreach (var n in reverse ? traverseBackwards(root) : traverse(root))
+			{
+				if (n.ToString().Contains(searchText))
+				{
+					if (foundStartPosition)
+					{
+						candidateAfterStart = n;
+						break;
+					}
+					else if (candidateBeforeStart == null)
+					{
+						candidateBeforeStart = n;
+					}
+				}
+				if (n == searchStartNode)
+				{
+					foundStartPosition = true;
+				}
+			}
+			var newSelection = candidateAfterStart ?? candidateBeforeStart;
+			if (newSelection != null)
+			{
+				SetSelection(new[] { newSelection });
+			}
+		}
+
 		class PropertyInfo : IPropertyListItem
 		{
 			public readonly IInspectedObject Object;
@@ -1035,6 +1088,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 
 			public StateInspectorEvent Event => @event;
+
+			public bool IsSelected => isSelected;
 
 			string IStateHistoryItem.Time => time;
 
