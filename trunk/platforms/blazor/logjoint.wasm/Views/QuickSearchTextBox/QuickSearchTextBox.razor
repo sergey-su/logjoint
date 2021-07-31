@@ -13,7 +13,7 @@
     }
     @if (ViewModel.SuggestionsListAvailable)
     {
-        <button class="suggesions-button" @onclick="@ViewModel.OnDropDownButtonClicked">@(ViewModel.SuggestionsListVisibile ? "▴" : "▾")</button>
+        <button class="suggesions-button @(ViewModel.SuggestionsListVisibile ? "expanded" : "collapsed")" @onclick="@ViewModel.OnDropDownButtonClicked"></button>
     }
 </div>
 
