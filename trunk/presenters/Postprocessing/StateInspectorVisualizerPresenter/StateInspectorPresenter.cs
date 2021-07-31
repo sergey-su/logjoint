@@ -575,6 +575,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return new StateHistoryItem(evt, time, message, isSelected, index);
 		}
 
+		static IEnumerable<StateInspectorEventInfo> GetHistoryEventInfos(IReadOnlyList<IInspectedObject> objects)
+		{
+			return
+				objects
+				.ZipWithIndex()
+				.Where(obj => !obj.Value.IsTimeless)
+				.Select(obj => obj.Value.StateChangeHistory.Select((e, idx) => new StateInspectorEventInfo()
+				{
+					Object = obj.Value,
+					InspectedObjectNr = objects.Count >= 2 ? obj.Key + 1 : 0,
+					Event = e,
+					EventIndex = idx,
+				}))
+				.ToArray()
+				.MergeSortedSequences(new EventsComparer());
+		}
+
 		ImmutableArray<StateHistoryItem> MakeSelectedObjectHistory(
 			ImmutableArray<IInspectedObject> selectedObjects,
 			ImmutableArray<StateInspectorEvent> selectedEvents
@@ -582,17 +599,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		{
 			var result = ImmutableArray.CreateBuilder<StateHistoryItem>();
 			var changes =
-				selectedObjects
-				.ZipWithIndex()
-				.Where(obj => !obj.Value.IsTimeless)
-				.Select(obj => obj.Value.StateChangeHistory.Select(e => new StateInspectorEventInfo()
-				{
-					Object = obj.Value,
-					InspectedObjectNr = selectedObjects.Length >= 2 ? obj.Key + 1 : 0,
-					Event = e
-				}))
-				.ToArray()
-				.MergeSortedSequences(new EventsComparer())
+				GetHistoryEventInfos(selectedObjects)
 				.ToList();
 
 			var selectedEventsSet = selectedEvents.Select(e => (e.Output, e.Index)).ToHashSet();
@@ -770,52 +777,85 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		void PerformInlineSearch(string searchText, bool reverse)
 		{
-			ImmutableArray<VisualizerNode> selectedNodes = getSelectedNodes();
 			VisualizerNode root = getRootNode();
-			VisualizerNode searchStartNode = selectedNodes.FirstOrDefault() ?? root;
-			StateHistoryItem selectedHistoryItem = getStateHistoryItems().FirstOrDefault(i => i.IsSelected);
-			if (searchStartNode == null)
+			VisualizerNode originNode = getSelectedNodes().FirstOrDefault() ?? root;
+			if (originNode == null)
 				return;
-			IEnumerable<VisualizerNode> traverse(VisualizerNode node)
+			StateHistoryItem selectedHistoryItem = getStateHistoryItems().FirstOrDefault(i => i.IsSelected);
+			(VisualizerNode node, int? historyItemEventIndex) origin = (originNode, selectedHistoryItem?.Index);
+			IEnumerable<(VisualizerNode node, StateInspectorEventInfo? historyItem)> traverse(VisualizerNode node)
 			{
-				yield return node;
+				yield return (node, null);
+				if (node.InspectedObject != null)
+					foreach (var e in GetHistoryEventInfos(new[] { node.InspectedObject }))
+						yield return (node, e);
 				foreach (var c in node.Children)
 					foreach (var n in traverse(c))
 						yield return n;
 			};
-			IEnumerable<VisualizerNode> traverseBackwards(VisualizerNode node)
+			IEnumerable<(VisualizerNode node, StateInspectorEventInfo? historyItem)> traverseBackwards(VisualizerNode node)
 			{
 				for (int i = node.Children.Count - 1; i >= 0; --i)
 					foreach (var n in traverseBackwards(node.Children[i]))
 						yield return n;
-				yield return node;
+				if (node.InspectedObject != null)
+					foreach (var e in GetHistoryEventInfos(new[] { node.InspectedObject }).Reverse())
+						yield return (node, e);
+				yield return (node, null);
 			};
-			VisualizerNode candidateBeforeStart = null;
-			VisualizerNode candidateAfterStart = null;
-			bool foundStartPosition = false;
+			var messageFormatter = new StateHistoryMessageFormatter { shortNames = this.shortNames };
+			(VisualizerNode node, StateInspectorEventInfo? historyItem) candidateBeforeOrigin = (null, null);
+			(VisualizerNode node, StateInspectorEventInfo? historyItem) candidateAfterOrigin = (null, null);
+			bool foundOrigin = false;
 			foreach (var n in reverse ? traverseBackwards(root) : traverse(root))
 			{
-				if (n.ToString().Contains(searchText))
+				string textToMatch;
+				if (n.historyItem.HasValue)
 				{
-					if (foundStartPosition)
+					messageFormatter.Reset();
+					n.historyItem.Value.Event.OriginalEvent.Visit(messageFormatter);
+					textToMatch = messageFormatter.message;
+				}
+				else
+				{
+					textToMatch = n.ToString();
+				}
+				if (textToMatch.IndexOf(searchText, 0, StringComparison.InvariantCultureIgnoreCase) >= 0)
+				{
+					if (foundOrigin)
 					{
-						candidateAfterStart = n;
+						candidateAfterOrigin = n;
 						break;
 					}
-					else if (candidateBeforeStart == null)
+					else if (candidateBeforeOrigin.node == null)
 					{
-						candidateBeforeStart = n;
+						candidateBeforeOrigin = n;
 					}
 				}
-				if (n == searchStartNode)
+				if (n.node == origin.node && n.historyItem?.EventIndex == origin.historyItemEventIndex)
 				{
-					foundStartPosition = true;
+					foundOrigin = true;
 				}
 			}
-			var newSelection = candidateAfterStart ?? candidateBeforeStart;
-			if (newSelection != null)
+			var newSelection = candidateAfterOrigin.node != null ? candidateAfterOrigin : candidateBeforeOrigin;
+			if (newSelection.node != null)
 			{
-				SetSelection(new[] { newSelection });
+				SetSelection(new[] { newSelection.node });
+
+				ImmutableArray<StateInspectorEvent> newSelectedHistoryItems;
+				if (newSelection.historyItem.HasValue)
+				{
+					newSelectedHistoryItems = GetHistoryEventInfos(new[] { newSelection.node.InspectedObject })
+						.Skip(newSelection.historyItem.Value.EventIndex).Take(1)
+						.Select(e => e.Event)
+						.ToImmutableArray();
+				}
+				else
+				{
+					newSelectedHistoryItems = ImmutableArray<StateInspectorEvent>.Empty;
+				}
+				selectedHistoryEvents = newSelectedHistoryItems;
+				changeNotification.Post();
 			}
 		}
 
@@ -1090,6 +1130,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			public StateInspectorEvent Event => @event;
 
 			public bool IsSelected => isSelected;
+
+			public int Index => index;
 
 			string IStateHistoryItem.Time => time;
 

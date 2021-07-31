@@ -8,6 +8,7 @@ namespace LogJoint.Postprocessing.StateInspector
 		public IInspectedObject Object;
 		public int InspectedObjectNr;
 		public StateInspectorEvent Event;
+		public int EventIndex;  // Index of Event among Object's events
 	};
 
 	public class EventsComparer : IComparer<StateInspectorEventInfo>
