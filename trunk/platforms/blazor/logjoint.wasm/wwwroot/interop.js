@@ -48,7 +48,7 @@
         _tempBuffers: {},
         _readFile: async function (file, position, count) {
             const blob = file.slice(position, position + count);
-            return String.fromCharCode.apply(null, new Uint8Array(await blob.arrayBuffer()));
+            return new Uint8Array(await blob.arrayBuffer());
         },
         _readIntoTempBuffer: async function (file, position, count) {
             const blob = file.slice(position, position + count);
@@ -97,7 +97,7 @@
                 throw new Error(`Temp buffer ${tempBufferId} does not exist`);
             }
             delete this._tempBuffers[tempBufferId];
-            return BINDING.js_typed_array_to_array(tempBuffer);
+            return tempBuffer;
         },
         getUrl: function (fileInput) {
             const file = fileInput.files[0];

@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WebAssemblyJSRuntime = Microsoft.JSInterop.WebAssembly.WebAssemblyJSRuntime;
 
 namespace LogJoint.Wasm
 {
@@ -113,7 +112,7 @@ namespace LogJoint.Wasm
         class HtmlInputFileStream : Stream, IFileStreamInfo
         {
             readonly IJSRuntime jsRuntime;
-            readonly IJSUnmarshalledRuntime webAssemblyJSRuntime;
+            readonly IJSInProcessRuntime webAssemblyJSRuntime;
             readonly HtmlInputFileInfo fileInfo;
             bool disposed;
             long position;
@@ -121,7 +120,7 @@ namespace LogJoint.Wasm
             public HtmlInputFileStream(IJSRuntime jsRuntime, HtmlInputFileInfo fileInfo)
             {
                 this.jsRuntime = jsRuntime;
-                this.webAssemblyJSRuntime = jsRuntime as IJSUnmarshalledRuntime;
+                this.webAssemblyJSRuntime = jsRuntime as IJSInProcessRuntime;
                 this.fileInfo = fileInfo;
                 this.position = 0;
                 fileInfo.AddRef();
@@ -176,17 +175,17 @@ namespace LogJoint.Wasm
                 if (webAssemblyJSRuntime != null)
                 {
                     var tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.files.readIntoTempBuffer", fileInfo.handle, position, buffer.Length);
-                    var read = webAssemblyJSRuntime.InvokeUnmarshalled<int, byte[]>("logjoint.files.readTempBuffer", tempBufferId);
+                    var read = webAssemblyJSRuntime.Invoke<byte[]>("logjoint.files.readTempBuffer", tempBufferId);
                     read.CopyTo(buffer.Span);
                     position += read.Length;
                     return read.Length;
                 }
                 else
                 {
-                    var str = await jsRuntime.InvokeAsync<string>("logjoint.files.read", fileInfo.handle, position, buffer.Length);
-                    var read = CopyStr(str, buffer);
-                    position += read;
-                    return read;
+                    var read = await jsRuntime.InvokeAsync<byte[]>("logjoint.files.read", fileInfo.handle, position, buffer.Length);
+                    read.CopyTo(buffer.Span);
+                    position += read.Length;
+                    return read.Length;
                 }
             }
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
@@ -202,7 +201,7 @@ namespace LogJoint.Wasm
         class NativeFileSystemStream : Stream, IFileStreamInfo
         {
             readonly IJSRuntime jsRuntime;
-            readonly IJSUnmarshalledRuntime webAssemblyJSRuntime;
+            readonly IJSInProcessRuntime webAssemblyJSRuntime;
             readonly NativeFileSystemFileInfo fileInfo;
             bool disposed;
             long position;
@@ -210,7 +209,7 @@ namespace LogJoint.Wasm
             public NativeFileSystemStream(IJSRuntime jsRuntime, NativeFileSystemFileInfo fileInfo)
             {
                 this.jsRuntime = jsRuntime;
-                this.webAssemblyJSRuntime = jsRuntime as IJSUnmarshalledRuntime;
+                this.webAssemblyJSRuntime = jsRuntime as IJSInProcessRuntime;
                 this.fileInfo = fileInfo;
                 this.position = 0;
                 fileInfo.AddRef();
@@ -265,17 +264,17 @@ namespace LogJoint.Wasm
                 if (webAssemblyJSRuntime != null)
                 {
                     var tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.nativeFiles.readIntoTempBuffer", fileInfo.handle, position, buffer.Length);
-                    var read = webAssemblyJSRuntime.InvokeUnmarshalled<int, byte[]>("logjoint.nativeFiles.readTempBuffer", tempBufferId);
+                    var read = webAssemblyJSRuntime.Invoke<byte[]>("logjoint.nativeFiles.readTempBuffer", tempBufferId);
                     read.CopyTo(buffer.Span);
                     position += read.Length;
                     return read.Length;
                 }
                 else
                 {
-                    var str = await jsRuntime.InvokeAsync<string>("logjoint.nativeFiles.read", fileInfo.handle, position, buffer.Length);
-                    var read = CopyStr(str, buffer);
-                    position += read;
-                    return read;
+                    var read = await jsRuntime.InvokeAsync<byte[]>("logjoint.nativeFiles.read", fileInfo.handle, position, buffer.Length);
+                    read.CopyTo(buffer.Span);
+                    position += read.Length;
+                    return read.Length;
                 }
             }
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
@@ -363,15 +362,6 @@ namespace LogJoint.Wasm
                 });
             }
             return (fileName, fileInfo);
-        }
-
-        static int CopyStr(string s, Memory<byte> buffer)
-        {
-            int read = s.Length;
-            var dest = buffer.Span;
-            for (int i = 0; i < read; ++i)
-                dest[i] = unchecked((byte)s[i]);
-            return read;
         }
     }
 }
