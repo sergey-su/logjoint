@@ -34,5 +34,10 @@ namespace LogJoint.UI.Presenters.ToolsContainer
         public ToolKind Kind;
         public string Name;
         public string Tooltip;
-    };
+    }
+
+    public interface IPresenter
+    {
+        void ShowTool(ToolKind kind);
+    }
 }

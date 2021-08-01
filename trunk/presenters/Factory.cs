@@ -527,6 +527,8 @@ namespace LogJoint.UI.Presenters
 				alertPopup
 			);
 
+			var toolsContainer = new ToolsContainer.Presenter(model.ChangeNotification);
+
 			Postprocessing.IFactory postprocessorPresentationFactory = new Postprocessing.Factory(
 				views.PostprocessingViewsFactory,
 				model.PostprocessorsManager,
@@ -545,7 +547,8 @@ namespace LogJoint.UI.Presenters
 				alertPopup,
 				colorTheme,
 				model.MatrixFactory,
-				model.CorrelationManager
+				model.CorrelationManager,
+				toolsContainer
 			);
 
 			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage();
@@ -597,8 +600,6 @@ namespace LogJoint.UI.Presenters
 				new Postprocessing.Presentation(postprocessorPresentationFactory, postprocessingTabPagePresenter),
 				loadedMessagesPresenter.LogViewerPresenter
 			);
-
-			var toolsContainer = new ToolsContainer.Presenter(model.ChangeNotification);
 
 			return new PresentationObjects
 			{

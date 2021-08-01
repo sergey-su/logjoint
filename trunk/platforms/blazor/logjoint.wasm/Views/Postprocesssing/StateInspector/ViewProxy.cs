@@ -26,7 +26,7 @@ namespace LogJoint.Wasm.UI.Postprocesssing.StateInspector
 
 		void IView.Show()
 		{
-			component.Show();
+			component?.Show();
 		}
 	}
 }

@@ -27,7 +27,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			IClipboardAccess clipboardAccess,
 			SourcesManager.IPresenter sourcesManagerPresenter,
 			IColorTheme theme,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			ToolsContainer.IPresenter toolsContainerPresenter
 		)
 		{
 			this.view = view;
@@ -40,6 +41,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.sourcesManagerPresenter = sourcesManagerPresenter;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.theme = theme;
+			this.toolsContainerPresenter = toolsContainerPresenter;
 			this.changeNotification = changeNotification.CreateChainedChangeNotification(initiallyActive: false);
 			this.inlineSearch = new InlineSearch.Presenter(changeNotification);
 
@@ -252,7 +254,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		void IPostprocessorVisualizerPresenter.Show()
 		{
-			view.Show();
+			if (IsBrowser.Value && toolsContainerPresenter != null)
+				toolsContainerPresenter.ShowTool(ToolsContainer.ToolKind.StateInspector);
+			else
+				view.Show();
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
@@ -1184,5 +1189,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		SelectedProperty selectedProperty;
 		double? objectsTreeSize, historySize;
 		readonly InlineSearch.IPresenter inlineSearch;
+		readonly ToolsContainer.IPresenter toolsContainerPresenter;
 	}
 }

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.ToolsContainer
 {
-	class Presenter : IViewModel
+	class Presenter : IViewModel, IPresenter
 	{
 		readonly IChangeNotification changeNotification;
 		bool isVisible = true;
@@ -72,6 +72,16 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 		string IViewModel.ShowButtonTooltip => "Show tools panel";
 
 		string IViewModel.ResizerTooltip => "Resize tools panel";
+
+		void IPresenter.ShowTool(ToolKind kind)
+		{
+			var i = availableTools.IndexOf(k => k == kind);
+			if (i.HasValue)
+			{
+				selectedToolIndex = i.Value;
+				changeNotification.Post();
+			}
+		}
 
 		static ToolInfo ToToolInfo(ToolKind kind)
 		{

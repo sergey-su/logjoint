@@ -52,7 +52,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 			IAlertPopup alerts,
 			IColorTheme colorTheme,
 			Drawing.IMatrixFactory matrixFactory,
-			ICorrelationManager correlationManager
+			ICorrelationManager correlationManager,
+			ToolsContainer.IPresenter toolsContainerPresenter
 		)
 		{
 			stateInspectorVisualizer = new Lazy<StateInspectorVisualizer.IPresenterInternal>(() =>
@@ -76,7 +77,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 					clipboardAccess,
 					sourcesManagerPresenter,
 					colorTheme,
-					changeNotification
+					changeNotification,
+					toolsContainerPresenter
 				);
 			});
 
