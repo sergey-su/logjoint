@@ -817,6 +817,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				string textToMatch;
 				if (n.historyItem.HasValue)
 				{
+					messageFormatter.currentObject = n.node.InspectedObject;
 					messageFormatter.Reset();
 					n.historyItem.Value.Event.OriginalEvent.Visit(messageFormatter);
 					textToMatch = messageFormatter.message;
