@@ -31,7 +31,7 @@
     private ISubscription subscription;
     [Inject]
     private IJSRuntime jsRuntime { get; set; }
-    private Func<ImmutableArray<(ITreeNode node, int level)>> getDisplayNodes;
+    private Func<ImmutableArray<(ITreeNode node, int parentDisplayIndex, int level)>> getDisplayNodes;
     private Func<ImmutableHashSet<int>> getSelected;
     private int? candidatePrimary;
     private int? establishedPrimary;
@@ -71,14 +71,14 @@
     public ValueTask FocusAsync() => FocusPrimaryNode(allowFocusStealing: true);
 
     // todo: remove linear runtime. use tree augmentation to map node->displayIndex and back.
-    int TraverseChildren(ITreeNode node, int firstChildDisplayIndex, int level, Action<ITreeNode, int> action)
+    int TraverseChildren(ITreeNode node, int firstChildDisplayIndex, int level, Action<ITreeNode, int, int> action)
     {
         if (node == null || !node.IsExpanded)
             return firstChildDisplayIndex;
         var currentDisplayIndex = firstChildDisplayIndex;
         foreach (var c in node.Children)
         {
-            action(c, level);
+            action(c, firstChildDisplayIndex - 1, level);
             currentDisplayIndex = TraverseChildren(c, currentDisplayIndex + 1, level + 1, action);
         }
         return currentDisplayIndex;
@@ -88,8 +88,8 @@
     {
         getDisplayNodes = Selectors.Create(() => Root, root =>
         {
-            var builder = ImmutableArray.CreateBuilder<(ITreeNode, int)>();
-            TraverseChildren(Root, 0, 0, (n, level) => builder.Add((n, level)));
+            var builder = ImmutableArray.CreateBuilder<(ITreeNode, int, int)>();
+            TraverseChildren(Root, 0, 0, (n, parentDisplayIndex, level) => builder.Add((n, parentDisplayIndex, level)));
             return builder.ToImmutable();
         });
         getSelected = Selectors.Create(getDisplayNodes, displayNodes =>
@@ -191,13 +191,16 @@
 
     void HandleKeyDown(KeyboardEventArgs eventArgs)
     {
-        var node = getDisplayNodes().ElementAtOrDefault(establishedPrimary.GetValueOrDefault(-1)).node;
+        var displayNode = getDisplayNodes().ElementAtOrDefault(establishedPrimary.GetValueOrDefault(-1));
+        ITreeNode node = displayNode.node;
         if (node == null)
             return;
         if (eventArgs.Key == "ArrowLeft")
         {
             if (TreeNode.SupportsExpansion(node) && node.IsExpanded)
                 TryCollapseNode(node);
+            else if(displayNode.parentDisplayIndex > 0)
+                TrySelectNode(displayNode.parentDisplayIndex, expandSelection: false);
         }
         else if (eventArgs.Key == "ArrowRight")
         {
