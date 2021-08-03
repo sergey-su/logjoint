@@ -1086,7 +1086,7 @@ body {
 }
 .resizable-dialog>header {
     font-size: 1.3em;
-    margin-bottom: 6px;
+    margin-bottom: 13px;
 }
 
 .history-dialog {
@@ -1394,4 +1394,99 @@ body {
     pointer-events: none;
     text-align: center;
     font-size: 7px;
+}
+
+
+
+.source-properties-dialog {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+    position: relative; /* to position color picker inside the dialog */
+}
+
+.source-properties-dialog>.buttons {
+    padding: 5px;
+}
+
+.source-properties-dialog>.buttons>.save {
+    float: left;
+}
+.source-properties-dialog>.buttons>.close {
+    float: right;
+}
+.source-properties-dialog>.buttons>.close:after {
+    clear: both;
+}
+
+.source-properties-dialog>.form {
+    height: 1px;
+    flex-grow: 2;
+
+    display: grid;
+    grid-auto-rows: max-content;
+    grid-template-columns: max-content auto;
+    column-gap: 10px;
+    row-gap: 7px;
+}
+
+.source-properties-dialog>.form>.v {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.source-properties-dialog>.form>.name.v {
+    display: flex;
+    flex-flow: row nowrap;
+}
+.source-properties-dialog>.form>.name.v>span {
+    flex-grow: 2;
+    flex-shrink: 2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.source-properties-dialog>.form>.name.v>a {
+    white-space: nowrap;
+    padding-left: 10px;
+}
+
+.source-properties-dialog>.form>.v.annotation>input {
+    width: 95%;
+}
+.source-properties-dialog>.form>.v.time-shift>input {
+    width: 95%;
+}
+
+.source-properties-dialog>.form>.bg.v {
+    display: flex;
+    flex-flow: row nowrap;
+}
+.source-properties-dialog>.form>.bg.v>a {
+    margin-left: 10px;
+}
+.source-properties-dialog .color-picker {
+    position: absolute;
+    left: 140px;
+    top: 105px;
+    border: 1px solid gray;
+    background: white;
+    display: grid;
+    grid-auto-rows: auto;
+    grid-template-columns: auto auto auto auto;
+    column-gap: 5px;
+    row-gap: 5px;
+    padding: 5px;
+}
+
+.source-properties-dialog .color-box {
+    border: 1px solid black;
+    width: 50px;
+    height: 1em;
+    background: darkkhaki;
+}
+
+.source-properties-dialog>.form>.loaded.v {
+    display: flex;
+    flex-flow: row nowrap;
 }

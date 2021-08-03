@@ -1,0 +1,155 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.SourcePropertiesWindow
+@implements IDisposable
+@implements IView
+@implements IWindow
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+
+@{var viewState = viewModel.ViewState; }
+<Modal Visible="@(dialogTask != null)" Class="resizable-dialog source-properties-dialog" ClickOutside="FireClosingEventAndClose" OnCancel="FireClosingEventAndClose">
+    <header>Log source properties</header>
+    <div class="form" @onmousedown="HandleClickOutsideColorPicker">
+        <div class="name l">Name:</div>
+        <div class="name v">
+            <span>@viewState.NameEditbox.Text</span>
+            @if (!viewState.CopyPathButton.Hidden)
+            {
+                <a href="#" @onclick:preventDefault disabled="@viewState.CopyPathButton.Disabled"
+                    @onclick="@(e => viewModel.OnCopyButtonClicked())">@viewState.CopyPathButton.Text</a>
+            }
+        </div>
+        <div class="format l">Format:</div>
+        <div class="format v">@viewState.FormatTextBox.Text</div>
+        <div class="bg l">Background color:</div>
+        <div class="bg v">
+            <div class="color-box" style="@GetColorBoxStyle(viewState.ColorPanel.BackColor)"></div>
+            <a href="#" @onclick:preventDefault @onclick="@(e => OnChangeColorLinkClicked())">pick color</a>
+        </div>
+        <div class="loaded l">Loaded messages:</div>
+        <div class="loaded v">
+            <span>@viewState.LoadedMessagesTextBox.Text</span>
+            @if (!viewState.LoadedMessagesWarningLinkLabel.Hidden)
+            {
+                <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnLoadedMessagesWarningIconClicked())">@viewState.LoadedMessagesWarningLinkLabel.Text</a>
+            }
+        </div>
+        <div class="first_m l">First known message:</div>
+        <div class="first_m v"><a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnFirstKnownMessageLinkClicked())">@viewState.FirstMessageLinkLabel.Text</a></div>
+        <div class="last_m l">Last known message:</div>
+        <div class="last_m v"><a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnLastKnownMessageLinkClicked())">@viewState.LastMessageLinkLabel.Text</a></div>
+        <div class="annotation l">Annotation:</div>
+        <div class="annotation v"><input value="@viewState.AnnotationTextBox.Text" @onchange="@(e => viewModel.OnChangeAnnotation(e.Value.ToString()))"/></div>
+        <div class="time-shift l">Time shift:</div>
+        <div class="time-shift v"><input value="@viewState.TimeOffsetTextBox.Text" @onchange="@(e => viewModel.OnChangeChangeTimeOffset(e.Value.ToString()))"/></div>
+    </div>
+    @if (colorPickerOptions != null)
+    {
+        <div class="color-picker" @onmousedown:stopPropagation>
+            @foreach (var option in colorPickerOptions)
+            {
+                <a href="#" @onclick:preventDefault class="color-box" style="@GetColorBoxStyle(option)"
+                    @onclick="@(e => OnColorSelected(option))"></a>
+            }
+        </div>
+    }
+    <div class="buttons">
+        @{var saveButton = viewState.SaveAsButton; }
+        @if (!saveButton.Hidden)
+        {
+            <button class="save" @onclick="@(e => viewModel.OnSaveAsButtonClicked())" disabled="@saveButton.Disabled">@saveButton.Text</button>
+        }
+        <button class="close" @onclick="FireClosingEventAndClose">Close</button>
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+    private TaskCompletionSource<int> dialogTask;
+    private LogJoint.Drawing.Color[] colorPickerOptions;
+
+    protected override void OnInitialized()
+    {
+        viewProxies.SourcePropertiesWindow.SetComponent(this);
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.ViewState, dialogTask != null),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        viewProxies.SourcePropertiesWindow.SetComponent(null);
+        subscription?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel viewModel)
+    {
+        this.viewModel = viewModel;
+    }
+
+    IWindow IView.CreateWindow() => this;
+
+    Task IWindow.ShowModalDialog()
+    {
+        dialogTask?.TrySetResult(0);
+        dialogTask = new TaskCompletionSource<int>();
+        colorPickerOptions = null;
+        viewModel.ChangeNotification.Post();
+        return dialogTask.Task;
+    }
+    void IWindow.Close()
+    {
+        dialogTask?.TrySetResult(0);
+        dialogTask = null;
+    }
+    void IWindow.ShowColorSelector(LogJoint.Drawing.Color[] options)
+    {
+        colorPickerOptions = options;
+        StateHasChanged();
+    }
+
+    void FireClosingEventAndClose()
+    {
+        if (dialogTask != null)
+        {
+            viewModel.OnClosingDialog();
+            dialogTask?.TrySetResult(0);
+            dialogTask = null;
+            StateHasChanged();
+        }
+    }
+
+    static string GetColorBoxStyle(LogJoint.Drawing.Color? color)
+    {
+        if (!color.HasValue)
+            return "";
+        return "background-color: " + LogJoint.Drawing.ColorExtensions.ToHtmlColor(color.Value);
+    }
+
+    void HideColorPicker()
+    {
+        colorPickerOptions = null;
+        StateHasChanged();
+    }
+
+    void OnChangeColorLinkClicked()
+    {
+        if (colorPickerOptions != null)
+            HideColorPicker();
+        else
+            viewModel.OnChangeColorLinkClicked();
+    }
+
+    void OnColorSelected(LogJoint.Drawing.Color color)
+    {
+        viewModel.OnColorSelected(color);
+        HideColorPicker();
+    }
+
+    void HandleClickOutsideColorPicker()
+    {
+        if (colorPickerOptions != null)
+            HideColorPicker();
+    }
+}

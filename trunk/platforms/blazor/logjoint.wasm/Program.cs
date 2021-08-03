@@ -41,6 +41,7 @@ namespace LogJoint.Wasm
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new PreprocessingUserInteractionsViewProxy();
         public UI.MessagePropertiesViewProxy MessageProperties = new MessagePropertiesViewProxy();
         public UI.TimelineViewProxy Timeline = new TimelineViewProxy();
+        public UI.SourcePropertiesWindowViewProxy SourcePropertiesWindow = new UI.SourcePropertiesWindowViewProxy();
 
         public ViewModelObjects()
         {
@@ -90,6 +91,7 @@ namespace LogJoint.Wasm
             Views.CreateHistoryDialogView().Returns(viewModel.HistoryDialog);
             Views.CreateMessagePropertiesDialogView().Returns(viewModel.MessageProperties);
             Views.CreateTimelineView().Returns(viewModel.Timeline);
+            Views.CreateSourcePropertiesWindowView().Returns(viewModel.SourcePropertiesWindow);
         }
     };
 }

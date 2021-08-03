@@ -13,7 +13,7 @@
         <button disabled="@(!viewModel.DeleteSelectedSourcesButtonEnabled)"
                 @onclick="@viewModel.OnDeleteSelectedLogSourcesButtonClicked" title="Close selected log">−</button>
         <button disabled="@(!viewModel.PropertiesButtonEnabled)"
-                @onclick="@viewModel.OnPropertiesButtonClicked" hidden>⚙</button>
+                @onclick="@viewModel.OnPropertiesButtonClicked">⚙</button>
         <button @onclick="@viewModel.OnShowHistoryDialogButtonClicked" class="history-button" title="Re-open recent log">&nbsp;</button>
     </div>
     <LogSourcesList Class="the-list"/>
@@ -31,7 +31,7 @@
         viewProxies.SourcesManagerViewProxy.SetComponent(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.DeleteSelectedSourcesButtonEnabled),
+            () => (viewModel.DeleteSelectedSourcesButtonEnabled, viewModel.PropertiesButtonEnabled),
             _ => StateHasChanged()
         ));
     }
