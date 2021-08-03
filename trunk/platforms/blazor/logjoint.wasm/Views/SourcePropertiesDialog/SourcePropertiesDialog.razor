@@ -7,7 +7,7 @@
 
 @{var viewState = viewModel.ViewState; }
 <Modal Visible="@(dialogTask != null)" Class="resizable-dialog source-properties-dialog" ClickOutside="FireClosingEventAndClose" OnCancel="FireClosingEventAndClose">
-    <header>Log source properties</header>
+    <header @onmousedown="HandleClickOutsideColorPicker">Log source properties</header>
     <div class="form" @onmousedown="HandleClickOutsideColorPicker">
         <div class="name l">Name:</div>
         <div class="name v">
@@ -38,7 +38,7 @@
         <div class="last_m l">Last known message:</div>
         <div class="last_m v"><a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnLastKnownMessageLinkClicked())">@viewState.LastMessageLinkLabel.Text</a></div>
         <div class="annotation l">Annotation:</div>
-        <div class="annotation v"><input value="@viewState.AnnotationTextBox.Text" @onchange="@(e => viewModel.OnChangeAnnotation(e.Value.ToString()))"/></div>
+        <div class="annotation v"><input value="@viewState.AnnotationTextBox.Text" @onchange="@(e => viewModel.OnChangeAnnotation(e.Value.ToString()))" @ref="AnnotationInputRef"/></div>
         <div class="time-shift l">Time shift:</div>
         <div class="time-shift v"><input value="@viewState.TimeOffsetTextBox.Text" @onchange="@(e => viewModel.OnChangeChangeTimeOffset(e.Value.ToString()))"/></div>
     </div>
@@ -52,7 +52,8 @@
             }
         </div>
     }
-    <div class="buttons">
+    <div class="buttons" @onmousedown="HandleClickOutsideColorPicker">
+        <FirstRenderDetector OnFirstRender="@(async () => await AnnotationInputRef.FocusAsync())" />
         @{var saveButton = viewState.SaveAsButton; }
         @if (!saveButton.Hidden)
         {
@@ -65,6 +66,7 @@
 @code {
     private IViewModel viewModel;
     private ISubscription subscription;
+    private ElementReference AnnotationInputRef;
     private TaskCompletionSource<int> dialogTask;
     private LogJoint.Drawing.Color[] colorPickerOptions;
 
