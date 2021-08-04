@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using LogJoint.Persistence;
 using LogJoint.Persistence.Implementation;
 using Microsoft.JSInterop;
 
@@ -50,7 +51,12 @@ namespace LogJoint.Wasm
 
         public string AbsoluteRootPath => "";
         long IFileSystemAccess.CalcStorageSize(CancellationToken cancellation) => 0;
-        void IFileSystemAccess.ConvertException(Exception e) {}
+        void IFileSystemAccess.ConvertException(Exception e)
+        {
+            if (e.Message.Contains("exceeded the quota"))
+                throw new StorageFullException(e);
+            throw new StorageException(e);
+        }
         string[] IFileSystemAccess.ListDirectories(string rootRelativePath, CancellationToken cancellation)
         {
             return new string[] {};
@@ -71,7 +77,7 @@ namespace LogJoint.Wasm
         }
         void Set(string key, string value)
         {
-			jsRuntime.InvokeVoid("logjoint.setLocalStorageItem", key, value);
+            jsRuntime.InvokeVoid("logjoint.setLocalStorageItem", key, value);
         }
 
         bool Persistence.IFirstStartDetector.IsFirstStartDetected => isFirstStart;
