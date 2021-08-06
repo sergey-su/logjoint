@@ -27,7 +27,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			int availableHeight = viewMetrics.ActivitiesViewHeight;
 			bool darkMode = viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
 
-			foreach (var a in viewModel.OnDrawActivities())
+			foreach (var a in viewModel.ActivitiesDrawInfo)
 			{
 				int y = viewMetrics.GetActivityY(a.Index);
 				if (y < 0)
@@ -208,7 +208,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			DrawScope scope, 
 			Size sz)
 		{
-			var pos = viewModel.OnDrawFocusedMessage(scope);
+			var pos = viewModel.FocusedMessageDrawInfo(scope)?.x;
 			if (pos == null)
 				return;
 			if (pos.Value < 0 || pos.Value > 1)
@@ -227,7 +227,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			ViewMetrics viewMetrics,
 			IViewModel viewModel)
 		{
-			var drawInfo = viewModel.OnDrawMeasurer();
+			var drawInfo = viewModel.MeasurerDrawInfo;
 			if (!drawInfo.MeasurerVisible)
 				return;
 			double viewWidth = viewMetrics.ActivitiesViewWidth;
@@ -285,19 +285,19 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			double width = (double)viewMetrics.NavigationPanelWidth;
 
-			foreach (var evt in viewModel.OnDrawEvents(DrawScope.AvailableRange))
+			foreach (var evt in viewModel.EventsDrawInfo(DrawScope.AvailableRange))
 			{
 				int x = (int)(evt.X * width);
 				g.DrawLine(res.UserEventPen, x, 0, x, viewMetrics.NavigationPanelHeight);
 			}
 
-			foreach (var evt in viewModel.OnDrawBookmarks(DrawScope.AvailableRange))
+			foreach (var evt in viewModel.BookmarksDrawInfo(DrawScope.AvailableRange))
 			{
 				int x = (int)(evt.X * width);
 				g.DrawLine(res.BookmarkPen, x, 0, x, viewMetrics.NavigationPanelHeight);
 			}
 				
-			var focusedMessagePos = viewModel.OnDrawFocusedMessage(DrawScope.AvailableRange);
+			var focusedMessagePos = viewModel.FocusedMessageDrawInfo(DrawScope.AvailableRange)?.x;
 			if (focusedMessagePos.HasValue && focusedMessagePos.Value >= 0 && focusedMessagePos.Value <= 1)
 			{
 				int x = (int)(focusedMessagePos.Value * width);

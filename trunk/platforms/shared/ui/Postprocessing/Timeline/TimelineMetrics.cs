@@ -5,7 +5,7 @@ using LogJoint.Drawing;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 using LJD = LogJoint.Drawing;
-using TLRulerMark = LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer.RulerMark;
+using TLRulerMark = LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer.RulerMarkDrawInfo;
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 {
@@ -121,7 +121,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
 			int availableHeight = viewMetrics.ActivitiesViewHeight;
 
-			foreach (var a in eventsHandler.OnDrawActivities())
+			foreach (var a in eventsHandler.ActivitiesDrawInfo)
 			{
 				int y = GetActivityY(a.Index);
 				if (y < 0 || y > availableHeight)
@@ -212,7 +212,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
 			int lastEventRight = int.MinValue;
 			int overlappingEventsCount = 0;
-			foreach (var evt in eventsHandler.OnDrawEvents(DrawScope.VisibleRange))
+			foreach (var evt in eventsHandler.EventsDrawInfo(DrawScope.VisibleRange))
 			{
 				if (evt.X < 0 || evt.X > 1)
 					continue;
@@ -272,7 +272,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			var viewMetrics = this;
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
-			foreach (var bmk in eventsHandler.OnDrawBookmarks(DrawScope.VisibleRange))
+			foreach (var bmk in eventsHandler.BookmarksDrawInfo(DrawScope.VisibleRange))
 			{
 				if (bmk.X < 0 || bmk.X > 1)
 					continue;
@@ -303,7 +303,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			DrawScope scope
 		)
 		{
-			return eventsHandler.OnDrawRulers(scope, ActivitiesViewWidth, DistanceBetweenRulerMarks);
+			return eventsHandler.RulerMarksDrawInfo(scope);
 		}
 
 		public CaptionsMarginMetrics ComputeCaptionsMarginMetrics(
@@ -316,7 +316,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			bool needsFolding = false;
 			if (eventsHandler != null)
 			{
-				foreach (var a in eventsHandler.OnDrawActivities())
+				foreach (var a in eventsHandler.ActivitiesDrawInfo)
 				{
 					if (!string.IsNullOrEmpty(a.SequenceDiagramText))
 					{
@@ -363,7 +363,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			double viewWidth = viewMetrics.ActivitiesViewWidth;
 			ret.RelativeX = (double)pt.X / viewWidth;
-			ret.ActivityIndex = GetActivityByPoint(pt, viewMetrics, eventsHandler.ActivitiesCount);
+			ret.ActivityIndex = GetActivityByPoint(pt, viewMetrics, eventsHandler.ActivitiesDrawInfo.Count);
 
 			if (panelCode == HitTestResult.AreaCode.CaptionsPanel)
 			{
@@ -446,7 +446,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			IViewModel eventsHandler)
 		{
 			var viewMetrics = this;
-			NavigationPanelDrawInfo drawInfo = eventsHandler.OnDrawNavigationPanel();
+			NavigationPanelDrawInfo drawInfo = eventsHandler.NavigationPanelDrawInfo;
 			double width = (double)viewMetrics.NavigationPanelWidth;
 			int x1 = (int)(width * drawInfo.VisibleRangeX1);
 			int x2 = (int)(width * drawInfo.VisibleRangeX2);

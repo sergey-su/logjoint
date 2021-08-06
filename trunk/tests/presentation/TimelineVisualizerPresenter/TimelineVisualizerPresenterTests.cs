@@ -30,6 +30,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 		IChangeNotification changeNotification;
 		IColorTheme theme;
+		ILogSourcesManager logSourcesManager;
 
 		[SetUp] 
 		public void Init()
@@ -46,12 +47,14 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			theme = Substitute.For<IColorTheme>();
 			theme.ThreadColors.Returns(ImmutableArray.Create(new Color(1), new Color(2)));
 			presentationObjectsFactory.CreateQuickSearch(Arg.Any<QuickSearchTextBox.IView>(), Arg.Any<IChangeNotification>()).Returns(quickSearchTextBoxPresenter);
+			logSourcesManager = Substitute.For<ILogSourcesManager>();
 		}
 
 		protected void MakePresenter(ITimelineVisualizerModel model)
 		{
 			presenter = new TimelineVisualizerPresenter(
 				model,
+				logSourcesManager,
 				view,
 				stateInspectorVisualizer,
 				presentationObjectsFactory,
@@ -125,7 +128,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 
 		protected void VerifyView(ADE[] expectations)
 		{
-			var actual = viewModel.OnDrawActivities().ToList();
+			var actual = viewModel.ActivitiesDrawInfo.ToList();
 			Assert.AreEqual(expectations.Length, actual.Count);
 			for (int i = 0; i < expectations.Length; ++i)
 			{

@@ -11,13 +11,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
 		Presenters.TagsList.IView TagsListView { get; }
 		Presenters.ToastNotificationPresenter.IView ToastNotificationsView { get; }
+		RulerMetrics VisibleRangeRulerMetrics { get; }
+		RulerMetrics AvailableRangeRulerMetrics { get; }
 
 		void Show();
-		void Invalidate(ViewAreaFlag flags = ViewAreaFlag.All); // todo: remove, return immutable draw collections instead
-		void Refresh(ViewAreaFlag flags = ViewAreaFlag.All);
 		HitTestResult HitTest(object hitTestToken);
 		void EnsureActivityVisible(int activityIndex);
-		void UpdateSequenceDiagramAreaMetrics(); // todo: remove
 		void ReceiveInputFocus();
 	}
 
@@ -58,15 +57,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void OnNoContentLinkClicked(bool searchLeft);
 
 		ColorThemeMode ColorTheme { get; }
-		IEnumerable<ActivityDrawInfo> OnDrawActivities();
-		IEnumerable<RulerMark> OnDrawRulers(DrawScope scope, int totalRulerSize, int minAllowedDistnanceBetweenMarks);
-		IEnumerable<EventDrawInfo> OnDrawEvents(DrawScope scope);
-		IEnumerable<BookmarkDrawInfo> OnDrawBookmarks(DrawScope scope);
-		NavigationPanelDrawInfo OnDrawNavigationPanel();
-		MeasurerDrawInfo OnDrawMeasurer();
-		double? OnDrawFocusedMessage(DrawScope scope);
-
-		int ActivitiesCount { get; }
+		IReadOnlyList<ActivityDrawInfo> ActivitiesDrawInfo { get; }
+		IReadOnlyList<RulerMarkDrawInfo> RulerMarksDrawInfo(DrawScope scope);
+		NavigationPanelDrawInfo NavigationPanelDrawInfo { get; }
+		IReadOnlyList<EventDrawInfo> EventsDrawInfo(DrawScope scope);
+		IReadOnlyList<BookmarkDrawInfo> BookmarksDrawInfo(DrawScope scope);
+		FocusedMessageDrawInfo FocusedMessageDrawInfo(DrawScope scope);
+		MeasurerDrawInfo MeasurerDrawInfo { get; }
 		bool NotificationsIconVisibile { get; }
 		bool NoContentMessageVisibile { get; }
 		CurrentActivityDrawInfo CurrentActivity { get; }
@@ -78,17 +75,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		VisibleRange
 	};
 
-	[Flags]
-	public enum ViewAreaFlag
+	public class RulerMetrics
 	{
-		None,
-		ActivitiesCaptionsView = 1,
-		ActivitiesBarsView = 2,
-		NavigationPanelView = 4,
-		All = ActivitiesCaptionsView | ActivitiesBarsView | NavigationPanelView
+		public int Width;
+		public int MinAllowedDistanceBetweenMarks;
 	};
 
-	public struct RulerMark
+	public class FocusedMessageDrawInfo
+	{
+		public double x;
+	};
+
+	public struct RulerMarkDrawInfo
 	{
 		public double X;
 		public string Label;
@@ -170,12 +168,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public object Trigger;
 	};
 
-	public struct NavigationPanelDrawInfo
+	public class NavigationPanelDrawInfo
 	{
 		public double VisibleRangeX1, VisibleRangeX2;
 	};
 
-	public struct MeasurerDrawInfo
+	public class MeasurerDrawInfo
 	{
 		public bool MeasurerVisible;
 		public double X1, X2;

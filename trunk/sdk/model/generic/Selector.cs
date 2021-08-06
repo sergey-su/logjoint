@@ -290,5 +290,46 @@ namespace LogJoint
 		{
 			return Create(argSelector1, argSelector2, argSelector3,argSelector4, (a1, a2, a3, a4, oldA1, oldA2, oldA3, oldA4) => update(a1, a2, a3, a4));
 		}
+
+		public static Action Create<A1, A2, A3, A4, A5>(Func<A1> argSelector1, Func<A2> argSelector2, Func<A3> argSelector3, Func<A4> argSelector4, Func<A5> argSelector5, Action<A1, A2, A3, A4, A5, A1, A2, A3, A4, A5> update)
+		{
+			return Create(
+				Selectors.Create(
+					argSelector1,
+					argSelector2,
+					argSelector3,
+					argSelector4,
+					argSelector5,
+					(a1, a2, a3, a4, a5) => (a1, a2, a3, a4, a5)
+				),
+				(key, prevKey) => update(key.a1, key.a2, key.a3, key.a4, key.a5, prevKey.a1, prevKey.a2, prevKey.a3, prevKey.a4, prevKey.a5)
+			);
+		}
+
+		public static Action Create<A1, A2, A3, A4, A5>(Func<A1> argSelector1, Func<A2> argSelector2, Func<A3> argSelector3, Func<A4> argSelector4, Func<A5> argSelector5, Action<A1, A2, A3, A4, A5> update)
+		{
+			return Create(argSelector1, argSelector2, argSelector3, argSelector4, argSelector5, (a1, a2, a3, a4, a5, oldA1, oldA2, oldA3, oldA4, oldA5) => update(a1, a2, a3, a4, a5));
+		}
+
+		public static Action Create<A1, A2, A3, A4, A5, A6>(Func<A1> argSelector1, Func<A2> argSelector2, Func<A3> argSelector3, Func<A4> argSelector4, Func<A5> argSelector5, Func<A6> argSelector6, Action<A1, A2, A3, A4, A5, A6, A1, A2, A3, A4, A5, A6> update)
+		{
+			return Create(
+				Selectors.Create(
+					argSelector1,
+					argSelector2,
+					argSelector3,
+					argSelector4,
+					argSelector5,
+					argSelector6,
+					(a1, a2, a3, a4, a5, a6) => (a1, a2, a3, a4, a5, a6)
+				),
+				(key, prevKey) => update(key.a1, key.a2, key.a3, key.a4, key.a5, key.a6, prevKey.a1, prevKey.a2, prevKey.a3, prevKey.a4, prevKey.a5, prevKey.a6)
+			);
+		}
+
+		public static Action Create<A1, A2, A3, A4, A5, A6>(Func<A1> argSelector1, Func<A2> argSelector2, Func<A3> argSelector3, Func<A4> argSelector4, Func<A5> argSelector5, Func<A6> argSelector6, Action<A1, A2, A3, A4, A5, A6> update)
+		{
+			return Create(argSelector1, argSelector2, argSelector3, argSelector4, argSelector5, argSelector6, (a1, a2, a3, a4, a5, a6, oldA1, oldA2, oldA3, oldA4, oldA5, oldA6) => update(a1, a2, a3, a4, a5, a6));
+		}
 	};
 }

@@ -93,6 +93,7 @@ namespace LogJoint.UI.Presenters.Postprocessing
 				);
 				return new TimelineVisualizer.TimelineVisualizerPresenter(
 					model,
+					logSourcesManager,
 					view,
 					stateInspectorVisualizer.Value,
 					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager),

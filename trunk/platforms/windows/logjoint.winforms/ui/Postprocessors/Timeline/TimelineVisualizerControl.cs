@@ -11,12 +11,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		IViewModel viewModel;
 		readonly System.Drawing.Font activitesCaptionsFont;
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
+		ISubscription changeNotificationSubscription;
 		GraphicsResources res;
 		ControlDrawing drawing;
 		CaptionsMarginMetrics captionsMarginMetrics;
 		IChangeNotification changeNotification;
-		ISubscription changeNotificationSubscription;
-		Ref<Size> activitiesViewPanelSize;
+		Ref<Size> activitiesViewPanelSize, navigationViewPanelSize;
+		Func<RulerMetrics> getVisibleRangeRulerMetrics, getAvailableRangeRulerMetrics;
+		readonly int distanceBetweenRulerMarks;
 
 		public TimelineVisualizerControl()
 		{
@@ -35,6 +37,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			activitiesContainer.SplitterDistance = UIUtils.Dpi.Scale(260, 120);
 			activitiesContainer.SplitterWidth = UIUtils.Dpi.ScaleUp(3, 120);
+			distanceBetweenRulerMarks = UIUtils.Dpi.ScaleUp(50, 120);
 
 			activitiesScrollBar.Height = activitiesScrollBar.Parent.Height - activitiesScrollBar.Top;
 
@@ -52,6 +55,15 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			currentActivitySourceLinkLabel.Height = UIUtils.Dpi.ScaleUp(18, 120);
 
 			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size.ToSize());
+			navigationViewPanelSize = new Ref<Size>(navigationPanel.Size.ToSize());
+
+			RulerMetrics makeRulerMetrics(Ref<Size> size) => new RulerMetrics
+			{
+				Width = size.Value.Width,
+				MinAllowedDistanceBetweenMarks = distanceBetweenRulerMarks
+			};
+			getVisibleRangeRulerMetrics = Selectors.Create(() => activitiesViewPanelSize, makeRulerMetrics);
+			getAvailableRangeRulerMetrics = Selectors.Create(() => navigationViewPanelSize, makeRulerMetrics);
 		}
 
 		void IView.SetViewModel(IViewModel viewModel)
@@ -84,14 +96,39 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			var updateNotificationsButton = Updaters.Create(() => viewModel.NotificationsIconVisibile, v => notificationsButton.Visible = v);
 			var updateNoContentMessage = Updaters.Create(() => viewModel.NoContentMessageVisibile, SetNoContentMessageVisibility);
 			var updateVertScroller = Updaters.Create(
-				Selectors.Create(() => viewModel.ActivitiesCount, () => activitiesViewPanelSize, (activitiesCount, sz) => new { activitiesCount, sz }),
+				Selectors.Create(() => viewModel.ActivitiesDrawInfo.Count, () => activitiesViewPanelSize, (activitiesCount, sz) => new { activitiesCount, sz }),
 				key => UpdateActivitiesScroller(key.activitiesCount, key.sz.Value));
 			var updateCurrentActivityInfo = Updaters.Create(() => viewModel.CurrentActivity, UpdateCurrentActivityControls);
+			var invalidateActivities = Updaters.Create(() => viewModel.ActivitiesDrawInfo, 
+				() => viewModel.EventsDrawInfo(DrawScope.VisibleRange),
+				() => viewModel.BookmarksDrawInfo(DrawScope.VisibleRange),
+				() => viewModel.FocusedMessageDrawInfo(DrawScope.VisibleRange),
+				() => viewModel.MeasurerDrawInfo,
+				(ignore1, ignore2, ignore3, ignore4, ignore5) =>
+			{
+				activitesCaptionsPanel.Invalidate();
+				activitiesViewPanel.Invalidate();
+			});
+			var updateSequenceDiagramAreaMetrics = Updaters.Create(() => viewModel.ActivitiesDrawInfo, _ =>
+			{
+				UpdateSequenceDiagramAreaMetrics();
+			});
+			var invalidateNavigationPanel = Updaters.Create(
+				() => viewModel.RulerMarksDrawInfo(DrawScope.AvailableRange), () => viewModel.NavigationPanelDrawInfo,
+				() => viewModel.EventsDrawInfo(DrawScope.AvailableRange), () => viewModel.BookmarksDrawInfo(DrawScope.AvailableRange),
+				() => viewModel.FocusedMessageDrawInfo(DrawScope.AvailableRange),
+				(ignore1, ignore2, ignore3, ignore4, ignore5) =>
+			{
+				navigationPanel.Invalidate();
+			});
 			this.changeNotificationSubscription = changeNotification.CreateSubscription(() => {
 				updateNotificationsButton();
 				updateNoContentMessage();
 				updateVertScroller();
 				updateCurrentActivityInfo();
+				invalidateActivities();
+				invalidateNavigationPanel();
+				updateSequenceDiagramAreaMetrics();
 			});
 			this.ParentForm.VisibleChanged += (s, e) =>
 			{
@@ -102,27 +139,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		void IView.Show() => FindForm()?.Show();
 
-		void IView.Invalidate(ViewAreaFlag flags)
-		{
-			if ((flags & ViewAreaFlag.NavigationPanelView) != 0)
-				navigationPanel.Invalidate();
-			if ((flags & ViewAreaFlag.ActivitiesCaptionsView) != 0)
-				activitesCaptionsPanel.Invalidate();
-			if ((flags & ViewAreaFlag.ActivitiesBarsView) != 0)
-				activitiesViewPanel.Invalidate();
-		}
-
-		void IView.Refresh(ViewAreaFlag flags)
-		{
-			if ((flags & ViewAreaFlag.NavigationPanelView) != 0)
-				navigationPanel.Refresh();
-			if ((flags & ViewAreaFlag.ActivitiesCaptionsView) != 0)
-				activitesCaptionsPanel.Refresh();
-			if ((flags & ViewAreaFlag.ActivitiesBarsView) != 0)
-				activitiesViewPanel.Refresh();
-		}
-
-		void IView.UpdateSequenceDiagramAreaMetrics()
+		void UpdateSequenceDiagramAreaMetrics()
 		{
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
 			{
@@ -202,6 +219,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			get { return toastNotificationsListControl; }
 		}
+
+		RulerMetrics IView.VisibleRangeRulerMetrics => getVisibleRangeRulerMetrics();
+
+		RulerMetrics IView.AvailableRangeRulerMetrics => getAvailableRangeRulerMetrics();
 
 		void SetNoContentMessageVisibility(bool value)
 		{
@@ -391,6 +412,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			changeNotification?.Post();
 		}
 
+		private void navigationViewPanel_Resize(object sender, EventArgs e)
+		{
+			navigationViewPanelSize = new Ref<Size>(navigationPanel.Size.ToSize());
+			changeNotification?.Post();
+		}
+
 		private void navigationPanel_Paint(object sender, PaintEventArgs e)
 		{
 			if (viewModel == null)
@@ -452,7 +479,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				return;
 			var maxWidth = 0;
 			using (var dc = CreateGraphics())
-				foreach (var a in viewModel.OnDrawActivities())
+				foreach (var a in viewModel.ActivitiesDrawInfo)
 					maxWidth = Math.Max(maxWidth, TextRenderer.MeasureText(dc, a.Caption, activitesCaptionsFont).Width);
 			if (maxWidth != 0)
 			{
@@ -479,7 +506,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void activitesCaptionsPanel_Resize(object sender, EventArgs e)
 		{
-			((IView)this).UpdateSequenceDiagramAreaMetrics();
+			UpdateSequenceDiagramAreaMetrics();
 		}
 
 		LogJoint.UI.UIUtils.ToolTipInfo GetActivitiesToolTipInfo(System.Drawing.Point pt)
@@ -576,7 +603,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			vm.DPIScale = UIUtils.Dpi.Scale(1f);
 			vm.ActivityBarRectPaddingY = UIUtils.Dpi.Scale(5, 120);
 			vm.TriggerLinkWidth = UIUtils.Dpi.ScaleUp(5, 120);
-			vm.DistanceBetweenRulerMarks = UIUtils.Dpi.ScaleUp(50, 120); ;
+			vm.DistanceBetweenRulerMarks = distanceBetweenRulerMarks;
 			vm.MeasurerTop = 25;
 			vm.VisibleRangeResizerWidth = 8;
 			vm.RulersPanelHeight = UIUtils.Dpi.Scale(53, 120);

@@ -430,10 +430,11 @@
 			this.navigationPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.navigationPanel_MouseDown);
 			this.navigationPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.navigationPanel_MouseMove);
 			this.navigationPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.navigationPanel_MouseUp);
-            //
-            // toastNotificationsListControl
-            //
-            this.toastNotificationsListControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.navigationPanel.Resize += new System.EventHandler(this.navigationViewPanel_Resize);
+			//
+			// toastNotificationsListControl
+			//
+			this.toastNotificationsListControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.toastNotificationsListControl.AutoSize = true;
             this.toastNotificationsListControl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.toastNotificationsListControl.Location = new System.Drawing.Point(300, 55);

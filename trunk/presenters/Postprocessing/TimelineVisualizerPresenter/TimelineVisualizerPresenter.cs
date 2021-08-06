@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 	{
 		public TimelineVisualizerPresenter(
 			ITimelineVisualizerModel model,
+			ILogSourcesManager sources,
 			IView view,
 			StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer,
 			Common.IPresentationObjectsFactory presentationObjectsFactory,
@@ -35,7 +36,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			this.bookmarks = bookmarks;
 			this.userNamesProvider = userNamesProvider;
 			this.theme = theme;
-			this.unfinishedActivities.IsFolded = true;
+			this.unfinishedActivitiesFolded = true;
 
 			var getAvailableTags = Selectors.Create(() => model.Activities, activities => ImmutableHashSet.CreateRange(activities.SelectMany(a => a.Tags)));
 			var sourcesSelector = Selectors.Create(() => model.Outputs, outputs => outputs.Select(output => output.LogSource));
@@ -50,64 +51,73 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 			model.SequenceDiagramNamesChanged += (sender, args) =>
 			{
-				view.UpdateSequenceDiagramAreaMetrics();
-				view.Invalidate(ViewAreaFlag.ActivitiesCaptionsView);
+				++activityDrawAdditionalInputRevision;
+				changeNotification.Post();
 			};
 
-			loadedMessagesPresenter.LogViewerPresenter.FocusedMessageChanged += (sender, args) =>
+			sources.OnLogSourceColorChanged += (sender, args) =>
 			{
-				view.Invalidate();
-			};
-
-			bookmarks.OnBookmarksChanged += (sender, args) =>
-			{
-				view.Invalidate();
-			};
-
-			quickSearchTextBoxPresenter.OnRealtimeSearch += (sender, args) =>
-			{
-				UpdateVisibleActivities();
-				view.Invalidate();
+				++activityDrawAdditionalInputRevision;
+				changeNotification.Post();
 			};
 
 			quickSearchTextBoxPresenter.OnSearchNow += (sender, args) =>
 			{
-				UpdateVisibleActivities();
 				view.ReceiveInputFocus();
-				view.Invalidate();
 			};
 
 			quickSearchTextBoxPresenter.OnCancelled += (sender, args) =>
 			{
-				UpdateVisibleActivities();
 				view.ReceiveInputFocus();
-				view.Invalidate();
 			};
 
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.Timeline));
 
-			getSelectedActivity = Selectors.Create(() => selectedActivity, idx =>
+			getFilteringPredicate = Selectors.Create(() => quickSearchTextBoxPresenter.Text, () => persistentState.TagsPredicate,
+				MakeFilteringPredicate);
+			getVisibleActivitiesInfo = Selectors.Create(() => model.Activities, () => visibleRange,
+				getFilteringPredicate, () => unfinishedActivitiesFolded,
+				MakeVisibleActivitiesInfo);
+			getVisibleActivities = Selectors.Create(getVisibleActivitiesInfo, i => i.activities);
+			getSelectedActivityIndex = Selectors.Create(() => selectedActivity, getVisibleActivities, (sa, visibleActivities) =>
+			{
+				return visibleActivities.IndexOf(va => sa != null && va.Type == sa.Value.Type && va.Activity == sa.Value.Activity);
+			});
+			getSelectedActivityInfo = Selectors.Create(getSelectedActivityIndex, idx =>
 			{
 				TryGetVisibleActivity(idx, out var ret);
 				return ret;
 			});
-			isSelectedActivityPresentInStateInspector = Selectors.Create(getSelectedActivity,
+			isSelectedActivityPresentInStateInspector = Selectors.Create(getSelectedActivityInfo,
 				a => IsActivitySelectedInStateInspector(a?.Activity, stateInspectorVisualizer));
-			getCurrentActivityDrawInfo = Selectors.Create(getSelectedActivity, isSelectedActivityPresentInStateInspector,
+			getCurrentActivityDrawInfo = Selectors.Create(getSelectedActivityInfo, isSelectedActivityPresentInStateInspector,
 				(a, visInSI) => GetCurrentActivityDrawInfo(a?.Activity, visInSI));
+			getActivityDrawInfos = Selectors.Create(() => visibleRange, getVisibleActivitiesInfo, 
+				getSelectedActivityIndex, () => unfinishedActivitiesFolded, () => quickSearchTextBoxPresenter.Text,
+				() => (theme.ThreadColors, activityDrawAdditionalInputRevision),
+				MakeActivityDrawInfos);
+			getAvailableRangeRulerMarksDrawInfo = Selectors.Create(() => availableRange, () => view.AvailableRangeRulerMetrics,
+				MakeRulerMarkDrawInfos);
+			getVisibleRangeRulerMarksDrawInfo = Selectors.Create(() => visibleRange, () => view.VisibleRangeRulerMetrics,
+				MakeRulerMarkDrawInfos);
+			getNavigationPanelDrawInfo = Selectors.Create(() => availableRange, () => visibleRange, MakeNavigationPanelDrawInfo);
+			getAvailableRangeEventsDrawInfo = Selectors.Create(() => availableRange, () => model.Events, MakeEventsDrawInfo);
+			getVisibleRangeEventsDrawInfo = Selectors.Create(() => visibleRange, () => model.Events, MakeEventsDrawInfo);
+			getAvailableRangeBookmarksDrawInfo = Selectors.Create(() => availableRange, () => bookmarks.Items, MakeBookmarksDrawInfo);
+			getVisibleRangeBookmarksDrawInfo = Selectors.Create(() => visibleRange, () => bookmarks.Items, MakeBookmarksDrawInfo);
+			var logViewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
+			getAvailableRangeFocusedMessageDrawInfo = Selectors.Create(() => availableRange, () => logViewerPresenter.FocusedMessage,
+				MakeFocusedMessageDrawInfo);
+			getVisibleRangeFocusedMessageDrawInfo = Selectors.Create(() => visibleRange, () => logViewerPresenter.FocusedMessage,
+				MakeFocusedMessageDrawInfo);
+			getMeasurerDrawInfo = Selectors.Create(() => measurer.Version, () => visibleRange,
+				(_, visibleRange) => MakeMeasurerDrawInfo(measurer, visibleRange));
 
 			view.SetViewModel(this);
 
 			PerformFullUpdate();
-
-			// todo: get rid of this updater - make rendering reactive
-			this.changeNotification.CreateSubscription(Updaters.Create(() => persistentState.TagsPredicate, _ =>
-			{
-				UpdateVisibleActivities();
-				view.Invalidate();
-			}));
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
@@ -124,44 +134,57 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			changeNotification.Active = false;
 		}
 
-		IEnumerable<RulerMark> IViewModel.OnDrawRulers(DrawScope scope, int totalRulerSize, int minAllowedDistanceBetweenMarks)
+		IReadOnlyList<RulerMarkDrawInfo> IViewModel.RulerMarksDrawInfo(DrawScope scope)
 		{
-			if (totalRulerSize <= 0)
+			if (scope == DrawScope.AvailableRange)
+				return getAvailableRangeRulerMarksDrawInfo();
+			if (scope == DrawScope.VisibleRange)
+				return getVisibleRangeRulerMarksDrawInfo();
+			return ImmutableArray<RulerMarkDrawInfo>.Empty;
+		}
+
+		IReadOnlyList<RulerMarkDrawInfo> MakeRulerMarkDrawInfos(SpanRange range, RulerMetrics metrics)
+		{
+			if (metrics.Width <= 0)
 			{
-				return Enumerable.Empty<RulerMark>();
+				return ImmutableArray<RulerMarkDrawInfo>.Empty;
 			}
 			DateTime origin = model.Origin;
-			var range = GetScopeRange(scope);
-			long timelineRangeTicks = (range.Item2 - range.Item1).Ticks;
+			long timelineRangeTicks = range.Length.Ticks;
 			if (timelineRangeTicks == 0)
 			{
-				return Enumerable.Empty<RulerMark>();
+				return ImmutableArray<RulerMarkDrawInfo>.Empty;
 			}
-			TimeSpan minTimespan = new TimeSpan(NumUtils.MulDiv(timelineRangeTicks, minAllowedDistanceBetweenMarks, totalRulerSize));
+			TimeSpan minTimespan = new TimeSpan(NumUtils.MulDiv(timelineRangeTicks, metrics.MinAllowedDistanceBetweenMarks, metrics.Width));
 			var intervals = RulerUtils.FindTimeRulerIntervals(minTimespan);
 			if (intervals != null)
 			{
-				return RulerUtils.GenerateTimeRulerMarks(intervals.Value,
-					new DateRange(origin + range.Item1, origin + range.Item2)
-				).Select(r => new RulerMark()
+				return ImmutableArray.CreateRange(RulerUtils.GenerateTimeRulerMarks(intervals.Value,
+					new DateRange(origin + range.Begin, origin + range.End)
+				).Select(r => new RulerMarkDrawInfo()
 				{
-					X = (double)(r.Time - origin - range.Item1).Ticks / (double)timelineRangeTicks,
+					X = (double)(r.Time - origin - range.Begin).Ticks / (double)timelineRangeTicks,
 					Label = r.ToString(),
 					IsMajor = r.IsMajor
-				});
+				}));
 			}
 			else
 			{
-				return Enumerable.Empty<RulerMark>();
+				return ImmutableArray<RulerMarkDrawInfo>.Empty;
 			}
 		}
 
-		IEnumerable<ActivityDrawInfo> IViewModel.OnDrawActivities()
+
+		IReadOnlyList<ActivityDrawInfo> IViewModel.ActivitiesDrawInfo => getActivityDrawInfos();
+
+		IReadOnlyList<ActivityDrawInfo> MakeActivityDrawInfos(
+			SpanRange range, VisibileActivitiesInfo visibileActivitiesInfo, int? selectedActivityIdx, bool unfinishedActivitiesFolded,
+			string filter, (ImmutableArray<Color> themeColors, int revision) additionalData)
 		{
-			var range = GetScopeRange(DrawScope.VisibleRange);
+			var result = ImmutableArray.CreateBuilder<ActivityDrawInfo>();
 			bool displaySequenceDiagramTexts = model.Outputs.Count >= 2;
-			var filter = quickSearchTextBoxPresenter.Text;
-			
+
+			var (visibleActivities, unfinishedActivities) = visibileActivitiesInfo;
 			// This code assumes UnfinishedActivities are followed only by entries of type Activity.
 			int activitiesStartIdx = visibleActivities.TakeWhile(a => a.Type == VisibileActivityType.UnfinishedActivities).Count();
 
@@ -194,13 +217,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 						Caption = userNamesProvider.ResolveShortNamesMurkup(a.DisplayName),
 						CaptionSelectionBegin = GetActivityMatchIdx(a, filter),
 						CaptionSelectionLength = filter.Length,
-						IsSelected = i == selectedActivity,
+						IsSelected = i == selectedActivityIdx,
 						Type =
 							a.Type == ActivityType.Lifespan ? ActivityDrawType.Lifespan :
 							a.Type == ActivityType.Procedure ? ActivityDrawType.Procedure :
 							a.Type == ActivityType.IncomingNetworking || a.Type == ActivityType.OutgoingNetworking ? ActivityDrawType.Networking :
 							ActivityDrawType.Unknown,
-						Color = !a.BeginOwner.LogSource.IsDisposed ? theme.ThreadColors.GetByIndex(a.BeginOwner.LogSource.ColorIndex) : new Color?(),
+						Color = !a.BeginOwner.LogSource.IsDisposed ? additionalData.themeColors.GetByIndex(a.BeginOwner.LogSource.ColorIndex) : new Color?(),
 						BeginTrigger = new TriggerData(a, a.BeginOwner, a.BeginTrigger),
 						EndTrigger = new TriggerData(a, a.EndOwner, a.EndTrigger),
 						MilestonesCount = a.Milestones.Count,
@@ -230,12 +253,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 						X1 = 0,
 						X2 = 0,
 						Caption = string.Format("started and never finished ({0})", unfinishedActivities.Count),
-						IsSelected = i == selectedActivity,
+						IsSelected = i == selectedActivityIdx,
 						Type = ActivityDrawType.Group,
 						Color = new Color(0xffffffff),
 						Milestones = Enumerable.Empty<ActivityMilestoneDrawInfo>(),
 						Phases = Enumerable.Empty<ActivityPhaseDrawInfo>(),
-						IsFolded = unfinishedActivities.IsFolded
+						IsFolded = unfinishedActivitiesFolded
 					};
 				}
 				else
@@ -244,13 +267,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				}
 			}))
 			{
-				yield return a;
+				result.Add(a);
 			}
-		}
-
-		int IViewModel.ActivitiesCount
-		{
-			get { return visibleActivities.Count; }
+			return result.ToImmutable();
 		}
 
 		bool IViewModel.NotificationsIconVisibile
@@ -258,7 +277,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			get { return toastNotificationsPresenter.HasSuppressedNotifications; }
 		}
 
-		private string GetSequenceDiagramText(IActivity a, Tuple<IActivity, IActivity> activitiesPair)
+		static private string GetSequenceDiagramText(IActivity a, Tuple<IActivity, IActivity> activitiesPair)
 		{
 			IActivity pairedActivity = null;
 			if (activitiesPair != null)
@@ -293,10 +312,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return sequenceDiagramText.ToString();
 		}
 
-		IEnumerable<EventDrawInfo> IViewModel.OnDrawEvents(DrawScope scope)
+		IReadOnlyList<EventDrawInfo> IViewModel.EventsDrawInfo(DrawScope scope)
 		{
-			var range = GetScopeRange(scope);
-			return model.Events.Select(e => new EventDrawInfo
+			if (scope == DrawScope.AvailableRange)
+				return getAvailableRangeEventsDrawInfo();
+			if (scope == DrawScope.VisibleRange)
+				return getVisibleRangeEventsDrawInfo();
+			return ImmutableArray<EventDrawInfo>.Empty;
+		}
+
+		static IReadOnlyList<EventDrawInfo> MakeEventsDrawInfo(SpanRange range, IReadOnlyList<IEvent> events)
+		{
+			return ImmutableArray.CreateRange(events.Select(e => new EventDrawInfo
 			{
 				X = GetTimeX(range, e.GetTimelineTime()),
 				Type = e.Type,
@@ -304,13 +331,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				Trigger = new TriggerData(e, string.Format("{0}\n{1}\n{2}", e.DisplayName,
 					e.Owner.SequenceDiagramName,
 					e.Owner.LogSource.GetShortDisplayNameWithAnnotation()))
-			});
+			}));
 		}
 
-		IEnumerable<BookmarkDrawInfo> IViewModel.OnDrawBookmarks(DrawScope scope)
+		IReadOnlyList<BookmarkDrawInfo> IViewModel.BookmarksDrawInfo(DrawScope scope)
 		{
-			var range = GetScopeRange(scope);
-			return bookmarks.Items.Select(bmk =>
+			if (scope == DrawScope.AvailableRange)
+				return getAvailableRangeBookmarksDrawInfo();
+			if (scope == DrawScope.VisibleRange)
+				return getVisibleRangeBookmarksDrawInfo();
+			return ImmutableArray<BookmarkDrawInfo>.Empty;
+		}
+
+		IReadOnlyList<BookmarkDrawInfo> MakeBookmarksDrawInfo(SpanRange range, IReadOnlyList<IBookmark> bookmarks)
+		{
+			return ImmutableArray.CreateRange(bookmarks.Select(bmk =>
 			{
 				var ls = bmk.GetLogSource();
 				if (ls == null || ls.IsDisposed)
@@ -321,18 +356,29 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 					Caption = bmk.DisplayName,
 					Trigger = new TriggerData(bmk)
 				};
-			}).Where(i => i.Trigger != null);
+			}).Where(i => i.Trigger != null));
 		}
 
-		double? IViewModel.OnDrawFocusedMessage(DrawScope scope)
+		FocusedMessageDrawInfo IViewModel.FocusedMessageDrawInfo(DrawScope scope)
 		{
-			var msg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
+			if (scope == DrawScope.AvailableRange)
+				return getAvailableRangeFocusedMessageDrawInfo();
+			if (scope == DrawScope.VisibleRange)
+				return getVisibleRangeFocusedMessageDrawInfo();
+			return null;
+		}
+
+		FocusedMessageDrawInfo MakeFocusedMessageDrawInfo(SpanRange range, IMessage msg)
+		{
 			if (msg == null)
 				return null;
 			var msgSource = msg.GetLogSource();
 			if (msgSource == null)
 				return null;
-			return GetTimeX(GetScopeRange(scope), msg.Time.ToLocalDateTime() - model.Origin);
+			return new FocusedMessageDrawInfo
+			{
+				x = GetTimeX(range, msg.Time.ToLocalDateTime() - model.Origin)
+			};
 		}
 
 		void IViewModel.OnKeyPressed(char keyChar)
@@ -345,7 +391,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		{
 			if (code == KeyCode.Down || code == KeyCode.Up)
 			{
-				var newSelectedActivity = selectedActivity + (code == KeyCode.Down ? 1 : -1);
+				var newSelectedActivity = getSelectedActivityIndex() + (code == KeyCode.Down ? 1 : -1);
 				if (newSelectedActivity == -1)
 					quickSearchTextBoxPresenter.Focus(null);
 				else
@@ -353,10 +399,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 			else if (code == KeyCode.Left || code == KeyCode.Right)
 			{
-				var delta = (visibleRangeEnd - visibleRangeBegin).Multiply(0.05);
+				var delta = visibleRange.Length.Multiply(0.05);
 				if (code == KeyCode.Left)
 					delta = delta.Negate();
-				SetVisibleRange(visibleRangeBegin + delta, visibleRangeEnd + delta);
+				SetVisibleRange(visibleRange.Add(delta));
 			}
 			else if ((code & (KeyCode.Plus | KeyCode.Minus)) != 0 && (code & KeyCode.Ctrl) != 0)
 			{
@@ -394,14 +440,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			ZoomInternal(mousePosX, null, delta);
 		}
 
-		NavigationPanelDrawInfo IViewModel.OnDrawNavigationPanel()
+		NavigationPanelDrawInfo IViewModel.NavigationPanelDrawInfo => getNavigationPanelDrawInfo();
+
+		static NavigationPanelDrawInfo MakeNavigationPanelDrawInfo(SpanRange availableRange, SpanRange visibleRange)
 		{
-			var availLen = availableRangeEnd - availableRangeBegin;
+			var availLen = availableRange.Length;
 			var drawInfo = new NavigationPanelDrawInfo();
 			if (availLen.Ticks > 0)
 			{
-				drawInfo.VisibleRangeX1 = (double)(visibleRangeBegin - availableRangeBegin).Ticks / (double)availLen.Ticks;
-				drawInfo.VisibleRangeX2 = (double)(visibleRangeEnd - availableRangeBegin).Ticks / (double)availLen.Ticks;
+				drawInfo.VisibleRangeX1 = (double)(visibleRange.Begin - availableRange.Begin).Ticks / (double)availLen.Ticks;
+				drawInfo.VisibleRangeX2 = (double)(visibleRange.End - availableRange.Begin).Ticks / (double)availLen.Ticks;
 			}
 			return drawInfo;
 		}
@@ -430,19 +478,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void IViewModel.OnNoContentLinkClicked(bool searchLeft)
 		{
-			var filteringPredicate = MakeFilteringPredicate();
+			var filteringPredicate = getFilteringPredicate();
 			IActivity activityToShow = null;
 			if (searchLeft)
 			{
 				activityToShow = model.Activities
-					.TakeWhile(a => a.GetTimelineBegin() < visibleRangeBegin)
+					.TakeWhile(a => a.GetTimelineBegin() < visibleRange.Begin)
 					.Where(filteringPredicate)
 					.MaxByKey(a => a.GetTimelineEnd());
 			}
 			else
 			{
 				var idx = model.Activities.BinarySearch(0, model.Activities.Count,
-					a => a.GetTimelineBegin() <= visibleRangeEnd);
+					a => a.GetTimelineBegin() <= visibleRange.End);
 				activityToShow = model.Activities
 					.Skip(idx)
 					.Where(filteringPredicate)
@@ -452,8 +500,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			{
 				var delta =
 					  (searchLeft ? activityToShow.GetTimelineEnd() : activityToShow.GetTimelineBegin())
-					- (visibleRangeBegin + visibleRangeEnd).Multiply(0.5);
-				SetVisibleRange(visibleRangeBegin + delta, visibleRangeEnd + delta);
+					- visibleRange.Mid;
+				SetVisibleRange(visibleRange.Add(delta));
 			}
 		}
 
@@ -534,11 +582,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 			else if (htResult.Area == HitTestResult.AreaCode.FoldingSign)
 			{
-				if (htResult.ActivityIndex == unfinishedActivities.VisibleActivityIndex)
+				if (htResult.ActivityIndex == getVisibleActivitiesInfo().unfinishedActivities.VisibleActivityIndex)
 				{
-					unfinishedActivities.IsFolded = !unfinishedActivities.IsFolded;
-					UpdateVisibleActivities();
-					view.Invalidate();
+					unfinishedActivitiesFolded = !unfinishedActivitiesFolded;
+					changeNotification.Post();
 				}
 			}
 
@@ -546,8 +593,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			{
 				mouseCaptureState = waitPan ? MouseCaptureState.WaitingActivitiesPan : MouseCaptureState.ActivitiesPan;
 				pan.StartPosition = htResult.RelativeX;
-				pan.OriginalBegin = visibleRangeBegin;
-				pan.OriginalEnd = visibleRangeEnd;
+				pan.OriginalBegin = visibleRange.Begin;
+				pan.OriginalEnd = visibleRange.End;
 			}
 			if (startMeasure)
 			{
@@ -558,7 +605,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				measurer.RangeEnd = measurer.RangeBegin;
 				measurer.State = MeasurerState.WaitingFirstMove;
 				measurer.ExtraComment = null;
-				view.Invalidate(ViewAreaFlag.ActivitiesBarsView);
+				measurer.Version++;
+				changeNotification.Post();
 			}
 			if (selectActivity)
 			{
@@ -569,22 +617,22 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				navigationInfo = new NavigationInfo()
 				{
 					StartPosition = htResult.RelativeX,
-					OriginalBegin = startNavigation1 ? visibleRangeBegin : new TimeSpan?(),
-					OriginalEnd = startNavigation2 ? visibleRangeEnd : new TimeSpan?(),
+					OriginalBegin = startNavigation1 ? visibleRange.Begin : new TimeSpan?(),
+					OriginalEnd = startNavigation2 ? visibleRange.End : new TimeSpan?(),
 				};
 				mouseCaptureState = MouseCaptureState.Navigation;
 			}
 			if (navigate)
 			{
-				var halfLen = (visibleRangeEnd - visibleRangeBegin).Multiply(0.5);
-				var pos = (availableRangeEnd - availableRangeBegin).Multiply(htResult.RelativeX);
+				var halfLen = visibleRange.Length.Multiply(0.5);
+				var pos = availableRange.Length.Multiply(htResult.RelativeX);
 				pos = SnapToMilestone(pos, null,
 					EnumMilestonesOptions.AvailableRangeScale | EnumMilestonesOptions.IncludeBookmarks | EnumMilestonesOptions.IncludeEvents).Key;
-				SetVisibleRange(pos - halfLen, pos + halfLen, realTimePanMode: true);
+				SetVisibleRange(new SpanRange(pos - halfLen, pos + halfLen), realTimePanMode: true);
 			}
 			if (navigateToViewAll)
 			{
-				SetVisibleRange(availableRangeBegin, availableRangeEnd);
+				SetVisibleRange(availableRange);
 			}
 		}
 
@@ -608,7 +656,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				{
 					measurer.ExtraComment = null;
 				}
-				view.Invalidate(ViewAreaFlag.ActivitiesBarsView);
+				measurer.Version++;
+				changeNotification.Post();
 			}
 			else if (mouseCaptureState == MouseCaptureState.WaitingActivitiesPan)
 			{
@@ -621,10 +670,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			else if (mouseCaptureState == MouseCaptureState.Navigation)
 			{
 				var htResult = view.HitTest(hitTestToken);
-				var delta = (availableRangeEnd - availableRangeBegin).Multiply(htResult.RelativeX - navigationInfo.StartPosition);
+				var delta = availableRange.Length.Multiply(htResult.RelativeX - navigationInfo.StartPosition);
 				SetVisibleRange(
-					(navigationInfo.OriginalBegin + delta).GetValueOrDefault(visibleRangeBegin),
-					(navigationInfo.OriginalEnd + delta).GetValueOrDefault(visibleRangeEnd),
+					new SpanRange(
+						(navigationInfo.OriginalBegin + delta).GetValueOrDefault(visibleRange.Begin),
+						(navigationInfo.OriginalEnd + delta).GetValueOrDefault(visibleRange.End)),
 					realTimePanMode: false
 				);
 			}
@@ -633,7 +683,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			{
 				var htResult = view.HitTest(hitTestToken);
 				var delta = (pan.OriginalEnd - pan.OriginalBegin).Multiply(pan.StartPosition - htResult.RelativeX);
-				SetVisibleRange(pan.OriginalBegin + delta, pan.OriginalEnd + delta, realTimePanMode: true);
+				SetVisibleRange(new SpanRange(pan.OriginalBegin + delta, pan.OriginalEnd + delta), realTimePanMode: true);
 			}
 		}
 
@@ -646,7 +696,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				{
 					case MeasurerState.WaitingFirstMove:
 						measurer.State = MeasurerState.Unset;
-						view.Invalidate(ViewAreaFlag.ActivitiesBarsView);
+						measurer.Version++;
+						changeNotification.Post();
 						break;
 					case MeasurerState.Measuring:
 						// below floating point numbers are compared strictly. 
@@ -657,7 +708,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 							measurer.State = MeasurerState.Set;
 						else
 							measurer.State = MeasurerState.Unset;
-						view.Invalidate(ViewAreaFlag.ActivitiesBarsView);
+						measurer.Version++;
+						changeNotification.Post();
 						break;
 				}
 				measurer.ExtraComment = null;
@@ -681,11 +733,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void IViewModel.OnScrollWheel(double deltaX)
 		{
-			var delta = (visibleRangeEnd - visibleRangeBegin).Multiply(deltaX);
-			SetVisibleRange(visibleRangeBegin + delta, visibleRangeEnd + delta, realTimePanMode: true);
+			var delta = visibleRange.Length.Multiply(deltaX);
+			SetVisibleRange(visibleRange.Add(delta), realTimePanMode: true);
 		}
 
-		MeasurerDrawInfo IViewModel.OnDrawMeasurer()
+		MeasurerDrawInfo IViewModel.MeasurerDrawInfo => getMeasurerDrawInfo();
+
+		static MeasurerDrawInfo MakeMeasurerDrawInfo(MeasurerInfo measurer, SpanRange visibleRange)
 		{
 			var text = measurer.State == MeasurerState.WaitingFirstMove ? 
 				"move to measure time interval" : 
@@ -695,8 +749,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			var ret = new MeasurerDrawInfo()
 			{
 				MeasurerVisible = measurer.State != MeasurerState.Unset,
-				X1 = VisibleRangeAbsolutePositionToRelative(measurer.RangeBegin),
-				X2 = VisibleRangeAbsolutePositionToRelative(measurer.RangeEnd),
+				X1 = VisibleRangeAbsolutePositionToRelative(visibleRange, measurer.RangeBegin),
+				X2 = VisibleRangeAbsolutePositionToRelative(visibleRange, measurer.RangeEnd),
 				Text = text
 			};
 			if (ret.X1 > ret.X2)
@@ -786,7 +840,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			if (code == KeyCode.Down)
 			{
 				view.ReceiveInputFocus();
-				view.Invalidate();
 			}
 		}
 
@@ -797,12 +850,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void IPresenter.Navigate(TimeSpan t1, TimeSpan t2)
 		{
-			SetVisibleRange(t1, t2, realTimePanMode: false);
+			SetVisibleRange(new SpanRange(t1, t2), realTimePanMode: false);
 		}
 
 		bool IViewModel.NoContentMessageVisibile
 		{
-			get { return visibleActivities.Count == 0 && model.Activities.Count > 0; }
+			get { return getVisibleActivities().Count == 0 && model.Activities.Count > 0; }
 		}
 
 		CurrentActivityDrawInfo IViewModel.CurrentActivity
@@ -820,8 +873,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void SetSelectedActivity(int? value, bool ensureVisible = true)
 		{
-			selectedActivity = value;
-			view.Invalidate(ViewAreaFlag.ActivitiesCaptionsView | ViewAreaFlag.ActivitiesBarsView);
+			if (TryGetVisibleActivity(value, out var info))
+				selectedActivity = new Ref<VisibileActivityInfo>(info.Value);
+			else
+				selectedActivity = null;
 			if (value.HasValue && ensureVisible)
 				view.EnsureActivityVisible(value.Value);
 			changeNotification.Post();
@@ -829,7 +884,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void PerformDefaultActionForSelectedActivity()
 		{
-			var sa = GetSelectedActivity();
+			var sa = getSelectedActivityInfo();
 			if (sa?.Type == VisibileActivityType.Activity)
 			{
 				var a = sa.Value.Activity;
@@ -843,9 +898,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 			else if (sa?.Type == VisibileActivityType.UnfinishedActivities)
 			{
-				unfinishedActivities.IsFolded = !unfinishedActivities.IsFolded;
-				UpdateVisibleActivities();
-				view.Invalidate();
+				unfinishedActivitiesFolded = !unfinishedActivitiesFolded;
+				changeNotification.Post();
 			}
 		}
 
@@ -954,82 +1008,68 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		bool TryGetVisibleActivity(int? index, out VisibileActivityInfo? activity)
 		{
-			if (index != null && index >= 0 && index < visibleActivities.Count)
-				activity = visibleActivities[index.Value];
+			if (index != null && index >= 0 && index < getVisibleActivities().Count)
+				activity = getVisibleActivities()[index.Value];
 			else
 				activity = null;
 			return activity != null;
 		}
 
-		VisibileActivityInfo? GetSelectedActivity()
+		static double GetTimeX(SpanRange range, TimeSpan ts)
 		{
-			TryGetVisibleActivity(selectedActivity, out var activity);
-			return activity;
-		}
-
-		double GetTimeX(Tuple<TimeSpan, TimeSpan> range, TimeSpan ts)
-		{
-			var total = range.Item2 - range.Item1;
+			var total = range.Length;
 			if (total.Ticks == 0)
 				return 0;
-			var x = (ts - range.Item1);
+			var x = (ts - range.Begin);
 			return x.TotalMilliseconds / total.TotalMilliseconds;
 		}
 
-		Func<IActivity, bool> MakeFilteringPredicate()
+		static Func<IActivity, bool> MakeFilteringPredicate(string filter, TagsPredicate tagsPredicate)
 		{
-			string filter = quickSearchTextBoxPresenter.Text;
 			return a =>
-				   (a.Tags.Count == 0 || persistentState.TagsPredicate.IsMatch(a.Tags))
+				   (a.Tags.Count == 0 || tagsPredicate.IsMatch(a.Tags))
 				&& GetActivityMatchIdx(a, filter) >= 0;
 		}
 
-		IEnumerable<IActivity> GetActivitiesOverlappingWithRange(TimeSpan rangeBegin, TimeSpan rangeEnd)
+		static IEnumerable<IActivity> GetActivitiesOverlappingWithRange(IReadOnlyList<IActivity> allActivities,
+			SpanRange range, Func<IActivity, bool> filteringPredicate)
 		{
-			var filteringPredicate = MakeFilteringPredicate();
-			return model.Activities
-				.TakeWhile(a => a.GetTimelineBegin() < rangeEnd)
-				.Where(a => a.GetTimelineEnd() >= rangeBegin)
+			return allActivities
+				.TakeWhile(a => a.GetTimelineBegin() < range.End)
+				.Where(a => a.GetTimelineEnd() >= range.Begin)
 				.Where(filteringPredicate);
 		}
 
-		void UpdateVisibleActivities()
+		static VisibileActivitiesInfo MakeVisibleActivitiesInfo(IReadOnlyList<IActivity> allActivities, SpanRange visibleRange,
+			Func<IActivity, bool> filteringPredicate, bool unfinishedActivitiesFolded)
 		{
-			var savedSelection = GetSelectedActivity();
-			selectedActivity = null;
-			string filter = quickSearchTextBoxPresenter.Text;
-			visibleActivities.Clear();
-			visibleActivities.AddRange(GetActivitiesOverlappingWithRange(visibleRangeBegin, visibleRangeEnd).Select(a => new VisibileActivityInfo()
+			var visibleActivities = new List<VisibileActivityInfo>();
+			visibleActivities.AddRange(GetActivitiesOverlappingWithRange(allActivities, visibleRange, filteringPredicate).Select(a => new VisibileActivityInfo()
 			{
 				Type = VisibileActivityType.Activity,
 				Activity = a
 			}));
-			GroupActiviteis(visibleActivities, visibleRangeBegin, ref unfinishedActivities);
-			if (savedSelection != null)
-				SetSelectedActivity(
-					visibleActivities.IndexOf(va => savedSelection != null && va.Type == savedSelection.Value.Type && va.Activity == savedSelection.Value.Activity),
-					ensureVisible: false
-				);
-			view.UpdateSequenceDiagramAreaMetrics();
-			changeNotification.Post();
-		}
 
-		private static void GroupActiviteis(List<VisibileActivityInfo> visibleActivities, TimeSpan visibleRangeBegin, ref ActivitiesGroupInfo unfinishedActivities)
-		{
-			unfinishedActivities.Count = visibleActivities.TakeWhile(a => a.Activity.IsEndedForcefully && a.Activity.Begin <= visibleRangeBegin).Count();
-			bool visible = unfinishedActivities.Count > 1;
-			unfinishedActivities.VisibleActivityIndex = visible ? 0 : new int?();
-			if (visible)
+			ActivitiesGroupInfo unfinishedActivities;
+			unfinishedActivities.Count = visibleActivities.TakeWhile(a => a.Activity.IsEndedForcefully && a.Activity.Begin <= visibleRange.Begin).Count();
+			bool unfinishedActivitiesVisible = unfinishedActivities.Count > 1;
+			unfinishedActivities.VisibleActivityIndex = unfinishedActivitiesVisible ? 0 : new int?();
+			if (unfinishedActivitiesVisible)
 			{
 				visibleActivities.Insert(0, new VisibileActivityInfo()
 				{
 					Type = VisibileActivityType.UnfinishedActivities
 				});
-				if (unfinishedActivities.IsFolded)
+				if (unfinishedActivitiesFolded)
 				{
 					visibleActivities.RemoveRange(1, unfinishedActivities.Count);
 				}
 			}
+			return new VisibileActivitiesInfo
+			{
+				activities = visibleActivities,
+				unfinishedActivities = unfinishedActivities
+			};
 		}
 
 		static int GetActivityMatchIdx(IActivity activity, string filter)
@@ -1048,13 +1088,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			var delta = origin - model.Origin;
 
 			origin = model.Origin;
-			availableRangeBegin = r.Item1;
-			availableRangeEnd = r.Item2;
+			availableRange = new SpanRange(r.Item1, r.Item2);
 
-			if (visibleRangeBegin != visibleRangeEnd)
+			if (!visibleRange.IsEmpty)
 			{
-				visibleRangeBegin += delta;
-				visibleRangeEnd += delta;
+				visibleRange = visibleRange.Add(delta);
 			}
 
 			ResetMeasurerIfItIsOutsideOfAvailableRange();
@@ -1065,50 +1103,33 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		{
 			if (measurer.State == MeasurerState.Set)
 			{
-				if (availableRangeBegin < measurer.RangeBegin || availableRangeEnd > measurer.RangeEnd)
+				if (availableRange.Begin < measurer.RangeBegin || availableRange.End > measurer.RangeEnd)
 				{
 					measurer.State = MeasurerState.Unset;
+					measurer.Version++;
+					changeNotification.Post();
 				}
 			}
 		}
 
-		Tuple<TimeSpan, TimeSpan> GetScopeRange(DrawScope scope)
+		void SetVisibleRange(SpanRange newValue, bool realTimePanMode = false)
 		{
-			if (scope == DrawScope.AvailableRange)
-				return Tuple.Create(availableRangeBegin, availableRangeEnd);
-			else if (scope == DrawScope.VisibleRange)
-				return Tuple.Create(visibleRangeBegin, visibleRangeEnd);
-			throw new ArgumentException();
-		}
-
-		void SetVisibleRange(TimeSpan newBegin, TimeSpan newEnd, bool realTimePanMode = false)
-		{
-			if (newEnd <= newBegin)
+			if (newValue.End <= newValue.Begin)
 				return;
-			visibleRangeBegin = newBegin;
-			visibleRangeEnd = newEnd;
-			UpdateVisibleActivities();
-			if (realTimePanMode)
-			{
-				view.Invalidate(ViewAreaFlag.ActivitiesCaptionsView | ViewAreaFlag.NavigationPanelView);
-				view.Refresh(ViewAreaFlag.ActivitiesBarsView);
-			}
-			else
-			{
-				view.Invalidate();
-			}
+			visibleRange = newValue;
+			changeNotification.Post();
 		}
 
 		TimeSpan VisibleRangeRelativePositionToAbsolute(double relativeLocationX)
 		{
-			var currentRange = visibleRangeEnd - visibleRangeBegin;
-			return visibleRangeBegin + currentRange.Multiply(relativeLocationX);
+			var currentRange = visibleRange.Length;
+			return visibleRange.Begin + currentRange.Multiply(relativeLocationX);
 		}
 
-		double VisibleRangeAbsolutePositionToRelative(TimeSpan position)
+		static double VisibleRangeAbsolutePositionToRelative(SpanRange range, TimeSpan position)
 		{
-			var currentRange = visibleRangeEnd - visibleRangeBegin;
-			return (double)((position - visibleRangeBegin).Ticks) / (double)(currentRange.Ticks);
+			var currentRange = range.Length;
+			return (double)((position - range.Begin).Ticks) / (double)(currentRange.Ticks);
 		}
 
 		KeyValuePair<TimeSpan, string> SnapToMilestone(TimeSpan ts, int? preferredActivityIndex, EnumMilestonesOptions options = EnumMilestonesOptions.Default)
@@ -1152,14 +1173,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		{
 			TimeSpan acceptableDistanceFromMilestone;
 			if ((options & EnumMilestonesOptions.VisibleRangeScale) != 0)
-				acceptableDistanceFromMilestone = (visibleRangeEnd - visibleRangeBegin).Multiply(0.01);
+				acceptableDistanceFromMilestone = visibleRange.Length.Multiply(0.01);
 			else if ((options & EnumMilestonesOptions.AvailableRangeScale) != 0)
-				acceptableDistanceFromMilestone = (availableRangeEnd - availableRangeBegin).Multiply(0.01);
+				acceptableDistanceFromMilestone = availableRange.Length.Multiply(0.01);
 			else
 				yield break;
 			TimeSpan dist;
 			if ((options & EnumMilestonesOptions.IncludeActivities) != 0)
 			{
+				var visibleActivities = getVisibleActivities();
 				for (int activityIdx = 0; activityIdx < visibleActivities.Count; ++activityIdx)
 				{
 					var a = visibleActivities[activityIdx].Activity;
@@ -1231,62 +1253,61 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		private void ZoomInternal(double mousePosX, int? delta, double? ddelta = null)
 		{
-			var currentRange = visibleRangeEnd - visibleRangeBegin;
+			var currentRange = visibleRange.Length;
 			long deltaTicks = 0;
 			if (delta != null)
 				deltaTicks = -Math.Sign(delta.Value) * currentRange.Ticks / 5;
 			else if (ddelta != null)
 				deltaTicks = (long)(-ddelta.Value * (double)currentRange.Ticks / 1.2d);
-			var newBegin = visibleRangeBegin - TimeSpan.FromTicks((long)(mousePosX * (double)deltaTicks));
-			var newEnd = visibleRangeEnd + TimeSpan.FromTicks((long)((1 - mousePosX) * (double)deltaTicks));
-			SetVisibleRange(newBegin, newEnd);
+			var newBegin = visibleRange.Begin - TimeSpan.FromTicks((long)(mousePosX * (double)deltaTicks));
+			var newEnd = visibleRange.End + TimeSpan.FromTicks((long)((1 - mousePosX) * (double)deltaTicks));
+			SetVisibleRange(new SpanRange(newBegin, newEnd));
 		}
 
 		private void SetInitialVisibleRange()
 		{
-			var firstActivities = GetActivitiesOverlappingWithRange(availableRangeBegin, availableRangeEnd).Take(2).ToArray();
+			var firstActivities = GetActivitiesOverlappingWithRange(model.Activities, availableRange, getFilteringPredicate()).Take(2).ToArray();
 			if (firstActivities.Length > 0)
 			{
-				visibleRangeBegin = firstActivities[0].Begin;
+				TimeSpan b = firstActivities[0].Begin;
 				var viewSize = firstActivities[0].GetDuration();
 				if (viewSize.Ticks == 0 && firstActivities.Length > 1)
 					viewSize = firstActivities[1].End - firstActivities[0].Begin;
+				TimeSpan e;
 				if (viewSize.Ticks == 0)
-					visibleRangeEnd = visibleRangeBegin + TimeSpan.FromSeconds(1);
+					e = b + TimeSpan.FromSeconds(1);
 				else
-					visibleRangeEnd = visibleRangeBegin + TimeSpan.FromSeconds(viewSize.TotalSeconds * 2.5d);
+					e = b + TimeSpan.FromSeconds(viewSize.TotalSeconds * 2.5d);
+				visibleRange = new SpanRange(b, e);
 			}
 			else
 			{
-				visibleRangeBegin = availableRangeBegin;
-				visibleRangeEnd = availableRangeEnd;
+				visibleRange = availableRange;
 			}
 		}
 
 		private void EnsureVisibleRangeIsAvailable()
 		{
-			var visibleLen = visibleRangeEnd - visibleRangeBegin;
-			if (visibleRangeEnd < availableRangeBegin)
+			var visibleLen = visibleRange.Length;
+			if (visibleRange.End < availableRange.Begin)
 			{
-				visibleRangeBegin = availableRangeBegin;
-				visibleRangeEnd = visibleRangeBegin + visibleLen;
+				visibleRange = new SpanRange(availableRange.Begin, availableRange.Begin + visibleLen);
 			}
-			else if (visibleRangeBegin >= availableRangeEnd)
+			else if (visibleRange.Begin >= availableRange.End)
 			{
-				visibleRangeEnd = availableRangeEnd;
-				visibleRangeBegin = visibleRangeEnd - visibleLen;
+				visibleRange = new SpanRange(availableRange.End - visibleLen, availableRange.End);
 			}
 		}
 
 		void ScrollToTime(TimeSpan pos)
 		{
-			var halfLen = (visibleRangeEnd - visibleRangeBegin).Multiply(0.5);
-			SetVisibleRange(pos - halfLen, pos + halfLen, realTimePanMode: false);
+			var halfLen = visibleRange.Length.Multiply(0.5);
+			SetVisibleRange(new SpanRange(pos - halfLen, pos + halfLen), realTimePanMode: false);
 		}
 
 		void FindNextUserAction(int direction, double pivot)
 		{
-			var currentPos = visibleRangeBegin + (visibleRangeEnd - visibleRangeBegin).Multiply(pivot);
+			var currentPos = visibleRange.Begin + visibleRange.Length.Multiply(pivot);
 			var evt = model
 				.Events
 				.Where(e => e.Type == EventType.UserAction)
@@ -1309,7 +1330,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void FindNextBookmark(int direction)
 		{
-			var currentPos = (visibleRangeEnd + visibleRangeBegin).Multiply(0.5);
+			var currentPos = visibleRange.Mid;
 			var bmk = 
 				bookmarks
 				.Items
@@ -1340,9 +1361,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		private void SelectActivity(bool doubleClick, HitTestResult htResult)
 		{
-			if (TryGetVisibleActivity(htResult.ActivityIndex, out var _) && htResult.ActivityIndex != selectedActivity)
+			if (TryGetVisibleActivity(htResult.ActivityIndex, out var _) && htResult.ActivityIndex != getSelectedActivityIndex())
 				SetSelectedActivity(htResult.ActivityIndex.Value);
-			else if (!TryGetVisibleActivity(htResult.ActivityIndex, out var _) && TryGetVisibleActivity(selectedActivity, out var _))
+			else if (!TryGetVisibleActivity(htResult.ActivityIndex, out var _) && TryGetVisibleActivity(getSelectedActivityIndex(), out var _))
 				SetSelectedActivity(null);
 			if (doubleClick)
 				PerformDefaultActionForSelectedActivity();
@@ -1351,12 +1372,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		private void PerformFullUpdate()
 		{
 			ReadAvailableRange();
-			if (visibleRangeEnd == visibleRangeBegin || availableRangeBegin == availableRangeEnd)
+			if (visibleRange.End == visibleRange.Begin || availableRange.Begin == availableRange.End)
 				SetInitialVisibleRange();
 			else
 				EnsureVisibleRangeIsAvailable();
-			UpdateVisibleActivities();
-			view.Invalidate();
 		}
 
 		enum MeasurerState
@@ -1441,6 +1460,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			public MeasurerState State;
 			public TimeSpan RangeBegin, RangeEnd;
 			public string ExtraComment;
+			public int Version;
 		};
 
 		struct PanInfo
@@ -1471,7 +1491,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		{
 			public int? VisibleActivityIndex;
 			public int Count;
-			public bool IsFolded;
 		};
 
 		enum VisibileActivityType
@@ -1486,6 +1505,33 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			public IActivity Activity;
 		};
 
+		class VisibileActivitiesInfo
+		{
+			public IReadOnlyList<VisibileActivityInfo> activities;
+			public ActivitiesGroupInfo unfinishedActivities;
+			public void Deconstruct(out IReadOnlyList<VisibileActivityInfo> activities, out ActivitiesGroupInfo unfinishedActivities)
+			{
+				activities = this.activities;
+				unfinishedActivities = this.unfinishedActivities;
+			}
+		};
+
+		class SpanRange
+		{
+			public TimeSpan Begin { get; private set; }
+			public TimeSpan End { get; private set; }
+			public SpanRange(TimeSpan b, TimeSpan e)
+			{
+				Begin = b;
+				End = e;
+			}
+			public TimeSpan Length => End - Begin;
+			public TimeSpan Mid => (End + Begin).Multiply(0.5);
+			public bool IsEmpty => Begin == End;
+			public SpanRange Add(TimeSpan delta) => new SpanRange(Begin + delta, End + delta);
+			public bool Eq(SpanRange r) => Begin == r.Begin && End == r.End;
+		};
+
 		readonly IChainedChangeNotification changeNotification;
 		readonly ITimelineVisualizerModel model;
 		readonly IView view;
@@ -1495,19 +1541,34 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly LogJoint.UI.Presenters.QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 		readonly TagsList.IPresenter tagsListPresenter;
 		readonly StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer;
-		readonly List<VisibileActivityInfo> visibleActivities = new List<VisibileActivityInfo>();
-		ActivitiesGroupInfo unfinishedActivities;
 		readonly Common.PresenterPersistentState persistentState;
 		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
 		readonly IUserNamesProvider userNamesProvider;
-		readonly Func<VisibileActivityInfo?> getSelectedActivity;
+		readonly Func<int?> getSelectedActivityIndex;
+		readonly Func<VisibileActivityInfo?> getSelectedActivityInfo;
 		readonly Func<CurrentActivityDrawInfo> getCurrentActivityDrawInfo;
 		readonly Func<bool> isSelectedActivityPresentInStateInspector;
+		readonly Func<Func<IActivity, bool>> getFilteringPredicate;
+		readonly Func<VisibileActivitiesInfo> getVisibleActivitiesInfo;
+		readonly Func<IReadOnlyList<VisibileActivityInfo>> getVisibleActivities;
+		readonly Func<IReadOnlyList<ActivityDrawInfo>> getActivityDrawInfos;
+		readonly Func<IReadOnlyList<RulerMarkDrawInfo>> getVisibleRangeRulerMarksDrawInfo;
+		readonly Func<IReadOnlyList<RulerMarkDrawInfo>> getAvailableRangeRulerMarksDrawInfo;
+		readonly Func<NavigationPanelDrawInfo> getNavigationPanelDrawInfo;
+		readonly Func<IReadOnlyList<EventDrawInfo>> getAvailableRangeEventsDrawInfo;
+		readonly Func<IReadOnlyList<EventDrawInfo>> getVisibleRangeEventsDrawInfo;
+		readonly Func<IReadOnlyList<BookmarkDrawInfo>> getAvailableRangeBookmarksDrawInfo;
+		readonly Func<IReadOnlyList<BookmarkDrawInfo>> getVisibleRangeBookmarksDrawInfo;
+		readonly Func<FocusedMessageDrawInfo> getAvailableRangeFocusedMessageDrawInfo;
+		readonly Func<FocusedMessageDrawInfo> getVisibleRangeFocusedMessageDrawInfo;
+		readonly Func<MeasurerDrawInfo> getMeasurerDrawInfo;
 		readonly IColorTheme theme;
 		DateTime origin;
-		TimeSpan availableRangeBegin, availableRangeEnd;
-		TimeSpan visibleRangeBegin, visibleRangeEnd;
-		int? selectedActivity;
+		SpanRange availableRange = new SpanRange(TimeSpan.Zero, TimeSpan.Zero);
+		SpanRange visibleRange = new SpanRange(TimeSpan.Zero, TimeSpan.Zero);
+		Ref<VisibileActivityInfo> selectedActivity;
+		bool unfinishedActivitiesFolded;
+		int activityDrawAdditionalInputRevision;
 		MouseCaptureState mouseCaptureState;
 		MeasurerInfo measurer;
 		PanInfo pan;
