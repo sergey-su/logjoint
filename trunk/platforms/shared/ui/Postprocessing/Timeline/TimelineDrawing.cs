@@ -18,16 +18,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawCaptionsView(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler,
+			IViewModel viewModel,
 			Action<string, Rectangle, int, int, bool> drawCaptionWithHighlightedRegion
 		)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.CaptionsPanel);
 
 			int availableHeight = viewMetrics.ActivitiesViewHeight;
-			bool darkMode = eventsHandler.ColorTheme == Presenters.ColorThemeMode.Dark;
+			bool darkMode = viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
 
-			foreach (var a in eventsHandler.OnDrawActivities())
+			foreach (var a in viewModel.OnDrawActivities())
 			{
 				int y = viewMetrics.GetActivityY(a.Index);
 				if (y < 0)
@@ -70,28 +70,28 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawActivtiesView(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler)
+			IViewModel viewModel)
 		{
 			var viewSz = new Size(viewMetrics.ActivitiesViewWidth, viewMetrics.ActivitiesViewHeight);
-			DrawActivitiesBackground(g, viewMetrics, eventsHandler);
-			DrawRulerLines(g, viewMetrics, eventsHandler, DrawScope.VisibleRange, viewSz);
+			DrawActivitiesBackground(g, viewMetrics, viewModel);
+			DrawRulerLines(g, viewMetrics, viewModel, DrawScope.VisibleRange, viewSz);
 			DrawActivitiesTopBound(g, viewMetrics);
-			DrawEvents(g, viewMetrics, eventsHandler);
-			DrawBookmarks(g, viewMetrics, eventsHandler);
-			DrawFocusedMessage(g, viewMetrics, eventsHandler, DrawScope.VisibleRange, viewSz);
-			DrawActivities(g, viewMetrics, eventsHandler);
-			DrawMeasurer(g, viewMetrics, eventsHandler);
+			DrawEvents(g, viewMetrics, viewModel);
+			DrawBookmarks(g, viewMetrics, viewModel);
+			DrawFocusedMessage(g, viewMetrics, viewModel, DrawScope.VisibleRange, viewSz);
+			DrawActivities(g, viewMetrics, viewModel);
+			DrawMeasurer(g, viewMetrics, viewModel);
 		}
 
 		public void DrawActivitiesBackground(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler
+			IViewModel viewModel
 		)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.ActivitiesPanel);
-			var darkMode = eventsHandler.ColorTheme == Presenters.ColorThemeMode.Dark;
-			foreach (var a in viewMetrics.GetActivitiesMetrics(eventsHandler))
+			var darkMode = viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
+			foreach (var a in viewMetrics.GetActivitiesMetrics(viewModel))
 			{
 				if (a.Activity.IsSelected)
 					g.FillRectangle(res.SelectedActivityBackgroundBrush, a.ActivityLineRect);
@@ -105,13 +105,13 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawRulerLines(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventHandler,
+			IViewModel viewModel,
 			DrawScope scope,
 			Size viewSize
 		)
 		{
 			double availableWidth = viewSize.Width;
-			foreach (var m in viewMetrics.GetRulerMarks(eventHandler, scope))
+			foreach (var m in viewMetrics.GetRulerMarks(viewModel, scope))
 			{
 				int x = (int)(m.X * availableWidth);
 				g.DrawString(m.Label, res.RulerMarkFont, res.RulerMarkBrush, new Point(x, 2));
@@ -125,11 +125,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			g.DrawLine(res.ActivitiesTopBoundPen, 0, y, viewMetrics.ActivitiesViewWidth, y);
 		}
 
-		public void DrawActivities(LJD.Graphics g, ViewMetrics viewMetrics, IViewModel eventsHandler)
+		public void DrawActivities(LJD.Graphics g, ViewMetrics viewMetrics, IViewModel viewModel)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.ActivitiesPanel);
-			var darkMode = eventsHandler.ColorTheme == Presenters.ColorThemeMode.Dark;
-			foreach (var a in viewMetrics.GetActivitiesMetrics(eventsHandler))
+			var darkMode = viewModel.ColorTheme == Presenters.ColorThemeMode.Dark;
+			foreach (var a in viewMetrics.GetActivitiesMetrics(viewModel))
 			{
 				if (a.Activity.Type == ActivityDrawType.Group)
 					continue;
@@ -163,9 +163,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawEvents(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler)
+			IViewModel viewModel)
 		{
-			foreach (var evt in viewMetrics.GetEventMetrics(g, eventsHandler))
+			foreach (var evt in viewMetrics.GetEventMetrics(g, viewModel))
 			{
 				if (evt.VertLinePoints != null)
 				{
@@ -191,9 +191,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawBookmarks(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler)
+			IViewModel viewModel)
 		{
-			foreach (var evt in viewMetrics.GetBookmarksMetrics(g, eventsHandler))
+			foreach (var evt in viewMetrics.GetBookmarksMetrics(g, viewModel))
 			{
 				g.DrawLine(res.BookmarkPen, evt.VertLineA, evt.VertLineB);
 				if (evt.Icon != null)
@@ -204,11 +204,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawFocusedMessage(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler, 
+			IViewModel viewModel, 
 			DrawScope scope, 
 			Size sz)
 		{
-			var pos = eventsHandler.OnDrawFocusedMessage(scope);
+			var pos = viewModel.OnDrawFocusedMessage(scope);
 			if (pos == null)
 				return;
 			if (pos.Value < 0 || pos.Value > 1)
@@ -225,9 +225,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawMeasurer(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler)
+			IViewModel viewModel)
 		{
-			var drawInfo = eventsHandler.OnDrawMeasurer();
+			var drawInfo = viewModel.OnDrawMeasurer();
 			if (!drawInfo.MeasurerVisible)
 				return;
 			double viewWidth = viewMetrics.ActivitiesViewWidth;
@@ -273,31 +273,31 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawNavigationPanel(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewModel eventsHandler)
+			IViewModel viewModel)
 		{
 			var panelClientRect = new Rectangle (0, 0, viewMetrics.NavigationPanelWidth, viewMetrics.NavigationPanelHeight);
 			g.FillRectangle(res.NavigationPanel_InvisibleBackground, panelClientRect);
 
-			var m = viewMetrics.GetNavigationPanelMetrics(eventsHandler);
+			var m = viewMetrics.GetNavigationPanelMetrics(viewModel);
 			g.FillRectangle(res.NavigationPanel_VisibleBackground, m.VisibleRangeBox);
 
-			DrawRulerLines(g, viewMetrics, eventsHandler, DrawScope.AvailableRange, panelClientRect.Size);
+			DrawRulerLines(g, viewMetrics, viewModel, DrawScope.AvailableRange, panelClientRect.Size);
 
 			double width = (double)viewMetrics.NavigationPanelWidth;
 
-			foreach (var evt in eventsHandler.OnDrawEvents(DrawScope.AvailableRange))
+			foreach (var evt in viewModel.OnDrawEvents(DrawScope.AvailableRange))
 			{
 				int x = (int)(evt.X * width);
 				g.DrawLine(res.UserEventPen, x, 0, x, viewMetrics.NavigationPanelHeight);
 			}
 
-			foreach (var evt in eventsHandler.OnDrawBookmarks(DrawScope.AvailableRange))
+			foreach (var evt in viewModel.OnDrawBookmarks(DrawScope.AvailableRange))
 			{
 				int x = (int)(evt.X * width);
 				g.DrawLine(res.BookmarkPen, x, 0, x, viewMetrics.NavigationPanelHeight);
 			}
 				
-			var focusedMessagePos = eventsHandler.OnDrawFocusedMessage(DrawScope.AvailableRange);
+			var focusedMessagePos = viewModel.OnDrawFocusedMessage(DrawScope.AvailableRange);
 			if (focusedMessagePos.HasValue && focusedMessagePos.Value >= 0 && focusedMessagePos.Value <= 1)
 			{
 				int x = (int)(focusedMessagePos.Value * width);
