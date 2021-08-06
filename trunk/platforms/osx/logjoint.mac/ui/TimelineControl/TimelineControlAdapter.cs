@@ -88,16 +88,11 @@ namespace LogJoint.UI
 				using (var g = new Graphics ())
 					return drawing.MeasureDatesAreaHeight (g);
 			});
-		}
 
-		void IView.Invalidate()
-		{
-			timelineView.NeedsDisplay = true;
-		}
-
-		void IView.RepaintNow()
-		{
-			timelineView.NeedsDisplay = true;
+			var updater = Updaters.Create (() => viewModel.OnDraw (), _ => {
+				timelineView.NeedsDisplay = true;
+			});
+			viewModel.ChangeNotification.OnChange += (s, e) => updater ();
 		}
 
 		void IView.UpdateDragViewPositionDuringAnimation(int y, bool topView)
@@ -108,11 +103,6 @@ namespace LogJoint.UI
 		PresentationMetrics IView.GetPresentationMetrics()
 		{
 			return GetMetrics().ToPresentationMetrics();
-		}
-
-		HitTestResult IView.HitTest(int x, int y)
-		{
-			return GetMetrics().HitTest(new Point(x, y));
 		}
 
 		void IView.TryBeginDrag(int x, int y)
@@ -128,11 +118,6 @@ namespace LogJoint.UI
 		void IView.ResetToolTipPoint(int x, int y)
 		{
 			// todo
-		}
-
-		void IView.SetHScoll(bool isVisible, int innerViewWidth)
-		{
-			// 
 		}
 
 		void TimelinePaint(RectangleF dirtyRect)
@@ -163,20 +148,22 @@ namespace LogJoint.UI
 		void TimelineMouseDown(NSEvent e)
 		{
 			var pt = timelineView.GetEventLocation(e);
+			var area = GetMetrics ().HitTest (pt.ToPoint());
 			if (e.ClickCount >= 2)
-				viewModel.OnMouseDblClick((int)pt.X, (int)pt.Y);
+				viewModel.OnMouseDblClick((int)pt.X, (int)pt.Y, area);
 			else
-				viewModel.OnLeftMouseDown((int)pt.X, (int)pt.Y);
+				viewModel.OnLeftMouseDown((int)pt.X, (int)pt.Y, area);
 		}
 
 		void TimelineMouseWheel(NSEvent e)
 		{
 			var pt = timelineView.GetEventLocation(e);
 			bool zoom = (e.ModifierFlags & NSEventModifierMask.ControlKeyMask) != 0;
+			var area = GetMetrics ().HitTest (pt.ToPoint ());
 			if (zoom)
-				viewModel.OnMouseWheel((int)pt.X, (int)pt.Y, e.DeltaY / 20d, true);
+				viewModel.OnMouseWheel((int)pt.X, (int)pt.Y, e.DeltaY / 20d, true, area);
 			else
-				viewModel.OnMouseWheel((int)pt.X, (int)pt.Y, -e.DeltaY / 20d, false);
+				viewModel.OnMouseWheel((int)pt.X, (int)pt.Y, -e.DeltaY / 20d, false, area);
 		}
 
 		void TimelineMagnify(NSEvent e)
@@ -188,7 +175,8 @@ namespace LogJoint.UI
 		void TimelineMouseMove(NSEvent e)
 		{
 			var pt = timelineView.GetEventLocation(e);
-			viewModel.OnMouseMove((int)pt.X, (int)pt.Y);
+			viewModel.OnMouseMove((int)pt.X, (int)pt.Y,
+				GetMetrics ().HitTest (pt.ToPoint ()));
 		}
 
 		void TimelineMouseLeave(NSEvent e)
@@ -199,7 +187,7 @@ namespace LogJoint.UI
 		void TimelineResized()
 		{
 			if (viewModel != null)
-				viewModel.OnTimelineClientSizeChanged();
+				viewModel.ChangeNotification.Post ();
 		}
 
 		Metrics GetMetrics()

@@ -33,7 +33,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		void OnCopy (NSObject theEvent)
 		{
 			if (SelectedRow >= 0)
-				owner.ViewModel.OnPropertyCellCopyShortcutPressed ((int)SelectedRow);
+				owner.ViewModel.OnPropertyCellCopyShortcutPressed ();
 		}
 
 		public override void MouseDown (NSEvent e)

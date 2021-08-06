@@ -8,7 +8,7 @@ namespace LogJoint.UI
 {
 	public partial class TimelinePanelControlAdapter : NSViewController, IView
 	{
-		IViewEvents viewEvents;
+		IViewModel viewModel;
 		TimelineControlAdapter timelineControlAdapter;
 
 		#region Constructors
@@ -56,18 +56,18 @@ namespace LogJoint.UI
 			get { return timelineControlAdapter; }
 		}
 
-		void IView.SetPresenter(IViewEvents viewEvents)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.viewEvents = viewEvents;
-		}
+			this.viewModel = viewModel;
 
-		void IView.SetEnabled(bool value)
-		{
-			foreach (var c in new[] { zoomInButton, zoomOutButton, 
-				resetZoomButton, moveUpButton, moveDownButton })
-			{
-				c.Enabled = value;
-			}
+			viewModel.ChangeNotification.CreateSubscription (
+				Updaters.Create (() => viewModel.IsEnabled, enabled => {
+					foreach (var c in new [] { zoomInButton, zoomOutButton,
+							resetZoomButton, moveUpButton, moveDownButton }) {
+						c.Enabled = enabled;
+					}
+				}
+			));
 		}
 
 		public override void AwakeFromNib()
@@ -84,27 +84,27 @@ namespace LogJoint.UI
 
 		partial void OnMoveDownClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnScrollToolButtonClicked(1);
+			viewModel.OnScrollToolButtonClicked(1);
 		}
 
 		partial void OnMoveUpClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnScrollToolButtonClicked(-1);
+			viewModel.OnScrollToolButtonClicked(-1);
 		}
 
 		partial void OnResetZoomClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnZoomToViewAllToolButtonClicked();
+			viewModel.OnZoomToViewAllToolButtonClicked();
 		}
 
 		partial void OnZoomInClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnZoomToolButtonClicked(1);
+			viewModel.OnZoomToolButtonClicked(1);
 		}
 
 		partial void OnZoomOutClicked (Foundation.NSObject sender)
 		{
-			viewEvents.OnZoomToolButtonClicked(-1);
+			viewModel.OnZoomToolButtonClicked(-1);
 		}
 	}
 }
