@@ -51,7 +51,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
-				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.OpenLogFile, s => s.Dispose(), i.ProgressHandler), i)
 			);
 		}
 
