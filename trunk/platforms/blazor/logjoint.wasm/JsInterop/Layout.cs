@@ -23,6 +23,16 @@ namespace LogJoint.Wasm
             return ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.layout.getElementHeight", element);
         }
 
+        public double GetElementOffsetLeft(ElementReference element)
+        {
+            return ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.layout.getElementOffsetLeft", element);
+        }
+
+        public double GetElementOffsetTop(ElementReference element)
+        {
+            return ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.layout.getElementOffsetTop", element);
+        }
+
         public double GetElementScrollerHeight(ElementReference element)
         {
             return ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.layout.getElementScrollerHeight", element);

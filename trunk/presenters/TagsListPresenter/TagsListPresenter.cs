@@ -131,7 +131,7 @@ namespace LogJoint.UI.Presenters.TagsList
 				usedTags => ImmutableHashSet.ToImmutableHashSet(usedTags.Select(tag => tag.Item1))
 			);
 
-			view.SetViewModel(this);
+			view?.SetViewModel(this);
 		}
 
 		void IPresenter.Edit(string focusedTag)

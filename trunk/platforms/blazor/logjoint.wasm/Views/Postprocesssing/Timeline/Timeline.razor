@@ -1,0 +1,376 @@
+﻿@namespace LogJoint.Wasm.UI.Postprocessing
+@inject JsInterop jsInterop
+@inject IJSRuntime jsRuntime
+@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@using System.Text.RegularExpressions;
+@using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
+@implements IAsyncDisposable
+@implements IView
+
+<div class="timeline-visualizer @Class" @ref="rootElement">
+    <div class="toolbar">
+        <a class="b" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnPrevBookmarkButtonClicked())">&lt;&lt;prev</a>
+        <a class="b" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnNextBookmarkButtonClicked())">next&gt;&gt;</a>
+        <a class="c" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnFindCurrentTimeButtonClicked())">current time</a>
+        <a class="zi" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomInButtonClicked())">zoom in</a>
+        <a class="zo" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomOutButtonClicked())">zoom out</a>
+    </div>
+    <div class="nav">
+        @{NavigationPanelDrawInfo nav = viewModel.NavigationPanelDrawInfo;}
+        <div class="slider" style=@GetNavSliderStyle(nav)></div>
+        <div class="handle l" style=@GetLeftNavHandleStyle(nav)></div>
+        <div class="handle r" style=@GetRightNavHandleStyle(nav)></div>
+    </div>
+    <div class="main-container">
+        <div class="main nice-scroll" tabindex="0" @ref="mainElement"
+                @onkeydown="@(e => viewModel.OnKeyDown(GetKey(e)))"
+                @onmousedown="@(e => viewModel.OnMouseDown(GetMainElementHitTestResult(e), GetModifierKeys(e), e.Detail > 1))"
+                @onmouseup="@(e => viewModel.OnMouseUp(GetMainElementHitTestResult(e)))"
+                @onpointermove="@(e => viewModel.OnMouseMove(GetMainElementHitTestResult(e), GetModifierKeys(e)))"
+                @onwheel="@(e => HandleWheel(GetMainElementHitTestResult(e), e.DeltaX, e.DeltaY, e.CtrlKey))"
+            >
+            <div class="h captions" @ref="captionsHeaderElement">
+                <div class="tags"></div>
+                <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" Class="search-box"/>
+            </div>
+            <div class="sep" @ref="separatorElement" style="@(GetSeparatorStyle())"></div>
+            <div class="h ruler" @ref="rulerElement"
+                @onmousedown="@(e => viewModel.OnMouseDown(GetRulerElementHitTestResult(e), GetModifierKeys(e), e.Detail > 1))" @onmousedown:stopPropagation
+                @onmouseup="@(e => viewModel.OnMouseUp(GetRulerElementHitTestResult(e)))" @onmouseup:stopPropagation
+                @onpointermove="@(e => viewModel.OnMouseMove(GetRulerElementHitTestResult(e), GetModifierKeys(e)))" @onpointermove:stopPropagation
+            >
+            </div>
+
+            @foreach (var a in viewModel.ActivitiesDrawInfo)
+            {
+                var backgroundStyle = GetActivityBackgroundStyle(a);
+                var selectedClass = a.IsSelected ? "selected" : "";
+                <div class="c @selectedClass" style=@backgroundStyle>
+                    @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(a.Caption, new []{ (a.CaptionSelectionBegin, a.CaptionSelectionBegin + a.CaptionSelectionLength, viewModel) }))
+                    {
+                        var classes = segment.data != null ? "hl" : "";
+                        <span class=@classes>@(segment.segment)</span>
+                    }
+                </div>
+                <div class="a @selectedClass" style=@backgroundStyle>
+                    <div class="bar" style="@(GetActivityBarStyle(a))">
+                        <div class="t bt" @onclick="@(e => viewModel.OnActivityTriggerClicked(a.BeginTrigger))"></div>
+                        <div class="t et" @onclick="@(e => viewModel.OnActivityTriggerClicked(a.EndTrigger))"></div>
+                    </div>
+                    @if (a.PhasesCount > 0)
+                    {
+                        @foreach (var phase in a.Phases)
+                        {
+                            <div class="phase c-@(phase.Type % 4)" style="@(GetActivityPhaseStyle(phase))"></div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+        <div class="main-overlay">
+            @foreach (RulerMarkDrawInfo mark in viewModel.RulerMarksDrawInfo(DrawScope.VisibleRange))
+            {
+                <div class="r" style="@(GetRulerMarkStyle(mark))">
+                    <div>@mark.Label</div>
+                </div>
+            }
+            @foreach (BookmarkDrawInfo bmk in viewModel.BookmarksDrawInfo(DrawScope.VisibleRange))
+            {
+                <div class="bmk" style=@GetBookmarkStyle(bmk) title=@bmk.Caption>
+                    <div @onclick="(e => viewModel.OnEventTriggerClicked(bmk.Trigger))"></div>
+                </div>
+            }
+            @{var focused = viewModel.FocusedMessageDrawInfo(DrawScope.VisibleRange);}
+            @if (focused != null)
+            {
+                <div class="curr-time" style="@(GetFocusedMessagePositionStyle(focused))"></div>
+            }
+            @{var measurer = viewModel.MeasurerDrawInfo;}
+            @if (measurer.MeasurerVisible)
+            {
+                <div class="measurer" style="@(GetMeasurerStyle(measurer))">
+                    @if (measurer.X2 != measurer.X1)
+                    {
+                        <div class="text">@measurer.Text</div>
+                    }
+                </div>
+            }            @if (viewModel.NoContentMessageVisibile)            {                <div class="empty">Nothing is visible<br />
+                    Search <a href="#" @onclick:preventDefault @onclick=@(e => viewModel.OnNoContentLinkClicked(true))>&lt;&lt;left</a>.
+                    Search <a href="#" @onclick:preventDefault @onclick=@(e => viewModel.OnNoContentLinkClicked(false))>right&gt;&gt;</a>.
+                </div>
+            }        </div>
+    </div>
+    <div class="footer">
+        @{var curr = viewModel.CurrentActivity;}
+        @{static (int begin, int end, object data) ToLinkRange(Tuple<object, int, int> l) => (l.Item2, l.Item2 + l.Item3, l.Item1);}
+        <div class="caption">@(curr.Caption)</div>
+        <div class="desc">
+            @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(curr.DescriptionText,
+                (curr.DescriptionLinks ?? Enumerable.Empty<Tuple<object, int, int>>()).Select(ToLinkRange)))
+            {
+                if (segment.data == null)
+                {
+                    <span>@segment.segment</span>
+                }
+                else
+                {
+                    <a href="#" @onclick:preventDefault @onclick=@(e => viewModel.OnActivityTriggerClicked(segment.data))>@segment.segment</a>
+                }
+            }
+        </div>
+        @if (curr.SourceText != null)
+        {
+            <div class="source">
+                @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(curr.SourceText, new [] { ToLinkRange(curr.SourceLink) }))
+                {
+                    if (segment.data == null)
+                    {
+                        <span>@segment.segment</span>
+                    }
+                    else
+                    {
+                        <a href="#" @onclick:preventDefault @onclick=@(e => viewModel.OnActivitySourceLinkClicked(segment.data))>@segment.segment</a>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+    private const int minAllowedDistanceBetweenMarks = 40;
+    private RulerMetrics activitiesViewRulerMetrics = new RulerMetrics { Width = 0, MinAllowedDistanceBetweenMarks = minAllowedDistanceBetweenMarks };
+    private RulerMetrics navigationViewRulerMetrics = new RulerMetrics { Width = 0, MinAllowedDistanceBetweenMarks = minAllowedDistanceBetweenMarks };
+    private ElementReference separatorElement, rulerElement, mainElement, captionsHeaderElement, rootElement;
+    private IAsyncDisposable resizeObserverHandle;
+    private IDisposable resizeHandler;
+    private double rulerElementLeft;
+    private double rulerElementHeight;
+    private double rowHeight;
+    private IDisposable keyHandler;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    HitTestResult GetMainElementHitTestResult(MouseEventArgs e)
+    {
+        if (activitiesViewRulerMetrics.Width == 0)
+            return new HitTestResult();
+        double relativeX = (e.OffsetX - rulerElementLeft) / activitiesViewRulerMetrics.Width;
+        int activityIndex = (int)((e.OffsetY - rulerElementHeight + jsInterop.Scroll.GetScrollTop(mainElement)) / rowHeight);
+        if (activityIndex >= 0 && activityIndex < viewModel.ActivitiesDrawInfo.Count)
+            if (relativeX < 0)
+                return new HitTestResult(HitTestResult.AreaCode.CaptionsPanel, 0, activityIndex);
+            else
+                return new HitTestResult(HitTestResult.AreaCode.Activity, relativeX, activityIndex);
+        if (activityIndex >= 0)
+            return new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, relativeX);
+        if (activityIndex < 0)
+            return new HitTestResult(HitTestResult.AreaCode.RulersPanel, relativeX);
+        return new HitTestResult();
+    }
+
+    HitTestResult GetRulerElementHitTestResult(MouseEventArgs e)
+    {
+        double relativeX = e.OffsetX / activitiesViewRulerMetrics.Width;
+        return new HitTestResult(HitTestResult.AreaCode.RulersPanel, relativeX);
+    }
+
+    static string GetActivityBarStyle(ActivityDrawInfo a)
+    {
+        return string.Format("left: {0:0.00}%; width: {1:0.00}%", a.X1*100, (a.X2-a.X1)*100);
+    }
+
+    static string GetActivityPhaseStyle(ActivityPhaseDrawInfo phase)
+    {
+        return string.Format("left: {0:0.00}%; width: {1:0.00}%", phase.X1*100, (phase.X2-phase.X1)*100);
+    }
+
+    static string GetNavSliderStyle(NavigationPanelDrawInfo nav)
+    {
+        return string.Format("left: {0:0.00}%; width: {1:0.00}%", nav.VisibleRangeX1*100, (nav.VisibleRangeX2-nav.VisibleRangeX1)*100);
+    }
+
+    static string GetLeftNavHandleStyle(NavigationPanelDrawInfo nav)
+    {
+        return string.Format("right: {0:0.00}%", (1-nav.VisibleRangeX1)*100);
+    }
+
+    static string GetRightNavHandleStyle(NavigationPanelDrawInfo nav)
+    {
+        return string.Format("left: {0:0.00}%", nav.VisibleRangeX2*100);
+    }
+
+    static string GetActivityBackgroundStyle(ActivityDrawInfo a)
+    {
+        if (!a.IsSelected)
+            return string.Format("background-color: {0};",
+                a.Color.HasValue ? LogJoint.Drawing.ColorExtensions.ToHtmlColor(a.Color.Value) : "white"
+            );
+        return "";
+    }
+
+    string GetSeparatorStyle()
+    {
+        return string.Format("grid-row: 1 / {0};", viewModel.ActivitiesDrawInfo.Count + 2);
+    }
+
+    static string GetFocusedMessagePositionStyle(FocusedMessageDrawInfo info)
+    {
+        return string.Format("left: {0:0.00}%;", info.x * 100);
+    }
+
+    static string GetRulerMarkStyle(RulerMarkDrawInfo m)
+    {
+        return string.Format("left: {0:0.00}%;", m.X * 100);
+    }
+
+    static string GetBookmarkStyle(BookmarkDrawInfo b)
+    {
+        return string.Format("left: {0:0.00}%;", b.X * 100);
+    }
+
+    static string GetMeasurerStyle(MeasurerDrawInfo measurer)
+    {
+        return string.Format("left: {0:0.00}%; width: {1:0.00}%", measurer.X1 * 100, (measurer.X2 - measurer.X1) * 100);
+    }
+
+    static KeyCode GetKey(KeyboardEventArgs keyboardEventArgs)
+    {
+        return GetMainKey(keyboardEventArgs) | GetModifierKeys(keyboardEventArgs);
+    }
+
+    static KeyCode GetModifierKeys(KeyboardEventArgs keyboardEventArgs)
+    {
+        KeyCode ret = KeyCode.None;
+        if (keyboardEventArgs.CtrlKey)
+            ret |= KeyCode.Ctrl;
+        if (keyboardEventArgs.ShiftKey)
+            ret |= KeyCode.Shift;
+        return ret;
+    }
+
+    static KeyCode GetModifierKeys(MouseEventArgs mouseEventArgs)
+    {
+        KeyCode ret = KeyCode.None;
+        if (mouseEventArgs.CtrlKey)
+            ret |= KeyCode.Ctrl;
+        if (mouseEventArgs.ShiftKey)
+            ret |= KeyCode.Shift;
+        return ret;
+    }
+
+    static KeyCode GetMainKey(KeyboardEventArgs keyboardEventArgs)
+    {
+        switch (keyboardEventArgs.Key)
+        {
+            case "ArrowUp": return KeyCode.Up;
+            case "ArrowDown": return KeyCode.Down;
+            case "ArrowLeft": return KeyCode.Left;
+            case "ArrowRight": return KeyCode.Right;
+            case "+": return KeyCode.Plus;
+            case "-": return KeyCode.Minus;
+            case "Escape": return KeyCode.Escape;
+            case "Enter": return KeyCode.Enter;
+            case "F6": return KeyCode.FindCurrentTimeShortcut;
+            case "F2": return keyboardEventArgs.ShiftKey ? KeyCode.NextBookmarkShortcut : KeyCode.PrevBookmarkShortcut;
+            default: return KeyCode.None;
+        }
+    }
+
+    void HandleWheel(HitTestResult ht, double deltaX, double deltaY, bool ctrl)
+    {
+        if (ht.Area == HitTestResult.AreaCode.ActivitiesPanel || ht.Area == HitTestResult.AreaCode.Activity 
+         || ht.Area == HitTestResult.AreaCode.ActivityTrigger || ht.Area == HitTestResult.AreaCode.ActivityPhase)
+        {
+            if (ctrl)
+            {
+                viewModel.OnGestureZoom(ht.RelativeX, -deltaY / 250d);
+            }
+            else if (deltaX != 0)
+            {
+                viewModel.OnScrollWheel(deltaX / activitiesViewRulerMetrics.Width);
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        viewProxies.PostprocesssingTimelineViewProxy.SetComponent(this);
+
+        viewProxies.PresentationObjects.ExpensibilityEntryPoint.Postprocessing.Timeline.Show();
+        viewModel.OnWindowShown();
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.ActivitiesDrawInfo,
+                    viewModel.FocusedMessageDrawInfo(DrawScope.VisibleRange),
+                    viewModel.BookmarksDrawInfo(DrawScope.VisibleRange),
+                    viewModel.RulerMarksDrawInfo(DrawScope.VisibleRange),
+                    viewModel.NavigationPanelDrawInfo),
+            _ => StateHasChanged()
+        ));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("logjoint.timelineVisualizer.addDefaultPreventingWheelHandler", mainElement);
+            await jsRuntime.InvokeVoidAsync("logjoint.timelineVisualizer.setMouseCapturingHandler", mainElement);
+            rowHeight = int.Parse(Regex.Match(jsInterop.Style.GetComputedStyle(mainElement, "--item-height"),
+                @"\s*(\d+)px").Groups[1].Value);
+            resizeObserverHandle = await jsInterop.Resize.ObserveResize(rulerElement, () =>
+            {
+                activitiesViewRulerMetrics.Width = (int)jsInterop.Layout.GetElementWidth(rulerElement);
+                rulerElementHeight = jsInterop.Layout.GetElementHeight(rulerElement);
+                rulerElementLeft = jsInterop.Layout.GetElementOffsetLeft(rulerElement) -
+                    jsInterop.Layout.GetElementOffsetLeft(mainElement);
+                viewModel?.ChangeNotification?.Post();
+            });
+            resizeHandler = await jsInterop.Resize.InitResizer(separatorElement, captionsHeaderElement,
+                ResizeInterop.Direction.Horizonal, inverse: false, relativeToParent: false, handler: (double value) =>
+                {
+                    jsInterop.Style.SetProperty(rootElement, "--captions-width", string.Format("{0:0.000}px", Math.Max(10, value)));
+                });
+            keyHandler = await jsInterop.Keyboard.AddHandler(mainElement, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                StopPropagation = true,
+                Handler = () => viewModel.OnKeyDown(KeyCode.Find),
+            }, "Edit+F/i");
+            await jsInterop.Keyboard.AddDefaultPreventingHandler(mainElement, "Ctrl++", "Ctrl+-");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        viewProxies.PostprocesssingTimelineViewProxy.SetComponent(null);
+        subscription?.Dispose();
+        await resizeObserverHandle.DisposeAsync();
+        resizeHandler?.Dispose();
+        keyHandler?.Dispose();
+    }
+
+    void IView.SetViewModel(IViewModel value)
+    {
+        viewModel = value;
+    }
+
+    LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox => null;
+    LogJoint.UI.Presenters.TagsList.IView IView.TagsListView => null;
+    LogJoint.UI.Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView => null;
+    RulerMetrics IView.VisibleRangeRulerMetrics => activitiesViewRulerMetrics;
+    RulerMetrics IView.AvailableRangeRulerMetrics => navigationViewRulerMetrics;
+
+    void IView.Show() { }
+    HitTestResult IView.HitTest(object hitTestToken)
+    {
+        if (hitTestToken is HitTestResult result)
+            return result;
+        return new HitTestResult();
+    }
+    void IView.EnsureActivityVisible(int activityIndex) {} // todo
+    void IView.ReceiveInputFocus() {} // todo
+}

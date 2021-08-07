@@ -15,6 +15,7 @@ namespace LogJoint.Wasm
 			Selection = new SelectionInterop(jsRuntime);
 			Browser = new BrowserInterop(jsRuntime);
 			Layout = new LayoutInterop(jsRuntime);
+			Style = new Style(jsRuntime);
 		}
 
 		public async Task Init()
@@ -30,5 +31,6 @@ namespace LogJoint.Wasm
 		public SelectionInterop Selection { get; private set; }
 		public BrowserInterop Browser { get; private set; }
 		public LayoutInterop Layout { get; private set; }
+		public Style Style { get; private set; }
 	}
 }

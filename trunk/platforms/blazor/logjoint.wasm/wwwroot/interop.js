@@ -14,6 +14,12 @@
             const style = document.defaultView.getComputedStyle(e, '::-webkit-scrollbar');
             return style ? parseInt(style.height, 10) : 0;
         },
+        getElementOffsetTop: function (e) {
+            return e.offsetTop;
+        },
+        getElementOffsetLeft: function (e) {
+            return e.offsetLeft;
+        },
     },
 
     scroll: {
@@ -32,6 +38,12 @@
             } else if (targetX > x + w) {
                 element.scrollLeft = targetX - w;
             }
+        },
+        getScrollTop: function (e) {
+            return e.scrollTop;
+        },
+        getScrollLeft: function (e) {
+            return e.scrollLeft;
         },
     },
 
@@ -373,10 +385,20 @@
         },
     },
 
-    adoptStyle: function (cssString) {
-        const sheet = new CSSStyleSheet();
-        sheet.replaceSync(cssString);
-        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+    style: {
+        adoptStyle: function (cssString) {
+            const sheet = new CSSStyleSheet();
+            sheet.replaceSync(cssString);
+            document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+        },
+
+        getComputedStyle: function (e, prop) {
+            return document.defaultView.getComputedStyle(e).getPropertyValue(prop);
+        },
+
+        setProperty: function (e, prop, value) {
+            e.style.setProperty(prop, value);
+        },
     },
 
     list: {
@@ -566,11 +588,34 @@
         }
     },
 
+    timelineVisualizer: {
+        addDefaultPreventingWheelHandler: function (element) {
+            const handler = e => {
+                if (e.deltaY != 0 && !e.ctrlKey) {
+                    return;
+                }
+                e.preventDefault();
+            };
+            element.addEventListener("wheel", handler, false);
+        },
+        setMouseCapturingHandler: function (mainElement) {
+            const handler = evt => {
+                for (let e = evt.target; e && e != mainElement; e = e.parentElement) {
+                    if (e.className.includes("captions") || e.className.includes("t")) {
+                        return; // excluded from pointer capturing
+                    }
+                }
+                mainElement.setPointerCapture(evt.pointerId);
+            };
+            mainElement.addEventListener('pointerdown', handler, false);
+        },
+    },
+
     mouse: {
         setMouseCapturingHandler: function (element) {
             const handler = e => element.setPointerCapture(e.pointerId);
             element.addEventListener('pointerdown', handler, false);
-        }
+        },
     },
 
     selection: {

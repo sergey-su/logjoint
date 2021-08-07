@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 		{
 			this.view = view;
 			this.changeNotification = changeNotification;
-			view.SetEventsHandler(this);
+			view?.SetEventsHandler(this);
 		}
 
 		void IPresenter.Register (IToastNotificationItem item)
@@ -83,8 +83,8 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 					IsSuppressable = true,
 				})
 				.ToArray();
-			view.SetVisibility(viewItems.Length > 0);
-			view.Update(viewItems);
+			view?.SetVisibility(viewItems.Length > 0);
+			view?.Update(viewItems);
 		}
 
 		void ModifyItem(Predicate<ItemData> keyPredicate, Action<ItemData> action)

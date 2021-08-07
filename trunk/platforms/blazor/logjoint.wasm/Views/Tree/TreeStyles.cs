@@ -26,7 +26,7 @@ namespace LogJoint.Wasm.UI
 					styleBuilder.AppendLine($".tree>.node.c{l} {{ padding-left: {10*l}px; }}");
 				}
 				maxLevelStyleGenerated += stylesToGenerate;
-				await jsRuntime.InvokeVoidAsync("logjoint.adoptStyle", styleBuilder.ToString());
+				await jsRuntime.InvokeVoidAsync("logjoint.style.adoptStyle", styleBuilder.ToString());
 			}
 		}
 	}

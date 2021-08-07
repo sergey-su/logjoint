@@ -122,6 +122,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
+		QuickSearchTextBox.IViewModel IViewModel.QuickSearchTextBox => quickSearchTextBoxPresenter.ViewModel;
+
 		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 
 		void IViewModel.OnWindowShown()
@@ -427,6 +429,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			else if ((code & KeyCode.PrevBookmarkShortcut) != 0)
 			{
 				FindNextBookmark(-1);
+			}
+			else if ((code & KeyCode.Escape) != 0)
+			{
+				HandleEscape();
 			}
 		}
 
@@ -827,12 +833,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		bool IViewModel.OnEscapeCmdKey()
 		{
-			if (quickSearchTextBoxPresenter.Text != "")
-			{
-				quickSearchTextBoxPresenter.Reset();
-				return true;
-			}
-			return false;
+			return HandleEscape();
 		}
 
 		void IViewModel.OnQuickSearchExitBoxKeyDown(KeyCode code)
@@ -1249,6 +1250,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			{
 				tagsListPresenter.Edit(triggerData.Tag);
 			}
+		}
+
+		bool HandleEscape()
+		{
+			if (quickSearchTextBoxPresenter.Text != "")
+			{
+				quickSearchTextBoxPresenter.Reset();
+				return true;
+			}
+			return false;
 		}
 
 		private void ZoomInternal(double mousePosX, int? delta, double? ddelta = null)

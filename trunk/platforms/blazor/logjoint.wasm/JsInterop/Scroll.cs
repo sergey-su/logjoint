@@ -22,5 +22,15 @@ namespace LogJoint.Wasm
         {
             ((IJSInProcessRuntime)jsRuntime).InvokeVoidAsync("logjoint.scroll.scrollLeftIntoView", element, targetX);
         }
+
+        public double GetScrollTop(ElementReference element)
+        {
+            return ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.scroll.getScrollTop", element);
+        }
+
+        public double GetScrollLeft(ElementReference element)
+        {
+            return ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.scroll.getScrollLeft", element);
+        }
     }
 }

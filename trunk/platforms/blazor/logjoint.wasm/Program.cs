@@ -33,6 +33,7 @@ namespace LogJoint.Wasm
         public UI.SourcesManagerViewProxy SourcesManagerViewProxy = new UI.SourcesManagerViewProxy();
         public UI.Postprocessing.ViewProxy PostprocessingTabPage = new UI.Postprocessing.ViewProxy();
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new UI.Postprocesssing.StateInspector.ViewProxy();
+        public UI.Postprocesssing.Timeline.ViewProxy PostprocesssingTimelineViewProxy = new UI.Postprocesssing.Timeline.ViewProxy();
         public UI.SearchPanelViewProxy SearchPanel;
         public UI.SearchResultViewProxy SearchResult;
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new UI.LogViewer.ViewProxy();
@@ -84,6 +85,7 @@ namespace LogJoint.Wasm
             Views.CreateSourcesListView().Returns(viewModel.SourcesListViewProxy);
             Views.CreatePostprocessingTabPage().Returns(viewModel.PostprocessingTabPage);
             Views.PostprocessingViewsFactory.CreateStateInspectorView().Returns(viewModel.PostprocesssingStateInspectorViewProxy);
+            Views.PostprocessingViewsFactory.CreateTimelineView().Returns(viewModel.PostprocesssingTimelineViewProxy);
             Views.CreatePreprocessingView().Returns(viewModel.PreprocessingUserInteractions);
             Views.CreateSearchPanelView().Returns(viewModel.SearchPanel);
             Views.CreateSearchResultView().Returns(viewModel.SearchResult);

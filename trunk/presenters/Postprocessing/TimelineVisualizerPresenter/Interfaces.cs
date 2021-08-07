@@ -23,6 +23,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		QuickSearchTextBox.IViewModel QuickSearchTextBox { get; }
+
 		void OnWindowShown();
 		void OnWindowHidden();
 
@@ -234,11 +236,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		FindCurrentTimeShortcut = 256,
 		NextBookmarkShortcut = 512,
 		PrevBookmarkShortcut = 1024,
+		Escape = 2048,
 
-		KeyMask = 0xff,
+		KeyMask = 0xffff,
 
-		Shift = 1024,
-		Ctrl = 2048
+		Shift = 65536,
+		Ctrl = 131072
 	};
 
 	public class CurrentActivityDrawInfo

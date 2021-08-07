@@ -26,7 +26,8 @@ namespace LogJoint.UI.Presenters.ToolsContainer
         None,
         StateInspector,
         MessageProperties,
-        SequenceDiagram
+        SequenceDiagram,
+        Timeline,
     }
 
     public struct ToolInfo
