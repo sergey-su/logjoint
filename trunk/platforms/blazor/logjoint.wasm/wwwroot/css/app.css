@@ -1067,6 +1067,7 @@ body {
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-evenly;
+    margin-top: 10px;
 }
 .alert>.buttons>button {
     margin: 2px 5px;
@@ -1489,4 +1490,7 @@ body {
 .source-properties-dialog>.form>.loaded.v {
     display: flex;
     flex-flow: row nowrap;
+}
+.source-properties-dialog>.form>.loaded.v>a {
+    margin-left: 10px;
 }

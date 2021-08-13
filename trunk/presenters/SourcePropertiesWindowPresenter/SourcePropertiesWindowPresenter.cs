@@ -142,11 +142,11 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			source.TrackingEnabled = !source.TrackingEnabled;
 		}
 
-		void IViewModel.OnStateDetailsLinkClicked()
+		async void IViewModel.OnStateDetailsLinkClicked()
 		{
 			string msg = getViewState().stateDetailsErrorMessage;
 			if (!string.IsNullOrEmpty(msg))
-				alerts.ShowPopup("Error details", msg, AlertFlags.Ok | AlertFlags.WarningIcon);
+				await alerts.ShowPopupAsync("Error details", msg, AlertFlags.Ok | AlertFlags.WarningIcon);
 		}
 
 		void IViewModel.OnFirstKnownMessageLinkClicked()
@@ -185,18 +185,18 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			}
 		}
 
-		void IViewModel.OnLoadedMessagesWarningIconClicked()
+		async void IViewModel.OnLoadedMessagesWarningIconClicked()
 		{
 			var loadedMessageWarningStatus = getViewState().loadedMessageWarningStatus;
 			var loadedMessagesWarningMessage = getViewState().loadedMessagesWarningMessage;
 			if (loadedMessageWarningStatus == LoadedMessageWarningStatus.Unfixable)
 			{
-				alerts.ShowPopup("Problem with the log", loadedMessagesWarningMessage, 
+				await alerts.ShowPopupAsync("Problem with the log", loadedMessagesWarningMessage, 
 					AlertFlags.Ok | AlertFlags.WarningIcon);
 			}
 			else if (loadedMessageWarningStatus == LoadedMessageWarningStatus.FixableByReordering)
 			{
-				if (alerts.ShowPopup("Problem with the log", loadedMessagesWarningMessage, 
+				if (await alerts.ShowPopupAsync("Problem with the log", loadedMessagesWarningMessage, 
 					AlertFlags.YesNoCancel | AlertFlags.QuestionIcon) == AlertFlags.Yes)
 				{
 					var cp = preprocessings.AppendReorderingStep(source.Provider.ConnectionParams, source.Provider.Factory);
