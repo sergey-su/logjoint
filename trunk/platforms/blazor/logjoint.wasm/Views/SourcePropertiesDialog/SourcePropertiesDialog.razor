@@ -38,9 +38,13 @@
         <div class="last_m l">Last known message:</div>
         <div class="last_m v"><a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnLastKnownMessageLinkClicked())">@viewState.LastMessageLinkLabel.Text</a></div>
         <div class="annotation l">Annotation:</div>
-        <div class="annotation v"><input value="@viewState.AnnotationTextBox.Text" @onchange="@(e => viewModel.OnChangeAnnotation(e.Value.ToString()))" @ref="AnnotationInputRef"/></div>
+        <div class="annotation v">
+            <input value="@viewState.AnnotationTextBox.Text" @oninput="@(e => viewModel.OnChangeAnnotation(e.Value.ToString()))" @onkeydown="HandleKeyDown" @ref="AnnotationInputRef"/>
+        </div>
         <div class="time-shift l">Time shift:</div>
-        <div class="time-shift v"><input value="@viewState.TimeOffsetTextBox.Text" @onchange="@(e => viewModel.OnChangeChangeTimeOffset(e.Value.ToString()))"/></div>
+        <div class="time-shift v">
+            <input value="@viewState.TimeOffsetTextBox.Text" @oninput="@(e => viewModel.OnChangeChangeTimeOffset(e.Value.ToString()))" @onkeydown="HandleKeyDown"/>
+        </div>
     </div>
     @if (colorPickerOptions != null)
     {
@@ -153,5 +157,13 @@
     {
         if (colorPickerOptions != null)
             HideColorPicker();
+    }
+
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            FireClosingEventAndClose();
+        }
     }
 }
