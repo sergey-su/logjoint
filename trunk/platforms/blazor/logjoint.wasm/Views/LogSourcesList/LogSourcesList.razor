@@ -11,6 +11,7 @@
           OnSelect="@(nodes => viewModel.OnSelectionChange(nodes.OfType<IViewItem>().ToArray()))"
           OnExpand="@(node => viewModel.OnItemExpand((IViewItem)node))"
           OnCollapse="@(node => viewModel.OnItemCollapse((IViewItem)node))"
+          OnDoubleClick="@(node => viewModel.OnEnterKeyPressed())"
           OnKeyDown="HandleKeyDown"
           NodeClass="log-sources-list-item">
     <NodeTemplate>
