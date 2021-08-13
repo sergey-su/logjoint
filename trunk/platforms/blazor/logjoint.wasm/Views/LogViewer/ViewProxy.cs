@@ -15,7 +15,7 @@ namespace LogJoint.Wasm.UI.LogViewer
             component?.SetViewModel(viewModel);
         }
 
-        float IView.DisplayLinesPerPage => (component?.DisplayLinesPerPage).GetValueOrDefault(0);
+        float IView.DisplayLinesPerPage => (component?.DisplayLinesPerPage).GetValueOrDefault(1);
 
         bool IView.HasInputFocus => (component?.HasInputFocus).GetValueOrDefault();
 
