@@ -29,9 +29,7 @@
                 @onpointermove="@(e => viewModel.OnMouseMove(GetMainElementHitTestResult(e), GetModifierKeys(e)))"
                 @onwheel="@(e => HandleWheel(GetMainElementHitTestResult(e), e.DeltaX, e.DeltaY, e.CtrlKey))"
             >
-            <div class="h captions" @ref="captionsHeaderElement">
-                <div class="tags"></div>
-                <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" Class="search-box"/>
+            <div class="h" @ref="captionsHeaderElement">
             </div>
             <div class="sep" @ref="separatorElement" style="@(GetSeparatorStyle())"></div>
             <div class="h ruler" @ref="rulerElement"
@@ -67,6 +65,10 @@
                 </div>
             }
         </div>
+        <div class="captions">
+            <div class="tags"></div>
+            <QuickSearchTextBox ViewModel="@viewModel.QuickSearchTextBox" Class="search-box"/>
+        </div>
         <div class="main-overlay">
             @foreach (RulerMarkDrawInfo mark in viewModel.RulerMarksDrawInfo(DrawScope.VisibleRange))
             {
@@ -94,11 +96,15 @@
                         <div class="text">@measurer.Text</div>
                     }
                 </div>
-            }            @if (viewModel.NoContentMessageVisibile)            {                <div class="empty">Nothing is visible<br />
+            }
+            @if (viewModel.NoContentMessageVisibile)
+            {
+                <div class="empty">Nothing is visible<br />
                     Search <a href="#" @onclick:preventDefault @onclick=@(e => viewModel.OnNoContentLinkClicked(true))>&lt;&lt;left</a>.
                     Search <a href="#" @onclick:preventDefault @onclick=@(e => viewModel.OnNoContentLinkClicked(false))>right&gt;&gt;</a>.
                 </div>
-            }        </div>
+            }
+        </div>
     </div>
     <div class="footer">
         @{var curr = viewModel.CurrentActivity;}

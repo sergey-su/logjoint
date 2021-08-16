@@ -66,7 +66,8 @@ namespace LogJoint.Postprocessing.Timeline
 					));
 				}
 
-				inspectedObject.Tags.UnionWith(propertyChange.Tags);
+				if (propertyChange.Tags != null)
+					inspectedObject.Tags.UnionWith(propertyChange.Tags);
 
 				if (propertyChange.ObjectType.CommentPropertyName != null
 				 && inspectedObject.DisplayId == null
@@ -91,7 +92,7 @@ namespace LogJoint.Postprocessing.Timeline
 				inspectedObjects[evt.ObjectId] = obj = new InspectedObject()
 				{
 					Id = evt.ObjectId,
-					Tags = new HashSet<string>(evt.Tags)
+					Tags = evt.Tags != null ? new HashSet<string>(evt.Tags) : new HashSet<string>()
 				};
 			}
 			return obj;

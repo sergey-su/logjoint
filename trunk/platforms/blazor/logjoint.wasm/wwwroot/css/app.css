@@ -1508,6 +1508,7 @@ body {
 }
 .timeline-visualizer {
     --captions-width: 130px;
+    --header-height: 50px;
     --separator-width: 5px;
 }
 .timeline-visualizer .toolbar {
@@ -1515,10 +1516,9 @@ body {
     flex-flow: row nowrap;
     white-space: nowrap;
     overflow: hidden;
+    background-color: var(--control-face-background);
 }
 .timeline-visualizer .toolbar>a {
-    display: flex;
-    flex-flow: row nowrap;
     margin: 0 7px;
     padding-left: 13px;
     background-repeat: no-repeat;
@@ -1546,10 +1546,11 @@ body {
     background-color: var(--control-face-background);
     position: relative;
     overflow: hidden;
+    border: 1px solid gray;
 }
 .timeline-visualizer .nav>.slider {
     position: absolute;
-    top: 1px;
+    top: 2px;
     left: 0;
     right: 30%;
     background: white;
@@ -1565,7 +1566,7 @@ body {
     background: var(--control-face-background);
     cursor: ew-resize;
     border: solid 1px gray;
-    top: 1px;
+    top: 2px;
     bottom: 2px;
 }
 .timeline-visualizer .main-container {
@@ -1675,8 +1676,9 @@ body {
 .timeline-visualizer .main>.h {  /* sticky header */
     position: sticky;
     top: 0;
-    height: 50px;
+    height: var(--header-height);
     z-index: 1;
+    background-color: white;
 }
 .timeline-visualizer .main>.sep {
     background: var(--resizable-separator-background);
@@ -1687,18 +1689,18 @@ body {
     grid-column: 2;
     grid-row: 1 / 2;
 }
-.timeline-visualizer .main>.h.captions {
+.timeline-visualizer .captions {
     display: flex;
     flex-flow: column nowrap;
     background-color: var(--control-face-background);
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: var(--header-height);
+    width: var(--captions-width);
 }
-.timeline-visualizer .main>.h.captions>.tags {
+.timeline-visualizer .captions>.tags {
     flex-grow: 2;
-}
-.timeline-visualizer .main>.h.ruler {
-    display: flex;
-    flex-flow: column nowrap;
-    background-color: white;
 }
 .timeline-visualizer .main>.c {  /* activity caption */
     height: var(--item-height);
