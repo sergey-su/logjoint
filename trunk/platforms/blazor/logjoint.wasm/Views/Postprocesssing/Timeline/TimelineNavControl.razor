@@ -1,0 +1,38 @@
+@namespace LogJoint.Wasm.UI.Postprocessing
+@inject JsInterop jsInterop
+@using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
+
+<div class=@Class style=@Style @ref="element"
+    @onmousedown="@(e => ViewModel.OnMouseDown(GetHitTestResult(e, HitTestResult.AreaCode.NavigationPanelThumb), KeyCode.None, e.Detail > 1))"
+    @onmousedown:stopPropagation
+    @onmouseup="@(e => ViewModel.OnMouseUp(GetHitTestResult(e, HitTestResult.AreaCode.NavigationPanelThumb)))"
+    @onmouseup:stopPropagation
+    @onpointermove="@(e => ViewModel.OnMouseMove(GetHitTestResult(e, HitTestResult.AreaCode.NavigationPanelThumb), KeyCode.None))"
+    @onpointermove:stopPropagation
+>
+</div>
+
+@code {
+    private ElementReference element;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public string Style { get; set; } = "";
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+    [Parameter]
+    public HitTestResult.AreaCode Area { get; set; }
+
+    [Parameter]
+    public Func<double, double> GetRelativeX { get; set; }
+
+    HitTestResult GetHitTestResult(MouseEventArgs e, HitTestResult.AreaCode area)
+    {
+        var navX = e.OffsetX + jsInterop.Layout.GetElementOffsetLeft(element);
+        return new HitTestResult(Area, GetRelativeX(navX));
+    }
+}

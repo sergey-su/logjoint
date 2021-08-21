@@ -1660,6 +1660,8 @@ body {
     background: lightyellow;
     padding: 10px;
     border: 1px solid gray;
+}
+.timeline-visualizer .main-overlay>.empty>a {
     pointer-events: all;
 }
 .timeline-visualizer .main>.a {

@@ -15,11 +15,16 @@
         <a class="zi" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomInButtonClicked())">zoom in</a>
         <a class="zo" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomOutButtonClicked())">zoom out</a>
     </div>
-    <div class="nav">
+    <div class="nav"
+            @ref="navElement"
+            @onmousedown="@(e => viewModel.OnMouseDown(GetNavElementHitTestResult(e, HitTestResult.AreaCode.NavigationPanel), GetModifierKeys(e), e.Detail > 1))"
+            @onmouseup="@(e => viewModel.OnMouseUp(GetNavElementHitTestResult(e, HitTestResult.AreaCode.NavigationPanel)))"
+            @onpointermove="@(e => viewModel.OnMouseMove(GetNavElementHitTestResult(e, HitTestResult.AreaCode.NavigationPanel), GetModifierKeys(e)))"
+    >
         @{NavigationPanelDrawInfo nav = viewModel.NavigationPanelDrawInfo;}
-        <div class="slider" style=@GetNavSliderStyle(nav)></div>
-        <div class="handle l" style=@GetLeftNavHandleStyle(nav)></div>
-        <div class="handle r" style=@GetRightNavHandleStyle(nav)></div>
+        <TimelineNavControl Class="slider" Style=@GetNavSliderStyle(nav) ViewModel=@viewModel Area=@HitTestResult.AreaCode.NavigationPanelThumb GetRelativeX=@GetNavControlRelaiveX/>
+        <TimelineNavControl Class="handle l" Style=@GetLeftNavHandleStyle(nav) ViewModel=@viewModel Area=@HitTestResult.AreaCode.NavigationPanelResizer1 GetRelativeX=@GetNavControlRelaiveX/>
+        <TimelineNavControl Class="handle r" Style=@GetRightNavHandleStyle(nav) ViewModel=@viewModel Area=@HitTestResult.AreaCode.NavigationPanelResizer2 GetRelativeX=@GetNavControlRelaiveX/>
     </div>
     <div class="main-container">
         <div class="main nice-scroll" tabindex="0" @ref="mainElement"
@@ -149,7 +154,7 @@
     private const int minAllowedDistanceBetweenMarks = 40;
     private RulerMetrics activitiesViewRulerMetrics = new RulerMetrics { Width = 0, MinAllowedDistanceBetweenMarks = minAllowedDistanceBetweenMarks };
     private RulerMetrics navigationViewRulerMetrics = new RulerMetrics { Width = 0, MinAllowedDistanceBetweenMarks = minAllowedDistanceBetweenMarks };
-    private ElementReference separatorElement, rulerElement, mainElement, captionsHeaderElement, rootElement;
+    private ElementReference separatorElement, rulerElement, mainElement, captionsHeaderElement, rootElement, navElement;
     private IAsyncDisposable resizeObserverHandle;
     private IDisposable resizeHandler;
     private double rulerElementLeft;
@@ -176,6 +181,20 @@
         if (activityIndex < 0)
             return new HitTestResult(HitTestResult.AreaCode.RulersPanel, relativeX);
         return new HitTestResult();
+    }
+
+    HitTestResult GetNavElementHitTestResult(MouseEventArgs e, HitTestResult.AreaCode area)
+    {
+        if (navigationViewRulerMetrics.Width == 0)
+            return new HitTestResult();
+        return new HitTestResult(area, e.OffsetX / navigationViewRulerMetrics.Width);
+    }
+
+    double GetNavControlRelaiveX(double x)
+    {
+        if (navigationViewRulerMetrics.Width == 0)
+            return 0;
+        return x / navigationViewRulerMetrics.Width;
     }
 
     HitTestResult GetRulerElementHitTestResult(MouseEventArgs e)
@@ -325,6 +344,7 @@
         {
             await jsRuntime.InvokeVoidAsync("logjoint.timelineVisualizer.addDefaultPreventingWheelHandler", mainElement);
             await jsRuntime.InvokeVoidAsync("logjoint.timelineVisualizer.setMouseCapturingHandler", mainElement);
+            await jsRuntime.InvokeVoidAsync("logjoint.mouse.setMouseCapturingHandler", navElement);
             rowHeight = int.Parse(Regex.Match(jsInterop.Style.GetComputedStyle(mainElement, "--item-height"),
                 @"\s*(\d+)px").Groups[1].Value);
             resizeObserverHandle = await jsInterop.Resize.ObserveResize(rulerElement, () =>
@@ -333,6 +353,7 @@
                 rulerElementHeight = jsInterop.Layout.GetElementHeight(rulerElement);
                 rulerElementLeft = jsInterop.Layout.GetElementOffsetLeft(rulerElement) -
                     jsInterop.Layout.GetElementOffsetLeft(mainElement);
+                navigationViewRulerMetrics.Width = (int)jsInterop.Layout.GetElementWidth(navElement);
                 viewModel?.ChangeNotification?.Post();
             });
             resizeHandler = await jsInterop.Resize.InitResizer(separatorElement, captionsHeaderElement,
