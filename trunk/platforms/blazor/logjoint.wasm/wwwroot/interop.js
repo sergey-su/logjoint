@@ -309,7 +309,13 @@
                 document.documentElement.addEventListener('mouseup', stopResize, false);
             };
 
+            const captureMouse = (e) => {
+                element.setPointerCapture(e.pointerId);
+                e.stopPropagation();
+            }
+
             resizer.addEventListener('mousedown', startResize, false);
+            resizer.addEventListener('pointerdown', captureMouse, false);
         },
 
         initEWResizer: function (resizer, target, inverse, relativeToParent, setter) {
