@@ -624,6 +624,10 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.si-node>.f {
+    width: 5px;
+    background: center / contain no-repeat var(--focused-message-image-bordered);
+}
 .node:not(.selected) .si-node>.p {
     color: gray;
 }

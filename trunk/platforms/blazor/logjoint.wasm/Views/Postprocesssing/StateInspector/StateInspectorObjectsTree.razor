@@ -16,6 +16,10 @@
                 paintInfo.Coloring == NodeColoring.Alive ? "l" : 
                 paintInfo.Coloring == NodeColoring.Deleted ? "d" : 
                 ""; }
+            @if (paintInfo.DrawFocusedMsgMark)
+            {
+                <span class="f"></span>
+            }
             <span class="n @coloringClass">@context.ToString()</span>
             @if (!string.IsNullOrEmpty(paintInfo.PrimaryPropValue))
             {
