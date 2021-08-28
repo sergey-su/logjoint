@@ -30,7 +30,10 @@ namespace LogJoint.Postprocessing.Timeline
 		{
 			if (inspectedObjectsFilter(objectCreation))
 			{
-				EnsureInspectedObjectExists(objectCreation, forceOverwrite: true).CreationTrigger = objectCreation.Trigger;
+				InspectedObject inspectedObject = EnsureInspectedObjectExists(objectCreation, forceOverwrite: true);
+				inspectedObject.CreationTrigger = objectCreation.Trigger;
+				if (!string.IsNullOrEmpty(objectCreation.DisplayName))
+					inspectedObject.DisplayName = objectCreation.DisplayName;
 			}
 		}
 
@@ -109,13 +112,14 @@ namespace LogJoint.Postprocessing.Timeline
 		{
 			public string Id;
 			public string DisplayId;
+			public string DisplayName;
 			public HashSet<string> Tags;
 			public object CreationTrigger;
 			public List<Timeline.Event> Milestones = new List<Event>();
 
 			public string MakeActivityDisplayName()
 			{
-				var ret = Id;
+				var ret = DisplayName ?? Id;
 				if (!string.IsNullOrEmpty(DisplayId))
 					ret += " (" + DisplayId + ")";
 				return ret;
