@@ -7,7 +7,8 @@
               ChangeNotification="@ViewModel.ChangeNotification"
               OnSelect="@(nodes => ViewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray()))"
               OnExpand="@(node => ViewModel.OnExpandNode(node as IObjectsTreeNode))"
-              OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))">
+              OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))"
+              OnKeyDown="HandleKeyDown">
         <NodeTemplate>
             @{var node = (IObjectsTreeNode)context;}
             @{var paintInfo = PaintNode(node, getPrimaryPropValue: true);}
@@ -41,4 +42,10 @@
 
     [Parameter]
     public PaintNodeDelegate PaintNode { get; set; }
+
+    void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.ITreeNode node)
+    {
+        if (eventArgs.Key == "Delete" || eventArgs.Key == "Backspace")
+            ViewModel.OnNodeDeleteKeyPressed();
+    }
 }
