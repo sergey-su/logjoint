@@ -23,7 +23,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			IPresentersFacade presentersFacade,
 			IUserNamesProvider userNamesProvider,
 			IChangeNotification parentChangeNotification,
-			IColorTheme theme
+			IColorTheme theme,
+			ToolsContainer.IPresenter toolsContainerPresenter
 		)
 		{
 			this.model = model;
@@ -36,6 +37,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			this.bookmarks = bookmarks;
 			this.userNamesProvider = userNamesProvider;
 			this.theme = theme;
+			this.toolsContainerPresenter = toolsContainerPresenter;
 			this.unfinishedActivitiesFolded = true;
 
 			var getAvailableTags = Selectors.Create(() => model.Activities, activities => ImmutableHashSet.CreateRange(activities.SelectMany(a => a.Tags)));
@@ -846,7 +848,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void IPostprocessorVisualizerPresenter.Show()
 		{
-			view.Show();
+			if (IsBrowser.Value && toolsContainerPresenter != null)
+				toolsContainerPresenter.ShowTool(ToolsContainer.ToolKind.Timeline);
+			else
+				view.Show();
 		}
 
 		void IPresenter.Navigate(TimeSpan t1, TimeSpan t2)
@@ -1574,6 +1579,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly Func<FocusedMessageDrawInfo> getVisibleRangeFocusedMessageDrawInfo;
 		readonly Func<MeasurerDrawInfo> getMeasurerDrawInfo;
 		readonly IColorTheme theme;
+		readonly ToolsContainer.IPresenter toolsContainerPresenter;
 		DateTime origin;
 		SpanRange availableRange = new SpanRange(TimeSpan.Zero, TimeSpan.Zero);
 		SpanRange visibleRange = new SpanRange(TimeSpan.Zero, TimeSpan.Zero);

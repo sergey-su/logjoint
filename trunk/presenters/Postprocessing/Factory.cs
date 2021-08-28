@@ -103,7 +103,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 					presentersFacade,
 					shortNames,
 					changeNotification,
-					colorTheme
+					colorTheme,
+					toolsContainerPresenter
 				);
 			});
 
