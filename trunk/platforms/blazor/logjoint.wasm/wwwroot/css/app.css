@@ -506,6 +506,15 @@ body {
 
 
 
+.tree>.node>.contents .annotation {
+    margin-right: 10px;
+    background: yellow;
+}
+.tree>.node.selected>.contents .annotation {
+    background: inherit;
+    color: yellow;
+}
+
 
 .postprocessings-tabpage {
     display: flex;
