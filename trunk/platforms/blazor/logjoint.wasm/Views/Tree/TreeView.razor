@@ -4,7 +4,7 @@
 @using System.Collections.Generic
 @using System.Collections.Immutable
 
-<div class="tree nice-scroll @Class" @ref="TreeRef" @onkeydown="HandleKeyDown">
+<div class="tree nice-scroll @Class" @ref="TreeRef" @onkeydown="HandleKeyDown" @onclick="@(e => TrySelectNode(-1, false))">
     @{var nodeIndex = 0;}
     @foreach (var node in getDisplayNodes())
     {
@@ -167,6 +167,10 @@
             {
                 OnSelect?.Invoke(new[] { node });
             }
+        }
+        else
+        {
+            OnSelect?.Invoke(new ITreeNode[0]);
         }
     }
 
