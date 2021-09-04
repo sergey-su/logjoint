@@ -310,7 +310,7 @@
             };
 
             const captureMouse = (e) => {
-                element.setPointerCapture(e.pointerId);
+                resizer.setPointerCapture(e.pointerId);
                 e.stopPropagation();
             }
 
