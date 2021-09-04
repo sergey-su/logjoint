@@ -21,7 +21,13 @@
         {
             <input type="checkbox" checked="@item.Checked" @oninput="@(e => viewModel.OnItemCheck(item, e.Value is bool x && x))" />
         }
-        <span style="background-color: @GetBackgroundColor(item)">@item.ToString()</span>
+        <span style="background-color: @GetBackgroundColor(item)">
+            @if (!string.IsNullOrEmpty(item.Annotation))
+            {
+                <span class="annotation">@item.Annotation</span>
+            }
+            @item.Description
+        </span>
     </NodeTemplate>
 </TreeView>
 

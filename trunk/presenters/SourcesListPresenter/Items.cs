@@ -8,7 +8,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 	abstract class ViewItem : IViewItem
 	{
 		public bool? Checked;
-		public string Description;
+		public string Description, Annotation, CombinedDescription;
 		public Color ItemColor;
 		public bool IsFailed;
 		public bool IsSelected;
@@ -23,12 +23,14 @@ namespace LogJoint.UI.Presenters.SourcesList
 		bool? IViewItem.Checked => Checked;
 		(Color, bool) IViewItem.Color => (ItemColor, IsFailed);
 		IViewItem IViewItem.Parent => Parent;
+		string IViewItem.Description => Description;
+		string IViewItem.Annotation => Annotation;
 
 		public abstract string GetKey();
 		public abstract IReadOnlyList<Reactive.ITreeNode> GetChildren();
 		public virtual bool GetIsExpanded() => false;
 
-		public override string ToString() => Description;
+		public override string ToString() => CombinedDescription;
 
 		public static IEnumerable<Reactive.ITreeNode> Flatten(Reactive.ITreeNode root)
 		{
@@ -79,5 +81,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		bool Reactive.ITreeNode.IsSelected => false;
 		bool Reactive.ITreeNode.IsExpandable => true;
 		IViewItem IViewItem.Parent => null;
+		string IViewItem.Description => "";
+		string IViewItem.Annotation => "";
 	};
 };

@@ -364,7 +364,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				};
 				LogProviderStats stats = s.Provider.Stats;
 				itemData.Checked = s.Visible;
-				itemData.Description = GetLogSourceDescription (s, stats);
+				GetLogSourceDescription (s, stats, itemData);
 				itemData.IsFailed = stats.Error != null;
 				itemData.ItemColor = stats.Error != null ? failedSourceColor : themeColors.GetByIndex(s.ColorIndex);
 				yield return itemData;
@@ -447,18 +447,17 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 		}
 
-		static string GetLogSourceDescription (ILogSource s, LogProviderStats stats)
+		static void GetLogSourceDescription (ILogSource s, LogProviderStats stats, ViewItem item)
 		{
 			StringBuilder msg = new StringBuilder();
-			string annotation = "";
-			if (!string.IsNullOrWhiteSpace (s.Annotation))
-				annotation = s.Annotation + "    ";
+			bool appendAnnotation = false;
 			switch (stats.State) {
 			case LogProviderState.NoFile:
 				msg.Append ("(No trace file)");
 				break;
 			case LogProviderState.DetectingAvailableTime:
-				msg.AppendFormat ("{1} {0}: processing...", s.DisplayName, annotation);
+				appendAnnotation = true;
+				msg.AppendFormat ("{0}: processing...", s.DisplayName);
 				break;
 			case LogProviderState.LoadError:
 				msg.AppendFormat (
@@ -468,9 +467,11 @@ namespace LogJoint.UI.Presenters.SourcesList
 				break;
 			case LogProviderState.Idle:
 				if (stats.BackgroundAcivityStatus == LogProviderBackgroundAcivityStatus.Active) {
-					msg.AppendFormat ("{1}{0}: processing", s.DisplayName, annotation);
+					appendAnnotation = true;
+					msg.AppendFormat ("{0}: processing", s.DisplayName);
 				} else {
-					msg.AppendFormat ("{1}{0}", s.DisplayName, annotation);
+					appendAnnotation = true;
+					msg.AppendFormat ("{0}", s.DisplayName);
 					if (stats.TotalBytes != null) {
 						msg.Append (" (");
 						StringUtils.FormatBytesUserFriendly (stats.TotalBytes.Value, msg);
@@ -479,7 +480,16 @@ namespace LogJoint.UI.Presenters.SourcesList
 				}
 				break;
 			}
-			return msg.ToString();
+
+			item.Description = msg.ToString();
+
+			item.Annotation = "";
+			if (!string.IsNullOrWhiteSpace (s.Annotation))
+				item.Annotation = s.Annotation;
+
+			item.CombinedDescription = item.Description;
+			if (appendAnnotation)
+				item.CombinedDescription = item.Annotation + "    " + item.Description;
 		}
 
 		ILogSource GetSingleSelectedLogSource()

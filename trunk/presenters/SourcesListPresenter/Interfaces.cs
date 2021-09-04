@@ -27,6 +27,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 		bool? Checked { get; }
 		(Color value, bool isFailureColor) Color { get; }
 		IViewItem Parent { get; }
+		string Description { get; }
+		string Annotation { get; }
 	};
 
 	[Flags]
