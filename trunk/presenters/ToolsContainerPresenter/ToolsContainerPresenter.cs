@@ -12,7 +12,7 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 		bool isVisible = true;
 		double? size = null;
 		int selectedToolIndex = 0;
-		IReadOnlyList<ToolKind> availableTools = new[] { ToolKind.StateInspector, ToolKind.MessageProperties, ToolKind.Timeline };
+		IReadOnlyList<ToolKind> availableTools = new[] { ToolKind.MessageProperties, ToolKind.StateInspector, ToolKind.Timeline };
 		readonly Func<IReadOnlyList<ToolInfo>> availableToolsInfo;
 
 		public Presenter(IChangeNotification changeNotification)
@@ -90,7 +90,7 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 				case ToolKind.StateInspector:
 					return new ToolInfo { Kind = kind, Name = "StateInspector", Tooltip = null };
 				case ToolKind.MessageProperties:
-					return new ToolInfo { Kind = kind, Name = "Message properties", Tooltip = null };
+					return new ToolInfo { Kind = kind, Name = "Log message", Tooltip = null };
 				case ToolKind.Timeline:
 					return new ToolInfo { Kind = kind, Name = "Timeline", Tooltip = null };
 				default:

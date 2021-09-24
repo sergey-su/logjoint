@@ -17,11 +17,11 @@
         </div>
         @switch (viewModel.AvailableTools[viewModel.SelectedToolIndex].Kind)
         {
-            case ToolKind.StateInspector:
-                <LogJoint.Wasm.UI.Postprocessing.StateInspector Class='body' />
-                break;
             case ToolKind.MessageProperties:
                 <MessageProperties Class='body' />
+                break;
+            case ToolKind.StateInspector:
+                <LogJoint.Wasm.UI.Postprocessing.StateInspector Class='body' />
                 break;
             case ToolKind.SequenceDiagram:
                 <LogJoint.Wasm.UI.Postprocessing.SequenceDiagram Class='body' />
