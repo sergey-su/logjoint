@@ -13,7 +13,10 @@
         @{var bookmarkState = viewState.ToggleBookmark;}
         <button class='bookmark' @onclick="@(viewModel.OnToggleBookmark)" hidden="@(!bookmarkState.Visible)" title="@bookmarkState.Tooltip"></button>
         @{var rawModeState = viewState.RawViewButton;}
-        <button class='raw-view @(rawModeState.Checked ? "checked" : "")' @onclick="@(viewModel.OnToggleRawView)" hidden="@(!rawModeState.Visible)" title="@rawModeState.Tooltip">raw log</button>
+        <label class="raw-view" title="@rawModeState.Tooltip" hidden="@(!rawModeState.Visible)">
+            <input type="checkbox" checked="rawModeState.Checked" @onchange="@(e => viewModel.OnToggleRawView())"/>
+            <span>raw log</span>
+        </label>
         @{var coloringState = viewState.Coloring;}
         <span hidden="@(!coloringState.Visible)">
             coloring:

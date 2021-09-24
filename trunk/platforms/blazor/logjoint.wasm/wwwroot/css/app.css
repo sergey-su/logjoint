@@ -375,6 +375,7 @@ body {
 }
 .loaded-messages>.toolbar {
     padding-bottom: 3px;
+    user-select: none;
 }
 .loaded-messages>.toolbar>* {
     margin: 0px 6px;
@@ -389,13 +390,9 @@ body {
     background: center / 0.8em no-repeat var(--bookmark-image);
     width: 2em;
 }
-.loaded-messages .raw-view {
-    background: var(--control-face-background);
-    padding: 0px 8px;
-}
-.loaded-messages .raw-view.checked {
-    background: var(--selected-item-background-color);
-    color: var(--selected-item-color);
+.loaded-messages .raw-view>span {
+    position: relative;
+    top: -2px;
 }
 
 
