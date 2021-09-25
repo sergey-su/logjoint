@@ -12,7 +12,7 @@
         },
         getElementScrollerHeight(e) {
             const style = document.defaultView.getComputedStyle(e, '::-webkit-scrollbar');
-            return style ? parseInt(style.height, 10) : 0;
+            return (style && style.height) ? parseInt(style.height, 10) : 0;
         },
         getElementOffsetTop: function (e) {
             return e.offsetTop;

@@ -1629,10 +1629,7 @@ body {
     background-color: lightyellow;
     border: 1px solid gray;
     padding: 0 3px;
-    max-width: 90%;
-    text-overflow: ellipsis;
     white-space: pre;
-    overflow: hidden;
     text-align: center;
 }
 .timeline-visualizer .main-overlay>.r {
