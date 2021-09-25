@@ -88,6 +88,8 @@ namespace LogJoint.Postprocessing.StateInspector
 				return null;
 			if (lastPC.ValueType == ValueType.UserHash)
 				return shortNames.GetShortNameForUserHash(lastPC.Value);
+			if (lastPC.ValueType == ValueType.Reference && owner.TryGetDisplayName(lastPC.Value, out var displayName))
+				return displayName;
 			return lastPC.Value;
 		}
 
