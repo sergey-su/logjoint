@@ -450,10 +450,15 @@ namespace LogJoint.UI
 			return preferredFamilies;
 		}
 
+		/// <summary>
+		/// Get the font name directly comparable to the names
+		/// that <see cref="CreateWindowsPreferredFontFamiliesList"/> returns.
+		/// </summary>
+		static string GetNormalizedFontName(FontFamily f) => f.GetName(1033).ToLower();
+
 		static string[] GetAvailablePreferredFontFamilies()
 		{
-			var LANG_ENGLISH = 0x09; // from winnt.h
-			var availableFamilies = FontFamily.Families.ToLookup(f => f.GetName(LANG_ENGLISH).ToLower());
+			var availableFamilies = FontFamily.Families.ToLookup(GetNormalizedFontName);
 			return CreateWindowsPreferredFontFamiliesList().Where(f => availableFamilies[f.ToLower()].Any()).ToArray();
 		}
 
@@ -481,7 +486,8 @@ namespace LogJoint.UI
 			var installedFamilies = FontFamily.Families;
 			foreach (var candidate in preferredFamilies)
 			{
-				var installedFamily = installedFamilies.FirstOrDefault(f => string.Compare(f.Name, candidate, true) == 0);
+				var installedFamily = installedFamilies.FirstOrDefault(
+					f => string.Compare(GetNormalizedFontName(f), candidate, true) == 0);
 				if (installedFamily != null)
 					return installedFamily;
 			}
