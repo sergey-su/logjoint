@@ -617,7 +617,7 @@
             const handler = evt => {
                 for (let e = evt.target; e && e != mainElement; e = e.parentElement) {
                     if (e.className.includes("t")) {
-                        return; // excluded from pointer capturing
+                        return; // triggers are excluded from pointer capturing
                     }
                 }
                 mainElement.setPointerCapture(evt.pointerId);

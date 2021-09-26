@@ -1718,6 +1718,12 @@ body {
     text-overflow: ellipsis;
     pointer-events: none;
 }
+.timeline-visualizer .main>.c.err {
+    color: red;
+}
+.timeline-visualizer .main>.c.err.selected {
+    color: #F5B7B1;
+}
 .timeline-visualizer .main>.c>.hl {
     background-color: yellow;
 }
@@ -1728,22 +1734,46 @@ body {
     position: absolute;
     top: 2px;
     height: 10px;
-    background-color: salmon; /* todo: color to depend on type */
     border-radius: 3px;
     border: 0.5px solid gray;
+    background-color: lightgray;
+    overflow: hidden;
+}
+.timeline-visualizer .main>.a>.bar.life {
+    background-color: lightgreen;
+}
+.timeline-visualizer .main>.a>.bar.net {
+    background-color: salmon;
+}
+.timeline-visualizer .main>.a>.bar.proc {
+    background-color: lightblue;
 }
 .timeline-visualizer .main>.a>.bar>.t {
     position: absolute;
     height: 100%;
-    width: 4px;
     pointer-events: all;
     cursor: pointer;
 }
 .timeline-visualizer .main>.a>.bar>.bt {
+    width: 4px;
     left: 0;
 }
 .timeline-visualizer .main>.a>.bar>.et {
+    width: 4px;
     right: 0;
+}
+.timeline-visualizer .main>.a>.bar>.mt {
+    width: 0px;
+}
+.timeline-visualizer .main>.a>.bar>.mt::before {
+    content: " ";
+    white-space: pre;
+    display: block;
+    position: relative;
+    left: -2px;
+    width: 3px;
+    height: 100%;
+    background-color: rgba(70, 130, 180, 0.7);
 }
 .timeline-visualizer .main>.a>.phase {
     position: absolute;

@@ -48,7 +48,9 @@
             {
                 var backgroundStyle = GetActivityBackgroundStyle(a);
                 var selectedClass = a.IsSelected ? "selected" : "";
-                <div class="c @selectedClass" style=@backgroundStyle>
+                var activityTypeClass = GetActivityTypeClass(a);
+                var errorClass = a.IsError ? "err" : "";
+                <div class="c @selectedClass @errorClass" style=@backgroundStyle>
                     @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(a.Caption, new []{ (a.CaptionSelectionBegin, a.CaptionSelectionBegin + a.CaptionSelectionLength, viewModel) }))
                     {
                         var classes = segment.data != null ? "hl" : "";
@@ -56,7 +58,15 @@
                     }
                 </div>
                 <div class="a @selectedClass" style=@backgroundStyle>
-                    <div class="bar" style="@(GetActivityBarStyle(a))">
+                    <div class="bar @activityTypeClass" style="@(GetActivityBarStyle(a))">
+                        @if (a.MilestonesCount > 0)
+                        {
+                            @foreach (var m in a.Milestones)
+                            {
+                                <div class="t mt" style="@(GetActivityMilestoneStyle(a, m))" title=@m.Caption
+                                    @onclick=@(e => viewModel.OnActivityTriggerClicked(m.Trigger))></div>
+                            }
+                        }
                         <div class="t bt" @onclick="@(e => viewModel.OnActivityTriggerClicked(a.BeginTrigger))"></div>
                         <div class="t et" @onclick="@(e => viewModel.OnActivityTriggerClicked(a.EndTrigger))"></div>
                     </div>
@@ -213,6 +223,13 @@
         return string.Format("left: {0:0.00}%; width: {1:0.00}%", phase.X1*100, (phase.X2-phase.X1)*100);
     }
 
+    static string GetActivityMilestoneStyle(ActivityDrawInfo a, ActivityMilestoneDrawInfo m)
+    {
+        if (a.X2 < a.X1)
+            return "left: -10px;";
+        return string.Format("left: {0:0.00}%;", 100.0 * (m.X - a.X1)/(a.X2 - a.X1));
+    }
+
     static string GetNavSliderStyle(NavigationPanelDrawInfo nav)
     {
         return string.Format("left: {0:0.00}%; width: {1:0.00}%", nav.VisibleRangeX1*100, (nav.VisibleRangeX2-nav.VisibleRangeX1)*100);
@@ -235,6 +252,17 @@
                 a.Color.HasValue ? LogJoint.Drawing.ColorExtensions.ToHtmlColor(a.Color.Value) : "white"
             );
         return "";
+    }
+
+    static string GetActivityTypeClass(ActivityDrawInfo a)
+    {
+        switch (a.Type)
+        {
+            case ActivityDrawType.Lifespan: return "life";
+            case ActivityDrawType.Networking: return "net";
+            case ActivityDrawType.Procedure: return "proc";
+            default: return "";
+        }
     }
 
     string GetSeparatorStyle()
