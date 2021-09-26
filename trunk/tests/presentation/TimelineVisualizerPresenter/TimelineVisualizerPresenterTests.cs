@@ -64,7 +64,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				presentersFacade,
 				userNamesProvider,
 				changeNotification,
-				theme
+				theme,
+				null
 			);
 		}
 

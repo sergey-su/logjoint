@@ -387,6 +387,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				itemData.Description = pls.CurrentStepDescription;
 				if (pls.Failure != null)
 					itemData.Description = string.Format("{0}. Error: {1}", itemData.Description, pls.Failure.Message);
+				itemData.CombinedDescription = itemData.Description;
 				itemData.ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor;
 				itemData.IsFailed = pls.Failure != null;
 				yield return itemData;
@@ -419,6 +420,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 					};
 					item.LogSources = groupSources;
 					item.Description = string.Format("{0} ({1} logs)", containerGroup.Key, groupSources.Length);
+					item.CombinedDescription = item.Description;
 					item.ItemColor = groupSources[0].ItemColor;
 					item.Checked = groupSources.All(s => s.Checked.GetValueOrDefault());
 					item.IsExpanded = expanded.Contains(item.GetKey());
