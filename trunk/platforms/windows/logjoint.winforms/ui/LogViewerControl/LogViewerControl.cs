@@ -443,7 +443,8 @@ namespace LogJoint.UI
 				"pragmatapro",
 				"source code pro",
 				"droid sans mono",
-				"hack"
+				"hack",
+				"nsimsun"
 			};
 			return preferredFamilies;
 		}
