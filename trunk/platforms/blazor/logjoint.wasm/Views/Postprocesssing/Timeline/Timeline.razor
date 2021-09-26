@@ -63,12 +63,22 @@
                         {
                             @foreach (var m in a.Milestones)
                             {
-                                <div class="t mt" style="@(GetActivityMilestoneStyle(a, m))" title=@m.Caption
-                                    @onclick=@(e => viewModel.OnActivityTriggerClicked(m.Trigger))></div>
+                                <div class="t mt" 
+                                    style="@(GetActivityMilestoneStyle(a, m))"
+                                    title=@m.Caption
+                                    @onclick=@(e => viewModel.OnActivityTriggerClicked(m.Trigger))
+                                    @onwheel=@(e => HandleWheel(new HitTestResult(HitTestResult.AreaCode.Activity, m.X, a.Index),
+                                        e.DeltaX, e.DeltaY, e.CtrlKey))></div>
                             }
                         }
-                        <div class="t bt" @onclick="@(e => viewModel.OnActivityTriggerClicked(a.BeginTrigger))"></div>
-                        <div class="t et" @onclick="@(e => viewModel.OnActivityTriggerClicked(a.EndTrigger))"></div>
+                        <div class="t bt"
+                            @onclick="@(e => viewModel.OnActivityTriggerClicked(a.BeginTrigger))"
+                            @onwheel=@(e => HandleWheel(new HitTestResult(HitTestResult.AreaCode.Activity, a.X1, a.Index),
+                                        e.DeltaX, e.DeltaY, e.CtrlKey))></div>
+                        <div class="t et"
+                            @onclick="@(e => viewModel.OnActivityTriggerClicked(a.EndTrigger))"
+                            @onwheel=@(e => HandleWheel(new HitTestResult(HitTestResult.AreaCode.Activity, a.X2, a.Index),
+                                        e.DeltaX, e.DeltaY, e.CtrlKey))></div>
                     </div>
                     @if (a.PhasesCount > 0)
                     {
@@ -94,7 +104,9 @@
             @foreach (BookmarkDrawInfo bmk in viewModel.BookmarksDrawInfo(DrawScope.VisibleRange))
             {
                 <div class="bmk" style=@GetBookmarkStyle(bmk) title=@bmk.Caption>
-                    <div @onclick="(e => viewModel.OnEventTriggerClicked(bmk.Trigger))"></div>
+                    <div
+                        @onclick=@(e => viewModel.OnEventTriggerClicked(bmk.Trigger))>
+                    </div>
                 </div>
             }
             @{var focused = viewModel.FocusedMessageDrawInfo(DrawScope.VisibleRange);}
