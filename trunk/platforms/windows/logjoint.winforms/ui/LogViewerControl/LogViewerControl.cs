@@ -9,6 +9,7 @@ using System.Linq;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using LJD = LogJoint.Drawing;
 using LogJoint.UI.LogViewer;
+using System.Globalization;
 
 namespace LogJoint.UI
 {
@@ -451,7 +452,8 @@ namespace LogJoint.UI
 
 		static string[] GetAvailablePreferredFontFamilies()
 		{
-			var availableFamilies = FontFamily.Families.ToLookup(f => f.Name.ToLower());
+			var LANG_ENGLISH = 0x09; // from winnt.h
+			var availableFamilies = FontFamily.Families.ToLookup(f => f.GetName(LANG_ENGLISH).ToLower());
 			return CreateWindowsPreferredFontFamiliesList().Where(f => availableFamilies[f.ToLower()].Any()).ToArray();
 		}
 
