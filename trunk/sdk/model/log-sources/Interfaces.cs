@@ -45,7 +45,7 @@ namespace LogJoint
 		Persistence.IStorageEntry LogSourceSpecificStorageEntry { get; }
 		ITimeGapsDetector TimeGaps { get; }
 
-		void StoreBookmarks();
+		Task StoreBookmarks();
 	}
 
 	public interface ILogSourcesManager
@@ -59,7 +59,7 @@ namespace LogJoint
 		/// Subset of <see cref="Items"/>.
 		/// </summary>
 		IReadOnlyList<ILogSource> VisibleItems { get; }
-		ILogSource Create(ILogProviderFactory providerFactory, IConnectionParams cp);
+		Task<ILogSource> Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
 		ITimeOffsetsBuilder CreateTimeOffsetsBuilder();
 

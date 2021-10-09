@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 {
@@ -54,12 +55,12 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			view.SetEventsHandler(this);
 		}
 
-		void IPagePresenter.Apply()
+		async void IPagePresenter.Apply()
 		{
 			if ((bool)view.ReadControlValue(ControlId.IndependentLogsModeButton))
-				ApplyIndependentLogsMode();
+				await ApplyIndependentLogsMode();
 			else if ((bool)view.ReadControlValue(ControlId.RotatedLogModeButton))
-				ApplyRotatedLogMode();
+				await ApplyRotatedLogMode();
 		}
 
 		void IPagePresenter.Activate()
@@ -159,7 +160,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			}
 		}
 
-		void ApplyIndependentLogsMode()
+		async Task ApplyIndependentLogsMode()
 		{
 			string tmp = ((string)view.ReadControlValue(ControlId.FileSelector)).Trim();
 			if (tmp == "")
@@ -169,7 +170,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			{
 				try
 				{
-					model.Create(factory, factory.CreateParams(fname));
+					await model .Create(factory, factory.CreateParams(fname));
 				}
 				catch (Exception e)
 				{
@@ -181,7 +182,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			}
 		}
 
-		void ApplyRotatedLogMode()
+		async Task ApplyRotatedLogMode()
 		{
 			var folder = ((string)view.ReadControlValue(ControlId.FolderSelector)).Trim();
 			if (folder == "")
@@ -203,7 +204,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 			try
 			{
-				model.Create(factory, connectParams);
+				await model.Create(factory, connectParams);
 			}
 			catch (Exception e)
 			{

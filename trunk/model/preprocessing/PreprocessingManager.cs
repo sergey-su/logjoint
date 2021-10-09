@@ -33,7 +33,8 @@ namespace LogJoint.Preprocessing
 			this.trace = traceSourceFactory.CreateTraceSource("PreprocessingManager", "prepr");
 			this.invokeSynchronize = invokeSynchronize;
 			this.formatAutodetect = formatAutodetect;
-			this.providerYieldedCallback = prov => logSourcesManager.Create(prov.Factory, prov.ConnectionParams).Visible = !prov.IsHiddenLog;
+			this.providerYieldedCallback = async prov => 
+				(await logSourcesManager.Create(prov.Factory, prov.ConnectionParams)).Visible = !prov.IsHiddenLog;
 			this.extensions = extensions;
 			this.telemetry = telemetry;
 			this.tempFilesManager = tempFilesManager;
@@ -161,7 +162,7 @@ namespace LogJoint.Preprocessing
 		{
 			public LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner, 
-				Action<YieldedProvider> providerYieldedCallback,
+				Func<YieldedProvider, Task> providerYieldedCallback,
 				IEnumerable<IPreprocessingStep> initialSteps,
 				string preprocessingDisplayName,
 				PreprocessingOptions options) :
@@ -201,7 +202,7 @@ namespace LogJoint.Preprocessing
 
 			public LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner,
-				Action<YieldedProvider> providerYieldedCallback,
+				Func<YieldedProvider, Task> providerYieldedCallback,
 				IRecentlyUsedEntity recentLogEntry,
 				PreprocessingOptions options 
 			) :
@@ -247,7 +248,7 @@ namespace LogJoint.Preprocessing
 
 			LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner,
-				Action<YieldedProvider> providerYieldedCallback)
+				Func<YieldedProvider, Task> providerYieldedCallback)
 			{
 				this.owner = owner;
 				this.id = string.Format("{0}.{1}", owner.trace.Prefix, Interlocked.Increment(ref owner.lastPreprocId));
@@ -363,7 +364,7 @@ namespace LogJoint.Preprocessing
 				{
 					try
 					{
-						providerYieldedCallback(provider);
+						await providerYieldedCallback(provider);
 					}
 					catch (Exception e)
 					{
@@ -537,7 +538,7 @@ namespace LogJoint.Preprocessing
 			bool disposed;
 			readonly LogSourcesPreprocessingManager owner;
 			readonly string id;
-			public Action<YieldedProvider> providerYieldedCallback;
+			public Func<YieldedProvider, Task> providerYieldedCallback;
 			readonly LJTraceSource trace;
 			readonly IFormatAutodetect formatAutodetect;
 			readonly ITempFilesManager tempFiles;
@@ -693,7 +694,7 @@ namespace LogJoint.Preprocessing
 		readonly ISynchronizationContext invokeSynchronize;
 		readonly IChangeNotification changeNotification;
 		readonly IFormatAutodetect formatAutodetect;
-		readonly Action<YieldedProvider> providerYieldedCallback;
+		readonly Func<YieldedProvider, Task> providerYieldedCallback;
 		readonly IExtensionsRegistry extensions;
 		ImmutableList<ILogSourcePreprocessing> items = ImmutableList.Create<ILogSourcePreprocessing>();
 		readonly Telemetry.ITelemetryCollector telemetry;

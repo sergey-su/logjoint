@@ -33,7 +33,7 @@ namespace LogJoint.Tests.Integration
   DateTime=2021-04-25T01:01:02.0000000Z
 ");
 
-			app.Model.SourcesManager.Create(format1,
+			await app.Model.SourcesManager.Create(format1,
 				format1.CreateRotatedLogParams(testFolder, new[] { "prefix-a-*.log" }));
 
 			await app.WaitForLogDisplayed("test001\ntest002");
@@ -52,7 +52,7 @@ namespace LogJoint.Tests.Integration
 			await app.WaitForLogDisplayed("test002\ntest003");
 
 			// Start monitoring another type of logs with another prefix
-			app.Model.SourcesManager.Create(format2,
+			await app.Model.SourcesManager.Create(format2,
 				format2.CreateRotatedLogParams(testFolder, new[] { "prefix-b-*.log" }));
 
 
@@ -65,7 +65,7 @@ namespace LogJoint.Tests.Integration
 			await app.WaitForLogDisplayed("test002\ntest003\ntest101\ntest102");
 
 			// Start monitoring second log type again with another prefix
-			app.Model.SourcesManager.Create(format2,
+			await app.Model.SourcesManager.Create(format2,
 				format2.CreateRotatedLogParams(testFolder, new[] { "prefix-c-*.log" }));
 
 			File.WriteAllText(Path.Combine(testFolder, "prefix-c-1.log"),

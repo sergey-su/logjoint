@@ -39,13 +39,13 @@ namespace LogJoint
 			this.fileSystem = fileSystem;
 		}
 
-		ILogSourceInternal ILogSourceFactory.CreateLogSource (
+		async Task<ILogSourceInternal> ILogSourceFactory.CreateLogSource (
 			ILogSourcesManagerInternal owner, 
 			int id, 
 			ILogProviderFactory providerFactory, 
 			IConnectionParams connectionParams)
 		{
-			return new LogSource(
+			return await LogSource.Create(
 				owner,
 				id,
 				providerFactory,

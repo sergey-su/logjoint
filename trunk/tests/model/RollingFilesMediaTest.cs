@@ -285,14 +285,14 @@ namespace LogJoint.Tests
 				return 0;
 			}
 
-			public async Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
+			public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
 			{
-				return new Parser(media);
+				return Task.FromResult<IPositionedMessagesParser>(new Parser(media));
 			}
 
-			public ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
+			public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
 			{
-				return null;
+				return Task.FromResult<ISearchingParser>(null);
 			}
 
 #endregion

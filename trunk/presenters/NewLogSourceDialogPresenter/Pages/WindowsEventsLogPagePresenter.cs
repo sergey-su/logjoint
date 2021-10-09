@@ -29,12 +29,12 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog
 			view.SetEventsHandler(this);
 		}
 
-		void IPagePresenter.Apply()
+		async void IPagePresenter.Apply()
 		{
 			if (currentIdentity == null)
 				return;
 			IConnectionParams connectParams = factory.CreateParamsFromIdentity(currentIdentity);
-			model.Create(factory, connectParams);
+			await model.Create(factory, connectParams);
 			SetCurrentIdentity(null);
 		}
 

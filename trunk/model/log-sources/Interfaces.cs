@@ -33,7 +33,7 @@ namespace LogJoint
 
 	internal interface ILogSourceFactory
 	{
-		ILogSourceInternal CreateLogSource(
+		Task<ILogSourceInternal> CreateLogSource(
 			ILogSourcesManagerInternal owner, 
 			int id,
 			ILogProviderFactory providerFactory, 

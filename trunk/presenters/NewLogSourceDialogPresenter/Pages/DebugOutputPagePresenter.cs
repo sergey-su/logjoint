@@ -20,9 +20,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput
 			this.model = model;
 		}
 
-		void IPagePresenter.Apply()
+		async void IPagePresenter.Apply()
 		{
-			model.Create(factory, new ConnectionParams());
+			await model.Create(factory, new ConnectionParams());
 		}
 
 		void IPagePresenter.Activate()

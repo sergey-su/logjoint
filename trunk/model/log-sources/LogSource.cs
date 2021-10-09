@@ -14,7 +14,7 @@ namespace LogJoint
 	{
 		readonly ILogSourcesManagerInternal owner;
 		readonly LJTraceSource tracer;
-		readonly ILogProvider provider;
+		ILogProvider provider;
 		readonly ILogSourceThreadsInternal logSourceThreads;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
@@ -23,7 +23,7 @@ namespace LogJoint
 		bool visible = true;
 		bool trackingEnabled = true;
 		string annotation = "";
-		readonly Persistence.IStorageEntry logSourceSpecificStorageEntry;
+		Persistence.IStorageEntry logSourceSpecificStorageEntry;
 		bool loadingLogSourceInfoFromStorageEntry;
 		readonly ITimeGapsDetector timeGaps;
 		readonly ITempFilesManager tempFilesManager;
@@ -32,15 +32,44 @@ namespace LogJoint
 		readonly IBookmarks bookmarks;
 		int? color;
 
-		public LogSource(ILogSourcesManagerInternal owner, int id,
+		public static async Task<LogSource> Create(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreadsInternal threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
 			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
 			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
+        {
+			var tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
+			LogSource logSource = null;
+			try
+			{
+				logSource = new LogSource(owner, tempFilesManager, tracer, modelSyncContext, globalSettingsAccess, 
+					bookmarks, traceSourceFactory, regexFactory, fileSystem, threads);
+				await logSource.Init(providerFactory, connectionParams, storageManager);
+			}
+			catch (Exception e)
+			{
+				tracer.Error(e, "Failed to initialize log source");
+				if (logSource != null)
+				{
+					await ((ILogSourceInternal)logSource).Dispose();
+				}
+				throw;
+			}
+
+			owner.Add(logSource);
+			owner.FireOnLogSourceAdded(logSource);
+
+			return logSource;
+		}
+
+		private LogSource(ILogSourcesManagerInternal owner, ITempFilesManager tempFilesManager, LJTraceSource tracer,
+			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
+			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem,
+			IModelThreadsInternal threads)
 		{
 			this.owner = owner;
-			this.tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
 			this.tempFilesManager = tempFilesManager;
+			this.tracer = tracer;
 			this.modelSyncContext = modelSyncContext;
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
@@ -48,29 +77,18 @@ namespace LogJoint
 			this.regexFactory = regexFactory;
 			this.fileSystem = fileSystem;
 
-			try
-			{
+			this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
+			this.timeGaps = new TimeGapsDetector(tracer, modelSyncContext, new LogSourceGapsSource(this), traceSourceFactory);
+			this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
+		}
 
-				this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
-				this.timeGaps = new TimeGapsDetector(tracer, modelSyncContext, new LogSourceGapsSource(this), traceSourceFactory);
-				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
-				this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
-
-				var extendedConnectionParams = connectionParams.Clone(true);
-				this.LoadPersistedSettings(extendedConnectionParams);
-				this.provider = providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
-			}
-			catch (Exception e)
-			{
-				tracer.Error(e, "Failed to initialize log source");
-				((ILogSource)this).Dispose();
-				throw;
-			}
-
-			this.owner.Add(this);
-			this.owner.FireOnLogSourceAdded(this);
-
-			this.LoadBookmarks();
+		async Task Init(ILogProviderFactory providerFactory, IConnectionParams connectionParams, Persistence.IStorageManager storageManager)
+        {
+			logSourceSpecificStorageEntry = await CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
+			var extendedConnectionParams = connectionParams.Clone(true);
+			await LoadPersistedSettings(extendedConnectionParams);
+			provider = providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
+			await LoadBookmarks();
 		}
 
 		ILogProvider ILogSource.Provider { get { return provider; } }
@@ -106,14 +124,7 @@ namespace LogJoint
 			}
 			set
 			{
-				if (trackingEnabled == value)
-					return;
-				trackingEnabled = value;
-				owner.OnSourceTrackingChanged(this);
-				using (var s = OpenSettings(false))
-				{
-					s.Data.Root.SetAttributeValue("tracking", value ? "true" : "false");
-				}
+				SetTrackingEnabled(value);
 			}
 		}
 
@@ -125,14 +136,7 @@ namespace LogJoint
 			}
 			set
 			{
-				if (annotation == value)
-					return;
-				annotation = value;
-				owner.OnSourceAnnotationChanged(this);
-				using (var s = OpenSettings(false))
-				{
-					s.Data.Root.SetAttributeValue("annotation", value);
-				}
+				SetAnnotation(value);
 			}
 		}
 
@@ -181,11 +185,12 @@ namespace LogJoint
 		ILogSourceThreads ILogSource.Threads => logSourceThreads;
 		ILogSourceThreads ILogProviderHost.Threads => logSourceThreads;
 
-		void ILogSource.StoreBookmarks()
+		async Task ILogSource.StoreBookmarks()
 		{
 			if (loadingLogSourceInfoFromStorageEntry)
 				return;
-			using (var section = logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
+			using (var section = logSourceSpecificStorageEntry.OpenXMLSection(
+				"bookmarks", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
 			{
 				section.Data.Add(
 					new XElement("bookmarks",
@@ -224,7 +229,7 @@ namespace LogJoint
 			return string.Format("LogSource({0})", provider.ConnectionParams.ToString());
 		}
 
-		void LoadBookmarks()
+		async Task LoadBookmarks()
 		{
 			using (new ScopedGuard(() => loadingLogSourceInfoFromStorageEntry = true, () => loadingLogSourceInfoFromStorageEntry = false))
 			using (var section = logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadOnly))
@@ -254,9 +259,9 @@ namespace LogJoint
 
 		}
 
-		void LoadPersistedSettings(IConnectionParams extendedConnectionParams)
+		async Task LoadPersistedSettings(IConnectionParams extendedConnectionParams)
 		{
-			using (var settings = OpenSettings(true))
+			using (var settings = await OpenSettings(true))
 			{
 				var root = settings.Data.Root;
 				if (root != null)
@@ -314,7 +319,7 @@ namespace LogJoint
 			owner.OnTimegapsChanged(this);
 		}
 
-		private static Persistence.IStorageEntry CreateLogSourceSpecificStorageEntry(
+		private static Task<Persistence.IStorageEntry> CreateLogSourceSpecificStorageEntry(
 			ILogProviderFactory providerFactory,
 			IConnectionParams connectionParams,
 			Persistence.IStorageManager storageManager
@@ -333,10 +338,10 @@ namespace LogJoint
 
 			storageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
 
-			return storageEntry;
+			return Task.FromResult(storageEntry);
 		}
 
-		Persistence.IXMLStorageSection OpenSettings(bool forReading)
+		async Task<Persistence.IXMLStorageSection> OpenSettings(bool forReading)
 		{
 			var ret = logSourceSpecificStorageEntry.OpenXMLSection("settings",
 				forReading ? Persistence.StorageSectionOpenFlag.ReadOnly : Persistence.StorageSectionOpenFlag.ReadWrite);
@@ -370,9 +375,33 @@ namespace LogJoint
 					b.bmk.LineIndex));
 			}
 			owner.OnTimeOffsetChanged(this);
-			using (var s = OpenSettings(false))
+			using (var s = await OpenSettings(false))
 			{
 				s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
+			}
+		}
+
+		private async void SetTrackingEnabled(bool value)
+        {
+			if (trackingEnabled == value)
+				return;
+			trackingEnabled = value;
+			owner.OnSourceTrackingChanged(this);
+			using (var s = await OpenSettings (false))
+			{
+				s.Data.Root.SetAttributeValue("tracking", value ? "true" : "false");
+			}
+		}
+
+		private async void SetAnnotation(string value)
+        {
+			if (annotation == value)
+				return;
+			annotation = value;
+			owner.OnSourceAnnotationChanged(this);
+			using (var s = await OpenSettings (false))
+			{
+				s.Data.Root.SetAttributeValue("annotation", value);
 			}
 		}
 	};

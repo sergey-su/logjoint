@@ -54,7 +54,7 @@ namespace LogJoint.UI.Azure
 			get { return this; }
 		}
 
-		void IPagePresenter.Apply()
+		async void IPagePresenter.Apply()
 		{
 			StorageAccount account = CreateStorageAccount();
 
@@ -66,7 +66,7 @@ namespace LogJoint.UI.Azure
 			else
 				return;
 
-			logSources.Create(factory, connectParams);
+			await logSources.Create(factory, connectParams);
 		}
 
 		void IPagePresenter.Activate()

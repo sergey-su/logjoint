@@ -161,9 +161,9 @@ namespace LogJoint.Tests
 				return new Parser(this, p.StartPosition, p.Range, p.Direction);
 			}
 
-			public ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
+			public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
 			{
-				return null;
+				return Task.FromResult<ISearchingParser>(null);
 			}
 
 			public void Dispose()

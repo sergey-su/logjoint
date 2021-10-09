@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -72,17 +73,17 @@ namespace LogJoint
 
 		IReadOnlyList<ILogSource> ILogSourcesManager.VisibleItems => visibleItems();
 
-		ILogSource ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
+		async Task<ILogSource> ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
 		{
 			ILogSource src = ((ILogSourcesManager)this).Find(cp);
 			if (src != null && src.Provider.Stats.State == LogProviderState.LoadError)
 			{
-				src.Dispose();
+				await src.Dispose();
 				src = null;
 			}
 			if (src == null)
 			{
-				src = logSourceFactory.CreateLogSource(
+				src = await logSourceFactory.CreateLogSource(
 					this,
 					++lastLogSourceId,
 					providerFactory,
