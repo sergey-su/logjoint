@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -14,6 +15,10 @@ namespace LogJoint
         public void AddTask(Task task)
         {
             tail = Add(tail, task);
+        }
+        public void AddTask(Func<Task> task)
+        {
+            tail = Add(tail, task());
         }
 
         public Task Dispose() => tail;

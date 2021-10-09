@@ -253,7 +253,8 @@ namespace LogJoint
 				traceSourceFactory
 			);
 
-			IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory, modelSynchronizationContext);
+			IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(
+				storageManager, filtersFactory, modelSynchronizationContext, shutdown);
 
 			ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry, userDefinedSearches);
 

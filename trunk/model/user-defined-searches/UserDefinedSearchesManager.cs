@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -10,22 +11,25 @@ namespace LogJoint
 	{
 		readonly Dictionary<string, IUserDefinedSearch> items = 
 			new Dictionary<string, IUserDefinedSearch>(StringComparer.CurrentCultureIgnoreCase);
-		readonly Lazy<Persistence.IStorageEntry> storageEntry;
+		readonly Lazy<Task<Persistence.IStorageEntry>> storageEntry;
 		readonly IFiltersFactory filtersFactory;
 		readonly AsyncInvokeHelper changeHandlerInvoker;
+		readonly TaskChain tasks = new TaskChain();
 		const string sectionName = "items";
 
 		public UserDefinedSearchesManager(
 			Persistence.IStorageManager storage,
 			IFiltersFactory filtersFactory,
-			ISynchronizationContext modelThreadSynchronization
+			ISynchronizationContext modelThreadSynchronization,
+			IShutdown shutdown
 		)
 		{
 			this.filtersFactory = filtersFactory;
-			this.storageEntry = new Lazy<Persistence.IStorageEntry>(() => storage.GetEntry("UserDefinedSearches"));
-			this.changeHandlerInvoker = new AsyncInvokeHelper(modelThreadSynchronization, HandleChange);
+			this.storageEntry = new Lazy<Task<Persistence.IStorageEntry>>(() => Task.FromResult(storage.GetEntry("UserDefinedSearches")));
+			this.changeHandlerInvoker = new AsyncInvokeHelper(modelThreadSynchronization, () => tasks.AddTask(HandleChange));
+			shutdown.Cleanup += (sender, e) => shutdown.AddCleanupTask(tasks.Dispose());
 
-			LoadItems();
+			tasks.AddTask(LoadItemsInitially());
 		}
 
 		IEnumerable<IUserDefinedSearch> IUserDefinedSearches.Items
@@ -90,14 +94,17 @@ namespace LogJoint
 			changeHandlerInvoker.Invoke();
 		}
 
-		void LoadItems()
+		async Task LoadItemsInitially()
 		{
 			items.Clear();
-			using (var section = storageEntry.Value.OpenXMLSection(
+			using (var section = (await storageEntry.Value).OpenXMLSection(
 				sectionName, 
 				Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
-				LoadItems(section.Data, _ => NameDuplicateResolution.Skip);
+				if (LoadItems(section.Data, _ => NameDuplicateResolution.Skip) > 0)
+                {
+					changeHandlerInvoker.Invoke();
+				}
 			}
 		}
 
@@ -134,9 +141,9 @@ namespace LogJoint
 			return itemNodes.Count;
 		}
 
-		void SaveItems ()
+		async Task SaveItems ()
 		{
-			using (var section = storageEntry.Value.OpenXMLSection (
+			using (var section = (await storageEntry.Value).OpenXMLSection (
 				sectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions)) 
 			{
@@ -157,9 +164,9 @@ namespace LogJoint
 			);
 		}
 
-		void HandleChange()
+		async Task HandleChange()
 		{
-			SaveItems ();
+			await SaveItems ();
 			OnChanged?.Invoke (this, EventArgs.Empty);
 		}
 	};
