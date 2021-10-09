@@ -7,7 +7,7 @@ namespace LogJoint
 	{
 		readonly AsyncInvokeHelper bookmarksPurge;
 		readonly LJTraceSource tracer;
-		Task bookmarksSaveTask = Task.CompletedTask;
+		readonly TaskChain bookmarksSaves = new TaskChain();
 
 		public BookmarkController(
 			IBookmarks bookmarks,
@@ -24,14 +24,13 @@ namespace LogJoint
 			};
 			bookmarks.OnBookmarksChanged += (sender, e) => 
 			{
-				bookmarksSaveTask = HandleEvent(bookmarksSaveTask, e, tracer);
+				bookmarksSaves.AddTask(HandleEvent(e));
 			};
-			shutdown.Cleanup += (sender, e) => shutdown.AddCleanupTask(bookmarksSaveTask);
+			shutdown.Cleanup += (sender, e) => shutdown.AddCleanupTask(bookmarksSaves.Dispose());
 		}
 
-		static async Task HandleEvent(Task queueTask, BookmarksChangedEventArgs e, LJTraceSource tracer)
+		async Task HandleEvent(BookmarksChangedEventArgs e)
         {
-			await queueTask;
 			if (e.Type == BookmarksChangedEventArgs.ChangeType.Added || e.Type == BookmarksChangedEventArgs.ChangeType.Removed ||
 				e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll || e.Type == BookmarksChangedEventArgs.ChangeType.Purged)
 			{

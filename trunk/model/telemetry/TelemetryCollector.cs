@@ -21,9 +21,11 @@ namespace LogJoint.Telemetry
 		static readonly string sessionsRegistrySessionElementName = "session";
 		const int maxExceptionsInfoLen = 1024 * 16;
 		readonly ITelemetryUploader telemetryUploader;
-		readonly Persistence.IStorageEntry telemetryStorageEntry;
+		Persistence.IStorageEntry telemetryStorageEntry;
 		readonly ISynchronizationContext synchronization;
 		readonly IMemBufferTraceAccess traceAccess;
+		readonly Task inited;
+		readonly TaskChain queue = new TaskChain();
 
 		readonly string currentSessionId;
 		readonly Dictionary<string, string> staticTelemetryProperties = new Dictionary<string,string>();
@@ -62,21 +64,27 @@ namespace LogJoint.Telemetry
 			this.synchronization = synchronization;
 			this.traceAccess = traceAccess;
 
-			this.telemetryStorageEntry = storage.GetEntry("telemetry");
 			this.sessionStartedMillis = Environment.TickCount;
 
 			this.currentSessionId = telemetryUploader.IsTelemetryConfigured ? 
 				("session" + Guid.NewGuid().ToString("n")) : null;
 
 			this.transactionInvoker = new AsyncInvokeHelper(synchronization,
-				() => DoSessionsRegistryTransaction(TransactionFlag.Default));
+				() => queue.AddTask(DoSessionsRegistryTransaction(TransactionFlag.Default)));
 
 			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(DisposeAsync());
 
 			if (currentSessionId != null)
 			{
-				CreateCurrentSessionSection();
-				InitStaticTelemetryProperties();
+				inited = ((Func<Task>)(async () =>
+				{
+					await CreateCurrentSessionSection(storage);
+					InitStaticTelemetryProperties();
+				}))();
+			}
+			else
+            {
+				inited = Task.CompletedTask;
 			}
 
 			if (telemetryUploader.IsTelemetryConfigured && instancesCounter.IsPrimaryInstance)
@@ -123,8 +131,9 @@ namespace LogJoint.Telemetry
 			}
 			if (currentSessionId != null)
 			{
-				DoSessionsRegistryTransaction(TransactionFlag.FinalizeCurrentSession);
+				queue.AddTask(DoSessionsRegistryTransaction(TransactionFlag.FinalizeCurrentSession));
 			}
+			await queue.Dispose();
 			disposed = true;
 		}
 
@@ -225,8 +234,9 @@ namespace LogJoint.Telemetry
 
 		private bool IsCollecting { get { return worker != null; } }
 
-		private void CreateCurrentSessionSection()
+		private async Task CreateCurrentSessionSection(Persistence.IStorageManager storage)
 		{
+			telemetryStorageEntry = storage.GetEntry("telemetry");
 			bool telemetryStorageJustInitialized = false;
 			using (var sessions = telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite))
@@ -292,11 +302,11 @@ namespace LogJoint.Telemetry
 			FinalizeCurrentSession = 1,
 		};
 
-		private void DoSessionsRegistryTransaction(TransactionFlag flags)
+		private async Task DoSessionsRegistryTransaction(TransactionFlag flags)
 		{
 			try
 			{
-				SessionsRegistryTransaction(flags);
+				await SessionsRegistryTransaction(flags);
 			}
 			catch (Exception e)
 			{
@@ -304,11 +314,12 @@ namespace LogJoint.Telemetry
 			}
 		}
 
-		private void SessionsRegistryTransaction(TransactionFlag flags)
+		private async Task SessionsRegistryTransaction(TransactionFlag flags)
 		{
-			if (disposed)
+			if (disposed || telemetryStorageEntry == null)
 				return;
 
+			await inited;
 			using (var sessions = telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
