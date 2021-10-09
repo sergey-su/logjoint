@@ -29,7 +29,6 @@ namespace LogJoint.AutoUpdate
 		readonly ISynchronizationContext eventInvoker;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly Persistence.IStorageManager storage;
-		readonly Persistence.IStorageEntry updatesStorageEntry;
 		readonly LJTraceSource trace;
 		readonly IFactory factory;
 		readonly Extensibility.IPluginsManagerInternal pluginsManager;
@@ -74,8 +73,6 @@ namespace LogJoint.AutoUpdate
 			this.storage = storage;
 
 			shutdown.Cleanup += (s, e) => ((IDisposable)this).Dispose();
-
-			this.updatesStorageEntry = storage.GetEntry("updates");
 
 			bool isFirstInstance = mutualExecutionCounter.IsPrimaryInstance;
 			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured;
@@ -179,7 +176,9 @@ namespace LogJoint.AutoUpdate
 			{
 				await Task.Delay(Constants.initialWorkerDelay, workerCancellationToken);
 
-				HandlePastUpdates(workerCancellationToken);
+				Persistence.IStorageEntry updatesStorageEntry = storage.GetEntry("updates");
+
+				await HandlePastUpdates(updatesStorageEntry, workerCancellationToken);
 
 				SetState(AutoUpdateState.Idle);
 
@@ -232,7 +231,7 @@ namespace LogJoint.AutoUpdate
 							currentPendingUpdate = await factory.CreatePendingUpdate(
 								requiredPlugins,
 								managedAssembliesPath,
-								ComposeUpdateLogFileName(),
+								await ComposeUpdateLogFileName(updatesStorageEntry),
 								workerCancellationToken
 							);
 							trace.Info("Created new pending update with key '{0}'", currentPendingUpdate.Key);
@@ -336,7 +335,7 @@ namespace LogJoint.AutoUpdate
 			FireChangedEvent();
 		}
 
-		private void HandlePastUpdates(CancellationToken cancel)
+		private async Task HandlePastUpdates(Persistence.IStorageEntry updatesStorageEntry, CancellationToken cancel)
 		{
 			try // do not fail updater on handling old updates
 			{
@@ -380,7 +379,7 @@ namespace LogJoint.AutoUpdate
 			}
 		}
 
-		private string ComposeUpdateLogFileName()
+		private async Task<string> ComposeUpdateLogFileName(Persistence.IStorageEntry updatesStorageEntry)
 		{
 			using (var updateLogSection = updatesStorageEntry.OpenRawStreamSection(
 				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH'-'mm'-'ss'Z'}", Constants.updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
