@@ -59,7 +59,7 @@ namespace LogJoint.FieldsProcessor
 
 		public class Factory : IFactory
 		{
-			readonly Persistence.IStorageEntry cacheEntry;
+			readonly ValueTask<Persistence.IStorageEntry> cacheEntryTask;
 			readonly Telemetry.ITelemetryCollector telemetryCollector;
 			readonly IMetadataReferencesProvider metadataReferencesProvider;
 			readonly IAssemblyLoader assemblyLoader;
@@ -71,7 +71,7 @@ namespace LogJoint.FieldsProcessor
 				IAssemblyLoader assemblyLoader
 			)
 			{
-				this.cacheEntry = storageManager.GetEntry("user-code-cache", 0x81012232);
+				this.cacheEntryTask = new ValueTask<Persistence.IStorageEntry>(storageManager.GetEntry("user-code-cache", 0x81012232));
 				this.telemetryCollector = telemetryCollector;
 				this.metadataReferencesProvider = metadataReferencesProvider ?? new DefaultMetadataReferencesProvider();
 				this.assemblyLoader = assemblyLoader ?? new DefaultAssemblyLoader();
@@ -81,22 +81,24 @@ namespace LogJoint.FieldsProcessor
 				XElement fieldsNode, bool performChecks
 			) => new InitializationParams(fieldsNode, performChecks);
 
-			IFieldsProcessor IFactory.CreateProcessor(
+			async ValueTask<IFieldsProcessor> IFactory.CreateProcessor(
 				IInitializationParams initializationParams,
 				IEnumerable<string> inputFieldNames,
 				IEnumerable<ExtensionInfo> extensions,
 				LJTraceSource trace)
 			{
-				return new FieldsProcessorImpl(
+				var processor = new FieldsProcessorImpl(
 					(InitializationParams)initializationParams,
 					inputFieldNames,
 					extensions,
-					cacheEntry,
+					await cacheEntryTask,
 					trace,
 					telemetryCollector,
 					metadataReferencesProvider,
 					assemblyLoader
 				);
+				await processor.Init();
+				return processor;
 			}
 		};
 
@@ -150,11 +152,13 @@ namespace LogJoint.FieldsProcessor
 			this.assemblyLoader = assemblyLoader;
 		}
 
+		public async Task Init()
+        {
+			builder = await CreateBuilderInstance();
+		}
+
 		void IFieldsProcessor.Reset()
 		{
-			if (builder == null)
-				builder = CreateBuilderInstance();
-
 			builder.ResetFieldValues();
 			builder.__sourceTime = new DateTime();
 			builder.__position = 0;
@@ -232,40 +236,20 @@ namespace LogJoint.FieldsProcessor
 			return typeHash;
 		}
 
-		Internal.__MessageBuilder CreateBuilderInstance()
+		async ValueTask<Internal.__MessageBuilder> CreateBuilderInstance()
 		{
-			Type builderType = precompiledBuilderType;
-
-			if (builderType == null)
+			int builderTypeHash = GetMessageBuilderTypeHash();
+			Task<Type> builderTypeTask;
+			lock (builderTypesCache)
 			{
-				int builderTypeHash = GetMessageBuilderTypeHash();
-
-				Task<Type> builderTypeTask;
-				lock (builderTypesCache)
+				if (!builderTypesCache.TryGetValue(builderTypeHash, out builderTypeTask))
 				{
-					if (!builderTypesCache.TryGetValue(builderTypeHash, out builderTypeTask))
-					{
-						if (IsBrowser.Value)
-						{
-							builderTypeTask = Task.FromResult(GenerateType(builderTypeHash));
-						}
-						else
-						{
-							builderTypeTask = Task.Run(() => GenerateType(builderTypeHash));
-							builderTypesCache.Add(builderTypeHash, builderTypeTask);
-						}
-					}
-				}
-
-				try
-				{
-					builderType = builderTypeTask.Result;
-				}
-				catch (AggregateException e)
-				{
-					throw e.InnerException;
+					builderTypeTask = GenerateType(builderTypeHash);
+					builderTypesCache.Add(builderTypeHash, builderTypeTask);
 				}
 			}
+
+			var builderType = await builderTypeTask;
 
 			Internal.__MessageBuilder ret = (Internal.__MessageBuilder)Activator.CreateInstance(builderType);
 
@@ -277,7 +261,7 @@ namespace LogJoint.FieldsProcessor
 
 		static Dictionary<int, Task<Type>> builderTypesCache = new Dictionary<int, Task<Type>>();
 
-		Type GenerateType(int builderTypeHash)
+		async Task<Type> GenerateType(int builderTypeHash)
 		{
 			using (var cacheSection = cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
 				Persistence.StorageSectionOpenFlag.ReadWrite))
@@ -289,7 +273,7 @@ namespace LogJoint.FieldsProcessor
 					try
 					{
 						var cachedRawAsm = new byte[cachedRawAsmSize];
-						cacheSection.Data.Read(cachedRawAsm, 0, (int)cachedRawAsmSize);
+						await cacheSection.Data.ReadAsync(cachedRawAsm, 0, (int)cachedRawAsmSize);
 						return assemblyLoader.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
 					}
 					catch (Exception e)
@@ -300,7 +284,7 @@ namespace LogJoint.FieldsProcessor
 				}
 				var (asm, rawAsm) = CompileUserCodeToAsm();
 				cacheSection.Data.Position = 0;
-				cacheSection.Data.Write(rawAsm, 0, rawAsm.Length);
+				await cacheSection.Data.WriteAsync(rawAsm, 0, rawAsm.Length);
 				return asm.GetType("GeneratedMessageBuilder");
 			}
 		}
@@ -713,7 +697,6 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly LJTraceSource trace;
 		readonly IMetadataReferencesProvider metadataReferencesProvider;
 		readonly IAssemblyLoader assemblyLoader;
-		Type precompiledBuilderType;
 
 		#endregion
 	};

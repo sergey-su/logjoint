@@ -77,7 +77,7 @@ namespace LogJoint
 
 				try
 				{
-					var parser = ctx.Reader.CreateSearchingParser(parserParams);
+					var parser = await ctx.Reader.CreateSearchingParser(parserParams);
 					try
 					{
 						for (; ; )

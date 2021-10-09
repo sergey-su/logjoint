@@ -296,9 +296,9 @@ namespace LogJoint.JsonFormat
 			return this.formatInfo.DejitteringParams;
 		}
 
-		public override ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
+		public override Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
 		{
-			return new SearchingParser(
+			return Task.FromResult<ISearchingParser>(new SearchingParser(
 				this,
 				p,
 				((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
@@ -310,7 +310,7 @@ namespace LogJoint.JsonFormat
 				threads,
 				traceSourceFactory,
 				regexFactory
-			);
+			));
 		}
 	};
 

@@ -325,7 +325,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping
 			dialog.Close();
 		}
 
-		void IViewEvents.OnTestClicked(bool advancedModeModifierIsHeld)
+		async void IViewEvents.OnTestClicked(bool advancedModeModifierIsHeld)
 		{
 			XmlDocument tmp = new XmlDocument();
 			XmlNode root = tmp.AppendChild(tmp.CreateElement("root"));
@@ -337,7 +337,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping
 				tmpXDoc.Element("root").Element("fields-config"), false);
 			try
 			{
-				var tmpProcessor = fieldsProcessorFactory.CreateProcessor(
+				var tmpProcessor = await fieldsProcessorFactory.CreateProcessor(
 					tmpProcessorParams, availableInputFields, null, LJTraceSource.EmptyTracer);
 				tmpProcessor.Reset();
 				alerts.ShowPopup("Test", "Code compiled OK", AlertFlags.Ok);

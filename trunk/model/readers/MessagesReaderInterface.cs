@@ -165,7 +165,7 @@ namespace LogJoint
 		/// </remarks>
 		Task<IPositionedMessagesParser> CreateParser(CreateParserParams p);
 
-		ISearchingParser CreateSearchingParser(CreateSearchingParserParams p);
+		Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p);
 	};
 
 	public interface ITextStreamPositioningParamsProvider

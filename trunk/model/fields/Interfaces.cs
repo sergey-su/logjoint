@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LogJoint.FieldsProcessor
@@ -76,12 +77,13 @@ namespace LogJoint.FieldsProcessor
 		}
 	};
 
+	// thread safe
 	public interface IFactory
 	{
 		IInitializationParams CreateInitializationParams(
 			XElement fieldsNode, bool performChecks
 		);
-		IFieldsProcessor CreateProcessor(
+		ValueTask<IFieldsProcessor> CreateProcessor(
 			IInitializationParams initializationParams,
 			IEnumerable<string> inputFieldNames,
 			IEnumerable<ExtensionInfo> extensions,

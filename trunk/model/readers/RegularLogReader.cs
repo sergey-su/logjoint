@@ -64,7 +64,7 @@ namespace LogJoint.RegularGrammar
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly IRegexFactory regexFactory;
-		readonly Lazy<bool> isBodySingleFieldExpression;
+		readonly Lazy<ValueTask<bool>> isBodySingleFieldExpression;
 		readonly LJTraceSource trace;
 
 		public MessagesReader(
@@ -87,13 +87,13 @@ namespace LogJoint.RegularGrammar
 
 			base.Extensions.AttachExtensions();
 
-			this.isBodySingleFieldExpression = new Lazy<bool>(() =>
+			this.isBodySingleFieldExpression = new Lazy<ValueTask<bool>>(async () =>
 			{
-				return CreateNewFieldsProcessor().IsBodySingleFieldExpression();
+				return (await CreateNewFieldsProcessor()).IsBodySingleFieldExpression();
 			});
 		}
 
-		FieldsProcessor.IFieldsProcessor CreateNewFieldsProcessor()
+		ValueTask<FieldsProcessor.IFieldsProcessor> CreateNewFieldsProcessor()
 		{
 			return fieldsProcessorFactory.CreateProcessor(
 				fmtInfo.FieldsProcessorParams,
@@ -170,9 +170,9 @@ namespace LogJoint.RegularGrammar
 		class SingleThreadedStrategyImpl : StreamParsingStrategies.SingleThreadedStrategy
 		{
 			readonly MessagesReader reader;
-			readonly FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			readonly MessagesBuilderCallback callback;
 			readonly IRegex headerRegex, bodyRegex;
+			FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			IMatch bodyMatch;
 
 			FieldsProcessor.MakeMessageFlags currentParserFlags;
@@ -186,13 +186,13 @@ namespace LogJoint.RegularGrammar
 			)
 			{
 				this.reader = reader;
-				this.fieldsProcessor = reader.CreateNewFieldsProcessor();
 				this.callback = reader.CreateMessageBuilderCallback();
 				this.headerRegex = headerRe;
 				this.bodyRegex = CloneRegex(reader.fmtInfo.BodyRe).Regex;
 			}
 			public override async Task ParserCreated(CreateParserParams p)
 			{
+				this.fieldsProcessor = await reader.CreateNewFieldsProcessor();
 				await base.ParserCreated(p);
 				currentParserFlags = ParserFlagsToMakeMessageFlags(p.Flags);
 			}
@@ -245,7 +245,7 @@ namespace LogJoint.RegularGrammar
 				ProcessingThreadLocalData ret = new ProcessingThreadLocalData();
 				ret.headRe = CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None);
 				ret.bodyRe = CloneRegex(reader.fmtInfo.BodyRe);
-				ret.fieldsProcessor = reader.CreateNewFieldsProcessor();
+				ret.fieldsProcessor = reader.CreateNewFieldsProcessor().Result;
 				ret.callback = reader.CreateMessageBuilderCallback();
 				ret.bodyMatch = null;
 				return ret;
@@ -278,12 +278,12 @@ namespace LogJoint.RegularGrammar
 			return fmtInfo.DejitteringParams;
 		}
 
-		public override ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
+		public override async Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
 		{
 			var allowPlainTextSearchOptimization =
 				   (fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0 
 				|| p.SearchParams.SearchInRawText
-				|| isBodySingleFieldExpression.Value;
+				|| await isBodySingleFieldExpression.Value;
 			return new SearchingParser(
 				this, 
 				p,
