@@ -89,7 +89,7 @@ namespace LogJoint.Persistence
 
 	public interface IStorageManager: IDisposable
 	{
-		IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey = 0);
+		Task<IStorageEntry> GetEntry(string entryKey, ulong additionalNumericKey = 0);
 		IStorageEntry GetEntryById(string id);
 		ulong MakeNumericKey(string stringToBeHashed);
 

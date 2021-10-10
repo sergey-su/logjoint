@@ -176,7 +176,7 @@ namespace LogJoint.AutoUpdate
 			{
 				await Task.Delay(Constants.initialWorkerDelay, workerCancellationToken);
 
-				Persistence.IStorageEntry updatesStorageEntry = storage.GetEntry("updates");
+				Persistence.IStorageEntry updatesStorageEntry = await storage.GetEntry("updates");
 
 				await HandlePastUpdates(updatesStorageEntry, workerCancellationToken);
 

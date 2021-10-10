@@ -25,7 +25,7 @@ namespace LogJoint
 		)
 		{
 			this.filtersFactory = filtersFactory;
-			this.storageEntry = new Lazy<Task<Persistence.IStorageEntry>>(() => Task.FromResult(storage.GetEntry("UserDefinedSearches")));
+			this.storageEntry = new Lazy<Task<Persistence.IStorageEntry>>(() => storage.GetEntry("UserDefinedSearches"));
 			this.changeHandlerInvoker = new AsyncInvokeHelper(modelThreadSynchronization, () => tasks.AddTask(HandleChange));
 			shutdown.Cleanup += (sender, e) => shutdown.AddCleanupTask(tasks.Dispose());
 

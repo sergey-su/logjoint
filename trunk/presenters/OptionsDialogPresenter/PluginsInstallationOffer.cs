@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.Options
 				if (pluginsPageAvailability.IsAvailable)
 				{
 					bool showOffer = false;
-					var storageEntry = storageManager.GetEntry("PluginsInstallationOffer");
+					var storageEntry = await storageManager.GetEntry("PluginsInstallationOffer");
 					using (var section = storageEntry.OpenXMLSection("state", Persistence.StorageSectionOpenFlag.ReadWrite))
 					{
 						if (section.Data.Root == null)

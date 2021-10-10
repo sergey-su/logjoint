@@ -59,7 +59,7 @@ namespace LogJoint.FieldsProcessor
 
 		public class Factory : IFactory
 		{
-			readonly ValueTask<Persistence.IStorageEntry> cacheEntryTask;
+			readonly Task<Persistence.IStorageEntry> cacheEntryTask;
 			readonly Telemetry.ITelemetryCollector telemetryCollector;
 			readonly IMetadataReferencesProvider metadataReferencesProvider;
 			readonly IAssemblyLoader assemblyLoader;
@@ -71,7 +71,7 @@ namespace LogJoint.FieldsProcessor
 				IAssemblyLoader assemblyLoader
 			)
 			{
-				this.cacheEntryTask = new ValueTask<Persistence.IStorageEntry>(storageManager.GetEntry("user-code-cache", 0x81012232));
+				this.cacheEntryTask = storageManager.GetEntry("user-code-cache", 0x81012232);
 				this.telemetryCollector = telemetryCollector;
 				this.metadataReferencesProvider = metadataReferencesProvider ?? new DefaultMetadataReferencesProvider();
 				this.assemblyLoader = assemblyLoader ?? new DefaultAssemblyLoader();

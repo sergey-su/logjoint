@@ -319,7 +319,7 @@ namespace LogJoint
 			owner.OnTimegapsChanged(this);
 		}
 
-		private static Task<Persistence.IStorageEntry> CreateLogSourceSpecificStorageEntry(
+		private static async Task<Persistence.IStorageEntry> CreateLogSourceSpecificStorageEntry(
 			ILogProviderFactory providerFactory,
 			IConnectionParams connectionParams,
 			Persistence.IStorageManager storageManager
@@ -334,11 +334,11 @@ namespace LogJoint
 			ulong numericKey = storageManager.MakeNumericKey(
 				providerFactory.CompanyName + "/" + providerFactory.FormatName);
 
-			var storageEntry = storageManager.GetEntry(identity, numericKey);
+			var storageEntry = await storageManager.GetEntry(identity, numericKey);
 
 			storageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
 
-			return Task.FromResult(storageEntry);
+			return storageEntry;
 		}
 
 		async Task<Persistence.IXMLStorageSection> OpenSettings(bool forReading)

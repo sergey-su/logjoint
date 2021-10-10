@@ -107,7 +107,7 @@ namespace LogJoint.Tests
 		{
 			var storageManager = Substitute.For<Persistence.IStorageManager>();
 			var cacheEntry = Substitute.For<Persistence.IStorageEntry>();
-			storageManager.GetEntry(null, 0).ReturnsForAnyArgs(cacheEntry);
+			storageManager.GetEntry(null, 0).ReturnsForAnyArgs(Task.FromResult(cacheEntry));
 			var cacheSection = Substitute.For<Persistence.IRawStreamStorageSection>();
 			cacheSection.Data.Returns(new MemoryStream());
 			cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(cacheSection);

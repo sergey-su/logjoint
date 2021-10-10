@@ -236,7 +236,7 @@ namespace LogJoint.Telemetry
 
 		private async Task CreateCurrentSessionSection(Persistence.IStorageManager storage)
 		{
-			telemetryStorageEntry = storage.GetEntry("telemetry");
+			telemetryStorageEntry = await storage.GetEntry("telemetry");
 			bool telemetryStorageJustInitialized = false;
 			using (var sessions = telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite))

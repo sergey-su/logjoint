@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.Persistence
 {
@@ -18,9 +19,9 @@ namespace LogJoint.Persistence
 			impl.Dispose();
 		}
 
-		IStorageEntry IStorageManager.GetEntry(string entryKey, ulong additionalNumericKey)
+		Task<IStorageEntry> IStorageManager.GetEntry(string entryKey, ulong additionalNumericKey)
 		{
-			return impl.GetEntry(entryKey, additionalNumericKey);
+			return Task.FromResult(impl.GetEntry(entryKey, additionalNumericKey));
 		}
 
 
