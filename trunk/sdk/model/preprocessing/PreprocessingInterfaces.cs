@@ -122,8 +122,8 @@ namespace LogJoint.Preprocessing
 
 	public interface ICredentialsCache
 	{
-		NetworkCredential QueryCredentials(Uri site, string authType);
-		void InvalidateCredentialsCache(Uri site, string authType);
+		Task<NetworkCredential> QueryCredentials(Uri site, string authType);
+		Task InvalidateCredentialsCache(Uri site, string authType);
 	}
 
 	/// <summary>

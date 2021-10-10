@@ -62,9 +62,9 @@ namespace LogJoint.Preprocessing
 					var authMethod = "protected-archive";
 					if (password != null)
 					{
-						credCache.InvalidateCredentialsCache(uri, authMethod);
+						await credCache.InvalidateCredentialsCache(uri, authMethod);
 					}
-					var cred = credCache.QueryCredentials(uri, authMethod);
+					var cred = await credCache.QueryCredentials(uri, authMethod);
 					if (cred == null)
 					{
 						break;

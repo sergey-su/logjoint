@@ -90,7 +90,7 @@ namespace LogJoint.Persistence
 	public interface IStorageManager: IDisposable
 	{
 		Task<IStorageEntry> GetEntry(string entryKey, ulong additionalNumericKey = 0);
-		IStorageEntry GetEntryById(string id);
+		Task<IStorageEntry> GetEntryById(string id);
 		ulong MakeNumericKey(string stringToBeHashed);
 
 		IStorageEntry GlobalSettingsEntry { get; }
@@ -98,7 +98,7 @@ namespace LogJoint.Persistence
 
 	public interface IContentCache
 	{
-		Stream GetValue(string key);
+		Task<Stream> GetValue(string key);
 		Task SetValue(string key, Stream data);
 	};
 
@@ -109,7 +109,7 @@ namespace LogJoint.Persistence
 
 	public interface IWebContentCache
 	{
-		Stream GetValue(Uri uri);
+		Task<Stream> GetValue(Uri uri);
 		Task SetValue(Uri key, Stream data);
 	};
 

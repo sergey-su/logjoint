@@ -4,17 +4,24 @@ using System.Xml.Linq;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
 	public class NetworkCredentialsStorage
 	{
-		public NetworkCredentialsStorage(Persistence.IStorageEntry settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
+		public static async Task<NetworkCredentialsStorage> Create(
+			Persistence.IStorageEntry settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
+		{
+			var storage = new NetworkCredentialsStorage(settingsEntry, credentialsProtection);
+			await storage.Load();
+			return storage;
+		}
+
+		private NetworkCredentialsStorage(Persistence.IStorageEntry settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
 		{
 			this.settingsEntry = settingsEntry;
 			this.credentialsProtection = credentialsProtection;
-
-			Load();
 		}
 
 		public System.Net.NetworkCredential GetCredential(Uri uri)
@@ -41,7 +48,7 @@ namespace LogJoint
 			entries.Add(new Entry() { UriPrefix = uriPrefix, Cred = cred });
 		}
 
-		public void StoreSecurely()
+		public async Task StoreSecurely()
 		{
 			var doc = new XDocument(
 				new XElement("credentials", 
@@ -59,17 +66,17 @@ namespace LogJoint
 			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 			{
 				sect.Data.SetLength(0);
-				sect.Data.Write(protectedData, 0, protectedData.Length);
+				await sect.Data.WriteAsync(protectedData, 0, protectedData.Length);
 			}
 		}
 
-		public void Load()
+		private async Task Load()
 		{
 			byte[] protectedData;
 			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				protectedData = new byte[sect.Data.Length];
-				sect.Data.Read(protectedData, 0, protectedData.Length);
+				await sect.Data.ReadAsync(protectedData, 0, protectedData.Length);
 			}
 			byte[] unprotectedData;
 			try

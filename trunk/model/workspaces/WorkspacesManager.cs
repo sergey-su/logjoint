@@ -192,7 +192,7 @@ namespace LogJoint.Workspaces
 						sectionContentStream.Position = 0;
 						IStorageEntry storageEntry;
 						if (!entries.TryGetValue(storageEntryId, out storageEntry))
-							entries.Add(storageEntryId, storageEntry = storageManager.GetEntryById(storageEntryId));
+							entries.Add(storageEntryId, storageEntry = await storageManager.GetEntryById(storageEntryId));
 						await storageEntry.LoadSectionFromSnapshot(sectionId, sectionContentStream, cancellation);
 					}
 				}
@@ -204,7 +204,7 @@ namespace LogJoint.Workspaces
 		{
 			foreach (var embeddedStorageEntry in workspace.embeddedStorageEntries)
 			{
-				var entry = storageManager.GetEntryById(embeddedStorageEntry.id);
+				var entry = await storageManager.GetEntryById(embeddedStorageEntry.id);
 				foreach (var embeddedStorageSection in embeddedStorageEntry.sections)
 					using (var sectionStream = new MemoryStream(Convert.FromBase64String(embeddedStorageSection.value)))
 						await entry.LoadSectionFromSnapshot(embeddedStorageSection.id, sectionStream, cancellation);

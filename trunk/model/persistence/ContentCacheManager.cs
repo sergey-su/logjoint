@@ -18,7 +18,7 @@ namespace LogJoint.Persistence
 			impl.Dispose();
 		}
 
-		Stream IContentCache.GetValue(string key)
+		async Task<Stream> IContentCache.GetValue(string key)
 		{
 			var entry = GetEntry(key);
 			var section = entry.OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadOnly);

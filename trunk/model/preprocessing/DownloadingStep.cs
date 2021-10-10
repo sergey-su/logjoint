@@ -38,7 +38,7 @@ namespace LogJoint.Preprocessing
 			NetworkCredential ICredentials.GetCredential(Uri uri, string authType)
 			{
 				Callback.Trace.Info("Auth requested for {0}", uri.Host);
-				var ret = CredCache.QueryCredentials(uri, authType);
+				var ret = CredCache.QueryCredentials(uri, authType).Result;
 				if (ret != null)
 					LastRequestedCredential = new Tuple<Uri, string>(uri, authType);
 				return ret;
@@ -91,7 +91,7 @@ namespace LogJoint.Preprocessing
 
 				var uri = new Uri(sourceFile.Location);
 				LogDownloaderRule logDownloaderRule;
-				using (var cachedValue = cache.GetValue(uri))
+				using (var cachedValue = await cache.GetValue(uri))
 				{
 					if (cachedValue != null)
 					{
@@ -207,7 +207,7 @@ namespace LogJoint.Preprocessing
 						if (lastCred != null)
 						{
 							trace.Info("Invalidating last requested credentials: {0} {1}", lastCred.Item1, lastCred.Item2);
-							credentials.CredCache.InvalidateCredentialsCache(lastCred.Item1, lastCred.Item2);
+							credentials.CredCache.InvalidateCredentialsCache(lastCred.Item1, lastCred.Item2).Wait();
 						}
 					}
 				}

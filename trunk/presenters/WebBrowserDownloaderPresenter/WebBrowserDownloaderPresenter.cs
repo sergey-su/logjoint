@@ -53,7 +53,7 @@ namespace LogJoint.UI.Presenters.WebViewTools
 		{
 			if (downloadParams.CacheMode == CacheMode.AllowCacheReading || downloadParams.CacheMode == CacheMode.DownloadFromCacheOnly)
 			{
-				var cachedValue = cache.GetValue(downloadParams.Location);
+				var cachedValue = await cache.GetValue(downloadParams.Location);
 				if (cachedValue != null)
 				{
 					tracer.Info("found in cache content for location='{0}'", downloadParams.Location);

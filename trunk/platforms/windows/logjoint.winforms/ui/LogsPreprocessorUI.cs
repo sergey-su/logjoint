@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -22,15 +23,15 @@ namespace LogJoint.UI
 			this.appWindow = appWindow;
 		}
 
-		NetworkCredential Preprocessing.ICredentialsCache.QueryCredentials(Uri uri, string authType)
+		Task<NetworkCredential> Preprocessing.ICredentialsCache.QueryCredentials(Uri uri, string authType)
 		{
 			lock (credentialCacheLock)
 			{
 				if (credentialCache == null)
-					credentialCache = new NetworkCredentialsStorage(credentialsCacheStorage, new Persistence.SystemDataProtection());
+					credentialCache = NetworkCredentialsStorage.Create(credentialsCacheStorage, new Persistence.SystemDataProtection()).Result;
 				var cred = credentialCache.GetCredential(uri);
 				if (cred != null)
-					return cred;
+					return Task.FromResult(cred);
 				var ret = uiInvokeSynchronization.Invoke<NetworkCredential>(() =>
 					CredUIUtils.ShowCredentialsDialog(appWindow.Handle,
 						NetworkCredentialsStorage.GetRelevantPart(uri).ToString(), 
@@ -38,20 +39,21 @@ namespace LogJoint.UI
 				if (ret == null)
 					return null;
 				credentialCache.Add(uri, ret);
-				credentialCache.StoreSecurely();
-				return ret;
+				credentialCache.StoreSecurely().Wait();
+				return Task.FromResult(ret);
 			}
 		}
 
-		void Preprocessing.ICredentialsCache.InvalidateCredentialsCache(Uri site, string authType)
+		Task Preprocessing.ICredentialsCache.InvalidateCredentialsCache(Uri site, string authType)
 		{
 			lock (credentialCacheLock)
 			{
 				if (credentialCache == null)
-					credentialCache = new NetworkCredentialsStorage(credentialsCacheStorage, new Persistence.SystemDataProtection());
+					credentialCache = NetworkCredentialsStorage.Create(credentialsCacheStorage, new Persistence.SystemDataProtection()).Result;
 				if (credentialCache.Remove(site))
-					credentialCache.StoreSecurely();
+					credentialCache.StoreSecurely().Wait();
 			}
+			return Task.CompletedTask;
 		}
 
 	};

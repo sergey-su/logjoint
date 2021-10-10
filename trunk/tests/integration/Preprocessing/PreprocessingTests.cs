@@ -44,7 +44,7 @@ namespace LogJoint.Tests.Integration
 		{
 			app.Mocks.CredentialsCache.QueryCredentials(
 				Arg.Is<Uri>(v => v.ToString().Contains("XmlWriterTraceListener1AndImage.PasswordProtected.zip")), null)
-				.ReturnsForAnyArgs(new System.Net.NetworkCredential("", "Pa$$w0rd"));
+				.ReturnsForAnyArgs(Task.FromResult(new System.Net.NetworkCredential("", "Pa$$w0rd")));
 			await app.SynchronizationContext.InvokeAndAwait(async () =>
 			{
 				await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.PasswordProtected.zip"));

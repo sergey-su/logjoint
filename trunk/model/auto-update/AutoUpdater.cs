@@ -349,7 +349,7 @@ namespace LogJoint.AutoUpdate
 					{
 						string logContents;
 						using (var reader = new StreamReader(section.Data))
-							logContents = reader.ReadToEnd();
+							logContents = await reader.ReadToEndAsync();
 						trace.Info("log:{1}{0}", logContents, Environment.NewLine);
 						sectionAbsolutePath = section.AbsolutePath;
 

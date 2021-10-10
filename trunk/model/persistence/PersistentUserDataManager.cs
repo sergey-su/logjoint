@@ -30,9 +30,9 @@ namespace LogJoint.Persistence
 			get { return globalSettingsEntry.Value; }
 		}
 
-		IStorageEntry IStorageManager.GetEntryById(string id)
+		Task<IStorageEntry> IStorageManager.GetEntryById(string id)
 		{
-			return impl.GetEntryById(id);
+			return Task.FromResult(impl.GetEntryById(id));
 		}
 
 		ulong IStorageManager.MakeNumericKey(string stringToBeHashed)
