@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.Settings
 {
@@ -28,16 +29,20 @@ namespace LogJoint.Settings
 		const int MaxMaxSearchResultSize = DefaultSettingsAccessor.DefaultMaxSearchResultSize * 100;
 
 		bool loaded;
-		FileSizes fileSizes;
-		int maxNumberOfHitsInSearchResultsView;
-		bool multithreadedParsingDisabled;
-		Appearance appearance;
-		StorageSizes userDataStorageSizes, contentCacheStorageSizes;
-		bool enableAutoPostprocessing;
+		FileSizes fileSizes = FileSizes.Default;
+		int maxNumberOfHitsInSearchResultsView = DefaultSettingsAccessor.DefaultMaxSearchResultSize;
+		bool multithreadedParsingDisabled = DefaultSettingsAccessor.DefaultMultithreadedParsingDisabled;
+		Appearance appearance = Appearance.Default;
+		StorageSizes userDataStorageSizes = StorageSizes.Default;
+		StorageSizes contentCacheStorageSizes = StorageSizes.Default;
+		bool enableAutoPostprocessing = DefaultSettingsAccessor.DefaultEnableAutoPostprocessing;
 
-		public GlobalSettingsAccessor(Persistence.IStorageManager persistenceEntry)
+		TaskChain tasks = new TaskChain();
+
+		public GlobalSettingsAccessor(Persistence.IStorageManager storageManager)
 		{
-			this.storageManager = persistenceEntry;
+			this.storageManager = storageManager;
+			tasks.AddTask(Load);
 		}
 
 		public event EventHandler<SettingsChangeEvent> Changed;
@@ -46,18 +51,19 @@ namespace LogJoint.Settings
 		{
 			get
 			{
-				EnsureLoaded();
 				return fileSizes;
 			}
 			set
 			{
 				Validate(ref value);
-				if (loaded && !Differ(value, fileSizes))
-					return;
-				EnsureLoaded();
-				fileSizes = value;
-				Save();
-				FireChanged(SettingsPiece.FileSizes);
+				tasks.AddTask(async () =>
+				{
+					if (loaded && !Differ(value, fileSizes))
+						return;
+					fileSizes = value;
+					FireChanged(SettingsPiece.FileSizes);
+					await Save();
+				});
 			}
 		}
 
@@ -65,17 +71,18 @@ namespace LogJoint.Settings
 		{
 			get
 			{
-				EnsureLoaded();
 				return maxNumberOfHitsInSearchResultsView;
 			}
 			set
 			{
 				value = RangeUtils.PutInRange(1, MaxMaxSearchResultSize, value);
-				if (loaded && value == maxNumberOfHitsInSearchResultsView)
-					return;
-				EnsureLoaded();
-				maxNumberOfHitsInSearchResultsView = value;
-				Save();
+				tasks.AddTask(async () =>
+				{
+					if (loaded && value == maxNumberOfHitsInSearchResultsView)
+						return;
+					maxNumberOfHitsInSearchResultsView = value;
+					await Save();
+				});
 			}
 		}
 
@@ -83,16 +90,17 @@ namespace LogJoint.Settings
 		{
 			get
 			{
-				EnsureLoaded();
 				return multithreadedParsingDisabled;
 			}
 			set
 			{
-				if (loaded && value == multithreadedParsingDisabled)
-					return;
-				EnsureLoaded();
-				multithreadedParsingDisabled = value;
-				Save();
+				tasks.AddTask(async () =>
+				{
+					if (loaded && value == multithreadedParsingDisabled)
+						return;
+					multithreadedParsingDisabled = value;
+					await Save();
+				});
 			}
 		}
 
@@ -100,18 +108,19 @@ namespace LogJoint.Settings
 		{
 			get
 			{
-				EnsureLoaded();
 				return appearance;
 			}
 			set
 			{
 				Validate(ref value);
-				if (loaded && !Differ(value, appearance))
-					return;
-				EnsureLoaded();
-				appearance = value;
-				Save();
-				FireChanged(SettingsPiece.Appearance);
+				tasks.AddTask(async () =>
+				{
+					if (loaded && !Differ(value, appearance))
+						return;
+					appearance = value;
+					FireChanged(SettingsPiece.Appearance);
+					await Save();
+				});
 			}
 		}
 
@@ -119,18 +128,19 @@ namespace LogJoint.Settings
 		{
 			get
 			{
-				EnsureLoaded();
 				return userDataStorageSizes;
 			}
 			set
 			{
 				Validate(ref value);
-				if (loaded && !Differ(value, userDataStorageSizes))
-					return;
-				EnsureLoaded();
-				userDataStorageSizes = value;
-				Save();
-				FireChanged(SettingsPiece.UserDataStorageSizes);
+				tasks.AddTask(async () =>
+				{
+					if (loaded && !Differ(value, userDataStorageSizes))
+						return;
+					userDataStorageSizes = value;
+					FireChanged(SettingsPiece.UserDataStorageSizes);
+					await Save();
+				});
 			}
 		}
 
@@ -138,18 +148,19 @@ namespace LogJoint.Settings
 		{
 			get
 			{
-				EnsureLoaded();
 				return contentCacheStorageSizes;
 			}
 			set
 			{
 				Validate(ref value);
-				if (loaded && !Differ(value, contentCacheStorageSizes))
-					return;
-				EnsureLoaded();
-				contentCacheStorageSizes = value;
-				Save();
-				FireChanged(SettingsPiece.ContentCacheStorageSizes);
+				tasks.AddTask(async () =>
+				{
+					if (loaded && !Differ(value, contentCacheStorageSizes))
+						return;
+					contentCacheStorageSizes = value;
+					FireChanged(SettingsPiece.ContentCacheStorageSizes);
+					await Save();
+				});
 			}
 		}
 
@@ -157,25 +168,24 @@ namespace LogJoint.Settings
 		{
 			get
 			{
-				EnsureLoaded();
 				return enableAutoPostprocessing;
 			}
 			set
 			{
-				if (loaded && value == enableAutoPostprocessing)
-					return;
-				EnsureLoaded();
-				enableAutoPostprocessing = value;
-				Save();
+				tasks.AddTask(async () =>
+				{
+					if (loaded && value == enableAutoPostprocessing)
+						return;
+					enableAutoPostprocessing = value;
+					await Save();
+				});
 			}
 		}
 
 
-		void EnsureLoaded()
+		private async Task Load()
 		{
-			if (loaded)
-				return;
-			using (var section = storageManager.GlobalSettingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var section = (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = section.Data.Element(rootNodeName);
 
@@ -208,10 +218,9 @@ namespace LogJoint.Settings
 			loaded = true;
 		}
 
-		void Save()
+		async Task Save()
 		{
-			EnsureLoaded();
-			using (var section = storageManager.GlobalSettingsEntry.OpenXMLSection(sectionName,
+			using (var section = (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
 			{
 				var root = new XElement(
@@ -280,8 +289,7 @@ namespace LogJoint.Settings
 
 		void FireChanged(SettingsPiece settingsPiece)
 		{
-			if (Changed != null)
-				Changed(this, new SettingsChangeEvent(settingsPiece));
+			Changed?.Invoke(this, new SettingsChangeEvent(settingsPiece));
 		}
 	}
 }

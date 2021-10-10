@@ -10,7 +10,7 @@ namespace LogJoint.Persistence
 			this.trace = traceSourceFactory.CreateTraceSource("Storage", "storage");
 			this.impl = impl; 
 			this.impl.SetTrace(trace);
-			this.globalSettingsEntry = new Lazy<IStorageEntry>(() => impl.GetEntry("global", 0));
+			this.globalSettingsEntry = impl.GetEntry("global", 0);
 			shutdown.Cleanup += (sender, e) => impl.Dispose();
 		}
 
@@ -21,13 +21,13 @@ namespace LogJoint.Persistence
 
 		Task<IStorageEntry> IStorageManager.GetEntry(string entryKey, ulong additionalNumericKey)
 		{
-			return Task.FromResult(impl.GetEntry(entryKey, additionalNumericKey));
+			return impl.GetEntry(entryKey, additionalNumericKey);
 		}
 
 
-		IStorageEntry IStorageManager.GlobalSettingsEntry
+		Task<IStorageEntry> IStorageManager.GlobalSettingsEntry
 		{
-			get { return globalSettingsEntry.Value; }
+			get { return globalSettingsEntry; }
 		}
 
 		Task<IStorageEntry> IStorageManager.GetEntryById(string id)
@@ -44,7 +44,7 @@ namespace LogJoint.Persistence
 
 		readonly LJTraceSource trace;
 		readonly Implementation.IStorageManagerImplementation impl;
-		readonly Lazy<IStorageEntry> globalSettingsEntry;
+		readonly Task<IStorageEntry> globalSettingsEntry;
 
 		#endregion
 

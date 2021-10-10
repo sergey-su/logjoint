@@ -20,7 +20,7 @@ namespace LogJoint.Persistence
 
 		async Task<Stream> IContentCache.GetValue(string key)
 		{
-			var entry = GetEntry(key);
+			var entry = await GetEntry(key);
 			var section = entry.OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadOnly);
 			if (!((Implementation.IStorageSectionInternal)section).ExistsInFileSystem)
 			{
@@ -32,16 +32,16 @@ namespace LogJoint.Persistence
 
 		async Task IContentCache.SetValue(string key, Stream data)
 		{
-			var entry = GetEntry(key);
+			var entry = await GetEntry(key);
 			using (var section = entry.OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadWrite))
 			{
 				await data.CopyToAsync(section.Data);
 			}
 		}
 
-		private IStorageEntry GetEntry(string key)
+		private async Task<IStorageEntry> GetEntry(string key)
 		{
-			var entry = impl.GetEntry(key, 0);
+			var entry = await impl.GetEntry(key, 0);
 			entry.AllowCleanup();
 			return entry;
 		}

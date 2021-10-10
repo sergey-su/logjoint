@@ -11,14 +11,14 @@ namespace LogJoint
 	public class NetworkCredentialsStorage
 	{
 		public static async Task<NetworkCredentialsStorage> Create(
-			Persistence.IStorageEntry settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
+			Task<Persistence.IStorageEntry> settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
 		{
 			var storage = new NetworkCredentialsStorage(settingsEntry, credentialsProtection);
 			await storage.Load();
 			return storage;
 		}
 
-		private NetworkCredentialsStorage(Persistence.IStorageEntry settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
+		private NetworkCredentialsStorage(Task<Persistence.IStorageEntry> settingsEntry, Persistence.ICredentialsProtection credentialsProtection)
 		{
 			this.settingsEntry = settingsEntry;
 			this.credentialsProtection = credentialsProtection;
@@ -63,7 +63,7 @@ namespace LogJoint
 			MemoryStream ms = new MemoryStream();
 			doc.Save(ms);
 			var protectedData = credentialsProtection.Protect(ms.ToArray());
-			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
+			using (var sect = (await settingsEntry).OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 			{
 				sect.Data.SetLength(0);
 				await sect.Data.WriteAsync(protectedData, 0, protectedData.Length);
@@ -73,7 +73,7 @@ namespace LogJoint
 		private async Task Load()
 		{
 			byte[] protectedData;
-			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var sect = (await settingsEntry).OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				protectedData = new byte[sect.Data.Length];
 				await sect.Data.ReadAsync(protectedData, 0, protectedData.Length);
@@ -108,7 +108,7 @@ namespace LogJoint
 			entries.Clear();
 		}
 
-		readonly Persistence.IStorageEntry settingsEntry;
+		readonly Task<Persistence.IStorageEntry> settingsEntry;
 		readonly Persistence.ICredentialsProtection credentialsProtection;
 
 		struct Entry

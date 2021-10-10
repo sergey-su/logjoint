@@ -93,7 +93,7 @@ namespace LogJoint.Persistence
 		Task<IStorageEntry> GetEntryById(string id);
 		ulong MakeNumericKey(string stringToBeHashed);
 
-		IStorageEntry GlobalSettingsEntry { get; }
+		Task<IStorageEntry> GlobalSettingsEntry { get; }
 	};
 
 	public interface IContentCache

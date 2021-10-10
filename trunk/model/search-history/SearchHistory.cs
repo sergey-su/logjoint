@@ -9,12 +9,12 @@ namespace LogJoint
 	public class SearchHistory: ISearchHistory
 	{
 		public SearchHistory(
-			Persistence.IStorageEntry globalSettings, 
+			Task<Persistence.IStorageEntry> globalSettings, 
 			IUserDefinedSearches userDefinedSearches,
 			IShutdown shutdown
 		)
 		{
-			this.globalSettings = Task.FromResult(globalSettings);
+			this.globalSettings = globalSettings;
 			this.userDefinedSearches = userDefinedSearches;
 			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(tasks.Dispose());
 

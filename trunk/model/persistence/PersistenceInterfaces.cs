@@ -15,7 +15,7 @@ namespace LogJoint.Persistence
 		{
 			void SetTrace(LJTraceSource trace);
 			void Init(ITimingAndThreading timingThreading, IFileSystemAccess fs, IStorageConfigAccess config);
-			IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey);
+			Task<IStorageEntry> GetEntry(string entryKey, ulong additionalNumericKey);
 			ulong MakeNumericKey(string stringToBeHashed);
 			IStorageEntry GetEntryById(string id);
 		};

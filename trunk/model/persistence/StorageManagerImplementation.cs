@@ -42,12 +42,14 @@ namespace LogJoint.Persistence.Implementation
 			this.config = config;
 			this.fs.SetTrace(trace);
 			DoCleanupIfItIsTimeTo();
+			inited.SetResult(1);
 		}
 
-		IStorageEntry IStorageManagerImplementation.GetEntry(string entryKey, ulong additionalNumericKey)
+		async Task<IStorageEntry> IStorageManagerImplementation.GetEntry(string entryKey, ulong additionalNumericKey)
 		{
 			if (string.IsNullOrWhiteSpace(entryKey))
 				throw new ArgumentException("Wrong entryKey");
+			await inited.Task;
 			string id = NormalizeKey(entryKey, additionalNumericKey, entryKeyPrefix);
 			return GetEntryById(id);
 		}
@@ -262,6 +264,7 @@ namespace LogJoint.Persistence.Implementation
 		ITimingAndThreading env;
 		IFileSystemAccess fs;
 		IStorageConfigAccess config;
+		TaskCompletionSource<int> inited = new TaskCompletionSource<int>();
 		readonly object sync = new object();
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
 		CancellationTokenSource cleanupCancellation;

@@ -36,7 +36,7 @@ namespace LogJoint.MRU
 			Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			Telemetry.ITelemetryCollector telemetry, IChangeNotification changeNotification, IShutdown shutdown)
 		{
-			this.settingsEntry = Task.FromResult(storageManager.GlobalSettingsEntry);
+			this.settingsEntry = storageManager.GlobalSettingsEntry;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.telemetry = telemetry;
 			this.changeNotification = changeNotification;
