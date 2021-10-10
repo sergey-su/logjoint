@@ -258,7 +258,11 @@ namespace LogJoint
 			IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(
 				storageManager, filtersFactory, modelSynchronizationContext, shutdown);
 
-			ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry, userDefinedSearches);
+			ISearchHistory searchHistory = new SearchHistory(
+				storageManager.GlobalSettingsEntry,
+				userDefinedSearches,
+				shutdown
+			);
 
 			IBookmarksController bookmarksController = new BookmarkController(
 				bookmarks,

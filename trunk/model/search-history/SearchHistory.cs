@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -9,13 +10,15 @@ namespace LogJoint
 	{
 		public SearchHistory(
 			Persistence.IStorageEntry globalSettings, 
-			IUserDefinedSearches userDefinedSearches
+			IUserDefinedSearches userDefinedSearches,
+			IShutdown shutdown
 		)
 		{
-			this.globalSettings = globalSettings;
+			this.globalSettings = Task.FromResult(globalSettings);
 			this.userDefinedSearches = userDefinedSearches;
+			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(tasks.Dispose());
 
-			LoadSearchHistory();
+			tasks.AddTask(LoadSearchHistory);
 		}
 
 		public event EventHandler OnChanged;
@@ -78,9 +81,9 @@ namespace LogJoint
 			OnChanged?.Invoke(this, EventArgs.Empty);
 		}
 
-		private void LoadSearchHistory()
+		private async Task LoadSearchHistory()
 		{
-			using (var section = globalSettings.OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var section = (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				maxItemsCount = section.Data.Element(rootNodeName).SafeIntValue(maxEntriesAttrName, DefaultMaxEntries);
 				items.AddRange(
@@ -97,19 +100,22 @@ namespace LogJoint
 
 		private void SaveSearchHistory()
 		{
-			using (var section = globalSettings.OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite))
+			tasks.AddTask(async () =>
 			{
-				var newContent = items.Select(e => 
+				using (var section = (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite))
 				{
-					var xml = new XElement(entryNodeName);
-					e.Save(xml);
-					return xml;
-				}).ToArray();
-				var root = new XElement(rootNodeName, newContent);
-				root.SetAttributeValue(maxEntriesAttrName, maxItemsCount);
-				section.Data.RemoveNodes();
-				section.Data.Add(root);
-			}
+					var newContent = items.Select(e =>
+					{
+						var xml = new XElement(entryNodeName);
+						e.Save(xml);
+						return xml;
+					}).ToArray();
+					var root = new XElement(rootNodeName, newContent);
+					root.SetAttributeValue(maxEntriesAttrName, maxItemsCount);
+					section.Data.RemoveNodes();
+					section.Data.Add(root);
+				}
+			});
 		}
 
 		bool ApplySizeLimit()
@@ -126,9 +132,10 @@ namespace LogJoint
 		private readonly static string maxEntriesAttrName = "max-entries";
 		private const int DefaultMaxEntries = 200;
 
-		private readonly Persistence.IStorageEntry globalSettings;
+		private readonly Task<Persistence.IStorageEntry> globalSettings;
 		private readonly IUserDefinedSearches userDefinedSearches;
 		private readonly List<ISearchHistoryEntry> items = new List<ISearchHistoryEntry>();
 		private int maxItemsCount;
+		private readonly TaskChain tasks = new TaskChain();
 	}
 }
