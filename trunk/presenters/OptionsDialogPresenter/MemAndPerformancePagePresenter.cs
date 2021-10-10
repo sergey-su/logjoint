@@ -194,7 +194,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 
 		private void UpdateRecentLogsControls()
 		{
-			var currentRecentEntriesListSize = recentLogsList.GetMRUListSize();
+			var currentRecentEntriesListSize = recentLogsList.MRUList.Count;
 			recentLogsListSizeEditor.Value = recentLogsList.RecentEntriesListSizeLimit;
 			view.SetControlText(ViewControl.ClearRecentEntriesListLinkLabel,
 				string.Format("clear current history ({0} entries)", currentRecentEntriesListSize));

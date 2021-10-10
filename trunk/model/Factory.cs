@@ -158,7 +158,9 @@ namespace LogJoint
 			MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
 				storageManager,
 				logProviderFactoryRegistry,
-				telemetryCollector
+				telemetryCollector,
+				changeNotification,
+				shutdown
 			);
 
 			ILogSourcesManager logSourcesManager = new LogSourcesManager(

@@ -12,21 +12,18 @@ namespace LogJoint
     {
         Task tail = Task.CompletedTask;
 
-        public void AddTask(Task task)
+        public Task AddTask(Func<Task> task)
         {
             tail = Add(tail, task);
-        }
-        public void AddTask(Func<Task> task)
-        {
-            tail = Add(tail, task());
+            return tail;
         }
 
         public Task Dispose() => tail;
 
-        private static async Task Add(Task tail, Task task)
+        private static async Task Add(Task tail, Func<Task> task)
         {
             await tail;
-            await task;
+            await task();
         }
     }
 }

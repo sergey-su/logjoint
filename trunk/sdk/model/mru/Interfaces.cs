@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Xml.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.MRU
 {
@@ -11,12 +12,12 @@ namespace LogJoint.MRU
 		void RegisterRecentLogEntry(ILogProvider provider, string annotation);
 		void UpdateRecentLogEntry(ILogProvider provider, string annotation);
 		void RegisterRecentWorkspaceEntry(string workspaceUri, string workspaceName, string workspaceAnnotation);
-		IEnumerable<IRecentlyUsedEntity> GetMRUList();
-		int GetMRUListSize();
+		IReadOnlyList<IRecentlyUsedEntity> MRUList { get; }
 		Func<ILogProviderFactory, int> MakeFactoryMRUIndexGetter();
 		IEnumerable<ILogProviderFactory> SortFactoriesMoreRecentFirst(IEnumerable<ILogProviderFactory> factories);
 		int RecentEntriesListSizeLimit { get; set; }
 		void ClearRecentLogsList();
+		Task Reload();
 	};
 
 	public interface IRecentlyUsedEntity

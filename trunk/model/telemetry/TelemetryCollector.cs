@@ -70,7 +70,7 @@ namespace LogJoint.Telemetry
 				("session" + Guid.NewGuid().ToString("n")) : null;
 
 			this.transactionInvoker = new AsyncInvokeHelper(synchronization,
-				() => queue.AddTask(DoSessionsRegistryTransaction(TransactionFlag.Default)));
+				() => queue.AddTask(() => DoSessionsRegistryTransaction(TransactionFlag.Default)));
 
 			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(DisposeAsync());
 
@@ -131,7 +131,7 @@ namespace LogJoint.Telemetry
 			}
 			if (currentSessionId != null)
 			{
-				queue.AddTask(DoSessionsRegistryTransaction(TransactionFlag.FinalizeCurrentSession));
+				queue.AddTask(() => DoSessionsRegistryTransaction(TransactionFlag.FinalizeCurrentSession));
 			}
 			await queue.Dispose();
 			disposed = true;

@@ -29,7 +29,7 @@ namespace LogJoint
 			this.changeHandlerInvoker = new AsyncInvokeHelper(modelThreadSynchronization, () => tasks.AddTask(HandleChange));
 			shutdown.Cleanup += (sender, e) => shutdown.AddCleanupTask(tasks.Dispose());
 
-			tasks.AddTask(LoadItemsInitially());
+			tasks.AddTask(LoadItemsInitially);
 		}
 
 		IEnumerable<IUserDefinedSearch> IUserDefinedSearches.Items

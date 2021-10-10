@@ -24,7 +24,7 @@ namespace LogJoint
 			};
 			bookmarks.OnBookmarksChanged += (sender, e) => 
 			{
-				bookmarksSaves.AddTask(HandleEvent(e));
+				bookmarksSaves.AddTask(() => HandleEvent(e));
 			};
 			shutdown.Cleanup += (sender, e) => shutdown.AddCleanupTask(bookmarksSaves.Dispose());
 		}

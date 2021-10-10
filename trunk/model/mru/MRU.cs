@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Xml.Linq;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
 
 namespace LogJoint.MRU
 {
@@ -21,12 +23,26 @@ namespace LogJoint.MRU
 		static readonly string NameAttrName = "name";
 		const int DefaultRecentLogsListSizeLimit = 400;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
+		readonly IChangeNotification changeNotification;
+		readonly Task<Persistence.IStorageEntry> settingsEntry;
+		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
+		readonly Telemetry.ITelemetryCollector telemetry;
+		XDocument recentLogsDocument = new XDocument(); // immutable
+		XDocument recentFactoriesDocument = new XDocument(); // immutable
+		readonly Func<IReadOnlyList<IRecentlyUsedEntity>> mruList;
+		readonly TaskChain tasks = new TaskChain();
 
-		public RecentlyUsedEntities(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry, Telemetry.ITelemetryCollector telemetry)
+		public RecentlyUsedEntities(
+			Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry,
+			Telemetry.ITelemetryCollector telemetry, IChangeNotification changeNotification, IShutdown shutdown)
 		{
-			this.settingsEntry = storageManager.GlobalSettingsEntry;
+			this.settingsEntry = Task.FromResult(storageManager.GlobalSettingsEntry);
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.telemetry = telemetry;
+			this.changeNotification = changeNotification;
+			this.mruList = Selectors.Create(() => recentLogsDocument, GetMRUList);
+			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(tasks.Dispose());
+			((IRecentlyUsedEntities)this).Reload();
 		}
 
 		void IRecentlyUsedEntities.RegisterRecentLogEntry(ILogProvider provider, string annotation)
@@ -45,82 +61,69 @@ namespace LogJoint.MRU
 			AddOrReplaceWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
 		}
 
-		int IRecentlyUsedEntities.GetMRUListSize()
-		{
-			using (var sect = settingsEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
-			{
-				return sect.Data.SafeElement(RootNodeName).SafeElements(EntryNodeName).Count();
-			}
-		}
+		IReadOnlyList<IRecentlyUsedEntity> IRecentlyUsedEntities.MRUList => mruList();
 
-		IEnumerable<IRecentlyUsedEntity> IRecentlyUsedEntities.GetMRUList()
+		IReadOnlyList<IRecentlyUsedEntity> GetMRUList(XDocument document)
 		{
-			using (var sect = settingsEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+			var result = ImmutableArray.CreateBuilder<IRecentlyUsedEntity>();
+			foreach (var e in document.SafeElement(RootNodeName).SafeElements(EntryNodeName))
 			{
-				foreach (var e in sect.Data.SafeElement(RootNodeName).SafeElements(EntryNodeName))
+				if (e.AttributeValue(TypeAttrName) == WorkspaceTypeAttrValue)
 				{
-					if (e.AttributeValue(TypeAttrName) == WorkspaceTypeAttrValue)
+					result.Add(new RecentWorkspaceEntry(
+						e.Value,
+						e.AttributeValue(NameAttrName),
+						e.AttributeValue(AnnotationAttrName),
+						e.DateTimeValue(DateAttrName)
+					));
+				}
+				else
+				{
+					RecentLogEntry entry;
+					try
 					{
-						yield return new RecentWorkspaceEntry(
-							e.Value,
-							e.AttributeValue(NameAttrName),
-							e.AttributeValue(AnnotationAttrName),
-							e.DateTimeValue(DateAttrName)
-						);
+						entry = new RecentLogEntry(logProviderFactoryRegistry,
+							e.Value, e.AttributeValue(AnnotationAttrName), e.DateTimeValue(DateAttrName));
 					}
-					else
+					catch (RecentLogEntry.FormatNotRegistedException)
 					{
-						RecentLogEntry entry;
-						try
-						{
-							entry = new RecentLogEntry(logProviderFactoryRegistry,
-								e.Value, e.AttributeValue(AnnotationAttrName), e.DateTimeValue(DateAttrName));
-						}
-						catch (RecentLogEntry.FormatNotRegistedException)
-						{
-							continue;
-						}
-						catch (InvalidConnectionParamsException)
-						{
-							continue;
-						}
-						catch (RecentLogEntry.SerializationException ex)
-						{
-							telemetry.ReportException(ex, "broken MRU entry");
-							continue;
-						}
-						yield return entry;
+						continue;
 					}
+					catch (InvalidConnectionParamsException)
+					{
+						continue;
+					}
+					catch (RecentLogEntry.SerializationException ex)
+					{
+						telemetry.ReportException(ex, "broken MRU entry");
+						continue;
+					}
+					result.Add(entry);
 				}
 			}
+			return result.ToImmutable();
 		}
 
 		int IRecentlyUsedEntities.RecentEntriesListSizeLimit
 		{
 			get
 			{
-				if (maxRecentLogs == null)
-				{
-					using (var sect = settingsEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
-					{
-						maxRecentLogs = sect.Data.SafeElement(RootNodeName).SafeIntValue(ListSizeLimitAttrName, DefaultRecentLogsListSizeLimit);
-					}
-				}
-				return maxRecentLogs.Value;
+				return recentLogsDocument.SafeElement(RootNodeName).SafeIntValue(ListSizeLimitAttrName, DefaultRecentLogsListSizeLimit);
 			}
 			set
 			{
 				value = RangeUtils.PutInRange(0, 1000, value);
-				if (maxRecentLogs.HasValue && maxRecentLogs.Value == value)
+				if (((IRecentlyUsedEntities)this).RecentEntriesListSizeLimit == value)
 					return;
-				maxRecentLogs = value;
-				WriteListSizeLimit(RecentLogsSectionName, value);
+				WriteListSizeLimit(value);
+				tasks.AddTask(() => WriteOut(recentLogsDocument, RecentLogsSectionName));
 			}
 		}
 
 		void IRecentlyUsedEntities.ClearRecentLogsList()
 		{
-			ClearMRUEntries(RecentLogsSectionName);
+			WriteEntries(EnsureRoot(recentLogsDocument), new List<XElement>());
+			tasks.AddTask(() => WriteOut(recentLogsDocument, RecentLogsSectionName));
 		}
 
 		Func<ILogProviderFactory, int> IRecentlyUsedEntities.MakeFactoryMRUIndexGetter()
@@ -145,28 +148,44 @@ namespace LogJoint.MRU
 				yield return f;
 		}
 
-		void ClearMRUEntries(string sectionName)
-		{
-			using (var sect = settingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
+		Task IRecentlyUsedEntities.Reload()
+        {
+			return tasks.AddTask(async () =>
 			{
-				WriteEntries(EnsureRoot(sect), new List<XElement>());
+				var storageEntry = await settingsEntry;
+				using (var sect = storageEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+				{
+					recentLogsDocument = sect.Data;
+				}
+				using (var sect = storageEntry.OpenXMLSection(RecentFactoriesSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+				{
+					recentFactoriesDocument = sect.Data;
+				}
+				changeNotification.Post();
+			});
+		}
+
+		async Task WriteOut(XDocument document, string sectionName)
+        {
+			using (var sect = (await settingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
+            {
+				sect.Data.ReplaceNodes(document.Nodes());
 			}
 		}
 
-		private void AddOrReplaceEntry(string sectionName, XElement mruEntry, Func<XElement, XElement, bool> comparer, int defaultSizeLimit, bool updateExisting)
+		private void AddOrReplaceEntry(XDocument document, string sectionName,
+			XElement mruEntry, Func<XElement, XElement, bool> comparer, int defaultSizeLimit, bool updateExisting)
 		{
-			using (var sect = settingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
-			{
-				XElement root = EnsureRoot(sect);
-				int maxEntries = root.IntValue(ListSizeLimitAttrName, defaultSizeLimit);
-				var mru = ReadEntries(root);
-				if (updateExisting)
-					Replace(mru, mruEntry, comparer);
-				else
-					InsertOrMakeFirst(mru, mruEntry, comparer);
-				ApplySizeLimit(mru, maxEntries);
-				WriteEntries(root, mru);
-			}
+			XElement root = EnsureRoot(document);
+			int maxEntries = root.IntValue(ListSizeLimitAttrName, defaultSizeLimit);
+			var mru = ReadEntries(root);
+			if (updateExisting)
+				Replace(mru, mruEntry, comparer);
+			else
+				InsertOrMakeFirst(mru, mruEntry, comparer);
+			ApplySizeLimit(mru, maxEntries);
+			WriteEntries(root, mru);
+			tasks.AddTask(() => WriteOut(document, sectionName));
 		}
 
 		private static void InsertOrMakeFirst(List<XElement> mru, XElement mruEntry, Func<XElement, XElement, bool> comparer)
@@ -209,11 +228,11 @@ namespace LogJoint.MRU
 				root.Add(s);
 		}
 
-		XElement EnsureRoot(Persistence.IXMLStorageSection sect)
+		static XElement EnsureRoot(XDocument document)
 		{
-			XElement root = sect.Data.Element(RootNodeName);
+			XElement root = document.Element(RootNodeName);
 			if (root == null)
-				sect.Data.Add(root = new XElement(RootNodeName));
+				document.Add(root = new XElement(RootNodeName));
 			return root;
 		}
 
@@ -223,16 +242,13 @@ namespace LogJoint.MRU
 				mru.RemoveRange(limit, mru.Count - limit);
 		}
 
-		private void WriteListSizeLimit(string sectionName, int newLimit)
+		private void WriteListSizeLimit(int newLimit)
 		{
-			using (var sect = settingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
-			{
-				var root = EnsureRoot(sect);
-				root.SetAttributeValue(ListSizeLimitAttrName, newLimit);
-				var mru = ReadEntries(root);
-				ApplySizeLimit(mru, newLimit);
-				WriteEntries(root, mru);
-			}
+			var root = EnsureRoot(recentLogsDocument);
+			root.SetAttributeValue(ListSizeLimitAttrName, newLimit);
+			var mru = ReadEntries(root);
+			ApplySizeLimit(mru, newLimit);
+			WriteEntries(root, mru);
 		}
 
 		private void AddOrReplaceLog(ILogProvider provider, string annotation, bool updateExisting)
@@ -241,6 +257,7 @@ namespace LogJoint.MRU
 			if (mruConnectionParams == null)
 				return;
 			AddOrReplaceEntry(
+				recentLogsDocument,
 				RecentLogsSectionName,
 				new XElement(
 					EntryNodeName,
@@ -258,6 +275,7 @@ namespace LogJoint.MRU
 		private void AddOrReplaceWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
 		{
 			AddOrReplaceEntry(
+				recentLogsDocument,
 				RecentLogsSectionName,
 				new XElement(
 					EntryNodeName,
@@ -276,6 +294,7 @@ namespace LogJoint.MRU
 		private void AddFactory(ILogProvider provider)
 		{
 			AddOrReplaceEntry(
+				recentFactoriesDocument,
 				RecentFactoriesSectionName, 
 				new XElement(EntryNodeName, RecentLogEntry.FactoryPartToString(provider.Factory)),
 				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
@@ -286,19 +305,11 @@ namespace LogJoint.MRU
 
 		IEnumerable<ILogProviderFactory> GetRecentFactories()
 		{
-			using (var sect = settingsEntry.OpenXMLSection(RecentFactoriesSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
-			{
-				return 
-					from e in sect.Data.SafeElement(RootNodeName).SafeElements(EntryNodeName)
-					let f = RecentLogEntry.ParseFactoryPart(logProviderFactoryRegistry, e.Value)
-					where f != null
-					select f;
-			}
-		}
-		
-		readonly Persistence.IStorageEntry settingsEntry;
-		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
-		readonly Telemetry.ITelemetryCollector telemetry;
-		int? maxRecentLogs;
+			return 
+				from e in recentFactoriesDocument.SafeElement(RootNodeName).SafeElements(EntryNodeName)
+				let f = RecentLogEntry.ParseFactoryPart(logProviderFactoryRegistry, e.Value)
+				where f != null
+				select f;
+		}		
 	}
 }

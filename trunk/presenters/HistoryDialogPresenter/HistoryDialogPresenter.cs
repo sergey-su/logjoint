@@ -58,7 +58,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			this.trace = traceSourceFactory.CreateTraceSource("UI", "hist-dlg");
 			this.alerts = alerts;
 
-			items = Selectors.Create(() => visible, () => acceptedFilter, MakeItems);
+			items = Selectors.Create(() => visible, () => acceptedFilter, () => mru.MRUList, MakeItems);
 			actuallySelected = Selectors.Create(() => items().displayItems, () => selected,
 				(items, selected) => items.SelectMany(i => i.Flatten()).Where(i => selected.Contains(i.key)).ToImmutableList());
 			openButtonEnabled = Selectors.Create(actuallySelected, selected => selected.Any(IsOpenable));
@@ -97,6 +97,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		{
 			if (!visible)
 			{
+				mru.Reload();
 				visible = true;
 				changeNotification.Post();
 			}
@@ -206,7 +207,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 
 		string NextKey() => (++lastKey).ToString();
 
-		private Items MakeItems(bool visible, string filter)
+		private Items MakeItems(bool visible, string filter, IReadOnlyList<IRecentlyUsedEntity> mruList)
 		{
 			var itemsBuilder = ImmutableList<ViewItem>.Empty.ToBuilder();
 			var displayItemsBuilder = ImmutableList<ViewItem>.Empty.ToBuilder();
@@ -224,7 +225,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			var itemsFiltered = filter != "";
 			foreach (
 				var i in
-				mru.GetMRUList()
+				mruList
 				.Where(e =>
 					!itemsFiltered
 					|| e.UserFriendlyName.IndexOf(filter, StringComparison.CurrentCultureIgnoreCase) >= 0

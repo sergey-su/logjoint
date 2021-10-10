@@ -125,8 +125,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void IViewModel.OnMRUButtonClicked()
 		{
 			udfManager.ReloadFactories();
+			mru.Reload().Wait();
 			var items = new List<MRUMenuItem>();
-			foreach (var entry in mru.GetMRUList().Take(20))
+			foreach (var entry in mru.MRUList.Take(20))
 			{
 				items.Add(new MRUMenuItem()
 				{
