@@ -15,7 +15,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 	public class PresenterPersistentState: IPostprocessorTags
 	{
 		readonly IChangeNotification changeNotification;
-		readonly Persistence.IStorageEntry stateEntry;
 		readonly string logSourceStateSectionName;
 		readonly Func<ImmutableHashSet<string>> availableTagsSelector;
 		readonly Func<IEnumerable<ILogSource>> sourcesSelector;
@@ -24,8 +23,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		int savedTagsRevision;
 
 		public PresenterPersistentState(
-			Persistence.IStorageManager storageManager,
-			string globalStateStorageEntryName,
 			string logSourceSpecificStateSectionName,
 			IChangeNotification changeNotification,
 			Func<ImmutableHashSet<string>> availableTagsSelector,
@@ -33,7 +30,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		)
 		{
 			this.changeNotification = changeNotification;
-			this.stateEntry = storageManager.GetEntry(globalStateStorageEntryName);
 			this.logSourceStateSectionName = logSourceSpecificStateSectionName;
 			this.availableTagsSelector = CreateAvailableTagsSelectorAdapter(availableTagsSelector);
 			this.sourcesSelector = sourcesSelector;

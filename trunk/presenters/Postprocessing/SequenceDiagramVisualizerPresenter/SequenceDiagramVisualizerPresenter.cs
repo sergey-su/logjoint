@@ -103,7 +103,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				GetAvailableTags
 			);
 			this.persistentState = new Common.PresenterPersistentState(
-				storageManager, "postproc.sequence-diagram", "postproc.sequence.view-state.xml",
+				"postproc.sequence.view-state.xml",
 				changeNotification, availableTagsSelector, sourcesSelector);
 			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(persistentState, view.TagsListView, changeNotification);
 			this.tagsListPresenter.SetIsSingleLine(false);

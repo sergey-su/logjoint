@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			var getAvailableTags = Selectors.Create(() => model.Activities, activities => ImmutableHashSet.CreateRange(activities.SelectMany(a => a.Tags)));
 			var sourcesSelector = Selectors.Create(() => model.Outputs, outputs => outputs.Select(output => output.LogSource));
 			this.persistentState = new Common.PresenterPersistentState(
-				storageManager, "postproc.timeline", "postproc.timeline.view-state.xml", changeNotification, getAvailableTags, sourcesSelector);
+				"postproc.timeline.view-state.xml", changeNotification, getAvailableTags, sourcesSelector);
 			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(persistentState, view.TagsListView, changeNotification);
 
 			model.EverythingChanged += (sender, args) =>
