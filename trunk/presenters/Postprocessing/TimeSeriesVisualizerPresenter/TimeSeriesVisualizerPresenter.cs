@@ -34,6 +34,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		PointF? moveOrigin;
 		string moveOriginYAxisId;
 		readonly string persistenceSectionName = "postproc.timeseriese.view-state.xml";
+		int handledOutputsVersion = 0;
 
 		static readonly DateTime xAxisOrigin = new DateTime(2000, 1, 1);
 		static readonly string xAxisKey = "__xAxis__";
@@ -577,6 +578,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void HandleOutputsChange()
 		{
+			++handledOutputsVersion;
 			var tmp = new HashSet<ITimeSeriesPostprocessorOutput>(handledOutputs);
 			foreach (var log in model.Outputs)
 			{
@@ -809,7 +811,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			eventLikeObjectsStrCache = null;
 		}
 
-		void LoadSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
+		async void LoadSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
 		{
 			int? parseColor(string s)
 			{
@@ -819,11 +821,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				return Enum.TryParse<MarkerType>(s, out var mt) ? mt : new MarkerType?();
 			}
+			int savedVersion = handledOutputsVersion;
 
 			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
 				persistenceSectionName,
 				Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
+				if (handledOutputsVersion != savedVersion)
+					return;
 				var tsLookup = output.TimeSeries.ToLookup(ts => new EntityKey(ts));
 				ModifyVisibleTimeSeriesList(
 					section.Data
