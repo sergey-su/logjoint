@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LogJoint.UI.Presenters.Postprocessing.Common
@@ -20,7 +21,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		readonly Func<IEnumerable<ILogSource>> sourcesSelector;
 		readonly Func<TagsPredicate> getTagsPredicate;
 		readonly Func<TagsPredicate> getDefaultPredicate;
-		int savedTagsRevision;
+		ImmutableDictionary<ILogSource, Task<XDocument>> cache = ImmutableDictionary<ILogSource, Task<XDocument>>.Empty;
+		int cacheTaskCompletionRevision = 0;
 
 		public PresenterPersistentState(
 			string logSourceSpecificStateSectionName,
@@ -39,11 +41,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 				availableTags => TagsPredicate.MakeMatchAnyPredicate(availableTags)
 			);
 
+			var getCache = Selectors.Create(sourcesSelector, () => cacheTaskCompletionRevision, MaybeUpdateAndGetCache);
+
+			var getCachedDocuments = Selectors.Create(getCache, () => cacheTaskCompletionRevision,
+				(cache, _) => cache
+				.Where(i => i.Value.IsCompleted && !i.Value.IsFaulted)
+				.Select(i => new KeyValuePair<ILogSource, XDocument>(i.Key, i.Value.Result))
+				.ToImmutableDictionary());
+
 			this.getTagsPredicate = Selectors.Create(
 				getDefaultPredicate,
 				sourcesSelector,
-				() => savedTagsRevision,
-				(defaultPredicate, sources, _revision) => LoadPredicate(sources, defaultPredicate, logSourceStateSectionName)
+				getCachedDocuments,
+				(defaultPredicate, sources, cache) => LoadPredicate(sources, cache, defaultPredicate)
 			);
 		}
 
@@ -55,11 +65,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			set => SetPredicate(value);
 		}
 
-		private static TagsPredicate TryLoadPredicate(Persistence.IStorageEntry entry, string sectionName)
+		private static TagsPredicate TryLoadPredicate(ILogSource source,
+			IReadOnlyDictionary<ILogSource, XDocument> cachedDocuments)
 		{
-			using (var section = entry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+			if (cachedDocuments.TryGetValue(source, out var data))
 			{
-				var tagsElt = section.Data.SafeElement(Constants.StateRootEltName).SafeElement(Constants.TagsEltName);
+				var tagsElt = data.SafeElement(Constants.StateRootEltName).SafeElement(Constants.TagsEltName);
 				var strValue = tagsElt?.Nodes()?.OfType<XText>()?.FirstOrDefault()?.Value;
 				if (strValue != null && TagsPredicate.TryParse(strValue, out var predicate))
 					return predicate;
@@ -67,33 +78,70 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			return null;
 		}
 
-		static private TagsPredicate LoadPredicate(IEnumerable<ILogSource> sources, TagsPredicate defaultPredicate, string logSourceStateSectionName)
+		static private TagsPredicate LoadPredicate(IEnumerable<ILogSource> sources,
+			IReadOnlyDictionary<ILogSource, XDocument> cachedDocuments,
+			TagsPredicate defaultPredicate)
 		{
 			return TagsPredicate.Combine(
 				sources
-				.Select(s => s.LogSourceSpecificStorageEntry)
-				.Select(entry => TryLoadPredicate(entry, logSourceStateSectionName) ?? defaultPredicate)
+				.Select(s => TryLoadPredicate(s, cachedDocuments) ?? defaultPredicate)
 			);
 		}
 
+		IReadOnlyDictionary<ILogSource, Task<XDocument>> MaybeUpdateAndGetCache(IEnumerable<ILogSource> sources,
+			int ignoredCacheTaskCompletionRevision)
+        {
+			var staleSources = cache.Keys.ToHashSet();
+			foreach (var source in sources)
+            {
+				if (!staleSources.Remove(source))
+                {
+					async Task<XDocument> Query()
+                    {
+						using (var section = source.LogSourceSpecificStorageEntry.OpenXMLSection(
+								logSourceStateSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+						{
+							++cacheTaskCompletionRevision;
+							changeNotification.Post();
+							return section.Data;
+						}
+					}
+					cache = cache.Add(source, Query());
+				}
+            }
+			foreach (ILogSource staleSource in staleSources)
+			{
+				cache = cache.Remove(staleSource);
+			}
+			return cache;
+        }
+
 		private void SetPredicate(TagsPredicate value)
 		{
-			void savePredicate(Persistence.IStorageEntry entry, string sectionName)
+			async void SavePredicate(ILogSource source, XDocument doc)
 			{
-				using (var section = entry.OpenXMLSection(sectionName,
+				using (var section = source.LogSourceSpecificStorageEntry.OpenXMLSection(logSourceStateSectionName,
 					Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 				{
-					section.Data.Add(new XElement(
-						Constants.StateRootEltName,
-						new XElement(Constants.TagsEltName, value.ToString()))
-					);
+					section.Data.ReplaceNodes(doc.Nodes());
 				}
 			}
 
-			foreach (var entry in sourcesSelector().Select(s => s.LogSourceSpecificStorageEntry))
-				savePredicate(entry, logSourceStateSectionName);
+			foreach (var source in sourcesSelector())
+            {
+				if (cache.TryGetValue(source, out var task))
+                {
+					var doc = new XDocument();
+					doc.Add(new XElement(
+						Constants.StateRootEltName,
+						new XElement(Constants.TagsEltName, value.ToString()))
+					);
+					cache = cache.SetItem(source, Task.FromResult(doc));
+					SavePredicate(source, new XDocument(doc));
+					cacheTaskCompletionRevision++;
+				}
+            }
 
-			++savedTagsRevision;
 			changeNotification.Post();
 		}
 
