@@ -56,7 +56,8 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			logSourcePP1 = Substitute.For<ILogSourcePostprocessor>();
 			logSourcePP1.Kind.Returns(PostprocessorKind.SequenceDiagram);
 			pp1outputXmlSection = Substitute.For<Persistence.ISaxXMLStorageSection>();
-			logSource1.LogSourceSpecificStorageEntry.OpenSaxXMLSection("postproc-sequencediagram.xml", Persistence.StorageSectionOpenFlag.ReadOnly).Returns(pp1outputXmlSection);
+			logSource1.LogSourceSpecificStorageEntry.OpenSaxXMLSection("postproc-sequencediagram.xml", Persistence.StorageSectionOpenFlag.ReadOnly).Returns(
+				Task.FromResult(pp1outputXmlSection));
 			pp1outputXmlSection.Reader.Returns(Substitute.For<XmlReader>());
 			pp1PostprocessorOutput = Substitute.For<IPostprocessorOutputETag>();
 			outputDataDeserializer = Substitute.For<IOutputDataDeserializer>();

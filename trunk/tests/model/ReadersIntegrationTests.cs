@@ -110,7 +110,7 @@ namespace LogJoint.Tests
 			storageManager.GetEntry(null, 0).ReturnsForAnyArgs(Task.FromResult(cacheEntry));
 			var cacheSection = Substitute.For<Persistence.IRawStreamStorageSection>();
 			cacheSection.Data.Returns(new MemoryStream());
-			cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(cacheSection);
+			cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(Task.FromResult(cacheSection));
 			return new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, Substitute.For<Telemetry.ITelemetryCollector>(), null, null);
 		}
 	};

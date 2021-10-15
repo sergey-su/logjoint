@@ -263,7 +263,7 @@ namespace LogJoint.FieldsProcessor
 
 		async Task<Type> GenerateType(int builderTypeHash)
 		{
-			using (var cacheSection = cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
+			using (var cacheSection = await cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
 				Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				var cachedRawAsmSize = cacheSection.Data.Length;

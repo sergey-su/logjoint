@@ -98,7 +98,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
                 {
 					async Task<XDocument> Query()
                     {
-						using (var section = source.LogSourceSpecificStorageEntry.OpenXMLSection(
+						using (var section = await source.LogSourceSpecificStorageEntry.OpenXMLSection(
 								logSourceStateSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 						{
 							++cacheTaskCompletionRevision;
@@ -120,7 +120,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		{
 			async void SavePredicate(ILogSource source, XDocument doc)
 			{
-				using (var section = source.LogSourceSpecificStorageEntry.OpenXMLSection(logSourceStateSectionName,
+				using (var section = await source.LogSourceSpecificStorageEntry.OpenXMLSection(logSourceStateSectionName, 
 					Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 				{
 					section.Data.ReplaceNodes(doc.Nodes());

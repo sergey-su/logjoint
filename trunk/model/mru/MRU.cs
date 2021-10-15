@@ -153,11 +153,11 @@ namespace LogJoint.MRU
 			return tasks.AddTask(async () =>
 			{
 				var storageEntry = await settingsEntry;
-				using (var sect = storageEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+				using (var sect = await storageEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 				{
 					recentLogsDocument = sect.Data;
 				}
-				using (var sect = storageEntry.OpenXMLSection(RecentFactoriesSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+				using (var sect = await storageEntry .OpenXMLSection(RecentFactoriesSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 				{
 					recentFactoriesDocument = sect.Data;
 				}
@@ -167,7 +167,7 @@ namespace LogJoint.MRU
 
 		async Task WriteOut(XDocument document, string sectionName)
         {
-			using (var sect = (await settingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
+			using (var sect = await (await settingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
             {
 				sect.Data.ReplaceNodes(document.Nodes());
 			}

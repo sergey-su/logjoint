@@ -97,7 +97,7 @@ namespace LogJoint
 		async Task LoadItemsInitially()
 		{
 			items.Clear();
-			using (var section = (await storageEntry.Value).OpenXMLSection(
+			using (var section = await (await storageEntry.Value).OpenXMLSection(
 				sectionName, 
 				Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
@@ -143,7 +143,7 @@ namespace LogJoint
 
 		async Task SaveItems ()
 		{
-			using (var section = (await storageEntry.Value).OpenXMLSection (
+			using (var section = await (await storageEntry.Value).OpenXMLSection (
 				sectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions)) 
 			{

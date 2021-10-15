@@ -74,7 +74,7 @@ namespace LogJoint.Persistence
 
 		public interface IStorageEntryInternal: IStorageEntry
 		{
-			IRawStreamStorageSection OpenRawXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey);
+			Task<IRawStreamStorageSection> OpenRawXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey);
 		};
 	}
 }

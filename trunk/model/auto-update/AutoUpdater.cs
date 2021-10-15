@@ -345,7 +345,7 @@ namespace LogJoint.AutoUpdate
 						continue;
 					trace.Info("found update log key={0}, id={1}", sectionInfo.Key, sectionInfo.Id);
 					string sectionAbsolutePath;
-					using (var section = updatesStorageEntry.OpenRawStreamSection(sectionInfo.Key, StorageSectionOpenFlag.ReadOnly))
+					using (var section = await updatesStorageEntry.OpenRawStreamSection(sectionInfo.Key, StorageSectionOpenFlag.ReadOnly))
 					{
 						string logContents;
 						using (var reader = new StreamReader(section.Data))
@@ -381,7 +381,7 @@ namespace LogJoint.AutoUpdate
 
 		private async Task<string> ComposeUpdateLogFileName(Persistence.IStorageEntry updatesStorageEntry)
 		{
-			using (var updateLogSection = updatesStorageEntry.OpenRawStreamSection(
+			using (var updateLogSection = await updatesStorageEntry.OpenRawStreamSection(
 				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH'-'mm'-'ss'Z'}", Constants.updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
 				StorageSectionOpenFlag.ClearOnOpen | StorageSectionOpenFlag.ReadWrite)
 			)

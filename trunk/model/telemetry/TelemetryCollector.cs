@@ -238,7 +238,7 @@ namespace LogJoint.Telemetry
 		{
 			telemetryStorageEntry = await storage.GetEntry("telemetry");
 			bool telemetryStorageJustInitialized = false;
-			using (var sessions = telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
+			using (var sessions = await telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				string installationId;
@@ -262,7 +262,7 @@ namespace LogJoint.Telemetry
 				));
 			}
 			if (telemetryStorageJustInitialized)
-				telemetryStorageEntry.AllowCleanup();
+				await telemetryStorageEntry.AllowCleanup();
 		}
 
 		private void InitStaticTelemetryProperties()
@@ -320,7 +320,7 @@ namespace LogJoint.Telemetry
 				return;
 
 			await inited;
-			using (var sessions = telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
+			using (var sessions = await telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				var currentSessionElt = sessions.Data.

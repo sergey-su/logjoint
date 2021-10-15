@@ -104,11 +104,11 @@ namespace LogJoint.Postprocessing
 				if (postprocessorRecord.state.PostprocessorNeedsRunning == null)
 					throw new InvalidOperationException($"Can not start postprocessor in this state {postprocessorRecord.state.GetType()}");
 
-				Task<System.IO.Stream> openOutputStream()
+				async Task<System.IO.Stream> openOutputStream()
 				{
-					var section = ((Persistence.Implementation.IStorageEntryInternal)forLogSource.LogSourceSpecificStorageEntry).OpenRawXMLSection(
+					var section = await ((Persistence.Implementation.IStorageEntryInternal)forLogSource.LogSourceSpecificStorageEntry).OpenRawXMLSection(
 							outputType.MakePostprocessorOutputFileName(), Persistence.StorageSectionOpenFlag.ReadWrite, 0);
-					return Task.FromResult<System.IO.Stream>(new DelegatingStream(section.Data, ownStream: false, dispose: section.Dispose));
+					return new DelegatingStream(section.Data, ownStream: false, dispose: section.Dispose);
 				};
 
 				bool needsProcessing = logSourceRecord.logSource.Visible && postprocessorRecord.state.PostprocessorNeedsRunning == true;

@@ -57,17 +57,17 @@ namespace LogJoint.Persistence
 		/// Returns an XML section in persistent storage.
 		/// When open with ReadWrite flag the returned IStorageSection's Dispose may throw StorageException.
 		/// </summary>
-		IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
+		Task<IXMLStorageSection> OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		/// <summary>
 		/// Returns an XML section in persistent storage that is accessible via simple API (SAX).
 		/// </summary>
-		ISaxXMLStorageSection OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
+		Task<ISaxXMLStorageSection> OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		/// <summary>
 		/// Returns a raw data section in persistent storage.
 		/// When open with ReadWrite flag the returned IStorageSection's Dispose may throw StorageException
 		/// </summary>
-		IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
-		void AllowCleanup();
+		Task<IRawStreamStorageSection> OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
+		Task AllowCleanup();
 
 		IEnumerable<SectionInfo> EnumSections(CancellationToken cancellation);
 		Task TakeSectionSnapshot(string sectionId, Stream targetStream);

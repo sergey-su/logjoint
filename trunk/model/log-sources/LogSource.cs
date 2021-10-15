@@ -189,7 +189,7 @@ namespace LogJoint
 		{
 			if (loadingLogSourceInfoFromStorageEntry)
 				return;
-			using (var section = logSourceSpecificStorageEntry.OpenXMLSection(
+			using (var section = await logSourceSpecificStorageEntry.OpenXMLSection(
 				"bookmarks", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
 			{
 				section.Data.Add(
@@ -232,7 +232,7 @@ namespace LogJoint
 		async Task LoadBookmarks()
 		{
 			using (new ScopedGuard(() => loadingLogSourceInfoFromStorageEntry = true, () => loadingLogSourceInfoFromStorageEntry = false))
-			using (var section = logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var section = await logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = section.Data.Element("bookmarks");
 				if (root == null)
@@ -336,14 +336,14 @@ namespace LogJoint
 
 			var storageEntry = await storageManager.GetEntry(identity, numericKey);
 
-			storageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
+			await storageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
 
 			return storageEntry;
 		}
 
 		async Task<Persistence.IXMLStorageSection> OpenSettings(bool forReading)
 		{
-			var ret = logSourceSpecificStorageEntry.OpenXMLSection("settings",
+			var ret = await logSourceSpecificStorageEntry.OpenXMLSection("settings",
 				forReading ? Persistence.StorageSectionOpenFlag.ReadOnly : Persistence.StorageSectionOpenFlag.ReadWrite);
 			if (forReading)
 				return ret;

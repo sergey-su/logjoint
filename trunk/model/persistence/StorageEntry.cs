@@ -51,33 +51,34 @@ namespace LogJoint.Persistence.Implementation
 
 		string IStorageEntry.Id { get { return key; } }
 
-		IXMLStorageSection IStorageEntry.OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		Task<IXMLStorageSection> IStorageEntry.OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return new XmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
+			return Task.FromResult<IXMLStorageSection>(new XmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags));
 		}
 
-		ISaxXMLStorageSection IStorageEntry.OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		Task<ISaxXMLStorageSection> IStorageEntry.OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return new SaxXmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
+			return Task.FromResult<ISaxXMLStorageSection>(new SaxXmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags));
 		}
 
-		IRawStreamStorageSection IStorageEntry.OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		Task<IRawStreamStorageSection> IStorageEntry.OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
+			return Task.FromResult<IRawStreamStorageSection>(new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags));
 		}
 
-		IRawStreamStorageSection IStorageEntryInternal.OpenRawXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		Task<IRawStreamStorageSection> IStorageEntryInternal.OpenRawXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags, XmlStorageSection.KeyPrefix);
+			return Task.FromResult<IRawStreamStorageSection>(new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags, XmlStorageSection.KeyPrefix));
 		}
 
-		void IStorageEntry.AllowCleanup()
+		Task IStorageEntry.AllowCleanup()
 		{
 			if (!cleanupAllowed)
 			{
 				cleanupAllowed = true;
 				WriteCleanupInfoIfCleanupAllowed();
 			}
+			return Task.CompletedTask;
 		}
 
 		IEnumerable<SectionInfo> IStorageEntry.EnumSections(CancellationToken cancellation)

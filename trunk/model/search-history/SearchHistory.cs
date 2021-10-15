@@ -83,7 +83,7 @@ namespace LogJoint
 
 		private async Task LoadSearchHistory()
 		{
-			using (var section = (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				maxItemsCount = section.Data.Element(rootNodeName).SafeIntValue(maxEntriesAttrName, DefaultMaxEntries);
 				items.AddRange(
@@ -102,7 +102,7 @@ namespace LogJoint
 		{
 			tasks.AddTask(async () =>
 			{
-				using (var section = (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite))
+				using (var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite))
 				{
 					var newContent = items.Select(e =>
 					{

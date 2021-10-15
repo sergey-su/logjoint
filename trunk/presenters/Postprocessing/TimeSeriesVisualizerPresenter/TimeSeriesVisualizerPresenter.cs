@@ -823,9 +823,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 			int savedVersion = handledOutputsVersion;
 
-			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
-				persistenceSectionName,
-				Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var section = await output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
+				persistenceSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				if (handledOutputsVersion != savedVersion)
 					return;
@@ -857,9 +856,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		}
 
-		void SaveSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
+		async void SaveSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
 		{
-			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
+			using (var section = await output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
 				persistenceSectionName, 
 				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 			{

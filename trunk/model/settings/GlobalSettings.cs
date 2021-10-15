@@ -185,7 +185,7 @@ namespace LogJoint.Settings
 
 		private async Task Load()
 		{
-			using (var section = (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = section.Data.Element(rootNodeName);
 
@@ -220,7 +220,7 @@ namespace LogJoint.Settings
 
 		async Task Save()
 		{
-			using (var section = (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName,
+			using (var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
 			{
 				var root = new XElement(

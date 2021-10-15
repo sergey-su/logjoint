@@ -18,7 +18,7 @@ namespace LogJoint.Postprocessing
 			{
 				try
 				{
-					using (var existingSection = ctx.owner.logSourceRecord.logSource.LogSourceSpecificStorageEntry.OpenSaxXMLSection(
+					using (var existingSection = await ctx.owner.logSourceRecord.logSource.LogSourceSpecificStorageEntry.OpenSaxXMLSection(
 							ctx.owner.metadata.MakePostprocessorOutputFileName(),
 							Persistence.StorageSectionOpenFlag.ReadOnly))
 					{
