@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using LogJoint.Persistence;
 using LogJoint.Persistence.Implementation;
 using Microsoft.JSInterop;
@@ -27,17 +28,13 @@ namespace LogJoint.Wasm
         {
             this.trace = trace;
         }
-        void IFileSystemAccess.EnsureDirectoryCreated(string relativePath)
+        async Task IFileSystemAccess.EnsureDirectoryCreated(string relativePath)
         {
             var key = Key(relativePath);
             if (Get(key) == null)
                 Set(key, "*");
         }
-        bool IFileSystemAccess.DirectoryExists(string relativePath)
-        {
-            return Get(Key(relativePath)) != null;
-        }
-        Stream IFileSystemAccess.OpenFile(string relativePath, bool readOnly)
+        async Task<Stream> IFileSystemAccess.OpenFile(string relativePath, bool readOnly)
         {
             var key = Key(relativePath);
             var value = Get(key);
@@ -50,22 +47,22 @@ namespace LogJoint.Wasm
         }
 
         public string AbsoluteRootPath => "";
-        long IFileSystemAccess.CalcStorageSize(CancellationToken cancellation) => 0;
+        async Task<long> IFileSystemAccess.CalcStorageSize(CancellationToken cancellation) => 0;
         void IFileSystemAccess.ConvertException(Exception e)
         {
             if (e.Message.Contains("exceeded the quota"))
                 throw new StorageFullException(e);
             throw new StorageException(e);
         }
-        string[] IFileSystemAccess.ListDirectories(string rootRelativePath, CancellationToken cancellation)
+        async Task<string[]> IFileSystemAccess.ListDirectories(string rootRelativePath, CancellationToken cancellation)
         {
             return new string[] {};
         }
-        string[] IFileSystemAccess.ListFiles(string rootRelativePath, CancellationToken cancellation)
+        async Task<string[]> IFileSystemAccess.ListFiles(string rootRelativePath, CancellationToken cancellation)
         {
             return new string[] {};
         }
-        void IFileSystemAccess.DeleteDirectory(string relativePath) { }
+        async Task IFileSystemAccess.DeleteDirectory(string relativePath) { }
 
         static string Key(string relativePath)
         {
