@@ -83,39 +83,35 @@ namespace LogJoint
 
 		private async Task LoadSearchHistory()
 		{
-			using (var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadOnly))
-			{
-				maxItemsCount = section.Data.Element(rootNodeName).SafeIntValue(maxEntriesAttrName, DefaultMaxEntries);
-				items.AddRange(
-					from entryNode in section.Data.Elements(rootNodeName).Elements(entryNodeName)
-					let entry =
-						(ISearchHistoryEntry)UserDefinedSearchHistoryEntry.TryLoad(entryNode, userDefinedSearches) ??
-						new SearchHistoryEntry(entryNode)
-					where entry.IsValid
-					select entry
-				);
-				ApplySizeLimit();
-			}
-		}
+            await using var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadOnly);
+            maxItemsCount = section.Data.Element(rootNodeName).SafeIntValue(maxEntriesAttrName, DefaultMaxEntries);
+            items.AddRange(
+                from entryNode in section.Data.Elements(rootNodeName).Elements(entryNodeName)
+                let entry =
+                    (ISearchHistoryEntry)UserDefinedSearchHistoryEntry.TryLoad(entryNode, userDefinedSearches) ??
+                    new SearchHistoryEntry(entryNode)
+                where entry.IsValid
+                select entry
+            );
+            ApplySizeLimit();
+        }
 
 		private void SaveSearchHistory()
 		{
 			tasks.AddTask(async () =>
 			{
-				using (var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite))
-				{
-					var newContent = items.Select(e =>
-					{
-						var xml = new XElement(entryNodeName);
-						e.Save(xml);
-						return xml;
-					}).ToArray();
-					var root = new XElement(rootNodeName, newContent);
-					root.SetAttributeValue(maxEntriesAttrName, maxItemsCount);
-					section.Data.RemoveNodes();
-					section.Data.Add(root);
-				}
-			});
+                await using var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite);
+                var newContent = items.Select(e =>
+                {
+                    var xml = new XElement(entryNodeName);
+                    e.Save(xml);
+                    return xml;
+                }).ToArray();
+                var root = new XElement(rootNodeName, newContent);
+                root.SetAttributeValue(maxEntriesAttrName, maxItemsCount);
+                section.Data.RemoveNodes();
+                section.Data.Add(root);
+            });
 		}
 
 		bool ApplySizeLimit()

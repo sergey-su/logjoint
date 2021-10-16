@@ -18,44 +18,42 @@ namespace LogJoint.Postprocessing
 			{
 				try
 				{
-					using (var existingSection = await ctx.owner.logSourceRecord.logSource.LogSourceSpecificStorageEntry.OpenSaxXMLSection(
-							ctx.owner.metadata.MakePostprocessorOutputFileName(),
-							Persistence.StorageSectionOpenFlag.ReadOnly))
-					{
-						if (existingSection.Reader == null)
-						{
-							return null;
-						}
-						else
-						{
-							void updateProgress(object sender, HeartBeatEventArgs e)
-							{
-								if (e.IsNormalUpdate && Math.Abs(progress - existingSection.ReadProgress) > 1e-3)
-								{
-									progress = existingSection.ReadProgress;
-									ctx.fireChangeNotification();
-								}
-							}
-							ctx.heartbeat.OnTimer += updateProgress;
-							try
-							{
-								using (var perfop = new Profiling.Operation(ctx.tracer, "load output " + ctx.owner.metadata.Kind.ToString()))
-								{
-									return await ctx.threadPoolSyncContext.Invoke(() => ctx.outputDataDeserializer.Deserialize(ctx.owner.metadata.Kind, new LogSourcePostprocessorDeserializationParams()
-									{
-										Reader = existingSection.Reader,
-										LogSource = ctx.owner.logSourceRecord.logSource,
-										Cancellation = ctx.owner.logSourceRecord.cancellation.Token
-									}));
-								}
-							}
-							finally
-							{
-								ctx.heartbeat.OnTimer -= updateProgress;
-							}
-						}
-					}
-				}
+                    await using var existingSection = await ctx.owner.logSourceRecord.logSource.LogSourceSpecificStorageEntry.OpenSaxXMLSection(
+                            ctx.owner.metadata.MakePostprocessorOutputFileName(),
+                            Persistence.StorageSectionOpenFlag.ReadOnly);
+                    if (existingSection.Reader == null)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        void updateProgress(object sender, HeartBeatEventArgs e)
+                        {
+                            if (e.IsNormalUpdate && Math.Abs(progress - existingSection.ReadProgress) > 1e-3)
+                            {
+                                progress = existingSection.ReadProgress;
+                                ctx.fireChangeNotification();
+                            }
+                        }
+                        ctx.heartbeat.OnTimer += updateProgress;
+                        try
+                        {
+                            using (var perfop = new Profiling.Operation(ctx.tracer, "load output " + ctx.owner.metadata.Kind.ToString()))
+                            {
+                                return await ctx.threadPoolSyncContext.Invoke(() => ctx.outputDataDeserializer.Deserialize(ctx.owner.metadata.Kind, new LogSourcePostprocessorDeserializationParams()
+                                {
+                                    Reader = existingSection.Reader,
+                                    LogSource = ctx.owner.logSourceRecord.logSource,
+                                    Cancellation = ctx.owner.logSourceRecord.cancellation.Token
+                                }));
+                            }
+                        }
+                        finally
+                        {
+                            ctx.heartbeat.OnTimer -= updateProgress;
+                        }
+                    }
+                }
 				finally
 				{
 					ctx.scheduleRefresh();

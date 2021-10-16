@@ -185,7 +185,7 @@ namespace LogJoint.Settings
 
 		private async Task Load()
 		{
-			using (var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+            await using (var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = section.Data.Element(rootNodeName);
 
@@ -220,29 +220,27 @@ namespace LogJoint.Settings
 
 		async Task Save()
 		{
-			using (var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName,
-				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
-			{
-				var root = new XElement(
-					rootNodeName,
-					new XAttribute(fullLoadingSizeThresholdAttrName, fileSizes.Threshold),
-					new XAttribute(logWindowsSizeAttrName, fileSizes.WindowSize),
-					new XAttribute(maxSearchResultSizeAttrName, maxNumberOfHitsInSearchResultsView),
-					new XAttribute(multithreadedParsingDisabledAttrName, multithreadedParsingDisabled ? "1" : "0"),
-					new XAttribute(fontSizeAttrName, (int)appearance.FontSize),
-					new XAttribute(coloringAttrName, (int)appearance.Coloring),
-					new XAttribute(coloringPaletteAttrName, (int)appearance.ColoringBrightness),
-					new XAttribute(userDataStoreSizeLimitAttrName, userDataStorageSizes.StoreSizeLimit),
-					new XAttribute(userDataStoreCleanupPeriodAttrName, userDataStorageSizes.CleanupPeriod),
-					new XAttribute(contentCacheSizeLimitAttrName, contentCacheStorageSizes.StoreSizeLimit),
-					new XAttribute(contentCacheCleanupPeriodAttrName, contentCacheStorageSizes.CleanupPeriod),
-					new XAttribute(enableAutoPostprocessingAttrName, enableAutoPostprocessing ? "1" : "0")
-				);
-				if (appearance.FontFamily != null)
-					root.Add(new XAttribute(fontNameAttrName, appearance.FontFamily));
-				section.Data.Add(root);
-			}
-		}
+            await using var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName,
+                Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen);
+            var root = new XElement(
+                rootNodeName,
+                new XAttribute(fullLoadingSizeThresholdAttrName, fileSizes.Threshold),
+                new XAttribute(logWindowsSizeAttrName, fileSizes.WindowSize),
+                new XAttribute(maxSearchResultSizeAttrName, maxNumberOfHitsInSearchResultsView),
+                new XAttribute(multithreadedParsingDisabledAttrName, multithreadedParsingDisabled ? "1" : "0"),
+                new XAttribute(fontSizeAttrName, (int)appearance.FontSize),
+                new XAttribute(coloringAttrName, (int)appearance.Coloring),
+                new XAttribute(coloringPaletteAttrName, (int)appearance.ColoringBrightness),
+                new XAttribute(userDataStoreSizeLimitAttrName, userDataStorageSizes.StoreSizeLimit),
+                new XAttribute(userDataStoreCleanupPeriodAttrName, userDataStorageSizes.CleanupPeriod),
+                new XAttribute(contentCacheSizeLimitAttrName, contentCacheStorageSizes.StoreSizeLimit),
+                new XAttribute(contentCacheCleanupPeriodAttrName, contentCacheStorageSizes.CleanupPeriod),
+                new XAttribute(enableAutoPostprocessingAttrName, enableAutoPostprocessing ? "1" : "0")
+            );
+            if (appearance.FontFamily != null)
+                root.Add(new XAttribute(fontNameAttrName, appearance.FontFamily));
+            section.Data.Add(root);
+        }
 
 		static void Validate(ref FileSizes fileSizes)
 		{

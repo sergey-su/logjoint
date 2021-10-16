@@ -108,7 +108,7 @@ namespace LogJoint.Postprocessing
 				{
 					var section = await ((Persistence.Implementation.IStorageEntryInternal)forLogSource.LogSourceSpecificStorageEntry).OpenRawXMLSection(
 							outputType.MakePostprocessorOutputFileName(), Persistence.StorageSectionOpenFlag.ReadWrite, 0);
-					return new DelegatingStream(section.Data, ownStream: false, dispose: section.Dispose);
+					return new DelegatingStream(section.Data, ownStream: false, dispose: () => section.DisposeAsync());
 				};
 
 				bool needsProcessing = logSourceRecord.logSource.Visible && postprocessorRecord.state.PostprocessorNeedsRunning == true;

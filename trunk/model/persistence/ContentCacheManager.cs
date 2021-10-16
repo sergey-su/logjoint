@@ -21,10 +21,10 @@ namespace LogJoint.Persistence
 		async Task<Stream> IContentCache.GetValue(string key)
 		{
 			var entry = await GetEntry(key);
-			var section = await entry .OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadOnly);
+			var section = await entry.OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadOnly);
 			if (!await ((Implementation.IStorageSectionInternal)section).ExistsInFileSystem())
 			{
-				section.Dispose();
+				await section.DisposeAsync();
 				return null;
 			}
 			return new CachedStream(section);
@@ -33,11 +33,9 @@ namespace LogJoint.Persistence
 		async Task IContentCache.SetValue(string key, Stream data)
 		{
 			var entry = await GetEntry(key);
-			using (var section = await entry .OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadWrite))
-			{
-				await data.CopyToAsync(section.Data);
-			}
-		}
+            await using var section = await entry.OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadWrite);
+            await data.CopyToAsync(section.Data);
+        }
 
 		private async Task<IStorageEntry> GetEntry(string key)
 		{
@@ -87,7 +85,7 @@ namespace LogJoint.Persistence
 			protected override void Dispose(bool disposing)
 			{
 				if (disposing)
-					section.Dispose();
+					section.DisposeAsync();
 				base.Dispose(disposing);
 			}
 		};

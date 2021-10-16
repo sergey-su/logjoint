@@ -98,14 +98,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
                 {
 					async Task<XDocument> Query()
                     {
-						using (var section = await source.LogSourceSpecificStorageEntry.OpenXMLSection(
-								logSourceStateSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
-						{
-							++cacheTaskCompletionRevision;
-							changeNotification.Post();
-							return section.Data;
-						}
-					}
+                        await using var section = await source.LogSourceSpecificStorageEntry.OpenXMLSection(
+                                logSourceStateSectionName, Persistence.StorageSectionOpenFlag.ReadOnly);
+                        ++cacheTaskCompletionRevision;
+                        changeNotification.Post();
+                        return section.Data;
+                    }
 					cache = cache.Add(source, Query());
 				}
             }
@@ -120,12 +118,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		{
 			async void SavePredicate(ILogSource source, XDocument doc)
 			{
-				using (var section = await source.LogSourceSpecificStorageEntry.OpenXMLSection(logSourceStateSectionName, 
-					Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
-				{
-					section.Data.ReplaceNodes(doc.Nodes());
-				}
-			}
+                await using var section = await source.LogSourceSpecificStorageEntry.OpenXMLSection(logSourceStateSectionName,
+                    Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions);
+                section.Data.ReplaceNodes(doc.Nodes());
+            }
 
 			foreach (var source in sourcesSelector())
             {

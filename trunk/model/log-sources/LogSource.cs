@@ -189,26 +189,24 @@ namespace LogJoint
 		{
 			if (loadingLogSourceInfoFromStorageEntry)
 				return;
-			using (var section = await logSourceSpecificStorageEntry.OpenXMLSection(
-				"bookmarks", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
-			{
-				section.Data.Add(
-					new XElement("bookmarks",
-					bookmarks.Items.Where(b => b.Thread != null && b.Thread.LogSource == this).Select(b =>
-					{
-						var attrs = new List<XAttribute>()
-						{
-							new XAttribute("time", b.Time),
-							new XAttribute("position", b.Position.ToString()),
-							new XAttribute("thread-id", b.Thread.ID),
-							new XAttribute("display-name", XmlUtils.RemoveInvalidXMLChars(b.DisplayName)),
-							new XAttribute("line-index", b.LineIndex),
-						};
-						return new XElement("bookmark", attrs);
-					}).ToArray()
-				));
-			}
-		}
+            await using var section = await logSourceSpecificStorageEntry.OpenXMLSection(
+                "bookmarks", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen);
+            section.Data.Add(
+                new XElement("bookmarks",
+                bookmarks.Items.Where(b => b.Thread != null && b.Thread.LogSource == this).Select(b =>
+                {
+                    var attrs = new List<XAttribute>()
+                    {
+                            new XAttribute("time", b.Time),
+                            new XAttribute("position", b.Position.ToString()),
+                            new XAttribute("thread-id", b.Thread.ID),
+                            new XAttribute("display-name", XmlUtils.RemoveInvalidXMLChars(b.DisplayName)),
+                            new XAttribute("line-index", b.LineIndex),
+                    };
+                    return new XElement("bookmark", attrs);
+                }).ToArray()
+            ));
+        }
 
 		async Task ILogSource.Dispose()
 		{
@@ -232,7 +230,7 @@ namespace LogJoint
 		async Task LoadBookmarks()
 		{
 			using (new ScopedGuard(() => loadingLogSourceInfoFromStorageEntry = true, () => loadingLogSourceInfoFromStorageEntry = false))
-			using (var section = await logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadOnly))
+			await using (var section = await logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = section.Data.Element("bookmarks");
 				if (root == null)
@@ -261,21 +259,19 @@ namespace LogJoint
 
 		async Task LoadPersistedSettings(IConnectionParams extendedConnectionParams)
 		{
-			using (var settings = await OpenSettings(true))
-			{
-				var root = settings.Data.Root;
-				if (root != null)
-				{
-					trackingEnabled = root.AttributeValue("tracking") != "false";
-					annotation = root.AttributeValue("annotation");
-					ITimeOffsets timeOffset;
-					if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out timeOffset) && !timeOffset.IsEmpty)
-					{
-						extendedConnectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
-					}
-				}
-			}
-		}
+            await using var settings = await OpenSettings(true);
+            var root = settings.Data.Root;
+            if (root != null)
+            {
+                trackingEnabled = root.AttributeValue("tracking") != "false";
+                annotation = root.AttributeValue("annotation");
+                ITimeOffsets timeOffset;
+                if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out timeOffset) && !timeOffset.IsEmpty)
+                {
+                    extendedConnectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
+                }
+            }
+        }
 
 		public DateRange AvailableTime
 		{
@@ -375,11 +371,9 @@ namespace LogJoint
 					b.bmk.LineIndex));
 			}
 			owner.OnTimeOffsetChanged(this);
-			using (var s = await OpenSettings(false))
-			{
-				s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
-			}
-		}
+            await using var s = await OpenSettings(false);
+            s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
+        }
 
 		private async void SetTrackingEnabled(bool value)
         {
@@ -387,11 +381,9 @@ namespace LogJoint
 				return;
 			trackingEnabled = value;
 			owner.OnSourceTrackingChanged(this);
-			using (var s = await OpenSettings (false))
-			{
-				s.Data.Root.SetAttributeValue("tracking", value ? "true" : "false");
-			}
-		}
+            await using var s = await OpenSettings(false);
+            s.Data.Root.SetAttributeValue("tracking", value ? "true" : "false");
+        }
 
 		private async void SetAnnotation(string value)
         {
@@ -399,10 +391,8 @@ namespace LogJoint
 				return;
 			annotation = value;
 			owner.OnSourceAnnotationChanged(this);
-			using (var s = await OpenSettings (false))
-			{
-				s.Data.Root.SetAttributeValue("annotation", value);
-			}
-		}
+            await using var s = await OpenSettings(false);
+            s.Data.Root.SetAttributeValue("annotation", value);
+        }
 	};
 }

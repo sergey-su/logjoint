@@ -20,7 +20,7 @@ namespace LogJoint.Persistence
 		IgnoreStorageExceptions = 16
 	};
 
-	public interface IStorageSection: IDisposable
+	public interface IStorageSection: IAsyncDisposable
 	{
 		StorageSectionOpenFlag OpenFlags { get; }
 		string AbsolutePath { get; }

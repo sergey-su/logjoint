@@ -823,60 +823,56 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 			int savedVersion = handledOutputsVersion;
 
-			using (var section = await output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
-				persistenceSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
-			{
-				if (handledOutputsVersion != savedVersion)
-					return;
-				var tsLookup = output.TimeSeries.ToLookup(ts => new EntityKey(ts));
-				ModifyVisibleTimeSeriesList(
-					section.Data
-					.SafeElement(PersistenceKeys.StateRootNode)
-					.SafeElements(PersistenceKeys.TimeSeriesNode)
-					.SelectMany(tsNode => 
-						tsLookup[new EntityKey(tsNode)].Take(1).Select(ts => new VisibilityModificationArg()
-						{
-							ts = ts,
-							preferredColor = parseColor(tsNode.AttributeValue(PersistenceKeys.ColorIndex)),
-							preferredMarker = parseMarker(tsNode.AttributeValue(PersistenceKeys.Marker)),
-							drawLine = tsNode.AttributeValue(PersistenceKeys.DrawLine, null)?.Equals("1")
-						})
-					),
-					output,
-					makeVisible: true
-				);
-				ModifyVisibleEventsList(
-					section.Data
-					.SafeElement(PersistenceKeys.StateRootNode)
-					.SafeElements(PersistenceKeys.EventsKeyNode)
-					.Select(evtsNode => new EntityKey(evtsNode)),
-					output,
-					makeVisible: true
-				);
-			}
-		}
+            await using var section = await output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
+                persistenceSectionName, Persistence.StorageSectionOpenFlag.ReadOnly);
+            if (handledOutputsVersion != savedVersion)
+                return;
+            var tsLookup = output.TimeSeries.ToLookup(ts => new EntityKey(ts));
+            ModifyVisibleTimeSeriesList(
+                section.Data
+                .SafeElement(PersistenceKeys.StateRootNode)
+                .SafeElements(PersistenceKeys.TimeSeriesNode)
+                .SelectMany(tsNode =>
+                    tsLookup[new EntityKey(tsNode)].Take(1).Select(ts => new VisibilityModificationArg()
+                    {
+                        ts = ts,
+                        preferredColor = parseColor(tsNode.AttributeValue(PersistenceKeys.ColorIndex)),
+                        preferredMarker = parseMarker(tsNode.AttributeValue(PersistenceKeys.Marker)),
+                        drawLine = tsNode.AttributeValue(PersistenceKeys.DrawLine, null)?.Equals("1")
+                    })
+                ),
+                output,
+                makeVisible: true
+            );
+            ModifyVisibleEventsList(
+                section.Data
+                .SafeElement(PersistenceKeys.StateRootNode)
+                .SafeElements(PersistenceKeys.EventsKeyNode)
+                .Select(evtsNode => new EntityKey(evtsNode)),
+                output,
+                makeVisible: true
+            );
+        }
 
 		async void SaveSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
 		{
-			using (var section = await output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
-				persistenceSectionName, 
-				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
-			{
-				section.Data.Add(new XElement(
-					PersistenceKeys.StateRootNode,
-					GetVisibleTS(output).Select(ts => new XElement(
-						PersistenceKeys.TimeSeriesNode, 
-						new EntityKey(ts.Key).GetXMLAttrs(),
-						new XAttribute(PersistenceKeys.ColorIndex, ts.Value.ColorIndex.ToString("x")),
-						new XAttribute(PersistenceKeys.Marker, ts.Value.LegendItem.Marker.ToString()),
-						new XAttribute(PersistenceKeys.DrawLine, ts.Value.LegendItem.DrawLine ? "1" : "0")
-					)).Union(GetVisibleEvts(output).Select(evtsGroup => new XElement(
-						PersistenceKeys.EventsKeyNode,
-						evtsGroup.Key.GetXMLAttrs()
-					)))
-				));
-			}
-		}
+            await using var section = await output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
+                persistenceSectionName,
+                Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions);
+            section.Data.Add(new XElement(
+                PersistenceKeys.StateRootNode,
+                GetVisibleTS(output).Select(ts => new XElement(
+                    PersistenceKeys.TimeSeriesNode,
+                    new EntityKey(ts.Key).GetXMLAttrs(),
+                    new XAttribute(PersistenceKeys.ColorIndex, ts.Value.ColorIndex.ToString("x")),
+                    new XAttribute(PersistenceKeys.Marker, ts.Value.LegendItem.Marker.ToString()),
+                    new XAttribute(PersistenceKeys.DrawLine, ts.Value.LegendItem.DrawLine ? "1" : "0")
+                )).Union(GetVisibleEvts(output).Select(evtsGroup => new XElement(
+                    PersistenceKeys.EventsKeyNode,
+                    evtsGroup.Key.GetXMLAttrs()
+                )))
+            ));
+        }
 
 		void SetThrottlingWarningFlag(bool value)
 		{

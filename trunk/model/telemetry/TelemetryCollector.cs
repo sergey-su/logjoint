@@ -238,7 +238,7 @@ namespace LogJoint.Telemetry
 		{
 			telemetryStorageEntry = await storage.GetEntry("telemetry");
 			bool telemetryStorageJustInitialized = false;
-			using (var sessions = await telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
+            await using (var sessions = await telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				string installationId;
@@ -320,56 +320,54 @@ namespace LogJoint.Telemetry
 				return;
 
 			await inited;
-			using (var sessions = await telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
-				Persistence.StorageSectionOpenFlag.ReadWrite))
-			{
-				var currentSessionElt = sessions.Data.
-					Elements().
-					Elements(sessionsRegistrySessionElementName).
-					Where(e => GetSessionId(e) == currentSessionId).
-					FirstOrDefault();
-				if (currentSessionElt != null)
-				{
-					UpdateTelemetrySessionNode(currentSessionElt);
-					if ((flags & TransactionFlag.FinalizeCurrentSession) != 0)
-						currentSessionElt.SetAttributeValue("finalized", "true");
-				}
+            await using var sessions = await telemetryStorageEntry.OpenXMLSection(sessionsRegistrySectionName,
+                Persistence.StorageSectionOpenFlag.ReadWrite);
+            var currentSessionElt = sessions.Data.
+                Elements().
+                Elements(sessionsRegistrySessionElementName).
+                Where(e => GetSessionId(e) == currentSessionId).
+                FirstOrDefault();
+            if (currentSessionElt != null)
+            {
+                UpdateTelemetrySessionNode(currentSessionElt);
+                if ((flags & TransactionFlag.FinalizeCurrentSession) != 0)
+                    currentSessionElt.SetAttributeValue("finalized", "true");
+            }
 
-				bool sessionsAwaitingUploadingAdded = false;
-				lock (sync)
-				{
-					var uploadedSessionsElements =
-						sessions.Data.
-						Elements().
-						Elements(sessionsRegistrySessionElementName).
-						Where(e => uploadedSessions.Contains(GetSessionId(e))).
-						ToArray();
-					foreach (var e in uploadedSessionsElements)
-					{
-						e.Remove();
-						trace.Info("submitted telemetry session {0} removed from registry", GetSessionId(e));
-					}
-					uploadedSessions.Clear();
+            bool sessionsAwaitingUploadingAdded = false;
+            lock (sync)
+            {
+                var uploadedSessionsElements =
+                    sessions.Data.
+                    Elements().
+                    Elements(sessionsRegistrySessionElementName).
+                    Where(e => uploadedSessions.Contains(GetSessionId(e))).
+                    ToArray();
+                foreach (var e in uploadedSessionsElements)
+                {
+                    e.Remove();
+                    trace.Info("submitted telemetry session {0} removed from registry", GetSessionId(e));
+                }
+                uploadedSessions.Clear();
 
-					foreach (var sessionElement in
-						sessions.Data.
-						Elements().
-						Elements(sessionsRegistrySessionElementName).
-						Where(e => IsFinalizedOrOldUnfinalizedSession(e)))
-					{
-						var id = GetSessionId(sessionElement);
-						if (!sessionsAwaitingUploading.ContainsKey(id))
-						{
-							sessionsAwaitingUploading.Add(id, new XElement(sessionElement));
-							trace.Info("new telemetry session {0} read from registry and is awaiting submission", id);
-							sessionsAwaitingUploadingAdded = true;
-						}
-					}
-				}
-				if (sessionsAwaitingUploadingAdded)
-					sessionsAwaitingUploadingChanged.TrySetResult(1);
-			}
-		}
+                foreach (var sessionElement in
+                    sessions.Data.
+                    Elements().
+                    Elements(sessionsRegistrySessionElementName).
+                    Where(e => IsFinalizedOrOldUnfinalizedSession(e)))
+                {
+                    var id = GetSessionId(sessionElement);
+                    if (!sessionsAwaitingUploading.ContainsKey(id))
+                    {
+                        sessionsAwaitingUploading.Add(id, new XElement(sessionElement));
+                        trace.Info("new telemetry session {0} read from registry and is awaiting submission", id);
+                        sessionsAwaitingUploadingAdded = true;
+                    }
+                }
+            }
+            if (sessionsAwaitingUploadingAdded)
+                sessionsAwaitingUploadingChanged.TrySetResult(1);
+        }
 
 		void UpdateTelemetrySessionNode(XElement sessionNode)
 		{

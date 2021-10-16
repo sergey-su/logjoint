@@ -263,31 +263,29 @@ namespace LogJoint.FieldsProcessor
 
 		async Task<Type> GenerateType(int builderTypeHash)
 		{
-			using (var cacheSection = await cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
-				Persistence.StorageSectionOpenFlag.ReadWrite))
-			{
-				var cachedRawAsmSize = cacheSection.Data.Length;
-				trace.Info("Type hash: {0}. Cache size: {1}", builderTypeHash, cachedRawAsmSize);
-				if (cachedRawAsmSize > 0)
-				{
-					try
-					{
-						var cachedRawAsm = new byte[cachedRawAsmSize];
-						await cacheSection.Data.ReadAsync(cachedRawAsm, 0, (int)cachedRawAsmSize);
-						return assemblyLoader.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
-					}
-					catch (Exception e)
-					{
-						trace.Error(e, "Failed to load cached builder");
-						telemetryCollector.ReportException(e, "loading cached builder asm");
-					}
-				}
-				var (asm, rawAsm) = CompileUserCodeToAsm();
-				cacheSection.Data.Position = 0;
-				await cacheSection.Data.WriteAsync(rawAsm, 0, rawAsm.Length);
-				return asm.GetType("GeneratedMessageBuilder");
-			}
-		}
+            await using var cacheSection = await cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
+                Persistence.StorageSectionOpenFlag.ReadWrite);
+            var cachedRawAsmSize = cacheSection.Data.Length;
+            trace.Info("Type hash: {0}. Cache size: {1}", builderTypeHash, cachedRawAsmSize);
+            if (cachedRawAsmSize > 0)
+            {
+                try
+                {
+                    var cachedRawAsm = new byte[cachedRawAsmSize];
+                    await cacheSection.Data.ReadAsync(cachedRawAsm, 0, (int)cachedRawAsmSize);
+                    return assemblyLoader.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
+                }
+                catch (Exception e)
+                {
+                    trace.Error(e, "Failed to load cached builder");
+                    telemetryCollector.ReportException(e, "loading cached builder asm");
+                }
+            }
+            var (asm, rawAsm) = CompileUserCodeToAsm();
+            cacheSection.Data.Position = 0;
+            await cacheSection.Data.WriteAsync(rawAsm, 0, rawAsm.Length);
+            return asm.GetType("GeneratedMessageBuilder");
+        }
 
 		(Assembly, byte[]) CompileUserCodeToAsm()
 		{

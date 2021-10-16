@@ -28,7 +28,7 @@ namespace LogJoint.Persistence.Implementation
 		public StorageManagerImplementation Manager { get { CheckNotDisposed(); return manager; } }
 		public string AbsolutePath { get { CheckNotDisposed(); return manager.FileSystem.AbsoluteRootPath + path; } }
 
-		public virtual void Dispose()
+		public virtual async ValueTask DisposeAsync()
 		{
 			if (disposed || disposing)
 				return;
@@ -38,7 +38,7 @@ namespace LogJoint.Persistence.Implementation
 				if (commitOnDispose)
 				{
 					entry.EnsureCreated();
-					Commit();
+					await Commit();
 				}
 			}
 			finally
@@ -142,7 +142,7 @@ namespace LogJoint.Persistence.Implementation
 		XDocument data;
 	};
 
-	internal class SaxXmlStorageSection : StorageSectionBase, ISaxXMLStorageSection, IDisposable
+	internal class SaxXmlStorageSection : StorageSectionBase, ISaxXMLStorageSection, IAsyncDisposable
 	{
 		public static async Task<ISaxXMLStorageSection> Create(StorageManagerImplementation manager,
 			StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags)
@@ -192,9 +192,9 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		public override void Dispose()
+		public override async ValueTask DisposeAsync()
 		{
-			base.Dispose();
+			await base.DisposeAsync();
 			reader?.Dispose();
 			fileSystemStream?.Dispose();
 		}

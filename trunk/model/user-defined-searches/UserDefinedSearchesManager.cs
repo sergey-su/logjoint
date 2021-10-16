@@ -97,16 +97,14 @@ namespace LogJoint
 		async Task LoadItemsInitially()
 		{
 			items.Clear();
-			using (var section = await (await storageEntry.Value).OpenXMLSection(
-				sectionName, 
-				Persistence.StorageSectionOpenFlag.ReadOnly))
-			{
-				if (LoadItems(section.Data, _ => NameDuplicateResolution.Skip) > 0)
-                {
-					changeHandlerInvoker.Invoke();
-				}
-			}
-		}
+            await using var section = await (await storageEntry.Value).OpenXMLSection(
+                sectionName,
+                Persistence.StorageSectionOpenFlag.ReadOnly);
+            if (LoadItems(section.Data, _ => NameDuplicateResolution.Skip) > 0)
+            {
+                changeHandlerInvoker.Invoke();
+            }
+        }
 
 		int LoadItems(XDocument doc, Func<string, NameDuplicateResolution> dupesResolver)
 		{
@@ -143,13 +141,11 @@ namespace LogJoint
 
 		async Task SaveItems ()
 		{
-			using (var section = await (await storageEntry.Value).OpenXMLSection (
-				sectionName,
-				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions)) 
-			{
-				section.Data.Add (SaveItems (items.Values));
-			}
-		}
+            await using var section = await (await storageEntry.Value).OpenXMLSection(
+                sectionName,
+                Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions);
+            section.Data.Add(SaveItems(items.Values));
+        }
 
 		private XElement SaveItems (IEnumerable<IUserDefinedSearch> searches)
 		{

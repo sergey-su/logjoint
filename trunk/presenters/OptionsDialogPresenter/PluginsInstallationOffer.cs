@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.Options
 				{
 					bool showOffer = false;
 					var storageEntry = await storageManager.GetEntry("PluginsInstallationOffer");
-					using (var section = await storageEntry.OpenXMLSection("state", Persistence.StorageSectionOpenFlag.ReadWrite))
+					await using (var section = await storageEntry.OpenXMLSection("state", Persistence.StorageSectionOpenFlag.ReadWrite))
 					{
 						if (section.Data.Root == null)
 						{
