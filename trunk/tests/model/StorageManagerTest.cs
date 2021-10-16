@@ -147,7 +147,7 @@ namespace LogJoint.Tests
 
 				await target.CleanupWorker();
 
-				fsMock.DidNotReceiveWithAnyArgs().ListDirectories(null, CancellationToken.None);
+				await fsMock.DidNotReceiveWithAnyArgs().ListDirectories(null, CancellationToken.None);
 			});
 		}
 
@@ -166,8 +166,8 @@ namespace LogJoint.Tests
 
 				await target.CleanupWorker();
 
-				fsMock.Received(1).DeleteDirectory("bb"); // expect bb to be deleted
-				fsMock.DidNotReceive().DeleteDirectory("aa");
+				await fsMock.Received(1).DeleteDirectory("bb"); // expect bb to be deleted
+				await fsMock.DidNotReceive().DeleteDirectory("aa");
 			});
 		}
 	}

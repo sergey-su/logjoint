@@ -69,7 +69,7 @@ namespace LogJoint.Persistence
 		Task<IRawStreamStorageSection> OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		Task AllowCleanup();
 
-		IEnumerable<SectionInfo> EnumSections(CancellationToken cancellation);
+		IAsyncEnumerable<SectionInfo> EnumSections(CancellationToken cancellation);
 		Task TakeSectionSnapshot(string sectionId, Stream targetStream);
 		Task LoadSectionFromSnapshot(string sectionId, Stream sourceStream, CancellationToken cancellation);
 	};

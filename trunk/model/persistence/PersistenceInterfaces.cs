@@ -38,8 +38,7 @@ namespace LogJoint.Persistence
 		public interface IFileSystemAccess
 		{
 			void SetTrace(LJTraceSource trace);
-			void EnsureDirectoryCreated(string relativePath);
-			bool DirectoryExists(string relativePath);
+			Task EnsureDirectoryCreated(string relativePath);
 			/// <summary>
 			/// Opens file stream specified by its relative path.
 			/// OpenFile may fail because of for example lack of space or
@@ -53,14 +52,14 @@ namespace LogJoint.Persistence
 			/// <summary>
 			/// Returns relative paths of subdirectories. It throws OperationCanceledException if cancellation was requested before enumeration is finished.
 			/// </summary>
-			string[] ListDirectories(string rootRelativePath, CancellationToken cancellation);
-			string[] ListFiles(string rootRelativePath, CancellationToken cancellation);
-			void DeleteDirectory(string relativePath);
+			Task<string[]> ListDirectories(string rootRelativePath, CancellationToken cancellation);
+			Task<string[]> ListFiles(string rootRelativePath, CancellationToken cancellation);
+			Task DeleteDirectory(string relativePath);
 			string AbsoluteRootPath { get; }
 			/// <summary>
 			/// Returns total storage size in bytes. May take time. It throws OperationCanceledException if cancellation was requested.
 			/// </summary>
-			long CalcStorageSize(CancellationToken cancellation);
+			Task<long> CalcStorageSize(CancellationToken cancellation);
 			/// <summary>
 			/// Converts implementation specific exception to StorageException
 			/// </summary>

@@ -329,8 +329,8 @@ namespace LogJoint.Workspaces
 					id = entry.Id
 				};
 				dto.embeddedStorageEntries.Add(dtoEntry);
-				var sections = entry.EnumSections(CancellationToken.None).ToArray();
-				foreach (var section in sections)
+				var sections = entry.EnumSections(CancellationToken.None);
+				await foreach (var section in sections)
 				{
 					if (section.Key == "bookmarks" || section.Key == "settings") // todo: hardcoded strings
 					{

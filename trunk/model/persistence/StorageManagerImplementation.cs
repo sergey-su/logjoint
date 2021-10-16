@@ -86,7 +86,7 @@ namespace LogJoint.Persistence.Implementation
 					entry = new StorageEntry(this, id);
 					entriesCache.Add(id, entry);
 				}
-				entry.EnsureCreated();
+				await entry.EnsureCreated();
 				await entry.ReadCleanupInfo();
 				await entry.WriteCleanupInfoIfCleanupAllowed();
 			}
@@ -202,7 +202,7 @@ namespace LogJoint.Persistence.Implementation
 			try
 			{
 				var cancellationToken = cleanupCancellation.Token;
-				long sz = FileSystem.CalcStorageSize(cancellationToken);
+				long sz = await FileSystem.CalcStorageSize(cancellationToken);
 				trace.Info("Storage size: {0}", sz);
 				int meg = 1024 * 1024;
 				if (sz < Settings.StorageSizes.MinStoreSizeLimit * meg
@@ -212,32 +212,30 @@ namespace LogJoint.Persistence.Implementation
 					return;
 				}
 				var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
-				var dirs = await Task.WhenAll(FileSystem.ListDirectories("", cancellationToken).Select(async dir =>
+				var dirs = await Task.WhenAll((await FileSystem.ListDirectories("", cancellationToken)).Select(async dir =>
 				{
 					cancellationToken.ThrowIfCancellationRequested();
-					using (var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true))
-					{
-						trace.Info("Handling '{0}'", dir);
-						if (s == null)
-						{
-							trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
-							return null;
-						}
-						var cleanupInfoContent = await (new StreamReader(s, Encoding.ASCII)).ReadToEndAsync();
-						DateTime lastAccessed;
-						if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
-								dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastAccessed))
-						{
-							trace.Warning("Could not parse '{0}'; assuming it's very old and therefore first to cleanup", cleanupInfoContent);
-							lastAccessed = new DateTime(2000, 1, 1);
-						}
-						else
-						{
-							trace.Info("Last accessed on {0}", lastAccessed);
-						}
-						return new { RelativeDirPath = dir, LastAccess = lastAccessed };
-					}
-				}));
+                    using var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true);
+                    trace.Info("Handling '{0}'", dir);
+                    if (s == null)
+                    {
+                        trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
+                        return null;
+                    }
+                    var cleanupInfoContent = await (new StreamReader(s, Encoding.ASCII)).ReadToEndAsync();
+                    DateTime lastAccessed;
+                    if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
+                            dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastAccessed))
+                    {
+                        trace.Warning("Could not parse '{0}'; assuming it's very old and therefore first to cleanup", cleanupInfoContent);
+                        lastAccessed = new DateTime(2000, 1, 1);
+                    }
+                    else
+                    {
+                        trace.Info("Last accessed on {0}", lastAccessed);
+                    }
+                    return new { RelativeDirPath = dir, LastAccess = lastAccessed };
+                }));
 				dirs = dirs.Where(dir => dir != null).OrderBy(dir => dir.LastAccess).ToArray();
 				var dirsToDelete = Math.Max(1, dirs.Length / 3);
 				trace.Info("Found {0} deletable dirs. Deleting top {1}", dirs.Length, dirsToDelete);
@@ -245,7 +243,7 @@ namespace LogJoint.Persistence.Implementation
 				{
 					trace.Info("Deleting '{0}'", dir.RelativeDirPath);
 					cancellationToken.ThrowIfCancellationRequested();
-					FileSystem.DeleteDirectory(dir.RelativeDirPath);
+					await FileSystem.DeleteDirectory(dir.RelativeDirPath);
 				}
 			}
 			catch (OperationCanceledException)

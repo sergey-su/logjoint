@@ -17,14 +17,9 @@ namespace LogJoint.Persistence.Implementation
 			this.manager = owner;
 		}
 
-		public bool Exists
+		public Task EnsureCreated()
 		{
-			get { return manager.FileSystem.DirectoryExists(path); }
-		}
-
-		public void EnsureCreated()
-		{
-			manager.FileSystem.EnsureDirectoryCreated(path);
+			return manager.FileSystem.EnsureDirectoryCreated(path);
 		}
 
 		public async ValueTask ReadCleanupInfo()
@@ -80,9 +75,9 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		IEnumerable<SectionInfo> IStorageEntry.EnumSections(CancellationToken cancellation)
+		async IAsyncEnumerable<SectionInfo> IStorageEntry.EnumSections(CancellationToken cancellation)
 		{
-			foreach (var sectionFile in manager.FileSystem.ListFiles(path, cancellation))
+			foreach (var sectionFile in await manager.FileSystem.ListFiles(path, cancellation))
 			{
 				var sectionInfo = StorageManagerImplementation.ParseNormalizedSectionKey(System.IO.Path.GetFileName(sectionFile));
 				if (sectionInfo == null)

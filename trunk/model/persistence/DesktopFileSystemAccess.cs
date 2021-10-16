@@ -48,15 +48,11 @@ namespace LogJoint.Persistence.Implementation
 
 		bool IFirstStartDetector.IsFirstStartDetected { get { return firstStartDetected; } }
 
-		public void EnsureDirectoryCreated(string dirName)
+		public Task EnsureDirectoryCreated(string dirName)
 		{
 			// CreateDirectory doesn't fail is dir already exists
 			Directory.CreateDirectory(rootDirectory + dirName);
-		}
-
-		public bool DirectoryExists(string relativePath)
-		{
-			return Directory.Exists(rootDirectory + relativePath);
+			return Task.CompletedTask;
 		}
 
 		public async Task<Stream> OpenFile(string relativePath, bool readOnly)
@@ -96,33 +92,34 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		public string[] ListDirectories(string rootRelativePath, CancellationToken cancellation)
+		public Task<string[]> ListDirectories(string rootRelativePath, CancellationToken cancellation)
 		{
-			return Directory.EnumerateDirectories(rootDirectory + rootRelativePath).Select(dir =>
+			return Task.FromResult(Directory.EnumerateDirectories(rootDirectory + rootRelativePath).Select(dir =>
 			{
 				cancellation.ThrowIfCancellationRequested();
 				if (rootRelativePath == "")
 					return Path.GetFileName(dir);
 				else
 					return rootRelativePath + Path.DirectorySeparatorChar + Path.GetFileName(dir);
-			}).ToArray();
+			}).ToArray());
 		}
 
-		public string[] ListFiles(string rootRelativePath, CancellationToken cancellation)
+		public Task<string[]> ListFiles(string rootRelativePath, CancellationToken cancellation)
 		{
-			return Directory.EnumerateFiles(rootDirectory + rootRelativePath).Select(fileName =>
+			return Task.FromResult(Directory.EnumerateFiles(rootDirectory + rootRelativePath).Select(fileName =>
 			{
 				cancellation.ThrowIfCancellationRequested();
 				if (rootRelativePath == "")
 					return Path.GetFileName(fileName);
 				else
 					return rootRelativePath + Path.DirectorySeparatorChar + Path.GetFileName(fileName);
-			}).ToArray();
+			}).ToArray());
 		}
 
-		public void DeleteDirectory(string relativePath)
+		public Task DeleteDirectory(string relativePath)
 		{
 			Directory.Delete(rootDirectory + relativePath, true);
+			return Task.CompletedTask;
 		}
 
 		static long CalcDirSize(DirectoryInfo d, CancellationToken cancellation)
@@ -134,9 +131,9 @@ namespace LogJoint.Persistence.Implementation
 			return ret;
 		}
 
-		public long CalcStorageSize(CancellationToken cancellation)
+		public Task<long> CalcStorageSize(CancellationToken cancellation)
 		{
-			return CalcDirSize(new DirectoryInfo(rootDirectory), cancellation);
+			return Task.FromResult(CalcDirSize(new DirectoryInfo(rootDirectory), cancellation));
 		}
 
 		public string AbsoluteRootPath { get { return rootDirectory; } }

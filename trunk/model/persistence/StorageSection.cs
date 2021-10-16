@@ -37,7 +37,7 @@ namespace LogJoint.Persistence.Implementation
 			{
 				if (commitOnDispose)
 				{
-					entry.EnsureCreated();
+					await entry.EnsureCreated();
 					await Commit();
 				}
 			}

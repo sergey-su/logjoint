@@ -339,7 +339,7 @@ namespace LogJoint.AutoUpdate
 		{
 			try // do not fail updater on handling old updates
 			{
-				foreach (var sectionInfo in updatesStorageEntry.EnumSections(cancel))
+				await foreach (var sectionInfo in updatesStorageEntry.EnumSections(cancel))
 				{
 					if (!sectionInfo.Key.StartsWith(Constants.updateLogKeyPrefix, StringComparison.OrdinalIgnoreCase))
 						continue;
