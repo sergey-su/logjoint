@@ -17,13 +17,13 @@ namespace LogJoint.Persistence
 			void Init(ITimingAndThreading timingThreading, IFileSystemAccess fs, IStorageConfigAccess config);
 			Task<IStorageEntry> GetEntry(string entryKey, ulong additionalNumericKey);
 			ulong MakeNumericKey(string stringToBeHashed);
-			IStorageEntry GetEntryById(string id);
+			Task<IStorageEntry> GetEntryById(string id);
 		};
 
 		public interface ITimingAndThreading
 		{
 			DateTime Now { get; }
-			Task StartTask(Action routine);
+			Task StartTask(Func<Task> routine);
 		};
 
 		public interface IStorageConfigAccess
@@ -49,7 +49,7 @@ namespace LogJoint.Persistence
 			/// OpenFile does the best to handle concurrent access and fails only
 			/// if something really bad happens.
 			/// </summary>
-			Stream OpenFile(string relativePath, bool readOnly);
+			Task<Stream> OpenFile(string relativePath, bool readOnly);
 			/// <summary>
 			/// Returns relative paths of subdirectories. It throws OperationCanceledException if cancellation was requested before enumeration is finished.
 			/// </summary>
@@ -69,7 +69,7 @@ namespace LogJoint.Persistence
 
 		public interface IStorageSectionInternal
 		{
-			bool ExistsInFileSystem { get; }
+			ValueTask<bool> ExistsInFileSystem();
 		};
 
 		public interface IStorageEntryInternal: IStorageEntry

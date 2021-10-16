@@ -40,10 +40,11 @@ namespace LogJoint.Tests
 		}
 
 		[Test]
-		public void StorageManager_AutoCleanup_StorageInfoAccessFailureFailsTheConstructor()
+		public void StorageManager_AutoCleanup_StorageInfoAccessFailureFailsTheConstruction()
 		{
-			fsMock.OpenFile(null, false).ReturnsForAnyArgs(_ => { throw new TestException(); });
-			Assert.Throws<TestException>(() => CreateSUT());
+			fsMock.OpenFile(null, false).ReturnsForAnyArgs(_ => { return Task.FromException<Stream>(new TestException()); });
+			CreateSUT();
+			Assert.ThrowsAsync<TestException>(() => storageManager.GetEntry("a", 0));
 		}
 
 		[Test]
@@ -123,7 +124,7 @@ namespace LogJoint.Tests
 			timingThreadingMock.ReceivedWithAnyArgs().StartTask(null);
 		}
 
-		void TestCleanupLogic(Action<StorageManagerImplementation> logicTest)
+		async Task TestCleanupLogic(Func<StorageManagerImplementation, Task> logicTest)
 		{
 			var cleanupInfo = CreateTextStream("LC=2012/01/01 01:01:01");
 
@@ -133,27 +134,27 @@ namespace LogJoint.Tests
 
 			CreateSUT();
 
-			logicTest((StorageManagerImplementation)storageManager);
+			await logicTest((StorageManagerImplementation)storageManager);
 		}
 
 		[Test]
-		public void StorageManager_AutoCleanupLogic_NoNeedToCleanupBecauseOfSmallStorageSize()
+		public async Task StorageManager_AutoCleanupLogic_NoNeedToCleanupBecauseOfSmallStorageSize()
 		{
-			TestCleanupLogic((target) =>
+			await TestCleanupLogic(async (target) =>
 			{
 				fsMock.CalcStorageSize(CancellationToken.None).ReturnsForAnyArgs((long)StorageSizes.MinStoreSizeLimit * 2);
 				settingsMock.SizeLimit.Returns(StorageSizes.MinStoreSizeLimit * 3);
 
-				target.CleanupWorker();
+				await target.CleanupWorker();
 
 				fsMock.DidNotReceiveWithAnyArgs().ListDirectories(null, CancellationToken.None);
 			});
 		}
 
 		[Test]
-		public void StorageManager_AutoCleanupLogic_ActualCleanup()
+		public async Task StorageManager_AutoCleanupLogic_ActualCleanup()
 		{
-			TestCleanupLogic((target) =>
+			await TestCleanupLogic(async (target) =>
 			{
 				fsMock.CalcStorageSize(CancellationToken.None).ReturnsForAnyArgs((long)1024*1024*500);
 				fsMock.ListDirectories("", Arg.Any<CancellationToken>()).Returns(
@@ -163,7 +164,7 @@ namespace LogJoint.Tests
 				fsMock.OpenFile(@"aa" + Path.DirectorySeparatorChar + "cleanup.info", true).Returns(CreateTextStream(aaAccessTime));
 				fsMock.OpenFile(@"bb" + Path.DirectorySeparatorChar + "cleanup.info", true).Returns(CreateTextStream(bbAccessTime));
 
-				target.CleanupWorker();
+				await target.CleanupWorker();
 
 				fsMock.Received(1).DeleteDirectory("bb"); // expect bb to be deleted
 				fsMock.DidNotReceive().DeleteDirectory("aa");

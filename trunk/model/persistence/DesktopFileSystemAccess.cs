@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.Persistence.Implementation
 {
@@ -58,7 +59,7 @@ namespace LogJoint.Persistence.Implementation
 			return Directory.Exists(rootDirectory + relativePath);
 		}
 
-		public Stream OpenFile(string relativePath, bool readOnly)
+		public async Task<Stream> OpenFile(string relativePath, bool readOnly)
 		{
 			// It is a common case when existing file is opened for reading.
 			// Handle that without throwing hidden exceptions.
@@ -90,7 +91,7 @@ namespace LogJoint.Persistence.Implementation
 							throw;
 					}
 					trace.Info("Will try agian. Tries left: {0}", maxTryCount - tryIdx);
-					Thread.Sleep(millisecsToWaitBetweenTries);
+					await Task.Delay(millisecsToWaitBetweenTries);
 				}
 			}
 		}

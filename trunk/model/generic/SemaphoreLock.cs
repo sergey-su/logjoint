@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -21,4 +22,25 @@ namespace LogJoint
 
 		private Semaphore semaphore;
 	}
+
+	public sealed class SemaphoreSlimLock : IDisposable
+	{
+		static public async ValueTask<SemaphoreSlimLock> Create(SemaphoreSlim semaphore)
+		{
+			var result = new SemaphoreSlimLock() { semaphore = semaphore };
+			await semaphore.WaitAsync();
+			return result;
+		}
+
+		public void Dispose()
+		{
+			if (semaphore == null)
+				return;
+			semaphore.Release();
+			semaphore = null;
+		}
+
+		private SemaphoreSlim semaphore;
+	}
+
 }

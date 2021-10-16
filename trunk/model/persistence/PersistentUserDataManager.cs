@@ -32,7 +32,7 @@ namespace LogJoint.Persistence
 
 		Task<IStorageEntry> IStorageManager.GetEntryById(string id)
 		{
-			return Task.FromResult(impl.GetEntryById(id));
+			return impl.GetEntryById(id);
 		}
 
 		ulong IStorageManager.MakeNumericKey(string stringToBeHashed)

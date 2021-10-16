@@ -4,6 +4,7 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 using System.Xml;
+using System.Threading.Tasks;
 
 namespace LogJoint.Persistence.Implementation
 {
@@ -47,7 +48,7 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		protected abstract void Commit();
+		protected abstract ValueTask Commit();
 
 		protected void CheckNotDisposed()
 		{
@@ -69,12 +70,24 @@ namespace LogJoint.Persistence.Implementation
 	{
 		public const string KeyPrefix = "x";
 
-		public XmlStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
+		public static async Task<IXMLStorageSection> Create(
+			StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags)
+        {
+			var result = new XmlStorageSection(manager, entry, key, additionalNumericKey, openFlags);
+			await result.Init();
+			return result;
+		}
+
+		private XmlStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
 			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)
 		{
-			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
+		}
+
+		private async ValueTask Init()
+		{
+			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = manager.FileSystem.OpenFile(Path, true))
+				using (var s = await Manager.FileSystem.OpenFile(Path, true))
 				{
 					try
 					{
@@ -91,11 +104,11 @@ namespace LogJoint.Persistence.Implementation
 				data = new XDocument();
 		}
 
-		protected override void Commit()
+		protected override async ValueTask Commit()
 		{
 			try
 			{
-				using (var s = Manager.FileSystem.OpenFile(Path, false))
+				using (var s = await Manager.FileSystem.OpenFile(Path, false))
 				{
 					s.SetLength(0);
 					s.Position = 0;
@@ -126,21 +139,32 @@ namespace LogJoint.Persistence.Implementation
 			get { CheckNotDisposed(); return data; }
 		}
 
-		readonly XDocument data;
+		XDocument data;
 	};
 
 	internal class SaxXmlStorageSection : StorageSectionBase, ISaxXMLStorageSection, IDisposable
 	{
-		public SaxXmlStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
+		public static async Task<ISaxXMLStorageSection> Create(StorageManagerImplementation manager,
+			StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags)
+        {
+			SaxXmlStorageSection result = new SaxXmlStorageSection(manager, entry, key, additionalNumericKey, openFlags);
+			await result.Init();
+			return result;
+		}
+
+		private SaxXmlStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
 			base(manager, entry, key, additionalNumericKey, XmlStorageSection.KeyPrefix, openFlags)
+		{ }
+
+		private async ValueTask Init()
 		{
-			if ((openFlags & StorageSectionOpenFlag.ReadWrite) == 0)
+			if ((OpenFlags & StorageSectionOpenFlag.ReadWrite) == 0)
 			{
 				throw new NotSupportedException("Sax xml section can be open for writing");
 			}
-			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
+			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				fileSystemStream = manager.FileSystem.OpenFile(Path, true);
+				fileSystemStream = await Manager.FileSystem.OpenFile(Path, true);
 				if (fileSystemStream != null)
 				{
 					reader = XmlReader.Create(fileSystemStream);
@@ -149,7 +173,7 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		protected override void Commit()
+		protected override ValueTask Commit()
 		{
 			throw new NotSupportedException("can not modify XML section open with SAX flag");
 		}
@@ -175,24 +199,35 @@ namespace LogJoint.Persistence.Implementation
 			fileSystemStream?.Dispose();
 		}
 
-		readonly Stream fileSystemStream;
-		readonly XmlReader reader;
-		readonly double? streamLen;
+		Stream fileSystemStream;
+		XmlReader reader;
+		double? streamLen;
 	};
 
 	internal class BinaryStorageSection : StorageSectionBase, IRawStreamStorageSection, IStorageSectionInternal
 	{
 		public const string KeyPrefix = "b";
 
-		public BinaryStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string keyPrefix = null) :
+		public static async Task<IRawStreamStorageSection> Create(StorageManagerImplementation manager,
+			StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string keyPrefix = null)
+        {
+			var result = new BinaryStorageSection(manager, entry, key, additionalNumericKey, openFlags, keyPrefix);
+			await result.Init();
+			return result;
+		}
+
+		private BinaryStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string keyPrefix) :
 			base(manager, entry, key, additionalNumericKey, keyPrefix ?? KeyPrefix, openFlags)
+		{ }
+
+		private async ValueTask Init()
 		{
-			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
+			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = manager.FileSystem.OpenFile(Path, true))
+				using (var s = await Manager.FileSystem.OpenFile(Path, true))
 					if (s != null)
 					{
-						s.CopyTo(data);
+						await s.CopyToAsync(data);
 						data.Position = 0;
 					}
 			}
@@ -200,16 +235,16 @@ namespace LogJoint.Persistence.Implementation
 
 		public Stream Data { get { CheckNotDisposed(); return data; } }
 
-		protected override void Commit()
+		protected override async ValueTask Commit()
 		{
 			try
 			{
-				using (var s = Manager.FileSystem.OpenFile(Path, false))
+				using (var s = await Manager.FileSystem.OpenFile(Path, false))
 				{
 					s.SetLength(0);
 					s.Position = 0;
 					data.Position = 0;
-					data.CopyTo(s);
+					await data.CopyToAsync(s);
 				}
 			}
 			catch (Exception e)
@@ -218,13 +253,10 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		bool IStorageSectionInternal.ExistsInFileSystem
+		async ValueTask<bool> IStorageSectionInternal.ExistsInFileSystem()
 		{
-			get 
-			{
-				using (var s = Manager.FileSystem.OpenFile(Path, true))
-					return s != null;
-			} 
+			using (var s = await Manager.FileSystem.OpenFile(Path, true))
+				return s != null;
 		}
 
 		readonly MemoryStream data = new MemoryStream();

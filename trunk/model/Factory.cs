@@ -97,6 +97,7 @@ namespace LogJoint
 			MultiInstance.IInstancesCounter instancesCounter = config.DisableLogjointInstancesCounting ?
 				(MultiInstance.IInstancesCounter)new MultiInstance.DummyInstancesCounter() :
 				(MultiInstance.IInstancesCounter)new MultiInstance.InstancesCounter(shutdown);
+			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);
@@ -104,7 +105,7 @@ namespace LogJoint
 				config.PersistenceFileSystem ?? Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 			userDataStorage.Init(
-				 new Persistence.Implementation.RealTimingAndThreading(),
+				 new Persistence.Implementation.RealTimingAndThreading(threadPoolSynchronizationContext),
 				 persistentUserDataFileSystem,
 				 new Persistence.PersistentUserDataManager.ConfigAccess(globalSettingsAccessor)
 			);
@@ -129,7 +130,6 @@ namespace LogJoint
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
-			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
 			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
@@ -137,7 +137,7 @@ namespace LogJoint
 			Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem as Persistence.IFirstStartDetector;
 			Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
 			contentCacheStorage.Init(
-				 new Persistence.Implementation.RealTimingAndThreading(),
+				 new Persistence.Implementation.RealTimingAndThreading(threadPoolSynchronizationContext),
 				 Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(config.AppDataDirectory),
 				 new Persistence.ContentCacheManager.ConfigAccess(globalSettingsAccessor)
 			);

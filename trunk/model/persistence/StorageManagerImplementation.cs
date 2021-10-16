@@ -15,6 +15,7 @@ namespace LogJoint.Persistence.Implementation
 		public StorageManagerImplementation()
 		{
 			this.trace = LJTraceSource.EmptyTracer;
+			this.ready = DoCleanupIfItIsTimeTo();
 		}
 
 		void IDisposable.Dispose()
@@ -41,7 +42,6 @@ namespace LogJoint.Persistence.Implementation
 			this.fs = fs;
 			this.config = config;
 			this.fs.SetTrace(trace);
-			DoCleanupIfItIsTimeTo();
 			inited.SetResult(1);
 		}
 
@@ -49,13 +49,13 @@ namespace LogJoint.Persistence.Implementation
 		{
 			if (string.IsNullOrWhiteSpace(entryKey))
 				throw new ArgumentException("Wrong entryKey");
-			await inited.Task;
+			await ready;
 			string id = NormalizeKey(entryKey, additionalNumericKey, entryKeyPrefix);
-			return GetEntryById(id);
+			return await GetEntryById(id);
 		}
 
 
-		IStorageEntry IStorageManagerImplementation.GetEntryById(string id)
+		Task<IStorageEntry> IStorageManagerImplementation.GetEntryById(string id)
 		{
 			if (!ValidateNormalizedEntryKey(id))
 				throw new ArgumentException("id");
@@ -75,10 +75,10 @@ namespace LogJoint.Persistence.Implementation
 			get { return fs; }
 		}
 
-		private IStorageEntry GetEntryById(string id)
+		private async Task<IStorageEntry> GetEntryById(string id)
 		{
 			StorageEntry entry;
-			lock (sync)
+			using (await SemaphoreSlimLock.Create(sync))
 			{
 				if (!entriesCache.TryGetValue(id, out entry))
 				{
@@ -87,8 +87,8 @@ namespace LogJoint.Persistence.Implementation
 					entriesCache.Add(id, entry);
 				}
 				entry.EnsureCreated();
-				entry.ReadCleanupInfo();
-				entry.WriteCleanupInfoIfCleanupAllowed();
+				await entry.ReadCleanupInfo();
+				await entry.WriteCleanupInfoIfCleanupAllowed();
 			}
 			return entry;
 		}
@@ -161,13 +161,14 @@ namespace LogJoint.Persistence.Implementation
 			return new string(str.Select(c => invalidKeyChars.IndexOf(c) < 0 ? c : '_').ToArray());
 		}
 
-		void DoCleanupIfItIsTimeTo()
+		async Task DoCleanupIfItIsTimeTo()
 		{
+			await inited.Task;
 			bool timeToCleanup = false;
-			using (var cleanupInfoStream = FileSystem.OpenFile("cleanup.info", false))
+			using (var cleanupInfoStream = await FileSystem.OpenFile("cleanup.info", false))
 			{
 				cleanupInfoStream.Position = 0;
-				var cleanupInfoContent = (new StreamReader(cleanupInfoStream, Encoding.ASCII)).ReadToEnd();
+				var cleanupInfoContent = await (new StreamReader(cleanupInfoStream, Encoding.ASCII)).ReadToEndAsync();
 				string lastCleanupFormat = "LC=yyyy/MM/dd HH:mm:ss";
 				var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
 				DateTime lastCleanupDate;
@@ -181,9 +182,11 @@ namespace LogJoint.Persistence.Implementation
 					trace.Info("Time to cleanup! Last cleanup time: {0}", lastCleanupDate);
 					timeToCleanup = true;
 					cleanupInfoStream.SetLength(0);
-					var w = new StreamWriter(cleanupInfoStream, Encoding.ASCII);
-					w.Write(now.ToString(lastCleanupFormat, dateFmtProvider));
-					w.Flush();
+					using (var w = new StreamWriter(cleanupInfoStream, Encoding.ASCII, 1024, leaveOpen: true))
+					{
+						await w.WriteAsync(now.ToString(lastCleanupFormat, dateFmtProvider));
+						await w.FlushAsync();
+					}
 				}
 			}
 			if (timeToCleanup)
@@ -193,7 +196,7 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		internal void CleanupWorker()
+		internal async Task CleanupWorker()
 		{
 			using (trace.NewFrame)
 			try
@@ -209,10 +212,10 @@ namespace LogJoint.Persistence.Implementation
 					return;
 				}
 				var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
-				var dirs = FileSystem.ListDirectories("", cancellationToken).Select(dir =>
+				var dirs = await Task.WhenAll(FileSystem.ListDirectories("", cancellationToken).Select(async dir =>
 				{
 					cancellationToken.ThrowIfCancellationRequested();
-					using (var s = FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true))
+					using (var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true))
 					{
 						trace.Info("Handling '{0}'", dir);
 						if (s == null)
@@ -220,7 +223,7 @@ namespace LogJoint.Persistence.Implementation
 							trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
 							return null;
 						}
-						var cleanupInfoContent = (new StreamReader(s, Encoding.ASCII)).ReadToEnd();
+						var cleanupInfoContent = await (new StreamReader(s, Encoding.ASCII)).ReadToEndAsync();
 						DateTime lastAccessed;
 						if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
 								dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastAccessed))
@@ -234,7 +237,8 @@ namespace LogJoint.Persistence.Implementation
 						}
 						return new { RelativeDirPath = dir, LastAccess = lastAccessed };
 					}
-				}).Where(dir => dir != null).OrderBy(dir => dir.LastAccess).ToArray();
+				}));
+				dirs = dirs.Where(dir => dir != null).OrderBy(dir => dir.LastAccess).ToArray();
 				var dirsToDelete = Math.Max(1, dirs.Length / 3);
 				trace.Info("Found {0} deletable dirs. Deleting top {1}", dirs.Length, dirsToDelete);
 				foreach (var dir in dirs.Take(dirsToDelete))
@@ -265,7 +269,8 @@ namespace LogJoint.Persistence.Implementation
 		IFileSystemAccess fs;
 		IStorageConfigAccess config;
 		TaskCompletionSource<int> inited = new TaskCompletionSource<int>();
-		readonly object sync = new object();
+        readonly Task ready;
+		readonly SemaphoreSlim sync = new SemaphoreSlim(1, 1);
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
 		CancellationTokenSource cleanupCancellation;
 		Task cleanupTask;

@@ -22,7 +22,7 @@ namespace LogJoint.Persistence
 		{
 			var entry = await GetEntry(key);
 			var section = await entry .OpenRawStreamSection(dataSectionName, StorageSectionOpenFlag.ReadOnly);
-			if (!((Implementation.IStorageSectionInternal)section).ExistsInFileSystem)
+			if (!await ((Implementation.IStorageSectionInternal)section).ExistsInFileSystem())
 			{
 				section.Dispose();
 				return null;

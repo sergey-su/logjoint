@@ -27,16 +27,16 @@ namespace LogJoint.Persistence.Implementation
 			manager.FileSystem.EnsureDirectoryCreated(path);
 		}
 
-		public void ReadCleanupInfo()
+		public async ValueTask ReadCleanupInfo()
 		{
-			using (Stream s = manager.FileSystem.OpenFile(CleanupInfoFilePath, true))
+			using (Stream s = await manager.FileSystem.OpenFile(CleanupInfoFilePath, true))
 				cleanupAllowed = s != null;
 		}
 
-		public void WriteCleanupInfoIfCleanupAllowed()
+		public async ValueTask WriteCleanupInfoIfCleanupAllowed()
 		{
 			if (cleanupAllowed)
-				using (Stream s = manager.FileSystem.OpenFile(CleanupInfoFilePath, false))
+				using (Stream s = await manager.FileSystem.OpenFile(CleanupInfoFilePath, false))
 				{
 					var cleanupInfoData = Encoding.ASCII.GetBytes(DateTime.Now.ToString(cleanupInfoLastAccessFormat,
 							System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat));
@@ -53,32 +53,31 @@ namespace LogJoint.Persistence.Implementation
 
 		Task<IXMLStorageSection> IStorageEntry.OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return Task.FromResult<IXMLStorageSection>(new XmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags));
+			return XmlStorageSection.Create(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
 		Task<ISaxXMLStorageSection> IStorageEntry.OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return Task.FromResult<ISaxXMLStorageSection>(new SaxXmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags));
+			return SaxXmlStorageSection.Create(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
 		Task<IRawStreamStorageSection> IStorageEntry.OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return Task.FromResult<IRawStreamStorageSection>(new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags));
+			return BinaryStorageSection.Create(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
 		Task<IRawStreamStorageSection> IStorageEntryInternal.OpenRawXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return Task.FromResult<IRawStreamStorageSection>(new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags, XmlStorageSection.KeyPrefix));
+			return BinaryStorageSection.Create(manager, this, sectionKey, additionalNumericKey, openFlags, XmlStorageSection.KeyPrefix);
 		}
 
-		Task IStorageEntry.AllowCleanup()
+		async Task IStorageEntry.AllowCleanup()
 		{
 			if (!cleanupAllowed)
 			{
 				cleanupAllowed = true;
-				WriteCleanupInfoIfCleanupAllowed();
+				await WriteCleanupInfoIfCleanupAllowed();
 			}
-			return Task.CompletedTask;
 		}
 
 		IEnumerable<SectionInfo> IStorageEntry.EnumSections(CancellationToken cancellation)
@@ -94,7 +93,7 @@ namespace LogJoint.Persistence.Implementation
 
 		async Task IStorageEntry.TakeSectionSnapshot(string sectionId, Stream targetStream)
 		{
-			using (var fs = manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true))
+			using (var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true))
 			{
 				if (fs != null)
 					await fs.CopyToAsync(targetStream);
@@ -103,7 +102,7 @@ namespace LogJoint.Persistence.Implementation
 
 		async Task IStorageEntry.LoadSectionFromSnapshot(string sectionId, Stream sourceStream, CancellationToken cancellation)
 		{
-			using (var fs = manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false))
+			using (var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false))
 			{
 				fs.SetLength(0);
 				fs.Position = 0;
