@@ -7,12 +7,12 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class DelegatingStream: Stream
+	public class DelegatingStream: Stream, IAsyncDisposable
 	{
 		Stream impl;
 		bool ownImpl;
 		bool disposed;
-		Action dispose;
+		Func<ValueTask> disposeAsync;
 
 		void CheckImpl()
 		{
@@ -22,7 +22,6 @@ namespace LogJoint
 
 		void Reset()
 		{
-			dispose?.Invoke();
 			if (impl != null && ownImpl)
 			{
 				impl.Dispose();
@@ -31,9 +30,9 @@ namespace LogJoint
 			ownImpl = false;
 		}
 
-		public DelegatingStream(Stream stream = null, bool ownStream = false, Action dispose = null)
+		public DelegatingStream(Stream stream = null, bool ownStream = false, Func<ValueTask> disposeAsync = null)
 		{
-			SetStream(stream, ownStream, dispose);
+			SetStream(stream, ownStream, disposeAsync);
 		}
 
 		protected override void Dispose(bool disposing)
@@ -46,12 +45,12 @@ namespace LogJoint
 			base.Dispose(disposing);
 		}
 
-		public void SetStream(Stream value, bool ownStream, Action dispose = null)
+		public void SetStream(Stream value, bool ownStream, Func<ValueTask> disposeAsync = null)
 		{
 			Reset();
 			this.impl = value;
 			this.ownImpl = ownStream;
-			this.dispose = dispose;
+			this.disposeAsync = disposeAsync;
 		}
 
 		public bool IsDisposed
@@ -144,5 +143,13 @@ namespace LogJoint
 			CheckImpl();
 			impl.Write(buffer, offset, count);
 		}
-	}
+
+        async ValueTask IAsyncDisposable.DisposeAsync()
+        {
+			if (disposeAsync != null)
+			{
+				await disposeAsync();
+			}
+		}
+    }
 }

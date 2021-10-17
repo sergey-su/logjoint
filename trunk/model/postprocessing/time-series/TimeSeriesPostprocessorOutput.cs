@@ -25,13 +25,17 @@ namespace LogJoint.Postprocessing.TimeSeries
 			IEnumerable<TSBlocks.TimeSeriesData> series, IEnumerable<TSBlocks.EventBase> events, Func<Task<Stream>> openOutputStream, 
 			TSBlocks.ITimeSeriesTypesAccess timeSeriesTypesAccess)
 		{
-			using (var stream = await openOutputStream())
+			using var stream = await openOutputStream();
 			using (var writer = XmlWriter.Create(stream))
 			{
 				writer.WriteStartElement("Data");
 				timeSeriesTypesAccess.GetEventsSerializer().Serialize(writer, events.ToList());
 				timeSeriesTypesAccess.GetSeriesSerializer().Serialize(writer, series.ToList());
 				writer.WriteEndElement();
+			}
+			if (stream is IAsyncDisposable asyncDisposable)
+			{
+				await asyncDisposable.DisposeAsync();
 			}
 		}
 

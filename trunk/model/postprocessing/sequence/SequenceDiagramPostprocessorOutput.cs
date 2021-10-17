@@ -92,7 +92,8 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
 			await Task.WhenAll(serializeMessagingEvents, serializeTimelineComments, serializeStateInspectorComments, logPartToken);
 
-			using (var outputWriter = XmlWriter.Create(await openOutputStream(), new XmlWriterSettings() { Indent = true, Async = true, CloseOutput = true }))
+			using var outputStream = await openOutputStream();
+			using (var outputWriter = XmlWriter.Create(outputStream, new XmlWriterSettings() { Indent = true, Async = true }))
 			using (var messagingEventsReader = XmlReader.Create(eventsTmpFile))
 			using (var timelineCommentsReader = XmlReader.Create(timelineCommentsTmpFile))
 			using (var stateInspectorCommentsReader = XmlReader.Create(stateInsectorCommentsTmpFile))
@@ -110,6 +111,10 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 				await outputWriter.WriteNodeAsync(stateInspectorCommentsReader, false);
 
 				outputWriter.WriteEndElement(); // root
+			}
+			if (outputStream is IAsyncDisposable asyncDisposable)
+			{
+				await asyncDisposable.DisposeAsync();
 			}
 
 			File.Delete(eventsTmpFile);
