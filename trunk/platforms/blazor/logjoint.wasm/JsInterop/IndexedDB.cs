@@ -24,5 +24,10 @@ namespace LogJoint.Wasm
         {
             return jsRuntime.InvokeVoidAsync("logjoint.db.set", storeName, value, key);
         }
+
+        public ValueTask<long> EstimateSize(string storeName)
+        {
+            return jsRuntime.InvokeAsync<long>("logjoint.db.estimateSize", storeName);
+        }
     }
 }

@@ -14,11 +14,13 @@ namespace LogJoint.Wasm
         readonly bool isFirstStart;
         private LJTraceSource trace;
         private readonly IndexedDB indexedDB;
+        private readonly string dbStoreName;
 
-        public PersistenceFileSystem(IJSInProcessRuntime jsRuntime, IndexedDB indexedDB)
+        public PersistenceFileSystem(IJSInProcessRuntime jsRuntime, IndexedDB indexedDB, string dbStoreName)
         {
             this.jsRuntime = jsRuntime;
             this.indexedDB = indexedDB;
+            this.dbStoreName = dbStoreName;
 
             this.isFirstStart = jsRuntime.Invoke<string>("logjoint.getLocalStorageItem", "started") == null;
             if (this.isFirstStart)
@@ -47,8 +49,10 @@ namespace LogJoint.Wasm
             return new StreamImpl(value, newValueSetter);
         }
 
-        public string AbsoluteRootPath => "";
-        async Task<long> IFileSystemAccess.CalcStorageSize(CancellationToken cancellation) => 0;
+        public string AbsoluteRootPath => throw new NotImplementedException("Can not get absolute path in web");
+
+        async Task<long> IFileSystemAccess.CalcStorageSize(CancellationToken cancellation) => await indexedDB.EstimateSize(dbStoreName);
+
         void IFileSystemAccess.ConvertException(Exception e)
         {
             if (e.Message.Contains("exceeded the quota"))
@@ -71,11 +75,11 @@ namespace LogJoint.Wasm
         }
         async ValueTask<string> Get(string key)
         {
-            return await indexedDB.Get<string>("persistence", key);
+            return await indexedDB.Get<string>(dbStoreName, key);
         }
         async ValueTask Set(string key, string value)
         {
-            await indexedDB.Set("persistence", value, key);
+            await indexedDB.Set(dbStoreName, value, key);
         }
 
         bool Persistence.IFirstStartDetector.IsFirstStartDetected => isFirstStart;

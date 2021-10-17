@@ -471,7 +471,8 @@
                             fileHandlesStore.createIndex("name", "name");
 
                             db.createObjectStore('blobs');
-                            db.createObjectStore('persistence');
+                            db.createObjectStore('userData');
+                            db.createObjectStore('contentCache');
                         }
                     };
                 });
@@ -521,6 +522,29 @@
                     }
                 };
             }).then(() => result);
+        },
+        estimateSize: async function (storeName) {
+            // Evaluates byte size of a value from the store
+            const valueSize = value =>
+                !value ? 0 :
+                typeof value.size == "number" ? value.size : // works for Blobs
+                value.toString().length;
+
+            let size = 0;
+            const keys = await this.keys(storeName);
+            const batchSize = 32;
+            for (let i = 0; i < keys.length; i += batchSize) {
+                let getRequests = [];
+                size += await this._transact(storeName, 'readonly', store => {
+                    for (let j = i; j < keys.length; ++j) {
+                        getRequests.push(store.get(keys[j]));
+                    }
+                }).then(() => {
+                    return getRequests.reduce(
+                        (sz, request) => sz + valueSize(request.result), 0);
+                });
+            }
+            return size;
         },
     },
 
