@@ -11,17 +11,18 @@ namespace LogJoint.Wasm
     public class PersistenceFileSystem : IFileSystemAccess, Persistence.IFirstStartDetector
     {
         private readonly IJSInProcessRuntime jsRuntime;
-        private const string keyPrefix = "/ljpfs";
         readonly bool isFirstStart;
         private LJTraceSource trace;
+        private readonly IndexedDB indexedDB;
 
-        public PersistenceFileSystem(IJSInProcessRuntime jsRuntime)
+        public PersistenceFileSystem(IJSInProcessRuntime jsRuntime, IndexedDB indexedDB)
         {
             this.jsRuntime = jsRuntime;
+            this.indexedDB = indexedDB;
 
-            this.isFirstStart = Get("started") == null;
+            this.isFirstStart = jsRuntime.Invoke<string>("logjoint.getLocalStorageItem", "started") == null;
             if (this.isFirstStart)
-                Set("started", "*");
+                jsRuntime.InvokeVoid("logjoint.setLocalStorageItem", "started", "*");
         }
 
         void IFileSystemAccess.SetTrace(LJTraceSource trace)
@@ -31,16 +32,16 @@ namespace LogJoint.Wasm
         async Task IFileSystemAccess.EnsureDirectoryCreated(string relativePath)
         {
             var key = Key(relativePath);
-            if (Get(key) == null)
-                Set(key, "*");
+            if (await Get(key) == null)
+                await Set(key, "*");
         }
         async Task<Stream> IFileSystemAccess.OpenFile(string relativePath, bool readOnly)
         {
             var key = Key(relativePath);
-            var value = Get(key);
+            var value = await Get(key);
             if (value == null && readOnly)
                 return null;
-            Action<string> newValueSetter = null;
+            Func<string, ValueTask> newValueSetter = null;
             if (!readOnly)
                 newValueSetter = v => Set(key, v);
             return new StreamImpl(value, newValueSetter);
@@ -66,24 +67,25 @@ namespace LogJoint.Wasm
 
         static string Key(string relativePath)
         {
-            return Path.Combine(keyPrefix, relativePath);
+            return relativePath;
         }
-        string Get(string key)
+        async ValueTask<string> Get(string key)
         {
-            return jsRuntime.Invoke<string>("logjoint.getLocalStorageItem", key);
+            return await indexedDB.Get<string>("persistence", key);
         }
-        void Set(string key, string value)
+        async ValueTask Set(string key, string value)
         {
-            jsRuntime.InvokeVoid("logjoint.setLocalStorageItem", key, value);
+            await indexedDB.Set("persistence", value, key);
         }
 
         bool Persistence.IFirstStartDetector.IsFirstStartDetected => isFirstStart;
 
         class StreamImpl : MemoryStream, IDisposable
         {
-            readonly Action<string> newValueSetter;
+            readonly Func<string, ValueTask> newValueSetter;
+            bool dirty;
 
-            public StreamImpl(string initialValue, Action<string> newValueSetter)
+            public StreamImpl(string initialValue, Func<string, ValueTask> newValueSetter)
             {
                 this.newValueSetter = newValueSetter;
                 if (initialValue != null)
@@ -95,13 +97,42 @@ namespace LogJoint.Wasm
 
             protected override void Dispose(bool disposing)
             {
-                if (disposing && newValueSetter != null)
+                if (disposing)
                 {
-                    newValueSetter(Convert.ToBase64String(this.ToArray()));
+                    if (dirty)
+                    {
+                        // todo: support async dispose
+                        throw new InvalidOperationException("Stream has been modified since last flush");
+                    }
                 }
                 base.Dispose(disposing);
             }
-        };
+
+            public override void SetLength(long value)
+            {
+                dirty = true;
+                base.SetLength(value);
+            }
+
+            public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+            {
+                dirty = true;
+                return base.WriteAsync(buffer, cancellationToken);
+            }
+
+            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                dirty = true;
+                return base.WriteAsync(buffer, offset, count, cancellationToken);
+            }
+
+            public override async Task FlushAsync(CancellationToken cancellationToken)
+            {
+                await base.FlushAsync(cancellationToken);
+                await newValueSetter(Convert.ToBase64String(this.ToArray()));
+                dirty = false;
+            }
+        }   
     }
 }
 

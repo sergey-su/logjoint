@@ -471,6 +471,7 @@
                             fileHandlesStore.createIndex("name", "name");
 
                             db.createObjectStore('blobs');
+                            db.createObjectStore('persistence');
                         }
                     };
                 });

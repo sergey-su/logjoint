@@ -17,6 +17,7 @@ namespace LogJoint.Wasm
 			Layout = new LayoutInterop(jsRuntime);
 			Style = new Style(jsRuntime);
 			ChromeExtension = new ChromeExtensionInterop(jsRuntime);
+			IndexedDB = new IndexedDB(jsRuntime);
 		}
 
 		public async Task Init()
@@ -35,5 +36,6 @@ namespace LogJoint.Wasm
 		public LayoutInterop Layout { get; private set; }
 		public Style Style { get; private set; }
 		public ChromeExtensionInterop ChromeExtension { get; private set; }
+		public IndexedDB IndexedDB { get; private set; }
 	}
 }

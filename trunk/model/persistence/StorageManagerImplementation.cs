@@ -165,7 +165,7 @@ namespace LogJoint.Persistence.Implementation
 		{
 			await inited.Task;
 			bool timeToCleanup = false;
-			using (var cleanupInfoStream = await FileSystem.OpenFile("cleanup.info", false))
+			using (var cleanupInfoStream = await FileSystem.OpenFile("cleanup.info", readOnly: false))
 			{
 				cleanupInfoStream.Position = 0;
 				var cleanupInfoContent = await (new StreamReader(cleanupInfoStream, Encoding.ASCII)).ReadToEndAsync();
@@ -187,6 +187,7 @@ namespace LogJoint.Persistence.Implementation
 						await w.WriteAsync(now.ToString(lastCleanupFormat, dateFmtProvider));
 						await w.FlushAsync();
 					}
+					await cleanupInfoStream.FlushAsync();
 				}
 			}
 			if (timeToCleanup)
@@ -215,7 +216,7 @@ namespace LogJoint.Persistence.Implementation
 				var dirs = await Task.WhenAll((await FileSystem.ListDirectories("", cancellationToken)).Select(async dir =>
 				{
 					cancellationToken.ThrowIfCancellationRequested();
-                    using var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true);
+                    using var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, readOnly: true);
                     trace.Info("Handling '{0}'", dir);
                     if (s == null)
                     {
@@ -266,7 +267,7 @@ namespace LogJoint.Persistence.Implementation
 		ITimingAndThreading env;
 		IFileSystemAccess fs;
 		IStorageConfigAccess config;
-		TaskCompletionSource<int> inited = new TaskCompletionSource<int>();
+        readonly TaskCompletionSource<int> inited = new TaskCompletionSource<int>();
         readonly Task ready;
 		readonly SemaphoreSlim sync = new SemaphoreSlim(1, 1);
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();

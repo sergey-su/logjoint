@@ -208,7 +208,8 @@ namespace LogJoint.Wasm
                         FileSystem = logMediaFileSystem,
                         FieldsProcessorMetadataReferencesProvider = fieldsProcessorMetadataReferencesProvider,
                         FieldsProcessorAssemblyLoader = new AssemblyLoader(),
-                        PersistenceFileSystem = new LogJoint.Wasm.PersistenceFileSystem((IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>()),
+                        PersistenceFileSystem = new LogJoint.Wasm.PersistenceFileSystem((IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>(),
+                            serviceProvider.GetService<JsInterop>().IndexedDB),
                     },
                         invokingSynchronization,
                         (storageManager) => null /*new PreprocessingCredentialsCache (

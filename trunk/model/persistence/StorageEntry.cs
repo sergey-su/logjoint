@@ -36,8 +36,9 @@ namespace LogJoint.Persistence.Implementation
 					var cleanupInfoData = Encoding.ASCII.GetBytes(DateTime.Now.ToString(cleanupInfoLastAccessFormat,
 							System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat));
 					s.Position = 0;
-					s.Write(cleanupInfoData, 0, cleanupInfoData.Length);
+					await s.WriteAsync(cleanupInfoData, 0, cleanupInfoData.Length);
 					s.SetLength(cleanupInfoData.Length);
+					await s.FlushAsync();
 				}
 		}
 
@@ -102,6 +103,7 @@ namespace LogJoint.Persistence.Implementation
 				fs.SetLength(0);
 				fs.Position = 0;
 				await sourceStream.CopyToAsync(fs, 4000, cancellation);
+				await fs.FlushAsync();
 			}
 		}
 

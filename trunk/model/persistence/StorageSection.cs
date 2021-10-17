@@ -87,7 +87,7 @@ namespace LogJoint.Persistence.Implementation
 		{
 			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = await Manager.FileSystem.OpenFile(Path, true))
+				using (var s = await Manager.FileSystem.OpenFile(Path, readOnly: true))
 				{
 					try
 					{
@@ -108,13 +108,12 @@ namespace LogJoint.Persistence.Implementation
 		{
 			try
 			{
-				using (var s = await Manager.FileSystem.OpenFile(Path, false))
-				{
-					s.SetLength(0);
-					s.Position = 0;
-					data.Save(s);
-				}
-			}
+                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
+                s.SetLength(0);
+                s.Position = 0;
+                data.Save(s);
+                await s.FlushAsync();
+            }
 			catch (Exception e)
 			{
 				if ((OpenFlags & StorageSectionOpenFlag.IgnoreStorageExceptions) != 0)
@@ -164,7 +163,7 @@ namespace LogJoint.Persistence.Implementation
 			}
 			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				fileSystemStream = await Manager.FileSystem.OpenFile(Path, true);
+				fileSystemStream = await Manager.FileSystem.OpenFile(Path, readOnly: true);
 				if (fileSystemStream != null)
 				{
 					reader = XmlReader.Create(fileSystemStream);
@@ -224,7 +223,7 @@ namespace LogJoint.Persistence.Implementation
 		{
 			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = await Manager.FileSystem.OpenFile(Path, true))
+				using (var s = await Manager.FileSystem.OpenFile(Path, readOnly: true))
 					if (s != null)
 					{
 						await s.CopyToAsync(data);
@@ -239,14 +238,13 @@ namespace LogJoint.Persistence.Implementation
 		{
 			try
 			{
-				using (var s = await Manager.FileSystem.OpenFile(Path, false))
-				{
-					s.SetLength(0);
-					s.Position = 0;
-					data.Position = 0;
-					await data.CopyToAsync(s);
-				}
-			}
+                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
+                s.SetLength(0);
+                s.Position = 0;
+                data.Position = 0;
+                await data.CopyToAsync(s);
+                await s.FlushAsync();
+            }
 			catch (Exception e)
 			{
 				Manager.FileSystem.ConvertException(e);
@@ -255,7 +253,7 @@ namespace LogJoint.Persistence.Implementation
 
 		async ValueTask<bool> IStorageSectionInternal.ExistsInFileSystem()
 		{
-			using (var s = await Manager.FileSystem.OpenFile(Path, true))
+			using (var s = await Manager.FileSystem.OpenFile(Path, readOnly: true))
 				return s != null;
 		}
 
