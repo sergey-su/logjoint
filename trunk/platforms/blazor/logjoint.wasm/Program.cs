@@ -211,6 +211,9 @@ namespace LogJoint.Wasm
                         PersistenceFileSystem = new LogJoint.Wasm.PersistenceFileSystem(
                             (IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>(),
                             serviceProvider.GetService<JsInterop>().IndexedDB, "userData"),
+                        ContentCacheFileSystem = new LogJoint.Wasm.PersistenceFileSystem(
+                            (IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>(),
+                            serviceProvider.GetService<JsInterop>().IndexedDB, "contentCache"),
                     },
                         invokingSynchronization,
                         (storageManager) => null /*new PreprocessingCredentialsCache (

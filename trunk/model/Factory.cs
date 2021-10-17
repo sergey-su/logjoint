@@ -72,6 +72,7 @@ namespace LogJoint
 		public FieldsProcessor.IMetadataReferencesProvider FieldsProcessorMetadataReferencesProvider;
 		public FieldsProcessor.IAssemblyLoader FieldsProcessorAssemblyLoader;
 		public Persistence.Implementation.IFileSystemAccess PersistenceFileSystem;
+		public Persistence.Implementation.IFileSystemAccess ContentCacheFileSystem;
 	};
 
 	public static class ModelFactory
@@ -136,9 +137,11 @@ namespace LogJoint
 			var bookmarks = bookmarksFactory.CreateBookmarks();
 			Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem as Persistence.IFirstStartDetector;
 			Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
+			Persistence.Implementation.IFileSystemAccess contentCacheUserDataFileSystem =
+				config.ContentCacheFileSystem ?? Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(config.AppDataDirectory);
 			contentCacheStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(threadPoolSynchronizationContext),
-				 Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(config.AppDataDirectory),
+				 contentCacheUserDataFileSystem,
 				 new Persistence.ContentCacheManager.ConfigAccess(globalSettingsAccessor)
 			);
 			Persistence.IContentCache contentCache = new Persistence.ContentCacheManager(traceSourceFactory, contentCacheStorage);
