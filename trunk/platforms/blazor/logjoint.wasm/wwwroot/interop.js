@@ -769,14 +769,14 @@
                 name: "logjoint.wasm",
             };
             const connect = () => {
-                let lastErrror = undefined;
+                let lastError = undefined;
                 for (let extId of [
                     "hakgmeclhiipohohmoghhmbjlicdnbbb" // dev extension id
                 ]) {
                     try {
-                        this._port = chrome.runtime.connect(extId, connectInfo);
+                        this._port = chrome.runtime && chrome.runtime.connect(extId, connectInfo);
                     } catch (e) {
-                        lastErrror = e;
+                        lastError = e;
                         continue;
                     }
                 }
@@ -799,7 +799,7 @@
                         setTimeout(connect, 1000);
                     });
                 } else {
-                    console.log('Failed to connect to chrome extension', lastErrror);
+                    console.log('Failed to connect to chrome extension', lastError);
                 }
             }
             connect();
