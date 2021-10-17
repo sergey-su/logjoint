@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LogJoint.Persistence;
@@ -15,6 +16,7 @@ namespace LogJoint.Wasm
         private LJTraceSource trace;
         private readonly IndexedDB indexedDB;
         private readonly string dbStoreName;
+        const string directoryPrefix = "/";
 
         public PersistenceFileSystem(IJSInProcessRuntime jsRuntime, IndexedDB indexedDB, string dbStoreName)
         {
@@ -33,13 +35,13 @@ namespace LogJoint.Wasm
         }
         async Task IFileSystemAccess.EnsureDirectoryCreated(string relativePath)
         {
-            var key = Key(relativePath);
+            var key = DirectoryKey(relativePath);
             if (await Get(key) == null)
                 await Set(key, "*");
         }
         async Task<Stream> IFileSystemAccess.OpenFile(string relativePath, bool readOnly)
         {
-            var key = Key(relativePath);
+            var key = FileKey(relativePath);
             var value = await Get(key);
             if (value == null && readOnly)
                 return null;
@@ -61,17 +63,27 @@ namespace LogJoint.Wasm
         }
         async Task<string[]> IFileSystemAccess.ListDirectories(string rootRelativePath, CancellationToken cancellation)
         {
-            return new string[] {};
+            return (await indexedDB.Keys(dbStoreName, directoryPrefix))
+                .Select(key => key[directoryPrefix.Length..])
+                .ToArray();
         }
         async Task<string[]> IFileSystemAccess.ListFiles(string rootRelativePath, CancellationToken cancellation)
         {
-            return new string[] {};
+            return await indexedDB.Keys(dbStoreName, rootRelativePath);
         }
-        async Task IFileSystemAccess.DeleteDirectory(string relativePath) { }
+        async Task IFileSystemAccess.DeleteDirectory(string relativePath)
+        {
+            await indexedDB.DeleteByPrefix(dbStoreName, relativePath);
+            await indexedDB.Delete(dbStoreName, DirectoryKey(relativePath));
+        }
 
-        static string Key(string relativePath)
+        static string FileKey(string relativePath)
         {
             return relativePath;
+        }
+        static string DirectoryKey(string relativePath)
+        {
+            return $"{directoryPrefix}{relativePath}";
         }
         async ValueTask<string> Get(string key)
         {

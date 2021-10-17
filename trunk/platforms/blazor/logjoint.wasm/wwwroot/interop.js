@@ -497,6 +497,19 @@
                 putRequest = store.put(value, key);
             }).then(() => putRequest.result);
         },
+        delete: function (storeName, key) {
+            let deleteRequest;
+            return this._transact(storeName, 'readwrite', store => {
+                deleteRequest = store.delete(key);
+            }).then(() => deleteRequest.result);
+        },
+        deleteByPrefix: function (storeName, keyPrefix) {
+            const keyRange = IDBKeyRange.bound(keyPrefix, keyPrefix + '\uFFFF');
+            let deleteRequest;
+            return this._transact(storeName, 'readwrite', store => {
+                deleteRequest = store.delete(keyRange);
+            }).then(() => deleteRequest.result);
+        },
         queryIndex: function(storeName, indexName, value) {
             const result = [];
             return this._transact(storeName, 'readonly', store => {
@@ -511,10 +524,12 @@
                 };
             }).then(() => result);
         },
-        keys: function(storeName) {
+        keys: function(storeName, keyPrefix) {
             const result = [];
             return this._transact(storeName, 'readonly', store => {
-                store.openKeyCursor().onsuccess = (event) => {
+                const keyRange = !keyPrefix ? undefined :
+                    IDBKeyRange.bound(keyPrefix, keyPrefix + '\uFFFF');
+                store.openKeyCursor(keyRange).onsuccess = (event) => {
                     const cursor = event.target.result;
                     if (cursor) {
                         result.push(cursor.key);

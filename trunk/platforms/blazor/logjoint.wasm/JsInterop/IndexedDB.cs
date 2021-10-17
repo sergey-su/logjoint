@@ -25,9 +25,24 @@ namespace LogJoint.Wasm
             return jsRuntime.InvokeVoidAsync("logjoint.db.set", storeName, value, key);
         }
 
+        public ValueTask<string[]> Keys(string storeName, string prefix = null)
+        {
+            return jsRuntime.InvokeAsync<string[]>("logjoint.db.keys", storeName, prefix);
+        }
+
         public ValueTask<long> EstimateSize(string storeName)
         {
             return jsRuntime.InvokeAsync<long>("logjoint.db.estimateSize", storeName);
+        }
+
+        public ValueTask Delete(string storeName, string key)
+        {
+            return jsRuntime.InvokeVoidAsync("logjoint.db.delete", storeName, key);
+        }
+
+        public ValueTask DeleteByPrefix(string storeName, string prefix)
+        {
+            return jsRuntime.InvokeVoidAsync("logjoint.db.deleteByPrefix", storeName, prefix);
         }
     }
 }
