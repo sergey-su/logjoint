@@ -37,7 +37,7 @@ namespace LogJoint.Wasm
         {
             var key = DirectoryKey(relativePath);
             if (await Get(key) == null)
-                await Set(key, "*");
+                await Set(key, new byte[] { 42 });
         }
         async Task<Stream> IFileSystemAccess.OpenFile(string relativePath, bool readOnly)
         {
@@ -45,7 +45,7 @@ namespace LogJoint.Wasm
             var value = await Get(key);
             if (value == null && readOnly)
                 return null;
-            Func<string, ValueTask> newValueSetter = null;
+            Func<byte[], ValueTask> newValueSetter = null;
             if (!readOnly)
                 newValueSetter = v => Set(key, v);
             return new StreamImpl(value, newValueSetter);
@@ -85,11 +85,11 @@ namespace LogJoint.Wasm
         {
             return $"{directoryPrefix}{relativePath}";
         }
-        async ValueTask<string> Get(string key)
+        async ValueTask<byte[]> Get(string key)
         {
-            return await indexedDB.Get<string>(dbStoreName, key);
+            return await indexedDB.Get<byte[]>(dbStoreName, key);
         }
-        async ValueTask Set(string key, string value)
+        async ValueTask Set(string key, byte[] value)
         {
             await indexedDB.Set(dbStoreName, value, key);
         }
@@ -98,15 +98,15 @@ namespace LogJoint.Wasm
 
         class StreamImpl : MemoryStream, IDisposable
         {
-            readonly Func<string, ValueTask> newValueSetter;
+            readonly Func<byte[], ValueTask> newValueSetter;
             bool dirty;
 
-            public StreamImpl(string initialValue, Func<string, ValueTask> newValueSetter)
+            public StreamImpl(byte[] initialValue, Func<byte[], ValueTask> newValueSetter)
             {
                 this.newValueSetter = newValueSetter;
                 if (initialValue != null)
                 {
-                    Write(Convert.FromBase64String(initialValue));
+                    Write(initialValue);
                     Position = 0;
                 }
             }
@@ -145,7 +145,7 @@ namespace LogJoint.Wasm
             public override async Task FlushAsync(CancellationToken cancellationToken)
             {
                 await base.FlushAsync(cancellationToken);
-                await newValueSetter(Convert.ToBase64String(this.ToArray()));
+                await newValueSetter(this.ToArray());
                 dirty = false;
             }
         }   

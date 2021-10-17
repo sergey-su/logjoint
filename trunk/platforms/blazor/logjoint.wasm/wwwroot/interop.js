@@ -491,7 +491,7 @@
                 getRequest = store.get(key);
             }).then(() => getRequest.result);
         },
-        set: function(storeName, value, key) {
+        set: function (storeName, value, key) {
             let putRequest;
             return this._transact(storeName, 'readwrite', store => {
                 putRequest = store.put(value, key);
@@ -542,11 +542,13 @@
             // Evaluates byte size of a value from the store
             const valueSize = value =>
                 !value ? 0 :
-                typeof value.size == "number" ? value.size : // works for Blobs
-                value.toString().length;
+                typeof value.byteLength === "number" ? value.byteLength : // for Uint8Array
+                typeof value.size === "number" ? value.size : // for Blobs
+                            value.toString().length;
+            const keySize = key => key.length;
 
-            let size = 0;
             const keys = await this.keys(storeName);
+            let size = keys.reduce((sz, key) => sz + keySize(key), 0);
             const batchSize = 32;
             for (let i = 0; i < keys.length; i += batchSize) {
                 let getRequests = [];
