@@ -122,7 +122,7 @@ namespace LogJoint.MRU
 
 		void IRecentlyUsedEntities.ClearRecentLogsList()
 		{
-			WriteEntries(EnsureRoot(recentLogsDocument), new List<XElement>());
+			WriteEntries(CloneAndEnsureRoot(ref recentLogsDocument), new List<XElement>());
 			tasks.AddTask(() => WriteOut(recentLogsDocument, RecentLogsSectionName));
 		}
 
@@ -171,10 +171,10 @@ namespace LogJoint.MRU
             sect.Data.ReplaceNodes(document.Nodes());
         }
 
-		private void AddOrReplaceEntry(XDocument document, string sectionName,
+		private void AddOrReplaceEntry(ref XDocument document, string sectionName,
 			XElement mruEntry, Func<XElement, XElement, bool> comparer, int defaultSizeLimit, bool updateExisting)
 		{
-			XElement root = EnsureRoot(document);
+			XElement root = CloneAndEnsureRoot(ref document);
 			int maxEntries = root.IntValue(ListSizeLimitAttrName, defaultSizeLimit);
 			var mru = ReadEntries(root);
 			if (updateExisting)
@@ -183,7 +183,8 @@ namespace LogJoint.MRU
 				InsertOrMakeFirst(mru, mruEntry, comparer);
 			ApplySizeLimit(mru, maxEntries);
 			WriteEntries(root, mru);
-			tasks.AddTask(() => WriteOut(document, sectionName));
+			XDocument documentToWriteOut = document;
+			tasks.AddTask(() => WriteOut(documentToWriteOut, sectionName));
 		}
 
 		private static void InsertOrMakeFirst(List<XElement> mru, XElement mruEntry, Func<XElement, XElement, bool> comparer)
@@ -226,8 +227,9 @@ namespace LogJoint.MRU
 				root.Add(s);
 		}
 
-		static XElement EnsureRoot(XDocument document)
+		static XElement CloneAndEnsureRoot(ref XDocument document)
 		{
+			document = new XDocument(document);
 			XElement root = document.Element(RootNodeName);
 			if (root == null)
 				document.Add(root = new XElement(RootNodeName));
@@ -242,7 +244,7 @@ namespace LogJoint.MRU
 
 		private void WriteListSizeLimit(int newLimit)
 		{
-			var root = EnsureRoot(recentLogsDocument);
+			var root = CloneAndEnsureRoot(ref recentLogsDocument);
 			root.SetAttributeValue(ListSizeLimitAttrName, newLimit);
 			var mru = ReadEntries(root);
 			ApplySizeLimit(mru, newLimit);
@@ -255,7 +257,7 @@ namespace LogJoint.MRU
 			if (mruConnectionParams == null)
 				return;
 			AddOrReplaceEntry(
-				recentLogsDocument,
+				ref recentLogsDocument,
 				RecentLogsSectionName,
 				new XElement(
 					EntryNodeName,
@@ -273,7 +275,7 @@ namespace LogJoint.MRU
 		private void AddOrReplaceWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
 		{
 			AddOrReplaceEntry(
-				recentLogsDocument,
+				ref recentLogsDocument,
 				RecentLogsSectionName,
 				new XElement(
 					EntryNodeName,
@@ -292,7 +294,7 @@ namespace LogJoint.MRU
 		private void AddFactory(ILogProvider provider)
 		{
 			AddOrReplaceEntry(
-				recentFactoriesDocument,
+				ref recentFactoriesDocument,
 				RecentFactoriesSectionName, 
 				new XElement(EntryNodeName, RecentLogEntry.FactoryPartToString(provider.Factory)),
 				(e1, e2) => e1.SafeValue() == e2.SafeValue(),

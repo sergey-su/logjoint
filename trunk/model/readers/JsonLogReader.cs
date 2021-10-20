@@ -399,8 +399,6 @@ namespace LogJoint.JsonFormat
 
 		#endregion
 
-		#region IFileReaderFactory Members
-
 		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
 		{
 			get
@@ -419,14 +417,10 @@ namespace LogJoint.JsonFormat
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder, this, patterns);
 		}
 
-		#endregion
-
-		#region IMediaBasedReaderFactory Members
-		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
+		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
 			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory);
 		}
-		#endregion
 	};
 }
 
