@@ -125,8 +125,11 @@ namespace LogJoint
 				traceSourceFactory
 			);
 			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
+			var defaultMetadataReferencesProvider = new FieldsProcessor.FieldsProcessorImpl.DefaultMetadataReferencesProvider();
 			FieldsProcessor.IFactory fieldsProcessorFactory = new FieldsProcessor.FieldsProcessorImpl.Factory(
-				storageManager, telemetryCollector, config.FieldsProcessorMetadataReferencesProvider, config.FieldsProcessorAssemblyLoader);
+				storageManager, telemetryCollector,
+				config.FieldsProcessorMetadataReferencesProvider ?? defaultMetadataReferencesProvider,
+				config.FieldsProcessorAssemblyLoader);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
@@ -365,6 +368,7 @@ namespace LogJoint
 				autoUpdateFactory.CreateAppUpdateDownloader()
 			);
 
+			fieldsProcessorFactory.SetPluginsManager(pluginsManager);
 			AutoUpdate.IAutoUpdater autoUpdater = autoUpdateFactory.CreateAutoUpdater(pluginsManager);
 
 			Model expensibilityModel = new Model(

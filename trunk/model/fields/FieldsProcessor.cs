@@ -63,6 +63,7 @@ namespace LogJoint.FieldsProcessor
 			readonly Telemetry.ITelemetryCollector telemetryCollector;
 			readonly IMetadataReferencesProvider metadataReferencesProvider;
 			readonly IAssemblyLoader assemblyLoader;
+			Extensibility.IPluginsManagerInternal pluginsManager;
 
 			public Factory(
 				Persistence.IStorageManager storageManager,
@@ -73,8 +74,13 @@ namespace LogJoint.FieldsProcessor
 			{
 				this.cacheEntryTask = storageManager.GetEntry("user-code-cache", 0x81012232);
 				this.telemetryCollector = telemetryCollector;
-				this.metadataReferencesProvider = metadataReferencesProvider ?? new DefaultMetadataReferencesProvider();
+				this.metadataReferencesProvider = metadataReferencesProvider;
 				this.assemblyLoader = assemblyLoader ?? new DefaultAssemblyLoader();
+			}
+
+			void IFactory.SetPluginsManager(Extensibility.IPluginsManagerInternal pluginsManager)
+			{
+				this.pluginsManager = pluginsManager;
 			}
 
 			IInitializationParams IFactory.CreateInitializationParams(
@@ -95,17 +101,17 @@ namespace LogJoint.FieldsProcessor
 					trace,
 					telemetryCollector,
 					metadataReferencesProvider,
-					assemblyLoader
+					assemblyLoader,
+					pluginsManager
 				);
 				await processor.Init();
 				return processor;
 			}
 		};
 
-		private class DefaultMetadataReferencesProvider : IMetadataReferencesProvider
+		public class DefaultMetadataReferencesProvider : IMetadataReferencesProvider
 		{
-			
-			IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences(IEnumerable<string> assemblyNames)
+			IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences()
 			{
 				MetadataReference assemblyLocationResolver(string asmName) => MetadataReference.CreateFromFile(Assembly.Load(asmName).Location);
 
@@ -115,7 +121,7 @@ namespace LogJoint.FieldsProcessor
 				metadataReferences.Add(assemblyLocationResolver("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"));
 				metadataReferences.Add(assemblyLocationResolver(Assembly.GetExecutingAssembly().FullName));
 				metadataReferences.Add(assemblyLocationResolver(typeof(StringSlice).Assembly.FullName));
-				metadataReferences.AddRange(assemblyNames.Select(assemblyLocationResolver));
+
 				return metadataReferences;
 			}
 		};
@@ -136,7 +142,8 @@ namespace LogJoint.FieldsProcessor
 			LJTraceSource trace,
 			Telemetry.ITelemetryCollector telemetryCollector,
 			IMetadataReferencesProvider metadataReferencesProvider,
-			IAssemblyLoader assemblyLoader
+			IAssemblyLoader assemblyLoader,
+			Extensibility.IPluginsManagerInternal pluginsManager
 		)
 		{
 			if (inputFieldNames == null)
@@ -150,6 +157,7 @@ namespace LogJoint.FieldsProcessor
 			this.telemetryCollector = telemetryCollector;
 			this.metadataReferencesProvider = metadataReferencesProvider;
 			this.assemblyLoader = assemblyLoader;
+			this.pluginsManager = pluginsManager;
 		}
 
 		public async Task Init()
@@ -253,8 +261,22 @@ namespace LogJoint.FieldsProcessor
 
 			Internal.__MessageBuilder ret = (Internal.__MessageBuilder)Activator.CreateInstance(builderType);
 
-			foreach (ExtensionInfo ext in extensions)
-				ret.SetExtensionByName(ext.ExtensionName, ext.InstanceGetter());
+			Assembly dependencyResolveHandler(object s, ResolveEventArgs e)
+			{
+				var name = (new AssemblyName(e.Name)).Name;
+				var asm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == name);
+				return asm;
+			}
+			AppDomain.CurrentDomain.AssemblyResolve += dependencyResolveHandler;
+			try
+			{
+				foreach (ExtensionInfo ext in extensions)
+					ret.SetExtensionByName(ext.ExtensionName, ext.InstanceGetter());
+			}
+			finally
+			{
+				AppDomain.CurrentDomain.AssemblyResolve -= dependencyResolveHandler;
+			}
 
 			return ret;
 		}
@@ -291,12 +313,21 @@ namespace LogJoint.FieldsProcessor
 		{
 			using (var perfop = new Profiling.Operation(trace, "compile user code"))
 			{
-				List<string> refs = new List<string>();
-				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields, refs);
+				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields);
 
 				var syntaxTree = CSharpSyntaxTree.ParseText(fullCode);
 
-				var metadataReferences = metadataReferencesProvider.GetMetadataReferences(refs);
+				var metadataReferences = new List<MetadataReference>(metadataReferencesProvider.GetMetadataReferences());
+
+				foreach (var ext in extensions)
+				{
+					var asmName = $"{new AssemblyName(ext.ExtensionAssemblyName).Name}.dll";
+					var asmFile = pluginsManager.InstalledPlugins.SelectMany(
+						p => p.Files).FirstOrDefault(f => f.RelativePath == asmName);
+					if (asmFile == null)
+						throw new Exception($"Display extension assembly {ext.ExtensionAssemblyName} can not be found");
+					metadataReferences.Add(MetadataReference.CreateFromFile(asmFile.AbsolutePath));
+				}
 
 				CSharpCompilation compilation = CSharpCompilation.Create(
 					$"UserCode{Guid.NewGuid().ToString("N")}",
@@ -351,7 +382,7 @@ namespace LogJoint.FieldsProcessor
 		}
 
 		static string MakeMessagesBuilderCode(List<string> inputFieldNames,
-			List<ExtensionInfo> extensions, List<OutputFieldStruct> outputFields, List<string> refs)
+			List<ExtensionInfo> extensions, List<OutputFieldStruct> outputFields)
 		{
 			StringBuilder helperFunctions = new StringBuilder();
 
@@ -440,7 +471,6 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				code.AppendFormat(@"
 	{0} {1};{2}",
 				 ext.ExtensionClassName, ext.ExtensionName, Environment.NewLine);
-				refs.Add(ext.ExtensionAssemblyName);
 			}
 
 			code.AppendLine(@"
@@ -695,6 +725,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly LJTraceSource trace;
 		readonly IMetadataReferencesProvider metadataReferencesProvider;
 		readonly IAssemblyLoader assemblyLoader;
+		readonly Extensibility.IPluginsManagerInternal pluginsManager;
 
 		#endregion
 	};

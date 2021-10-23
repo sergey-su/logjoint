@@ -37,7 +37,7 @@ namespace LogJoint.FieldsProcessor
 
 	public interface IMetadataReferencesProvider
     {
-		IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference> GetMetadataReferences(IEnumerable<string> assemblyNames);
+		IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference> GetMetadataReferences();
 	};
 
 	public interface IAssemblyLoader
@@ -80,6 +80,7 @@ namespace LogJoint.FieldsProcessor
 	// thread safe
 	public interface IFactory
 	{
+		void SetPluginsManager(Extensibility.IPluginsManagerInternal value);
 		IInitializationParams CreateInitializationParams(
 			XElement fieldsNode, bool performChecks
 		);

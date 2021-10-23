@@ -153,10 +153,11 @@ namespace LogJoint
 			{
 				if (instance != null)
 					return instance;
-				string fullTypeName = initData.ClassName + ", " + initData.AssemblyName;
-				Type extType = Type.GetType(fullTypeName);
+				var name = (new System.Reflection.AssemblyName(initData.AssemblyName)).Name;
+				var asm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == name);
+				var extType = asm.GetType(initData.ClassName);
 				if (extType == null)
-					throw new TypeLoadException("Extension type not found: " + fullTypeName);
+					throw new TypeLoadException($"Extension type {initData.ClassName} not found in {initData.AssemblyName}");
 				instance = Activator.CreateInstance(extType);
 				instanceIntf = instance as IMessagesReaderExtension;
 				return instance;

@@ -172,7 +172,7 @@ namespace LogJoint.Wasm
                 ));
             }
 
-            IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences(IEnumerable<string> assemblyNames) => references;
+            IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences() => references;
         };
 
 
