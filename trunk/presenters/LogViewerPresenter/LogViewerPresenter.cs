@@ -748,11 +748,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (k == Key.Up)
 					if (alt)
 						await ThisIntf.GoToPrevMessageInThread();
+					else if ((keyFlags & Key.JumpOverWordsModifier) != 0)
+						await GoToFirstLineOfMessage();
 					else
 						await MoveSelection(-1, preserveSelectionFlag);
 				else if (k == Key.Down)
 					if (alt)
 						await ThisIntf.GoToNextMessageInThread();
+					else if ((keyFlags & Key.JumpOverWordsModifier) != 0)
+						await GoToLastLineOfMessage();
 					else
 						await MoveSelection(+1, preserveSelectionFlag);
 				else if (k == Key.PageUp)
@@ -800,6 +804,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else if (k == Key.PrevHighlightedMessage)
 			{
 				await ThisIntf.GoToPrevHighlightedMessage();
+			}
+		}
+
+		async Task GoToLastLineOfMessage()
+		{
+			if (selectionManager.Selection != null)
+			{
+				var delta = screenBuffer.DisplayTextGetter(selectionManager.Selection.First.Message).GetLinesCount() - selectionManager.Selection.First.TextLineIndex - 1;
+				if (delta > 0)
+					await MoveSelection(delta, SelectionFlag.None);
+			}
+		}
+
+		async Task GoToFirstLineOfMessage()
+		{
+			if (selectionManager.Selection != null && selectionManager.Selection.First.TextLineIndex > 0)
+			{
+				await MoveSelection(
+					-selectionManager.Selection.First.TextLineIndex,
+					SelectionFlag.None
+				);
 			}
 		}
 
