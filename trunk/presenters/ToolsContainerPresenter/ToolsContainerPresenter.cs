@@ -12,7 +12,7 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 		bool isVisible = true;
 		double? size = null;
 		int selectedToolIndex = 0;
-		IReadOnlyList<ToolKind> availableTools = new[] { ToolKind.MessageProperties, ToolKind.StateInspector, ToolKind.Timeline };
+		IReadOnlyList<ToolKind> availableTools = new[] { ToolKind.StateInspector, ToolKind.Timeline, ToolKind.MessageProperties };
 		readonly Func<IReadOnlyList<ToolInfo>> availableToolsInfo;
 
 		public Presenter(IChangeNotification changeNotification)
