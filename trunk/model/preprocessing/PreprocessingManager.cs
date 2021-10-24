@@ -234,6 +234,7 @@ namespace LogJoint.Preprocessing
 							{
 								preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Location);
 								currentParams.DumpToConnectionParams(preprocessedConnectParams);
+								recentLogEntry.ConnectionParams.MaybeCopyDisplayName(preprocessedConnectParams);
 							}
 						}
 					}

@@ -33,7 +33,7 @@ namespace LogJoint.Preprocessing
 				if ((localFilePath = TryDetectLocalFileUri(uri)) != null)
 				{
 					callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(
-						new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingHistory)));
+						new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingHistory, sourceFile.DisplayName)));
 				}
 				else if (workspacesManager.IsWorkspaceUri(uri))
 				{

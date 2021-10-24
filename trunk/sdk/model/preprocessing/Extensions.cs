@@ -16,7 +16,12 @@ namespace LogJoint.Preprocessing
 			}
 			connectParams[ConnectionParamsKeys.IdentityConnectionParam] = prepParams.FullPath.ToLower();
 			if (!string.IsNullOrEmpty(prepParams.DisplayName))
-				connectParams[ConnectionParamsKeys.DisplayNameConnectionParam] = prepParams.DisplayName;
+					connectParams[ConnectionParamsKeys.DisplayNameConnectionParam] = prepParams.DisplayName;
+		}
+		public static void MaybeCopyDisplayName(this IConnectionParams source, IConnectionParams dest)
+		{
+			if (!string.IsNullOrEmpty(source[ConnectionParamsKeys.DisplayNameConnectionParam]))
+				dest[ConnectionParamsKeys.DisplayNameConnectionParam] = source[ConnectionParamsKeys.DisplayNameConnectionParam];
 		}
 	};
 }
