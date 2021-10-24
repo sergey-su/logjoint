@@ -784,12 +784,8 @@
                     console.log('Connected to chrome extension');
                     this._port.onMessage.addListener(async function(msg) {
                         if (msg.type === "open_log") {
-                            const db = window.logjoint.db;
-                            const id = encodeURIComponent(msg.id);
-                            console.log("Got open log request from chrome extension. Log len=", msg.text.length, " id=", id);
-                            const blob = new Blob([msg.text]);
-                            await db.set("blobs", blob, id);
-                            callback.invokeMethodAsync('Open', id, msg.displayName || msg.id);
+                            console.log("Got open log request from chrome extension. Log len=", msg.text.length, " id=", msg.id);
+                            callback.invokeMethodAsync('Open', msg.text, msg.id, msg.url, msg.displayName || msg.id);
                         }
                     });
                     this._port.onDisconnect.addListener((p) => {

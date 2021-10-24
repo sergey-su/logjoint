@@ -185,7 +185,8 @@ namespace LogJoint.Preprocessing
 
 				return new PreprocessingStepParams(
 					tmpFileName, sourceFile.FullPath,
-					sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(preprocessingStep))
+					sourceFile.PreprocessingHistory.Add(new PreprocessingHistoryItem(preprocessingStep)),
+					sourceFile.DisplayName
 				);
 			}
 		}
