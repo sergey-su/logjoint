@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using LogJoint.Drawing;
 using LogJoint.Preprocessing;
@@ -11,7 +12,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		IReadOnlyList<ILogSourcePreprocessing> SelectedPreprocessings { get; }
 		void SelectSource(ILogSource source);
 		void SelectPreprocessing(ILogSourcePreprocessing source);
-		void SaveLogSourceAs(ILogSource logSource);
+		Task SaveLogSourceAs(ILogSource logSource);
 
 		event EventHandler DeleteRequested;
 	};

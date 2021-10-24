@@ -94,14 +94,15 @@ namespace LogJoint
 			get { return suggestedSaveAsFileName; }
 		}
 
-		void ISaveAs.SaveAs(string fileName)
+		async Task ISaveAs.SaveAs(Stream outStream)
 		{
 			CheckDisposed();
 			string srcFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
 			if (srcFileName == null)
 				return;
-			System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-			System.IO.File.Copy(srcFileName, fileName, true);
+			using var inStream = new FileStream(srcFileName, FileMode.Open);
+			await IOUtils.CopyStreamWithProgressAsync(inStream, outStream, _ => {}, 
+				System.Threading.CancellationToken.None);
 		}
 
 		void InitPathDependentMembers(IConnectionParams connectParams)

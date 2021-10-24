@@ -43,8 +43,11 @@ namespace LogJoint.UI
 		{
 			var fileName = ((IFileDialogs)this).SaveFileDialog(p);
 			if (fileName != null)
+			{
+				System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fileName));
 				using (var fs = new FileStream(fileName, FileMode.Create))
 					await saver(fs);
+			}
 		}
 
 		Task<AlertFlags> IAlertPopup.ShowPopupAsync(string caption, string text, AlertFlags flags)

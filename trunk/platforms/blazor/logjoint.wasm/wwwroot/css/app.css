@@ -449,6 +449,7 @@ body {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
+    user-select: none;
 }
 .log-sources-list-item>span {
     flex-grow: 2;

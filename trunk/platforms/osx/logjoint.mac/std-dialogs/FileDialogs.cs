@@ -34,6 +34,7 @@ namespace LogJoint.UI
 		{
 			string fname = SaveFileDialog (p);
 			if (fname != null) {
+				System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fname));
 				using (var fs = new FileStream (fname, FileMode.Create))
 					await saver (fs);
 			}

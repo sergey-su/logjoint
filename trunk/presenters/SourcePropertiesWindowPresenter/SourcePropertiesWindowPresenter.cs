@@ -159,9 +159,9 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			HandleBookmarkClick(getViewState().lastMessageBmk);
 		}
 
-		void IViewModel.OnSaveAsButtonClicked()
+		async void IViewModel.OnSaveAsButtonClicked()
 		{
-			presentersFacade.SaveLogSourceAs(source);
+			await presentersFacade.SaveLogSourceAs(source);
 		}
 
 		void IViewModel.OnChangeAnnotation(string value)

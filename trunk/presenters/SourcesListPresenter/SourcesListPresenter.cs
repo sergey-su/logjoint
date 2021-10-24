@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Threading.Tasks;
 using LogJoint;
 using LogJoint.Preprocessing;
 using System.Threading.Tasks;
@@ -150,9 +151,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 			SelectItem(i => (i as PreprocessingViewItem)?.Preprocessing == lsp);
 		}
 
-		void IPresenter.SaveLogSourceAs(ILogSource logSource)
+		Task IPresenter.SaveLogSourceAs(ILogSource logSource)
 		{
-			SaveLogSourceAsInternal(logSource);
+			return SaveLogSourceAsInternal(logSource);
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
@@ -295,10 +296,10 @@ namespace LogJoint.UI.Presenters.SourcesList
 			changeNotification.Post();
 		}
 
-		void IViewModel.OnSaveLogAsMenuItemClicked()
+		async void IViewModel.OnSaveLogAsMenuItemClicked()
 		{
 			if (GetSingleSelectedLogSource() != null)
-				SaveLogSourceAsInternal(GetSingleSelectedLogSource());
+				await SaveLogSourceAsInternal(GetSingleSelectedLogSource());
 		}
 
 		void IViewModel.OnSaveMergedFilteredLogMenuItemClicked()
@@ -527,20 +528,20 @@ namespace LogJoint.UI.Presenters.SourcesList
 			return fileToShow;
 		}
 
-		void SaveLogSourceAsInternal(ILogSource logSource)
+		async Task SaveLogSourceAsInternal(ILogSource logSource)
 		{
 			ISaveAs saveAs = logSource.Provider as ISaveAs;
 			if (saveAs == null || !saveAs.IsSavableAs)
 				return;
-			string filename = fileDialogs.SaveFileDialog(new SaveFileDialogParams()
-			{
-				SuggestedFileName = saveAs.SuggestedFileName ?? "log.txt"
-			});
-			if (filename == null)
-				return;
 			try
 			{
-				saveAs.SaveAs(filename);
+				await fileDialogs.SaveOrDownloadFile(
+					saveAs.SaveAs,
+					new SaveFileDialogParams()
+					{
+						SuggestedFileName = saveAs.SuggestedFileName ?? "log.txt"
+					}
+				);
 			}
 			catch (Exception ex)
 			{

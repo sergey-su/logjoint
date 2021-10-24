@@ -67,9 +67,9 @@ namespace LogJoint.UI.Presenters
 			sourcesListPresenter.SelectSource(source);
 		}
 
-		void IPresentersFacade.SaveLogSourceAs(ILogSource logSource)
+		Task IPresentersFacade.SaveLogSourceAs(ILogSource logSource)
 		{
-			sourcesListPresenter.SaveLogSourceAs(logSource);
+			return sourcesListPresenter.SaveLogSourceAs(logSource);
 		}
 
 		void IPresentersFacade.ShowPreprocessing(LogJoint.Preprocessing.ILogSourcePreprocessing preproc)

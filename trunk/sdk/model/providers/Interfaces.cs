@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
@@ -312,7 +313,7 @@ namespace LogJoint
 	{
 		bool IsSavableAs { get; }
 		string SuggestedFileName { get; }
-		void SaveAs(string fileName);
+		Task SaveAs(Stream outStream);
 	};
 
 	public static class StdProviderFactoryUIs
