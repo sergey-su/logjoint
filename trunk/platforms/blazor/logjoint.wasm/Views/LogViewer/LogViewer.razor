@@ -197,7 +197,11 @@
         {
             result |= Key.ModifySelectionModifier;
         }
-        if (keyboardEventArgs.CtrlKey)
+        if (jsInterop.Browser.IsMac && keyboardEventArgs.AltKey)
+        {
+            result |= Key.JumpOverWordsModifier;
+        }
+        if (!jsInterop.Browser.IsMac && keyboardEventArgs.CtrlKey)
         {
             result |= Key.JumpOverWordsModifier;
         }
