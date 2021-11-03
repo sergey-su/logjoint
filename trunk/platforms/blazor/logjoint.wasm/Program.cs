@@ -6,25 +6,11 @@ using System.Text;
 using System.Linq;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using LogJoint;
-using LogJoint.Preprocessing;
-using LogJoint.Persistence;
 using Microsoft.JSInterop;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
-using LogJoint.FieldsProcessor;
 using LogJoint.Wasm.UI;
 using System.IO;
 using System.IO.Compression;
-using LogJoint.UI.Presenters;
-
-namespace LogJoint.Wasm
-{
-    class SystemThemeDetector : LogJoint.UI.Presenters.ISystemThemeDetector
-    {
-        ColorThemeMode LogJoint.UI.Presenters.ISystemThemeDetector.Mode => ColorThemeMode.Light;
-    }
-}
 
 namespace LogJoint.Wasm
 {
@@ -56,54 +42,6 @@ namespace LogJoint.Wasm
 
     public class Program
     {
-        class BlazorSynchronizationContext: ISynchronizationContext
-        {
-            void ISynchronizationContext.Post(Action action)
-            {
-                System.Threading.ThreadPool.QueueUserWorkItem(_ => action(), null);
-            }
-        };
-
-        class WebContentConfig : IWebContentCacheConfig, ILogsDownloaderConfig
-        {
-            bool IWebContentCacheConfig.IsCachingForcedForHost(string hostName) => true;
-            LogDownloaderRule ILogsDownloaderConfig.GetLogDownloaderConfig(Uri forUri) => null;
-            void ILogsDownloaderConfig.AddRule(Uri uri, LogDownloaderRule rule) {}
-        };
-
-        class AssemblyLoader: FieldsProcessor.IAssemblyLoader
-        {
-            Assembly FieldsProcessor.IAssemblyLoader.Load(byte[] image)
-            {
-                var context = System.Runtime.Loader.AssemblyLoadContext.Default;
-                using (var ms = new MemoryStream(image))
-                    return context.LoadFromStream(ms);
-            }
-        };
-
-        class MetadataReferencesProvider : FieldsProcessor.IMetadataReferencesProvider
-        {
-            List<MetadataReference> references = new List<MetadataReference>();
-
-            public async Task Init(IJSRuntime jsRuntime)
-            {
-                var httpClient = new HttpClient();
-                async Task<MetadataReference> resolve(string asmName) => MetadataReference.CreateFromStream(
-                    await httpClient.GetStreamAsync(
-                        await jsRuntime.InvokeAsync<string>("logjoint.getResourceUrl", $"_framework/{asmName}")));
-                references.AddRange(await Task.WhenAll(
-                    resolve("System.Runtime.dll"),
-                    resolve("System.Private.CoreLib.dll"),
-                    resolve("netstandard.dll"),
-                    resolve("logjoint.model.dll"),
-                    resolve("logjoint.model.sdk.dll")
-                ));
-            }
-
-            IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences() => references;
-        };
-
-
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -117,7 +55,7 @@ namespace LogJoint.Wasm
             builder.Services.AddSingleton<ModelObjects>(serviceProvider =>
             {
                 ISynchronizationContext invokingSynchronization = new BlazorSynchronizationContext();
-                WebContentConfig webContentConfig = new WebContentConfig();
+                BlazorWebContentConfig webContentConfig = new();
                 var logMediaFileSystem = new LogJoint.Wasm.LogMediaFileSystem(serviceProvider.GetService<IJSRuntime>());
 
                 var model = ModelFactory.Create(
