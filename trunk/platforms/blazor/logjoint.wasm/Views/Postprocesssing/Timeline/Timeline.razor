@@ -1,11 +1,12 @@
 ﻿@namespace LogJoint.Wasm.UI.Postprocessing
 @inject JsInterop jsInterop
 @inject IJSRuntime jsRuntime
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 @using System.Text.RegularExpressions;
 @using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 @implements IAsyncDisposable
 @implements IView
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class="timeline-visualizer @Class" @ref="rootElement">
     <div class="toolbar">
@@ -347,7 +348,7 @@
 
     void HandleWheel(HitTestResult ht, double deltaX, double deltaY, bool ctrl)
     {
-        if (ht.Area == HitTestResult.AreaCode.ActivitiesPanel || ht.Area == HitTestResult.AreaCode.Activity 
+        if (ht.Area == HitTestResult.AreaCode.ActivitiesPanel || ht.Area == HitTestResult.AreaCode.Activity
          || ht.Area == HitTestResult.AreaCode.ActivityTrigger || ht.Area == HitTestResult.AreaCode.ActivityPhase)
         {
             if (ctrl)
@@ -365,7 +366,7 @@
     {
         viewProxies.PostprocesssingTimelineViewProxy.SetComponent(this);
 
-        viewProxies.PresentationObjects.ExpensibilityEntryPoint.Postprocessing.Timeline.Show();
+        presentation.ExpensibilityEntryPoint.Postprocessing.Timeline.Show();
         viewModel.OnWindowShown();
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(

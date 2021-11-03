@@ -2,7 +2,7 @@
 @using LogJoint.UI.Presenters.AlertPopup
 @using LogJoint.UI.Presenters 
 @implements IDisposable
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <Modal Visible="@(viewModel.ViewState != null)" Class="alert" ClickOutside="@(() => viewModel?.OnClickOutside())" OnCancel="HandleCancel">
     <div class="text">
@@ -26,7 +26,7 @@
 
     protected override void OnInitialized()
     {
-        viewModel = (IViewModel)viewProxies.PresentationObjects.AlertPopup;
+        viewModel = (IViewModel)presentation.AlertPopup; // todo: avoid cast
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => viewModel.ViewState,

@@ -1,9 +1,10 @@
 ﻿@namespace LogJoint.Wasm.UI.Postprocessing
 @inject JsInterop jsInterop
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 @using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 @implements IDisposable
 @implements IView
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class="state-inspector @Class" @ref="stateInspectorElement">
     <InlineSearch ViewModel="@viewModel.InlineSearch" />
@@ -60,7 +61,7 @@
     {
         viewProxies.PostprocesssingStateInspectorViewProxy.SetComponent(this);
 
-        viewProxies.PresentationObjects.ExpensibilityEntryPoint.Postprocessing.StateInspector.Show();
+        presentation.ExpensibilityEntryPoint.Postprocessing.StateInspector.Show();
         viewModel.OnVisibleChanged(true);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(

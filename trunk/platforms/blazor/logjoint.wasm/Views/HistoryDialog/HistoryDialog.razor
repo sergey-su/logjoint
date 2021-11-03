@@ -1,7 +1,7 @@
 ﻿@namespace LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.HistoryDialog
 @implements IDisposable
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 @implements IView
 
 <Modal Visible="@viewModel.IsVisible" Class="resizable-dialog history-dialog" ClickOutside="@viewModel.OnCancelClicked" OnCancel="@viewModel.OnCancelClicked">

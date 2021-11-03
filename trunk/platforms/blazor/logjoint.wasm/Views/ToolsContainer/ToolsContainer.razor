@@ -1,6 +1,6 @@
 ﻿@namespace LogJoint.Wasm.UI
 @inject JsInterop jsInterop
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @using LogJoint.UI.Presenters.ToolsContainer
 @implements IDisposable
 
@@ -35,7 +35,7 @@
 
 @code {
     private ElementReference toolsResizerElement, toolsElement;
-    private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.ToolsContainer;
+    private IViewModel viewModel => presentation.ViewModels.ToolsContainer;
     private ISubscription subscription;
     private IDisposable resizeHandler;
     private Func<IReadOnlyList<TabsView.TabInfo>> tabInfos;

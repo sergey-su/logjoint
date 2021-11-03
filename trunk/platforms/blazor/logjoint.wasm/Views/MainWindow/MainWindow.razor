@@ -1,7 +1,7 @@
 @namespace LogJoint.Wasm.UI
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
 @inject IJSRuntime jsRuntime
 @inject LogJoint.ModelObjects model
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @implements IDisposable
 @using LogJoint.UI.Presenters.MainForm
 @inject JsInterop jsInterop
@@ -18,7 +18,7 @@
             <ToolsContainer Class='right' ResizerClass='right-separator' CollapsedResizerClass="right-separator-collapsed" />
         </div>
     </div>
-    <QuickSearchSuggestionsList ViewModel="@viewProxies.PresentationObjects.ViewModels.SearchPanel.QuickSearchTextBox" Class="search-panel-suggesions" />
+    <QuickSearchSuggestionsList ViewModel="@presentation.ViewModels.SearchPanel.QuickSearchTextBox" Class="search-panel-suggesions" />
 </div>
 <HistoryDialog />
 <PostprocessingDialog />
@@ -70,7 +70,7 @@
             keyHandler = await jsInterop.Keyboard.AddHandler(element, new KeyboardInterop.Options
             {
                 PreventDefault = true,
-                Handler = () => viewProxies.PresentationObjects.ViewModels.MainForm.OnKeyPressed(KeyCode.FindShortcut)
+                Handler = () => presentation.ViewModels.MainForm.OnKeyPressed(KeyCode.FindShortcut)
             }, "Edit+F/i");
         }
     }

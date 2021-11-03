@@ -3,7 +3,7 @@
 @implements IDisposable
 @implements IView
 @implements IWindow
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 
 @{var viewState = viewModel.ViewState; }
 <Modal Visible="@(dialogTask != null)" Class="resizable-dialog source-properties-dialog" ClickOutside="FireClosingEventAndClose" OnCancel="FireClosingEventAndClose">

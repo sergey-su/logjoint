@@ -3,7 +3,7 @@
 @using LogJoint.UI.Presenters.BookmarksList
 @implements IDisposable
 @implements IView
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 @inject JsInterop jsInterop
 
 <ListView Items="@viewModel.Items" OnSelect="@(items => viewModel.OnChangeSelection(items.OfType<IViewItem>()))" 

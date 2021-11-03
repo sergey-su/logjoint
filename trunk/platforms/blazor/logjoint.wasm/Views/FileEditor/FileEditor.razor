@@ -2,7 +2,7 @@
 @using LogJoint.UI.Presenters.FileEditor
 @implements IDisposable
 @implements IView
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <Modal Visible="@viewModel.IsVisible" Class="resizable-dialog file-editor-dialog" ClickOutside="@viewModel.OnClose" OnCancel="@viewModel.OnClose">
     <header>@viewModel.Caption</header>
@@ -26,7 +26,7 @@
 
     protected override void OnInitialized()
     {
-        viewModel = viewProxies.PresentationObjects.ViewModels.FileEditor;
+        viewModel = presentation.ViewModels.FileEditor;
         viewModel.SetView(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(

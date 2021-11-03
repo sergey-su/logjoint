@@ -1,7 +1,7 @@
 ﻿@namespace LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.PreprocessingUserInteractions
 @implements IDisposable
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 @implements IView
 
 <Modal Visible="@(viewModel.DialogData != null)" Class="resizable-dialog postprocessing-open-dialog" ClickOutside="@(() => viewModel.OnCloseDialog(false))" OnCancel="@(() => viewModel.OnCloseDialog(false))">

@@ -22,11 +22,8 @@ using System.IO.Compression;
 
 namespace LogJoint.Wasm
 {
-
-	public class ViewModelObjects // todo: rename to ViewProxies
-	{
-        public LogJoint.UI.Presenters.PresentationObjects PresentationObjects;
-
+	public class ViewProxies // todo: get rid of proxies
+    {
         public UI.LogViewer.ViewProxy LoadedMessagesLogViewerViewProxy = new UI.LogViewer.ViewProxy();
         public UI.LoadedMessages.ViewProxy LoadedMessagesViewProxy;
         public UI.SourcesListViewProxy SourcesListViewProxy = new UI.SourcesListViewProxy();
@@ -34,22 +31,20 @@ namespace LogJoint.Wasm
         public UI.Postprocessing.ViewProxy PostprocessingTabPage = new UI.Postprocessing.ViewProxy();
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new UI.Postprocesssing.StateInspector.ViewProxy();
         public UI.Postprocesssing.Timeline.ViewProxy PostprocesssingTimelineViewProxy = new UI.Postprocesssing.Timeline.ViewProxy();
-        public UI.SearchPanelViewProxy SearchPanel;
-        public UI.SearchResultViewProxy SearchResult;
+        public UI.SearchPanelViewProxy SearchPanel = new UI.SearchPanelViewProxy();
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new UI.LogViewer.ViewProxy();
+        public UI.SearchResultViewProxy SearchResult;
         public UI.BookmarksListViewProxy BookmarksList = new UI.BookmarksListViewProxy();
-        public UI.HistoryDialogViewProxy HistoryDialog;
+        public UI.HistoryDialogViewProxy HistoryDialog = new UI.HistoryDialogViewProxy();
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new PreprocessingUserInteractionsViewProxy();
         public UI.MessagePropertiesViewProxy MessageProperties = new MessagePropertiesViewProxy();
         public UI.TimelineViewProxy Timeline = new TimelineViewProxy();
         public UI.SourcePropertiesWindowViewProxy SourcePropertiesWindow = new UI.SourcePropertiesWindowViewProxy();
 
-        public ViewModelObjects()
+        public ViewProxies()
         {
             this.LoadedMessagesViewProxy = new UI.LoadedMessages.ViewProxy(LoadedMessagesLogViewerViewProxy);
-            this.SearchPanel = new UI.SearchPanelViewProxy();
             this.SearchResult = new UI.SearchResultViewProxy(SearchResultLogViewer);
-            this.HistoryDialog = new UI.HistoryDialogViewProxy();
         }
 	};
 
@@ -67,7 +62,7 @@ namespace LogJoint.Wasm
 
         public LogJoint.UI.Presenters.Factory.IViewsFactory Views;
 
-        public Mocks(ViewModelObjects viewModel)
+        public Mocks(ViewProxies viewModel)
         {
             CredentialsCache = Substitute.For<Preprocessing.ICredentialsCache>();
             WebBrowserDownloader = Substitute.For<WebViewTools.IWebViewTools>();
@@ -237,17 +232,21 @@ namespace LogJoint.Wasm
 
                 return model;
             });
-            builder.Services.AddSingleton<ViewModelObjects>(serviceProvider =>
+            builder.Services.AddSingleton<ViewProxies>(serviceProvider =>
+            {
+                return new ViewProxies();
+            });
+            builder.Services.AddSingleton<LogJoint.UI.Presenters.PresentationObjects>(serviceProvider =>
             {
                 var model = serviceProvider.GetService<ModelObjects>();
                 var jsRuntime = serviceProvider.GetService<IJSRuntime>();
+                var viewProxies = serviceProvider.GetService<ViewProxies>();
 
                 var fileDialogs = new FileDialogs(serviceProvider.GetService<JsInterop>());
 
-                var viewModel = new ViewModelObjects();
                 var shellOpen = new ShellOpen();
 
-                var mocks = new Mocks(viewModel);
+                var mocks = new Mocks(viewProxies);
 
                 var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
                     model,
@@ -262,11 +261,9 @@ namespace LogJoint.Wasm
                     mocks.Views
                 );
 
-                viewModel.PresentationObjects = presentationObjects;
-
                 shellOpen.SetFileEditor(presentationObjects.FileEditor);
 
-                return viewModel;
+                return presentationObjects;
             });
             builder.Services.AddSingleton<TreeStyles>();
 
@@ -312,10 +309,10 @@ namespace LogJoint.Wasm
                 }
 
                 var model = wasmHost.Services.GetService<ModelObjects>();
-                var view = wasmHost.Services.GetService<ViewModelObjects>();
+                var presentation = wasmHost.Services.GetService<LogJoint.UI.Presenters.PresentationObjects>();
                 model.PluginsManager.LoadPlugins(new Extensibility.Application(
                     model.ExpensibilityEntryPoint,
-                    view.PresentationObjects.ExpensibilityEntryPoint), string.Join(',', pluginsDirsList), false);
+                    presentation.ExpensibilityEntryPoint), string.Join(',', pluginsDirsList), false);
             }
 
             jsInterop.ChromeExtension.OnOpen += async (sender, evt) =>

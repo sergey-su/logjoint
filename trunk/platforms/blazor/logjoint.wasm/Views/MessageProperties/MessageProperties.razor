@@ -2,8 +2,9 @@
 @using LogJoint
 @using LogJoint.UI.Presenters.MessagePropertiesDialog
 @implements IDisposable
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 @inject JsInterop jsInterop
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class="message-properties @Class">
     @{var d = viewModel.Data;}
@@ -47,7 +48,7 @@
     {
         if (viewProxies.MessageProperties.ViewModel == null)
         {
-            viewProxies.PresentationObjects.PresentersFacade.ShowMessageProperties();
+            presentation.PresentersFacade.ShowMessageProperties();
         }
         viewModel = viewProxies.MessageProperties.ViewModel;
 

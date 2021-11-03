@@ -1,7 +1,7 @@
 ﻿@namespace LogJoint.Wasm.UI
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
-@using LogJoint.UI.Presenters.MainForm; 
+@using LogJoint.UI.Presenters.MainForm;
 @inject JsInterop jsInterop
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class='main-window-tabs @Class' @ref="tabsElement" style="@GetStyle()">
     <TabsView SelectedTab="@ViewModel.ActiveTab" Tabs="@tabNames()" OnSelect="@(i => ViewModel.OnChangeTab(ViewModel.VisibleTabs[i].Id))" />
@@ -14,7 +14,7 @@
             <BookmarksList Class="tab-content" />
             break;
         case TabIDs.Search:
-            <SearchPanel Class="tab-content"/>
+            <SearchPanel Class="tab-content" />
             break;
         case TabIDs.Postprocessing:
             <PostprocessingTabPage Class="tab-content" />
@@ -28,7 +28,7 @@
 
 @code {
     private ISubscription subscription;
-    private IViewModel ViewModel => viewProxies.PresentationObjects.ViewModels.MainForm;
+    private IViewModel ViewModel => presentation.ViewModels.MainForm;
     private Func<IReadOnlyList<TabsView.TabInfo>> tabNames;
     private ElementReference resizerElement, tabsElement;
     private IDisposable resizeHandler;
@@ -67,5 +67,5 @@
         resizeHandler?.Dispose();
     }
 
-    string GetStyle() => ViewModel.Size.HasValue ? $"height: {100*ViewModel.Size}%" : "";
+    string GetStyle() => ViewModel.Size.HasValue ? $"height: {100 * ViewModel.Size}%" : "";
 }

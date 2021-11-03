@@ -3,7 +3,7 @@
 @inject IJSRuntime jsRuntime;
 @implements IDisposable
 @implements IView;
-@inject LogJoint.Wasm.ViewModelObjects viewProxies;
+@inject LogJoint.Wasm.ViewProxies viewProxies;
 
 <div class='postprocessings-tabpage @Class'>
     @foreach (var control in viewModel.ControlsState)

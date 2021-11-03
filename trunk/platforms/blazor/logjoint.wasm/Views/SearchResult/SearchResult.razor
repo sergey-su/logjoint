@@ -4,7 +4,7 @@
 @using ViewerP = LogJoint.UI.Presenters.LogViewer
 @implements IDisposable
 @implements IView
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
 @inject JsInterop jsInterop
 
 <div class='@(viewModel.IsSearchResultsVisible ? ResizerClass : CollapsedResizerClass)' @ref="resizerElement" @onclick="viewModel.OnOpenSearchResultsButtonClicked"

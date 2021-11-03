@@ -1,6 +1,7 @@
 ﻿@namespace LogJoint.Wasm.UI
 @inject JsInterop jsInterop
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.Wasm.ViewProxies viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @using LogJoint.UI.Presenters.Timeline
 @implements IAsyncDisposable
 @implements IView
@@ -50,7 +51,7 @@
 </div>
 
 @code {
-    private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.Timeline;
+    private IViewModel viewModel => presentation.ViewModels.Timeline;
     private ElementReference element;
     private ISubscription subscription;
     private IAsyncDisposable resizeObserverHandle;

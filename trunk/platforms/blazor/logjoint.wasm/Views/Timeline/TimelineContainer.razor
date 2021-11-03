@@ -1,6 +1,6 @@
 ﻿@namespace LogJoint.Wasm.UI
 @inject JsInterop jsInterop
-@inject LogJoint.Wasm.ViewModelObjects viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @using LogJoint.UI.Presenters.TimelinePanel
 @implements IDisposable
 
@@ -23,7 +23,7 @@
 
 @code {
     private ElementReference resizerElement, panelElement;
-    private IViewModel viewModel => viewProxies.PresentationObjects.ViewModels.TimelinePanel;
+    private IViewModel viewModel => presentation.ViewModels.TimelinePanel;
     private ISubscription subscription;
     private IDisposable resizeHandler;
 
