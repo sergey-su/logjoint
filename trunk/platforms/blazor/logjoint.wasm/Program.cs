@@ -1,16 +1,10 @@
 using System;
 using System.Net.Http;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Text;
-using System.Linq;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
-using System.Reflection;
 using LogJoint.Wasm.UI;
-using System.IO;
-using System.IO.Compression;
 
 namespace LogJoint.Wasm
 {
@@ -110,7 +104,7 @@ namespace LogJoint.Wasm
             });
             builder.Services.AddSingleton<TreeStyles>();
 
-            var wasmHost = builder.Build();
+            WebAssemblyHost wasmHost = builder.Build();
 
             var jsInterop = wasmHost.Services.GetService<JsInterop>();
             await jsInterop.Init();
@@ -118,62 +112,8 @@ namespace LogJoint.Wasm
             var jsRuntime = wasmHost.Services.GetService<IJSRuntime>();
             await fieldsProcessorMetadataReferencesProvider.Init(jsRuntime);
 
-            {
-                var pluginsDirsList = new List<string>();
-                var pluginsDir = Path.Combine(Path.GetTempPath(), "plugins"); // folder in memory, powered by emscripten MEMFS.
-                var resourcesAssembly = Assembly.GetExecutingAssembly();
-
-                foreach (string resourceName in resourcesAssembly.GetManifestResourceNames().Where(f => f.StartsWith("LogJoint.Wasm.Plugins")))
-                {
-                    var resourceStream = resourcesAssembly.GetManifestResourceStream(resourceName);
-                    var pluginDir = Path.Combine(pluginsDir, resourceName);
-                    var sw = System.Diagnostics.Stopwatch.StartNew();
-                    using (var archive = new ZipArchive(resourceStream, ZipArchiveMode.Read, leaveOpen: true))
-                    {
-                        var createdDirectories = new HashSet<string>();
-                        void ensureDirectoryCreated(string dir)
-                        {
-                            if (createdDirectories.Add(dir))
-                                Directory.CreateDirectory(dir);
-                        };
-                        foreach (var e in archive.Entries)
-                        {
-                            var fileName = Path.Combine(pluginDir, e.FullName);
-                            ensureDirectoryCreated(Path.GetDirectoryName(fileName));
-                            using (var sourceStream = e.Open())
-                            using (var targetStream = File.OpenWrite(fileName))
-                            {
-                                sourceStream.CopyTo(targetStream);
-                            }
-                        }
-                    }
-                    Console.WriteLine("Extracted plugin: {0}, took {1}", resourceName, sw.Elapsed);
-                    pluginsDirsList.Add(pluginDir);
-                }
-
-                var model = wasmHost.Services.GetService<ModelObjects>();
-                var presentation = wasmHost.Services.GetService<LogJoint.UI.Presenters.PresentationObjects>();
-                model.PluginsManager.LoadPlugins(new Extensibility.Application(
-                    model.ExpensibilityEntryPoint,
-                    presentation.ExpensibilityEntryPoint), string.Join(',', pluginsDirsList), false);
-            }
-
-            jsInterop.ChromeExtension.OnOpen += async (sender, evt) =>
-            {
-                Console.WriteLine("Opening blob id: '{0}', displayName: '{1}'", evt.Id, evt.DisplayName);
-                var model = wasmHost.Services.GetService<ModelObjects>();
-                using var stream = new MemoryStream();
-                using (var writer = new StreamWriter(stream, Encoding.ASCII, 1024, leaveOpen: true))
-                    writer.Write(evt.LogText);
-                stream.Position = 0;
-                await model.ExpensibilityEntryPoint.WebContentCache.SetValue(new Uri(evt.Url), stream);
-                var task = model.LogSourcesPreprocessings.Preprocess(
-                    new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(
-                        new LogJoint.Preprocessing.PreprocessingStepParams(evt.Url, displayName: evt.DisplayName)) },
-                    "Processing file"
-                );
-                await task;
-            };
+            Extensibility.BlazorPluginLoader.LoadPlugins(wasmHost);
+            ChromeExtensionIntegration.Init(jsInterop, wasmHost);
 
             await wasmHost.RunAsync();
         }
