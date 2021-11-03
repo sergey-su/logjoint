@@ -9,7 +9,7 @@ using System.Drawing.Drawing2D;
 
 namespace LogJoint.UI
 {
-	public partial class BookmarksView : UserControl, IView
+	public partial class BookmarksView : UserControl
 	{
 		public BookmarksView()
 		{
@@ -30,7 +30,7 @@ namespace LogJoint.UI
 			listBox.ItemHeight = UIUtils.Dpi.Scale(15);
 		}
 
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.presenter = viewModel;
 

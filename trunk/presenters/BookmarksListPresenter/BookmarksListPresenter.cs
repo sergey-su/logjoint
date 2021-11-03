@@ -20,7 +20,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		public Presenter(
 			IBookmarks bookmarks, 
 			ILogSourcesManager sourcesManager,
-			IView view, 
 			IHeartBeatTimer heartbeat,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IClipboardAccess clipboardAccess,
@@ -30,7 +29,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		)
 		{
 			this.bookmarks = bookmarks;
-			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.clipboardAccess = clipboardAccess;
 			this.colorTheme = colorTheme;
@@ -51,8 +49,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				() => bookmarks.Items,
 				FindFocusedMessagePosition
 			);
-
-			view.SetViewModel(this);
 		}
 
 		public event BookmarkEvent Click;
@@ -340,7 +336,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		};
 
 		readonly IBookmarks bookmarks;
-		readonly IView view;
 		readonly LJTraceSource trace;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IClipboardAccess clipboardAccess;

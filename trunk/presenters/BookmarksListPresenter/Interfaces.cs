@@ -13,11 +13,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void DeleteSelectedBookmarks();
 	};
 
-	public interface IView
-	{
-		void SetViewModel(IViewModel viewModel);
-	};
-
 	public interface IViewItem: IListItem
 	{
 		string Delta { get; }

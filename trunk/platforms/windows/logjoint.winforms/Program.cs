@@ -77,6 +77,7 @@ namespace LogJoint
 			);
 
 			mainForm.bookmarksManagerView.SetViewModel(presentation.ViewModels.BookmarksManager);
+			mainForm.bookmarksManagerView.ListView.SetViewModel(presentation.ViewModels.BookmarksList);
 
 			var pluginEntryPoint = new Extensibility.Application(
 				model.ExpensibilityEntryPoint,

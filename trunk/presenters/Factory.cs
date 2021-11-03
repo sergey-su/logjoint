@@ -30,6 +30,7 @@ namespace LogJoint.UI.Presenters
 		public Timeline.IViewModel Timeline { get; internal set; }
 		public TimelinePanel.IViewModel TimelinePanel { get; internal set; }
 		public BookmarksManager.IViewModel BookmarksManager { get; internal set; }
+		public BookmarksList.IViewModel BookmarksList { get; internal set; }
 	};
 
 	public static class Factory
@@ -60,7 +61,6 @@ namespace LogJoint.UI.Presenters
 			SourcesManager.IView CreateSourcesManagerView();
 			MessagePropertiesDialog.IView CreateMessagePropertiesDialogView();
 			FiltersManager.IView CreateHlFiltersManagerView();
-			BookmarksList.IView CreateBookmarksListView();
 			Options.Dialog.IView CreateOptionsDialogView();
 			About.IView CreateAboutView();
 			MainForm.IView CreateMainFormView();
@@ -113,7 +113,6 @@ namespace LogJoint.UI.Presenters
 			var sourcesManagerView = views.CreateSourcesManagerView();
 			var messagePropertiesDialogView = views.CreateMessagePropertiesDialogView();
 			var hlFiltersManagerView = views.CreateHlFiltersManagerView();
-			var bookmarksListView = views.CreateBookmarksListView();
 			var optionsDialogView = callOptionalFactory(views.CreateOptionsDialogView);
 			var aboutView = views.CreateAboutView();
 			var mainFormView = views.CreateMainFormView();
@@ -440,10 +439,9 @@ namespace LogJoint.UI.Presenters
 				model.FiltersManager.HighlightFilters,
 				hlFiltersManagerView);
 
-			BookmarksList.IPresenter bookmarksListPresenter = new BookmarksList.Presenter(
+			var bookmarksListPresenter = new BookmarksList.Presenter(
 				model.Bookmarks,
 				model.LogSourcesManager,
-				bookmarksListView,
 				model.HeartBeatTimer,
 				loadedMessagesPresenter,
 				clipboardAccess,
@@ -622,6 +620,7 @@ namespace LogJoint.UI.Presenters
 					Timeline = timelinePresenter,
 					TimelinePanel = timelinePanelPresenter,
 					BookmarksManager = bookmarksManagerPresenter,
+					BookmarksList = bookmarksListPresenter,
 				}
 			};
 		}

@@ -2,8 +2,7 @@
 @using LogJoint
 @using LogJoint.UI.Presenters.BookmarksList
 @implements IDisposable
-@implements IView
-@inject LogJoint.Wasm.ViewProxies viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @inject JsInterop jsInterop
 
 <ListView Items="@viewModel.Items" OnSelect="@(items => viewModel.OnChangeSelection(items.OfType<IViewItem>()))" 
@@ -35,7 +34,7 @@
 </ListView>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.BookmarksList;
     private ISubscription subscription;
 
     [Parameter]
@@ -43,8 +42,6 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.BookmarksList.SetComponent(this);
-
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.Items, viewModel.FocusedMessagePosition),
             _ => StateHasChanged()
@@ -53,13 +50,7 @@
 
     public void Dispose()
     {
-        viewProxies.BookmarksList.SetComponent(null);
         subscription?.Dispose();
-    }
-
-    void IView.SetViewModel(IViewModel value)
-    {
-        viewModel = value;
     }
 
     string ListClass => $"bookmarks-list {Class}";

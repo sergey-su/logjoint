@@ -15,7 +15,6 @@ namespace LogJoint.Wasm
         public UI.SearchPanelViewProxy SearchPanel = new();
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new();
         public UI.SearchResultViewProxy SearchResult;
-        public UI.BookmarksListViewProxy BookmarksList = new();
         public UI.HistoryDialogViewProxy HistoryDialog = new();
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new();
         public UI.MessagePropertiesViewProxy MessageProperties = new();
@@ -37,8 +36,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory Factory.IViewsFactory.PostprocessingViewsFactory => this;
 
         LogJoint.UI.Presenters.About.IView Factory.IViewsFactory.CreateAboutView() => null;
-
-        LogJoint.UI.Presenters.BookmarksList.IView Factory.IViewsFactory.CreateBookmarksListView() => BookmarksList;
 
         LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.IView Factory.IViewsFactory.CreateDebugOutputFormatView() => null;
 
