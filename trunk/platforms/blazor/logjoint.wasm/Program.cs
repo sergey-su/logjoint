@@ -19,6 +19,7 @@ using LogJoint.FieldsProcessor;
 using LogJoint.Wasm.UI;
 using System.IO;
 using System.IO.Compression;
+using LogJoint.UI.Presenters;
 
 namespace LogJoint.Wasm
 {
@@ -48,31 +49,17 @@ namespace LogJoint.Wasm
         }
 	};
 
+    class SystemThemeDetector : LogJoint.UI.Presenters.ISystemThemeDetector
+    {
+        ColorThemeMode LogJoint.UI.Presenters.ISystemThemeDetector.Mode => ColorThemeMode.Light;
+    }
+
     class Mocks
     {
-        public Preprocessing.ICredentialsCache CredentialsCache;
-        public WebViewTools.IWebViewTools WebBrowserDownloader;
-        public Persistence.IWebContentCacheConfig WebContentCacheConfig;
-        public Preprocessing.ILogsDownloaderConfig LogsDownloaderConfig;
-
-        public LogJoint.UI.Presenters.IPromptDialog PromptDialog;
-        public LogJoint.UI.Presenters.About.IAboutConfig AboutConfig;
-        public LogJoint.UI.Presenters.MainForm.IDragDropHandler DragDropHandler;
-        public LogJoint.UI.Presenters.ISystemThemeDetector SystemThemeDetector;
-
         public LogJoint.UI.Presenters.Factory.IViewsFactory Views;
 
         public Mocks(ViewProxies viewModel)
         {
-            CredentialsCache = Substitute.For<Preprocessing.ICredentialsCache>();
-            WebBrowserDownloader = Substitute.For<WebViewTools.IWebViewTools>();
-            WebContentCacheConfig = Substitute.For<Persistence.IWebContentCacheConfig>();
-            LogsDownloaderConfig = Substitute.For<Preprocessing.ILogsDownloaderConfig>();
-
-            PromptDialog = Substitute.For<LogJoint.UI.Presenters.IPromptDialog>();
-            AboutConfig = Substitute.For<LogJoint.UI.Presenters.About.IAboutConfig>();
-            DragDropHandler = Substitute.For<LogJoint.UI.Presenters.MainForm.IDragDropHandler>();
-            SystemThemeDetector = Substitute.For<LogJoint.UI.Presenters.ISystemThemeDetector>();
             Views = Substitute.For<LogJoint.UI.Presenters.Factory.IViewsFactory>();
 
             Views.CreateLoadedMessagesView().Returns(viewModel.LoadedMessagesViewProxy);
@@ -254,10 +241,10 @@ namespace LogJoint.Wasm
                     shellOpen,
                     /*alertPopup=*/null,
                     fileDialogs,
-                    mocks.PromptDialog,
-                    mocks.AboutConfig,
-                    mocks.DragDropHandler,
-                    mocks.SystemThemeDetector,
+                    /*prompt=*/null,
+                    /*aboutConfig=*/null,
+                    /*dragDropHandler=*/null,
+                    new SystemThemeDetector(),
                     mocks.Views
                 );
 

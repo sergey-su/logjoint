@@ -14,7 +14,6 @@
 			UI.Presenters.MainForm.IPresenter mainFormPresenter,
 			UI.Presenters.IColorTheme theme,
 			UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialog,
-			UI.Presenters.IPromptDialog promptDialog,
 			UI.Presenters.Postprocessing.IPresentation postprocessing,
 			UI.Presenters.LogViewer.IPresenter loadedMessagesLogViewer
 		)
@@ -26,11 +25,10 @@
 			this.NewLogSourceDialog = newLogSourceDialog;
 			this.ShellOpen = shellOpen;
 			this.Alerts = alerts;
-			this.Prompt = prompt;
 			this.MainFormPresenter = mainFormPresenter;
 			this.Theme = theme;
 			this.MessagePropertiesDialog = messagePropertiesDialog;
-			this.PromptDialog = promptDialog;
+			this.PromptDialog = prompt;
 			this.Postprocessing = postprocessing;
 			this.LoadedMessagesLogViewer = loadedMessagesLogViewer;
 		}

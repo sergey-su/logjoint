@@ -596,7 +596,6 @@ namespace LogJoint.UI.Presenters
 				mainFormPresenter,
 				colorTheme,
 				messagePropertiesDialogPresenter,
-				promptDialog,
 				new Postprocessing.Presentation(postprocessorPresentationFactory, postprocessingTabPagePresenter),
 				loadedMessagesPresenter.LogViewerPresenter
 			);
