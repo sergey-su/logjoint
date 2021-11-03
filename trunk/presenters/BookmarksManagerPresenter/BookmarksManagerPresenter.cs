@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.BookmarksManager
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		public Presenter(
 			IBookmarks bookmarks,
-			IView view,
 			LogViewer.IPresenterInternal viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			BookmarksList.IPresenter listPresenter,
@@ -21,7 +20,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		)
 		{
 			this.bookmarks = bookmarks;
-			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.bmkm");
 			this.statusReportFactory = statusReportFactory;
@@ -35,8 +33,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 				IPresenter myPublicIntf = this;
 				myPublicIntf.NavigateToBookmark(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.BookmarksStringsSet);
 			};
-
-			view.SetPresenter(this);
 		}
 
 		void IPresenter.ShowNextBookmark()
@@ -62,7 +58,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			DoBookmarkAction(null);
 		}
 
-		void IViewEvents.OnToggleButtonClicked()
+		void IViewModel.OnToggleButtonClicked()
 		{
 			using (tracer.NewFrame)
 			{
@@ -71,17 +67,17 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 		}
 
-		void IViewEvents.OnAddBookmarkButtonClicked()
+		void IViewModel.OnAddBookmarkButtonClicked()
 		{
 			DoBookmarkAction(true);
 		}
 
-		void IViewEvents.OnDeleteBookmarkButtonClicked()
+		void IViewModel.OnDeleteBookmarkButtonClicked()
 		{
 			listPresenter.DeleteSelectedBookmarks();
 		}
 
-		void IViewEvents.OnDeleteAllButtonClicked()
+		void IViewModel.OnDeleteAllButtonClicked()
 		{
 			using (tracer.NewFrame)
 			{
@@ -107,13 +103,13 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 		}
 
-		void IViewEvents.OnPrevBmkButtonClicked()
+		void IViewModel.OnPrevBmkButtonClicked()
 		{
 			tracer.Info("----> User Command: Prev Bookmark.");
 			NextBookmark(false);
 		}
 
-		void IViewEvents.OnNextBmkButtonClicked()
+		void IViewModel.OnNextBmkButtonClicked()
 		{
 			tracer.Info("----> User Command: Next Bookmark.");
 			NextBookmark(true);
@@ -203,7 +199,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		}
 
 		readonly IBookmarks bookmarks;
-		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly LogViewer.IPresenterInternal viewerPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;

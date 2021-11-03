@@ -68,7 +68,6 @@ namespace LogJoint.UI.Presenters
 		MessagePropertiesDialog.IView Factory.IViewsFactory.CreateMessagePropertiesDialogView() => new MessagePropertiesDialogView(mainForm);
 		FiltersManager.IView Factory.IViewsFactory.CreateHlFiltersManagerView() => mainForm.hlFiltersManagementView;
 		BookmarksList.IView Factory.IViewsFactory.CreateBookmarksListView() => mainForm.bookmarksManagerView.ListView;
-		BookmarksManager.IView Factory.IViewsFactory.CreateBookmarksManagerView() => mainForm.bookmarksManagerView;
 		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView() => new OptionsDialogView(this);
 		About.IView Factory.IViewsFactory.CreateAboutView() => new AboutBox();
 		MainForm.IView Factory.IViewsFactory.CreateMainFormView() => mainForm;

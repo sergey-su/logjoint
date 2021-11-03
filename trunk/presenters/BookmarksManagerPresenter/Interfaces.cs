@@ -15,12 +15,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		void ToggleBookmark();
 	};
 
-	public interface IView
-	{
-		void SetPresenter(IViewEvents presenter);
-	};
-
-	public interface IViewEvents
+	public interface IViewModel
 	{
 		void OnToggleButtonClicked();
 		void OnDeleteAllButtonClicked();

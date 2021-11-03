@@ -29,6 +29,7 @@ namespace LogJoint.UI.Presenters
 		public FileEditor.IViewModel FileEditor { get; internal set; }
 		public Timeline.IViewModel Timeline { get; internal set; }
 		public TimelinePanel.IViewModel TimelinePanel { get; internal set; }
+		public BookmarksManager.IViewModel BookmarksManager { get; internal set; }
 	};
 
 	public static class Factory
@@ -60,7 +61,6 @@ namespace LogJoint.UI.Presenters
 			MessagePropertiesDialog.IView CreateMessagePropertiesDialogView();
 			FiltersManager.IView CreateHlFiltersManagerView();
 			BookmarksList.IView CreateBookmarksListView();
-			BookmarksManager.IView CreateBookmarksManagerView();
 			Options.Dialog.IView CreateOptionsDialogView();
 			About.IView CreateAboutView();
 			MainForm.IView CreateMainFormView();
@@ -114,7 +114,6 @@ namespace LogJoint.UI.Presenters
 			var messagePropertiesDialogView = views.CreateMessagePropertiesDialogView();
 			var hlFiltersManagerView = views.CreateHlFiltersManagerView();
 			var bookmarksListView = views.CreateBookmarksListView();
-			var bookmarksManagerView = views.CreateBookmarksManagerView();
 			var optionsDialogView = callOptionalFactory(views.CreateOptionsDialogView);
 			var aboutView = views.CreateAboutView();
 			var mainFormView = views.CreateMainFormView();
@@ -453,9 +452,8 @@ namespace LogJoint.UI.Presenters
 				model.TraceSourceFactory
 			);
 
-			BookmarksManager.IPresenter bookmarksManagerPresenter = new BookmarksManager.Presenter(
+			var bookmarksManagerPresenter = new BookmarksManager.Presenter(
 				model.Bookmarks,
-				bookmarksManagerView,
 				viewerPresenter,
 				searchResultPresenter,
 				bookmarksListPresenter,
@@ -623,6 +621,7 @@ namespace LogJoint.UI.Presenters
 					FileEditor = fileEditorPresenter,
 					Timeline = timelinePresenter,
 					TimelinePanel = timelinePanelPresenter,
+					BookmarksManager = bookmarksManagerPresenter,
 				}
 			};
 		}

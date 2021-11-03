@@ -24,7 +24,6 @@ namespace LogJoint.Wasm
         public UI.StatusReportViewProxy StatusReport = new();
         public UI.TimelinePanelViewProxy TimelinePanel = new();
         public UI.FilterDialogViewProxy FilterDialog = new();
-        public UI.BookmarksManagerViewProxy BookmarksManager = new();
         public UI.MainFormViewProxy MainForm = new();
 
         public ViewProxies()
@@ -40,8 +39,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.About.IView Factory.IViewsFactory.CreateAboutView() => null;
 
         LogJoint.UI.Presenters.BookmarksList.IView Factory.IViewsFactory.CreateBookmarksListView() => BookmarksList;
-
-        LogJoint.UI.Presenters.BookmarksManager.IView Factory.IViewsFactory.CreateBookmarksManagerView() => BookmarksManager;
 
         LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.IView Factory.IViewsFactory.CreateDebugOutputFormatView() => null;
 

@@ -10,9 +10,9 @@ using LogJoint.UI.Presenters.BookmarksManager;
 
 namespace LogJoint.UI
 {
-	public partial class BookmarksManagerView : UserControl, IView
+	public partial class BookmarksManagerView : UserControl
 	{
-		IViewEvents presenter;
+		IViewModel viewModel;
 
 		public BookmarksManagerView()
 		{
@@ -21,29 +21,29 @@ namespace LogJoint.UI
 
 		public BookmarksView ListView { get { return bookmarksView; } }
 
-		void IView.SetPresenter(IViewEvents presenter)
+		public void SetViewModel(IViewModel viewModel)
 		{
-			this.presenter = presenter;
+			this.viewModel = viewModel;
 		}
 
 		private void toggleBookmarkButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnToggleButtonClicked();
+			viewModel.OnToggleButtonClicked();
 		}
 
 		private void deleteAllBookmarksButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnDeleteAllButtonClicked();
+			viewModel.OnDeleteAllButtonClicked();
 		}
 
 		private void nextBookmarkButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnNextBmkButtonClicked();
+			viewModel.OnNextBmkButtonClicked();
 		}
 
 		private void prevBookmarkButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnPrevBmkButtonClicked();
+			viewModel.OnPrevBmkButtonClicked();
 		}
 	}
 }
