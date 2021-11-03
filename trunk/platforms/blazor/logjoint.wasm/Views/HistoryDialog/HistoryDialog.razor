@@ -1,7 +1,7 @@
 ﻿@namespace LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.HistoryDialog
 @implements IDisposable
-@inject LogJoint.Wasm.ViewProxies viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @implements IView
 
 <Modal Visible="@viewModel.IsVisible" Class="resizable-dialog history-dialog" ClickOutside="@viewModel.OnCancelClicked" OnCancel="@viewModel.OnCancelClicked">
@@ -31,13 +31,13 @@
 </Modal>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.HistoryDialog;
     private ISubscription subscription;
     private TreeView tree;
 
     protected override void OnInitialized()
     {
-        viewProxies.HistoryDialog.SetComponent(this);
+        viewModel.SetView(this);
 
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.IsVisible, viewModel.OpenButtonEnabled, viewModel.RootViewItem),
@@ -47,13 +47,8 @@
 
     public void Dispose()
     {
-        viewProxies.HistoryDialog.SetComponent(null);
+        viewModel.SetView(null);
         subscription?.Dispose();
-    }
-
-    void IView.SetViewModel(IViewModel viewModel)
-    {
-        this.viewModel = viewModel;
     }
 
     string GetItemClass(ViewItemType t) => t switch
@@ -63,8 +58,6 @@
         ViewItemType.Leaf => "leaf",
         _ => ""
     };
-
-    LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox => null;
 
     async void IView.PutInputFocusToItemsList()
     {

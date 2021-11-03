@@ -8,8 +8,6 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 {
 	public interface IView
 	{
-		void SetViewModel(IViewModel viewModel);
-		QuickSearchTextBox.IView QuickSearchTextBox { get; }
 		void PutInputFocusToItemsList();
 	};
 
@@ -22,6 +20,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 	{
 		IChangeNotification ChangeNotification { get; }
 		QuickSearchTextBox.IViewModel QuickSearchTextBox { get; }
+
+		void SetView(IView view);
 
 		bool IsVisible { get; }
 		bool OpenButtonEnabled { get; }

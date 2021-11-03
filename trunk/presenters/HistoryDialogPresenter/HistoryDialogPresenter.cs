@@ -15,7 +15,6 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 {
 	public class Presenter : IPresenter, IViewModel
 	{
-		readonly IView view;
 		readonly ILogSourcesManager logSourcesManager;
 		readonly MRU.IRecentlyUsedEntities mru;
 		readonly Preprocessing.IManager sourcesPreprocessingManager;
@@ -25,6 +24,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		readonly IAlertPopup alerts;
 		readonly IChangeNotification changeNotification;
 
+		IView view;
 		bool visible;
 		string acceptedFilter = "";
 		ImmutableHashSet</* item key */string> selected = ImmutableHashSet<string>.Empty;
@@ -39,7 +39,6 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		public Presenter(
 			ILogSourcesManager logSourcesManager,
 			IChangeNotification changeNotification,
-			IView view,
 			Preprocessing.IManager sourcesPreprocessingManager,
 			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			MRU.IRecentlyUsedEntities mru,
@@ -48,7 +47,6 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			ITraceSourceFactory traceSourceFactory
 		)
 		{
-			this.view = view;
 			this.changeNotification = changeNotification;
 			this.logSourcesManager = logSourcesManager;
 			this.sourcesPreprocessingManager = sourcesPreprocessingManager;
@@ -88,8 +86,6 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				}
 				changeNotification.Post();
 			};
-
-			view.SetViewModel(this);
 		}
 
 
@@ -101,6 +97,11 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				visible = true;
 				changeNotification.Post();
 			}
+		}
+
+		void IViewModel.SetView(IView view)
+		{
+			this.view = view;
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;

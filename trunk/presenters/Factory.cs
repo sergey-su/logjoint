@@ -33,6 +33,7 @@ namespace LogJoint.UI.Presenters
 		public BookmarksList.IViewModel BookmarksList { get; internal set; }
 		public SourcesList.IViewModel SourcesList { get; internal set; }
 		public SourcesManager.IViewModel SourcesManager { get; internal set; }
+		public HistoryDialog.IViewModel HistoryDialog { get; internal set; }
 	};
 
 	public static class Factory
@@ -52,7 +53,6 @@ namespace LogJoint.UI.Presenters
 			SearchPanel.IView CreateSearchPanelView();
 			SourcePropertiesWindow.IView CreateSourcePropertiesWindowView();
 			SharingDialog.IView CreateSharingDialogView();
-			HistoryDialog.IView CreateHistoryDialogView();
 			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
 			NewLogSourceDialog.Pages.FormatDetection.IView CreateFormatDetectionView();
 			NewLogSourceDialog.Pages.FileBasedFormat.IView CreateFileBasedFormatView();
@@ -107,7 +107,6 @@ namespace LogJoint.UI.Presenters
 			var searchPanelView = views.CreateSearchPanelView();
 			var sourcePropertiesWindowView = views.CreateSourcePropertiesWindowView();
 			var sharingDialogView = views.CreateSharingDialogView();
-			var historyDialogView = views.CreateHistoryDialogView();
 			var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
 			var messagePropertiesDialogView = views.CreateMessagePropertiesDialogView();
 			var hlFiltersManagerView = views.CreateHlFiltersManagerView();
@@ -322,14 +321,13 @@ namespace LogJoint.UI.Presenters
 				model.ChangeNotification
 			);
 
-			HistoryDialog.IPresenter historyDialogPresenter = new HistoryDialog.Presenter(
+			var historyDialogPresenter = new HistoryDialog.Presenter(
 				model.LogSourcesManager,
 				model.ChangeNotification,
-				historyDialogView,
 				model.LogSourcesPreprocessings,
 				model.PreprocessingStepsFactory,
 				model.RecentlyUsedLogs,
-				new QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox, model.ChangeNotification),
+				new QuickSearchTextBox.Presenter(null, model.ChangeNotification),
 				alertPopup,
 				model.TraceSourceFactory
 			);
@@ -619,6 +617,7 @@ namespace LogJoint.UI.Presenters
 					BookmarksList = bookmarksListPresenter,
 					SourcesList = sourcesListPresenter,
 					SourcesManager = sourcesManagerPresenter,
+					HistoryDialog = historyDialogPresenter,
 				}
 			};
 		}

@@ -13,22 +13,14 @@ namespace LogJoint.UI
 {
 	public partial class HistoryDialog : Form, IView
 	{
-		IViewModel viewModel;
+		readonly IViewModel viewModel;
 		bool refreshColumnHeaderPosted;
 
-		public HistoryDialog()
+		public HistoryDialog(IViewModel viewModel)
 		{
 			InitializeComponent();
-		}
-
-		UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox
-		{
-			get { return quickSearchTextBox.InnerTextBox; }
-		}
-
-		void IView.SetViewModel(IViewModel viewModel)
-		{
 			this.viewModel = viewModel;
+			viewModel.SetView(this);
 
 			var updateItems = Updaters.Create(() => viewModel.ItemsIgnoringTreeState, UpdateItems);
 			var updateVisible = Updaters.Create(() => viewModel.IsVisible, value =>
@@ -46,6 +38,8 @@ namespace LogJoint.UI
 				updateVisible();
 				updateOpenButton();
 			});
+
+			quickSearchTextBox.InnerTextBox.SetViewModel(viewModel.QuickSearchTextBox);
 		}
 
 		IViewItem[] SelectedItems

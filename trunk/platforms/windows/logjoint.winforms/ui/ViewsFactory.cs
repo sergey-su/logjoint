@@ -37,7 +37,6 @@ namespace LogJoint.UI.Presenters
 		SearchPanel.IView Factory.IViewsFactory.CreateSearchPanelView() => mainForm.searchPanelView;
 		SourcePropertiesWindow.IView Factory.IViewsFactory.CreateSourcePropertiesWindowView() => new SourceDetailsWindowView();
 		SharingDialog.IView Factory.IViewsFactory.CreateSharingDialogView() => new ShareDialog();
-		HistoryDialog.IView Factory.IViewsFactory.CreateHistoryDialogView() => new UI.HistoryDialog();
 		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView() => new UI.NewLogSourceDialogView();
 		NewLogSourceDialog.Pages.FormatDetection.IView Factory.IViewsFactory.CreateFormatDetectionView() => new NewLogSourceDialog.Pages.FormatDetection.AnyLogFormatUI();
 		NewLogSourceDialog.Pages.FileBasedFormat.IView Factory.IViewsFactory.CreateFileBasedFormatView() => new NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI();

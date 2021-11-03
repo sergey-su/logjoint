@@ -13,7 +13,6 @@ namespace LogJoint.Wasm
         public UI.SearchPanelViewProxy SearchPanel = new();
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new();
         public UI.SearchResultViewProxy SearchResult;
-        public UI.HistoryDialogViewProxy HistoryDialog = new();
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new();
         public UI.MessagePropertiesViewProxy MessageProperties = new();
         public UI.TimelineViewProxy Timeline = new();
@@ -40,8 +39,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.IView Factory.IViewsFactory.CreateFileBasedFormatView() => null;
 
         LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.IView Factory.IViewsFactory.CreateFormatDetectionView() => null;
-
-        LogJoint.UI.Presenters.HistoryDialog.IView Factory.IViewsFactory.CreateHistoryDialogView() => HistoryDialog;
 
         LogJoint.UI.Presenters.FilterDialog.IView Factory.IViewsFactory.CreateHlFilterDialogView() => FilterDialog;
 
