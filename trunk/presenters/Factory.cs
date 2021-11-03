@@ -317,7 +317,7 @@ namespace LogJoint.UI.Presenters
 
 			Help.IPresenter helpPresenter = new Help.Presenter(shellOpen);
 
-			SharingDialog.IPresenter sharingDialogPresenter = new SharingDialog.Presenter(
+			SharingDialog.IPresenter sharingDialogPresenter = sharingDialogView == null ? null : new SharingDialog.Presenter(
 				model.LogSourcesManager,
 				model.WorkspacesManager,
 				model.LogSourcesPreprocessings,
@@ -437,7 +437,7 @@ namespace LogJoint.UI.Presenters
 				return managerPresenter;
 			};
 
-			FiltersManager.IPresenter hlFiltersManagerPresenter = createHlFiltersManager(
+			FiltersManager.IPresenter hlFiltersManagerPresenter = hlFiltersManagerView == null ? null : createHlFiltersManager(
 				model.FiltersManager.HighlightFilters,
 				hlFiltersManagerView);
 
@@ -473,7 +473,7 @@ namespace LogJoint.UI.Presenters
 				pageView => new Options.Plugins.Presenter(pageView, model.PluginsManager, model.ChangeNotification, model.AutoUpdater)
 			) : null;
 
-			About.IPresenter aboutDialogPresenter = new About.Presenter(
+			About.IPresenter aboutDialogPresenter = aboutView == null ? null : new About.Presenter(
 				aboutView,
 				aboutConfig,
 				clipboardAccess,

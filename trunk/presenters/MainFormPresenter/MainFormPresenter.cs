@@ -399,11 +399,14 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void UpdateShareButton()
 		{
-			view.SetShareButtonState(
-				visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
-				enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
-				progress: sharingDialogPresenter.IsBusy
-			);
+			if (sharingDialogPresenter != null)
+			{
+				view.SetShareButtonState(
+					visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
+					enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
+					progress: sharingDialogPresenter.IsBusy
+				);
+			}
 		}
 
 		void SetWaitState(bool wait)
