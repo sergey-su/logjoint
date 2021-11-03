@@ -1,8 +1,8 @@
-﻿@namespace  LogJoint.Wasm.UI
+﻿@namespace LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.SourcesList
 @implements IDisposable
 @implements IView
-@inject LogJoint.Wasm.ViewProxies viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @inject JsInterop jsInterop
 
 <TreeView class="@Class"
@@ -32,7 +32,7 @@
 </TreeView>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.SourcesList;
     private ISubscription subscription;
 
     [Parameter]
@@ -40,8 +40,6 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.SourcesListViewProxy.SetComponent(this);
-
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.RootItem, viewModel.FocusedMessageItem),
             _ => StateHasChanged()
@@ -50,13 +48,7 @@
 
     public void Dispose()
     {
-        viewProxies.SourcesListViewProxy.SetComponent(null);
         subscription?.Dispose();
-    }
-
-    void IView.SetViewModel(IViewModel value)
-    {
-        viewModel = value;
     }
 
     void IView.SetTopItem(IViewItem item)

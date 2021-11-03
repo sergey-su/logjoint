@@ -61,7 +61,7 @@ namespace LogJoint.Tests.Integration
 			{
 				await app.WaitFor(() =>
 				{
-					var displayText = app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "";
+					var displayText = app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "";
 					var m = Regex.Match(displayText, @"Unpacking (\d+)\%");
 					if (m.Success)
 					{
@@ -81,13 +81,13 @@ namespace LogJoint.Tests.Integration
 		public async Task UnzippingCanBeCancelled(TestAppInstance app)
 		{
 			var preprocessorTask = app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
-			await app.WaitFor(() => (app.ViewModel.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "").Contains("Unpacking"));
-			app.ViewModel.SourcesList.OnSelectAllShortcutPressed();
+			await app.WaitFor(() => (app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "").Contains("Unpacking"));
+			app.PresentationObjects.ViewModels.SourcesList.OnSelectAllShortcutPressed();
 			app.Mocks.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
 				Task.FromResult(UI.Presenters.AlertFlags.Yes));
 			var stopwatch = Stopwatch.StartNew();
-			app.ViewModel.SourcesList.OnDeleteButtonPressed();
-			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 0);
+			app.PresentationObjects.ViewModels.SourcesList.OnDeleteButtonPressed();
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.Count == 0);
 			stopwatch.Stop();
 			Check.That(stopwatch.ElapsedMilliseconds).IsStrictlyLessThan(1000);
 			await preprocessorTask.WithTimeout(TimeSpan.FromMilliseconds(1000)).IgnoreCancellationAsync();

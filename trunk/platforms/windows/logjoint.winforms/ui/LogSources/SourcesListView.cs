@@ -41,9 +41,10 @@ namespace LogJoint.UI
 			};
 		}
 
-		void IView.SetViewModel(IViewModel value)
+		public void SetViewModel(IViewModel value)
 		{
 			this.viewModel = value;
+			this.viewModel.SetView(this);
 
 			var updateTree = Updaters.Create(
 				() => value.RootItem,

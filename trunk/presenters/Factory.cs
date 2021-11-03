@@ -31,6 +31,7 @@ namespace LogJoint.UI.Presenters
 		public TimelinePanel.IViewModel TimelinePanel { get; internal set; }
 		public BookmarksManager.IViewModel BookmarksManager { get; internal set; }
 		public BookmarksList.IViewModel BookmarksList { get; internal set; }
+		public SourcesList.IViewModel SourcesList { get; internal set; }
 	};
 
 	public static class Factory
@@ -49,7 +50,6 @@ namespace LogJoint.UI.Presenters
 			SearchesManagerDialog.IView CreateSearchesManagerDialogView();
 			SearchPanel.IView CreateSearchPanelView();
 			SourcePropertiesWindow.IView CreateSourcePropertiesWindowView();
-			SourcesList.IView CreateSourcesListView();
 			SharingDialog.IView CreateSharingDialogView();
 			HistoryDialog.IView CreateHistoryDialogView();
 			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
@@ -106,7 +106,6 @@ namespace LogJoint.UI.Presenters
 			var searchesManagerDialogView = views.CreateSearchesManagerDialogView();
 			var searchPanelView = views.CreateSearchPanelView();
 			var sourcePropertiesWindowView = views.CreateSourcePropertiesWindowView();
-			var sourcesListView = views.CreateSourcesListView();
 			var sharingDialogView = views.CreateSharingDialogView();
 			var historyDialogView = views.CreateHistoryDialogView();
 			var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
@@ -297,9 +296,8 @@ namespace LogJoint.UI.Presenters
 				statusReportFactory
 			);
 
-			SourcesList.IPresenter sourcesListPresenter = new SourcesList.Presenter(
+			var sourcesListPresenter = new SourcesList.Presenter(
 				model.LogSourcesManager,
-				sourcesListView,
 				model.LogSourcesPreprocessings,
 				sourcePropertiesWindowPresenter,
 				viewerPresenter,
@@ -621,6 +619,7 @@ namespace LogJoint.UI.Presenters
 					TimelinePanel = timelinePanelPresenter,
 					BookmarksManager = bookmarksManagerPresenter,
 					BookmarksList = bookmarksListPresenter,
+					SourcesList = sourcesListPresenter,
 				}
 			};
 		}

@@ -25,10 +25,10 @@ namespace LogJoint.Tests.Integration
 
 			await preprocTask;
 
-			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.Count == 1);
 		}
 
-		IViewItem ListRoot => appInstance.ViewModel.SourcesList.RootItem;
+		IViewItem ListRoot => appInstance.PresentationObjects.ViewModels.SourcesList.RootItem;
 
 		[IntegrationTest]
 		public void SourceListIsPopulated(TestAppInstance app)
@@ -48,7 +48,7 @@ namespace LogJoint.Tests.Integration
 
 		async Task ExpandContainer()
 		{
-			appInstance.ViewModel.SourcesList.OnItemExpand(
+			appInstance.PresentationObjects.ViewModels.SourcesList.OnItemExpand(
 				(IViewItem)ListRoot.Children[0]);
 			await appInstance.WaitFor(() => ListRoot.Children[0].IsExpanded);
 		}
@@ -58,7 +58,7 @@ namespace LogJoint.Tests.Integration
 		{
 			await ExpandContainer();
 
-			app.ViewModel.SourcesList.OnSelectionChange(
+			app.PresentationObjects.ViewModels.SourcesList.OnSelectionChange(
 				new[] { (IViewItem)ListRoot.Children[0].Children[0] });
 			await app.WaitFor(() => ListRoot.Children[0].Children[0].IsSelected);
 
@@ -94,7 +94,7 @@ Test frame
 		{
 			await ExpandContainer();
 
-			app.ViewModel.SourcesList.OnSelectionChange(new[] {
+			app.PresentationObjects.ViewModels.SourcesList.OnSelectionChange(new[] {
 				(IViewItem)ListRoot.Children[0].Children[0],
 				(IViewItem)ListRoot.Children[0].Children[1]
 			});
@@ -122,7 +122,7 @@ Test frame
 		[IntegrationTest]
 		public async Task CanRemoveContainer(TestAppInstance app)
 		{
-			app.ViewModel.SourcesList.OnSelectionChange(new[] {
+			app.PresentationObjects.ViewModels.SourcesList.OnSelectionChange(new[] {
 				(IViewItem)ListRoot.Children[0]
 			});
 			await app.WaitFor(() => ListRoot.Children[0].IsSelected);
@@ -148,7 +148,7 @@ Test frame
 		{
 			await ExpandContainer();
 
-			app.ViewModel.SourcesList.OnItemCheck(
+			app.PresentationObjects.ViewModels.SourcesList.OnItemCheck(
 				(IViewItem)ListRoot.Children[0].Children[0], false);
 			await app.WaitFor(() => ((IViewItem)ListRoot.Children[0].Children[0]).Checked == false);
 
@@ -173,9 +173,9 @@ Test frame
 			{
 				var expectedJoinedLog = File.ReadAllBytes(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListenerAndTextWriterTraceListenerJoined.log"));
 				app.Mocks.FileDialogs.SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>()).ReturnsForAnyArgs(destinationFileName);
-				var (visibleItems, checkedItems) = app.ViewModel.SourcesList.OnMenuItemOpening(ctrl: false);
+				var (visibleItems, checkedItems) = app.PresentationObjects.ViewModels.SourcesList.OnMenuItemOpening(ctrl: false);
 				Check.That((visibleItems & MenuItem.SaveMergedFilteredLog) != 0).IsTrue();
-				app.ViewModel.SourcesList.OnSaveMergedFilteredLogMenuItemClicked();
+				app.PresentationObjects.ViewModels.SourcesList.OnSaveMergedFilteredLogMenuItemClicked();
 				var match = false;
 				for (var iter = 0; iter < 25; ++iter)
 				{

@@ -36,7 +36,6 @@ namespace LogJoint.UI.Presenters
 		SearchesManagerDialog.IView Factory.IViewsFactory.CreateSearchesManagerDialogView() => new SearchesManagerDialogView();
 		SearchPanel.IView Factory.IViewsFactory.CreateSearchPanelView() => mainForm.searchPanelView;
 		SourcePropertiesWindow.IView Factory.IViewsFactory.CreateSourcePropertiesWindowView() => new SourceDetailsWindowView();
-		SourcesList.IView Factory.IViewsFactory.CreateSourcesListView() => mainForm.sourcesListView.SourcesListView;
 		SharingDialog.IView Factory.IViewsFactory.CreateSharingDialogView() => new ShareDialog();
 		HistoryDialog.IView Factory.IViewsFactory.CreateHistoryDialogView() => new UI.HistoryDialog();
 		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView() => new UI.NewLogSourceDialogView();

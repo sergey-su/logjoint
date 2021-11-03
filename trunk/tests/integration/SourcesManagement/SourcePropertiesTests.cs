@@ -5,6 +5,7 @@ using System.IO;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
 using SrcListItem = LogJoint.UI.Presenters.SourcesList.IViewItem;
 using NFluent;
+using System;
 
 namespace LogJoint.Tests.Integration
 {
@@ -26,9 +27,9 @@ namespace LogJoint.Tests.Integration
 			File.Copy(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"), tempLogFileName, overwrite: true);
 			await app.EmulateFileDragAndDrop(tempLogFileName);
 			await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.Length > 0);
-			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
-			app.ViewModel.SourcesList.OnSelectionChange(new[] {
-				(SrcListItem)app.ViewModel.SourcesList.RootItem.Children[0]
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.Count == 1);
+			app.PresentationObjects.ViewModels.SourcesList.OnSelectionChange(new[] {
+				(SrcListItem)app.PresentationObjects.ViewModels.SourcesList.RootItem.Children[0]
 			});
 			await OpenDialog();
 		}
@@ -38,7 +39,7 @@ namespace LogJoint.Tests.Integration
 			await appInstance.WaitFor(() => appInstance.ViewModel.SourcesManager.PropertiesButtonEnabled);
 			dialogTask = new TaskCompletionSource<int>();
 			appInstance.Mocks.Views.CreateSourcePropertiesWindowView().CreateWindow().ShowModalDialog().Returns(dialogTask.Task);
-			appInstance.ViewModel.SourcesList.OnSourceProprtiesMenuItemClicked();
+			appInstance.PresentationObjects.ViewModels.SourcesList.OnSourceProprtiesMenuItemClicked();
 			await appInstance.WaitFor(() => DialogState.NameEditbox.Text != null);
 		}
 
@@ -67,7 +68,7 @@ namespace LogJoint.Tests.Integration
 			ViewModel.OnVisibleCheckBoxChange(false);
 			await app.WaitFor(() => DialogState.VisibleCheckBox.Checked == false);
 			await app.WaitForLogDisplayed("");
-			Check.That(((SrcListItem)app.ViewModel.SourcesList.RootItem.Children[0]).Checked).IsEqualTo(false);
+			Check.That(((SrcListItem)app.PresentationObjects.ViewModels.SourcesList.RootItem.Children[0]).Checked).IsEqualTo(false);
 		}
 
 		[IntegrationTest]
@@ -127,7 +128,7 @@ namespace LogJoint.Tests.Integration
 
 			CloseDialog();
 
-			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children[0].ToString().Contains(
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children[0].ToString().Contains(
 				"annotation 123"));
 
 			await OpenDialog();
@@ -175,24 +176,29 @@ namespace LogJoint.Tests.Integration
 			app.PresentationObjects.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(Task.FromResult(UI.Presenters.AlertFlags.Yes));
 			app.ViewModel.SourcesManager.OnDeleteAllLogSourcesButtonClicked();
 			await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.zip"));
-			await app.WaitFor(() => app.ViewModel.SourcesList.RootItem.Children.Count == 1);
-			app.ViewModel.SourcesList.OnSelectionChange(new[] {
-				(SrcListItem)app.ViewModel.SourcesList.RootItem.Children[0]
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.Count == 1);
+			app.PresentationObjects.ViewModels.SourcesList.OnSelectionChange(new[] {
+				(SrcListItem)app.PresentationObjects.ViewModels.SourcesList.RootItem.Children[0]
 			});
 			await OpenDialog();
 
 			Check.That(DialogState.SaveAsButton.Disabled).IsFalse();
 			Check.That(DialogState.SaveAsButton.Hidden).IsFalse();
 
-			var destinationFileName = app.ModelObjects.TempFilesManager.GenerateNewName();
-			app.Mocks.FileDialogs.SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>()).ReturnsForAnyArgs(destinationFileName);
+			var savedLog = new TaskCompletionSource<string>();
+			app.Mocks.FileDialogs.SaveOrDownloadFile(null, Arg.Any<UI.Presenters.SaveFileDialogParams>()).ReturnsForAnyArgs(async callInfo =>
+			{
+				var destinationFileName = app.ModelObjects.TempFilesManager.GenerateNewName();
+				using (var fs = new FileStream(destinationFileName, FileMode.CreateNew))
+					await callInfo.Arg<Func<Stream, Task>>()(fs);
+				savedLog.SetResult(File.ReadAllText(destinationFileName));
+			});
 			ViewModel.OnSaveAsButtonClicked();
-			app.Mocks.FileDialogs.Received(1).SaveFileDialog(Arg.Any<UI.Presenters.SaveFileDialogParams>());
 
-			var savedLog = File.ReadAllText(destinationFileName);
+			await app.WaitFor(() => savedLog.Task.IsCompleted);
 
 			var head = "<E2ETraceEvent xmlns=\"http://schemas.microsoft.com/2004/06/E2ETraceEvent\"><System xmlns=\"http://schemas.microsoft.com/2004/06/windows/eventlog/system\"><EventID>0</EventID><Type>3</Type><SubType Name=\"Start\">0</SubType><Level>255</Level><TimeCreated SystemTime=\"2011-07-24T10:37:25.9854589Z\" /><Source Name=\"SampleApp\" />";
-			Check.That(head).IsEqualTo(savedLog.Substring(0, head.Length));
+			Check.That(head).IsEqualTo((await savedLog.Task).Substring(0, head.Length));
 		}
 
 		[IntegrationTest]

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using LogJoint;
 using LogJoint.Preprocessing;
-using System.Threading.Tasks;
 using LogJoint.Drawing;
 using System.Collections.Immutable;
 
@@ -18,7 +17,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		readonly ILogSourcesManager logSources;
 		readonly Preprocessing.IManager logSourcesPreprocessings;
-		readonly IView view;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
@@ -26,6 +24,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IShellOpen shellOpen;
 		readonly SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter;
 		readonly IChangeNotification changeNotification;
+		IView view;
 
 		ImmutableHashSet<string> selectedKeys = ImmutableHashSet.Create<string>();
 		ImmutableHashSet<string> expandedKeys = ImmutableHashSet.Create<string>();
@@ -38,7 +37,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		public Presenter(
 			ILogSourcesManager logSources,
-			IView view,
 			IManager logSourcesPreprocessings,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.IPresenterInternal logViewerPresenter,
@@ -53,7 +51,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		)
 		{
 			this.logSources = logSources;
-			this.view = view;
 			this.propertiesWindowPresenter = propertiesWindowPresenter;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 			this.alerts = alerts;
@@ -131,8 +128,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 					);
 				}
 			);
-
-			view.SetViewModel(this);
 		}
 
 		public event EventHandler DeleteRequested;
@@ -154,6 +149,11 @@ namespace LogJoint.UI.Presenters.SourcesList
 		Task IPresenter.SaveLogSourceAs(ILogSource logSource)
 		{
 			return SaveLogSourceAsInternal(logSource);
+		}
+
+		void IViewModel.SetView(IView view)
+		{
+			this.view = view;
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
@@ -560,7 +560,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			for (var i = matched.FirstOrDefault() as ViewItem; i != null; i = i.Parent)
 				if (i is SourcesContainerViewItem container)
 					expandedKeys = expandedKeys.Add(i.GetKey());
-			matched.ForEach(view.SetTopItem);
+			if (view != null)
+				matched.ForEach(view.SetTopItem);
 			changeNotification.Post();
 		}
 	};

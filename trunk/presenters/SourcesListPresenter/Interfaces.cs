@@ -19,7 +19,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 	public interface IView
 	{
-		void SetViewModel(IViewModel value);
 		void SetTopItem(IViewItem item);
 	};
 
@@ -51,6 +50,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+
+		void SetView(IView view);
 
 		IViewItem RootItem { get; }
 		IViewItem FocusedMessageItem { get; }
