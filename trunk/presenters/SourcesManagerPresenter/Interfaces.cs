@@ -13,7 +13,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 	public interface IView
 	{
 		void SetViewModel(IViewModel value);
-		void ShowMRUMenu(List<MRUMenuItem> items);
 	};
 
 	public struct MRUMenuItem
@@ -37,8 +36,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void OnAddNewLogButtonClicked();
 		void OnDeleteSelectedLogSourcesButtonClicked();
 		void OnDeleteAllLogSourcesButtonClicked();
-		void OnMRUButtonClicked();
-		void OnMRUMenuItemClicked(object data);
 		void OnShareButtonClicked();
 		void OnShowHistoryDialogButtonClicked();
 		void OnPropertiesButtonClicked();

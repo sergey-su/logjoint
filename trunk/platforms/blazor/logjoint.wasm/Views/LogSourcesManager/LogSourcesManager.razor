@@ -47,11 +47,6 @@
         viewModel = value;
     }
 
-    void IView.ShowMRUMenu(List<MRUMenuItem> items)
-    {
-        // todo
-    }
-
     async Task OnAddLogSource()
     {
         var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;

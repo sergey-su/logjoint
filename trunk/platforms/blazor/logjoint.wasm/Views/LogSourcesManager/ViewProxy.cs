@@ -18,10 +18,5 @@ namespace LogJoint.Wasm.UI
 		{
 			viewModel = value;
 		}
-
-		void IView.ShowMRUMenu(List<MRUMenuItem> items)
-		{
-			component.ShowMRUMenu(items);
-		}
 	}
 }

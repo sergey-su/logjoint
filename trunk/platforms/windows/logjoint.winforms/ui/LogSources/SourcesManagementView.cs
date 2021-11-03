@@ -67,22 +67,6 @@ namespace LogJoint.UI
 			});
 		}
 
-		void IView.ShowMRUMenu(List<MRUMenuItem> items)
-		{
-			mruContextMenuStrip.Items.Clear();
-			foreach (var item in items)
-			{
-				mruContextMenuStrip.Items.Add(new ToolStripMenuItem(item.Text)
-				{
-					Tag = item.Data,
-					Enabled = !item.Disabled,
-					ShortcutKeyDisplayString = item.InplaceAnnotation ?? "",
-					ToolTipText = item.ToolTip ?? ""
-				});
-			}
-			mruContextMenuStrip.Show(recentButton, new Point(0, recentButton.Height));
-		}
-
 		private void addNewLogButton_Click(object sender, EventArgs e)
 		{
 			viewModel.OnAddNewLogButtonClicked();
@@ -111,15 +95,6 @@ namespace LogJoint.UI
 		private void recentButton_Click(object sender, EventArgs e)
 		{
 			viewModel.OnShowHistoryDialogButtonClicked();
-		}
-
-		private void mruContextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-		{
-			// Hide the menu here to simplify debugging. Without Hide() the menu remains 
-			// on the screen if execution stops at a breakpoint.
-			mruContextMenuStrip.Hide();
-
-			viewModel.OnMRUMenuItemClicked(e.ClickedItem.Tag);
 		}
 	}
 }

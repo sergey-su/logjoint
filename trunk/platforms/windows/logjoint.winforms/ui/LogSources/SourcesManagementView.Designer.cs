@@ -36,7 +36,6 @@
 			this.addNewLogButton = new System.Windows.Forms.Button();
 			this.shareButton = new System.Windows.Forms.Button();
 			this.propertiesButton = new System.Windows.Forms.Button();
-			this.mruContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.SuspendLayout();
 			// 
 			// sourcesListView
@@ -121,14 +120,6 @@
 			this.propertiesButton.UseVisualStyleBackColor = true;
 			this.propertiesButton.Click += new System.EventHandler(this.propertiesButton_Click);
 			// 
-			// mruContextMenuStrip
-			// 
-			this.mruContextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
-			this.mruContextMenuStrip.Name = "mruContextMenuStrip";
-			this.mruContextMenuStrip.ShowImageMargin = false;
-			this.mruContextMenuStrip.Size = new System.Drawing.Size(36, 4);
-			this.mruContextMenuStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.mruContextMenuStrip_ItemClicked);
-			// 
 			// SourcesManagementView
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
@@ -157,6 +148,5 @@
 		private System.Windows.Forms.Button addNewLogButton;
 		private System.Windows.Forms.Button shareButton;
 		private System.Windows.Forms.Button propertiesButton;
-		private System.Windows.Forms.ContextMenuStrip mruContextMenuStrip;
 	}
 }
