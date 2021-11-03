@@ -14,7 +14,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 	public interface IView
 	{
 		void SetViewModel(IViewModel viewModel);
-		QuickSearchTextBox.IView SearchTextBox { get; }
 	};
 
 	[Flags]

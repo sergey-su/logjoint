@@ -46,8 +46,6 @@ namespace LogJoint.UI
 			});
 		}
 
-		Presenters.QuickSearchTextBox.IView IView.SearchTextBox => searchTextBox.InnerTextBox;
-
 		class CheckableCtrl
 		{
 			public ViewCheckableControl ID;

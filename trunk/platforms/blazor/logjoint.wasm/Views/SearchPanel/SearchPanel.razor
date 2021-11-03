@@ -73,7 +73,5 @@
         viewModel = value;
     }
 
-    LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.SearchTextBox => null;
-
     bool IsChecked(ViewCheckableControl ctrl) => (viewModel.CheckableControlsState & ctrl) != 0;
 }

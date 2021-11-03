@@ -35,7 +35,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.sourcesManager = sourcesManager;
 			this.searchesManagerDialog = searchesManagerDialog;
 			this.alerts = alerts;
-			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(view.SearchTextBox, changeNotification);
+			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(null, changeNotification);
 			this.searchEditorDialog = searchEditorDialog;
 
 			InvalidateSearchHistoryList();

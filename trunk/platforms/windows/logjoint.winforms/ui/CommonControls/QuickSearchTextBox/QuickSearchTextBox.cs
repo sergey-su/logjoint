@@ -64,9 +64,10 @@ namespace LogJoint.UI.QuickSearchTextBox
 			};
 		}
 
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+			this.viewModel.SetView(this);
 
 			var updateListAvailability = Updaters.Create(
 				() => viewModel.SuggestionsListAvailable,

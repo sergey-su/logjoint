@@ -20,7 +20,5 @@ namespace LogJoint.Wasm.UI
 		{
 			viewModel = value;
 		}
-
-		QuickSearchTextBoxP.IView IView.SearchTextBox => null;
 	}
 }
