@@ -62,11 +62,11 @@ namespace LogJoint.Tests.Integration
 				new[] { (IViewItem)ListRoot.Children[0].Children[0] });
 			await app.WaitFor(() => ListRoot.Children[0].Children[0].IsSelected);
 
-			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
-			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsTrue();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.PropertiesButtonEnabled).IsTrue();
 
 			app.PresentationObjects.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
-			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
+			app.PresentationObjects.ViewModels.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
 
 			await app.PresentationObjects.AlertPopup.Received(1).ShowPopupAsync("Delete", "Are you sure you want to close 1 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
 
@@ -75,8 +75,8 @@ namespace LogJoint.Tests.Integration
 				&& ListRoot.Children[0].Children.Count == 0
 				&& ListRoot.Children[0].IsSelected == false);
 
-			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
-			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.PropertiesButtonEnabled).IsFalse();
 
 			await app.WaitForLogDisplayed(
 @"No free data file found. Going sleep.
@@ -103,18 +103,18 @@ Test frame
 				&& ListRoot.Children[0].Children[1].IsSelected
 			);
 
-			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
-			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.PropertiesButtonEnabled).IsFalse();
 
 			app.PresentationObjects.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
-			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
+			app.PresentationObjects.ViewModels.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
 
 			await app.PresentationObjects.AlertPopup.Received(1).ShowPopupAsync("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
 
 			await app.WaitFor(() => ListRoot.Children.Count == 0);
 
-			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
-			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.PropertiesButtonEnabled).IsFalse();
 
 			await app.WaitForLogDisplayed("");
 		}
@@ -127,18 +127,18 @@ Test frame
 			});
 			await app.WaitFor(() => ListRoot.Children[0].IsSelected);
 
-			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
-			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsTrue();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.PropertiesButtonEnabled).IsFalse();
 
 			app.PresentationObjects.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(UI.Presenters.AlertFlags.Yes);
-			app.ViewModel.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
+			app.PresentationObjects.ViewModels.SourcesManager.OnDeleteSelectedLogSourcesButtonClicked();
 
 			await app.PresentationObjects.AlertPopup.Received(1).ShowPopupAsync("Delete", "Are you sure you want to close 2 log (s)", UI.Presenters.AlertFlags.YesNoCancel);
 
 			await app.WaitFor(() => ListRoot.Children.Count == 0);
 
-			Check.That(app.ViewModel.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
-			Check.That(app.ViewModel.SourcesManager.PropertiesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.DeleteSelectedSourcesButtonEnabled).IsFalse();
+			Check.That(app.PresentationObjects.ViewModels.SourcesManager.PropertiesButtonEnabled).IsFalse();
 
 			await app.WaitForLogDisplayed("");
 		}

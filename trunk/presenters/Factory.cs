@@ -32,6 +32,7 @@ namespace LogJoint.UI.Presenters
 		public BookmarksManager.IViewModel BookmarksManager { get; internal set; }
 		public BookmarksList.IViewModel BookmarksList { get; internal set; }
 		public SourcesList.IViewModel SourcesList { get; internal set; }
+		public SourcesManager.IViewModel SourcesManager { get; internal set; }
 	};
 
 	public static class Factory
@@ -58,7 +59,6 @@ namespace LogJoint.UI.Presenters
 			NewLogSourceDialog.Pages.DebugOutput.IView CreateDebugOutputFormatView();
 			NewLogSourceDialog.Pages.WindowsEventsLog.IView CreateWindowsEventsLogFormatView();
 			FormatsWizard.Factory.IViewsFactory FormatsWizardViewFactory { get; }
-			SourcesManager.IView CreateSourcesManagerView();
 			MessagePropertiesDialog.IView CreateMessagePropertiesDialogView();
 			FiltersManager.IView CreateHlFiltersManagerView();
 			Options.Dialog.IView CreateOptionsDialogView();
@@ -109,7 +109,6 @@ namespace LogJoint.UI.Presenters
 			var sharingDialogView = views.CreateSharingDialogView();
 			var historyDialogView = views.CreateHistoryDialogView();
 			var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
-			var sourcesManagerView = views.CreateSourcesManagerView();
 			var messagePropertiesDialogView = views.CreateMessagePropertiesDialogView();
 			var hlFiltersManagerView = views.CreateHlFiltersManagerView();
 			var optionsDialogView = callOptionalFactory(views.CreateOptionsDialogView);
@@ -384,12 +383,11 @@ namespace LogJoint.UI.Presenters
 				RegisterWindowsOnlyPresenters(model, views, newLogPagesPresentersRegistry);
 			}
 
-			SourcesManager.IPresenter sourcesManagerPresenter = new SourcesManager.Presenter(
+			var sourcesManagerPresenter = new SourcesManager.Presenter(
 				model.LogSourcesManager,
 				model.UserDefinedFormatsManager,
 				model.RecentlyUsedLogs,
 				model.LogSourcesPreprocessings,
-				sourcesManagerView,
 				model.PreprocessingStepsFactory,
 				model.WorkspacesManager,
 				sourcesListPresenter,
@@ -620,6 +618,7 @@ namespace LogJoint.UI.Presenters
 					BookmarksManager = bookmarksManagerPresenter,
 					BookmarksList = bookmarksListPresenter,
 					SourcesList = sourcesListPresenter,
+					SourcesManager = sourcesManagerPresenter,
 				}
 			};
 		}

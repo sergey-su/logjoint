@@ -10,7 +10,7 @@ using LogJoint.UI.Presenters.SourcesManager;
 
 namespace LogJoint.UI
 {
-	public partial class SourcesManagementView : UserControl, IView
+	public partial class SourcesManagementView : UserControl
 	{
 		IViewModel viewModel;
 
@@ -24,7 +24,7 @@ namespace LogJoint.UI
 			get { return sourcesListView; }
 		}
 
-		void IView.SetViewModel(IViewModel value)
+		public void SetViewModel(IViewModel value)
 		{
 			this.viewModel = value;
 

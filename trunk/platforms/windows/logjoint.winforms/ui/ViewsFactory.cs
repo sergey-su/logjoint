@@ -63,7 +63,6 @@ namespace LogJoint.UI.Presenters
 		FormatsWizard.CustomTransformBasedFormatPage.IView FormatsWizard.Factory.IViewsFactory.CreateJsonBasedFormatPageView() => new XmlBasedFormatPage();
 		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateXsltEditorDialog() => new EditXsltForm();
 		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateJUSTEditorDialog() => new EditXsltForm();
-		SourcesManager.IView Factory.IViewsFactory.CreateSourcesManagerView() => mainForm.sourcesListView;
 		MessagePropertiesDialog.IView Factory.IViewsFactory.CreateMessagePropertiesDialogView() => new MessagePropertiesDialogView(mainForm);
 		FiltersManager.IView Factory.IViewsFactory.CreateHlFiltersManagerView() => mainForm.hlFiltersManagementView;
 		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView() => new OptionsDialogView(this);

@@ -3,8 +3,7 @@
 @using LogJoint.UI.Presenters.SourcesManager
 @using LogJoint.Settings
 @implements IDisposable
-@implements IView
-@inject LogJoint.Wasm.ViewProxies viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @inject LogJoint.ModelObjects model
 
 <div class='log-sources-manager @Class'>
@@ -20,7 +19,7 @@
 </div>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.SourcesManager;
     private ISubscription subscription;
 
     [Parameter]
@@ -28,8 +27,6 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.SourcesManagerViewProxy.SetComponent(this);
-
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.DeleteSelectedSourcesButtonEnabled, viewModel.PropertiesButtonEnabled),
             _ => StateHasChanged()
@@ -38,13 +35,7 @@
 
     public void Dispose()
     {
-        viewProxies.SourcesManagerViewProxy.SetComponent(null);
         subscription?.Dispose();
-    }
-
-    void IView.SetViewModel(IViewModel value)
-    {
-        viewModel = value;
     }
 
     async Task OnAddLogSource()

@@ -17,7 +17,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			IUserDefinedFormatsManager udfManager,
 			IRecentlyUsedEntities mru,
 			Preprocessing.IManager logSourcesPreprocessings,
-			IView view,
 			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
 			SourcesList.IPresenter sourcesListPresenter,
@@ -35,7 +34,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.logSources = logSources;
 			this.udfManager = udfManager;
 			this.mru = mru;
-			this.view = view;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.workspacesManager = workspacesManager;
@@ -69,7 +67,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					UpdateView();
 			};
 			
-			view.SetViewModel(this);
 		}
 
 		public event EventHandler<BusyStateEventArgs> OnBusyState;
@@ -238,7 +235,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly ILogSourcesManager logSources;
 		readonly IUserDefinedFormatsManager udfManager;
 		readonly IRecentlyUsedEntities mru;
-		readonly IView view;
 		readonly Preprocessing.IManager logSourcesPreprocessings;
 		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly Workspaces.IWorkspacesManager workspacesManager;

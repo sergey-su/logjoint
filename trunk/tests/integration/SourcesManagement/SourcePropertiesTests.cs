@@ -36,7 +36,7 @@ namespace LogJoint.Tests.Integration
 
 		async Task OpenDialog()
 		{
-			await appInstance.WaitFor(() => appInstance.ViewModel.SourcesManager.PropertiesButtonEnabled);
+			await appInstance.WaitFor(() => appInstance.PresentationObjects.ViewModels.SourcesManager.PropertiesButtonEnabled);
 			dialogTask = new TaskCompletionSource<int>();
 			appInstance.Mocks.Views.CreateSourcePropertiesWindowView().CreateWindow().ShowModalDialog().Returns(dialogTask.Task);
 			appInstance.PresentationObjects.ViewModels.SourcesList.OnSourceProprtiesMenuItemClicked();
@@ -174,7 +174,7 @@ namespace LogJoint.Tests.Integration
 		{
 			CloseDialog();
 			app.PresentationObjects.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(Task.FromResult(UI.Presenters.AlertFlags.Yes));
-			app.ViewModel.SourcesManager.OnDeleteAllLogSourcesButtonClicked();
+			app.PresentationObjects.ViewModels.SourcesManager.OnDeleteAllLogSourcesButtonClicked();
 			await app.EmulateFileDragAndDrop(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1AndImage.zip"));
 			await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.Count == 1);
 			app.PresentationObjects.ViewModels.SourcesList.OnSelectionChange(new[] {

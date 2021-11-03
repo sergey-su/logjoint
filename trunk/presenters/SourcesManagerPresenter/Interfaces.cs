@@ -10,11 +10,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		event EventHandler<BusyStateEventArgs> OnBusyState;
 	};
 
-	public interface IView
-	{
-		void SetViewModel(IViewModel value);
-	};
-
 	public struct MRUMenuItem
 	{
 		public object Data;
