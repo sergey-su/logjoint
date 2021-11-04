@@ -91,7 +91,7 @@
 </div>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => ViewModel;
     private ISubscription subscription;
     private ElementReference measureElement, scrollOuter, sliderElement, element, scrollInner;
     private double charWidth = 1;
@@ -106,13 +106,13 @@
     public string Class { get; set; } = "";
 
     [Parameter]
-    public UI.LogViewer.ViewProxy ViewProxy { get; set; }
+    public IViewModel ViewModel { get; set; }
 
     protected override void OnInitialized()
     {
-        selfRef = DotNetObjectReference.Create(this);
+        viewModel.SetView(this);
 
-        ViewProxy.SetComponent(this);
+        selfRef = DotNetObjectReference.Create(this);
 
         var updateLines = Updaters.Create(
             () => (viewModel.ViewLines, viewModel.FirstDisplayMessageScrolledLines, viewModel.FocusedMessageMark),
@@ -127,7 +127,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        ViewProxy.SetComponent(null);
+        viewModel.SetView(null);
         subscription?.Dispose();
         await resizeObserverHandle.DisposeAsync();
         selfRef?.Dispose();
@@ -177,7 +177,6 @@
 
     void IView.SetViewModel(IViewModel value)
     {
-        viewModel = value;
     }
 
     string PadStyle(int beginIdx, int endIdx)

@@ -148,6 +148,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public event EventHandler OnResizingStarted;
 		public event EventHandler OnResizingFinished;
 
+		LogViewer.IViewModel IViewModel.LogViewer => messagesPresenter;
 		bool IViewModel.IsSearchResultsVisible => isVisible;
 		double? IViewModel.Size => size;
 		string IViewModel.CloseSearchResultsButtonTooltip => "Hide search results";

@@ -178,7 +178,7 @@
 
 		#endregion
 
-		private LogViewerControl logViewerControl;
+		public LogViewerControl logViewerControl;
 		private System.Windows.Forms.Panel panel3;
 		private System.Windows.Forms.ExtendedToolStrip toolStrip1;
 		private System.Windows.Forms.ToolStripButton toggleBookmarkButton;

@@ -60,6 +60,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		LogViewer.IViewModel LogViewer { get; }
 		bool IsSearchResultsVisible { get; } // if the whole search results panel visible
 		ColorThemeMode ColorTheme { get; }
 		IReadOnlyList<ViewItem> Items { get; }

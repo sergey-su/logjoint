@@ -14,7 +14,7 @@ namespace LogJoint.Tests.Integration
 	{
 		static bool IsXmlWriterTraceListenerLogIsLoaded(TestAppInstance app)
 		{
-			var viewLines = app.ViewModel.LoadedMessagesLogViewer.ViewLines;
+			var viewLines = app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines;
 			return !viewLines.IsEmpty && viewLines[0].TextLineValue == "File cannot be open which means that it was handled";
 		}
 

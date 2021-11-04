@@ -53,9 +53,11 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.SetViewModel(IViewModel viewModel)
+
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+			viewModel.SetView(this);
 
 			var prototypeStringFormat = (StringFormat)StringFormat.GenericDefault.Clone();
 			prototypeStringFormat.SetTabStops(0, new float[] { 20 });
@@ -116,6 +118,8 @@ namespace LogJoint.UI
 				emptyViewMessageUpdater();
 			});
 		}
+
+		void IView.SetViewModel(IViewModel viewModel) => SetViewModel(viewModel);
 
 		bool IView.HasInputFocus
 		{

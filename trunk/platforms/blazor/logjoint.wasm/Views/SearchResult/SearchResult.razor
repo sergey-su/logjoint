@@ -6,6 +6,7 @@
 @implements IView
 @inject LogJoint.Wasm.ViewProxies viewProxies
 @inject JsInterop jsInterop
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class='@(viewModel.IsSearchResultsVisible ? ResizerClass : CollapsedResizerClass)' @ref="resizerElement" @onclick="viewModel.OnOpenSearchResultsButtonClicked"
      title="@(viewModel.IsSearchResultsVisible ? viewModel.ResizerTooltip : viewModel.OpenSearchResultsButtonTooltip)"></div>
@@ -28,7 +29,7 @@
     @if (viewModel.IsSearchResultsVisible)
     {
         <div class="viewer">
-            <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.SearchResultLogViewer" Class="viewer-grow" />
+            <LogJoint.Wasm.UI.LogViewer.LogViewer ViewModel="@presentation.ViewModels.SearchResult.LogViewer" Class="viewer-grow" />
         </div>
     }
 </div>

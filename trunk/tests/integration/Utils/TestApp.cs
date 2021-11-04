@@ -30,12 +30,10 @@ namespace LogJoint.Tests.Integration
 
 	class ViewModelObjects
 	{
-		public UI.Presenters.LogViewer.IViewModel LoadedMessagesLogViewer;
 		public UI.Presenters.MainForm.IViewModel MainForm;
 		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
 		public string PostprocessingTabPageId;
-		public UI.Presenters.LoadedMessages.IViewModel LoadedMessages;
 		public UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
 		public UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
 		public UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
@@ -161,6 +159,10 @@ namespace LogJoint.Tests.Integration
 					mocks.Views
 				);
 
+				var loadedMessagesLogViewer = Substitute.For<UI.Presenters.LogViewer.IView>();
+				loadedMessagesLogViewer.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
+				presentationObjects.ViewModels.LoadedMessages.LogViewer.SetView(loadedMessagesLogViewer);
+
 				return new TestAppInstance
 				{
 					SynchronizationContext = serialSynchronizationContext,
@@ -185,18 +187,11 @@ namespace LogJoint.Tests.Integration
 
 		private static void InitializeMocks(TestAppConfig config, Mocks mocks, ViewModelObjects viewModel)
 		{
-			mocks.Views.CreateLoadedMessagesView().MessagesView.SetViewModel(
-				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.LoadedMessagesLogViewer = x));
-			mocks.Views.CreateLoadedMessagesView().MessagesView.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
-
 			mocks.Views.CreateMainFormView().SetViewModel(
 				Arg.Do<UI.Presenters.MainForm.IViewModel>(x => viewModel.MainForm = x));
 
 			mocks.Views.CreatePreprocessingView().SetViewModel(
 				Arg.Do<UI.Presenters.PreprocessingUserInteractions.IViewModel>(x => viewModel.PreprocessingUserInteractions = x));
-
-			mocks.Views.CreateLoadedMessagesView().SetViewModel(
-				Arg.Do<UI.Presenters.LoadedMessages.IViewModel>(x => viewModel.LoadedMessages = x));
 
 			mocks.Views.CreateSearchResultView().MessagesView.SetViewModel(
 				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.SearchResultLogViewer = x));

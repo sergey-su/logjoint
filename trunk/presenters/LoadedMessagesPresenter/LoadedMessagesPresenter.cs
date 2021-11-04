@@ -12,7 +12,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 	{
 		readonly ILogSourcesManager logSources;
 		readonly IBookmarks bookmarks;
-		readonly IView view;
 		readonly LogViewer.IPresenterInternal messagesPresenter;
 		readonly IChangeNotification changeNotification;
 		readonly Func<ViewState> viewState;
@@ -25,7 +24,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		public Presenter(
 			ILogSourcesManager logSources,
 			IBookmarks bookmarks,
-			IView view,
 			IHeartBeatTimer heartbeat,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IChangeNotification changeNotification,
@@ -34,9 +32,8 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		{
 			this.logSources = logSources;
 			this.bookmarks = bookmarks;
-			this.view = view;
 			this.changeNotification = changeNotification;
-			this.messagesPresenter =  logViewerPresenterFactory.CreateLoadedMessagesPresenter(view.MessagesView);
+			this.messagesPresenter =  logViewerPresenterFactory.CreateLoadedMessagesPresenter(null);
 			this.messagesPresenter.DblClickAction = LogViewer.PreferredDblClickAction.SelectWord;
 
 			var viewColoringOptions = coloringOptions.Select(i => (i.Text, i.Tooltip)).ToArray().AsReadOnly();
@@ -56,15 +53,17 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 					NavigationProgressIndicator = (Visible: navigation, Tooltip: "Loading..."),
 				}
 			);
-
-			this.view.SetViewModel(this);
 		}
+
+		public LogViewer.IPresenterInternal LogViewerPresenter => messagesPresenter;
 
 		public event EventHandler OnResizingStarted;
 		public event EventHandler<ResizingEventArgs> OnResizing;
 		public event EventHandler OnResizingFinished;
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		LogViewer.IViewModel IViewModel.LogViewer => messagesPresenter;
 
 		ViewState IViewModel.ViewState => viewState();
 
@@ -88,10 +87,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			messagesPresenter.Coloring = coloringOptions[modeIndex].Mode;
 		}
 
-		LogViewer.IPresenterInternal IPresenter.LogViewerPresenter
-		{
-			get { return messagesPresenter; }
-		}
+		LogViewer.IPresenterInternal IPresenter.LogViewerPresenter => messagesPresenter;
 
 		async Task<Dictionary<ILogSource, long>> IPresenter.GetCurrentLogPositions(CancellationToken cancellation)
 		{

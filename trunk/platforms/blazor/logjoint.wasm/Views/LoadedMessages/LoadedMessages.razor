@@ -3,8 +3,8 @@
 @using LogJoint.UI.Presenters.LoadedMessages
 @using LogJoint.Settings
 @implements IDisposable
-@implements IView
 @inject LogJoint.Wasm.ViewProxies viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 @inject IJSRuntime jsRuntime
 
 <div class='loaded-messages @Class'>
@@ -33,12 +33,12 @@
         </span>
     </div>
     <div class='viewer'>
-        <LogJoint.Wasm.UI.LogViewer.LogViewer ViewProxy="@viewProxies.LoadedMessagesLogViewerViewProxy" Class="viewer-grow" />
+        <LogJoint.Wasm.UI.LogViewer.LogViewer ViewModel="@viewModel.LogViewer" Class="viewer-grow" />
     </div>
 </div>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.LoadedMessages;
     private ISubscription subscription;
 
     [Parameter]
@@ -46,8 +46,6 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.LoadedMessagesViewProxy.SetComponent(this);
-
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.ViewState),
             _ => StateHasChanged()
@@ -56,14 +54,6 @@
 
     public void Dispose()
     {
-        viewProxies.LoadedMessagesViewProxy.SetComponent(null);
         subscription?.Dispose();
     }
-
-    void IView.SetViewModel(IViewModel value)
-    {
-        viewModel = value;
-    }
-
-    LogJoint.UI.Presenters.LogViewer.IView IView.MessagesView => throw new NotImplementedException();
 }

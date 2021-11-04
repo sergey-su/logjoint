@@ -19,6 +19,8 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		LogViewer.IViewModel LogViewer { get; }
+
 		ViewState ViewState { get; }
 
 		void OnToggleRawView();

@@ -6,7 +6,6 @@ namespace LogJoint.Wasm
     public class ViewProxies : Factory.IViewsFactory, LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory
     {
         public UI.LogViewer.ViewProxy LoadedMessagesLogViewerViewProxy = new();
-        public UI.LoadedMessages.ViewProxy LoadedMessagesViewProxy;
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new();
         public UI.Postprocesssing.Timeline.ViewProxy PostprocesssingTimelineViewProxy = new();
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new();
@@ -20,7 +19,6 @@ namespace LogJoint.Wasm
 
         public ViewProxies()
         {
-            this.LoadedMessagesViewProxy = new UI.LoadedMessages.ViewProxy(LoadedMessagesLogViewerViewProxy);
             this.SearchResult = new UI.SearchResultViewProxy(SearchResultLogViewer);
         }
 
@@ -39,8 +37,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.FilterDialog.IView Factory.IViewsFactory.CreateHlFilterDialogView() => FilterDialog;
 
         LogJoint.UI.Presenters.FiltersManager.IView Factory.IViewsFactory.CreateHlFiltersManagerView() => null;
-
-        LogJoint.UI.Presenters.LoadedMessages.IView Factory.IViewsFactory.CreateLoadedMessagesView() => LoadedMessagesViewProxy;
 
         LogJoint.UI.Presenters.MainForm.IView Factory.IViewsFactory.CreateMainFormView() => MainForm;
 

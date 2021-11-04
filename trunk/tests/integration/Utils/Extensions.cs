@@ -43,7 +43,7 @@ namespace LogJoint.Tests.Integration
 
 		public static string GetDisplayedLog(this TestAppInstance app)
 		{
-			var viewLines = app.ViewModel.LoadedMessagesLogViewer.ViewLines;
+			var viewLines = app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines;
 			var displayedText = string.Join("\n", viewLines.Select(vl => vl.TextLineValue));
 			return displayedText;
 		}

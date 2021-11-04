@@ -10,7 +10,7 @@ using LogJoint.UI.Presenters.LoadedMessages;
 
 namespace LogJoint.UI
 {
-	public partial class LoadedMessagesControl : UserControl, IView
+	public partial class LoadedMessagesControl : UserControl
 	{
 		IViewModel viewModel;
 
@@ -28,12 +28,7 @@ namespace LogJoint.UI
 			toolStrip1.Resizing += (sender, args) => viewModel.OnResizing(args.Delta);
 		}
 
-		Presenters.LogViewer.IView Presenters.LoadedMessages.IView.MessagesView
-		{
-			get { return logViewerControl; }
-		}
-
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
 

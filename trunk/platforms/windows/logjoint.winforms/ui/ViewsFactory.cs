@@ -19,7 +19,6 @@ namespace LogJoint.UI.Presenters
 			this.model = model;
 		}
 
-		LoadedMessages.IView Factory.IViewsFactory.CreateLoadedMessagesView() => mainForm.loadedMessagesControl;
 		StatusReports.IView Factory.IViewsFactory.CreateStatusReportsView() => new StatusReportView(
 			mainForm,
 			mainForm.toolStripStatusLabel,

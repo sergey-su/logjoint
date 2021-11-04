@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public interface IPresenterInternal: IPresenter, IDisposable
+	public interface IPresenterInternal: IPresenter, IDisposable, IViewModel
 	{
 		LogFontSize FontSize { get; set; }
 		string FontName { get; set; }
@@ -211,6 +211,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IViewModel
 	{
+		void SetView(IView view);
 		IChangeNotification ChangeNotification { get; }
 
 		void OnIncrementalVScroll(float nrOfDisplayLines);

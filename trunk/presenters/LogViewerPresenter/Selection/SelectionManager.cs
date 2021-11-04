@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	internal class SelectionManager: ISelectionManager, IDisposable
 	{
-		readonly IView view;
+		readonly Func<IView> view;
 		readonly IScreenBuffer screenBuffer;
 		readonly LJTraceSource tracer;
 		readonly IClipboardAccess clipboard;
@@ -31,7 +31,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool cursorState;
 
 		public SelectionManager(
-			IView view,
+			Func<IView> view,
 			IScreenBuffer screenBuffer,
 			LJTraceSource tracer,
 			IPresentationProperties presentationProperties,
@@ -172,7 +172,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		bool ISelectionManager.CursorState => cursorState && view.HasInputFocus;
+		bool ISelectionManager.CursorState => cursorState && (view()?.HasInputFocus).GetValueOrDefault(false);
 
 		static int? GetViewLineIndex(CursorPosition pos, IReadOnlyList<ScreenBufferEntry> screenBufferEntries, IBookmarksFactory bookmarksFactory, bool exactMode)
 		{
@@ -222,7 +222,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 				if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
 				{
-					view.HScrollToSelectedText((selection()?.First?.LineCharIndex).GetValueOrDefault());
+					view()?.HScrollToSelectedText((selection()?.First?.LineCharIndex).GetValueOrDefault());
 				}
 				cursorState = true;
 			};

@@ -26,7 +26,7 @@ namespace LogJoint.Tests.Integration
 			tempLogFileName = Path.Combine(app.AppDataDirectory, "XmlWriterTraceListener1.xml");
 			File.Copy(await samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"), tempLogFileName, overwrite: true);
 			await app.EmulateFileDragAndDrop(tempLogFileName);
-			await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.Length > 0);
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines.Length > 0);
 			await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.Count == 1);
 			app.PresentationObjects.ViewModels.SourcesList.OnSelectionChange(new[] {
 				(SrcListItem)app.PresentationObjects.ViewModels.SourcesList.RootItem.Children[0]
@@ -55,10 +55,10 @@ namespace LogJoint.Tests.Integration
 
 		void EmulateShowTimeMenu()
 		{
-			var menuData = appInstance.ViewModel.LoadedMessagesLogViewer.OnMenuOpening();
+			var menuData = appInstance.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMenuOpening();
 			Check.That((menuData.VisibleItems & UI.Presenters.LogViewer.ContextMenuItem.ShowTime) != 0).IsTrue();
 			Check.That((menuData.CheckedItems & UI.Presenters.LogViewer.ContextMenuItem.ShowTime) != 0).IsFalse();
-			appInstance.ViewModel.LoadedMessagesLogViewer.OnMenuItemClicked(UI.Presenters.LogViewer.ContextMenuItem.ShowTime, true);
+			appInstance.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMenuItemClicked(UI.Presenters.LogViewer.ContextMenuItem.ShowTime, true);
 		}
 
 		[IntegrationTest]
@@ -104,10 +104,10 @@ namespace LogJoint.Tests.Integration
 			var newColor = menuColors[7];
 			ViewModel.OnColorSelected(newColor);
 			await app.WaitFor(() => DialogState.ColorPanel.BackColor.Value == newColor);
-			var sourcesColoringMode = app.ViewModel.LoadedMessages.ViewState.Coloring.Options.IndexOf(
+			var sourcesColoringMode = app.PresentationObjects.ViewModels.LoadedMessages.ViewState.Coloring.Options.IndexOf(
 				i => i.Text.ToLower().Contains("source"));
-			app.ViewModel.LoadedMessages.OnColoringButtonClicked(sourcesColoringMode.Value);
-			await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.ElementAtOrDefault(0).ContextColor == newColor);
+			app.PresentationObjects.ViewModels.LoadedMessages.OnColoringButtonClicked(sourcesColoringMode.Value);
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines.ElementAtOrDefault(0).ContextColor == newColor);
 		}
 
 		[IntegrationTest]
@@ -142,7 +142,7 @@ namespace LogJoint.Tests.Integration
 		public async Task CanChangeTimeShift(TestAppInstance app)
 		{
 			EmulateShowTimeMenu();
-			await app.WaitFor(() => (app.ViewModel.LoadedMessagesLogViewer.ViewLines.LastOrDefault().Time ?? "").EndsWith(":37:45.475"));
+			await app.WaitFor(() => (app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines.LastOrDefault().Time ?? "").EndsWith(":37:45.475"));
 
 			Check.That(DialogState.TimeOffsetTextBox.Text).IsEqualTo("00:00:00");
 			Check.That(DialogState.TimeOffsetTextBox.Disabled).IsFalse();
@@ -153,7 +153,7 @@ namespace LogJoint.Tests.Integration
 
 			CloseDialog();
 
-			await app.WaitFor(() => app.ViewModel.LoadedMessagesLogViewer.ViewLines.Last().Time.EndsWith(":37:40.475"));
+			await app.WaitFor(() => app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines.Last().Time.EndsWith(":37:40.475"));
 
 			await OpenDialog();
 
@@ -216,10 +216,10 @@ namespace LogJoint.Tests.Integration
 		{
 			EmulateShowTimeMenu();
 
-			app.ViewModel.LoadedMessagesLogViewer.OnKeyPressed(UI.Presenters.LogViewer.Key.BeginOfDocument);
+			app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnKeyPressed(UI.Presenters.LogViewer.Key.BeginOfDocument);
 			await app.WaitFor(() => (DialogState.FirstMessageLinkLabel.Text ?? "").EndsWith(":37:25.985"));
 
-			app.ViewModel.LoadedMessages.OnToggleViewTail();
+			app.PresentationObjects.ViewModels.LoadedMessages.OnToggleViewTail();
 			await app.WaitFor(() => DialogState.LastMessageLinkLabel.Text.EndsWith(":37:45.475"));
 
 			var log = File.ReadAllText(tempLogFileName);

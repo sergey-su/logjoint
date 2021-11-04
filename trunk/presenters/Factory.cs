@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters
 
 	public class ViewModels
 	{
+		public LoadedMessages.IViewModel LoadedMessages { get; internal set; }
 		public ToolsContainer.IViewModel ToolsContainer { get; internal set; }
 		public MainForm.IViewModel MainForm { get; internal set; }
 		public SearchPanel.IViewModel SearchPanel { get; internal set; }
@@ -35,13 +36,13 @@ namespace LogJoint.UI.Presenters
 		public SourcesManager.IViewModel SourcesManager { get; internal set; }
 		public HistoryDialog.IViewModel HistoryDialog { get; internal set; }
 		public Postprocessing.MainWindowTabPage.IViewModel PostprocessingsTab { get; internal set; }
+		public SearchResult.IViewModel SearchResult { get; internal set; }
 	};
 
 	public static class Factory
 	{
 		public interface IViewsFactory
 		{
-			LoadedMessages.IView CreateLoadedMessagesView();
 			StatusReports.IView CreateStatusReportsView();
 			SearchResult.IView CreateSearchResultView();
 			ThreadsList.IView CreateThreadsListView();
@@ -93,7 +94,6 @@ namespace LogJoint.UI.Presenters
 				}
 			}
 
-			var loadedMessagesView = views.CreateLoadedMessagesView();
 			var statusReportsView = views.CreateStatusReportsView();
 			var searchResultView = views.CreateSearchResultView();
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
@@ -145,10 +145,9 @@ namespace LogJoint.UI.Presenters
 				model.RegexFactory
 			);
 
-			LoadedMessages.IPresenter loadedMessagesPresenter = new LoadedMessages.Presenter(
+			var loadedMessagesPresenter = new LoadedMessages.Presenter(
 				model.LogSourcesManager,
 				model.Bookmarks,
-				loadedMessagesView,
 				model.HeartBeatTimer,
 				logViewerPresenterFactory,
 				model.ChangeNotification,
@@ -184,7 +183,7 @@ namespace LogJoint.UI.Presenters
 				timelineChangeNotification,
 				timelinePresenter);
 
-			SearchResult.IPresenter searchResultPresenter = new SearchResult.Presenter(
+			var searchResultPresenter = new SearchResult.Presenter(
 				model.SearchManager,
 				model.Bookmarks,
 				model.FiltersManager.HighlightFilters,
@@ -596,6 +595,7 @@ namespace LogJoint.UI.Presenters
 
 				ViewModels = new ViewModels()
 				{
+					LoadedMessages = loadedMessagesPresenter,
 					ToolsContainer = toolsContainer,
 					MainForm = mainFormPresenter,
 					SearchPanel = searchPanelPresenter,
@@ -608,6 +608,7 @@ namespace LogJoint.UI.Presenters
 					SourcesManager = sourcesManagerPresenter,
 					HistoryDialog = historyDialogPresenter,
 					PostprocessingsTab = postprocessingTabPagePresenter,
+					SearchResult = searchResultPresenter,
 				}
 			};
 		}

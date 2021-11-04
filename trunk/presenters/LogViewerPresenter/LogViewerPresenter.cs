@@ -49,10 +49,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
-			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
+			this.viewDisplayLinesPerPage = () => (this.view?.DisplayLinesPerPage).GetValueOrDefault();
+			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(viewDisplayLinesPerPage(), this.tracer);
 			var wordSelection = new WordSelection(regexFactory);
 			this.selectionManager = new SelectionManager(
-				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection, theme);
+				() => this.view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification, wordSelection, theme);
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry, changeNotification);
 			this.highlightingManager = new HighlightingManager(
@@ -131,7 +132,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			settings.Changed += HandleSettingsChange;
 
 			var viewSizeObserver = Updaters.Create(
-				() => view.DisplayLinesPerPage,
+				viewDisplayLinesPerPage,
 				dlpp => navigationManager.NavigateView(cancel => screenBuffer.SetViewSize(dlpp, cancel)).IgnoreCancellation()
 			);
 
@@ -467,12 +468,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool IPresenterInternal.HasInputFocus
 		{
-			get { return view.HasInputFocus; }
+			get { return (view?.HasInputFocus).GetValueOrDefault(false); }
 		}
 
 		void IPresenterInternal.ReceiveInputFocus()
 		{
-			view.ReceiveInputFocus();
+			view?.ReceiveInputFocus();
 		}
 
 		IBookmark IPresenterInternal.SlaveModeFocusedMessage
@@ -543,6 +544,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			screenBuffer.MakeFirstLineFullyVisible();
 		}
 
+		void IViewModel.SetView(IView view)
+		{
+			this.view = view;
+			changeNotification.Post();
+		}
 
 		void IViewModel.OnMouseWheelWithCtrl(int delta)
 		{
@@ -644,7 +650,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var screeBufferEntry = screenBuffer.Messages.ElementAtOrDefault(line.LineIndex);
 				if (screeBufferEntry.Message != null && !selectionManager.Selection?.Contains(CursorPosition.FromScreenBufferEntry(screeBufferEntry, charIndex)) == true)
 					selectionManager.SetSelection(line.LineIndex, SelectionFlag.None, charIndex);
-				view.PopupContextMenu(preparedContextMenuPopupData);
+				view?.PopupContextMenu(preparedContextMenuPopupData);
 			}
 			else
 			{
@@ -770,7 +776,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						preserveSelectionFlag: preserveSelectionFlag
 					);
 				else if (k == Key.ContextMenu)
-					view.PopupContextMenu(view.GetContextMenuPopupData(selectionManager.CursorViewLine));
+					view?.PopupContextMenu(view?.GetContextMenuPopupData(selectionManager.CursorViewLine));
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
 				else if (k == Key.BookmarkShortcut)
@@ -882,7 +888,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int? FindDisplayLine(IBookmark bookmark)
 		{
-			int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
+			int fullyVisibleViewLines = (int)Math.Ceiling(viewDisplayLinesPerPage());
 			int topScrolledLines = (int)screenBuffer.TopLineScrollValue;
 			return screenBuffer
 				.Messages
@@ -1023,7 +1029,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void AttachToView(IView view)
 		{
-			view.SetViewModel(this);
+			view?.SetViewModel(this);
 		}
 
 		private void ReadGlobalSettings()
@@ -1226,7 +1232,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (scanResult != null)
 			{
 				if (selectionManager.Selection != null)
-					view.HScrollToSelectedText(selectionManager.Selection.First.LineCharIndex);
+					view?.HScrollToSelectedText(selectionManager.Selection.First.LineCharIndex);
 				SetViewTailMode(false);
 			}
 
@@ -1419,7 +1425,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IChangeNotification changeNotification;
 		readonly ISubscription subscription;
 		readonly ISearchResultModel searchResultModel;
-		readonly IView view;
 		readonly IPresentersFacade presentationFacade;
 		readonly LJTraceSource tracer;
 		readonly IBookmarks bookmarks;
@@ -1438,6 +1443,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IViewModeStrategy viewModeStrategy;
 		readonly IColoringModeStrategy coloringModeStrategy;
 
+		IView view;
 		IBookmark slaveModeFocusedMessage;
 		string defaultFocusedMessageActionCaption;
 		FontData font = new FontData();
@@ -1452,6 +1458,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool viewTailMode;
 		int logSourceColorsRevision;
 
+		readonly Func<double> viewDisplayLinesPerPage;
 		readonly Func<int> timeMaxLength;
 		readonly Func<int[]> focusedMessageMark;
 		readonly Func<ImmutableArray<ViewLine>> viewLines;
