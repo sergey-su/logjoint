@@ -94,7 +94,8 @@ namespace LogJoint
                 select entry
             );
             ApplySizeLimit();
-        }
+			FireOnChange();
+		}
 
 		private void SaveSearchHistory()
 		{
