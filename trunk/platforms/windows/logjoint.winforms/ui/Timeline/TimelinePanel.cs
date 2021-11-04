@@ -3,7 +3,7 @@ using LogJoint.UI.Presenters.TimelinePanel;
 
 namespace LogJoint.UI
 {
-	public partial class TimelinePanel : UserControl, IView
+	public partial class TimelinePanel : UserControl
 	{
 		public TimelinePanel()
 		{
@@ -12,7 +12,7 @@ namespace LogJoint.UI
 
 		public TimeLineControl TimelineControl { get { return timeLineControl; } }
 
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.timelineToolBox.SetPresenter(viewModel);
 

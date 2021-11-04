@@ -4,12 +4,6 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 	{
 	};
 
-	public interface IView
-	{
-		void SetViewModel(IViewModel viewModel);
-	};
-
-
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }

@@ -44,7 +44,6 @@ namespace LogJoint.UI.Presenters
 			LoadedMessages.IView CreateLoadedMessagesView();
 			StatusReports.IView CreateStatusReportsView();
 			Timeline.IView CreateTimelineView();
-			TimelinePanel.IView CreateTimelinePanelView();
 			SearchResult.IView CreateSearchResultView();
 			ThreadsList.IView CreateThreadsListView();
 			SearchEditorDialog.IView CreateSearchEditorDialogView();
@@ -98,7 +97,6 @@ namespace LogJoint.UI.Presenters
 			var loadedMessagesView = views.CreateLoadedMessagesView();
 			var statusReportsView = views.CreateStatusReportsView();
 			var timelineView = views.CreateTimelineView();
-			var timelinePanelView = views.CreateTimelinePanelView();
 			var searchResultView = views.CreateSearchResultView();
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
 			var searchEditorDialogView = views.CreateSearchEditorDialogView();
@@ -186,7 +184,6 @@ namespace LogJoint.UI.Presenters
 				colorTheme);
 
 			var timelinePanelPresenter = new TimelinePanel.Presenter(
-				timelinePanelView,
 				timelineChangeNotification,
 				timelinePresenter);
 

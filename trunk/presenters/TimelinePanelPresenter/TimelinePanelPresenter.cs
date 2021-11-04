@@ -11,15 +11,12 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 		double? size = null;
 
 		public Presenter(
-			IView view,
 			IChainedChangeNotification changeNotification,
 			Timeline.IPresenter timelinePresenter)
 		{
 			this.timelinePresenter = timelinePresenter;
 			this.changeNotification = changeNotification;
 			changeNotification.Active = isVisible;
-
-			view.SetViewModel(this);
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;

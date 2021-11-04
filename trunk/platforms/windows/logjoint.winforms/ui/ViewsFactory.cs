@@ -27,7 +27,6 @@ namespace LogJoint.UI.Presenters
 			mainForm.cancelLongRunningProcessLabel
 		);
 		Timeline.IView Factory.IViewsFactory.CreateTimelineView() => mainForm.timeLinePanel.TimelineControl;
-		TimelinePanel.IView Factory.IViewsFactory.CreateTimelinePanelView() => mainForm.timeLinePanel;
 		SearchResult.IView Factory.IViewsFactory.CreateSearchResultView() => mainForm.searchResultView;
 		ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView() => mainForm.threadsListView;
 		SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView() => new SearchEditorDialogView();

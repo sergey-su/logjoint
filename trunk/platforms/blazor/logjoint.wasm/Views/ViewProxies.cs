@@ -16,7 +16,6 @@ namespace LogJoint.Wasm
         public UI.TimelineViewProxy Timeline = new();
         public UI.SourcePropertiesWindowViewProxy SourcePropertiesWindow = new();
         public UI.StatusReportViewProxy StatusReport = new();
-        public UI.TimelinePanelViewProxy TimelinePanel = new();
         public UI.FilterDialogViewProxy FilterDialog = new();
         public UI.MainFormViewProxy MainForm = new();
 
@@ -74,8 +73,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.StatusReports.IView Factory.IViewsFactory.CreateStatusReportsView() => StatusReport;
 
         LogJoint.UI.Presenters.ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView() => null;
-
-        LogJoint.UI.Presenters.TimelinePanel.IView Factory.IViewsFactory.CreateTimelinePanelView() => TimelinePanel;
 
         LogJoint.UI.Presenters.Timeline.IView Factory.IViewsFactory.CreateTimelineView() => Timeline;
 
