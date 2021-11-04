@@ -31,6 +31,7 @@ namespace LogJoint.UI
 		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+			logViewerControl.SetViewModel(viewModel.LogViewer);
 
 			var updateView = Updaters.Create(
 				() => viewModel.ViewState,

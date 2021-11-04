@@ -14,7 +14,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 			ISearchManager searchManager,
 			IBookmarks bookmarks,
 			IFiltersList hlFilters,
-			IView view,
 			IPresentersFacade navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IHeartBeatTimer heartbeat,
@@ -28,13 +27,12 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.searchManager = searchManager;
 			this.bookmarks = bookmarks;
 			this.hlFilters = hlFilters;
-			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.statusReports = statusReports;
 			this.theme = theme;
 			this.changeNotification = changeNotification;
 			var (messagesPresenter, messagesModel) = logViewerPresenterFactory.CreateSearchResultsPresenter(
-				view.MessagesView, loadedMessagesPresenter.LogViewerPresenter);
+				loadedMessagesPresenter.LogViewerPresenter);
 			this.messagesPresenter = messagesPresenter;
 			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.FocusedMessageDisplayModes.Slave;
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.DoDefaultAction;
@@ -99,7 +97,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 					ValidateView();
 			};
 
-			view.SetViewModel(this);
 			UpdateExpandedState();
 		}
 
@@ -387,13 +384,14 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void UpdateExpandedState()
 		{
+			/* todo: make reactive
 			view.UpdateExpandedState(
 				isExpandable: IsResultsListExpandable(), 
 				isExpanded: isSearchesListExpanded,
 				preferredListHeightInRows: RangeUtils.PutInRange(3, 8, searchManager.Results.Count()),
 				expandButtonHint: "Show previous search results list",
 				unexpandButtonHint: "Hide previous search results list"
-			);
+			); */
 		}
 
 		private bool IsResultsListExpandable()
@@ -444,7 +442,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly ISearchManager searchManager;
 		readonly IBookmarks bookmarks;
 		readonly IFiltersList hlFilters;
-		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly StatusReports.IPresenter statusReports;
 		readonly IColorTheme theme;

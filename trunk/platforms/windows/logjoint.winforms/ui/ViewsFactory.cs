@@ -25,7 +25,6 @@ namespace LogJoint.UI.Presenters
 			mainForm.cancelLongRunningProcessDropDownButton,
 			mainForm.cancelLongRunningProcessLabel
 		);
-		SearchResult.IView Factory.IViewsFactory.CreateSearchResultView() => mainForm.searchResultView;
 		ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView() => mainForm.threadsListView;
 		SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView() => new SearchEditorDialogView();
 		FilterDialog.IView Factory.IViewsFactory.CreateHlFilterDialogView() => new FilterDialogView();

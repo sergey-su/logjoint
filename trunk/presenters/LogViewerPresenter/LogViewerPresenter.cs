@@ -14,7 +14,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		public Presenter(
 			IModel model,
-			IView view,
 			IHeartBeatTimer heartbeat,
 			IPresentersFacade navHandler,
 			IClipboardAccess clipboard,
@@ -35,7 +34,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.model = model;
 			this.changeNotification = changeNotification;
 			this.searchResultModel = model as ISearchResultModel;
-			this.view = view;
 			this.presentationFacade = navHandler;
 			this.bookmarks = bookmarks;
 			this.bookmarksFactory = bookmarksFactory;
@@ -92,8 +90,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 
 			ReadGlobalSettings();
-
-			AttachToView(view);
 
 			this.model.OnSourcesChanged += (sender, e) =>
 			{
@@ -1025,11 +1021,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				font = new FontData(value, font.Size);
 				changeNotification.Post();
 			}
-		}
-
-		void AttachToView(IView view)
-		{
-			view?.SetViewModel(this);
 		}
 
 		private void ReadGlobalSettings()

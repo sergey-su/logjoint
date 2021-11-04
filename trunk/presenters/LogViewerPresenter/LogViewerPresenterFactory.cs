@@ -41,13 +41,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.regexFactory = regexFactory;
 		}
 
-		IPresenterInternal IPresenterFactory.CreateLoadedMessagesPresenter(IView view)
+		IPresenterInternal IPresenterFactory.CreateLoadedMessagesPresenter()
 		{
 			IModel model = new LoadedMessages.PresentationModel(
 				logSources,
 				modelInvoke
 			);
-			return new Presenter(model, view, heartbeat,
+			return new Presenter(model, heartbeat,
 				presentationFacade, clipboard, settings, hlFilters, bookmarks, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
@@ -55,7 +55,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
-		(IPresenterInternal, ISearchResultModel) IPresenterFactory.CreateSearchResultsPresenter(IView view, IPresenterInternal loadedMessagesPresenter)
+		(IPresenterInternal, ISearchResultModel) IPresenterFactory.CreateSearchResultsPresenter(IPresenterInternal loadedMessagesPresenter)
 		{
 			ISearchResultModel model = new SearchResult.SearchResultMessagesModel(
 				logSources,
@@ -67,7 +67,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			// by filters from search options.
 			IFiltersList highlightFilters = null;
 			return (
-				new Presenter(model, view, heartbeat,
+				new Presenter(model, heartbeat,
 					presentationFacade, clipboard, settings, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
 					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
@@ -81,8 +81,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			IFiltersList highlightFilter = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting, null);
 			highlightFilter.FilteringEnabled = false;
-			return new Presenter(
-				model, view, heartbeat, null, clipboard,
+			IPresenterInternal result = new Presenter(
+				model, heartbeat, null, clipboard,
 				Settings.DefaultSettingsAccessor.Instance, highlightFilter,
 				null, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification),
@@ -90,6 +90,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				new ProhibitiveViewModeStrategy(),
 				new PermissiveColoringModeStrategy(changeNotification)
 			);
+			view.SetViewModel(result);
+			return result;
 		}
 
 		readonly IChangeNotification changeNotification;

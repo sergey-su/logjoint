@@ -34,7 +34,6 @@ namespace LogJoint.Tests.Integration
 		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
 		public UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
 		public string PostprocessingTabPageId;
-		public UI.Presenters.LogViewer.IViewModel SearchResultLogViewer;
 		public UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
 		public UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
 	};
@@ -163,6 +162,10 @@ namespace LogJoint.Tests.Integration
 				loadedMessagesLogViewer.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
 				presentationObjects.ViewModels.LoadedMessages.LogViewer.SetView(loadedMessagesLogViewer);
 
+				var searchResultLogViewer = Substitute.For<UI.Presenters.LogViewer.IView>();
+				searchResultLogViewer.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
+				presentationObjects.ViewModels.SearchResult.LogViewer.SetView(searchResultLogViewer);
+
 				return new TestAppInstance
 				{
 					SynchronizationContext = serialSynchronizationContext,
@@ -192,10 +195,6 @@ namespace LogJoint.Tests.Integration
 
 			mocks.Views.CreatePreprocessingView().SetViewModel(
 				Arg.Do<UI.Presenters.PreprocessingUserInteractions.IViewModel>(x => viewModel.PreprocessingUserInteractions = x));
-
-			mocks.Views.CreateSearchResultView().MessagesView.SetViewModel(
-				Arg.Do<UI.Presenters.LogViewer.IViewModel>(x => viewModel.SearchResultLogViewer = x));
-			mocks.Views.CreateSearchResultView().MessagesView.DisplayLinesPerPage.Returns(config.LogViewerViewSize);
 
 			mocks.Views.CreateMessagePropertiesDialogView().CreateDialog(
 				Arg.Do<UI.Presenters.MessagePropertiesDialog.IDialogViewModel>(x => viewModel.MessagePropertiesDialog = x));

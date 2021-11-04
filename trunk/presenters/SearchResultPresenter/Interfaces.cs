@@ -8,8 +8,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 {
 	public interface IView
 	{
-		void SetViewModel(IViewModel presenter);
-		Presenters.LogViewer.IView MessagesView { get; }
+		// todo: make reactive
 		void UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint);
 	};
 

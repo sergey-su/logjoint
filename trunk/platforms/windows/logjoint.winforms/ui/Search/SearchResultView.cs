@@ -48,9 +48,10 @@ namespace LogJoint.UI
 			UpdateToolStripControls(mainToolStripControls, null);
 		}
 
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+			searchResultViewer.SetViewModel(viewModel.LogViewer);
 
 			var itemsUpdater = Updaters.Create(
 				() => viewModel.Items,
@@ -117,8 +118,6 @@ namespace LogJoint.UI
 				updateVisiblity();
 			});
 		}
-
-		Presenters.LogViewer.IView IView.MessagesView { get { return searchResultViewer; } }
 
 		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
 		{

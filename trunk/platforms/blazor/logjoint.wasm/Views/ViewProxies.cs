@@ -5,22 +5,14 @@ namespace LogJoint.Wasm
     // todo: eventually make all views to reactive and get rid of view proxies
     public class ViewProxies : Factory.IViewsFactory, LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory
     {
-        public UI.LogViewer.ViewProxy LoadedMessagesLogViewerViewProxy = new();
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new();
         public UI.Postprocesssing.Timeline.ViewProxy PostprocesssingTimelineViewProxy = new();
-        public UI.LogViewer.ViewProxy SearchResultLogViewer = new();
-        public UI.SearchResultViewProxy SearchResult;
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new();
         public UI.MessagePropertiesViewProxy MessageProperties = new();
         public UI.SourcePropertiesWindowViewProxy SourcePropertiesWindow = new();
         public UI.StatusReportViewProxy StatusReport = new();
         public UI.FilterDialogViewProxy FilterDialog = new();
         public UI.MainFormViewProxy MainForm = new();
-
-        public ViewProxies()
-        {
-            this.SearchResult = new UI.SearchResultViewProxy(SearchResultLogViewer);
-        }
 
         LogJoint.UI.Presenters.FormatsWizard.Factory.IViewsFactory Factory.IViewsFactory.FormatsWizardViewFactory => null;
 
@@ -54,8 +46,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.SearchesManagerDialog.IView Factory.IViewsFactory.CreateSearchesManagerDialogView() => null;
 
         LogJoint.UI.Presenters.FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView(LogJoint.UI.Presenters.SearchEditorDialog.IDialogView parentView) => FilterDialog;
-
-        LogJoint.UI.Presenters.SearchResult.IView Factory.IViewsFactory.CreateSearchResultView() => SearchResult;
 
         LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer.IView LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramView() => null;
 

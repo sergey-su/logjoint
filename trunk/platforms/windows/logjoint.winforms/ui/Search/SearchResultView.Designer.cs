@@ -158,7 +158,7 @@
 
 		#endregion
 
-		private LogJoint.UI.LogViewerControl searchResultViewer;
+		public LogJoint.UI.LogViewerControl searchResultViewer;
 		private System.Windows.Forms.Panel panel3;
 		private System.Windows.Forms.Button closeSearchResultButton;
 		private System.Windows.Forms.ExtendedToolStrip mainToolStrip;

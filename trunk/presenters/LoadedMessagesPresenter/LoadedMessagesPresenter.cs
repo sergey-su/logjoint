@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.logSources = logSources;
 			this.bookmarks = bookmarks;
 			this.changeNotification = changeNotification;
-			this.messagesPresenter =  logViewerPresenterFactory.CreateLoadedMessagesPresenter(null);
+			this.messagesPresenter =  logViewerPresenterFactory.CreateLoadedMessagesPresenter();
 			this.messagesPresenter.DblClickAction = LogViewer.PreferredDblClickAction.SelectWord;
 
 			var viewColoringOptions = coloringOptions.Select(i => (i.Text, i.Tooltip)).ToArray().AsReadOnly();

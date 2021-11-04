@@ -200,7 +200,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IView : IViewFonts
 	{
-		void SetViewModel(IViewModel viewEvents);
+		void SetViewModel(IViewModel viewEvents); // todo: remove this method
 		float DisplayLinesPerPage { get; }
 		void HScrollToSelectedText(int charIndex);
 		bool HasInputFocus { get; }
@@ -341,9 +341,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IPresenterFactory
 	{
-		IPresenterInternal CreateLoadedMessagesPresenter(IView view);
+		IPresenterInternal CreateLoadedMessagesPresenter();
 		(IPresenterInternal Presenter, ISearchResultModel Model) CreateSearchResultsPresenter(
-			IView view, IPresenterInternal loadedMessagesPresenter);
+			IPresenterInternal loadedMessagesPresenter);
 		IPresenterInternal CreateIsolatedPresenter(IModel model, IView view, IColorTheme theme = null);
 	};
 

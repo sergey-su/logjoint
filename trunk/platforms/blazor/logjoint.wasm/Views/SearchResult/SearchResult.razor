@@ -35,7 +35,7 @@
 </div>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.SearchResult;
     private ISubscription subscription;
     private ElementReference resizerElement, resultsElement, toolBarResizerElement;
     private IDisposable resizeHandler1, resizeHandler2;
@@ -56,8 +56,6 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.SearchResult.SetComponent(this);
-
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.Items, viewModel.Size, viewModel.IsSearchResultsVisible),
             _ => StateHasChanged()
@@ -66,18 +64,10 @@
 
     public void Dispose()
     {
-        viewProxies.SearchResult.SetComponent(null);
         subscription?.Dispose();
         resizeHandler1?.Dispose();
         resizeHandler2?.Dispose();
     }
-
-    void IView.SetViewModel(IViewModel value)
-    {
-        viewModel = value;
-    }
-
-    ViewerP.IView IView.MessagesView => null;
 
     void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
     {

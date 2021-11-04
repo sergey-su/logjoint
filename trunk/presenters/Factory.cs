@@ -44,7 +44,6 @@ namespace LogJoint.UI.Presenters
 		public interface IViewsFactory
 		{
 			StatusReports.IView CreateStatusReportsView();
-			SearchResult.IView CreateSearchResultView();
 			ThreadsList.IView CreateThreadsListView();
 			SearchEditorDialog.IView CreateSearchEditorDialogView();
 			FilterDialog.IView CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView);
@@ -95,7 +94,6 @@ namespace LogJoint.UI.Presenters
 			}
 
 			var statusReportsView = views.CreateStatusReportsView();
-			var searchResultView = views.CreateSearchResultView();
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
 			var searchEditorDialogView = views.CreateSearchEditorDialogView();
 			var searchesManagerDialogView = views.CreateSearchesManagerDialogView();
@@ -187,7 +185,6 @@ namespace LogJoint.UI.Presenters
 				model.SearchManager,
 				model.Bookmarks,
 				model.FiltersManager.HighlightFilters,
-				searchResultView,
 				navHandler,
 				loadedMessagesPresenter,
 				model.HeartBeatTimer,
