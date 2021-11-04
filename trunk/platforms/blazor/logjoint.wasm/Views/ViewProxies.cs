@@ -10,7 +10,6 @@ namespace LogJoint.Wasm
         public UI.Postprocessing.ViewProxy PostprocessingTabPage = new();
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new();
         public UI.Postprocesssing.Timeline.ViewProxy PostprocesssingTimelineViewProxy = new();
-        public UI.SearchPanelViewProxy SearchPanel = new();
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new();
         public UI.SearchResultViewProxy SearchResult;
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new();
@@ -64,8 +63,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.SearchesManagerDialog.IView Factory.IViewsFactory.CreateSearchesManagerDialogView() => null;
 
         LogJoint.UI.Presenters.FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView(LogJoint.UI.Presenters.SearchEditorDialog.IDialogView parentView) => FilterDialog;
-
-        LogJoint.UI.Presenters.SearchPanel.IView Factory.IViewsFactory.CreateSearchPanelView() => SearchPanel;
 
         LogJoint.UI.Presenters.SearchResult.IView Factory.IViewsFactory.CreateSearchResultView() => SearchResult;
 

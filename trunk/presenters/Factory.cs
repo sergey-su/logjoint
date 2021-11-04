@@ -50,7 +50,6 @@ namespace LogJoint.UI.Presenters
 			FilterDialog.IView CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView);
 			FilterDialog.IView CreateHlFilterDialogView();
 			SearchesManagerDialog.IView CreateSearchesManagerDialogView();
-			SearchPanel.IView CreateSearchPanelView();
 			SourcePropertiesWindow.IView CreateSourcePropertiesWindowView();
 			SharingDialog.IView CreateSharingDialogView();
 			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
@@ -104,7 +103,6 @@ namespace LogJoint.UI.Presenters
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
 			var searchEditorDialogView = views.CreateSearchEditorDialogView();
 			var searchesManagerDialogView = views.CreateSearchesManagerDialogView();
-			var searchPanelView = views.CreateSearchPanelView();
 			var sourcePropertiesWindowView = views.CreateSourcePropertiesWindowView();
 			var sharingDialogView = views.CreateSharingDialogView();
 			var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
@@ -255,7 +253,6 @@ namespace LogJoint.UI.Presenters
 			);
 
 			var searchPanelPresenter = new SearchPanel.Presenter(
-				searchPanelView,
 				model.SearchManager,
 				model.SearchHistory,
 				model.UserDefinedSearches,

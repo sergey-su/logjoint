@@ -8,7 +8,7 @@ using LogJoint.UI.Presenters.SearchPanel;
 
 namespace LogJoint.UI
 {
-	public partial class SearchPanelView : UserControl, IView
+	public partial class SearchPanelView : UserControl
 	{
 		IViewModel viewModel;
 		ISubscription subscription;
@@ -18,7 +18,7 @@ namespace LogJoint.UI
 			InitializeComponent();
 		}
 
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
 

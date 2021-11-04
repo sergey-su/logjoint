@@ -11,11 +11,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		void CollapseSearchResultPanel();
 	};
 
-	public interface IView
-	{
-		void SetViewModel(IViewModel viewModel);
-	};
-
 	[Flags]
 	public enum ViewCheckableControl
 	{

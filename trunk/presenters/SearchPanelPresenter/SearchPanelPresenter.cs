@@ -9,7 +9,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 	public class Presenter : IPresenter, IViewModel
 	{
 		public Presenter(
-			IView view,
 			ISearchManager searchManager,
 			ISearchHistory searchHistory,
 			IUserDefinedSearches userDefinedSearches,
@@ -24,7 +23,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			IChangeNotification changeNotification
 		)
 		{
-			this.view = view;
 			this.changeNotification = changeNotification;
 			this.searchManager = searchManager;
 			this.searchHistory = searchHistory;
@@ -46,8 +44,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 			UpdateSearchControls();
 			UpdateUserDefinedSearchDependentControls(false);
-
-			view.SetViewModel(this);
 
 			quickSearchPresenter.OnSearchNow += (sender, args) =>
 			{
@@ -517,7 +513,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			};
 		}
 
-		readonly IView view;
 		readonly IChangeNotification changeNotification;
 		readonly ISearchManager searchManager;
 		readonly ISearchHistory searchHistory;

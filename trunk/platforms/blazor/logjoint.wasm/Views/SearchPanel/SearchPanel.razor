@@ -2,8 +2,7 @@
 @using LogJoint
 @using LogJoint.UI.Presenters.SearchPanel
 @implements IDisposable
-@implements IView
-@inject LogJoint.Wasm.ViewProxies viewProxies
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class='search-panel @Class'>
     <div class="search-input">
@@ -46,7 +45,7 @@
 </div>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.SearchPanel;
     private ISubscription subscription;
 
     [Parameter]
@@ -54,8 +53,6 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.SearchPanel.SetComponent(this);
-
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.EnableCheckableControls, viewModel.CheckableControlsState),
             _ => StateHasChanged()
@@ -64,13 +61,7 @@
 
     public void Dispose()
     {
-        viewProxies.SearchPanel.SetComponent(null);
         subscription?.Dispose();
-    }
-
-    void IView.SetViewModel(IViewModel value)
-    {
-        viewModel = value;
     }
 
     bool IsChecked(ViewCheckableControl ctrl) => (viewModel.CheckableControlsState & ctrl) != 0;
