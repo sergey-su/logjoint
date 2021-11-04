@@ -3,11 +3,6 @@ using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
-	public interface IView
-	{
-		void SetViewModel(IViewModel viewModel);
-	};
-
 	public enum ViewControlId
 	{
 		StateInspector,

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 {
-	public partial class TabPage : UserControl, IView
+	public partial class TabPage : UserControl
 	{
 		IViewModel viewModel;
 		readonly Dictionary<ViewControlId, PostprocessorControls> postprocessorsControls = new Dictionary<ViewControlId, PostprocessorControls>();
@@ -40,7 +40,7 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			}
 		}
 
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
 			var updateControls = Updaters.Create(

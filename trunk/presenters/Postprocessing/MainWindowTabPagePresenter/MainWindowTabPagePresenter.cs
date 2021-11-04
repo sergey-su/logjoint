@@ -10,7 +10,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	public class Presenter: IPresenter, IViewModel
 	{
-		readonly IView view;
 		readonly IManagerInternal postprocessorsManager;
 		readonly ICorrelationManager correlationManager;
 		readonly IFactory presentersFactory;
@@ -22,7 +21,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		readonly Func<IImmutableDictionary<ViewControlId, ActionState>> getActionStates;
 
 		public Presenter(
-			IView view,
 			IManagerInternal postprocessorsManager,
 			ICorrelationManager correlationManager,
 			IFactory presentersFactory,
@@ -33,7 +31,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			MainForm.IPresenter mainFormPresenter
 		)
 		{
-			this.view = view;
 			this.postprocessorsManager = postprocessorsManager;
 			this.correlationManager = correlationManager;
 			this.presentersFactory = presentersFactory;
@@ -86,8 +83,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					})
 				)
 			);
-
-			this.view.SetViewModel(this);
 
 			if (IsBrowser.Value)
 			{

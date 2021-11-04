@@ -7,7 +7,6 @@ namespace LogJoint.Wasm
     {
         public UI.LogViewer.ViewProxy LoadedMessagesLogViewerViewProxy = new();
         public UI.LoadedMessages.ViewProxy LoadedMessagesViewProxy;
-        public UI.Postprocessing.ViewProxy PostprocessingTabPage = new();
         public UI.Postprocesssing.StateInspector.ViewProxy PostprocesssingStateInspectorViewProxy = new();
         public UI.Postprocesssing.Timeline.ViewProxy PostprocesssingTimelineViewProxy = new();
         public UI.LogViewer.ViewProxy SearchResultLogViewer = new();
@@ -53,8 +52,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView() => null;
 
         LogJoint.UI.Presenters.Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView() => null;
-
-        LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IView Factory.IViewsFactory.CreatePostprocessingTabPage() => PostprocessingTabPage;
 
         LogJoint.UI.Presenters.PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView() => PreprocessingUserInteractions;
 

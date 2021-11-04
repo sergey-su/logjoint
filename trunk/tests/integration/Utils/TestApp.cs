@@ -195,9 +195,6 @@ namespace LogJoint.Tests.Integration
 			mocks.Views.CreatePreprocessingView().SetViewModel(
 				Arg.Do<UI.Presenters.PreprocessingUserInteractions.IViewModel>(x => viewModel.PreprocessingUserInteractions = x));
 
-			mocks.Views.CreatePostprocessingTabPage().SetViewModel(
-				Arg.Do<UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel>(x => viewModel.PostprocessingTabPage = x));
-
 			mocks.Views.CreateLoadedMessagesView().SetViewModel(
 				Arg.Do<UI.Presenters.LoadedMessages.IViewModel>(x => viewModel.LoadedMessages = x));
 

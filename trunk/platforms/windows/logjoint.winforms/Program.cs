@@ -82,6 +82,7 @@ namespace LogJoint
 			mainForm.sourcesListView.SetViewModel(presentation.ViewModels.SourcesManager);
 			mainForm.searchPanelView.searchTextBox.InnerTextBox.SetViewModel(presentation.ViewModels.SearchPanel.QuickSearchTextBox);
 			mainForm.searchPanelView.SetViewModel(presentation.ViewModels.SearchPanel);
+			mainForm.postprocessingView.SetViewModel(presentation.ViewModels.PostprocessingsTab);
 			new UI.HistoryDialog(presentation.ViewModels.HistoryDialog);
 
 			var pluginEntryPoint = new Extensibility.Application(

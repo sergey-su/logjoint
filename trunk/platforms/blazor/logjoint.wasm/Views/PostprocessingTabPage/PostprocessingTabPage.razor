@@ -2,8 +2,7 @@
 @using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
 @inject IJSRuntime jsRuntime;
 @implements IDisposable
-@implements IView;
-@inject LogJoint.Wasm.ViewProxies viewProxies;
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class='postprocessings-tabpage @Class'>
     @foreach (var control in viewModel.ControlsState)
@@ -14,7 +13,7 @@
                 @if (part.LinkData != null)
                 {
                     <a href="#"
-                       @onclick="@(e => viewModel.OnActionClick(part.LinkData, control.Key, ClickFlags.None))" 
+                       @onclick="@(e => viewModel.OnActionClick(part.LinkData, control.Key, ClickFlags.None))"
                        @onclick:preventDefault>@part.Text</a>
                 }
                 @if (part.LinkData == null)
@@ -31,7 +30,7 @@
 </div>
 
 @code {
-    private IViewModel viewModel;
+    private IViewModel viewModel => presentation.ViewModels.PostprocessingsTab;
     private ISubscription subscription;
 
     [Parameter]
@@ -39,8 +38,6 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.PostprocessingTabPage.SetComponent(this);
-
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => viewModel.ControlsState,
             _ => StateHasChanged()
@@ -50,10 +47,5 @@
     public void Dispose()
     {
         subscription?.Dispose();
-    }
-
-    void IView.SetViewModel(IViewModel value)
-    {
-        viewModel = value;
     }
 }

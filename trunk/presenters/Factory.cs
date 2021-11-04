@@ -34,6 +34,7 @@ namespace LogJoint.UI.Presenters
 		public SourcesList.IViewModel SourcesList { get; internal set; }
 		public SourcesManager.IViewModel SourcesManager { get; internal set; }
 		public HistoryDialog.IViewModel HistoryDialog { get; internal set; }
+		public Postprocessing.MainWindowTabPage.IViewModel PostprocessingsTab { get; internal set; }
 	};
 
 	public static class Factory
@@ -63,7 +64,6 @@ namespace LogJoint.UI.Presenters
 			Options.Dialog.IView CreateOptionsDialogView();
 			About.IView CreateAboutView();
 			MainForm.IView CreateMainFormView();
-			Postprocessing.MainWindowTabPage.IView CreatePostprocessingTabPage();
 			Postprocessing.Factory.IViewsFactory PostprocessingViewsFactory { get; }
 			PreprocessingUserInteractions.IView CreatePreprocessingView();
 		};
@@ -538,9 +538,7 @@ namespace LogJoint.UI.Presenters
 				toolsContainer
 			);
 
-			Postprocessing.MainWindowTabPage.IView postprocessingTabPage = views.CreatePostprocessingTabPage();
-			Postprocessing.SummaryView.IPresenter postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
-				postprocessingTabPage,
+			var postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
 				model.PostprocessorsManager,
 				model.CorrelationManager,
 				postprocessorPresentationFactory,
@@ -615,6 +613,7 @@ namespace LogJoint.UI.Presenters
 					SourcesList = sourcesListPresenter,
 					SourcesManager = sourcesManagerPresenter,
 					HistoryDialog = historyDialogPresenter,
+					PostprocessingsTab = postprocessingTabPagePresenter,
 				}
 			};
 		}
