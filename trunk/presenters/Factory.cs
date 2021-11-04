@@ -43,7 +43,6 @@ namespace LogJoint.UI.Presenters
 		{
 			LoadedMessages.IView CreateLoadedMessagesView();
 			StatusReports.IView CreateStatusReportsView();
-			Timeline.IView CreateTimelineView();
 			SearchResult.IView CreateSearchResultView();
 			ThreadsList.IView CreateThreadsListView();
 			SearchEditorDialog.IView CreateSearchEditorDialogView();
@@ -96,7 +95,6 @@ namespace LogJoint.UI.Presenters
 
 			var loadedMessagesView = views.CreateLoadedMessagesView();
 			var statusReportsView = views.CreateStatusReportsView();
-			var timelineView = views.CreateTimelineView();
 			var searchResultView = views.CreateSearchResultView();
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
 			var searchEditorDialogView = views.CreateSearchEditorDialogView();
@@ -176,7 +174,6 @@ namespace LogJoint.UI.Presenters
 				model.LogSourcesPreprocessings,
 				model.SearchManager,
 				model.Bookmarks,
-				timelineView,
 				viewerPresenter,
 				statusReportFactory,
 				tabUsageTracker,

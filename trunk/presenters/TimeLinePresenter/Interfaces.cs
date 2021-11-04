@@ -15,8 +15,6 @@ namespace LogJoint.UI.Presenters.Timeline
 
 	public interface IView
 	{
-		void SetViewModel(IViewModel viewModel);
-
 		void UpdateDragViewPositionDuringAnimation(int y, bool topView);
 		PresentationMetrics GetPresentationMetrics();
 		void TryBeginDrag(int x, int y);
@@ -150,6 +148,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 	public interface IViewModel
 	{
+		void SetView(IView view);
 		IChangeNotification ChangeNotification { get; }
 		ColorThemeMode ColorTheme { get; }
 		DrawInfo OnDraw();

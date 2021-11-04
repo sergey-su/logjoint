@@ -84,6 +84,7 @@ namespace LogJoint
 			mainForm.searchPanelView.SetViewModel(presentation.ViewModels.SearchPanel);
 			mainForm.postprocessingView.SetViewModel(presentation.ViewModels.PostprocessingsTab);
 			mainForm.timeLinePanel.SetViewModel(presentation.ViewModels.TimelinePanel);
+			mainForm.timeLinePanel.TimelineControl.SetViewModel(presentation.ViewModels.Timeline);
 			new UI.HistoryDialog(presentation.ViewModels.HistoryDialog);
 
 			var pluginEntryPoint = new Extensibility.Application(

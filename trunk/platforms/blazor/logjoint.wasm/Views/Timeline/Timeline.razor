@@ -1,6 +1,5 @@
 ﻿@namespace LogJoint.Wasm.UI
 @inject JsInterop jsInterop
-@inject LogJoint.Wasm.ViewProxies viewProxies
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 @using LogJoint.UI.Presenters.Timeline
 @implements IAsyncDisposable
@@ -62,7 +61,7 @@
 
     protected override void OnInitialized()
     {
-        viewProxies.Timeline.SetComponent(this);
+        viewModel.SetView(this);
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             viewModel.OnDraw,
             _ => StateHasChanged()
@@ -71,8 +70,8 @@
 
     public async ValueTask DisposeAsync()
     {
+        viewModel.SetView(null);
         subscription?.Dispose();
-        viewProxies.Timeline.SetComponent(null);
         await resizeObserverHandle.DisposeAsync();
     }
 
@@ -137,7 +136,6 @@
                $"left: {info.Bounds.Left}px; width: {info.Bounds.Height}px;";
     }
 
-    void IView.SetViewModel(IViewModel viewModel) { }
     void IView.UpdateDragViewPositionDuringAnimation(int y, bool topView) { }
     void IView.TryBeginDrag(int x, int y) { }
     void IView.InterruptDrag() { }

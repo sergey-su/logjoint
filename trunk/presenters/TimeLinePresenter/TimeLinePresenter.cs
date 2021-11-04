@@ -18,13 +18,13 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly ILogSourcesManager sourcesManager;
 		readonly Preprocessing.IManager preprocMgr;
 		readonly ISearchManager searchManager;
-		readonly IView view;
 		readonly LogViewer.IPresenterInternal viewerPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly IHeartBeatTimer heartbeat;
 		readonly IColorTheme theme;
 		readonly AsyncInvokeHelper gapsUpdateInvoker;
 
+		IView view;
 		readonly CacheDictionary<ILogSource, ITimeLineDataSource> sourcesCache1 = 
 			new CacheDictionary<ILogSource, ITimeLineDataSource>();
 		readonly CacheDictionary<ISearchResult, ITimeLineDataSource> sourcesCache2 = 
@@ -59,7 +59,6 @@ namespace LogJoint.UI.Presenters.Timeline
 			Preprocessing.IManager preprocMgr,
 			ISearchManager searchManager,
 			IBookmarks bookmarks,
-			IView view,
 			LogViewer.IPresenterInternal viewerPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			ITabUsageTracker tabUsageTracker,
@@ -71,7 +70,6 @@ namespace LogJoint.UI.Presenters.Timeline
 			this.sourcesManager = sourcesManager;
 			this.preprocMgr = preprocMgr;
 			this.searchManager = searchManager;
-			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.statusReportFactory = statusReportFactory;
 			this.heartbeat = heartbeat;
@@ -82,7 +80,8 @@ namespace LogJoint.UI.Presenters.Timeline
 			sources = Selectors.Create(() => sourcesManager.VisibleItems, () => searchManager.Results, GetSources);
 			availableRange = Selectors.Create(sources, () => availableRangeRevision, GetAvailableRange);
 			range = Selectors.Create(availableRange, () => setRange, GetRange);
-			presentationData = Selectors.Create(view.GetPresentationMetrics, sources,
+			var emptyPresentationMetrics = new PresentationMetrics();
+			presentationData = Selectors.Create(() => view?.GetPresentationMetrics() ?? emptyPresentationMetrics, sources,
 				() => (timeGapsRevision, containersExpansionStateRevision), GetPresentationData);
 			isEmpty = Selectors.Create(presentationData, pd => pd.Sources.Count == 0);
 			drawInfo = Selectors.Create(presentationData, () => animationRange ?? range(), sources,
@@ -111,8 +110,6 @@ namespace LogJoint.UI.Presenters.Timeline
 					changeNotification.Post();
 				}
 			};
-
-			view.SetViewModel(this);
 
 			var updateRange = Updaters.Create(range, sources,
 				(r, s) => gapsUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(150)));
@@ -148,6 +145,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		}
 
 		bool IPresenter.IsEmpty => isEmpty();
+
+		void IViewModel.SetView(IView view)
+		{
+			this.view = view;
+		}
 
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;

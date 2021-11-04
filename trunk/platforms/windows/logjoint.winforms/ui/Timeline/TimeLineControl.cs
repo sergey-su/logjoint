@@ -58,11 +58,10 @@ namespace LogJoint.UI
 			this.Disposed += (sender, e) => focuslessMouseWheelMessagingFilter.Dispose();
 		}
 
-		#region IView
-
-		void IView.SetViewModel(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+			viewModel.SetView(this);
 
 			this.drawing = new ControlDrawing(new GraphicsResources(viewModel,
 				"Tahoma", Font.Size, 6, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)), viewModel);
@@ -76,6 +75,8 @@ namespace LogJoint.UI
 			var updater = Updaters.Create(() => viewModel.OnDraw(), _ => base.Invalidate());
 			viewModel.ChangeNotification.OnChange += (s, e) => updater();
 		}
+
+		#region IView
 
 		PresentationMetrics IView.GetPresentationMetrics()
 		{
