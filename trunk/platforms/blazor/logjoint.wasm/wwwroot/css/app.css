@@ -529,6 +529,11 @@ body {
     color: gray;
 }
 
+.postprocessings-tabpage .control {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 7px;
+}
 
 .tool-container {
     display: flex;
@@ -1807,4 +1812,17 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: bold;
+}
+
+
+.circular-progress {
+    width: var(--item-height);
+    height: var(--item-height);
+}
+
+.circular-progress circle {
+    fill: transparent;
+    stroke: gray;
+    transition: 0.35s stroke-dashoffset;
+    transform-origin: 50% 50%;
 }

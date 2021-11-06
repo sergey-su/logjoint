@@ -1,0 +1,20 @@
+﻿@namespace LogJoint.Wasm.UI
+
+@{var circleWidth = 0.2; /* Width of the progress circle. Fraction of the view size. */}
+@{var radius = 0.5 - circleWidth;}
+@{var circumference = radius * 2 * Math.PI;}
+
+<svg class="circular-progress @Class" viewBox="0 0 1 1">
+    <circle r=@radius cx="0.5" cy="0.5"
+            stroke-width=@circleWidth
+            stroke-dasharray="@circumference @circumference"
+            stroke-dashoffset="@(circumference*(1 - Math.Clamp(Value, 0, 1)))" />
+</svg>
+
+@code {
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public double Value { get; set; } // [0-1]
+}

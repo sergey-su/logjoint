@@ -23,7 +23,7 @@
             }
             @if (control.Value.Progress.HasValue)
             {
-                <span>@(control.Value.Progress.Value)%</span>
+                <CircularProgress Value=@(control.Value.Progress.Value) />
             }
         </div>
     }
