@@ -146,7 +146,6 @@ namespace LogJoint.UI.Presenters
 			var loadedMessagesPresenter = new LoadedMessages.Presenter(
 				model.LogSourcesManager,
 				model.Bookmarks,
-				model.HeartBeatTimer,
 				logViewerPresenterFactory,
 				model.ChangeNotification,
 				model.SynchronizationContext
@@ -423,7 +422,6 @@ namespace LogJoint.UI.Presenters
 			var bookmarksListPresenter = new BookmarksList.Presenter(
 				model.Bookmarks,
 				model.LogSourcesManager,
-				model.HeartBeatTimer,
 				loadedMessagesPresenter,
 				clipboardAccess,
 				colorTheme,

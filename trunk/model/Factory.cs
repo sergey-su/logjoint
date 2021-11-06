@@ -155,7 +155,7 @@ namespace LogJoint
 				webContentCacheConfig
 			);
 			IHeartBeatTimer heartBeatTimer = new HeartBeatTimer();
-			Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
+			Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(modelSynchronizationContext);
 			Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
 			var threadColorsLease = new ColorLease(1);

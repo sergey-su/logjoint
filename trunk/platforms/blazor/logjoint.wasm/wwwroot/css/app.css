@@ -610,6 +610,7 @@ body {
 .state-inspector .objects-tree {
     display: flex;
     flex-flow: column nowrap;
+    user-select: none;
 }
 
 .state-inspector .objects-tree .toolbar {

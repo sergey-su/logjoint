@@ -24,7 +24,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		public Presenter(
 			ILogSourcesManager logSources,
 			IBookmarks bookmarks,
-			IHeartBeatTimer heartbeat,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IChangeNotification changeNotification,
 			ISynchronizationContext synchronizationContext

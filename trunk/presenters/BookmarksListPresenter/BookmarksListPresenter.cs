@@ -20,7 +20,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		public Presenter(
 			IBookmarks bookmarks, 
 			ILogSourcesManager sourcesManager,
-			IHeartBeatTimer heartbeat,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IClipboardAccess clipboardAccess,
 			IColorTheme colorTheme,

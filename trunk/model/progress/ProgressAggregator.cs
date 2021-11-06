@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint.Progress
 {
@@ -10,6 +12,7 @@ namespace LogJoint.Progress
 	{
 		// readonly objects
 		readonly ISynchronizationContext invoker;
+		readonly Func<TimeSpan, Task> sleep;
 		readonly ProgressAggregator parent, root;
 		readonly object sync = new object();
 
@@ -18,6 +21,8 @@ namespace LogJoint.Progress
 		readonly HashSet<ProgressEventsSink> sinks = new HashSet<ProgressEventsSink>();
 		readonly HashSet<ProgressAggregator> children = new HashSet<ProgressAggregator>();
 		int completedContributorsCount;
+		Task periodic;
+		long currentVersion = 0;
 
 		// data below is accessed from model thread only
 		bool isProgressActive;
@@ -25,30 +30,26 @@ namespace LogJoint.Progress
 
 		public class Factory : IProgressAggregatorFactory
 		{
-			readonly IHeartBeatTimer timer;
 			readonly ISynchronizationContext invoker;
+			readonly Func<TimeSpan, Task> sleep;
 
-			public Factory(IHeartBeatTimer timer, ISynchronizationContext invoker)
+			public Factory(ISynchronizationContext invoker, Func<TimeSpan, Task> sleep = null)
 			{
-				this.timer = timer;
 				this.invoker = invoker;
+				this.sleep = sleep ?? Task.Delay;
 			}
 
 			IProgressAggregator IProgressAggregatorFactory.CreateProgressAggregator()
 			{
-				return new ProgressAggregator(timer, invoker);
+				return new ProgressAggregator(invoker, sleep);
 			}
 		};
 
-		ProgressAggregator(IHeartBeatTimer timer, ISynchronizationContext invoker)
+		ProgressAggregator(ISynchronizationContext invoker, Func<TimeSpan, Task> sleep)
 		{
 			this.invoker = invoker;
+			this.sleep = sleep;
 			this.root = this;
-			timer.OnTimer += (s, e) =>
-			{
-				if (e.IsNormalUpdate)
-					RootUpdate();
-			};
 		}
 
 		ProgressAggregator(ProgressAggregator parent)
@@ -87,7 +88,10 @@ namespace LogJoint.Progress
 		void Add(ProgressEventsSink sink)
 		{
 			lock (sync)
+			{
 				sinks.Add(sink);
+				UpdateRootPeriodic();
+			}
 		}
 
 		void Remove(ProgressEventsSink sink)
@@ -97,6 +101,7 @@ namespace LogJoint.Progress
 				if (!sinks.Remove(sink))
 					return;
 				++completedContributorsCount;
+				UpdateRootPeriodic();
 			}
 			invoker.Post(root.RootUpdate);
 		}
@@ -104,7 +109,10 @@ namespace LogJoint.Progress
 		void Add(ProgressAggregator child)
 		{
 			lock (sync)
+			{
 				children.Add(child);
+				UpdateRootPeriodic();
+			}
 		}
 
 		void Remove(ProgressAggregator child)
@@ -114,8 +122,35 @@ namespace LogJoint.Progress
 				if (!children.Remove(child))
 					return;
 				++completedContributorsCount;
+				UpdateRootPeriodic();
 			}
 			invoker.Post(root.RootUpdate);
+		}
+
+		void UpdateRootPeriodic()
+		{
+			if (parent != null)
+				return;
+			var periodicShouldBeActive = (sinks.Count + children.Count) > 0;
+			if (periodicShouldBeActive && periodic == null)
+			{
+				var thisPeriodicVersion = Interlocked.Increment(ref currentVersion);
+				periodic = invoker.InvokeAndAwait(async () =>
+				{
+					while (true)
+					{
+						await sleep(TimeSpan.FromMilliseconds(500));
+						if (thisPeriodicVersion != Interlocked.Read(ref currentVersion))
+							break;
+						RootUpdate();
+					}
+				});
+			}
+			if (!periodicShouldBeActive && periodic != null)
+			{
+				periodic = null;
+				Interlocked.Increment(ref currentVersion);
+			}
 		}
 
 		AggUpdateInfo BeginUpdate()

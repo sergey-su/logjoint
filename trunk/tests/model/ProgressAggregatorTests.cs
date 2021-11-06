@@ -13,7 +13,7 @@ namespace LogJoint.Tests
 	[TestFixture]
 	public class ProgressAggregatorTests
 	{
-		IHeartBeatTimer timer;
+		TaskCompletionSource<int> lastSleep;
 		ISynchronizationContext invoke;
 		IProgressAggregator agg;
 		IOutEvents outEvents;
@@ -38,35 +38,50 @@ namespace LogJoint.Tests
 		[SetUp]
 		public void Init()
 		{
-			timer = Substitute.For<IHeartBeatTimer>();
 			invoke = Substitute.For<ISynchronizationContext>();
 			invoke.When(x => x.Post(Arg.Any<Action>())).Do(callInfo => 
 			{
 				Assert.IsNull(lastInvokedAction);
 				lastInvokedAction = callInfo.Arg<Action>();
 			});
-			agg = ((IProgressAggregatorFactory)new ProgressAggregator.Factory(timer, invoke)).CreateProgressAggregator();
+			agg = ((IProgressAggregatorFactory)new ProgressAggregator.Factory(invoke, delay =>
+			{
+				Assert.IsNull(lastSleep);
+				lastSleep = new TaskCompletionSource<int>();
+				return lastSleep.Task;
+			})).CreateProgressAggregator();
 			outEvents = MakeOutEventsMock(agg);
+		}
+
+		[TearDown]
+		public void Shutdown()
+		{
+			lastInvokedAction = null;
+			lastSleep = null;
 		}
 
 		void HeartBeat()
 		{
-			timer.OnTimer += Raise.EventWith(new object(), new HeartBeatEventArgs(HeartBeatEventType.NormalUpdate));
+			Assert.IsNotNull(lastSleep);
+			var sleepToComplete = lastSleep;
+			lastSleep = null;
+			sleepToComplete.SetResult(1);
 		}
 
 		void RunInvokedAction()
 		{
 			Assert.IsNotNull(lastInvokedAction);
-			lastInvokedAction();
+			var actionToComplete = lastInvokedAction;
 			lastInvokedAction = null;
+			actionToComplete();
 		}
 
 		[Test]
 		public void InitialPropertiesStayUnchangedIfNoContributrosCreated()
 		{
 			Assert.AreEqual(null, agg.ProgressValue);
-			HeartBeat();
-			Assert.AreEqual(null, agg.ProgressValue);
+			Assert.IsNull(lastInvokedAction);
+			Assert.IsNull(lastSleep);
 		}
 
 		[Test]
@@ -74,6 +89,7 @@ namespace LogJoint.Tests
 		{
 			using (var sink = agg.CreateProgressSink())
 			{
+				RunInvokedAction(); // run periodic
 				HeartBeat();
 				outEvents.Received().ProgressStarted(agg, Arg.Any<EventArgs>());
 				Assert.AreEqual(0d, agg.ProgressValue);
@@ -105,6 +121,7 @@ namespace LogJoint.Tests
 			{
 				using (var sink2 = agg.CreateProgressSink())
 				{
+					RunInvokedAction(); // run periodic
 					sink1.SetValue(0.5d);
 					sink2.SetValue(0.1d);
 					HeartBeat();
@@ -134,6 +151,7 @@ namespace LogJoint.Tests
 			{
 				using (var childAgg = agg.CreateChildAggregator())
 				{
+					RunInvokedAction(); // run periodic
 					var childAggEvts = MakeOutEventsMock(childAgg);
 
 					sink.SetValue(0.4);
@@ -177,6 +195,8 @@ namespace LogJoint.Tests
 			{
 				using (var childAgg2 = agg.CreateChildAggregator())
 				{
+					RunInvokedAction(); // run periodic
+
 					childAgg1Evts = MakeOutEventsMock(childAgg1);
 					childAgg2Evts = MakeOutEventsMock(childAgg2);
 
@@ -203,6 +223,8 @@ namespace LogJoint.Tests
 		{
 			using (var childAgg = agg.CreateChildAggregator())
 			{
+				RunInvokedAction(); // run periodic
+
 				using (var sink = childAgg.CreateProgressSink())
 					sink.SetValue(0.5);
 				RunInvokedAction();

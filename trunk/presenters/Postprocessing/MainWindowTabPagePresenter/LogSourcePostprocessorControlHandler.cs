@@ -191,7 +191,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						if (text.Length > 0)
 						{
 							var fname = Path.Combine(Path.GetDirectoryName(tempFiles.GenerateNewName()),
-								$"{postprocessorKind}-errors-{DateTime.Now:O}.txt");
+								$"{postprocessorKind}-errors-{DateTime.Now.Ticks}.txt");
 							File.WriteAllText(fname, text.ToString());
 							shellOpen.OpenInTextEditor(fname);
 						}
