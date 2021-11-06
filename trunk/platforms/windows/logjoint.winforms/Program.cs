@@ -80,7 +80,6 @@ namespace LogJoint
 			mainForm.bookmarksManagerView.ListView.SetViewModel(presentation.ViewModels.BookmarksList);
 			mainForm.sourcesListView.SourcesListView.SetViewModel(presentation.ViewModels.SourcesList);
 			mainForm.sourcesListView.SetViewModel(presentation.ViewModels.SourcesManager);
-			mainForm.searchPanelView.searchTextBox.InnerTextBox.SetViewModel(presentation.ViewModels.SearchPanel.QuickSearchTextBox);
 			mainForm.searchPanelView.SetViewModel(presentation.ViewModels.SearchPanel);
 			mainForm.postprocessingView.SetViewModel(presentation.ViewModels.PostprocessingsTab);
 			mainForm.timeLinePanel.SetViewModel(presentation.ViewModels.TimelinePanel);

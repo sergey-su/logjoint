@@ -21,6 +21,7 @@ namespace LogJoint.UI
 		public void SetViewModel(IViewModel viewModel)
 		{
 			this.viewModel = viewModel;
+			searchTextBox.InnerTextBox.SetViewModel(viewModel.QuickSearchTextBox);
 
 			var updateChecked = Updaters.Create(() => viewModel.CheckableControlsState, value => 
 			{
