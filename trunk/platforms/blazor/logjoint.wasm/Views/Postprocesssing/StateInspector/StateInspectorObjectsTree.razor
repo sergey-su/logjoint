@@ -17,14 +17,27 @@
                 paintInfo.Coloring == NodeColoring.Alive ? "l" : 
                 paintInfo.Coloring == NodeColoring.Deleted ? "d" : 
                 ""; }
+            @{var coloringStyle = 
+                node.IsSelected ? "" : 
+                paintInfo.Coloring == NodeColoring.LogSource ? $"background-color: {LogJoint.Drawing.ColorExtensions.ToHtmlColor(paintInfo.LogSourceColor.Value)}" : 
+                ""; }
+            @{var tooltip = 
+                paintInfo.Coloring == NodeColoring.LogSource ? context.ToString() : 
+                ""; }
             @if (paintInfo.DrawFocusedMsgMark)
             {
                 <span class="f"></span>
             }
-            <span class="n @coloringClass">@context.ToString()</span>
+            <span class="n @coloringClass" style=@coloringStyle title=@tooltip>
+                @if (!string.IsNullOrEmpty(paintInfo.Annotation))
+                {
+                    <span class="annotation">@paintInfo.Annotation</span>
+                }
+                @context.ToString()
+            </span>
             @if (!string.IsNullOrEmpty(paintInfo.PrimaryPropValue))
             {
-                <span class="p @coloringClass"><span>@paintInfo.PrimaryPropValue</span></span>
+                <span class="p @coloringClass" style=@coloringStyle><span>@paintInfo.PrimaryPropValue</span></span>
             }
         </NodeTemplate>
     </TreeView>

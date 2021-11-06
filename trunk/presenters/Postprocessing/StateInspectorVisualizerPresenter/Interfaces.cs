@@ -27,7 +27,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 	{
 		Alive = 1,
 		Deleted = 2,
-		NotCreatedYet = 3
+		NotCreatedYet = 3,
+		LogSource = 4, // color of the first involved log source
 	};
 
 	public enum Key
@@ -98,6 +99,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		public NodeColoring Coloring;
 		public string PrimaryPropValue;
 		public bool DrawFocusedMsgMark;
+		public Drawing.Color? LogSourceColor;
+		public string Annotation;
 	};
 
 	public delegate NodePaintInfo PaintNodeDelegate(IObjectsTreeNode node, bool getPrimaryPropValue);

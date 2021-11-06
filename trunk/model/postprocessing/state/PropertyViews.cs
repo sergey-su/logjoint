@@ -120,9 +120,9 @@ namespace LogJoint.Postprocessing.StateInspector
 	{
 		readonly ILogSource ls;
 
-		public SourceReferencePropertyView(IInspectedObject obj): base(obj)
+		public SourceReferencePropertyView(IInspectedObject obj, ILogSource ls) : base(obj)
 		{
-			this.ls = obj.GetPrimarySource();
+			this.ls = ls;
 		}
 
 		public override bool IsLink()

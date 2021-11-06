@@ -14,6 +14,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		readonly Windows.Reactive.IReactive reactive;
 		IViewModel viewModel;
 		Windows.Reactive.ITreeViewController<IObjectsTreeNode> treeViewController;
+		Dictionary<System.Drawing.Color, NodeColoringResources> nodeColoringResourcesCache = new();
 
 		public StateInspectorForm(Windows.Reactive.IReactive reactive)
 		{
@@ -81,9 +82,9 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		}
 
 
-		NodeColoringResources GetNodeColoringResources(NodeColoring coloring)
+		NodeColoringResources GetNodeColoringResources(NodePaintInfo paintInfo)
 		{
-			switch (coloring)
+			switch (paintInfo.Coloring)
 			{
 				case NodeColoring.Alive:
 					return NodeColoringResources.Alive;
@@ -91,18 +92,16 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 					return NodeColoringResources.Deleted;
 				case NodeColoring.NotCreatedYet:
 					return NodeColoringResources.NotCreatedYet;
+				case NodeColoring.LogSource:
+					var cl = Drawing.PrimitivesExtensions.ToSystemDrawingObject(paintInfo.LogSourceColor.Value);
+					if (nodeColoringResourcesCache.TryGetValue(cl, out var res))
+						return res;
+					res = new NodeColoringResources(cl, new SolidBrush(cl), new Color(), NodeColoring.LogSource);
+					nodeColoringResourcesCache[cl] = res;
+					return res;
 				default:
 					return NodeColoringResources.NotCreatedYet;
 			}
-		}
-
-		static NodeColoringResources GetNodeColoringResources(TreeNode node)
-		{
-			if (node.BackColor == NodeColoringResources.Alive.BkColor)
-				return NodeColoringResources.Alive;
-			if (node.BackColor == NodeColoringResources.Deleted.BkColor)
-				return NodeColoringResources.Deleted;
-			return NodeColoringResources.NotCreatedYet;
 		}
 
 		private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -150,7 +149,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			var paintInfo = viewModel.PaintNode(treeViewController.Map(e.Node), false);
 
 			if (paintInfo.DrawingEnabled)
-				e.BackColor = GetNodeColoringResources(paintInfo.Coloring).BkColor;
+				e.BackColor = GetNodeColoringResources(paintInfo).BkColor;
 		}
 
 		private void objectsTreeView_DrawNode(object sender, DrawTreeNodeEventArgs e)
@@ -164,7 +163,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			if (!paintInfo.DrawingEnabled)
 				return;
 
-			var coloringResources = GetNodeColoringResources(paintInfo.Coloring);
+			var coloringResources = GetNodeColoringResources(paintInfo);
 
 			if (paintInfo.PrimaryPropValue != null)
 			{

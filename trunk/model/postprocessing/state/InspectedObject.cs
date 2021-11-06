@@ -140,9 +140,6 @@ namespace LogJoint.Postprocessing.StateInspector
 		IEnumerable<KeyValuePair<string, PropertyViewBase>> IInspectedObject.GetCurrentProperties(FocusedMessageEventsRange focusedMessageEqualRange)
 		{
 			yield return new KeyValuePair<string, PropertyViewBase>("id", new IdPropertyView(this, id));
-			if (parent == null)
-				yield return new KeyValuePair<string, PropertyViewBase>("(log source)",
-					new SourceReferencePropertyView(this));
 			if (creation != null && !isTimeless)
 				yield return new KeyValuePair<string, PropertyViewBase>("created at",
 					new PropertyChangeView(this, creation, PropertyChangeView.DisplayMode.Date, shortNames));

@@ -68,7 +68,7 @@ namespace LogJoint.Postprocessing.StateInspector
 				.GroupBy(output => output.RotatedLogPartToken, new PartsOfSameLogEqualityComparer())
 				.Select(group => new RotatedLogGroup()
 				{
-					key = string.Join("#", group.Select(output => output.LogSource.GetSafeConnectionId().GetHashCode())),
+					key = "logs_group#" + string.Join("#", group.Select(output => output.LogSource.GetSafeConnectionId().GetHashCode())),
 					parts = group.ToList()
 				});
 
@@ -101,6 +101,8 @@ namespace LogJoint.Postprocessing.StateInspector
 					treeBuilder.AddEventsFrom(group);
 					group.roots = treeBuilder.Build();
 					group.displayNames = MakeDisplayNamesMap(group.events);
+					foreach (var r in group.roots)
+						r.SetParent(group);
 
 					group.isInitialized = true;
 				}
@@ -120,7 +122,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			return result;
 		}
 
-		class RotatedLogGroup : IStateInspectorOutputsGroup
+		class RotatedLogGroup : IStateInspectorOutputsGroup, IInspectedObject
 		{
 			public string key;
 			public bool isInitialized;
@@ -129,15 +131,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			public IReadOnlyList<IInspectedObject> roots;
 			public Dictionary<string, string> displayNames;
 
-			string IStateInspectorOutputsGroup.Key
-			{
-				get { return key; }
-			}
-
-			IReadOnlyList<IInspectedObject> IStateInspectorOutputsGroup.Roots
-			{
-				get { return roots; }
-			}
+			string IStateInspectorOutputsGroup.Key => key;
 
 			IReadOnlyList<StateInspectorEvent> IStateInspectorOutputsGroup.Events
 			{
@@ -154,13 +148,67 @@ namespace LogJoint.Postprocessing.StateInspector
 				displayName = null;
 				return objectId != null && displayNames.TryGetValue(objectId, out displayName);
 			}
-		};
 
-		readonly IManagerInternal postprocessorsManager;
+            IEnumerable<KeyValuePair<string, PropertyViewBase>> IInspectedObject.GetCurrentProperties(FocusedMessageEventsRange focusedMessage)
+            {
+				for (int i = 0; i < parts.Count; ++i)
+					yield return new KeyValuePair<string, PropertyViewBase>(parts.Count == 1 ? "log source" : $"log source #{i + 1}",
+						new SourceReferencePropertyView(this, parts[i].LogSource));
+            }
+
+			string IInspectedObject.GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage) => null;
+
+			InspectedObjectLiveStatus IInspectedObject.GetLiveStatus(FocusedMessageEventsRange focusedMessage) => InspectedObjectLiveStatus.Alive;
+
+			IEnumerable<ILogSource> IInspectedObject.EnumInvolvedLogSources() => parts.Select(p => p.LogSource);
+
+            void IInspectedObject.SetParent(IInspectedObject value)
+            {
+            }
+
+            void IInspectedObject.RemoveChild(IInspectedObject child)
+            {
+            }
+
+            void IInspectedObject.AddChild(IInspectedObject child)
+            {
+            }
+
+            void IInspectedObject.SetCreationEvent(StateInspectorEvent evt)
+            {
+            }
+
+            void IInspectedObject.SetDeletionEvent(StateInspectorEvent evt)
+            {
+            }
+
+            void IInspectedObject.AddStateChangeEvent(StateInspectorEvent evt)
+            {
+            }
+
+			IEnumerable<IInspectedObject> IInspectedObject.Children => roots;
+
+			IStateInspectorOutputsGroup IInspectedObject.Owner => this;
+
+            string IInspectedObject.Id => key;
+
+            string IInspectedObject.DisplayName => null;
+
+            string IInspectedObject.Comment => "";
+
+			IInspectedObject IInspectedObject.Parent => null;
+
+			IEnumerable<StateInspectorEvent> IInspectedObject.StateChangeHistory => Enumerable.Empty<StateInspectorEvent>();
+
+			StateInspectorEvent IInspectedObject.CreationEvent => null;
+
+			bool IInspectedObject.IsTimeless => true;
+        }
+
+        readonly IManagerInternal postprocessorsManager;
 		readonly IUserNamesProvider shortNamesManager;
 		HashSet<IStateInspectorOutput> outputs = new HashSet<IStateInspectorOutput>();
 		ImmutableDictionary<string, RotatedLogGroup> groups = ImmutableDictionary<string, RotatedLogGroup>.Empty;
-		readonly AsyncInvokeHelper outputsUpdateInvocation;
 		readonly Func<IReadOnlyList<IStateInspectorOutputsGroup>> getGroupsList;
 	};
 }

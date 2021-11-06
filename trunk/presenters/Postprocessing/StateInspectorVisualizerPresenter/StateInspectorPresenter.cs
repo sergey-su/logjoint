@@ -158,7 +158,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			this.getPaintNode = Selectors.Create(
 				getFocusedMessageEqualRange,
-				MakePaintNodeDelegate
+				r => MakePaintNodeDelegate(r, theme)
 			);
 
 			this.getFocusedMessagePositionInHistory = Selectors.Create(
@@ -427,25 +427,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			VisualizerNode existingRoot
 		)
 		{
-			var existingRoots = existingRoot.Children.ToLookup(c => c.InspectedObject);
+			var existingGroups = existingRoot.Children.ToLookup(c => c.InspectedObject);
 
 			var children = ImmutableList.CreateRange(
-				groups.SelectMany(
-					group => group.Roots.Select(rootObj =>
-					{
-						var existingNode = existingRoots[rootObj].FirstOrDefault();
-						if (existingNode != null)
-							return existingNode.SetAnnotationsMap(annotationsMap);
-						var newNode = MakeVisualizerNode(rootObj, 1, annotationsMap);
-						newNode.SetInitialProps(nodeCreationHandler); // call handler on second phase when all children and parents are initiated
-						return newNode;
-					})
-				)
+				groups.Select(group =>
+				{
+					var existingNode = existingGroups[group].FirstOrDefault();
+					if (existingNode != null)
+						return existingNode.SetAnnotationsMap(annotationsMap);
+					var newNode = MakeVisualizerNode(group, 1, annotationsMap);
+					newNode.SetInitialProps(nodeCreationHandler); // call handler on second phase when all children and parents are initiated
+					return newNode;
+				})
 			);
 
 			children = children.Sort((n1, n2) => MessageTimestamp.Compare(GetNodeTimestamp(n1), GetNodeTimestamp(n2)));
 
-			var result = new VisualizerNode(null, children, true, false, 0, annotationsMap);
+			var result = new VisualizerNode(null, children, expanded: true, selected: false, level: 0, annotationsMap);
 
 			if (!result.HasSelectedNodes &&  result.Children.Count > 0)
 				result = result.Children[0].Select(true);
@@ -463,38 +461,47 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		}
 
 		static PaintNodeDelegate MakePaintNodeDelegate(
-			Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> getFocusedMessageEqualRange
+			Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> getFocusedMessageEqualRange,
+			IColorTheme theme
 		)
 		{
 			NodePaintInfo result(IObjectsTreeNode node, bool getPrimaryPropValue)
 			{
 				var ret = new NodePaintInfo();
 
-				IInspectedObject obj = (node as VisualizerNode)?.InspectedObject;
+				var visualizerNode = node as VisualizerNode;
+				IInspectedObject obj = visualizerNode?.InspectedObject;
 				if (obj == null)
 					return ret;
 
 				ret.DrawingEnabled = true;
 
+				ret.Annotation = visualizerNode.Annotation;
+
 				var focusedMessageEventsRange = getFocusedMessageEqualRange(obj.Owner);
-				var liveStatus = obj.GetLiveStatus(focusedMessageEventsRange);
-				var coloring = GetLiveStatusColoring(liveStatus);
-				ret.Coloring = coloring;
-
-				if (liveStatus == InspectedObjectLiveStatus.Alive || liveStatus == InspectedObjectLiveStatus.Deleted || obj.IsTimeless)
+				if (obj.Parent == null) // Log source group node
 				{
-					if (getPrimaryPropValue)
-					{
-						ret.PrimaryPropValue = obj.GetCurrentPrimaryPropertyValue(focusedMessageEventsRange);
-					}
-				}
-
-				if (obj.Parent == null)
-				{
+					var logSources = obj.EnumInvolvedLogSources();
 					var focusedLs = focusedMessageEventsRange?.FocusedMessage?.GetLogSource();
 					if (focusedLs != null)
 					{
-						ret.DrawFocusedMsgMark = obj.EnumInvolvedLogSources().Any(ls => ls == focusedLs);
+						ret.DrawFocusedMsgMark = logSources.Any(ls => ls == focusedLs);
+					}
+					ret.Coloring = NodeColoring.LogSource;
+					ret.LogSourceColor = theme.ThreadColors.GetByIndex(logSources.FirstOrDefault().ColorIndex);
+				}
+				else
+				{
+					var liveStatus = obj.GetLiveStatus(focusedMessageEventsRange);
+					var coloring = GetLiveStatusColoring(liveStatus);
+					ret.Coloring = coloring;
+
+					if (liveStatus == InspectedObjectLiveStatus.Alive || liveStatus == InspectedObjectLiveStatus.Deleted || obj.IsTimeless)
+					{
+						if (getPrimaryPropValue)
+						{
+							ret.PrimaryPropValue = obj.GetCurrentPrimaryPropertyValue(focusedMessageEventsRange);
+						}
 					}
 				}
 
@@ -671,7 +678,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		IEnumerable<IInspectedObject> EnumRoots()
 		{
-			return model.Groups.SelectMany(g => g.Roots);
+			return model.Groups.SelectMany(g => g.Children);
 		}
 
 		VisualizerNode FindOrCreateNode(IInspectedObject obj)
@@ -984,6 +991,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			private readonly int level;
 			private readonly bool hasSelectedNodes;
 			private readonly ImmutableDictionary<ILogSource, string> annotationsMap;
+			private readonly string annotation;
 
 			// Parent pointers lead to currently visible root node.
 			// If null - the node is not reachable from ViewModel root.
@@ -1004,7 +1012,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				this.key = $"{obj?.GetHashCode():x08}";
 				this.children = children;
 				this.annotationsMap = annotationsMap;
-				this.text = GetNodeText(obj, level, annotationsMap);
+				this.text = GetNodeText(obj, level);
+				this.annotation = GetNodeAnnotation(obj, level, annotationsMap);
 				this.expanded = expanded;
 				this.selected = selected;
 				this.level = level;
@@ -1018,11 +1027,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			public bool HasSelectedNodes => hasSelectedNodes;
 			public IReadOnlyList<VisualizerNode> Children => children;
 			public bool IsExpandable => true;
+			public string Annotation => annotation;
 
 			public void SetInitialProps(EventHandler<NodeCreatedEventArgs> nodeCreationHandler)
 			{
 				bool createCollapsed = false;
-				if (level < 5) // todo: why 5?
+				if (level < 7) // todo: why 7?
 				{
 					if (nodeCreationHandler != null)
 					{
@@ -1092,25 +1102,31 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			public override string ToString() => text;
 
-			static private string GetNodeText(IInspectedObject node, int level, ImmutableDictionary<ILogSource, string> annotationsMap)
+			static private string GetNodeText(IInspectedObject node, int level)
 			{
 				switch (level)
 				{
 					case 0: return "";
 					case 1:
-						var rootNodeText = new StringBuilder(node.Id);
-						var ls = node.EnumInvolvedLogSources().FirstOrDefault();
-						if (ls != null && annotationsMap.TryGetValue(ls, out var logSourceAnnotation))
-							rootNodeText.AppendFormat(" ({0})", logSourceAnnotation);
-						if (node.Comment != "")
-							rootNodeText.AppendFormat(" ({0})", node.Comment);
-						return rootNodeText.ToString();
+						return node.EnumInvolvedLogSources().FirstOrDefault().DisplayName;
 					default:
 						string nodeText = node.DisplayName;
 						if (node.Comment != "")
 							nodeText += " (" + node.Comment + ")";
 						return nodeText;
 				}
+			}
+
+			static private string GetNodeAnnotation(IInspectedObject node, int level, 
+				ImmutableDictionary<ILogSource, string> annotationsMap)
+			{
+				if (level == 1)
+				{
+					var ls = node.EnumInvolvedLogSources().FirstOrDefault();
+					if (annotationsMap.TryGetValue(ls, out var logSourceAnnotation))
+						return logSourceAnnotation;
+				}
+				return null;
 			}
 		};
 
