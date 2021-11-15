@@ -423,7 +423,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.EnableFormControls(!wait);
 			if (!wait)
 			{
-				inputFocusBeforeWaitState.Restore();
+				inputFocusBeforeWaitState?.Restore();
 			}
 		}
 
