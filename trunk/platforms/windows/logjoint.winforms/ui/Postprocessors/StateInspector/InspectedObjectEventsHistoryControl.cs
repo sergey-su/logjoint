@@ -141,6 +141,8 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 					k = Key.Enter;
 				else if (keyData == Keys.B)
 					k = Key.BookmarkShortcut;
+				else if (keyData == (Keys.C | Keys.Control))
+					k = Key.CopyShortcut;
 				if (k != Key.None)
 				{
 					viewModel.OnChangeHistoryItemKeyEvent(PrimarySelectedItem, k);

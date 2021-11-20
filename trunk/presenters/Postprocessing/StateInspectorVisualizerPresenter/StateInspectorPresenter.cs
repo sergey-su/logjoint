@@ -335,16 +335,26 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				ShowPropertyChange(historyItem.Event, retainFocus: false);
 		}
 
-		void IViewModel.OnChangeHistoryItemKeyEvent(IStateHistoryItem item, Key key)
+		async void IViewModel.OnChangeHistoryItemKeyEvent(IStateHistoryItem item, Key key)
 		{
 			if (item is StateHistoryItem historyItem)
 			{
 				if (key == Key.Enter)
 					ShowPropertyChange(historyItem.Event, retainFocus: true);
 				else if (key == Key.BookmarkShortcut)
-					ToggleBookmark(historyItem.Event);
+					await ToggleBookmark(historyItem.Event);
 				else if (key == Key.CopyShortcut)
-					clipboardAccess.SetClipboard(historyItem.Message);
+				{
+					clipboardAccess.SetClipboard(
+						getStateHistoryItems()
+							.Where(item => item.IsSelected)
+							.Aggregate(
+								new StringBuilder(),
+								(sb, item) => sb.AppendLine($"{FormatTimestampt(item.Event)} {item.Message}"),
+								sb => sb.ToString()
+							)
+					);
+				}
 			}
 		}
 
