@@ -15,7 +15,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		PlotsViewMetrics PlotsViewMetrics { get; }
 		void Invalidate();
 		IConfigDialogView CreateConfigDialogView(IConfigDialogEventsHandler evts);
-		ToastNotificationPresenter.IView ToastNotificationsView { get; }
 		void UpdateYAxesSize();
 		void UpdateLegend(IEnumerable<LegendItemInfo> items);
 		void SetNotificationsIconVisibility(bool value);
@@ -23,6 +22,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 	public interface IViewEvents
 	{
+		ToastNotificationPresenter.IViewModel ToastNotification { get; }
 		PlotsDrawingData OnDrawPlotsArea();
 		void OnKeyDown(KeyCode keyCode);
 		void OnMouseDown(ViewPart viewPart, PointF pt, int clicks);

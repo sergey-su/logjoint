@@ -75,7 +75,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				view.Invalidate();
 			};
 			throttlingToastNotificationItem = new ThrottlingToastNotificationItem();
-			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
+			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(changeNotification);
 			toastNotificationsPresenter.Register(throttlingToastNotificationItem);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.TimeSeries));
@@ -123,6 +123,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					return true;
 			return false;
 		}
+
+		ToastNotificationPresenter.IViewModel IViewEvents.ToastNotification => toastNotificationsPresenter.ViewModel;
 
 		PlotsDrawingData IViewEvents.OnDrawPlotsArea()
 		{

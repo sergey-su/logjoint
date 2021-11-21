@@ -16,7 +16,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		int RolesCaptionsAreaHeight { get; }
 		TagsList.IView TagsListView { get; }
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
-		ToastNotificationPresenter.IView ToastNotificationsView { get; }
 		void PutInputFocusToArrowsArea();
 	};
 
@@ -24,6 +23,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 	{
 		IChangeNotification ChangeNotification { get; }
 		bool IsNotificationsIconVisibile { get; }
+		ToastNotificationPresenter.IViewModel ToastNotification { get; }
 		CurrentArrowInfo CurrentArrowInfo { get; }
 		bool IsCollapseResponsesChecked { get; }
 		bool IsCollapseRoleInstancesChecked { get; }

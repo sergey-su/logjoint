@@ -87,6 +87,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			this.transform = matrixFactory.CreateIdentity();
 
+			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(changeNotification);
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.SequenceDiagram));
+
 			view.SetViewModel(this);
 
 			this.metrics = new MetricsCache(view.GetMetrics());
@@ -129,10 +133,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				changeNotification.Post();
 				view.PutInputFocusToArrowsArea();
 			};
-
-			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
-			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.SequenceDiagram));
 
 			state = Selectors.Create(
 				() => (model.InternodeMessages, model.UnpairedMessages, model.TimelineComments, model.StateComments, model.MetadataEntries),
@@ -221,6 +221,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
 		bool IViewModel.IsNotificationsIconVisibile => toastNotificationsPresenter.HasSuppressedNotifications;
+
+		ToastNotificationPresenter.IViewModel IViewModel.ToastNotification => toastNotificationsPresenter.ViewModel;
 
 		CurrentArrowInfo IViewModel.CurrentArrowInfo => currentArrowInfo();
 

@@ -30,6 +30,8 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
 			this.eventsHandler = eventsHandler;
+
+			toastNotificationsListControl.SetViewModel(eventsHandler.ToastNotification);
 		}
 
 		void IView.Show() => FindForm()?.Show();
@@ -37,11 +39,6 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		PlotsViewMetrics IView.PlotsViewMetrics
 		{
 			get { return GetPlotViewMetrics(); }
-		}
-
-		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
-		{
-			get { return toastNotificationsListControl; }
 		}
 
 		void IView.Invalidate()

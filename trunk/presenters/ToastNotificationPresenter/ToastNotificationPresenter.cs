@@ -1,25 +1,25 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 {
-	public class Presenter: IPresenter, IViewEvents
+	public class Presenter: IPresenter, IViewModel
 	{
-		readonly IView view;
 		readonly List<ItemData> items = new List<ItemData>();
 		readonly IChangeNotification changeNotification;
 		bool hasSuppressedNotifications;
+		IReadOnlyList<ViewItem> viewItems = ImmutableArray<ViewItem>.Empty;
 
 		public Presenter(
-			IView view,
 			IChangeNotification changeNotification
 		)
 		{
-			this.view = view;
 			this.changeNotification = changeNotification;
-			view?.SetEventsHandler(this);
 		}
+
+		IViewModel IPresenter.ViewModel => this;
 
 		void IPresenter.Register (IToastNotificationItem item)
 		{
@@ -45,12 +45,18 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 
 		public event EventHandler SuppressedNotificationsChanged;
 
-		void IViewEvents.OnItemActionClicked (ViewItem item, string actionId)
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		bool IViewModel.Visible => viewItems.Count > 0;
+
+		IReadOnlyList<ViewItem> IViewModel.Items => viewItems;
+
+		void IViewModel.OnItemActionClicked (ViewItem item, string actionId)
 		{
 			ModifyItem(item, i => i.source.PerformAction(actionId));
 		}
 
-		void IViewEvents.OnItemSuppressButtonClicked (ViewItem item)
+		void IViewModel.OnItemSuppressButtonClicked (ViewItem item)
 		{
 			ModifyItem(item, i => 
 			{
@@ -73,7 +79,7 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 
 		void UpdateView()
 		{
-			var viewItems = 
+			viewItems = 
 				items
 				.Where(i => i.source.IsActive && !i.suppressed)
 				.Select(i => i.viewItem = new ViewItem() 
@@ -82,9 +88,8 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 					Progress = i.source.Progress,
 					IsSuppressable = true,
 				})
-				.ToArray();
-			view?.SetVisibility(viewItems.Length > 0);
-			view?.Update(viewItems);
+				.ToImmutableArray();
+			changeNotification.Post();
 		}
 
 		void ModifyItem(Predicate<ItemData> keyPredicate, Action<ItemData> action)
@@ -114,8 +119,7 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 				{
 					this.hasSuppressedNotifications = hasSuppressedNotifications;
 					this.changeNotification.Post();
-					if (SuppressedNotificationsChanged != null)
-						SuppressedNotificationsChanged(this, EventArgs.Empty);
+					SuppressedNotificationsChanged?.Invoke(this, EventArgs.Empty);
 				}
 			});
 		}

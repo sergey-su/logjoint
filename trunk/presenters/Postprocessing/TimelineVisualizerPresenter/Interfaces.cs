@@ -10,7 +10,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void SetViewModel(IViewModel viewModel);
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
 		Presenters.TagsList.IView TagsListView { get; }
-		Presenters.ToastNotificationPresenter.IView ToastNotificationsView { get; }
 		RulerMetrics VisibleRangeRulerMetrics { get; }
 		RulerMetrics AvailableRangeRulerMetrics { get; }
 
@@ -24,6 +23,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 	{
 		IChangeNotification ChangeNotification { get; }
 		QuickSearchTextBox.IViewModel QuickSearchTextBox { get; }
+		ToastNotificationPresenter.IViewModel ToastNotification { get; }
 
 		void OnWindowShown();
 		void OnWindowHidden();

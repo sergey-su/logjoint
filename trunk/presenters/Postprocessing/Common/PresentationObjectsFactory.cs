@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 	{
 		QS.IPresenter CreateQuickSearch(QS.IView view, IChangeNotification changeNotification);
 		TL.IPresenter CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification);
-		TN.IPresenter CreateToastNotifications(TN.IView view, IChangeNotification changeNotification);
+		TN.IPresenter CreateToastNotifications(IChangeNotification changeNotification);
 		TN.IToastNotificationItem CreateCorrelatorToastNotificationItem();
 		TN.IToastNotificationItem CreateUnprocessedLogsToastNotification(PostprocessorKind postprocessorKind);
 	};
@@ -56,9 +56,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			return new QS.Presenter(view, changeNotification);
 		}
 
-		TN.IPresenter IPresentationObjectsFactory.CreateToastNotifications(TN.IView view, IChangeNotification changeNotification)
+		TN.IPresenter IPresentationObjectsFactory.CreateToastNotifications(IChangeNotification changeNotification)
 		{
-			return new TN.Presenter(view, changeNotification);
+			return new TN.Presenter(changeNotification);
 		}
 	};
 }

@@ -96,6 +96,8 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				updateScrollBars();
 				invalidateViews();
 			});
+
+			toastNotificationsListControl.SetViewModel(viewModel.ToastNotification);
 		}
 
 		ViewMetrics IView.GetMetrics()
@@ -148,11 +150,6 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		{
 			if (arrowsPanel.CanFocus)
 				arrowsPanel.Focus();
-		}
-
-		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
-		{
-			get { return toastNotificationsListControl; }
 		}
 
 		private void InitializeArrowEndShapePoints()

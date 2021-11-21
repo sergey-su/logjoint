@@ -135,6 +135,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				if (this.ParentForm.Visible) viewModel.OnWindowShown();
 				else viewModel.OnWindowHidden();
 			};
+
+			toastNotificationsListControl.SetViewModel(viewModel.ToastNotification);
 		}
 
 		void IView.Show() => FindForm()?.Show();
@@ -213,11 +215,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		LogJoint.UI.Presenters.TagsList.IView IView.TagsListView
 		{
 			get { return tagsListControl; }
-		}
-
-		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
-		{
-			get { return toastNotificationsListControl; }
 		}
 
 		RulerMetrics IView.VisibleRangeRulerMetrics => getVisibleRangeRulerMetrics();

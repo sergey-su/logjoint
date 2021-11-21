@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 {
@@ -8,13 +9,7 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 		bool HasSuppressedNotifications { get; }
 		void UnsuppressNotifications();
 		event EventHandler SuppressedNotificationsChanged;
-	};
-
-	public interface IView
-	{
-		void SetEventsHandler(IViewEvents eventsHandler);
-		void SetVisibility(bool visible);
-		void Update(ViewItem[] items);
+		IViewModel ViewModel { get; }
 	};
 
 	public class ViewItem
@@ -24,8 +19,11 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 		public bool IsSuppressable;
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		bool Visible { get; }
+		IReadOnlyList<ViewItem> Items { get; }
 		void OnItemActionClicked(ViewItem item, string actionId);
 		void OnItemSuppressButtonClicked(ViewItem item);
 	};

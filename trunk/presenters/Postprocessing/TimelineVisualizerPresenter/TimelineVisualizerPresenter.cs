@@ -73,7 +73,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				view.ReceiveInputFocus();
 			};
 
-			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
+			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.Timeline));
 
@@ -125,6 +125,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
 		QuickSearchTextBox.IViewModel IViewModel.QuickSearchTextBox => quickSearchTextBoxPresenter.ViewModel;
+
+		ToastNotificationPresenter.IViewModel IViewModel.ToastNotification => toastNotificationsPresenter.ViewModel;
 
 		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 

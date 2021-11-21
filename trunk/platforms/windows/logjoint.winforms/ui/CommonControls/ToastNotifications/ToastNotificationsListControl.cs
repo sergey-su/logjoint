@@ -2,12 +2,13 @@
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.ToastNotificationPresenter;
 using LogJoint.UI;
+using System.Collections.Generic;
 
 namespace LogJoint.UI
 {
-	public partial class ToastNotificationsListControl : UserControl, IView
+	public partial class ToastNotificationsListControl : UserControl
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		bool ctrlsInitialzed;
 
 		public ToastNotificationsListControl()
@@ -15,17 +16,21 @@ namespace LogJoint.UI
 			InitializeComponent();
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		public void SetViewModel(IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
+			this.viewModel = viewModel;
+
+			var updateVisibility = Updaters.Create(() => viewModel.Visible, value => this.Visible = value);
+			var updateItems = Updaters.Create(() => viewModel.Items, Update);
+
+			viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				updateVisibility();
+				updateItems();
+			});
 		}
 
-		void IView.SetVisibility(bool visible)
-		{
-			this.Visible = visible;
-		}
-
-		void IView.Update(ViewItem[] items)
+		void Update(IReadOnlyList<ViewItem> items)
 		{
 			var allCtrls = new[]
 			{
@@ -36,7 +41,7 @@ namespace LogJoint.UI
 			};
 			foreach (var x in allCtrls.ZipWithIndex())
 			{
-				var data = x.Key < items.Length ? items[x.Key] : null;
+				var data = x.Key < items.Count ? items[x.Key] : null;
 				var ctrls = allCtrls[x.Key];
 				ctrls.l.Visible = data != null;
 				ctrls.p.Visible = data != null && data.Progress != null;
@@ -61,14 +66,14 @@ namespace LogJoint.UI
 		{
 			var btn = sender as Button;
 			if (btn != null && btn.Tag is ViewItem)
-				eventsHandler.OnItemSuppressButtonClicked((ViewItem)btn.Tag);
+				viewModel.OnItemSuppressButtonClicked((ViewItem)btn.Tag);
 		}
 
 		void linkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
 			var ctrl = sender as Control;
 			if (ctrl != null && e.Link.LinkData is string)
-				eventsHandler.OnItemActionClicked((ViewItem)ctrl.Tag, (string)e.Link.LinkData);
+				viewModel.OnItemActionClicked((ViewItem)ctrl.Tag, (string)e.Link.LinkData);
 		}
 	}
 }
