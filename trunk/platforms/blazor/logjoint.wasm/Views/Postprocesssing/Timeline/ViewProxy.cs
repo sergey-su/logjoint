@@ -15,7 +15,6 @@ namespace LogJoint.Wasm.UI.Postprocesssing.Timeline
 
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox => null;
 		LogJoint.UI.Presenters.TagsList.IView IView.TagsListView => null;
-		LogJoint.UI.Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView => null;
 		RulerMetrics IView.VisibleRangeRulerMetrics => component?.VisibleRangeRulerMetrics;
 		RulerMetrics IView.AvailableRangeRulerMetrics => component?.AvailableRangeRulerMetrics;
 

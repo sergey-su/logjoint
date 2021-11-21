@@ -84,6 +84,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void OnResizeObjectsTree(double value);
 
 		InlineSearch.IViewModel InlineSearch { get; }
+		ToastNotificationPresenter.IViewModel ToastNotification { get; }
 		void OnSearchShortcutPressed();
 	};
 

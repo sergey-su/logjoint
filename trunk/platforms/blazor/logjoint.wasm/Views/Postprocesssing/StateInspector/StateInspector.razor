@@ -7,6 +7,7 @@
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class="state-inspector @Class" @ref="stateInspectorElement">
+    <ToastNotification ViewModel="@viewModel.ToastNotification" />
     <InlineSearch ViewModel="@viewModel.InlineSearch" />
     <div class="contents">
         <StateInspectorObjectsTree Class="left"

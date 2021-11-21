@@ -28,7 +28,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			SourcesManager.IPresenter sourcesManagerPresenter,
 			IColorTheme theme,
 			IChangeNotification changeNotification,
-			ToolsContainer.IPresenter toolsContainerPresenter
+			ToolsContainer.IPresenter toolsContainerPresenter,
+			Common.IPresentationObjectsFactory presentationObjectsFactory
 		)
 		{
 			this.view = view;
@@ -44,6 +45,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.toolsContainerPresenter = toolsContainerPresenter;
 			this.changeNotification = changeNotification.CreateChainedChangeNotification(initiallyActive: false);
 			this.inlineSearch = new InlineSearch.Presenter(changeNotification);
+
+			toastNotification = presentationObjectsFactory.CreateToastNotifications(changeNotification);
+			toastNotification.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind.StateInspector));
 
 			var annotationsVersion = 0;
 			logSources.OnLogSourceAnnotationChanged += (sender, e) =>
@@ -424,6 +428,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		}
 
 		InlineSearch.IViewModel IViewModel.InlineSearch => inlineSearch.ViewModel;
+
+		ToastNotificationPresenter.IViewModel IViewModel.ToastNotification => toastNotification.ViewModel;
+
 
 		void IViewModel.OnSearchShortcutPressed()
 		{
@@ -1217,5 +1224,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		double? objectsTreeSize, historySize;
 		readonly InlineSearch.IPresenter inlineSearch;
 		readonly ToolsContainer.IPresenter toolsContainerPresenter;
+		readonly ToastNotificationPresenter.IPresenter toastNotification;
 	}
 }

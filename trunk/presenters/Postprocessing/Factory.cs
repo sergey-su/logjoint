@@ -78,7 +78,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 					sourcesManagerPresenter,
 					colorTheme,
 					changeNotification,
-					toolsContainerPresenter
+					toolsContainerPresenter,
+					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager)
 				);
 			});
 

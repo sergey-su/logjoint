@@ -1826,3 +1826,23 @@ body {
     transition: 0.35s stroke-dashoffset;
     transform-origin: 50% 50%;
 }
+
+
+.toast-notification {
+    background: #ffe4b5;
+    display: flex;
+    flex-flow: column nowrap;
+    padding: 3px;
+    border: 1px solid black;
+}
+.toast-notification.hidden {
+    display: none;
+}
+.toast-notification>.item {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+.toast-notification>.item>a {
+    margin: 0 5px;
+}
