@@ -2,7 +2,14 @@
 @using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 <div class="objects-tree @Class">
-    <div class="toolbar">Objects:</div>
+    <div class="toolbar">
+        <span>Objects:</span>
+        @if (IsNotificationsIconVisibile)
+        { 
+            <button class="notification-icon" @onclick="@ViewModel.OnActiveNotificationButtonClicked" 
+                    title="This view has warnings. Click to see."></button>
+        }
+    </div>
     <TreeView Class="the-tree" NodeClass="si-node" Root="@ObjectsTreeRoot"
               ChangeNotification="@ViewModel.ChangeNotification"
               OnSelect="@(nodes => ViewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray()))"
@@ -52,6 +59,9 @@
 
     [Parameter]
     public IObjectsTreeNode ObjectsTreeRoot { get; set; }
+
+    [Parameter]
+    public bool IsNotificationsIconVisibile { get; set; }
 
     [Parameter]
     public PaintNodeDelegate PaintNode { get; set; }

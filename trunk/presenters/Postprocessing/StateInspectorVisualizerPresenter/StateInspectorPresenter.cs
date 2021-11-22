@@ -431,6 +431,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		ToastNotificationPresenter.IViewModel IViewModel.ToastNotification => toastNotification.ViewModel;
 
+		bool IViewModel.IsNotificationsIconVisibile => toastNotification.HasSuppressedNotifications;
+
+		void IViewModel.OnActiveNotificationButtonClicked()
+		{
+			toastNotification.UnsuppressNotifications();
+		}
 
 		void IViewModel.OnSearchShortcutPressed()
 		{

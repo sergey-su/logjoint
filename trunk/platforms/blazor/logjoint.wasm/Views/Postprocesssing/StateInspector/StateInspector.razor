@@ -13,6 +13,7 @@
         <StateInspectorObjectsTree Class="left"
                                 ObjectsTreeRoot="@viewModel.ObjectsTreeRoot"
                                 PaintNode="@viewModel.PaintNode"
+                                IsNotificationsIconVisibile="@viewModel.IsNotificationsIconVisibile"
                                 ViewModel="@viewModel" />
         <div class="v-resizer" @ref="verticalResizerElement"></div>
         <div class="right" @ref="rightContainer" style="@GetRightStyle()">
@@ -69,7 +70,7 @@
             () => (viewModel.ObjectsTreeRoot, viewModel.PaintNode,
                 viewModel.ChangeHistoryItems, viewModel.IsChangeHistoryItemBookmarked,
                 viewModel.PropertyItems, viewModel.FocusedMessagePositionInChangeHistory,
-                viewModel.ObjectsTreeSize, viewModel.HistorySize),
+                viewModel.ObjectsTreeSize, viewModel.HistorySize, viewModel.IsNotificationsIconVisibile),
             _ => StateHasChanged()
         ));
     }

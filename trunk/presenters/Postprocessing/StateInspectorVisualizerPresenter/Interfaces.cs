@@ -85,6 +85,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		InlineSearch.IViewModel InlineSearch { get; }
 		ToastNotificationPresenter.IViewModel ToastNotification { get; }
+		bool IsNotificationsIconVisibile { get; }
+		void OnActiveNotificationButtonClicked();
+
 		void OnSearchShortcutPressed();
 	};
 
