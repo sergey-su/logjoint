@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		TN.IToastNotificationItem IPresentationObjectsFactory.CreateUnprocessedLogsToastNotification (PostprocessorKind postprocessorKind)
 		{
-			return new UnprocessedLogsToastNotification(ppm, lsm, postprocessorKind);
+			return new UnprocessedLogsToastNotification(ppm, postprocessorKind);
 		}
 
 		TL.IPresenter IPresentationObjectsFactory.CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification)

@@ -40,7 +40,18 @@
     [Parameter]
     public IViewModel ViewModel { get; set; }
 
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => ViewModel.Visible, () => ViewModel.Items,
+            (_1, _2) => StateHasChanged()
+        ));
+    }
+
     public void Dispose()
     {
+        subscription?.Dispose();
     }
 }

@@ -9,14 +9,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
 	public class UnprocessedLogsToastNotification: IToastNotificationItem
 	{
-		IManagerInternal ppm;
-		PostprocessorKind postprocessorKind;
+		readonly IManagerInternal ppm;
+		readonly PostprocessorKind postprocessorKind;
 		int nrOfUnprocessed;
+		int nrOfInProgress;
 		double? progress;
 
 		public UnprocessedLogsToastNotification(
 			IManagerInternal ppm,
-			ILogSourcesManager lsm,
 			PostprocessorKind postprocessorKind
 		)
 		{
@@ -37,17 +37,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		bool IToastNotificationItem.IsActive
 		{
-			get { return nrOfUnprocessed > 0 || progress != null; }
+			get { return nrOfUnprocessed > 0 || nrOfInProgress > 0; }
 		}
 
 		string IToastNotificationItem.Contents
 		{
 			get
 			{
-				if (progress != null)
-					return "view will be updated soon with new data";
+				if (nrOfInProgress > 0)
+					return "the view will be updated soon with new data";
 
-				return string.Format("view may be incomplete: data from {0} logs is missing.  *1 fix*",
+				return string.Format("the view may be incomplete: data from {0} log(s) is missing.  *1 fix*",
 					nrOfUnprocessed);
 			}
 		}
@@ -65,6 +65,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 			progress = null;
 			nrOfUnprocessed = 0;
+			nrOfInProgress = 0;
 			foreach (var output in outputs)
 			{
 				switch (output.OutputStatus)
@@ -72,6 +73,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 				case LogSourcePostprocessorState.Status.InProgress:
 				case LogSourcePostprocessorState.Status.Loading:
 					progress = output.Progress;
+					++nrOfInProgress;
 					break;
 				case LogSourcePostprocessorState.Status.NeverRun:
 					++nrOfUnprocessed;
@@ -79,8 +81,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 				}
 			}
 
-			if (Changed != null)
-				Changed(this, new ItemChangeEventArgs(isUnsuppressingChange: nrOfUnprocessed > oldNrOfUnprocessed));
+			Changed?.Invoke(this, new ItemChangeEventArgs(isUnsuppressingChange: nrOfUnprocessed > oldNrOfUnprocessed));
 		}
 	};
 }
