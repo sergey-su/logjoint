@@ -6,19 +6,21 @@
     @foreach (var item in ViewModel.Items)
     {
     <div class="item">
-        @foreach (var part in LogJoint.UI.Presenters.LinkLabelUtils.SplitLinkLabelString(@item.Contents))
-        {
-            @if (part.LinkData != null)
+        <span class="contents">
+            @foreach (var part in LogJoint.UI.Presenters.LinkLabelUtils.SplitLinkLabelString(@item.Contents))
             {
-                <a href="#"
-                   @onclick="@(e => ViewModel.OnItemActionClicked(item, part.LinkData))"
-                   @onclick:preventDefault>@part.Text</a>
+                @if (part.LinkData != null)
+                {
+                    <a href="#"
+                       @onclick="@(e => ViewModel.OnItemActionClicked(item, part.LinkData))"
+                       @onclick:preventDefault>@part.Text</a>
+                }
+                @if (part.LinkData == null)
+                {
+                    <span>@part.Text</span>
+                }
             }
-            @if (part.LinkData == null)
-            {
-                <span>@part.Text</span>
-            }
-        }
+        </span>
         @if (item.Progress.HasValue)
         {
             <CircularProgress Value=@item.Progress.Value />

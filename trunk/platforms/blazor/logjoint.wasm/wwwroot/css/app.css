@@ -1842,7 +1842,11 @@ body {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
+    overflow: hidden;
 }
-.toast-notification>.item>a {
+.toast-notification>.item>.contents>a {
     margin: 0 5px;
+}
+.toast-notification>.item>.contents {
+    flex-grow: 2;
 }
