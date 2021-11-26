@@ -9,7 +9,13 @@
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class="timeline-visualizer @Class" @ref="rootElement">
+    <ToastNotification ViewModel="@viewModel.ToastNotification" />
     <div class="toolbar">
+        @if (viewModel.NotificationsIconVisibile)
+        {
+            <button class="notification-icon" @onclick="@viewModel.OnActiveNotificationButtonClicked"
+                    title="This view has warnings. Click to see."></button>
+        }
         <a class="b" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnPrevBookmarkButtonClicked())">&lt;&lt;prev</a>
         <a class="b" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnNextBookmarkButtonClicked())">next&gt;&gt;</a>
         <a class="c" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnFindCurrentTimeButtonClicked())">current time</a>
@@ -374,7 +380,7 @@
                     viewModel.FocusedMessageDrawInfo(DrawScope.VisibleRange),
                     viewModel.BookmarksDrawInfo(DrawScope.VisibleRange),
                     viewModel.RulerMarksDrawInfo(DrawScope.VisibleRange),
-                    viewModel.NavigationPanelDrawInfo),
+                    viewModel.NavigationPanelDrawInfo, viewModel.NotificationsIconVisibile),
             _ => StateHasChanged()
         ));
     }

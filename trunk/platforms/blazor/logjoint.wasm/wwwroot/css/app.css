@@ -1580,6 +1580,16 @@ body {
     background-image: var(--zoom-in-image);
     background-position-y: 3px;
 }
+.timeline-visualizer .toolbar .notification-icon {
+    background-image: var(--warning-image);
+    min-width: 11px;
+    height: 14px;
+    border: none;
+    background-repeat: no-repeat;
+    background-position: center;
+    padding: 0;
+    margin: 0 3px;
+}
 .timeline-visualizer .nav {
     height: 20px;
     flex-shrink: 0;
