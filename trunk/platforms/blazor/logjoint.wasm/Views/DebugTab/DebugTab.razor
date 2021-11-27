@@ -11,6 +11,9 @@
     <button @onclick="LoadChromeDebugLog" hidden>Load Stream as Chrome debug log</button>
     <button @onclick="LoadUnspecifiedStream" hidden>Load unspecified stream</button>
     <button @onclick="TestLogFs" hidden>Test log fs</button>
+    <br/>
+    <label>DB key:</label><input @bind="dbKeyName" />
+    <button @onclick="DownloadDbValue">Download db value</button>
 </div>
 
 @code {
@@ -18,6 +21,7 @@
     public string Class { get; set; } = "";
 
     ElementReference fileInputReference;
+    private string dbKeyName;
 
     async void LoadByUrl()
     {
@@ -74,5 +78,11 @@
             var hash = LogJoint.Hashing.GetStableHashCode(buf);
             Console.WriteLine("{0} {1}", read, hash);
         }
+    }
+
+    async Task DownloadDbValue()
+    {
+        var value = await jsInterop.IndexedDB.Get<byte[]>("userData", dbKeyName);
+        await jsInterop.SaveAs.SaveAs(value, dbKeyName);
     }
 }

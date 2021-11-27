@@ -19,5 +19,9 @@ namespace LogJoint.Wasm
         {
             return jsRuntime.InvokeVoidAsync("logjoint.saveAs", contents, name);
         }
+        public ValueTask SaveAs(byte[] contents, string name)
+        {
+            return jsRuntime.InvokeVoidAsync("logjoint.saveAs", contents, name);
+        }
     }
 }
