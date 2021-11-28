@@ -69,7 +69,7 @@ namespace LogJoint
 		public string[] AdditionalFormatDirectories;
 		public System.Reflection.Assembly FormatsRepositoryAssembly;
 		public LogMedia.IFileSystem FileSystem;
-		public FieldsProcessor.IMetadataReferencesProvider FieldsProcessorMetadataReferencesProvider;
+		public FieldsProcessor.IUserCodeAssemblyProvider UserCodeAssemblyProvider;
 		public FieldsProcessor.IAssemblyLoader FieldsProcessorAssemblyLoader;
 		public Persistence.Implementation.IFileSystemAccess PersistenceFileSystem;
 		public Persistence.Implementation.IFileSystemAccess ContentCacheFileSystem;
@@ -125,10 +125,9 @@ namespace LogJoint
 				traceSourceFactory
 			);
 			Telemetry.ITelemetryCollector telemetryCollector = telemetryCollectorImpl;
-			var defaultMetadataReferencesProvider = new FieldsProcessor.FieldsProcessorImpl.DefaultMetadataReferencesProvider();
 			FieldsProcessor.IFactory fieldsProcessorFactory = new FieldsProcessor.FieldsProcessorImpl.Factory(
 				storageManager, telemetryCollector,
-				config.FieldsProcessorMetadataReferencesProvider ?? defaultMetadataReferencesProvider,
+				config.UserCodeAssemblyProvider,
 				config.FieldsProcessorAssemblyLoader);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
@@ -368,7 +367,7 @@ namespace LogJoint
 				autoUpdateFactory.CreateAppUpdateDownloader()
 			);
 
-			fieldsProcessorFactory.SetPluginsManager(pluginsManager);
+			config.UserCodeAssemblyProvider?.SetPluginsManager(pluginsManager);
 			AutoUpdate.IAutoUpdater autoUpdater = autoUpdateFactory.CreateAutoUpdater(pluginsManager);
 
 			Model expensibilityModel = new Model(

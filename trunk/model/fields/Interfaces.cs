@@ -35,9 +35,15 @@ namespace LogJoint.FieldsProcessor
 		bool IsBodySingleFieldExpression();
 	};
 
-	public interface IMetadataReferencesProvider
-    {
-		IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference> GetMetadataReferences();
+	public interface IUserCodeAssemblyProvider
+	{
+		void SetPluginsManager(Extensibility.IPluginsManagerInternal pluginsManager);
+		int ProviderVersionHash { get; }
+		byte[] GetUserCodeAsssembly(
+			LJTraceSource trace,
+			List<string> inputFieldNames,
+			List<ExtensionInfo> extensions,
+			List<OutputFieldStruct> outputFields);
 	};
 
 	public interface IAssemblyLoader
@@ -77,10 +83,22 @@ namespace LogJoint.FieldsProcessor
 		}
 	};
 
+	public struct OutputFieldStruct
+	{
+		public enum CodeType
+		{
+			Expression,
+			Function
+		};
+		public string Name;
+		public CodeType Type;
+		public string Code;
+	};
+
+
 	// thread safe
 	public interface IFactory
 	{
-		void SetPluginsManager(Extensibility.IPluginsManagerInternal value);
 		IInitializationParams CreateInitializationParams(
 			XElement fieldsNode, bool performChecks
 		);

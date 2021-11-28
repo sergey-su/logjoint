@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace LogJoint
 {
@@ -94,7 +93,8 @@ namespace LogJoint
 
 		public static string GetCSharpStringLiteral(string value)
 		{
-			return SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(value)).ToFullString();
+			// TODO: fixme
+			return value; // SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(value)).ToFullString();
 		}
 
 		public static int FindNextWordInString(string str, int startFrom)

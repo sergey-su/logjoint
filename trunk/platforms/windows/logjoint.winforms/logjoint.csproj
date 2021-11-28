@@ -972,6 +972,10 @@
     <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\dynamic-compilation\logjoint.model.dynamic-compilation.csproj">
+      <Project>{53cbc5f6-03bc-45f8-97ef-c99feca551de}</Project>
+      <Name>logjoint.model.dynamic-compilation</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\model\logjoint.model.csproj">
       <Project>{a46e3f7f-86de-43b5-ae56-641cba2f6d0e}</Project>
       <Name>logjoint.model</Name>

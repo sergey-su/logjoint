@@ -24,7 +24,7 @@ namespace LogJoint
 			Properties.WebContentConfig webContentConfig = new Properties.WebContentConfig();
 			ISynchronizationContext modelSynchronizationContext = new WinFormsSynchronizationContext(mainForm);
 
-			var model = ModelFactory.Create(
+			ModelObjects model = ModelFactory.Create(
 				new ModelConfig
 				{
 					WorkspacesUrl = Properties.Settings.Default.WorkspacesUrl,
@@ -36,7 +36,8 @@ namespace LogJoint
 					LogsDownloaderConfig = webContentConfig,
 					TraceListeners = Properties.Settings.Default.TraceListenerConfig != null ?
 						new[] { new TraceListener(Properties.Settings.Default.TraceListenerConfig) } :
-						null
+						null,
+					UserCodeAssemblyProvider = new ComplingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
 				},
 				modelSynchronizationContext,
 				(storageManager) => new UI.LogsPreprocessorCredentialsCache(

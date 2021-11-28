@@ -19,6 +19,7 @@ namespace LogJoint.Wasm
         }
     };
 
+    /*
     class MetadataReferencesProvider : IMetadataReferencesProvider
     {
         readonly List<MetadataReference> references = new();
@@ -39,5 +40,5 @@ namespace LogJoint.Wasm
         }
 
         IReadOnlyList<MetadataReference> IMetadataReferencesProvider.GetMetadataReferences() => references;
-    };
+    };*/
 }
