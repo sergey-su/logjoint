@@ -108,5 +108,11 @@ namespace LogJoint.FieldsProcessor
 			IEnumerable<ExtensionInfo> extensions,
 			LJTraceSource trace
 		);
+		byte[] CreatePrecompiledAssembly(
+			IInitializationParams initializationParams,
+			IEnumerable<string> inputFieldNames,
+			IEnumerable<ExtensionInfo> extensions,
+			LJTraceSource trace
+		);
 	};
 }

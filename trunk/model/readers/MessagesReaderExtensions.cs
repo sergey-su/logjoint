@@ -50,7 +50,10 @@ namespace LogJoint
 				}
 			}
 
-			List<InitializationDataItem> items = new List<InitializationDataItem>();
+			internal IEnumerable<(string name, string assemblyName, string className)> Items =>
+				items.Select(i => (i.ExtensionName, i.AssemblyName, i.ClassName));
+
+			readonly List<InitializationDataItem> items = new List<InitializationDataItem>();
 		};
 
 		public MessagesReaderExtensions(IPositionedMessagesReader owner, XmlInitializationParams initializationData = null)

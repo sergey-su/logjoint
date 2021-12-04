@@ -186,10 +186,6 @@ namespace LogJoint.Extensibility
 						throw new Exception("Model is missing from app entry point");
 					}
 					var presentationEntryPoint = appEntryPoint.GetType().InvokeMember("Presentation", BindingFlags.GetProperty, null, appEntryPoint, new object[0]);
-					if (presentationEntryPoint == null)
-					{
-						throw new Exception("Presentation is missing from app entry point");
-					}
 
 					TimeSpan instantiationTime = TimeSpan.Zero;
 					object plugin = null;
@@ -216,7 +212,7 @@ namespace LogJoint.Extensibility
 
 					if (!TryCtr(appEntryPoint)
 					 && !TryCtr(modelEntryPoint)
-					 && !TryCtr(modelEntryPoint, presentationEntryPoint))
+					 && !(presentationEntryPoint != null && TryCtr(modelEntryPoint, presentationEntryPoint)))
 					{
 						throw new Exception("plugin class does not implement ctr with LogJoint.IApplication argument, or with LogJoint.IModel argument, or with IModel and IPresentation arguments");
 					}

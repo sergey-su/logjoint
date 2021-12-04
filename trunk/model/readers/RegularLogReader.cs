@@ -55,6 +55,13 @@ namespace LogJoint.RegularGrammar
 			this.BeginFinder = beginFinder;
 			this.EndFinder = endFinder;
 		}
+
+		public IEnumerable<string> InputFieldNames =>
+				HeadRe.Regex.GetGroupNames().Skip(1).Concat(
+					BodyRe.Regex != null ? BodyRe.Regex.GetGroupNames().Skip(1) :
+					HeadRe.Regex.GetGroupNames().Contains("body") ? Enumerable.Empty<string>() :
+					Enumerable.Repeat("body", 1)
+				);
 	};
 
 	public class MessagesReader : MediaBasedPositionedMessagesReader
@@ -97,11 +104,7 @@ namespace LogJoint.RegularGrammar
 		{
 			return fieldsProcessorFactory.CreateProcessor(
 				fmtInfo.FieldsProcessorParams,
-				fmtInfo.HeadRe.Regex.GetGroupNames().Skip(1).Concat(
-					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) :
-					fmtInfo.HeadRe.Regex.GetGroupNames().Contains("body") ? Enumerable.Empty<string>() :
-					Enumerable.Repeat("body", 1)
-				),
+				fmtInfo.InputFieldNames,
 				Extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
 				trace
 			);
@@ -302,7 +305,9 @@ namespace LogJoint.RegularGrammar
 
 	public class UserDefinedFormatFactory : 
 		UserDefinedFactoryBase,
-		IFileBasedLogProviderFactory, IMediaBasedReaderFactory
+		IFileBasedLogProviderFactory,
+		IPrecompilingLogProviderFactory,
+		IMediaBasedReaderFactory
 	{
 		List<string> patterns = new List<string>();
 		Lazy<FormatInfo> fmtInfo;
@@ -417,6 +422,22 @@ namespace LogJoint.RegularGrammar
 		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder, IEnumerable<string> patterns)
 		{
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder, this, patterns);
+		}
+
+		byte[] IPrecompilingLogProviderFactory.Precompile(LJTraceSource trace)
+		{
+			return fieldsProcessorFactory.CreatePrecompiledAssembly(
+				fmtInfo.Value.FieldsProcessorParams,
+				fmtInfo.Value.InputFieldNames,
+				fmtInfo.Value.ExtensionsInitData.Items.Select(
+					i => new FieldsProcessor.ExtensionInfo(
+						i.name, i.assemblyName, i.className,
+						() => throw new InvalidOperationException(
+							$"Attempted to instantiate format extension {i.name} while precompiling")
+					)
+				),
+				trace
+			);
 		}
 	};
 }

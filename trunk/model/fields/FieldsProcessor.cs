@@ -41,10 +41,7 @@ namespace LogJoint.FieldsProcessor
 				}
 			}
 
-			internal void InitializeInstance(FieldsProcessorImpl proc)
-			{
-				proc.outputFields.AddRange(outputFields);
-			}
+			internal IEnumerable<OutputFieldStruct> OutputFields => outputFields;
 
 			readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 			readonly OutputFieldStruct timeField;
@@ -80,10 +77,11 @@ namespace LogJoint.FieldsProcessor
 				IEnumerable<ExtensionInfo> extensions,
 				LJTraceSource trace)
 			{
+				var initParams = (InitializationParams)initializationParams;
 				var processor = new FieldsProcessorImpl(
-					(InitializationParams)initializationParams,
-					inputFieldNames,
-					extensions,
+					SanitizeInputFieldNames(inputFieldNames),
+					initParams.OutputFields,
+					SanitizeExtensions(extensions),
 					await cacheEntryTask,
 					trace,
 					telemetryCollector,
@@ -92,6 +90,31 @@ namespace LogJoint.FieldsProcessor
 				);
 				await processor.Init();
 				return processor;
+			}
+
+			byte[] IFactory.CreatePrecompiledAssembly(
+				IInitializationParams initializationParams,
+				IEnumerable<string> inputFieldNames,
+				IEnumerable<ExtensionInfo> extensions,
+				LJTraceSource trace
+			)
+			{
+				var initParams = (InitializationParams)initializationParams;
+				return userCodeAssemblyProvider.GetUserCodeAsssembly(
+					trace, SanitizeInputFieldNames(inputFieldNames).ToList(),
+					SanitizeExtensions(extensions).ToList(), initParams.OutputFields.ToList());
+			}
+
+			static private IEnumerable<string> SanitizeInputFieldNames(IEnumerable<string> inputFieldNames)
+			{
+				if (inputFieldNames == null)
+					throw new ArgumentNullException(nameof(inputFieldNames));
+				return inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx));
+			}
+
+			static private IEnumerable<ExtensionInfo> SanitizeExtensions(IEnumerable<ExtensionInfo> extensions)
+			{
+				return extensions ?? new ExtensionInfo[0];
 			}
 		};
 
@@ -104,8 +127,8 @@ namespace LogJoint.FieldsProcessor
 		};
 
 		public FieldsProcessorImpl(
-			InitializationParams initializationParams, 
-			IEnumerable<string> inputFieldNames, 
+			IEnumerable<string> inputFieldNames,
+			IEnumerable<OutputFieldStruct> outputFields,
 			IEnumerable<ExtensionInfo> extensions,
 			Persistence.IStorageEntry cacheEntry,
 			LJTraceSource trace,
@@ -114,12 +137,9 @@ namespace LogJoint.FieldsProcessor
 			IAssemblyLoader assemblyLoader
 		)
 		{
-			if (inputFieldNames == null)
-				throw new ArgumentNullException(nameof (inputFieldNames));
-			initializationParams.InitializeInstance(this);
-			if (extensions != null)
-				this.extensions.AddRange(extensions);
-			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
+			this.inputFieldNames = inputFieldNames.ToList();
+			this.outputFields = outputFields.ToList();
+			this.extensions = extensions.ToList();
 			this.cacheEntry = cacheEntry;
 			this.trace = trace;
 			this.telemetryCollector = telemetryCollector;
@@ -274,8 +294,8 @@ namespace LogJoint.FieldsProcessor
 		Internal.__MessageBuilder builder;
 
 		readonly List<string> inputFieldNames;
-		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
-		readonly List<ExtensionInfo> extensions = new List<ExtensionInfo>();
+		readonly List<OutputFieldStruct> outputFields;
+		readonly List<ExtensionInfo> extensions;
 		readonly Persistence.IStorageEntry cacheEntry;
 		readonly Telemetry.ITelemetryCollector telemetryCollector;
 		readonly LJTraceSource trace;
