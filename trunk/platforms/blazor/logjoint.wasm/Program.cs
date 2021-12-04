@@ -15,8 +15,6 @@ namespace LogJoint.Wasm
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
 
-            // var fieldsProcessorMetadataReferencesProvider = new MetadataReferencesProvider();
-
             builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddSingleton<JsInterop>(serviceProvider => new JsInterop(serviceProvider.GetService<IJSRuntime>()));
             builder.Services.AddSingleton<TraceListener>(serviceProvider => new TraceListener(";membuf=1"));
@@ -40,7 +38,7 @@ namespace LogJoint.Wasm
                         RemoveDefaultTraceListener = true, // it's expensive in wasm
                         FormatsRepositoryAssembly = System.Reflection.Assembly.GetExecutingAssembly(),
                         FileSystem = logMediaFileSystem,
-                        UserCodeAssemblyProvider = null, // TODO: pass one
+                        UserCodeAssemblyProvider = null, // rely only on precompiled user code
                         FieldsProcessorAssemblyLoader = new AssemblyLoader(),
                         PersistenceFileSystem = new LogJoint.Wasm.PersistenceFileSystem(
                             (IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>(),
@@ -110,7 +108,6 @@ namespace LogJoint.Wasm
             await jsInterop.Init();
 
             var jsRuntime = wasmHost.Services.GetService<IJSRuntime>();
-            // await fieldsProcessorMetadataReferencesProvider.Init(jsRuntime);
 
             Extensibility.BlazorPluginLoader.LoadPlugins(wasmHost);
             ChromeExtensionIntegration.Init(jsInterop, wasmHost);

@@ -34,6 +34,11 @@ namespace LogJoint.FieldsProcessor
 					if (s.Name == "Time")
 						this.timeField = s;
 				}
+				var precompiledElement = fieldsNode.Element("precompiled");
+				if (precompiledElement != null)
+				{
+					precompiledAssmebly = Convert.FromBase64String(precompiledElement.Value);
+				}
 				if (performChecks)
 				{
 					if (this.timeField.Name == null)
@@ -42,9 +47,11 @@ namespace LogJoint.FieldsProcessor
 			}
 
 			internal IEnumerable<OutputFieldStruct> OutputFields => outputFields;
+			internal byte[] PrecompiledAssmebly => precompiledAssmebly;
 
 			readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 			readonly OutputFieldStruct timeField;
+			readonly byte[] precompiledAssmebly;
 		};
 
 		public class Factory : IFactory
@@ -86,6 +93,7 @@ namespace LogJoint.FieldsProcessor
 					trace,
 					telemetryCollector,
 					userCodeAssemblyProvider,
+					initParams.PrecompiledAssmebly,
 					assemblyLoader
 				);
 				await processor.Init();
@@ -134,6 +142,7 @@ namespace LogJoint.FieldsProcessor
 			LJTraceSource trace,
 			Telemetry.ITelemetryCollector telemetryCollector,
 			IUserCodeAssemblyProvider userCodeAssemblyProvider,
+			byte[] precompiledAssembly,
 			IAssemblyLoader assemblyLoader
 		)
 		{
@@ -145,6 +154,7 @@ namespace LogJoint.FieldsProcessor
 			this.telemetryCollector = telemetryCollector;
 			this.userCodeAssemblyProvider = userCodeAssemblyProvider;
 			this.assemblyLoader = assemblyLoader;
+			this.precompiledAssembly = precompiledAssembly;
 		}
 
 		public async Task Init()
@@ -203,7 +213,8 @@ namespace LogJoint.FieldsProcessor
 		int GetMessageBuilderTypeHash()
 		{
 			int typeHash = Hashing.GetHashCode(0);
-			typeHash = Hashing.GetHashCode(typeHash, userCodeAssemblyProvider.ProviderVersionHash);
+			if (userCodeAssemblyProvider != null)
+				typeHash = Hashing.GetHashCode(typeHash, userCodeAssemblyProvider.ProviderVersionHash);
 			foreach (string i in inputFieldNames)
 			{
 				typeHash = Hashing.GetHashCode(typeHash, Hashing.GetStableHashCode(i));
@@ -264,10 +275,15 @@ namespace LogJoint.FieldsProcessor
 
 		async Task<Type> GenerateType(int builderTypeHash)
 		{
+			if (precompiledAssembly != null && userCodeAssemblyProvider == null)
+			{
+				return assemblyLoader.Load(precompiledAssembly).GetType("GeneratedMessageBuilder");
+			}
 			await using var cacheSection = await cacheEntry.OpenRawStreamSection($"builder-code-{builderTypeHash}",
 				Persistence.StorageSectionOpenFlag.ReadWrite);
 			var cachedRawAsmSize = cacheSection.Data.Length;
-			trace.Info("Type hash: {0}. Cache size: {1}", builderTypeHash, cachedRawAsmSize);
+			trace.Info("Type hash: {0}. Cache size: {1}. Precompiled size: {2}",
+				builderTypeHash, cachedRawAsmSize, precompiledAssembly?.Length);
 			if (cachedRawAsmSize > 0)
 			{
 				try
@@ -281,6 +297,10 @@ namespace LogJoint.FieldsProcessor
 					trace.Error(e, "Failed to load cached builder");
 					telemetryCollector.ReportException(e, "loading cached builder asm");
 				}
+			}
+			if (userCodeAssemblyProvider == null)
+			{
+				throw new Exception("User code is not precompiled and no provider is given");
 			}
 			byte[] rawAsm = userCodeAssemblyProvider.GetUserCodeAsssembly(
 				trace, inputFieldNames, extensions, outputFields);
@@ -301,6 +321,7 @@ namespace LogJoint.FieldsProcessor
 		readonly LJTraceSource trace;
 		readonly IUserCodeAssemblyProvider userCodeAssemblyProvider;
 		readonly IAssemblyLoader assemblyLoader;
+		readonly byte[] precompiledAssembly;
 
 		#endregion
 	};
