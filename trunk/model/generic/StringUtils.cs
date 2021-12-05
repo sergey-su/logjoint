@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace LogJoint
 {
@@ -93,8 +94,64 @@ namespace LogJoint
 
 		public static string GetCSharpStringLiteral(string value)
 		{
-			// TODO: fixme
-			return value; // SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(value)).ToFullString();
+			bool NeedsEscaping(UnicodeCategory category) => new[] { UnicodeCategory.Control, UnicodeCategory.OtherNotAssigned,
+				UnicodeCategory.ParagraphSeparator, UnicodeCategory.LineSeparator, UnicodeCategory.Surrogate}.Contains(category);
+
+			bool TryReplaceChar(char c, out string replaceWith)
+			{
+				if ("\\\0\a\b\f\n\r\t\v".Contains(c))
+				{
+					replaceWith = $"\\{c}";
+					return true;
+				}
+				if (NeedsEscaping(CharUnicodeInfo.GetUnicodeCategory(c)))
+				{
+					replaceWith = "\\u" + ((int)c).ToString("x4");
+					return true;
+				}
+				replaceWith = null;
+				return false;
+			}
+
+			StringBuilder builder = new StringBuilder();
+			builder.Append('"');
+			for (int i = 0; i < value.Length; i++)
+			{
+				char c = value[i];
+				if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate)
+				{
+					UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(value, i);
+					if (category == UnicodeCategory.Surrogate)
+					{
+						builder.Append("\\u" + ((int)c).ToString("x4"));
+					}
+					else if (NeedsEscaping(category))
+					{
+						builder.Append("\\U" + char.ConvertToUtf32(value, i).ToString("x8"));
+						i++;
+					}
+					else
+					{
+						builder.Append(c);
+						builder.Append(value[++i]);
+					}
+				}
+				else if (TryReplaceChar(c, out var replaceWith))
+				{
+					builder.Append(replaceWith);
+				}
+				else if (c == '"')
+				{
+					builder.Append('\\');
+					builder.Append('"');
+				}
+				else
+				{
+					builder.Append(c);
+				}
+			}
+			builder.Append('"');
+			return builder.ToString();
 		}
 
 		public static int FindNextWordInString(string str, int startFrom)

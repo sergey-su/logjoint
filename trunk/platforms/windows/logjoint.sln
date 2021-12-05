@@ -84,6 +84,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.testing.sdk", "..\..\sdk\testing\logjoint.testing.sdk.csproj", "{7B2E2170-501E-456E-BCC0-8EBBB721C217}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.wasm", "..\blazor\logjoint.wasm\logjoint.wasm.csproj", "{A35F73DA-623A-4864-8A3D-58DBFFE3FC03}"
+	ProjectSection(ProjectDependencies) = postProject
+		{37691D35-F231-4873-B4E6-885B0D7BB5C0} = {37691D35-F231-4873-B4E6-885B0D7BB5C0}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logjoint.model.dynamic-compilation", "..\..\dynamic-compilation\logjoint.model.dynamic-compilation.csproj", "{53CBC5F6-03BC-45F8-97EF-C99FECA551DE}"
 EndProject

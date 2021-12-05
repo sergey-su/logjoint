@@ -11,34 +11,39 @@ namespace LogJoint
 		static async Task Main(string[] args)
 		{
 			string pluginPath = null;
-			string formatFilePath = null;
+			string inputFormatFilePath = null;
+			string outputFormatFilePath = null;
 			if (args.ElementAtOrDefault(0) == "plugin")
 			{
-				pluginPath = args.ElementAtOrDefault(1);
+				pluginPath = Path.GetFullPath(args.ElementAtOrDefault(1));
 			}
 			if (args.ElementAtOrDefault(0) == "format")
 			{
-				formatFilePath = args.ElementAtOrDefault(1);
+				inputFormatFilePath = args.ElementAtOrDefault(1);
+				outputFormatFilePath = args.ElementAtOrDefault(2);
 			}
 
-			if (pluginPath == null && formatFilePath == null)
+			if (pluginPath == null && (inputFormatFilePath == null || outputFormatFilePath == null))
 			{
 				Console.WriteLine("Usage:");
-				Console.WriteLine("   logjoint.precompiler plugin <plugin dirertory>  - precompile code for all format definitions in the plugin");
-				Console.WriteLine("   logjoint.precompiler format <format file>       - precompile code the format definition in the given file");
+				Console.WriteLine("   logjoint.precompiler plugin <plugin dirertory>                   - precompile code for all format definitions in the plugin");
+				Console.WriteLine("   logjoint.precompiler format <in format file> <out format file>   - precompile code the format definition in the given file");
 				return;
 			}
 
 			var appDataDir = Path.Combine(Path.GetTempPath(),
 				$"logjoint.precompiler.workdir.{DateTime.Now:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff}");
 
+			Console.WriteLine("Precompiler data and logs path: {0}", appDataDir);
+
 			var tempFormatsDir = Path.Combine(appDataDir, "TempFormats");
 			Directory.CreateDirectory(tempFormatsDir);
 			var tempFormatFilePath = Path.Combine(tempFormatsDir, "temp.format.xml");
-			if (formatFilePath != null)
-				File.Copy(formatFilePath, tempFormatFilePath);
+			if (inputFormatFilePath != null)
+				File.Copy(sourceFileName: inputFormatFilePath, destFileName: tempFormatFilePath);
 
 			ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
+			var traceListener = new TraceListener(Path.Combine(appDataDir, "precompiler-debug.log") + ";logical-thread=1");
 
 			ModelObjects modelObjects = await serialSynchronizationContext.Invoke(() =>
 			{
@@ -52,7 +57,7 @@ namespace LogJoint
 						WebContentCacheConfig = null,
 						LogsDownloaderConfig = null,
 						AppDataDirectory = appDataDir,
-						TraceListeners = new TraceListener[] { },
+						TraceListeners = new TraceListener[] { traceListener },
 						DisableLogjointInstancesCounting = true,
 						AdditionalFormatDirectories = new string[] { tempFormatsDir },
 						UserCodeAssemblyProvider = new ComplingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
@@ -72,10 +77,10 @@ namespace LogJoint
 					HandlePlugin(pluginPath, modelObjects);
 				}
 
-				if (formatFilePath != null)
+				if (inputFormatFilePath != null)
 				{
-					HandleFormatFile(tempFormatFilePath, modelObjects);
-					File.Copy(tempFormatFilePath, formatFilePath, overwrite: true);
+					HandleFormatFile(tempFormatFilePath, inputFormatFilePath, modelObjects);
+					File.Copy(sourceFileName: tempFormatFilePath, destFileName: outputFormatFilePath, overwrite: true);
 				}
 			});
 		}
@@ -96,23 +101,23 @@ namespace LogJoint
 			}
 			foreach (Extensibility.IPluginFile formatFile in pluginManifest.Files.Where(f => f.Type == Extensibility.PluginFileType.FormatDefinition))
 			{
-				string formatFilePath = formatFile.AbsolutePath;
+				HandleFormatFile(formatFile.AbsolutePath, formatFile.AbsolutePath, modelObjects);
 			}
 		}
 
-		private static void HandleFormatFile(string formatFilePath, ModelObjects modelObjects)
+		private static void HandleFormatFile(string formatFilePath, string formatFilePathForLogging, ModelObjects modelObjects)
 		{
 			IUserDefinedFactory formatFactory = modelObjects.UserDefinedFormatsManager.Items.FirstOrDefault(
 				factory => factory.Location == formatFilePath);
 			if (formatFactory == null)
 			{
-				Console.WriteLine("ERROR: Failed to load format definition '{0}'", formatFilePath);
+				Console.WriteLine("ERROR: Failed to load format definition '{0}'", formatFilePathForLogging);
 				return;
 			}
 			var precomp = formatFactory as IPrecompilingLogProviderFactory;
 			if (precomp == null)
 			{
-				Console.WriteLine("WARNING: Skipping '{0}' - precompilation is not supported for it", formatFilePath);
+				Console.WriteLine("WARNING: Skipping '{0}' - precompilation is not supported for it", formatFilePathForLogging);
 				return;
 			}
 			var formatDoc = XDocument.Load(formatFilePath);
@@ -120,7 +125,7 @@ namespace LogJoint
 				formatDoc.Elements("format").Elements("regular-grammar").Elements("fields-config").FirstOrDefault();
 			if (fieldsConfigElement == null)
 			{
-				Console.WriteLine("ERROR: failed tofind fields config in '{0}'", formatFilePath);
+				Console.WriteLine("ERROR: failed tofind fields config in '{0}'", formatFilePathForLogging);
 				return;
 			}
 			byte[] asmBytes = precomp.Precompile(LJTraceSource.EmptyTracer);
@@ -135,7 +140,7 @@ namespace LogJoint
 
 			formatDoc.Save(formatFilePath);
 
-			Console.WriteLine("Successfully precompiled '{0}'", formatFilePath);
+			Console.WriteLine("Successfully precompiled '{0}'", formatFilePathForLogging);
 		}
 	}
 }

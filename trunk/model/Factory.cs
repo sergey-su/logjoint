@@ -400,6 +400,8 @@ namespace LogJoint
 
 			tracer.Info("model creation completed");
 
+			TouchNamesThatMustNotBeTrimmed();
+
 			return new ModelObjects
 			{
 				GlobalSettingsAccessor = globalSettingsAccessor,
@@ -477,6 +479,14 @@ namespace LogJoint
 			RegularGrammar.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			XmlFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			JsonFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
+		}
+
+		// This uses names that static anaylzer would trim otherwise as unused. These names need to be preserved for plugins.
+		// Needed for blazor AOT. There must be better way to do that!
+		private static void TouchNamesThatMustNotBeTrimmed()
+		{
+			foreach (var m in System.Text.RegularExpressions.Regex.Matches("a", "a"))
+				m.ToString();
 		}
 	};
 }

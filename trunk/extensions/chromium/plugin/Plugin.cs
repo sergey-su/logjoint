@@ -7,5 +7,9 @@ namespace LogJoint
 			Chromium.Factory.Create(model);
 			Chromium.UI.Presenters.Factory.Create(presentation);
 		}
+		public Plugin(IModel model)
+		{
+			Chromium.Factory.Create(model);
+		}
 	}
 }

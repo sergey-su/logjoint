@@ -112,7 +112,7 @@ namespace LogJoint.Tests
 			cacheSection.Data.Returns(new MemoryStream());
 			cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(Task.FromResult(cacheSection));
 			return new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, Substitute.For<Telemetry.ITelemetryCollector>(),
-				new FieldsProcessor.FieldsProcessorImpl.DefaultMetadataReferencesProvider(), null);
+				new ComplingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()), null);
 		}
 	};
 

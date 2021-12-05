@@ -211,8 +211,8 @@ namespace LogJoint.Extensibility
 					}
 
 					if (!TryCtr(appEntryPoint)
-					 && !TryCtr(modelEntryPoint)
-					 && !(presentationEntryPoint != null && TryCtr(modelEntryPoint, presentationEntryPoint)))
+					 && !(presentationEntryPoint != null && TryCtr(modelEntryPoint, presentationEntryPoint))
+					 && !TryCtr(modelEntryPoint))
 					{
 						throw new Exception("plugin class does not implement ctr with LogJoint.IApplication argument, or with LogJoint.IModel argument, or with IModel and IPresentation arguments");
 					}
