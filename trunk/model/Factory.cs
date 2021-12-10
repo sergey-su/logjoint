@@ -474,7 +474,7 @@ namespace LogJoint
 			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
 		}
 
-		private static void RegisterUserDefinedFormats(IUserDefinedFormatsManager userDefinedFormatsManager)
+		private static void RegisterUserDefinedFormats(IUserDefinedFormatsManagerInternal userDefinedFormatsManager)
 		{
 			RegularGrammar.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			XmlFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);

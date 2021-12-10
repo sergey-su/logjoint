@@ -690,10 +690,10 @@ namespace LogJoint.XmlFormat
 
 		public static XmlNamespaceManager NamespaceManager => nsMgr;
 
-		public static void Register(IUserDefinedFormatsManager formatsManager)
+		public static void Register(IUserDefinedFormatsManagerInternal formatsManager)
 		{
-			formatsManager.RegisterFormatType(
-				"xml", typeof(UserDefinedFormatFactory));
+			formatsManager.RegisterFormatConfigType(
+				"xml", config => new UserDefinedFormatFactory(config));
 		}
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)

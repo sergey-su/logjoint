@@ -317,10 +317,10 @@ namespace LogJoint.RegularGrammar
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 
-		public static void Register(IUserDefinedFormatsManager formatsManager)
+		public static void Register(IUserDefinedFormatsManagerInternal formatsManager)
 		{
-			formatsManager.RegisterFormatType(
-				"regular-grammar", typeof(UserDefinedFormatFactory));
+			formatsManager.RegisterFormatConfigType(
+				"regular-grammar", config => new UserDefinedFormatFactory(config));
 		}
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)

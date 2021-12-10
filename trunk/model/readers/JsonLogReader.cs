@@ -325,10 +325,9 @@ namespace LogJoint.JsonFormat
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 
-		public static void Register(IUserDefinedFormatsManager formatsManager)
+		public static void Register(IUserDefinedFormatsManagerInternal formatsManager)
 		{
-			formatsManager.RegisterFormatType(
-				"json", typeof(UserDefinedFormatFactory));
+			formatsManager.RegisterFormatConfigType("json", config => new UserDefinedFormatFactory(config));
 		}
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)

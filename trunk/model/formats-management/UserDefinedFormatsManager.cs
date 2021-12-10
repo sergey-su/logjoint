@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace LogJoint
 {
-	public class UserDefinedFormatsManager : IUserDefinedFormatsManager, IPluginFormatsManager
+	public class UserDefinedFormatsManager : IUserDefinedFormatsManager, IPluginFormatsManager, IUserDefinedFormatsManagerInternal
 	{
 		public UserDefinedFormatsManager(
 			IFormatDefinitionsRepository repository,
@@ -31,15 +31,12 @@ namespace LogJoint
 			get { return repository; }
 		}
 
-		void IUserDefinedFormatsManager.RegisterFormatType(string configNodeName, Type formatType)
+		void IUserDefinedFormatsManagerInternal.RegisterFormatConfigType(string configNodeName, Func<UserDefinedFactoryParams, IUserDefinedFactory> factory)
 		{
 			if (string.IsNullOrEmpty(configNodeName))
-				throw new ArgumentException("Node name must be a not-null not-empty string", "formatConfigType");
+				throw new ArgumentException("Node name must be a not-null not-empty string", nameof(configNodeName));
 
-			if (!typeof(IUserDefinedFactory).IsAssignableFrom(formatType))
-				throw new ArgumentException("Type must be inherited from " + typeof(IUserDefinedFactory).Name, "formatType");
-
-			nodeNameToType.Add(configNodeName, formatType);
+			nodeNameToFactory.Add(configNodeName, factory);
 		}
 
 		int IUserDefinedFormatsManager.ReloadFactories()
@@ -92,7 +89,7 @@ namespace LogJoint
 				var root = XDocument.Load(formatFile.AbsolutePath).Element("format");
 				pluginFactories.AddRange(
 					from factoryNodeCandidate in root.Elements()
-					where nodeNameToType.ContainsKey(factoryNodeCandidate.Name.LocalName)
+					where nodeNameToFactory.ContainsKey(factoryNodeCandidate.Name.LocalName)
 					let createParams = new UserDefinedFactoryParams()
 					{
 						Location = formatFile.AbsolutePath,
@@ -104,8 +101,7 @@ namespace LogJoint
 						FormatSpecificNode = factoryNodeCandidate,
 						RootNode = root
 					}
-					select (IUserDefinedFactory)Activator.CreateInstance(
-							nodeNameToType[factoryNodeCandidate.Name.LocalName], createParams)
+					select nodeNameToFactory[factoryNodeCandidate.Name.LocalName](createParams)
 				);
 			}
 		}
@@ -136,7 +132,7 @@ namespace LogJoint
 			var root = entry.LoadFormatDescription();
 			return (
 				from factoryNodeCandidate in root.Elements()
-				where nodeNameToType.ContainsKey(factoryNodeCandidate.Name.LocalName)
+				where nodeNameToFactory.ContainsKey(factoryNodeCandidate.Name.LocalName)
 				let createParams = new UserDefinedFactoryParams()
 				{
 					Location = entry.Location,
@@ -150,8 +146,7 @@ namespace LogJoint
 				}
 				select new FactoryRecord()
 				{
-					factory = (IUserDefinedFactory)Activator.CreateInstance(
-						nodeNameToType[factoryNodeCandidate.Name.LocalName], createParams),
+					factory = nodeNameToFactory[factoryNodeCandidate.Name.LocalName](createParams),
 					lastModified = entry.LastModified,
 					markedForDeletion = false
 				}
@@ -172,7 +167,7 @@ namespace LogJoint
 		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly LJTraceSource tracer;
-		readonly Dictionary<string, Type> nodeNameToType = new Dictionary<string, Type>();
+		readonly Dictionary<string, Func<UserDefinedFactoryParams, IUserDefinedFactory>> nodeNameToFactory = new Dictionary<string, Func<UserDefinedFactoryParams, IUserDefinedFactory>>();
 		readonly List<FactoryRecord> factories = new List<FactoryRecord>();
 		readonly List<IUserDefinedFactory> pluginFactories = new List<IUserDefinedFactory>();
 	}

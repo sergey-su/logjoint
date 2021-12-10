@@ -49,7 +49,6 @@ namespace LogJoint
 	{
 		int ReloadFactories();
 		IEnumerable<IUserDefinedFactory> Items { get; }
-		void RegisterFormatType(string configNodeName, Type formatType);
 		IFormatDefinitionsRepository Repository { get; }
 	};
 }
