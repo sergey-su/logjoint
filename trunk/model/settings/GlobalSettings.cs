@@ -112,12 +112,12 @@ namespace LogJoint.Settings
 			}
 			set
 			{
-				Validate(ref value);
+				var newValue = Validate(value);
 				tasks.AddTask(async () =>
 				{
-					if (loaded && !Differ(value, appearance))
+					if (loaded && !Differ(newValue, appearance))
 						return;
-					appearance = value;
+					appearance = newValue;
 					FireChanged(SettingsPiece.Appearance);
 					await Save();
 				});
@@ -185,7 +185,7 @@ namespace LogJoint.Settings
 
 		private async Task Load()
 		{
-            await using (var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+			await using (var section = await (await storageManager.GlobalSettingsEntry).OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = section.Data.Element(rootNodeName);
 
@@ -197,13 +197,12 @@ namespace LogJoint.Settings
 
 				multithreadedParsingDisabled = root.SafeIntValue(multithreadedParsingDisabledAttrName, DefaultSettingsAccessor.DefaultMultithreadedParsingDisabled ? 1 : 0) != 0;
 
-				appearance = new Appearance(
+				appearance = Validate(new Appearance(
 					fontSize: (Appearance.LogFontSize)root.SafeIntValue(fontSizeAttrName, (int)Appearance.Default.FontSize),
 					fontFamily: root.AttributeValue(fontNameAttrName, Appearance.Default.FontFamily),
 					coloring: (Appearance.ColoringMode)root.SafeIntValue(coloringAttrName, (int)Appearance.Default.Coloring),
 					coloringBrightness: (PaletteBrightness)root.SafeIntValue(coloringPaletteAttrName, (int)Appearance.Default.ColoringBrightness)
-				);
-				Validate(ref appearance);
+				));
 
 				userDataStorageSizes.StoreSizeLimit = root.SafeIntValue(userDataStoreSizeLimitAttrName, StorageSizes.Default.StoreSizeLimit);
 				userDataStorageSizes.CleanupPeriod = root.SafeIntValue(userDataStoreCleanupPeriodAttrName, StorageSizes.Default.CleanupPeriod);
@@ -214,6 +213,8 @@ namespace LogJoint.Settings
 				Validate(ref contentCacheStorageSizes);
 
 				enableAutoPostprocessing = root.SafeIntValue(enableAutoPostprocessingAttrName, DefaultSettingsAccessor.DefaultEnableAutoPostprocessing ? 1 : 0) != 0;
+
+				FireChanged(SettingsPiece.Appearance);
 			}
 			loaded = true;
 		}
@@ -248,14 +249,17 @@ namespace LogJoint.Settings
 			fileSizes.Threshold = RangeUtils.PutInRange(fileSizes.WindowSize, FileSizes.MaxThreshold, fileSizes.Threshold);
 		}
 
-		static void Validate(ref Appearance appearance)
+		static Appearance Validate(Appearance appearance)
 		{
-			appearance.Coloring = (Appearance.ColoringMode)RangeUtils.PutInRange(
-				(int)Appearance.ColoringMode.Minimum, (int)Appearance.ColoringMode.Maximum, (int)appearance.Coloring);
-			appearance.FontSize = (Appearance.LogFontSize)RangeUtils.PutInRange(
-				(int)Appearance.LogFontSize.Minimum, (int)Appearance.LogFontSize.Maximum, (int)appearance.FontSize);
-			appearance.ColoringBrightness = (PaletteBrightness)RangeUtils.PutInRange(
-				(int)PaletteBrightness.Minimum, (int)PaletteBrightness.Maximum, (int)appearance.ColoringBrightness);
+			return new Appearance(
+				(Appearance.LogFontSize)RangeUtils.PutInRange(
+					(int)Appearance.LogFontSize.Minimum, (int)Appearance.LogFontSize.Maximum, (int)appearance.FontSize),
+				appearance.FontFamily,
+				(Appearance.ColoringMode)RangeUtils.PutInRange(
+					(int)Appearance.ColoringMode.Minimum, (int)Appearance.ColoringMode.Maximum, (int)appearance.Coloring),
+				(PaletteBrightness)RangeUtils.PutInRange(
+					(int)PaletteBrightness.Minimum, (int)PaletteBrightness.Maximum, (int)appearance.ColoringBrightness)
+			);
 		}
 
 		static void Validate(ref StorageSizes storageSizes)

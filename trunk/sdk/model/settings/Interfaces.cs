@@ -66,12 +66,12 @@ namespace LogJoint.Settings
 			Minimum = SuperSmall,
 			Maximum = Large5
 		};
-		public LogFontSize FontSize { get; internal set; }
+		public LogFontSize FontSize { get; private set; }
 
 		/// <summary>
 		/// Font family name or null if platform-default is to be used
 		/// </summary>
-		public string FontFamily { get; internal set; }
+		public string FontFamily { get; private set; }
 
 		public enum ColoringMode
 		{
@@ -81,9 +81,9 @@ namespace LogJoint.Settings
 			Minimum = None,
 			Maximum = Sources
 		};
-		public ColoringMode Coloring { get; internal set; }
+		public ColoringMode Coloring { get; private set; }
 
-		public PaletteBrightness ColoringBrightness { get; internal set; }
+		public PaletteBrightness ColoringBrightness { get; private set; }
 
 		public Appearance(LogFontSize fontSize, string fontFamily, ColoringMode coloring, PaletteBrightness coloringBrightness)
 		{
