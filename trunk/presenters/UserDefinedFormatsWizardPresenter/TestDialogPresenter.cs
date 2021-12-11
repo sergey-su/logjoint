@@ -65,11 +65,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			get { return TimeOffsets.Empty; }
 		}
 
-		Settings.IGlobalSettingsAccessor ILogProviderHost.GlobalSettings
-		{
-			get { return Settings.DefaultSettingsAccessor.Instance; }
-		}
-
 		ILogSourceThreads ILogProviderHost.Threads
 		{
 			get { return logSourceThreads; }

@@ -317,11 +317,13 @@ namespace LogJoint.RegularGrammar
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
+		readonly Settings.IGlobalSettingsAccessor globalSettings;
 
 		public static string ConfigNodeName => "regular-grammar";
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext)
+			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -334,6 +336,7 @@ namespace LogJoint.RegularGrammar
 			regexFactory = createParams.RegexFactory;
 			this.traceSourceFactory = traceSourceFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
+			this.globalSettings = globalSettings;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
 				FieldsProcessor.IInitializationParams fieldsInitParams = fieldsProcessorFactory.CreateInitializationParams(
@@ -389,7 +392,7 @@ namespace LogJoint.RegularGrammar
 		{
 			return new StreamLogProvider(host, this, connectParams, 
 				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory),
-				tempFilesManager, traceSourceFactory, modelSynchronizationContext);
+				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
 		}
 
 		public override LogProviderFactoryFlag Flags

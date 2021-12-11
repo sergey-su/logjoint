@@ -11,7 +11,7 @@ namespace LogJoint.WindowsEventLog
 	{
 		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
-			ISynchronizationContext modelSynchronizationContext)
+			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings)
 			:
 			base(host,
 				factory,
@@ -20,6 +20,7 @@ namespace LogJoint.WindowsEventLog
 				traceSourceFactory,
 				regexFactory,
 				modelSynchronizationContext,
+				globalSettings,
 				new DejitteringParams() { JitterBufferSize = 25 }
 			)
 		{
@@ -272,14 +273,17 @@ namespace LogJoint.WindowsEventLog
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
+		readonly Settings.IGlobalSettingsAccessor globalSettings;
 
 		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext)
+			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings)
 		{
 			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
+			this.globalSettings = globalSettings;
 		}
 
 		public IConnectionParams CreateParamsFromIdentity(EventLogIdentity identity)
@@ -336,7 +340,8 @@ namespace LogJoint.WindowsEventLog
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext);
+			return new LogProvider(host, connectParams, this, tempFilesManager, traceSourceFactory, regexFactory, 
+				modelSynchronizationContext, globalSettings);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

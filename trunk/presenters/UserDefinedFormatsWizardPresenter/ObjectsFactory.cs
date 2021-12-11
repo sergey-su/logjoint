@@ -18,6 +18,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly ISynchronizationContext synchronizationContext;
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly LogMedia.IFileSystem fileSystem;
+		readonly Settings.IGlobalSettingsAccessor globalSettings;
 
 		public interface IViewsFactory
 		{
@@ -56,7 +57,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			IViewsFactory viewFactories,
 			ISynchronizationContext synchronizationContext,
 			FieldsProcessor.IFactory fieldsProcessorFactory,
-			LogMedia.IFileSystem fileSystem
+			LogMedia.IFileSystem fileSystem,
+			Settings.IGlobalSettingsAccessor globalSettings
 		)
 		{
 			this.viewFactories = viewFactories;
@@ -73,6 +75,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.synchronizationContext = synchronizationContext;
 			this.fieldsProcessorFactory = fieldsProcessorFactory;
 			this.fileSystem = fileSystem;
+			this.globalSettings = globalSettings;
 		}
 
 		IView IFactory.CreateWizardView()
@@ -220,6 +223,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		}
 
 		private ITestParsing CreateTestParsing() => new CustomFormatPageUtils.TestParsing(
-			alerts, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory, this, synchronizationContext);
+			alerts, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory,
+				this, synchronizationContext, globalSettings);
 	};
 };

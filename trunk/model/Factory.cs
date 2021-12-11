@@ -133,13 +133,13 @@ namespace LogJoint
 				formatDefinitionsRepository, logProviderFactoryRegistry,  traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext));
+				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext));
+				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext));
+				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor));
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
-				modelSynchronizationContext);
+				modelSynchronizationContext, globalSettingsAccessor);
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
 			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
@@ -465,23 +465,24 @@ namespace LogJoint
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			RegularExpressions.IRegexFactory regexFactory,
 			ITraceSourceFactory traceSourceFactory,
-			ISynchronizationContext modelSynchronizationContext)
+			ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext);
+				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings);
 			}
-			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext));
-			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSynchronizationContext));
+			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings));
+			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSynchronizationContext, globalSettings));
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
 		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
-			ISynchronizationContext modelSynchronizationContext)
+			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings)
 		{
-			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext));
-			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext));
+			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings));
+			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings));
 		}
 
 		// This uses names that static anaylzer would trim otherwise as unused. These names need to be preserved for plugins.

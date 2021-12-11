@@ -10,7 +10,7 @@ namespace LogJoint
 	public abstract class AsyncLogProvider: ILogProvider, IAsyncLogProvider
 	{
 		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams,
-			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext)
+			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings)
 		{
 			this.host = host;
 			this.factory = factory;
@@ -21,6 +21,7 @@ namespace LogJoint
 			this.stats = new LogProviderStats();
 			this.externalStats = this.stats.Clone();
 			this.modelSynchronizationContext = modelSynchronizationContext;
+			this.globalSettings = globalSettings;
 			this.threads = (ILogSourceThreadsInternal)host.Threads;
 			this.connectionIdLazy = new Lazy<string>(() => factory.GetConnectionId(connectionParamsReadonlyView),
 				LazyThreadSafetyMode.ExecutionAndPublication);
@@ -140,7 +141,7 @@ namespace LogJoint
 				Interlocked.Exchange(ref activePositionHint, startFrom);
 				PostCommand(new Command(Command.CommandType.UpdateCache, 
 					LogProviderCommandPriority.SmoothnessEnsurance, tracer, 
-					CancellationToken.None, new UpdateCacheCommandHandler(this, tracer, messagesCacheBackbuffer, host.GlobalSettings)));
+					CancellationToken.None, new UpdateCacheCommandHandler(this, tracer, messagesCacheBackbuffer, globalSettings)));
 			}
 			return ret.Task;
 		}
@@ -672,6 +673,7 @@ namespace LogJoint
 
 		readonly object sync = new object();
 		private readonly ISynchronizationContext modelSynchronizationContext;
+		private readonly Settings.IGlobalSettingsAccessor globalSettings;
 		Task thread;
 		Exception threadFailureException;
 		IPositionedMessagesReader reader;

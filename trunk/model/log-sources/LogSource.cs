@@ -24,7 +24,6 @@ namespace LogJoint
 		Persistence.IStorageEntry logSourceSpecificStorageEntry;
 		bool loadingLogSourceInfoFromStorageEntry;
 		readonly ITimeGapsDetector timeGaps;
-		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
 		int? color;
 
@@ -38,8 +37,8 @@ namespace LogJoint
 			LogSource logSource = null;
 			try
 			{
-				logSource = new LogSource(owner, tracer, modelSyncContext, globalSettingsAccess, 
-					bookmarks, traceSourceFactory, regexFactory, fileSystem, threads);
+				logSource = new LogSource(owner, tracer, modelSyncContext,  bookmarks,
+					traceSourceFactory, fileSystem, threads);
 				await logSource.Init(providerFactory, connectionParams, storageManager);
 			}
 			catch (Exception e)
@@ -59,13 +58,11 @@ namespace LogJoint
 		}
 
 		private LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer,
-			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
-			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem,
-			IModelThreadsInternal threads)
+			ISynchronizationContext modelSyncContext, IBookmarks bookmarks, ITraceSourceFactory traceSourceFactory,
+			LogMedia.IFileSystem fileSystem, IModelThreadsInternal threads)
 		{
 			this.owner = owner;
 			this.tracer = tracer;
-			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
 			this.fileSystem = fileSystem;
 
@@ -75,7 +72,7 @@ namespace LogJoint
 		}
 
 		async Task Init(ILogProviderFactory providerFactory, IConnectionParams connectionParams, Persistence.IStorageManager storageManager)
-        {
+		{
 			logSourceSpecificStorageEntry = await CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 			var extendedConnectionParams = connectionParams.Clone(true);
 			await LoadPersistedSettings(extendedConnectionParams);
@@ -136,12 +133,6 @@ namespace LogJoint
 		{
 			get { return provider.TimeOffsets; }
 			set { SetTimeOffsets(value); }
-		}
-
-
-		public Settings.IGlobalSettingsAccessor GlobalSettings
-		{
-			get { return globalSettingsAccess; }
 		}
 
 		public string DisplayName

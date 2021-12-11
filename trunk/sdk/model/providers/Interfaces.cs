@@ -123,7 +123,6 @@ namespace LogJoint
 		string LoggingPrefix { get; }
 		ILogSourceThreads Threads { get; }
 		ITimeOffsets TimeOffsets { get; }
-		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		LogMedia.IFileSystem FileSystem { get; }
 
 		void OnStatisticsChanged(LogProviderStats value,

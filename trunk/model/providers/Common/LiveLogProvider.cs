@@ -146,10 +146,11 @@ namespace LogJoint
 
 		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext, DejitteringParams? dejitteringParams = null)
+			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings, DejitteringParams? dejitteringParams = null)
 			:
 			base(
-				host, 
+				host,
 				factory,
 				CreateConnectionParams(originalConnectionParams, tempFilesManager),
 				@params => new XmlFormat.MessagesReader(
@@ -160,7 +161,8 @@ namespace LogJoint
 				),
 				tempFilesManager,
 				traceSourceFactory,
-				modelSynchronizationContext
+				modelSynchronizationContext,
+				globalSettings
 			)
 		{
 			this.trace = base.tracer;

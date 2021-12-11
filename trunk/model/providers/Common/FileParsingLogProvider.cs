@@ -19,7 +19,8 @@ namespace LogJoint
 	{
 		ILogMedia media;
 		IPositionedMessagesReader reader;
-		ITempFilesManager tempFilesManager;
+		readonly ITempFilesManager tempFilesManager;
+		readonly Settings.IGlobalSettingsAccessor globalSettings;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
 		string taskbarFileName;
@@ -31,13 +32,15 @@ namespace LogJoint
 			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator,
 			ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory,
-			ISynchronizationContext modelSynchronizationContext
+			ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings
 		) :
-			base (host, factory, connectParams, traceSourceFactory, modelSynchronizationContext)
+			base (host, factory, connectParams, traceSourceFactory, modelSynchronizationContext, globalSettings)
 		{
 			using (tracer.NewFrame)
 			{
 				this.tempFilesManager = tempFilesManager;
+				this.globalSettings = globalSettings;
 				StartAsyncReader(async () => {
 					if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 					{
@@ -57,7 +60,7 @@ namespace LogJoint
 					}
 
 					reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
-							settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix));
+							settingsAccessor: globalSettings, parentLoggingPrefix: tracer.Prefix));
 
 					ITimeOffsets initialTimeOffset;
 					if (LogJoint.TimeOffsets.TryParse(

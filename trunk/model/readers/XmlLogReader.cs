@@ -596,14 +596,16 @@ namespace LogJoint.XmlFormat
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
+		readonly Settings.IGlobalSettingsAccessor globalSettings;
 
 		public NativeXMLFormatFactory(ITempFilesManager tempFiles, IRegexFactory regexFactory, ITraceSourceFactory traceSourceFactory,
-			ISynchronizationContext modelSynchronizationContext)
+			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings)
 		{
 			this.tempFiles = tempFiles;
 			this.regexFactory = regexFactory;
 			this.traceSourceFactory = traceSourceFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
+			this.globalSettings = globalSettings;
 			this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions(), regexFactory);
 		}
 
@@ -658,7 +660,7 @@ namespace LogJoint.XmlFormat
 		{
 			return new StreamLogProvider(host, this, connectParams, 
 				@params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory),
-				tempFiles, traceSourceFactory, modelSynchronizationContext);
+				tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.Default; } }
@@ -685,6 +687,7 @@ namespace LogJoint.XmlFormat
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
+		readonly Settings.IGlobalSettingsAccessor globalSettings;
 		static XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 		static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
 		readonly string uiKey;
@@ -699,7 +702,7 @@ namespace LogJoint.XmlFormat
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
-			ISynchronizationContext modelSynchronizationContext)
+			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -713,6 +716,7 @@ namespace LogJoint.XmlFormat
 			this.regexFactory = createParams.RegexFactory;
 			this.traceSourceFactory = traceSourceFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
+			this.globalSettings = globalSettings;
 
 			formatInfo = new Lazy<XmlFormatInfo>(() => 
 			{
@@ -760,7 +764,7 @@ namespace LogJoint.XmlFormat
 		{
 			return new StreamLogProvider(host, this, connectParams, 
 				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory),
-				tempFilesManager, traceSourceFactory, modelSynchronizationContext);
+				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
 		}
 
 		public override LogProviderFactoryFlag Flags

@@ -51,6 +51,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 			readonly IFactory objectsFactory;
 			readonly ISynchronizationContext modelSynchronizationContext;
+			readonly Settings.IGlobalSettingsAccessor globalSettings;
 
 			public TestParsing(
 				IAlertPopup alerts,
@@ -59,7 +60,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				RegularExpressions.IRegexFactory regexFactory,
 				FieldsProcessor.IFactory fieldsProcessorFactory,
 				IFactory objectsFactory,
-				ISynchronizationContext modelSynchronizationContext
+				ISynchronizationContext modelSynchronizationContext,
+				Settings.IGlobalSettingsAccessor globalSettings
 			)
 			{
 				this.alerts = alerts;
@@ -69,6 +71,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				this.objectsFactory = objectsFactory;
 				this.fieldsProcessorFactory = fieldsProcessorFactory;
 				this.modelSynchronizationContext = modelSynchronizationContext;
+				this.globalSettings = globalSettings;
 			}
 
 			bool? ITestParsing.Test(
@@ -106,11 +109,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 					ILogProviderFactory f;
 					if (formatSpecificNodeName == RegularGrammar.UserDefinedFormatFactory.ConfigNodeName)
-						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext);
+						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
 					else if (formatSpecificNodeName == XmlFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext);
+						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
 					else if (formatSpecificNodeName == JsonFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext);
+						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
 					else
 						return null;
 					using (f as IDisposable)
