@@ -319,7 +319,7 @@ namespace LogJoint.RegularGrammar
 
 		public static string ConfigNodeName => "regular-grammar";
 
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -330,7 +330,7 @@ namespace LogJoint.RegularGrammar
 			this.tempFilesManager = tempFilesManager;
 			fieldsProcessorFactory = createParams.FieldsProcessorFactory;
 			regexFactory = createParams.RegexFactory;
-			traceSourceFactory = createParams.TraceSourceFactory;
+			this.traceSourceFactory = traceSourceFactory;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
 				FieldsProcessor.IInitializationParams fieldsInitParams = fieldsProcessorFactory.CreateInitializationParams(
@@ -385,7 +385,7 @@ namespace LogJoint.RegularGrammar
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory), tempFilesManager);
+				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory), tempFilesManager, traceSourceFactory);
 		}
 
 		public override LogProviderFactoryFlag Flags

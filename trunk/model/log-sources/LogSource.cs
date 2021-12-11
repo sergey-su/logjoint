@@ -16,7 +16,6 @@ namespace LogJoint
 		readonly LJTraceSource tracer;
 		ILogProvider provider;
 		readonly ILogSourceThreadsInternal logSourceThreads;
-		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly LogMedia.IFileSystem fileSystem;
 		bool isDisposed;
@@ -71,7 +70,6 @@ namespace LogJoint
 			this.modelSyncContext = modelSyncContext;
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
-			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.fileSystem = fileSystem;
 
@@ -162,7 +160,6 @@ namespace LogJoint
 
 		ITimeGapsDetector ILogSource.TimeGaps => timeGaps;
 
-		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
 
 		RegularExpressions.IRegexFactory ILogProviderHost.RegexFactory => regexFactory;
 

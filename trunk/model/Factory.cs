@@ -130,13 +130,14 @@ namespace LogJoint
 				config.UserCodeAssemblyProvider,
 				config.FieldsProcessorAssemblyLoader);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
-				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
-			RegisterUserDefinedFormats(userDefinedFormatsManager);
+				formatDefinitionsRepository, logProviderFactoryRegistry,  traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager));
+				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager));
+				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
+			userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
+				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
@@ -466,22 +467,18 @@ namespace LogJoint
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager);
+				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory);
 			}
-			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager));
+			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory));
 			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
-		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry, ITempFilesManager tempFilesManager)
+		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry,
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 		{
-			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager));
-			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager));
-		}
-
-		private static void RegisterUserDefinedFormats(IUserDefinedFormatsManagerInternal userDefinedFormatsManager)
-		{
-			JsonFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
+			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory));
+			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory));
 		}
 
 		// This uses names that static anaylzer would trim otherwise as unused. These names need to be preserved for plugins.

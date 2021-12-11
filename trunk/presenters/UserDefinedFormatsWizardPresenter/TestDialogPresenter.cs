@@ -68,8 +68,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 
 		string ILogProviderHost.LoggingPrefix => "test";
 
-		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
-
 		RegularExpressions.IRegexFactory ILogProviderHost.RegexFactory => regexFactory;
 
 		ISynchronizationContext ILogProviderHost.ModelSynchronizationContext => synchronizationContext;

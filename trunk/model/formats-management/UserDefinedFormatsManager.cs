@@ -11,7 +11,6 @@ namespace LogJoint
 		public UserDefinedFormatsManager(
 			IFormatDefinitionsRepository repository,
 			ILogProviderFactoryRegistry registry,
-			ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory,
 			RegularExpressions.IRegexFactory regexFactory,
 			FieldsProcessor.IFactory fieldsProcessorFactory
@@ -19,8 +18,6 @@ namespace LogJoint
 		{
 			this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
 			this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
-			this.tempFilesManager = tempFilesManager;
-			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.fieldsProcessorFactory = fieldsProcessorFactory;
 			this.tracer = traceSourceFactory.CreateTraceSource("UserDefinedFormatsManager", "udfm");
@@ -94,8 +91,6 @@ namespace LogJoint
 					{
 						Location = formatFile.AbsolutePath,
 						FactoryRegistry = registry,
-						TempFilesManager = tempFilesManager,
-						TraceSourceFactory = traceSourceFactory,
 						RegexFactory = regexFactory,
 						FieldsProcessorFactory = fieldsProcessorFactory,
 						FormatSpecificNode = factoryNodeCandidate,
@@ -137,8 +132,6 @@ namespace LogJoint
 				{
 					Location = entry.Location,
 					FactoryRegistry = registry,
-					TempFilesManager = tempFilesManager,
-					TraceSourceFactory = traceSourceFactory,
 					RegexFactory = regexFactory,
 					FieldsProcessorFactory = fieldsProcessorFactory,
 					FormatSpecificNode = factoryNodeCandidate,
@@ -162,8 +155,6 @@ namespace LogJoint
 
 		readonly IFormatDefinitionsRepository repository;
 		readonly ILogProviderFactoryRegistry registry;
-		readonly ITempFilesManager tempFilesManager;
-		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly LJTraceSource tracer;

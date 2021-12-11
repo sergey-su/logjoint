@@ -18,9 +18,9 @@ namespace LogJoint.DebugOutput
 		SafeFileHandle bufferFile;
 		SafeViewOfFileHandle bufferAddress;
 
-		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager)
+		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 			:
-			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity), tempFilesManager)
+			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity), tempFilesManager, traceSourceFactory)
 		{
 			using (trace.NewFrame)
 			{
@@ -163,10 +163,12 @@ namespace LogJoint.DebugOutput
 	public class Factory : ILogProviderFactory
 	{
 		readonly ITempFilesManager tempFilesManager;
+		readonly ITraceSourceFactory traceSourceFactory;
 
-		public Factory(ITempFilesManager tempFilesManager)
+		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 		{
 			this.tempFilesManager = tempFilesManager;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		string ILogProviderFactory.CompanyName
@@ -205,7 +207,7 @@ namespace LogJoint.DebugOutput
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, this, tempFilesManager);
+			return new LogProvider(host, this, tempFilesManager, traceSourceFactory);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

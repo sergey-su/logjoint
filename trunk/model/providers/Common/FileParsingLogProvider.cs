@@ -29,9 +29,10 @@ namespace LogJoint
 			ILogProviderFactory factory,
 			IConnectionParams connectParams,
 			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator,
-			ITempFilesManager tempFilesManager
+			ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory 
 		) :
-			base (host, factory, connectParams)
+			base (host, factory, connectParams, traceSourceFactory)
 		{
 			using (tracer.NewFrame)
 			{

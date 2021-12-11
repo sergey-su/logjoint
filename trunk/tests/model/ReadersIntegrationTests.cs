@@ -124,13 +124,14 @@ namespace LogJoint.Tests
 		{
 			var repo = new DirectoryFormatsRepository(Path.Combine(Path.GetDirectoryName(asm.Location), "formats"));
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager,
-				new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance,
+			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory();
+			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg,
+				traceSourceFactory, RegularExpressions.FCLRegexFactory.Instance,
 				Mocks.SetupFieldsProcessorFactory());
 			formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager));
+				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
 			formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager));
+				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
 			formatsManager.ReloadFactories();
 			var factory = reg.Find(companyName, formatName);
 			Assert.IsNotNull(factory);
@@ -609,9 +610,10 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			var repo = new SingleEntryFormatsRepository(formatDescription);
 			ITempFilesManager tempFilesManager = new TempFilesManager();
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager,
+			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg,
 				new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance, Mocks.SetupFieldsProcessorFactory());
-			JsonFormat.UserDefinedFormatFactory.Register(formatsManager);
+			formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
+				new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, new TraceSourceFactory()));
 			formatsManager.ReloadFactories();
 			var factory = reg.Items.FirstOrDefault();
 			Assert.IsNotNull(factory);

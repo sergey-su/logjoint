@@ -14,9 +14,10 @@ namespace LogJoint.PlainText
 		readonly string fileName;
 		long sizeInBytesStat;
 
-		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, ILogProviderFactory factory, ITempFilesManager tempFilesManager)
+		public LogProvider(ILogProviderHost host, IConnectionParams connectParams,
+			ILogProviderFactory factory, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 			:
-			base(host, factory, connectParams, tempFilesManager)
+			base(host, factory, connectParams, tempFilesManager, traceSourceFactory)
 		{
 			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
@@ -103,10 +104,12 @@ namespace LogJoint.PlainText
 	public class Factory : IFileBasedLogProviderFactory
 	{
 		readonly ITempFilesManager tempFiles;
+		readonly ITraceSourceFactory traceSourceFactory;
 
-		public Factory(ITempFilesManager tempFiles)
+		public Factory(ITempFilesManager tempFiles, ITraceSourceFactory traceSourceFactory)
 		{
 			this.tempFiles = tempFiles;
+			this.traceSourceFactory = traceSourceFactory;
 		}
 
 		public static string CompanyName { get { return "LogJoint"; } }
@@ -160,7 +163,7 @@ namespace LogJoint.PlainText
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this, tempFiles);
+			return new LogProvider(host, connectParams, this, tempFiles, traceSourceFactory);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

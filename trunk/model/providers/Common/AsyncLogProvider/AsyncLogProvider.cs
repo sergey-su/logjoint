@@ -9,11 +9,11 @@ namespace LogJoint
 {
 	public abstract class AsyncLogProvider: ILogProvider, IAsyncLogProvider
 	{
-		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
+		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams, ITraceSourceFactory traceSourceFactory)
 		{
 			this.host = host;
 			this.factory = factory;
-			this.tracer = host.TraceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.p", host.LoggingPrefix));
+			this.tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.p", host.LoggingPrefix));
 			this.connectionParams = new ConnectionParams();
 			this.connectionParams.AssignFrom(connectParams);
 			this.connectionParamsReadonlyView = new ConnectionParamsReadOnlyView(this.connectionParams);

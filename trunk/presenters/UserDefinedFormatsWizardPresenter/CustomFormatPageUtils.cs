@@ -90,8 +90,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					createParams.RootNode = clonedFormatXmlDocument.Element("format");
 					createParams.FormatSpecificNode = createParams.RootNode.Element(formatSpecificNodeName);
 					createParams.FactoryRegistry = null;
-					createParams.TempFilesManager = tempFilesManager;
-					createParams.TraceSourceFactory = traceSourceFactory;
 					createParams.RegexFactory = regexFactory;
 					createParams.FieldsProcessorFactory = fieldsProcessorFactory;
 
@@ -105,11 +103,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 					ILogProviderFactory f;
 					if (formatSpecificNodeName == RegularGrammar.UserDefinedFormatFactory.ConfigNodeName)
-						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager);
+						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory);
 					else if (formatSpecificNodeName == XmlFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager);
-					else if (formatSpecificNodeName == "json")
-						f = new JsonFormat.UserDefinedFormatFactory(createParams);
+						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory);
+					else if (formatSpecificNodeName == JsonFormat.UserDefinedFormatFactory.ConfigNodeName)
+						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory);
 					else
 						return null;
 					using (f as IDisposable)

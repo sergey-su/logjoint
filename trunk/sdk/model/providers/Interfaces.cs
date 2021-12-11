@@ -121,7 +121,6 @@ namespace LogJoint
 	public interface ILogProviderHost
 	{
 		string LoggingPrefix { get; }
-		ITraceSourceFactory TraceSourceFactory { get; }
 		RegularExpressions.IRegexFactory RegexFactory { get; }
 		ILogSourceThreads Threads { get; }
 		ITimeOffsets TimeOffsets { get; }

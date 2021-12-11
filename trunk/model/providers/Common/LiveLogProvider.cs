@@ -145,7 +145,7 @@ namespace LogJoint
 		}
 
 		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
-			ITempFilesManager tempFilesManager, DejitteringParams? dejitteringParams = null)
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, DejitteringParams? dejitteringParams = null)
 			:
 			base(
 				host, 
@@ -155,9 +155,10 @@ namespace LogJoint
 					@params,
 					XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), host.RegexFactory),
 					host.RegexFactory,
-					host.TraceSourceFactory
+					traceSourceFactory
 				),
-				tempFilesManager
+				tempFilesManager,
+				traceSourceFactory
 			)
 		{
 			this.trace = base.tracer;

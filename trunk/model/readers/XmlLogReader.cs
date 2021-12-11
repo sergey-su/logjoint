@@ -655,7 +655,7 @@ namespace LogJoint.XmlFormat
 		{
 			return new StreamLogProvider(host, this, connectParams, 
 				@params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory),
-				tempFiles);
+				tempFiles, traceSourceFactory);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.Default; } }
@@ -693,7 +693,8 @@ namespace LogJoint.XmlFormat
 		public static XmlNamespaceManager NamespaceManager => nsMgr;
 		public static string ConfigNodeName => "xml";
 
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams,
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -705,7 +706,7 @@ namespace LogJoint.XmlFormat
 			
 			this.tempFilesManager = tempFilesManager;
 			this.regexFactory = createParams.RegexFactory;
-			this.traceSourceFactory = createParams.TraceSourceFactory;
+			this.traceSourceFactory = traceSourceFactory;
 
 			formatInfo = new Lazy<XmlFormatInfo>(() => 
 			{
@@ -752,7 +753,7 @@ namespace LogJoint.XmlFormat
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory), tempFilesManager);
+				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory), tempFilesManager, traceSourceFactory);
 		}
 
 		public override LogProviderFactoryFlag Flags

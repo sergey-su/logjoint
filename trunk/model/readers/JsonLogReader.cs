@@ -325,12 +325,9 @@ namespace LogJoint.JsonFormat
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 
-		public static void Register(IUserDefinedFormatsManagerInternal formatsManager)
-		{
-			formatsManager.RegisterFormatConfigType("json", config => new UserDefinedFormatFactory(config));
-		}
+		public static string ConfigNodeName => "json";
 
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -340,9 +337,9 @@ namespace LogJoint.JsonFormat
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 
-			this.tempFilesManager = createParams.TempFilesManager;
+			this.tempFilesManager = tempFilesManager;
 			this.regexFactory = createParams.RegexFactory;
-			this.traceSourceFactory = createParams.TraceSourceFactory;
+			this.traceSourceFactory = traceSourceFactory;
 
 			formatInfo = new Lazy<JsonFormatInfo>(() =>
 			{
@@ -383,7 +380,7 @@ namespace LogJoint.JsonFormat
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory),
-				tempFilesManager);
+				tempFilesManager, traceSourceFactory);
 		}
 
 		public override LogProviderFactoryFlag Flags
