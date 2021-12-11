@@ -130,14 +130,17 @@ namespace LogJoint
 				config.UserCodeAssemblyProvider,
 				config.FieldsProcessorAssemblyLoader);
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
-				formatDefinitionsRepository, logProviderFactoryRegistry,  traceSourceFactory, regexFactory, fieldsProcessorFactory);
+				formatDefinitionsRepository, logProviderFactoryRegistry,  traceSourceFactory, fieldsProcessorFactory);
 			IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor));
+				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, 
+					globalSettingsAccessor, regexFactory));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor));
+				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, 
+					globalSettingsAccessor, regexFactory));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor));
+				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
+					globalSettingsAccessor, regexFactory));
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
 				modelSynchronizationContext, globalSettingsAccessor);
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);

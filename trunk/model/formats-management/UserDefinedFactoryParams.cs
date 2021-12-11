@@ -9,7 +9,6 @@ namespace LogJoint
 		public XElement RootNode;
 		public XElement FormatSpecificNode;
 
-		public RegularExpressions.IRegexFactory RegexFactory;
 		public FieldsProcessor.IFactory FieldsProcessorFactory;
 	};
 }

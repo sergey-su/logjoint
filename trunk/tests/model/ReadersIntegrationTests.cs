@@ -125,16 +125,16 @@ namespace LogJoint.Tests
 			var repo = new DirectoryFormatsRepository(Path.Combine(Path.GetDirectoryName(asm.Location), "formats"));
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory();
+			RegularExpressions.IRegexFactory regexFactory = RegularExpressions.FCLRegexFactory.Instance;
 			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg,
-				traceSourceFactory, RegularExpressions.FCLRegexFactory.Instance,
-				Mocks.SetupFieldsProcessorFactory());
+				traceSourceFactory, Mocks.SetupFieldsProcessorFactory());
 			var modelSyncContext = new SerialSynchronizationContext();
 			formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
 				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory,
-					modelSyncContext, Settings.DefaultSettingsAccessor.Instance));
+					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory));
 			formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
 				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory,
-					modelSyncContext, Settings.DefaultSettingsAccessor.Instance));
+					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory));
 			formatsManager.ReloadFactories();
 			var factory = reg.Find(companyName, formatName);
 			Assert.IsNotNull(factory);
@@ -613,12 +613,13 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			var repo = new SingleEntryFormatsRepository(formatDescription);
 			ITempFilesManager tempFilesManager = new TempFilesManager();
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
+			RegularExpressions.IRegexFactory regexFactory = RegularExpressions.FCLRegexFactory.Instance;
 			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg,
-				new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance, Mocks.SetupFieldsProcessorFactory());
+				new TraceSourceFactory(), Mocks.SetupFieldsProcessorFactory());
 			var modelSyncContext = new SerialSynchronizationContext();
 			formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
 				new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, new TraceSourceFactory(),
-					modelSyncContext, Settings.DefaultSettingsAccessor.Instance));
+					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory));
 			formatsManager.ReloadFactories();
 			var factory = reg.Items.FirstOrDefault();
 			Assert.IsNotNull(factory);

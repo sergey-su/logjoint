@@ -323,8 +323,8 @@ namespace LogJoint.RegularGrammar
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings)
-			: base(createParams)
+			Settings.IGlobalSettingsAccessor globalSettings, RegularExpressions.IRegexFactory regexFactory)
+			: base(createParams, regexFactory)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
 			ReadPatterns(formatSpecificNode, patterns);
@@ -333,7 +333,7 @@ namespace LogJoint.RegularGrammar
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			this.tempFilesManager = tempFilesManager;
 			fieldsProcessorFactory = createParams.FieldsProcessorFactory;
-			regexFactory = createParams.RegexFactory;
+			this.regexFactory = regexFactory;
 			this.traceSourceFactory = traceSourceFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
 			this.globalSettings = globalSettings;

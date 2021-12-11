@@ -96,7 +96,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					createParams.RootNode = clonedFormatXmlDocument.Element("format");
 					createParams.FormatSpecificNode = createParams.RootNode.Element(formatSpecificNodeName);
 					createParams.FactoryRegistry = null;
-					createParams.RegexFactory = regexFactory;
 					createParams.FieldsProcessorFactory = fieldsProcessorFactory;
 
 					// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
@@ -109,11 +108,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 					ILogProviderFactory f;
 					if (formatSpecificNodeName == RegularGrammar.UserDefinedFormatFactory.ConfigNodeName)
-						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
+						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, regexFactory);
 					else if (formatSpecificNodeName == XmlFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
+						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, regexFactory);
 					else if (formatSpecificNodeName == JsonFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
+						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, regexFactory);
 					else
 						return null;
 					using (f as IDisposable)

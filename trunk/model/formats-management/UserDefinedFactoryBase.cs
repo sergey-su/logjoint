@@ -48,7 +48,7 @@ namespace LogJoint
 		public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
 		public abstract LogProviderFactoryFlag Flags { get; }
 
-		public UserDefinedFactoryBase(UserDefinedFactoryParams createParams)
+		public UserDefinedFactoryBase(UserDefinedFactoryParams createParams, IRegexFactory regexFactory)
 		{
 			if (createParams.FormatSpecificNode == null)
 				throw new ArgumentNullException("createParams.FormatSpecificNode");
@@ -57,7 +57,7 @@ namespace LogJoint
 
 			this.location = createParams.Location;
 			this.factoryRegistry = createParams.FactoryRegistry;
-			this.regexFactory = createParams.RegexFactory;
+			this.regexFactory = regexFactory;
 
 			var idData = createParams.RootNode.Elements("id").Select(
 				id => new { company = id.AttributeValue("company"), formatName = id.AttributeValue("name") }).FirstOrDefault();
