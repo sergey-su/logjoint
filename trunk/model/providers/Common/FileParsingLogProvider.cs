@@ -19,6 +19,7 @@ namespace LogJoint
 	{
 		ILogMedia media;
 		IPositionedMessagesReader reader;
+		ITempFilesManager tempFilesManager;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
 		string taskbarFileName;
@@ -27,12 +28,14 @@ namespace LogJoint
 			ILogProviderHost host,
 			ILogProviderFactory factory,
 			IConnectionParams connectParams,
-			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator
-		):
+			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator,
+			ITempFilesManager tempFilesManager
+		) :
 			base (host, factory, connectParams)
 		{
 			using (tracer.NewFrame)
 			{
+				this.tempFilesManager = tempFilesManager;
 				StartAsyncReader(async () => {
 					if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 					{
@@ -73,7 +76,7 @@ namespace LogJoint
 			if (IsDisposed)
 				return;
 			string tmpFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
-			if (tmpFileName != null && !host.TempFilesManager.IsTemporaryFile(tmpFileName))
+			if (tmpFileName != null && !tempFilesManager.IsTemporaryFile(tmpFileName))
 				tmpFileName = null;
 			await base.Dispose();
 			media?.Dispose();
@@ -115,7 +118,7 @@ namespace LogJoint
 			string fname = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			if (fname != null)
 			{
-				isTempFile = host.TempFilesManager.IsTemporaryFile(fname);
+				isTempFile = tempFilesManager.IsTemporaryFile(fname);
 				isSavableAs = isTempFile;
 			}
 			string connectionIdentity = connectParams[ConnectionParamsKeys.IdentityConnectionParam];

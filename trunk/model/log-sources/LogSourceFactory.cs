@@ -51,7 +51,6 @@ namespace LogJoint
 				providerFactory,
 				connectionParams,
 				threads,
-				tempFilesManager,
 				storageManager,
 				invoker,
 				globalSettingsAccess,

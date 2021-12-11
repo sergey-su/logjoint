@@ -317,13 +317,9 @@ namespace LogJoint.RegularGrammar
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
 
-		public static void Register(IUserDefinedFormatsManagerInternal formatsManager)
-		{
-			formatsManager.RegisterFormatConfigType(
-				"regular-grammar", config => new UserDefinedFormatFactory(config));
-		}
+		public static string ConfigNodeName => "regular-grammar";
 
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -331,7 +327,7 @@ namespace LogJoint.RegularGrammar
 			var boundsNodes = formatSpecificNode.Elements("bounds").Take(1);
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
-			tempFilesManager = createParams.TempFilesManager;
+			this.tempFilesManager = tempFilesManager;
 			fieldsProcessorFactory = createParams.FieldsProcessorFactory;
 			regexFactory = createParams.RegexFactory;
 			traceSourceFactory = createParams.TraceSourceFactory;
@@ -388,7 +384,8 @@ namespace LogJoint.RegularGrammar
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory));
+			return new StreamLogProvider(host, this, connectParams, 
+				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory), tempFilesManager);
 		}
 
 		public override LogProviderFactoryFlag Flags

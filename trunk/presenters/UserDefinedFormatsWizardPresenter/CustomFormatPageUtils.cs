@@ -104,10 +104,10 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
 
 					ILogProviderFactory f;
-					if (formatSpecificNodeName == "regular-grammar")
-						f = new RegularGrammar.UserDefinedFormatFactory(createParams);
-					else if (formatSpecificNodeName == "xml")
-						f = new XmlFormat.UserDefinedFormatFactory(createParams);
+					if (formatSpecificNodeName == RegularGrammar.UserDefinedFormatFactory.ConfigNodeName)
+						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager);
+					else if (formatSpecificNodeName == XmlFormat.UserDefinedFormatFactory.ConfigNodeName)
+						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager);
 					else if (formatSpecificNodeName == "json")
 						f = new JsonFormat.UserDefinedFormatFactory(createParams);
 					else

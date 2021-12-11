@@ -144,18 +144,20 @@ namespace LogJoint
 			return connectParams;
 		}
 
-		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams, DejitteringParams? dejitteringParams = null)
+		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
+			ITempFilesManager tempFilesManager, DejitteringParams? dejitteringParams = null)
 			:
 			base(
 				host, 
 				factory,
-				CreateConnectionParams(originalConnectionParams, host.TempFilesManager),
+				CreateConnectionParams(originalConnectionParams, tempFilesManager),
 				@params => new XmlFormat.MessagesReader(
 					@params,
 					XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), host.RegexFactory),
 					host.RegexFactory,
 					host.TraceSourceFactory
-				)
+				),
+				tempFilesManager
 			)
 		{
 			this.trace = base.tracer;

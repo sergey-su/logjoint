@@ -653,7 +653,9 @@ namespace LogJoint.XmlFormat
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory));
+			return new StreamLogProvider(host, this, connectParams, 
+				@params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory),
+				tempFiles);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.Default; } }
@@ -689,14 +691,9 @@ namespace LogJoint.XmlFormat
 		}
 
 		public static XmlNamespaceManager NamespaceManager => nsMgr;
+		public static string ConfigNodeName => "xml";
 
-		public static void Register(IUserDefinedFormatsManagerInternal formatsManager)
-		{
-			formatsManager.RegisterFormatConfigType(
-				"xml", config => new UserDefinedFormatFactory(config));
-		}
-
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -706,7 +703,7 @@ namespace LogJoint.XmlFormat
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			
-			this.tempFilesManager = createParams.TempFilesManager;
+			this.tempFilesManager = tempFilesManager;
 			this.regexFactory = createParams.RegexFactory;
 			this.traceSourceFactory = createParams.TraceSourceFactory;
 
@@ -754,7 +751,8 @@ namespace LogJoint.XmlFormat
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory));
+			return new StreamLogProvider(host, this, connectParams, 
+				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory), tempFilesManager);
 		}
 
 		public override LogProviderFactoryFlag Flags

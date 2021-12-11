@@ -9,11 +9,12 @@ namespace LogJoint.WindowsEventLog
 {
 	public class LogProvider : LiveLogProvider
 	{
-		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory)
+		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory, ITempFilesManager tempFilesManager)
 			:
 			base(host,
 				factory,
 				connectParams,
+				tempFilesManager,
 				new DejitteringParams() { JitterBufferSize = 25 }
 			)
 		{
@@ -262,6 +263,13 @@ namespace LogJoint.WindowsEventLog
 
 	public class Factory : ILogProviderFactory
 	{
+		readonly ITempFilesManager tempFilesManager;
+
+		public Factory(ITempFilesManager tempFilesManager)
+		{
+			this.tempFilesManager = tempFilesManager;
+		}
+
 		public IConnectionParams CreateParamsFromIdentity(EventLogIdentity identity)
 		{
 			ConnectionParams p = new ConnectionParams();
@@ -316,7 +324,7 @@ namespace LogJoint.WindowsEventLog
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this);
+			return new LogProvider(host, connectParams, this, tempFilesManager);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

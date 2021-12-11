@@ -382,7 +382,8 @@ namespace LogJoint.JsonFormat
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory));
+			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory),
+				tempFilesManager);
 		}
 
 		public override LogProviderFactoryFlag Flags

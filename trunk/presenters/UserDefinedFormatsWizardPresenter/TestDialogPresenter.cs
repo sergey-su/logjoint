@@ -23,7 +23,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 
 		public Presenter(
 			IView view,
-			ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory,
 			RegularExpressions.IRegexFactory regexFactory,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
@@ -33,7 +32,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		{
 			this.view = view;
 			this.view.SetEventsHandler(this);
-			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.synchronizationContext = synchronizationContext;
@@ -86,11 +84,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		Settings.IGlobalSettingsAccessor ILogProviderHost.GlobalSettings
 		{
 			get { return Settings.DefaultSettingsAccessor.Instance; }
-		}
-
-		ITempFilesManager ILogProviderHost.TempFilesManager
-		{
-			get { return tempFilesManager; }
 		}
 
 		ILogSourceThreads ILogProviderHost.Threads

@@ -26,7 +26,6 @@ namespace LogJoint
 		Persistence.IStorageEntry logSourceSpecificStorageEntry;
 		bool loadingLogSourceInfoFromStorageEntry;
 		readonly ITimeGapsDetector timeGaps;
-		readonly ITempFilesManager tempFilesManager;
 		readonly ISynchronizationContext modelSyncContext;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
@@ -34,7 +33,7 @@ namespace LogJoint
 
 		public static async Task<LogSource> Create(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
-			IModelThreadsInternal threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
+			IModelThreadsInternal threads, Persistence.IStorageManager storageManager,
 			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
 			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
         {
@@ -42,7 +41,7 @@ namespace LogJoint
 			LogSource logSource = null;
 			try
 			{
-				logSource = new LogSource(owner, tempFilesManager, tracer, modelSyncContext, globalSettingsAccess, 
+				logSource = new LogSource(owner, tracer, modelSyncContext, globalSettingsAccess, 
 					bookmarks, traceSourceFactory, regexFactory, fileSystem, threads);
 				await logSource.Init(providerFactory, connectionParams, storageManager);
 			}
@@ -62,13 +61,12 @@ namespace LogJoint
 			return logSource;
 		}
 
-		private LogSource(ILogSourcesManagerInternal owner, ITempFilesManager tempFilesManager, LJTraceSource tracer,
+		private LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer,
 			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
 			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem,
 			IModelThreadsInternal threads)
 		{
 			this.owner = owner;
-			this.tempFilesManager = tempFilesManager;
 			this.tracer = tracer;
 			this.modelSyncContext = modelSyncContext;
 			this.globalSettingsAccess = globalSettingsAccess;
@@ -163,8 +161,6 @@ namespace LogJoint
 		Persistence.IStorageEntry ILogSource.LogSourceSpecificStorageEntry => logSourceSpecificStorageEntry;
 
 		ITimeGapsDetector ILogSource.TimeGaps => timeGaps;
-
-		ITempFilesManager ILogProviderHost.TempFilesManager => tempFilesManager;
 
 		ITraceSourceFactory ILogProviderHost.TraceSourceFactory => traceSourceFactory;
 

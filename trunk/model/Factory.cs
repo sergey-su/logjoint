@@ -132,6 +132,11 @@ namespace LogJoint
 			UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 				formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			RegisterUserDefinedFormats(userDefinedFormatsManager);
+			IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
+			userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
+				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager));
+			userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
+				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager));
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
@@ -461,23 +466,21 @@ namespace LogJoint
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				RegisterWindowsOnlyFactories(logProviderFactoryRegistry);
+				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager);
 			}
 			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager));
 			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
-		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry)
+		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry, ITempFilesManager tempFilesManager)
 		{
-			logProviderFactoryRegistry.Register(new DebugOutput.Factory());
-			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory());
+			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager));
+			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager));
 		}
 
 		private static void RegisterUserDefinedFormats(IUserDefinedFormatsManagerInternal userDefinedFormatsManager)
 		{
-			RegularGrammar.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
-			XmlFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			JsonFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 		}
 

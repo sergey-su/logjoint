@@ -14,9 +14,9 @@ namespace LogJoint.PlainText
 		readonly string fileName;
 		long sizeInBytesStat;
 
-		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, ILogProviderFactory factory)
+		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, ILogProviderFactory factory, ITempFilesManager tempFilesManager)
 			:
-			base(host, factory, connectParams)
+			base(host, factory, connectParams, tempFilesManager)
 		{
 			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
@@ -160,7 +160,7 @@ namespace LogJoint.PlainText
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this);
+			return new LogProvider(host, connectParams, this, tempFiles);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

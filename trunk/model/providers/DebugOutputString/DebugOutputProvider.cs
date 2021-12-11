@@ -18,9 +18,9 @@ namespace LogJoint.DebugOutput
 		SafeFileHandle bufferFile;
 		SafeViewOfFileHandle bufferAddress;
 
-		public LogProvider(ILogProviderHost host, Factory factory)
+		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager)
 			:
-			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity))
+			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity), tempFilesManager)
 		{
 			using (trace.NewFrame)
 			{
@@ -98,10 +98,11 @@ namespace LogJoint.DebugOutput
 			public static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, UInt32 dwDesiredAccess, UInt32 dwFileOffsetHigh, UInt32 dwFileOffsetLow, UInt32 dwNumberOfBytesToMap);
 		};
 
-		protected override Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (this.trace.NewFrame)
 			{
+				await Task.Yield();
 				try
 				{
 					bufferReadyEvt.Set();
@@ -138,7 +139,6 @@ namespace LogJoint.DebugOutput
 					this.trace.Error(e, "DebugOutput listening thread failed");
 				}
 			}
-			return Task.CompletedTask;
 		}
 	}
 
@@ -162,6 +162,13 @@ namespace LogJoint.DebugOutput
 
 	public class Factory : ILogProviderFactory
 	{
+		readonly ITempFilesManager tempFilesManager;
+
+		public Factory(ITempFilesManager tempFilesManager)
+		{
+			this.tempFilesManager = tempFilesManager;
+		}
+
 		string ILogProviderFactory.CompanyName
 		{
 			get { return "Microsoft"; }
@@ -198,7 +205,7 @@ namespace LogJoint.DebugOutput
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, this);
+			return new LogProvider(host, this, tempFilesManager);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
