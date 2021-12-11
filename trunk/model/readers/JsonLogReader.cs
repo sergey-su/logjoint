@@ -326,12 +326,13 @@ namespace LogJoint.JsonFormat
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
 		readonly Settings.IGlobalSettingsAccessor globalSettings;
+		readonly LogMedia.IFileSystem fileSystem;
 
 		public static string ConfigNodeName => "json";
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings, IRegexFactory regexFactory)
+			Settings.IGlobalSettingsAccessor globalSettings, IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
 			: base(createParams, regexFactory)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -346,6 +347,7 @@ namespace LogJoint.JsonFormat
 			this.traceSourceFactory = traceSourceFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
 			this.globalSettings = globalSettings;
+			this.fileSystem = fileSystem;
 
 			formatInfo = new Lazy<JsonFormatInfo>(() =>
 			{
@@ -386,7 +388,7 @@ namespace LogJoint.JsonFormat
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory),
-				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
+				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
 		}
 
 		public override LogProviderFactoryFlag Flags

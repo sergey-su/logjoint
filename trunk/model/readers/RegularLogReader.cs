@@ -318,12 +318,14 @@ namespace LogJoint.RegularGrammar
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
 		readonly Settings.IGlobalSettingsAccessor globalSettings;
+		readonly LogMedia.IFileSystem fileSystem;
 
 		public static string ConfigNodeName => "regular-grammar";
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings, RegularExpressions.IRegexFactory regexFactory)
+			Settings.IGlobalSettingsAccessor globalSettings, RegularExpressions.IRegexFactory regexFactory,
+			FieldsProcessor.IFactory fieldsProcessorFactory, LogMedia.IFileSystem fileSystem)
 			: base(createParams, regexFactory)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -332,11 +334,12 @@ namespace LogJoint.RegularGrammar
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			this.tempFilesManager = tempFilesManager;
-			fieldsProcessorFactory = createParams.FieldsProcessorFactory;
+			this.fieldsProcessorFactory = fieldsProcessorFactory;
 			this.regexFactory = regexFactory;
 			this.traceSourceFactory = traceSourceFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
 			this.globalSettings = globalSettings;
+			this.fileSystem = fileSystem;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
 				FieldsProcessor.IInitializationParams fieldsInitParams = fieldsProcessorFactory.CreateInitializationParams(
@@ -392,7 +395,7 @@ namespace LogJoint.RegularGrammar
 		{
 			return new StreamLogProvider(host, this, connectParams, 
 				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory),
-				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings);
+				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
 		}
 
 		public override LogProviderFactoryFlag Flags

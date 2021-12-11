@@ -16,7 +16,6 @@ namespace LogJoint
 		readonly LJTraceSource tracer;
 		ILogProvider provider;
 		readonly ILogSourceThreadsInternal logSourceThreads;
-		readonly LogMedia.IFileSystem fileSystem;
 		bool isDisposed;
 		bool visible = true;
 		bool trackingEnabled = true;
@@ -30,15 +29,14 @@ namespace LogJoint
 		public static async Task<LogSource> Create(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreadsInternal threads, Persistence.IStorageManager storageManager,
-			ISynchronizationContext modelSyncContext, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks,
-			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
-        {
+			ISynchronizationContext modelSyncContext, IBookmarks bookmarks, ITraceSourceFactory traceSourceFactory)
+		{
 			var tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
 			LogSource logSource = null;
 			try
 			{
 				logSource = new LogSource(owner, tracer, modelSyncContext,  bookmarks,
-					traceSourceFactory, fileSystem, threads);
+					traceSourceFactory, threads);
 				await logSource.Init(providerFactory, connectionParams, storageManager);
 			}
 			catch (Exception e)
@@ -59,12 +57,11 @@ namespace LogJoint
 
 		private LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer,
 			ISynchronizationContext modelSyncContext, IBookmarks bookmarks, ITraceSourceFactory traceSourceFactory,
-			LogMedia.IFileSystem fileSystem, IModelThreadsInternal threads)
+			IModelThreadsInternal threads)
 		{
 			this.owner = owner;
 			this.tracer = tracer;
 			this.bookmarks = bookmarks;
-			this.fileSystem = fileSystem;
 
 			this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
 			this.timeGaps = new TimeGapsDetector(tracer, modelSyncContext, new LogSourceGapsSource(this), traceSourceFactory);
@@ -150,8 +147,6 @@ namespace LogJoint
 
 		string ILogProviderHost.LoggingPrefix => tracer.Prefix;
 		
-		LogMedia.IFileSystem ILogProviderHost.FileSystem => fileSystem;
-
 		void ILogProviderHost.OnStatisticsChanged(LogProviderStats value,
 			LogProviderStats oldValue, LogProviderStatsFlag flags)
 		{

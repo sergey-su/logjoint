@@ -182,8 +182,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 		TestDialog.IPresenter IFactory.CreateTestDialog()
 		{
-			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
-				 logViewerPresenterFactory, fileSystem);
+			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(), logViewerPresenterFactory);
 		}
 
 		EditRegexDialog.IPresenter IFactory.CreateEditRegexDialog()
@@ -224,6 +223,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 		private ITestParsing CreateTestParsing() => new CustomFormatPageUtils.TestParsing(
 			alerts, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory,
-				this, synchronizationContext, globalSettings);
+				this, synchronizationContext, globalSettings, fileSystem);
 	};
 };

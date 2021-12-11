@@ -12,17 +12,19 @@ namespace LogJoint.PlainText
 	class LogProvider: LiveLogProvider
 	{
 		readonly IRegexFactory regexFactory;
+		readonly LogMedia.IFileSystem fileSystem;
 		readonly string fileName;
 		long sizeInBytesStat;
 
 		public LogProvider(ILogProviderHost host, IConnectionParams connectParams,
 			ILogProviderFactory factory, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings)
+			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 			:
-			base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings)
+			base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
 		{
 			this.regexFactory = regexFactory;
+			this.fileSystem = fileSystem;
 			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
 		}
@@ -40,7 +42,7 @@ namespace LogJoint.PlainText
 		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (ILogMedia media = await SimpleFileMedia.Create(
-				host.FileSystem,
+				fileSystem,
 				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
 			using (FileSystemWatcher watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName), 
 				Path.GetFileName(fileName)))
@@ -112,15 +114,17 @@ namespace LogJoint.PlainText
 		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
 		readonly Settings.IGlobalSettingsAccessor globalSettings;
+		readonly LogMedia.IFileSystem fileSystem;
 
 		public Factory(ITempFilesManager tempFiles, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
-			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings)
+			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 		{
 			this.tempFiles = tempFiles;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
 			this.globalSettings = globalSettings;
+			this.fileSystem = fileSystem;
 		}
 
 		public static string CompanyName { get { return "LogJoint"; } }
@@ -175,7 +179,7 @@ namespace LogJoint.PlainText
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new LogProvider(host, connectParams, this, tempFiles, traceSourceFactory, regexFactory,
-				modelSynchronizationContext, globalSettings);
+				modelSynchronizationContext, globalSettings, fileSystem);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

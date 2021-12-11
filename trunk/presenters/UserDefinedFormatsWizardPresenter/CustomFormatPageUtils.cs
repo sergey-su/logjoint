@@ -52,6 +52,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			readonly IFactory objectsFactory;
 			readonly ISynchronizationContext modelSynchronizationContext;
 			readonly Settings.IGlobalSettingsAccessor globalSettings;
+			readonly LogMedia.IFileSystem fileSystem;
 
 			public TestParsing(
 				IAlertPopup alerts,
@@ -61,7 +62,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				FieldsProcessor.IFactory fieldsProcessorFactory,
 				IFactory objectsFactory,
 				ISynchronizationContext modelSynchronizationContext,
-				Settings.IGlobalSettingsAccessor globalSettings
+				Settings.IGlobalSettingsAccessor globalSettings,
+				LogMedia.IFileSystem fileSystem
 			)
 			{
 				this.alerts = alerts;
@@ -72,6 +74,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				this.fieldsProcessorFactory = fieldsProcessorFactory;
 				this.modelSynchronizationContext = modelSynchronizationContext;
 				this.globalSettings = globalSettings;
+				this.fileSystem = fileSystem;
 			}
 
 			bool? ITestParsing.Test(
@@ -96,7 +99,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					createParams.RootNode = clonedFormatXmlDocument.Element("format");
 					createParams.FormatSpecificNode = createParams.RootNode.Element(formatSpecificNodeName);
 					createParams.FactoryRegistry = null;
-					createParams.FieldsProcessorFactory = fieldsProcessorFactory;
 
 					// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
 					// we test regexps correctness.
@@ -108,11 +110,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 					ILogProviderFactory f;
 					if (formatSpecificNodeName == RegularGrammar.UserDefinedFormatFactory.ConfigNodeName)
-						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, regexFactory);
+						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory,
+							modelSynchronizationContext, globalSettings, regexFactory, fieldsProcessorFactory, fileSystem);
 					else if (formatSpecificNodeName == XmlFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, regexFactory);
+						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory,
+							modelSynchronizationContext, globalSettings, regexFactory, fileSystem);
 					else if (formatSpecificNodeName == JsonFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, regexFactory);
+						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory,
+							modelSynchronizationContext, globalSettings, regexFactory, fileSystem);
 					else
 						return null;
 					using (f as IDisposable)

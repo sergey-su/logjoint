@@ -11,7 +11,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 
 		readonly IModelThreadsInternal threads;
 		readonly ILogSourceThreadsInternal logSourceThreads;
-		readonly LogMedia.IFileSystem fileSystem;
 		ILogProvider provider;
 		LogViewer.DummyModel model;
 		LogViewer.IPresenterInternal logPresenter;
@@ -19,13 +18,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 
 		public Presenter(
 			IView view,
-			LogViewer.IPresenterFactory logViewerPresenterFactory,
-			LogMedia.IFileSystem fileSystem
+			LogViewer.IPresenterFactory logViewerPresenterFactory
 		)
 		{
 			this.view = view;
 			this.view.SetEventsHandler(this);
-			this.fileSystem = fileSystem;
 
 			this.threads = new ModelThreads();
 			this.logSourceThreads = new LogSourceThreads(
@@ -57,8 +54,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		}
 
 		string ILogProviderHost.LoggingPrefix => "test";
-
-		LogMedia.IFileSystem ILogProviderHost.FileSystem => fileSystem;
 
 		ITimeOffsets ILogProviderHost.TimeOffsets
 		{

@@ -8,7 +8,5 @@ namespace LogJoint
 		public string Location;
 		public XElement RootNode;
 		public XElement FormatSpecificNode;
-
-		public FieldsProcessor.IFactory FieldsProcessorFactory;
 	};
 }

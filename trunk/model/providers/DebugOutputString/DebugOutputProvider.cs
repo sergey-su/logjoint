@@ -20,10 +20,10 @@ namespace LogJoint.DebugOutput
 
 		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings)
+			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 			:
 			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity),
-				tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings)
+				tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
 		{
 			using (trace.NewFrame)
 			{
@@ -170,16 +170,18 @@ namespace LogJoint.DebugOutput
 		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly ISynchronizationContext modelSynchronizationContext;
 		readonly Settings.IGlobalSettingsAccessor globalSettings;
+		readonly LogMedia.IFileSystem fileSystem;
 
 		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
 			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings)
+			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 		{
 			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
 			this.modelSynchronizationContext = modelSynchronizationContext;
 			this.globalSettings = globalSettings;
+			this.fileSystem = fileSystem;
 		}
 
 		string ILogProviderFactory.CompanyName
@@ -219,7 +221,7 @@ namespace LogJoint.DebugOutput
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new LogProvider(host, this, tempFilesManager, traceSourceFactory, regexFactory,
-				modelSynchronizationContext, globalSettings);
+				modelSynchronizationContext, globalSettings, fileSystem);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

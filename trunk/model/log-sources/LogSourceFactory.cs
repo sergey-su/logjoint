@@ -53,11 +53,8 @@ namespace LogJoint
 				threads,
 				storageManager,
 				invoker,
-				globalSettingsAccess,
 				bookmarks,
-				traceSourceFactory,
-				regexFactory,
-				fileSystem
+				traceSourceFactory
 			);
 		}
 	}

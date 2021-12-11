@@ -20,7 +20,6 @@ namespace LogJoint
 		ILogMedia media;
 		IPositionedMessagesReader reader;
 		readonly ITempFilesManager tempFilesManager;
-		readonly Settings.IGlobalSettingsAccessor globalSettings;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
 		string taskbarFileName;
@@ -33,19 +32,19 @@ namespace LogJoint
 			ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory,
 			ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings
+			Settings.IGlobalSettingsAccessor globalSettings,
+			LogMedia.IFileSystem fileSystem
 		) :
 			base (host, factory, connectParams, traceSourceFactory, modelSynchronizationContext, globalSettings)
 		{
 			using (tracer.NewFrame)
 			{
 				this.tempFilesManager = tempFilesManager;
-				this.globalSettings = globalSettings;
 				StartAsyncReader(async () => {
 					if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
 					{
 						media = new RollingFilesMedia(
-							host.FileSystem,
+							fileSystem,
 							readerCreator,
 							tracer,
 							new GenericRollingMediaStrategy(
@@ -56,7 +55,7 @@ namespace LogJoint
 					}
 					else
 					{
-						media = await SimpleFileMedia.Create(host.FileSystem, connectParams);
+						media = await SimpleFileMedia.Create(fileSystem, connectParams);
 					}
 
 					reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
