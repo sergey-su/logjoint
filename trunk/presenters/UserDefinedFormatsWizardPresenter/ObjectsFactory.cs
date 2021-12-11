@@ -180,7 +180,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		TestDialog.IPresenter IFactory.CreateTestDialog()
 		{
 			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
-				traceSourceFactory, regexFactory, logViewerPresenterFactory, synchronizationContext, fileSystem);
+				 logViewerPresenterFactory, synchronizationContext, fileSystem);
 		}
 
 		EditRegexDialog.IPresenter IFactory.CreateEditRegexDialog()

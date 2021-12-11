@@ -467,18 +467,18 @@ namespace LogJoint
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory);
+				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory);
 			}
-			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory));
+			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory, regexFactory));
 			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
 		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry,
-			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
 		{
-			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory));
-			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory));
+			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory, regexFactory));
+			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory, regexFactory));
 		}
 
 		// This uses names that static anaylzer would trim otherwise as unused. These names need to be preserved for plugins.

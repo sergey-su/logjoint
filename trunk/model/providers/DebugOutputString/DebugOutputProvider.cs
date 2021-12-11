@@ -18,9 +18,11 @@ namespace LogJoint.DebugOutput
 		SafeFileHandle bufferFile;
 		SafeViewOfFileHandle bufferAddress;
 
-		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
+		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
 			:
-			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity), tempFilesManager, traceSourceFactory)
+			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity),
+				tempFilesManager, traceSourceFactory, regexFactory)
 		{
 			using (trace.NewFrame)
 			{
@@ -164,11 +166,13 @@ namespace LogJoint.DebugOutput
 	{
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 
-		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
+		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 		}
 
 		string ILogProviderFactory.CompanyName
@@ -207,7 +211,7 @@ namespace LogJoint.DebugOutput
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, this, tempFilesManager, traceSourceFactory);
+			return new LogProvider(host, this, tempFilesManager, traceSourceFactory, regexFactory);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

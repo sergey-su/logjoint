@@ -8,9 +8,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 	internal class Presenter : IPresenter, IDisposable, IViewEvents, ILogProviderHost
 	{
 		readonly IView view;
-		readonly ITempFilesManager tempFilesManager;
-		readonly ITraceSourceFactory traceSourceFactory;
-		readonly RegularExpressions.IRegexFactory regexFactory;
 
 		readonly IModelThreadsInternal threads;
 		readonly ILogSourceThreadsInternal logSourceThreads;
@@ -23,8 +20,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 
 		public Presenter(
 			IView view,
-			ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			ISynchronizationContext synchronizationContext,
 			LogMedia.IFileSystem fileSystem
@@ -32,8 +27,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		{
 			this.view = view;
 			this.view.SetEventsHandler(this);
-			this.traceSourceFactory = traceSourceFactory;
-			this.regexFactory = regexFactory;
 			this.synchronizationContext = synchronizationContext;
 			this.fileSystem = fileSystem;
 
@@ -67,8 +60,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		}
 
 		string ILogProviderHost.LoggingPrefix => "test";
-
-		RegularExpressions.IRegexFactory ILogProviderHost.RegexFactory => regexFactory;
 
 		ISynchronizationContext ILogProviderHost.ModelSynchronizationContext => synchronizationContext;
 

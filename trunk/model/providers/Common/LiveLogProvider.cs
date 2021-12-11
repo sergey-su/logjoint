@@ -145,7 +145,8 @@ namespace LogJoint
 		}
 
 		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
-			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, DejitteringParams? dejitteringParams = null)
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory, DejitteringParams? dejitteringParams = null)
 			:
 			base(
 				host, 
@@ -153,8 +154,8 @@ namespace LogJoint
 				CreateConnectionParams(originalConnectionParams, tempFilesManager),
 				@params => new XmlFormat.MessagesReader(
 					@params,
-					XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), host.RegexFactory),
-					host.RegexFactory,
+					XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), regexFactory),
+					regexFactory,
 					traceSourceFactory
 				),
 				tempFilesManager,

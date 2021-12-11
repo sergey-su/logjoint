@@ -11,14 +11,17 @@ namespace LogJoint.PlainText
 {
 	class LogProvider: LiveLogProvider
 	{
+		readonly IRegexFactory regexFactory;
 		readonly string fileName;
 		long sizeInBytesStat;
 
 		public LogProvider(ILogProviderHost host, IConnectionParams connectParams,
-			ILogProviderFactory factory, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
+			ILogProviderFactory factory, ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory)
 			:
-			base(host, factory, connectParams, tempFilesManager, traceSourceFactory)
+			base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory)
 		{
+			this.regexFactory = regexFactory;
 			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
 		}
@@ -44,7 +47,7 @@ namespace LogJoint.PlainText
 			{
 				IMessagesSplitter splitter = new MessagesSplitter(
 					new StreamTextAccess(media.DataStream, Encoding.ASCII, TextStreamPositioningParams.Default),
-					host.RegexFactory.Create(@"^(?<body>.+)$", ReOptions.Multiline)
+					regexFactory.Create(@"^(?<body>.+)$", ReOptions.Multiline)
 				);
 
 				watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
@@ -105,11 +108,13 @@ namespace LogJoint.PlainText
 	{
 		readonly ITempFilesManager tempFiles;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly RegularExpressions.IRegexFactory regexFactory;
 
-		public Factory(ITempFilesManager tempFiles, ITraceSourceFactory traceSourceFactory)
+		public Factory(ITempFilesManager tempFiles, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
 		{
 			this.tempFiles = tempFiles;
 			this.traceSourceFactory = traceSourceFactory;
+			this.regexFactory = regexFactory;
 		}
 
 		public static string CompanyName { get { return "LogJoint"; } }
@@ -163,7 +168,7 @@ namespace LogJoint.PlainText
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this, tempFiles, traceSourceFactory);
+			return new LogProvider(host, connectParams, this, tempFiles, traceSourceFactory, regexFactory);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
