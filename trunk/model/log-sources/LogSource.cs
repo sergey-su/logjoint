@@ -24,7 +24,6 @@ namespace LogJoint
 		Persistence.IStorageEntry logSourceSpecificStorageEntry;
 		bool loadingLogSourceInfoFromStorageEntry;
 		readonly ITimeGapsDetector timeGaps;
-		readonly ISynchronizationContext modelSyncContext;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
 		int? color;
@@ -66,7 +65,6 @@ namespace LogJoint
 		{
 			this.owner = owner;
 			this.tracer = tracer;
-			this.modelSyncContext = modelSyncContext;
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
 			this.fileSystem = fileSystem;
@@ -158,8 +156,6 @@ namespace LogJoint
 
 		ITimeGapsDetector ILogSource.TimeGaps => timeGaps;
 
-
-		ISynchronizationContext ILogProviderHost.ModelSynchronizationContext => modelSyncContext;
 
 		string ILogProviderHost.LoggingPrefix => tracer.Prefix;
 		

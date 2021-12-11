@@ -17,9 +17,9 @@ namespace LogJoint.PlainText
 
 		public LogProvider(ILogProviderHost host, IConnectionParams connectParams,
 			ILogProviderFactory factory, ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory)
+			ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext)
 			:
-			base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory)
+			base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext)
 		{
 			this.regexFactory = regexFactory;
 			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
@@ -109,12 +109,15 @@ namespace LogJoint.PlainText
 		readonly ITempFilesManager tempFiles;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
+		readonly ISynchronizationContext modelSynchronizationContext;
 
-		public Factory(ITempFilesManager tempFiles, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
+		public Factory(ITempFilesManager tempFiles, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
+			ISynchronizationContext modelSynchronizationContext)
 		{
 			this.tempFiles = tempFiles;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
+			this.modelSynchronizationContext = modelSynchronizationContext;
 		}
 
 		public static string CompanyName { get { return "LogJoint"; } }
@@ -168,7 +171,7 @@ namespace LogJoint.PlainText
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this, tempFiles, traceSourceFactory, regexFactory);
+			return new LogProvider(host, connectParams, this, tempFiles, traceSourceFactory, regexFactory, modelSynchronizationContext);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

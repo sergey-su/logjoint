@@ -50,6 +50,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			readonly RegularExpressions.IRegexFactory regexFactory;
 			readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 			readonly IFactory objectsFactory;
+			readonly ISynchronizationContext modelSynchronizationContext;
 
 			public TestParsing(
 				IAlertPopup alerts,
@@ -57,7 +58,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				ITraceSourceFactory traceSourceFactory,
 				RegularExpressions.IRegexFactory regexFactory,
 				FieldsProcessor.IFactory fieldsProcessorFactory,
-				IFactory objectsFactory
+				IFactory objectsFactory,
+				ISynchronizationContext modelSynchronizationContext
 			)
 			{
 				this.alerts = alerts;
@@ -66,6 +68,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				this.regexFactory = regexFactory;
 				this.objectsFactory = objectsFactory;
 				this.fieldsProcessorFactory = fieldsProcessorFactory;
+				this.modelSynchronizationContext = modelSynchronizationContext;
 			}
 
 			bool? ITestParsing.Test(
@@ -103,11 +106,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 					ILogProviderFactory f;
 					if (formatSpecificNodeName == RegularGrammar.UserDefinedFormatFactory.ConfigNodeName)
-						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory);
+						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext);
 					else if (formatSpecificNodeName == XmlFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory);
+						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext);
 					else if (formatSpecificNodeName == JsonFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory);
+						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory, modelSynchronizationContext);
 					else
 						return null;
 					using (f as IDisposable)

@@ -180,7 +180,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		TestDialog.IPresenter IFactory.CreateTestDialog()
 		{
 			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
-				 logViewerPresenterFactory, synchronizationContext, fileSystem);
+				 logViewerPresenterFactory, fileSystem);
 		}
 
 		EditRegexDialog.IPresenter IFactory.CreateEditRegexDialog()
@@ -220,6 +220,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		}
 
 		private ITestParsing CreateTestParsing() => new CustomFormatPageUtils.TestParsing(
-			alerts, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory, this);
+			alerts, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory, this, synchronizationContext);
 	};
 };

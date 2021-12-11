@@ -133,12 +133,13 @@ namespace LogJoint
 				formatDefinitionsRepository, logProviderFactoryRegistry,  traceSourceFactory, regexFactory, fieldsProcessorFactory);
 			IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
+				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
+				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
-			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory);
+				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext));
+			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
+				modelSynchronizationContext);
 			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
 			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
@@ -463,22 +464,24 @@ namespace LogJoint
 			ITempFilesManager tempFilesManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			RegularExpressions.IRegexFactory regexFactory,
-			ITraceSourceFactory traceSourceFactory)
+			ITraceSourceFactory traceSourceFactory,
+			ISynchronizationContext modelSynchronizationContext)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory);
+				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext);
 			}
-			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory, regexFactory));
-			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory));
+			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext));
+			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSynchronizationContext));
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
 		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry,
-			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
+			ISynchronizationContext modelSynchronizationContext)
 		{
-			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory, regexFactory));
-			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory, regexFactory));
+			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext));
+			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext));
 		}
 
 		// This uses names that static anaylzer would trim otherwise as unused. These names need to be preserved for plugins.

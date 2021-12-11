@@ -128,10 +128,11 @@ namespace LogJoint.Tests
 			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg,
 				traceSourceFactory, RegularExpressions.FCLRegexFactory.Instance,
 				Mocks.SetupFieldsProcessorFactory());
+			var modelSyncContext = new SerialSynchronizationContext();
 			formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
+				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSyncContext));
 			formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory));
+				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSyncContext));
 			formatsManager.ReloadFactories();
 			var factory = reg.Find(companyName, formatName);
 			Assert.IsNotNull(factory);
@@ -612,8 +613,9 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg,
 				new TraceSourceFactory(), RegularExpressions.FCLRegexFactory.Instance, Mocks.SetupFieldsProcessorFactory());
+			var modelSyncContext = new SerialSynchronizationContext();
 			formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
-				new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, new TraceSourceFactory()));
+				new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, new TraceSourceFactory(), modelSyncContext));
 			formatsManager.ReloadFactories();
 			var factory = reg.Items.FirstOrDefault();
 			Assert.IsNotNull(factory);

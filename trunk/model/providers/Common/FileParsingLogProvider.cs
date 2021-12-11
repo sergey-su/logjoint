@@ -30,9 +30,10 @@ namespace LogJoint
 			IConnectionParams connectParams,
 			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator,
 			ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory 
+			ITraceSourceFactory traceSourceFactory,
+			ISynchronizationContext modelSynchronizationContext
 		) :
-			base (host, factory, connectParams, traceSourceFactory)
+			base (host, factory, connectParams, traceSourceFactory, modelSynchronizationContext)
 		{
 			using (tracer.NewFrame)
 			{

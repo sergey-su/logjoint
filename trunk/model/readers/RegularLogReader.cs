@@ -316,10 +316,12 @@ namespace LogJoint.RegularGrammar
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
 		readonly IRegexFactory regexFactory;
 		readonly ITraceSourceFactory traceSourceFactory;
+		readonly ISynchronizationContext modelSynchronizationContext;
 
 		public static string ConfigNodeName => "regular-grammar";
 
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -331,6 +333,7 @@ namespace LogJoint.RegularGrammar
 			fieldsProcessorFactory = createParams.FieldsProcessorFactory;
 			regexFactory = createParams.RegexFactory;
 			this.traceSourceFactory = traceSourceFactory;
+			this.modelSynchronizationContext = modelSynchronizationContext;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
 				FieldsProcessor.IInitializationParams fieldsInitParams = fieldsProcessorFactory.CreateInitializationParams(
@@ -385,7 +388,8 @@ namespace LogJoint.RegularGrammar
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory), tempFilesManager, traceSourceFactory);
+				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory),
+				tempFilesManager, traceSourceFactory, modelSynchronizationContext);
 		}
 
 		public override LogProviderFactoryFlag Flags

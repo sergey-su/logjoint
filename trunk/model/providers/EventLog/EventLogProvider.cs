@@ -10,7 +10,8 @@ namespace LogJoint.WindowsEventLog
 	public class LogProvider : LiveLogProvider
 	{
 		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
-			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
+			ISynchronizationContext modelSynchronizationContext)
 			:
 			base(host,
 				factory,
@@ -18,6 +19,7 @@ namespace LogJoint.WindowsEventLog
 				tempFilesManager,
 				traceSourceFactory,
 				regexFactory,
+				modelSynchronizationContext,
 				new DejitteringParams() { JitterBufferSize = 25 }
 			)
 		{
@@ -269,12 +271,15 @@ namespace LogJoint.WindowsEventLog
 		readonly ITempFilesManager tempFilesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
+		readonly ISynchronizationContext modelSynchronizationContext;
 
-		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory)
+		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext)
 		{
 			this.tempFilesManager = tempFilesManager;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
+			this.modelSynchronizationContext = modelSynchronizationContext;
 		}
 
 		public IConnectionParams CreateParamsFromIdentity(EventLogIdentity identity)
@@ -331,7 +336,7 @@ namespace LogJoint.WindowsEventLog
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this, tempFilesManager, traceSourceFactory, regexFactory);
+			return new LogProvider(host, connectParams, this, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

@@ -146,7 +146,7 @@ namespace LogJoint
 
 		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory, DejitteringParams? dejitteringParams = null)
+			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext, DejitteringParams? dejitteringParams = null)
 			:
 			base(
 				host, 
@@ -159,7 +159,8 @@ namespace LogJoint
 					traceSourceFactory
 				),
 				tempFilesManager,
-				traceSourceFactory
+				traceSourceFactory,
+				modelSynchronizationContext
 			)
 		{
 			this.trace = base.tracer;

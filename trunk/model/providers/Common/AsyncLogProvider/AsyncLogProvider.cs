@@ -9,7 +9,8 @@ namespace LogJoint
 {
 	public abstract class AsyncLogProvider: ILogProvider, IAsyncLogProvider
 	{
-		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams, ITraceSourceFactory traceSourceFactory)
+		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams,
+			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext)
 		{
 			this.host = host;
 			this.factory = factory;
@@ -19,6 +20,7 @@ namespace LogJoint
 			this.connectionParamsReadonlyView = new ConnectionParamsReadOnlyView(this.connectionParams);
 			this.stats = new LogProviderStats();
 			this.externalStats = this.stats.Clone();
+			this.modelSynchronizationContext = modelSynchronizationContext;
 			this.threads = (ILogSourceThreadsInternal)host.Threads;
 			this.connectionIdLazy = new Lazy<string>(() => factory.GetConnectionId(connectionParamsReadonlyView),
 				LazyThreadSafetyMode.ExecutionAndPublication);
@@ -423,7 +425,7 @@ namespace LogJoint
 		{
 			if (disposed)
 				return;
-			await host.ModelSynchronizationContext.Invoke(() => threads.Clear());
+			await modelSynchronizationContext.Invoke(() => threads.Clear());
 		}
 
 		async Task InvalidateEverythingThatHasBeenLoaded()
@@ -669,6 +671,7 @@ namespace LogJoint
 		#region private members
 
 		readonly object sync = new object();
+		private readonly ISynchronizationContext modelSynchronizationContext;
 		Task thread;
 		Exception threadFailureException;
 		IPositionedMessagesReader reader;
