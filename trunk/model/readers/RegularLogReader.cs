@@ -79,9 +79,10 @@ namespace LogJoint.RegularGrammar
 			FormatInfo fmt,
 			FieldsProcessor.IFactory fieldsProcessorFactory,
 			IRegexFactory regexFactory,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			Settings.IGlobalSettingsAccessor settings
 		) :
-			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, settings)
 		{
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
@@ -374,7 +375,7 @@ namespace LogJoint.RegularGrammar
 
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory);
+			return new MessagesReader(readerParams, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettings);
 		}
 		
 		#region ILogReaderFactory Members
@@ -394,7 +395,7 @@ namespace LogJoint.RegularGrammar
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory),
+				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettings),
 				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
 		}
 

@@ -10,33 +10,21 @@ namespace LogJoint
 		readonly IBookmarks bookmarks;
 		readonly ISynchronizationContext invoker;
 		readonly Persistence.IStorageManager storageManager;
-		readonly ITempFilesManager tempFilesManager;
-		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly ITraceSourceFactory traceSourceFactory;
-		readonly RegularExpressions.IRegexFactory regexFactory;
-		readonly LogMedia.IFileSystem fileSystem;
 
 		public LogSourceFactory(
 			IModelThreadsInternal threads,
 			IBookmarks bookmarks,
 			ISynchronizationContext invoker,
 			Persistence.IStorageManager storageManager,
-			ITempFilesManager tempFilesManager,
-			Settings.IGlobalSettingsAccessor globalSettingsAccess,
-			ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory,
-			LogMedia.IFileSystem fileSystem
+			ITraceSourceFactory traceSourceFactory
 		)
 		{
 			this.threads = threads;
 			this.bookmarks = bookmarks;
 			this.invoker = invoker;
 			this.storageManager = storageManager;
-			this.tempFilesManager = tempFilesManager;
-			this.globalSettingsAccess = globalSettingsAccess;
 			this.traceSourceFactory = traceSourceFactory;
-			this.regexFactory = regexFactory;
-			this.fileSystem = fileSystem;
 		}
 
 		async Task<ILogSourceInternal> ILogSourceFactory.CreateLogSource (

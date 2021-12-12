@@ -12,18 +12,14 @@ namespace LogJoint
 			IHeartBeatTimer heartbeat,
 			ISynchronizationContext invoker,
 			IModelThreadsInternal threads,
-			ITempFilesManager tempFilesManager,
 			Persistence.IStorageManager storageManager,
 			IBookmarks bookmarks,
-			Settings.IGlobalSettingsAccessor globalSettingsAccess,
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
 			IShutdown shutdown,
 			ITraceSourceFactory traceSourceFactory,
-			IChangeNotification changeNotification,
-			RegularExpressions.IRegexFactory regexFactory,
-			LogMedia.IFileSystem fileSystem
+			IChangeNotification changeNotification
 		) : this(heartbeat, recentlyUsedEntities, shutdown, traceSourceFactory, changeNotification,
-			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess, traceSourceFactory, regexFactory, fileSystem))
+			new LogSourceFactory(threads, bookmarks, invoker, storageManager, traceSourceFactory))
 		{
 		}
 

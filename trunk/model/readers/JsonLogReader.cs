@@ -53,9 +53,10 @@ namespace LogJoint.JsonFormat
 			MediaBasedReaderParams readerParams,
 			JsonFormatInfo fmt,
 			IRegexFactory regexFactory,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			Settings.IGlobalSettingsAccessor settings
 		) :
-			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, settings)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
@@ -387,7 +388,8 @@ namespace LogJoint.JsonFormat
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, @params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory),
+			return new StreamLogProvider(host, this, connectParams,
+				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory, globalSettings),
 				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
 		}
 
@@ -424,7 +426,7 @@ namespace LogJoint.JsonFormat
 
 		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory);
+			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory, globalSettings);
 		}
 	};
 }

@@ -157,7 +157,8 @@ namespace LogJoint
 					@params,
 					XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), regexFactory),
 					regexFactory,
-					traceSourceFactory
+					traceSourceFactory,
+					globalSettings
 				),
 				tempFilesManager,
 				traceSourceFactory,

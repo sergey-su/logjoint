@@ -207,16 +207,14 @@ namespace LogJoint
 		public ILogSourceThreadsInternal Threads;
 		public ILogMedia Media;
 		public MessagesReaderFlags Flags;
-		public Settings.IGlobalSettingsAccessor SettingsAccessor;
 		public string ParentLoggingPrefix;
 		public MediaBasedReaderParams(ILogSourceThreadsInternal threads, ILogMedia media, 
 			MessagesReaderFlags flags = MessagesReaderFlags.None,
-			Settings.IGlobalSettingsAccessor settingsAccessor = null, string parentLoggingPrefix = null)
+			string parentLoggingPrefix = null)
 		{
 			Threads = threads;
 			Media = media;
 			Flags = flags;
-			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
 			ParentLoggingPrefix = parentLoggingPrefix;
 		}
 	};

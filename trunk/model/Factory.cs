@@ -182,16 +182,12 @@ namespace LogJoint
 				heartBeatTimer,
 				modelSynchronizationContext,
 				modelThreads,
-				tempFilesManager,
 				storageManager,
 				bookmarks,
-				globalSettingsAccessor,
 				recentlyUsedLogs,
 				shutdown,
 				traceSourceFactory,
-				changeNotification,
-				regexFactory,
-				fileSystem
+				changeNotification
 			);
 
 			telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);

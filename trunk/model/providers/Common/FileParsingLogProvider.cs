@@ -59,7 +59,7 @@ namespace LogJoint
 					}
 
 					reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
-							settingsAccessor: globalSettings, parentLoggingPrefix: tracer.Prefix));
+							parentLoggingPrefix: tracer.Prefix));
 
 					ITimeOffsets initialTimeOffset;
 					if (LogJoint.TimeOffsets.TryParse(

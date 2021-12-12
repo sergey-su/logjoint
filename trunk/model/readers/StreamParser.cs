@@ -10,8 +10,8 @@ namespace LogJoint
 		private bool disposed;
 		private readonly bool isSequentialReadingParser;
 		private readonly bool multithreadingDisabled;
-		protected readonly CreateParserParams InitialParams;
-		protected readonly StreamParsingStrategies.BaseStrategy Strategy;
+		private readonly CreateParserParams initialParams;
+		private readonly StreamParsingStrategies.BaseStrategy strategy;
 
 		public static async Task<StreamParser> Create(
 			IPositionedMessagesReader owner,
@@ -19,9 +19,9 @@ namespace LogJoint
 			TextStreamPositioningParams textStreamPositioningParams,
 			IGlobalSettingsAccessor globalSettings,
 			StrategiesCache strategiesCache)
-        {
+		{
 			var parser = new StreamParser(owner, p, textStreamPositioningParams, globalSettings, strategiesCache);
-			await parser.Strategy.ParserCreated(parser.InitialParams);
+			await parser.strategy.ParserCreated(parser.initialParams);
 			return parser;
 		}
 
@@ -35,13 +35,13 @@ namespace LogJoint
 		{
 			p.EnsureRangeIsSet(owner);
 
-			this.InitialParams = p;
+			this.initialParams = p;
 
 			this.isSequentialReadingParser = (p.Flags & MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading) != 0;
 			this.multithreadingDisabled = (p.Flags & MessagesParserFlag.DisableMultithreading) != 0
 				|| globalSettings.MultithreadedParsingDisabled;
 
-			CreateParsingStrategy(p, textStreamPositioningParams, strategiesCache, out this.Strategy);
+			this.strategy = CreateParsingStrategy(p, textStreamPositioningParams, strategiesCache);
 		}
 
 		public struct StrategiesCache
@@ -81,11 +81,10 @@ namespace LogJoint
 			return true;
 		}
 
-		void CreateParsingStrategy(
+		StreamParsingStrategies.BaseStrategy CreateParsingStrategy(
 			CreateParserParams parserParams,
 			TextStreamPositioningParams textStreamPositioningParams,
-			StrategiesCache strategiesCache,
-			out BaseStrategy strategy)
+			StrategiesCache strategiesCache)
 		{
 			bool useMultithreadedStrategy;
 
@@ -111,9 +110,10 @@ namespace LogJoint
 				strategyToTrySecond = strategiesCache.MultiThreadedStrategy;
 			}
 
-			strategy = strategyToTryFirst.Value;
+			var strategy = strategyToTryFirst.Value;
 			if (strategy == null)
 				strategy = strategyToTrySecond.Value;
+			return strategy;
 		}
 
 		public bool IsDisposed
@@ -126,18 +126,18 @@ namespace LogJoint
 			if (disposed)
 				return Task.CompletedTask;
 			disposed = true;
-			Strategy.ParserDestroyed();
+			strategy.ParserDestroyed();
 			return Task.CompletedTask;
 		}
 
 		public ValueTask<IMessage> ReadNext()
 		{
-			return Strategy.ReadNext();
+			return strategy.ReadNext();
 		}
 
 		public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
 		{
-			return Strategy.ReadNextAndPostprocess();
+			return strategy.ReadNextAndPostprocess();
 		}
 	};
 }

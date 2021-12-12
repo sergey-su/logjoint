@@ -359,9 +359,10 @@ namespace LogJoint.XmlFormat
 			MediaBasedReaderParams readerParams,
 			XmlFormatInfo fmt,
 			IRegexFactory regexFactory,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			Settings.IGlobalSettingsAccessor settings
 		) :
-			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, settings)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
@@ -661,7 +662,7 @@ namespace LogJoint.XmlFormat
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory),
+				@params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings),
 				tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
 		}
 
@@ -674,7 +675,7 @@ namespace LogJoint.XmlFormat
 
 		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory);
+			return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings);
 		}
 	};
 
@@ -768,7 +769,7 @@ namespace LogJoint.XmlFormat
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory),
+				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory, globalSettings),
 				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
 		}
 
@@ -810,7 +811,7 @@ namespace LogJoint.XmlFormat
 		#region IMediaBasedReaderFactory Members
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory);
+			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory, globalSettings);
 		}
 		#endregion
 	};
