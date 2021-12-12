@@ -22,9 +22,13 @@ namespace LogJoint.Azure
 		};
 
 
-		public LogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams, IStrategy strategy)
+		public LogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams, IStrategy strategy, 
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
+			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 			:
-			base(host, factory, connectParams)
+			base(host, factory, connectParams,
+				tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
 		{
 			try
 			{
@@ -378,35 +382,36 @@ namespace LogJoint.Azure
 
 	public class Factory : ILogProviderFactory
 	{
+		private readonly IModel model;
 		public static readonly string uiTypeKey = "azure";
 
-		public Factory(string formatName, string formatDescription, LogProvider.IStrategy providerStrategy, ITempFilesManager tempFiles)
+		public Factory(string formatName, string formatDescription, LogProvider.IStrategy providerStrategy, IModel model)
 		{
 			this.formatName = formatName;
 			this.formatDescription = formatDescription;
 			this.providerStrategy = providerStrategy;
-			this.tempFiles = tempFiles;
+			this.model = model;
 		}
 
-		public static void RegisterFactories(ILogProviderFactoryRegistry registry, ITempFilesManager tempFiles)
+		public static void RegisterFactories(ILogProviderFactoryRegistry registry, IModel model)
 		{
 			registry.Register(new Factory(
 				"Azure Diagnostics Log",
 				"Windows Azure Diagnostics log that is stored in Azure Tables Storage table (WADLogsTable)",
-				new WADLogsTableProviderStrategy(), 
-				tempFiles
+				new WADLogsTableProviderStrategy(),
+				model
 			));
 			registry.Register(new Factory(
 				"Azure Diagnostics Windows Event Log",
 				"Windows Azure operating system event log collected and stored in Azure Tables Storage table (WADWindowsEventLogsTable)",
 				new WADWindowsEventLogsTableProviderStrategy(),
-				tempFiles
+				model
 			));
 			registry.Register(new Factory(
 				"Azure Diagnostics Infrastructure Log",
 				"Windows Azure Diagnostics infrastructure log collected and stored in Azure Tables Storage table (WADDiagnosticInfrastructureLogsTable)",
 				new WADDiagnosticInfrastructureLogsTableProviderStrategy(),
-				tempFiles
+				model
 			));
 		}
 
@@ -499,7 +504,9 @@ namespace LogJoint.Azure
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, this, connectParams, providerStrategy);
+			return new LogProvider(host, this, connectParams, providerStrategy, model.TempFilesManager, model.TraceSourceFactory, 
+				RegularExpressions.FCLRegexFactory.Instance, model.SynchronizationContext,
+				Settings.DefaultSettingsAccessor.Instance, model.FileSystem);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
