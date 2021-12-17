@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
@@ -13,16 +11,16 @@ namespace LogJoint.DebugOutput
 {
 	public class LogProvider : LiveLogProvider
 	{
-		EventWaitHandle dataReadyEvt;
-		EventWaitHandle bufferReadyEvt;
-		SafeFileHandle bufferFile;
-		SafeViewOfFileHandle bufferAddress;
+		readonly EventWaitHandle dataReadyEvt;
+		readonly EventWaitHandle bufferReadyEvt;
+		readonly SafeFileHandle bufferFile;
+		readonly SafeViewOfFileHandle bufferAddress;
 
 		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
 			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 			:
-			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity),
+			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(Factory.connectionIdentity),
 				tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
 		{
 			using (trace.NewFrame)

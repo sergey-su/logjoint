@@ -130,10 +130,10 @@ namespace LogJoint
 	public abstract class LiveLogProvider : StreamLogProvider, ILogProvider
 	{
 		protected readonly LJTraceSource trace;
-		private IConnectionParams originalConnectionParams;
-		CancellationTokenSource stopEvt;
+		readonly IConnectionParams originalConnectionParams;
+		readonly CancellationTokenSource stopEvt;
 		Task listeningThread;
-		LiveLogXMLWriter output;
+		readonly LiveLogXMLWriter output;
 		readonly long defaultBackupMaxFileSize = 0;//16 * 1024 * 1024;
 
 		static ConnectionParams CreateConnectionParams(IConnectionParams originalConnectionParams, ITempFilesManager tempFilesManager)
