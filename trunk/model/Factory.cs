@@ -472,7 +472,10 @@ namespace LogJoint
 			{
 				RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem);
 			}
-			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem));
+			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager,
+				(host, connectParams, factory) => 
+					new PlainText.LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
+						modelSynchronizationContext, globalSettings, fileSystem)));
 			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
 			userDefinedFormatsManager.ReloadFactories();
 		}
@@ -481,8 +484,12 @@ namespace LogJoint
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
 			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 		{
-			logProviderFactoryRegistry.Register(new DebugOutput.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem));
-			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory(tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem));
+			logProviderFactoryRegistry.Register(new DebugOutput.Factory((host, factory) =>
+				new DebugOutput.LogProvider(host, factory, tempFilesManager, traceSourceFactory, regexFactory, 
+					modelSynchronizationContext, globalSettings, fileSystem)));
+			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory((host, connectParams, factory) =>
+				new WindowsEventLog.LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
+					modelSynchronizationContext, globalSettings, fileSystem)));
 		}
 
 		// This uses names that static anaylzer would trim otherwise as unused. These names need to be preserved for plugins.

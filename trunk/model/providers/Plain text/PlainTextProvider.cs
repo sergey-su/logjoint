@@ -110,21 +110,15 @@ namespace LogJoint.PlainText
 	public class Factory : IFileBasedLogProviderFactory
 	{
 		readonly ITempFilesManager tempFiles;
-		readonly ITraceSourceFactory traceSourceFactory;
-		readonly RegularExpressions.IRegexFactory regexFactory;
-		readonly ISynchronizationContext modelSynchronizationContext;
-		readonly Settings.IGlobalSettingsAccessor globalSettings;
-		readonly LogMedia.IFileSystem fileSystem;
+		readonly Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory;
 
-		public Factory(ITempFilesManager tempFiles, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
-			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+		public Factory(
+			ITempFilesManager tempFiles,
+			Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory
+		)
 		{
 			this.tempFiles = tempFiles;
-			this.traceSourceFactory = traceSourceFactory;
-			this.regexFactory = regexFactory;
-			this.modelSynchronizationContext = modelSynchronizationContext;
-			this.globalSettings = globalSettings;
-			this.fileSystem = fileSystem;
+			this.providerFactory = providerFactory;
 		}
 
 		public static string CompanyName { get { return "LogJoint"; } }
@@ -178,8 +172,7 @@ namespace LogJoint.PlainText
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this, tempFiles, traceSourceFactory, regexFactory,
-				modelSynchronizationContext, globalSettings, fileSystem);
+			return providerFactory(host, connectParams, this);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

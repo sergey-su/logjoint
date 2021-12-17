@@ -163,23 +163,11 @@ namespace LogJoint.DebugOutput
 
 	public class Factory : ILogProviderFactory
 	{
-		readonly ITempFilesManager tempFilesManager;
-		readonly ITraceSourceFactory traceSourceFactory;
-		readonly RegularExpressions.IRegexFactory regexFactory;
-		readonly ISynchronizationContext modelSynchronizationContext;
-		readonly Settings.IGlobalSettingsAccessor globalSettings;
-		readonly LogMedia.IFileSystem fileSystem;
+		readonly Func<ILogProviderHost, Factory, ILogProvider> providerFactory;
 
-		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+		public Factory(Func<ILogProviderHost, Factory, ILogProvider> providerFactory)
 		{
-			this.tempFilesManager = tempFilesManager;
-			this.traceSourceFactory = traceSourceFactory;
-			this.regexFactory = regexFactory;
-			this.modelSynchronizationContext = modelSynchronizationContext;
-			this.globalSettings = globalSettings;
-			this.fileSystem = fileSystem;
+			this.providerFactory = providerFactory;
 		}
 
 		string ILogProviderFactory.CompanyName
@@ -218,8 +206,7 @@ namespace LogJoint.DebugOutput
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, this, tempFilesManager, traceSourceFactory, regexFactory,
-				modelSynchronizationContext, globalSettings, fileSystem);
+			return providerFactory(host, this);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

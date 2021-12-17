@@ -57,7 +57,12 @@ namespace LogJoint.WindowsEventLog
 			return eventLogIdentity.LogName;
 		}
 
-		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		protected override Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		{
+			return TaskUtils.StartInThreadPoolTaskScheduler(() => Worker(stopEvt, output));
+		}
+
+		async Task Worker(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (this.trace.NewFrame)
 			{
@@ -87,6 +92,14 @@ namespace LogJoint.WindowsEventLog
 							break;
 						if (stopEvt.IsCancellationRequested)
 							return;
+						try
+						{
+							await stopEvt.ToTask().WithTimeout(TimeSpan.FromSeconds(1000));
+						}
+						catch (TimeoutException)
+						{
+							continue;
+						}
 					}
 				}
 				catch (Exception e)
@@ -270,23 +283,11 @@ namespace LogJoint.WindowsEventLog
 
 	public class Factory : ILogProviderFactory
 	{
-		readonly ITempFilesManager tempFilesManager;
-		readonly ITraceSourceFactory traceSourceFactory;
-		readonly RegularExpressions.IRegexFactory regexFactory;
-		readonly ISynchronizationContext modelSynchronizationContext;
-		readonly Settings.IGlobalSettingsAccessor globalSettings;
-		readonly LogMedia.IFileSystem fileSystem;
+		readonly Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory;
 
-		public Factory(ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+		public Factory(Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory)
 		{
-			this.tempFilesManager = tempFilesManager;
-			this.traceSourceFactory = traceSourceFactory;
-			this.regexFactory = regexFactory;
-			this.modelSynchronizationContext = modelSynchronizationContext;
-			this.globalSettings = globalSettings;
-			this.fileSystem = fileSystem;
+			this.providerFactory = providerFactory;
 		}
 
 		public IConnectionParams CreateParamsFromIdentity(EventLogIdentity identity)
@@ -343,8 +344,7 @@ namespace LogJoint.WindowsEventLog
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams, this, tempFilesManager, traceSourceFactory, regexFactory, 
-				modelSynchronizationContext, globalSettings, fileSystem);
+			return providerFactory(host, connectParams, this);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
