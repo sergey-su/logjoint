@@ -383,6 +383,9 @@ namespace LogJoint.Azure
 	public class Factory : ILogProviderFactory
 	{
 		private readonly IModel model;
+		readonly string formatName;
+		readonly string formatDescription;
+		readonly LogProvider.IStrategy providerStrategy;
 		public static readonly string uiTypeKey = "azure";
 
 		public Factory(string formatName, string formatDescription, LogProvider.IStrategy providerStrategy, IModel model)
@@ -499,7 +502,7 @@ namespace LogJoint.Azure
 
 		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), this.tempFiles);
+			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), this.model.TempFilesManager);
 		}
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
@@ -515,10 +518,5 @@ namespace LogJoint.Azure
 		{
 			get { return LogProviderFactoryFlag.None; }
 		}
-
-		readonly string formatName;
-		readonly string formatDescription;
-		readonly LogProvider.IStrategy providerStrategy;
-		readonly ITempFilesManager tempFiles;
 	};
 }
