@@ -127,14 +127,16 @@ namespace LogJoint.Tests
 			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory();
 			RegularExpressions.IRegexFactory regexFactory = RegularExpressions.FCLRegexFactory.Instance;
 			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg, traceSourceFactory);
+			FieldsProcessor.IFactory fieldsProcessorFactory = Mocks.SetupFieldsProcessorFactory();
 			var modelSyncContext = new SerialSynchronizationContext();
+			var globalSettingsAccessor = Settings.DefaultSettingsAccessor.Instance;
+			var fileSystem = LogMedia.FileSystemImpl.Instance;
 			formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory,
-					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, Mocks.SetupFieldsProcessorFactory(),
-						LogMedia.FileSystemImpl.Instance));
+				config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
+					 traceSourceFactory, modelSyncContext, globalSettingsAccessor, fileSystem));
 			formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory,
-					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance));
+				config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSyncContext, 
+					globalSettingsAccessor, regexFactory, fileSystem));
 			formatsManager.ReloadFactories();
 			var factory = reg.Find(companyName, formatName);
 			Assert.IsNotNull(factory);
@@ -618,7 +620,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				repo, reg, new TraceSourceFactory());
 			var modelSyncContext = new SerialSynchronizationContext();
 			formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
-				new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, new TraceSourceFactory(),
+				JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, new TraceSourceFactory(),
 					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance));
 			formatsManager.ReloadFactories();
 			var factory = reg.Items.FirstOrDefault();

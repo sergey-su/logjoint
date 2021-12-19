@@ -32,6 +32,12 @@ namespace LogJoint
 			nodeNameToFactory.Add(configNodeName, factory);
 		}
 
+		IUserDefinedFactory IUserDefinedFormatsManagerInternal.CreateFactory(string configNodeName, UserDefinedFactoryParams @params)
+		{
+			return nodeNameToFactory.TryGetValue(configNodeName, out var factoryFunc) ? factoryFunc(@params) : null;
+		}
+
+
 		int IUserDefinedFormatsManager.ReloadFactories()
 		{
 			tracer.Info("reloading factories");

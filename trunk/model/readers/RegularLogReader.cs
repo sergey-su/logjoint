@@ -310,23 +310,38 @@ namespace LogJoint.RegularGrammar
 		IPrecompilingLogProviderFactory,
 		IMediaBasedReaderFactory
 	{
-		List<string> patterns = new List<string>();
-		Lazy<FormatInfo> fmtInfo;
+		readonly List<string> patterns = new List<string>();
+		readonly Lazy<FormatInfo> fmtInfo;
 		readonly string uiKey;
 		readonly ITempFilesManager tempFilesManager;
+		readonly ProviderFactory providerFactory;
+		readonly ReaderFactory readerFactory;
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
-		readonly IRegexFactory regexFactory;
-		readonly ITraceSourceFactory traceSourceFactory;
-		readonly ISynchronizationContext modelSynchronizationContext;
-		readonly Settings.IGlobalSettingsAccessor globalSettings;
-		readonly LogMedia.IFileSystem fileSystem;
 
 		public static string ConfigNodeName => "regular-grammar";
 
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory, ISynchronizationContext modelSynchronizationContext,
-			Settings.IGlobalSettingsAccessor globalSettings, RegularExpressions.IRegexFactory regexFactory,
-			FieldsProcessor.IFactory fieldsProcessorFactory, LogMedia.IFileSystem fileSystem)
+		public static UserDefinedFormatFactory Create(
+			UserDefinedFactoryParams createParams,  ITempFilesManager tempFilesManager, IRegexFactory regexFactory,
+			FieldsProcessor.IFactory fieldsProcessorFactory, ITraceSourceFactory traceSourceFactory,
+			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettingsAccessor,
+			LogMedia.IFileSystem fileSystem)
+		{
+			return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory, fieldsProcessorFactory,
+				(host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
+					tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem),
+				(@params, fmtInfo) => new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory,
+					traceSourceFactory, globalSettingsAccessor));
+		}
+
+		private delegate ILogProvider ProviderFactory(
+			ILogProviderHost host, IConnectionParams connectionParams, UserDefinedFormatFactory factory,
+			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerFactory);
+		private delegate IPositionedMessagesReader ReaderFactory(
+			MediaBasedReaderParams @params, FormatInfo fmtInfo);
+
+
+		private UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, IRegexFactory regexFactory,
+			FieldsProcessor.IFactory fieldsProcessorFactory, ProviderFactory providerFactory, ReaderFactory readerFactory)
 			: base(createParams, regexFactory)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -336,11 +351,8 @@ namespace LogJoint.RegularGrammar
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			this.tempFilesManager = tempFilesManager;
 			this.fieldsProcessorFactory = fieldsProcessorFactory;
-			this.regexFactory = regexFactory;
-			this.traceSourceFactory = traceSourceFactory;
-			this.modelSynchronizationContext = modelSynchronizationContext;
-			this.globalSettings = globalSettings;
-			this.fileSystem = fileSystem;
+			this.providerFactory = providerFactory;
+			this.readerFactory = readerFactory;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
 				FieldsProcessor.IInitializationParams fieldsInitParams = fieldsProcessorFactory.CreateInitializationParams(
@@ -373,9 +385,9 @@ namespace LogJoint.RegularGrammar
 			uiKey = ReadParameter(formatSpecificNode, "ui-key");
 		}
 
-		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
+		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettings);
+			return readerFactory(readerParams, fmtInfo.Value);
 		}
 		
 		#region ILogReaderFactory Members
@@ -394,9 +406,7 @@ namespace LogJoint.RegularGrammar
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, fmtInfo.Value, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettings),
-				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
+			return providerFactory(host, connectParams, this, @params => readerFactory(@params, fmtInfo.Value));
 		}
 
 		public override LogProviderFactoryFlag Flags
@@ -414,13 +424,7 @@ namespace LogJoint.RegularGrammar
 
 		#endregion
 
-		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
-		{
-			get
-			{
-				return patterns;
-			}
-		}
+		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns => patterns;
 
 		IConnectionParams IFileBasedLogProviderFactory.CreateParams(string fileName)
 		{

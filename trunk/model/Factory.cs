@@ -28,7 +28,7 @@ namespace LogJoint
 		public ILogSourcesController LogSourcesController { get; internal set; }
 		public MRU.IRecentlyUsedEntities RecentlyUsedLogs { get; internal set; }
 		public ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; internal set; }
-		public IUserDefinedFormatsManager UserDefinedFormatsManager { get; internal set; }
+		public IUserDefinedFormatsManagerInternal UserDefinedFormatsManager { get; internal set; }
 		public IPluginFormatsManager PluginFormatsManager { get; internal set; }
 		public IFormatDefinitionsRepository FormatDefinitionsRepository { get; internal set; }
 		public ITempFilesManager TempFilesManager { get; internal set; }
@@ -133,13 +133,13 @@ namespace LogJoint
 				formatDefinitionsRepository, logProviderFactoryRegistry,  traceSourceFactory);
 			IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => new RegularGrammar.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, 
-					globalSettingsAccessor, regexFactory, fieldsProcessorFactory, fileSystem));
+				config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory, 
+					 traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new XmlFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, 
+				config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext, 
 					globalSettingsAccessor, regexFactory, fileSystem));
 			userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => new JsonFormat.UserDefinedFormatFactory(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
+				config => JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
 					globalSettingsAccessor, regexFactory, fileSystem));
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
 				modelSynchronizationContext, globalSettingsAccessor, fileSystem);

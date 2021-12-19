@@ -10,5 +10,6 @@ namespace LogJoint
 	public interface IUserDefinedFormatsManagerInternal : IUserDefinedFormatsManager
 	{
 		void RegisterFormatConfigType(string configNodeName, Func<UserDefinedFactoryParams, IUserDefinedFactory> factory);
+		IUserDefinedFactory CreateFactory(string configNodeName, UserDefinedFactoryParams @params);
 	};
 }

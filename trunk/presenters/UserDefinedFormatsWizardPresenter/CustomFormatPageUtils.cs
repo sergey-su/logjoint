@@ -46,35 +46,20 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			readonly IAlertPopup alerts;
 			readonly ITempFilesManager tempFilesManager;
-			readonly ITraceSourceFactory traceSourceFactory;
-			readonly RegularExpressions.IRegexFactory regexFactory;
-			readonly FieldsProcessor.IFactory fieldsProcessorFactory;
+			readonly IUserDefinedFormatsManagerInternal formatsManager;
 			readonly IFactory objectsFactory;
-			readonly ISynchronizationContext modelSynchronizationContext;
-			readonly Settings.IGlobalSettingsAccessor globalSettings;
-			readonly LogMedia.IFileSystem fileSystem;
 
 			public TestParsing(
 				IAlertPopup alerts,
 				ITempFilesManager tempFilesManager,
-				ITraceSourceFactory traceSourceFactory,
-				RegularExpressions.IRegexFactory regexFactory,
-				FieldsProcessor.IFactory fieldsProcessorFactory,
-				IFactory objectsFactory,
-				ISynchronizationContext modelSynchronizationContext,
-				Settings.IGlobalSettingsAccessor globalSettings,
-				LogMedia.IFileSystem fileSystem
+				IUserDefinedFormatsManagerInternal formatsManager,
+				IFactory objectsFactory
 			)
 			{
 				this.alerts = alerts;
 				this.tempFilesManager = tempFilesManager;
-				this.traceSourceFactory = traceSourceFactory;
-				this.regexFactory = regexFactory;
+				this.formatsManager = formatsManager;
 				this.objectsFactory = objectsFactory;
-				this.fieldsProcessorFactory = fieldsProcessorFactory;
-				this.modelSynchronizationContext = modelSynchronizationContext;
-				this.globalSettings = globalSettings;
-				this.fileSystem = fileSystem;
 			}
 
 			bool? ITestParsing.Test(
@@ -108,17 +93,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
 
-					ILogProviderFactory f;
-					if (formatSpecificNodeName == RegularGrammar.UserDefinedFormatFactory.ConfigNodeName)
-						f = new RegularGrammar.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory,
-							modelSynchronizationContext, globalSettings, regexFactory, fieldsProcessorFactory, fileSystem);
-					else if (formatSpecificNodeName == XmlFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new XmlFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory,
-							modelSynchronizationContext, globalSettings, regexFactory, fileSystem);
-					else if (formatSpecificNodeName == JsonFormat.UserDefinedFormatFactory.ConfigNodeName)
-						f = new JsonFormat.UserDefinedFormatFactory(createParams, tempFilesManager, traceSourceFactory,
-							modelSynchronizationContext, globalSettings, regexFactory, fileSystem);
-					else
+					ILogProviderFactory f = formatsManager.CreateFactory(formatSpecificNodeName, createParams);
+					if (f == null)
 						return null;
 					using (f as IDisposable)
 					using (var interaction = objectsFactory.CreateTestDialog())

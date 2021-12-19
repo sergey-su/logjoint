@@ -341,14 +341,9 @@ namespace LogJoint.UI.Presenters
 						model.FormatDefinitionsRepository,
 						model.UserDefinedFormatsManager,
 						model.TempFilesManager,
-						model.TraceSourceFactory,
-						model.RegexFactory,
 						logViewerPresenterFactory,
 						views.FormatsWizardViewFactory,
-						model.SynchronizationContext,
-						model.FieldsProcessorFactory,
-						model.FileSystem,
-						model.GlobalSettingsAccessor
+						model.FieldsProcessorFactory
 					)
 				)
 			);

@@ -8,17 +8,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly IFileDialogs fileDialogs;
 		readonly ILogProviderFactoryRegistry registry;
 		readonly IFormatDefinitionsRepository repo;
-		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
+		readonly IUserDefinedFormatsManagerInternal userDefinedFormatsManager;
 		readonly Help.IPresenter help;
 		readonly ITempFilesManager tempFilesManager;
-		readonly ITraceSourceFactory traceSourceFactory;
-		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
 		readonly IViewsFactory viewFactories;
-		readonly ISynchronizationContext synchronizationContext;
 		readonly FieldsProcessor.IFactory fieldsProcessorFactory;
-		readonly LogMedia.IFileSystem fileSystem;
-		readonly Settings.IGlobalSettingsAccessor globalSettings;
 
 		public interface IViewsFactory
 		{
@@ -49,16 +44,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			Help.IPresenter help,
 			ILogProviderFactoryRegistry registry,
 			IFormatDefinitionsRepository repo,
-			IUserDefinedFormatsManager userDefinedFormatsManager,
+			IUserDefinedFormatsManagerInternal userDefinedFormatsManager,
 			ITempFilesManager tempFilesManager,
-			ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IViewsFactory viewFactories,
-			ISynchronizationContext synchronizationContext,
-			FieldsProcessor.IFactory fieldsProcessorFactory,
-			LogMedia.IFileSystem fileSystem,
-			Settings.IGlobalSettingsAccessor globalSettings
+			FieldsProcessor.IFactory fieldsProcessorFactory
 		)
 		{
 			this.viewFactories = viewFactories;
@@ -70,12 +60,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.repo = repo;
 			this.tempFilesManager = tempFilesManager;
 			this.logViewerPresenterFactory = logViewerPresenterFactory;
-			this.traceSourceFactory = traceSourceFactory;
-			this.regexFactory = regexFactory;
-			this.synchronizationContext = synchronizationContext;
 			this.fieldsProcessorFactory = fieldsProcessorFactory;
-			this.fileSystem = fileSystem;
-			this.globalSettings = globalSettings;
 		}
 
 		IView IFactory.CreateWizardView()
@@ -221,8 +206,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				help, alerts, CreateTestParsing(), this);
 		}
 
-		private ITestParsing CreateTestParsing() => new CustomFormatPageUtils.TestParsing(
-			alerts, tempFilesManager, traceSourceFactory, regexFactory, fieldsProcessorFactory,
-				this, synchronizationContext, globalSettings, fileSystem);
+		private ITestParsing CreateTestParsing() =>
+			new CustomFormatPageUtils.TestParsing(alerts, tempFilesManager, userDefinedFormatsManager, this);
 	};
 };

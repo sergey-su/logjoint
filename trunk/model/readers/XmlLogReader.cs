@@ -687,11 +687,8 @@ namespace LogJoint.XmlFormat
 		readonly List<string> patterns = new List<string>();
 		readonly Lazy<XmlFormatInfo> formatInfo;
 		readonly ITempFilesManager tempFilesManager;
-		readonly IRegexFactory regexFactory;
-		readonly ITraceSourceFactory traceSourceFactory;
-		readonly ISynchronizationContext modelSynchronizationContext;
-		readonly Settings.IGlobalSettingsAccessor globalSettings;
-		readonly LogMedia.IFileSystem fileSystem;
+		readonly ReaderFactory readerFactory;
+		readonly ProviderFactory providerFactory;
 		static XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 		static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
 		readonly string uiKey;
@@ -704,10 +701,25 @@ namespace LogJoint.XmlFormat
 		public static XmlNamespaceManager NamespaceManager => nsMgr;
 		public static string ConfigNodeName => "xml";
 
-		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams,
+		public static UserDefinedFormatFactory Create(UserDefinedFactoryParams createParams,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
 			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings,
-			RegularExpressions.IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
+			IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
+		{
+			return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
+				(readerParams, formatInfo) => new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings),
+				(host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
+					tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
+		}
+
+		private delegate ILogProvider ProviderFactory(
+			ILogProviderHost host, IConnectionParams connectionParams, UserDefinedFormatFactory factory,
+			Func<MediaBasedReaderParams, IPositionedMessagesReader> readerFactory);
+		private delegate IPositionedMessagesReader ReaderFactory(
+			MediaBasedReaderParams @params, XmlFormatInfo fmtInfo);
+
+		private UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, 
+			IRegexFactory regexFactory, ReaderFactory readerFactory, ProviderFactory providerFactory)
 			: base(createParams, regexFactory)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
@@ -718,11 +730,8 @@ namespace LogJoint.XmlFormat
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 			
 			this.tempFilesManager = tempFilesManager;
-			this.regexFactory = regexFactory;
-			this.traceSourceFactory = traceSourceFactory;
-			this.modelSynchronizationContext = modelSynchronizationContext;
-			this.globalSettings = globalSettings;
-			this.fileSystem = fileSystem;
+			this.readerFactory = readerFactory;
+			this.providerFactory = providerFactory;
 
 			formatInfo = new Lazy<XmlFormatInfo>(() => 
 			{
@@ -768,9 +777,7 @@ namespace LogJoint.XmlFormat
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, 
-				@params => new MessagesReader(@params, formatInfo.Value, regexFactory, traceSourceFactory, globalSettings),
-				tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
+			return providerFactory(host, connectParams, this, @params => readerFactory(@params, formatInfo.Value));
 		}
 
 		public override LogProviderFactoryFlag Flags
@@ -808,11 +815,9 @@ namespace LogJoint.XmlFormat
 
 		#endregion
 
-		#region IMediaBasedReaderFactory Members
-		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
+		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, formatInfo.Value, regexFactory, traceSourceFactory, globalSettings);
+			return readerFactory(readerParams, formatInfo.Value);
 		}
-		#endregion
 	};
 }
