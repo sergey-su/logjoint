@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace LogJoint.Preprocessing
 {
@@ -16,12 +14,14 @@ namespace LogJoint.Preprocessing
 			}
 			connectParams[ConnectionParamsKeys.IdentityConnectionParam] = prepParams.FullPath.ToLower();
 			if (!string.IsNullOrEmpty(prepParams.DisplayName))
-					connectParams[ConnectionParamsKeys.DisplayNameConnectionParam] = prepParams.DisplayName;
+				connectParams[ConnectionParamsKeys.DisplayNameConnectionParam] = prepParams.DisplayName;
 		}
-		public static void MaybeCopyDisplayName(this IConnectionParams source, IConnectionParams dest)
+		public static void MaybeCopyDisplayName(this IConnectionParams source, IConnectionParams dest, Func<string, string> map = null)
 		{
+			if (map == null)
+				map = x => x;
 			if (!string.IsNullOrEmpty(source[ConnectionParamsKeys.DisplayNameConnectionParam]))
-				dest[ConnectionParamsKeys.DisplayNameConnectionParam] = source[ConnectionParamsKeys.DisplayNameConnectionParam];
+				dest[ConnectionParamsKeys.DisplayNameConnectionParam] = map(source[ConnectionParamsKeys.DisplayNameConnectionParam]);
 		}
 	};
 }

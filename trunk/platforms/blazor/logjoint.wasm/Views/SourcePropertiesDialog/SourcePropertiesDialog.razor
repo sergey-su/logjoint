@@ -108,6 +108,7 @@
     {
         dialogTask?.TrySetResult(0);
         dialogTask = null;
+        StateHasChanged();
     }
     void IWindow.ShowColorSelector(LogJoint.Drawing.Color[] options)
     {

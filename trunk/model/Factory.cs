@@ -239,7 +239,6 @@ namespace LogJoint
 				logProviderFactoryRegistry,
 				webBrowserDownloader,
 				logsDownloaderConfig,
-				regexFactory,
 				fileSystem
 			);
 

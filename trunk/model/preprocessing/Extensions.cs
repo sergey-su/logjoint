@@ -32,8 +32,10 @@ namespace LogJoint.Preprocessing
 		public static IConnectionParams AppendReorderingStep(this IManager mgr, 
 			IConnectionParams connectParams, ILogProviderFactory sourceFormatFactory)
 		{
-			return mgr.AppendStep(connectParams, TimeAnomalyFixingStep.name, 
+			IConnectionParams newConnectionParams = mgr.AppendStep(connectParams, TimeAnomalyFixingStep.name,
 				string.Format("{0}\\{1}", sourceFormatFactory.CompanyName, sourceFormatFactory.FormatName));
+			connectParams.MaybeCopyDisplayName(newConnectionParams, name => $"{name} {TimeAnomalyFixingStep.displayNameSuffix}");
+			return newConnectionParams;
 		}
 	};
 }

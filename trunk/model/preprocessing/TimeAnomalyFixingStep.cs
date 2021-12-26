@@ -15,15 +15,11 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile,
 			Progress.IProgressAggregator progressAggregator,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
-			IStepsFactory preprocessingStepsFactory,
-			RegularExpressions.IRegexFactory regexFactory,
 			LogMedia.IFileSystem fileSystem)
 		{
 			this.@params = srcFile;
-			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAggregator;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
-			this.regexFactory = regexFactory;
 			this.fileSystem = fileSystem;
 		}
 
@@ -117,18 +113,17 @@ namespace LogJoint.Preprocessing
 
 			return new PreprocessingStepParams(
 				tmpFileName, 
-				@params.FullPath + " (reordered)",
+				$"{@params.FullPath} {displayNameSuffix}",
 				@params.PreprocessingHistory.Add(new PreprocessingHistoryItem(name, factoryName))
 			);
 		}
 
 		readonly PreprocessingStepParams @params;
-		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
-		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly LogMedia.IFileSystem fileSystem;
 		internal const string name = "reorder";
+		internal const string displayNameSuffix = " (reordered)";
 		const int progressUpdateThreshold = 1024;
 		const int queueSize = 1024 * 128;
 	};

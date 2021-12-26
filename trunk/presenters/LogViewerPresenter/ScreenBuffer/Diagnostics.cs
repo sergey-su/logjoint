@@ -7,7 +7,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	class Diagnostics
 	{
-		private readonly bool isEnabled = Debugger.IsAttached;
+		private readonly bool isEnabled = false;// Debugger.IsAttached;
 
 		void Assert(bool cond)
 		{

@@ -18,7 +18,6 @@ namespace LogJoint.Preprocessing
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly WebViewTools.IWebViewTools webViewTools;
 		readonly ILogsDownloaderConfig logsDownloaderConfig;
-		readonly RegularExpressions.IRegexFactory regexFactory;
 		readonly LogMedia.IFileSystem fileSystem;
 
 		public PreprocessingStepsFactory(
@@ -32,7 +31,6 @@ namespace LogJoint.Preprocessing
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			WebViewTools.IWebViewTools webBrowserDownloader,
 			ILogsDownloaderConfig logsDownloaderConfig,
-			RegularExpressions.IRegexFactory regexFactory,
 			LogMedia.IFileSystem fileSystem
 		)
 		{
@@ -46,7 +44,6 @@ namespace LogJoint.Preprocessing
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.webViewTools = webBrowserDownloader;
 			this.logsDownloaderConfig = logsDownloaderConfig;
-			this.regexFactory = regexFactory;
 			this.fileSystem = fileSystem;
 		}
 
@@ -87,7 +84,7 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IStepsFactory.CreateTimeAnomalyFixingStep(PreprocessingStepParams p)
 		{
-			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, this, regexFactory, fileSystem);
+			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, fileSystem);
 		}
 
 		IPreprocessingStep IStepsFactory.CreateUntarStep(PreprocessingStepParams p)

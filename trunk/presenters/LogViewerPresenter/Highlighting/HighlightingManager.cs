@@ -203,7 +203,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				int beginIdx = normSelection.First.LineCharIndex;
 				int endIdx = normSelection.Last.LineCharIndex;
 				var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
-				if (selectedPart.Any(c => !char.IsWhiteSpace(c)))
+				if (selectedPart.Length > 1 && selectedPart.Any(c => !char.IsWhiteSpace(c)))
 				{
 					var options = new Search.Options() 
 					{

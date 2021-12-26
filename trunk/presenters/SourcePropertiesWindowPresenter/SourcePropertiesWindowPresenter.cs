@@ -203,8 +203,8 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 					if (cp != null)
 					{
 						currentWindow.Close();
-						source.Dispose();
-						preprocessings.Preprocess(
+						await source.Dispose();
+						await preprocessings.Preprocess(
 							new MRU.RecentLogEntry(source.Provider.Factory, cp, "", null));
 					}
 				}
