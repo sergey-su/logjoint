@@ -414,6 +414,15 @@
         setProperty: function (e, prop, value) {
             e.style.setProperty(prop, value);
         },
+
+        setBodyClass: function (className, set) {
+            const classes = document.body.classList;
+            if (set) {
+                classes.add(className);
+            } else {
+                classes.remove(className);
+            }
+        },
     },
 
     list: {

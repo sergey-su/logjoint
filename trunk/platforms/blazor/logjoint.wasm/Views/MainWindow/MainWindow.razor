@@ -6,7 +6,7 @@
 @using LogJoint.UI.Presenters.MainForm
 @inject JsInterop jsInterop
 
-<div class='main-window' @ref="element">
+<div class="main-window" @ref="element">
     <div class='container-1'>
         <MainWindowTabs Class="top" ResizerClass='top-separator' />
         <div class='bottom container-2'>
@@ -33,6 +33,7 @@
     private ElementReference element;
     private DotNetObjectReference<DropHandler> dropHandler;
     private IDisposable keyHandler;
+    private ISubscription subscription;
 
     class DropHandler
     {
@@ -75,9 +76,28 @@
         }
     }
 
+
+    protected override void OnInitialized()
+    {
+        var updateBodyThemeClass = Updaters.Create(
+            () => presentation.ColorTheme.Mode,
+            mode =>
+            {
+                jsInterop.Style.SetBodyClass("dark-theme", mode == LogJoint.UI.Presenters.ColorThemeMode.Dark);
+                jsInterop.Style.SetBodyClass("light-theme", mode == LogJoint.UI.Presenters.ColorThemeMode.Light);
+            }
+        );
+
+        subscription = model.ChangeNotification.CreateSubscription(() =>
+        {
+            updateBodyThemeClass();
+        });
+    }
+
     public void Dispose()
     {
         dropHandler?.Dispose();
         keyHandler?.Dispose();
+        subscription?.Dispose();
     }
 }

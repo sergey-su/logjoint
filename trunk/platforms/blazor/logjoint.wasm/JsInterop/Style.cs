@@ -21,5 +21,10 @@ namespace LogJoint.Wasm
         {
             ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.style.setProperty", e, property, value);
         }
+
+        public void SetBodyClass(string className, bool set)
+        {
+            ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.style.setBodyClass", className, set);
+        }
     }
 }

@@ -45,6 +45,36 @@ body {
     --nice-scroll-size: 6px;
 }
 
+body.dark-theme {
+    --control-face-background: #3C3C3C;
+    --control-client-background: #262626;
+    --resizable-separator-background: #3C3C3C;
+    --text-color: #EAEAEA;
+    color: var(--text-color);
+}
+
+.dark-theme button {
+    color: var(--text-color);
+}
+
+.dark-theme a {
+    color: #3C96F0
+}
+
+.dark-theme input {
+    background: var(--control-client-background);
+    color: var(--text-color);
+}
+
+textarea {
+    background: var(--control-client-background);
+    color: var(--text-color);
+}
+
+button {
+    background: var(--control-face-background);
+}
+
 :focus:not(:focus-visible) {
     outline: none
 }
@@ -431,7 +461,6 @@ body {
     flex-flow: column nowrap;
 }
 .log-sources-manager>.actions>button {
-    background: var(--control-face-background);
     margin-bottom: 3px;
     border: 1px solid gray;
     border-radius: 3px;
@@ -1065,6 +1094,9 @@ body {
     color: #555;
 }
 
+.dark-theme .tabs>button:not(.selected) {
+    color: #aaa;
+}
 
 
 .modal-host {
@@ -1517,7 +1549,7 @@ body {
     left: 140px;
     top: 105px;
     border: 1px solid gray;
-    background: white;
+    background: var(--control-client-background);
     display: grid;
     grid-auto-rows: auto;
     grid-template-columns: auto auto auto auto;
