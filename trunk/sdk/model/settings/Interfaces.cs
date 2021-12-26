@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace LogJoint.Settings
 {
@@ -14,29 +11,7 @@ namespace LogJoint.Settings
 		StorageSizes UserDataStorageSizes { get; set; }
 		StorageSizes ContentStorageSizes { get; set; }
 		bool EnableAutoPostprocessing { get; set; }
-
-		event EventHandler<SettingsChangeEvent> Changed;
 	}
-
-	[Flags]
-	public enum SettingsPiece
-	{
-		None = 0,
-		FileSizes = 1,
-		Appearance = 2,
-		UserDataStorageSizes = 4,
-		ContentCacheStorageSizes = 8,
-	};
-
-	public class SettingsChangeEvent: EventArgs
-	{
-		public SettingsPiece ChangedPieces { get; private set; }
-
-		public SettingsChangeEvent(SettingsPiece value)
-		{
-			ChangedPieces = value;
-		}
-	};
 
 	public struct FileSizes
 	{

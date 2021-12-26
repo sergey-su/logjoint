@@ -51,11 +51,5 @@ namespace LogJoint.Settings
 			get { return DefaultEnableAutoPostprocessing; }
 			set { throw new NotImplementedException(); }
 		}
-
-		event EventHandler<SettingsChangeEvent> IGlobalSettingsAccessor.Changed
-		{
-			add {}
-			remove {}
-		}
 	}
 }

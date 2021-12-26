@@ -51,7 +51,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				presentationFacade, clipboard, settings, hlFilters, bookmarks, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
-				new PermissiveColoringModeStrategy(changeNotification)
+				new GlobalSettingsAppearanceStrategy(settings)
 			);
 		}
 
@@ -71,7 +71,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					presentationFacade, clipboard, settings, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
 					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
-					new DelegatingColoringModeStrategy(loadedMessagesPresenter)
+					new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy)
 				),
 				model
 			);
@@ -88,7 +88,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				new ScreenBufferFactory(changeNotification),
 				changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new ProhibitiveViewModeStrategy(),
-				new PermissiveColoringModeStrategy(changeNotification)
+				new PermissiveAppearanceStrategy(changeNotification)
 			);
 			view.SetViewModel(result);
 			return result;

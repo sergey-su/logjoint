@@ -147,8 +147,7 @@ namespace LogJoint.UI.Presenters
 				model.LogSourcesManager,
 				model.Bookmarks,
 				logViewerPresenterFactory,
-				model.ChangeNotification,
-				model.SynchronizationContext
+				model.ChangeNotification
 			);
 
 			LogViewer.IPresenterInternal viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;

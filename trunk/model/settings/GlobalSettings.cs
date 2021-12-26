@@ -9,6 +9,8 @@ namespace LogJoint.Settings
 	public class GlobalSettingsAccessor : IGlobalSettingsAccessor
 	{
 		readonly Persistence.IStorageManager storageManager;
+		readonly IChangeNotification changeNotification;
+
 		const string sectionName = "settings";
 		const string rootNodeName = "root";
 		const string fullLoadingSizeThresholdAttrName = "full-loading-size-threshold";
@@ -39,13 +41,12 @@ namespace LogJoint.Settings
 
 		TaskChain tasks = new TaskChain();
 
-		public GlobalSettingsAccessor(Persistence.IStorageManager storageManager)
+		public GlobalSettingsAccessor(Persistence.IStorageManager storageManager, IChangeNotification changeNotification)
 		{
 			this.storageManager = storageManager;
+			this.changeNotification = changeNotification;
 			tasks.AddTask(Load);
 		}
-
-		public event EventHandler<SettingsChangeEvent> Changed;
 
 		FileSizes IGlobalSettingsAccessor.FileSizes
 		{
@@ -61,7 +62,7 @@ namespace LogJoint.Settings
 					if (loaded && !Differ(value, fileSizes))
 						return;
 					fileSizes = value;
-					FireChanged(SettingsPiece.FileSizes);
+					changeNotification.Post();
 					await Save();
 				});
 			}
@@ -118,7 +119,7 @@ namespace LogJoint.Settings
 					if (loaded && !Differ(newValue, appearance))
 						return;
 					appearance = newValue;
-					FireChanged(SettingsPiece.Appearance);
+					changeNotification.Post();
 					await Save();
 				});
 			}
@@ -138,7 +139,7 @@ namespace LogJoint.Settings
 					if (loaded && !Differ(value, userDataStorageSizes))
 						return;
 					userDataStorageSizes = value;
-					FireChanged(SettingsPiece.UserDataStorageSizes);
+					changeNotification.Post();
 					await Save();
 				});
 			}
@@ -158,7 +159,7 @@ namespace LogJoint.Settings
 					if (loaded && !Differ(value, contentCacheStorageSizes))
 						return;
 					contentCacheStorageSizes = value;
-					FireChanged(SettingsPiece.ContentCacheStorageSizes);
+					changeNotification.Post();
 					await Save();
 				});
 			}
@@ -214,7 +215,7 @@ namespace LogJoint.Settings
 
 				enableAutoPostprocessing = root.SafeIntValue(enableAutoPostprocessingAttrName, DefaultSettingsAccessor.DefaultEnableAutoPostprocessing ? 1 : 0) != 0;
 
-				FireChanged(SettingsPiece.Appearance);
+				changeNotification.Post();
 			}
 			loaded = true;
 		}
@@ -287,11 +288,6 @@ namespace LogJoint.Settings
 			return
 				val1.StoreSizeLimit != val2.StoreSizeLimit ||
 				val1.CleanupPeriod != val2.CleanupPeriod;
-		}
-
-		void FireChanged(SettingsPiece settingsPiece)
-		{
-			Changed?.Invoke(this, new SettingsChangeEvent(settingsPiece));
 		}
 	}
 }

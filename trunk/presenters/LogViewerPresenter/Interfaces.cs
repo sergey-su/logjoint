@@ -12,8 +12,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	public interface IPresenterInternal: IPresenter, IDisposable, IViewModel
 	{
-		LogFontSize FontSize { get; set; }
-		string FontName { get; set; }
 		PreferredDblClickAction DblClickAction { get; set; }
 		FocusedMessageDisplayModes FocusedMessageDisplayMode { get; set; }
 		string DefaultFocusedMessageActionCaption { get; set; }
@@ -24,7 +22,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ViewTailMode { get; set; }
 		bool EmptyViewMessageAllowed { get; set; }
 		UserInteraction DisabledUserInteractions { get; set; }
-		ColoringMode Coloring { get; set; }
+		IAppearanceStrategy AppearanceStrategy { get; }
 		bool NavigationIsInProgress { get; }
 
 		Task<bool> SelectMessageAt(IBookmark bmk);
@@ -365,8 +363,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool IsRawMessagesModeAllowed { get; }
 	};
 
-	public interface IColoringModeStrategy : IDisposable
+	/// <summary>
+	/// Encapsulates the way a log viewer instance handles its appearance.
+	/// It's a source of truth of the appearance state. Setters may have
+	/// no effect in some implementations or may be async (reading right after
+	/// setting returns old value).
+	/// </summary>
+	public interface IAppearanceStrategy
 	{
-		ColoringMode Coloring { get; set; }
+		ColoringMode Coloring { get; }
+		FontData Font { get; }
+
+		// Requests to set coloring. Implementation can be async or no op.
+		void SetColoring(ColoringMode value);
+		// Requests to set font. Implementation can be async or no op.
+		void SetFont(FontData font);
 	};
 };

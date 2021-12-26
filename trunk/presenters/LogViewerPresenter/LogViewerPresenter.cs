@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			RegularExpressions.IRegexFactory regexFactory,
 			ITraceSourceFactory traceSourceFactory,
 			IViewModeStrategy viewModeStrategy,
-			IColoringModeStrategy coloringModeStrategy
+			IAppearanceStrategy coloringModeStrategy
 		)
 		{
 			this.model = model;
@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.settings = settings;
 			this.theme = theme;
 			this.viewModeStrategy = viewModeStrategy;
-			this.coloringModeStrategy = coloringModeStrategy;
+			this.appearanceStrategy = coloringModeStrategy;
 
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
@@ -89,8 +89,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			);
 
-			ReadGlobalSettings();
-
 			this.model.OnSourcesChanged += (sender, e) =>
 			{
 				HandleSourcesListChange();
@@ -124,8 +122,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 				}
 			};
-
-			settings.Changed += HandleSettingsChange;
 
 			var viewSizeObserver = Updaters.Create(
 				viewDisplayLinesPerPage,
@@ -168,7 +164,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IDisposable.Dispose()
 		{
-			settings.Changed -= HandleSettingsChange;
 			selectionManager.Dispose();
 			viewModeStrategy.Dispose();
 			subscription.Dispose();
@@ -181,18 +176,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler FocusedMessageBookmarkChanged;
-
-		LogFontSize IPresenterInternal.FontSize
-		{
-			get { return font.Size; }
-			set { SetFontSize(value); }
-		}
-
-		string IPresenterInternal.FontName
-		{
-			get { return font.Name; }
-			set { SetFontName(value); }
-		}
 
 		IMessage IPresenter.FocusedMessage
 		{
@@ -269,11 +252,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			set { disabledUserInteractions = value; }
 		}
 
-		ColoringMode IPresenterInternal.Coloring
-		{
-			get => coloringModeStrategy.Coloring;
-			set => coloringModeStrategy.Coloring = value;
-		}
+		IAppearanceStrategy IPresenterInternal.AppearanceStrategy => appearanceStrategy;
 
 		async Task<Dictionary<IMessagesSource, long>> IPresenterInternal.GetCurrentPositions(CancellationToken cancellation)
 		{
@@ -550,10 +529,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if ((disabledUserInteractions & UserInteraction.FontResizing) == 0)
 			{
+				var font = appearanceStrategy.Font;
+				void set(LogFontSize sz) => appearanceStrategy.SetFont(new FontData(font.Name, sz));
 				if (delta > 0 && font.Size != LogFontSize.Maximum)
-					SetFontSize(font.Size + 1);
+					set(font.Size + 1);
 				else if (delta < 0 && font.Size != LogFontSize.Minimum)
-					SetFontSize(font.Size - 1);
+					set(font.Size - 1);
 			}
 		}
 
@@ -710,7 +691,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
-		FontData IViewModel.Font => font;
+		FontData IViewModel.Font => appearanceStrategy.Font;
 
 		LJTraceSource IViewModel.Trace => tracer;
 
@@ -724,7 +705,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			searchResultModel != null ? null :
 			"No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
 
-		ColoringMode IPresentationProperties.Coloring => coloringModeStrategy.Coloring;
+		ColoringMode IPresentationProperties.Coloring => appearanceStrategy.Coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
 		bool IPresentationProperties.ShowTime => showTime;
 
@@ -1005,31 +986,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				selectionManager.SetSelection(idx.Value, SelectionFlag.SelectBeginningOfLine);
 		}
 
-		private void SetFontSize(LogFontSize value)
-		{
-			if (value != font.Size)
-			{
-				font = new FontData(font.Name, value);
-				changeNotification.Post();
-			}
-		}
-
-		private void SetFontName(string value)
-		{
-			if (value != font.Name)
-			{
-				font = new FontData(value, font.Size);
-				changeNotification.Post();
-			}
-		}
-
-		private void ReadGlobalSettings()
-		{
-			this.coloringModeStrategy.Coloring = settings.Appearance.Coloring;
-			this.font = new FontData(settings.Appearance.FontFamily, settings.Appearance.FontSize);
-			changeNotification.Post();
-		}
-
 		void HandleSourcesListChange()
 		{
 			navigationManager.NavigateView(async cancellation =>
@@ -1308,7 +1264,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Selectors.Create(
 				() => (screenBuffer.Messages, bookmarks?.Items),
-				() => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring: coloringModeStrategy.Coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
+				() => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring: appearanceStrategy.Coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
 				() => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
 				() => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
 				(data, displayProps, highlightingProps, selectionProps) =>
@@ -1401,14 +1357,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
-		private void HandleSettingsChange(object sender, Settings.SettingsChangeEvent e)
-		{
-			if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
-			{
-				ReadGlobalSettings();
-			}
-		}
-
 		private IPresenterInternal ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
 
@@ -1432,12 +1380,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IHighlightingManager highlightingManager;
 		readonly IColorTheme theme;
 		readonly IViewModeStrategy viewModeStrategy;
-		readonly IColoringModeStrategy coloringModeStrategy;
+		readonly IAppearanceStrategy appearanceStrategy;
 
 		IView view;
 		IBookmark slaveModeFocusedMessage;
 		string defaultFocusedMessageActionCaption;
-		FontData font = new FontData();
 		bool showTime;
 		bool showMilliseconds = true;
 		bool enableEmptyViewMessage = true;

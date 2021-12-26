@@ -117,9 +117,8 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
 		void UpdateSampleLogView(bool fullUpdate)
 		{
-			sampleLogViewerPresenter.FontName = ReadFontNameControl();
-			sampleLogViewerPresenter.FontSize = ReadFontSizeControl();
-			sampleLogViewerPresenter.Coloring = ReadColoringModeControl();
+			sampleLogViewerPresenter.AppearanceStrategy.SetFont(new LogViewer.FontData(ReadFontNameControl(), ReadFontSizeControl()));
+			sampleLogViewerPresenter.AppearanceStrategy.SetColoring(ReadColoringModeControl());
 			if (fullUpdate)
 			{
 				temporaryColorTheme.SetBrightness(ReadColoringPaletteControl());

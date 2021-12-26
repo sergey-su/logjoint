@@ -39,7 +39,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				() => bookmarks.Items,
 				() => selectedBookmarks,
 				() => colorTheme.ThreadColors,
-				() => loadedMessagesPresenter.LogViewerPresenter.Coloring,
+				() => loadedMessagesPresenter.LogViewerPresenter.AppearanceStrategy.Coloring,
 				() => sourcesManager.VisibleItems,
 				CreateViewItems
 			);
@@ -120,7 +120,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			changeNotification.Post();
 		}
 
-		string IViewModel.FontName => loadedMessagesPresenter.LogViewerPresenter.FontName;
+		string IViewModel.FontName => loadedMessagesPresenter.LogViewerPresenter.AppearanceStrategy.Font.Name;
 
 		ColorThemeMode IViewModel.Theme => colorTheme.Mode;
 
@@ -237,7 +237,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			var texts = 
 				CreateViewItems(
 					GetValidSelectedBookmarks(), ImmutableHashSet.Create<IBookmark>(),
-					colorTheme.ThreadColors, loadedMessagesPresenter.LogViewerPresenter.Coloring,
+					colorTheme.ThreadColors, loadedMessagesPresenter.LogViewerPresenter.AppearanceStrategy.Coloring,
 					sourcesManager.VisibleItems)
 				.Select((b, i) => new 
 				{ 
@@ -281,7 +281,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		string GetBackgroundColorAsHtml(IBookmark b)
 		{
-			var coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
+			var coloring = loadedMessagesPresenter.LogViewerPresenter.AppearanceStrategy.Coloring;
 			var cl = "white";
 			if (coloring == Settings.Appearance.ColoringMode.Threads)
 			{

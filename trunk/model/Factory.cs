@@ -100,11 +100,12 @@ namespace LogJoint
 				(MultiInstance.IInstancesCounter)new MultiInstance.InstancesCounter(shutdown);
 			ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 			ITempFilesManager tempFilesManager = new TempFilesManager(traceSourceFactory, instancesCounter);
+			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 			Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
 			Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(traceSourceFactory, userDataStorage, shutdown);
 			Persistence.Implementation.IFileSystemAccess persistentUserDataFileSystem =
 				config.PersistenceFileSystem ?? Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem(config.AppDataDirectory);
-			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
+			Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager, changeNotification);
 			userDataStorage.Init(
 				 new Persistence.Implementation.RealTimingAndThreading(threadPoolSynchronizationContext),
 				 persistentUserDataFileSystem,
@@ -143,7 +144,6 @@ namespace LogJoint
 					globalSettingsAccessor, regexFactory, fileSystem));
 			RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
 				modelSynchronizationContext, globalSettingsAccessor, fileSystem);
-			IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 			IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
 			IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
 			var bookmarks = bookmarksFactory.CreateBookmarks();

@@ -10,7 +10,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 {
 	public class Presenter : IPresenter, IViewModel
 	{
-		readonly ILogSourcesManager logSources;
 		readonly IBookmarks bookmarks;
 		readonly LogViewer.IPresenterInternal messagesPresenter;
 		readonly IChangeNotification changeNotification;
@@ -25,11 +24,9 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			ILogSourcesManager logSources,
 			IBookmarks bookmarks,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
-			IChangeNotification changeNotification,
-			ISynchronizationContext synchronizationContext
+			IChangeNotification changeNotification
 		)
 		{
-			this.logSources = logSources;
 			this.bookmarks = bookmarks;
 			this.changeNotification = changeNotification;
 			this.messagesPresenter =  logViewerPresenterFactory.CreateLoadedMessagesPresenter();
@@ -41,7 +38,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				() => (messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages),
 				() => messagesPresenter.ViewTailMode,
 				() => logSources.VisibleItems,
-				() => messagesPresenter.Coloring,
+				() => messagesPresenter.AppearanceStrategy.Coloring,
 				() => messagesPresenter.NavigationIsInProgress,
 				(raw, viewTailMode, sources, coloring, navigation) => new ViewState
 				{
@@ -83,7 +80,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		void IViewModel.OnColoringButtonClicked(int modeIndex)
 		{
-			messagesPresenter.Coloring = coloringOptions[modeIndex].Mode;
+			messagesPresenter.AppearanceStrategy.SetColoring(coloringOptions[modeIndex].Mode);
 		}
 
 		LogViewer.IPresenterInternal IPresenter.LogViewerPresenter => messagesPresenter;
