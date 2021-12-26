@@ -60,15 +60,25 @@ namespace LogJoint.Settings
 
 		public PaletteBrightness ColoringBrightness { get; private set; }
 
-		public Appearance(LogFontSize fontSize, string fontFamily, ColoringMode coloring, PaletteBrightness coloringBrightness)
+		public enum ColorTheme
+		{
+			Light,
+			Dark,
+			Minimum = Light,
+			Maximum = Dark,
+		};
+		public ColorTheme Theme { get; private set; }
+
+		public Appearance(LogFontSize fontSize, string fontFamily, ColoringMode coloring, PaletteBrightness coloringBrightness, ColorTheme theme)
 		{
 			this.FontSize = fontSize;
 			this.FontFamily = fontFamily;
 			this.Coloring = coloring;
 			this.ColoringBrightness = coloringBrightness;
+			this.Theme = theme;
 		}
 
-		static public readonly Appearance Default = new Appearance(LogFontSize.Normal, null, ColoringMode.Threads, PaletteBrightness.Normal);
+		static public readonly Appearance Default = new Appearance(LogFontSize.Normal, null, ColoringMode.Threads, PaletteBrightness.Normal, ColorTheme.Light);
 	};
 
 	public struct StorageSizes

@@ -61,7 +61,8 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 				coloring: ReadColoringModeControl(),
 				fontFamily: ReadFontNameControl(),
 				fontSize: ReadFontSizeControl(),
-				coloringBrightness: ReadColoringPaletteControl()
+				coloringBrightness: ReadColoringPaletteControl(),
+				theme: Settings.Appearance.ColorTheme.Light
 			);
 			return true;
 		}

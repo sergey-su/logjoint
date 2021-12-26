@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (value != settings.Appearance.Coloring)
 			{
 				var a = settings.Appearance;
-				settings.Appearance = new Appearance(a.FontSize, a.FontFamily, value, a.ColoringBrightness);
+				settings.Appearance = new Appearance(a.FontSize, a.FontFamily, value, a.ColoringBrightness, a.Theme);
 			}
 		}
 
@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (value.Size != font().Size || value.Name != font().Name)
 			{
 				var a = settings.Appearance;
-				settings.Appearance = new Appearance(value.Size, value.Name, a.Coloring, a.ColoringBrightness);
+				settings.Appearance = new Appearance(value.Size, value.Name, a.Coloring, a.ColoringBrightness, a.Theme);
 			}
 		}
 	};

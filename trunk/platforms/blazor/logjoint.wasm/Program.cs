@@ -73,6 +73,10 @@ namespace LogJoint.Wasm
             {
                 return new ViewProxies();
             });
+            builder.Services.AddSingleton<LogJoint.UI.Presenters.GlobalSettingsSystemThemeDetector>(serviceProvider =>
+            {
+                return new LogJoint.UI.Presenters.GlobalSettingsSystemThemeDetector(serviceProvider.GetService<ModelObjects>().GlobalSettingsAccessor);
+            });
             builder.Services.AddSingleton<LogJoint.UI.Presenters.PresentationObjects>(serviceProvider =>
             {
                 var model = serviceProvider.GetService<ModelObjects>();
@@ -92,7 +96,7 @@ namespace LogJoint.Wasm
                     /*prompt=*/null,
                     /*aboutConfig=*/null,
                     /*dragDropHandler=*/null,
-                    new SystemThemeDetector(),
+                    serviceProvider.GetService<LogJoint.UI.Presenters.GlobalSettingsSystemThemeDetector>(),
                     viewProxies
                 );
 

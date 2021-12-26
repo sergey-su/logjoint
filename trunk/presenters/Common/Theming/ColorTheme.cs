@@ -1,5 +1,6 @@
 using LogJoint.Drawing;
 using System.Collections.Immutable;
+using System;
 
 namespace LogJoint.UI.Presenters
 {
@@ -34,5 +35,29 @@ namespace LogJoint.UI.Presenters
 		}
 
 		public ColorThemeMode Mode { get; private set; }
+	};
+
+	public class GlobalSettingsSystemThemeDetector : ISystemThemeDetector
+	{
+		readonly Settings.IGlobalSettingsAccessor settings;
+		readonly Func<ColorThemeMode> mode;
+
+		public GlobalSettingsSystemThemeDetector(Settings.IGlobalSettingsAccessor settings)
+		{
+			this.settings = settings;
+			this.mode = Selectors.Create(() => settings.Appearance,
+				a => a.Theme == Settings.Appearance.ColorTheme.Light ? ColorThemeMode.Light : ColorThemeMode.Dark);
+		}
+
+		ColorThemeMode ISystemThemeDetector.Mode => mode();
+
+		public ColorThemeMode Mode => mode();
+
+		public void SetMode(ColorThemeMode mode)
+		{
+			var a = settings.Appearance;
+			settings.Appearance = new Settings.Appearance(a.FontSize, a.FontFamily, a.Coloring, a.ColoringBrightness, 
+				mode == ColorThemeMode.Light ? Settings.Appearance.ColorTheme.Light : Settings.Appearance.ColorTheme.Dark);
+		}
 	};
 }
