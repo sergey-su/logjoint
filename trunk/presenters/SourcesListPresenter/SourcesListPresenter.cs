@@ -24,6 +24,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IShellOpen shellOpen;
 		readonly SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter;
 		readonly IChangeNotification changeNotification;
+		readonly IColorTheme theme;
 		IView view;
 
 		ImmutableHashSet<string> selectedKeys = ImmutableHashSet.Create<string>();
@@ -59,6 +60,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.shellOpen = shellOpen;
 			this.saveJointLogInteractionPresenter = saveJointLogInteractionPresenter;
 			this.changeNotification = changeNotification;
+			this.theme = theme;
 
 			void updateItems()
 			{
@@ -157,6 +159,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 		}
 
 		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		ColorThemeMode IViewModel.ColorTheme => theme.Mode;
 
 		IViewItem IViewModel.RootItem => getRoot();
 		IViewItem IViewModel.FocusedMessageItem => getFocusedMessageItem();

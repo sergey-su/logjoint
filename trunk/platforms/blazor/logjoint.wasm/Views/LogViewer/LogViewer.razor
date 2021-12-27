@@ -18,7 +18,7 @@
             {
                 <div class="logline"
                      @key="item.LineIndex"
-                     style="background-color: @GetBackgroundColor(item.ContextColor)"
+                     style="@GetLogLineStyle(item.ContextColor)"
                      @onmousedown="@(e => viewModel.OnMessageMouseEvent(
                                                             item, GetClickedCharIndex(item, e),
                                                             GetMessageMouseEventFlags(e), null))">
@@ -257,9 +257,17 @@
         return clickedChar;
     }
 
-    static string GetBackgroundColor(LogJoint.Drawing.Color? contextColor)
+    string GetLogLineStyle(LogJoint.Drawing.Color? contextColor)
     {
-        return contextColor.HasValue ? LogJoint.Drawing.ColorExtensions.ToHtmlColor(contextColor.Value) : "white";
+        var ctxColor = contextColor.HasValue ? LogJoint.Drawing.ColorExtensions.ToHtmlColor(contextColor.Value) : "white";
+        if (viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark)
+        {
+            return $"color: {ctxColor}";
+        }
+        else
+        {
+            return $"background-color: {ctxColor}";
+        }
     }
 
     void UpdateDisplayLinesPerPage()

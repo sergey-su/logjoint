@@ -24,11 +24,11 @@
         @if (item.IsEnabled)
         {
             <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))"
-                style="background-color: @GetBackgroundColor(item)">@item.Text</a>
+                style="@GetItemStyle(item)">@item.Text</a>
         }
         else
         {
-            <a style="background-color: @GetBackgroundColor(item)" class="disabled">@item.Text</a>
+            <a style="@GetItemStyle(item)" class="disabled">@item.Text</a>
         }
     </ItemTemplate>
 </ListView>
@@ -75,9 +75,17 @@
         }
     }
 
-    static string GetBackgroundColor(IViewItem item)
+    string GetItemStyle(IViewItem item)
     {
-        return item.IsSelected || !item.ContextColor.HasValue ? "inherit" :
-            LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.ContextColor.Value);
+        var cl = item.IsSelected || !item.ContextColor.HasValue ? "inherit" :
+                LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.ContextColor.Value);
+        if (viewModel.Theme == LogJoint.UI.Presenters.ColorThemeMode.Dark)
+        {
+            return $"color: {cl}";
+        }
+        else
+        {
+            return $"background-color: {cl}";
+        }
     }
 }

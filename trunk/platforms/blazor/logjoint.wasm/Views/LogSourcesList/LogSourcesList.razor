@@ -21,7 +21,7 @@
         {
             <input type="checkbox" checked="@item.Checked" @oninput="@(e => viewModel.OnItemCheck(item, e.Value is bool x && x))" />
         }
-        <span style="background-color: @GetBackgroundColor(item)">
+        <span style="@GetItemStyle(item)">
             @if (!string.IsNullOrEmpty(item.Annotation))
             {
                 <span class="annotation">@item.Annotation</span>
@@ -80,9 +80,17 @@
         }
     }
 
-    static string GetBackgroundColor(IViewItem item)
+    string GetItemStyle(IViewItem item)
     {
-        return item.IsSelected ? "inherit" : LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.Color.value);
+        var cl = item.IsSelected ? "inherit" : LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.Color.value);
+        if (viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark)
+        {
+            return $"color: {cl}";
+        }
+        else
+        {
+            return $"background-color: {cl}";
+        }
     }
 
     string GetFocusedMarkClass(IViewItem item)

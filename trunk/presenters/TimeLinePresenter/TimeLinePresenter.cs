@@ -111,6 +111,12 @@ namespace LogJoint.UI.Presenters.Timeline
 				}
 			};
 
+			sourcesManager.OnLogSourceColorChanged += (s, e) =>
+			{
+				++timeGapsRevision;
+				changeNotification.Post();
+			};
+
 			var updateRange = Updaters.Create(range, sources,
 				(r, s) => gapsUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(150)));
 			var updateStatusReport = Updaters.Create(range, () => setStatusText, UpdateStatusReport);

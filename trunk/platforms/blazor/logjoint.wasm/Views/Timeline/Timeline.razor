@@ -63,8 +63,8 @@
     {
         viewModel.SetView(this);
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            viewModel.OnDraw,
-            _ => StateHasChanged()
+            viewModel.OnDraw, () => viewModel.ColorTheme,
+            (_1, _2) => StateHasChanged()
         ));
     }
 
@@ -90,17 +90,24 @@
 
     string GetSourceStyle(SourceDrawInfo source)
     {
+        var ctxColor = LogJoint.Drawing.ColorExtensions.ToHtmlColor(source.Color);
+        var sourceBackground = viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark ?
+            "var(--timeline-source-background-dark)" : ctxColor;
+        var borderStyle = viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark  ?
+            $"border: 2px solid {ctxColor};" : "";
         return
             $"left: {source.X}px; top: {source.AvaTimeY1}px; " +
             $"width: {source.Right - source.X - 2 /* border */}px; height: {source.AvaTimeY2 - source.AvaTimeY1 - 2 /* borders */}px; " +
-            $"background: {LogJoint.Drawing.ColorExtensions.ToHtmlColor(source.Color)};";
+            $"background: {sourceBackground};" +
+            $"{borderStyle}";
     }
 
     string GetGapStyle(SourceDrawInfo source, GapDrawInfo gap)
     {
+        var extraGarWidth = viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark ? 2 : 0;
         return
             $"left: {source.X}px; top: {gap.Y1 + 3}px; " +
-            $"width: {source.Right - source.X}px; height: {gap.Y2 - gap.Y1 - 6}px;";
+            $"width: {source.Right - source.X + extraGarWidth}px; height: {gap.Y2 - gap.Y1 - 6}px;";
     }
 
     string GetMarkStyle(RulerMarkDrawInfo mark)

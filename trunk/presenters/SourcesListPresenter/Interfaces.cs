@@ -50,6 +50,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
+		ColorThemeMode ColorTheme { get; }
 
 		void SetView(IView view);
 

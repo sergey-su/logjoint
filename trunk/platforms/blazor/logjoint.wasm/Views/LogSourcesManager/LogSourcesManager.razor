@@ -13,7 +13,9 @@
                 @onclick="@viewModel.OnDeleteSelectedLogSourcesButtonClicked" title="Close selected log">−</button>
         <button disabled="@(!viewModel.PropertiesButtonEnabled)"
                 @onclick="@viewModel.OnPropertiesButtonClicked">⚙</button>
-        <button @onclick="@viewModel.OnShowHistoryDialogButtonClicked" class="history-button" title="Re-open recent log">&nbsp;</button>
+        <button @onclick="@viewModel.OnShowHistoryDialogButtonClicked" class="history-button" title="Re-open recent log">
+            <HistoryIcon/>
+        </button>
     </div>
     <LogSourcesList Class="the-list"/>
 </div>
