@@ -18,9 +18,15 @@
         }
         <a class="b" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnPrevBookmarkButtonClicked())">&lt;&lt;prev</a>
         <a class="b" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnNextBookmarkButtonClicked())">next&gt;&gt;</a>
-        <a class="c" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnFindCurrentTimeButtonClicked())">current time</a>
-        <a class="zi" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomInButtonClicked())">zoom in</a>
-        <a class="zo" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomOutButtonClicked())">zoom out</a>
+        <a class="c" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnFindCurrentTimeButtonClicked())">
+            <FindCurrentMessageIcon /> current time
+        </a>
+        <a class="zi" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomInButtonClicked())">
+            <ZoomInIcon /> zoom in
+        </a>
+        <a class="zo" href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnZoomOutButtonClicked())">
+            <ZoomOutIcon/> zoom out
+        </a>
     </div>
     <div class="nav"
             @ref="navElement"
@@ -264,9 +270,9 @@
         return string.Format("left: {0:0.00}%", nav.VisibleRangeX2*100);
     }
 
-    static string GetActivityBackgroundStyle(ActivityDrawInfo a)
+    string GetActivityBackgroundStyle(ActivityDrawInfo a)
     {
-        if (!a.IsSelected)
+        if (!a.IsSelected && viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Light)
             return string.Format("background-color: {0};",
                 a.Color.HasValue ? LogJoint.Drawing.ColorExtensions.ToHtmlColor(a.Color.Value) : "white"
             );

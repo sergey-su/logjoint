@@ -104,10 +104,14 @@
 
     string GetGapStyle(SourceDrawInfo source, GapDrawInfo gap)
     {
-        var extraGarWidth = viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark ? 2 : 0;
+        var ctxColor = LogJoint.Drawing.ColorExtensions.ToHtmlColor(source.Color);
+        bool dark = viewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark;
+        var extraGarWidth = dark ? 2 : 0;
+        var borderStyle = dark ? $"border-color: {ctxColor};" : "";
         return
             $"left: {source.X}px; top: {gap.Y1 + 3}px; " +
-            $"width: {source.Right - source.X + extraGarWidth}px; height: {gap.Y2 - gap.Y1 - 6}px;";
+            $"width: {source.Right - source.X + extraGarWidth}px; height: {gap.Y2 - gap.Y1 - 6}px;" +
+            $"{borderStyle}";
     }
 
     string GetMarkStyle(RulerMarkDrawInfo mark)

@@ -19,15 +19,17 @@
         <NodeTemplate>
             @{var node = (IObjectsTreeNode)context;}
             @{var paintInfo = PaintNode(node, getPrimaryPropValue: true);}
+            @{var dark = ViewModel.ColorTheme == LogJoint.UI.Presenters.ColorThemeMode.Dark;}
             @{var coloringClass = 
                 node.IsSelected ? "" : 
                 paintInfo.Coloring == NodeColoring.Alive ? "l" : 
                 paintInfo.Coloring == NodeColoring.Deleted ? "d" : 
                 ""; }
-            @{var coloringStyle = 
-                node.IsSelected ? "" : 
-                paintInfo.Coloring == NodeColoring.LogSource ? $"background-color: {LogJoint.Drawing.ColorExtensions.ToHtmlColor(paintInfo.LogSourceColor.Value)}" : 
-                ""; }
+            @{var coloringStyle =
+                  node.IsSelected ? "" :
+                  paintInfo.Coloring == NodeColoring.LogSource ?
+                      $"{(dark ? "color" : "background-color")}: {LogJoint.Drawing.ColorExtensions.ToHtmlColor(paintInfo.LogSourceColor.Value)}" :
+                  ""; }
             @{var tooltip = 
                 paintInfo.Coloring == NodeColoring.LogSource ? context.ToString() : 
                 ""; }

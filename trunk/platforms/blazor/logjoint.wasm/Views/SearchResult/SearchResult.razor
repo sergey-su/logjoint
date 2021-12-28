@@ -12,7 +12,9 @@
      title="@(viewModel.IsSearchResultsVisible ? viewModel.ResizerTooltip : viewModel.OpenSearchResultsButtonTooltip)"></div>
 <div class='search-result @Class' @ref="resultsElement" style="@GetStyle()">
     <div class="toolbar">
-        <button class="current-time" @onclick="@viewModel.OnFindCurrentTimeButtonClicked" title="@viewModel.FindCurrentTimeButtonTooltip"></button>
+        <button class="current-time" @onclick="@viewModel.OnFindCurrentTimeButtonClicked" title="@viewModel.FindCurrentTimeButtonTooltip">
+            <FindCurrentMessageIcon />
+        </button>
         <button class="bookmark" @onclick="@viewModel.OnToggleBookmarkButtonClicked" title="@viewModel.ToggleBookmarkButtonTooltip"></button>
             @{var result = viewModel.Items.FirstOrDefault();}
             @if (result != null)
