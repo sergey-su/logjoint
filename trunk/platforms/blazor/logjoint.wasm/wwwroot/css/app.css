@@ -241,12 +241,6 @@ button {
     top: -0.5em;
 }
 
-.bg1 {
-    background-color: burlywood;
-}
-.bg2 {
-    background-color: khaki;
-}
 .logline .txt {
     position: relative;
     white-space: pre;
@@ -364,7 +358,7 @@ button {
     background-color: var(--control-face-background);
 }
 .main-window .container-2>.right-separator-collapsed:hover {
-    background-color: #ddd;
+    background-color: var(--resizable-separator-background-hover);
 }
 .main-window .container-2>.right {
     width: 300px;
@@ -394,7 +388,7 @@ button {
     background-color: var(--control-face-background);
 }
 .main-window .container-3>.bottom-separator-collapsed:hover {
-    background-color: #ddd;
+    background-color: var(--resizable-separator-background-hover);
 }
 .main-window .container-1>.top-separator {
     height: 4px;
@@ -1660,7 +1654,7 @@ button {
     top: 2px;
     left: 0;
     right: 30%;
-    background: white;
+    background: var(--control-client-background);
     border: solid 1px gray;
     bottom: 2px;
     cursor: move;
