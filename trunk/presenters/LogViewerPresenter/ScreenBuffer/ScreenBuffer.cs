@@ -276,7 +276,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		)
 		{
-			if (buffers.Count == 1 && !disableSingleLogPositioningOptimization)
+			if (buffers.Count == 0)
+				return Task.CompletedTask;
+			else if (buffers.Count == 1 && !disableSingleLogPositioningOptimization)
 				return MoveToPositionSingleLog(position, cancellation);
 			else
 				return MoveToPositionMultipleLogs(position, cancellation);
