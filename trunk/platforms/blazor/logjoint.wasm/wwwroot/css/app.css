@@ -76,6 +76,10 @@ button {
     background: var(--control-face-background);
 }
 
+.dark-theme button {
+    border: solid 1px var(--text-color);
+}
+
 :focus:not(:focus-visible) {
     outline: none
 }
