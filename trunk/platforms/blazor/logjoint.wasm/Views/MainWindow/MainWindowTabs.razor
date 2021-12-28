@@ -19,8 +19,8 @@
         case TabIDs.Postprocessing:
             <PostprocessingTabPage Class="tab-content" />
             break;
-        case TabIDs.Debug:
-            <DebugTab Class="tab-content" />
+        case TabIDs.Settings:
+            <SettingsTab Class="tab-content" />
             break;
     }
 </div>
@@ -43,8 +43,8 @@
     {
         tabNames = Selectors.Create(() => ViewModel.VisibleTabs, tabs => tabs.Select(t => new TabsView.TabInfo
         {
-            Caption = t.Id == TabIDs.Debug ? "⚙" : t.Caption,
-            Class = t.Id == TabIDs.Debug ? "debug" : null
+            Caption = t.Id == TabIDs.Settings ? "⚙" : t.Caption,
+            Class = t.Id == TabIDs.Settings ? "settings" : null
         }).ToArray());
         subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (ViewModel.VisibleTabs, ViewModel.ActiveTab, ViewModel.Size),

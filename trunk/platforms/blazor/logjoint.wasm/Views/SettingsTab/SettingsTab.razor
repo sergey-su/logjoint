@@ -1,0 +1,115 @@
+﻿@namespace LogJoint.Wasm.UI
+@inject IJSRuntime jsRuntime;
+@inject LogJoint.ModelObjects model;
+@inject TraceListener traceListener;
+@inject JsInterop jsInterop;
+@inject LogJoint.UI.Presenters.GlobalSettingsSystemThemeDetector themeDetector;
+
+<div class='@Class settings-panel'>
+    <label>
+        <input type="checkbox"
+               checked="@(themeDetector.Mode == LogJoint.UI.Presenters.ColorThemeMode.Dark)"
+               @oninput="@(e => SetDarkMode(e.Value is bool x && x))" />Dark mode
+    </label>
+    <p class="debug-label">
+        Debug options
+        <a href="#" @onclick:preventDefault @onclick="ToggleDebugOptions">@(debugOptionsVisible ? "hide" : "show")</a>
+    </p>
+    @if (debugOptionsVisible)
+    {
+        <div class="debug">
+            <button @onclick="DownloadDebugLog">Download debug log</button>
+            <input type="file" @ref="fileInputReference" hidden />
+            <button @onclick="LoadByUrl" hidden>Load by blob URL</button>
+            <button @onclick="LoadChromeDebugLog" hidden>Load Stream as Chrome debug log</button>
+            <button @onclick="LoadUnspecifiedStream" hidden>Load unspecified stream</button>
+            <button @onclick="TestLogFs" hidden>Test log fs</button>
+            <div>
+                <label>DB key:</label><input @bind="dbKeyName" />
+                <button @onclick="DownloadDbValue">Download db value</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    ElementReference fileInputReference;
+    private string dbKeyName;
+    private bool debugOptionsVisible = false;
+
+    void ToggleDebugOptions()
+    {
+        debugOptionsVisible = !debugOptionsVisible;
+    }
+
+    async void LoadByUrl()
+    {
+        var url = await jsRuntime.InvokeAsync<string>("logjoint.files.getUrl", fileInputReference);
+        Console.WriteLine("Blob url: {0}", url);
+        var task = model.LogSourcesPreprocessings.Preprocess(
+            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(url)) },
+            "Processing blob URL test"
+        );
+    }
+
+    async void LoadChromeDebugLog()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.AddFileFromInput(fileInputReference);
+        Console.WriteLine("Virtual file name : {0}", fileName);
+        var factory = (IFileBasedLogProviderFactory)model.UserDefinedFormatsManager.Items.Single(f => f.FormatName == "Chrome debug log");
+        await model.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
+    }
+
+    async void LoadUnspecifiedStream()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.AddFileFromInput(fileInputReference);
+        Console.WriteLine("Virtual file name : {0}", fileName);
+        using (var keepAlive = model.FileSystem.OpenFile(fileName))
+        {
+            var task = model.LogSourcesPreprocessings.Preprocess(
+                new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(new LogJoint.Preprocessing.PreprocessingStepParams(fileName)) },
+                "Processing Unspecified file"
+            );
+            await task;
+        }
+    }
+
+    async void DownloadDebugLog()
+    {
+        var entries = traceListener.ClearMemBufferAndGetCurrentEntries();
+        using (var writer = new System.IO.StringWriter())
+        {
+            entries.ForEach(e => e.Write(writer));
+            await jsInterop.SaveAs.SaveAs(writer.ToString(), string.Format(@"wasm-debug-{0:yyyy-MM-ddTHH-mm-ss}.log", DateTime.Now));
+        }
+    }
+
+    async Task TestLogFs()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.AddFileFromInput(fileInputReference);
+        using (var stream = await model.FileSystem.OpenFile(fileName))
+        {
+            byte[] buf = new byte[1024];
+            var read = await stream.ReadAsync(buf, 0, buf.Length);
+            var hash = LogJoint.Hashing.GetStableHashCode(buf);
+            Console.WriteLine("{0} {1}", read, hash);
+        }
+    }
+
+    async Task DownloadDbValue()
+    {
+        var value = await jsInterop.IndexedDB.Get<byte[]>("userData", dbKeyName);
+        await jsInterop.SaveAs.SaveAs(value, dbKeyName);
+    }
+
+    void SetDarkMode(bool dark)
+    {
+        themeDetector.SetMode(dark ? LogJoint.UI.Presenters.ColorThemeMode.Dark : LogJoint.UI.Presenters.ColorThemeMode.Light);
+    }
+}

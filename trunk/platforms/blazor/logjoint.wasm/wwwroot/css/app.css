@@ -461,7 +461,7 @@ button {
     padding: 0px 5px;
 }
 
-.main-window-tabs .tabs .debug {
+.main-window-tabs .tabs .settings {
     position: absolute;
     right: 0;
 }
@@ -1352,8 +1352,24 @@ button {
 
 
 
-.debug-panel {
+.settings-panel {
     background: var(--control-face-background);
+}
+
+.settings-panel .debug-label {
+    background: var(--control-face-background);
+    margin: 5px;
+}
+
+.settings-panel .debug {
+    border: solid 1px var(--text-color);
+    padding: 10px;
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.settings-panel .debug>* {
+    margin: 0px 20px;
 }
 
 

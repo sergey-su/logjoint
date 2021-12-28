@@ -65,11 +65,11 @@ namespace LogJoint.UI.Presenters.MainForm
 			var searchTab = new TabInfo { Id = TabIDs.Search, Caption = "Search" };
 			var bookmarksTab = new TabInfo { Id = TabIDs.Bookmarks, Caption = "Bookmarks" };
 			var postprocessingTab = new TabInfo { Id = TabIDs.Postprocessing, Caption = "Postprocessing" };
-			var debugTab = new TabInfo { Id = TabIDs.Debug, Caption = "[Debug]" };
+			var settingsTab = new TabInfo { Id = TabIDs.Settings, Caption = "[Settings]" };
 
 			visibleTabs =
 				IsBrowser.Value ?
-					new [] { sourcesTab, bookmarksTab, searchTab, postprocessingTab, debugTab } :
+					new [] { sourcesTab, bookmarksTab, searchTab, postprocessingTab, settingsTab } :
 				RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
 					new [] { sourcesTab, bookmarksTab, highlightingRulesTab, searchTab, postprocessingTab }
 				:

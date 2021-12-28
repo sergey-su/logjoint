@@ -49,7 +49,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		public const string Bookmarks = "bookmarks";
 		public const string Search = "search";
 		public const string Postprocessing = "postprocessing";
-		public const string Debug = "debug";
+		public const string Settings = "settings";
 	};
 
 	public enum KeyCode
