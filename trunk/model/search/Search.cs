@@ -99,6 +99,8 @@ namespace LogJoint.Search
 			}
 			else
 			{
+				if (startTextPosition.GetValueOrDefault(-1) == (state.options.ReverseSearch ? 0 : text.Length))
+					return null;
 				matchBegin = 0;
 				matchEnd = text.Length;
 				wholeTextMatched = true;
