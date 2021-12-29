@@ -3,7 +3,6 @@
 @using LogJoint.UI.Presenters.SearchResult
 @using ViewerP = LogJoint.UI.Presenters.LogViewer
 @implements IDisposable
-@implements IView
 @inject LogJoint.Wasm.ViewProxies viewProxies
 @inject JsInterop jsInterop
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
@@ -15,15 +14,44 @@
         <button class="current-time" @onclick="@viewModel.OnFindCurrentTimeButtonClicked" title="@viewModel.FindCurrentTimeButtonTooltip">
             <FindCurrentMessageIcon />
         </button>
+        @{ var resultsListOpen = viewModel.ExpansionState.IsExpanded; }
         <button class="bookmark" @onclick="@viewModel.OnToggleBookmarkButtonClicked" title="@viewModel.ToggleBookmarkButtonTooltip"></button>
-            @{var result = viewModel.Items.FirstOrDefault();}
-            @if (result != null)
-            {
-                <div class="result" style="background-size: @ProgressToBackgroundSize(result)">
-                    @result.Text
-                </div>
-            }
-        <div class="resizer" @ref="toolBarResizerElement">:::::::::</div>
+        <div class="result @(resultsListOpen ? "open" : "closed")" @onfocusout=@HandleFocusOut @ref="ResultsContainerRef">
+            <ListView Items="@allItemsOrFirst()" Class="list" ItemClass="item" ChangeNotification="@viewModel.ChangeNotification">
+                <ItemTemplate>
+                    @{var item = (ViewItem)context;}
+                    @if (item.IsPrimary)
+                    {
+                        var expansionState = viewModel.ExpansionState;
+                        if (expansionState.IsExpandable)
+                        {
+                            <button class="expand-btn-sizes expand-btn"
+                                    @onclick="@(e => viewModel.OnExpandSearchesListClicked())"
+                                    title="@(expansionState.IsExpanded ? expansionState.UnexpandButtonHint : expansionState.ExpandButtonHint)">
+                                @if (expansionState.IsExpanded)
+                                {
+                                    <CollapseContentIcon />
+                                }
+                                else
+                                {
+                                    <ExpandContentIcon />
+                                }
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        <div class="expand-btn-sizes"></div>
+                    }
+                    <input type="checkbox"
+                           checked=@item.VisiblityControlChecked
+                           @onchange="@(e => viewModel.OnVisibilityCheckboxClicked(item))"
+                           title=@item.VisiblityControlHint />
+                    <div class="text" style="background-size: @ProgressToBackgroundSize(item)">@item.Text</div>
+                </ItemTemplate>
+            </ListView>
+        </div>
+        <div class="resizer @(resultsListOpen ? "list-open" : "")" @ref="toolBarResizerElement">:::::::::</div>
         <button class="close tool-button" title="@viewModel.CloseSearchResultsButtonTooltip" @onclick="viewModel.OnCloseSearchResultsButtonClicked">
             <div>&gt;</div>
         </button>
@@ -41,6 +69,8 @@
     private ISubscription subscription;
     private ElementReference resizerElement, resultsElement, toolBarResizerElement;
     private IDisposable resizeHandler1, resizeHandler2;
+    private Func<IReadOnlyList<ViewItem>> allItemsOrFirst;
+    private ElementReference ResultsContainerRef { get; set; }
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -58,8 +88,15 @@
 
     protected override void OnInitialized()
     {
+        allItemsOrFirst = Selectors.Create(() => viewModel.Items, () => viewModel.ExpansionState.IsExpanded, (items, expanded) =>
+        {
+            if (expanded)
+                return items;
+            else
+                return items.Take(1).ToArray();
+        });
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.Items, viewModel.Size, viewModel.IsSearchResultsVisible),
+            () => (viewModel.Items, viewModel.Size, viewModel.IsSearchResultsVisible, viewModel.ExpansionState),
             _ => StateHasChanged()
         ));
     }
@@ -69,11 +106,6 @@
         subscription?.Dispose();
         resizeHandler1?.Dispose();
         resizeHandler2?.Dispose();
-    }
-
-    void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
-    {
-        // todo
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -89,6 +121,15 @@
 
     static string ProgressToBackgroundSize(ViewItem result)
     {
-        return result.ProgressVisible ? $"{result.ProgressValue:0.00}%" : "0px";
+        return result.ProgressVisible ? $"{result.ProgressValue*100d:0.00}%" : "0px";
+    }
+
+    async void HandleFocusOut()
+    {
+        await Task.Yield(); // skip one JS frame to let the new element be focused before checking if focus left this component.
+        if (!await jsInterop.Keyboard.IsFocusWithin(ResultsContainerRef))
+        {
+            viewModel.OnDropdownContainerLostFocus();
+        }
     }
 }

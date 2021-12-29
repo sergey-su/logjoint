@@ -185,7 +185,6 @@ namespace LogJoint.UI.Presenters
 				model.FiltersManager.HighlightFilters,
 				navHandler,
 				loadedMessagesPresenter,
-				model.HeartBeatTimer,
 				model.SynchronizationContext,
 				statusReportFactory,
 				logViewerPresenterFactory,

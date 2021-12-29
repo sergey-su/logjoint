@@ -11,7 +11,7 @@ using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 
 namespace LogJoint.UI
 {
-	public partial class SearchResultView : UserControl, IView
+	public partial class SearchResultView : UserControl
 	{
 		IViewModel viewModel;
 		Image pinImage, pinnedImage, dropdownImage, hideDropdownImage, emptyImage;
@@ -112,14 +112,19 @@ namespace LogJoint.UI
 				if (SearchResultsSplitContainer != null)
 					SearchResultsSplitContainer.Panel2Collapsed = !value;
 			});
+			var updateExpansion = Updaters.Create(() => viewModel.ExpansionState, state =>
+			{
+				UpdateExpandedState(state.IsExpandable, state.IsExpanded, state.PreferredListHeightInRows, state.ExpandButtonHint, state.UnexpandButtonHint);
+			});
 			viewModel.ChangeNotification.CreateSubscription(() =>
 			{
 				itemsUpdater();
 				updateVisiblity();
+				updateExpansion();
 			});
 		}
 
-		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
+		void UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
 		{
 			dropDownPanel.Visible = isExpanded;
 			if (isExpanded)

@@ -1,18 +1,11 @@
+using LogJoint.UI.Presenters.Reactive;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SearchResult
 {
-	public interface IView
-	{
-		// todo: make reactive
-		void UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint);
-	};
-
-	public class ViewItem
+	public class ViewItem: IListItem
 	{
 		internal WeakReference Data;
 		public string Text { get; internal set; }
@@ -23,6 +16,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public string PinControlHint { get; internal set; }
 		public bool ProgressVisible { get; internal set; }
 		public double ProgressValue { get; internal set; }
+		public bool IsPrimary { get; internal set; }
+		string IListItem.Key => Text;
+		bool IListItem.IsSelected => false; // todo
 	};
 
 	public interface IPresenter
@@ -56,11 +52,22 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public MenuItemId CheckedItems;
 	};
 
+	// Represents the state of the expansion state of search results list.
+	// Objects of this type are immuatable.
+	public class ExpansionState
+	{
+		public bool IsExpandable { get; internal set; }
+		public bool IsExpanded { get; internal set; }
+		public int PreferredListHeightInRows { get; internal set; }
+		public string ExpandButtonHint { get; internal set; }
+		public string UnexpandButtonHint { get; internal set; }
+	};
+
 	public interface IViewModel
 	{
 		IChangeNotification ChangeNotification { get; }
 		LogViewer.IViewModel LogViewer { get; }
-		bool IsSearchResultsVisible { get; } // if the whole search results panel visible
+		bool IsSearchResultsVisible { get; } // if the whole search results panel is visible
 		ColorThemeMode ColorTheme { get; }
 		IReadOnlyList<ViewItem> Items { get; }
 		bool IsCombinedProgressIndicatorVisible { get; }
@@ -70,6 +77,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		string ResizerTooltip { get; }
 		string ToggleBookmarkButtonTooltip { get; }
 		string FindCurrentTimeButtonTooltip { get; }
+		ExpansionState ExpansionState { get; }
 
 		void OnResizingStarted();
 		void OnResizingFinished();

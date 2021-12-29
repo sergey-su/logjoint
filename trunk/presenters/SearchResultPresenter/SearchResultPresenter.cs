@@ -16,7 +16,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 			IFiltersList hlFilters,
 			IPresentersFacade navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
-			IHeartBeatTimer heartbeat,
 			ISynchronizationContext uiThreadSynchronization,
 			StatusReports.IPresenter statusReports,
 			LogViewer.IPresenterFactory logViewerPresenterFactory,
@@ -31,6 +30,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.statusReports = statusReports;
 			this.theme = theme;
 			this.changeNotification = changeNotification;
+			this.uiThreadSynchronization = uiThreadSynchronization;
 			var (messagesPresenter, messagesModel) = logViewerPresenterFactory.CreateSearchResultsPresenter(
 				loadedMessagesPresenter.LogViewerPresenter);
 			this.messagesPresenter = messagesPresenter;
@@ -53,15 +53,15 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.hlFilters.OnPropertiesChanged += (sender, args) =>
 			{
 				if (args.ChangeAffectsFilterResult)
-					lazyUpdateFlag.Invalidate();
+					InvalidateView();
 			};
 			this.hlFilters.OnFiltersListChanged += (sender, args) =>
 			{
-				lazyUpdateFlag.Invalidate();
+				InvalidateView();
 			};
 			this.hlFilters.OnFilteringEnabledChanged += (sender, args) =>
 			{
-				lazyUpdateFlag.Invalidate();
+				InvalidateView();
 			};
 			this.searchManager.SearchResultChanged += (sender, e) =>
 			{
@@ -70,11 +70,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 				 || (e.Flags & SearchResultChangeFlag.PinnedChanged) != 0
 				 || (e.Flags & SearchResultChangeFlag.VisibleChanged) != 0)
 				{
-					lazyUpdateFlag.Invalidate();
+					InvalidateView();
 				}
 				if ((e.Flags & SearchResultChangeFlag.StatusChanged) != 0)
 				{
-					lazyUpdateFlag.Invalidate();
+					InvalidateView();
 					uiThreadSynchronization.Post(ValidateView);
 					uiThreadSynchronization.Post(PostSearchActions);
 				}
@@ -85,19 +85,13 @@ namespace LogJoint.UI.Presenters.SearchResult
 			};
 			this.searchManager.SearchResultsChanged += (sender, e) =>
 			{
-				lazyUpdateFlag.Invalidate();
+				InvalidateView();
 				messagesModel.RaiseSourcesChanged();
 				uiThreadSynchronization.Post(ValidateView);
 				uiThreadSynchronization.Post(PreSearchActions);
 			};
 
-			heartbeat.OnTimer += (sender, args) =>
-			{
-				if (args.IsNormalUpdate)
-					ValidateView();
-			};
-
-			UpdateExpandedState();
+			UpdateExpansionState();
 		}
 
 		Presenters.LogViewer.IPresenterInternal IPresenter.LogViewerPresenter { get { return messagesPresenter; } }
@@ -160,6 +154,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		IReadOnlyList<ViewItem> IViewModel.Items => items;
 		bool IViewModel.IsCombinedProgressIndicatorVisible => anySearchIsActive;
+
+		ExpansionState IViewModel.ExpansionState => expansionState;
 
 		void IViewModel.OnCloseSearchResultsButtonClicked()
 		{
@@ -291,8 +287,14 @@ namespace LogJoint.UI.Presenters.SearchResult
 			if (isExpanded && !IsResultsListExpandable())
 				return false;
 			isSearchesListExpanded = isExpanded;
-			UpdateExpandedState();
+			UpdateExpansionState();
 			return true;
+		}
+
+		void InvalidateView()
+		{
+			lazyUpdateFlag.Invalidate();
+			uiThreadSynchronization.Post(ValidateView);
 		}
 
 		void ValidateView()
@@ -350,17 +352,18 @@ namespace LogJoint.UI.Presenters.SearchResult
 					ProgressVisible = progress.HasValue,
 					ProgressValue = progress.GetValueOrDefault(),
 					VisiblityControlChecked = rslt.Visible,
-					VisiblityControlHint = "Show or hide result of this search",
+					VisiblityControlHint = "Show or hide the result of this search",
 					PinControlChecked = rslt.Pinned,
 					PinControlHint = "Pin search result to prevent it from eviction by new searches",
-					Text = textBuilder.ToString()
+					Text = textBuilder.ToString(),
+					IsPrimary = itemsBuilder.Count == 0
 				});
 			}
 
 			items = itemsBuilder.ToImmutable();
 			anySearchIsActive = searchIsActive;
 			changeNotification.Post();
-			UpdateExpandedState();
+			UpdateExpansionState();
 
 			if (searchIsActive != (searchingStatusReport != null))
 			{
@@ -382,16 +385,17 @@ namespace LogJoint.UI.Presenters.SearchResult
 			}
 		}
 
-		void UpdateExpandedState()
+		void UpdateExpansionState()
 		{
-			/* todo: make reactive
-			view.UpdateExpandedState(
-				isExpandable: IsResultsListExpandable(), 
-				isExpanded: isSearchesListExpanded,
-				preferredListHeightInRows: RangeUtils.PutInRange(3, 8, searchManager.Results.Count()),
-				expandButtonHint: "Show previous search results list",
-				unexpandButtonHint: "Hide previous search results list"
-			); */
+			expansionState = new ExpansionState()
+			{
+				IsExpandable = IsResultsListExpandable(),
+				IsExpanded = isSearchesListExpanded,
+				PreferredListHeightInRows = RangeUtils.PutInRange(3, 8, searchManager.Results.Count()),
+				ExpandButtonHint = "Show previous search results",
+				UnexpandButtonHint = "Hide previous search results"
+			};
+			changeNotification.Post();
 		}
 
 		private bool IsResultsListExpandable()
@@ -445,15 +449,17 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly StatusReports.IPresenter statusReports;
 		readonly IColorTheme theme;
+		readonly ISynchronizationContext uiThreadSynchronization;
 		readonly IChangeNotification changeNotification;
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
 		bool isVisible = false;
 		double? size = null;
 		ImmutableArray<ViewItem> items = ImmutableArray.Create<ViewItem>();
 		bool anySearchIsActive;
-		LogViewer.IPresenterInternal messagesPresenter;
+		readonly LogViewer.IPresenterInternal messagesPresenter;
 		StatusReports.IReport searchingStatusReport;
 		bool isSearchesListExpanded;
+		ExpansionState expansionState = new ExpansionState();
 	};
 
 	public class SearchResultMessagesModel : LogViewer.ISearchResultModel
