@@ -10,14 +10,14 @@
 		)
 		{
 			this.newLogSourceDialog = newLogSourceDialog;
-			this.controlData = new ControlData(false, "*1 Open* logs");
+			this.controlData = new ControlData(disabled: IsBrowser.Value, content: "*1 Open* logs");
 		}
 
 		ControlData IViewControlHandler.GetCurrentData() => controlData;
 
 		void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
 		{
-			if (newLogSourceDialog != null)
+			if (!this.controlData.Disabled)
 				newLogSourceDialog.ShowTheDialog(newLogSourceDialog.FormatDetectorPageName);
 		}
 	};
