@@ -49,25 +49,22 @@
                     <div class="expand-btn-sizes"></div>
                 }
                 <input type="checkbox"
-                        checked=@item.VisiblityControlChecked
-                        @onchange="@(e => viewModel.OnVisibilityCheckboxClicked(item))"
-                        title=@item.VisiblityControlHint />
+                       checked=@item.VisiblityControlChecked
+                       @onchange="@(e => viewModel.OnVisibilityCheckboxClicked(item))"
+                       title=@item.VisiblityControlHint />
+                <button class="pin @(item.PinControlChecked ? "pinned" : "")"
+                        @onclick="@(e => viewModel.OnPinCheckboxClicked(item))"
+                        title=@item.PinControlHint>
+                    @if (item.PinControlChecked)
+                    {
+                        <PinIcon />
+                    }
+                    else
+                    {
+                        <TiltedPinIcon />
+                    }
+                </button>
                 <div class="text" style="background-size: @ProgressToBackgroundSize(item)">@item.Text</div>
-                @if (expansionState.IsExpanded)
-                {
-                    <button class="pin @(item.PinControlChecked ? "pinned" : "")" 
-                            @onclick="@(e => viewModel.OnPinCheckboxClicked(item))"
-                            title=@item.PinControlHint>
-                        @if (item.PinControlChecked)
-                        {
-                            <PinIcon />
-                        }
-                        else
-                        {
-                            <TiltedPinIcon />
-                        }
-                    </button>
-                }
             </ItemTemplate>
         </ListView>
     </div>
