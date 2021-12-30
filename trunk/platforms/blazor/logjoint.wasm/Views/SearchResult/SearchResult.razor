@@ -20,9 +20,9 @@
             <ListView Items="@allItemsOrFirst()" Class="list" ItemClass="item" ChangeNotification="@viewModel.ChangeNotification">
                 <ItemTemplate>
                     @{var item = (ViewItem)context;}
+                    @{var expansionState = viewModel.ExpansionState;}
                     @if (item.IsPrimary)
                     {
-                        var expansionState = viewModel.ExpansionState;
                         if (expansionState.IsExpandable)
                         {
                             <button class="expand-btn-sizes expand-btn"
@@ -48,6 +48,21 @@
                            @onchange="@(e => viewModel.OnVisibilityCheckboxClicked(item))"
                            title=@item.VisiblityControlHint />
                     <div class="text" style="background-size: @ProgressToBackgroundSize(item)">@item.Text</div>
+                    @if (expansionState.IsExpanded)
+                    {
+                        <button class="pin @(item.PinControlChecked ? "pinned" : "")" 
+                                @onclick="@(e => viewModel.OnPinCheckboxClicked(item))"
+                                title=@item.PinControlHint>
+                            @if (item.PinControlChecked)
+                            {
+                                <PinIcon />
+                            }
+                            else
+                            {
+                                <TiltedPinIcon />
+                            }
+                        </button>
+                    }
                 </ItemTemplate>
             </ListView>
         </div>

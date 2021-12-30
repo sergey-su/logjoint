@@ -354,7 +354,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 					VisiblityControlChecked = rslt.Visible,
 					VisiblityControlHint = "Show or hide the result of this search",
 					PinControlChecked = rslt.Pinned,
-					PinControlHint = "Pin search result to prevent it from eviction by new searches",
+					PinControlHint =
+						rslt.Pinned ?
+						"Unpin this search result to let it be evicted by new searches" :
+						"Pin this search result to prevent it from eviction by new searches",
 					Text = textBuilder.ToString(),
 					IsPrimary = itemsBuilder.Count == 0
 				});

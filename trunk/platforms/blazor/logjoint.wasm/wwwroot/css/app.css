@@ -887,7 +887,7 @@ button {
     display: none;
 }
 
-.search-result>.toolbar>button {
+.search-result>.toolbar button {
     width: 2em;
     height: 1.2em;
     border: 1px solid gray;
@@ -903,6 +903,7 @@ button {
 
 .search-result>.toolbar>.result {
     position: relative;
+    align-self: start;
 }
 
 .search-result>.toolbar>.result.open {
@@ -913,7 +914,7 @@ button {
     position: absolute;
     z-index: 100;
     background: var(--control-client-background);
-    top: -9px;
+    top: 0px;
     left: 0px;
     user-select: none;
 }
@@ -921,12 +922,17 @@ button {
 .search-result>.toolbar>.result>.list>.item {
     display: flex;
     flex-flow: row nowrap;
+    height: 20px;
 }
 
 .search-result>.toolbar>.result .item>.text {
-    white-space: nowrap;
+    /* The background size will be varied in the code to implement the progress indication */
     background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjEuM40k/WcAAAAMSURBVBhXY2CY8h8AAisBlPryuBEAAAAASUVORK5CYII=);
     background-repeat-x: no-repeat;
+    flex-grow: 2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .search-result>.toolbar>.result.open>.list {
@@ -942,21 +948,23 @@ button {
     overflow: hidden;
 }
 
+/* Declates the sizes of the expansion button or a placeholder that should
+   take the same amount of space as the button to preserve the grid-like layout. */
 .search-result>.toolbar>.result .expand-btn-sizes {
     width: 28px;
     height: 1.2em;
     margin: 0px 2px;
 }
 
-.search-result>.toolbar>.result .expand-btn {
-    border: 1px solid gray;
-    border-radius: 3px;
-}
-
 .search-result>.toolbar>.result .expand-btn>.icon {
     height: 9px;
     position: relative;
     top: -1px;
+}
+
+.search-result>.toolbar>.result .pin>.icon {
+    width: 13px;
+    height: 13px;
 }
 
 .search-result>.toolbar>.close>div {
