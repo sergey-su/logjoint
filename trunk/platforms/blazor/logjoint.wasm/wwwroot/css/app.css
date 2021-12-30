@@ -63,6 +63,10 @@ body.dark-theme {
     color: var(--text-color);
 }
 
+.dark-theme button:disabled {
+    color: gray;
+}
+
 .dark-theme a {
     color: #3C96F0
 }
@@ -939,6 +943,7 @@ button {
     overflow: hidden;
     text-overflow: ellipsis;
     padding-right: 10px;
+    margin-left: 5px;
 }
 
 .search-result>.result.closed {
