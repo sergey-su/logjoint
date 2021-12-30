@@ -8,6 +8,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 	public class ViewItem: IListItem
 	{
 		internal WeakReference Data;
+		internal string Key;
 		public string Text { get; internal set; }
 		public bool IsWarningText { get; internal set; }
 		public bool VisiblityControlChecked { get; internal set; }
@@ -17,7 +18,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public bool ProgressVisible { get; internal set; }
 		public double ProgressValue { get; internal set; }
 		public bool IsPrimary { get; internal set; }
-		string IListItem.Key => Text;
+		string IListItem.Key => Key;
 		bool IListItem.IsSelected => false; // todo
 	};
 

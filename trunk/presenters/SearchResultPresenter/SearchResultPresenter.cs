@@ -348,6 +348,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 				itemsBuilder.Add(new ViewItem()
 				{
 					Data = new WeakReference(rslt),
+					Key = rslt.Id.ToString(),
 					IsWarningText = warningText != null,
 					ProgressVisible = progress.HasValue,
 					ProgressValue = progress.GetValueOrDefault(),
