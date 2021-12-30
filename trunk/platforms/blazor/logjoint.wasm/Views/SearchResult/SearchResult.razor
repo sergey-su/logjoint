@@ -21,7 +21,7 @@
             <div>&gt;</div>
         </button>
     </div>
-    <div class="result @(resultsListOpen ? "open" : "closed")" @onfocusout=@HandleFocusOut>
+    <div class="result @(resultsListOpen ? "open" : "closed")" @onfocusout=@HandleFocusOut @onkeydown=@HandleKeyDown>
         <ListView Items="@allItemsOrFirst()" Class="list" ItemClass="item" ChangeNotification="@viewModel.ChangeNotification" @ref="ListRef">
             <ItemTemplate>
                 @{var item = (ViewItem)context;}
@@ -154,6 +154,14 @@
         if (!await jsInterop.Keyboard.IsFocusWithin(ListRef.ListRef))
         {
             viewModel.OnDropdownContainerLostFocus();
+        }
+    }
+
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            viewModel.OnDropdownEscape();
         }
     }
 }
