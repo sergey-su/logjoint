@@ -81,6 +81,8 @@
                 LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.ContextColor.Value);
         if (viewModel.Theme == LogJoint.UI.Presenters.ColorThemeMode.Dark)
         {
+            if (!item.IsEnabled)
+                return "";
             return $"color: {cl}";
         }
         else
