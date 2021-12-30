@@ -865,6 +865,7 @@ button {
     display: flex;
     flex-flow: column nowrap;
     isolation: isolate; /* to enable localized z-index for searches list */
+    position: relative;
 }
 
 .search-result>.toolbar {
@@ -883,11 +884,8 @@ button {
     color: var(--resize-grip-color);
 }
 
-.search-result>.toolbar>.resizer.list-open {
-    display: none;
-}
-
-.search-result>.toolbar button {
+.search-result>.toolbar button,
+.search-result>.result button {
     width: 2em;
     height: 1.2em;
     border: 1px solid gray;
@@ -901,47 +899,53 @@ button {
     height: 10px;
 }
 
-.search-result>.toolbar>.result {
-    position: relative;
-    align-self: start;
-}
-
-.search-result>.toolbar>.result.open {
-    flex-grow: 2;
-}
-
-.search-result>.toolbar>.result>.list {
-    position: absolute;
+.search-result>.result {
     z-index: 100;
-    background: var(--control-client-background);
-    top: 0px;
-    left: 0px;
+    position: absolute;
+    left: 65px;
+    top: -2px;
+    bottom: 20px;
+    max-height: 60%;
+    pointer-events: none;
     user-select: none;
+    max-width: 70%;
 }
 
-.search-result>.toolbar>.result>.list>.item {
+.search-result>.result.open {
+    right: 40px;
+    max-width: unset;
+}
+
+.search-result>.result>.list {
+    pointer-events: all;
+    background: var(--control-client-background);
+    height: 100%;
+    padding-top: 1px;
+}
+
+.search-result>.result>.list>.item {
     display: flex;
     flex-flow: row nowrap;
     height: 20px;
 }
 
-.search-result>.toolbar>.result .item>.text {
+.search-result>.result .item>.text {
     /* The background size will be varied in the code to implement the progress indication */
     background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjEuM40k/WcAAAAMSURBVBhXY2CY8h8AAisBlPryuBEAAAAASUVORK5CYII=);
     background-repeat-x: no-repeat;
     flex-grow: 2;
+    flex-shrink: 2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-right: 10px;
 }
 
-.search-result>.toolbar>.result.open>.list {
-    height: 100px;
-    right: 20px;
-    background: var(--control-client-background);
+.search-result>.result.closed {
+    height: 20px;
 }
 
-.search-result>.toolbar>.result.closed>.list {
+.search-result>.result.closed>.list {
     border: 1px solid transparent;
     height: 17px;
     background: var(--control-face-background);
@@ -950,19 +954,20 @@ button {
 
 /* Declates the sizes of the expansion button or a placeholder that should
    take the same amount of space as the button to preserve the grid-like layout. */
-.search-result>.toolbar>.result .expand-btn-sizes {
+.search-result>.result .expand-btn-sizes {
     width: 28px;
+    min-width: 28px;
     height: 1.2em;
     margin: 0px 2px;
 }
 
-.search-result>.toolbar>.result .expand-btn>.icon {
+.search-result>.result .expand-btn>.icon {
     height: 9px;
     position: relative;
     top: -1px;
 }
 
-.search-result>.toolbar>.result .pin>.icon {
+.search-result>.result .pin>.icon {
     width: 13px;
     height: 13px;
 }

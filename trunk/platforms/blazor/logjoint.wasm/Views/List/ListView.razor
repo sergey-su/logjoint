@@ -30,12 +30,13 @@
 @code {
     [Inject]
     private IJSRuntime JSRuntime { get; set; }
-    private ElementReference ListRef { get; set; }
     private ISubscription subscription;
     private Func<ImmutableHashSet<int>> getSelected;
     private int? candidatePrimary;
     private int? establishedPrimary;
     private Action primaryChangeSideEffects;
+
+    public ElementReference ListRef { get; private set; }
 
     [Parameter]
     public string Class { get; set; } = "";

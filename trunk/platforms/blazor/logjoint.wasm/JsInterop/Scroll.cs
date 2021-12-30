@@ -32,5 +32,10 @@ namespace LogJoint.Wasm
         {
             return ((IJSInProcessRuntime)jsRuntime).Invoke<double>("logjoint.scroll.getScrollLeft", element);
         }
+
+        public void SetScrollTop(ElementReference element, double value)
+        {
+            ((IJSInProcessRuntime)jsRuntime).InvokeVoid("logjoint.scroll.setScrollTop", element, value);
+        }
     }
 }

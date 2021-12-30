@@ -45,6 +45,9 @@
         getScrollLeft: function (e) {
             return e.scrollLeft;
         },
+        setScrollTop: function (e, value) {
+            e.scrollTop = value;
+        },
     },
 
     files: {

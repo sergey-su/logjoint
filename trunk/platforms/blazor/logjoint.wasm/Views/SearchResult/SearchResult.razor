@@ -16,60 +16,60 @@
         </button>
         @{ var resultsListOpen = viewModel.ExpansionState.IsExpanded; }
         <button class="bookmark" @onclick="@viewModel.OnToggleBookmarkButtonClicked" title="@viewModel.ToggleBookmarkButtonTooltip"></button>
-        <div class="result @(resultsListOpen ? "open" : "closed")" @onfocusout=@HandleFocusOut @ref="ResultsContainerRef">
-            <ListView Items="@allItemsOrFirst()" Class="list" ItemClass="item" ChangeNotification="@viewModel.ChangeNotification">
-                <ItemTemplate>
-                    @{var item = (ViewItem)context;}
-                    @{var expansionState = viewModel.ExpansionState;}
-                    @if (item.IsPrimary)
-                    {
-                        if (expansionState.IsExpandable)
-                        {
-                            <button class="expand-btn-sizes expand-btn"
-                                    @onclick="@(e => viewModel.OnExpandSearchesListClicked())"
-                                    title="@(expansionState.IsExpanded ? expansionState.UnexpandButtonHint : expansionState.ExpandButtonHint)">
-                                @if (expansionState.IsExpanded)
-                                {
-                                    <CollapseContentIcon />
-                                }
-                                else
-                                {
-                                    <ExpandContentIcon />
-                                }
-                            </button>
-                        }
-                    }
-                    else
-                    {
-                        <div class="expand-btn-sizes"></div>
-                    }
-                    <input type="checkbox"
-                           checked=@item.VisiblityControlChecked
-                           @onchange="@(e => viewModel.OnVisibilityCheckboxClicked(item))"
-                           title=@item.VisiblityControlHint />
-                    <div class="text" style="background-size: @ProgressToBackgroundSize(item)">@item.Text</div>
-                    @if (expansionState.IsExpanded)
-                    {
-                        <button class="pin @(item.PinControlChecked ? "pinned" : "")" 
-                                @onclick="@(e => viewModel.OnPinCheckboxClicked(item))"
-                                title=@item.PinControlHint>
-                            @if (item.PinControlChecked)
-                            {
-                                <PinIcon />
-                            }
-                            else
-                            {
-                                <TiltedPinIcon />
-                            }
-                        </button>
-                    }
-                </ItemTemplate>
-            </ListView>
-        </div>
-        <div class="resizer @(resultsListOpen ? "list-open" : "")" @ref="toolBarResizerElement">:::::::::</div>
+        <div class="resizer" @ref="toolBarResizerElement">:::::::::</div>
         <button class="close tool-button" title="@viewModel.CloseSearchResultsButtonTooltip" @onclick="viewModel.OnCloseSearchResultsButtonClicked">
             <div>&gt;</div>
         </button>
+    </div>
+    <div class="result @(resultsListOpen ? "open" : "closed")" @onfocusout=@HandleFocusOut>
+        <ListView Items="@allItemsOrFirst()" Class="list" ItemClass="item" ChangeNotification="@viewModel.ChangeNotification" @ref="ListRef">
+            <ItemTemplate>
+                @{var item = (ViewItem)context;}
+                @{var expansionState = viewModel.ExpansionState;}
+                @if (item.IsPrimary)
+                {
+                    if (expansionState.IsExpandable)
+                    {
+                        <button class="expand-btn-sizes expand-btn"
+                                @onclick="@(e => viewModel.OnExpandSearchesListClicked())"
+                                title="@(expansionState.IsExpanded ? expansionState.UnexpandButtonHint : expansionState.ExpandButtonHint)">
+                            @if (expansionState.IsExpanded)
+                            {
+                                <CollapseContentIcon />
+                            }
+                            else
+                            {
+                                <ExpandContentIcon />
+                            }
+                        </button>
+                    }
+                }
+                else
+                {
+                    <div class="expand-btn-sizes"></div>
+                }
+                <input type="checkbox"
+                        checked=@item.VisiblityControlChecked
+                        @onchange="@(e => viewModel.OnVisibilityCheckboxClicked(item))"
+                        title=@item.VisiblityControlHint />
+                <div class="text" style="background-size: @ProgressToBackgroundSize(item)">@item.Text</div>
+                @if (expansionState.IsExpanded)
+                {
+                    <button class="pin @(item.PinControlChecked ? "pinned" : "")" 
+                            @onclick="@(e => viewModel.OnPinCheckboxClicked(item))"
+                            title=@item.PinControlHint>
+                        @if (item.PinControlChecked)
+                        {
+                            <PinIcon />
+                        }
+                        else
+                        {
+                            <TiltedPinIcon />
+                        }
+                    </button>
+                }
+            </ItemTemplate>
+        </ListView>
     </div>
     @if (viewModel.IsSearchResultsVisible)
     {
@@ -85,7 +85,7 @@
     private ElementReference resizerElement, resultsElement, toolBarResizerElement;
     private IDisposable resizeHandler1, resizeHandler2;
     private Func<IReadOnlyList<ViewItem>> allItemsOrFirst;
-    private ElementReference ResultsContainerRef { get; set; }
+    private ListView ListRef { get; set; }
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -110,9 +110,18 @@
             else
                 return items.Take(1).ToArray();
         });
+        var maybeResetListScroll = Updaters.Create(() => viewModel.ExpansionState.IsExpanded, (expanded, wasExpanded) =>
+        {
+            if (wasExpanded && !expanded)
+                jsInterop.Scroll.SetScrollTop(ListRef.ListRef, 0);
+        });
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
             () => (viewModel.Items, viewModel.Size, viewModel.IsSearchResultsVisible, viewModel.ExpansionState),
-            _ => StateHasChanged()
+            _ =>
+            {
+                StateHasChanged();
+                maybeResetListScroll();
+            }
         ));
     }
 
@@ -142,7 +151,7 @@
     async void HandleFocusOut()
     {
         await Task.Yield(); // skip one JS frame to let the new element be focused before checking if focus left this component.
-        if (!await jsInterop.Keyboard.IsFocusWithin(ResultsContainerRef))
+        if (!await jsInterop.Keyboard.IsFocusWithin(ListRef.ListRef))
         {
             viewModel.OnDropdownContainerLostFocus();
         }
