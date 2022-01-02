@@ -1,0 +1,38 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.BookmarksManager
+@implements IDisposable
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
+
+<div class='bookmarks-manager @Class'>
+    <div class='actions'>
+        <button disabled=@(!viewModel.AddButton.Enabled)
+                @onclick=viewModel.OnAddBookmarkButtonClicked 
+                title=@viewModel.AddButton.Tooltip>+</button>
+        <button disabled=@(!viewModel.DeleteButton.Enabled)
+                @onclick=@viewModel.OnDeleteBookmarkButtonClicked 
+                title=@viewModel.DeleteButton.Tooltip>−</button>
+    </div>
+    <BookmarksList Class="the-list" />
+</div>
+
+@code {
+    private IViewModel viewModel => presentation.ViewModels.BookmarksManager;
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.DeleteButton, viewModel.AddButton),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}

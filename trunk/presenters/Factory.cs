@@ -429,9 +429,9 @@ namespace LogJoint.UI.Presenters
 				searchResultPresenter,
 				bookmarksListPresenter,
 				statusReportFactory,
-				navHandler,
 				alertPopup,
-				model.TraceSourceFactory
+				model.TraceSourceFactory,
+				model.ChangeNotification
 			);
 
 			Options.Dialog.IPresenter optionsDialogPresenter = optionsDialogView != null ? new Options.Dialog.Presenter(

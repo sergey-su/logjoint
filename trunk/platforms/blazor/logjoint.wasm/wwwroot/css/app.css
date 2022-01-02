@@ -1123,9 +1123,30 @@ button {
 }
 
 
-.bookmarks-list {
-    margin: 0px 9px 2px 8px;
+
+.bookmarks-manager {
+    display: flex;
+    flex-flow: row nowrap;
 }
+
+.bookmarks-manager>.actions {
+    display: flex;
+    flex-flow: column nowrap;
+    width: 30px;
+}
+
+.bookmarks-manager>.actions>button {
+    margin-bottom: 3px;
+    border: 1px solid gray;
+    border-radius: 3px;
+}
+
+.bookmarks-manager>.the-list {
+    width: 1px;
+    flex-grow: 2;
+    margin: 0px 4px 2px 4px;
+}
+
 
 .bookmarks-list-item {
     display: table-row;

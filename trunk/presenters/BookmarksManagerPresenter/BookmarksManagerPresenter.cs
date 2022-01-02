@@ -1,22 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.BookmarksManager
 {
 	public class Presenter : IPresenter, IViewModel
 	{
+		readonly IBookmarks bookmarks;
+		readonly LJTraceSource tracer;
+		readonly LogViewer.IPresenterInternal viewerPresenter;
+		readonly SearchResult.IPresenter searchResultPresenter;
+		readonly StatusReports.IPresenter statusReportFactory;
+		readonly BookmarksList.IPresenter listPresenter;
+		readonly IAlertPopup alerts;
+		readonly IChangeNotification changeNotification;
+		readonly Func<ButtonState> addButton;
+		readonly Func<ButtonState> deleteButton;
+
 		public Presenter(
 			IBookmarks bookmarks,
 			LogViewer.IPresenterInternal viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			BookmarksList.IPresenter listPresenter,
 			StatusReports.IPresenter statusReportFactory,
-			IPresentersFacade navHandler,
 			IAlertPopup alerts,
-			ITraceSourceFactory traceSourceFactory
+			ITraceSourceFactory traceSourceFactory,
+			IChangeNotification changeNotification
 		)
 		{
 			this.bookmarks = bookmarks;
@@ -24,9 +34,30 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.bmkm");
 			this.statusReportFactory = statusReportFactory;
 			this.searchResultPresenter = searchResultPresenter;
-			this.navHandler = navHandler;
 			this.listPresenter = listPresenter;
 			this.alerts = alerts;
+			this.changeNotification = changeNotification;
+
+			var focusedIsBookmarked = Selectors.Create(GetFocusedMessageBookmark, () => bookmarks.Items, (bmk, _) => 
+			{
+				bool? bookmarked = null;
+				if (bmk != null)
+				{
+					var bmkIdx = bookmarks.FindBookmark(bmk);
+					bookmarked = bmkIdx.Item2 > bmkIdx.Item1;
+				}
+				return bookmarked;
+			});
+			this.addButton = Selectors.Create(focusedIsBookmarked, bookmarked => new ButtonState()
+			{
+				Enabled = bookmarked == false,
+				Tooltip = "Create a bookmark for the current log message",
+			});
+			this.deleteButton = Selectors.Create(() => listPresenter.HasSelectedBookmarks, hasSelected => new ButtonState()
+			{
+				Enabled = hasSelected,
+				Tooltip = "Delete the bookmark for the current log message",
+			});
 
 			listPresenter.Click += (s, bmk) =>
 			{
@@ -57,6 +88,11 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		{
 			DoBookmarkAction(null);
 		}
+
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		ButtonState IViewModel.AddButton => addButton();
+		ButtonState IViewModel.DeleteButton => deleteButton();
 
 		void IViewModel.OnToggleButtonClicked()
 		{
@@ -114,8 +150,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			tracer.Info("----> User Command: Next Bookmark.");
 			NextBookmark(true);
 		}
-
-		#region Implementation
 
 		void NextBookmark(bool forward)
 		{
@@ -177,15 +211,19 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 				messageDescription = "Message";
 			}
 
-			bool noLinks = (options & BookmarkNavigationOptions.NoLinksInPopups) != 0;
-
 			statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption, messageDescription + " can not be shown", true);
+		}
+
+		private IBookmark GetFocusedMessageBookmark()
+		{
+			IBookmark bmk = (searchResultPresenter != null && searchResultPresenter.LogViewerPresenter.HasInputFocus) ?
+				searchResultPresenter.FocusedMessageBookmark : viewerPresenter.FocusedMessageBookmark;
+			return bmk;
 		}
 
 		private void DoBookmarkAction(bool? targetState)
 		{
-			IBookmark l = (searchResultPresenter != null && searchResultPresenter.LogViewerPresenter.HasInputFocus) ? 
-				searchResultPresenter.FocusedMessageBookmark : viewerPresenter.FocusedMessageBookmark;
+			IBookmark l = GetFocusedMessageBookmark();
 			if (l == null)
 				return;
 			var bmks = bookmarks;
@@ -197,16 +235,5 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 			bmks.ToggleBookmark(l);
 		}
-
-		readonly IBookmarks bookmarks;
-		readonly LJTraceSource tracer;
-		readonly LogViewer.IPresenterInternal viewerPresenter;
-		readonly SearchResult.IPresenter searchResultPresenter;
-		readonly StatusReports.IPresenter statusReportFactory;
-		readonly IPresentersFacade navHandler;
-		readonly BookmarksList.IPresenter listPresenter;
-		readonly IAlertPopup alerts;
-
-		#endregion
 	};
 };

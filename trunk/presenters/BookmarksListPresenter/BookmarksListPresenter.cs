@@ -48,6 +48,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				() => bookmarks.Items,
 				FindFocusedMessagePosition
 			);
+			hasSelectedBookmarks = Selectors.Create(
+				() => bookmarks.Items,
+				() => selectedBookmarks,
+				(all, selected) => GetValidSelectedBookmarks(all, selected).Any()
+			);
 		}
 
 		public event BookmarkEvent Click;
@@ -56,6 +61,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		{
 			DeleteSelectedBookmarks();
 		}
+
+		bool IPresenter.HasSelectedBookmarks => hasSelectedBookmarks();
 
 		void IViewModel.OnEnterKeyPressed()
 		{
@@ -300,7 +307,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		IEnumerable<IBookmark> GetValidSelectedBookmarks()
 		{
-			return bookmarks.Items.Where(selectedBookmarks.Contains);
+			return GetValidSelectedBookmarks(bookmarks.Items, selectedBookmarks);
+		}
+
+		static IEnumerable<IBookmark> GetValidSelectedBookmarks(
+			IReadOnlyList<IBookmark> allBookmarks, 
+			ImmutableHashSet<IBookmark> selectedBookmarks)
+		{
+			return allBookmarks.Where(selectedBookmarks.Contains);
 		}
 
 		class ViewItem : IViewItem
@@ -344,6 +358,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		ImmutableHashSet<IBookmark> selectedBookmarks = ImmutableHashSet.Create<IBookmark>();
 		readonly Func<ImmutableArray<IViewItem>> itemsSelector;
 		readonly Func<Tuple<int, int>> focusedMessagePositionSelector;
+		readonly Func<bool> hasSelectedBookmarks;
 
 		#endregion
 	};

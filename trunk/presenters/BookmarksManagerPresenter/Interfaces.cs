@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.BookmarksManager
@@ -15,8 +10,17 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		void ToggleBookmark();
 	};
 
+	public class ButtonState
+	{
+		public bool Enabled { get; internal set; }
+		public string Tooltip { get; internal set; }
+	};
+
 	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		ButtonState AddButton { get; }
+		ButtonState DeleteButton { get; }
 		void OnToggleButtonClicked();
 		void OnDeleteAllButtonClicked();
 		void OnPrevBmkButtonClicked();
