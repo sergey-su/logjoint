@@ -37,13 +37,13 @@ namespace LogJoint.UI.Presenters
 		public HistoryDialog.IViewModel HistoryDialog { get; internal set; }
 		public Postprocessing.MainWindowTabPage.IViewModel PostprocessingsTab { get; internal set; }
 		public SearchResult.IViewModel SearchResult { get; internal set; }
+		public StatusReports.IViewModel StatusReports { get; internal set; }
 	};
 
 	public static class Factory
 	{
 		public interface IViewsFactory
 		{
-			StatusReports.IView CreateStatusReportsView();
 			ThreadsList.IView CreateThreadsListView();
 			SearchEditorDialog.IView CreateSearchEditorDialogView();
 			FilterDialog.IView CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView);
@@ -93,7 +93,6 @@ namespace LogJoint.UI.Presenters
 				}
 			}
 
-			var statusReportsView = views.CreateStatusReportsView();
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
 			var searchEditorDialogView = views.CreateSearchEditorDialogView();
 			var searchesManagerDialogView = views.CreateSearchesManagerDialogView();
@@ -154,9 +153,9 @@ namespace LogJoint.UI.Presenters
 
 			ITabUsageTracker tabUsageTracker = new TabUsageTracker();
 
-			StatusReports.IPresenter statusReportsPresenter = new StatusReports.Presenter(
-				statusReportsView,
-				model.HeartBeatTimer
+			var statusReportsPresenter = new StatusReports.Presenter(
+				model.HeartBeatTimer,
+				model.ChangeNotification
 			);
 			StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
 
@@ -598,6 +597,7 @@ namespace LogJoint.UI.Presenters
 					HistoryDialog = historyDialogPresenter,
 					PostprocessingsTab = postprocessingTabPagePresenter,
 					SearchResult = searchResultPresenter,
+					StatusReports = statusReportsPresenter,
 				}
 			};
 		}

@@ -4,23 +4,43 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.StatusReports
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
 		readonly List<StatusPopup> shownPopups = new List<StatusPopup>();
 		readonly List<StatusPopup> shownTexts = new List<StatusPopup>();
-		readonly IView view;
+		readonly IChangeNotification changeNotification;
+		string statusText;
+		PopupData popup;
+		bool cancelLongRunningControlVisibile;
 
-		public Presenter(IView view, IHeartBeatTimer heartbeatTimer)
+		public Presenter(IHeartBeatTimer heartbeatTimer, IChangeNotification changeNotification)
 		{
-			this.view = view;
-			this.view.SetViewEvents(this);
+			this.changeNotification = changeNotification;
 
 			heartbeatTimer.OnTimer += (s, e) => Timeslice();
 		}
 
+		internal void SetStatusText(string value)
+		{
+			statusText = value;
+			changeNotification.Post();
+		}
+
+		internal void SetPopupData(PopupData data)
+		{
+			popup = data;
+			changeNotification.Post();
+		}
+
+		internal void SetCancelLongRunningControlsVisibility(bool value)
+		{
+			cancelLongRunningControlVisibile = value;
+			changeNotification.Post();
+		}
+
 		IReport IPresenter.CreateNewStatusReport()
 		{
-			return new StatusPopup(this, view);
+			return new StatusPopup(this);
 		}
 
 		void IPresenter.CancelActiveStatus()
@@ -28,7 +48,12 @@ namespace LogJoint.UI.Presenters.StatusReports
 			CancelActiveStatusInternal();
 		}
 
-		void IViewEvents.OnCancelLongRunningProcessButtonClicked()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+		string IViewModel.StatusText => statusText;
+		bool IViewModel.CancelLongRunningControlVisibile => cancelLongRunningControlVisibile;
+		PopupData IViewModel.PopupData => popup;
+
+		void IViewModel.OnCancelLongRunningProcessButtonClicked()
 		{
 			CancelActiveStatusInternal();
 		}
@@ -47,7 +72,7 @@ namespace LogJoint.UI.Presenters.StatusReports
 
 		void Timeslice()
 		{
-			if(shownPopups.Count > 0)
+			if (shownPopups.Count > 0)
 				foreach (var r in shownPopups.ToArray())
 					r.AutoHideIfItIsTime();
 		}

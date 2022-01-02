@@ -10,7 +10,6 @@ namespace LogJoint.Wasm
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new();
         public UI.MessagePropertiesViewProxy MessageProperties = new();
         public UI.SourcePropertiesWindowViewProxy SourcePropertiesWindow = new();
-        public UI.StatusReportViewProxy StatusReport = new();
         public UI.FilterDialogViewProxy FilterDialog = new();
         public UI.MainFormViewProxy MainForm = new();
 
@@ -54,8 +53,6 @@ namespace LogJoint.Wasm
         LogJoint.UI.Presenters.SourcePropertiesWindow.IView Factory.IViewsFactory.CreateSourcePropertiesWindowView() => SourcePropertiesWindow;
 
         LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer.IView LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory.CreateStateInspectorView() => PostprocesssingStateInspectorViewProxy;
-
-        LogJoint.UI.Presenters.StatusReports.IView Factory.IViewsFactory.CreateStatusReportsView() => StatusReport;
 
         LogJoint.UI.Presenters.ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView() => null;
 

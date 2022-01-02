@@ -30,17 +30,18 @@ namespace LogJoint.UI.Presenters.StatusReports
 		public MessageLink(string text, Action click) : base(text) { Click = click; }
 	};
 
-	public interface IView
+	public class PopupData
 	{
-		void SetViewEvents(IViewEvents viewEvents);
-		void SetStatusText(string value);
-		void HidePopup();
-		void ShowPopup(string caption, IEnumerable<MessagePart> parts);
-		void SetCancelLongRunningControlsVisibility(bool value);
+		public string Caption { get; internal set; }
+		public IEnumerable<MessagePart> Parts { get; internal set; }
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		string StatusText { get; }
+		bool CancelLongRunningControlVisibile { get; }
+		PopupData PopupData { get; }
 		void OnCancelLongRunningProcessButtonClicked();
 	};
 };

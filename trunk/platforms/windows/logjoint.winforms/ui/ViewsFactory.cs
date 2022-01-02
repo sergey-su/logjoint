@@ -19,12 +19,6 @@ namespace LogJoint.UI.Presenters
 			this.model = model;
 		}
 
-		StatusReports.IView Factory.IViewsFactory.CreateStatusReportsView() => new StatusReportView(
-			mainForm,
-			mainForm.toolStripStatusLabel,
-			mainForm.cancelLongRunningProcessDropDownButton,
-			mainForm.cancelLongRunningProcessLabel
-		);
 		ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView() => mainForm.threadsListView;
 		SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView() => new SearchEditorDialogView();
 		FilterDialog.IView Factory.IViewsFactory.CreateHlFilterDialogView() => new FilterDialogView();

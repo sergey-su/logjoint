@@ -1,23 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace LogJoint.UI.Presenters.StatusReports
 {
 	class StatusPopup: IReport
 	{
-		Presenter owner;
-		IView view;
+		readonly Presenter owner;
 		Action cancellationHandler;
 		string caption;
-		List<MessagePart> parts;
+		ImmutableList<MessagePart> parts;
 		bool popup;
 		int? ticksWhenAutoHideStarted;
 
-		public StatusPopup(Presenter owner, IView view)
+		public StatusPopup(Presenter owner)
 		{
 			this.owner = owner;
-			this.view = view;
 		}
 
 		void IReport.SetCancellationHandler(Action handler)
@@ -49,7 +48,7 @@ namespace LogJoint.UI.Presenters.StatusReports
 		{
 			this.ticksWhenAutoHideStarted = autoHide ? Environment.TickCount : new int?();
 			this.caption = caption;
-			this.parts = parts.ToList();
+			this.parts = parts.ToImmutableList();
 			this.popup = popup;
 
 			owner.ReportsTransaction(shownReports =>
@@ -69,15 +68,15 @@ namespace LogJoint.UI.Presenters.StatusReports
 		{
 			if (popup)
 			{
-				view.ShowPopup(caption, parts);
+				owner.SetPopupData(new PopupData() { Caption = caption, Parts = parts });
 			}
 			else
 			{
 				string statusText = parts.First().Text;
-				view.SetStatusText(statusText);
+				owner.SetStatusText(statusText);
 				if (cancellationHandler != null)
 				{
-					view.SetCancelLongRunningControlsVisibility(true);
+					owner.SetCancelLongRunningControlsVisibility(true);
 				}
 			}
 		}
@@ -85,12 +84,11 @@ namespace LogJoint.UI.Presenters.StatusReports
 		internal void Deactivate()
 		{
 			if (popup)
-				view.HidePopup();
+				owner.SetPopupData(null);
 			else
-				view.SetStatusText("");
+				owner.SetStatusText("");
 			if (cancellationHandler != null)
-				view.SetCancelLongRunningControlsVisibility(false);
-			
+				owner.SetCancelLongRunningControlsVisibility(false);
 		}
 
 		internal void AutoHideIfItIsTime()
