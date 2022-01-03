@@ -10,7 +10,7 @@ namespace LogJoint
 {
 	public class LiveLogXMLWriter: IDisposable
 	{
-		static Encoding unicodeEncodingNoBOM = new UnicodeEncoding(false, false);
+		static readonly Encoding unicodeEncodingNoBOM = new UnicodeEncoding(false, false);
 
 		public LiveLogXMLWriter(Stream output, XmlWriterSettings baseSettings, long maxSizeInBytes)
 		{
@@ -169,33 +169,30 @@ namespace LogJoint
 		{
 			this.trace = base.tracer;
 			this.originalConnectionParams = new ConnectionParamsReadOnlyView(originalConnectionParams);
-			using (trace.NewFrame)
+			try
 			{
-				try
-				{
-					string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
+				string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
 
-					XmlWriterSettings xmlSettings = new XmlWriterSettings();
-					xmlSettings.CloseOutput = true;
-					xmlSettings.ConformanceLevel = ConformanceLevel.Fragment;
-					xmlSettings.OmitXmlDeclaration = false;
-					xmlSettings.Indent = true;
+				XmlWriterSettings xmlSettings = new XmlWriterSettings();
+				xmlSettings.CloseOutput = true;
+				xmlSettings.ConformanceLevel = ConformanceLevel.Fragment;
+				xmlSettings.OmitXmlDeclaration = false;
+				xmlSettings.Indent = true;
 
-					output = new LiveLogXMLWriter(
-						new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
-						xmlSettings,
-						defaultBackupMaxFileSize
-					);
-					trace.Info("Output created");
+				output = new LiveLogXMLWriter(
+					new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
+					xmlSettings,
+					defaultBackupMaxFileSize
+				);
+				trace.Info("Output created");
 
-					stopEvt = new CancellationTokenSource();
-				}
-				catch (Exception e)
-				{
-					trace.Error(e, "Failed to inistalize live log reader. Disposing what has been created so far.");
-					Dispose();
-					throw;
-				}
+				stopEvt = new CancellationTokenSource();
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "Failed to inistalize live log reader. Disposing what has been created so far.");
+				Dispose();
+				throw;
 			}
 		}
 
@@ -206,46 +203,40 @@ namespace LogJoint
 
 		protected void StartLiveLogThread(string threadName)
 		{
-			using (trace.NewFrame)
-			{
-				listeningThread = TaskUtils.StartInThreadPoolTaskScheduler(ListeningThreadProc);
-				trace.Info("Thread started");
-			}
+			listeningThread = TaskUtils.StartInThreadPoolTaskScheduler(ListeningThreadProc);
+			trace.Info("Thread started");
 		}
 
 		public override async Task Dispose()
 		{
-			using (trace.NewFrame)
+			if (IsDisposed)
 			{
-				if (IsDisposed)
-				{
-					trace.Warning("Already disposed");
-					return;
-				}
-
-				if (listeningThread != null)
-				{
-					if (listeningThread.IsCompleted)
-					{
-						trace.Info("Thread is not alive.");
-					}
-					else
-					{
-						trace.Info("Thread has been created. Setting stop event and joining the thread.");
-						stopEvt.Cancel();
-						await listeningThread;
-						trace.Info("Thread finished");
-					}
-				}
-
-				if (output != null)
-				{
-					output.Dispose();
-				}
-
-				trace.Info("Calling base destructor");
-				await base.Dispose();
+				trace.Warning("Already disposed");
+				return;
 			}
+
+			if (listeningThread != null)
+			{
+				if (listeningThread.IsCompleted)
+				{
+					trace.Info("Thread is not alive.");
+				}
+				else
+				{
+					trace.Info("Thread has been created. Setting stop event and joining the thread.");
+					stopEvt.Cancel();
+					await listeningThread;
+					trace.Info("Thread finished");
+				}
+			}
+
+			if (output != null)
+			{
+				output.Dispose();
+			}
+
+			trace.Info("Calling base destructor");
+			await base.Dispose();
 		}
 
 		abstract protected Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output);
@@ -266,20 +257,17 @@ namespace LogJoint
 
 		async Task ListeningThreadProc()
 		{
-			using (trace.NewFrame)
+			try
 			{
-				try
-				{
-					await LiveLogListen(this.stopEvt.Token, this.output);
-				}
-				catch (Exception e)
-				{
-					trace.Error(e, "Live log listening thread failed");
-				}
-				finally
-				{
-					ReportBackgroundActivityStatus(false);
-				}
+				await LiveLogListen(this.stopEvt.Token, this.output);
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "Live log listening thread failed");
+			}
+			finally
+			{
+				ReportBackgroundActivityStatus(false);
 			}
 		}
 	}

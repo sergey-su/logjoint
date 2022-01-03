@@ -37,42 +37,39 @@ namespace LogJoint
 		) :
 			base (host, factory, connectParams, traceSourceFactory, modelSynchronizationContext, globalSettings)
 		{
-			using (tracer.NewFrame)
-			{
-				this.tempFilesManager = tempFilesManager;
-				StartAsyncReader(async () => {
-					if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
-					{
-						media = new RollingFilesMedia(
-							fileSystem,
-							readerCreator,
-							tracer,
-							new GenericRollingMediaStrategy(
-								connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam],
-								ConnectionParamsUtils.GetRotatedLogPatterns(connectParams)
-							)
-						);
-					}
-					else
-					{
-						media = await SimpleFileMedia.Create(fileSystem, connectParams);
-					}
+			this.tempFilesManager = tempFilesManager;
+			StartAsyncReader(async () => {
+				if (connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam] != null)
+				{
+					media = new RollingFilesMedia(
+						fileSystem,
+						readerCreator,
+						tracer,
+						new GenericRollingMediaStrategy(
+							connectionParams[ConnectionParamsKeys.RotatedLogFolderPathConnectionParam],
+							ConnectionParamsUtils.GetRotatedLogPatterns(connectParams)
+						)
+					);
+				}
+				else
+				{
+					media = await SimpleFileMedia.Create(fileSystem, connectParams);
+				}
 
-					reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
-							parentLoggingPrefix: tracer.Prefix));
+				reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
+						parentLoggingPrefix: tracer.Prefix));
 
-					ITimeOffsets initialTimeOffset;
-					if (LogJoint.TimeOffsets.TryParse(
-						connectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] ?? "", out initialTimeOffset))
-					{
-						reader.TimeOffsets = initialTimeOffset;
-					}
+				ITimeOffsets initialTimeOffset;
+				if (LogJoint.TimeOffsets.TryParse(
+					connectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] ?? "", out initialTimeOffset))
+				{
+					reader.TimeOffsets = initialTimeOffset;
+				}
 
-					return reader;
-				});
+				return reader;
+			});
 
-				InitPathDependentMembers(connectParams);
-			}
+			InitPathDependentMembers(connectParams);
 		}
 
 		public override async Task Dispose()

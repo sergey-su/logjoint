@@ -180,7 +180,7 @@ namespace LogJoint.UI.Azure
 		AzureConnectionParams FindMostRecentConnectionParams()
 		{
 			var serializedParams =
-				recentlyUsedLogs.GetMRUList().OfType<RecentLogEntry>().Where(e => e.Factory == factory).Select(e => e.ConnectionParams).FirstOrDefault();
+				recentlyUsedLogs.MRUList.OfType<RecentLogEntry>().Where(e => e.Factory == factory).Select(e => e.ConnectionParams).FirstOrDefault();
 			if (serializedParams == null)
 				return null;
 			try

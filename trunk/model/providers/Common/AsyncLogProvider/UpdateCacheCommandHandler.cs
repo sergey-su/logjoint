@@ -127,7 +127,6 @@ namespace LogJoint
 
 		async Task FillCacheRanges(CancellationToken cancellationToken)
 		{
-			using (tracer.NewFrame)
 			using (var perfop = new Profiling.Operation(tracer, "FillRanges"))
 			{
 				bool updateStarted = false;

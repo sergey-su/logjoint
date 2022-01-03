@@ -48,48 +48,45 @@ namespace LogJoint.Azure
 
 		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (trace.NewFrame)
+			try
 			{
-				try
+				if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.FixedRange)
 				{
-					if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.FixedRange)
+					ReportBackgroundActivityStatus(true);
+					foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(
+						table, new EntryPartition(azureConnectParams.From.Ticks), new EntryPartition(azureConnectParams.Till.Ticks), null, stopEvt))
 					{
-						ReportBackgroundActivityStatus(true);
-						foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(
-							table, new EntryPartition(azureConnectParams.From.Ticks), new EntryPartition(azureConnectParams.Till.Ticks), null, stopEvt))
+						WriteEntry(entry.Entry, output);
+						if (stopEvt.IsCancellationRequested)
+							return;
+					}
+					ReportBackgroundActivityStatus(false);
+					return;
+				}
+				else if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.Recent)
+				{
+					ReportBackgroundActivityStatus(true);
+					var lastPartition = AzureDiagnosticsUtils.FindLastMessagePartitionKey(table, DateTime.UtcNow, stopEvt);
+					if (lastPartition.HasValue)
+					{
+						var firstPartition = new EntryPartition(lastPartition.Value.Ticks + azureConnectParams.Period.Ticks);
+						foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(table, firstPartition, EntryPartition.MaxValue, null, stopEvt))
 						{
 							WriteEntry(entry.Entry, output);
-							if (stopEvt.IsCancellationRequested)
-								return;
+							stopEvt.ThrowIfCancellationRequested();
 						}
-						ReportBackgroundActivityStatus(false);
-						return;
 					}
-					else if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.Recent)
-					{
-						ReportBackgroundActivityStatus(true);
-						var lastPartition = AzureDiagnosticsUtils.FindLastMessagePartitionKey(table, DateTime.UtcNow, stopEvt);
-						if (lastPartition.HasValue)
-						{
-							var firstPartition = new EntryPartition(lastPartition.Value.Ticks + azureConnectParams.Period.Ticks);
-							foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(table, firstPartition, EntryPartition.MaxValue, null, stopEvt))
-							{
-								WriteEntry(entry.Entry, output);
-								stopEvt.ThrowIfCancellationRequested();
-							}
-						}
-						ReportBackgroundActivityStatus(false);
-						return;
-					}
+					ReportBackgroundActivityStatus(false);
+					return;
 				}
-				catch (OperationCanceledException e)
-				{
-					trace.Error(e, "WAD live log thread cancelled");
-				}
-				catch (Exception e)
-				{
-					trace.Error(e, "WAD live log thread failed");
-				}
+			}
+			catch (OperationCanceledException e)
+			{
+				trace.Error(e, "WAD live log thread cancelled");
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "WAD live log thread failed");
 			}
 		}
 

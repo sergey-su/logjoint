@@ -25,19 +25,16 @@ namespace LogJoint.WindowsEventLog
 				new DejitteringParams() { JitterBufferSize = 25 }
 			)
 		{
-			using (trace.NewFrame)
+			try
 			{
-				try
-				{
-					eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);
-					StartLiveLogThread("EventLog listening thread");
-				}
-				catch (Exception e)
-				{
-					trace.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
-					Dispose();
-					throw;
-				}
+				eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);
+				StartLiveLogThread("EventLog listening thread");
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
+				Dispose();
+				throw;
 			}
 		}
 

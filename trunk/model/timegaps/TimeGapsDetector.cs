@@ -16,28 +16,22 @@ namespace LogJoint
 		{
 			this.traceSourceFactory = traceSourceFactory;
 			this.trace = traceSourceFactory.CreateTraceSource("GapsDetector", tracer.Prefix + ".gaps");
-			using (trace.NewFrame)
-			{
-				this.modelSynchronizationContext = modelSynchronizationContext;
-				this.source = source;
+			this.modelSynchronizationContext = modelSynchronizationContext;
+			this.source = source;
 
-				trace.Info("starting worker thread");
-				thread = Task.Run((Func<Task>)ThreadProc);
-			}
+			trace.Info("starting worker thread");
+			thread = Task.Run((Func<Task>)ThreadProc);
 		}
 
 		async Task ITimeGapsDetector.Dispose()
 		{
-			using (trace.NewFrame)
-			{
-				trace.Info("setting stop event");
-				stopEvt.Set(0);
-				trace.Info("waiting for the thread to complete");
-				await thread;
-				trace.Info("working thread finished");
-				lock (sync)
-					gaps = null;
-			}
+			trace.Info("setting stop event");
+			stopEvt.Set(0);
+			trace.Info("waiting for the thread to complete");
+			await thread;
+			trace.Info("working thread finished");
+			lock (sync)
+				gaps = null;
 		}
 
 		public event EventHandler OnTimeGapsChanged;
@@ -49,27 +43,24 @@ namespace LogJoint
 
 		void ITimeGapsDetector.Update(DateRange r)
 		{
-			using (trace.NewFrame)
+			trace.Info("time range passed: {0}", r);
+
+			bool invalidate = false;
+
+			lock (sync)
 			{
-				trace.Info("time range passed: {0}", r);
-
-				bool invalidate = false;
-
-				lock (sync)
+				TimeSpan threshold = TimeSpan.FromMilliseconds(timeLineRange.Length.TotalMilliseconds / 10.0);
+				if (Abs(timeLineRange.Begin - r.Begin) + Abs(timeLineRange.End - r.End) > threshold)
 				{
-					TimeSpan threshold = TimeSpan.FromMilliseconds(timeLineRange.Length.TotalMilliseconds / 10.0);
-					if (Abs(timeLineRange.Begin - r.Begin) + Abs(timeLineRange.End - r.End) > threshold)
-					{
-						this.timeLineRange = r;
-						invalidate = true;
-					}
+					this.timeLineRange = r;
+					invalidate = true;
 				}
+			}
 
-				if (invalidate)
-				{
-					trace.Info("setting invalidation event");
-					invalidatedEvt.Set(0);
-				}
+			if (invalidate)
+			{
+				trace.Info("setting invalidation event");
+				invalidatedEvt.Set(0);
 			}
 		}
 

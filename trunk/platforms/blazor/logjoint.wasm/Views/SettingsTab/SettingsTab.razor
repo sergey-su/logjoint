@@ -4,6 +4,8 @@
 @inject TraceListener traceListener;
 @inject JsInterop jsInterop;
 @inject LogJoint.UI.Presenters.GlobalSettingsSystemThemeDetector themeDetector;
+@using System.IO;
+@using System.Text;
 
 <div class='@Class settings-panel'>
     <label>
@@ -19,7 +21,6 @@
     {
         <div class="debug">
             <button @onclick="DownloadDebugLog">Download debug log</button>
-            <input type="file" @ref="fileInputReference" hidden />
             <button @onclick="LoadByUrl" hidden>Load by blob URL</button>
             <button @onclick="LoadChromeDebugLog" hidden>Load Stream as Chrome debug log</button>
             <button @onclick="LoadUnspecifiedStream" hidden>Load unspecified stream</button>
@@ -28,6 +29,8 @@
                 <label>DB key:</label><input @bind="dbKeyName" />
                 <button @onclick="DownloadDbValue">Download db value</button>
             </div>
+            <input type="file" @ref="fileInputReference" />
+            <button @onclick="LoadLogSameWayChromeExtensionDoes">LoadLogSameWayChromeExtensionDoes</button>
         </div>
     }
 </div>
@@ -111,5 +114,21 @@
     void SetDarkMode(bool dark)
     {
         themeDetector.SetMode(dark ? LogJoint.UI.Presenters.ColorThemeMode.Dark : LogJoint.UI.Presenters.ColorThemeMode.Light);
+    }
+
+    async void LoadLogSameWayChromeExtensionDoes()
+    {
+        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
+        var fileName = await fs.AddFileFromInput(fileInputReference);
+        using var stream = await model.FileSystem.OpenFile(fileName);
+        stream.Position = 0;
+        var url = @"https://test.url/123";
+        await model.ExpensibilityEntryPoint.WebContentCache.SetValue(new Uri(url), stream);
+        var task = model.LogSourcesPreprocessings.Preprocess(
+            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(
+                        new LogJoint.Preprocessing.PreprocessingStepParams(url, displayName: "My test log")) },
+            "Processing file"
+        );
+        await task;
     }
 }

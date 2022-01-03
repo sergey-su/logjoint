@@ -343,6 +343,7 @@ namespace LogJoint.Preprocessing
 				YieldedProvider[] providersToYield;
 				if (cancellation.IsCancellationRequested)
 				{
+					trace.Info("Preprocessing cancelled. Loading no provider.");
 					providersToYield = new YieldedProvider[0];
 				}
 				else
@@ -365,6 +366,8 @@ namespace LogJoint.Preprocessing
 				{
 					try
 					{
+						trace.Info("Loading provider with type {0}/{1}, display name = {2}",
+							provider.Factory.CompanyName, provider.Factory.FormatName, provider.DisplayName);
 						await providerYieldedCallback(provider);
 					}
 					catch (Exception e)

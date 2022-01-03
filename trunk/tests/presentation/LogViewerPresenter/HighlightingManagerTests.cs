@@ -42,7 +42,7 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 				.Select(i => MakeHightlightingColor((FilterAction)i))
 			));
 			msg1 = new Message(0, 1, null, new MessageTimestamp(), new StringSlice("test message 1"), SeverityFlag.Info);
-			msg2 = new Message(0, 1, null, new MessageTimestamp(), new StringSlice("test message 2"), SeverityFlag.Info);
+			msg2 = new Message(0, 1, null, new MessageTimestamp(), new StringSlice("foo foo foo"), SeverityFlag.Info);
 			msgWithMultilineText = new Message(0, 1, null, new MessageTimestamp(), new StringSlice(
 @"2019/03/27 06:27:52.143 T#1 I app: model creation finished
 import { imock, instance, when, anything, verify, resetCalls, MockPropertyPolicy, deepEqual } from 'ts-mockito';
@@ -106,10 +106,10 @@ describe('MeetingV2', () => {
 		{
 			return new ViewLine()
 			{
-				Message = msg1,
-				Text = new MultilineText(new StringSlice("test message 1")),
-				TextLineIndex = 0,
-				LineIndex = 10
+				Message = message,
+				Text = new MultilineText(message.Text),
+				TextLineIndex = textLineIndex,
+				LineIndex = lineIndex
 			};
 		}
 
@@ -184,14 +184,14 @@ describe('MeetingV2', () => {
 			public void SelectionWithMultipleMatches()
 			{
 				selectionManager.Selection.Returns(new SelectionInfo(
-					new CursorPosition(msg1, messagesSource, 0, 1),
-					new CursorPosition(msg1, messagesSource, 0, 2),
+					new CursorPosition(msg2, messagesSource, 0, 0),
+					new CursorPosition(msg2, messagesSource, 0, 2),
 					MessageTextGetters.Get(false)
 				));
 				CreateHighlightingManager();
-				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg1, 0, 10)),
-					(11, 12, new Color()),
-					(6, 7, new Color())
+				VerifyRanges(highlightingManager.SelectionHandler.GetHighlightingRanges(CreateViewLine(msg2, 0, 10)),
+					(4, 6, new Color()),
+					(8, 10, new Color())
 				);
 			}
 		};

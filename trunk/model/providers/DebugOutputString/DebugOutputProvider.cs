@@ -23,35 +23,32 @@ namespace LogJoint.DebugOutput
 			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(Factory.connectionIdentity),
 				tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
 		{
-			using (trace.NewFrame)
+			try
 			{
-				try
-				{
-					dataReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_DATA_READY");
-					bufferReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_BUFFER_READY");
-					trace.Info("Events opened OK. DBWIN_DATA_READY={0}, DBWIN_BUFFER_READY={1}",
-						dataReadyEvt.SafeWaitHandle.DangerousGetHandle(), bufferReadyEvt.SafeWaitHandle.DangerousGetHandle());
+				dataReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_DATA_READY");
+				bufferReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_BUFFER_READY");
+				trace.Info("Events opened OK. DBWIN_DATA_READY={0}, DBWIN_BUFFER_READY={1}",
+					dataReadyEvt.SafeWaitHandle.DangerousGetHandle(), bufferReadyEvt.SafeWaitHandle.DangerousGetHandle());
 
-					bufferFile = new SafeFileHandle(
-						Unmanaged.CreateFileMapping(new IntPtr(-1), IntPtr.Zero, Unmanaged.PAGE_READWRITE, 0, 1024, "DBWIN_BUFFER"), true);
-					if (bufferFile.IsInvalid)
-						throw new Win32Exception(Marshal.GetLastWin32Error());
-					trace.Info("DBWIN_BUFFER shared file opened OK. Handle={0}", bufferFile.DangerousGetHandle());
+				bufferFile = new SafeFileHandle(
+					Unmanaged.CreateFileMapping(new IntPtr(-1), IntPtr.Zero, Unmanaged.PAGE_READWRITE, 0, 1024, "DBWIN_BUFFER"), true);
+				if (bufferFile.IsInvalid)
+					throw new Win32Exception(Marshal.GetLastWin32Error());
+				trace.Info("DBWIN_BUFFER shared file opened OK. Handle={0}", bufferFile.DangerousGetHandle());
 
-					bufferAddress = new SafeViewOfFileHandle(
-						Unmanaged.MapViewOfFile(bufferFile, Unmanaged.FILE_MAP_READ, 0, 0, 512), true);
-					if (bufferAddress.IsInvalid)
-						throw new Win32Exception(Marshal.GetLastWin32Error());
-					trace.Info("View of file mapped OK. Ptr={0}", bufferAddress.DangerousGetHandle());
+				bufferAddress = new SafeViewOfFileHandle(
+					Unmanaged.MapViewOfFile(bufferFile, Unmanaged.FILE_MAP_READ, 0, 0, 512), true);
+				if (bufferAddress.IsInvalid)
+					throw new Win32Exception(Marshal.GetLastWin32Error());
+				trace.Info("View of file mapped OK. Ptr={0}", bufferAddress.DangerousGetHandle());
 
-					StartLiveLogThread("DebugOutput listening thread");
-				}
-				catch (Exception e)
-				{
-					trace.Error(e, "Failed to initialize DebugOutput reader. Disposing what has been created so far.");
-					Cleanup();
-					throw;
-				}
+				StartLiveLogThread("DebugOutput listening thread");
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "Failed to initialize DebugOutput reader. Disposing what has been created so far.");
+				Cleanup();
+				throw;
 			}
 		}
 

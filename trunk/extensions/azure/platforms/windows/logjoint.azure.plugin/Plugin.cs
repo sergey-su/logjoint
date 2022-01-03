@@ -9,7 +9,7 @@ namespace LogJoint
 	{
 		public Plugin(IApplication app)
 		{
-			Azure.Factory.RegisterFactories(app.Model.LogProviderFactoryRegistry, app.Model.TempFilesManager);
+			Azure.Factory.RegisterFactories(app.Model.LogProviderFactoryRegistry, app.Model);
 			app.Presentation.NewLogSourceDialog.PagesRegistry.RegisterPagePresenterFactory(
 				Azure.Factory.uiTypeKey,
 				factory => new UI.Azure.FactoryUI((Azure.Factory)factory, app.Model.SourcesManager, app.Model.MRU, app.Model.TraceSourceFactory)
