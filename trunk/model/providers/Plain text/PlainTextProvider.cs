@@ -39,69 +39,72 @@ namespace LogJoint.PlainText
 			return sizeInBytesStat;
 		}
 
-		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		protected override async Task LiveLogListen(CancellationToken cancellation, LiveLogXMLWriter output)
 		{
-			using (ILogMedia media = await SimpleFileMedia.Create(
+			using ILogMedia media = await SimpleFileMedia.Create(
 				fileSystem,
-				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
-			using (FileSystemWatcher watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName), 
-				Path.GetFileName(fileName)))
-			using (AutoResetEvent fileChangedEvt = new AutoResetEvent(true))
-			{
-				IMessagesSplitter splitter = new MessagesSplitter(
-					new StreamTextAccess(media.DataStream, Encoding.ASCII, TextStreamPositioningParams.Default),
-					regexFactory.Create(@"^(?<body>.+)$", ReOptions.Multiline)
-				);
+				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
+			using FileSystemWatcher watcher = IsBrowser.Value ? null :
+				new FileSystemWatcher(Path.GetDirectoryName(fileName), Path.GetFileName(fileName));
+			TaskCompletionSource<int> fileChangedEvt = new TaskCompletionSource<int>();
+			fileChangedEvt.SetResult(1);
+			IMessagesSplitter splitter = new MessagesSplitter(
+				new StreamTextAccess(media.DataStream, Encoding.ASCII, TextStreamPositioningParams.Default),
+				regexFactory.Create(@"^(?<body>.+)$", ReOptions.Multiline)
+			);
 
+			if (watcher != null)
+			{
 				watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
-				watcher.Changed += delegate(object sender, FileSystemEventArgs e)
+				watcher.Changed += delegate (object sender, FileSystemEventArgs e)
 				{
-					fileChangedEvt.Set();
+					fileChangedEvt.TrySetResult(1);
 				};
 				//watcher.EnableRaisingEvents = true;
+			}
 
-				long lastLinePosition = 0;
-				long lastStreamLength = 0;
-				WaitHandle[] events = new WaitHandle[] { stopEvt.WaitHandle, fileChangedEvt };
+			long lastLinePosition = 0;
+			long lastStreamLength = 0;
+			Task stopEvt = cancellation.ToTask();
 
-				var capture = new TextMessageCapture();
+			var capture = new TextMessageCapture();
 
-				for (; ; )
+			for (; ; )
+			{
+				if (await Task.WhenAny(stopEvt, fileChangedEvt.Task, Task.Delay(250)) == stopEvt)
+					break;
+				fileChangedEvt = new TaskCompletionSource<int>();
+
+				await media.Update();
+
+				if (media.Size == lastStreamLength)
+					continue;
+
+				lastStreamLength = media.Size;
+				sizeInBytesStat = lastStreamLength;
+
+				DateTime lastModified = media.LastModified;
+
+				await splitter.BeginSplittingSession(new FileRange.Range(0, lastStreamLength), lastLinePosition, MessagesParserDirection.Forward);
+				try
 				{
-					if (WaitHandle.WaitAny(events, 250, false) == 0)
-						break;
-
-					await media.Update();
-
-					if (media.Size == lastStreamLength)
-						continue;
-
-					lastStreamLength = media.Size;
-					sizeInBytesStat = lastStreamLength;
-
-					DateTime lastModified = media.LastModified;
-
-					await splitter.BeginSplittingSession(new FileRange.Range(0, lastStreamLength), lastLinePosition, MessagesParserDirection.Forward);
-					try
+					for (; ; )
 					{
-						for (; ; )
-						{
-							if (!await splitter.GetCurrentMessageAndMoveToNextOne(capture))
-								break;
-							lastLinePosition = capture.BeginPosition;
+						if (!await splitter.GetCurrentMessageAndMoveToNextOne(capture))
+							break;
+						lastLinePosition = capture.BeginPosition;
 
-							XmlWriter writer = output.BeginWriteMessage(false);
-							writer.WriteStartElement("m");
-							writer.WriteAttributeString("d", Listener.FormatDate(lastModified));
-							writer.WriteString(XmlUtils.RemoveInvalidXMLChars(capture.MessageHeader));
-							writer.WriteEndElement();
-							output.EndWriteMessage();
-						}
+						XmlWriter writer = output.BeginWriteMessage(false);
+						writer.WriteStartElement("m");
+						writer.WriteAttributeString("d", Listener.FormatDate(lastModified));
+						writer.WriteString(XmlUtils.RemoveInvalidXMLChars(capture.MessageHeader));
+						writer.WriteEndElement();
+						output.EndWriteMessage();
 					}
-					finally
-					{
-						splitter.EndSplittingSession();
-					}
+				}
+				finally
+				{
+					splitter.EndSplittingSession();
 				}
 			}
 		}
