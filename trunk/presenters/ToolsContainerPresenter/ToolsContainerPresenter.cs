@@ -78,6 +78,7 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 			var i = availableTools.IndexOf(k => k == kind);
 			if (i.HasValue)
 			{
+				isVisible = true;
 				selectedToolIndex = i.Value;
 				changeNotification.Post();
 			}

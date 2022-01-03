@@ -29,8 +29,8 @@
                 <label>DB key:</label><input @bind="dbKeyName" />
                 <button @onclick="DownloadDbValue">Download db value</button>
             </div>
-            <input type="file" @ref="fileInputReference" />
-            <button @onclick="LoadLogSameWayChromeExtensionDoes">LoadLogSameWayChromeExtensionDoes</button>
+            <input type="file" @ref="fileInputReference" hidden />
+            <button @onclick="LoadLogSameWayChromeExtensionDoes" hidden>LoadLogSameWayChromeExtensionDoes</button>
         </div>
     }
 </div>
