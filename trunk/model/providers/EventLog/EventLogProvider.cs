@@ -28,7 +28,7 @@ namespace LogJoint.WindowsEventLog
 			try
 			{
 				eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);
-				StartLiveLogThread("EventLog listening thread");
+				StartLiveLogThread();
 			}
 			catch (Exception e)
 			{
@@ -36,12 +36,6 @@ namespace LogJoint.WindowsEventLog
 				Dispose();
 				throw;
 			}
-		}
-
-		public override async Task Dispose()
-		{
-			tracer.Info("Calling base destructor");
-			await base.Dispose();
 		}
 
 		public override string GetTaskbarLogName()

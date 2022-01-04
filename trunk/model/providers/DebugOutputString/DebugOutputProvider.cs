@@ -42,7 +42,7 @@ namespace LogJoint.DebugOutput
 					throw new Win32Exception(Marshal.GetLastWin32Error());
 				tracer.Info("View of file mapped OK. Ptr={0}", bufferAddress.DangerousGetHandle());
 
-				StartLiveLogThread("DebugOutput listening thread");
+				StartLiveLogThread();
 			}
 			catch (Exception e)
 			{
@@ -60,25 +60,15 @@ namespace LogJoint.DebugOutput
 		public override async Task Dispose()
 		{
 			Cleanup();
-
-			tracer.Info("Calling base destructor");
-
 			await base.Dispose();
 		}
 
 		private void Cleanup()
 		{
-			if (bufferAddress != null)
-				bufferAddress.Dispose();
-
-			if (bufferFile != null)
-				bufferFile.Dispose();
-
-			if (dataReadyEvt != null)
-				dataReadyEvt.Close();
-
-			if (bufferReadyEvt != null)
-				bufferReadyEvt.Close();
+			bufferAddress?.Dispose();
+			bufferFile?.Dispose();
+			dataReadyEvt?.Close();
+			bufferReadyEvt?.Close();
 		}
 
 		class Unmanaged

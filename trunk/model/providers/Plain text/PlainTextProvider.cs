@@ -26,7 +26,7 @@ namespace LogJoint.PlainText
 			this.regexFactory = regexFactory;
 			this.fileSystem = fileSystem;
 			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
-			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
+			StartLiveLogThread();
 		}
 
 		public override string GetTaskbarLogName()

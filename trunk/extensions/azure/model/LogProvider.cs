@@ -36,7 +36,7 @@ namespace LogJoint.Azure
 				this.azureConnectParams = new AzureConnectionParams(connectionParams);
 				this.table = strategy.CreateTable(this.azureConnectParams.Account);
 
-				StartLiveLogThread("WAD listening thread");
+				StartLiveLogThread();
 			}
 			catch (Exception e)
 			{

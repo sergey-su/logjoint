@@ -199,7 +199,7 @@ namespace LogJoint
 			get { return originalConnectionParams; }
 		}
 
-		protected void StartLiveLogThread(string threadName)
+		protected void StartLiveLogThread()
 		{
 			listeningThread = TaskUtils.StartInThreadPoolTaskScheduler(ListeningThreadProc);
 			tracer.Info("Thread started");
