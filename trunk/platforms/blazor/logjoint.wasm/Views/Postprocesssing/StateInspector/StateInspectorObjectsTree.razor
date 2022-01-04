@@ -30,14 +30,11 @@
                   paintInfo.Coloring == NodeColoring.LogSource ?
                       $"{(dark ? "color" : "background-color")}: {LogJoint.Drawing.ColorExtensions.ToHtmlColor(paintInfo.LogSourceColor.Value)}" :
                   ""; }
-            @{var tooltip = 
-                paintInfo.Coloring == NodeColoring.LogSource ? context.ToString() : 
-                ""; }
             @if (paintInfo.DrawFocusedMsgMark)
             {
                 <span class="f"></span>
             }
-            <span class="n @coloringClass" style=@coloringStyle title=@tooltip>
+            <span class="n @coloringClass" style=@coloringStyle title=@(context.ToString())>
                 @if (!string.IsNullOrEmpty(paintInfo.Annotation))
                 {
                     <span class="annotation">@paintInfo.Annotation</span>
