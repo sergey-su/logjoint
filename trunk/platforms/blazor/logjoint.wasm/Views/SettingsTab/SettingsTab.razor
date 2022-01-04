@@ -35,8 +35,26 @@
                 </select>
                 <label>key substring:</label><input @bind="dbKeyName" />
                 <button @onclick="FindDbKeys">Find db keys</button>
-                <ListView Items=@dbKeys OnSelect="SelectDbKey" ChangeNotification="@model.ChangeNotification" Class="db-keys-list" />
+                <ListView Items=@dbKeys
+                          OnSelect="@(selected => SelectListItem(selected, ref dbKeys))"
+                          ChangeNotification="@model.ChangeNotification"
+                          Class="db-keys-list" />
                 <button @onclick="DownloadDbValue">Download db value</button>
+            </div>
+            <div>
+                <label>db store:</label>
+                <input list="settings_debug_paths_suggestions" @bind="fileSystemPath">
+                <datalist id="settings_debug_paths_suggestions">
+                    <option value="/" />
+                    <option value="@Path.GetDirectoryName(model.TempFilesManager.GenerateNewName())" />
+                </datalist>
+                <button @onclick="ListDirectory">List directory</button>
+                <ListView Items=@fileSystemEntries
+                          OnSelect="@(selected => SelectListItem(selected, ref fileSystemEntries))"
+                          OnDoubleClick="UseDirectory"
+                          ChangeNotification="@model.ChangeNotification"
+                          Class="fs-entries-list" />
+                <button @onclick="DownloadFile">Download file</button>
             </div>
             <input type="file" @ref="fileInputReference" hidden />
             <button @onclick="LoadLogSameWayChromeExtensionDoes" hidden>LoadLogSameWayChromeExtensionDoes</button>
@@ -49,12 +67,17 @@
     public string Class { get; set; } = "";
 
     ElementReference fileInputReference;
+
     private string dbKeyName = "";
     private string dbStoreName = "userData";
-    private ImmutableList<DbKeysListItem> dbKeys = ImmutableList<DbKeysListItem>.Empty;
+    private ImmutableList<ListItem> dbKeys = ImmutableList<ListItem>.Empty;
+
+    private string fileSystemPath = "/";
+    private ImmutableList<ListItem> fileSystemEntries = ImmutableList<ListItem>.Empty;
+
     private bool debugOptionsVisible = false;
 
-    class DbKeysListItem : IListItem
+    class ListItem : IListItem
     {
         public string Key { get; set; }
         public bool IsSelected { get; set; }
@@ -128,15 +151,15 @@
         dbKeys = ImmutableList.CreateRange(
             (await jsInterop.IndexedDB.Keys(dbStoreName))
             .Where(k => k.Contains(dbKeyName ?? ""))
-            .Select(k => new DbKeysListItem() { Key = k, IsSelected = false })
+            .Select(k => new ListItem() { Key = k, IsSelected = false })
         );
     }
 
-    void SelectDbKey(IEnumerable<IListItem> selected)
+    void SelectListItem(IEnumerable<IListItem> selected, ref ImmutableList<ListItem> list)
     {
         var selectedLookup = selected.Select(i => i.Key).ToHashSet();
-        dbKeys = ImmutableList.CreateRange(
-            dbKeys.Select(k => new DbKeysListItem() { Key = k.Key, IsSelected = selectedLookup.Contains(k.Key) }));
+        list = ImmutableList.CreateRange(
+            list.Select(k => new ListItem() { Key = k.Key, IsSelected = selectedLookup.Contains(k.Key) }));
         StateHasChanged();
     }
 
@@ -169,5 +192,34 @@
             "Processing file"
         );
         await task;
+    }
+
+    void ListDirectory()
+    {
+        if (Directory.Exists(fileSystemPath))
+        {
+            fileSystemEntries = ImmutableList.CreateRange(
+                Directory.EnumerateFileSystemEntries(fileSystemPath).Select(e => new ListItem() { Key = e })
+            );
+        }
+        else
+        {
+            fileSystemEntries = ImmutableList<ListItem>.Empty;
+        }
+    }
+
+    void UseDirectory(IListItem item)
+    {
+        fileSystemPath = item.Key;
+    }
+
+    async Task DownloadFile()
+    {
+        var fname = fileSystemEntries.Where(k => k.IsSelected).Select(k => k.Key).FirstOrDefault();
+        if (fname != null && File.Exists(fname))
+        {
+            var value = await File.ReadAllTextAsync(fname);
+            await jsInterop.SaveAs.SaveAs(value, Path.GetFileName(fname));
+        }
     }
 }

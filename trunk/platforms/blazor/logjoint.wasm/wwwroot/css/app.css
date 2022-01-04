@@ -1464,16 +1464,17 @@ button {
     border: solid 1px var(--text-color);
     padding: 10px;
     display: flex;
-    flex-flow: row wrap;
+    flex-flow: column nowrap;
     align-items: start;
 }
 
-.settings-panel .debug .db-keys-list {
+.settings-panel .debug .db-keys-list,
+.settings-panel .debug .fs-entries-list {
     height: 70px;
 }
 
 .settings-panel .debug>* {
-    margin: 0px 20px;
+    margin: 10px;
 }
 
 

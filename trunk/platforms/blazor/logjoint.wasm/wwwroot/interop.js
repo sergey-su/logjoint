@@ -372,7 +372,7 @@
             });
             element.addEventListener('keydown', e => {
                 for (const key of keys) {
-                    const norm = k => key.caseInsensitive ? k.toLowerCase() : k;
+                    const norm = k => k ? (key.caseInsensitive ? k.toLowerCase() : k) : "";
                     if (norm(key.key) == norm(e.key)) {
                         let allMatch = true;
                         for (const modifier of key.modifiers) {
