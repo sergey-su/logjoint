@@ -56,16 +56,19 @@
   </Target>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="dotnet run --project ../../shared/precompiler format &quot;$(ProjectDir)..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml&quot; &quot;$(OutDir)\lj-trace-fmt.xml&quot;" />
+    <Exec Command="dotnet build" WorkingDirectory="../../shared/precompiler" />
+    <Exec Command="dotnet build" WorkingDirectory="../../../sdk/tools/logjoint.plugintool" />
 
-    <Exec Command="dotnet run --project ../../shared/precompiler format &quot;$(ProjectDir)..\..\..\model\formats\MS-TextWriterTraceListener.format.xml&quot; &quot;$(OutDir)\ms-text-fmt.xml&quot;" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/formats/LogJoint - LogJoint debug trace.format.xml&quot; &quot;$(OutDir)/lj-trace-fmt.xml&quot;" />
+
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/formats/MS-TextWriterTraceListener.format.xml&quot; &quot;$(OutDir)/ms-text-fmt.xml&quot;" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
-    <Exec Command="dotnet run --project ../../shared/precompiler plugin &quot;$(ProjectDir)..\..\..\extensions\chromium\plugin\bin\Debug\netstandard2.0&quot;" />
-    <Exec Command="dotnet run --project ../../../sdk/tools/logjoint.plugintool pack bin/Debug/netstandard2.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../extensions/chromium/plugin/bin/Debug/netstandard2.0&quot;" />
+    <Exec Command="dotnet ../../../sdk/tools/logjoint.plugintool/bin/Debug/netcoreapp2.1/dotnet-logjoint.plugintool.dll pack bin/Debug/netstandard2.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
-    <Exec Command="dotnet run --project ../../shared/precompiler plugin &quot;$(ProjectDir)../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0&quot;" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0&quot;" />
     <Exec Command="dotnet logjoint.plugintool pack bin/Debug/netstandard2.0/manifest.xml bin/google.zip prod" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
   </Target>
 </Project>
