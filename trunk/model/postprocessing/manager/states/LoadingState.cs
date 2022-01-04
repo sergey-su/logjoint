@@ -38,15 +38,13 @@ namespace LogJoint.Postprocessing
 						ctx.heartbeat.OnTimer += updateProgress;
 						try
 						{
-							using (var perfop = new Profiling.Operation(ctx.tracer, "load output " + ctx.owner.metadata.Kind.ToString()))
+							using var perfop = new Profiling.Operation(ctx.tracer, "load output " + ctx.owner.metadata.Kind.ToString());
+							return await ctx.threadPoolSyncContext.Invoke(() => ctx.outputDataDeserializer.Deserialize(ctx.owner.metadata.Kind, new LogSourcePostprocessorDeserializationParams()
 							{
-								return await ctx.threadPoolSyncContext.Invoke(() => ctx.outputDataDeserializer.Deserialize(ctx.owner.metadata.Kind, new LogSourcePostprocessorDeserializationParams()
-								{
-									Reader = existingSection.Reader,
-									LogSource = ctx.owner.logSourceRecord.logSource,
-									Cancellation = ctx.owner.logSourceRecord.cancellation.Token
-								}));
-							}
+								Reader = existingSection.Reader,
+								LogSource = ctx.owner.logSourceRecord.logSource,
+								Cancellation = ctx.owner.logSourceRecord.cancellation.Token
+							}));
 						}
 						finally
 						{

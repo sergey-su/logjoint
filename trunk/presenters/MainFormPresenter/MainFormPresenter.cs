@@ -211,8 +211,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			
 		void IViewModel.OnLoad()
 		{
-			if (Loaded != null)
-				Loaded(this, EventArgs.Empty);
+			Loaded?.Invoke(this, EventArgs.Empty);
 		}
 
 		void IViewModel.OnChangeTab(string tabId)
@@ -380,7 +379,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				string name = null;
 				if (srcEntry.container == null)
 					name = srcEntry.ls.Provider.GetTaskbarLogName();
-				else if ((reportedContainers ?? (reportedContainers = new HashSet<string>())).Add(srcEntry.container))
+				else if ((reportedContainers ??= new HashSet<string>()).Add(srcEntry.container))
 					name = srcEntry.container;
 				if (name == null)
 					continue;

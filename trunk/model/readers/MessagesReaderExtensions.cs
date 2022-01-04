@@ -174,8 +174,7 @@ namespace LogJoint
 
 			public void Dispose()
 			{
-				IDisposable dispIntf = instance as IDisposable;
-				if (dispIntf != null)
+				if (instance is IDisposable dispIntf)
 					dispIntf.Dispose();
 			}
 		};

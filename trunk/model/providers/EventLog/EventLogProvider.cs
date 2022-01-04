@@ -62,15 +62,13 @@ namespace LogJoint.WindowsEventLog
 					{
 						for (; ; )
 						{
-							using (var eventInstance = reader.ReadEvent())
-							{
-								if (eventInstance == null)
-									break;
-								if (stopEvt.IsCancellationRequested)
-									return;
-								WriteEvent(eventInstance, output);
-								lastReadBookmark = eventInstance.Bookmark;
-							}
+							using var eventInstance = reader.ReadEvent();
+							if (eventInstance == null)
+								break;
+							if (stopEvt.IsCancellationRequested)
+								return;
+							WriteEvent(eventInstance, output);
+							lastReadBookmark = eventInstance.Bookmark;
 						}
 					}
 					ReportBackgroundActivityStatus(false);
@@ -258,7 +256,7 @@ namespace LogJoint.WindowsEventLog
 				return string.Format("{0}/{1}", machineName, logName);
 		}
 
-		static Regex identityRegex = new Regex(@"^(f\:(?<fname>.+))|(r\:(?<machine>[^\/]+)\/(?<remoteLog>.+))|(l\:(?<localLog>.+))$",
+		static readonly Regex identityRegex = new Regex(@"^(f\:(?<fname>.+))|(r\:(?<machine>[^\/]+)\/(?<remoteLog>.+))|(l\:(?<localLog>.+))$",
 			RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		string machineName;

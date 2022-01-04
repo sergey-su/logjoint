@@ -28,7 +28,7 @@ namespace LogJoint.Preprocessing
 				callback.YieldNextStep(preprocessingStepsFactory.CreateUnpackingStep(sourceFile));
 			else if (IsGzip(sourceFile, header))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateGunzippingStep(sourceFile));
-			else if (IsTar(sourceFile, header))
+			else if (IsTar(header))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateUntarStep(sourceFile));
 			else
 				await AutodetectFormatAndYield(sourceFile, callback);
@@ -67,22 +67,20 @@ namespace LogJoint.Preprocessing
 
 		static bool IsGzipFile(string filePath)
 		{
-			using (var fstm  = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 64))
-			using (var stm = new ICSharpCode.SharpZipLib.GZip.GZipInputStream(fstm))
+			using var fstm = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 64);
+			using var stm = new ICSharpCode.SharpZipLib.GZip.GZipInputStream(fstm);
+			try
 			{
-				try
-				{
-					stm.Read(new byte[0], 0, 0);
-					return true;
-				}
-				catch (ICSharpCode.SharpZipLib.GZip.GZipException)
-				{
-					return false;
-				}
+				stm.Read(new byte[0], 0, 0);
+				return true;
+			}
+			catch (ICSharpCode.SharpZipLib.GZip.GZipException)
+			{
+				return false;
 			}
 		}
 
-		static bool IsTar(PreprocessingStepParams fileInfo, IStreamHeader header)
+		static bool IsTar(IStreamHeader header)
 		{
 			var tarHeader = new ICSharpCode.SharpZipLib.Tar.TarHeader
 			{

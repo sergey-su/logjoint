@@ -20,7 +20,6 @@ namespace LogJoint
 		readonly Stream rawStream;
 		readonly Encoding streamEncoding;
 		readonly bool plainTextSearchOptimizationAllowed;
-		readonly ILogSourceThreads threads;
 		readonly FileRange.Range requestedRange;
 		readonly ProgressAndCancellation progressAndCancellation;
 		readonly StreamTextAccess aligmentTextAccess;
@@ -41,7 +40,6 @@ namespace LogJoint
 			Encoding streamEncoding,
 			bool allowPlainTextSearchOptimization,
 			LoadedRegex headerRe,
-			ILogSourceThreads threads,
 			ITraceSourceFactory traceSourceFactory,
 			RegularExpressions.IRegexFactory regexFactory
 		)
@@ -49,7 +47,6 @@ namespace LogJoint
 			this.owner = owner;
 			this.parserParams = p;
 			this.plainTextSearchOptimizationAllowed = allowPlainTextSearchOptimization && ((p.Flags & MessagesParserFlag.DisablePlainTextSearchOptimization) == 0);
-			this.threads = threads;
 			this.requestedRange = p.Range;
 			this.textStreamPositioningParams = textStreamPositioningParams;
 			this.dejitteringParams = dejitteringParams;
@@ -58,9 +55,8 @@ namespace LogJoint
 			this.regexFactory = regexFactory;
 			this.trace = traceSourceFactory.CreateTraceSource("LogSource", "srchp." + GetHashCode().ToString("x"));
 			this.dummyFilter = new Filter(FilterAction.Include, "", true, new Search.Options(), null, regexFactory);
-			var continuationToken = p.ContinuationToken as ContinuationToken;
-			if (continuationToken != null)
-				this.requestedRange = new FileRange.Range(continuationToken.NextPosition, requestedRange.End);
+			if (p.ContinuationToken as ContinuationToken != null)
+				this.requestedRange = new FileRange.Range((p.ContinuationToken as ContinuationToken).NextPosition, requestedRange.End);
 			this.aligmentTextAccess = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
 			this.aligmentSplitter = new MessagesSplitter(aligmentTextAccess, headerRe.Clone().Regex, headerRe.GetHeaderReSplitterFlags());
 			this.aligmentCapture = new TextMessageCapture();
@@ -153,8 +149,7 @@ namespace LogJoint
 		{
 			return EnumerableAsync.Produce<SearchResultMessage>(async yieldAsync =>
 			{
-				Func<IMessagesPostprocessor> postprocessor =
-					() => new MessagesPostprocessor(parserParams.SearchParams, trace, dummyFilter);
+				IMessagesPostprocessor postprocessor() => new MessagesPostprocessor(parserParams.SearchParams, trace, dummyFilter);
 				long searchableRangesLength = 0;
 				int searchableRangesCount = 0;
 				long totalMessagesCount = 0;
@@ -263,31 +258,29 @@ namespace LogJoint
 			return EnumerableAsync.Produce<FileRange.Range>(async yieldAsync =>
 			{
 				ITextAccess ta = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
-				using (var tai = await ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward))
+				using var tai = await ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward);
+				var lastRange = new FileRange.Range();
+				await IterateMatchRanges(
+					EnumCheckpoints(tai, matcher, progressAndCancellation, trace),
+					// todo: tune next parameter to find the value giving max performance.
+					// On one sample log bigger block was better than many small ones. 
+					// Hence quite big threshold.
+					textStreamPositioningParams.AlignmentBlockSize * 8,
+					progressAndCancellation
+				).ForEach(async r =>
 				{
-					var lastRange = new FileRange.Range();
-					await IterateMatchRanges(
-						EnumCheckpoints(tai, matcher, progressAndCancellation, trace),
-						// todo: tune next parameter to find the value giving max performance.
-						// On one sample log bigger block was better than many small ones. 
-						// Hence quite big threshold.
-						textStreamPositioningParams.AlignmentBlockSize * 8,
-						progressAndCancellation
-					).ForEach(async r =>
-					{
-						var postprocessedRange = await PostprocessHintRange(r, lastRange);
-						lastRange = postprocessedRange;
-						await yieldAsync.YieldAsync(postprocessedRange);
-						return true;
-					});
-				}
+					var postprocessedRange = await PostprocessHintRange(r, lastRange);
+					lastRange = postprocessedRange;
+					await yieldAsync.YieldAsync(postprocessedRange);
+					return true;
+				});
 			});
 		}
 
 		async Task<FileRange.Range> PostprocessHintRange(FileRange.Range r, FileRange.Range lastRange)
 		{
 			long fixedBegin = r.Begin;
-			long fixedEnd = r.End;
+			long fixedEnd;
 
 			int? inflateRangeBy = null;
 			if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
@@ -505,9 +498,9 @@ namespace LogJoint
 				return null;
 			}
 
-			bool plainTextSearchOptimizationPossible;
-			int maxMatchLength;
-			Search.SearchState[] opts;
+			readonly bool plainTextSearchOptimizationPossible;
+			readonly int maxMatchLength;
+			readonly Search.SearchState[] opts;
 		};
 
 		class ProgressAndCancellation

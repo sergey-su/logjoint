@@ -58,8 +58,8 @@ namespace LogJoint
 
 					this.fsWatcher = fileSystem.CreateWatcher();
 					this.fsWatcher.Path = this.baseDirectory;
-					this.fsWatcher.Created += new FileSystemEventHandler(fsWatcher_Created);
-					this.fsWatcher.Renamed += new RenamedEventHandler(fsWatcher_Renamed);
+					this.fsWatcher.Created += new FileSystemEventHandler(FsWatcher_Created);
+					this.fsWatcher.Renamed += new RenamedEventHandler(FsWatcher_Renamed);
 					this.fsWatcher.EnableRaisingEvents = true;
 
 					trace.Info("Watcher enabled");
@@ -83,13 +83,13 @@ namespace LogJoint
 				throw new ObjectDisposedException(GetType().Name);
 		}
 
-		void fsWatcher_Created(object sender, FileSystemEventArgs e)
+		void FsWatcher_Created(object sender, FileSystemEventArgs e)
 		{
 			trace.Info("File creation notification: {0}", e.Name);
 			FileNotificationHandler(e.FullPath);
 		}
 
-		void fsWatcher_Renamed(object sender, RenamedEventArgs e)
+		void FsWatcher_Renamed(object sender, RenamedEventArgs e)
 		{
 			trace.Info("File rename notification. {0}->{1}", e.OldName, e.Name);
 			FileNotificationHandler(e.FullPath);
@@ -300,24 +300,22 @@ namespace LogJoint
 						if (firstMessageTime == null)
 						{
 							owner.trace.Info("First message time is unknown. Calculating it");
-							using (IPositionedMessagesReader reader = owner.readerCreator(
-									new MediaBasedReaderParams(owner.tempThreads, SimpleMedia)))
+							using IPositionedMessagesReader reader = owner.readerCreator(
+									new MediaBasedReaderParams(owner.tempThreads, SimpleMedia));
+							owner.trace.Info("Reader created");
+
+							await reader.UpdateAvailableBounds(false);
+							owner.trace.Info("Bounds found");
+
+							IMessage first = await PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
+							if (first == null)
 							{
-								owner.trace.Info("Reader created");
-
-								await reader.UpdateAvailableBounds(false);
-								owner.trace.Info("Bounds found");
-
-								IMessage first = await PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
-								if (first == null)
-								{
-									owner.trace.Warning("No messages found");
-									return false;
-								}
-
-								owner.trace.Info("First message: {0} '{1}'", first.Time, first.Text);
-								firstMessageTime = first.Time;
+								owner.trace.Warning("No messages found");
+								return false;
 							}
+
+							owner.trace.Info("First message: {0} '{1}'", first.Time, first.Text);
+							firstMessageTime = first.Time;
 						}
 
 						owner.trace.Info("Part updated OK");

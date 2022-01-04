@@ -63,7 +63,7 @@ namespace LogJoint.Persistence.Implementation
 		readonly string path;
 		bool disposed;
 		bool disposing;
-		bool commitOnDispose;
+		readonly bool commitOnDispose;
 	};
 
 	internal class XmlStorageSection : StorageSectionBase, IXMLStorageSection
@@ -87,17 +87,15 @@ namespace LogJoint.Persistence.Implementation
 		{
 			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = await Manager.FileSystem.OpenFile(Path, readOnly: true))
+				using var s = await Manager.FileSystem.OpenFile(Path, readOnly: true);
+				try
 				{
-					try
-					{
-						if (s != null)
-							data = XDocument.Load(s);
-					}
-					catch (XmlException)
-					{
-						data = null;
-					}
+					if (s != null)
+						data = XDocument.Load(s);
+				}
+				catch (XmlException)
+				{
+					data = null;
 				}
 			}
 			if (data == null)
@@ -223,12 +221,12 @@ namespace LogJoint.Persistence.Implementation
 		{
 			if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = await Manager.FileSystem.OpenFile(Path, readOnly: true))
-					if (s != null)
-					{
-						await s.CopyToAsync(data);
-						data.Position = 0;
-					}
+				using var s = await Manager.FileSystem.OpenFile(Path, readOnly: true);
+				if (s != null)
+				{
+					await s.CopyToAsync(data);
+					data.Position = 0;
+				}
 			}
 		}
 
@@ -253,8 +251,8 @@ namespace LogJoint.Persistence.Implementation
 
 		async ValueTask<bool> IStorageSectionInternal.ExistsInFileSystem()
 		{
-			using (var s = await Manager.FileSystem.OpenFile(Path, readOnly: true))
-				return s != null;
+			using var s = await Manager.FileSystem.OpenFile(Path, readOnly: true);
+			return s != null;
 		}
 
 		readonly MemoryStream data = new MemoryStream();

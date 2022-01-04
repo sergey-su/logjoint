@@ -111,7 +111,7 @@ namespace LogJoint
 					++end;
 			}
 
-			List<IBookmark> items;
+			readonly List<IBookmark> items;
 			MessageTimestamp current;
 			int begin, end;
 			string logSourceConnectionId;

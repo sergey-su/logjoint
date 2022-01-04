@@ -99,10 +99,12 @@ namespace LogJoint
 
 		async Task<ResultCode> WaitEvents(int timeout, Task userEvent)
 		{
-			var evts = new List<Task>();
-			evts.Add(stopEvt.Wait());
-			evts.Add(invalidatedEvt.Wait());
-			evts.Add(Task.Delay(timeout));
+			var evts = new List<Task>
+			{
+				stopEvt.Wait(),
+				invalidatedEvt.Wait(),
+				Task.Delay(timeout)
+			};
 			if (userEvent != null)
 				evts.Add(userEvent);
 			var evt = await Task.WhenAny(evts);
@@ -309,7 +311,7 @@ namespace LogJoint
 			{
 				using (trace.NewFrame)
 				{
-					Predicate<MessageTimestamp> shouldAdvanceDate = d =>
+					bool shouldAdvanceDate(MessageTimestamp d) =>
 						reversedMode ? d > currentDate : d < currentDate;
 
 					bool readerAdvanced = false;

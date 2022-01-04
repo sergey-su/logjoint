@@ -148,8 +148,7 @@ namespace LogJoint
 
 		public static TextStreamPositioningParams FromConfigNode(XElement e)
 		{
-			int maxMsgSz;
-			if (int.TryParse(e.AttributeValue("max-message-size"), out maxMsgSz))
+			if (int.TryParse(e.AttributeValue("max-message-size"), out int maxMsgSz))
 				if (maxMsgSz > 0)
 					return new TextStreamPositioningParams(GetNearestValidAlignmentBlockSize(maxMsgSz * 1024));
 			return Default;
@@ -162,7 +161,7 @@ namespace LogJoint
 
 		static int GetNearestValidAlignmentBlockSize(int testSizeInBytes)
 		{
-			for (int i = MinimumAlignmentBlockSize; i <= MaximiumAlignmentBlockSize; i = i * 2)
+			for (int i = MinimumAlignmentBlockSize; i <= MaximiumAlignmentBlockSize; i *= 2)
 				if (i >= testSizeInBytes)
 					return i;
 			return MaximiumAlignmentBlockSize;

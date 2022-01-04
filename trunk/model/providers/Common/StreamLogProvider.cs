@@ -59,9 +59,8 @@ namespace LogJoint
 				reader = readerCreator(new MediaBasedReaderParams(this.threads, media,
 						parentLoggingPrefix: tracer.Prefix));
 
-				ITimeOffsets initialTimeOffset;
-				if (LogJoint.TimeOffsets.TryParse(
-					connectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] ?? "", out initialTimeOffset))
+				if (TimeOffsets.TryParse(
+					connectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] ?? "", out ITimeOffsets initialTimeOffset))
 				{
 					reader.TimeOffsets = initialTimeOffset;
 				}
@@ -113,13 +112,12 @@ namespace LogJoint
 		{
 			isSavableAs = false;
 			taskbarFileName = null;
-			bool isTempFile = false;
 			string guessedFileName = null;
 
 			string fname = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			if (fname != null)
 			{
-				isTempFile = tempFilesManager.IsTemporaryFile(fname);
+				bool isTempFile = tempFilesManager.IsTemporaryFile(fname);
 				isSavableAs = isTempFile;
 			}
 			string connectionIdentity = connectParams[ConnectionParamsKeys.IdentityConnectionParam];

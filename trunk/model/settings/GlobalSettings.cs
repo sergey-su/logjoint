@@ -39,8 +39,7 @@ namespace LogJoint.Settings
 		StorageSizes userDataStorageSizes = StorageSizes.Default;
 		StorageSizes contentCacheStorageSizes = StorageSizes.Default;
 		bool enableAutoPostprocessing = DefaultSettingsAccessor.DefaultEnableAutoPostprocessing;
-
-		TaskChain tasks = new TaskChain();
+		readonly TaskChain tasks = new TaskChain();
 
 		public GlobalSettingsAccessor(Persistence.IStorageManager storageManager, IChangeNotification changeNotification)
 		{

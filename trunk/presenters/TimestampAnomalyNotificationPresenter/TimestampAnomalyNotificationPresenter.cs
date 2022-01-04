@@ -76,8 +76,8 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 				currentReport = null;
 			}
 
-			var messageParts = new List<StatusReports.MessagePart>();
-			messageParts.Add(
+			var messageParts = new List<StatusReports.MessagePart>
+			{
 				new StatusReports.MessagePart(
 					string.Format("{0} {1} problem with timestamps. {2}",
 						logSourcesRequiringReordering.Count,
@@ -85,7 +85,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 						Environment.NewLine
 					)
 				)
-			);
+			};
 			int shownLogSourcesCount = 0;
 			foreach (var logSource in logSourcesRequiringReordering)
 			{
@@ -97,7 +97,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 				if (string.IsNullOrEmpty(logName))
 					logName = "log";
 
-				Func<bool> checkSourceIsOk = () =>
+				bool checkSourceIsOk()
 				{
 					if (logSource.IsDisposed)
 					{
@@ -105,7 +105,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 						return false;
 					}
 					return true;
-				};
+				}
 
 				if (shownLogSourcesCount > 1)
 				{

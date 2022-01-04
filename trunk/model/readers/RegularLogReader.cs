@@ -120,7 +120,6 @@ namespace LogJoint.RegularGrammar
 
 		static IMessage MakeMessageInternal(
 			TextMessageCapture capture,
-			IRegex headRe,
 			IRegex bodyRe,
 			ref IMatch bodyMatch,
 			FieldsProcessor.IFieldsProcessor fieldsProcessor,
@@ -175,7 +174,7 @@ namespace LogJoint.RegularGrammar
 		{
 			readonly MessagesReader reader;
 			readonly MessagesBuilderCallback callback;
-			readonly IRegex headerRegex, bodyRegex;
+			readonly IRegex bodyRegex;
 			FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			IMatch bodyMatch;
 
@@ -191,7 +190,6 @@ namespace LogJoint.RegularGrammar
 			{
 				this.reader = reader;
 				this.callback = reader.CreateMessageBuilderCallback();
-				this.headerRegex = headerRe;
 				this.bodyRegex = CloneRegex(reader.fmtInfo.BodyRe).Regex;
 			}
 			public override async Task ParserCreated(CreateParserParams p)
@@ -202,7 +200,7 @@ namespace LogJoint.RegularGrammar
 			}
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
-				return MakeMessageInternal(capture, headerRegex, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags, 
+				return MakeMessageInternal(capture, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags, 
 					media.LastModified, reader.TimeOffsets, callback);
 			}
 		};
@@ -225,7 +223,7 @@ namespace LogJoint.RegularGrammar
 
 		class MultiThreadedStrategyImpl : StreamParsingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
 		{
-			MessagesReader reader;
+			readonly MessagesReader reader;
 			FieldsProcessor.MakeMessageFlags flags;
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
@@ -241,17 +239,19 @@ namespace LogJoint.RegularGrammar
 			}
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
-				return MakeMessageInternal(capture, threadLocal.headRe.Regex, threadLocal.bodyRe.Regex, ref threadLocal.bodyMatch, threadLocal.fieldsProcessor, flags, media.LastModified, 
+				return MakeMessageInternal(capture, threadLocal.bodyRe.Regex, ref threadLocal.bodyMatch, threadLocal.fieldsProcessor, flags, media.LastModified, 
 					reader.TimeOffsets, threadLocal.callback);
 			}
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{
-				ProcessingThreadLocalData ret = new ProcessingThreadLocalData();
-				ret.headRe = CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None);
-				ret.bodyRe = CloneRegex(reader.fmtInfo.BodyRe);
-				ret.fieldsProcessor = reader.CreateNewFieldsProcessor().Result;
-				ret.callback = reader.CreateMessageBuilderCallback();
-				ret.bodyMatch = null;
+				ProcessingThreadLocalData ret = new ProcessingThreadLocalData
+				{
+					headRe = CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None),
+					bodyRe = CloneRegex(reader.fmtInfo.BodyRe),
+					fieldsProcessor = reader.CreateNewFieldsProcessor().Result,
+					callback = reader.CreateMessageBuilderCallback(),
+					bodyMatch = null
+				};
 				return ret;
 			}
 		};
@@ -297,7 +297,6 @@ namespace LogJoint.RegularGrammar
 				StreamEncoding,
 				allowPlainTextSearchOptimization,
 				fmtInfo.HeadRe,
-				threads,
 				traceSourceFactory,
 				regexFactory
 			);

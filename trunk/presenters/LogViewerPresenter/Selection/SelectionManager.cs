@@ -214,7 +214,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
 
-			Action doScrolling = () =>
+			void doScrolling()
 			{
 				if (displayIndex == 0 && screenBuffer.TopLineScrollValue > 1e-3)
 				{
@@ -225,7 +225,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					view()?.HScrollToSelectedText((selection()?.First?.LineCharIndex).GetValueOrDefault());
 				}
 				cursorState = true;
-			};
+			}
 
 			var oldSelection = selection();
 			if (oldSelection?.First?.Message != msg 
@@ -294,7 +294,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					cancellation
 				);
 
-				return new {Source = sourceBuf.Source, Messages = sourceMessages};
+				return new { sourceBuf.Source, Messages = sourceMessages };
 			}).ToList();
 
 			await Task.WhenAll(tasks);

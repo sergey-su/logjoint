@@ -61,43 +61,41 @@ namespace LogJoint
 
 		async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
-			using (var innerCancellation = CancellationTokenSource.CreateLinkedTokenSource(ctx.Cancellation, ctx.Preemption))
+			using var innerCancellation = CancellationTokenSource.CreateLinkedTokenSource(ctx.Cancellation, ctx.Preemption);
+			var searchRange = new FileRange.Range(
+				searchParams.FromPosition.GetValueOrDefault(ctx.Reader.BeginPosition), ctx.Reader.EndPosition);
+
+			var parserParams = new CreateSearchingParserParams()
 			{
-				var searchRange = new FileRange.Range(
-					searchParams.FromPosition.GetValueOrDefault(ctx.Reader.BeginPosition), ctx.Reader.EndPosition);
+				Range = searchRange,
+				SearchParams = searchParams,
+				Cancellation = innerCancellation.Token,
+				ContinuationToken = continuationToken,
+				ProgressHandler = pos => UpdateSearchCompletionPercentage(progress, pos, searchRange, false)
+			};
 
-				var parserParams = new CreateSearchingParserParams()
-				{
-					Range = searchRange,
-					SearchParams = searchParams,
-					Cancellation = innerCancellation.Token,
-					ContinuationToken = continuationToken,
-					ProgressHandler = pos => UpdateSearchCompletionPercentage(progress, pos, searchRange, false)
-				};
-
+			try
+			{
+				var parser = await ctx.Reader.CreateSearchingParser(parserParams);
 				try
 				{
-					var parser = await ctx.Reader.CreateSearchingParser(parserParams);
-					try
+					for (; ; )
 					{
-						for (; ; )
-						{
-							var msg = await parser.GetNext();
-							if (msg.Message == null || !callback(msg))
-								break;
-						}
-					}
-					finally
-					{
-						await parser.Dispose();
+						var msg = await parser.GetNext();
+						if (msg.Message == null || !callback(msg))
+							break;
 					}
 				}
-				catch (SearchCancelledException e) // todo: impl it for xml reader
+				finally
 				{
-					if (ctx.Preemption.IsCancellationRequested)
-						continuationToken = e.ContinuationToken;
-					throw;
+					await parser.Dispose();
 				}
+			}
+			catch (SearchCancelledException e) // todo: impl it for xml reader
+			{
+				if (ctx.Preemption.IsCancellationRequested)
+					continuationToken = e.ContinuationToken;
+				throw;
 			}
 		}
 

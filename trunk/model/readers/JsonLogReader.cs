@@ -82,17 +82,8 @@ namespace LogJoint.JsonFormat
 			return ret;
 		}
 
-		static XmlReaderSettings CreateXmlReaderSettings()
-		{
-			XmlReaderSettings xrs = new XmlReaderSettings();
-			xrs.ConformanceLevel = ConformanceLevel.Fragment;
-			xrs.CheckCharacters = false;
-			xrs.CloseInput = false;
-			return xrs;
-		}
-
 		static IMessage MakeMessageInternal(TextMessageCapture capture, JsonFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
-			MessagesBuilderCallback callback, DateTime sourceTime, ITimeOffsets timeOffsets)
+			MessagesBuilderCallback callback)
 		{
 			StringBuilder messageBuf = new StringBuilder();
 			messageBuf.Append(capture.HeaderBuffer, capture.HeaderMatch.Index, capture.HeaderMatch.Length);
@@ -241,8 +232,7 @@ namespace LogJoint.JsonFormat
 			}
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
-				return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback,
-					media.LastModified, reader.TimeOffsets);
+				return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback);
 			}
 		};
 
@@ -260,7 +250,7 @@ namespace LogJoint.JsonFormat
 
 		class MultiThreadedStrategyImpl : StreamParsingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
 		{
-			MessagesReader reader;
+			readonly MessagesReader reader;
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
@@ -275,14 +265,16 @@ namespace LogJoint.JsonFormat
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
 				return MakeMessageInternal(capture, reader.formatInfo, threadLocal.bodyRe.Regex,
-					ref threadLocal.bodyMatch, threadLocal.callback, media.LastModified, reader.TimeOffsets);
+					ref threadLocal.bodyMatch, threadLocal.callback);
 			}
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{
-				ProcessingThreadLocalData ret = new ProcessingThreadLocalData();
-				ret.bodyRe = CloneRegex(reader.formatInfo.BodyRe);
-				ret.callback = reader.CreateMessageBuilderCallback();
-				ret.bodyMatch = null;
+				ProcessingThreadLocalData ret = new ProcessingThreadLocalData
+				{
+					bodyRe = CloneRegex(reader.formatInfo.BodyRe),
+					callback = reader.CreateMessageBuilderCallback(),
+					bodyMatch = null
+				};
 				return ret;
 			}
 		};
@@ -308,7 +300,6 @@ namespace LogJoint.JsonFormat
 				StreamEncoding,
 				false,
 				formatInfo.HeadRe,
-				threads,
 				traceSourceFactory,
 				regexFactory
 			));

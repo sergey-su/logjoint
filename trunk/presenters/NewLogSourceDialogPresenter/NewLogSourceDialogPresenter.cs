@@ -89,13 +89,15 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 
 		void UpdateList(string selectedPageName)
 		{
-			string oldSelection = current != null ? current.GetIdentity() : null;
+			string oldSelection = current?.GetIdentity();
 			if (selectedPageName != null)
 				oldSelection = selectedPageName;
 			SetCurrent(null);
 
-			var items = new List<LogTypeEntry>();
-			items.Add(new AutodetectedLogTypeEntry() { formatDetectionPageFactory = this.formatDetectionPageFactory });
+			var items = new List<LogTypeEntry>
+			{
+				new AutodetectedLogTypeEntry() { formatDetectionPageFactory = this.formatDetectionPageFactory }
+			};
 			foreach (ILogProviderFactory fact in mru.SortFactoriesMoreRecentFirst(logProviderFactoryRegistry.Items))
 			{
 				FixedLogTypeEntry entry = new FixedLogTypeEntry();
@@ -218,7 +220,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 			public override IPagePresenter CreateUI()
 			{ return formatDetectionPageFactory(); }
 
-			private static string name = "Any known log format";
+			private static readonly string name = "Any known log format";
 			public static string id = "<format detector>";
 		};
 	};

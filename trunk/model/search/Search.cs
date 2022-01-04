@@ -18,8 +18,7 @@ namespace LogJoint.Search
 	public static class Extensions
 	{
 		private static readonly bool useRegexsForSimpleTemplates =
-			RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? true : // on mac compiled regex seems to work faster than IndexOf
-			false;
+			RuntimeInformation.IsOSPlatform(OSPlatform.OSX); // on mac compiled regex seems to work faster than IndexOf
 
 		public static MatchedTextRange? SearchInMessageText(
 			this SearchState state,
@@ -49,8 +48,8 @@ namespace LogJoint.Search
 			IRegex re = state.re;
 
 			// matched string position
-			int matchBegin = 0; // index of the first matched char
-			int matchEnd = 0; // index of following after the last matched one
+			int matchBegin; // index of the first matched char
+			int matchEnd; // index of following after the last matched one
 			bool wholeTextMatched = false;
 
 			if (!string.IsNullOrEmpty(state.options.Template)) // empty/null template means that text matching isn't required, i.e. match any input
@@ -139,8 +138,7 @@ namespace LogJoint.Search
 			options.Regexp = e.AttributeValue("regex") == "1";
 			options.WholeWord = e.AttributeValue("whole-word") == "1";
 			options.MatchCase = e.AttributeValue("match-case") == "1";
-			int typesAttrs;
-			if (!int.TryParse(e.AttributeValue("messages-types"), out typesAttrs))
+			if (!int.TryParse(e.AttributeValue("messages-types"), out int typesAttrs))
 				typesAttrs = 0;
 			options.ContentTypes = ((MessageFlag)typesAttrs) & MessageFlag.ContentTypeMask;
 			return options;

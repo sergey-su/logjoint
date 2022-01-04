@@ -12,7 +12,12 @@ namespace LogJoint
     {
         Task tail = Task.CompletedTask;
 
-        public Task AddTask(Func<Task> task)
+        public void AddTask(Func<Task> task)
+        {
+            tail = Add(tail, task);
+        }
+
+        public Task AddTaskAndGetTail(Func<Task> task)
         {
             tail = Add(tail, task);
             return tail;

@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 
 namespace LogJoint.UI.Presenters.ToolsContainer
 {
 	class Presenter : IViewModel, IPresenter
 	{
 		readonly IChangeNotification changeNotification;
-		bool isVisible = true;
+		bool isVisible = false;
 		double? size = null;
 		int selectedToolIndex = 0;
-		IReadOnlyList<ToolKind> availableTools = new[] { ToolKind.StateInspector, ToolKind.Timeline, ToolKind.MessageProperties };
+		readonly IReadOnlyList<ToolKind> availableTools = new[] { ToolKind.StateInspector, ToolKind.Timeline, ToolKind.MessageProperties };
 		readonly Func<IReadOnlyList<ToolInfo>> availableToolsInfo;
 
 		public Presenter(IChangeNotification changeNotification)
@@ -86,17 +85,13 @@ namespace LogJoint.UI.Presenters.ToolsContainer
 
 		static ToolInfo ToToolInfo(ToolKind kind)
 		{
-			switch (kind)
+			return kind switch
 			{
-				case ToolKind.StateInspector:
-					return new ToolInfo { Kind = kind, Name = "StateInspector", Tooltip = null };
-				case ToolKind.MessageProperties:
-					return new ToolInfo { Kind = kind, Name = "Log message", Tooltip = null };
-				case ToolKind.Timeline:
-					return new ToolInfo { Kind = kind, Name = "Timeline", Tooltip = null };
-				default:
-					return new ToolInfo { Kind = kind, Name = "?", Tooltip = "?" };
-			}
+				ToolKind.StateInspector => new ToolInfo { Kind = kind, Name = "StateInspector", Tooltip = null },
+				ToolKind.MessageProperties => new ToolInfo { Kind = kind, Name = "Log message", Tooltip = null },
+				ToolKind.Timeline => new ToolInfo { Kind = kind, Name = "Timeline", Tooltip = null },
+				_ => new ToolInfo { Kind = kind, Name = "?", Tooltip = "?" },
+			};
 		}
 	}
 }

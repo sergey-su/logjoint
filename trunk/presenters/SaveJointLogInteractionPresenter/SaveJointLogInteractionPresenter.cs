@@ -47,18 +47,16 @@ namespace LogJoint.UI.Presenters.SaveJointLogInteractionPresenter
 				return;
 			try
 			{
-				using (var status = statusReport.CreateNewStatusReport())
-				using (var progress = progressFactory.CreateProgressAggregator())
-				using (var manualCancellation = new CancellationTokenSource())
-				using (var cancellation = CancellationTokenSource.CreateLinkedTokenSource(manualCancellation.Token, shutdown.ShutdownToken))
-				{
-					status.SetCancellationHandler(() => manualCancellation.Cancel());
-					void setStatusText(int percentCompleted) =>
-						status.ShowStatusText(string.Format("Saving joint log {0}%", percentCompleted), autoHide: false);
-					setStatusText(0);
-					progress.ProgressChanged += (s, e) => setStatusText(e.ProgressPercentage);
-					await LogSourcesManagerExtensions.SaveJoinedLog(logSources, cancellation.Token, progress, filename);
-				}
+				using var status = statusReport.CreateNewStatusReport();
+				using var progress = progressFactory.CreateProgressAggregator();
+				using var manualCancellation = new CancellationTokenSource();
+				using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(manualCancellation.Token, shutdown.ShutdownToken);
+				status.SetCancellationHandler(() => manualCancellation.Cancel());
+				void setStatusText(int percentCompleted) =>
+					status.ShowStatusText(string.Format("Saving joint log {0}%", percentCompleted), autoHide: false);
+				setStatusText(0);
+				progress.ProgressChanged += (s, e) => setStatusText(e.ProgressPercentage);
+				await LogSourcesManagerExtensions.SaveJoinedLog(logSources, cancellation.Token, progress, filename);
 			}
 			catch (Exception e)
 			{

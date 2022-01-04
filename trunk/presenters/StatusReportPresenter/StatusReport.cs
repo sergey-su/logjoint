@@ -60,8 +60,7 @@ namespace LogJoint.UI.Presenters.StatusReports
 
 		internal void Cancel()
 		{
-			if (cancellationHandler != null)
-				cancellationHandler();
+			cancellationHandler?.Invoke();
 		}
 
 		internal void Activate()

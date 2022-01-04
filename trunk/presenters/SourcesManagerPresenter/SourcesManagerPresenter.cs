@@ -15,9 +15,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		public Presenter(
 			ILogSourcesManager logSources,
 			IUserDefinedFormatsManager udfManager,
-			IRecentlyUsedEntities mru,
 			Preprocessing.IManager logSourcesPreprocessings,
-			Preprocessing.IStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
@@ -33,9 +31,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		{
 			this.logSources = logSources;
 			this.udfManager = udfManager;
-			this.mru = mru;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
-			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.workspacesManager = workspacesManager;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
@@ -214,29 +210,12 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void SetWaitState(bool value)
 		{
-			if (OnBusyState != null)
-				OnBusyState(this, new BusyStateEventArgs(value));
-		}
-
-		static string MakeInplaceAnnotation(string ann)
-		{
-			if (string.IsNullOrEmpty(ann))
-				return null;
-
-			ann = string.Join(" ", ann.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-
-			int lengthLimit = 35;
-			if (ann.Length > lengthLimit)
-				ann = ann.Substring(0, lengthLimit - 3) + "...";
-
-			return ann;
+			OnBusyState?.Invoke(this, new BusyStateEventArgs(value));
 		}
 
 		readonly ILogSourcesManager logSources;
 		readonly IUserDefinedFormatsManager udfManager;
-		readonly IRecentlyUsedEntities mru;
 		readonly Preprocessing.IManager logSourcesPreprocessings;
-		readonly Preprocessing.IStepsFactory preprocessingStepsFactory;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;

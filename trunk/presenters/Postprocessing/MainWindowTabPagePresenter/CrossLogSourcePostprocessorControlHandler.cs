@@ -67,7 +67,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			return new ControlData(false, content, color, progress);
 		}
 
-		async void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
+		void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
 		{
 			var state = correlationManager.StateSummary;
 			switch (actionId)

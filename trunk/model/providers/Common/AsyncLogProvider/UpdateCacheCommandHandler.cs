@@ -127,102 +127,100 @@ namespace LogJoint
 
 		async Task FillCacheRanges(CancellationToken cancellationToken)
 		{
-			using (var perfop = new Profiling.Operation(tracer, "FillRanges"))
+			using var perfop = new Profiling.Operation(tracer, "FillRanges");
+			bool updateStarted = false;
+
+			// Iterate through the ranges
+			for (; ; )
 			{
-				bool updateStarted = false;
-
-				// Iterate through the ranges
-				for (; ; )
+				cancellationToken.ThrowIfCancellationRequested();
+				currentRange = buffer.GetNextRangeToFill();
+				if (currentRange == null) // Nothing to fill
 				{
-					cancellationToken.ThrowIfCancellationRequested();
-					currentRange = buffer.GetNextRangeToFill();
-					if (currentRange == null) // Nothing to fill
+					break;
+				}
+				currentMessagesContainer = buffer;
+				tracer.Info("currentRange={0}", currentRange);
+
+				bool failed = false;
+				try
+				{
+					if (!updateStarted)
 					{
-						break;
+						tracer.Info("Starting to update the messages.");
+
+						updateStarted = true;
 					}
-					currentMessagesContainer = buffer;
-					tracer.Info("currentRange={0}", currentRange);
 
-					bool failed = false;
-					try
+					long messagesRead = 0;
+
+					ResetFlags();
+
+					await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(
+							currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
+							MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
+							MessagesParserDirection.Forward,
+							postprocessor: null,
+							cancellation: cancellationToken)), async parser =>
 					{
-						if (!updateStarted)
+						tracer.Info("parser created");
+						for (; ; )
 						{
-							tracer.Info("Starting to update the messages.");
+							cancellationToken.ThrowIfCancellationRequested();
 
-							updateStarted = true;
-						}
+							ResetFlags();
 
-						long messagesRead = 0;
-
-						ResetFlags();
-
-						await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(
-								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
-								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
-								MessagesParserDirection.Forward,
-								postprocessor: null,
-								cancellation: cancellationToken)), async parser =>
-						{
-							tracer.Info("parser created");
-							for (; ; )
+							if (!await ReadNextMessage(parser))
 							{
 								cancellationToken.ThrowIfCancellationRequested();
-
-								ResetFlags();
-
-								if (!await ReadNextMessage(parser))
-								{
-									cancellationToken.ThrowIfCancellationRequested();
-									break;
-								}
-
-								ProcessLastReadMessageAndFlush();
-
-								++messagesRead;
+								break;
 							}
-						});
 
-						tracer.Info("reading finished");
+							ProcessLastReadMessageAndFlush();
 
-						FlushBuffer();
-					}
-					catch
-					{
-						failed = true;
-						throw;
-					}
-					finally
-					{
-						if (!failed)
-						{
-							tracer.Info("Loading of the range finished successfully. Completing the range.");
-							currentRange.Complete();
-							tracer.Info("Disposing the range.");
+							++messagesRead;
 						}
-						else
-						{
-							tracer.Info("Loading failed. Disposing the range without completion.");
-						}
-						currentRange.Dispose();
-						currentRange = null;
-						currentMessagesContainer = null;
-						perfop.Milestone("range completed");
-					}
-				}
-
-				UpdateLoadedTimeStats(reader);
-
-				if (updateStarted)
-				{
-					perfop.Milestone("great success");
-					owner.SetMessagesCache(new AsyncLogProviderDataCache()
-					{
-						Messages = new MessagesContainers.ListBasedCollection(
-							buffer.Forward(0, int.MaxValue).Select(m => m.Message)),
-						MessagesRange = buffer.ActiveRange,
 					});
+
+					tracer.Info("reading finished");
+
+					FlushBuffer();
 				}
+				catch
+				{
+					failed = true;
+					throw;
+				}
+				finally
+				{
+					if (!failed)
+					{
+						tracer.Info("Loading of the range finished successfully. Completing the range.");
+						currentRange.Complete();
+						tracer.Info("Disposing the range.");
+					}
+					else
+					{
+						tracer.Info("Loading failed. Disposing the range without completion.");
+					}
+					currentRange.Dispose();
+					currentRange = null;
+					currentMessagesContainer = null;
+					perfop.Milestone("range completed");
+				}
+			}
+
+			UpdateLoadedTimeStats(reader);
+
+			if (updateStarted)
+			{
+				perfop.Milestone("great success");
+				owner.SetMessagesCache(new AsyncLogProviderDataCache()
+				{
+					Messages = new MessagesContainers.ListBasedCollection(
+						buffer.Forward(0, int.MaxValue).Select(m => m.Message)),
+					MessagesRange = buffer.ActiveRange,
+				});
 			}
 		}
 
@@ -357,7 +355,7 @@ namespace LogJoint
 
 		MessagesContainers.MessagesRange currentRange;
 		MessagesContainers.RangesManagingCollection currentMessagesContainer; // todo: get rid of it
-		List<IMessage> readBuffer = new List<IMessage>();
+		readonly List<IMessage> readBuffer = new List<IMessage>();
 		IMessage lastReadMessage;
 	};
 }

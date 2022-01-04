@@ -13,10 +13,7 @@ namespace LogJoint
 		{
 			this.factory = factory;
 			this.regexFactory = regexFactory;
-
-			if (initialName == null)
-				throw new ArgumentNullException(nameof(initialName));
-			this.initialName = initialName;
+			this.initialName = initialName ?? throw new ArgumentNullException(nameof(initialName));
 			this.enabled = enabled;
 			this.action = action;
 

@@ -67,7 +67,7 @@ namespace LogJoint
 
 			this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
 			this.timeGaps = new TimeGapsDetector(tracer, modelSyncContext, new LogSourceGapsSource(this), traceSourceFactory);
-			this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
+			this.timeGaps.OnTimeGapsChanged += TimeGaps_OnTimeGapsChanged;
 		}
 
 		async Task Init(ILogProviderFactory providerFactory, IConnectionParams connectionParams, Persistence.IStorageManager storageManager)
@@ -232,19 +232,18 @@ namespace LogJoint
 
 		async Task LoadPersistedSettings(IConnectionParams extendedConnectionParams)
 		{
-            await using var settings = await OpenSettings(true);
-            var root = settings.Data.Root;
-            if (root != null)
-            {
-                trackingEnabled = root.AttributeValue("tracking") != "false";
-                annotation = root.AttributeValue("annotation");
-                ITimeOffsets timeOffset;
-                if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out timeOffset) && !timeOffset.IsEmpty)
-                {
-                    extendedConnectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
-                }
-            }
-        }
+			await using var settings = await OpenSettings(true);
+			var root = settings.Data.Root;
+			if (root != null)
+			{
+				trackingEnabled = root.AttributeValue("tracking") != "false";
+				annotation = root.AttributeValue("annotation");
+				if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out ITimeOffsets timeOffset) && !timeOffset.IsEmpty)
+				{
+					extendedConnectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
+				}
+			}
+		}
 
 		public DateRange AvailableTime
 		{
@@ -283,7 +282,7 @@ namespace LogJoint
 			}
 		}
 
-		void timeGaps_OnTimeGapsChanged(object sender, EventArgs e)
+		void TimeGaps_OnTimeGapsChanged(object sender, EventArgs e)
 		{
 			owner.OnTimegapsChanged(this);
 		}

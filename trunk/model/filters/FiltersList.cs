@@ -286,7 +286,7 @@ namespace LogJoint
 
 		#region Members
 
-		IChangeNotification changeNotification;
+		readonly IChangeNotification changeNotification;
 		bool disposed;
 		readonly FiltersListPurpose purpose;
 		readonly List<IFilter> list = new List<IFilter>();
@@ -294,7 +294,7 @@ namespace LogJoint
 		FilterAction actionWhenEmptyOrDisabled;
 		FilterAction? defaultAction;
 		bool filteringEnabled = true;
-		Func<ImmutableList<IFilter>> getItems;
+		readonly Func<ImmutableList<IFilter>> getItems;
 		int filtersVersion;
 
 		#endregion

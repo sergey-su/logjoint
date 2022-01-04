@@ -63,8 +63,8 @@ namespace LogJoint.StreamParsingStrategies
 
 		protected abstract IMessage MakeMessage(TextMessageCapture capture);
 
-		IMessagesSplitter textSplitter;
-		TextMessageCapture capture = new TextMessageCapture();
+		readonly IMessagesSplitter textSplitter;
+		readonly TextMessageCapture capture = new TextMessageCapture();
 		IMessagesPostprocessor postprocessor;
 	}
 }

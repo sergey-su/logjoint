@@ -101,18 +101,18 @@ namespace LogJoint
 		{
 			tasks.AddTask(async () =>
 			{
-                await using var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite);
-                var newContent = items.Select(e =>
-                {
-                    var xml = new XElement(entryNodeName);
-                    e.Save(xml);
-                    return xml;
-                }).ToArray();
-                var root = new XElement(rootNodeName, newContent);
-                root.SetAttributeValue(maxEntriesAttrName, maxItemsCount);
-                section.Data.RemoveNodes();
-                section.Data.Add(root);
-            });
+				await using var section = await (await globalSettings).OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite);
+				var newContent = items.Select(e =>
+				{
+					var xml = new XElement(entryNodeName);
+					e.Save(xml);
+					return xml;
+				}).ToArray();
+				var root = new XElement(rootNodeName, newContent);
+				root.SetAttributeValue(maxEntriesAttrName, maxItemsCount);
+				section.Data.RemoveNodes();
+				section.Data.Add(root);
+			});
 		}
 
 		bool ApplySizeLimit()

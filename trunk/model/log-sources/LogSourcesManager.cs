@@ -18,7 +18,7 @@ namespace LogJoint
 			IShutdown shutdown,
 			ITraceSourceFactory traceSourceFactory,
 			IChangeNotification changeNotification
-		) : this(heartbeat, recentlyUsedEntities, shutdown, traceSourceFactory, changeNotification,
+		) : this(heartbeat, recentlyUsedEntities, shutdown, changeNotification,
 			new LogSourceFactory(threads, bookmarks, invoker, storageManager, traceSourceFactory))
 		{
 		}
@@ -27,12 +27,10 @@ namespace LogJoint
 			IHeartBeatTimer heartbeat,
 			MRU.IRecentlyUsedEntities recentlyUsedEntities,
 			IShutdown shutdown,
-			ITraceSourceFactory traceSourceFactory,
 			IChangeNotification changeNotification,
 			ILogSourceFactory logSourceFactory
 		)
 		{
-			this.tracer = traceSourceFactory.CreateTraceSource("LogSourcesManager", "lsm");
 			this.logSourceFactory = logSourceFactory;
 			this.recentlyUsedEntities = recentlyUsedEntities;
 			this.changeNotification = changeNotification;
@@ -189,7 +187,6 @@ namespace LogJoint
 
 		readonly ILogSourceFactory logSourceFactory;
 		readonly MRU.IRecentlyUsedEntities recentlyUsedEntities;
-		readonly LJTraceSource tracer;
 		readonly IChangeNotification changeNotification;
 		ImmutableList<ILogSource> logSources = ImmutableList<ILogSource>.Empty;
 		readonly Func<ImmutableArray<ILogSource>> visibleItems;

@@ -22,7 +22,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			OnSourcesChanged?.Invoke(this, EventArgs.Empty);
 		}
 
-		public event EventHandler<SourceMessagesChangeArgs> OnSourceMessagesChanged;
+		event EventHandler<SourceMessagesChangeArgs> IModel.OnSourceMessagesChanged
+		{
+			add { }
+			remove { }
+		}
+
 		public event EventHandler OnSourcesChanged;
 
 		IEnumerable<IMessagesSource> IModel.Sources

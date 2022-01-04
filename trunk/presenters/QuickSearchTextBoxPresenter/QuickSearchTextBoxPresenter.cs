@@ -443,14 +443,14 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			}
 			else
 			{
-				Func<int, bool> trySet = val =>
+				bool trySet(int val)
 				{
 					val = RangeUtils.PutInRange(0, suggestions.Length - 1, val);
 					if (!suggestions[val].IsSelectable)
 						return false;
 					selectedSuggestion = val;
 					return true;
-				};
+				}
 				for (int i = 0; ; ++i)
 				{
 					if (trySet(selectedSuggestion + delta.Value + i) || trySet(selectedSuggestion + delta.Value - i))

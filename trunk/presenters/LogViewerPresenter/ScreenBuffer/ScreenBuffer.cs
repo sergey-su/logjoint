@@ -168,7 +168,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation)
 		{
 			var matchMode = mode & BookmarkLookupMode.MatchModeMask;
-			Func<DisplayLine, int> cmp = (DisplayLine l) =>
+			int cmp(DisplayLine l)
 			{
 				var ret = MessagesComparer.CompareLogSourceConnectionIds(l.Message.GetConnectionId(), bookmark.LogSourceConnectionId);
 				if (ret == 0)
@@ -176,7 +176,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (ret == 0)
 					ret = Math.Sign(l.LineIndex - bookmark.LineIndex);
 				return ret;
-			};
+			}
 
 			return await PerformBuffersTransaction(
 				string.Format("MoveToBookmark({0})", mode),
@@ -214,10 +214,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		)
 		{
-			Func<IEnumerable<DisplayLine>, DisplayLine> findNearest = (lines) =>
+			DisplayLine findNearest(IEnumerable<DisplayLine> lines)
 			{
 				return lines.MinByKey(l => (l.Message.Time.ToLocalDateTime() - timestamp).Abs());
-			};
+			}
 
 			if (await PerformBuffersTransaction(
 				string.Format("MoveToTimestamp({0})", timestamp.ToString("O")),
@@ -355,7 +355,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			var currentIndices = bufs.ToDictionary(b => b.Source, b => new Ref<int>());
 
-			Func<LineScrollInfo> calcScrollPosHelper = () =>
+			LineScrollInfo calcScrollPosHelper()
 			{
 				var ret = new LineScrollInfo();
 
@@ -378,7 +378,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 
 				return ret;
-			};
+			}
 
 			foreach (var m in lines)
 			{
@@ -395,11 +395,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		)
 		{
-			Func<SourceBuffer, double> getScrollPosition = buf =>
+			double getScrollPosition(SourceBuffer buf)
 			{
 				var scrollPosRange = buf.Source.ScrollPositionsRange;
 				return scrollPosRange.Begin + position * (double)scrollPosRange.Length;
-			};
+			}
 			return PerformBuffersTransaction(
 				string.Format("MoveToPosition(single, {0})", position),
 				cancellation,
@@ -434,11 +434,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		)
 		{
-			Func<IEnumerable<SourceBuffer>, double> getFlatLogPosition = bufs =>
+			double getFlatLogPosition(IEnumerable<SourceBuffer> bufs)
 			{
 				long fullPositionsRangeLength = bufs.Select(b => b.Source.ScrollPositionsRange.Length).Sum();
 				return position * (double)fullPositionsRangeLength;
-			};
+			}
 			return PerformBuffersTransaction(
 				string.Format("MoveToPosition(multiple, {0})", position),
 				cancellation,
@@ -580,12 +580,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 					double topLineScroll = idxWhole - idx;
 					double ret = idx;
 
-					Action<int, double> applyConstraint = (int newTopLineIdx, double newTopLineScroll) =>
+					void applyConstraint(int newTopLineIdx, double newTopLineScroll)
 					{
 						ret += ((double)topLineIdx - topLineScroll) - ((double)newTopLineIdx - newTopLineScroll);
 						topLineIdx = newTopLineIdx;
 						topLineScroll = newTopLineScroll;
-					};
+					}
 
 					var bufferSize = (int)Math.Ceiling(viewSize + topLineScroll);
 
@@ -684,12 +684,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
 		int buffersVersion;
-		Func<IReadOnlyList<SourceScreenBuffer>> sources;
+		readonly Func<IReadOnlyList<SourceScreenBuffer>> sources;
 		double scrolledLines; // scrolling position as nr of lines. [0..1)
 
 		// computed values
 		ImmutableArray<ScreenBufferEntry> entries;
-		Func<double> bufferPosition;
+		readonly Func<double> bufferPosition;
 
 		readonly Diagnostics diagnostics = new Diagnostics();
 	};

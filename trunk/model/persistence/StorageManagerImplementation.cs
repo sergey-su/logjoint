@@ -142,14 +142,12 @@ namespace LogJoint.Persistence.Implementation
 			}
 			else
 			{
-				using (SHA1 sha1 = new SHA1CryptoServiceProvider())
-				{
-					var longHash = sha1.ComputeHash(Encoding.Unicode.GetBytes(str));
-					var shortHash = new byte[8];
-					for (int i = 0; i < longHash.Length; ++i)
-						shortHash[i % shortHash.Length] ^= longHash[i];
-					return BitConverter.ToUInt64(shortHash, 0);
-				}
+				using SHA1 sha1 = new SHA1CryptoServiceProvider();
+				var longHash = sha1.ComputeHash(Encoding.Unicode.GetBytes(str));
+				var shortHash = new byte[8];
+				for (int i = 0; i < longHash.Length; ++i)
+					shortHash[i % shortHash.Length] ^= longHash[i];
+				return BitConverter.ToUInt64(shortHash, 0);
 			}
 		}
 
@@ -171,8 +169,7 @@ namespace LogJoint.Persistence.Implementation
 				var cleanupInfoContent = await (new StreamReader(cleanupInfoStream, Encoding.ASCII)).ReadToEndAsync();
 				string lastCleanupFormat = "LC=yyyy/MM/dd HH:mm:ss";
 				var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
-				DateTime lastCleanupDate;
-				if (!DateTime.TryParseExact(cleanupInfoContent, lastCleanupFormat, dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastCleanupDate))
+				if (!DateTime.TryParseExact(cleanupInfoContent, lastCleanupFormat, dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out DateTime lastCleanupDate))
 					lastCleanupDate = new DateTime();
 				var now = env.Now;
 				var elapsedSinceLastCleanup = now - lastCleanupDate;
@@ -216,26 +213,25 @@ namespace LogJoint.Persistence.Implementation
 				var dirs = await Task.WhenAll((await FileSystem.ListDirectories("", cancellationToken)).Select(async dir =>
 				{
 					cancellationToken.ThrowIfCancellationRequested();
-                    using var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, readOnly: true);
-                    trace.Info("Handling '{0}'", dir);
-                    if (s == null)
-                    {
-                        trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
-                        return null;
-                    }
-                    var cleanupInfoContent = await (new StreamReader(s, Encoding.ASCII)).ReadToEndAsync();
-                    DateTime lastAccessed;
-                    if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
-                            dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastAccessed))
-                    {
-                        trace.Warning("Could not parse '{0}'; assuming it's very old and therefore first to cleanup", cleanupInfoContent);
-                        lastAccessed = new DateTime(2000, 1, 1);
-                    }
-                    else
-                    {
-                        trace.Info("Last accessed on {0}", lastAccessed);
-                    }
-                    return new { RelativeDirPath = dir, LastAccess = lastAccessed };
+					using var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, readOnly: true);
+					trace.Info("Handling '{0}'", dir);
+					if (s == null)
+					{
+						trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
+						return null;
+					}
+					var cleanupInfoContent = await (new StreamReader(s, Encoding.ASCII)).ReadToEndAsync();
+					if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
+							dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out DateTime lastAccessed))
+					{
+						trace.Warning("Could not parse '{0}'; assuming it's very old and therefore first to cleanup", cleanupInfoContent);
+						lastAccessed = new DateTime(2000, 1, 1);
+					}
+					else
+					{
+						trace.Info("Last accessed on {0}", lastAccessed);
+					}
+					return new { RelativeDirPath = dir, LastAccess = lastAccessed };
                 }));
 				dirs = dirs.Where(dir => dir != null).OrderBy(dir => dir.LastAccess).ToArray();
 				var dirsToDelete = Math.Max(1, dirs.Length / 3);

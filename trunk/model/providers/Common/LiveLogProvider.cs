@@ -171,11 +171,13 @@ namespace LogJoint
 			{
 				string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
 
-				XmlWriterSettings xmlSettings = new XmlWriterSettings();
-				xmlSettings.CloseOutput = true;
-				xmlSettings.ConformanceLevel = ConformanceLevel.Fragment;
-				xmlSettings.OmitXmlDeclaration = false;
-				xmlSettings.Indent = true;
+				XmlWriterSettings xmlSettings = new XmlWriterSettings
+				{
+					CloseOutput = true,
+					ConformanceLevel = ConformanceLevel.Fragment,
+					OmitXmlDeclaration = false,
+					Indent = true
+				};
 
 				output = new LiveLogXMLWriter(
 					new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
@@ -188,7 +190,7 @@ namespace LogJoint
 			}
 			catch (Exception e)
 			{
-				tracer.Error(e, "Failed to inistalize live log reader. Disposing what has been created so far.");
+				tracer.Error(e, "Failed to initialize live log reader. Disposing what has been created so far.");
 				Dispose();
 				throw;
 			}

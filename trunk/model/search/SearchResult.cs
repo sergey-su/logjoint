@@ -9,9 +9,7 @@ namespace LogJoint
 {
 	class SearchResult : ISearchResultInternal, ISearchResult, ITimeGapsSource
 	{
-		readonly ISearchObjectsFactory factory;
 		readonly ISearchManagerInternal owner;
-		readonly ISynchronizationContext modelSynchronization;
 		readonly SearchAllOptions options;
 		readonly IFilter optionsFilter;
 		readonly CancellationTokenSource cancellation;
@@ -27,7 +25,7 @@ namespace LogJoint
 		bool visible;
 		bool pinned;
 		bool visibleOnTimeline;
-		Stopwatch searchTime;
+		readonly Stopwatch searchTime;
 
 		public SearchResult(
 			ISearchManagerInternal owner,
@@ -45,8 +43,6 @@ namespace LogJoint
 			this.owner = owner;
 			this.options = options;
 			this.optionsFilter = optionsFilter;
-			this.factory = factory;
-			this.modelSynchronization = modelSynchronization;
 			this.id = id;
 			this.cancellation = new CancellationTokenSource();
 			this.results = new List<ISourceSearchResultInternal>();

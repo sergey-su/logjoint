@@ -8,7 +8,7 @@ using LogJoint.Search;
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	/// <summary>
-	/// Incapsulates word boundaries detection logic for selection in the viewer.
+	/// Encapsulates word boundaries detection logic for selection in the viewer.
 	/// Meaning of "word" is extended. Whole guids are treated as words.
 	/// </summary>
 	internal interface IWordSelection

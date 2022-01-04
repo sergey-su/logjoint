@@ -200,7 +200,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly LogViewer.IPresenterInternal sampleLogViewerPresenter;
 		readonly TemporaryColorTheme temporaryColorTheme;
 		readonly IModelThreadsInternal sampleThreads;
-		LogViewer.DummyModel dummyModel;
+		readonly LogViewer.DummyModel dummyModel;
 		readonly DateTime sampleMessagesBaseTime;
 		readonly LabeledStepperPresenter.IPresenter fontSizeControl;
 

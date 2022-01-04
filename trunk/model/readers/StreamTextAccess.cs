@@ -23,18 +23,13 @@ namespace LogJoint
 	{
 		public StreamTextAccess(Stream stream, Encoding streamEncoding, TextStreamPositioningParams textStreamPositioningParams)
 		{
-			if (stream == null)
-				throw new ArgumentNullException(nameof (stream));
-			if (streamEncoding == null)
-				throw new ArgumentNullException(nameof (streamEncoding));
-
 			this.textStreamPositioningParams = textStreamPositioningParams;
 			this.binaryBufferSize = textStreamPositioningParams.AlignmentBlockSize;
 			this.maximumSequentialAdvancesAllowed = 4;
 			this.textBufferCapacity = maximumSequentialAdvancesAllowed * binaryBufferSize;
 
-			this.stream = stream;
-			this.encoding = streamEncoding;
+			this.stream = stream ?? throw new ArgumentNullException(nameof (stream));
+			this.encoding = streamEncoding ?? throw new ArgumentNullException(nameof (streamEncoding));
 			this.decoder = this.encoding.GetDecoder();
 			this.maxBytesPerChar = GetMaxBytesPerChar(this.encoding);
 			this.binaryBuffer = new byte[binaryBufferSize];
@@ -515,7 +510,7 @@ namespace LogJoint
 					throw new ObjectDisposedException("TextAccessIterator");
 			}
 
-			StreamTextAccess impl;
+			readonly StreamTextAccess impl;
 			bool disposed;
 		};
 
@@ -530,10 +525,10 @@ namespace LogJoint
 		readonly int maxBytesPerChar; // encoding specific max char size in bytes
 		readonly byte[] binaryBuffer; // raw bytes are read here
 		readonly char[] charBuffer; // decoder converts raw bytes to chars and stores here
-		char[] textBuffer; /* stores current text buffer.
-		                            textBuffer contain characters from the current (latest read) block 
-		                            preceeded (or followed in reverse mode) by characters 
-									that are left from previously read block. */
+		readonly char[] textBuffer; /* stores current text buffer.
+		                               textBuffer contain characters from the current (latest read) block 
+		                               preceeded (or followed in reverse mode) by characters 
+		                               that are left from previously read block. */
 		int textBufferLength;
 		string textBufferAsString; /* caches string (or a substring) returned by textBuffer.ToString().
 		                                   note each time StringBuilder.ToString() is called it generates 

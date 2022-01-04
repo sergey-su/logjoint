@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace LogJoint.Persistence.Implementation
 {
@@ -24,8 +25,8 @@ namespace LogJoint.Persistence.Implementation
 
 		public async ValueTask ReadCleanupInfo()
 		{
-			using (Stream s = await manager.FileSystem.OpenFile(CleanupInfoFilePath, true))
-				cleanupAllowed = s != null;
+			using Stream s = await manager.FileSystem.OpenFile(CleanupInfoFilePath, true);
+			cleanupAllowed = s != null;
 		}
 
 		public async ValueTask WriteCleanupInfoIfCleanupAllowed()
@@ -76,7 +77,7 @@ namespace LogJoint.Persistence.Implementation
 			}
 		}
 
-		async IAsyncEnumerable<SectionInfo> IStorageEntry.EnumSections(CancellationToken cancellation)
+		async IAsyncEnumerable<SectionInfo> IStorageEntry.EnumSections([EnumeratorCancellation] CancellationToken cancellation)
 		{
 			foreach (var sectionFile in await manager.FileSystem.ListFiles(path, cancellation))
 			{
@@ -89,22 +90,18 @@ namespace LogJoint.Persistence.Implementation
 
 		async Task IStorageEntry.TakeSectionSnapshot(string sectionId, Stream targetStream)
 		{
-			using (var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true))
-			{
-				if (fs != null)
-					await fs.CopyToAsync(targetStream);
-			}
+			using var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true);
+			if (fs != null)
+				await fs.CopyToAsync(targetStream);
 		}
 
 		async Task IStorageEntry.LoadSectionFromSnapshot(string sectionId, Stream sourceStream, CancellationToken cancellation)
 		{
-			using (var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false))
-			{
-				fs.SetLength(0);
-				fs.Position = 0;
-				await sourceStream.CopyToAsync(fs, 4000, cancellation);
-				await fs.FlushAsync();
-			}
+			using var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false);
+			fs.SetLength(0);
+			fs.Position = 0;
+			await sourceStream.CopyToAsync(fs, 4000, cancellation);
+			await fs.FlushAsync();
 		}
 
 		string CleanupInfoFilePath

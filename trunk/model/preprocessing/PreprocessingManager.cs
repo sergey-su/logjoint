@@ -38,7 +38,6 @@ namespace LogJoint.Preprocessing
 			this.extensions = extensions;
 			this.telemetry = telemetry;
 			this.tempFilesManager = tempFilesManager;
-			this.logSourcesManager = logSourcesManager;
 			this.changeNotification = changeNotification;
 
 			extensions.Register(builtinStepsExtension);
@@ -87,8 +86,7 @@ namespace LogJoint.Preprocessing
 			var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
 			if (stepObjects.Any(s => s == null))
 				return null;
-			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
-			if (getStep == null)
+			if (!(stepObjects.FirstOrDefault() is IGetPreprocessingStep getStep))
 				return null;
 			if (stepObjects.Skip(1).SkipWhile(s => s is IDownloadPreprocessingStep).Any(s => s is IUnpackPreprocessingStep))
 				return getStep.GetContentsContainerName(steps[0].Argument);
@@ -99,8 +97,7 @@ namespace LogJoint.Preprocessing
 		{
 			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
 			var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
-			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
-			if (getStep != null)
+			if (stepObjects.FirstOrDefault() is IGetPreprocessingStep getStep)
 				return getStep.GetContentsUrl(steps[0].Argument);
 			var path = connectParams[ConnectionParamsKeys.PathConnectionParam];
 			if (!tempFilesManager.IsTemporaryFile(path))
@@ -112,9 +109,8 @@ namespace LogJoint.Preprocessing
 		{
 			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
 			var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
-			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
 			string fileName = null;
-			if (getStep != null)
+			if (stepObjects.FirstOrDefault() is IGetPreprocessingStep getStep)
 			{
 				var secondStep = stepObjects.Skip(1).FirstOrDefault();
 				if (secondStep == null || secondStep is IUnpackPreprocessingStep)
@@ -172,30 +168,28 @@ namespace LogJoint.Preprocessing
 				this.options = options;
 				preprocLogic = async () =>
 				{
-					using (var perfop = new Profiling.Operation(trace, displayName))
+					using var perfop = new Profiling.Operation(trace, displayName);
+					for (var steps = new Queue<IPreprocessingStep>(initialSteps); ;)
 					{
-						for (var steps = new Queue<IPreprocessingStep>(initialSteps); ;)
+						if (cancellation.IsCancellationRequested)
+							break;
+						nextSteps = steps;
+						if (steps.Count > 0)
 						{
-							if (cancellation.IsCancellationRequested)
-								break;
-							nextSteps = steps;
-							if (steps.Count > 0)
-							{
-								IPreprocessingStep currentStep = steps.Dequeue();
-								await currentStep.Execute(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
-								perfop.Milestone("completed " + currentStep.ToString());
-							}
-							else
-							{
-								foreach (var e in owner.extensions.Items)
-									await e.FinalizePreprocessing(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
-								perfop.Milestone("notified extensions about finalization");
-								if (steps.Count == 0)
-									break;
-							}
-							nextSteps = null;
-							currentDescription = genericProcessingDescription;
+							IPreprocessingStep currentStep = steps.Dequeue();
+							await currentStep.Execute(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+							perfop.Milestone("completed " + currentStep.ToString());
 						}
+						else
+						{
+							foreach (var e in owner.extensions.Items)
+								await e.FinalizePreprocessing(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+							perfop.Milestone("notified extensions about finalization");
+							if (steps.Count == 0)
+								break;
+						}
+						nextSteps = null;
+						currentDescription = genericProcessingDescription;
 					}
 				};
 			}
@@ -212,30 +206,27 @@ namespace LogJoint.Preprocessing
 				preprocLogic = async () =>
 				{
 					IConnectionParams preprocessedConnectParams = null;
-					IFileBasedLogProviderFactory fileBasedFactory = recentLogEntry.Factory as IFileBasedLogProviderFactory;
 					bool interrupted = false;
-					if (fileBasedFactory != null)
+					if (recentLogEntry.Factory is IFileBasedLogProviderFactory fileBasedFactory)
 					{
-						using (var perfop = new Profiling.Operation(trace, recentLogEntry.Factory.GetUserFriendlyConnectionName(recentLogEntry.ConnectionParams)))
+						using var perfop = new Profiling.Operation(trace, recentLogEntry.Factory.GetUserFriendlyConnectionName(recentLogEntry.ConnectionParams));
+						PreprocessingStepParams currentParams = null;
+						foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
 						{
-							PreprocessingStepParams currentParams = null;
-							foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
+							currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+							perfop.Milestone(string.Format("completed {0}", loadedStep));
+							if (currentParams == null)
 							{
-								currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
-								perfop.Milestone(string.Format("completed {0}", loadedStep));
-								if (currentParams == null)
-								{
-									interrupted = true;
-									break;
-								}
-								currentDescription = genericProcessingDescription;
+								interrupted = true;
+								break;
 							}
-							if (currentParams != null)
-							{
-								preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Location);
-								currentParams.DumpToConnectionParams(preprocessedConnectParams);
-								recentLogEntry.ConnectionParams.MaybeCopyDisplayName(preprocessedConnectParams);
-							}
+							currentDescription = genericProcessingDescription;
+						}
+						if (currentParams != null)
+						{
+							preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Location);
+							currentParams.DumpToConnectionParams(preprocessedConnectParams);
+							recentLogEntry.ConnectionParams.MaybeCopyDisplayName(preprocessedConnectParams);
 						}
 					}
 					if (!interrupted)
@@ -280,8 +271,7 @@ namespace LogJoint.Preprocessing
 						bool isExpected = false;
 						for (; ; )
 						{
-							var agg = failure as AggregateException;
-							if (agg == null || agg.InnerException == null)
+							if (!(failure is AggregateException agg) || agg.InnerException == null)
 								break;
 							isExpected = isExpected || agg is ExpectedErrorException;
 							failure = agg.InnerException;
@@ -555,7 +545,7 @@ namespace LogJoint.Preprocessing
 			string currentDescription = "";
 			bool isLongRunning;
 			Exception failure;
-			Func<Task> preprocLogic;
+			readonly Func<Task> preprocLogic;
 			Task task; // this task never fails
 			Queue<IPreprocessingStep> nextSteps;
 
@@ -704,7 +694,6 @@ namespace LogJoint.Preprocessing
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly LJTraceSource trace;
 		readonly ITempFilesManager tempFilesManager;
-		readonly ILogSourcesManager logSourcesManager;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>(); // todo: move to separate class
 		int lastPreprocId;

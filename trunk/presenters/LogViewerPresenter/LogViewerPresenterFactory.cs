@@ -42,7 +42,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				synchronizationContext
 			);
 			return new Presenter(model, synchronizationContext,
-				clipboard, settings, hlFilters, bookmarks, bookmarksFactory, telemetry,
+				clipboard, hlFilters, bookmarks, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
 				new GlobalSettingsAppearanceStrategy(settings)
@@ -62,7 +62,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IFiltersList highlightFilters = null;
 			return (
 				new Presenter(model, synchronizationContext,
-					clipboard, settings, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
+					clipboard, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
 					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
 					new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy)
@@ -76,8 +76,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IFiltersList highlightFilter = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting, null);
 			highlightFilter.FilteringEnabled = false;
 			IPresenterInternal result = new Presenter(
-				model, synchronizationContext, clipboard,
-				Settings.DefaultSettingsAccessor.Instance, highlightFilter,
+				model, synchronizationContext, clipboard, highlightFilter,
 				null, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification),
 				changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,

@@ -298,7 +298,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		{
 			var stats = logProvider.Stats;
 			string errorMsg = null;
-			string labelValue = null;
+			string labelValue;
 			switch (stats.State)
 			{
 				case LogProviderState.DetectingAvailableTime:

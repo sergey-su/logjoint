@@ -22,7 +22,6 @@ namespace LogJoint.Telemetry
 		const int maxExceptionsInfoLen = 1024 * 16;
 		readonly ITelemetryUploader telemetryUploader;
 		Persistence.IStorageEntry telemetryStorageEntry;
-		readonly ISynchronizationContext synchronization;
 		readonly IMemBufferTraceAccess traceAccess;
 		readonly Task inited;
 		readonly TaskChain queue = new TaskChain();
@@ -37,14 +36,14 @@ namespace LogJoint.Telemetry
 		readonly Task worker;
 
 		readonly object sync = new object();
-		Dictionary<string, XElement> sessionsAwaitingUploading = new Dictionary<string, XElement>();
+		readonly Dictionary<string, XElement> sessionsAwaitingUploading = new Dictionary<string, XElement>();
 		TaskCompletionSource<int> sessionsAwaitingUploadingChanged = new TaskCompletionSource<int>();
-		HashSet<string> uploadedSessions = new HashSet<string>();
+		readonly HashSet<string> uploadedSessions = new HashSet<string>();
 
 		readonly int sessionStartedMillis;
 		int totalNfOfLogs;
 		int maxNfOfSimultaneousLogs;
-		StringBuilder exceptionsInfo = new StringBuilder();
+		readonly StringBuilder exceptionsInfo = new StringBuilder();
 		readonly Dictionary<string, UsedFeature> usedFeatures = new Dictionary<string, UsedFeature>();
 
 		bool disposed;
@@ -61,7 +60,6 @@ namespace LogJoint.Telemetry
 		{
 			this.trace = traceSourceFactory.CreateTraceSource("Telemetry");
 			this.telemetryUploader = telemetryUploader;
-			this.synchronization = synchronization;
 			this.traceAccess = traceAccess;
 
 			this.sessionStartedMillis = Environment.TickCount;
@@ -174,8 +172,7 @@ namespace LogJoint.Telemetry
 				return;
 			lock (sync)
 			{
-				UsedFeature feature;
-				if (!usedFeatures.TryGetValue(featureId, out feature))
+				if (!usedFeatures.TryGetValue(featureId, out UsedFeature feature))
 					usedFeatures.Add(featureId, feature = new UsedFeature());
 				feature.useCounter++;
 				if (subFeaturesUseCounters != null)
@@ -199,32 +196,30 @@ namespace LogJoint.Telemetry
 		{
 			try
 			{
-				using (var zipMemoryStream = new MemoryStream())
+				using var zipMemoryStream = new MemoryStream();
+				using (var zipOutputStream = new ZipOutputStream(zipMemoryStream))
 				{
-					using (var zipOutputStream = new ZipOutputStream(zipMemoryStream))
+					zipOutputStream.IsStreamOwner = false;
+					zipOutputStream.SetLevel(9);
+
+					var newEntry = new ZipEntry("description.txt");
+					zipOutputStream.PutNextEntry(newEntry);
+					using (var descriptionWriter = new StreamWriter(zipOutputStream, Encoding.UTF8, 1024, leaveOpen: true))
 					{
-						zipOutputStream.IsStreamOwner = false;
-						zipOutputStream.SetLevel(9);
-
-						var newEntry = new ZipEntry("description.txt");
-						zipOutputStream.PutNextEntry(newEntry);
-						using (var descriptionWriter = new StreamWriter(zipOutputStream, Encoding.UTF8, 1024, leaveOpen: true))
-						{
-							descriptionWriter.Write(description);
-						}
-						zipOutputStream.CloseEntry();
-
-						newEntry = new ZipEntry("membuffer.log");
-						zipOutputStream.PutNextEntry(newEntry);
-						using (var logWriter = new StreamWriter(zipOutputStream, Encoding.UTF8, 1024, leaveOpen: true))
-						{
-							traceAccess.ClearMemBufferAndGetCurrentContents(logWriter);
-						}
-						zipOutputStream.CloseEntry();
+						descriptionWriter.Write(description);
 					}
-					zipMemoryStream.Position = 0;
-					await telemetryUploader.UploadIssueReport(zipMemoryStream, cancellation);
+					zipOutputStream.CloseEntry();
+
+					newEntry = new ZipEntry("membuffer.log");
+					zipOutputStream.PutNextEntry(newEntry);
+					using (var logWriter = new StreamWriter(zipOutputStream, Encoding.UTF8, 1024, leaveOpen: true))
+					{
+						traceAccess.ClearMemBufferAndGetCurrentContents(logWriter);
+					}
+					zipOutputStream.CloseEntry();
 				}
+				zipMemoryStream.Position = 0;
+				await telemetryUploader.UploadIssueReport(zipMemoryStream, cancellation);
 			}
 			catch (Exception e)
 			{
@@ -273,19 +268,17 @@ namespace LogJoint.Telemetry
 				.FirstOrDefault(n => n.Contains("BuildInfo"));
 			if (buildInfoResourceName != null)
 			{
-				using (var reader = new StreamReader(
-					Assembly.GetExecutingAssembly().GetManifestResourceStream(buildInfoResourceName), Encoding.ASCII, false, 1024, true))
+				using var reader = new StreamReader(
+					Assembly.GetExecutingAssembly().GetManifestResourceStream(buildInfoResourceName), Encoding.ASCII, false, 1024, true);
+				for (var lineNr = 0; ; ++lineNr)
 				{
-					for (var lineNr = 0; ; ++lineNr)
-					{
-						var line = reader.ReadLine();
-						if (line == null)
-							break;
-						if (lineNr == 0)
-							staticTelemetryProperties["buildTime"] = line;
-						else if (lineNr == 1)
-							staticTelemetryProperties["sourceRevision"] = line;
-					}
+					var line = reader.ReadLine();
+					if (line == null)
+						break;
+					if (lineNr == 0)
+						staticTelemetryProperties["buildTime"] = line;
+					else if (lineNr == 1)
+						staticTelemetryProperties["sourceRevision"] = line;
 				}
 			}
 

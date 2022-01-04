@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace LogJoint.UI.Presenters.Options.Dialog
 {
@@ -24,23 +21,21 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 
 		void IPresenter.ShowDialog(PageId? initiallySelectedPage)
 		{
-			using (var dialog = view.CreateDialog())
-			{
-				currentDialog = dialog;
-				if (dialog.MemAndPerformancePage != null)
-					memAndPerformancePagePresenter = memAndPerformancePagePresenterFactory(dialog.MemAndPerformancePage);
-				if (dialog.ApperancePage != null)
-					appearancePresenter = appearancePresenterFactory(dialog.ApperancePage);
-				if (dialog.UpdatesAndFeedbackPage != null)
-					updatesAndFeedbackPresenter = updatesAndFeedbackPresenterFactory(dialog.UpdatesAndFeedbackPage);
-				if (dialog.PluginsPage != null)
-					pluginPresenter = pluginsPresenterFactory(dialog.PluginsPage);
-				if (initiallySelectedPage != null && (GetVisiblePages() & initiallySelectedPage.Value) == 0)
-					initiallySelectedPage = null;
-				currentDialog.SetViewModel(this);
-				currentDialog.Show(initiallySelectedPage);
-				currentDialog = null;
-			}
+			using var dialog = view.CreateDialog();
+			currentDialog = dialog;
+			if (dialog.MemAndPerformancePage != null)
+				memAndPerformancePagePresenter = memAndPerformancePagePresenterFactory(dialog.MemAndPerformancePage);
+			if (dialog.ApperancePage != null)
+				appearancePresenter = appearancePresenterFactory(dialog.ApperancePage);
+			if (dialog.UpdatesAndFeedbackPage != null)
+				updatesAndFeedbackPresenter = updatesAndFeedbackPresenterFactory(dialog.UpdatesAndFeedbackPage);
+			if (dialog.PluginsPage != null)
+				pluginPresenter = pluginsPresenterFactory(dialog.PluginsPage);
+			if (initiallySelectedPage != null && (GetVisiblePages() & initiallySelectedPage.Value) == 0)
+				initiallySelectedPage = null;
+			currentDialog.SetViewModel(this);
+			currentDialog.Show(initiallySelectedPage);
+			currentDialog = null;
 		}
 
 		void IDialogViewModel.OnOkPressed()
@@ -75,13 +70,12 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 		{
 			PageId result = PageId.Appearance | PageId.MemAndPerformance;
 			if (updatesAndFeedbackPresenter?.IsAvailable == true)
-				result = result | PageId.UpdatesAndFeedback;
+				result |= PageId.UpdatesAndFeedback;
 			if (pluginPresenter?.IsAvailable == true)
-				result = result | PageId.Plugins;
+				result |= PageId.Plugins;
 			return result;
 		}
 
-		readonly LJTraceSource trace;
 		readonly IView view;
 		readonly Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory;
 		readonly Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory;

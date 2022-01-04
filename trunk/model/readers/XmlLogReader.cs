@@ -251,12 +251,12 @@ namespace LogJoint.XmlFormat
 			return ret;
 		}
 
-		Stack<WriteState> states = new Stack<WriteState>();
+		readonly Stack<WriteState> states = new Stack<WriteState>();
 		string elemName;
 		string attribName;
 		IThread thread;
 		MessageTimestamp dateTime;
-		StringBuilder content = new StringBuilder();
+		readonly StringBuilder content = new StringBuilder();
 		SeverityFlag severity = SeverityFlag.Info;
 		Message output;
 		readonly FieldsProcessor.IMessagesBuilderCallback callback;
@@ -401,15 +401,17 @@ namespace LogJoint.XmlFormat
 
 		static XmlReaderSettings CreateXmlReaderSettings()
 		{
-			XmlReaderSettings xrs = new XmlReaderSettings();
-			xrs.ConformanceLevel = ConformanceLevel.Fragment;
-			xrs.CheckCharacters = false;
-			xrs.CloseInput = false;
+			XmlReaderSettings xrs = new XmlReaderSettings
+			{
+				ConformanceLevel = ConformanceLevel.Fragment,
+				CheckCharacters = false,
+				CloseInput = false
+			};
 			return xrs;
 		}
 
 		static IMessage MakeMessageInternal(TextMessageCapture capture, XmlFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
-			MessagesBuilderCallback callback, XsltArgumentList transformArgs, DateTime sourceTime, ITimeOffsets timeOffsets)
+			MessagesBuilderCallback callback, XsltArgumentList transformArgs, ITimeOffsets timeOffsets)
 		{
 			int nrOfSequentialFailures = 0;
 			int maxNrOfSequentialFailures = 10;
@@ -440,50 +442,48 @@ namespace LogJoint.XmlFormat
 
 				string messageStr = messageBuf.ToString();
 
-				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets, formatInfo.ViewOptions.WrapLineLength))
-				using (XmlReader xmlReader = XmlReader.Create(new StringReader(messageStr), xmlReaderSettings))
+				using FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets, formatInfo.ViewOptions.WrapLineLength);
+				using XmlReader xmlReader = XmlReader.Create(new StringReader(messageStr), xmlReaderSettings);
+				try
 				{
-					try
+					if (formatInfo.IsNativeFormat)
 					{
-						if (formatInfo.IsNativeFormat)
-						{
-							factoryWriter.WriteNode(xmlReader, false);
-						}
-						else
-						{
-							formatInfo.Transform.Transform(xmlReader, transformArgs, factoryWriter);
-						}
-						nrOfSequentialFailures = 0;
+						factoryWriter.WriteNode(xmlReader, false);
 					}
-					catch (XmlException)
+					else
 					{
-						if (capture.IsLastMessage)
-						{
-							// There might be incomplete XML at the end of the stream. Ignore it.
-							return null;
-						}
-						else
-						{
-							if (nrOfSequentialFailures < maxNrOfSequentialFailures)
-							{
-								++nrOfSequentialFailures;
-								// Try to parse the next message if it's not the end of the stream
-								continue;
-							}
-							else
-							{
-								throw;
-							}
-						}
+						formatInfo.Transform.Transform(xmlReader, transformArgs, factoryWriter);
 					}
-					
-					var ret = factoryWriter.GetOutput();
-					if (ret == null)
-						throw new XsltException(
-							"Normalization XSLT produced no output");
-
-					return ret;
+					nrOfSequentialFailures = 0;
 				}
+				catch (XmlException)
+				{
+					if (capture.IsLastMessage)
+					{
+						// There might be incomplete XML at the end of the stream. Ignore it.
+						return null;
+					}
+					else
+					{
+						if (nrOfSequentialFailures < maxNrOfSequentialFailures)
+						{
+							++nrOfSequentialFailures;
+							// Try to parse the next message if it's not the end of the stream
+							continue;
+						}
+						else
+						{
+							throw;
+						}
+					}
+				}
+
+				var ret = factoryWriter.GetOutput();
+				if (ret == null)
+					throw new XsltException(
+						"Normalization XSLT produced no output");
+
+				return ret;
 			}
 		}
 
@@ -517,7 +517,7 @@ namespace LogJoint.XmlFormat
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
 				return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback,
-					reader.transformArgs, media.LastModified, reader.TimeOffsets);
+					reader.transformArgs, reader.TimeOffsets);
 			}
 		};
 
@@ -535,7 +535,7 @@ namespace LogJoint.XmlFormat
 
 		class MultiThreadedStrategyImpl : StreamParsingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
 		{
-			MessagesReader reader;
+			readonly MessagesReader reader;
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
@@ -550,14 +550,16 @@ namespace LogJoint.XmlFormat
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
 				return MakeMessageInternal(capture, reader.formatInfo, threadLocal.bodyRe.Regex, 
-					ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, media.LastModified, reader.TimeOffsets);
+					ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, reader.TimeOffsets);
 			}
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{
-				ProcessingThreadLocalData ret = new ProcessingThreadLocalData();
-				ret.bodyRe = CloneRegex(reader.formatInfo.BodyRe);
-				ret.callback = reader.CreateMessageBuilderCallback();
-				ret.bodyMatch = null;
+				ProcessingThreadLocalData ret = new ProcessingThreadLocalData
+				{
+					bodyRe = CloneRegex(reader.formatInfo.BodyRe),
+					callback = reader.CreateMessageBuilderCallback(),
+					bodyMatch = null
+				};
 				return ret;
 			}
 		};
@@ -583,7 +585,6 @@ namespace LogJoint.XmlFormat
 				StreamEncoding,
 				false,
 				formatInfo.HeadRe,
-				threads,
 				traceSourceFactory,
 				regexFactory
 			));
@@ -689,7 +690,7 @@ namespace LogJoint.XmlFormat
 		readonly ITempFilesManager tempFilesManager;
 		readonly ReaderFactory readerFactory;
 		readonly ProviderFactory providerFactory;
-		static XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
+		static readonly XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 		static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
 		readonly string uiKey;
 
@@ -737,8 +738,8 @@ namespace LogJoint.XmlFormat
 			{
 				XmlDocument tmpDoc = new XmlDocument();
 				tmpDoc.LoadXml(formatSpecificNode.ToString());
-				XmlElement xsl = tmpDoc.DocumentElement.SelectSingleNode("xsl:stylesheet", nsMgr) as XmlElement;
-				if (xsl == null)
+				XmlElement xsl = 
+					tmpDoc.DocumentElement.SelectSingleNode("xsl:stylesheet", nsMgr) as XmlElement ??
 					throw new Exception("Wrong XML-based format definition: xsl:stylesheet is not defined");
 				
 				LoadedRegex head = ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline);

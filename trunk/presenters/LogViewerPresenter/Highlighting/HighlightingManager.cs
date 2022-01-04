@@ -66,18 +66,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var retLines = new List<StringSlice>();
 			var retLinesMap = new List<int>();
 			int originalTextLineIdx = 0;
-			foreach (var m in FindSearchMatches(msg, originalTextGetter, filters, skipWholeLines: false))
+			foreach (var (b, e, a) in FindSearchMatches(msg, originalTextGetter, filters, skipWholeLines: false))
 			{
 				for (int stage = 0; originalTextLineIdx < originalText.GetLinesCount() && stage != 2; ++originalTextLineIdx)
 				{
 					var line = originalText.GetNthTextLine(originalTextLineIdx);
 					var lineBeginIndex = line.StartIndex - originalText.Text.StartIndex;
 					var lineEndIndex = line.EndIndex - originalText.Text.StartIndex;
-					if (lineBeginIndex >= m.e)
+					if (lineBeginIndex >= e)
 						break;
-					if (stage == 0 && lineEndIndex >= m.b)
+					if (stage == 0 && lineEndIndex >= b)
 						stage = 1;
-					if (stage == 1 && lineEndIndex >= m.e)
+					if (stage == 1 && lineEndIndex >= e)
 						stage = 2;
 					if (stage != 0)
 					{
@@ -211,7 +211,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						MessageTextGetter = displayTextGetter,
 					};
 					var optionsPreprocessed = options.BeginSearch(regexFactory);
-					newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed, wordSelection, 
+					newHandler = new CachingHighlightingHandler(msg => GetSelectionHighlightingRanges(msg, optionsPreprocessed,
 						(normSelection.First.Message, beginIdx + line.StartIndex - text.Text.StartIndex)), cacheSize);
 				}
 			}
@@ -220,7 +220,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private static IEnumerable<(int, int, Color)> GetSelectionHighlightingRanges(
-			IMessage msg, Search.SearchState searchOpts, IWordSelection wordSelection, (IMessage msg, int charIdx) originalSelection)
+			IMessage msg, Search.SearchState searchOpts, (IMessage msg, int charIdx) originalSelection)
 		{
 			for (int? startPos = null; ;)
 			{

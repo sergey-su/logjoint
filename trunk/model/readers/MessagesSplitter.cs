@@ -427,8 +427,8 @@ namespace LogJoint
 		}
 
 		readonly ITextAccess textAccess;
-
-		IRegex forwardModeRe, backwardModeRe;
+		private readonly IRegex forwardModeRe;
+		private IRegex backwardModeRe;
 		IMatch forwardModeMatch, backwardModeMatch;
 		readonly int bufferLengthThreshold;
 
@@ -464,10 +464,7 @@ namespace LogJoint
 	{
 		public ReadMessageFromTheMiddleProblem(IMessagesSplitter underlyingSplitter)
 		{
-			if (underlyingSplitter == null)
-				throw new ArgumentNullException("underlyingSplitter");
-
-			this.underlyingSplitter = underlyingSplitter;
+			this.underlyingSplitter = underlyingSplitter ?? throw new ArgumentNullException("underlyingSplitter");
 		}
 
 		public IRegex MessageHeaderRegex

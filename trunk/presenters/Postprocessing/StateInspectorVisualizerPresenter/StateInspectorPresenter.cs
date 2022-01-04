@@ -124,7 +124,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				() => bookmarks.Items,
 				boormarksItems =>
 				{
-					Predicate<IStateHistoryItem> result = (item) =>
+					bool result(IStateHistoryItem item)
 					{
 						var change = (item as StateHistoryItem)?.Event;
 						if (change == null || change.Output.LogSource.IsDisposed)
@@ -134,8 +134,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 								change.Output.LogSource.GetSafeConnectionId(), change.Trigger.StreamPosition, 0);
 						var pos = boormarksItems.FindBookmark(bmk);
 						return pos.Item2 > pos.Item1;
-					};
-					return result;
+					}
+					return (Predicate<IStateHistoryItem>)result;
 				}
 			);
 
@@ -146,7 +146,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				focusedMessageInfo =>
 				{
 					var cache = new Dictionary<IStateInspectorOutputsGroup, FocusedMessageEventsRange>();
-					Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange> result = forGroup =>
+					FocusedMessageEventsRange result(IStateInspectorOutputsGroup forGroup)
 					{
 						if (!cache.TryGetValue(forGroup, out FocusedMessageEventsRange eventsRange))
 						{
@@ -155,8 +155,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 							cache.Add(forGroup, eventsRange);
 						}
 						return eventsRange;
-					};
-					return result;
+					}
+					return (Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange>)result;
 				}
 			);
 
@@ -228,11 +228,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		bool IPresenterInternal.TrySelectObject(ILogSource source, TextLogEventTrigger creationTrigger, Func<IVisualizerNode, int> disambiguationFunction)
 		{
-			Func<IInspectedObject, bool> predecate = obj =>
+			bool predecate(IInspectedObject obj)
 			{
 				return obj.Owner.Outputs.Any(o => o.LogSource == source)
 					&& obj.StateChangeHistory.Any(change => change.Trigger.CompareTo(creationTrigger) == 0);
-			};
+			}
 
 			var candidates = EnumRoots().SelectMany(EnumTree).Where(predecate).ToList();
 
@@ -392,8 +392,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		void IViewModel.OnSelectProperty(IPropertyListItem property)
 		{
-			var prop = property as PropertyInfo;
-			selectedProperty = prop != null ? new SelectedProperty(prop.Object, prop.PropertyKey) : null;
+			selectedProperty = property is PropertyInfo prop ? new SelectedProperty(prop.Object, prop.PropertyKey) : null;
 			changeNotification.Post();
 		}
 
@@ -557,15 +556,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		static NodeColoring GetLiveStatusColoring(InspectedObjectLiveStatus liveStatus)
 		{
-			switch (liveStatus)
+			return liveStatus switch
 			{
-				case InspectedObjectLiveStatus.Alive:
-					return NodeColoring.Alive;
-				case InspectedObjectLiveStatus.Deleted:
-					return NodeColoring.Deleted;
-				default:
-					return NodeColoring.NotCreatedYet;
-			}
+				InspectedObjectLiveStatus.Alive => NodeColoring.Alive,
+				InspectedObjectLiveStatus.Deleted => NodeColoring.Deleted,
+				_ => NodeColoring.NotCreatedYet,
+			};
 		}
 
 		static MessageTimestamp GetNodeTimestamp(VisualizerNode node)
@@ -688,12 +684,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			return result.ToImmutable();
 		}
 
-		FocusedMessageEventsRange GetFocusedMessageEqualRange(IInspectedObject obj)
-		{
-			return obj == null ? null : getFocusedMessageEqualRange()(obj.Owner);
-		}
-
-
 		IEnumerable<IInspectedObject> EnumTree(IInspectedObject obj)
 		{
 			return Enumerable.Repeat(obj, 1).Concat(obj.Children.SelectMany(EnumTree));
@@ -742,16 +732,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			}
 		}
 
-		static string GetObjectTypeName(IInspectedObject obj)
-		{
-			if (obj.CreationEvent == null)
-				return null;
-			var createEvt = obj.CreationEvent.OriginalEvent;
-			if (createEvt == null || createEvt.ObjectType == null)
-				return null;
-			return createEvt.ObjectType.TypeName;
-		}
-
 		static string FormatTimestampt(StateInspectorEvent evt)
 		{
 			return evt.Trigger.Timestamp.ToUserFrendlyString(showMilliseconds: true, showDate: false);
@@ -768,8 +748,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		{
 			if (property?.PropertyView == null)
 				return;
-			var evt = property.PropertyView.GetTrigger() as StateInspectorEvent;
-			if (evt == null)
+			if (!(property.PropertyView.GetTrigger() is StateInspectorEvent evt))
 				return;
 			ShowPropertyChange(evt, false);
 		}

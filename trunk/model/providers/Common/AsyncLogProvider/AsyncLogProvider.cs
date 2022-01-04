@@ -78,13 +78,13 @@ namespace LogJoint
 		void ILogProvider.PeriodicUpdate()
 		{
 			CheckDisposed();
-			UpdateInternal (pediodic: true);
+			UpdateInternal ();
 		}
 
 		void ILogProvider.Refresh()
 		{
 			CheckDisposed();
-			UpdateInternal (pediodic: false);
+			UpdateInternal ();
 		}
 
 		Task<DateBoundPositionResponseData> ILogProvider.GetDateBoundPosition(
@@ -346,7 +346,7 @@ namespace LogJoint
 							return;
 					}
 
-					Action<Exception> completeCmd = (error) => CompleteCommand(cmd, error);
+					void completeCmd(Exception error) => CompleteCommand(cmd, error);
 
 					try
 					{
@@ -457,7 +457,7 @@ namespace LogJoint
 		}
 
 
-		void UpdateInternal (bool pediodic)
+		void UpdateInternal ()
 		{
 			if (Interlocked.CompareExchange (ref pendingUpateFlag, 1, 0) == 0)
 			{
@@ -677,8 +677,7 @@ namespace LogJoint
 		Task thread;
 		Exception threadFailureException;
 		IPositionedMessagesReader reader;
-
-		VCSKicksCollection.PriorityQueue<Command> commands = new VCSKicksCollection.PriorityQueue<Command>(new Command.Comparer());
+		readonly VCSKicksCollection.PriorityQueue<Command> commands = new VCSKicksCollection.PriorityQueue<Command>(new Command.Comparer());
 		TaskCompletionSource<int> commandPosted = new TaskCompletionSource<int>();
 		CurrentCommandPreemption currentCommandPreemption;
 
@@ -687,12 +686,12 @@ namespace LogJoint
 		int readerContentsEtag;
 
 		bool disposed;
-		LogProviderStats stats;
+		readonly LogProviderStats stats;
 		LogProviderStats externalStats;
 
 		readonly MessagesContainers.RangesManagingCollection messagesCacheBackbuffer = new MessagesContainers.RangesManagingCollection();
 		AsyncLogProviderDataCache cache;
-		IDateBoundsCache dateBoundsCache = new DateBoundsCache();
+		readonly IDateBoundsCache dateBoundsCache = new DateBoundsCache();
 
 		long activePositionHint;
 		int pendingUpateFlag;

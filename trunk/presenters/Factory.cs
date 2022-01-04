@@ -81,7 +81,7 @@ namespace LogJoint.UI.Presenters
 			IViewsFactory views
 		)
 		{
-			T callOptionalFactory<T>(Func<T> factory) where T : class
+			static T callOptionalFactory<T>(Func<T> factory) where T : class
 			{
 				try
 				{
@@ -167,7 +167,6 @@ namespace LogJoint.UI.Presenters
 				model.Bookmarks,
 				viewerPresenter,
 				statusReportFactory,
-				tabUsageTracker,
 				model.HeartBeatTimer,
 				colorTheme);
 
@@ -360,9 +359,7 @@ namespace LogJoint.UI.Presenters
 			var sourcesManagerPresenter = new SourcesManager.Presenter(
 				model.LogSourcesManager,
 				model.UserDefinedFormatsManager,
-				model.RecentlyUsedLogs,
 				model.LogSourcesPreprocessings,
-				model.PreprocessingStepsFactory,
 				model.WorkspacesManager,
 				sourcesListPresenter,
 				newLogSourceDialogPresenter,
@@ -388,7 +385,7 @@ namespace LogJoint.UI.Presenters
 				model.TelemetryCollector);
 
 
-			Func<IFiltersList, FiltersManager.IView, FiltersManager.IPresenter> createHlFiltersManager = (filters, view) =>
+			FiltersManager.IPresenter createHlFiltersManager(IFiltersList filters, FiltersManager.IView view)
 			{
 				var dialogPresenter = new FilterDialog.Presenter(model.LogSourcesManager, filters, views.CreateHlFilterDialogView(), highlightColorsTable);
 				FiltersListBox.IPresenter listPresenter = new FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter, highlightColorsTable);
@@ -403,7 +400,7 @@ namespace LogJoint.UI.Presenters
 					alertPopup
 				);
 				return managerPresenter;
-			};
+			}
 
 			FiltersManager.IPresenter hlFiltersManagerPresenter = hlFiltersManagerView == null ? null : createHlFiltersManager(
 				model.FiltersManager.HighlightFilters,

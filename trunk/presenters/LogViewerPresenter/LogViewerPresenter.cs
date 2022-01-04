@@ -16,7 +16,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IModel model,
 			ISynchronizationContext synchronizationContext,
 			IClipboardAccess clipboard,
-			Settings.IGlobalSettingsAccessor settings,
 			IFiltersList highlightFilters,
 			IBookmarks bookmarks,
 			IBookmarksFactory bookmarksFactory,
@@ -38,7 +37,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.telemetry = telemetry;
 			this.screenBufferFactory = screenBufferFactory;
 			this.highlightFilters = highlightFilters;
-			this.settings = settings;
 			this.theme = theme;
 			this.viewModeStrategy = viewModeStrategy;
 			this.appearanceStrategy = coloringModeStrategy;
@@ -262,34 +260,32 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<IMessage> IPresenterInternal.Search(SearchOptions opts)
 		{
-			using (var bulkProcessing = opts.Filters.StartBulkProcessing(screenBuffer.DisplayTextGetter, opts.ReverseSearch))
-			{
-				var positiveFilters = opts.Filters.GetPositiveFilters();
-				bool hasEmptyTemplate = positiveFilters.Any(f => f == null ||
-					string.IsNullOrEmpty(f.Options.Template));
-				return await Scan(
-					opts.ReverseSearch,
-					opts.SearchOnlyWithinFocusedMessage,
-					opts.HighlightResult,
-					positiveFilters,
-					(source) =>
+			using var bulkProcessing = opts.Filters.StartBulkProcessing(screenBuffer.DisplayTextGetter, opts.ReverseSearch);
+			var positiveFilters = opts.Filters.GetPositiveFilters();
+			bool hasEmptyTemplate = positiveFilters.Any(f => f == null ||
+				string.IsNullOrEmpty(f.Options.Template));
+			return await Scan(
+				opts.ReverseSearch,
+				opts.SearchOnlyWithinFocusedMessage,
+				opts.HighlightResult,
+				positiveFilters,
+				(source) =>
+				{
+					return (m, messagesProcessed, startFromTextPos) =>
 					{
-						return (m, messagesProcessed, startFromTextPos) =>
-						{
-							if (hasEmptyTemplate)
-								startFromTextPos = null;
-							var rslt = bulkProcessing.ProcessMessage(m, startFromTextPos);
-							if (rslt.Action == FilterAction.Exclude)
-								return null;
-							if (hasEmptyTemplate && messagesProcessed == 1)
-								return null;
-							if (rslt.MatchedRange != null)
-								return Tuple.Create(rslt.MatchedRange.Value.MatchBegin, rslt.MatchedRange.Value.MatchEnd);
-							return Tuple.Create(0, 0); // todo: what to return here?
+						if (hasEmptyTemplate)
+							startFromTextPos = null;
+						var rslt = bulkProcessing.ProcessMessage(m, startFromTextPos);
+						if (rslt.Action == FilterAction.Exclude)
+							return null;
+						if (hasEmptyTemplate && messagesProcessed == 1)
+							return null;
+						if (rslt.MatchedRange != null)
+							return Tuple.Create(rslt.MatchedRange.Value.MatchBegin, rslt.MatchedRange.Value.MatchEnd);
+						return Tuple.Create(0, 0); // todo: what to return here?
 						};
-					}
-				);
-			}
+				}
+			);
 		}
 
 		Task IPresenterInternal.SelectMessageAt(DateTime date, ILogSource[] preferredSources)
@@ -1186,28 +1182,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (selectionManager.Selection == null || highlightFilters == null)
 				return;
-			using (var hlFiltersBulkProcessing = highlightFilters.StartBulkProcessing(
-				screenBuffer.DisplayTextGetter, reverseMatchDirection: false))
-			{
-				await Scan(
-					reverse: reverse,
-					searchOnlyWithinFocusedMessage: false,
-					highlightResult: false,
-					positiveFilters: null,
-					makeMatcher: source =>
+			using var hlFiltersBulkProcessing = highlightFilters.StartBulkProcessing(
+				screenBuffer.DisplayTextGetter, reverseMatchDirection: false);
+			await Scan(
+				reverse: reverse,
+				searchOnlyWithinFocusedMessage: false,
+				highlightResult: false,
+				positiveFilters: null,
+				makeMatcher: source =>
+				{
+					return (m, messagesProcessed, startFromTextPos) =>
 					{
-						return (m, messagesProcessed, startFromTextPos) =>
-						{
-							if (messagesProcessed == 1)
-								return null;
-							var rslt = hlFiltersBulkProcessing.ProcessMessage(m, null);
-							if (rslt.Action != FilterAction.Exclude)
-								return Tuple.Create(0, screenBuffer.DisplayTextGetter(m).Text.Length);
+						if (messagesProcessed == 1)
 							return null;
-						};
-					}
-				);
-			}
+						var rslt = hlFiltersBulkProcessing.ProcessMessage(m, null);
+						if (rslt.Action != FilterAction.Exclude)
+							return Tuple.Create(0, screenBuffer.DisplayTextGetter(m).Text.Length);
+						return null;
+					};
+				}
+			);
 		}
 
 		void SetViewTailMode(bool value, bool externalCall = false)
@@ -1360,11 +1354,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IChangeNotification changeNotification;
 		readonly ISubscription subscription;
 		readonly ISearchResultModel searchResultModel;
-		readonly IPresentersFacade presentationFacade;
 		readonly LJTraceSource tracer;
 		readonly IBookmarks bookmarks;
 		readonly IBookmarksFactory bookmarksFactory;
-		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly LazyUpdateFlag pendingIncrementalUpdateFlag = new LazyUpdateFlag();

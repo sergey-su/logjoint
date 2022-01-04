@@ -61,7 +61,6 @@ namespace LogJoint.UI.Presenters.Timeline
 			IBookmarks bookmarks,
 			LogViewer.IPresenterInternal viewerPresenter,
 			StatusReports.IPresenter statusReportFactory,
-			ITabUsageTracker tabUsageTracker,
 			IHeartBeatTimer heartbeat,
 			IColorTheme theme
 		)
@@ -292,7 +291,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			else
 			{
 				cursor = IsBusy() ? CursorShape.Wait : CursorShape.Arrow;
-				UpdateHotTrackDate(presentationData(), x, y, area);
+				UpdateHotTrackDate(presentationData(), y, area);
 				view.ResetToolTipPoint(x, y);
 			}
 			return cursor;
@@ -334,7 +333,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			else
 			{
 				ShiftRangeInternal(delta);
-				UpdateHotTrackDate(m, x, y, area);
+				UpdateHotTrackDate(m, y, area);
 			}
 		}
 
@@ -442,7 +441,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			ret.Sources = DrawSources(m, drange);
 			ret.RulerMarks = DrawRulers(m, drange, rulerIntervals);
-			DrawDragAreas(m, rulerIntervals, ret, range.Value);
+			DrawDragAreas(rulerIntervals, ret, range.Value);
 			ret.Bookmarks = DrawBookmarks(m, drange, viewerContext.bookmarks);
 			ret.CurrentTime = DrawCurrentViewTime(m, drange, viewerContext.focusedMessage, sources);
 			ret.HotTrackRange = DrawHotTrackRange(m, drange, hotTrack.range);
@@ -566,7 +565,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		}
 
 
-		static void DrawDragAreas(PresentationData m, TimeRulerIntervals? rulerIntervals, DrawInfo di, DateRange range)
+		static void DrawDragAreas(TimeRulerIntervals? rulerIntervals, DrawInfo di, DateRange range)
 		{
 			di.TopDragArea = DrawDragArea(rulerIntervals, range.Begin);
 			di.BottomDragArea = DrawDragArea(rulerIntervals, range.End);
@@ -1019,7 +1018,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void UpdateHotTrackDate(PresentationData m, int x, int y, ViewArea area)
+		void UpdateHotTrackDate(PresentationData m, int y, ViewArea area)
 		{
 			var range = this.range().Value;
 			var availableRange = this.availableRange().Value;
@@ -1454,7 +1453,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		class TimeGapsDetector : ITimeGapsDetector
 		{
-			HashSet<ITimeLineDataSource> listenedSources = new HashSet<ITimeLineDataSource>();
+			readonly HashSet<ITimeLineDataSource> listenedSources = new HashSet<ITimeLineDataSource>();
 			List<ITimeLineDataSource> sources;
 			DateRange fullRange;
 			ITimeGaps gaps;
@@ -1481,7 +1480,11 @@ namespace LogJoint.UI.Presenters.Timeline
 			
 			bool ITimeGapsDetector.IsWorking { get { return false; } }
 
-			public event EventHandler OnTimeGapsChanged;
+			event EventHandler ITimeGapsDetector.OnTimeGapsChanged
+			{
+				add { }
+				remove { }
+			}
 
 			Task ITimeGapsDetector.Dispose ()
 			{

@@ -97,16 +97,14 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			quickSearchPresenter.OnCurrentSuggestionChanged += (sender, e) => 
 			{
 				var datum = quickSearchPresenter.CurrentSuggestion?.Data;
-				var searchHistoryEntry = datum as ISimpleSearchHistoryEntry;
-				if (searchHistoryEntry != null)
+				if (datum is ISimpleSearchHistoryEntry searchHistoryEntry)
 					ReadControlsFromSelectedHistoryEntry(searchHistoryEntry);
 				UpdateUserDefinedSearchDependentControls(
 					datum is IUserDefinedSearch || datum is IUserDefinedSearchHistoryEntry);
 			};
 			quickSearchPresenter.OnSuggestionLinkClicked += (sender, e) => 
 			{
-				var uds = e.Suggestion.Data as IUserDefinedSearch;
-				if (uds == null)
+				if (!(e.Suggestion.Data is IUserDefinedSearch uds))
 					return;
 				searchEditorDialog.Open(uds);
 			};
@@ -247,11 +245,9 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		public static void GetUserFriendlySearchHistoryEntryDescription(
 			ISearchHistoryEntry entry, StringBuilder stringBuilder)
 		{
-			ISimpleSearchHistoryEntry simple;
-			IUserDefinedSearchHistoryEntry uds;
-			if ((simple = entry as ISimpleSearchHistoryEntry) != null)
+			if (entry is ISimpleSearchHistoryEntry simple)
 				GetUserFriendlySearchOptionsDescription(simple.Options, stringBuilder);
-			else if ((uds = entry as IUserDefinedSearchHistoryEntry) != null)
+			else if (entry is IUserDefinedSearchHistoryEntry uds)
 				GetUserFriendlySearchHistoryEntryDescription(uds.UDS, stringBuilder);
 		}
 
@@ -276,8 +272,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		{
 			var controlsState = this.checkedControls;
 
-			var uds = quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearch;
-			if (uds == null)
+			if (!(quickSearchPresenter.CurrentSuggestion?.Data is IUserDefinedSearch uds))
 				uds = (quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearchHistoryEntry)?.UDS;
 
 			Search.Options coreOptions = new Search.Options();
@@ -522,7 +517,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
-		readonly QuickSearchTextBox.IPresenter quickSearchViewModel;
 		readonly SearchEditorDialog.IPresenter searchEditorDialog;
 		readonly SearchesManagerDialog.IPresenter searchesManagerDialog;
 		readonly IAlertPopup alerts;

@@ -149,8 +149,8 @@ namespace LogJoint.MRU
 		}
 
 		Task IRecentlyUsedEntities.Reload()
-        {
-			return tasks.AddTask(async () =>
+		{
+			return tasks.AddTaskAndGetTail(async () =>
 			{
 				var storageEntry = await settingsEntry;
 				await using (var sect = await storageEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))

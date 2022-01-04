@@ -48,8 +48,7 @@ namespace LogJoint
 				return false;
 			foreach (KeyValuePair<string, string> i in values)
 			{
-				string v;
-				if (!other.values.TryGetValue(i.Key, out v))
+				if (!other.values.TryGetValue(i.Key, out string v))
 					return false;
 				if (v != i.Value)
 					return false;
@@ -61,8 +60,7 @@ namespace LogJoint
 		{
 			get
 			{
-				string ret;
-				values.TryGetValue(name, out ret);
+				values.TryGetValue(name, out string ret);
 				return ret;
 			}
 			set 
@@ -90,7 +88,7 @@ namespace LogJoint
 			return buf.ToString();
 		}
 
-		private static Regex re = new Regex(@"
+		private static readonly Regex re = new Regex(@"
 			^ # stick to the beginning
 			\s* # there might be leading space before token
 			(
@@ -127,6 +125,6 @@ namespace LogJoint
 			return token;
 		}
 
-		Dictionary<string, string> values = new Dictionary<string, string>();
+		readonly Dictionary<string, string> values = new Dictionary<string, string>();
 	}
 }

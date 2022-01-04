@@ -250,7 +250,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				{ 
 					Index = i,
 					Delta = copyTimeDeltas ? b.Delta : "",
-					Text = b.Text,
+					b.Text,
 					Bookmark = ((ViewItem)b).bookmark
 				})
 				.ToArray();
