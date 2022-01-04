@@ -22,7 +22,7 @@ namespace LogJoint
 		readonly ITempFilesManager tempFilesManager;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
-		string taskbarFileName;
+		string taskbarName;
 
 		public StreamLogProvider(
 			ILogProviderHost host,
@@ -111,7 +111,7 @@ namespace LogJoint
 		void InitPathDependentMembers(IConnectionParams connectParams)
 		{
 			isSavableAs = false;
-			taskbarFileName = null;
+			taskbarName = null;
 			string guessedFileName = null;
 
 			string fname = connectParams[ConnectionParamsKeys.PathConnectionParam];
@@ -123,22 +123,26 @@ namespace LogJoint
 			string connectionIdentity = connectParams[ConnectionParamsKeys.IdentityConnectionParam];
 			if (connectionIdentity != null)
 				guessedFileName = ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(connectionIdentity);
+			string displayName = connectParams[ConnectionParamsKeys.DisplayNameConnectionParam];
 			if (isSavableAs)
 			{
-				suggestedSaveAsFileName = SanitizeSuggestedFileName(guessedFileName);
+				if (!string.IsNullOrEmpty(displayName))
+					suggestedSaveAsFileName = SanitizeSuggestedFileName(displayName);
+				else
+					suggestedSaveAsFileName = SanitizeSuggestedFileName(guessedFileName);
 			}
-			taskbarFileName = guessedFileName;
+			taskbarName = !string.IsNullOrEmpty(displayName) ? displayName : guessedFileName;
 		}
 
 		public override string GetTaskbarLogName()
 		{
-			return taskbarFileName;
+			return taskbarName;
 		}
 
 		static string SanitizeSuggestedFileName(string str)
 		{
 			var invalidChars = Path.GetInvalidFileNameChars().ToHashSet();
-			return new string(str.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
+			return new string(str.Select(c => invalidChars.Contains(c) ? '_' : c).Take(250).ToArray());
 		}
 	};
 }
