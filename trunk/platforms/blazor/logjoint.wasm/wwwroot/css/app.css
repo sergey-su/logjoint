@@ -1452,6 +1452,7 @@ button {
 
 .settings-panel {
     background: var(--control-face-background);
+    overflow-y: auto;
 }
 
 .settings-panel .debug-label {
@@ -1464,6 +1465,11 @@ button {
     padding: 10px;
     display: flex;
     flex-flow: row wrap;
+    align-items: start;
+}
+
+.settings-panel .debug .db-keys-list {
+    height: 70px;
 }
 
 .settings-panel .debug>* {

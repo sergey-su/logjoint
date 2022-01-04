@@ -59,7 +59,7 @@
     [Parameter]
     public Action<KeyboardEventArgs, IListItem> OnKeyDown { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public IChangeNotification ChangeNotification { get; set; }
 
     protected override void OnInitialized()

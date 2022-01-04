@@ -6,8 +6,10 @@
 @inject LogJoint.UI.Presenters.GlobalSettingsSystemThemeDetector themeDetector;
 @using System.IO;
 @using System.Text;
+@using LogJoint.UI.Presenters.Reactive;
+@using System.Collections.Immutable;
 
-<div class='@Class settings-panel'>
+<div class='@Class settings-panel nice-scroll'>
     <label>
         <input type="checkbox"
                checked="@(themeDetector.Mode == LogJoint.UI.Presenters.ColorThemeMode.Dark)"
@@ -26,7 +28,14 @@
             <button @onclick="LoadUnspecifiedStream" hidden>Load unspecified stream</button>
             <button @onclick="TestLogFs" hidden>Test log fs</button>
             <div>
-                <label>DB key:</label><input @bind="dbKeyName" />
+                <label>db store:</label>
+                <select @bind="dbStoreName">
+                    <option value="userData">userData</option>
+                    <option value="contentCache">contentCache</option>
+                </select>
+                <label>key substring:</label><input @bind="dbKeyName" />
+                <button @onclick="FindDbKeys">Find db keys</button>
+                <ListView Items=@dbKeys OnSelect="SelectDbKey" ChangeNotification="@model.ChangeNotification" Class="db-keys-list" />
                 <button @onclick="DownloadDbValue">Download db value</button>
             </div>
             <input type="file" @ref="fileInputReference" hidden />
@@ -40,8 +49,17 @@
     public string Class { get; set; } = "";
 
     ElementReference fileInputReference;
-    private string dbKeyName;
+    private string dbKeyName = "";
+    private string dbStoreName = "userData";
+    private ImmutableList<DbKeysListItem> dbKeys = ImmutableList<DbKeysListItem>.Empty;
     private bool debugOptionsVisible = false;
+
+    class DbKeysListItem : IListItem
+    {
+        public string Key { get; set; }
+        public bool IsSelected { get; set; }
+        public override string ToString() => Key;
+    };
 
     void ToggleDebugOptions()
     {
@@ -105,10 +123,31 @@
         }
     }
 
+    async Task FindDbKeys()
+    {
+        dbKeys = ImmutableList.CreateRange(
+            (await jsInterop.IndexedDB.Keys(dbStoreName))
+            .Where(k => k.Contains(dbKeyName ?? ""))
+            .Select(k => new DbKeysListItem() { Key = k, IsSelected = false })
+        );
+    }
+
+    void SelectDbKey(IEnumerable<IListItem> selected)
+    {
+        var selectedLookup = selected.Select(i => i.Key).ToHashSet();
+        dbKeys = ImmutableList.CreateRange(
+            dbKeys.Select(k => new DbKeysListItem() { Key = k.Key, IsSelected = selectedLookup.Contains(k.Key) }));
+        StateHasChanged();
+    }
+
     async Task DownloadDbValue()
     {
-        var value = await jsInterop.IndexedDB.Get<byte[]>("userData", dbKeyName);
-        await jsInterop.SaveAs.SaveAs(value, dbKeyName);
+        var key = dbKeys.Where(k => k.IsSelected).Select(k => k.Key).FirstOrDefault();
+        if (key != null)
+        {
+            var value = await jsInterop.IndexedDB.Get<byte[]>(dbStoreName, key);
+            await jsInterop.SaveAs.SaveAs(value, key);
+        }
     }
 
     void SetDarkMode(bool dark)
