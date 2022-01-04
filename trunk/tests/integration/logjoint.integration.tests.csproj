@@ -27,6 +27,7 @@
     <ProjectReference Include="../../sdk/testing/logjoint.testing.sdk.csproj" />
     <ProjectReference Include="../../model/logjoint.model.csproj" />
     <ProjectReference Include="../../presenters/logjoint.presenters.csproj" />
+    <ProjectReference Include="..\..\dynamic-compilation\logjoint.model.dynamic-compilation.csproj" />
   </ItemGroup>
 
   <ItemGroup>

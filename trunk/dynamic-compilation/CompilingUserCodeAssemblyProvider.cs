@@ -13,13 +13,13 @@ using System.Linq;
 
 namespace LogJoint
 {
-	public class ComplingUserCodeAssemblyProvider: IUserCodeAssemblyProvider
+	public class CompilingUserCodeAssemblyProvider: IUserCodeAssemblyProvider
 	{
 		readonly IMetadataReferencesProvider metadataReferencesProvider;
 		Extensibility.IPluginsManagerInternal pluginsManager;
 
 
-		public ComplingUserCodeAssemblyProvider(
+		public CompilingUserCodeAssemblyProvider(
 			IMetadataReferencesProvider metadataReferencesProvider
 		)
 		{

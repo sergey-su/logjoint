@@ -37,7 +37,7 @@ namespace LogJoint
 					TraceListeners = Properties.Settings.Default.TraceListenerConfig != null ?
 						new[] { new TraceListener(Properties.Settings.Default.TraceListenerConfig) } :
 						null,
-					UserCodeAssemblyProvider = new ComplingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
+					UserCodeAssemblyProvider = new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
 				},
 				modelSynchronizationContext,
 				(storageManager) => new UI.LogsPreprocessorCredentialsCache(

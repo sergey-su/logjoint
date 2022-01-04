@@ -60,7 +60,7 @@ namespace LogJoint
 						TraceListeners = new TraceListener[] { traceListener },
 						DisableLogjointInstancesCounting = true,
 						AdditionalFormatDirectories = new string[] { tempFormatsDir },
-						UserCodeAssemblyProvider = new ComplingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
+						UserCodeAssemblyProvider = new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
 					},
 					serialSynchronizationContext,
 					(_1) => null,

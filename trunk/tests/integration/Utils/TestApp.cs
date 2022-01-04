@@ -137,6 +137,7 @@ namespace LogJoint.Tests.Integration
 						TraceListeners = new[] { traceListener },
 						DisableLogjointInstancesCounting = true,
 						AdditionalFormatDirectories = new[] { testFormatsDir },
+						UserCodeAssemblyProvider = new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
 					},
 					serialSynchronizationContext,
 					(_1) => mocks.CredentialsCache,
