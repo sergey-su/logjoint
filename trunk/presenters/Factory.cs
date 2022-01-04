@@ -124,14 +124,11 @@ namespace LogJoint.UI.Presenters
 
 			LogViewer.IPresenterFactory logViewerPresenterFactory = new LogViewer.PresenterFactory(
 				model.ChangeNotification,
-				model.HeartBeatTimer,
-				presentersFacade,
 				clipboardAccess,
 				model.BookmarksFactory,
 				model.TelemetryCollector,
 				model.LogSourcesManager,
 				model.SynchronizationContext,
-				model.ModelThreads,
 				model.FiltersManager.HighlightFilters,
 				model.Bookmarks,
 				model.GlobalSettingsAccessor,

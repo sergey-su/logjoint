@@ -40,7 +40,7 @@ namespace LogJoint.Azure
 			}
 			catch (Exception e)
 			{
-				trace.Error(e, "Failed to initialize WAD reader. Disposing what has been created so far.");
+				tracer.Error(e, "Failed to initialize WAD reader. Disposing what has been created so far.");
 				Dispose();
 				throw;
 			}
@@ -82,11 +82,11 @@ namespace LogJoint.Azure
 			}
 			catch (OperationCanceledException e)
 			{
-				trace.Error(e, "WAD live log thread cancelled");
+				tracer.Error(e, "WAD live log thread cancelled");
 			}
 			catch (Exception e)
 			{
-				trace.Error(e, "WAD live log thread failed");
+				tracer.Error(e, "WAD live log thread failed");
 			}
 		}
 

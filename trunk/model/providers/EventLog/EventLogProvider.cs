@@ -32,7 +32,7 @@ namespace LogJoint.WindowsEventLog
 			}
 			catch (Exception e)
 			{
-				trace.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
+				tracer.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
 				Dispose();
 				throw;
 			}
@@ -40,11 +40,8 @@ namespace LogJoint.WindowsEventLog
 
 		public override async Task Dispose()
 		{
-			using (trace.NewFrame)
-			{
-				trace.Info("Calling base destructor");
-				await base.Dispose();
-			}
+			tracer.Info("Calling base destructor");
+			await base.Dispose();
 		}
 
 		public override string GetTaskbarLogName()
@@ -61,48 +58,45 @@ namespace LogJoint.WindowsEventLog
 
 		async Task Worker(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (this.trace.NewFrame)
+			try
 			{
-				try
+				var query = CreateQuery();
+				for (EventBookmark lastReadBookmark = null; ; )
 				{
-					var query = CreateQuery();
-					for (EventBookmark lastReadBookmark = null; ; )
+					ReportBackgroundActivityStatus(true);
+					using (var reader = new EventLogReader(query, lastReadBookmark))
 					{
-						ReportBackgroundActivityStatus(true);
-						using (var reader = new EventLogReader(query, lastReadBookmark))
+						for (; ; )
 						{
-							for (; ; )
+							using (var eventInstance = reader.ReadEvent())
 							{
-								using (var eventInstance = reader.ReadEvent())
-								{
-									if (eventInstance == null)
-										break;
-									if (stopEvt.IsCancellationRequested)
-										return;
-									WriteEvent(eventInstance, output);
-									lastReadBookmark = eventInstance.Bookmark;
-								}
+								if (eventInstance == null)
+									break;
+								if (stopEvt.IsCancellationRequested)
+									return;
+								WriteEvent(eventInstance, output);
+								lastReadBookmark = eventInstance.Bookmark;
 							}
 						}
-						ReportBackgroundActivityStatus(false);
-						if (eventLogIdentity.Type == EventLogIdentity.EventLogType.File)
-							break;
-						if (stopEvt.IsCancellationRequested)
-							return;
-						try
-						{
-							await stopEvt.ToTask().WithTimeout(TimeSpan.FromSeconds(1000));
-						}
-						catch (TimeoutException)
-						{
-							continue;
-						}
+					}
+					ReportBackgroundActivityStatus(false);
+					if (eventLogIdentity.Type == EventLogIdentity.EventLogType.File)
+						break;
+					if (stopEvt.IsCancellationRequested)
+						return;
+					try
+					{
+						await stopEvt.ToTask().WithTimeout(TimeSpan.FromSeconds(1000));
+					}
+					catch (TimeoutException)
+					{
+						continue;
 					}
 				}
-				catch (Exception e)
-				{
-					this.trace.Error(e, "EVT live log thread failed");
-				}
+			}
+			catch (Exception e)
+			{
+				this.tracer.Error(e, "EVT live log thread failed");
 			}
 		}
 

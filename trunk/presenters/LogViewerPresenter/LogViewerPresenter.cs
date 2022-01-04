@@ -14,8 +14,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		public Presenter(
 			IModel model,
-			IHeartBeatTimer heartbeat,
-			IPresentersFacade navHandler,
+			ISynchronizationContext synchronizationContext,
 			IClipboardAccess clipboard,
 			Settings.IGlobalSettingsAccessor settings,
 			IFiltersList highlightFilters,
@@ -34,7 +33,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.model = model;
 			this.changeNotification = changeNotification;
 			this.searchResultModel = model as ISearchResultModel;
-			this.presentationFacade = navHandler;
 			this.bookmarks = bookmarks;
 			this.bookmarksFactory = bookmarksFactory;
 			this.telemetry = telemetry;
@@ -99,28 +97,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 				changeNotification.Post();
 			};
 
+			invokeUpdate = new AsyncInvokeHelper(synchronizationContext, () =>
+			{
+				bool isIncrementalUpdate = pendingIncrementalUpdateFlag.Validate();
+				bool isFullUpdate = pendingFullUpdateFlag.Validate();
+				if (isFullUpdate || isIncrementalUpdate)
+				{
+					if (viewTailMode || isFullUpdate)
+						ThisIntf.GoToEnd().IgnoreCancellation();
+					else
+						Refresh().IgnoreCancellation();
+				}
+			});
+
 			this.model.OnSourceMessagesChanged += (sender, e) =>
 			{
 				if (e.IsIncrementalChange)
 					pendingIncrementalUpdateFlag.Invalidate();
 				else
 					pendingFullUpdateFlag.Invalidate();
-			};
-
-			heartbeat.OnTimer += (sender, e) =>
-			{
-				if (e.IsNormalUpdate)
-				{
-					bool isIncrementalUpdate = pendingIncrementalUpdateFlag.Validate();
-					bool isFullUpdate = pendingFullUpdateFlag.Validate();
-					if (isFullUpdate || isIncrementalUpdate)
-					{
-						if (viewTailMode || isFullUpdate)
-							ThisIntf.GoToEnd().IgnoreCancellation();
-						else
-							Refresh().IgnoreCancellation();
-					}
-				}
+				invokeUpdate.Invoke();
 			};
 
 			var viewSizeObserver = Updaters.Create(
@@ -1373,6 +1369,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly LazyUpdateFlag pendingIncrementalUpdateFlag = new LazyUpdateFlag();
 		readonly LazyUpdateFlag pendingFullUpdateFlag = new LazyUpdateFlag();
+		readonly AsyncInvokeHelper invokeUpdate;
 		readonly IScreenBuffer screenBuffer;
 		readonly INavigationManager navigationManager;
 		readonly ISelectionManager selectionManager;

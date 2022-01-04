@@ -129,7 +129,6 @@ namespace LogJoint
 
 	public abstract class LiveLogProvider : StreamLogProvider, ILogProvider
 	{
-		protected readonly LJTraceSource trace;
 		readonly IConnectionParams originalConnectionParams;
 		readonly CancellationTokenSource stopEvt;
 		Task listeningThread;
@@ -167,7 +166,6 @@ namespace LogJoint
 				fileSystem
 			)
 		{
-			this.trace = base.tracer;
 			this.originalConnectionParams = new ConnectionParamsReadOnlyView(originalConnectionParams);
 			try
 			{
@@ -184,13 +182,13 @@ namespace LogJoint
 					xmlSettings,
 					defaultBackupMaxFileSize
 				);
-				trace.Info("Output created");
+				tracer.Info("Output created");
 
 				stopEvt = new CancellationTokenSource();
 			}
 			catch (Exception e)
 			{
-				trace.Error(e, "Failed to inistalize live log reader. Disposing what has been created so far.");
+				tracer.Error(e, "Failed to inistalize live log reader. Disposing what has been created so far.");
 				Dispose();
 				throw;
 			}
@@ -204,14 +202,14 @@ namespace LogJoint
 		protected void StartLiveLogThread(string threadName)
 		{
 			listeningThread = TaskUtils.StartInThreadPoolTaskScheduler(ListeningThreadProc);
-			trace.Info("Thread started");
+			tracer.Info("Thread started");
 		}
 
 		public override async Task Dispose()
 		{
 			if (IsDisposed)
 			{
-				trace.Warning("Already disposed");
+				tracer.Warning("Already disposed");
 				return;
 			}
 
@@ -219,14 +217,14 @@ namespace LogJoint
 			{
 				if (listeningThread.IsCompleted)
 				{
-					trace.Info("Thread is not alive.");
+					tracer.Info("Thread is not alive.");
 				}
 				else
 				{
-					trace.Info("Thread has been created. Setting stop event and joining the thread.");
+					tracer.Info("Thread has been created. Setting stop event and joining the thread.");
 					stopEvt.Cancel();
 					await listeningThread;
-					trace.Info("Thread finished");
+					tracer.Info("Thread finished");
 				}
 			}
 
@@ -235,7 +233,7 @@ namespace LogJoint
 				output.Dispose();
 			}
 
-			trace.Info("Calling base destructor");
+			tracer.Info("Calling base destructor");
 			await base.Dispose();
 		}
 
@@ -263,7 +261,7 @@ namespace LogJoint
 			}
 			catch (Exception e)
 			{
-				trace.Error(e, "Live log listening thread failed");
+				tracer.Error(e, "Live log listening thread failed");
 			}
 			finally
 			{

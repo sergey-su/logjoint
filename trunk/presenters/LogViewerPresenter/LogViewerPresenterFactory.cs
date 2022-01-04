@@ -4,14 +4,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		public PresenterFactory(
 			IChangeNotification changeNotification,
-			IHeartBeatTimer heartbeat,
-			IPresentersFacade presentationFacade,
 			IClipboardAccess clipboard,
 			IBookmarksFactory bookmarksFactory,
 			Telemetry.ITelemetryCollector telemetry,
 			ILogSourcesManager logSources,
-			ISynchronizationContext modelInvoke,
-			IModelThreads modelThreads,
+			ISynchronizationContext synchronizationContext,
 			IFiltersList hlFilters,
 			IBookmarks bookmarks,
 			Settings.IGlobalSettingsAccessor settings,
@@ -23,14 +20,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		)
 		{
 			this.changeNotification = changeNotification;
-			this.heartbeat = heartbeat;
-			this.presentationFacade = presentationFacade;
+			this.synchronizationContext = synchronizationContext;
 			this.clipboard = clipboard;
 			this.bookmarksFactory = bookmarksFactory;
 			this.telemetry = telemetry;
 			this.logSources = logSources;
-			this.modelInvoke = modelInvoke;
-			this.modelThreads = modelThreads;
 			this.hlFilters = hlFilters;
 			this.bookmarks = bookmarks;
 			this.settings = settings;
@@ -45,10 +39,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			IModel model = new LoadedMessages.PresentationModel(
 				logSources,
-				modelInvoke
+				synchronizationContext
 			);
-			return new Presenter(model, heartbeat,
-				presentationFacade, clipboard, settings, hlFilters, bookmarks, bookmarksFactory, telemetry,
+			return new Presenter(model, synchronizationContext,
+				clipboard, settings, hlFilters, bookmarks, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
 				new GlobalSettingsAppearanceStrategy(settings)
@@ -67,8 +61,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			// by filters from search options.
 			IFiltersList highlightFilters = null;
 			return (
-				new Presenter(model, heartbeat,
-					presentationFacade, clipboard, settings, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
+				new Presenter(model, synchronizationContext,
+					clipboard, settings, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
 					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
 					new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy)
@@ -82,7 +76,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IFiltersList highlightFilter = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting, null);
 			highlightFilter.FilteringEnabled = false;
 			IPresenterInternal result = new Presenter(
-				model, heartbeat, null, clipboard,
+				model, synchronizationContext, clipboard,
 				Settings.DefaultSettingsAccessor.Instance, highlightFilter,
 				null, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification),
@@ -95,14 +89,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		readonly IChangeNotification changeNotification;
-		readonly IHeartBeatTimer heartbeat;
-		readonly IPresentersFacade presentationFacade;
+		readonly ISynchronizationContext synchronizationContext;
 		readonly IClipboardAccess clipboard;
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly ILogSourcesManager logSources;
-		readonly ISynchronizationContext modelInvoke;
-		readonly IModelThreads modelThreads;
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;
 		readonly Settings.IGlobalSettingsAccessor settings;

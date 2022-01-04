@@ -620,6 +620,7 @@ button {
 
 .tool-container>.header>.actions {
     overflow-x: hidden;
+    min-width: 25px;
 }
 
 

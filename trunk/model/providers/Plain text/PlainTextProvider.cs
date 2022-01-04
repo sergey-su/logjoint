@@ -71,7 +71,10 @@ namespace LogJoint.PlainText
 
 			for (; ; )
 			{
-				if (await Task.WhenAny(stopEvt, fileChangedEvt.Task, Task.Delay(250)) == stopEvt)
+				var tasks = new List<Task>() { stopEvt, fileChangedEvt.Task };
+				if (!IsBrowser.Value)
+					tasks.Add(Task.Delay(250));
+				if (await Task.WhenAny(tasks) == stopEvt)
 					break;
 				fileChangedEvt = new TaskCompletionSource<int>();
 
@@ -105,6 +108,11 @@ namespace LogJoint.PlainText
 				finally
 				{
 					splitter.EndSplittingSession();
+				}
+
+				if (IsBrowser.Value)
+				{
+					((ILogProvider)this).PeriodicUpdate();
 				}
 			}
 		}
