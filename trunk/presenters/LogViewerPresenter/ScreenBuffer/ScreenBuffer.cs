@@ -14,12 +14,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		internal ScreenBuffer(
 			IChangeNotification changeNotification,
+			IBookmarksFactory bookmarksFactory,
 			double viewSize,
 			LJTraceSource trace = null,
 			bool disableSingleLogPositioningOptimization = false
 		)
 		{
 			this.changeNotification = changeNotification;
+			this.bookmarksFactory = bookmarksFactory;
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
 			this.entries = ImmutableArray.Create<ScreenBufferEntry>();
 			this.disableSingleLogPositioningOptimization = disableSingleLogPositioningOptimization;
@@ -168,15 +170,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation)
 		{
 			var matchMode = mode & BookmarkLookupMode.MatchModeMask;
-			int cmp(DisplayLine l)
-			{
-				var ret = MessagesComparer.CompareLogSourceConnectionIds(l.Message.GetConnectionId(), bookmark.LogSourceConnectionId);
-				if (ret == 0)
-					ret = Math.Sign(l.Message.Position - bookmark.Position);
-				if (ret == 0)
-					ret = Math.Sign(l.LineIndex - bookmark.LineIndex);
-				return ret;
-			}
+
+			int cmp(DisplayLine l) =>
+				MessagesComparer.Compare(bookmarksFactory.CreateBookmark(
+					l.Message.Time, l.Message.GetConnectionId(), l.Message.Position, l.LineIndex), bookmark);
 
 			return await PerformBuffersTransaction(
 				string.Format("MoveToBookmark({0})", mode),
@@ -674,6 +671,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		readonly IChangeNotification changeNotification;
+		readonly IBookmarksFactory bookmarksFactory;
 		readonly bool disableSingleLogPositioningOptimization;
 		readonly LJTraceSource trace;
 		OperationTracker currentOperationTracker;

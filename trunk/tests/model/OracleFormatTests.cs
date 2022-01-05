@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 using EM = LogJoint.Tests.ExpectedMessage;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace LogJoint.Tests
 {
@@ -15,20 +16,20 @@ namespace LogJoint.Tests
 				"Oracle", "11g alert log xml");
 		}
 
-		void DoTest(string testLog, ExpectedLog expectedLog)
+		async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
-			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
-			DoTest(testLog, (new ExpectedLog()).Add(0, expectedMessages));
+			await DoTest(testLog, (new ExpectedLog()).Add(0, expectedMessages));
 		}
 
 		[Test]
-		public void SmokeTest()
+		public async Task SmokeTest()
 		{
-			DoTest(@"
+			await DoTest(@"
 <msg time='2010-03-30T01:00:00.107-05:00' org_id='oracle' comp_id='rdbms'
 client_id='' type='UNKNOWN' level='16'
 host_id='RPRO9' host_addr='151.1.0.76' module=''

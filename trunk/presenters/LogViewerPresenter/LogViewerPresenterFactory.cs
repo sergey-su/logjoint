@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 			return new Presenter(model, synchronizationContext,
 				clipboard, hlFilters, bookmarks, bookmarksFactory, telemetry,
-				new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
+				new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
 				new GlobalSettingsAppearanceStrategy(settings)
 			);
@@ -63,7 +63,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return (
 				new Presenter(model, synchronizationContext,
 					clipboard, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
-					new ScreenBufferFactory(changeNotification), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
+					new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
 					new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy)
 				),
@@ -78,7 +78,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IPresenterInternal result = new Presenter(
 				model, synchronizationContext, clipboard, highlightFilter,
 				null, bookmarksFactory, telemetry,
-				new ScreenBufferFactory(changeNotification),
+				new ScreenBufferFactory(changeNotification, bookmarksFactory),
 				changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new ProhibitiveViewModeStrategy(),
 				new PermissiveAppearanceStrategy(changeNotification)
