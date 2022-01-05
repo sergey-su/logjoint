@@ -29,15 +29,13 @@ namespace LogJoint.Tests
 			public void FireChanged(string fileName)
 			{
 				if (enabled)
-					if (Changed != null)
-						Changed(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, fileSystem.BaseDir, fileName));
+					Changed?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Changed, fileSystem.BaseDir, fileName));
 			}
 
 			public void FireCreated(string fileName)
 			{
 				if (enabled)
-					if (Created != null)
-						Created(this, new FileSystemEventArgs(WatcherChangeTypes.Created, fileSystem.BaseDir, fileName));
+					Created?.Invoke(this, new FileSystemEventArgs(WatcherChangeTypes.Created, fileSystem.BaseDir, fileName));
 			}
 
 			#region IFileSystemWatcher Members
@@ -86,8 +84,7 @@ namespace LogJoint.Tests
 
 			protected void FireRenamed()
 			{
-				if (Renamed != null)
-					Renamed(this, null);
+				Renamed?.Invoke(this, null);
 			}
 		};
 
@@ -166,8 +163,7 @@ namespace LogJoint.Tests
 			public Task<Stream> OpenFile(string fileName)
 			{
 				Assert.AreEqual(baseDir.ToLower(), Path.GetDirectoryName(fileName).ToLower());
-				FileImpl ret;
-				if (!files.TryGetValue(Path.GetFileName(fileName).ToLower(), out ret))
+				if (!files.TryGetValue(Path.GetFileName(fileName).ToLower(), out FileImpl ret))
 					throw new FileNotFoundException();
 				ret.openCounter++;
 				return Task.FromResult<Stream>(ret);
@@ -198,8 +194,7 @@ namespace LogJoint.Tests
 			public DateTime GetLastWriteTime(string fileName)
 			{
 				Assert.AreEqual(baseDir.ToLower(), Path.GetDirectoryName(fileName).ToLower());
-				FileImpl f;
-				if (!files.TryGetValue(Path.GetFileName(fileName).ToLower(), out f))
+				if (!files.TryGetValue(Path.GetFileName(fileName).ToLower(), out FileImpl f))
 					throw new IOException();
 				return f.LastWriteTime;
 			}
@@ -231,9 +226,9 @@ namespace LogJoint.Tests
 			public const int EmptyFileContent = 0;
 			public const int InvalidFileContent = 666;
 
-			public MessagesReader(MediaBasedReaderParams readerParams, object fmtInfo)
+			public MessagesReader(MediaBasedReaderParams readerParams)
 			{
-				this.media = readerParams.Media;
+				this.Media = readerParams.Media;
 			}
 
 #region IPositionedMessagesReader Members
@@ -245,12 +240,12 @@ namespace LogJoint.Tests
 
 			public long EndPosition
 			{
-				get { return media.Size; }
+				get { return Media.Size; }
 			}
 
 			public async Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
 			{
-				await media.Update();
+				await Media.Update();
 				return UpdateBoundsStatus.NewMessagesAvailable;
 			}
 
@@ -280,14 +275,16 @@ namespace LogJoint.Tests
 				set { }
 			}
 
-			async ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
+			public ILogMedia Media { get => media; set => media = value; }
+
+			ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
 			{
-				return 0;
+				return ValueTask.FromResult(0);
 			}
 
 			public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
 			{
-				return Task.FromResult<IPositionedMessagesParser>(new Parser(media));
+				return Task.FromResult<IPositionedMessagesParser>(new Parser(Media));
 			}
 
 			public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
@@ -307,8 +304,8 @@ namespace LogJoint.Tests
 
 			public class Parser : IPositionedMessagesParser
 			{
-				DateTime time;
-				static DateTime startOfTime = new DateTime(2000, 1, 1);
+				readonly DateTime time;
+				static readonly DateTime startOfTime = new DateTime(2000, 1, 1);
 				bool messageRead = false;
 				public Parser(ILogMedia media)
 				{
@@ -328,35 +325,38 @@ namespace LogJoint.Tests
 						time = startOfTime.Add(TimeSpan.FromHours(val));
 					}
 				}
-				public async ValueTask<IMessage> ReadNext()
+				public ValueTask<IMessage> ReadNext()
 				{
+					IMessage m = null;
 					if (messageRead)
-						return null;
+						return ValueTask.FromResult(m);
 					messageRead = true;
-					return new Message(0, 1, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
+					m = new Message(0, 1, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
+					return ValueTask.FromResult(m);
 				}
 				public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
 				{
 					return new PostprocessedMessage(await ReadNext(), null);
 				}
-				public async Task Dispose()
+				public Task Dispose()
 				{
+					return Task.CompletedTask;
 				}
 			};
-		};
+		}
 
-		ILogMedia CreateMedia(FileSystemImpl fs)
+		static ILogMedia CreateMedia(FileSystemImpl fs)
 		{
 			var media = new RollingFilesMedia(
 				fs,
-				@params => new MessagesReader(@params, new StreamBasedFormatInfo(null)), 
+				@params => new MessagesReader(@params), 
 				LJTraceSource.EmptyTracer,
-				new GenericRollingMediaStrategy(fs.BaseDir, new string[0])
+				new GenericRollingMediaStrategy(fs.BaseDir, Array.Empty<string>())
 			);
 			return media;
 		}
 
-		void CheckMedia(ILogMedia media, string expectedContent)
+		static void CheckMedia(ILogMedia media, string expectedContent)
 		{
 			media.DataStream.Position = 0;
 			StreamReader r = new StreamReader(media.DataStream);

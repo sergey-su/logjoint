@@ -166,7 +166,7 @@ Test frame
 		}
 
 		[IntegrationTest]
-		public async Task SanSaveMergedLog(TestAppInstance app)
+		public static async Task SanSaveMergedLog(TestAppInstance app)
 		{
 			var destinationFileName = Path.GetTempFileName();
 			try

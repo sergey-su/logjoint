@@ -1,7 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using LogJoint.UI.Presenters.LogViewer;
-using System.Text;
 using NUnit.Framework;
 using NSubstitute;
 using System.Collections.Immutable;
@@ -17,7 +15,6 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 		ISearchResultModel searchResultModel;
 		IFiltersList highlightFilters;
 		ISelectionManager selectionManager;
-		IWordSelection wordSelection;
 		bool isRawMessagesMode;
 		int viewSize;
 		IMessage msg1, msg2;
@@ -33,7 +30,6 @@ namespace LogJoint.UI.Presenters.Tests.HighlightingManagerTests
 			selectionManager = Substitute.For<ISelectionManager>();
 			messagesSource = Substitute.For<IMessagesSource>();
 			colorTheme = Substitute.For<IColorTheme>();
-			wordSelection = new WordSelection(RegularExpressions.FCLRegexFactory.Instance);
 			isRawMessagesMode = false;
 			viewSize = 3;
 			highlightFilters.FilteringEnabled.Returns(true);
@@ -84,14 +80,14 @@ describe('MeetingV2', () => {
 		void CreateHighlightingManager()
 		{
 			highlightingManager = new HighlightingManager(searchResultModel,
-				() => MessageTextGetters.Get(isRawMessagesMode), () => viewSize, highlightFilters, selectionManager, wordSelection, colorTheme, RegularExpressions.FCLRegexFactory.Instance);
+				() => MessageTextGetters.Get(isRawMessagesMode), () => viewSize, highlightFilters, selectionManager, colorTheme, RegularExpressions.FCLRegexFactory.Instance);
 		}
 
-		IFilter CreateFilter(FilterAction action, bool expectRawMessagesMode, bool enabed,
+		static IFilter CreateFilter(FilterAction action, bool expectRawMessagesMode, bool enabed,
 			params (IMessage, int?, Search.MatchedTextRange)[] matches)
 		{
 			var filter = Substitute.For<IFilter>();
-			filter.Enabled.Returns(true);
+			filter.Enabled.Returns(enabed);
 			filter.Action.Returns(action);
 			var processing = Substitute.For<IFilterBulkProcessing>();
 			filter.StartBulkProcessing(MessageTextGetters.Get(expectRawMessagesMode), false).Returns(processing);
@@ -102,7 +98,7 @@ describe('MeetingV2', () => {
 			return filter;
 		}
 
-		ViewLine CreateViewLine(IMessage message, int textLineIndex, int lineIndex)
+		static ViewLine CreateViewLine(IMessage message, int textLineIndex, int lineIndex)
 		{
 			return new ViewLine()
 			{
@@ -113,7 +109,7 @@ describe('MeetingV2', () => {
 			};
 		}
 
-		void VerifyRanges(IEnumerable<(int, int, Color)> actual, params (int, int, Color)[] expected)
+		static void VerifyRanges(IEnumerable<(int, int, Color)> actual, params (int, int, Color)[] expected)
 		{
 			CollectionAssert.AreEqual(expected.OrderBy(x => x.Item1), actual.OrderBy(x => x.Item1));
 		}

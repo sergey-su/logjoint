@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using NFluent;
-using System.Threading;
 
 namespace LogJoint.Tests.Integration
 {
@@ -19,28 +18,28 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task CanLoadAndDetectFormatOfLocalLog(TestAppInstance app)
+		public static async Task CanLoadAndDetectFormatOfLocalLog(TestAppInstance app)
 		{
 			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
 		[IntegrationTest]
-		public async Task CanDownloadAndDetectFormatOfLogFromTheWeb(TestAppInstance app)
+		public static async Task CanDownloadAndDetectFormatOfLogFromTheWeb(TestAppInstance app)
 		{
 			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1.xml"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
 		[IntegrationTest]
-		public async Task CanDownloadZipExtractAndFindKnownLogFormatInArchive(TestAppInstance app)
+		public static async Task CanDownloadZipExtractAndFindKnownLogFormatInArchive(TestAppInstance app)
 		{
 			await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListener1AndImage.zip"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 		}
 
 		[IntegrationTest]
-		public async Task CanOpenPasswordProtectedZipExtractAndFindKnownLogFormatInArchive(TestAppInstance app)
+		public static async Task CanOpenPasswordProtectedZipExtractAndFindKnownLogFormatInArchive(TestAppInstance app)
 		{
 			app.Mocks.CredentialsCache.QueryCredentials(
 				Arg.Is<Uri>(v => v.ToString().Contains("XmlWriterTraceListener1AndImage.PasswordProtected.zip")), null)
@@ -53,7 +52,7 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task DisplaysProgressDuringUnzipping(TestAppInstance app)
+		public static async Task DisplaysProgressDuringUnzipping(TestAppInstance app)
 		{
 			var preprocessorTask = app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
 			int lastPercent = 0;
@@ -78,7 +77,7 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task UnzippingCanBeCancelled(TestAppInstance app)
+		public static async Task UnzippingCanBeCancelled(TestAppInstance app)
 		{
 			var preprocessorTask = app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("network_trace_with_keys_1.as_pdml.zip"));
 			await app.WaitFor(() => (app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.ElementAtOrDefault(0)?.ToString() ?? "").Contains("Unpacking"));
@@ -95,7 +94,7 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task CanExtractGZippedLog(TestAppInstance app)
+		public static async Task CanExtractGZippedLog(TestAppInstance app)
 		{
 			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml.gz"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
@@ -103,7 +102,7 @@ namespace LogJoint.Tests.Integration
 
 
 		[IntegrationTest]
-		public async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen(TestAppInstance app)
+		public static async Task CanDownloadZipExtractFindManyKnownLogsAndAskUserWhatToOpen(TestAppInstance app)
 		{
 			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
 
@@ -120,7 +119,7 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task CanQuitAppWhileHavingActivePreprocessingUserInteraction(TestAppInstance app)
+		public static async Task CanQuitAppWhileHavingActivePreprocessingUserInteraction(TestAppInstance app)
 		{
 			var preprocTask = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("XmlWriterTraceListenerAndTextWriterTraceListener.zip"));
 
@@ -132,19 +131,19 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task OpeningTheSameLogTwiceHasNoEffect(TestAppInstance app)
+		public static async Task OpeningTheSameLogTwiceHasNoEffect(TestAppInstance app)
 		{
 			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
 			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
 
-			Check.That(app.ModelObjects.LogSourcesManager.Items.Count()).IsEqualTo(1);
+			Check.That(app.ModelObjects.LogSourcesManager.Items.Count).IsEqualTo(1);
 
 			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.xml"));
-			Check.That(app.ModelObjects.LogSourcesManager.Items.Count()).IsEqualTo(1);
+			Check.That(app.ModelObjects.LogSourcesManager.Items.Count).IsEqualTo(1);
 		}
 
 		[IntegrationTest]
-		public async Task CanQuitAppWhilePreprocessingIsActive(TestAppInstance app)
+		public static async Task CanQuitAppWhilePreprocessingIsActive(TestAppInstance app)
 		{
 			var downloadingPreprocessing = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("chrome_debug_1.log"));
 

@@ -29,10 +29,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				() => logSourcesManager.VisibleItems,
 				(allowed, set, sources) =>
 				{
-					return
-						!allowed ? false :
-						set != null ? set.Value :
-						sources.All(s => s.Provider.Factory.ViewOptions.PreferredView == PreferredViewMode.Raw);
+					if (!allowed)
+						return false;
+					if (set != null)
+						return set.Value;
+					return sources.All(s => s.Provider.Factory.ViewOptions.PreferredView == PreferredViewMode.Raw);
 				}
 			);
 

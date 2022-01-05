@@ -43,8 +43,7 @@ namespace LogJoint.LogMedia
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
 						// Try to detect the time via file handle. It is faster than File.GetLastWriteTime()
-						long created, modified, accessed;
-						if (WindowsNative.GetFileTime(this.SafeFileHandle, out created, out accessed, out modified))
+						if (WindowsNative.GetFileTime(this.SafeFileHandle, out _, out _, out long modified))
 						{
 							return DateTime.FromFileTime(modified);
 						}
@@ -76,10 +75,9 @@ namespace LogJoint.LogMedia
 						// First, try quick but platform-dependent way
 						if (isOnNTFSDrive.Value)
 						{
-							WindowsNative.BY_HANDLE_FILE_INFORMATION info;
 							// GetFileInformationByHandle is not guaranteed to work ok on all file systems.
 							// Call it only if we are on NTFS drive. 
-							if (WindowsNative.GetFileInformationByHandle(this.SafeFileHandle, out info))
+							if (WindowsNative.GetFileInformationByHandle(this.SafeFileHandle, out WindowsNative.BY_HANDLE_FILE_INFORMATION info))
 							{
 								return info.nNumberOfLinks == 0;
 							}

@@ -40,47 +40,43 @@ namespace LogJoint
 			List<ExtensionInfo> extensions, 
 			List<OutputFieldStruct> outputFields)
 		{
-			using (var perfop = new Profiling.Operation(trace, "compile user code"))
+			using var perfop = new Profiling.Operation(trace, "compile user code");
+			string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields);
+
+			var syntaxTree = CSharpSyntaxTree.ParseText(fullCode);
+
+			var metadataReferences = new List<MetadataReference>(metadataReferencesProvider.GetMetadataReferences());
+
+			foreach (var ext in extensions)
 			{
-				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields);
-
-				var syntaxTree = CSharpSyntaxTree.ParseText(fullCode);
-
-				var metadataReferences = new List<MetadataReference>(metadataReferencesProvider.GetMetadataReferences());
-
-				foreach (var ext in extensions)
-				{
-					var asmName = $"{new AssemblyName(ext.ExtensionAssemblyName).Name}.dll";
-					var asmFile = pluginsManager.InstalledPlugins.SelectMany(
-						p => p.Files).FirstOrDefault(f => f.RelativePath == asmName);
-					if (asmFile == null)
-						throw new Exception($"Display extension assembly {ext.ExtensionAssemblyName} can not be found");
-					metadataReferences.Add(MetadataReference.CreateFromFile(asmFile.AbsolutePath));
-				}
-
-				CSharpCompilation compilation = CSharpCompilation.Create(
-					$"UserCode{Guid.NewGuid().ToString("N")}",
-					new[] { syntaxTree },
-					metadataReferences,
-					new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-						.WithOptimizationLevel(OptimizationLevel.Release)
-				);
-
-				using (var dllStream = new MemoryStream())
-				{
-					perfop.Milestone("started compile");
-					var emitResult = compilation.Emit(dllStream);
-					if (!emitResult.Success)
-					{
-						ThrowBadUserCodeException(fullCode, emitResult.Diagnostics);
-					}
-					dllStream.Flush();
-					dllStream.Position = 0;
-					perfop.Milestone("getting type");
-					var rawAsm = dllStream.ToArray();
-					return rawAsm;
-				}
+				var asmName = $"{new AssemblyName(ext.ExtensionAssemblyName).Name}.dll";
+				var asmFile = pluginsManager.InstalledPlugins.SelectMany(
+					p => p.Files).FirstOrDefault(f => f.RelativePath == asmName);
+				if (asmFile == null)
+					throw new Exception($"Display extension assembly {ext.ExtensionAssemblyName} can not be found");
+				metadataReferences.Add(MetadataReference.CreateFromFile(asmFile.AbsolutePath));
 			}
+
+			CSharpCompilation compilation = CSharpCompilation.Create(
+				$"UserCode{Guid.NewGuid():N}",
+				new[] { syntaxTree },
+				metadataReferences,
+				new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+					.WithOptimizationLevel(OptimizationLevel.Release)
+			);
+
+			using var dllStream = new MemoryStream();
+			perfop.Milestone("started compile");
+			var emitResult = compilation.Emit(dllStream);
+			if (!emitResult.Success)
+			{
+				ThrowBadUserCodeException(fullCode, emitResult.Diagnostics);
+			}
+			dllStream.Flush();
+			dllStream.Position = 0;
+			perfop.Milestone("getting type");
+			var rawAsm = dllStream.ToArray();
+			return rawAsm;
 		}
 
 		static string MakeMessagesBuilderCode(List<string> inputFieldNames,
@@ -375,7 +371,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			{
 				case OutputFieldStruct.CodeType.Expression:
 					var fmt = retTypeIsStringSlice ? "new StringSlice({0}{2}{1})" : "{0}{2}{1}";
-					return string.Format(fmt, UserCode.GetProlog(s.Name), UserCode.GetEpilog(s.Name), s.Code);
+					return string.Format(fmt, UserCode.GetProlog(s.Name), UserCode.GetEpilog(), s.Code);
 				case OutputFieldStruct.CodeType.Function:
 					var helperCallFmt = retTypeIsStringSlice ? "new StringSlice({0}())" : "{0}()";
 					var helperRetType = retTypeIsStringSlice ? "string" : type;
@@ -386,7 +382,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 {4}{2}{5}
 	}}{3}",
 					helperRetType, helperFuncName, s.Code, Environment.NewLine,
-					UserCode.GetProlog(s.Name), UserCode.GetEpilog(s.Name));
+					UserCode.GetProlog(s.Name), UserCode.GetEpilog());
 					return string.Format(helperCallFmt, helperFuncName);
 				default:
 					Debug.Assert(false);
@@ -416,9 +412,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 						err.GetMessage(), err.GetMessage(), Environment.NewLine);
 				errorMessage = err.GetMessage();
 
-				int globalErrorPos;
-				UserCode.Entry? userCodeEntry;
-				UserCode.FindErrorLocation(fullCode, err, out globalErrorPos, out userCodeEntry);
+				UserCode.FindErrorLocation(fullCode, err, out int globalErrorPos, out UserCode.Entry? userCodeEntry);
 				if (userCodeEntry != null)
 				{
 					badField = new BadUserCodeException.BadFieldDescription(
@@ -445,7 +439,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				return string.Format("/* User code begin. Field: {0} */ ", fieldName);
 			}
 
-			public static string GetEpilog(string fieldName)
+			public static string GetEpilog()
 			{
 				return " /* User code end */";
 			}

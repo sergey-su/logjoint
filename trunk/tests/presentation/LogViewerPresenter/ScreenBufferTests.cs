@@ -36,13 +36,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			messagesThread.LogSource.Provider.ConnectionId.Returns(connectionId);
 			for (var i = 0; i < messagesCount; ++i)
 			{
-				Func<int, string, string> generateText = (int linesCount, string lnStaticText) =>
+				string generateText(int linesCount, string lnStaticText)
 				{
 					var sb = new StringBuilder();
 					for (var ln = 0; ln < linesCount; ++ln)
 						sb.AppendFormat("{2}{3}{0}-{4}_{1}", i, ln, ln > 0 ? Environment.NewLine : "", messagesPrefix, lnStaticText);
 					return sb.ToString();
-				};
+				}
 				var txt = generateText(linesPerMessage, "ln");
 				var rawTxt = generateText(rawLinesPerMessage, "rln");
 				linesSource.messages.Add(new Message(
@@ -69,7 +69,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
 		static void VerifyIsEmpty(IScreenBuffer screenBuffer)
 		{
-			Assert.AreEqual(0, screenBuffer.Sources.Count());
+			Assert.AreEqual(0, screenBuffer.Sources.Count);
 			Assert.AreEqual(0, screenBuffer.Messages.Count);
 		}
 
@@ -193,9 +193,9 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				Assert.AreEqual(0.7, screenBuffer.BufferPosition, 1e-3);
 			}
 
-			async Task TestPositionSetter(int messagesCount, int linesPerMessage, float viewSize)
+			static async Task TestPositionSetter(int messagesCount, int linesPerMessage, float viewSize)
 			{
-				Func<bool, Task> testCore = async disableSingleLogPositioningOptimization =>
+				async Task testCore(bool disableSingleLogPositioningOptimization)
 				{
 					var src = CreateTestSource(messagesCount: messagesCount, linesPerMessage: linesPerMessage);
 
@@ -220,7 +220,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
 					await screenBuffer.MoveToPosition(1.0, cancel);
 					Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
-				};
+				}
 				await testCore(false);
 				await testCore(true);
 			}
@@ -303,7 +303,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task SourceCanBeDeleted()
 				{
-					await screenBuffer.SetSources(new IMessagesSource[0], cancel);
+					await screenBuffer.SetSources(Array.Empty<IMessagesSource>(), cancel);
 					VerifyIsEmpty(screenBuffer);
 				}
 
@@ -350,7 +350,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task CanBeDeletedAfterLoading()
 				{
 					await screenBuffer.MoveToStreamsEnd(cancel);
-					await screenBuffer.SetSources(new IMessagesSource[0], cancel);
+					await screenBuffer.SetSources(Array.Empty<IMessagesSource>(), cancel);
 					VerifyIsEmpty(screenBuffer);
 				}
 			};
@@ -958,7 +958,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadNereastMessagAtBeginningOfLog()
 				{
-					var nearestMsg = src.messages.Items.First();
+					var nearestMsg = src.messages.Items[0];
 					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
 						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(-100)), nearestMsg.GetConnectionId(), 0, 0
 					), BookmarkLookupMode.FindNearestMessage, cancel));
@@ -973,7 +973,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadNereastMessagAtEndOfLog()
 				{
-					var nearestMsg = src.messages.Items.Last();
+					var nearestMsg = src.messages.Items[src.messages.Items.Count - 1];
 					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
 						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(100)), nearestMsg.GetConnectionId(), nearestMsg.Position + 100, 0
 					), BookmarkLookupMode.FindNearestMessage, cancel));

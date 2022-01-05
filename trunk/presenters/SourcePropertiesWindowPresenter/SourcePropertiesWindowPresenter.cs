@@ -251,34 +251,35 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			IReadOnlyList<IThread> sourceThreads
 		)
 		{
-			ViewState state = new ViewState();
+			ViewState state = new ViewState
+			{
+				NameEditbox = new ControlState
+				{
+					Text = sourceDisplayName
+				},
+				FormatTextBox = new ControlState
+				{
+					Text = LogProviderFactoryRegistry.ToString(sourceProvider.Factory)
+				},
+				VisibleCheckBox = new ControlState
+				{
+					Checked = sourceVisible
+				},
 
-			state.NameEditbox = new ControlState
-			{
-				Text = sourceDisplayName
-			};
-			state.FormatTextBox = new ControlState
-			{
-				Text = LogProviderFactoryRegistry.ToString(sourceProvider.Factory)
-			};
-			state.VisibleCheckBox = new ControlState
-			{
-				Checked = sourceVisible
-			};
+				ColorPanel = new ControlState
+				{
+					BackColor = themeThreadColors.GetByIndex(sourceColorIndex)
+				},
 
-			state.ColorPanel = new ControlState
-			{
-				BackColor = themeThreadColors.GetByIndex(sourceColorIndex)
-			};
+				AnnotationTextBox = new ControlState
+				{
+					Text = annotation
+				},
 
-			state.AnnotationTextBox = new ControlState
-			{
-				Text = annotation
-			};
-
-			state.TimeOffsetTextBox = new ControlState
-			{
-				Text = timeOffset
+				TimeOffsetTextBox = new ControlState
+				{
+					Text = timeOffset
+				}
 			};
 
 			UpdateStatsView(state, sourceProvider);

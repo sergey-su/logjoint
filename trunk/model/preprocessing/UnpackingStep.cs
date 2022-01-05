@@ -97,46 +97,42 @@ namespace LogJoint.Preprocessing
 					return new ICSharpCode.SharpZipLib.Zip.ZipFile(ms, leaveOpen: false);
 				}
 			}
-			using (var zipFile = await CreateZipFile())
+			using var zipFile = await CreateZipFile();
+			if (password != null)
+				zipFile.Password = password;
+			var entriesToEnum = specificFileToExtract != null ?
+				Enumerable.Repeat(zipFile.GetEntry(specificFileToExtract), 1) : zipFile.OfType<ICSharpCode.SharpZipLib.Zip.ZipEntry>();
+			foreach (var entry in entriesToEnum.Where(e => e != null))
 			{
-				if (password != null)
-					zipFile.Password = password;
-				var entriesToEnum = specificFileToExtract != null ?
-					Enumerable.Repeat(zipFile.GetEntry(specificFileToExtract), 1) : zipFile.OfType<ICSharpCode.SharpZipLib.Zip.ZipEntry>();
-				foreach (var entry in entriesToEnum.Where(e => e != null))
+				if (entry.IsDirectory)
+					continue;
+
+				if (entry.IsCrypted && password == null)
+					throw new PasswordException();
+
+				string entryFullPath = @params.FullPath + "\\" + entry.Name;
+				string tmpFileName = callback.TempFilesManager.GenerateNewName();
+
+				callback.SetStepDescription("Unpacking " + entryFullPath);
+				using (FileStream tmpFs = new FileStream(tmpFileName, FileMode.CreateNew))
+				using (var entryProgress = progressAggregator.CreateProgressSink())
 				{
-					if (entry.IsDirectory)
-						continue;
-
-					if (entry.IsCrypted && password == null)
-						throw new PasswordException();
-
-					string entryFullPath = @params.FullPath + "\\" + entry.Name;
-					string tmpFileName = callback.TempFilesManager.GenerateNewName();
-
-					callback.SetStepDescription("Unpacking " + entryFullPath);
-					using (FileStream tmpFs = new FileStream(tmpFileName, FileMode.CreateNew))
-					using (var entryProgress = progressAggregator.CreateProgressSink())
+					using var entryStream = zipFile.GetInputStream(entry);
+					var totalLen = entry.Size;
+					IOUtils.CopyStreamWithProgress(entryStream, tmpFs, pos =>
 					{
-						using (var entryStream = zipFile.GetInputStream(entry))
+						if (totalLen > 0)
 						{
-							var totalLen = entry.Size;
-							IOUtils.CopyStreamWithProgress(entryStream, tmpFs, pos =>
-							{
-								if (totalLen > 0)
-								{
-									callback.SetStepDescription($"Unpacking {pos * 100 / totalLen}%: {entryFullPath}");
-									entryProgress.SetValue((double)pos / totalLen);
-								}
-							}, callback.Cancellation);
+							callback.SetStepDescription($"Unpacking {pos * 100 / totalLen}%: {entryFullPath}");
+							entryProgress.SetValue((double)pos / totalLen);
 						}
-					}
+					}, callback.Cancellation);
+				}
 
-					if (!onNext(new PreprocessingStepParams(tmpFileName, entryFullPath,
-							@params.PreprocessingHistory.Add(new PreprocessingHistoryItem(name, entry.Name)))))
-					{
-						break;
-					}
+				if (!onNext(new PreprocessingStepParams(tmpFileName, entryFullPath,
+						@params.PreprocessingHistory.Add(new PreprocessingHistoryItem(name, entry.Name)))))
+				{
+					break;
 				}
 			}
 		}

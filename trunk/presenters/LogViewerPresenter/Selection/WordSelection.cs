@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		Tuple<int, int> IWordSelection.FindWordBoundaries(StringSlice line, int pos)
 		{
-			Func<KeyValuePair<int, char>, bool> isNotAWordChar = c => !StringUtils.IsWordChar(c.Value);
+			static bool isNotAWordChar(KeyValuePair<int, char> c) => !StringUtils.IsWordChar(c.Value);
 
 			int begin = line.ZipWithIndex().Take(pos).Reverse().Union(new KeyValuePair<int, char>(-1, ' ')).FirstOrDefault(isNotAWordChar).Key + 1;
 			int end = line.ZipWithIndex().Skip(pos).Union(new KeyValuePair<int, char>(line.Length, ' ')).FirstOrDefault(isNotAWordChar).Key;

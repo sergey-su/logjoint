@@ -19,7 +19,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Func<int> viewSizeSelector,
 			IFiltersList highlightFilters,
 			ISelectionManager selectionManager,
-			IWordSelection wordSelection,
 			IColorTheme theme,
 			RegularExpressions.IRegexFactory regexFactory
 		)
@@ -50,7 +49,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				displayTextGetterSelector,
 				viewSizeQuantizedSelector,
 				(selection, displayTextGetter, viewSize) =>
-					MakeSelectionInplaceHighlightingHander(selection, displayTextGetter, wordSelection, ViewSizeToCacheSize(viewSize), regexFactory)
+					MakeSelectionInplaceHighlightingHander(selection, displayTextGetter, ViewSizeToCacheSize(viewSize), regexFactory)
 			);
 		}
 
@@ -190,7 +189,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private static IHighlightingHandler MakeSelectionInplaceHighlightingHander(
-			SelectionInfo selection, MessageTextGetter displayTextGetter, IWordSelection wordSelection, int cacheSize,
+			SelectionInfo selection, MessageTextGetter displayTextGetter, int cacheSize,
 			RegularExpressions.IRegexFactory regexFactory)
 		{
 			IHighlightingHandler newHandler = null;

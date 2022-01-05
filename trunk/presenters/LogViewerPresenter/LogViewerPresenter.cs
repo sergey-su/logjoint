@@ -52,7 +52,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				tracer, telemetry, changeNotification);
 			this.highlightingManager = new HighlightingManager(
 				searchResultModel, () => this.screenBuffer.DisplayTextGetter, () => this.screenBuffer.Messages.Count,
-				highlightFilters, this.selectionManager, wordSelection, theme, regexFactory
+				highlightFilters, this.selectionManager, theme, regexFactory
 			);
 			this.displayTextGetterSelector = MakeDisplayTextGetterSelector();
 
@@ -537,12 +537,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		MenuData IViewModel.OnMenuOpening()
 		{
-			var ret = new MenuData();
-			ret.VisibleItems =
+			var ret = new MenuData
+			{
+				VisibleItems =
 				ContextMenuItem.ShowTime |
 				ContextMenuItem.GotoNextMessageInTheThread |
-				ContextMenuItem.GotoPrevMessageInTheThread;
-			ret.CheckedItems = ContextMenuItem.None;
+				ContextMenuItem.GotoPrevMessageInTheThread,
+				CheckedItems = ContextMenuItem.None
+			};
 
 			if ((disabledUserInteractions & UserInteraction.CopyMenu) == 0)
 				ret.VisibleItems |= ContextMenuItem.Copy;

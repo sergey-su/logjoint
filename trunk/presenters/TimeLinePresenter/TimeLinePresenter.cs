@@ -353,9 +353,10 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			var m = presentationData();
 
-			var ret = new ContextMenuInfo();
-
-			ret.ResetTimeLineMenuItemEnabled = !availableRange.Equals(range().Value);
+			var ret = new ContextMenuInfo
+			{
+				ResetTimeLineMenuItemEnabled = !availableRange.Equals(range().Value)
+			};
 
 			HotTrackRange tmp = FindHotTrackRange(m, x, y);
 			string zoomToMenuItemFormat = null;
@@ -437,16 +438,18 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			TimeRulerIntervals? rulerIntervals = FindRulerIntervals(m, drange.Length.Ticks);
 
-			var ret = new DrawInfo();
-
-			ret.Sources = DrawSources(m, drange);
-			ret.RulerMarks = DrawRulers(m, drange, rulerIntervals);
-			DrawDragAreas(rulerIntervals, ret, range.Value);
-			ret.Bookmarks = DrawBookmarks(m, drange, viewerContext.bookmarks);
-			ret.CurrentTime = DrawCurrentViewTime(m, drange, viewerContext.focusedMessage, sources);
-			ret.HotTrackRange = DrawHotTrackRange(m, drange, hotTrack.range);
-			ret.HotTrackDate = DrawHotTrackDate(m, drange, hotTrack.date);
-			ret.ContainerControls = DrawContainersControls(m);
+			var ret = new DrawInfo
+			{
+				Sources = DrawSources(m, drange),
+				RulerMarks = DrawRulers(m, drange, rulerIntervals),
+				TopDragArea = DrawDragArea(rulerIntervals, range.Value.Begin),
+				BottomDragArea = DrawDragArea(rulerIntervals, range.Value.End),
+				Bookmarks = DrawBookmarks(m, drange, viewerContext.bookmarks),
+				CurrentTime = DrawCurrentViewTime(m, drange, viewerContext.focusedMessage, sources),
+				HotTrackRange = DrawHotTrackRange(m, drange, hotTrack.range),
+				HotTrackDate = DrawHotTrackDate(m, drange, hotTrack.date),
+				ContainerControls = DrawContainersControls(m)
+			};
 
 			return ret;
 		}
@@ -562,13 +565,6 @@ namespace LogJoint.UI.Presenters.Timeline
 				di.IsHidden = hidden;
 				yield return di;
 			}
-		}
-
-
-		static void DrawDragAreas(TimeRulerIntervals? rulerIntervals, DrawInfo di, DateRange range)
-		{
-			di.TopDragArea = DrawDragArea(rulerIntervals, range.Begin);
-			di.BottomDragArea = DrawDragArea(rulerIntervals, range.End);
 		}
 
 		static DragAreaDrawInfo DrawDragArea(TimeRulerIntervals? rulerIntervals, DateTime timestamp)
@@ -911,8 +907,10 @@ namespace LogJoint.UI.Presenters.Timeline
 			if (sourceIndex == null)
 				return null;
 
-			var ret = new HotTrackRange();
-			ret.SourceIndex = sourceIndex.Value;
+			var ret = new HotTrackRange
+			{
+				SourceIndex = sourceIndex.Value
+			};
 
 			var source = EnumUtils.NThElement(m.Sources, ret.SourceIndex);
 			DateTime t = GetDateFromYCoord(m, y);

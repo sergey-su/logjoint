@@ -140,7 +140,6 @@
 
 		#endregion
 
-		private System.Windows.Forms.CheckBox trackChangesCheckBox;
 		private SourcesListView sourcesListView;
 		private System.Windows.Forms.Button deleteButton;
 		private System.Windows.Forms.Button deleteAllButton;

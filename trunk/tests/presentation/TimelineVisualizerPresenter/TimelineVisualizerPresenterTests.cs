@@ -20,12 +20,12 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		IPresenter presenter;
 		IViewModel viewModel;
 		IView view;
-		Postprocessing.StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer;
+		readonly Postprocessing.StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer;
 		Postprocessing.Common.IPresentationObjectsFactory presentationObjectsFactory;
 		LoadedMessages.IPresenter loadedMessagesPresenter;
 		IBookmarks bookmarks;
 		Persistence.IStorageManager storageManager;
-		IPresentersFacade presentersFacade;
+		readonly IPresentersFacade presentersFacade;
 		IUserNamesProvider userNamesProvider;
 		QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 		IChangeNotification changeNotification;
@@ -82,8 +82,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			a.Begin.Returns(TimeSpan.FromMilliseconds(b));
 			a.End.Returns(TimeSpan.FromMilliseconds(e));
 			a.Type.Returns(type);
-			a.Milestones.Returns(new ActivityMilestoneInfo[0]);
-			a.Phases.Returns(new ActivityPhaseInfo[0]);
+			a.Milestones.Returns(Array.Empty<ActivityMilestoneInfo>());
+			a.Phases.Returns(Array.Empty<ActivityPhaseInfo>());
 			a.Tags.Returns(new HashSet<string>());
 			a.IsEndedForcefully.Returns(isEndedForcefully);
 			return a;

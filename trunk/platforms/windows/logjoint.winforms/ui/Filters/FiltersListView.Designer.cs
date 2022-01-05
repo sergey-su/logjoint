@@ -123,6 +123,5 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem filterEnabledToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
 		private System.Windows.Forms.ImageList imageList1;
-		private System.Windows.Forms.ColumnHeader counterColumnHeader;
 	}
 }

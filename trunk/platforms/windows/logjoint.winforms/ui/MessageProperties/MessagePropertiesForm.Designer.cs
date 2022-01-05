@@ -419,8 +419,6 @@ namespace LogJoint
 		private System.Windows.Forms.Label bookmarkedStatusLabel;
 		private System.Windows.Forms.LinkLabel bookmarkActionLinkLabel;
 		private System.Windows.Forms.Label bookmarkedLabel;
-		private System.Windows.Forms.LinkLabel frameBeginLinkLabel;
-		private System.Windows.Forms.LinkLabel frameEndLinkLabel;
 		private System.Windows.Forms.LinkLabel logSourceLinkLabel;
 		private System.Windows.Forms.Label logSourceLabel;
 		private System.Windows.Forms.Button prevMessageButton;

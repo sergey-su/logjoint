@@ -21,7 +21,7 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task LiveLogIsFollowed(TestAppInstance app)
+		public static async Task LiveLogIsFollowed(TestAppInstance app)
 		{
 			var testLog = app.ModelObjects.TempFilesManager.GenerateNewName();
 
@@ -46,7 +46,7 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task LiveLogCanBeDeletedAndRecreated(TestAppInstance app)
+		public static async Task LiveLogCanBeDeletedAndRecreated(TestAppInstance app)
 		{
 			var testLog = app.ModelObjects.TempFilesManager.GenerateNewName();
 
@@ -76,7 +76,7 @@ namespace LogJoint.Tests.Integration
 		}
 
 		[IntegrationTest]
-		public async Task LiveLogCanBeRewritten(TestAppInstance app)
+		public static async Task LiveLogCanBeRewritten(TestAppInstance app)
 		{
 			var testLog = app.ModelObjects.TempFilesManager.GenerateNewName();
 

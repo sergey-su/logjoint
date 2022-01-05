@@ -31,10 +31,10 @@ namespace LogJoint.Tests
 
 		class ParserImpl : IPositionedMessagesParser
 		{
-			LogEntry[] logContent;
+			readonly LogEntry[] logContent;
 			Range effectiveRange;
 			long pos;
-			bool reverse;
+			readonly bool reverse;
 
 			public ParserImpl(LogEntry[] logContent, CreateParserParams parserParams)
 			{
@@ -62,25 +62,26 @@ namespace LogJoint.Tests
 				}
 			}
 
-			public async ValueTask<IMessage> ReadNext()
+			public ValueTask<IMessage> ReadNext()
 			{
+				IMessage m = null;
 				if (!reverse)
 				{
 					if (pos >= effectiveRange.End)
-						return null;
+						return ValueTask.FromResult(m);
 				}
 				else
 				{
 					if (pos < effectiveRange.Begin)
-						return null;
+						return ValueTask.FromResult(m);
 				}
 				LogEntry l = logContent[pos];
-				IMessage m = new Message(pos, pos + 1, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
+				m = new Message(pos, pos + 1, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
 				if (reverse)
 					pos--;
 				else
 					pos++;
-				return m;
+				return ValueTask.FromResult(m);
 			}
 
 			public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
@@ -94,7 +95,7 @@ namespace LogJoint.Tests
 			}
 		};
 
-		async Task DoTest(LogEntry[] logContent, CreateParserParams originalParams, int jitterBufferSize, LogEntry[] expectedParsedMessages)
+		static async Task DoTest(LogEntry[] logContent, CreateParserParams originalParams, int jitterBufferSize, LogEntry[] expectedParsedMessages)
 		{
 			if (originalParams.Range == null)
 			{
@@ -102,35 +103,37 @@ namespace LogJoint.Tests
 			}
 			CreateParserParams validatedParams = originalParams;
 			validatedParams.EnsureStartPositionIsInRange();
-			await DisposableAsync.Using(await DejitteringMessagesParser.Create(async p => new ParserImpl(logContent, p), originalParams, jitterBufferSize), async jitter =>
-			{
-				int messageIdx;
-				int idxStep;
-				if (originalParams.Direction == MessagesParserDirection.Forward)
+			await DisposableAsync.Using(await DejitteringMessagesParser.Create(
+				p => Task.FromResult<IPositionedMessagesParser>(new ParserImpl(logContent, p)), originalParams, jitterBufferSize), 
+				async jitter =>
 				{
-					messageIdx = 0;
-					idxStep = 1;
-				}
-				else
-				{
-					messageIdx = -1;
-					idxStep = -1;
-				}
-				foreach (LogEntry expectedMessage in expectedParsedMessages)
-				{
-					IMessage actualMessage = await jitter.ReadNext();
-					Assert.IsNotNull(actualMessage);
-					Assert.AreEqual((long)expectedMessage.Time, actualMessage.Time.ToLocalDateTime().Ticks);
-					Assert.AreEqual(expectedMessage.Msg, actualMessage.Text.Value);
-					Assert.AreEqual(validatedParams.StartPosition + messageIdx, actualMessage.Position);
-					messageIdx += idxStep;
-				}
-				IMessage lastMessage = await jitter.ReadNext();
-				Assert.IsNull(lastMessage);
-			});
+					int messageIdx;
+					int idxStep;
+					if (originalParams.Direction == MessagesParserDirection.Forward)
+					{
+						messageIdx = 0;
+						idxStep = 1;
+					}
+					else
+					{
+						messageIdx = -1;
+						idxStep = -1;
+					}
+					foreach (LogEntry expectedMessage in expectedParsedMessages)
+					{
+						IMessage actualMessage = await jitter.ReadNext();
+						Assert.IsNotNull(actualMessage);
+						Assert.AreEqual((long)expectedMessage.Time, actualMessage.Time.ToLocalDateTime().Ticks);
+						Assert.AreEqual(expectedMessage.Msg, actualMessage.Text.Value);
+						Assert.AreEqual(validatedParams.StartPosition + messageIdx, actualMessage.Position);
+						messageIdx += idxStep;
+					}
+					IMessage lastMessage = await jitter.ReadNext();
+					Assert.IsNull(lastMessage);
+				});
 		}
 
-		LogEntry[] ParseTestLog(string str)
+		static LogEntry[] ParseTestLog(string str)
 		{
 			List<LogEntry> ret = new List<LogEntry>();
 			foreach (string entryString in str.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
@@ -141,7 +144,7 @@ namespace LogJoint.Tests
 			return ret.ToArray();
 		}
 
-		Task DoTest(string logContent, CreateParserParams originalParams, int jitterBufferSize, string expectedParsedMessages)
+		static Task DoTest(string logContent, CreateParserParams originalParams, int jitterBufferSize, string expectedParsedMessages)
 		{
 			return DoTest(ParseTestLog(logContent), originalParams, jitterBufferSize, ParseTestLog(expectedParsedMessages));
 		}

@@ -1050,7 +1050,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			public VisualizerNode ReplaceChild(VisualizerNode old, VisualizerNode newChild, bool ensureExpanded)
 			{
 				var copy = new VisualizerNode(obj, ImmutableList.CreateRange(children.Select(c => c == old ? newChild : c)),
-						ensureExpanded ? true : expanded, selected, level, annotationsMap);
+						ensureExpanded || expanded, selected, level, annotationsMap);
 				old.parent = null;
 				return parent == null ? copy : parent.ReplaceChild(this, copy, ensureExpanded);
 			}

@@ -100,9 +100,11 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 			};
 			foreach (ILogProviderFactory fact in mru.SortFactoriesMoreRecentFirst(logProviderFactoryRegistry.Items))
 			{
-				FixedLogTypeEntry entry = new FixedLogTypeEntry();
-				entry.Factory = fact;
-				entry.UIsRegistry = registry;
+				FixedLogTypeEntry entry = new FixedLogTypeEntry
+				{
+					Factory = fact,
+					UIsRegistry = registry
+				};
 				items.Add(entry);
 			}
 

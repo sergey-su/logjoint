@@ -73,7 +73,7 @@ namespace LogJoint.Tests.Integration
 
 		public class UtilsImpl : IUtils
 		{
-			TestAppInstance app;
+			readonly TestAppInstance app;
 
 			public UtilsImpl(TestAppInstance app)
 			{

@@ -32,8 +32,6 @@ namespace LogJoint.Tests.Integration
 	{
 		public UI.Presenters.MainForm.IViewModel MainForm;
 		public UI.Presenters.PreprocessingUserInteractions.IViewModel PreprocessingUserInteractions;
-		public UI.Presenters.Postprocessing.MainWindowTabPage.IViewModel PostprocessingTabPage;
-		public string PostprocessingTabPageId;
 		public UI.Presenters.MessagePropertiesDialog.IDialogViewModel MessagePropertiesDialog;
 		public UI.Presenters.SourcePropertiesWindow.IViewModel SourcePropertiesWindow;
 	};
@@ -110,10 +108,10 @@ namespace LogJoint.Tests.Integration
 
 			var viewModel = new ViewModelObjects();
 
-			InitializeMocks(config, mocks, viewModel);
+			InitializeMocks(mocks, viewModel);
 
 			var appDataDir = Path.Combine(Path.GetTempPath(),
-				$"logjoint.int.test.workdir.{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff")}");
+				$"logjoint.int.test.workdir.{DateTime.Now:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff}");
 			var testFormatsDir = Path.Combine(appDataDir, "TestFormats");
 
 			Directory.CreateDirectory(appDataDir);
@@ -189,7 +187,7 @@ namespace LogJoint.Tests.Integration
 			return app;
 		}
 
-		private static void InitializeMocks(TestAppConfig config, Mocks mocks, ViewModelObjects viewModel)
+		private static void InitializeMocks(Mocks mocks, ViewModelObjects viewModel)
 		{
 			mocks.Views.CreateMainFormView().SetViewModel(
 				Arg.Do<UI.Presenters.MainForm.IViewModel>(x => viewModel.MainForm = x));

@@ -10,18 +10,18 @@ namespace LogJoint.Tests
 	[TestFixture()]
 	public class OracleFormatTests
 	{
-		IMediaBasedReaderFactory CreateFactory()
+		static IMediaBasedReaderFactory CreateFactory()
 		{
 			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), 
 				"Oracle", "11g alert log xml");
 		}
 
-		async Task DoTest(string testLog, ExpectedLog expectedLog)
+		static async Task DoTest(string testLog, ExpectedLog expectedLog)
 		{
 			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
 		}
 
-		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		static async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
 		{
 			await DoTest(testLog, (new ExpectedLog()).Add(0, expectedMessages));
 		}

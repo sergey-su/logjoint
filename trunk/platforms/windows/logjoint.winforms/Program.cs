@@ -21,7 +21,7 @@ namespace LogJoint
 		static Form WireupDependenciesAndCreateMainForm()
 		{
 			var mainForm = new UI.MainForm();
-			Properties.WebContentConfig webContentConfig = new Properties.WebContentConfig();
+			Properties.WebContentConfig webContentConfig = new();
 			ISynchronizationContext modelSynchronizationContext = new WinFormsSynchronizationContext(mainForm);
 
 			ModelObjects model = ModelFactory.Create(

@@ -275,10 +275,12 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (!(quickSearchPresenter.CurrentSuggestion?.Data is IUserDefinedSearch uds))
 				uds = (quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearchHistoryEntry)?.UDS;
 
-			Search.Options coreOptions = new Search.Options();
-			coreOptions.Template = quickSearchPresenter.Text;
-			coreOptions.WholeWord = (controlsState & ViewCheckableControl.WholeWord) != 0;
-			coreOptions.ReverseSearch = (controlsState & ViewCheckableControl.SearchUp) != 0;
+			Search.Options coreOptions = new Search.Options
+			{
+				Template = quickSearchPresenter.Text,
+				WholeWord = (controlsState & ViewCheckableControl.WholeWord) != 0,
+				ReverseSearch = (controlsState & ViewCheckableControl.SearchUp) != 0
+			};
 			if (reverseDirection)
 				coreOptions.ReverseSearch = !coreOptions.ReverseSearch;
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;

@@ -187,7 +187,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem showRawMessagesMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem collapseAlllFramesMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem expandAllFramesMenuItem;
-		private System.Windows.Forms.Timer animationTimer;
 
 	}
 }

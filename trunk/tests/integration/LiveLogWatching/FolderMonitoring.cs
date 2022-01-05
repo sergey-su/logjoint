@@ -9,7 +9,7 @@ namespace LogJoint.Tests.Integration
 	class FolderMonitoring
 	{
 		[IntegrationTest]
-		public async Task CanMonitorAFolder(TestAppInstance app)
+		public static async Task CanMonitorAFolder(TestAppInstance app)
 		{
 			await app.AddTestCustomFormat();
 			var testFolder = app.ModelObjects.TempFilesManager.GenerateNewName();

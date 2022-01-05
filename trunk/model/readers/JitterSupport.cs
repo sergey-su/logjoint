@@ -125,8 +125,8 @@ namespace LogJoint
 
 		class Comparer : IComparer<Entry>
 		{
-			int inversionFlag;
-			long bufferSize;
+			readonly int inversionFlag;
+			readonly long bufferSize;
 
 			public Comparer(MessagesParserDirection direction, int bufferSize)
 			{

@@ -7,7 +7,7 @@ namespace LogJoint.Tests.Integration
 	class LogsHistoryTests
 	{
 		[IntegrationTest]
-		public async Task WhenLogIsOpenALogHistoryEntryIsAdded(TestAppInstance app)
+		public static async Task WhenLogIsOpenALogHistoryEntryIsAdded(TestAppInstance app)
 		{
 			Check.That(app.ModelObjects.RecentlyUsedLogs.MRUList.Count).IsEqualTo(0);
 

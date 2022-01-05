@@ -8,7 +8,7 @@ namespace LogJoint.Tests
 	[TestFixture]
 	public class PositionedMessagesUtilsTests
 	{
-		public class TestReader : IPositionedMessagesReader
+		public sealed class TestReader : IPositionedMessagesReader
 		{
 			public TestReader(long[] positions)
 			{
@@ -45,12 +45,6 @@ namespace LogJoint.Tests
 			{
 				CheckDisposed();
 				return Task.FromResult(UpdateBoundsStatus.NewMessagesAvailable);
-			}
-
-			public long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings)
-			{
-				CheckDisposed();
-				return 0;
 			}
 
 			public long MaximumMessageSize => 0;
@@ -99,36 +93,38 @@ namespace LogJoint.Tests
 					}
 				}
 
-				public async ValueTask<IMessage> ReadNext()
+				public ValueTask<IMessage> ReadNext()
 				{
 					CheckDisposed();
 					reader.CheckDisposed();
 
+					IMessage m = null;
 					long currPos;
 					if (direction == MessagesParserDirection.Forward)
 					{
 						if (positionIndex >= reader.positions.Length)
-							return null;
+							return ValueTask.FromResult(m);
 
 						currPos = reader.positions[positionIndex];
 						if (range.HasValue && currPos >= range.Value.End)
-							return null;
+							return ValueTask.FromResult(m);
 
 						++positionIndex;
 					}
 					else
 					{
 						if (positionIndex < 0)
-							return null;
+							return ValueTask.FromResult(m);
 
 						currPos = reader.positions[positionIndex];
 						if (range.HasValue && currPos < range.Value.Begin)
-							return null;
+							return ValueTask.FromResult(m);
 
 						--positionIndex;
 					}
 
-					return new Message(currPos, currPos + 1, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
+					m = new Message(currPos, currPos + 1, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
+					return ValueTask.FromResult(m);
 				}
 
 				public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
@@ -151,14 +147,14 @@ namespace LogJoint.Tests
 				readonly TestReader reader;
 				readonly LogJoint.FileRange.Range? range;
 				long positionIndex;
-				MessagesParserDirection direction;
+				readonly MessagesParserDirection direction;
 				bool isDisposed;
 			};
 
-			public async Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
+			public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
 			{
 				CheckDisposed();
-				return new Parser(this, p.StartPosition, p.Range, p.Direction);
+				return Task.FromResult<IPositionedMessagesParser>(new Parser(this, p.StartPosition, p.Range, p.Direction));
 			}
 
 			public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)

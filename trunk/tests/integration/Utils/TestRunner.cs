@@ -28,7 +28,7 @@ namespace LogJoint.Tests.Integration
 			await RunTests(Assembly.GetExecutingAssembly(), null, filter, null);
 		}
 
-		public async Task DownloadPluginDependencies(IPluginManifest manifest, List<string> result)
+		public static async Task DownloadPluginDependencies(IPluginManifest manifest, List<string> result)
 		{
 			using (var http = new HttpClient())
 			{
@@ -46,7 +46,7 @@ namespace LogJoint.Tests.Integration
 					using (var networkStream = await http.GetStreamAsync(dep.Location))
 						await networkStream.CopyToAsync(tempFileStream);
 					var tempDir = Path.Combine(Path.GetTempPath(),
-						$"logjoint.int.tests.bin.{Guid.NewGuid().ToString("N")}");
+						$"logjoint.int.tests.bin.{Guid.NewGuid():N}");
 					ZipFile.ExtractToDirectory(tempFilePath, tempDir);
 					File.Delete(tempFilePath);
 					result.Add(tempDir);
@@ -54,7 +54,7 @@ namespace LogJoint.Tests.Integration
 			}
 		}
 
-		public async Task RunPluginTests(string pluginDir, string filters, bool needsDepsDownload)
+		public static async Task RunPluginTests(string pluginDir, string filters, bool needsDepsDownload)
 		{
 			IPluginManifest manifest = new PluginManifest(pluginDir);
 			var testFile = manifest.Test ?? throw new ArgumentException($"Plug-in does not contain tests: {manifest.AbsolutePath}");
@@ -113,7 +113,7 @@ namespace LogJoint.Tests.Integration
 				.Select(finfo =>
 				{
 					var (t, attr) = finfo;
-					var allMembers = t.GetMembers(BindingFlags.Public | BindingFlags.Instance);
+					var allMembers = t.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 					return (
 						type: t,
 						displayName: attr.Description ?? t.Name,
