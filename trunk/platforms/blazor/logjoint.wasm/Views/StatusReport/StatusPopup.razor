@@ -1,0 +1,46 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.StatusReports
+@implements IDisposable
+@inject LogJoint.Wasm.ViewProxies viewProxies
+@inject JsInterop jsInterop
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
+
+@{var data = viewModel.PopupData; }
+<div class="status-popup" style="@(data != null ? "" : "display: none")">
+    @if (data != null)
+    {
+        <div class="header">@(data.Caption)</div>
+        <div class="contents">
+            @foreach (MessagePart part in data.Parts)
+            {
+                @if (part is MessageLink link)
+                {
+                    <a href="#" @onclick:preventDefault @onclick=@link.Click>@part.Text</a>
+                }
+                else
+                {
+                    <span>@part.Text</span>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IViewModel viewModel => presentation.ViewModels.StatusReports;
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.PopupData,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}

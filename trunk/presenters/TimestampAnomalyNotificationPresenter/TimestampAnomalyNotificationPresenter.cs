@@ -12,14 +12,12 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 		readonly AsyncInvokeHelper updateInvokeHelper;
 		readonly HashSet<ILogSource> logSourcesRequiringReordering = new HashSet<ILogSource>();
 		readonly HashSet<ILogSource> ignoredLogSources = new HashSet<ILogSource>();
-		readonly LazyUpdateFlag updateFlag = new LazyUpdateFlag();
 		StatusReports.IReport currentReport = null;
 
 		public Presenter(
 			ILogSourcesManager sourcesManager,
 			Preprocessing.IManager preprocessingManager,
 			ISynchronizationContext sync,
-			IHeartBeatTimer heartbeat,
 			IPresentersFacade presentersFacade,
 			StatusReports.IPresenter statusReports
 		)
@@ -49,24 +47,17 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 					else
 						updated = logSourcesRequiringReordering.Remove((ILogSource)sender);
 					if (updated)
-						updateFlag.Invalidate();
+						updateInvokeHelper.Invoke();
 				}
 			};
 			sourcesManager.OnLogSourceRemoved += (sender, e) =>
 			{
-				updateFlag.Invalidate();
-			};
-			heartbeat.OnTimer += (sender, e) =>
-			{
-				if (e.IsNormalUpdate && updateFlag.Validate())
-					Update();
+				updateInvokeHelper.Invoke();
 			};
 		}
 
 		void Update()
 		{
-			updateFlag.Validate();
-
 			ignoredLogSources.RemoveWhere(x => x.IsDisposed);
 			logSourcesRequiringReordering.RemoveWhere(x => x.IsDisposed);
 

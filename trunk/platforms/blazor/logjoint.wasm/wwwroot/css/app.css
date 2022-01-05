@@ -2057,3 +2057,27 @@ button {
 .toast-notification>.item>.contents {
     flex-grow: 2;
 }
+
+.status-popup {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    max-width: 50%;
+    background: var(--toast-notification-background);
+    color: var(--toast-notification-text-color);
+    padding: 5px 10px;
+    border: solid 1px black;
+}
+
+.status-popup>.header {
+    font-weight: bold;
+}
+
+.status-popup>.contents {
+    margin: 5px 0px;
+}
+
+.status-popup>.contents>a {
+    margin: 0px 5px;
+    white-space: nowrap;
+}

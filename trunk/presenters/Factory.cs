@@ -151,7 +151,6 @@ namespace LogJoint.UI.Presenters
 			ITabUsageTracker tabUsageTracker = new TabUsageTracker();
 
 			var statusReportsPresenter = new StatusReports.Presenter(
-				model.HeartBeatTimer,
 				model.ChangeNotification
 			);
 			StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
@@ -446,7 +445,6 @@ namespace LogJoint.UI.Presenters
 				model.LogSourcesManager,
 				model.LogSourcesPreprocessings,
 				model.SynchronizationContext,
-				model.HeartBeatTimer,
 				presentersFacade,
 				statusReportsPresenter
 			);

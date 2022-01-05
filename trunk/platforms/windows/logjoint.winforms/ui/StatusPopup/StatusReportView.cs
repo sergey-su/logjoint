@@ -50,8 +50,7 @@ namespace LogJoint.UI
 				{
 					var popupParts = popup.Parts.Select(part =>
 					{
-						var link = part as MessageLink;
-						if (link != null)
+						if (part is MessageLink link)
 							return new InfoPopupControl.Link(link.Text, link.Click);
 						else
 							return new InfoPopupControl.MessagePart(part.Text);

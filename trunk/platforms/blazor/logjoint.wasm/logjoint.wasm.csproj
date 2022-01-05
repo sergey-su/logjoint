@@ -39,7 +39,6 @@
   <ItemGroup>
     <Folder Include="Formats\" />
     <Folder Include="Plugins\" />
-    <Folder Include="Views\StatusReport\" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Properties\launchSettings.json">

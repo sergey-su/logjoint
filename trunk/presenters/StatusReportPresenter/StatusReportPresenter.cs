@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.StatusReports
 {
@@ -12,12 +13,11 @@ namespace LogJoint.UI.Presenters.StatusReports
 		string statusText;
 		PopupData popup;
 		bool cancelLongRunningControlVisibile;
+		Task timer;
 
-		public Presenter(IHeartBeatTimer heartbeatTimer, IChangeNotification changeNotification)
+		public Presenter(IChangeNotification changeNotification)
 		{
 			this.changeNotification = changeNotification;
-
-			heartbeatTimer.OnTimer += (s, e) => Timeslice();
 		}
 
 		internal void SetStatusText(string value)
@@ -70,11 +70,15 @@ namespace LogJoint.UI.Presenters.StatusReports
 			return shownReports.LastOrDefault();
 		}
 
-		void Timeslice()
+		async Task Timeslice()
 		{
-			if (shownPopups.Count > 0)
+			while (shownPopups.Count > 0)
+			{
+				await Task.Delay(100);
 				foreach (var r in shownPopups.ToArray())
 					r.AutoHideIfItIsTime();
+			}
+			timer = null;
 		}
 
 		internal void ReportsTransaction(Action<List<StatusPopup>> body, bool allowReactivation, bool isPopup)
@@ -89,6 +93,8 @@ namespace LogJoint.UI.Presenters.StatusReports
 				oldActive.Deactivate();
 			if (newActive != null)
 				newActive.Activate();
+			if (shownPopups.Count > 0 && timer == null)
+				timer = Timeslice();
 		}
 	}
 };
