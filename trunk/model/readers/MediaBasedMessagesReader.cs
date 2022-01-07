@@ -19,7 +19,9 @@ namespace LogJoint
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
 			TextStreamPositioningParams textStreamPositioningParams,
 			MessagesReaderFlags flags,
-			Settings.IGlobalSettingsAccessor settingsAccessor
+			Settings.IGlobalSettingsAccessor settingsAccessor,
+			ITraceSourceFactory traceSourceFactory,
+			string parentLoggingPrefix
 		)
 		{
 			this.beginFinder = beginFinder;
@@ -31,6 +33,8 @@ namespace LogJoint
 			this.extensions = new MessagesReaderExtensions(this, extensionsInitData);
 			this.flags = flags;
 			this.settingsAccessor = settingsAccessor;
+			this.trace = traceSourceFactory.CreateTraceSource("LogSource",
+				string.Format("{0}.r{1:x4}", parentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 		}
 
 		#region IPositionedMessagesReader
@@ -236,6 +240,8 @@ namespace LogJoint
 			return re.Clone(optionsToAdd);
 		}
 
+		protected LJTraceSource Trace => trace;
+
 		#endregion
 
 		#region Implementation
@@ -356,6 +362,7 @@ namespace LogJoint
 		readonly TextStreamPositioningParams textStreamPositioningParams;
 		readonly MessagesReaderFlags flags;
 		readonly Settings.IGlobalSettingsAccessor settingsAccessor;
+		readonly LJTraceSource trace;
 
 		Encoding encoding;
 

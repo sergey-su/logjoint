@@ -16,7 +16,7 @@ namespace LogJoint
 			return Encoding.Default;
 		}
 
-		public static Encoding GetEncodingFromConfigXMLName(string encoding)
+		public static Encoding GetEncodingFromConfigXMLName(string encoding, LJTraceSource trace)
 		{
 			if (encoding == null)
 				encoding = "";
@@ -34,8 +34,9 @@ namespace LogJoint
 					{
 						return Encoding.GetEncoding(encoding);
 					}
-					catch (ArgumentException)
+					catch (ArgumentException e)
 					{
+						trace.Error(e, "Failed to get encoding '{0}'", encoding);
 						return null;
 					}
 			}

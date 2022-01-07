@@ -362,7 +362,8 @@ namespace LogJoint.XmlFormat
 			ITraceSourceFactory traceSourceFactory,
 			Settings.IGlobalSettingsAccessor settings
 		) :
-			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, settings)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags,
+				settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
@@ -381,7 +382,7 @@ namespace LogJoint.XmlFormat
 
 		protected override Encoding DetectStreamEncoding(Stream stream)
 		{
-			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(formatInfo.Encoding);
+			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(formatInfo.Encoding, Trace);
 			if (ret != null)
 				return ret;
 			if (formatInfo.Encoding == "BOM")

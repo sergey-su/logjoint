@@ -72,7 +72,6 @@ namespace LogJoint.RegularGrammar
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly IRegexFactory regexFactory;
 		readonly Lazy<ValueTask<bool>> isBodySingleFieldExpression;
-		readonly LJTraceSource trace;
 
 		public MessagesReader(
 			MediaBasedReaderParams readerParams,
@@ -82,7 +81,8 @@ namespace LogJoint.RegularGrammar
 			ITraceSourceFactory traceSourceFactory,
 			Settings.IGlobalSettingsAccessor settings
 		) :
-			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, settings)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags,
+				settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
 		{
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
@@ -91,7 +91,6 @@ namespace LogJoint.RegularGrammar
 			this.regexFactory = regexFactory;
 			this.fmtInfo = fmt;
 			this.fieldsProcessorFactory = fieldsProcessorFactory;
-			this.trace = traceSourceFactory.CreateTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 
 			base.Extensions.AttachExtensions();
 
@@ -107,7 +106,7 @@ namespace LogJoint.RegularGrammar
 				fmtInfo.FieldsProcessorParams,
 				fmtInfo.InputFieldNames,
 				Extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
-				trace
+				Trace
 			);
 		}
 
@@ -228,7 +227,8 @@ namespace LogJoint.RegularGrammar
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.fmtInfo.HeadRe.Regex,
-			         reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(), reader.fmtInfo.TextStreamPositioningParams, reader.trace.Prefix, reader.traceSourceFactory)
+						reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(), reader.fmtInfo.TextStreamPositioningParams,
+						reader.Trace.Prefix, reader.traceSourceFactory)
 			{
 				this.reader = reader;
 			}
@@ -271,7 +271,7 @@ namespace LogJoint.RegularGrammar
 
 		protected override Encoding DetectStreamEncoding(Stream stream)
 		{
-			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(fmtInfo.Encoding);
+			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(fmtInfo.Encoding, Trace);
 			if (ret == null)
 				ret = EncodingUtils.DetectEncodingFromBOM(stream, EncodingUtils.GetDefaultEncoding());
 			return ret;
