@@ -7,7 +7,7 @@
 @inject IJSRuntime jsRuntime
 @inject JsInterop jsInterop
 
-<div class="logview @Class" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))"
+<div class="logview @Class @(viewModel.TimeMaxLength > 0 ? "time-visible" : "")" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))"
         @onfocus="@(e => focused = true)" @onblur="@(e => focused = false)" @ref="element">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
@@ -87,6 +87,15 @@
             </div>
         }
     </div>
+    @if (viewModel.TimeMaxLength > 0)
+    { 
+        <div class="time" style="top: @TopProperty">
+            @foreach (var item in @viewModel.ViewLines)
+            {
+            <div style="@GetLogLineStyle(item.ContextColor)">@(!string.IsNullOrEmpty(item.Time) ? item.Time : " ")</div>
+            }
+        </div>
+    }
     <div class="vsroller"><div class="slider" @ref="sliderElement" style="top: @string.Format("{0}%", viewModel.VerticalScrollerPosition.GetValueOrDefault(0)*100)"></div></div>
 </div>
 

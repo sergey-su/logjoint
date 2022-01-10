@@ -1376,7 +1376,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IView view;
 		IBookmark slaveModeFocusedMessage;
 		string defaultFocusedMessageActionCaption;
-		bool showTime;
+		bool showTime = false;
 		bool showMilliseconds = true;
 		bool enableEmptyViewMessage = true;
 		UserInteraction disabledUserInteractions = UserInteraction.None;

@@ -177,6 +177,9 @@ button {
     flex-grow: 2;
     position: relative;
 }
+.logview.time-visible .scroll-outer {
+    margin-left: 200px;
+}
 .logview .scroll-outer .empty-view-message {
     margin: 0;
     position: absolute;
@@ -247,6 +250,20 @@ button {
 }
 .logview .outline .item>.p.r { /* raised focused message mark */
     top: -0.5em;
+}
+.logview .time {
+    font-family: monospace;
+    position: absolute;
+    transform: translate3d(0px, 0px, 0px);
+    left: 30px;
+    top: 0px;
+    width: 170px;
+    display: flex;
+    flex-flow: column nowrap;
+}
+.logview .time>* {
+    white-space: pre;
+    border-right: 1px solid gray;
 }
 
 .logline .txt {
