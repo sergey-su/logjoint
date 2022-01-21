@@ -72,7 +72,7 @@ namespace LogJoint.Persistence.Implementation
 
 		public static async Task<IXMLStorageSection> Create(
 			StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags)
-        {
+		{
 			var result = new XmlStorageSection(manager, entry, key, additionalNumericKey, openFlags);
 			await result.Init();
 			return result;
@@ -106,12 +106,12 @@ namespace LogJoint.Persistence.Implementation
 		{
 			try
 			{
-                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
-                s.SetLength(0);
-                s.Position = 0;
-                data.Save(s);
-                await s.FlushAsync();
-            }
+				using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
+				s.SetLength(0);
+				s.Position = 0;
+				data.Save(s);
+				await s.FlushAsync();
+			}
 			catch (Exception e)
 			{
 				if ((OpenFlags & StorageSectionOpenFlag.IgnoreStorageExceptions) != 0)
@@ -143,7 +143,7 @@ namespace LogJoint.Persistence.Implementation
 	{
 		public static async Task<ISaxXMLStorageSection> Create(StorageManagerImplementation manager,
 			StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags)
-        {
+		{
 			SaxXmlStorageSection result = new SaxXmlStorageSection(manager, entry, key, additionalNumericKey, openFlags);
 			await result.Init();
 			return result;
@@ -207,7 +207,7 @@ namespace LogJoint.Persistence.Implementation
 
 		public static async Task<IRawStreamStorageSection> Create(StorageManagerImplementation manager,
 			StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string keyPrefix = null)
-        {
+		{
 			var result = new BinaryStorageSection(manager, entry, key, additionalNumericKey, openFlags, keyPrefix);
 			await result.Init();
 			return result;
@@ -236,13 +236,13 @@ namespace LogJoint.Persistence.Implementation
 		{
 			try
 			{
-                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
-                s.SetLength(0);
-                s.Position = 0;
-                data.Position = 0;
-                await data.CopyToAsync(s);
-                await s.FlushAsync();
-            }
+				using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
+				s.SetLength(0);
+				s.Position = 0;
+				data.Position = 0;
+				await data.CopyToAsync(s);
+				await s.FlushAsync();
+			}
 			catch (Exception e)
 			{
 				Manager.FileSystem.ConvertException(e);
