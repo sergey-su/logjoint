@@ -29,6 +29,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		SelectionInfo setSelection;
 		bool cursorState;
+		int crosslineNavigationCharIdx;
 
 		public SelectionManager(
 			Func<IView> view,
@@ -203,7 +204,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else
 			{
 				newLineCharIndex = RangeUtils.PutInRange(0, line.Length,
-					textCharIndex.GetValueOrDefault((selection()?.First?.LineCharIndex).GetValueOrDefault(0)));
+					(flag & SelectionFlag.CrosslineNavigation) != 0 ?
+						crosslineNavigationCharIdx :
+						textCharIndex.GetValueOrDefault((selection()?.First?.LineCharIndex).GetValueOrDefault(0)));
 				if ((flag & SelectionFlag.SelectBeginningOfNextWord) != 0)
 					newLineCharIndex = StringUtils.FindNextWordInString(line, newLineCharIndex);
 				else if ((flag & SelectionFlag.SelectBeginningOfPrevWord) != 0)
@@ -237,6 +240,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				setSelection = new SelectionInfo(tmp, resetEnd ? tmp : setSelection.Last, screenBuffer.DisplayTextGetter);
 				changeNotification.Post();
+
+				if ((flag & SelectionFlag.CrosslineNavigation) == 0)
+					crosslineNavigationCharIdx = newLineCharIndex;
 
 				doScrolling();
 			}

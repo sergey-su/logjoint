@@ -66,6 +66,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		SelectBeginningOfPrevWord = 16,
 		SuppressOnFocusedMessageChanged = 32,
 		NoHScrollToSelection = 64,
-		ScrollToViewEventIfSelectionDidNotChange = 128
+		ScrollToViewEventIfSelectionDidNotChange = 128,
+		CrosslineNavigation = 256,
 	};
 };

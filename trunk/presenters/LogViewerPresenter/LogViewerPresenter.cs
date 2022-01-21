@@ -929,7 +929,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (await ScrollSelectionIntoScreenBuffer(cancellation) == null)
 					return;
 				cancellation.ThrowIfCancellationRequested();
-				await MoveSelectionCore(selectionDelta, selFlags, cancellation);
+				await MoveSelectionCore(selectionDelta, selFlags | SelectionFlag.CrosslineNavigation, cancellation);
 			});
 		}
 
