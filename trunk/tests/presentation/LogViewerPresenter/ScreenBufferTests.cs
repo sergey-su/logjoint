@@ -1350,14 +1350,14 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					1-ln_1
 					2-ln_0", 0.1);
 
-				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, null, cancel);
 				VerifyMessages(screenBuffer,
 					@"0-rln_1
 					0-rln_2
 					1-rln_0
 					1-rln_1", 0.1, verifyRaw: true);
 
-				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, null, cancel);
 				VerifyMessages(screenBuffer,
 					@"0-ln_1
 					1-ln_0
@@ -1375,7 +1375,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					9-ln_0
 					9-ln_1", 0.7);
 
-				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, null, cancel);
 				VerifyMessages(screenBuffer,
 					@"8-rln_0
 					8-rln_1
@@ -1383,7 +1383,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					9-rln_0", 0.7, verifyRaw: true);
 
 				await screenBuffer.MoveToStreamsEnd(cancel);
-				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, cancel);
+				await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, null, cancel);
 				VerifyMessages(screenBuffer,
 					@"8-ln_0
 					8-ln_1

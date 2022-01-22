@@ -142,30 +142,34 @@ namespace LogJoint.UI.Presenters.LogViewer
 			};
 		}
 
-		static SelectionInfo ComputeSelection(SelectionInfo setSelection, IReadOnlyList<ScreenBufferEntry> viewLines, IReadOnlyList<SourceScreenBuffer> sources, MessageTextGetter dessageTextGetter)
+		static SelectionInfo ComputeSelection(SelectionInfo setSelection, IReadOnlyList<ScreenBufferEntry> viewLines, IReadOnlyList<SourceScreenBuffer> sources, MessageTextGetter messageTextGetter)
 		{
-			SelectionInfo createForViewLineIndex(int idx)
+			SelectionInfo createForViewLineIndex(int idx1, int idx2)
 			{
 				if (viewLines.Count == 0)
 					return null;
-				return new SelectionInfo(CursorPosition.FromScreenBufferEntry(idx != viewLines.Count ? viewLines[idx] : viewLines[0], 0), null, dessageTextGetter);
+				if (idx1 != idx2)
+					return new SelectionInfo(CursorPosition.FromScreenBufferEntry(viewLines[idx1], 0), null, messageTextGetter);
+				return new SelectionInfo(new CursorPosition(setSelection.First.Message, setSelection.First.Source, 0, 0), null, messageTextGetter);
 			}
 			bool belongsToNonExistingSource(CursorPosition pos) => pos != null && !sources.Any(s => s.Source == pos.Source);
 
 			if (setSelection == null)
 			{
-				return createForViewLineIndex(0);
+				return null;
 			}
 			else if (belongsToNonExistingSource(setSelection.First) || belongsToNonExistingSource(setSelection.Last))
 			{
 				IComparer<IMessage> cmp = new DatesComparer(setSelection.First.Message.Time.ToLocalDateTime());
-				var idx = viewLines.BinarySearch(0, viewLines.Count, dl => cmp.Compare(dl.Message, null) < 0);
-				return createForViewLineIndex(idx);
+				var idx1 = viewLines.BinarySearch(0, viewLines.Count, dl => cmp.Compare(dl.Message, null) < 0);
+				var idx2 = viewLines.BinarySearch(idx1, viewLines.Count, dl => cmp.Compare(dl.Message, null) <= 0);
+				return createForViewLineIndex(idx1, idx2);
 			}
-			else if (setSelection.MessageTextGetter != dessageTextGetter)
+			else if (setSelection.MessageTextGetter != messageTextGetter)
 			{
-				var idx = viewLines.BinarySearch(0, viewLines.Count, m => MessagesComparer.Compare(m.Message, setSelection.First.Message) < 0);
-				return createForViewLineIndex(idx);
+				var idx1 = viewLines.BinarySearch(0, viewLines.Count, m => MessagesComparer.Compare(m.Message, setSelection.First.Message) < 0);
+				var idx2 = viewLines.BinarySearch(idx1, viewLines.Count, m => MessagesComparer.Compare(m.Message, setSelection.First.Message) <= 0);
+				return createForViewLineIndex(idx1, idx2);
 			}
 			else
 			{

@@ -29,7 +29,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else
 			{
 				this.beginPosition = other.beginPosition;
-				this.endPosition = other.beginPosition;
+				this.endPosition = other.endPosition;
+				foreach (var line in other.lines.Where(l => l.LineIndex == 0))
+				{
+					var messagesLinesCount = displayTextGetter(line.Message).GetLinesCount();
+					for (int i = 0; i < messagesLinesCount; ++i)
+						this.lines.Add(new DisplayLine(line.Message, i, messagesLinesCount, displayTextGetter, line.Source));
+				}
 			}
 			this.loggableId = source.LogSourceHint?.ConnectionId ?? this.GetHashCode().ToString("x8");
 			this.diagnostics = other.diagnostics;

@@ -128,11 +128,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 					m.Message.Thread?.RegisterKnownMessage(m.Message);
 			});
 
+			static Tuple<IMessage, int> toTuple(CursorPosition p) => p != null ? Tuple.Create(p.Message, p.TextLineIndex) : null;
+
 			var displayTextGetterObserver = Updaters.Create(
 				displayTextGetterSelector,
 				value =>
 					navigationManager
-					.NavigateView(cancel => screenBuffer.SetDisplayTextGetter(msg => value(msg).DisplayText, cancel))
+					.NavigateView(cancel => screenBuffer.SetDisplayTextGetter(msg => value(msg).DisplayText,
+						toTuple(selectionManager.Selection?.First), cancel))
 					.IgnoreCancellation()
 			);
 

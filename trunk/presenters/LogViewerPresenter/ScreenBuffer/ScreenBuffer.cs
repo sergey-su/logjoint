@@ -98,7 +98,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(sz), cancellation))), 				getPivotLine: MakePivotLineGetter(l => 				{ 					if (currentTop.IsEmpty) 						return 0; 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex) 						return -scrolledLines; 					return null; 				})
 			); 		}
 
-		Task IScreenBuffer.SetDisplayTextGetter(MessageTextGetter displayTextGetter, CancellationToken cancellation)
+		Task IScreenBuffer.SetDisplayTextGetter(MessageTextGetter displayTextGetter, Tuple<IMessage, int> currentSelection, CancellationToken cancellation)
 		{
 			if (this.displayTextGetter == displayTextGetter)
 				return Task.FromResult(0);
@@ -107,8 +107,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 			return PerformBuffersTransaction(
 				string.Format("SetDisplayTextGetter({0})", displayTextGetter),
-				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))), 				getPivotLine: (lines, bufs) => 				{ 					var candidate = new DisplayLine();
-					if (!currentTop.IsEmpty)
+				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))), 				getPivotLine: (lines, bufs) => 				{ 					double candidateScrolledLines = -scrolledLines; 					var candidate = new DisplayLine();
+					if (currentSelection != null)
+					{
+						candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentSelection.Item1) == 0 && l.LineIndex == currentSelection.Item2);
+						if (candidate.IsEmpty)
+							candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentSelection.Item1) == 0);
+						if (!candidate.IsEmpty)
+							candidateScrolledLines = 0;
+					}
+					if (candidate.IsEmpty && !currentTop.IsEmpty)
 					{
 						candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex); 						if (candidate.IsEmpty)
 							candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentTop.Message) == 0);
@@ -116,7 +124,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (candidate.IsEmpty)
 						candidate = lines.FirstOrDefault();
 					if (candidate.IsEmpty)
-						return null; 					return Tuple.Create(candidate, -scrolledLines); 				} 			); 		}
+						return null; 					return Tuple.Create(candidate, candidateScrolledLines); 				} 			); 		}
 
 		MessageTextGetter IScreenBuffer.DisplayTextGetter { get { return displayTextGetter; } }
 

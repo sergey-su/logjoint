@@ -48,7 +48,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// The passed value is accepted always synchronously. Cancellation only affects
 		/// reloading that follow the change.
 		/// </summary>
-		Task SetDisplayTextGetter(MessageTextGetter displayTextGetter, CancellationToken cancellation);
+		Task SetDisplayTextGetter(MessageTextGetter displayTextGetter, Tuple<IMessage, int> currentSelection, CancellationToken cancellation);
 		MessageTextGetter DisplayTextGetter { get; }
 
 		/// <summary>
