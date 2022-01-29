@@ -1058,13 +1058,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			public VisualizerNode Expand(bool value)
 			{
 				var copy = new VisualizerNode(obj, children, value, selected, level, annotationsMap);
-				return parent.ReplaceChild(this, copy, false);
+				return parent.ReplaceChild(this, copy, ensureExpanded: false);
 			}
 
 			public VisualizerNode Select(bool value)
 			{
 				var copy = new VisualizerNode(obj, children, expanded, value, level, annotationsMap);
-				return parent.ReplaceChild(this, copy, true);
+				return parent.ReplaceChild(this, copy, ensureExpanded: value);
 			}
 
 			public VisualizerNode SetAnnotationsMap(ImmutableDictionary<ILogSource, string> annotationsMap)
