@@ -125,10 +125,14 @@ namespace LogJoint.Postprocessing.StateInspector
 			displayName = cevt.DisplayName;
 		}
 
-		void IInspectedObject.SetDeletionEvent(StateInspectorEvent evt)
+		bool IInspectedObject.SetDeletionEvent(StateInspectorEvent evt)
 		{
 			if (deletion == null)
+			{
 				deletion = evt;
+				return true;
+			}
+			return false;
 		}
 
 		void IInspectedObject.AddStateChangeEvent(StateInspectorEvent evt)

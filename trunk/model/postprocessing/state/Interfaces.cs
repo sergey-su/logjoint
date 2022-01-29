@@ -30,7 +30,7 @@ namespace LogJoint.Postprocessing.StateInspector
 		void RemoveChild(IInspectedObject child);
 		void AddChild(IInspectedObject child);
 		void SetCreationEvent(StateInspectorEvent evt);
-		void SetDeletionEvent(StateInspectorEvent evt);
+		bool SetDeletionEvent(StateInspectorEvent evt);
 		void AddStateChangeEvent(StateInspectorEvent evt);
 	};
 

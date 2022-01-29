@@ -149,12 +149,12 @@ namespace LogJoint.Postprocessing.StateInspector
 				return objectId != null && displayNames.TryGetValue(objectId, out displayName);
 			}
 
-            IEnumerable<KeyValuePair<string, PropertyViewBase>> IInspectedObject.GetCurrentProperties(FocusedMessageEventsRange focusedMessage)
-            {
+			IEnumerable<KeyValuePair<string, PropertyViewBase>> IInspectedObject.GetCurrentProperties(FocusedMessageEventsRange focusedMessage)
+			{
 				for (int i = 0; i < parts.Count; ++i)
 					yield return new KeyValuePair<string, PropertyViewBase>(parts.Count == 1 ? "log source" : $"log source #{i + 1}",
 						new SourceReferencePropertyView(this, parts[i].LogSource));
-            }
+			}
 
 			string IInspectedObject.GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage) => null;
 
@@ -162,39 +162,40 @@ namespace LogJoint.Postprocessing.StateInspector
 
 			IEnumerable<ILogSource> IInspectedObject.EnumInvolvedLogSources() => parts.Select(p => p.LogSource);
 
-            void IInspectedObject.SetParent(IInspectedObject value)
-            {
-            }
+			void IInspectedObject.SetParent(IInspectedObject value)
+			{
+			}
 
-            void IInspectedObject.RemoveChild(IInspectedObject child)
-            {
-            }
+			void IInspectedObject.RemoveChild(IInspectedObject child)
+			{
+			}
 
-            void IInspectedObject.AddChild(IInspectedObject child)
-            {
-            }
+			void IInspectedObject.AddChild(IInspectedObject child)
+			{
+			}
 
-            void IInspectedObject.SetCreationEvent(StateInspectorEvent evt)
-            {
-            }
+			void IInspectedObject.SetCreationEvent(StateInspectorEvent evt)
+			{
+			}
 
-            void IInspectedObject.SetDeletionEvent(StateInspectorEvent evt)
-            {
-            }
+			bool IInspectedObject.SetDeletionEvent(StateInspectorEvent evt)
+			{
+				return false;
+			}
 
-            void IInspectedObject.AddStateChangeEvent(StateInspectorEvent evt)
-            {
-            }
+			void IInspectedObject.AddStateChangeEvent(StateInspectorEvent evt)
+			{
+			}
 
 			IEnumerable<IInspectedObject> IInspectedObject.Children => roots;
 
 			IStateInspectorOutputsGroup IInspectedObject.Owner => this;
 
-            string IInspectedObject.Id => key;
+			string IInspectedObject.Id => key;
 
-            string IInspectedObject.DisplayName => null;
+			string IInspectedObject.DisplayName => null;
 
-            string IInspectedObject.Comment => "";
+			string IInspectedObject.Comment => "";
 
 			IInspectedObject IInspectedObject.Parent => null;
 
@@ -203,9 +204,9 @@ namespace LogJoint.Postprocessing.StateInspector
 			StateInspectorEvent IInspectedObject.CreationEvent => null;
 
 			bool IInspectedObject.IsTimeless => true;
-        }
+		}
 
-        readonly IManagerInternal postprocessorsManager;
+		readonly IManagerInternal postprocessorsManager;
 		readonly IUserNamesProvider shortNamesManager;
 		HashSet<IStateInspectorOutput> outputs = new HashSet<IStateInspectorOutput>();
 		ImmutableDictionary<string, RotatedLogGroup> groups = ImmutableDictionary<string, RotatedLogGroup>.Empty;

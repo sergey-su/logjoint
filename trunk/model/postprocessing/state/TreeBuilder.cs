@@ -79,9 +79,18 @@ namespace LogJoint.Postprocessing.StateInspector
 
 		void IEventsVisitor.Visit(ObjectDeletion objectDeletion)
 		{
-			var obj = GetObject(objectDeletion.ObjectId);
-			obj.SetDeletionEvent(currentEvent);
-			obj.AddStateChangeEvent(currentEvent);
+			void DeleteObject(IInspectedObject obj)
+			{
+				if (obj.SetDeletionEvent(currentEvent))
+				{
+					obj.AddStateChangeEvent(currentEvent);
+				}
+				foreach (var c in obj.Children)
+				{
+					DeleteObject(c);
+				}
+			}
+			DeleteObject(GetObject(objectDeletion.ObjectId));
 		}
 
 		void IEventsVisitor.Visit(ObjectCreation objectCreation)
