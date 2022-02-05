@@ -2092,6 +2092,8 @@ button {
 
 .status-popup>.contents {
     margin: 5px 0px;
+    white-space: pre;
+    overflow: auto;
 }
 
 .status-popup>.contents>a {
