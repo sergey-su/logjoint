@@ -64,10 +64,10 @@
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
     <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../extensions/chromium/plugin/bin/Debug/netstandard2.0&quot;" />
-    <Exec Command="dotnet ../../../sdk/tools/logjoint.plugintool/bin/Debug/netcoreapp2.1/dotnet-logjoint.plugintool.dll pack bin/Debug/netstandard2.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
+    <Exec Command="dotnet ../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/netstandard2.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
     <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0&quot;" />
-    <Exec Command="dotnet logjoint.plugintool pack bin/Debug/netstandard2.0/manifest.xml bin/google.zip prod" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
+    <Exec Command="dotnet $(ProjectDir)../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/netstandard2.0/manifest.xml bin/google.zip prod" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
   </Target>
 </Project>

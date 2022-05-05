@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
@@ -16,7 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="../../sdk/model/logjoint.model.sdk.csproj" />
     <ProjectReference Include="../../model/logjoint.model.csproj" />
-    <ProjectReference Include="..\..\dynamic-compilation\logjoint.model.dynamic-compilation.csproj" />
+    <ProjectReference Include="../../dynamic-compilation/logjoint.model.dynamic-compilation.csproj" />
   </ItemGroup>
 
   <!-- todo: fix excluded tests -->
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Samples\XmlWriterTraceListener1.xml" />
+    <EmbeddedResource Include="Samples/XmlWriterTraceListener1.xml" />
   </ItemGroup>
 
 </Project>
