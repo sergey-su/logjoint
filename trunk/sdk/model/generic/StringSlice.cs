@@ -167,12 +167,12 @@ namespace LogJoint
 
 		public int IndexOf(string value, int startIndex, StringComparison cmp)
 		{
-			return str.IndexOf(value, this.index + startIndex, length - startIndex, cmp) - this.index;
+			return Math.Max(-1, str.IndexOf(value, this.index + startIndex, length - startIndex, cmp) - this.index);
 		}
 
 		public int LastIndexOf(string value, int startIndex, StringComparison cmp)
 		{
-			return str.LastIndexOf(value, this.index + startIndex, startIndex + 1, cmp) - this.index;
+			return Math.Max(-1, str.LastIndexOf(value, this.index + startIndex, startIndex + 1, cmp) - this.index);
 		}
 
 		public int LastIndexOfAny(char[] chars)
