@@ -284,7 +284,7 @@ namespace LogJoint
 
 		void LoadInternal(XElement e)
 		{
-			options.Load(e);	
+			options = options.Load(e);	
 			enabled = e.SafeIntValue("enabled", 1) != 0;
 			action = (FilterAction)e.SafeIntValue("action", (int)FilterAction.Include);
 			initialName = e.AttributeValue("initial-name", defaultValue: "");
