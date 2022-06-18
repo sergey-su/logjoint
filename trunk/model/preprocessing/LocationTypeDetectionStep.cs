@@ -17,7 +17,7 @@ namespace LogJoint.Preprocessing
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			if (Uri.IsWellFormedUriString(sourceFile.Location, UriKind.Absolute))
+			if (HttpUtils.IsWellFormedAbsoluteUriString(sourceFile.Location))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateURLTypeDetectionStep(sourceFile));
 			else
 				callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(sourceFile));

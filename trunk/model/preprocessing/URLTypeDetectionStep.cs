@@ -23,7 +23,7 @@ namespace LogJoint.Preprocessing
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			if (Uri.IsWellFormedUriString(sourceFile.Location, UriKind.Absolute))
+			if (HttpUtils.IsWellFormedAbsoluteUriString(sourceFile.Location))
 			{
 				var uri = new Uri(sourceFile.Location);
 				string localFilePath;

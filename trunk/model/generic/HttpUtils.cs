@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -32,6 +33,12 @@ namespace LogJoint
 					rsp.Method, rsp.ResponseUri, await responseReader.ReadToEndAsync());
 			}
 			throw new WebException("http request failed");
+		}
+
+		public static bool IsWellFormedAbsoluteUriString(string str)
+		{
+			// Forkaround for https://github.com/dotnet/runtime/issues/70929.
+			return Uri.IsWellFormedUriString(str.Replace("%7E", "~").Replace("%7e", "~"), UriKind.Absolute);
 		}
 	}
 }
