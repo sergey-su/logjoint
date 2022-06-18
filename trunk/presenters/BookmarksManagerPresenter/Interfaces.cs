@@ -21,6 +21,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		IChangeNotification ChangeNotification { get; }
 		ButtonState AddButton { get; }
 		ButtonState DeleteButton { get; }
+		ButtonState DeleteAllButton { get; }
 		void OnToggleButtonClicked();
 		void OnDeleteAllButtonClicked();
 		void OnPrevBmkButtonClicked();

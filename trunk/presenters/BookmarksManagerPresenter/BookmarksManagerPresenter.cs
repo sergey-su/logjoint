@@ -17,6 +17,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly IChangeNotification changeNotification;
 		readonly Func<ButtonState> addButton;
 		readonly Func<ButtonState> deleteButton;
+		readonly Func<ButtonState> deleteAllButton;
 
 		public Presenter(
 			IBookmarks bookmarks,
@@ -56,7 +57,12 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.deleteButton = Selectors.Create(() => listPresenter.HasSelectedBookmarks, hasSelected => new ButtonState()
 			{
 				Enabled = hasSelected,
-				Tooltip = "Delete the bookmark for the current log message",
+				Tooltip = "Delete selected bookmark",
+			});
+			this.deleteAllButton = Selectors.Create(() => bookmarks.Items.Count > 0, hasBookmarks => new ButtonState()
+			{
+				Enabled = hasBookmarks,
+				Tooltip = "Delete all bookmarks",
 			});
 
 			listPresenter.Click += (s, bmk) =>
@@ -93,6 +99,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		ButtonState IViewModel.AddButton => addButton();
 		ButtonState IViewModel.DeleteButton => deleteButton();
+		ButtonState IViewModel.DeleteAllButton => deleteAllButton();
 
 		void IViewModel.OnToggleButtonClicked()
 		{
@@ -113,7 +120,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			listPresenter.DeleteSelectedBookmarks();
 		}
 
-		void IViewModel.OnDeleteAllButtonClicked()
+		async void IViewModel.OnDeleteAllButtonClicked()
 		{
 			using (tracer.NewFrame)
 			{
@@ -125,7 +132,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 					return;
 				}
 
-				if (alerts.ShowPopup(
+				if (await alerts.ShowPopupAsync(
 					"Delete bookmarks",
 					string.Format("Are you sure you to delete {0} bookmarks", bookmarks.Items.Count),
 					AlertFlags.YesNoCancel | AlertFlags.WarningIcon

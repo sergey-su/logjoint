@@ -1169,6 +1169,12 @@ button {
     border-radius: 3px;
 }
 
+.bookmarks-manager>.actions>.delete-all-button>.icon {
+    height: 13px;
+    position: relative;
+    top: 2px;
+}
+
 .bookmarks-manager>.the-list {
     width: 1px;
     flex-grow: 2;

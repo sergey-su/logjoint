@@ -6,12 +6,18 @@
 
 <div class='bookmarks-manager @Class'>
     <div class='actions'>
-        <button disabled=@(!viewModel.AddButton.Enabled)
+        <button disabled="@(!viewModel.AddButton.Enabled)"
                 @onclick=viewModel.OnAddBookmarkButtonClicked 
                 title=@viewModel.AddButton.Tooltip>+</button>
-        <button disabled=@(!viewModel.DeleteButton.Enabled)
+        <button disabled="@(!viewModel.DeleteButton.Enabled)"
                 @onclick=@viewModel.OnDeleteBookmarkButtonClicked 
                 title=@viewModel.DeleteButton.Tooltip>−</button>
+        <button disabled="@(!viewModel.DeleteAllButton.Enabled)"
+                @onclick=@viewModel.OnDeleteAllButtonClicked
+                class="delete-all-button"
+                title=@viewModel.DeleteAllButton.Tooltip>
+            <ClearAllIcon/>
+        </button>
     </div>
     <BookmarksList Class="the-list" />
 </div>
@@ -26,7 +32,7 @@
     protected override void OnInitialized()
     {
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.DeleteButton, viewModel.AddButton),
+            () => (viewModel.DeleteButton, viewModel.AddButton, viewModel.DeleteAllButton),
             _ => StateHasChanged()
         ));
     }
