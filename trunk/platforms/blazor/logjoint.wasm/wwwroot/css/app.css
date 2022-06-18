@@ -59,12 +59,17 @@ body.dark-theme {
     --toast-notification-text-color: black;
 }
 
+button:disabled {
+    --text-color: gray;
+}
+
 .dark-theme button {
     color: var(--text-color);
 }
 
 .dark-theme button:disabled {
     color: gray;
+    --text-color: gray;
 }
 
 .dark-theme a {
@@ -506,6 +511,11 @@ button {
 }
 .log-sources-manager>.actions>.history-button>.icon {
     height: 15px;
+    position: relative;
+    top: 2px;
+}
+.log-sources-manager>.actions>.close-all-button>.icon {
+    height: 13px;
     position: relative;
     top: 2px;
 }

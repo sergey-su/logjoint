@@ -11,6 +11,10 @@
         <button @onclick="OnAddLogSource" title="Open log">+</button>
         <button disabled="@(!viewModel.DeleteSelectedSourcesButtonEnabled)"
                 @onclick="@viewModel.OnDeleteSelectedLogSourcesButtonClicked" title="Close selected log">−</button>
+        <button disabled="@(!viewModel.DeleteAllSourcesButtonEnabled)"
+                @onclick="@viewModel.OnDeleteAllLogSourcesButtonClicked" class="close-all-button" title="Close all logs">
+            <ClearAllIcon/>
+        </button>
         <button disabled="@(!viewModel.PropertiesButtonEnabled)"
                 @onclick="@viewModel.OnPropertiesButtonClicked">⚙</button>
         <button @onclick="@viewModel.OnShowHistoryDialogButtonClicked" class="history-button" title="Re-open recent log">
@@ -30,7 +34,7 @@
     protected override void OnInitialized()
     {
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.DeleteSelectedSourcesButtonEnabled, viewModel.PropertiesButtonEnabled),
+            () => (viewModel.DeleteSelectedSourcesButtonEnabled, viewModel.PropertiesButtonEnabled, viewModel.DeleteAllSourcesButtonEnabled),
             _ => StateHasChanged()
         ));
     }
