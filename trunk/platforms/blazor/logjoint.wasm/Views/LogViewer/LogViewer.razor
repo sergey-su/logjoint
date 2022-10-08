@@ -54,7 +54,12 @@
         </div>
         @if (viewModel.EmptyViewMessage != null)
         {
-            <div class="empty-view-message">Drag log files here to open</div>
+            var pluginUrl = "http://go/logjoint-chrome-plugin";
+            <div class="empty-view-message">
+                Use <a href="@pluginUrl" target="_blank">Chrome plugin</a> to send logs here
+                <br/>
+                or drag&drop local log files.
+            </div>
         }
     </div>
     <div class="outline" style="top: @TopProperty">
