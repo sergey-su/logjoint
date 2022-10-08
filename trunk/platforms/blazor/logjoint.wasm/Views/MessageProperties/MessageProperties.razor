@@ -21,6 +21,12 @@
             <a href="@(d.BookmarkActionLinkEnabled ? "#" : "")" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkActionClicked())">@d.BookmarkActionLinkText</a>
         </div>
 
+        @if (d.MessageLinkEnabled)
+        {
+            <div>Related link:</div>
+            <a class="value" href="@(d.MessageLinkValue)" target="_blank" title="@(d.MessageLinkValue)">@d.MessageLinkValue</a>
+        }
+
         <div class="contents-label">Contents</div>
         <TabsView Tabs=@tabInfos() SelectedTab=d.ContentViewModeIndex.GetValueOrDefault() OnSelect=viewModel.OnContentViewModeChange />
     </div>

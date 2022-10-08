@@ -22,6 +22,7 @@ namespace LogJoint.FieldsProcessor
 		HintIgnoreSeverity = 4,
 		HintIgnoreThread = 8,
 		HintIgnoreEntryType = 16,
+		HintIgnoreLink = 32,
 	};
 
 	public interface IFieldsProcessor

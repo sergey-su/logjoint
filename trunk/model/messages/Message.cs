@@ -83,6 +83,13 @@ namespace LogJoint
 			return GetHashCodeInternal(ignoreMessageTime);
 		}
 
+		StringSlice IMessage.Link => link;
+
+		public void SetLink(StringSlice link)
+		{
+			this.link = link;
+		}
+
 		#region Implementation
 
 		int GetHashCodeInternal(bool ignoreMessageTime)
@@ -120,6 +127,7 @@ namespace LogJoint
 		StringSlice rawText;
 		MultilineText rawTextML;
 		int? hashCodeCache;
+		StringSlice link;
 
 		#endregion
 	};

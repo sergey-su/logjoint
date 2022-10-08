@@ -23,6 +23,8 @@ namespace LogJoint
 
 		void SetPosition(long position, long endPosition);
 		void ReallocateTextBuffer(IStringSliceReallocator alloc);
+
+		StringSlice Link { get; }
 	};
 
 	[Flags]

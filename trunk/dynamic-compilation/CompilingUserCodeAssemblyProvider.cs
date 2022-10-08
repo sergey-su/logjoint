@@ -32,7 +32,7 @@ namespace LogJoint
 		}
 
 		int IUserCodeAssemblyProvider.ProviderVersionHash => Hashing.GetStableHashCode(
-				typeof(CSharpCompilation).Assembly.FullName);
+				typeof(CSharpCompilation).Assembly.FullName + " gen=1");
 
 		byte[] IUserCodeAssemblyProvider.GetUserCodeAsssembly(
 			LJTraceSource trace, 
@@ -203,6 +203,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			bool fieldsAdded = false;
 			bool severityAdded = false;
 			bool typeAdded = false;
+			bool linkAdded = false;
 
 			string defTimeExpression = @"DateTime.MinValue";
 
@@ -213,6 +214,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			string defSeverityExpression = @"Severity.Info";
 
 			string defTypeExpression = @"EntryType.Content";
+
+			string defLinkExpression = @"StringSlice.Empty";
 
 			foreach (OutputFieldStruct s in outputFields)
 			{
@@ -256,6 +259,13 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 						ignoranceFlag = "HintIgnoreEntryType";
 						exprWhenIgnored = defTypeExpression;
 						typeAdded = true;
+						break;
+					case "Link":
+						fieldVar = "__link";
+						fieldType = "StringSlice";
+						ignoranceFlag = "HintIgnoreLink";
+						exprWhenIgnored = defLinkExpression;
+						linkAdded = true;
 						break;
 				}
 				if (fieldVar != null)
@@ -316,6 +326,12 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		EntryType __entryType = {0};", defTypeExpression);
 			}
 
+			if (!linkAdded)
+			{
+				code.AppendFormat(@"
+		StringSlice __link = {0};", defLinkExpression);
+			}
+
 			code.AppendLine(@"
 		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.HintIgnoreBody) == 0)
 			__body = TRIM(__body);");
@@ -336,7 +352,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		//fakeMsg.SetPosition(__callback.CurrentPosition);
 		//return fakeMsg;
 
-		return new Message(
+		var __result = new Message(
 			__callback.CurrentPosition,
 			__callback.CurrentEndPosition,
 			mtd,
@@ -345,6 +361,11 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			(SeverityFlag)__severity,
 			__callback.CurrentRawText
 		);
+
+		if (!__link.IsEmpty)
+			__result.SetLink(__link);
+
+		return __result;
 		");
 
 			code.AppendLine(@"

@@ -136,6 +136,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					textHighlights = builder.ToImmutable();
 				}
 
+				StringSlice messageLink = (message?.Link) ?? StringSlice.Empty;
+
 				return new DialogData()
 				{
 					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
@@ -160,7 +162,10 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 					TextHighlights = textHighlights,
 					CustomView = customView is string ? null : customView,
 
-					HighlightedCheckboxEnabled = hlEnabled
+					HighlightedCheckboxEnabled = hlEnabled,
+
+					MessageLinkEnabled = !messageLink.IsEmpty,
+					MessageLinkValue = messageLink
 				};
 			});
 		}

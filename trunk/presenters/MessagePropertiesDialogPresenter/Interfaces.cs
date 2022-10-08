@@ -67,5 +67,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		public object CustomView;
 
 		public bool HighlightedCheckboxEnabled;
+
+		public bool MessageLinkEnabled;
+		public string MessageLinkValue;
 	};
 };
