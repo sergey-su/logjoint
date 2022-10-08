@@ -41,8 +41,7 @@ namespace System.Xml.Linq
 			var attr = source.Attribute(name);
 			if (attr == null)
 				return null;
-			int ret;
-			if (!int.TryParse(attr.Value, out ret))
+			if (!int.TryParse(attr.Value, out var ret))
 				return null;
 			return ret;
 		}
@@ -57,6 +56,14 @@ namespace System.Xml.Linq
 			if (source == null)
 				return defaultValue;
 			return IntValue(source, name, defaultValue);
+		}
+
+		public static double? DoubleValue(this XElement source, XName name)
+		{
+			var attr = source.Attribute(name);
+			if (attr == null || !double.TryParse(attr.Value, out var ret))
+				return null;
+			return ret;
 		}
 
 		public static XAttribute ToDateTimeAttribute(this DateTime dt, XName name)

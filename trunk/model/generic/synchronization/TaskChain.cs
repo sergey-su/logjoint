@@ -8,7 +8,7 @@ namespace LogJoint
     /// Runs added tasks sequentially. Has async Dispose that waits on pending tasks.
     /// Single-threaded.
     /// </summary>
-    class TaskChain
+    public class TaskChain
     {
         Task tail = Task.CompletedTask;
 

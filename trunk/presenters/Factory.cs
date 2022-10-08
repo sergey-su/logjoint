@@ -487,7 +487,8 @@ namespace LogJoint.UI.Presenters
 				alertPopup
 			);
 
-			var toolsContainer = new ToolsContainer.Presenter(model.ChangeNotification);
+			var toolsContainer = new ToolsContainer.Presenter(model.ChangeNotification,
+				model.StorageManager.GlobalSettingsEntry, model.Shutdown);
 
 			Postprocessing.IFactory postprocessorPresentationFactory = new Postprocessing.Factory(
 				views.PostprocessingViewsFactory,
