@@ -31,7 +31,7 @@
   <ItemGroup>
     <EmbeddedResource Include="$(OutDir)\lj-trace-fmt.xml" Link="Formats\LogJoint - LogJoint debug trace.format.xml" />
     <EmbeddedResource Include="$(OutDir)\ms-text-fmt.xml" Link="Formats\MS-TextWriterTraceListener.format.xml" />
-    <EmbeddedResource Include="..\..\..\model\formats\MS-XmlWriterTraceListener.format.xml" Link="Formats\MS-XmlWriterTraceListener.format.xml" />
+    <EmbeddedResource Include="..\..\..\model\Formats\MS-XmlWriterTraceListener.format.xml" Link="Formats\MS-XmlWriterTraceListener.format.xml" />
     <EmbeddedResource Include="../../../extensions/chromium/plugin/bin/chromium.zip" Link="Plugins\chromium.zip" />
     <EmbeddedResource Include="../../../../../logjoint-google-plugin/plugin/bin/google.zip" Link="Plugins\google.zip" />
   </ItemGroup>
@@ -58,9 +58,9 @@
     <Exec Command="dotnet build" WorkingDirectory="../../shared/precompiler" />
     <Exec Command="dotnet build" WorkingDirectory="../../../sdk/tools/logjoint.plugintool" />
 
-    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/formats/LogJoint - LogJoint debug trace.format.xml&quot; &quot;$(OutDir)/lj-trace-fmt.xml&quot;" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/Formats/LogJoint - LogJoint debug trace.format.xml&quot; &quot;$(OutDir)/lj-trace-fmt.xml&quot;" />
 
-    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/formats/MS-TextWriterTraceListener.format.xml&quot; &quot;$(OutDir)/ms-text-fmt.xml&quot;" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/Formats/MS-TextWriterTraceListener.format.xml&quot; &quot;$(OutDir)/ms-text-fmt.xml&quot;" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
     <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../extensions/chromium/plugin/bin/Debug/netstandard2.0&quot;" />
