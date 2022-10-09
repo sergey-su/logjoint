@@ -47,6 +47,22 @@
             }
         </NodeTemplate>
     </TreeView>
+    @if (ViewModel.ObjectDescription != null)
+    {
+        <div class="desc">
+            @foreach (var segment in TextUtils.ExtractLinks(ViewModel.ObjectDescription))
+            {
+                if (!string.IsNullOrEmpty(segment.linkUrl))
+                {
+                    <a href="@segment.linkUrl" target="_blank">@segment.text</a>
+                }
+                else
+                {
+                    <span>@segment.text</span>
+                }
+            }
+        </div>
+    }
 </div>
 
 @code {

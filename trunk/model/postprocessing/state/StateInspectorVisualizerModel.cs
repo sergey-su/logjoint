@@ -197,6 +197,8 @@ namespace LogJoint.Postprocessing.StateInspector
 
 			string IInspectedObject.Comment => "";
 
+			string IInspectedObject.Description => "";
+
 			IInspectedObject IInspectedObject.Parent => null;
 
 			IEnumerable<StateInspectorEvent> IInspectedObject.StateChangeHistory => Enumerable.Empty<StateInspectorEvent>();

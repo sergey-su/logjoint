@@ -148,14 +148,34 @@ namespace LogJoint.Postprocessing.StateInspector
 		public readonly bool IsTimeless;
 		[Obsolete("Use CommentPropertyName instead")]
 		public string DisplayIdPropertyName { get { return CommentPropertyName; } }
+		public readonly string DescriptionPropertyName;
 
+		public struct Options
+		{
+			public string PrimaryPropertyName { get; set; }
+			public string CommentPropertyName { get; set; }
+			public string DescriptionPropertyName { get; set; }
+			public bool IsTimeless { get; set; }
+		};
 
-		public ObjectTypeInfo(string type, string displayIdPropertyName = null, string primaryPropertyName = null, bool isTimeless = false)
+		public ObjectTypeInfo(string type, string displayIdPropertyName = null, string primaryPropertyName = null, bool isTimeless = false): 
+			this(type, new Options
+			{
+				CommentPropertyName = displayIdPropertyName,
+				PrimaryPropertyName = primaryPropertyName,
+				DescriptionPropertyName = null,
+				IsTimeless = isTimeless
+			})
+		{
+		}
+
+		public ObjectTypeInfo(string type, Options options)
 		{
 			TypeName = type;
-			CommentPropertyName = displayIdPropertyName;
-			PrimaryPropertyName = primaryPropertyName;
-			IsTimeless = isTimeless;
+			CommentPropertyName = options.CommentPropertyName;
+			PrimaryPropertyName = options.PrimaryPropertyName;
+			IsTimeless = options.IsTimeless;
+			DescriptionPropertyName = options.DescriptionPropertyName;
 		}
 
 		internal static bool Equals(ObjectTypeInfo obj1, ObjectTypeInfo obj2)
@@ -164,7 +184,8 @@ namespace LogJoint.Postprocessing.StateInspector
 				obj1.TypeName == obj2.TypeName
 			 && obj1.IsTimeless == obj2.IsTimeless
 			 && obj1.PrimaryPropertyName == obj2.PrimaryPropertyName
-			 && obj1.CommentPropertyName == obj2.CommentPropertyName;
+			 && obj1.CommentPropertyName == obj2.CommentPropertyName
+			 && obj1.DescriptionPropertyName == obj2.DescriptionPropertyName;
 		}
 	};
 

@@ -11,6 +11,7 @@
 		internal const string Attr_ObjectType = "type";
 		internal const string Attr_DisplayNamePropertyName = "name";
 		internal const string Attr_CommentPropertyName = "displayIdPropertyName";
+		internal const string Attr_DescriptionPropertyName = "descriptionPropertyName";
 		internal const string Attr_PrimaryPropertyName = "primaryPropertyName";
 		internal const string Attr_PropertyName = "propertyName";
 		internal const string Attr_Value = "value";

@@ -60,7 +60,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		string CurrentTimeLabelText { get; }
 
-
 		IReadOnlyList<KeyValuePair<string, object>> ObjectsProperties { get; }
 		void OnPropertiesRowDoubleClicked(int rowIndex);
 		PropertyCellPaintInfo OnPropertyCellPaint(int rowIndex);
@@ -89,6 +88,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void OnActiveNotificationButtonClicked();
 
 		void OnSearchShortcutPressed();
+
+		string ObjectDescription { get; }
+
 	};
 
 	public struct PropertyCellPaintInfo

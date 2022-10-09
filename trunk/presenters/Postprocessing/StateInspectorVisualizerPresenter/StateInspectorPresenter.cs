@@ -10,6 +10,7 @@ using LogJoint.Postprocessing;
 using LogJoint.UI.Presenters.Reactive;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using LogJoint.UI.Presenters.LogViewer;
 
 namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 {
@@ -197,6 +198,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.getObjectsProperties = Selectors.Create(
 				getCurrentProperties,
 				props => (IReadOnlyList<KeyValuePair<string, object>>)props.Select(p => p.ToDataSourceItem()).ToImmutableArray()
+			);
+
+			this.getDescription = Selectors.Create(
+				getSelectedInspectedObjects,
+				objs => objs.Length == 1 ? objs[0].Description : null
 			);
 
 			inlineSearch.OnSearch += (s, e) => PerformInlineSearch(e.Query, e.Reverse);
@@ -440,6 +446,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		void IViewModel.OnSearchShortcutPressed()
 		{
 			inlineSearch.Show("");
+		}
+
+		string IViewModel.ObjectDescription
+		{
+			get { return getDescription(); }
 		}
 
 		static VisualizerNode MakeRootNode(
@@ -1210,5 +1221,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly InlineSearch.IPresenter inlineSearch;
 		readonly ToolsContainer.IPresenter toolsContainerPresenter;
 		readonly ToastNotificationPresenter.IPresenter toastNotification;
+		readonly Func<string> getDescription;
 	}
 }

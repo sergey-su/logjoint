@@ -32,24 +32,21 @@ namespace LogJoint.Postprocessing.StateInspector
 			{
 				if (comment != null)
 					return comment;
-				comment = "";
-				if (commentPropertyName != null)
-				{
-					var query =
-						from e in history
-						let pc = e.OriginalEvent as PropertyChange
-						where pc != null
-						where pc.PropertyName == commentPropertyName
-						select pc;
-					var change = query.FirstOrDefault();
-					if (change == null)
-						return "";
-					if (change.ValueType == ValueType.UserHash)
-						comment = shortNames.GetShortNameForUserHash(change.Value);
-					else
-						comment = change.Value;
-				};
+				comment = 
+					commentPropertyName != null ? FindStaticPropertyValue(commentPropertyName) : "";
 				return comment;
+			}
+		}
+
+		string IInspectedObject.Description
+		{
+			get
+			{
+				if (description != null)
+					return description;
+				description =
+					descriptionPropertyName != null ? FindStaticPropertyValue(descriptionPropertyName) : "";
+				return description;
 			}
 		}
 
@@ -60,7 +57,16 @@ namespace LogJoint.Postprocessing.StateInspector
 
 		IEnumerable<StateInspectorEvent> IInspectedObject.StateChangeHistory
 		{
-			get { return history; }
+			get
+			{
+				if (descriptionPropertyName == null)
+					return history;
+				return
+					from change in history
+					let pc = change.OriginalEvent as PropertyChange
+					where pc == null || pc.PropertyName != descriptionPropertyName
+					select change;
+			}
 		}
 
 		bool IInspectedObject.IsTimeless
@@ -121,6 +127,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			var cevt = (ObjectCreation)evt.OriginalEvent;
 			commentPropertyName = cevt.ObjectType.CommentPropertyName;
 			primaryPropertyName = cevt.ObjectType.PrimaryPropertyName;
+			descriptionPropertyName = cevt.ObjectType.DescriptionPropertyName;
 			isTimeless = cevt.ObjectType.IsTimeless;
 			displayName = cevt.DisplayName;
 		}
@@ -156,7 +163,8 @@ namespace LogJoint.Postprocessing.StateInspector
 			foreach (var change in history
 				.TakeWhile(e => isTimeless || e.Index < focusedMessageEqualRange.EqualRange.Item2)
 				.Select(e => new { ChangeEvt = e.OriginalEvent as PropertyChange, StateInspectorEvt = e })
-				.Where(e => e.ChangeEvt != null))
+				.Where(e => e.ChangeEvt != null)
+				.Where(e => descriptionPropertyName == null || e.ChangeEvt.PropertyName != descriptionPropertyName))
 			{
 				dynamicProps[change.ChangeEvt.PropertyName] =
 					new PropertyChangeView(this, change.StateInspectorEvt, ToPropDisplayMode(change.ChangeEvt.ValueType), shortNames);
@@ -185,21 +193,6 @@ namespace LogJoint.Postprocessing.StateInspector
 			return InspectedObjectLiveStatus.Alive;
 		}
 
-		static string ToString(InspectedObjectLiveStatus status)
-		{
-			switch (status)
-			{
-				case InspectedObjectLiveStatus.Deleted:
-					return "deleted";
-				case InspectedObjectLiveStatus.Alive:
-					return "alive";
-				case InspectedObjectLiveStatus.NotCreatedYet:
-					return "not created yet";
-				default:
-					return "";
-			}
-		}
-
 		static PropertyChangeView.DisplayMode ToPropDisplayMode(ValueType propValueType)
 		{
 			if (propValueType == ValueType.Reference)
@@ -211,6 +204,23 @@ namespace LogJoint.Postprocessing.StateInspector
 			return PropertyChangeView.DisplayMode.Value;
 		}
 
+		private string FindStaticPropertyValue(string name)
+		{
+			var query =
+				from e in history
+				let pc = e.OriginalEvent as PropertyChange
+				where pc != null
+				where pc.PropertyName == name
+				select pc;
+			var change = query.FirstOrDefault();
+			if (change == null)
+				return "";
+			if (change.ValueType == ValueType.UserHash)
+				return shortNames.GetShortNameForUserHash(change.Value);
+			else
+				return change.Value;
+		}
+
 		readonly IStateInspectorOutputsGroup owner;
 		readonly string id;
 		readonly HashSet<IInspectedObject> children = new HashSet<IInspectedObject>();
@@ -219,6 +229,8 @@ namespace LogJoint.Postprocessing.StateInspector
 		string commentPropertyName;
 		string comment;
 		string primaryPropertyName;
+		string descriptionPropertyName;
+		string description;
 		bool isTimeless;
 		string displayName;
 		IInspectedObject parent;

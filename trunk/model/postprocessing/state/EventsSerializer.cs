@@ -22,6 +22,7 @@ namespace LogJoint.Postprocessing.StateInspector
 				MakeNullableAttr(SC.Attr_ObjectType, objectCreation.ObjectType.TypeName),
 				MakeNullableAttr(SC.Attr_CommentPropertyName, objectCreation.ObjectType.CommentPropertyName),
 				MakeNullableAttr(SC.Attr_PrimaryPropertyName, objectCreation.ObjectType.PrimaryPropertyName),
+				MakeNullableAttr(SC.Attr_DescriptionPropertyName, objectCreation.ObjectType.DescriptionPropertyName),
 				objectCreation.ObjectType.IsTimeless ? new XAttribute(SC.Attr_IsTimeless, "1") : null,
 				objectCreation.IsWeak ? new XAttribute(SC.Attr_IsWeak, "1") : null,
 				MakeTagsAttr(objectCreation),

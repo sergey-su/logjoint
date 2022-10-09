@@ -23,9 +23,13 @@ namespace LogJoint.Postprocessing.StateInspector
 						objectIdsPool.Intern(Attr(elt, SC.Attr_ObjectId)),
 						objectInfoPool.Intern(new ObjectTypeInfo(
 							Attr(elt, SC.Attr_ObjectType),
-							Attr(elt, SC.Attr_CommentPropertyName),
-							Attr(elt, SC.Attr_PrimaryPropertyName),
-							(Attr(elt, SC.Attr_IsTimeless) ?? "0") == "1"
+							new ObjectTypeInfo.Options
+							{
+								CommentPropertyName = Attr(elt, SC.Attr_CommentPropertyName),
+								PrimaryPropertyName = Attr(elt, SC.Attr_PrimaryPropertyName),
+								IsTimeless = (Attr(elt, SC.Attr_IsTimeless) ?? "0") == "1",
+								DescriptionPropertyName = Attr(elt, SC.Attr_DescriptionPropertyName)
+							}
 						)),
 						isWeak: (Attr(elt, SC.Attr_IsWeak) ?? "0") == "1",
 						displayName: Attr(elt, SC.Attr_DisplayNamePropertyName)

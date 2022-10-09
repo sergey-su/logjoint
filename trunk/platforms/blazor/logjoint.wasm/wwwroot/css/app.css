@@ -714,6 +714,14 @@ button {
     align-items: center;
 }
 
+.state-inspector .objects-tree .desc {
+    background: var(--control-face-background);
+    overflow: hidden;
+    padding: 4px 2px;
+    user-select: text;
+    max-height: 70px;
+}
+
 .state-inspector .objects-tree .toolbar>span {
     flex-grow: 2;
 }
