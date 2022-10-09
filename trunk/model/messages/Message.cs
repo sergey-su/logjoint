@@ -127,7 +127,7 @@ namespace LogJoint
 		StringSlice rawText;
 		MultilineText rawTextML;
 		int? hashCodeCache;
-		StringSlice link;
+		StringSlice link = StringSlice.Empty;
 
 		#endregion
 	};
