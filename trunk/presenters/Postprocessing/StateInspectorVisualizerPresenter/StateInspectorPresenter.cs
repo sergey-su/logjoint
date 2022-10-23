@@ -30,7 +30,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			IColorTheme theme,
 			IChangeNotification changeNotification,
 			ToolsContainer.IPresenter toolsContainerPresenter,
-			Common.IPresentationObjectsFactory presentationObjectsFactory
+			Common.IPresentationObjectsFactory presentationObjectsFactory,
+			IShellOpen shellOpen
 		)
 		{
 			this.view = view;
@@ -44,6 +45,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.theme = theme;
 			this.toolsContainerPresenter = toolsContainerPresenter;
+			this.shellOpen = shellOpen;
 			this.changeNotification = changeNotification.CreateChainedChangeNotification(initiallyActive: false);
 			this.inlineSearch = new InlineSearch.Presenter(changeNotification);
 
@@ -764,6 +766,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			ShowPropertyChange(evt, false);
 		}
 
+		static bool TryGetExternalLink(string maybeUri, out Uri uri)
+		{
+			return Uri.TryCreate(maybeUri, UriKind.Absolute, out uri) && (uri.Scheme == "http" || uri.Scheme == "https");
+		}
+
 		void HandlePropertyCellClick(PropertyInfo property)
 		{
 			var pcView = property?.PropertyView;
@@ -781,9 +788,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 						where obj.Id == pc.Value
 						select FindOrCreateNode(obj);
 					var nodeToSelect = query.FirstOrDefault();
-					if (nodeToSelect == null)
-						return;
-					SetSelection(new[] { nodeToSelect });
+					if (nodeToSelect != null)
+					{
+						SetSelection(new[] { nodeToSelect });
+					}
+					else if (TryGetExternalLink(pc.Value, out var externalUri))
+					{
+						shellOpen.OpenInWebBrowser(externalUri);
+					}
 				}
 				else if (pc.ValueType == SI.ValueType.ThreadReference)
 				{
@@ -914,7 +926,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			string IPropertyListItem.Name => PropertyKey;
 			string IPropertyListItem.Value => PropertyView.ToString();
-			bool IPropertyListItem.IsLink => PropertyView.IsLink();
+			PropertyLinkType IPropertyListItem.LinkType =>
+				!PropertyView.IsLink() ? PropertyLinkType.None
+				: TryGetExternalLink(PropertyView.ToString(), out var _) ? PropertyLinkType.External
+				: PropertyLinkType.Internal;
+
 			bool IPropertyListItem.IsLeftPadded => IsChildProperty;
 
 			string IListItem.Key => $"{Object.Id}.{PropertyKey}";
@@ -1201,6 +1217,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IColorTheme theme;
 		readonly IChainedChangeNotification changeNotification;
+		readonly IShellOpen shellOpen;
 		readonly Func<VisualizerNode> getRootNode;
 		readonly Action<Func<VisualizerNode, VisualizerNode>> updateRootNode;
 		readonly Func<ImmutableArray<VisualizerNode>> getSelectedNodes;

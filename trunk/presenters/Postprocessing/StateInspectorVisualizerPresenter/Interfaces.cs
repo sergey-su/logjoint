@@ -118,11 +118,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		int Index { get; }
 	};
 
+	public enum PropertyLinkType
+	{
+		None,
+		Internal,
+		External,
+	};
+
 	public interface IPropertyListItem : IListItem
 	{
 		string Name { get; }
 		string Value { get; }
-		bool IsLink { get; }
+		PropertyLinkType LinkType { get; }
 		bool IsLeftPadded { get; }
 	};
 }

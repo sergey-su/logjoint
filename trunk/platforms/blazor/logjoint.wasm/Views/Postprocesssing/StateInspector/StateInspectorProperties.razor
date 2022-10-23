@@ -14,9 +14,13 @@
             @{var item = (IPropertyListItem)context;}
             <div>@item.Name</div>
             <div>
-                @if (@item.IsLink)
+                @if (@item.LinkType == PropertyLinkType.Internal)
                 {
                     <a @onclick:preventDefault @onclick="@(e => ViewModel.OnPropertyCellClicked(item))" href="#">@item.Value</a>
+                }
+                else @if (@item.LinkType == PropertyLinkType.External)
+                {
+                    <a href=@item.Value target="_blank" class="external-link">@item.Value</a>
                 }
                 else
                 {

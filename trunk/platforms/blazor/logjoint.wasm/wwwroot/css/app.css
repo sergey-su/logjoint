@@ -792,6 +792,13 @@ button {
     display: table-row;
 }
 
+.state-inspector .properties>.the-list .external-link {
+    max-width: 400px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .state-inspector .properties>.the-list>li>div {
     display: table-cell;
     white-space: nowrap;

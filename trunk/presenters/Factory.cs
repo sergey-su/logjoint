@@ -509,7 +509,8 @@ namespace LogJoint.UI.Presenters
 				colorTheme,
 				model.MatrixFactory,
 				model.CorrelationManager,
-				toolsContainer
+				toolsContainer,
+				shellOpen
 			);
 
 			var postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(

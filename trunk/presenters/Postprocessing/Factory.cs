@@ -53,7 +53,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 			IColorTheme colorTheme,
 			Drawing.IMatrixFactory matrixFactory,
 			ICorrelationManager correlationManager,
-			ToolsContainer.IPresenter toolsContainerPresenter
+			ToolsContainer.IPresenter toolsContainerPresenter,
+			IShellOpen shellOpen
 		)
 		{
 			stateInspectorVisualizer = new Lazy<StateInspectorVisualizer.IPresenterInternal>(() =>
@@ -79,7 +80,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
 					colorTheme,
 					changeNotification,
 					toolsContainerPresenter,
-					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager)
+					new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager),
+					shellOpen
 				);
 			});
 
