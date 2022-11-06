@@ -756,7 +756,8 @@ button {
     text-overflow: ellipsis;
 }
 .si-node>.f {
-    width: 5px;
+    min-width: 4px;
+    margin-right: 1px;
     background: center / contain no-repeat var(--focused-message-image-bordered);
 }
 .node:not(.selected) .si-node>.p {
