@@ -320,6 +320,10 @@ namespace LogJoint
 					}
 				}
 			}
+			else
+			{
+				fixedBegin = owner.BeginPosition;
+			}
 			aligmentSplitter.EndSplittingSession();
 
 			var ret = new FileRange.Range(fixedBegin, fixedEnd);
