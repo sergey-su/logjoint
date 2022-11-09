@@ -783,7 +783,8 @@
             const connect = () => {
                 let lastError = undefined;
                 for (let extId of [
-                    "hakgmeclhiipohohmoghhmbjlicdnbbb" // dev extension id
+                    "hakgmeclhiipohohmoghhmbjlicdnbbb", // dev extension id 1
+                    "pebbhcjfokadbgbnlmogdkkaahmamnap"  // dev extension id 2
                 ]) {
                     try {
                         this._port = chrome.runtime && chrome.runtime.connect(extId, connectInfo);
