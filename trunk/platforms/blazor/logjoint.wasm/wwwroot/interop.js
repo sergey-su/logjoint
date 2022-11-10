@@ -776,30 +776,59 @@
 
     chrome_extension: {
         _port: undefined,
+        _uploads: {},
         init: function(callback) {
             const connectInfo = {
                 name: "logjoint.wasm",
             };
             const connect = () => {
                 let lastError = undefined;
+                let portExtId = undefined;
                 for (let extId of [
-                    "hakgmeclhiipohohmoghhmbjlicdnbbb", // dev extension id 1
-                    "pebbhcjfokadbgbnlmogdkkaahmamnap", // dev extension id 2
+                    "pebbhcjfokadbgbnlmogdkkaahmamnap", // dev extension id
                     "mohpmdciljlhbaebgbgobpihdaoeljgh" // prod extension id
                 ]) {
                     try {
                         this._port = chrome.runtime && chrome.runtime.connect(extId, connectInfo);
+                        if (this._port) {
+                            portExtId = extId;
+                            break;
+                        }
                     } catch (e) {
                         lastError = e;
                         continue;
                     }
                 }
                 if (this._port) {
-                    console.log('Connected to chrome extension');
-                    this._port.onMessage.addListener(async function(msg) {
+                    console.log('Connected to chrome extension', portExtId);
+                    this._port.onMessage.addListener(msg => {
                         if (msg.type === "open_log") {
-                            console.log("Got open log request from chrome extension. Log len=", msg.text.length, " id=", msg.id);
-                            callback.invokeMethodAsync('Open', msg.text, msg.id, msg.url, msg.displayName || msg.id);
+                            let passToApp = false;
+                            if (msg.uploadId) {
+                                if (!this._uploads[msg.uploadId]) {
+                                    console.log("Got first chunk for upload", msg.uploadId);
+                                    this._uploads[msg.uploadId] = msg;
+                                } else if (msg.uploadStatus === "cancelled") {
+                                    console.log("Upload cancelled", msg.uploadId);
+                                    delete this._uploads[msg.uploadId];
+                                } else {
+                                    this._uploads[msg.uploadId].text += msg.text;
+                                    if (msg.uploadStatus === "eof") {
+                                        console.log("Got final chunk for upload", msg.uploadId);
+                                        msg = this._uploads[msg.uploadId];
+                                        delete this._uploads[msg.uploadId];
+                                        passToApp = true;
+                                    } else {
+                                        console.log("Got chunk for upload", msg.uploadId);
+                                    }
+                                }
+                            } else {
+                                passToApp = true;
+                            }
+                            if (passToApp) {
+                                console.log("Got open log request from chrome extension. Log len=", msg.text.length, " id=", msg.id);
+                                callback.invokeMethodAsync('Open', msg.text, msg.id, msg.url, msg.displayName || msg.id);
+                            }
                         }
                     });
                     this._port.onDisconnect.addListener((p) => {
