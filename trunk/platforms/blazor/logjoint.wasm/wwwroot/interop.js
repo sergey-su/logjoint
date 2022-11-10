@@ -784,7 +784,8 @@
                 let lastError = undefined;
                 for (let extId of [
                     "hakgmeclhiipohohmoghhmbjlicdnbbb", // dev extension id 1
-                    "pebbhcjfokadbgbnlmogdkkaahmamnap"  // dev extension id 2
+                    "pebbhcjfokadbgbnlmogdkkaahmamnap", // dev extension id 2
+                    "mohpmdciljlhbaebgbgobpihdaoeljgh" // prod extension id
                 ]) {
                     try {
                         this._port = chrome.runtime && chrome.runtime.connect(extId, connectInfo);
