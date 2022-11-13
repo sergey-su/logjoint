@@ -40,11 +40,21 @@
 
     void TrySelectNodeByMouse(MouseEventArgs e)
     {
-        Owner?.TrySelectNode(Index, expandSelection: jsInterop.Browser.HasEditKey(e));
+        Owner?.TrySelectNode(Index, expandSelection: jsInterop.Browser.HasEditKey(e), allowSelectingNothing: true);
         bool doubleClick = e.Detail > 1;
         if (doubleClick)
         {
-            Owner?.OnDoubleClick?.Invoke(Node);
+            if (Owner?.OnDoubleClick != null)
+            {
+                Owner.OnDoubleClick.Invoke(Node);
+            }
+            else if (SupportsExpansion(Node)) 
+            {
+                if (Node.IsExpanded)
+                    Owner?.TryCollapseNode(Node);
+                else
+                    Owner?.TryExpandNode(Node);
+            }
         }
     }
 

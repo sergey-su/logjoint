@@ -4,7 +4,7 @@
 @using System.Collections.Generic
 @using System.Collections.Immutable
 
-<div class="tree nice-scroll @Class" @ref="TreeRef" @onkeydown="HandleKeyDown" @onclick="@(e => TrySelectNode(-1, false))">
+<div class="tree nice-scroll @Class" @ref="TreeRef" @onkeydown="HandleKeyDown" @onclick="@(e => TrySelectNode(-1, expandSelection: false, allowSelectingNothing: true))">
     @{var nodeIndex = 0;}
     @foreach (var node in getDisplayNodes())
     {
@@ -150,7 +150,7 @@
         base.OnParametersSet();
     }
 
-    public void TrySelectNode(int nodeIndex, bool expandSelection)
+    public void TrySelectNode(int nodeIndex, bool expandSelection, bool allowSelectingNothing)
     {
         var displayNodes = getDisplayNodes();
         var node = displayNodes.ElementAtOrDefault(nodeIndex).node;
@@ -168,7 +168,7 @@
                 OnSelect?.Invoke(new[] { node });
             }
         }
-        else
+        else if (allowSelectingNothing)
         {
             OnSelect?.Invoke(new ITreeNode[0]);
         }
@@ -204,7 +204,7 @@
             if (TreeNode.SupportsExpansion(node) && node.IsExpanded)
                 TryCollapseNode(node);
             else if(displayNode.parentDisplayIndex > 0)
-                TrySelectNode(displayNode.parentDisplayIndex, expandSelection: false);
+                TrySelectNode(displayNode.parentDisplayIndex, expandSelection: false, allowSelectingNothing: true);
         }
         else if (eventArgs.Key == "ArrowRight")
         {
@@ -213,11 +213,11 @@
         }
         else if (eventArgs.Key == "ArrowDown")
         {
-            TrySelectNode(establishedPrimary.Value + 1, expandSelection: false);
+            TrySelectNode(establishedPrimary.Value + 1, expandSelection: false, allowSelectingNothing: false);
         }
         else if (eventArgs.Key == "ArrowUp")
         {
-            TrySelectNode(establishedPrimary.Value - 1, expandSelection: false);
+            TrySelectNode(establishedPrimary.Value - 1, expandSelection: false, allowSelectingNothing: false);
         }
         OnKeyDown?.Invoke(eventArgs, node);
     }
