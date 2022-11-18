@@ -98,6 +98,9 @@ namespace LogJoint.Postprocessing
 	{
 		void AddWarning(string message);
 		void AddError(string message);
+		void AddWarning(string message, IBookmark triggerBookmark);
+		void AddError(string message, IBookmark triggerBookmark);
+
 		IPostprocessorRunSummary ToSummary();
 	};
 }
