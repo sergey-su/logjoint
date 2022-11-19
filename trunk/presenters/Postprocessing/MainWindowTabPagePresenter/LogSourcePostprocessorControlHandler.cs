@@ -11,18 +11,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 	{
 		readonly IManagerInternal postprocessorsManager;
 		readonly PostprocessorKind postprocessorKind;
-		readonly Func<IPostprocessorVisualizerPresenter> visualizerPresenter;
+        readonly SummaryDialog.IPresenter summaryDialogPresenter;
+        readonly Func<IPostprocessorVisualizerPresenter> visualizerPresenter;
 		readonly IShellOpen shellOpen;
 		readonly ITempFilesManager tempFiles;
 		readonly Func<ImmutableList<LogSourcePostprocessorState>> getOutputs;
 		readonly Func<ControlData> getControlData;
+
 
 		public LogSourcePostprocessorControlHandler(
 			IManagerInternal postprocessorsManager,
 			PostprocessorKind postprocessorKind,
 			Func<IPostprocessorVisualizerPresenter> visualizerPresenter,
 			IShellOpen shellOpen,
-			ITempFilesManager tempFiles
+			ITempFilesManager tempFiles,
+			SummaryDialog.IPresenter summaryDialogPresenter
 		)
 		{
 			this.postprocessorsManager = postprocessorsManager;
@@ -30,6 +33,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			this.visualizerPresenter = visualizerPresenter;
 			this.shellOpen = shellOpen;
 			this.tempFiles = tempFiles;
+			this.summaryDialogPresenter = summaryDialogPresenter;
 			this.getOutputs = Selectors.Create(
 				() => postprocessorsManager.LogSourcePostprocessors,
 				outputs => ImmutableList.CreateRange(
@@ -175,25 +179,42 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					break;
 				case "report":
 					{
-						var outputs = getOutputs();
-						var summaries = 
-							outputs
-								.Select(output => output.LastRunSummary)
-								.Where(summary => summary != null)
-								.OrderBy(summary => summary.HasErrors ? 0 : summary.HasWarnings ? 1 : 2);
-						var text = new StringBuilder();
-						foreach (var summary in summaries)
+						if (summaryDialogPresenter.IsEnabled)
 						{
-							text.Append(summary.Report ?? "");
-							text.AppendLine();
-							text.AppendLine();
+							var outputs = getOutputs();
+							var summaries =
+								outputs
+									.Select(output => (logSource: output.LogSource, summary: output.LastRunSummary as IStructuredPostprocessorRunSummary))
+									.Where(item => item.summary != null)
+									.OrderBy(item => item.summary.HasErrors ? 0 : item.summary.HasWarnings ? 1 : 2)
+									.ToArray();
+							if (summaries.Length > 0)
+							{
+								summaryDialogPresenter.ShowDialog(summaries);
+							}
 						}
-						if (text.Length > 0)
+						else
 						{
-							var fname = Path.Combine(Path.GetDirectoryName(tempFiles.GenerateNewName()),
-								$"{postprocessorKind}-errors-{DateTime.Now.Ticks}.txt");
-							File.WriteAllText(fname, text.ToString());
-							shellOpen.OpenInTextEditor(fname);
+							var outputs = getOutputs();
+							var summaries =
+								outputs
+									.Select(output => output.LastRunSummary)
+									.Where(summary => summary != null)
+									.OrderBy(summary => summary.HasErrors ? 0 : summary.HasWarnings ? 1 : 2);
+							var text = new StringBuilder();
+							foreach (var summary in summaries)
+							{
+								text.Append(summary.Report ?? "");
+								text.AppendLine();
+								text.AppendLine();
+							}
+							if (text.Length > 0)
+							{
+								var fname = Path.Combine(Path.GetDirectoryName(tempFiles.GenerateNewName()),
+									$"{postprocessorKind}-errors-{DateTime.Now.Ticks}.txt");
+								File.WriteAllText(fname, text.ToString());
+								shellOpen.OpenInTextEditor(fname);
+							}
 						}
 					}
 					break;

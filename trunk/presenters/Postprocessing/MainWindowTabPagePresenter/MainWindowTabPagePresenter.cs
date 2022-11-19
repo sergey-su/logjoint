@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		readonly IManagerInternal postprocessorsManager;
 		readonly ICorrelationManager correlationManager;
 		readonly IFactory presentersFactory;
+		readonly SummaryDialog.IPresenter summaryDialogPresenter;
 		readonly Dictionary<ViewControlId, IViewControlHandler> viewControlHandlers = new Dictionary<ViewControlId, IViewControlHandler>();
 		readonly ITempFilesManager tempFiles;
 		readonly IShellOpen shellOpen;
@@ -28,7 +29,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			IShellOpen shellOpen,
 			NewLogSourceDialog.IPresenter newLogSourceDialog,
 			IChangeNotification changeNotification,
-			MainForm.IPresenter mainFormPresenter
+			MainForm.IPresenter mainFormPresenter,
+			SummaryDialog.IPresenter summaryDialogPresenter
 		)
 		{
 			this.postprocessorsManager = postprocessorsManager;
@@ -36,6 +38,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			this.presentersFactory = presentersFactory;
 			this.tempFiles = tempFiles;
 			this.shellOpen = shellOpen;
+			this.summaryDialogPresenter = summaryDialogPresenter;
 			this.changeNotification = changeNotification.CreateChainedChangeNotification(false);
 
 
@@ -136,7 +139,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						postprocessorKind == PostprocessorKind.TimeSeries ? presentersFactory.GetTimeSeriesVisualizer(true) :
 						(IPostprocessorVisualizerPresenter)null,
 					shellOpen,
-					tempFiles
+					tempFiles,
+					summaryDialogPresenter
 				);
 			viewControlHandlers.Add(postprocessorViewId, handler);
 		}

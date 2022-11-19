@@ -17,6 +17,7 @@ namespace LogJoint.UI.Presenters
 		public IShellOpen ShellOpen { get; internal set; }
 		public PreprocessingUserInteractions.IPresenter PreprocessingUserInteractions { get; internal set; }
 		public FileEditor.IPresenter FileEditor { get; internal set; }
+		public Postprocessing.SummaryDialog.IPresenter PostprocessingSummaryDialog { get;  internal set; }
 
 		public ViewModels ViewModels { get; internal set; }
 	};
@@ -38,6 +39,7 @@ namespace LogJoint.UI.Presenters
 		public Postprocessing.MainWindowTabPage.IViewModel PostprocessingsTab { get; internal set; }
 		public SearchResult.IViewModel SearchResult { get; internal set; }
 		public StatusReports.IViewModel StatusReports { get; internal set; }
+		public Postprocessing.SummaryDialog.IViewModel PostprocessingSummaryDialog { get; internal set; }
 	};
 
 	public static class Factory
@@ -513,6 +515,9 @@ namespace LogJoint.UI.Presenters
 				shellOpen
 			);
 
+			var postprocessingSummaryDialogPresenter = new Postprocessing.SummaryDialog.Presenter(
+				model.ChangeNotification, presentersFacade);
+
 			var postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
 				model.PostprocessorsManager,
 				model.CorrelationManager,
@@ -521,7 +526,8 @@ namespace LogJoint.UI.Presenters
 				shellOpen,
 				newLogSourceDialogPresenter,
 				model.ChangeNotification,
-				mainFormPresenter
+				mainFormPresenter,
+				postprocessingSummaryDialogPresenter
 			);
 
 			var fileEditorPresenter = new FileEditor.Presenter(model.ChangeNotification, model.TempFilesManager, fileDialogs);
@@ -574,6 +580,8 @@ namespace LogJoint.UI.Presenters
 				ColorTheme = colorTheme,
 				PreprocessingUserInteractions = preprocessingUserInteractions,
 				FileEditor = fileEditorPresenter,
+				PostprocessingSummaryDialog = postprocessingSummaryDialogPresenter,
+
 
 				ViewModels = new ViewModels()
 				{
@@ -592,6 +600,7 @@ namespace LogJoint.UI.Presenters
 					PostprocessingsTab = postprocessingTabPagePresenter,
 					SearchResult = searchResultPresenter,
 					StatusReports = statusReportsPresenter,
+					PostprocessingSummaryDialog = postprocessingSummaryDialogPresenter,
 				}
 			};
 		}

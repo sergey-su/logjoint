@@ -100,6 +100,8 @@ namespace LogJoint.Wasm
                     viewProxies
                 );
 
+                presentationObjects.PostprocessingSummaryDialog.Enable();
+
                 shellOpen.SetFileEditor(presentationObjects.FileEditor);
 
                 return presentationObjects;

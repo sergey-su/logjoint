@@ -2132,3 +2132,40 @@ button {
     margin: 0px 5px;
     white-space: nowrap;
 }
+
+.postprocessing-summary-dialog {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.postprocessing-summary-dialog>.the-list {
+    height: 1px;
+    flex-grow: 2;
+    margin: 10px 0px;
+    overflow: auto;
+    white-space: pre-wrap;
+    border: 1px solid;
+    padding: 3px;
+}
+
+.postprocessing-summary-dialog>.the-list>* {
+    padding-bottom: 15px;
+}
+
+.postprocessing-summary-dialog>.the-list>.issue>a {
+    display: block;
+}
+
+.postprocessing-summary-dialog>.the-list>.log-source-header {
+    display: block;
+}
+
+.postprocessing-summary-dialog>.buttons {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+}
+
+.postprocessing-summary-dialog>.buttons>button {
+    margin: 0px 10px;
+}

@@ -783,6 +783,10 @@
                     name: "logjoint.wasm",
                 };    
                 const port = chrome.runtime && chrome.runtime.connect(extId, connectInfo);
+                if (!port) {
+                    reject(`Can not connect to extension ${extId}`);
+                    return;
+                }
                 console.log('Connected to chrome extension', extId);
                 port.onMessage.addListener(msg => {
                     if (msg.type === "open_log") {

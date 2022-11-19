@@ -1,0 +1,51 @@
+﻿@namespace LogJoint.Wasm.UI.Postprocessing
+@using LogJoint.UI.Presenters.Postprocessing.SummaryDialog
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
+@implements IDisposable
+
+<Modal Visible="@viewModel.IsVisible" Class="resizable-dialog postprocessing-summary-dialog" ClickOutside="@viewModel.OnCancel" OnCancel="@viewModel.OnCancel">
+    <header>Postprocessing summary</header>
+    <div class="the-list nice-scroll">
+        @foreach (var item in viewModel.Items)
+        {
+            @if (item.Kind == ViewItem.ItemKind.LogSource)
+            {
+                <div class="log-source-header">Issues in log <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnLinkClicked(item.LinkData))">
+                        @item.Text
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="issue">
+                    @item.Text
+                    @if (item.LinkData != null)
+                    {
+                        <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnLinkClicked(item.LinkData))">show</a>
+                    }
+                </div>
+            }
+        }
+    </div>
+    <div class="buttons">
+        <button @onclick="@(e => viewModel.OnCancel())">Close</button>
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel => presentation.ViewModels.PostprocessingSummaryDialog;
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (viewModel.IsVisible),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}
