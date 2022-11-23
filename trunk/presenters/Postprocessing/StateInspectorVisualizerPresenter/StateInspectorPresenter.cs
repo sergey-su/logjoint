@@ -933,7 +933,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			bool IPropertyListItem.IsLeftPadded => IsChildProperty;
 
-			string IListItem.Key => $"{Object.Id}.{PropertyKey}";
+			string IListItem.Key => $"{Object.GetHashCode():x}.{PropertyKey}";
 			bool IListItem.IsSelected => IsSelected;
 		};
 

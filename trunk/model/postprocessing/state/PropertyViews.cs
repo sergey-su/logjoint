@@ -80,11 +80,11 @@ namespace LogJoint.Postprocessing.StateInspector
 
 			if (Mode == DisplayMode.Value || Mode == DisplayMode.ThreadReference)
 			{
-				return ((PropertyChange)Change.OriginalEvent).Value;
+				return ((PropertyChange)Change.OriginalEvent).Value ?? "";
 			}
 			if (Mode == DisplayMode.Reference)
 			{
-				var id = ((PropertyChange)Change.OriginalEvent).Value;
+				var id = ((PropertyChange)Change.OriginalEvent).Value ?? "";
 				return Object.Owner.TryGetDisplayName(id, out var displayName) ? displayName : id;
 			}
 			if (Mode == DisplayMode.Date)
@@ -95,7 +95,7 @@ namespace LogJoint.Postprocessing.StateInspector
 			}
 			if (Mode == DisplayMode.UserHash)
 			{
-				var value = ((PropertyChange)Change.OriginalEvent).Value;
+				var value = ((PropertyChange)Change.OriginalEvent).Value ?? "";
 				return shortNames.AddShortNameToUserHash(value);
 			}
 			return "";
