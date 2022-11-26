@@ -1174,7 +1174,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				this.message = message;
 				this.isSelected = isSelected;
 				this.@event = @event;
-				this.key = @event.GetHashCode().ToString();
+				this.key = (@event, message).GetHashCode().ToString("x");
 				this.index = index;
 			}
 
