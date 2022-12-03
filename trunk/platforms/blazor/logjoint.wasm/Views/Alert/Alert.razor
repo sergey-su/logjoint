@@ -5,7 +5,7 @@
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <Modal Visible="@(viewModel.ViewState != null)" Class="alert" ClickOutside="@(() => viewModel?.OnClickOutside())" OnCancel="HandleCancel">
-    <div class="text">
+    <div class="text nice-scroll">
         @viewModel.ViewState.Text
     </div>
     <div class="buttons">
