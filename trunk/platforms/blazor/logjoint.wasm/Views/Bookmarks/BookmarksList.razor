@@ -15,12 +15,12 @@
         @{var f = viewModel.FocusedMessagePosition; }
         @{var focusedMarkClass =
                     f == null ? "" :
-                    f.Item2 == item.Index + 1 ? (f.Item1 != f.Item2 ? "f" : "f l") :
-                    (f.Item1 == 0 && f.Item2 == 0 && item.Index == 0) ? "f r" :
+                    f.UpperBound == item.Index + 1 ? (f.LowerBound != f.UpperBound ? "f" : "f l") :
+                    (f.LowerBound == 0 && f.UpperBound == 0 && item.Index == 0) ? "f r" :
                     "";}
         <div>@(item.Delta ?? item.AltDelta)</div>
         <div class="icon"></div>
-        <div class="p @focusedMarkClass"></div>
+        <div class="p @focusedMarkClass"><span title=@(f?.Tooltip ?? "")>&nbsp;</span></div>
         @if (item.IsEnabled)
         {
             <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))"

@@ -1,4 +1,5 @@
 ﻿@using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
+@using LogJoint.UI.Presenters
 @namespace LogJoint.Wasm.UI.Postprocessing
 @inject JsInterop jsInterop
 @implements IDisposable
@@ -20,11 +21,11 @@
             @{var f = FocusedMessagePositionInChangeHistory; }
             @{var focusedMarkClass =
                       f == null ? "" :
-                      f.Item2 == item.Index + 1 ? (f.Item1 != f.Item2 ? "f" : "f l") :
-                      (f.Item1 == 0 && f.Item2 == 0 && item.Index == 0) ? "f r" :
+                      f.UpperBound == item.Index + 1 ? (f.LowerBound != f.UpperBound ? "f" : "f l") :
+                      (f.LowerBound == 0 && f.UpperBound == 0 && item.Index == 0) ? "f r" :
                       "";}
             <div class="@(IsItemBookmarked(item) ? "b" : "")"></div>
-            <div class="@focusedMarkClass"></div>
+            <div class="@focusedMarkClass"><span title=@(f?.Tooltip ?? "")>&nbsp;</span></div>
             <div>@item.Time</div>
             <div>@item.Message</div>
         </ItemTemplate>
@@ -51,7 +52,7 @@
     public Predicate<IStateHistoryItem> IsItemBookmarked { get; set; }
 
     [Parameter]
-    public Tuple<int, int> FocusedMessagePositionInChangeHistory { get; set; }
+    public FocusedMessageInfo FocusedMessagePositionInChangeHistory { get; set; }
 
     [Parameter]
     public IViewModel ViewModel { get; set; }

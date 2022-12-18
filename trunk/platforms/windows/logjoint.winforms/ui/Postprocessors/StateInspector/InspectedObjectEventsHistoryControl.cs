@@ -101,13 +101,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 						}
 
 						var focusedMessage = viewModel.FocusedMessagePositionInChangeHistory;
-						if (focusedMessage != null && listBox.Items.Count != 0 && Math.Abs(focusedMessage.Item1 - e.Index) <= 1)
+						if (focusedMessage != null && listBox.Items.Count != 0 && Math.Abs(focusedMessage.LowerBound - e.Index) <= 1)
 						{
 							var imgsz = UIUtils.FocusedItemMarkBounds.Size;
-							float y = focusedMessage.Item1 >= listBox.Items.Count ?
+							float y = focusedMessage.LowerBound >= listBox.Items.Count ?
 								listBox.GetItemRectangle(listBox.Items.Count - 1).Bottom :
-								listBox.GetItemRectangle(focusedMessage.Item1).Top;
-							if (focusedMessage.Item1 != focusedMessage.Item2)
+								listBox.GetItemRectangle(focusedMessage.LowerBound).Top;
+							if (focusedMessage.LowerBound != focusedMessage.UpperBound)
 								y += listBox.ItemHeight / 2;
 							if (y == 0)
 								y += imgsz.Height / 2;

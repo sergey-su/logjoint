@@ -230,14 +230,14 @@ namespace LogJoint.UI
 				{
 					ControlPaint.DrawFocusRectangle(g, r, Color.Black, Color.White);
 				}
-				Tuple<int, int> focused = presenter.FocusedMessagePosition;
+				var focused = presenter.FocusedMessagePosition;
 				if (focused != null)
 				{
 					float y;
-					if (focused.Item1 != focused.Item2)
-						y = listBox.ItemHeight * focused.Item1 + listBox.ItemHeight / 2;
+					if (focused.LowerBound != focused.UpperBound)
+						y = listBox.ItemHeight * focused.LowerBound + listBox.ItemHeight / 2;
 					else
-						y = listBox.ItemHeight * focused.Item1;
+						y = listBox.ItemHeight * focused.LowerBound;
 					if (y == 0)
 						y = UIUtils.FocusedItemMarkBounds.Height / 2;
 					y -= listBox.TopIndex * listBox.ItemHeight;

@@ -74,7 +74,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		IReadOnlyList<IStateHistoryItem> ChangeHistoryItems { get; }
 		Predicate<IStateHistoryItem> IsChangeHistoryItemBookmarked { get; }
-		Tuple<int, int> FocusedMessagePositionInChangeHistory { get; }
+		FocusedMessageInfo FocusedMessagePositionInChangeHistory { get; }
 		void OnChangeHistoryItemDoubleClicked(IStateHistoryItem item);
 		void OnChangeHistoryItemKeyEvent(IStateHistoryItem item, Key key);
 		void OnChangeHistoryChangeSelection(IEnumerable<IStateHistoryItem> items);

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using static LogJoint.Settings.Appearance;
 using LogJoint.Drawing;
 using LogJoint.UI.Presenters.Reactive;
+using System.Security.Principal;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -100,7 +101,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return ret;
 		}
 
-		Tuple<int, int> IViewModel.FocusedMessagePosition => focusedMessagePositionSelector();
+		FocusedMessageInfo IViewModel.FocusedMessagePosition => focusedMessagePositionSelector();
 
 		void IViewModel.OnCopyShortcutPressed()
 		{
@@ -154,14 +155,39 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 		}
 
-		static Tuple<int, int> FindFocusedMessagePosition(
+		static FocusedMessageInfo FindFocusedMessagePosition(
 			IBookmark focusedMessage,
 			IReadOnlyList<IBookmark> bookmarks
 		)
 		{
 			if (focusedMessage == null)
 				return null;
-			return bookmarks.FindBookmark(focusedMessage);
+			var equalRange = bookmarks.FindBookmark(focusedMessage);
+			if (equalRange == null)
+				return null;
+			var tooltip = new StringBuilder();
+			if (equalRange.Item1 == equalRange.Item2)
+			{
+				int i = equalRange.Item1;
+				if (i > 0)
+				{
+					tooltip.AppendFormat("{0} from previous bookmark",
+						TimeUtils.TimeDeltaToString(focusedMessage.Time - bookmarks[i - 1].Time));
+				}
+				if (i < bookmarks.Count)
+				{
+					if (tooltip.Length > 0)
+						tooltip.AppendLine();
+					tooltip.AppendFormat("{0} to next bookmark",
+						TimeUtils.TimeDeltaToString(bookmarks[i].Time - focusedMessage.Time));
+				}
+			}
+			return new FocusedMessageInfo()
+			{
+				LowerBound = equalRange.Item1,
+				UpperBound = equalRange.Item2,
+				Tooltip = tooltip.ToString()
+			};
 		}
 
 		static ImmutableArray<IViewItem> CreateViewItems(
@@ -179,7 +205,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			int index = 0;
 			foreach (IBookmark bmk in bookmarks)
 			{
-				var ts = bmk.Time.ToUniversalTime();
+				var ts = bmk.Time.ToUnspecifiedTime();
 				var ls = bmk.GetLogSource();
 				var isEnabled = ls != null && ls.Visible;
 				var isSelected = selected.Contains(bmk);
@@ -357,7 +383,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		readonly ILogSourcesManager sourcesManager;
 		ImmutableHashSet<IBookmark> selectedBookmarks = ImmutableHashSet.Create<IBookmark>();
 		readonly Func<ImmutableArray<IViewItem>> itemsSelector;
-		readonly Func<Tuple<int, int>> focusedMessagePositionSelector;
+		readonly Func<FocusedMessageInfo> focusedMessagePositionSelector;
 		readonly Func<bool> hasSelectedBookmarks;
 
 		#endregion

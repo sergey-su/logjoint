@@ -173,10 +173,37 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 				getFocusedMessageInfo,
 				(changes, focusedMessage) =>
 				{
-					return
-						focusedMessage == null ? null :
-						new ListUtils.VirtualList<StateInspectorEvent>(changes.Length,
-							i => changes[i].Event).CalcFocusedMessageEqualRange(focusedMessage);
+					if (focusedMessage == null)
+						return null;
+					var equalRange = new ListUtils.VirtualList<StateInspectorEvent>(changes.Length,
+						i => changes[i].Event).CalcFocusedMessageEqualRange(focusedMessage);
+					if (equalRange == null)
+						return null;
+					var tooltip = new StringBuilder();
+					if (equalRange.Item1 == equalRange.Item2)
+					{
+						MessageTimestamp ts(StateHistoryItem item) => item.Event.Trigger.Timestamp
+							.Adjust(item.Event.Output.LogSource.TimeOffsets);
+						var i = equalRange.Item1;
+						if (i > 0)
+						{
+							tooltip.AppendFormat("{0} from previous change",
+								TimeUtils.TimeDeltaToString(focusedMessage.Time - ts(changes[i - 1])));
+						}
+						if (i < changes.Length)
+						{
+							if (tooltip.Length > 0)
+								tooltip.AppendLine();
+							tooltip.AppendFormat("{0} to next change",
+								TimeUtils.TimeDeltaToString(ts(changes[i]) - focusedMessage.Time));
+						}
+					}
+					return new FocusedMessageInfo
+					{
+						LowerBound = equalRange.Item1,
+						UpperBound = equalRange.Item2,
+						Tooltip = tooltip.ToString()
+					};
 				}
 			);
 
@@ -280,7 +307,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		Predicate<IStateHistoryItem> IViewModel.IsChangeHistoryItemBookmarked => getIsHistoryItemBookmarked();
 
-		Tuple<int, int> IViewModel.FocusedMessagePositionInChangeHistory => getFocusedMessagePositionInHistory();
+		FocusedMessageInfo IViewModel.FocusedMessagePositionInChangeHistory => getFocusedMessagePositionInHistory();
 
 		string IViewModel.CurrentTimeLabelText => getCurrentTimeLabelText();
 
@@ -381,7 +408,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			var pos = getFocusedMessagePositionInHistory();
 			if (pos == null)
 				return;
-			view.ScrollStateHistoryItemIntoView(pos.Item1);
+			view.ScrollStateHistoryItemIntoView(pos.LowerBound);
 		}
 
 		MenuData IViewModel.OnNodeMenuOpening()
@@ -1227,7 +1254,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 		readonly Func<Predicate<IStateHistoryItem>> getIsHistoryItemBookmarked;
 		readonly Func<Func<IStateInspectorOutputsGroup, FocusedMessageEventsRange>> getFocusedMessageEqualRange;
 		readonly Func<IMessage> getFocusedMessageInfo;
-		readonly Func<Tuple<int, int>> getFocusedMessagePositionInHistory;
+		readonly Func<FocusedMessageInfo> getFocusedMessagePositionInHistory;
 		readonly Func<string> getCurrentTimeLabelText;
 		ImmutableArray<StateInspectorEvent> selectedHistoryEvents = ImmutableArray<StateInspectorEvent>.Empty;
 		readonly Func<ImmutableArray<PropertyInfo>> getCurrentProperties;

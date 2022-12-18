@@ -30,7 +30,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		string FontName { get; }
 		ColorThemeMode Theme { get; }
 		IReadOnlyList<IViewItem> Items { get; }
-		Tuple<int, int> FocusedMessagePosition { get; }
+		FocusedMessageInfo FocusedMessagePosition { get; }
 
 		void OnEnterKeyPressed();
 		void OnViewDoubleClicked();

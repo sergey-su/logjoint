@@ -842,7 +842,7 @@ button {
     background: center / contain no-repeat var(--bookmark-image);
 }
 /* focus mark area */
-.state-inspector .history>.the-list>li>div:nth-child(2):after {
+.state-inspector .history>.the-list>li>div:nth-child(2)>* {
     content: ' ';
     display: inline-block;
     width: 5px;
@@ -851,13 +851,13 @@ button {
     position: relative;
     white-space: pre;
 }
-.state-inspector .history>.the-list .f:after {
+.state-inspector .history>.the-list .f>* {
     background: center / contain no-repeat var(--focused-message-image-bordered);
 }
-.state-inspector .history>.the-list .f.l:after {
+.state-inspector .history>.the-list .f.l>* {
     top: 0.5em;
 }
-.state-inspector .history>.the-list .f.r:after {
+.state-inspector .history>.the-list .f.r>* {
     top: -0.5em;
 }
 .state-inspector .history>.the-list>li>div:nth-child(3) {
@@ -1218,19 +1218,18 @@ button {
     width: 9px;
 }
 
-.bookmarks-list-item>.p:after {
-    content: ' ';
+.bookmarks-list-item>.p>* {
     display: inline-block;
     width: 5px;
     position: relative;
 }
-.bookmarks-list-item>.f:after {
+.bookmarks-list-item>.f>* {
     background: center / contain no-repeat var(--focused-message-image-bordered);
 }
-.bookmarks-list-item>.f.l:after {
+.bookmarks-list-item>.f.l>* {
     top: 0.5em;
 }
-.bookmarks-list-item>.f.r:after {
+.bookmarks-list-item>.f.r>* {
     top: -0.5em;
 }
 

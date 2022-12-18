@@ -176,6 +176,10 @@ namespace LogJoint
 		{
 			return Compare(t1, t2) >= 0;
 		}
+		public static TimeSpan operator -(MessageTimestamp t1, MessageTimestamp t2)
+		{
+			return t1.ToUnspecifiedTime() - t2.ToUnspecifiedTime();
+		}
 
 		static DateTimeKind NormalizeKindForComparision(DateTimeKind k)
 		{
