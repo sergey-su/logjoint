@@ -7,7 +7,7 @@
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 @{var data = viewModel.PopupData; }
-<div class="status-popup" style="@(data != null ? "" : "display: none")">
+<div class="status-popup nice-scroll" style="@(data != null ? "" : "display: none")">
     @if (data != null)
     {
         <div class="header">@(data.Caption)</div>
