@@ -218,6 +218,9 @@ button {
     white-space: pre;
     direction: rtl;
 }
+.logview .outline .item>.p {
+    direction: initial;
+}
 .logview .outline .item>.i { /* base icon */
     display: inline-block;
     width: 11px;

@@ -68,14 +68,8 @@
             <div @key="item.LineIndex" class="item"
                  @onmousedown="@(e => viewModel.OnMessageMouseEvent(item, 0,
                                 GetMessageMouseEventFlags(e) | MessageMouseEventFlag.OulineBoxesArea, null))">
-                @{var f = viewModel.FocusedMessageMark; }
-                @{var focusedMarkClass =
-                            f == null ? "" :
-                            f.Length == 1 ? (f[0] == item.LineIndex ? "f" : "") :
-                            f[1] == item.LineIndex + 1 ? (f[0] != f[1] ? "fs" : "fs l") :
-                            (f[0] == 0 && f[1] == 0 && item.LineIndex == 0) ? "fs r" :
-                            "";}
-                <span class="p @focusedMarkClass">@(" ")</span>
+                @{var (focusedMarkClass, tooltip) = GetFocusedMessageRenderData(viewModel.FocusedMessageMark, item);}
+                <span class="p @focusedMarkClass" title=@tooltip>@(" ")</span>
                 @if (item.IsBookmarked)
                 {
                     <span class="i b">@(" ")</span>
@@ -307,5 +301,19 @@
             viewModel.OnMessageMouseEvent(line, GetClickedCharIndex(line, e),
                 MessageMouseEventFlag.ShiftIsHeld | MessageMouseEventFlag.CapturedMouseMove, null);
         }
+    }
+
+    static (string cssClass, string tooltip) GetFocusedMessageRenderData(IFocusedMessageData data, ViewLine item)
+    {
+        if (data is MasterFocusedMessageData master)
+            return (master.LineIndex == item.LineIndex ? "f" : "", "");
+        if (data is SlaveFocusedMessageData slave)
+            return (
+                slave.UpperBound == item.LineIndex + 1 ? (slave.LowerBound != slave.UpperBound ? "fs" : "fs l") :
+                (slave.LowerBound == 0 && slave.UpperBound == 0 && item.LineIndex == 0) ? "fs r" :
+                "",
+                slave.Tooltip
+            );
+        return ("", "");
     }
 }

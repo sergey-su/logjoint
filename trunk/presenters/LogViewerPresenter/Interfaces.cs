@@ -240,10 +240,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		int TimeMaxLength { get; }
 		/// <summary>
 		/// Returns null if focused message mark is not visible.
-		/// Returns array with one number if focused message mark is large (master view). 0-th item is view line index.
-		/// Returns array with three numbers if focused message mark is small (slave view). 0-th and 1-st items are view line indexes. 2-nd item is animation stage.
 		/// </summary>
-		int[] FocusedMessageMark { get; }
+		IFocusedMessageData FocusedMessageMark { get; }
 		FontData Font { get; }
 		LJTraceSource Trace { get; }
 		double? VerticalScrollerPosition { get; }
@@ -275,7 +273,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 	};
 
-	public interface IMessagesSource
+	public interface IFocusedMessageData
+	{
+	};
+
+	public class MasterFocusedMessageData : IFocusedMessageData
+	{
+		public int LineIndex { get; internal set; }
+	};
+
+	public class SlaveFocusedMessageData : FocusedMessageInfo, IFocusedMessageData
+	{
+		public int AnimationStep { get; internal set; }
+	};
+
+
+    public interface IMessagesSource
 	{
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,

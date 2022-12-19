@@ -7,11 +7,11 @@
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 @{var data = viewModel.PopupData; }
-<div class="status-popup nice-scroll" style="@(data != null ? "" : "display: none")">
+<div class="status-popup" style="@(data != null ? "" : "display: none")">
     @if (data != null)
     {
         <div class="header">@(data.Caption)</div>
-        <div class="contents">
+        <div class="contents nice-scroll">
             @foreach (MessagePart part in data.Parts)
             {
                 @if (part is MessageLink link)

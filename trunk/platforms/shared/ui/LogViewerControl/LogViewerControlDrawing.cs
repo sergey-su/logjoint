@@ -256,27 +256,27 @@ namespace LogJoint.UI.LogViewer
 			SizeF focusedMessageSz;
 			float markYPos;
 			var slaveMessagePositionAnimationStep = 0;
-			var loc = viewModel.FocusedMessageMark;
-			if (loc == null)
+			IFocusedMessageData loc = viewModel.FocusedMessageMark;
+			if (loc is MasterFocusedMessageData master)
+			{
+				focusedMessageMark = graphicsResources.FocusedMessageIcon;
+				focusedMessageSz = focusedMessageMark.GetSize(height: 14);
+				markYPos = GetTextOffset(master.LineIndex).Y + (LineHeight - focusedMessageSz.Height) / 2;
+			}
+			else if (loc is SlaveFocusedMessageData slave)
+			{
+				focusedMessageMark = graphicsResources.FocusedMessageIcon;
+				focusedMessageSz = focusedMessageMark.GetSize(height: 9);
+				float yOffset = slave.LowerBound != slave.UpperBound ?
+					(LineHeight - focusedMessageSz.Height) / 2 : -focusedMessageSz.Height / 2;
+				markYPos = GetTextOffset(slave.LowerBound).Y + yOffset;
+				slaveMessagePositionAnimationStep = slave.AnimationStep;
+			}
+			else
 			{
 				focusedMessageMark = null;
 				focusedMessageSz = new SizeF();
 				markYPos = 0;
-			}
-			else if (loc.Length == 1)
-			{
-				focusedMessageMark = graphicsResources.FocusedMessageIcon;
-				focusedMessageSz = focusedMessageMark.GetSize(height: 14);
-				markYPos = GetTextOffset(loc[0]).Y + (LineHeight - focusedMessageSz.Height) / 2;
-			}
-			else
-			{
-				focusedMessageMark = graphicsResources.FocusedMessageIcon;
-				focusedMessageSz = focusedMessageMark.GetSize(height: 9);
-				float yOffset = loc[0] != loc[1] ?
-					(LineHeight - focusedMessageSz.Height) / 2 : -focusedMessageSz.Height / 2;
-				markYPos = GetTextOffset(loc[0]).Y + yOffset;
-				slaveMessagePositionAnimationStep = loc[2];
 			}
 			if (focusedMessageMark != null)
 			{

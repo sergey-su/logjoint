@@ -676,7 +676,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int IViewModel.TimeMaxLength => timeMaxLength();
 
-		int[] IViewModel.FocusedMessageMark => focusedMessageMark();
+		IFocusedMessageData IViewModel.FocusedMessageMark => focusedMessageMark();
 
 		ImmutableArray<ViewLine> IViewModel.ViewLines => viewLines();
 
@@ -1220,7 +1220,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ThisIntf.GoToEnd().IgnoreCancellation();
 		}
 
-		Func<int[]> CreateFocusedMessageMarkSelector()
+		Func<IFocusedMessageData> CreateFocusedMessageMarkSelector()
 		{
 			var getSelector = Selectors.Create(
 				() => focusedMessageDisplayMode,
@@ -1230,7 +1230,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					{
 						return Selectors.Create(
 							() => selectionManager.CursorViewLine,
-							idx => idx != null ? new[] { idx.Value } : null
+							idx => (IFocusedMessageData)(idx != null ? new MasterFocusedMessageData() { LineIndex = idx.Value } : null)
 						);
 					}
 					else
@@ -1247,7 +1247,30 @@ namespace LogJoint.UI.Presenters.LogViewer
 									m => displayTextGetter(m).LinesMapper);
 								if (tmp == null)
 									return null;
-								return new[] { tmp[0], tmp[1], animationStep };
+								var tooltip = new StringBuilder();
+								if (tmp[0] == tmp[1])
+								{
+									int i = tmp[0];
+									if (i > 0)
+									{
+										tooltip.AppendFormat("{0} from previous message",
+											TimeUtils.TimeDeltaToString(slaveModeFocusedMessage.Time - screenBufferMessages[i - 1].Message.Time));
+									}
+									if (i < screenBufferMessages.Count)
+									{
+										if (tooltip.Length > 0)
+											tooltip.AppendLine();
+										tooltip.AppendFormat("{0} to next message",
+											TimeUtils.TimeDeltaToString(screenBufferMessages[i].Message.Time - slaveModeFocusedMessage.Time));
+									}
+								}
+								return new SlaveFocusedMessageData()
+								{
+									LowerBound = tmp[0],
+									UpperBound = tmp[1],
+									Tooltip = tooltip.ToString(),
+									AnimationStep = animationStep
+								};
 							}
 						);
 					}
@@ -1393,7 +1416,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		readonly Func<double> viewDisplayLinesPerPage;
 		readonly Func<int> timeMaxLength;
-		readonly Func<int[]> focusedMessageMark;
+		readonly Func<IFocusedMessageData> focusedMessageMark;
 		readonly Func<ImmutableArray<ViewLine>> viewLines;
 		readonly Func<string> viewLinesText;
 		readonly Func<Func<IMessage, MessageDisplayTextInfo>> displayTextGetterSelector;
