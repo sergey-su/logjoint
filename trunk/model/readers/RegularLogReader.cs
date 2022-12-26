@@ -7,6 +7,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace LogJoint.RegularGrammar
 {
@@ -174,6 +175,7 @@ namespace LogJoint.RegularGrammar
 			readonly MessagesReader reader;
 			readonly MessagesBuilderCallback callback;
 			readonly IRegex bodyRegex;
+			readonly Profiling.Counters.Writer perfWriter;
 			FieldsProcessor.IFieldsProcessor fieldsProcessor;
 			IMatch bodyMatch;
 
@@ -190,6 +192,7 @@ namespace LogJoint.RegularGrammar
 				this.reader = reader;
 				this.callback = reader.CreateMessageBuilderCallback();
 				this.bodyRegex = CloneRegex(reader.fmtInfo.BodyRe).Regex;
+				this.perfWriter = reader.PerfCounters.GetWriter();
 			}
 			public override async Task ParserCreated(CreateParserParams p)
 			{
@@ -199,8 +202,10 @@ namespace LogJoint.RegularGrammar
 			}
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
-				return MakeMessageInternal(capture, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags, 
+				using var perfop = perfWriter.IncrementTicks(reader.ReadMessageCounter);
+				var result = MakeMessageInternal(capture, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags,
 					media.LastModified, reader.TimeOffsets, callback);
+				return result;
 			}
 		};
 

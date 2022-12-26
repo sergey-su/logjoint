@@ -21,14 +21,22 @@ namespace LogJoint.Profiling
 		public CounterDescriptor AddCounter(
 			string name,
 			string unit = null,
-			bool reportCount = false
+			bool reportSum = false,
+			bool reportCount = false,
+			bool reportAverage = false,
+			bool reportMax = false,
+			bool reportMin = false
 		)
 		{
 			var counter = new CounterDescriptor
 			{
 				name = name,
 				unitSuffix = !string.IsNullOrEmpty(unit) ? $" {unit}" : "",
-				reportCount = reportCount
+				reportCount = reportCount,
+				reportSum = reportSum,
+				reportAverage = reportAverage,
+				reportMax = reportMax,
+				reportMin = reportMin,
 			};
 			counters.Add(counter);
 			return counter;
@@ -38,14 +46,26 @@ namespace LogJoint.Profiling
 		{
 			internal string name;
 			internal long value;
+			internal long max;
+			internal long? min;
 			internal long count;
 			internal string unitSuffix;
+			internal bool reportSum;
 			internal bool reportCount;
+			internal bool reportAverage;
+			internal bool reportMax;
+			internal bool reportMin;
 
 			internal void Reset()
 			{
 				value = 0;
 				count = 0;
+				if (reportMax || reportMin)
+					lock (this)
+					{
+						max = 0;
+						min = null;
+					}
 			}
 		};
 
@@ -69,26 +89,43 @@ namespace LogJoint.Profiling
 			return new Writer(this);
 		}
 
-		public void Report(TimeSpan? atMostOncePer = null)
+		public bool Report(TimeSpan? atMostOncePer = null)
 		{
 			if (atMostOncePer.HasValue)
 			{
 				var now = Environment.TickCount;
 				if (now - lastReported < atMostOncePer.Value.TotalMilliseconds)
-					return;
+					return false;
 				lastReported = now;
 			}
 			foreach (var c in counters)
 			{
-				double value = c.value;
-				if (c.unitSuffix == " ms")
-					value /= 10000d;
-				else if (c.unitSuffix == " s")
-					value /= 10000000d;
-				trace.Info("cntrs #{0} {1}={2}{3}", id, c.name, value, c.unitSuffix);
+				double ApplyUnit(double value)
+				{
+					if (c.unitSuffix == " ms")
+						value /= 10000d;
+					else if (c.unitSuffix == " s")
+						value /= 10000000d;
+					return value;
+				}
+				double value = ApplyUnit(c.value);
+				long count = c.count;
+				if (c.reportSum)
+					trace.Info("cntrs #{0} SUM({1})={2}{3}", id, c.name, value, c.unitSuffix);
 				if (c.reportCount)
-					trace.Info("cntrs #{0} COUNT({1})={2}", id, c.name, c.count);
+					trace.Info("cntrs #{0} COUNT({1})={2}", id, c.name, count);
+				if (c.reportAverage && count > 0)
+					trace.Info("cntrs #{0} AVE({1})={2}{3}", id, c.name, value/count, c.unitSuffix);
+				if (c.reportMax || c.reportMin)
+					lock (c)
+					{
+						if (c.reportMax)
+							trace.Info("cntrs #{0} MAX({1})={2}{3}", id, c.name, ApplyUnit(c.max), c.unitSuffix);
+						if (c.reportMin && c.min.HasValue)
+							trace.Info("cntrs #{0} MIN({1})={2}{3}", id, c.name, ApplyUnit(c.min.Value), c.unitSuffix);
+					}
 			}
+			return true;
 		}
 
 		public void ResetAll()
@@ -114,8 +151,14 @@ namespace LogJoint.Profiling
 				if (owner != null)
 				{
 					Interlocked.Add(ref counter.value, value);
-					if (counter.reportCount)
+					if (counter.reportCount || counter.reportAverage)
 						Interlocked.Increment(ref counter.count);
+					if (counter.reportMax || counter.reportMin)
+						lock (counter)
+						{
+							counter.max = Math.Max(counter.max, value);
+							counter.min = Math.Min(counter.min.GetValueOrDefault(long.MaxValue), value);
+						}
 				}
 			}
 

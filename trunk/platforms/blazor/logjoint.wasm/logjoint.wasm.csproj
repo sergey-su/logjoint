@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AssemblyName>logjoint</AssemblyName>
     <RootNamespace>LogJoint.Wasm</RootNamespace>
     <RunAOTCompilation>true</RunAOTCompilation>
+    <WasmEnableSIMD>true</WasmEnableSIMD>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0" PrivateAssets="all" />
-    <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +27,24 @@
     <ProjectReference Include="../../../sdk/model/logjoint.model.sdk.csproj" />
     <ProjectReference Include="../../../model/logjoint.model.csproj" />
     <ProjectReference Include="../../../presenters/logjoint.presenters.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="logjoint.google.plugin">
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/logjoint.google.plugin.dll</HintPath>
+      <Private>True</Private>
+      <TreatAsUsed>true</TreatAsUsed>
+    </Reference>
+    <Reference Include="logjoint.google.plugin.model.dll">
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/logjoint.google.plugin.model.dll</HintPath>
+      <Private>True</Private>
+      <TreatAsUsed>true</TreatAsUsed>
+    </Reference>
+    <Reference Include="logjoint.google.plugin.presentation.dll">
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/logjoint.google.plugin.presentation.dll</HintPath>
+      <Private>True</Private>
+      <TreatAsUsed>true</TreatAsUsed>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

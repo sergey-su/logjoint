@@ -35,30 +35,24 @@ namespace LogJoint
 			this.settingsAccessor = settingsAccessor;
 			this.trace = traceSourceFactory.CreateTraceSource("LogSource",
 				string.Format("{0}.r{1:x4}", parentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
+			this.perfCounters = new Profiling.Counters(this.trace, $"perf.{parentLoggingPrefix}");
+			this.ReadMessageCounter = this.perfCounters.AddCounter(
+				name: "read message time",
+				unit: "ms",
+				reportCount: true,
+				reportAverage: true,
+				reportMax: true,
+				reportMin: true
+			);
 		}
 
 		#region IPositionedMessagesReader
 
-		public long BeginPosition
-		{
-			get
-			{
-				return beginPosition.Value;
-			}
-		}
+		public long BeginPosition => beginPosition.Value;
 
-		public long EndPosition
-		{
-			get
-			{
-				return endPosition.Value;
-			}
-		}
+		public long EndPosition => endPosition.Value;
 
-		public long MaximumMessageSize
-		{
-			get { return textStreamPositioningParams.AlignmentBlockSize; }
-		}
+		public long MaximumMessageSize => textStreamPositioningParams.AlignmentBlockSize;
 
 		public long PositionRangeToBytes(FileRange.Range range)
 		{
@@ -69,10 +63,7 @@ namespace LogJoint
 			return TextStreamPositionToStreamPosition_Approx(range.End, encoding, textStreamPositioningParams) - TextStreamPositionToStreamPosition_Approx(range.Begin, encoding, textStreamPositioningParams);
 		}
 
-		public long SizeInBytes
-		{
-			get { return mediaSize; }
-		}
+		public long SizeInBytes => mediaSize;
 
 		public ITimeOffsets TimeOffsets
 		{
@@ -95,6 +86,11 @@ namespace LogJoint
 
 		public async Task<IPositionedMessagesParser> CreateParser(CreateParserParams parserParams)
 		{
+			// That's not the best place for flushing counters, but it's the only one that works in blazor
+			// that lacks periodic calls to UpdateAvailableBounds.
+			if (perfCounters.Report(atMostOncePer: TimeSpan.FromMilliseconds(500)))
+				perfCounters.ResetAll();
+
 			parserParams.EnsureRangeIsSet(this);
 
 			var strategiesCache = new StreamParser.StrategiesCache()
@@ -182,15 +178,9 @@ namespace LogJoint
 
 		#region Public interface
 
-		public ILogMedia LogMedia
-		{
-			get { return media; }
-		}
+		public ILogMedia LogMedia => media;
 
-		public Stream VolatileStream
-		{
-			get { return media.DataStream; }
-		}
+		public Stream VolatileStream => media.DataStream;
 
 		public void EnsureStreamEncodingIsCached()
 		{
@@ -211,18 +201,9 @@ namespace LogJoint
 
 		#region Protected interface
 
-		protected DateTime MediaLastModified
-		{
-			get { return media.LastModified; }
-		}
+		protected DateTime MediaLastModified => media.LastModified;
 
-		protected MessagesReaderExtensions Extensions
-		{
-			get
-			{
-				return extensions;
-			}
-		}
+		protected MessagesReaderExtensions Extensions => extensions;
 
 		protected static FieldsProcessor.MakeMessageFlags ParserFlagsToMakeMessageFlags(MessagesParserFlag flags)
 		{
@@ -241,6 +222,10 @@ namespace LogJoint
 		}
 
 		protected LJTraceSource Trace => trace;
+
+		protected Profiling.Counters PerfCounters => perfCounters;
+
+		protected Profiling.Counters.CounterDescriptor ReadMessageCounter { get; private set; }
 
 		#endregion
 
@@ -363,6 +348,7 @@ namespace LogJoint
 		readonly MessagesReaderFlags flags;
 		readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		readonly LJTraceSource trace;
+		readonly Profiling.Counters perfCounters;
 
 		Encoding encoding;
 
