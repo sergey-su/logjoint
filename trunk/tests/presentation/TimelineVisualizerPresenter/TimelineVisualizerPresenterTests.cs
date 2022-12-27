@@ -20,12 +20,10 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		IPresenter presenter;
 		IViewModel viewModel;
 		IView view;
-		readonly Postprocessing.StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer;
 		Postprocessing.Common.IPresentationObjectsFactory presentationObjectsFactory;
 		LoadedMessages.IPresenter loadedMessagesPresenter;
 		IBookmarks bookmarks;
 		Persistence.IStorageManager storageManager;
-		readonly IPresentersFacade presentersFacade;
 		IUserNamesProvider userNamesProvider;
 		QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 		IChangeNotification changeNotification;
@@ -56,12 +54,12 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				model,
 				logSourcesManager,
 				view,
-				stateInspectorVisualizer,
+				null,
 				presentationObjectsFactory,
 				loadedMessagesPresenter,
 				bookmarks,
 				storageManager,
-				presentersFacade,
+				null,
 				userNamesProvider,
 				changeNotification,
 				theme,

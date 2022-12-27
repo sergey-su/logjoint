@@ -22,9 +22,9 @@ namespace LogJoint.Drawing
 				format.Trimming = SD.StringTrimming.EllipsisCharacter;
 		}
 
-		partial void Init(SD.StringFormat format)
+		partial void Init(SD.StringFormat f)
 		{
-			this.format = format;
+			this.format = f;
 		}
 	};
 }

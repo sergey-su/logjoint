@@ -10,9 +10,9 @@ namespace LogJoint.Drawing
 			image.Dispose();
 		}
 
-		partial void Init(System.Drawing.Image image)
+		partial void Init(System.Drawing.Image img)
 		{
-			this.image = image;
+			this.image = img;
 		}
 
 		partial void SizeImp(ref Size ret)

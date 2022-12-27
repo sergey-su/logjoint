@@ -1,104 +1,30 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E84CB001-5D95-437B-BF2C-B72E1441A173}</ProjectGuid>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.PacketAnalysis</RootNamespace>
-    <AssemblyName>logjoint.packet-analysis.plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\platforms\windows\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\PluginInitializer.cs">
       <Link>PluginInitializer.cs</Link>
     </Compile>
-    <Compile Include="Plugin.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\MessageContentView.cs">
+    <Compile Update="UI\MessageContentView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\MessageContentView.Designer.cs">
-      <DependentUpon>MessageContentView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\WiresharkPageUI.cs">
+    <Compile Update="UI\WiresharkPageUI.cs">
       <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\WiresharkPageUI.Designer.cs">
-      <DependentUpon>WiresharkPageUI.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj">
-      <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
-      <Name>logjoint.sdk</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\sdk\model\logjoint.model.sdk.csproj">
-      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
-      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\model\logjoint.packet-analysis.plugin.model.csproj">
-      <Project>{73894319-df61-4686-9f03-2e20da252459}</Project>
-      <Name>logjoint.packet-analysis.plugin.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\presentation\logjoint.packet-analysis.plugin.presentation.csproj">
-      <Project>{107111dd-cb76-467d-ae8a-ac63a4fd8e5b}</Project>
-      <Name>logjoint.packet-analysis.plugin.presentation</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\tests\integration\logjoint.packet-analysis.plugin.integration.csproj">
-      <Project>{956959c8-9031-4532-9fa7-10d11239f7ca}</Project>
-      <Name>logjoint.packet-analysis.plugin.integration</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="UI\MessageContentView.resx">
-      <DependentUpon>MessageContentView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\WiresharkPageUI.resx">
-      <DependentUpon>WiresharkPageUI.cs</DependentUpon>
-    </EmbeddedResource>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\sdk\logjoint.sdk\logjoint.sdk.csproj" />
+    <ProjectReference Include="..\..\..\..\..\sdk\model\logjoint.model.sdk.csproj" />
+    <ProjectReference Include="..\..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj" />
+    <ProjectReference Include="..\..\..\model\logjoint.packet-analysis.plugin.model.csproj" />
+    <ProjectReference Include="..\..\..\presentation\logjoint.packet-analysis.plugin.presentation.csproj" />
+    <ProjectReference Include="..\..\..\tests\integration\logjoint.packet-analysis.plugin.integration.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="manifest.xml">
@@ -106,15 +32,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="pack.bat" />
-    <None Include="packages.config" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.355802">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

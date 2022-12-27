@@ -3,7 +3,6 @@
   <assemblyIdentity version="2.0.0.0" name="logjoint"/>
   <asmv3:application>
     <asmv3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">
-      <dpiAware>true</dpiAware>
     </asmv3:windowsSettings>
   </asmv3:application>
 </asmv1:assembly>

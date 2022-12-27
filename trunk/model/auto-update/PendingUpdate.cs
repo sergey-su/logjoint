@@ -253,13 +253,17 @@ namespace LogJoint.AutoUpdate
 					fs.WriteByte((byte)'1');
 				return true;
 			}
-			else
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				EventWaitHandle evt;
 				if (!EventWaitHandle.TryOpenExisting(Constants.startAfterUpdateEventName, out evt))
 					return false;
 				evt.Set();
 				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 
