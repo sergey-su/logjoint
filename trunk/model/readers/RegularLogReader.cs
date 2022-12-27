@@ -440,7 +440,7 @@ namespace LogJoint.RegularGrammar
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder, this, patterns);
 		}
 
-		byte[] IPrecompilingLogProviderFactory.Precompile(LJTraceSource trace)
+		byte[] IPrecompilingLogProviderFactory.Precompile(string assemblyName, LJTraceSource trace)
 		{
 			return fieldsProcessorFactory.CreatePrecompiledAssembly(
 				fmtInfo.Value.FieldsProcessorParams,
@@ -452,6 +452,7 @@ namespace LogJoint.RegularGrammar
 							$"Attempted to instantiate format extension {i.name} while precompiling")
 					)
 				),
+				assemblyName,
 				trace
 			);
 		}

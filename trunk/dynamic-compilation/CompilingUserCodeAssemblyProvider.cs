@@ -38,7 +38,8 @@ namespace LogJoint
 			LJTraceSource trace, 
 			List<string> inputFieldNames, 
 			List<ExtensionInfo> extensions, 
-			List<OutputFieldStruct> outputFields)
+			List<OutputFieldStruct> outputFields,
+			string assemblyName)
 		{
 			using var perfop = new Profiling.Operation(trace, "compile user code");
 			string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields);
@@ -58,7 +59,7 @@ namespace LogJoint
 			}
 
 			CSharpCompilation compilation = CSharpCompilation.Create(
-				$"UserCode{Guid.NewGuid():N}",
+				assemblyName ?? $"UserCode{Guid.NewGuid():N}",
 				new[] { syntaxTree },
 				metadataReferences,
 				new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)

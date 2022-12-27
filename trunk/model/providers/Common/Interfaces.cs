@@ -4,6 +4,6 @@
 	// to precompile format's user code into an assembly.
 	public interface IPrecompilingLogProviderFactory: ILogProviderFactory
 	{
-		byte[] Precompile(LJTraceSource trace);
+		byte[] Precompile(string assemblyName, LJTraceSource trace);
 	}
 }

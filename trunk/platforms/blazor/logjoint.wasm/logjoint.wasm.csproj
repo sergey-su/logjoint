@@ -45,6 +45,16 @@
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
+    <Reference Include="Google___Analog_exported_log_format">
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/Formats/Google - Analog exported log.format.dll</HintPath>
+      <Private>True</Private>
+      <TreatAsUsed>true</TreatAsUsed>
+    </Reference>
+    <Reference Include="Google___C___default_log_format">
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/Formats/Google - C++ default log.format.dll</HintPath>
+      <Private>True</Private>
+      <TreatAsUsed>true</TreatAsUsed>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

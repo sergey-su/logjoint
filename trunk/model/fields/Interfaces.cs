@@ -44,7 +44,8 @@ namespace LogJoint.FieldsProcessor
 			LJTraceSource trace,
 			List<string> inputFieldNames,
 			List<ExtensionInfo> extensions,
-			List<OutputFieldStruct> outputFields);
+			List<OutputFieldStruct> outputFields,
+			string assemblyName);
 	};
 
 	public interface IAssemblyLoader
@@ -113,6 +114,7 @@ namespace LogJoint.FieldsProcessor
 			IInitializationParams initializationParams,
 			IEnumerable<string> inputFieldNames,
 			IEnumerable<ExtensionInfo> extensions,
+			string assemblyName,
 			LJTraceSource trace
 		);
 	};

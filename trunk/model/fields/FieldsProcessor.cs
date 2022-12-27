@@ -104,13 +104,14 @@ namespace LogJoint.FieldsProcessor
 				IInitializationParams initializationParams,
 				IEnumerable<string> inputFieldNames,
 				IEnumerable<ExtensionInfo> extensions,
+				string assemblyName,
 				LJTraceSource trace
 			)
 			{
 				var initParams = (InitializationParams)initializationParams;
 				return userCodeAssemblyProvider.GetUserCodeAsssembly(
 					trace, SanitizeInputFieldNames(inputFieldNames).ToList(),
-					SanitizeExtensions(extensions).ToList(), initParams.OutputFields.ToList());
+					SanitizeExtensions(extensions).ToList(), initParams.OutputFields.ToList(), assemblyName);
 			}
 
 			static private IEnumerable<string> SanitizeInputFieldNames(IEnumerable<string> inputFieldNames)
@@ -303,7 +304,7 @@ namespace LogJoint.FieldsProcessor
 				throw new Exception("User code is not precompiled and no provider is given");
 			}
 			byte[] rawAsm = userCodeAssemblyProvider.GetUserCodeAsssembly(
-				trace, inputFieldNames, extensions, outputFields);
+				trace, inputFieldNames, extensions, outputFields, assemblyName: null);
 			Assembly asm = Assembly.Load(rawAsm);
 			cacheSection.Data.Position = 0;
 			await cacheSection.Data.WriteAsync(rawAsm, 0, rawAsm.Length);

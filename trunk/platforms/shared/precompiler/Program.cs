@@ -26,7 +26,7 @@ namespace LogJoint
 			if (pluginPath == null && (inputFormatFilePath == null || outputFormatFilePath == null))
 			{
 				Console.WriteLine("Usage:");
-				Console.WriteLine("   logjoint.precompiler plugin <plugin dirertory>                   - precompile code for all format definitions in the plugin");
+				Console.WriteLine("   logjoint.precompiler plugin <plugin directory>                   - precompile code for all format definitions in the plugin");
 				Console.WriteLine("   logjoint.precompiler format <in format file> <out format file>   - precompile code the format definition in the given file");
 				return;
 			}
@@ -99,26 +99,37 @@ namespace LogJoint
 				Console.WriteLine("ERROR: Failed to load plugin from '{0}'", pluginPath);
 				return;
 			}
+			var manifestDoc = XDocument.Load(pluginManifest.AbsolutePath);
 			foreach (Extensibility.IPluginFile formatFile in pluginManifest.Files.Where(f => f.Type == Extensibility.PluginFileType.FormatDefinition))
 			{
-				HandleFormatFile(formatFile.AbsolutePath, formatFile.AbsolutePath, modelObjects);
+				byte[] asmBytes = HandleFormatFile(formatFile.AbsolutePath, formatFile.AbsolutePath, modelObjects);
+				if (asmBytes != null)
+				{
+					var precompiledAsmFilePath = Path.ChangeExtension(formatFile.AbsolutePath, ".dll");
+					File.WriteAllBytes(precompiledAsmFilePath, asmBytes);
+					var manifestNode = new XElement("file");
+					manifestNode.SetAttributeValue("type", "dll");
+					manifestNode.SetValue(Path.GetRelativePath(pluginManifest.PluginDirectory, precompiledAsmFilePath));
+					manifestDoc.Root.Add(manifestNode);
+				}
 			}
+			manifestDoc.Save(pluginManifest.AbsolutePath);
 		}
 
-		private static void HandleFormatFile(string formatFilePath, string formatFilePathForLogging, ModelObjects modelObjects)
+		private static byte[] HandleFormatFile(string formatFilePath, string formatFilePathForLogging, ModelObjects modelObjects)
 		{
 			IUserDefinedFactory formatFactory = modelObjects.UserDefinedFormatsManager.Items.FirstOrDefault(
 				factory => factory.Location == formatFilePath);
 			if (formatFactory == null)
 			{
 				Console.WriteLine("ERROR: Failed to load format definition '{0}'", formatFilePathForLogging);
-				return;
+				return null;
 			}
 			var precomp = formatFactory as IPrecompilingLogProviderFactory;
 			if (precomp == null)
 			{
 				Console.WriteLine("WARNING: Skipping '{0}' - precompilation is not supported for it", formatFilePathForLogging);
-				return;
+				return null;
 			}
 			var formatDoc = XDocument.Load(formatFilePath);
 			var fieldsConfigElement =
@@ -126,9 +137,13 @@ namespace LogJoint
 			if (fieldsConfigElement == null)
 			{
 				Console.WriteLine("ERROR: failed tofind fields config in '{0}'", formatFilePathForLogging);
-				return;
+				return null;
 			}
-			byte[] asmBytes = precomp.Precompile(LJTraceSource.EmptyTracer);
+			var assemblyName = new string(
+				Path.ChangeExtension(Path.GetFileName(formatFilePath), null)
+				.Select(c => char.IsLetterOrDigit(c) ? c : '_')
+				.ToArray());
+			byte[] asmBytes = precomp.Precompile(assemblyName, LJTraceSource.EmptyTracer);
 			XElement precompiledElement = fieldsConfigElement.Element("precompiled");
 			if (precompiledElement == null)
 			{
@@ -141,6 +156,8 @@ namespace LogJoint
 			formatDoc.Save(formatFilePath);
 
 			Console.WriteLine("Successfully precompiled '{0}'", formatFilePathForLogging);
+
+			return asmBytes;
 		}
 	}
 }
