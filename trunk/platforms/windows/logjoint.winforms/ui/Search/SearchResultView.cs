@@ -164,14 +164,14 @@ namespace LogJoint.UI
 				ctrls.pinnedBtn.Click += (s, e) => { if (!updateLock) viewModel.OnPinCheckboxClicked(ctrls.currentItem); };
 				if (ctrls.dropdownBtnShowsList != null)
 					ctrls.textLabel.Click += (s, e) => viewModel.OnDropdownTextClicked();
-				ctrls.toolStrip.ContextMenu.Popup += (s, e) =>
+				ctrls.toolStrip.ContextMenuStrip.Opening += (s, e) =>
 				{
 					var menuData = viewModel.OnContextMenuPopup(ctrls.currentItem);
-					Action<MenuItem, MenuItemId> updateItem = (menuItem, id) =>
+					void updateItem(ToolStripMenuItem menuItem, MenuItemId id)
 					{
 						menuItem.Visible = (menuData.VisibleItems & id) != 0;
 						menuItem.Checked = (menuData.CheckedItems & id) != 0;
-					};
+					}
 					updateItem(ctrls.visibleMenuItem, MenuItemId.Visible);
 					updateItem(ctrls.pinnedMenuItem, MenuItemId.Pinned);
 					updateItem(ctrls.visibleOnTimelineMenuItem, MenuItemId.VisibleOnTimeline);
@@ -236,13 +236,14 @@ namespace LogJoint.UI
 				ctrls.pinnedBtn,
 				ctrls.textLabel 
 			});
-			toolstrip.ContextMenu = new ContextMenu(new[]
+			toolstrip.ContextMenuStrip = new ContextMenuStrip();
+			toolstrip.ContextMenuStrip.Items.AddRange(new ToolStripItem[]
 			{
-				ctrls.visibleMenuItem = new MenuItem("Visible", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Visible)),
-				ctrls.pinnedMenuItem = new MenuItem("Pinned", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Pinned)),
-				ctrls.visibleOnTimelineMenuItem = new MenuItem("Display on timeline", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.VisibleOnTimeline)),
-				ctrls.deleteSeparatorMenuItem = new MenuItem("-"),
-				ctrls.deleteMenuItem = new MenuItem("Delete", (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Delete)),
+				ctrls.visibleMenuItem = new ToolStripMenuItem("Visible", null, (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Visible)),
+				ctrls.pinnedMenuItem = new ToolStripMenuItem ("Pinned", null, (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Pinned)),
+				ctrls.visibleOnTimelineMenuItem = new ToolStripMenuItem("Display on timeline", null, (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.VisibleOnTimeline)),
+				ctrls.deleteSeparatorMenuItem = new ToolStripMenuItem("-"),
+				ctrls.deleteMenuItem = new ToolStripMenuItem("Delete", null, (s, e) => viewModel.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Delete)),
 			});
 			return ctrls;
 		}
@@ -289,7 +290,7 @@ namespace LogJoint.UI
 			public ToolStripControlHost visibleCbHost;
 			public ToolStripButton pinnedBtn;
 			public ProgressToolStripLabel textLabel;
-			public MenuItem visibleMenuItem, pinnedMenuItem,
+			public ToolStripMenuItem visibleMenuItem, pinnedMenuItem,
 				deleteMenuItem, deleteSeparatorMenuItem, visibleOnTimelineMenuItem;
 			public bool isInitialized;
 			public ViewItem currentItem;

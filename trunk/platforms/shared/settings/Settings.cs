@@ -14,7 +14,7 @@ namespace LogJoint.Properties
 
 		Settings()
 		{
-			var configFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "logjoint.exe.config");
+			var configFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "logjoint.dll.config");
 			ReadFromFile(configFileName);
 		}
 
@@ -34,20 +34,11 @@ namespace LogJoint.Properties
 				this.GetType().InvokeMember(name, BindingFlags.SetProperty, null, this, new [] { value });
 			}
 
-			var appConfigTraceListenerConfig = config
-				.Elements("configuration")
-				.Elements("system.diagnostics")
-				.Elements("sharedListeners")
-				.Elements("add")
-				.Where(e => e.Attribute("type")?.Value == "LogJoint.TraceListener, logjoint.model")
-				.Attributes("initializeData")
-				.FirstOrDefault()
-				?.Value;
 			var cmdLineTraceListenerConfig =
 				GetCommandLineArgumentParams("--logging")
 				.FirstOrDefault();
-
-			TraceListenerConfig = cmdLineTraceListenerConfig ?? appConfigTraceListenerConfig;
+			if (cmdLineTraceListenerConfig != null)
+				TraceListenerConfig = cmdLineTraceListenerConfig;
 
 			var cmdLineLocalPluginsConfig = GetCommandLineArgumentParams("--plugin").ToArray();
 			LocalPlugins = string.Join(";", new [] { LocalPlugins }.Union(cmdLineLocalPluginsConfig));

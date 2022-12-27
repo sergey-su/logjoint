@@ -13,7 +13,7 @@ namespace  System.Windows.Forms
 				var type = typeof(SplitContainer);
 				type.InvokeMember("SplitBegin", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic,
 					null, this, new object[] { pos.X, pos.Y });
-				type.InvokeMember("splitterClick", BindingFlags.Instance | BindingFlags.SetField | BindingFlags.NonPublic,
+				type.InvokeMember("_splitterClick", BindingFlags.Instance | BindingFlags.SetField | BindingFlags.NonPublic,
 					null, this, new object[] { true });
 			}
 			catch (Exception)

@@ -28,7 +28,7 @@ namespace LogJoint.UI
 			bufferedGraphicsContext = new BufferedGraphicsContext() { MaximumBuffer = new Size(5000, 4000) };
 
 			rightCursor = new Cursor(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(
-				"LogJoint.ui.LogViewerControl.cursor_r.cur"));
+				"logjoint.ui.LogViewerControl.cursor_r.cur"));
 
 			scrollBarsInfo.scrollBarsSize = new Size(SystemInformation.VerticalScrollBarWidth, SystemInformation.HorizontalScrollBarHeight);
 

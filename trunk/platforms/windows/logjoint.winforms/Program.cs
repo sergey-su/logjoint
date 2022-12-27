@@ -1,4 +1,4 @@
-using LogJoint.UI;
+﻿using LogJoint.UI;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -14,6 +14,7 @@ namespace LogJoint
 		static void Main()
 		{
 			Application.EnableVisualStyles();
+			Application.SetHighDpiMode(HighDpiMode.SystemAware);
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(WireupDependenciesAndCreateMainForm());
 		}
@@ -37,6 +38,7 @@ namespace LogJoint
 					TraceListeners = Properties.Settings.Default.TraceListenerConfig != null ?
 						new[] { new TraceListener(Properties.Settings.Default.TraceListenerConfig) } :
 						null,
+					RemoveDefaultTraceListener = true,
 					UserCodeAssemblyProvider = new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
 				},
 				modelSynchronizationContext,

@@ -1,19 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{929F7C79-E2BB-4E6C-AF17-F21E5025265A}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LogJoint</RootNamespace>
-    <AssemblyName>logjoint</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -29,53 +18,37 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\bin\debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;WIN</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisLogFile>bin\Debug\logjoint.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\bin\release\</OutputPath>
     <DefineConstants>TRACE;WIN</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisLogFile>bin\Release\logjoint.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
-    <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
@@ -83,19 +56,7 @@
     <Reference Include="Google.OrTools">
       <HintPath>$(PkgGoogle_OrTools_runtime_win-x64)\runtimes\win-x64\lib\netstandard2.0\Google.OrTools.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\porting\graphics\fcl\matrix.cs">
@@ -152,802 +113,168 @@
     <Compile Include="..\..\shared\ui\Utils\DrawingUtils.cs">
       <Link>ui\DrawingUtils.cs</Link>
     </Compile>
-    <Compile Include="AppInitializer.cs" />
-    <Compile Include="clipboard\ClipboardAccess.cs" />
-    <Compile Include="dragdrop\DragDropHandler.cs" />
-    <Compile Include="dragdrop\UrlDragDropUtils.cs" />
-    <Compile Include="extensibility\Application.cs" />
-    <Compile Include="extensibility\View.cs" />
-    <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="progress\TaskbarProgress.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="threading\WinFormsSynchronizationContext.cs" />
-    <Compile Include="ui\About\AboutBox.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\About\AboutBox.Designer.cs">
-      <DependentUpon>AboutBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\About\AboutDialogConfig.cs" />
-    <Compile Include="ui\Alerts\Alerts.cs" />
-    <Compile Include="ui\Bookmarks\BookmarksManagerView.cs">
+    <Compile Update="ui\Bookmarks\BookmarksManagerView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Bookmarks\BookmarksManagerView.Designer.cs">
-      <DependentUpon>BookmarksManagerView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Bookmarks\BookmarksView.cs">
+    <Compile Update="ui\Bookmarks\BookmarksView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Bookmarks\BookmarksView.Designer.cs">
-      <DependentUpon>BookmarksView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\CompositedPanel\CompositedPanel.cs">
+    <Compile Update="ui\CommonControls\CompositedPanel\CompositedPanel.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\CommonControls\CompositedPanel\CompositedPanel.Designer.cs">
-      <DependentUpon>CompositedPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\CompositedTabControl\CompositedTabControl.cs">
+    <Compile Update="ui\CommonControls\CompositedTabControl\CompositedTabControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\CommonControls\CompositedTabControl\CompositedTabControl.Designer.cs">
-      <DependentUpon>CompositedTabControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\DoubleBufferedPanel\DoubleBufferedPanel.cs">
+    <Compile Update="ui\CommonControls\DoubleBufferedPanel\DoubleBufferedPanel.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\CommonControls\DoubleBufferedPanel\DoubleBufferedPanel.designer.cs">
-      <DependentUpon>DoubleBufferedPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\MixedCheckBoxesTreeView\MixedCheckBoxesTreeView.cs" />
-    <Compile Include="ui\CommonControls\PromptDialog\PromptDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\CommonControls\PromptDialog\PromptDialog.Designer.cs">
-      <DependentUpon>PromptDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.cs">
+    <Compile Update="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.Designer.cs">
-      <DependentUpon>BorderedQuickSearchTextBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.cs">
+    <Compile Update="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.Designer.cs">
-      <DependentUpon>QuickSearchTextBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBoxResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>QuickSearchTextBoxResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\Reactive\ListBoxController.cs" />
-    <Compile Include="ui\CommonControls\Reactive\TreeViewController.cs" />
-    <Compile Include="ui\CommonControls\TagsList\AllTagsDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\CommonControls\TagsList\AllTagsDialog.Designer.cs">
-      <DependentUpon>AllTagsDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\TagsList\TagsListPanel.cs">
+    <Compile Update="ui\CommonControls\TagsList\TagsListPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\CommonControls\TagsList\TagsListPanel.Designer.cs">
-      <DependentUpon>TagsListPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CommonControls\ToastNotifications\ToastNotificationsListControl.cs">
+    <Compile Update="ui\CommonControls\ToastNotifications\ToastNotificationsListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\CommonControls\ToastNotifications\ToastNotificationsListControl.Designer.cs">
-      <DependentUpon>ToastNotificationsListControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\ExtendedToolStrip.cs">
+    <Compile Update="ui\ExtendedToolStrip.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\CredentialsDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\CredentialsDialog.Designer.cs">
-      <DependentUpon>CredentialsDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\CredUIUtils.cs" />
-    <Compile Include="ui\ExtendedSplitContainer.cs">
+    <Compile Update="ui\ExtendedSplitContainer.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\Options\PluginsView.cs">
+    <Compile Update="ui\Options\PluginsView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Options\PluginsView.Designer.cs">
-      <DependentUpon>PluginsView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.cs">
+    <Compile Update="ui\providers\EVTFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.Designer.cs">
-      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.Designer.cs">
-      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\ViewsFactory.cs" />
-    <Compile Include="ui\FilesSelectionDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FilesSelectionDialog.Designer.cs">
-      <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Filters\FiltersManagerView.cs">
+    <Compile Update="ui\Filters\FiltersManagerView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Filters\FiltersManagerView.Designer.cs">
-      <DependentUpon>FiltersManagerView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.cs">
+    <Compile Update="ui\FormatsWizard\ChooseExistingFormatPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.designer.cs">
-      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditRegexForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditRegexForm.Designer.cs">
-      <DependentUpon>EditRegexForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditSampleLogForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditSampleLogForm.Designer.cs">
-      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditXsltForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditXsltForm.designer.cs">
-      <DependentUpon>EditXsltForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FieldsMappingForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FieldsMappingForm.Designer.cs">
-      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPage.cs">
+    <Compile Update="ui\FormatsWizard\FormatAdditionalOptionsPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPage.Designer.cs">
-      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.cs">
+    <Compile Update="ui\FormatsWizard\FormatDeleteConfirmPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.Designer.cs">
-      <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatIdentityPage.cs">
+    <Compile Update="ui\FormatsWizard\FormatIdentityPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\FormatIdentityPage.Designer.cs">
-      <DependentUpon>FormatIdentityPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.cs">
+    <Compile Update="ui\FormatsWizard\ImportLog4NetPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.Designer.cs">
-      <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ImportNLogPage.cs">
+    <Compile Update="ui\FormatsWizard\ImportNLogPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\ImportNLogPage.Designer.cs">
-      <DependentUpon>ImportNLogPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.Designer.cs">
-      <DependentUpon>ManageFormatsWizard.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.cs">
+    <Compile Update="ui\FormatsWizard\NLogGenerationLogPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.designer.cs">
-      <DependentUpon>NLogGenerationLogPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs">
+    <Compile Update="ui\FormatsWizard\RegexBasedFormatPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs">
-      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\SaveFormatPage.cs">
+    <Compile Update="ui\FormatsWizard\SaveFormatPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\SaveFormatPage.Designer.cs">
-      <DependentUpon>SaveFormatPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\TestParserForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\TestParserForm.Designer.cs">
-      <DependentUpon>TestParserForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\XmlBasedFormatPage.cs">
+    <Compile Update="ui\FormatsWizard\XmlBasedFormatPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\XmlBasedFormatPage.designer.cs">
-      <DependentUpon>XmlBasedFormatPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\GaugeControl.cs">
+    <Compile Update="ui\GaugeControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\GaugeControl.Designer.cs">
-      <DependentUpon>GaugeControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\InfoPopupControl.cs">
+    <Compile Update="ui\InfoPopupControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\InfoPopupControl.designer.cs">
-      <DependentUpon>InfoPopupControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\IWinFormsComponentsInitializer.cs" />
-    <Compile Include="ui\LogSources\HistoryDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\LogSources\HistoryDialog.Designer.cs">
-      <DependentUpon>HistoryDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogSources\SourcesManagementView.cs">
+    <Compile Update="ui\LogSources\SourcesManagementView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\LogSources\SourcesManagementView.Designer.cs">
-      <DependentUpon>SourcesManagementView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogsPreprocessorUI.cs" />
-    <Compile Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.cs">
+    <Compile Update="ui\LogViewerControl\EmptyMessagesCollectionMessage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.Designer.cs">
-      <DependentUpon>EmptyMessagesCollectionMessage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogViewerControl\EverythingFilteredOutMessage.cs">
+    <Compile Update="ui\LogViewerControl\EverythingFilteredOutMessage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\LogViewerControl\EverythingFilteredOutMessage.Designer.cs">
-      <DependentUpon>EverythingFilteredOutMessage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Filters\FilterDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Filters\FilterDialog.Designer.cs">
-      <DependentUpon>FilterDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Filters\FiltersListView.cs">
+    <Compile Update="ui\Filters\FiltersListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Filters\FiltersListView.Designer.cs">
-      <DependentUpon>FiltersListView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseOperationPage.cs">
+    <Compile Update="ui\FormatsWizard\ChooseOperationPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseOperationPage.designer.cs">
-      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogViewerControl\LogViewerControl.cs">
+    <Compile Update="ui\LogViewerControl\LogViewerControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\LogViewerControl\LogViewerControl.Designer.cs">
-      <DependentUpon>LogViewerControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogViewerControl\Native.cs" />
-    <Compile Include="ui\MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.cs">
+    <Compile Update="ui\LoadedMessagesControl\LoadedMessagesControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.Designer.cs">
-      <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\MessageProperties\MessagePropertiesForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\MessageProperties\MessagePropertiesForm.Designer.cs">
-      <DependentUpon>MessagePropertiesForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogSources\NewLogSourceDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\LogSources\NewLogSourceDialog.Designer.cs">
-      <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Options\AppearanceSettingsView.cs">
+    <Compile Update="ui\Options\AppearanceSettingsView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Options\AppearanceSettingsView.Designer.cs">
-      <DependentUpon>AppearanceSettingsView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Options\UpdatesAndFeedbackView.cs">
+    <Compile Update="ui\Options\UpdatesAndFeedbackView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Options\UpdatesAndFeedbackView.Designer.cs">
-      <DependentUpon>UpdatesAndFeedbackView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Options\MemAndPerformanceSettingsView.cs">
+    <Compile Update="ui\Options\MemAndPerformanceSettingsView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Options\MemAndPerformanceSettingsView.Designer.cs">
-      <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Options\OptionsDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Options\OptionsDialog.Designer.cs">
-      <DependentUpon>OptionsDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\Common\ToolForm\ToolForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Postprocessors\Common\ToolForm\ToolForm.designer.cs">
-      <DependentUpon>ToolForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\MainWindowTabPage\TabPage.cs">
+    <Compile Update="ui\Postprocessors\MainWindowTabPage\TabPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Postprocessors\MainWindowTabPage\TabPage.designer.cs">
-      <DependentUpon>TabPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramForm.designer.cs">
-      <DependentUpon>SequenceDiagramForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControl.cs">
+    <Compile Update="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControl.designer.cs">
-      <DependentUpon>SequenceDiagramVisualizerControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControlResources.Designer.cs">
-      <DependentUpon>SequenceDiagramVisualizerControlResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\Timeline\TimelineForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Postprocessors\Timeline\TimelineForm.designer.cs">
-      <DependentUpon>TimelineForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControl.cs">
+    <Compile Update="ui\Postprocessors\Timeline\TimelineVisualizerControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControl.designer.cs">
-      <DependentUpon>TimelineVisualizerControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.Designer.cs">
-      <DependentUpon>TimelineVisualizerControlResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControlResources.Designer.cs">
-      <DependentUpon>TimeSeriesVisualizerControlResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesForm.designer.cs">
-      <DependentUpon>TimeSeriesForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerConfigDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerConfigDialog.Designer.cs">
-      <DependentUpon>TimeSeriesVisualizerConfigDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControl.cs">
+    <Compile Update="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControl.designer.cs">
-      <DependentUpon>TimeSeriesVisualizerControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\AnyLogFormatUI.cs">
+    <Compile Update="ui\providers\AnyLogFormatUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\providers\AnyLogFormatUI.designer.cs">
-      <DependentUpon>AnyLogFormatUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\DebugOutputFactoryUI.cs">
+    <Compile Update="ui\providers\DebugOutputFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\providers\DebugOutputFactoryUI.designer.cs">
-      <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\FileLogFactoryUI.cs">
+    <Compile Update="ui\providers\FileLogFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\providers\FileLogFactoryUI.designer.cs">
-      <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Search\SearchEditorDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Search\SearchEditorDialog.Designer.cs">
-      <DependentUpon>SearchEditorDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Search\SearchesManagerDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Search\SearchesManagerDialog.Designer.cs">
-      <DependentUpon>SearchesManagerDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Search\SearchPanelView.cs">
+    <Compile Update="ui\Search\SearchPanelView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Search\SearchPanelView.Designer.cs">
-      <DependentUpon>SearchPanelView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Search\SearchResultView.cs">
+    <Compile Update="ui\Search\SearchResultView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Search\SearchResultView.Designer.cs">
-      <DependentUpon>SearchResultView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogSources\SourceDetailsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\LogSources\SourceDetailsForm.Designer.cs">
-      <DependentUpon>SourceDetailsForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\LogSources\SourcesListView.cs">
+    <Compile Update="ui\LogSources\SourcesListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\LogSources\SourcesListView.Designer.cs">
-      <DependentUpon>SourcesListView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\ShellOpen.cs" />
-    <Compile Include="ui\Postprocessors\StateInspector\InspectedObjectEventsHistoryControl.cs">
+    <Compile Update="ui\Postprocessors\StateInspector\InspectedObjectEventsHistoryControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Postprocessors\StateInspector\InspectedObjectEventsHistoryControl.designer.cs">
-      <DependentUpon>InspectedObjectEventsHistoryControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\StateInspector\MyDataGridView.cs">
+    <Compile Update="ui\Postprocessors\StateInspector\MyDataGridView.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\Postprocessors\StateInspector\MyTreeView.cs">
+    <Compile Update="ui\Postprocessors\StateInspector\MyTreeView.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\Postprocessors\StateInspector\StateInspectorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Postprocessors\StateInspector\StateInspectorForm.designer.cs">
-      <DependentUpon>StateInspectorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\StateInspector\StateInspectorResources.Designer.cs">
-      <DependentUpon>StateInspectorResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ui\StatusPopup\StatusReportView.cs" />
-    <Compile Include="ui\Threads\ThreadDetails.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Threads\ThreadDetails.Designer.cs">
-      <DependentUpon>ThreadDetails.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Threads\ThreadsListView.cs">
+    <Compile Update="ui\Threads\ThreadsListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Threads\ThreadsListView.Designer.cs">
-      <DependentUpon>ThreadsListView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Timeline\TimeLineControl.cs">
+    <Compile Update="ui\Timeline\TimeLineControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\Timeline\TimeLineControl.Designer.cs">
-      <DependentUpon>TimeLineControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Timeline\TimelinePanel.cs">
+    <Compile Update="ui\Timeline\TimelinePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Timeline\TimelinePanel.Designer.cs">
-      <DependentUpon>TimelinePanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Timeline\TimelineToolBox.cs">
+    <Compile Update="ui\Timeline\TimelineToolBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\Timeline\TimelineToolBox.Designer.cs">
-      <DependentUpon>TimelineToolBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Timeline\TimeLineDragForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Timeline\TimeLineDragForm.Designer.cs">
-      <DependentUpon>TimeLineDragForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\UIUtils.cs" />
-    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\BindStatusCallback.cs" />
-    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.cs">
+    <Compile Update="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.Designer.cs">
-      <DependentUpon>CustomWebBrowser.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\DownloadManager.cs" />
-    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\InternerExplorerComInterfaces.cs" />
-    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.designer.cs">
-      <DependentUpon>WebBrowserDownloaderForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Workspaces\ShareDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Workspaces\ShareDialog.Designer.cs">
-      <DependentUpon>ShareDialog.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\About\AboutBox.resx">
-      <DependentUpon>AboutBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Bookmarks\BookmarksManagerView.resx">
-      <DependentUpon>BookmarksManagerView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Bookmarks\BookmarksView.resx">
-      <DependentUpon>BookmarksView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CommonControls\PromptDialog\PromptDialog.resx">
-      <DependentUpon>PromptDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.resx">
-      <DependentUpon>BorderedQuickSearchTextBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.resx">
-      <DependentUpon>QuickSearchTextBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBoxResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>QuickSearchTextBoxResources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>LogJoint.UI.QuickSearchTextBox</CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CommonControls\TagsList\AllTagsDialog.resx">
-      <DependentUpon>AllTagsDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CommonControls\TagsList\TagsListPanel.resx">
-      <DependentUpon>TagsListPanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CommonControls\ToastNotifications\ToastNotificationsListControl.resx">
-      <DependentUpon>ToastNotificationsListControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\CredentialsDialog.resx">
-      <DependentUpon>CredentialsDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FilesSelectionDialog.resx">
-      <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Filters\FilterDialog.resx">
-      <DependentUpon>FilterDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Filters\FiltersListView.resx">
-      <DependentUpon>FiltersListView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Filters\FiltersManagerView.resx">
-      <DependentUpon>FiltersManagerView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ChooseExistingFormatPage.resx">
-      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ChooseOperationPage.resx">
-      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\EditRegexForm.resx">
-      <DependentUpon>EditRegexForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\EditSampleLogForm.resx">
-      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\EditXsltForm.resx">
-      <DependentUpon>EditXsltForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FieldsMappingForm.resx">
-      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FormatAdditionalOptionsPage.resx">
-      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FormatDeleteConfirmPage.resx">
-      <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FormatIdentityPage.resx">
-      <DependentUpon>FormatIdentityPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ImportLog4NetPage.resx">
-      <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ImportNLogPage.resx">
-      <DependentUpon>ImportNLogPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ManageFormatsWizard.resx">
-      <DependentUpon>ManageFormatsWizard.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\NLogGenerationLogPage.resx">
-      <DependentUpon>NLogGenerationLogPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\RegexBasedFormatPage.resx">
-      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx">
-      <DependentUpon>SaveFormatPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx">
-      <DependentUpon>TestParserForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\XmlBasedFormatPage.resx">
-      <DependentUpon>XmlBasedFormatPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\GaugeControl.resx">
-      <DependentUpon>GaugeControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\InfoPopupControl.resx">
-      <DependentUpon>InfoPopupControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogSources\HistoryDialog.resx">
-      <DependentUpon>HistoryDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogSources\SourcesManagementView.resx">
-      <DependentUpon>SourcesManagementView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.resx">
-      <DependentUpon>EmptyMessagesCollectionMessage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogViewerControl\EverythingFilteredOutMessage.resx">
-      <DependentUpon>EverythingFilteredOutMessage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogViewerControl\LogViewerControl.resx">
-      <DependentUpon>LogViewerControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LoadedMessagesControl\LoadedMessagesControl.resx">
-      <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\MessageProperties\MessagePropertiesForm.resx">
-      <DependentUpon>MessagePropertiesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogSources\NewLogSourceDialog.resx">
-      <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Options\AppearanceSettingsView.resx">
-      <DependentUpon>AppearanceSettingsView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Options\PluginsView.resx">
-      <DependentUpon>PluginsView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Options\UpdatesAndFeedbackView.resx">
-      <DependentUpon>UpdatesAndFeedbackView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Options\MemAndPerformanceSettingsView.resx">
-      <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Options\OptionsDialog.resx">
-      <DependentUpon>OptionsDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\Common\ToolForm\ToolForm.resx">
-      <DependentUpon>ToolForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\MainWindowTabPage\TabPage.resx">
-      <DependentUpon>TabPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramForm.resx">
-      <DependentUpon>SequenceDiagramForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControl.resx">
-      <DependentUpon>SequenceDiagramVisualizerControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControlResources.resx" />
-    <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineForm.resx">
-      <DependentUpon>TimelineForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineVisualizerControl.resx">
-      <DependentUpon>TimelineVisualizerControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.resx" />
-    <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControlResources.resx" />
-    <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesForm.resx">
-      <DependentUpon>TimeSeriesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerConfigDialog.resx">
-      <DependentUpon>TimeSeriesVisualizerConfigDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControl.resx">
-      <DependentUpon>TimeSeriesVisualizerControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\AnyLogFormatUI.resx">
-      <DependentUpon>AnyLogFormatUI.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\DebugOutputFactoryUI.resx">
-      <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\EVTFactoryUI.resx">
-      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\FileLogFactoryUI.resx">
-      <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\SelectEVTLogSourceDialog.resx">
-      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Search\SearchEditorDialog.resx">
-      <DependentUpon>SearchEditorDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Search\SearchesManagerDialog.resx">
-      <DependentUpon>SearchesManagerDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Search\SearchPanelView.resx">
-      <DependentUpon>SearchPanelView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Search\SearchResultView.resx">
-      <DependentUpon>SearchResultView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogSources\SourceDetailsForm.resx">
-      <DependentUpon>SourceDetailsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\LogSources\SourcesListView.resx">
-      <DependentUpon>SourcesListView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\StateInspector\InspectedObjectEventsHistoryControl.resx">
-      <DependentUpon>InspectedObjectEventsHistoryControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\StateInspector\StateInspectorForm.resx">
-      <DependentUpon>StateInspectorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\StateInspector\StateInspectorResources.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Threads\ThreadDetails.resx">
-      <DependentUpon>ThreadDetails.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Threads\ThreadsListView.resx">
-      <DependentUpon>ThreadsListView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Timeline\TimeLineControl.resx">
-      <DependentUpon>TimeLineControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Timeline\TimelinePanel.resx">
-      <DependentUpon>TimelinePanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Timeline\TimelineToolBox.resx">
-      <DependentUpon>TimelineToolBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Timeline\TimeLineDragForm.resx">
-      <DependentUpon>TimeLineDragForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.resx">
-      <DependentUpon>WebBrowserDownloaderForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Workspaces\ShareDialog.resx">
-      <DependentUpon>ShareDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <None Include="App.config" />
-    <None Include="app.manifest" />
     <Compile Include="..\..\..\porting\graphics\interfaces.cs">
       <Link>ui\Drawing\interfaces.cs</Link>
     </Compile>
@@ -969,37 +296,15 @@
     <Compile Include="..\..\..\porting\graphics\fcl\image.cs">
       <Link>ui\Drawing\impl\image.cs</Link>
     </Compile>
-    <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\dynamic-compilation\logjoint.model.dynamic-compilation.csproj">
-      <Project>{53cbc5f6-03bc-45f8-97ef-c99feca551de}</Project>
-      <Name>logjoint.model.dynamic-compilation</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\model\logjoint.model.csproj">
-      <Project>{a46e3f7f-86de-43b5-ae56-641cba2f6d0e}</Project>
-      <Name>logjoint.model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\presenters\logjoint.presenters.csproj">
-      <Project>{b5575d95-edf2-4404-aefd-ac75687be7e4}</Project>
-      <Name>logjoint.presenters</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj">
-      <Project>{aeabdca0-469b-4b49-9904-b04699e88858}</Project>
-      <Name>logjoint.model.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj">
-      <Project>{e5d1d49d-fdfa-42df-b2d1-1e97b3658b9d}</Project>
-      <Name>logjoint.presentation.sdk</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
-      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
-      <Name>logjoint.regex</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj">
-      <Project>{4726350d-e0c1-43a2-a491-6c4558115a62}</Project>
-      <Name>logjoint.sdk</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\dynamic-compilation\logjoint.model.dynamic-compilation.csproj" />
+    <ProjectReference Include="..\..\..\model\logjoint.model.csproj" />
+    <ProjectReference Include="..\..\..\presenters\logjoint.presenters.csproj" />
+    <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj" />
+    <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj" />
+    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj" />
+    <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="tom">
@@ -1124,10 +429,6 @@
       <Link>Formats\W3C - NCSA.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="resources\RestartApp.png" />
-    <None Include="resources\close_16x16.png" />
-    <Content Include="resources\icon.ico" />
-    <None Include="resources\search_small.png" />
     <EmbeddedResource Include="ui\LogViewerControl\cursor_r.cur" />
   </ItemGroup>
   <ItemGroup>
@@ -1149,26 +450,26 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.OrTools.runtime.win-x64" Version="7.3.7083" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Collections.Immutable">
       <Version>1.5.0</Version>
     </PackageReference>
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.Reflection.TypeExtensions">
       <Version>4.4.0</Version>
     </PackageReference>
     <PackageReference Include="System.ValueTuple">
       <Version>4.5.0</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.355802">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="7.0.0" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy $(PkgGoogle_OrTools_runtime_win-x64)\runtimes\win-x64\native\Google.OrTools.runtime.win-x64.dll $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <ItemGroup />
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 </Project>
