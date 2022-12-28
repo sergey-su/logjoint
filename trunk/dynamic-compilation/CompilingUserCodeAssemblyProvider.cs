@@ -32,7 +32,7 @@ namespace LogJoint
 		}
 
 		int IUserCodeAssemblyProvider.ProviderVersionHash => Hashing.GetStableHashCode(
-				typeof(CSharpCompilation).Assembly.FullName + " gen=1");
+				typeof(CSharpCompilation).Assembly.FullName + " gen=4");
 
 		byte[] IUserCodeAssemblyProvider.GetUserCodeAsssembly(
 			LJTraceSource trace, 
@@ -221,8 +221,10 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			foreach (OutputFieldStruct s in outputFields)
 			{
 				string fieldVar = null;
+				string lazyFieldVar = null;
 				string fieldType = null;
 				string ignoranceFlag = null;
+				string lazyFlag = null;
 				string exprWhenIgnored = null;
 				switch (s.Name)
 				{
@@ -235,8 +237,10 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 						break;
 					case "Body":
 						fieldVar = "__body";
+						lazyFieldVar = "__lazy_body";
 						fieldType = "StringSlice";
 						ignoranceFlag = "HintIgnoreBody";
+						lazyFlag = "LazyBody";
 						exprWhenIgnored = defBodyExpression;
 						bodyAdded = true;
 						break;
@@ -271,15 +275,35 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				}
 				if (fieldVar != null)
 				{
-					code.AppendFormat(@"
+					if (lazyFieldVar != null)
+					{
+						code.AppendFormat(@"
+		{0} {1};
+		System.Func<{0}> {2} = null;
+		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.{3}) == 0)
+			if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.{4}) != 0) {{
+				{2} = () => TRIM({5});
+				{1} = {6};
+			}} else
+				{1} = {5};
+		else 
+			{1} = {6};",
+						fieldType, fieldVar, lazyFieldVar, ignoranceFlag, lazyFlag,
+						GetOutputFieldExpression(s, fieldType, helperFunctions),
+						exprWhenIgnored);
+					}
+					else
+					{
+						code.AppendFormat(@"
 		{0} {1};
 		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.{2}) == 0)
 			{1} = {3};
 		else 
 			{1} = {4};",
-					fieldType, fieldVar, ignoranceFlag,
-					GetOutputFieldExpression(s, fieldType, helperFunctions),
-					exprWhenIgnored);
+						fieldType, fieldVar, ignoranceFlag,
+						GetOutputFieldExpression(s, fieldType, helperFunctions),
+						exprWhenIgnored);
+					}
 				}
 				else
 				{
@@ -306,7 +330,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			if (!bodyAdded)
 			{
 				code.AppendFormat(@"
-		StringSlice __body = {0};", defBodyExpression);
+		StringSlice __body = {0};
+		System.Func<StringSlice> __lazy_body = null;", defBodyExpression);
 			}
 
 			if (!threadAdded)
@@ -334,7 +359,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			}
 
 			code.AppendLine(@"
-		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.HintIgnoreBody) == 0)
+		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.HintIgnoreBody) == 0 && __lazy_body == null)
 			__body = TRIM(__body);");
 
 
@@ -352,6 +377,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 		//fakeMsg.SetPosition(__callback.CurrentPosition);
 		//return fakeMsg;
+		int? maxLineLen = null;
 
 		var __result = new Message(
 			__callback.CurrentPosition,
@@ -360,7 +386,9 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			new MessageTimestamp(__time),
 			__body,
 			(SeverityFlag)__severity,
-			__callback.CurrentRawText
+			__callback.CurrentRawText,
+			maxLineLen,
+			__lazy_body
 		);
 
 		if (!__link.IsEmpty)

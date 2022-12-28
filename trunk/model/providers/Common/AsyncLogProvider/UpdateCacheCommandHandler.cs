@@ -70,12 +70,6 @@ namespace LogJoint
 			long MB = 1024 * 1024;
 			long sizeThreshold = settings.FileSizes.Threshold * MB;
 			long partialLoadingSize = settings.FileSizes.WindowSize * MB;
-			if (IsBrowser.Value)
-			{
-				long kB = 1024;
-				sizeThreshold = 512 * kB;
-				partialLoadingSize = 256 * kB;
-			}
 
 			long currentSize = availableRange.End - availableRange.Begin;
 
@@ -242,12 +236,12 @@ namespace LogJoint
 				DateTime end = new DateTime();
 				foreach (IndexedMessage l in tmp.Forward(0, 1))
 				{
-					tracer.Info("First message: {0}, {1}", l.Message.Time, l.Message.Text);
+					tracer.Info("First message: {0}, {1}", l.Message.Time, l.Message.Position);
 					begin = l.Message.Time.ToLocalDateTime();
 				}
 				foreach (IndexedMessage l in tmp.Reverse(c - 1, c - 2))
 				{
-					tracer.Info("Last message: {0}, {1}", l.Message.Time, l.Message.Text);
+					tracer.Info("Last message: {0}, {1}", l.Message.Time, l.Message.Position);
 					end = l.Message.Time.ToLocalDateTime();
 				}
 				loadedTime = DateRange.MakeFromBoundaryValues(begin, end);

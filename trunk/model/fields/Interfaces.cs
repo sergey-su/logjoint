@@ -23,6 +23,7 @@ namespace LogJoint.FieldsProcessor
 		HintIgnoreThread = 8,
 		HintIgnoreEntryType = 16,
 		HintIgnoreLink = 32,
+		LazyBody = 64,
 	};
 
 	public interface IFieldsProcessor

@@ -12,7 +12,8 @@ namespace LogJoint
 			StringSlice text,
 			SeverityFlag s,
 			StringSlice rawText = new StringSlice(),
-			int? maxLineLen = null
+			int? maxLineLen = null,
+			Func<StringSlice> lazyText = null
 		)
 		{
 			if (endPosition < position)
@@ -21,14 +22,14 @@ namespace LogJoint
 			this.time = time;
 			this.position = position;
 			this.endPosition = endPosition;
-			this.text = text;
-			this.rawText = rawText;
 			this.flags = (MessageFlag)s;
-			if (maxLineLen != null)
-			{
-				this.rawText = this.rawText.Wrap(maxLineLen.Value);
-				this.text = this.text.Wrap(maxLineLen.Value);
-			}
+
+			if (lazyText != null)
+				this.lazyText = maxLineLen != null ? () => lazyText().Wrap(maxLineLen.Value) : lazyText;
+			else
+				this.text = maxLineLen != null ? text.Wrap(maxLineLen.Value) : text;
+
+			this.rawText = maxLineLen != null ? rawText.Wrap(maxLineLen.Value) : rawText;
 		}
 
 		public override int GetHashCode()
@@ -40,7 +41,7 @@ namespace LogJoint
 
 		public override string ToString()
 		{
-			return rawText.IsInitialized ? rawText : text;
+			return rawText.IsInitialized ? rawText : EnsureText();
 		}
 
 		MessageFlag IMessage.Flags { get { return flags; } }
@@ -49,8 +50,8 @@ namespace LogJoint
 		long IMessage.EndPosition => endPosition;
 		IThread IMessage.Thread => thread;
 		MessageTimestamp IMessage.Time => time;
-		StringSlice IMessage.Text => text;
-		MultilineText IMessage.TextAsMultilineText => textML ?? (textML = new MultilineText(text));
+		StringSlice IMessage.Text => EnsureText();
+		MultilineText IMessage.TextAsMultilineText => textML ?? (textML = new MultilineText(EnsureText()));
 		StringSlice IMessage.RawText => rawText;
 		MultilineText IMessage.RawTextAsMultilineText => rawTextML ?? (rawTextML = new MultilineText(rawText));
 		SeverityFlag IMessage.Severity => (SeverityFlag) (flags & MessageFlag.ContentTypeMask);
@@ -58,12 +59,12 @@ namespace LogJoint
 		IMessage IMessage.Clone()
 		{
 			IMessage intf = this;
-			return new Message(position, endPosition, thread, time, text, intf.Severity, rawText);
+			return new Message(position, endPosition, thread, time, text, intf.Severity, rawText, null, lazyText);
 		}
 
 		void IMessage.ReallocateTextBuffer(IStringSliceReallocator alloc)
 		{
-			text = alloc.Reallocate(text);
+			text = alloc.Reallocate(EnsureText());
 			textML = null;
 			rawText = alloc.Reallocate(rawText);
 			rawTextML = null;
@@ -103,7 +104,7 @@ namespace LogJoint
 
 			int ret = Hashing.GetStableHashCode(position);
 
-			ret ^= text.GetStableHashCode();
+			ret ^= rawText.GetStableHashCode();
 
 			if (!ignoreMessageTime)
 				ret = MessagesUtils.XORTimestampHash(ret, time);
@@ -112,6 +113,16 @@ namespace LogJoint
 			ret ^= (int)(flags & MessageFlag.ContentTypeMask);
 
 			return ret;
+		}
+
+		StringSlice EnsureText()
+		{
+			if (lazyText != null)
+			{
+				text = lazyText();
+				lazyText = null;
+			}
+			return text;
 		}
 
 		#endregion
@@ -123,6 +134,7 @@ namespace LogJoint
 		readonly MessageFlag flags;
 		long position, endPosition;
 		StringSlice text;
+		Func<StringSlice> lazyText;
 		MultilineText textML;
 		StringSlice rawText;
 		MultilineText rawTextML;

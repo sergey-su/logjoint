@@ -165,7 +165,7 @@ namespace LogJoint.RegularGrammar
 			threadLocalCallbackImpl.SetCurrentPosition(capture.BeginPosition, capture.EndPosition);
 			threadLocalCallbackImpl.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
 
-			var ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags);
+			var ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags | FieldsProcessor.MakeMessageFlags.LazyBody);
 
 			return ret;
 		}
