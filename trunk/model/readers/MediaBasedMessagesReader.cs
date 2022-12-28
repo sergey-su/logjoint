@@ -216,11 +216,6 @@ namespace LogJoint
 			return ret;
 		}
 
-		protected static LoadedRegex CloneRegex(LoadedRegex re, ReOptions optionsToAdd = ReOptions.None)
-		{
-			return re.Clone(optionsToAdd);
-		}
-
 		protected LJTraceSource Trace => trace;
 
 		protected Profiling.Counters PerfCounters => perfCounters;

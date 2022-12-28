@@ -4,22 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace LogJoint
 {
 	public struct LoadedRegex
 	{
-		public IRegex Regex;
-		public bool SuffersFromPartialMatchProblem;
+		public IRegex Regex { get; private set; }
+		public bool SuffersFromPartialMatchProblem { get; private set; }
 
-		public LoadedRegex Clone(ReOptions optionsToAdd = ReOptions.None)
+		public LoadedRegex(IRegex regex, bool suffersFromPartialMatchProblem)
 		{
-			LoadedRegex ret;
-			ret.Regex = RegularExpressions.RegexUtils.CloneRegex(this.Regex, optionsToAdd);
-			ret.SuffersFromPartialMatchProblem = this.SuffersFromPartialMatchProblem;
-			return ret;
+			this.Regex = regex;
+			this.SuffersFromPartialMatchProblem = suffersFromPartialMatchProblem;
 		}
+
+		public LoadedRegex WithRegex(IRegex regex) => new LoadedRegex(regex, SuffersFromPartialMatchProblem);
 
 		public MessagesSplitterFlags GetHeaderReSplitterFlags()
 		{
@@ -95,7 +96,7 @@ namespace LogJoint
 			return root.Elements(name).Select(a => a.Value).FirstOrDefault() ?? "";
 		}
 
-		protected LoadedRegex ReadRe(XElement root, string name, ReOptions opts)
+		protected LoadedRegex ReadRe(XElement root, string name, ReOptions opts, MessagesReaderExtensions.XmlInitializationParams extensionsInitData)
 		{
 			LoadedRegex ret = new LoadedRegex();
 			var n = root.Element(name);
@@ -104,11 +105,27 @@ namespace LogJoint
 			string pattern = n.Value;
 			if (string.IsNullOrEmpty(pattern))
 				return ret;
-			ret.Regex = regexFactory.Create(pattern, opts);
-			XAttribute attr;
-			ret.SuffersFromPartialMatchProblem =
-				(attr = n.Attribute("suffers-from-partial-match-problem")) != null
-				&& attr.Value == "yes";
+			Regex precompiledRegex = null;
+			XAttribute precompiledAttr = n.Attribute("precompiled");
+			if (precompiledAttr != null)
+			{
+				if (extensionsInitData == null)
+					throw new Exception($"'precompiled' attribute is present but extensions are not provided");
+				var match = Regex.Match(precompiledAttr.Value, @"^(?<ext>[\w_]+)\.(?<prop>[\w_]+)$", RegexOptions.ExplicitCapture);
+				if (!match.Success)
+					throw new Exception($"'precompiled' attribute value '{precompiledAttr.Value}' has wrong format");
+				using var unattachedExtensions = new MessagesReaderExtensions(null, extensionsInitData);
+				var ext = unattachedExtensions.Items.FirstOrDefault(e => e.Name == match.Groups["ext"].Value);
+				if (ext.Name == null)
+					throw new Exception($"'precompiled' attribute '{precompiledAttr.Value}' refers to a non-existing extension");
+				precompiledRegex = ext.Instance().GetType().InvokeMember(
+					match.Groups["prop"].Value, BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty, null, ext.Instance(), null) as Regex;
+				if (precompiledRegex == null)
+					throw new Exception($"'precompiled' attribute '{precompiledAttr.Value}' refers to a non-Regex property");
+			}
+			XAttribute partialMatchAttr = n.Attribute("suffers-from-partial-match-problem");
+			ret = new LoadedRegex(regexFactory.Create(pattern, opts, precompiledRegex),
+				suffersFromPartialMatchProblem: partialMatchAttr != null && partialMatchAttr.Value == "yes");
 			return ret;
 		}
 

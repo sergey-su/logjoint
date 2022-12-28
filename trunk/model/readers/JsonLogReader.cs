@@ -220,7 +220,7 @@ namespace LogJoint.JsonFormat
 			IMatch bodyMatch;
 
 			public SingleThreadedStrategyImpl(MessagesReader reader) :
-				base(reader.LogMedia, reader.StreamEncoding, CloneRegex(reader.formatInfo.HeadRe).Regex,
+				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
 					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
@@ -272,7 +272,7 @@ namespace LogJoint.JsonFormat
 			{
 				ProcessingThreadLocalData ret = new ProcessingThreadLocalData
 				{
-					bodyRe = CloneRegex(reader.formatInfo.BodyRe),
+					bodyRe = reader.formatInfo.BodyRe,
 					callback = reader.CreateMessageBuilderCallback(),
 					bodyMatch = null
 				};
@@ -358,8 +358,8 @@ namespace LogJoint.JsonFormat
 				if (transform == null)
 					throw new Exception("Wrong JSON format definition: transform is not defined");
 
-				LoadedRegex head = ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline);
-				LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline);
+				LoadedRegex head = ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline, null);
+				LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline, null);
 				string encoding = ReadParameter(formatSpecificNode, "encoding");
 
 				DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(

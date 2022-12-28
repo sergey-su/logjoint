@@ -79,8 +79,9 @@ namespace LogJoint
 				throw new InvalidOperationException("Extensions are already attached to messages reader");
 			CheckOwnerSpecified();
 			attached = true;
-			foreach (var extIntf in EnumExtensionsImplementingTheInterface())
-				extIntf.Attach(this.owner);
+			if (this.owner != null)
+				foreach (var extIntf in EnumExtensionsImplementingTheInterface())
+					extIntf.Attach(this.owner);
 		}
 
 		public void NotifyExtensionsAboutUpdatedAvailableBounds(AvailableBoundsUpdateNotificationArgs param)

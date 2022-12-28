@@ -55,7 +55,7 @@ namespace LogJoint
 					traceSourceFactory
 				),
 				new Drawing.Matrix.Factory(),
-				RegularExpressions.LJRegexFactory.Instance
+				RegularExpressions.FCLRegexFactory.Instance
 			);
 
 			var viewsFactory = new UI.Presenters.ViewsFactory(mainForm, model);

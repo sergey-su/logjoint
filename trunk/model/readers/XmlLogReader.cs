@@ -298,9 +298,9 @@ namespace LogJoint.XmlFormat
 		public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams, 
 			FormatViewOptions viewOptions, IRegexFactory regexFactory)
 		{
-			LoadedRegex headRe;
-			headRe.Regex = regexFactory.Create(@"\<\s*(m|f|ef)\s", ReOptions.None);
-			headRe.SuffersFromPartialMatchProblem = false;
+			var headRe = new LoadedRegex(
+				regexFactory.Create(@"\<\s*(m|f|ef)\s", ReOptions.None),
+				suffersFromPartialMatchProblem: false);
 			return new XmlFormatInfo(
 				null, headRe, new LoadedRegex(),
 				null, null, encoding, null, TextStreamPositioningParams.Default, dejitteringParams, viewOptions);
@@ -504,7 +504,7 @@ namespace LogJoint.XmlFormat
 			IMatch bodyMatch;
 
 			public SingleThreadedStrategyImpl(MessagesReader reader) :
-				base(reader.LogMedia, reader.StreamEncoding, CloneRegex(reader.formatInfo.HeadRe).Regex,
+				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
 					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
@@ -557,7 +557,7 @@ namespace LogJoint.XmlFormat
 			{
 				ProcessingThreadLocalData ret = new ProcessingThreadLocalData
 				{
-					bodyRe = CloneRegex(reader.formatInfo.BodyRe),
+					bodyRe = reader.formatInfo.BodyRe,
 					callback = reader.CreateMessageBuilderCallback(),
 					bodyMatch = null
 				};
@@ -742,13 +742,13 @@ namespace LogJoint.XmlFormat
 				XmlElement xsl = 
 					tmpDoc.DocumentElement.SelectSingleNode("xsl:stylesheet", nsMgr) as XmlElement ??
 					throw new Exception("Wrong XML-based format definition: xsl:stylesheet is not defined");
-				
-				LoadedRegex head = ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline);
-				LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline);
-				string encoding = ReadParameter(formatSpecificNode, "encoding");
 
 				MessagesReaderExtensions.XmlInitializationParams extensionsInitData =
 					new MessagesReaderExtensions.XmlInitializationParams(formatSpecificNode.Element("extensions"));
+
+				LoadedRegex head = ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline, extensionsInitData);
+				LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline, extensionsInitData);
+				string encoding = ReadParameter(formatSpecificNode, "encoding");
 
 				DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
 					formatSpecificNode.Element("dejitter"));

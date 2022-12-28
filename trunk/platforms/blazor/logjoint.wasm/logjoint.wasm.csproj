@@ -31,27 +31,27 @@
 
   <ItemGroup>
     <Reference Include="logjoint.google.plugin">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/logjoint.google.plugin.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/logjoint.google.plugin.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="logjoint.google.plugin.model.dll">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/logjoint.google.plugin.model.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/logjoint.google.plugin.model.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="logjoint.google.plugin.presentation.dll">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/logjoint.google.plugin.presentation.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/logjoint.google.plugin.presentation.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="Google___Analog_exported_log_format">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/Formats/Google - Analog exported log.format.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/Formats/Google - Analog exported log.format.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="Google___C___default_log_format">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0/Formats/Google - C++ default log.format.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/Formats/Google - C++ default log.format.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
@@ -92,11 +92,11 @@
     <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/Formats/MS-TextWriterTraceListener.format.xml&quot; &quot;$(OutDir)/ms-text-fmt.xml&quot;" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
-    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../extensions/chromium/plugin/bin/Debug/netstandard2.0&quot;" />
-    <Exec Command="dotnet ../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/netstandard2.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../extensions/chromium/plugin/bin/Debug/net7.0&quot;" />
+    <Exec Command="dotnet ../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/net7.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
-    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../../../logjoint-google-plugin/plugin/bin/Debug/netstandard2.0&quot;" />
-    <Exec Command="dotnet $(ProjectDir)../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/netstandard2.0/manifest.xml bin/google.zip prod" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0&quot;" />
+    <Exec Command="dotnet $(ProjectDir)../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/net7.0/manifest.xml bin/google.zip prod" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
   </Target>
 </Project>

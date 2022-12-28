@@ -184,14 +184,14 @@ namespace LogJoint.RegularGrammar
 			public SingleThreadedStrategyImpl(MessagesReader reader) : base(
 				reader.LogMedia,
 				reader.StreamEncoding,
-				CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None).Regex,
+				reader.IsQuickFormatDetectionMode ? reader.fmtInfo.HeadRe.Regex.ToTimeboxed() : reader.fmtInfo.HeadRe.Regex,
 				reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(),
 				reader.fmtInfo.TextStreamPositioningParams
 			)
 			{
 				this.reader = reader;
 				this.callback = reader.CreateMessageBuilderCallback();
-				this.bodyRegex = CloneRegex(reader.fmtInfo.BodyRe).Regex;
+				this.bodyRegex = reader.fmtInfo.BodyRe.Regex;
 				this.perfWriter = reader.PerfCounters.GetWriter();
 			}
 			public override async Task ParserCreated(CreateParserParams p)
@@ -251,8 +251,9 @@ namespace LogJoint.RegularGrammar
 			{
 				ProcessingThreadLocalData ret = new ProcessingThreadLocalData
 				{
-					headRe = CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None),
-					bodyRe = CloneRegex(reader.fmtInfo.BodyRe),
+					headRe = reader.fmtInfo.HeadRe.WithRegex(
+						reader.IsQuickFormatDetectionMode ? reader.fmtInfo.HeadRe.Regex.ToTimeboxed() : reader.fmtInfo.HeadRe.Regex),
+					bodyRe = reader.fmtInfo.BodyRe,
 					fieldsProcessor = reader.CreateNewFieldsProcessor().Result,
 					callback = reader.CreateMessageBuilderCallback(),
 					bodyMatch = null
@@ -373,8 +374,8 @@ namespace LogJoint.RegularGrammar
 				if (formatSpecificNode.Element("plain-text-search-optimization").AttributeValue("allowed") == "yes")
 					flags |= FormatInfo.FormatFlags.AllowPlainTextSearchOptimization;
 				return new FormatInfo(
-					ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline),
-					ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline),
+					ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline, extensionsInitData),
+					ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline, extensionsInitData),
 					ReadParameter(formatSpecificNode, "encoding"),
 					fieldsInitParams,
 					extensionsInitData,

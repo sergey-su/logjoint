@@ -50,10 +50,11 @@ namespace LogJoint.RegularExpressions
 		bool Match(string str, int startat, ref IMatch match);
 		bool Match(StringSlice str, int startat, ref IMatch match);
 		IMatch CreateEmptyMatch();
+		IRegex ToTimeboxed();
 	};
 
 	public interface IRegexFactory
 	{
-		IRegex Create(string pattern, ReOptions options);
+		IRegex Create(string pattern, ReOptions options, System.Text.RegularExpressions.Regex precompiledRegex = null);
 	};
 }

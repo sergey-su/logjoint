@@ -70,9 +70,6 @@
     <Compile Include="..\..\shared\dataProtection\DataProtection.cs">
       <Link>dataProtection\DataProtection.cs</Link>
     </Compile>
-    <Compile Include="..\..\shared\regex\LJRegex.cs">
-      <Link>regex\LJRegex.cs</Link>
-    </Compile>
     <Compile Include="..\..\shared\settings\Settings.cs">
       <Link>Properties\Settings.cs</Link>
     </Compile>
@@ -114,6 +111,11 @@
     </Compile>
     <Compile Include="..\..\shared\ui\Utils\DrawingUtils.cs">
       <Link>ui\DrawingUtils.cs</Link>
+    </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Update="ui\Bookmarks\BookmarksManagerView.cs">
       <SubType>UserControl</SubType>
@@ -305,7 +307,6 @@
     <ProjectReference Include="..\..\..\presenters\logjoint.presenters.csproj" />
     <ProjectReference Include="..\..\..\sdk\model\logjoint.model.sdk.csproj" />
     <ProjectReference Include="..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj" />
-    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj" />
     <ProjectReference Include="..\sdk\logjoint.sdk\logjoint.sdk.csproj" />
   </ItemGroup>
   <ItemGroup>

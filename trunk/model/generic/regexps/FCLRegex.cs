@@ -1,35 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Reflection;
 using RENS = System.Text.RegularExpressions;
 
 namespace LogJoint.RegularExpressions
 {
 	public class FCLRegex: IRegex
 	{
-		public FCLRegex(IRegexFactory factory, string pattern, ReOptions options)
+		public FCLRegex(IRegexFactory factory, string pattern, ReOptions options, RENS.Regex precompiledRegex)
 		{
 			this.factory = factory;
 			this.options = options;
 			this.pattern = pattern;
 			
-			var opts = 
-				RENS.RegexOptions.Compiled | 
-				RENS.RegexOptions.ExplicitCapture;
-			if ((options & ReOptions.AllowPatternWhitespaces) == 0)
-				opts |= RENS.RegexOptions.IgnorePatternWhitespace;
-			if ((options & RegularExpressions.ReOptions.Multiline) != 0)
-				opts |= RENS.RegexOptions.Multiline;
-			if ((options & RegularExpressions.ReOptions.Singleline) != 0)
-				opts |= RENS.RegexOptions.Singleline;
-			if ((options & RegularExpressions.ReOptions.RightToLeft) != 0)
-				opts |= RENS.RegexOptions.RightToLeft;
-			if ((options & RegularExpressions.ReOptions.IgnoreCase) != 0)
-				opts |= RENS.RegexOptions.IgnoreCase;
+			var opts = GetOptions(options);
 
-			this.impl = new RENS.Regex(pattern, opts);
+			if (precompiledRegex != null)
+			{
+				if (RemoveCompiled(precompiledRegex.Options) != RemoveCompiled(opts))
+					throw new ArgumentException($"The options of precompiled regex does not match the expected one: " +
+						$"{precompiledRegex.Options} vs expected {opts}", nameof(precompiledRegex));
+				if (precompiledRegex.ToString() != pattern)
+					throw new ArgumentException($"The pattern of precompiled regex does not match the expected one: " +
+						$"{precompiledRegex} vs expected {pattern}", nameof(precompiledRegex));
+				if (precompiledRegex.MatchTimeout != RENS.Regex.InfiniteMatchTimeout)
+					throw new ArgumentException($"Precompiled regex should not have timeout", nameof(precompiledRegex));
+
+				if ((options & ReOptions.Timeboxed) == 0)
+					this.impl = precompiledRegex;
+				else
+					this.impl = new RENS.Regex(pattern, opts, timboxedTimeout);
+			}
+			else
+			{
+				this.impl = new RENS.Regex(pattern, opts);
+			}
+
 			this.groupNames = impl.GetGroupNames().ToArray();
 		}
 
@@ -99,6 +105,13 @@ namespace LogJoint.RegularExpressions
 			get { return groupNames.Length; }
 		}
 
+		public IRegex ToTimeboxed()
+		{
+			if (impl.MatchTimeout != RENS.Regex.InfiniteMatchTimeout)
+				return this;
+			return new FCLRegex(factory, pattern, options | ReOptions.Timeboxed, null);
+		}
+
 		FCLMatch GetOrCreateOutMatchImpl(ref IMatch outMatch)
 		{
 			FCLMatch matchImp;
@@ -116,11 +129,33 @@ namespace LogJoint.RegularExpressions
 			return matchImp;
 		}
 
+		static RENS.RegexOptions GetOptions(ReOptions options)
+		{
+			var opts =
+				RENS.RegexOptions.Compiled |
+				RENS.RegexOptions.ExplicitCapture;
+			if ((options & ReOptions.AllowPatternWhitespaces) == 0)
+				opts |= RENS.RegexOptions.IgnorePatternWhitespace;
+			if ((options & RegularExpressions.ReOptions.Multiline) != 0)
+				opts |= RENS.RegexOptions.Multiline;
+			if ((options & RegularExpressions.ReOptions.Singleline) != 0)
+				opts |= RENS.RegexOptions.Singleline;
+			if ((options & RegularExpressions.ReOptions.RightToLeft) != 0)
+				opts |= RENS.RegexOptions.RightToLeft;
+			if ((options & RegularExpressions.ReOptions.IgnoreCase) != 0)
+				opts |= RENS.RegexOptions.IgnoreCase;
+			return opts;
+		}
+
+		static RENS.RegexOptions RemoveCompiled(RENS.RegexOptions options) =>
+			options & ~RENS.RegexOptions.Compiled;
+
 		readonly IRegexFactory factory;
 		readonly string pattern;
 		readonly ReOptions options;
 		readonly RENS.Regex impl;
 		readonly string[] groupNames;
+		static readonly TimeSpan timboxedTimeout = TimeSpan.FromMilliseconds(500);
 	}
 
 	public class FCLMatch : IMatch
@@ -160,7 +195,7 @@ namespace LogJoint.RegularExpressions
 		{
 			FCLMatch srcImpl = srcMatch as FCLMatch;
 			if (srcImpl == null)
-				throw new ArgumentException("srcMatch has invalid type", "srcMatch");
+				throw new ArgumentException("srcMatch has invalid type", nameof(srcMatch));
 			this.match = srcImpl.match;
 			srcImpl.groups.CopyTo(this.groups, 0);
 		}
@@ -186,9 +221,9 @@ namespace LogJoint.RegularExpressions
 
 	public class FCLRegexFactory: IRegexFactory
 	{
-		public IRegex Create(string pattern, ReOptions options)
+		public IRegex Create(string pattern, ReOptions options, System.Text.RegularExpressions.Regex precompiledRegex)
 		{
-			return new FCLRegex(this, pattern, options);
+			return new FCLRegex(this, pattern, options, precompiledRegex);
 		}
 
 		public static readonly FCLRegexFactory Instance = new FCLRegexFactory();

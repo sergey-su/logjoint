@@ -9,7 +9,6 @@ using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 using Point = System.Drawing.Point;
 using System.Drawing;
-using System.Text.RegularExpressions.LogJointVersion;
 
 namespace LogJoint.UI
 {

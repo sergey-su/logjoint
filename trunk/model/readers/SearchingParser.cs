@@ -58,7 +58,7 @@ namespace LogJoint
 			if (p.ContinuationToken as ContinuationToken != null)
 				this.requestedRange = new FileRange.Range((p.ContinuationToken as ContinuationToken).NextPosition, requestedRange.End);
 			this.aligmentTextAccess = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
-			this.aligmentSplitter = new MessagesSplitter(aligmentTextAccess, headerRe.Clone().Regex, headerRe.GetHeaderReSplitterFlags());
+			this.aligmentSplitter = new MessagesSplitter(aligmentTextAccess, headerRe.Regex, headerRe.GetHeaderReSplitterFlags());
 			this.aligmentCapture = new TextMessageCapture();
 			this.progressAndCancellation = new ProgressAndCancellation()
 			{
