@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LogJoint.Wasm
 {
@@ -26,11 +27,12 @@ namespace LogJoint.Wasm
 		const string htmlInputFileNamePrefix = "/html-input/";
 		const string nativeFileSystemNamePrefix = "/native-file-system/";
 		const string blobsPrefix = "/blobs/";
+		const long streamCacheSize = 8 * 1024 * 1024;
 		int lastHtmlInputStreamId = 0;
 		readonly Dictionary<string, BlobInfo> htmlInputFiles = new Dictionary<string, BlobInfo>();
 		readonly Dictionary<string, NativeFileSystemFileInfo> nativeFileSystemFiles = new Dictionary<string, NativeFileSystemFileInfo>();
 		Profiling.Counters perfCounters;
-		Profiling.Counters.CounterDescriptor readTimeCounter;
+		ProfilingCounterDescriptors perfCounterDescriptors;
 
 		public LogMediaFileSystem(IJSRuntime jsRuntime)
 		{
@@ -41,9 +43,19 @@ namespace LogJoint.Wasm
 		{
 			this.traceSource = traceFactory.CreateTraceSource("App", "blzr.lmfs");
 			this.perfCounters = new Profiling.Counters(traceSource, "blzr.lmfs");
-			this.readTimeCounter = perfCounters.AddCounter("read time", "ms", reportAverage: true, reportMin: true, reportMax: true, reportCount: true);
+			this.perfCounterDescriptors = new ProfilingCounterDescriptors()
+			{
+				ReadTime = perfCounters.AddCounter("read time", "ms", reportAverage: true, reportMin: true, reportMax: true, reportCount: true),
+				CacheHitPercentage = perfCounters.AddCounter("cache hits", "", reportAverage: true, reportMin: true, reportMax: true),
+			};
 			shutdown.AddCleanupTask(FlushStatsUntilCancelled(shutdown.ShutdownToken.ToTask()));
 		}
+
+		class ProfilingCounterDescriptors
+		{
+			public Profiling.Counters.CounterDescriptor ReadTime;
+			public Profiling.Counters.CounterDescriptor CacheHitPercentage;
+		};
 
 		class BlobInfo
 		{
@@ -51,6 +63,7 @@ namespace LogJoint.Wasm
 			public long handle;
 			public long size;
 			public DateTime lastModified;
+			public MemoryCache cache = new(new MemoryCacheOptions() { SizeLimit = streamCacheSize });
 
 			private int refCount;
 
@@ -79,6 +92,7 @@ namespace LogJoint.Wasm
 			public long size;
 			public DateTime lastModified;
 			public LogMediaFileSystem owner;
+			public MemoryCache cache = new(new MemoryCacheOptions() { SizeLimit = streamCacheSize });
 
 			private int refCount;
 
@@ -102,11 +116,11 @@ namespace LogJoint.Wasm
 			}
 		};
 
-		class StreamImpl : FileStream, IFileStreamInfo
+		class FileSystemStream : FileStream, IFileStreamInfo
 		{
 			private readonly string fileName;
 
-			public StreamImpl(string fileName) : base(fileName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite)
+			public FileSystemStream(string fileName) : base(fileName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite)
 			{
 				this.fileName = fileName;
 			}
@@ -116,23 +130,61 @@ namespace LogJoint.Wasm
 			bool IFileStreamInfo.IsDeleted => false;
 		}
 
+		class CachingStreamWithFileStreamInfo : CachingStream, IFileStreamInfo
+		{
+			readonly IFileStreamInfo fileStreamInfo;
+			readonly Profiling.Counters.Writer countersWriter;
+			readonly ProfilingCounterDescriptors counterDescriptors;
+
+			public CachingStreamWithFileStreamInfo(Stream stream, MemoryCache cache,
+				Profiling.Counters.Writer countersWriter, ProfilingCounterDescriptors counterDescriptors) : base(cache, stream, ownStream: true)
+			{
+				this.countersWriter = countersWriter;
+				this.fileStreamInfo = (IFileStreamInfo)stream;
+				this.counterDescriptors = counterDescriptors;
+			}
+
+			public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+			{
+				using var readTimeMeasurer = countersWriter.IncrementTicks(counterDescriptors.ReadTime);
+				var result = await base.ReadAsync(buffer, cancellationToken);
+				ReportCacheCounters();
+				return result;
+			}
+
+			public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+			{
+				return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+			}
+
+			public DateTime LastWriteTime => fileStreamInfo.LastWriteTime;
+			public bool IsDeleted => fileStreamInfo.IsDeleted;
+
+			private void ReportCacheCounters()
+			{
+				var totalRead = this.ReadFromUnderlyingStream + this.ReadFromCache;
+				if (totalRead > 0)
+				{
+					countersWriter.Increment(counterDescriptors.CacheHitPercentage, this.ReadFromCache * 100 / totalRead);
+				}
+			}
+		}
+
 		class BlobFileStream : Stream, IFileStreamInfo
 		{
 			readonly IJSRuntime jsRuntime;
 			readonly IJSInProcessRuntime webAssemblyJSRuntime;
 			readonly BlobInfo blobInfo;
-			readonly Func<IDisposable> readTimeMeasurerFactory;
 			bool disposed;
 			long position;
 
 
-			public BlobFileStream(IJSRuntime jsRuntime, BlobInfo blobInfo, Func<IDisposable> readTimeMeasurerFactory)
+			public BlobFileStream(IJSRuntime jsRuntime, BlobInfo blobInfo)
 			{
 				this.jsRuntime = jsRuntime;
 				this.webAssemblyJSRuntime = jsRuntime as IJSInProcessRuntime;
 				this.blobInfo = blobInfo;
 				this.position = 0;
-				this.readTimeMeasurerFactory = readTimeMeasurerFactory;
 				blobInfo.AddRef();
 			}
 
@@ -182,7 +234,6 @@ namespace LogJoint.Wasm
 
 			public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
 			{
-				using var readTimeMeasurer = readTimeMeasurerFactory();
 				if (webAssemblyJSRuntime != null)
 				{
 					var tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.files.readIntoTempBuffer", blobInfo.handle, position, buffer.Length);
@@ -214,17 +265,15 @@ namespace LogJoint.Wasm
 			readonly IJSRuntime jsRuntime;
 			readonly IJSInProcessRuntime webAssemblyJSRuntime;
 			readonly NativeFileSystemFileInfo fileInfo;
-			readonly Func<IDisposable> readTimeMeasurerFactory;
 			bool disposed;
 			long position;
 
-			public NativeFileSystemStream(IJSRuntime jsRuntime, NativeFileSystemFileInfo fileInfo, Func<IDisposable> readTimeMeasurerFactory)
+			public NativeFileSystemStream(IJSRuntime jsRuntime, NativeFileSystemFileInfo fileInfo)
 			{
 				this.jsRuntime = jsRuntime;
 				this.webAssemblyJSRuntime = jsRuntime as IJSInProcessRuntime;
 				this.fileInfo = fileInfo;
 				this.position = 0;
-				this.readTimeMeasurerFactory = readTimeMeasurerFactory;
 				fileInfo.AddRef();
 			}
 
@@ -274,7 +323,6 @@ namespace LogJoint.Wasm
 
 			public override async ValueTask<int> ReadAsync(Memory<byte> buffer, System.Threading.CancellationToken cancellationToken = default)
 			{
-				using var timeMeasurer = readTimeMeasurerFactory();
 				if (webAssemblyJSRuntime != null)
 				{
 					int tempBufferId = await jsRuntime.InvokeAsync<int>("logjoint.nativeFiles.readIntoTempBuffer", fileInfo.handle, position, buffer.Length);
@@ -307,23 +355,32 @@ namespace LogJoint.Wasm
 
 		async Task<Stream> IFileSystem.OpenFile(string fileName)
 		{
-
 			if (htmlInputFiles.TryGetValue(fileName, out var fileInfo))
-				return new BlobFileStream(jsRuntime, fileInfo, MakeReadTimeMeasurerFactoryForStream());
+			{
+				return new CachingStreamWithFileStreamInfo(new BlobFileStream(jsRuntime, fileInfo),
+					fileInfo.cache, perfCounters.GetWriter(), perfCounterDescriptors);
+			}
 			else if (nativeFileSystemFiles.TryGetValue(fileName, out var nativeFileInfo))
-				return new NativeFileSystemStream(jsRuntime, nativeFileInfo, MakeReadTimeMeasurerFactoryForStream());
+			{
+				return new CachingStreamWithFileStreamInfo(new NativeFileSystemStream(jsRuntime, nativeFileInfo),
+					nativeFileInfo.cache, perfCounters.GetWriter(), perfCounterDescriptors);
+			}
 			else if (fileName.StartsWith(nativeFileSystemNamePrefix))
-				return new NativeFileSystemStream(jsRuntime, await RestoreNativeFileHandle(long.Parse(fileName.Split('/')[2])), MakeReadTimeMeasurerFactoryForStream());
+			{
+				var restoredFileInfo = await RestoreNativeFileHandle(long.Parse(fileName.Split('/')[2]));
+				return new CachingStreamWithFileStreamInfo(new NativeFileSystemStream(jsRuntime, restoredFileInfo),
+					restoredFileInfo.cache, perfCounters.GetWriter(), perfCounterDescriptors);
+			}
 			else if (fileName.StartsWith(blobsPrefix))
-				return new BlobFileStream(jsRuntime, await OpenBlobFromDb(fileName.Split('/')[2]), MakeReadTimeMeasurerFactoryForStream());
+			{
+				var openBlobInfo = await OpenBlobFromDb(fileName.Split('/')[2]);
+				return new CachingStreamWithFileStreamInfo(new BlobFileStream(jsRuntime, openBlobInfo),
+					openBlobInfo.cache, perfCounters.GetWriter(), perfCounterDescriptors);
+			}
 			else
-				return new StreamImpl(fileName);
-		}
-
-		Func<IDisposable> MakeReadTimeMeasurerFactoryForStream()
-		{
-			var writer = perfCounters.GetWriter();
-			return () => writer.IncrementTicks(readTimeCounter);
+			{
+				return new FileSystemStream(fileName);
+			}
 		}
 
 		async Task<NativeFileSystemFileInfo> RestoreNativeFileHandle(long dbId)

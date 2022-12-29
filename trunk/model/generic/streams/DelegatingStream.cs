@@ -120,8 +120,14 @@ namespace LogJoint
 			return impl.Read(buffer, offset, count);
 		}
 
+		public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+		{
+			CheckImpl();
+			return impl.ReadAsync(buffer, cancellationToken);
+		}
+
 		public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-        {
+		{
 			CheckImpl();
 			return impl.ReadAsync(buffer, offset, count, cancellationToken);
 		}
@@ -144,8 +150,8 @@ namespace LogJoint
 			impl.Write(buffer, offset, count);
 		}
 
-        async ValueTask IAsyncDisposable.DisposeAsync()
-        {
+		async ValueTask IAsyncDisposable.DisposeAsync()
+		{
 			if (disposeAsync != null)
 			{
 				await disposeAsync();
