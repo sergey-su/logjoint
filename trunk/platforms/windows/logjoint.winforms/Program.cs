@@ -92,6 +92,7 @@ namespace LogJoint
 			new StatusReportView(mainForm, mainForm.toolStripStatusLabel, mainForm.cancelLongRunningProcessDropDownButton,
 				mainForm.cancelLongRunningProcessLabel, presentation.ViewModels.StatusReports);
 			new UI.HistoryDialog(presentation.ViewModels.HistoryDialog);
+			new UI.SearchesManagerDialog(presentation.ViewModels.SearchesManagerDialog, viewsFactory);
 
 			var pluginEntryPoint = new Extensibility.Application(
 				model.ExpensibilityEntryPoint,

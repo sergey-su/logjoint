@@ -74,9 +74,9 @@ namespace LogJoint
 			new XDocument(SaveItems(searches)).Save(stm);
 		}
 
-		void IUserDefinedSearches.Import(Stream stm, Func<string, NameDuplicateResolution> dupesResolver)
+		async Task IUserDefinedSearches.Import(Stream stm, Func<string, Task<NameDuplicateResolution>> dupesResolver)
 		{
-			if (LoadItems(XDocument.Load(stm), dupesResolver) > 0)
+			if (await LoadItems(XDocument.Load(stm), dupesResolver) > 0)
 			{
 				changeHandlerInvoker.Invoke();
 			}
@@ -97,16 +97,16 @@ namespace LogJoint
 		async Task LoadItemsInitially()
 		{
 			items.Clear();
-            await using var section = await (await storageEntry.Value).OpenXMLSection(
-                sectionName,
-                Persistence.StorageSectionOpenFlag.ReadOnly);
-            if (LoadItems(section.Data, _ => NameDuplicateResolution.Skip) > 0)
-            {
-                changeHandlerInvoker.Invoke();
-            }
-        }
+			await using var section = await (await storageEntry.Value).OpenXMLSection(
+				sectionName,
+				Persistence.StorageSectionOpenFlag.ReadOnly);
+			if (await LoadItems(section.Data, _ => Task.FromResult(NameDuplicateResolution.Skip)) > 0)
+			{
+				changeHandlerInvoker.Invoke();
+			}
+		}
 
-		int LoadItems(XDocument doc, Func<string, NameDuplicateResolution> dupesResolver)
+		async Task<int> LoadItems(XDocument doc, Func<string, Task<NameDuplicateResolution>> dupesResolver)
 		{
 			if (doc.Root == null)
 				return 0;
@@ -118,7 +118,7 @@ namespace LogJoint
 					continue;
 				if (items.ContainsKey(name))
 				{
-					var resolution = dupesResolver(name);
+					var resolution = await dupesResolver(name);
 					if (resolution == NameDuplicateResolution.Cancel)
 						return 0;
 					if (resolution == NameDuplicateResolution.Skip)

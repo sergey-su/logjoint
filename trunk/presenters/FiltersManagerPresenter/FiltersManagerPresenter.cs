@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace LogJoint.UI.Presenters.FiltersManager
 {
-	public class Presenter : IPresenter, IDisposable, IViewEvents
+	public class Presenter : IPresenter, IDisposable, IViewModel
 	{
 		public Presenter(
 			IFiltersList filtersList,
@@ -59,12 +59,12 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			filtersList.OnPropertiesChanged -= HandleFiltersListChange;
 		}
 
-		void IViewEvents.OnEnableFilteringChecked(bool value)
+		void IViewModel.OnEnableFilteringChecked(bool value)
 		{
 			filtersList.FilteringEnabled = value;
 		}
 
-		async void IViewEvents.OnAddFilterClicked()
+		async void IViewModel.OnAddFilterClicked()
 		{
 			string defaultTemplate = "";
 			string selectedText = "";
@@ -101,32 +101,32 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			}
 		}
 
-		void IViewEvents.OnRemoveFilterClicked()
+		void IViewModel.OnRemoveFilterClicked()
 		{
 			DoRemoveSelected();
 		}
 
-		void IViewEvents.OnMoveFilterUpClicked()
+		void IViewModel.OnMoveFilterUpClicked()
 		{
 			MoveFilterInternal(true);
 		}
 
-		void IViewEvents.OnMoveFilterDownClicked()
+		void IViewModel.OnMoveFilterDownClicked()
 		{
 			MoveFilterInternal(false);
 		}
 
-		void IViewEvents.OnPrevClicked()
+		void IViewModel.OnPrevClicked()
 		{
 			logViewerPresenter?.GoToPrevHighlightedMessage();
 		}
 
-		void IViewEvents.OnNextClicked()
+		void IViewModel.OnNextClicked()
 		{
 			logViewerPresenter?.GoToNextHighlightedMessage();
 		}
 
-		void IViewEvents.OnOptionsClicked()
+		void IViewModel.OnOptionsClicked()
 		{
 			var f = filtersListPresenter.SelectedFilters.FirstOrDefault();
 			if (f != null)

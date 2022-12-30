@@ -1,31 +1,16 @@
-using System;
+using LogJoint.UI.Presenters.Reactive;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SearchesManagerDialog
 {
 	public interface IPresenter
 	{
-		IUserDefinedSearch Open();
+		Task<IUserDefinedSearch> Open();
 	};
 
-	public interface IView
+	public interface IViewItem: IListItem
 	{
-		IDialogView CreateDialog(IDialogViewEvents eventsHandler);
-	};
-
-	public interface IDialogView: IDisposable
-	{
-		void SetItems(ViewItem[] items);
-		ViewItem[] SelectedItems { get; set; }
-		void EnableControl(ViewControl id, bool value);
-		void SetCloseButtonText(string text);
-		void OpenModal();
-		void CloseModal();
-	};
-
-	public class ViewItem
-	{
-		public string Caption { get; internal set; }
-		internal object Data;
 	};
 
 	public enum ViewControl
@@ -37,13 +22,19 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 		Import,
 	};
 
-	public interface IDialogViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		bool IsVisible { get; }
+		string CloseButtonText { get; }
+		IReadOnlySet<ViewControl> EnabledControls { get; }
+		IReadOnlyList<IViewItem> Items { get; }
 		void OnCloseClicked();
+		void OnCancelled();
 		void OnAddClicked();
 		void OnDeleteClicked();
 		void OnEditClicked();
-		void OnSelectionChanged();
+		void OnSelect(IEnumerable<IViewItem> requestedSelection);
 		void OnExportClicked();
 		void OnImportClicked();
 	};

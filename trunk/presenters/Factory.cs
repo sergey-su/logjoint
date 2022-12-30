@@ -40,6 +40,7 @@ namespace LogJoint.UI.Presenters
 		public SearchResult.IViewModel SearchResult { get; internal set; }
 		public StatusReports.IViewModel StatusReports { get; internal set; }
 		public Postprocessing.SummaryDialog.IViewModel PostprocessingSummaryDialog { get; internal set; }
+		public SearchesManagerDialog.IViewModel SearchesManagerDialog { get; internal set; }
 	};
 
 	public static class Factory
@@ -50,7 +51,6 @@ namespace LogJoint.UI.Presenters
 			SearchEditorDialog.IView CreateSearchEditorDialogView();
 			FilterDialog.IView CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView);
 			FilterDialog.IView CreateHlFilterDialogView();
-			SearchesManagerDialog.IView CreateSearchesManagerDialogView();
 			SourcePropertiesWindow.IView CreateSourcePropertiesWindowView();
 			SharingDialog.IView CreateSharingDialogView();
 			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
@@ -97,7 +97,6 @@ namespace LogJoint.UI.Presenters
 
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
 			var searchEditorDialogView = views.CreateSearchEditorDialogView();
-			var searchesManagerDialogView = views.CreateSearchesManagerDialogView();
 			var sourcePropertiesWindowView = views.CreateSourcePropertiesWindowView();
 			var sharingDialogView = views.CreateSharingDialogView();
 			var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
@@ -227,12 +226,12 @@ namespace LogJoint.UI.Presenters
 				alertPopup
 			);
 
-			SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new SearchesManagerDialog.Presenter(
-				searchesManagerDialogView,
+			var searchesManagerDialogPresenter = new SearchesManagerDialog.Presenter(
 				model.UserDefinedSearches,
 				alertPopup,
 				fileDialogs,
-				searchEditorDialog
+				searchEditorDialog,
+				model.ChangeNotification
 			);
 
 			var searchPanelPresenter = new SearchPanel.Presenter(
@@ -601,6 +600,7 @@ namespace LogJoint.UI.Presenters
 					SearchResult = searchResultPresenter,
 					StatusReports = statusReportsPresenter,
 					PostprocessingSummaryDialog = postprocessingSummaryDialogPresenter,
+					SearchesManagerDialog = searchesManagerDialogPresenter,
 				}
 			};
 		}

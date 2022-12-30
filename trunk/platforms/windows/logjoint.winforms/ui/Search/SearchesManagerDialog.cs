@@ -1,21 +1,21 @@
 ﻿using LogJoint.UI.Presenters.SearchesManagerDialog;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace LogJoint.UI
 {
-	public partial class SearchesManagerDialog : Form, IDialogView
+	public partial class SearchesManagerDialog : Form
 	{
-		readonly IDialogViewEvents eventsHandler;
+		readonly IViewModel viewModel;
 		readonly Dictionary<ViewControl, Control> controls;
+		readonly Windows.Reactive.IListBoxController<IViewItem> listController;
 
-		public SearchesManagerDialog(IDialogViewEvents eventsHandler)
+		public SearchesManagerDialog(IViewModel viewModel, Windows.Reactive.IReactive reactive)
 		{
 			InitializeComponent();
-			this.eventsHandler = eventsHandler;
+			this.viewModel = viewModel;
 			this.controls = new Dictionary<ViewControl, Control>()
 			{
 				{ ViewControl.AddButton, addButton },
@@ -24,93 +24,69 @@ namespace LogJoint.UI
 				{ ViewControl.Export, exportButton },
 				{ ViewControl.Import, importButton },
 			};
-		}
 
-		ViewItem[] IDialogView.SelectedItems
-		{
-			get
+			listController = reactive.CreateListBoxController<IViewItem>(listView);
+
+			listController.OnSelect = s => viewModel.OnSelect(s.OfType<IViewItem>());
+
+			var updateItems = Updaters.Create(() => viewModel.Items, listController.Update);
+			var updateVisible = Updaters.Create(() => viewModel.IsVisible, value =>
 			{
-				return listView.SelectedItems.OfType<ListViewItem>().Select(i => i.Tag).OfType<ViewItem>().ToArray();
-			}
-			set
+				if (value)
+					ShowDialog();
+				else
+					Hide();
+			});
+			var updateCloseButton = Updaters.Create(() => viewModel.CloseButtonText, value => closeButton.Text = value);
+			var updateControls = Updaters.Create(() => viewModel.EnabledControls, enabled =>
 			{
-				var lookup = value.ToLookup(i => i);
-				listView.SelectedIndices.Clear();
-				foreach (ListViewItem i in listView.Items)
-					if (lookup.Contains(i.Tag as ViewItem))
-						listView.SelectedIndices.Add(i.Index);
-			}
-		}
+				foreach (var ctrl in controls)
+					ctrl.Value.Enabled = enabled.Contains(ctrl.Key);
+			});
 
-		void IDialogView.CloseModal()
-		{
-			DialogResult = DialogResult.OK;
-		}
-
-		void IDialogView.EnableControl(ViewControl id, bool value)
-		{
-			Control ctrl;
-			if (controls.TryGetValue(id, out ctrl))
-				ctrl.Enabled = value;
-		}
-
-		void IDialogView.OpenModal()
-		{
-			ShowDialog();
-		}
-
-		void IDialogView.SetItems(ViewItem[] items)
-		{
-			listView.Items.Clear();
-			listView.Items.AddRange(items.Select(i => new ListViewItem(new[] { i.Caption })
+			viewModel.ChangeNotification.CreateSubscription(() =>
 			{
-				Tag = i
-			}).ToArray());
-		}
-
-		void IDialogView.SetCloseButtonText(string text)
-		{
-			closeButton.Text = text;
+				updateItems();
+				updateVisible();
+				updateCloseButton();
+				updateControls();
+			});
 		}
 
 		private void addButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnAddClicked();
+			viewModel.OnAddClicked();
 		}
 
 		private void deleteButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnDeleteClicked();
+			viewModel.OnDeleteClicked();
 		}
 
 		private void editButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnEditClicked();
+			viewModel.OnEditClicked();
 		}
 
 		private void exportButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnExportClicked();
+			viewModel.OnExportClicked();
 		}
 
 		private void importButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnImportClicked();
+			viewModel.OnImportClicked();
 		}
 
 		private void closeButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnCloseClicked();
+			viewModel.OnCloseClicked();
 		}
 
-		private void listView_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+		private void SearchesManagerDialog_Closing(object sender, FormClosingEventArgs e)
 		{
-			eventsHandler.OnSelectionChanged();
-		}
-
-		private void listView_Layout(object sender, LayoutEventArgs e)
-		{
-			columnHeader1.Width = listView.ClientSize.Width - 2;
+			e.Cancel = true;
+			viewModel.OnCancelled();
 		}
 
 		protected override bool ProcessDialogKey(Keys keyData)
@@ -123,12 +99,4 @@ namespace LogJoint.UI
 			return base.ProcessDialogKey(keyData);
 		}
 	}
-
-	class SearchesManagerDialogView : IView
-	{
-		IDialogView IView.CreateDialog(IDialogViewEvents eventsHandler)
-		{
-			return new SearchesManagerDialog(eventsHandler);
-		}
-	};
 }

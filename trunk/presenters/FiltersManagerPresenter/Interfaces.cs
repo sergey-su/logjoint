@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 	public interface IView
 	{
-		void SetPresenter(IViewEvents presenter);
+		void SetPresenter(IViewModel presenter);
 		FiltersListBox.IView FiltersListView { get; }
 		void SetControlsVisibility(ViewControl controlsToShow);
 		void EnableControls(ViewControl controlsToEnable);
@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		void SetFiltertingEnabledCheckBoxLabel(string value);
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
 		void OnEnableFilteringChecked(bool value);
 		void OnAddFilterClicked();

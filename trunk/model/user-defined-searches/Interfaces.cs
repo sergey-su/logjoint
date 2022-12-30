@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -11,7 +12,7 @@ namespace LogJoint
 		IUserDefinedSearch AddNew();
 		void Delete(IUserDefinedSearch search);
 		void Export(IUserDefinedSearch[] searches, Stream stm);
-		void Import(Stream stm, Func<string, NameDuplicateResolution> dupesResolver);
+		Task Import(Stream stm, Func<string, Task<NameDuplicateResolution>> dupesResolver);
 
 		event EventHandler OnChanged;
 	};

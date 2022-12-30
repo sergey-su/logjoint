@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SearchPanel
 {
@@ -188,7 +189,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
-		void IViewModel.OnFiltersLinkClicked()
+		async void IViewModel.OnFiltersLinkClicked()
 		{
 			var datum = quickSearchPresenter.CurrentSuggestion?.Data;
 			IUserDefinedSearch uds;
@@ -198,7 +199,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (uds != null)
 				searchEditorDialog.Open(uds);
 			else
-				HandleSearchesManagerDialog();
+				await HandleSearchesManagerDialog();
 		}
 
 		public static void GetUserFriendlySearchOptionsDescription(ISearchResult result, StringBuilder stringBuilder)
@@ -470,9 +471,9 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				SetFiltersLink(isVisible: true, text: "manage filters...");
 		}
 
-		void HandleSearchesManagerDialog()
+		async Task HandleSearchesManagerDialog()
 		{
-			var selectedUds = searchesManagerDialog.Open();
+			var selectedUds = await searchesManagerDialog.Open();
 			if (selectedUds != null)
 			{
 				quickSearchPresenter.CurrentSuggestion = new QuickSearchTextBox.SuggestionItem()

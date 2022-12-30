@@ -23,7 +23,6 @@ namespace LogJoint.UI.Presenters
 		SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView() => new SearchEditorDialogView();
 		FilterDialog.IView Factory.IViewsFactory.CreateHlFilterDialogView() => new FilterDialogView();
 		FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView) => new FilterDialogView();
-		SearchesManagerDialog.IView Factory.IViewsFactory.CreateSearchesManagerDialogView() => new SearchesManagerDialogView();
 		SourcePropertiesWindow.IView Factory.IViewsFactory.CreateSourcePropertiesWindowView() => new SourceDetailsWindowView();
 		SharingDialog.IView Factory.IViewsFactory.CreateSharingDialogView() => new ShareDialog();
 		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView() => new UI.NewLogSourceDialogView();

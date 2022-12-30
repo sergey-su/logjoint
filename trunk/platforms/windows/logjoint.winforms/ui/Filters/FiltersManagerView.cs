@@ -7,7 +7,7 @@ namespace LogJoint.UI
 {
 	public partial class FiltersManagerView : UserControl, IView
 	{
-		IViewEvents presenter;
+		IViewModel viewModel;
 		Dictionary<ViewControl, Control> controls;
 
 		public FiltersManagerView()
@@ -28,9 +28,9 @@ namespace LogJoint.UI
 
 		Presenters.FiltersListBox.IView IView.FiltersListView { get { return this.filtersListView; } }
 
-		void IView.SetPresenter(IViewEvents presenter)
+		void IView.SetPresenter(IViewModel viewModel)
 		{
-			this.presenter = presenter;
+			this.viewModel = viewModel;
 		}
 
 		void IView.EnableControls(ViewControl controlsToEnable)
@@ -58,42 +58,42 @@ namespace LogJoint.UI
 
 		private void addFilterButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnAddFilterClicked();
+			viewModel.OnAddFilterClicked();
 		}
 
 		private void deleteFilterButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnRemoveFilterClicked();
+			viewModel.OnRemoveFilterClicked();
 		}
 
 		private void moveFilterUpButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnMoveFilterUpClicked();
+			viewModel.OnMoveFilterUpClicked();
 		}
 
 		private void moveFilterDownButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnMoveFilterDownClicked();
+			viewModel.OnMoveFilterDownClicked();
 		}
 
 		private void enableFilteringCheckBox_CheckedChanged(object sender, EventArgs e)
 		{
-			presenter.OnEnableFilteringChecked(enableFilteringCheckBox.Checked);
+			viewModel.OnEnableFilteringChecked(enableFilteringCheckBox.Checked);
 		}
 
 		private void prevButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnPrevClicked();
+			viewModel.OnPrevClicked();
 		}
 
 		private void nextButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnNextClicked();
+			viewModel.OnNextClicked();
 		}
 
 		private void editButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnOptionsClicked();
+			viewModel.OnOptionsClicked();
 		}
 	}
 }

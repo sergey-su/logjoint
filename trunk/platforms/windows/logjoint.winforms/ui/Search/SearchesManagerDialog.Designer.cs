@@ -28,14 +28,13 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.listView = new System.Windows.Forms.ListView();
+			this.listView = new System.Windows.Forms.ListBox();
 			this.addButton = new System.Windows.Forms.Button();
 			this.deleteButton = new System.Windows.Forms.Button();
 			this.editButton = new System.Windows.Forms.Button();
 			this.exportButton = new System.Windows.Forms.Button();
 			this.closeButton = new System.Windows.Forms.Button();
 			this.importButton = new System.Windows.Forms.Button();
-			this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.SuspendLayout();
 			// 
 			// listView
@@ -43,20 +42,12 @@
 			this.listView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.listView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeader1});
-			this.listView.FullRowSelect = true;
-			this.listView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			this.listView.HideSelection = false;
 			this.listView.Location = new System.Drawing.Point(12, 45);
 			this.listView.MinimumSize = new System.Drawing.Size(50, 50);
 			this.listView.Name = "listView";
 			this.listView.Size = new System.Drawing.Size(622, 281);
 			this.listView.TabIndex = 0;
-			this.listView.UseCompatibleStateImageBehavior = false;
-			this.listView.View = System.Windows.Forms.View.Details;
-			this.listView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.listView_ItemSelectionChanged);
-			this.listView.Layout += new System.Windows.Forms.LayoutEventHandler(this.listView_Layout);
+			this.listView.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			// 
 			// addButton
 			// 
@@ -140,19 +131,19 @@
 			this.ShowInTaskbar = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Filters manager";
+			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SearchesManagerDialog_Closing);
 			this.ResumeLayout(false);
 
 		}
 
 		#endregion
 
-		private System.Windows.Forms.ListView listView;
+		private System.Windows.Forms.ListBox listView;
 		private System.Windows.Forms.Button addButton;
 		private System.Windows.Forms.Button deleteButton;
 		private System.Windows.Forms.Button editButton;
 		private System.Windows.Forms.Button exportButton;
 		private System.Windows.Forms.Button closeButton;
 		private System.Windows.Forms.Button importButton;
-		private System.Windows.Forms.ColumnHeader columnHeader1;
 	}
 }

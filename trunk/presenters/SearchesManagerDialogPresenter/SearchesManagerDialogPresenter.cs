@@ -3,83 +3,94 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.IO;
+using System.Threading.Tasks;
+using LogJoint.UI.Presenters.Reactive;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.SearchesManagerDialog
 {
-	public class Presenter : IPresenter, IDialogViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
-		readonly IView view;
 		readonly IUserDefinedSearches userDefinedSearches;
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
 		readonly SearchEditorDialog.IPresenter searchEditorDialog;
+		readonly IChangeNotification changeNotification;
 
-		IDialogView currentDialog;
-		IUserDefinedSearch currentDialogResult;
+		TaskCompletionSource<IUserDefinedSearch> currentDialog;
+		ImmutableList<ViewItem> viewItems = ImmutableList<ViewItem>.Empty;
+		Func<IReadOnlySet<IUserDefinedSearch>> getSelection;
+		Func<IReadOnlySet<ViewControl>> getEnabledControls;
 
 		public Presenter(
-			IView view,
 			IUserDefinedSearches userDefinedSearches,
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs,
-			SearchEditorDialog.IPresenter searchEditorDialog
+			SearchEditorDialog.IPresenter searchEditorDialog,
+			IChangeNotification changeNotification
 		)
 		{
-			this.view = view;
 			this.userDefinedSearches = userDefinedSearches;
 			this.alerts = alerts;
 			this.fileDialogs = fileDialogs;
 			this.searchEditorDialog = searchEditorDialog;
+			this.changeNotification = changeNotification;
+
+			getSelection = Selectors.Create(() => viewItems, items => 
+				ImmutableHashSet.CreateRange(viewItems.Where(i => i.Selected).Select(i => i.Search)));
+			getEnabledControls = Selectors.Create(getSelection, GetEnabledControls);
 
 			userDefinedSearches.OnChanged += (sender, e) => 
 			{
 				if (currentDialog == null)
 					return;
-				UpdateViewItems();
-				UpdateControls();
+				UpdateViewItems(getSelection());
 			};
 		}
 
-		IUserDefinedSearch IPresenter.Open()
+		Task<IUserDefinedSearch> IPresenter.Open()
 		{
-			using (currentDialog = view.CreateDialog(this))
-			{
-				UpdateViewItems();
-				UpdateControls();
-				currentDialog.OpenModal();
-			}
-			var tmp = currentDialogResult;
-			currentDialog = null;
-			currentDialogResult = null;
-			return tmp;
+			Reset();
+			UpdateViewItems(ImmutableHashSet<IUserDefinedSearch>.Empty);
+			currentDialog = new TaskCompletionSource<IUserDefinedSearch>();
+			changeNotification.Post();
+			return currentDialog.Task;
 		}
 
-		void IDialogViewEvents.OnCloseClicked ()
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+		bool IViewModel.IsVisible => currentDialog != null;
+		string IViewModel.CloseButtonText => getSelection().Count == 1 ? "Use and close" : "Close";
+		IReadOnlySet<ViewControl> IViewModel.EnabledControls => getEnabledControls();
+		IReadOnlyList<IViewItem> IViewModel.Items => viewItems;
+
+		void IViewModel.OnCloseClicked ()
 		{
-			var selection = GetSelection().ToArray();
-			if (selection.Length == 1)
-				currentDialogResult = selection[0];
-			currentDialog.CloseModal();
+			var selection = getSelection();
+			if (selection.Count == 1)
+				currentDialog.SetResult(selection.First());
+			Reset();
 		}
 
-		void IDialogViewEvents.OnAddClicked()
+		void IViewModel.OnCancelled() => Reset();
+
+		void IViewModel.OnAddClicked()
 		{
 			var search = userDefinedSearches.AddNew();
 			if (!searchEditorDialog.Open(search))
 				userDefinedSearches.Delete(search);
 		}
 
-		void IDialogViewEvents.OnDeleteClicked()
+		async void IViewModel.OnDeleteClicked()
 		{
-			var selected = GetSelection().ToArray();
-			if (selected.Length == 0)
+			var selected = getSelection();
+			if (selected.Count == 0)
 			{
 				return;
 			}
-			if (alerts.ShowPopup(
+			if (await alerts.ShowPopupAsync(
 				"Deletion",
-                string.Format("Do you want to delete selected {0} item(s)?", selected.Length), 
-                AlertFlags.YesNoCancel) != AlertFlags.Yes)
+				string.Format("Do you want to delete selected {0} item(s)?", selected.Count), 
+				AlertFlags.YesNoCancel) != AlertFlags.Yes)
 			{
 				return;
 			}
@@ -89,26 +100,26 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 			}
 		}
 
-		void IDialogViewEvents.OnEditClicked()
+		void IViewModel.OnEditClicked()
 		{
-			var selected = GetSelection().FirstOrDefault();
+			var selected = getSelection().SingleOrDefault();
 			if (selected != null)
 				searchEditorDialog.Open(selected);
 		}
 
-		void IDialogViewEvents.OnSelectionChanged()
+		void IViewModel.OnSelect(IEnumerable<IViewItem> requestedSelection)
 		{
-			UpdateControls();
+			UpdateViewItems(requestedSelection.OfType<ViewItem>().Select(i => i.Search).ToHashSet());
 		}
 
-		void IDialogViewEvents.OnExportClicked()
+		void IViewModel.OnExportClicked()
 		{
-			var selection = GetSelection().ToArray();
-			if (selection.Length == 0)
+			var selection = getSelection();
+			if (selection.Count == 0)
 				return;
 			var fileName = fileDialogs.SaveFileDialog(new SaveFileDialogParams()
 			{
-				Title = string.Format("Exporting {0} searche(s)", selection.Length),
+				Title = string.Format("Exporting {0} search(es)", selection.Count),
 				SuggestedFileName = "my_searches.xml"
 			});
 			if (fileName == null)
@@ -117,11 +128,11 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 			}
 			using (var fs = new FileStream(fileName, FileMode.Create))
 			{
-				userDefinedSearches.Export(selection, fs);
+				userDefinedSearches.Export(selection.ToArray(), fs);
 			}
 		}
 
-		void IDialogViewEvents.OnImportClicked()
+		async void IViewModel.OnImportClicked()
 		{
 			var fileName = fileDialogs.OpenFileDialog(new OpenFileDialogParams()
 			{
@@ -133,48 +144,69 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 			{
 				return;
 			}
-			using (var fs = new FileStream(fileName[0], FileMode.Open))
+			using var fs = new FileStream(fileName[0], FileMode.Open);
+			await userDefinedSearches.Import(fs, async dupeName =>
 			{
-				userDefinedSearches.Import(fs, dupeName =>
-				{
-					var userSelection = alerts.ShowPopup(
-						"Import",
-						string.Format("Search with name '{0}' already exists. Overwrite?", dupeName),
-						AlertFlags.YesNoCancel
-					);
-					if (userSelection == AlertFlags.Cancel)
-						return NameDuplicateResolution.Cancel;
-					if (userSelection == AlertFlags.Yes)
-						return NameDuplicateResolution.Overwrite;
-					return NameDuplicateResolution.Skip;
-				});
+				var userSelection = await alerts.ShowPopupAsync(
+					"Import",
+					string.Format("Search with name '{0}' already exists. Overwrite?", dupeName),
+					AlertFlags.YesNoCancel
+				);
+				if (userSelection == AlertFlags.Cancel)
+					return NameDuplicateResolution.Cancel;
+				if (userSelection == AlertFlags.Yes)
+					return NameDuplicateResolution.Overwrite;
+				return NameDuplicateResolution.Skip;
+			});
+		}
+
+		void UpdateViewItems(IReadOnlySet<IUserDefinedSearch> selection)
+		{
+			viewItems = ImmutableList.CreateRange(userDefinedSearches.Items.Select(
+				search => new ViewItem(search, selected: selection.Contains(search))
+			));
+			changeNotification.Post();
+		}
+
+		static IReadOnlySet<ViewControl> GetEnabledControls(IReadOnlySet<IUserDefinedSearch> selection)
+		{
+			var builder = ImmutableHashSet.CreateBuilder<ViewControl>();
+			builder.Add(ViewControl.AddButton);
+			builder.Add(ViewControl.Import);
+			if (selection.Count == 1)
+				builder.Add(ViewControl.EditButton);
+			if (selection.Count > 0)
+				builder.Add(ViewControl.DeleteButton);
+			if (selection.Count > 0)
+				builder.Add(ViewControl.Export);
+			return builder.ToImmutableHashSet();
+		}
+
+		void Reset()
+		{
+			viewItems = ImmutableList<ViewItem>.Empty;
+			if (currentDialog != null)
+			{
+				currentDialog.TrySetResult(null);
+				currentDialog = null;
+				changeNotification.Post();
 			}
 		}
 
-		IEnumerable<IUserDefinedSearch> GetSelection()
+		class ViewItem : IViewItem
 		{
-			return currentDialog.SelectedItems.Select(i => i.Data)
-				.OfType<IUserDefinedSearch>();
-		}
+			public IUserDefinedSearch Search { get; private set; }
+			public bool Selected { get; private set; }
 
-		void UpdateViewItems()
-		{
-			currentDialog.SetItems(userDefinedSearches.Items.Select(i => new ViewItem()
+			public ViewItem(IUserDefinedSearch search, bool selected)
 			{
-				Caption = i.Name,
-				Data = i
-			}).ToArray());
-		}
+				this.Search = search;
+				this.Selected = selected;
+			}
 
-		void UpdateControls()
-		{
-			var selection = GetSelection().Count();
-			currentDialog.EnableControl(ViewControl.AddButton, true);
-			currentDialog.EnableControl(ViewControl.Import, true);
-			currentDialog.EnableControl(ViewControl.EditButton, selection == 1);
-			currentDialog.EnableControl(ViewControl.DeleteButton, selection > 0);
-			currentDialog.EnableControl(ViewControl.Export, selection > 0);
-			currentDialog.SetCloseButtonText(selection == 1 ? "Use and close" : "Close");
+			string IListItem.Key => Search.GetHashCode().ToString("x");
+			bool IListItem.IsSelected => Selected;
+			public override string ToString() => Search.Name;
 		}
 	};
 };
