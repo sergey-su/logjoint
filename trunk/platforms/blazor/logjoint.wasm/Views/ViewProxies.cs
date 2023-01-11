@@ -42,8 +42,6 @@ namespace LogJoint.Wasm
 
         LogJoint.UI.Presenters.SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView() => null;
 
-        LogJoint.UI.Presenters.SearchesManagerDialog.IView Factory.IViewsFactory.CreateSearchesManagerDialogView() => null;
-
         LogJoint.UI.Presenters.FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView(LogJoint.UI.Presenters.SearchEditorDialog.IDialogView parentView) => FilterDialog;
 
         LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer.IView LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramView() => null;
