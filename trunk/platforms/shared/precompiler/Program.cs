@@ -105,7 +105,13 @@ namespace LogJoint
 				byte[] asmBytes = HandleFormatFile(formatFile.AbsolutePath, formatFile.AbsolutePath, modelObjects);
 				if (asmBytes != null)
 				{
-					var precompiledAsmFilePath = Path.ChangeExtension(formatFile.AbsolutePath, ".dll");
+					string sanitizeFileName(string absolutePath)
+					{
+						string fname = Path.GetFileNameWithoutExtension(absolutePath);
+						fname = new string(fname.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
+						return Path.Combine(Path.GetDirectoryName(absolutePath), $"{fname}.dll");
+					};
+					var precompiledAsmFilePath = sanitizeFileName(formatFile.AbsolutePath);
 					File.WriteAllBytes(precompiledAsmFilePath, asmBytes);
 					var manifestNode = new XElement("file");
 					manifestNode.SetAttributeValue("type", "dll");
