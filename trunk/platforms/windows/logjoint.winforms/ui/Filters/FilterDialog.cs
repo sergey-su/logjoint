@@ -167,5 +167,13 @@ namespace LogJoint.UI
 		{
 			viewModel.OnActionComboBoxValueChange(actionComboBox.SelectedIndex);
 		}
+
+		private void TabPage1_Layout(object sender, System.Windows.Forms.LayoutEventArgs e)
+		{
+			// Manipulating the size manually because Anchor-ing on this tab page does not work
+			// correctly for some reason.
+			threadsContainer.Width = tabPage1.Width;
+			threadsContainer.Height = tabPage1.Height - threadsContainer.Top;
+		}
 	}
 }

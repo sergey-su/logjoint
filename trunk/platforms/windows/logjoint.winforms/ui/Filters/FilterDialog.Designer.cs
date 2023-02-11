@@ -211,6 +211,7 @@ namespace LogJoint.UI
 			this.tabPage1.TabIndex = 0;
 			this.tabPage1.Text = "Scope";
 			this.tabPage1.UseVisualStyleBackColor = true;
+			this.tabPage1.Layout += TabPage1_Layout;
 			// 
 			// scopeNotSupportedLabel
 			// 
@@ -226,9 +227,6 @@ namespace LogJoint.UI
 			// 
 			// threadsContainer
 			// 
-			this.threadsContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
 			this.threadsContainer.Controls.Add(this.threadsCheckedListBox);
 			this.threadsContainer.Location = new System.Drawing.Point(-1, 32);
 			this.threadsContainer.Margin = new System.Windows.Forms.Padding(4);
