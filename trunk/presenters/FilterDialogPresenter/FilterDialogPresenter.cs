@@ -1,322 +1,489 @@
 using LogJoint.Drawing;
+using LogJoint.UI.Presenters.Reactive;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
+using static LogJoint.Workspaces.WorkspaceDTO;
 
 namespace LogJoint.UI.Presenters.FilterDialog
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
-		readonly IView view;
+		readonly IChangeNotification changeNotification;
 		readonly ILogSourcesManager logSources;
-		readonly List<Tuple<FilterAction, string, Color?>> actionsOptions;
-		readonly bool scopeSupported;
 		readonly IColorTable highlightColorsTable;
-		List<ScopeItem> scopeItems;
-		bool clickLock;
-		bool userDefinedNameSet;
+		IView view;
+		List<(FilterAction action, string name, Color? color)> actionsOptions;
+		bool scopeSupported;
+		ImmutableList<ScopeNode> scopeItems;
+		ImmutableList<MessageTypeItem> messageTypeItems = ImmutableList<MessageTypeItem>.Empty;
+		CheckBoxId checkedBoxes;
+		string userDefinedName;
 		IFilter currentFilter;
-		static readonly MessageFlag[] typeFlagsList = 
+		TaskCompletionSource<bool> currentTask;
+		DialogConfig dialogConfig = new DialogConfig()
 		{
-			MessageFlag.Error,
-			MessageFlag.Warning,
-			MessageFlag.Info
+			Title = "",
+			ActionComboBoxOptions = Array.Empty<KeyValuePair<string, Color?>>(),
+		};
+		string template;
+		int actionComboBoxValue = -1;
+		static readonly (MessageFlag flags, string name)[] typeFlagsList = 
+		{
+			(MessageFlag.Error, "Errors"),
+			(MessageFlag.Warning, "Warnings"),
+			(MessageFlag.Info, "Infos")
 		};
 		const string changeLinkText = "change";
 		const string resetLinkText = "auto";
+		readonly Func<NameEditBoxProperties> nameEditBoxProperties;
+		readonly Func<FilterData> outputFilterData;
 
 		public Presenter(
-			ILogSourcesManager logSources, 
-			IFiltersList filtersList, 
-			IView view,
+			IChangeNotification changeNotification,
+			ILogSourcesManager logSources,
 			IColorTable highlightColorsTable
 		)
 		{
+			this.changeNotification = changeNotification;
 			this.logSources = logSources;
-			this.view = view;
 			this.highlightColorsTable = highlightColorsTable;
-			this.actionsOptions = MakeActionsOptions(filtersList.Purpose, highlightColorsTable);
-			this.scopeSupported = filtersList.Purpose == FiltersListPurpose.Highlighting;
-			view.SetEventsHandler(this);
-		}
-
-		bool IPresenter.ShowTheDialog(IFilter forFilter)
-		{
-			currentFilter = forFilter;
-			WriteView(forFilter);
-			if (!view.ShowDialog())
-				return false;
-			ReadView(forFilter);
-			return true;
-		}
-
-		void IViewEvents.OnScopeItemChecked(ScopeItem item, bool checkedValue)
-		{
-			if (!scopeSupported)
-				return;
-			if (clickLock)
-				return;
-			clickLock = true;
-			((Node)item).Click(checkedValue);
-			clickLock = false;
-		}
-
-		void IViewEvents.OnCriteriaInputChanged()
-		{
-			if (clickLock)
-				return;
-			RefreshAutomaticNameTextBox();
-		}
-
-		void IViewEvents.OnNameEditLinkClicked()
-		{
-			if (userDefinedNameSet)
+			this.outputFilterData = Selectors.Create(() => (
+				userDefinedName, actionComboBoxValue, checkedBoxes, template,
+				scopeSupported, scopeItems, messageTypeItems), data => new FilterData()
+				{
+					template = data.template,
+					actionComboBoxValue = data.actionComboBoxValue,
+					checkedBoxes = data.checkedBoxes,
+					messageTypeItems = data.messageTypeItems,
+					scopeSupported = data.scopeSupported,
+					scopeItems = data.scopeItems,
+					userDefinedName = data.userDefinedName
+				});
+			this.nameEditBoxProperties = Selectors.Create(() => userDefinedName, outputFilterData, (udn, filterData) =>
 			{
-				userDefinedNameSet = false;
-				RefreshAutomaticNameTextBox();
+				var userDefinedNameSet = userDefinedName != null;
+				string AutomaticName()
+				{
+					if (currentFilter == null)
+						return "";
+					using var tempFilter = currentFilter.Clone();
+					SetFilterData(tempFilter, filterData);
+					return tempFilter.Name;
+				}
+				return new NameEditBoxProperties()
+				{
+					Value = userDefinedName ?? AutomaticName(),
+					Enabled = userDefinedNameSet,
+					LinkText = userDefinedNameSet ? resetLinkText : changeLinkText
+				};
+			});
+		}
+
+		Task<bool> IPresenter.ShowTheDialog(IFilter forFilter, FiltersListPurpose filtersListPurpose)
+		{
+			Reset();
+
+			currentFilter = forFilter;
+
+			currentTask = new TaskCompletionSource<bool>();
+			actionsOptions = MakeActionsOptions(filtersListPurpose, highlightColorsTable);
+			scopeSupported = filtersListPurpose == FiltersListPurpose.Highlighting;
+
+			scopeItems = CreateScopeItems(currentFilter.Options.Scope);
+			messageTypeItems = CreateMessageTypeItems(currentFilter.Options.ContentTypes);
+
+			static CheckBoxId cbFlag(CheckBoxId id, bool val) => val ? id : CheckBoxId.None;
+			checkedBoxes =
+				cbFlag(CheckBoxId.FilterEnabled, currentFilter.Enabled) |
+				cbFlag(CheckBoxId.MatchCase, currentFilter.Options.MatchCase) |
+				cbFlag(CheckBoxId.RegExp, currentFilter.Options.Regexp) |
+				cbFlag(CheckBoxId.WholeWord, currentFilter.Options.WholeWord);
+
+			userDefinedName = currentFilter.UserDefinedName;
+
+			template = currentFilter.Options.Template;
+
+			actionComboBoxValue = actionsOptions.IndexOf(i => i.action == currentFilter.Action).GetValueOrDefault(-1);
+
+			dialogConfig = new DialogConfig()
+			{
+				Title = "Filter rule",
+				ActionComboBoxOptions = actionsOptions.Select(a => new KeyValuePair<string, Color?>(a.name, a.color)).ToArray(),
+			};
+			changeNotification.Post();
+			return currentTask.Task;
+		}
+
+		IChangeNotification IViewModel.ChangeNotification { get { return changeNotification; } }
+
+		bool IViewModel.IsVisible => currentTask != null;
+
+		DialogConfig IViewModel.Config => dialogConfig;
+
+		IReadOnlyList<IScopeItem> IViewModel.ScopeItems => scopeItems;
+
+		void IViewModel.OnScopeItemCheck(IScopeItem item, bool checkedValue)
+		{
+			if (scopeSupported)
+				((ScopeNode)item).HandleClick(checkedValue);
+		}
+
+		void IViewModel.OnScopeItemSelect(IScopeItem item)
+		{
+			if (scopeSupported && item is ScopeNode node && !node.IsSelected)
+			{
+				scopeItems = ImmutableList.CreateRange(
+					scopeItems.Select(i => (i.Index == node.Index) == i.IsSelected ? i : i.SetSelected(i.Index == node.Index)));
+				changeNotification.Post();
+			}
+		}
+
+		IReadOnlyList<IMessageTypeItem> IViewModel.MessageTypeItems => messageTypeItems;
+
+		void IViewModel.OnMessageTypeItemCheck(IMessageTypeItem item, bool checkedValue)
+		{
+			if (item is MessageTypeItem impl && impl.IsChecked != checkedValue)
+			{
+				messageTypeItems = messageTypeItems.SetItem(impl.Index,
+					new MessageTypeItem(impl.ToString(), impl.Index, checkedValue, impl.IsSelected));
+				changeNotification.Post();
+			}
+		}
+
+		void IViewModel.OnMessageTypeItemSelect(IMessageTypeItem item)
+		{
+			if (item is MessageTypeItem itemToSelect && !itemToSelect.IsSelected)
+			{
+				messageTypeItems = ImmutableList.CreateRange(messageTypeItems.Select(i => 
+					i.IsSelected == (i.Index == itemToSelect.Index) ? i :
+					new MessageTypeItem(i.ToString(), i.Index, i.IsChecked, i.Index == itemToSelect.Index)));
+				changeNotification.Post();
+			}
+		}
+
+
+		CheckBoxId IViewModel.CheckedBoxes => checkedBoxes;
+
+		NameEditBoxProperties IViewModel.NameEdit => nameEditBoxProperties();
+
+		string IViewModel.Template => template;
+
+		void IViewModel.OnNameEditLinkClicked()
+		{
+			if (userDefinedName != null)
+			{
+				userDefinedName = null;
+				changeNotification.Post();
 			}
 			else
 			{
-				userDefinedNameSet = true;
-				view.SetNameEditProperties(new NameEditBoxProperties()
-				{
-					Value = view.GetData().NameEditBoxProperties.Value, 
-					Enabled = true,
-					LinkText = resetLinkText,
-				});
-				view.PutFocusOnNameEdit();
+				userDefinedName = nameEditBoxProperties().Value;
+				changeNotification.Post();
+				view?.PutFocusOnNameEdit();
 			}
 		}
 
-		void RefreshAutomaticNameTextBox()
+		void IViewModel.OnCancelled() => Reset();
+
+		void IViewModel.OnConfirmed()
 		{
-			if (userDefinedNameSet)
-				return;
-			using (var tempFilter = currentFilter.Clone())
+			if (currentTask != null)
 			{
-				ReadView(tempFilter);
-				view.SetNameEditProperties(new NameEditBoxProperties()
-				{
-					Value = tempFilter.Name, 
-					Enabled = false,
-					LinkText = changeLinkText,
-				});
+				SetFilterData(currentFilter, outputFilterData());
+				currentTask.TrySetResult(true);
+				currentTask = null;
+				changeNotification.Post();
 			}
 		}
 
-		List<KeyValuePair<ScopeItem, bool>> CreateScopeItems(IFilterScope target)
+		void IViewModel.OnCheckBoxCheck(CheckBoxId cb, bool checkedValue)
+		{
+			CheckBoxId newCheckedBoxes = checkedValue ? checkedBoxes | cb : checkedBoxes & ~cb;
+			if (newCheckedBoxes != checkedBoxes)
+			{
+				checkedBoxes = newCheckedBoxes;
+				changeNotification.Post();
+			}
+		}
+
+		void IViewModel.OnNameChange(string value)
+		{
+			if (userDefinedName != null && userDefinedName != value)
+			{
+				userDefinedName = value;
+				changeNotification.Post();
+			}
+		}
+
+		void IViewModel.OnTemplateChange(string value)
+		{
+			if (template != value)
+			{
+				template = value;
+				changeNotification.Post();
+			}
+		}
+
+
+		int IViewModel.ActionComboBoxValue => actionComboBoxValue;
+
+		void IViewModel.OnActionComboBoxValueChange(int value)
+		{
+			if (actionComboBoxValue != value)
+			{
+				actionComboBoxValue = value;
+				changeNotification.Post();
+			}
+		}
+
+		void IViewModel.SetView(IView view)
+		{
+			this.view = view;
+		}
+
+		void Reset()
+		{
+			if (currentTask != null)
+			{
+				currentTask.TrySetResult(false);
+				currentTask = null;
+				changeNotification.Post();
+			}
+		}
+
+		ImmutableList<ScopeNode> CreateScopeItems(IFilterScope target)
 		{
 			if (!scopeSupported)
 				return null;
 				
-			var items = new List<KeyValuePair<ScopeItem, bool>>();
-
-			Action<ScopeItem, bool> add = (i, isChecked) => items.Add(new KeyValuePair<ScopeItem, bool>(i, isChecked));
+			var items = ImmutableList.CreateBuilder<ScopeNode>();
 
 			bool matchesAllSources = target.ContainsEverything;
-			add(new AllSources(items.Count, this), matchesAllSources);
+			items.Add(new AllSources(items.Count, matchesAllSources, false, this));
 
-			foreach (ILogSource s in logSources?.Items ?? new ILogSource[0])
+			foreach (ILogSource s in logSources?.Items ?? Array.Empty<ILogSource>())
 			{
 				bool matchesSource = matchesAllSources || target.ContainsEverythingFromSource(s);
-				add(new SourceNode(items.Count, s, this), matchesSource);
+				items.Add(new SourceNode(items.Count, s, matchesSource, false, this));
 
 				foreach (IThread t in s.Threads.Items)
 				{
 					bool matchesThread = matchesSource || target.ContainsEverythingFromThread(t);
-					add(new ThreadNode(items.Count, t, this), matchesThread);
+					items.Add(new ThreadNode(items.Count, t, matchesThread, false, this));
 				}
 			}
 
-			return items;
+			return items.ToImmutable();
 		}
 
-		IEnumerable<bool> CreateTypes(IFilter filter)
+		ImmutableList<MessageTypeItem> CreateMessageTypeItems(MessageFlag contentTypes)
 		{
-			var types = filter.Options.ContentTypes;
-			for (int i = 0; i < typeFlagsList.Length; ++i)
+			return ImmutableList.CreateRange(typeFlagsList.Select(
+				(item, i) => new MessageTypeItem(item.name, i, (contentTypes & item.flags) == item.flags, false)));
+		}
+
+		void SetScopeItemChecked(int i, bool isChecked)
+		{
+			if (scopeItems[i].IsChecked == isChecked)
+				return;
+			scopeItems = scopeItems.SetItem(i, scopeItems[i].SetChecked(isChecked));
+			changeNotification.Post();
+		}
+
+		class MessageTypeItem : IMessageTypeItem
+		{
+			readonly string name;
+			readonly int index;
+			readonly bool isChecked;
+			readonly bool isSelected;
+
+			public MessageTypeItem(string name, int index, bool isChecked, bool isSelected)
 			{
-				yield return (typeFlagsList[i] & types) == typeFlagsList[i];
+				this.name = name;
+				this.isChecked = isChecked;
+				this.index = index;
+				this.isSelected = isSelected;
 			}
+
+			public int Index => index;
+			public bool IsChecked => isChecked;
+			public bool IsSelected => isSelected;
+			public override string ToString() => name;
+			bool IMessageTypeItem.IsChecked => isChecked;
+			string IListItem.Key => name;
+			bool IListItem.IsSelected => isSelected;
 		}
 
-		abstract class Node: ScopeItem
+		abstract class ScopeNode : IScopeItem
 		{
-			protected Node(int idx, Presenter owner)
+			protected readonly int indent;
+			protected readonly string key;
+			protected readonly bool isChecked;
+			protected readonly bool isSelected;
+
+			protected ScopeNode(int idx, Presenter owner, int indent, string key, bool isChecked, bool isSelected)
 			{
 				this.Index = idx;
 				this.Owner = owner;
+				this.indent = indent;
+				this.key = key;
+				this.isChecked = isChecked;
+				this.isSelected = isSelected;
 			}
-			public abstract void Click(bool checkedValue);
+
+			public abstract ScopeNode SetChecked(bool isChecked);
+			public abstract ScopeNode SetSelected(bool isSelected);
+
+			public abstract void HandleClick(bool checkedValue);
 			public readonly int Index;
 			public readonly Presenter Owner;
-		};
+			public bool IsChecked => isChecked;
+			public bool IsSelected => isSelected;
 
-		class AllSources : Node
+			int IScopeItem.Indent => indent;
+			string IListItem.Key => key;
+			bool IScopeItem.IsChecked => isChecked;
+			bool IListItem.IsSelected => isSelected;
+		}
+
+		class AllSources : ScopeNode
 		{
-			public AllSources(int idx, Presenter owner) : base(idx, owner)
+			public AllSources(int idx, bool isChecked, bool isSelected, Presenter owner) :
+				base(idx, owner, 0, "<<all>>", isChecked, isSelected)
 			{
 			}
+
+			public override ScopeNode SetChecked(bool isChecked) => new AllSources(Index, isChecked, isSelected, Owner);
+
+			public override ScopeNode SetSelected(bool isSelected) => new AllSources(Index, isChecked, isSelected, Owner);
 
 			public override string ToString()
 			{
 				return "All threads from all sources";
 			}
 
-			public override void Click(bool checkedValue)
+			public override void HandleClick(bool checkedValue)
 			{
-				bool f = !checkedValue;
 				for (int i = 0; i < Owner.scopeItems.Count; ++i)
-					Owner.view.SetScopeItemChecked(i, f);
+					Owner.SetScopeItemChecked(i, checkedValue);
 			}
 		};
 
-		class SourceNode : Node
+		class SourceNode : ScopeNode
 		{
 			public readonly ILogSource Source;
 
-			public SourceNode(int idx, ILogSource src, Presenter owner) : base(idx, owner)
+			public SourceNode(int idx, ILogSource src, bool isChecked, bool isSelected, Presenter owner) : 
+				base(idx, owner, 1, src.ConnectionId, isChecked, isSelected)
 			{
 				this.Source = src;
-				this.Indent = 1;
 			}
+
+			public override ScopeNode SetChecked(bool isChecked) => new SourceNode(Index, Source, isChecked, isSelected, Owner);
+
+			public override ScopeNode SetSelected(bool isSelected) => new SourceNode(Index, Source, isChecked, isSelected, Owner);
 
 			public override string ToString()
 			{
 				return "All threads from " + Source.DisplayName;
 			}
 
-			public override void Click(bool checkedValue)
+			public override void HandleClick(bool checkedValue)
 			{
-				bool f = !checkedValue;
 				for (int i = 0; i < Owner.scopeItems.Count; ++i)
 				{
 					var item = Owner.scopeItems[i];
 					if (object.ReferenceEquals(item, this))
 					{
-						Owner.view.SetScopeItemChecked(i, f);
+						Owner.SetScopeItemChecked(i, checkedValue);
 					}
 					else if (item is AllSources)
 					{
-						if (!f)
-							Owner.view.SetScopeItemChecked(i, false);
+						if (!checkedValue)
+							Owner.SetScopeItemChecked(i, false);
 					}
-					else if (item is ThreadNode)
+					else if (item is ThreadNode threadNode)
 					{
-						if (((ThreadNode)item).Thread.LogSource == Source)
-							Owner.view.SetScopeItemChecked(i, f);
+						if (threadNode.Thread.LogSource == Source)
+							Owner.SetScopeItemChecked(i, checkedValue);
 					}
 				}
 			}
 		};
 
-		class ThreadNode : Node
+		class ThreadNode : ScopeNode
 		{
 			public readonly IThread Thread;
 
-			public ThreadNode(int idx, IThread t, Presenter owner)
-				: base(idx, owner)
+			public ThreadNode(int idx, IThread t, bool isChecked, bool isSelected, Presenter owner)
+				: base(idx, owner, 2, t.ID, isChecked, isSelected)
 			{
 				this.Thread = t;
-				this.Indent = 2;
 			}
+
+			public override ScopeNode SetChecked(bool isChecked) => new ThreadNode(Index, Thread, isChecked, isSelected, Owner);
+
+			public override ScopeNode SetSelected(bool isSelected) => new ThreadNode(Index, Thread, isChecked, isSelected, Owner);
 
 			public override string ToString()
 			{
 				return Thread.DisplayName;
 			}
 
-			public override void Click(bool checkedValue)
+			public override void HandleClick(bool checkedValue)
 			{
-				bool f = !checkedValue;
 				for (int i = 0; i < Owner.scopeItems.Count; ++i)
 				{
 					object item = Owner.scopeItems[i];
-					if (object.ReferenceEquals(item, this))
+					if (ReferenceEquals(item, this))
 					{
-						Owner.view.SetScopeItemChecked(i, f);
+						Owner.SetScopeItemChecked(i, checkedValue);
 					}
 					else if (item is AllSources)
 					{
-						if (!f)
-							Owner.view.SetScopeItemChecked(i, false);
+						if (!checkedValue)
+							Owner.SetScopeItemChecked(i, false);
 					}
-					else if (item is SourceNode)
+					else if (item is SourceNode sourceNode)
 					{
-						if (!f && ((SourceNode)item).Source == Thread.LogSource)
-							Owner.view.SetScopeItemChecked(i, false);
+						if (!checkedValue && sourceNode.Source == Thread.LogSource)
+							Owner.SetScopeItemChecked(i, false);
 					}
 				}
 			}
 		};
 
-		void WriteView(IFilter filter)
+		class FilterData
 		{
-			var tempScopeItems = CreateScopeItems(filter.Options.Scope);
-			this.scopeItems = tempScopeItems?.Select(i => i.Key)?.ToList();
-			this.userDefinedNameSet = filter.UserDefinedName != null;
-			clickLock = true;
+			public string userDefinedName;
+			public int actionComboBoxValue;
+			public CheckBoxId checkedBoxes;
+			public string template;
+			public bool scopeSupported;
+			public ImmutableList<ScopeNode> scopeItems;
+			public ImmutableList<MessageTypeItem> messageTypeItems;
+		};
 
-			view.SetData(
-				"Filter rule",
-				actionsOptions.Select(a => new KeyValuePair<string, Color?>(a.Item2, a.Item3)).ToArray(),
-				new[]
-				{
-						"Errors",
-						"Warnings",
-						"Infos"
-				},
-				new DialogValues()
-				{
-					NameEditBoxProperties = new NameEditBoxProperties()
-					{
-						Value = filter.Name,
-						Enabled = userDefinedNameSet,
-						LinkText = userDefinedNameSet ? resetLinkText : changeLinkText
-					},
-					EnabledCheckboxValue = filter.Enabled,
-					TemplateEditValue = filter.Options.Template,
-					MatchCaseCheckboxValue = filter.Options.MatchCase,
-					RegExpCheckBoxValue = filter.Options.Regexp,
-					WholeWordCheckboxValue = filter.Options.WholeWord,
-					ActionComboBoxValue = GetActionComboBoxValue(filter.Action),
-					ScopeItems = tempScopeItems,
-					TypesCheckboxesValues = CreateTypes(filter).ToList()
-				}
-			);
-			clickLock = false;
-		}
-
-		void ReadView(IFilter filter)
+		void SetFilterData(IFilter destinationFilter, FilterData data)
 		{
-			var data = view.GetData();
-
-			filter.UserDefinedName = userDefinedNameSet ? data.NameEditBoxProperties.Value : null;
-			filter.Action = GetFilterAction(data.ActionComboBoxValue);
-			filter.Enabled = data.EnabledCheckboxValue;
-			filter.Options = new Search.Options()
+			destinationFilter.UserDefinedName = data.userDefinedName;
+			destinationFilter.Action = actionsOptions.ElementAtOrDefault(data.actionComboBoxValue).action;
+			destinationFilter.Enabled = (data.checkedBoxes & CheckBoxId.FilterEnabled) != 0;
+			destinationFilter.Options = new Search.Options()
 			{
-				Template = data.TemplateEditValue,
-				MatchCase = data.MatchCaseCheckboxValue,
-				Regexp = data.RegExpCheckBoxValue,
-				WholeWord = data.WholeWordCheckboxValue,
-				Scope = CreateScope(data.ScopeItems, filter.Factory),
-				ContentTypes = GetTypes(data.TypesCheckboxesValues)
+				Template = data.template,
+				MatchCase = (data.checkedBoxes & CheckBoxId.MatchCase) != 0,
+				Regexp = (data.checkedBoxes & CheckBoxId.RegExp) != 0,
+				WholeWord = (data.checkedBoxes & CheckBoxId.WholeWord) != 0,
+				Scope = CreateScope(data.scopeSupported, data.scopeItems, destinationFilter.Factory),
+				ContentTypes = MakeContextTypesMask(data.messageTypeItems)
 			};
 		}
 
-		int GetActionComboBoxValue(FilterAction a)
-		{
-			return actionsOptions.IndexOf(i => i.Item1 == a).GetValueOrDefault(-1);
-		}
-
-		FilterAction GetFilterAction(int actionComboBoxValue)
-		{
-			return (actionsOptions.ElementAtOrDefault(actionComboBoxValue)?.Item1)
-				.GetValueOrDefault(FilterAction.Exclude);
-		}
-
-		IFilterScope CreateScope(List<KeyValuePair<ScopeItem, bool>> items, IFiltersFactory filtersFactory)
+		static IFilterScope CreateScope(bool scopeSupported, IReadOnlyList<ScopeNode> items, IFiltersFactory filtersFactory)
 		{
 			if (!scopeSupported)
 				return filtersFactory.CreateScope();
@@ -326,8 +493,8 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 			for (int i = 0; i < items.Count;)
 			{
-				ScopeItem item = items[i].Key;
-				bool isChecked = items[i].Value;
+				ScopeNode item = items[i];
+				bool isChecked = item.IsChecked;
 
 				if (item is AllSources)
 				{
@@ -339,13 +506,13 @@ namespace LogJoint.UI.Presenters.FilterDialog
 					continue;
 				}
 
-				if (item is SourceNode)
+				if (item is SourceNode sourceNode)
 				{
 					if (isChecked)
 					{
-						sources.Add(((SourceNode)item).Source);
+						sources.Add(sourceNode.Source);
 						++i;
-						while (i < items.Count && items[i].Key is ThreadNode)
+						while (i < items.Count && items[i] is ThreadNode)
 							++i;
 					}
 					else
@@ -355,11 +522,11 @@ namespace LogJoint.UI.Presenters.FilterDialog
 					continue;
 				}
 
-				if (item is ThreadNode)
+				if (item is ThreadNode threadNode)
 				{
 					if (isChecked)
 					{
-						threads.Add(((ThreadNode)item).Thread);
+						threads.Add(threadNode.Thread);
 					}
 					++i;
 					continue;
@@ -371,20 +538,20 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			return filtersFactory.CreateScope(sources, threads);
 		}
 
-		MessageFlag GetTypes(List<bool> typesCheckboxesValues)
+		static MessageFlag MakeContextTypesMask(IReadOnlyList<IMessageTypeItem> messageTypeItems)
 		{
-			MessageFlag f = MessageFlag.None;
-			for (int i = 0; i < Math.Min(typeFlagsList.Length, typesCheckboxesValues.Count); ++i)
+			var f = MessageFlag.None;
+			for (int i = 0; i < Math.Min(typeFlagsList.Length, messageTypeItems.Count); ++i)
 			{
-				if (typesCheckboxesValues[i])
-					f |= typeFlagsList[i];
+				if (messageTypeItems[i].IsChecked)
+					f |= typeFlagsList[i].flags;
 			}
 			return f;
 		}
 
-		static List<Tuple<FilterAction, string, Color?>> MakeActionsOptions(FiltersListPurpose purpose, IColorTable highlightColorsTable)
+		static List<(FilterAction, string, Color?)> MakeActionsOptions(FiltersListPurpose purpose, IColorTable highlightColorsTable)
 		{
-			var actionOptions = new List<Tuple<FilterAction, string, Color?>>();
+			var actionOptions = new List<(FilterAction, string, Color?)>();
 
 			string excludeDescription;
 			if (purpose == FiltersListPurpose.Highlighting)
@@ -393,11 +560,11 @@ namespace LogJoint.UI.Presenters.FilterDialog
 				excludeDescription = "Exclude from search results";
 			else
 				excludeDescription = "Exclude";
-			actionOptions.Add(Tuple.Create(FilterAction.Exclude, excludeDescription, new Color?()));
+			actionOptions.Add((FilterAction.Exclude, excludeDescription, new Color?()));
 
 			if (purpose == FiltersListPurpose.Search)
 			{
-				actionOptions.Add(Tuple.Create(FilterAction.Include, "Include to search result", new Color?()));
+				actionOptions.Add((FilterAction.Include, "Include to search result", new Color?()));
 			}
 
 			string includeAndColorizeFormat;
@@ -410,7 +577,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 			for (var a = FilterAction.IncludeAndColorizeFirst; a <= FilterAction.IncludeAndColorizeLast; ++a)
 			{
-				actionOptions.Add(Tuple.Create(a, 
+				actionOptions.Add((a, 
 					string.Format(includeAndColorizeFormat, a - FilterAction.IncludeAndColorizeFirst + 1), 
 					a.ToColor(highlightColorsTable.Items)));
 			}

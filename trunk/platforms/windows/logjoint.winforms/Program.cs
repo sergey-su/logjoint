@@ -89,10 +89,12 @@ namespace LogJoint
 			mainForm.timeLinePanel.TimelineControl.SetViewModel(presentation.ViewModels.Timeline);
 			mainForm.loadedMessagesControl.SetViewModel(presentation.ViewModels.LoadedMessages);
 			mainForm.searchResultView.SetViewModel(presentation.ViewModels.SearchResult);
+			mainForm.hlFiltersManagementView.SetViewModel(presentation.ViewModels.HlFiltersManagement, viewsFactory);
 			new StatusReportView(mainForm, mainForm.toolStripStatusLabel, mainForm.cancelLongRunningProcessDropDownButton,
 				mainForm.cancelLongRunningProcessLabel, presentation.ViewModels.StatusReports);
 			new UI.HistoryDialog(presentation.ViewModels.HistoryDialog);
 			new UI.SearchesManagerDialog(presentation.ViewModels.SearchesManagerDialog, viewsFactory);
+			new UI.SearchEditorDialog(presentation.ViewModels.SearchEditorDialog, viewsFactory);
 
 			var pluginEntryPoint = new Extensibility.Application(
 				model.ExpensibilityEntryPoint,

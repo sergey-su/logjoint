@@ -1,59 +1,77 @@
 using LogJoint.Drawing;
+using LogJoint.UI.Presenters.Reactive;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.FilterDialog
 {
-	public interface IView
-	{
-		void SetEventsHandler(IViewEvents handler);
-		void SetData(
-			string title,
-			KeyValuePair<string, Color?>[] actionComboBoxOptions, 
-			string[] typesOptions,
-			DialogValues values
-		);
-		DialogValues GetData();
-		void SetScopeItemChecked(int idx, bool checkedValue);
-		void SetNameEditProperties(NameEditBoxProperties props);
-		void PutFocusOnNameEdit();
-		bool ShowDialog();
-	};
-
-	public struct DialogValues
-	{
-		public NameEditBoxProperties NameEditBoxProperties;
-		public bool EnabledCheckboxValue;
-		public string TemplateEditValue;
-		public bool MatchCaseCheckboxValue;
-		public bool RegExpCheckBoxValue;
-		public bool WholeWordCheckboxValue;
-		public int ActionComboBoxValue;
-		public List<KeyValuePair<ScopeItem, bool>> ScopeItems;
-		public List<bool> TypesCheckboxesValues;
-	};
-
-	public struct NameEditBoxProperties
+	public class NameEditBoxProperties
 	{
 		public string Value;
 		public bool Enabled;
 		public string LinkText;
 	};
 
+	public class DialogConfig
+	{
+		public string Title;
+		public KeyValuePair<string, Color?>[] ActionComboBoxOptions;
+	};
+
 	public interface IPresenter
 	{
-		bool ShowTheDialog(IFilter forFilter);
+		Task<bool> ShowTheDialog(IFilter forFilter, FiltersListPurpose filtersListPurpose);
 	};
 
-	public abstract class ScopeItem
+	public interface IScopeItem: IListItem
 	{
-		public int Indent { get; internal set; }
-		public override abstract string ToString();
+		int Indent { get; }
+		bool IsChecked { get; }
 	};
 
-	public interface IViewEvents
+	public interface IMessageTypeItem : IListItem
 	{
-		void OnScopeItemChecked(ScopeItem item, bool checkedValue);
-		void OnCriteriaInputChanged();
+		bool IsChecked { get; }
+	};
+
+	[Flags]
+	public enum CheckBoxId
+	{
+		None = 0,
+		FilterEnabled = 1,
+		MatchCase = 2,
+		RegExp = 4,
+		WholeWord = 8,
+	};
+
+	public interface IViewModel
+	{
+		IChangeNotification ChangeNotification { get; }
+		bool IsVisible { get; }
+		DialogConfig Config { get; }
+		IReadOnlyList<IScopeItem> ScopeItems { get; }
+		IReadOnlyList<IMessageTypeItem> MessageTypeItems { get; }
+		CheckBoxId CheckedBoxes { get; }
+		NameEditBoxProperties NameEdit { get; }
+		string Template { get; }
+		int ActionComboBoxValue { get; }
+		void SetView(IView view);
+		void OnScopeItemCheck(IScopeItem item, bool checkedValue);
+		void OnScopeItemSelect(IScopeItem item);
+		void OnMessageTypeItemCheck(IMessageTypeItem item, bool checkedValue);
+		void OnMessageTypeItemSelect(IMessageTypeItem item);
 		void OnNameEditLinkClicked();
+		void OnConfirmed();
+		void OnCancelled();
+		void OnCheckBoxCheck(CheckBoxId cb, bool checkedValue);
+		void OnNameChange(string value);
+		void OnTemplateChange(string value);
+		void OnActionComboBoxValueChange(int value);
+	};
+
+	public interface IView
+	{
+		void PutFocusOnNameEdit();
 	};
 };

@@ -1,39 +1,17 @@
 using LogJoint.Drawing;
+using LogJoint.UI.Presenters.Reactive;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.FiltersListBox
 {
 	public interface IPresenter
 	{
-		IFiltersList FiltersList { get; }
-		event EventHandler FilterChecked;
-		event EventHandler SelectionChanged;
+		IFiltersList FiltersList { get; set; }
+
 		event EventHandler DeleteRequested;
-		void SelectFilter(IFilter filter);
-		IEnumerable<IFilter> SelectedFilters { get; }
-		void UpdateView();
-	};
-
-	public interface IView
-	{
-		void SetPresenter(IViewEvents presenter);
-		void BeginUpdate();
-		void EndUpdate();
-
-		IViewItem CreateItem(IFilter filter, string key);
-
-		int Count { get; }
-		IViewItem GetItem(int index);
-
-		void RemoveAt(int index);
-		void Remove(IViewItem item);
-		void Insert(int index, IViewItem item);
-		int GetItemIndexByKey(string key);
-
-		IEnumerable<IViewItem> SelectedItems { get; }
-
-		void SetEnabled(bool value);
+		IImmutableSet<IFilter> SelectedFilters { get; }
 	};
 
 	public enum ViewItemImageType
@@ -43,16 +21,14 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		Exclude
 	};
 
-	public interface IViewItem
+	public interface IViewItem : IListItem
 	{
-		IFilter Filter { get; }
-		string Text { get; set; }
-		bool? Checked { get; set; }
-		bool Selected { get; set; }
-		Color? Color { get; set; }
-		string CheckboxTooltip { get; set; }
-		string ActionTooltip { get; set; }
-		void SetImageType(ViewItemImageType imageType);
+		Color? Color { get; }
+		bool? IsChecked { get; }
+		string CheckboxTooltip { get; }
+		string ActionTooltip { get; }
+		ViewItemImageType ImageType { get; }
+		bool IsDefaultActionItem { get; }
 	};
 
 	[Flags]
@@ -65,9 +41,12 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		MoveDown = 8,
 	};
 
-	public interface IViewEvents
+	public interface IViewModel
 	{
-		void OnSelectionChanged();
+		IChangeNotification ChangeNotification { get; }
+		bool IsEnabled { get; }
+		IReadOnlyList<IViewItem> Items { get; }
+		void OnChangeSelection(IViewItem[] items);
 		void OnItemChecked(IViewItem item);
 		void OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems);
 		void OnFilterEnabledMenuItemClicked();

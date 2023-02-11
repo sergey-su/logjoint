@@ -1,102 +1,117 @@
 using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SearchEditorDialog
 {
-	public class Presenter : IPresenter, IDialogViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
-		readonly IView view;
-		readonly FiltersManagerFactory filtersManagerFactory;
+		readonly IChangeNotification changeNotification;
 		readonly IUserDefinedSearches userDefinedSearches;
 		readonly IAlertPopup alerts;
+		readonly FiltersManager.IPresenter filtersPresenter;
+		readonly FiltersManager.IViewModel filtersViewModel;
 		const string alertsCaption = "Filter editor";
 
-		IDialogView dialogView;
-		Func<bool> confirm; 
+		TaskCompletionSource<bool> currentResult;
+		IFiltersList tempList;
+		string tempName;
+		IUserDefinedSearch currentSearch;
 
-		public delegate FiltersManager.IPresenter FiltersManagerFactory(IFiltersList filtersList, IDialogView dialogView);
 
 		public Presenter(
-			IView view,
+			IChangeNotification changeNotification,
 			IUserDefinedSearches userDefinedSearches,
-			FiltersManagerFactory filtersManagerFactory,
+			FiltersManager.IPresenter filtersManagerPresenter,
 			IAlertPopup alerts
 		)
 		{
-			this.view = view;
+			this.changeNotification = changeNotification;
 			this.userDefinedSearches = userDefinedSearches;
-			this.filtersManagerFactory = filtersManagerFactory;
+			this.filtersViewModel = (FiltersManager.IViewModel)filtersManagerPresenter;
+			this.filtersPresenter = filtersManagerPresenter;
 			this.alerts = alerts;
 		}
 
-		bool IPresenter.Open(IUserDefinedSearch search)
+		Task<bool> IPresenter.Open(IUserDefinedSearch search)
 		{
-			IFiltersList tempList = search.Filters.Clone();
-			bool confirmed = false;
-			using (dialogView = view.CreateDialog(this))
-			using (var filtersManagerPresenter = filtersManagerFactory(tempList, dialogView))
+			Reset();
+			currentSearch = search;
+			currentResult = new TaskCompletionSource<bool>();
+			tempList = search.Filters.Clone();
+			tempName = search.Name;
+			filtersPresenter.FiltersList = tempList;
+			changeNotification.Post();
+			return currentResult.Task;
+		}
+
+		FiltersManager.IViewModel IViewModel.FiltersManager => filtersViewModel;
+
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		bool IViewModel.IsVisible => currentResult != null;
+
+		string IViewModel.Name => tempName;
+
+		async void IViewModel.OnConfirmed()
+		{
+			if (string.IsNullOrWhiteSpace(tempName))
 			{
-				dialogView.SetData(new DialogData()
-				{
-					Name = search.Name
-				});
-				confirm = () =>
-				{
-					string name = dialogView.GetData().Name;
-					if (string.IsNullOrWhiteSpace(name))
-					{
-						alerts.ShowPopup(
-							alertsCaption, 
-							"Bad filter name.",
-							AlertFlags.Ok
-						);
-						return false;
-					}
-					if (name != search.Name && userDefinedSearches.ContainsItem(name))
-					{
-						alerts.ShowPopup(
-							alertsCaption, 
-							string.Format("Name '{0}' is already used by another filter. Enter another name.", name), 
-							AlertFlags.Ok
-						);
-						return false;
-					}
-					if (tempList.Items.Count == 0)
-					{
-						alerts.ShowPopup(
-							alertsCaption, 
-							"Can not save: filter must have at least one rule.", 
-							AlertFlags.Ok
-						);
-						return false;
-					}
-					confirmed = true;
-					return confirmed;
-				};
-				dialogView.OpenModal();
-				confirm = null;
-				if (confirmed)
-				{
-					search.Name = dialogView.GetData().Name;
-					search.Filters = tempList;
-				}
-				else
-				{
-					tempList.Dispose();
-				}
+				await alerts.ShowPopupAsync(
+					alertsCaption,
+					"Bad filter name.",
+					AlertFlags.Ok
+				);
+				return;
 			}
-			dialogView = null;
-			return confirmed;
+			if (tempName != currentSearch.Name && userDefinedSearches.ContainsItem(tempName))
+			{
+				await alerts.ShowPopupAsync(
+					alertsCaption,
+					string.Format("Name '{0}' is already used by another filter. Enter another name.", tempName),
+					AlertFlags.Ok);
+				return;
+			}
+			if (tempList.Items.Count == 0)
+			{
+				await alerts.ShowPopupAsync(
+					alertsCaption,
+					"Can not save: filter must have at least one rule.",
+					AlertFlags.Ok);
+				return;
+			}
+			currentSearch.Name = tempName;
+			currentSearch.Filters = tempList;
+			tempList = null;
+			currentResult.TrySetResult(true);
+			currentResult = null;
+			changeNotification.Post();
 		}
 
-		void IDialogViewEvents.OnConfirmed ()
+		void IViewModel.OnCancelled()
 		{
-			if (confirm())
-				dialogView.CloseModal();
+			Reset();
 		}
 
-		void IDialogViewEvents.OnCancelled ()
+		void IViewModel.OnChangeName(string name)
 		{
-			dialogView.CloseModal();
+			tempName = name;
+			changeNotification.Post();
+		}
+
+		void Reset()
+		{
+			if (currentResult != null)
+			{
+				currentResult.TrySetResult(false);
+				currentResult = null;
+				changeNotification.Post();
+			}
+			if (tempList != null)
+			{
+				tempList.Dispose();
+				tempList = null;
+			}
+			filtersPresenter.FiltersList = null;
 		}
 	};
-};
+}

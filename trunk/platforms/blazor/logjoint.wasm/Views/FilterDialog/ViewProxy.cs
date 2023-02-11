@@ -21,7 +21,7 @@ namespace LogJoint.Wasm.UI
             throw new System.NotImplementedException();
         }
 
-        void IView.SetEventsHandler(IViewEvents handler)
+        void IView.SetEventsHandler(IViewModel handler)
         {
         }
 

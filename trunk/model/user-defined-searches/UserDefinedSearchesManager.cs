@@ -141,11 +141,11 @@ namespace LogJoint
 
 		async Task SaveItems ()
 		{
-            await using var section = await (await storageEntry.Value).OpenXMLSection(
-                sectionName,
-                Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions);
-            section.Data.Add(SaveItems(items.Values));
-        }
+			await using var section = await (await storageEntry.Value).OpenXMLSection(
+				sectionName,
+				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions);
+			section.Data.Add(SaveItems(items.Values));
+		}
 
 		private XElement SaveItems (IEnumerable<IUserDefinedSearch> searches)
 		{

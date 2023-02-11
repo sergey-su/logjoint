@@ -4,59 +4,117 @@ using System.ComponentModel;
 using LogJoint.Drawing;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.FiltersListBox;
+using LogJoint.Extensibility;
+using System.Reflection;
+using System.Linq;
 
 namespace LogJoint.UI
 {
-	public partial class FiltersListView : UserControl, IView
+	public partial class FiltersListView : UserControl
 	{
-		IViewEvents presenter;
+		IViewModel viewModel;
 		bool ignoreNextCheck;
+		int updateLock;
+		ISubscription subscription;
 
 		public FiltersListView()
 		{
 			InitializeComponent();
 		}
 
-		void IView.SetPresenter(IViewEvents presenter)
+		public void SetViewModel(IViewModel viewModel)
 		{
-			this.presenter = presenter;
-		}
-		void IView.BeginUpdate() { list.BeginUpdate(); }
-		void IView.EndUpdate() { list.EndUpdate(); }
-		IViewItem IView.CreateItem(IFilter filter, string key) { return new Item(filter, key); }
-		int IView.Count { get { return list.Items.Count; } }
-		IViewItem IView.GetItem(int index) { return GetItem(index); }
-		void IView.RemoveAt(int index) { list.Items.RemoveAt(index); }
-		void IView.Remove(IViewItem item) { list.Items.Remove(GetItem(item)); }
-		void IView.Insert(int index, IViewItem item) { list.Items.Insert(index, GetItem(item)); }
-		int IView.GetItemIndexByKey(string key) { return list.Items.IndexOfKey(key); }
-		IEnumerable<IViewItem> IView.SelectedItems
-		{
-			get
+			this.viewModel = viewModel;
+
+			var updateEnablement = Updaters.Create(() => viewModel.IsEnabled, value => { list.Enabled = value; });
+			var updateList = Updaters.Create(() => viewModel.Items, UpdateItems);
+
+			subscription = viewModel.ChangeNotification.CreateSubscription(() =>
 			{
-				foreach (ListViewItem i in list.SelectedItems)
-					if (GetItem(i) != null)
-						yield return GetItem(i);
+				updateEnablement();
+				updateList();
+			});
+		}
+
+		FilterListViewItem GetFilterListViewItem(ListViewItem i) => i as FilterListViewItem;
+
+		FilterListViewItem GetFilterListViewItem(int i) => GetFilterListViewItem(list.Items[i]);
+
+		void UpdateItems(IReadOnlyList<IViewItem> viewItems)
+		{
+			list.BeginUpdate();
+			try
+			{
+				FilterListViewItem defActionItem = null;
+				IViewItem defActionViewItem = null;
+				for (int i = list.Items.Count - 1; i >= 0; --i)
+				{
+					if (GetFilterListViewItem(i).ViewItem.IsDefaultActionItem)
+						defActionItem = GetFilterListViewItem(i);
+				}
+				int nextListViewItemIndex = 0;
+				foreach (var viewItem in viewItems)
+				{
+					if (viewItem.IsDefaultActionItem)
+					{
+						defActionViewItem = viewItem;
+						continue;
+					}
+					FilterListViewItem lvi;
+					int existingItemIdx = list.Items.IndexOfKey(viewItem.Key);
+					if (existingItemIdx < 0)
+					{
+						lvi = new FilterListViewItem(viewItem);
+						list.Items.Insert(nextListViewItemIndex, lvi);
+					}
+					else
+					{
+						lvi = GetFilterListViewItem(existingItemIdx);
+						if (existingItemIdx != nextListViewItemIndex)
+						{
+							list.Items.RemoveAt(existingItemIdx);
+							list.Items.Insert(nextListViewItemIndex, lvi);
+						}
+					}
+					++nextListViewItemIndex;
+
+					lvi.Text = viewItem.ToString();
+					lvi.Color = viewItem.Color;
+					lvi.IsChecked = viewItem.IsChecked;
+					lvi.CheckboxTooltip = viewItem.CheckboxTooltip;
+					lvi.SetImageType(viewItem.ImageType);
+					lvi.ActionTooltip = viewItem.ActionTooltip;
+				}
+
+				if (defActionViewItem == null)
+				{
+					if (defActionItem != null)
+					{
+						list.Items.Remove(defActionItem);
+					}
+				}
+				else
+				{
+					if (defActionItem == null)
+					{
+						defActionItem = new FilterListViewItem(defActionViewItem);
+						list.Items.Insert(nextListViewItemIndex, defActionItem);
+						defActionItem.IsChecked = null;
+					}
+					++nextListViewItemIndex;
+					defActionItem.Text = defActionViewItem.ToString();
+					defActionItem.SetImageType(defActionViewItem.ImageType);
+				}
+				while (list.Items.Count > nextListViewItemIndex)
+				{
+					list.Items.RemoveAt(list.Items.Count - 1);
+				}
 			}
-		}
-		void IView.SetEnabled(bool value) { list.Enabled = value; }
-
-
-
-
-		Item GetItem(IViewItem intf)
-		{
-			return intf as Item;
-		}
-
-		Item GetItem(ListViewItem i)
-		{
-			return i as Item;
-		}
-
-		Item GetItem(int i)
-		{
-			return GetItem(list.Items[i]);
+			finally
+			{
+				updateLock--;
+				list.EndUpdate();
+			}
 		}
 
 		private void list_Layout(object sender, LayoutEventArgs e)
@@ -66,7 +124,9 @@ namespace LogJoint.UI
 
 		private void list_ItemChecked(object sender, ItemCheckedEventArgs e)
 		{
-			presenter.OnItemChecked(GetItem(e.Item));
+			if (updateLock > 0)
+				return;
+			viewModel.OnItemChecked(GetFilterListViewItem(e.Item)?.ViewItem);
 		}
 
 		private void list_MouseDown(object sender, MouseEventArgs e)
@@ -74,14 +134,14 @@ namespace LogJoint.UI
 			if ((e.Button == MouseButtons.Left) && (e.Clicks > 1))
 			{
 				ignoreNextCheck = true;
-				presenter.OnDoubleClicked();
+				viewModel.OnDoubleClicked();
 			}
 		}
 
 		private void list_MouseMove(object sender, MouseEventArgs e)
 		{
 			var ht = list.HitTest(e.Location);
-			var item = GetItem(ht?.Item);
+			var item = GetFilterListViewItem(ht?.Item);
 			if (item != null)
 			{
 				if (ht.Location == ListViewHitTestLocations.StateImage)
@@ -97,7 +157,7 @@ namespace LogJoint.UI
 		{
 			ContextMenuItem enabledItems;
 			ContextMenuItem checkedItems;
-			presenter.OnContextMenuOpening(out enabledItems, out checkedItems);
+			viewModel.OnContextMenuOpening(out enabledItems, out checkedItems);
 
 			filterEnabledToolStripMenuItem.Enabled = (enabledItems & ContextMenuItem.FilterEnabled) != 0;
 			propertiesToolStripMenuItem.Enabled = (enabledItems & ContextMenuItem.Properties) != 0;
@@ -107,12 +167,12 @@ namespace LogJoint.UI
 
 		private void filterEnabledToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			presenter.OnFilterEnabledMenuItemClicked();
+			viewModel.OnFilterEnabledMenuItemClicked();
 		}
 
 		private void propertiesToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			presenter.OnPropertiesMenuItemClicked();
+			viewModel.OnPropertiesMenuItemClicked();
 		}
 
 		private void list_ItemCheck(object sender, ItemCheckEventArgs e)
@@ -122,7 +182,7 @@ namespace LogJoint.UI
 				e.NewValue = e.CurrentValue;
 				ignoreNextCheck = false;
 			}
-			else if (GetItem(e.Index)?.IsCheckable != true)
+			else if (GetFilterListViewItem(e.Index)?.IsCheckable != true)
 			{
 				e.NewValue = CheckState.Checked;
 			}
@@ -130,33 +190,34 @@ namespace LogJoint.UI
 
 		private void list_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			presenter.OnSelectionChanged();
+			viewModel.OnChangeSelection(list.SelectedItems.OfType<ListViewItem>().Select(
+				i => GetFilterListViewItem(i)?.ViewItem).Where(i => i != null).ToArray());
 		}
 
 		private void list_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Enter)
-				presenter.OnEnterPressed();
+				viewModel.OnEnterPressed();
 			else if (e.KeyCode == Keys.Delete)
-				presenter.OnDeletePressed();
+				viewModel.OnDeletePressed();
 		}
 
-		class Item : ListViewItem, IViewItem
+		class FilterListViewItem : ListViewItem
 		{
 			public bool IsCheckable = true;
 			Color? color;
 
-			public Item(IFilter filter, string key)
+			public FilterListViewItem(IViewItem item)
 			{
-				this.filter = filter;
-				Name = key;
-				if (filter == null)
+				this.ViewItem = item;
+				this.Name = item.Key;
+				if (item.IsDefaultActionItem)
 					this.ForeColor = System.Drawing.SystemColors.GrayText;
 			}
 
-			IFilter IViewItem.Filter { get { return filter; } }
-			string IViewItem.Text { get { return base.Text; } set { base.Text = value; } }
-			void IViewItem.SetImageType(ViewItemImageType value)
+			public IViewItem ViewItem { get; private set; }
+
+			public void SetImageType(ViewItemImageType value)
 			{
 				if (value == ViewItemImageType.Exclude)
 					ImageIndex = 0;
@@ -165,13 +226,13 @@ namespace LogJoint.UI
 				else
 					ImageIndex = 1;
 			}
-			bool? IViewItem.Checked
+			public bool? IsChecked
 			{
 				get { return base.Checked; }
 				set { base.Checked = value.GetValueOrDefault(true); IsCheckable = value != null; }
 			}
 
-			Color? IViewItem.Color
+			public Color? Color
 			{
 				get { return color; }
 				set
@@ -184,8 +245,6 @@ namespace LogJoint.UI
 			public string CheckboxTooltip { get; set; }
 
 			public string ActionTooltip { get; set; }
-
-			readonly IFilter filter;
 		};
 	}
 }

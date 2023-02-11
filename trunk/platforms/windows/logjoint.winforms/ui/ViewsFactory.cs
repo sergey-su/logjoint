@@ -20,9 +20,6 @@ namespace LogJoint.UI.Presenters
 		}
 
 		ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView() => mainForm.threadsListView;
-		SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView() => new SearchEditorDialogView();
-		FilterDialog.IView Factory.IViewsFactory.CreateHlFilterDialogView() => new FilterDialogView();
-		FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView) => new FilterDialogView();
 		SourcePropertiesWindow.IView Factory.IViewsFactory.CreateSourcePropertiesWindowView() => new SourceDetailsWindowView();
 		SharingDialog.IView Factory.IViewsFactory.CreateSharingDialogView() => new ShareDialog();
 		NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView() => new UI.NewLogSourceDialogView();
@@ -51,7 +48,6 @@ namespace LogJoint.UI.Presenters
 		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateXsltEditorDialog() => new EditXsltForm();
 		FormatsWizard.CustomCodeEditorDialog.IView FormatsWizard.Factory.IViewsFactory.CreateJUSTEditorDialog() => new EditXsltForm();
 		MessagePropertiesDialog.IView Factory.IViewsFactory.CreateMessagePropertiesDialogView() => new MessagePropertiesDialogView(mainForm);
-		FiltersManager.IView Factory.IViewsFactory.CreateHlFiltersManagerView() => mainForm.hlFiltersManagementView;
 		Options.Dialog.IView Factory.IViewsFactory.CreateOptionsDialogView() => new OptionsDialogView(this);
 		About.IView Factory.IViewsFactory.CreateAboutView() => new AboutBox();
 		MainForm.IView Factory.IViewsFactory.CreateMainFormView() => mainForm;

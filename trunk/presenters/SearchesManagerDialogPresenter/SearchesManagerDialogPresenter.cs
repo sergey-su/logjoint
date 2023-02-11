@@ -73,10 +73,10 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 
 		void IViewModel.OnCancelled() => Reset();
 
-		void IViewModel.OnAddClicked()
+		async void IViewModel.OnAddClicked()
 		{
 			var search = userDefinedSearches.AddNew();
-			if (!searchEditorDialog.Open(search))
+			if (!await searchEditorDialog.Open(search))
 				userDefinedSearches.Delete(search);
 		}
 
@@ -100,11 +100,11 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 			}
 		}
 
-		void IViewModel.OnEditClicked()
+		async void IViewModel.OnEditClicked()
 		{
 			var selected = getSelection().SingleOrDefault();
 			if (selected != null)
-				searchEditorDialog.Open(selected);
+				await searchEditorDialog.Open(selected);
 		}
 
 		void IViewModel.OnSelect(IEnumerable<IViewItem> requestedSelection)
@@ -204,7 +204,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 				this.Selected = selected;
 			}
 
-			string IListItem.Key => Search.GetHashCode().ToString("x");
+			string IListItem.Key => Search.Name;
 			bool IListItem.IsSelected => Selected;
 			public override string ToString() => Search.Name;
 		}

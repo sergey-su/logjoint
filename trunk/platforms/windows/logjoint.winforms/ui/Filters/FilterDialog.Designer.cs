@@ -13,6 +13,7 @@ namespace LogJoint.UI
 		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
 		protected override void Dispose(bool disposing)
 		{
+			subscription?.Dispose();
 			if (disposing && (components != null))
 			{
 				components.Dispose();
@@ -139,7 +140,6 @@ namespace LogJoint.UI
 			this.messagesTypesCheckedListBox.Name = "messagesTypesCheckedListBox";
 			this.messagesTypesCheckedListBox.Size = new System.Drawing.Size(300, 122);
 			this.messagesTypesCheckedListBox.TabIndex = 0;
-			this.messagesTypesCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.messagesTypesCheckedListBox_ItemCheck);
 			// 
 			// regExpCheckBox
 			// 
@@ -151,7 +151,7 @@ namespace LogJoint.UI
 			this.regExpCheckBox.TabIndex = 27;
 			this.regExpCheckBox.Text = "Regexp";
 			this.regExpCheckBox.UseVisualStyleBackColor = true;
-			this.regExpCheckBox.CheckedChanged += new System.EventHandler(this.criteriaInputChanged);
+			this.regExpCheckBox.CheckedChanged += new System.EventHandler(this.HandleCheckBoxChanged);
 			// 
 			// wholeWordCheckbox
 			// 
@@ -163,7 +163,7 @@ namespace LogJoint.UI
 			this.wholeWordCheckbox.TabIndex = 25;
 			this.wholeWordCheckbox.Text = "Whole word";
 			this.wholeWordCheckbox.UseVisualStyleBackColor = true;
-			this.wholeWordCheckbox.CheckedChanged += new System.EventHandler(this.criteriaInputChanged);
+			this.wholeWordCheckbox.CheckedChanged += new System.EventHandler(this.HandleCheckBoxChanged);
 			// 
 			// label2
 			// 
@@ -185,7 +185,7 @@ namespace LogJoint.UI
 			this.matchCaseCheckbox.TabIndex = 24;
 			this.matchCaseCheckbox.Text = "Match case";
 			this.matchCaseCheckbox.UseVisualStyleBackColor = true;
-			this.matchCaseCheckbox.CheckedChanged += new System.EventHandler(this.criteriaInputChanged);
+			this.matchCaseCheckbox.CheckedChanged += new System.EventHandler(this.HandleCheckBoxChanged);
 			// 
 			// templateTextBox
 			// 
@@ -196,7 +196,7 @@ namespace LogJoint.UI
 			this.templateTextBox.Name = "templateTextBox";
 			this.templateTextBox.Size = new System.Drawing.Size(635, 24);
 			this.templateTextBox.TabIndex = 3;
-			this.templateTextBox.TextChanged += new System.EventHandler(this.criteriaInputChanged);
+			this.templateTextBox.TextChanged += new System.EventHandler(this.HandleTemplateChanged);
 			// 
 			// tabPage1
 			// 
@@ -250,7 +250,6 @@ namespace LogJoint.UI
 			this.threadsCheckedListBox.Name = "threadsCheckedListBox";
 			this.threadsCheckedListBox.Size = new System.Drawing.Size(657, 224);
 			this.threadsCheckedListBox.TabIndex = 7;
-			this.threadsCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.threadsCheckedListBox_ItemCheck);
 			// 
 			// scopeLabel
 			// 
@@ -264,7 +263,6 @@ namespace LogJoint.UI
 			// 
 			// okButton
 			// 
-			this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
 			this.okButton.Location = new System.Drawing.Point(0, 4);
 			this.okButton.Margin = new System.Windows.Forms.Padding(4);
 			this.okButton.Name = "okButton";
@@ -272,6 +270,7 @@ namespace LogJoint.UI
 			this.okButton.TabIndex = 30;
 			this.okButton.Text = "OK";
 			this.okButton.UseVisualStyleBackColor = true;
+			this.okButton.Click += new System.EventHandler(OkButton_Click);
 			// 
 			// cancelButton
 			// 
@@ -338,6 +337,7 @@ namespace LogJoint.UI
 			this.actionComboBox.Size = new System.Drawing.Size(444, 25);
 			this.actionComboBox.TabIndex = 11;
 			this.actionComboBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ActionComboBox_DrawItem);
+			this.actionComboBox.SelectedIndexChanged += new System.EventHandler(ActionComboBox_SelectedIndexChanged);
 			// 
 			// nameTextBox
 			// 
@@ -347,6 +347,7 @@ namespace LogJoint.UI
 			this.nameTextBox.Name = "nameTextBox";
 			this.nameTextBox.Size = new System.Drawing.Size(341, 24);
 			this.nameTextBox.TabIndex = 10;
+			this.nameTextBox.TextChanged += new System.EventHandler(this.HandleNameChanged);
 			// 
 			// panel2
 			// 
@@ -382,6 +383,7 @@ namespace LogJoint.UI
 			this.enabledCheckBox.TabIndex = 12;
 			this.enabledCheckBox.Text = "         ";
 			this.enabledCheckBox.UseVisualStyleBackColor = true;
+			this.enabledCheckBox.CheckedChanged += new System.EventHandler(this.HandleCheckBoxChanged);
 			// 
 			// nameLinkLabel
 			// 
@@ -411,6 +413,7 @@ namespace LogJoint.UI
 			this.ShowInTaskbar = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Shown += new System.EventHandler(this.FilterDialog_Shown);
+			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FilterDialog_Closing);
 			this.tabControl1.ResumeLayout(false);
 			this.tabPage3.ResumeLayout(false);
 			this.tabPage3.PerformLayout();

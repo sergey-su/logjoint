@@ -9,7 +9,7 @@ namespace LogJoint.UI.Windows.Reactive
 	class ListBoxController<Item> : IListBoxController<Item> where Item : class, IListItem
 	{
 		readonly ListBox listBox;
-		IReadOnlyList<Item> currentList = new Item[0];
+		IReadOnlyList<Item> currentList = Array.Empty<Item>();
 		bool updating;
 
 		public ListBoxController(ListBox listBox)
@@ -25,6 +25,8 @@ namespace LogJoint.UI.Windows.Reactive
 
 		public Action<Item[]> OnSelect { get; set; }
 		public Action<Item, int, Item> OnUpdateRow { get; set; }
+		public Func<Item, string> Stringifier { get; set; }
+
 		bool IListBoxController<Item>.IsUpdating => updating;
 
 		void IListBoxController<Item>.Update(IReadOnlyList<Item> newList)
@@ -53,7 +55,7 @@ namespace LogJoint.UI.Windows.Reactive
 					{
 						case ListEdit.EditType.Insert:
 							BeginUpdate();
-							var newViewItem = new ViewItem { item = (Item)e.Item };
+							var newViewItem = new ViewItem { item = (Item)e.Item, stringifier = Stringifier };
 							listBox.Items.Insert(e.Index, newViewItem);
 							OnUpdateRow?.Invoke(newViewItem.item, e.Index, null);
 							break;
@@ -71,7 +73,7 @@ namespace LogJoint.UI.Windows.Reactive
 							}
 							else
 							{
-								listBox.Items[e.Index] = new ViewItem { item = (Item)e.Item };
+								listBox.Items[e.Index] = new ViewItem { item = (Item)e.Item, stringifier = Stringifier };
 							}
 							break;
 						case ListEdit.EditType.Select:
@@ -101,8 +103,9 @@ namespace LogJoint.UI.Windows.Reactive
 		class ViewItem
 		{
 			public Item item;
+			public Func<Item, string> stringifier;
 
-			public override string ToString() => item.ToString();
+			public override string ToString() => stringifier != null ? stringifier(item) : item.ToString();
 		};
 	}
 }

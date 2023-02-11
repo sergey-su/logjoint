@@ -27,6 +27,7 @@ namespace LogJoint.UI.Windows.Reactive
 		Action<Item[]> OnSelect { get; set; }
 		Action<Item, int, Item> OnUpdateRow { get; set; }
 		Item Map(object listBoxItem);
+		Func<Item, string> Stringifier { get; set; }
 	};
 
 	public interface IReactive

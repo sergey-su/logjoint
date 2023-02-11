@@ -1,184 +1,73 @@
+using LogJoint.Drawing;
+using LogJoint.UI.Presenters.Reactive;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace LogJoint.UI.Presenters.FiltersListBox
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewModel
 	{
+		readonly IChangeNotification changeNotification;
+		IFiltersList filtersList;
+		readonly FilterDialog.IPresenter filtersDialogPresenter;
+		Func<IReadOnlyList<IViewItem>> items;
+		IImmutableSet<IFilter> selectedFiltersWithNull = ImmutableHashSet<IFilter>.Empty;
+		Func<IImmutableSet<IFilter>> selectedFilters;
+
 		public Presenter(
-			IFiltersList filtersList, 
-			IView view, 
+			IChangeNotification changeNotification,
 			FilterDialog.IPresenter filtersDialogPresenter,
 			IColorTable highlightColorsTable
 		)
 		{
-			this.filtersList = filtersList;
-			this.view = view;
+			this.changeNotification = changeNotification;
 			this.filtersDialogPresenter = filtersDialogPresenter;
-			this.highlightColorsTable = highlightColorsTable;
-			view.SetPresenter(this);
+			this.items = Selectors.Create(
+				() => filtersList?.Items, () => filtersList?.GetDefaultAction(),
+				() => filtersList?.Purpose, () => highlightColorsTable.Items,
+				() => selectedFiltersWithNull,
+				GetViewItems);
+			this.selectedFilters = Selectors.Create(() => selectedFiltersWithNull, s => s.Remove(null));
 		}
 
-		public event EventHandler FilterChecked;
-		public event EventHandler SelectionChanged;
 		public event EventHandler DeleteRequested;
 
-		IFiltersList IPresenter.FiltersList { get { return filtersList; } }
-
-		void IPresenter.SelectFilter(IFilter filter)
+		IFiltersList IPresenter.FiltersList 
 		{
-			for (int i = 0; i < view.Count; ++i)
-				view.GetItem(i).Selected = view.GetItem(i).Filter == filter;
+			get { return filtersList; } 
+			set
+			{ 
+				filtersList = value;
+				changeNotification.Post();
+			} 
+		}
+		bool IViewModel.IsEnabled => filtersList != null && filtersList.FilteringEnabled;
+
+
+		IImmutableSet<IFilter> IPresenter.SelectedFilters => selectedFilters();
+
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		IReadOnlyList<IViewItem> IViewModel.Items => items();
+
+		void IViewModel.OnChangeSelection(IViewItem[] items)
+		{
+			selectedFiltersWithNull = ImmutableHashSet.CreateRange(items.Select(i => (i as ViewItem)?.Filter));
+			changeNotification.Post();
 		}
 
-		void IPresenter.UpdateView()
+		void IViewModel.OnItemChecked(IViewItem item)
 		{
-			updateLock++;	
-			view.BeginUpdate();
-			try
+			IFilter s = (item as ViewItem)?.Filter;
+			if (s != null && !s.IsDisposed && s.Enabled != item.IsChecked)
 			{
-				IFiltersList filters = filtersList;
-				IViewItem defActionItem = null;
-				for (int i = view.Count - 1; i >= 0; --i)
-				{
-					IFilter ls = view.GetItem(i).Filter;
-					if (ls == null)
-						defActionItem = view.GetItem(i);
-					else if (ls.Owner == null)
-						view.RemoveAt(i);
-				}
-				int filterIdx = 0;
-				foreach (var f in filters.Items)
-				{
-					IViewItem lvi;
-					int existingItemIdx = view.GetItemIndexByKey(f.GetHashCode().ToString());
-					if (existingItemIdx < 0)
-					{
-						lvi = view.CreateItem(f, f.GetHashCode().ToString());
-						view.Insert(filterIdx, lvi);
-					}
-					else
-					{
-						lvi = view.GetItem(existingItemIdx);
-						if (existingItemIdx != filterIdx)
-						{
-							view.RemoveAt(existingItemIdx);
-							view.Insert(filterIdx, lvi);
-						}
-					}
-					++filterIdx;
-
-					if (!f.IsDisposed)
-					{
-						lvi.Text = f.Name;
-						lvi.Color = f.Action.ToColor(highlightColorsTable.Items);
-						lvi.Checked = f.Enabled;
-						if (f.Enabled)
-							lvi.CheckboxTooltip = "Uncheck to disable rule without deleting it";
-						else
-							lvi.CheckboxTooltip = "Check to enable rule";
-						lvi.SetImageType(f.Action == FilterAction.Exclude ? ViewItemImageType.Exclude : ViewItemImageType.Include);
-						if (filtersList.Purpose == FiltersListPurpose.Highlighting)
-						{
-							if (f.Action == FilterAction.Exclude)
-								lvi.ActionTooltip = "Rule excludes matched messages from highlighting";
-							else
-								lvi.ActionTooltip = string.Format(
-									"Rule highlights matched messages with color #{0}", 
-								    f.Action - FilterAction.IncludeAndColorizeFirst + 1);
-						}
-						else if (filtersList.Purpose == FiltersListPurpose.Search)
-						{
-							if (f.Action == FilterAction.Exclude)
-								lvi.ActionTooltip = "Rule excludes matched messages from search results";
-							else
-								lvi.ActionTooltip = string.Format(
-									"Rule includes matched messages to search results" + 
-									(f.Action == FilterAction.Include
-									 ? "" : " and highlights them with color #{0}"), 
-										f.Action - FilterAction.IncludeAndColorizeFirst + 1);
-						}
-					}
-					else
-					{
-						lvi.Text = "-";
-						lvi.Checked = null;
-						lvi.CheckboxTooltip = "";
-						lvi.Color = null;
-						lvi.SetImageType(ViewItemImageType.None);
-					}
-				}
-
-				if (filters.Items.Count == 0)
-				{
-					if (defActionItem != null)
-					{
-						view.Remove(defActionItem);
-					}
-				}
-				else
-				{
-					if (defActionItem == null)
-					{
-						defActionItem = view.CreateItem(null, "");
-						view.Insert(filterIdx, defActionItem);
-						defActionItem.Checked = null;
-					}
-					if (filters.GetDefaultAction() == FilterAction.Exclude)
-					{
-						if (filtersList.Purpose == FiltersListPurpose.Highlighting)
-							defActionItem.Text = "Don't hightlight by-default";
-						else if (filtersList.Purpose == FiltersListPurpose.Search)
-							defActionItem.Text = "Exclude from search results by-default";
-						else 
-							defActionItem.Text = "Exclude all by-default";
-						defActionItem.SetImageType(ViewItemImageType.Exclude);
-					}
-					else
-					{
-						if (filtersList.Purpose == FiltersListPurpose.Highlighting)
-							defActionItem.Text = "Highlight all by-default";
-						else if (filtersList.Purpose == FiltersListPurpose.Search)
-							defActionItem.Text = "Include all to search results by-default";
-						else
-							defActionItem.Text = "Include all by-default";
-						defActionItem.SetImageType(ViewItemImageType.Include);
-					}
-				}
-
-				view.SetEnabled(filters.FilteringEnabled);
-			}
-			finally
-			{
-				updateLock--;
-				view.EndUpdate();
+				s.Enabled = item.IsChecked.GetValueOrDefault();
 			}
 		}
 
-		IEnumerable<IFilter> IPresenter.SelectedFilters
-		{
-			get { return GetSelectedFilters(); }
-		}
-
-		void IViewEvents.OnSelectionChanged()
-		{
-			SelectionChanged?.Invoke (this, EventArgs.Empty);
-		}
-
-		void IViewEvents.OnItemChecked(IViewItem item)
-		{
-			if (updateLock > 0)
-				return;
-			IFilter s = item.Filter;
-			if (s != null && !s.IsDisposed && s.Enabled != item.Checked)
-			{
-				s.Enabled = item.Checked.GetValueOrDefault();
-				OnFilterChecked();
-			}
-		}
-
-		void IViewEvents.OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems)
+		void IViewModel.OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems)
 		{
 			var f = GetTheOnly();
 
@@ -197,84 +86,193 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 				checkedItems |= ContextMenuItem.FilterEnabled;
 		}
 
-		void IViewEvents.OnFilterEnabledMenuItemClicked()
+		void IViewModel.OnFilterEnabledMenuItemClicked()
 		{
 			IFilter f = GetTheOnly();
 			if (f != null)
 			{
 				f.Enabled = !f.Enabled;
-				OnFilterChecked();
 			}
 		}
 
-		void IViewEvents.OnDoubleClicked()
+		void IViewModel.OnDoubleClicked()
 		{
 			var f = GetTheOnly();
 			if (f != null)
-				filtersDialogPresenter.ShowTheDialog(f);			
+				filtersDialogPresenter.ShowTheDialog(f, filtersList.Purpose);
 		}
 
-		void IViewEvents.OnPropertiesMenuItemClicked()
+		void IViewModel.OnPropertiesMenuItemClicked()
 		{
 			var f = GetTheOnly();
 			if (f != null)
-				filtersDialogPresenter.ShowTheDialog(f);
+				filtersDialogPresenter.ShowTheDialog(f, filtersList.Purpose);
 		}
 
-		void IViewEvents.OnMoveUpMenuItemClicked()
+		void IViewModel.OnMoveUpMenuItemClicked()
 		{
 			var f = GetTheOnly();
 			if (f != null)
 				filtersList.Move(f, upward: true);
 		}
 
-		void IViewEvents.OnMoveDownMenuItemClicked()
+		void IViewModel.OnMoveDownMenuItemClicked()
 		{
 			var f = GetTheOnly();
 			if (f != null)
 				filtersList.Move(f, upward: false);
 		}
 
-		void IViewEvents.OnEnterPressed()
+		void IViewModel.OnEnterPressed()
 		{
 			var f = GetTheOnly();
 			if (f != null)
-				filtersDialogPresenter.ShowTheDialog(f);
+				filtersDialogPresenter.ShowTheDialog(f, filtersList.Purpose);
 		}
 
-		void IViewEvents.OnDeletePressed()
+		void IViewModel.OnDeletePressed()
 		{
 			DeleteRequested?.Invoke (this, EventArgs.Empty);
 		}
 
-		#region Implementation
-
-		IEnumerable<IFilter> GetSelectedFilters()
-		{
-			return view.SelectedItems.Select(i => i.Filter).Where(f => f != null && !f.IsDisposed);
-		}
-
 		IFilter GetTheOnly()
 		{
-			var selectedItems = GetSelectedFilters().ToArray();
-			if (selectedItems.Length != 1)
+			if (selectedFiltersWithNull.Count != 1)
 				return null;
-			if (selectedItems[0].IsDisposed)
+			var f = selectedFiltersWithNull.Single();
+			if (f == null || f.IsDisposed)
 				return null;
-			return selectedItems[0];
+			return f;
 		}
 
-		void OnFilterChecked()
+		static IReadOnlyList<IViewItem> GetViewItems(
+			IReadOnlyList<IFilter> filters, FilterAction? defaultAction, FiltersListPurpose? purpose,
+			ImmutableArray<Color> highlightColorsTable, IImmutableSet<IFilter> selectedFilters)
 		{
-			FilterChecked?.Invoke(this, EventArgs.Empty);
+			var builder = ImmutableList.CreateBuilder<IViewItem>();
+			if (filters != null)
+			{
+				foreach (var f in filters)
+				{
+					builder.Add(new ViewItem(f, highlightColorsTable, purpose.Value, selectedFilters.Contains(f)));
+				}
+				if (filters.Count > 0)
+				{
+					builder.Add(new DefaultActionViewItem(defaultAction.Value, purpose.Value, selectedFilters.Contains(null)));
+				}
+			}
+			return builder.ToImmutable();
 		}
 
-		readonly IFiltersList filtersList;
-		readonly IView view;
-		readonly FilterDialog.IPresenter filtersDialogPresenter;
-		readonly IColorTable highlightColorsTable;
-		int updateLock;
+		class DefaultActionViewItem : IViewItem
+		{
+			readonly string text;
+			readonly ViewItemImageType imageType;
+			readonly bool selected;
 
-		#endregion
+			public DefaultActionViewItem(FilterAction defaultAction, FiltersListPurpose purpose, bool selected)
+			{
+				this.selected = selected;
+				if (defaultAction == FilterAction.Exclude)
+				{
+					if (purpose == FiltersListPurpose.Highlighting)
+						text = "Don't highlight by-default";
+					else if (purpose == FiltersListPurpose.Search)
+						text = "Exclude from search results by-default";
+					else
+						text = "Exclude all by-default";
+					imageType = ViewItemImageType.Exclude;
+				}
+				else
+				{
+					if (purpose == FiltersListPurpose.Highlighting)
+						text = "Highlight all by-default";
+					else if (purpose == FiltersListPurpose.Search)
+						text = "Include all to search results by-default";
+					else
+						text = "Include all by-default";
+					imageType = ViewItemImageType.Include;
+				}
+			}
+
+			public override string ToString() => text;
+
+			Color? IViewItem.Color => null;
+
+			bool? IViewItem.IsChecked => null;
+
+			string IViewItem.CheckboxTooltip => "";
+
+			string IViewItem.ActionTooltip => "";
+
+			ViewItemImageType IViewItem.ImageType => imageType;
+
+			bool IViewItem.IsDefaultActionItem => true;
+
+			string IListItem.Key => "def";
+
+			bool IListItem.IsSelected => selected;
+		}
+
+		class ViewItem : IViewItem
+		{
+			readonly IFilter filter;
+			readonly IReadOnlyList<Color> highlightColorsTable;
+			readonly string actionTooltip;
+			readonly bool selected;
+
+			public ViewItem(IFilter filter, IReadOnlyList<Color> highlightColorsTable, FiltersListPurpose purpose, bool selected)
+			{
+				this.filter = filter;
+				this.highlightColorsTable = highlightColorsTable;
+				this.selected = selected;
+				if (purpose == FiltersListPurpose.Highlighting)
+				{
+					if (filter.Action == FilterAction.Exclude)
+						actionTooltip = "Rule excludes matched messages from highlighting";
+					else
+						actionTooltip = string.Format(
+							"Rule highlights matched messages with color #{0}",
+							filter.Action - FilterAction.IncludeAndColorizeFirst + 1);
+				}
+				else if (purpose == FiltersListPurpose.Search)
+				{
+					if (filter.Action == FilterAction.Exclude)
+						actionTooltip = "Rule excludes matched messages from search results";
+					else
+						actionTooltip = string.Format(
+							"Rule includes matched messages to search results" +
+							(filter.Action == FilterAction.Include
+							 ? "" : " and highlights them with color #{0}"),
+								filter.Action - FilterAction.IncludeAndColorizeFirst + 1);
+				}
+			}
+
+			public override string ToString() => filter.IsDisposed ? "-" : filter.Name;
+
+			public IFilter Filter => filter;
+
+			bool? IViewItem.IsChecked => filter.IsDisposed ? new bool?() : filter.Enabled;
+
+			Color? IViewItem.Color => filter.IsDisposed ? new Color?() : filter.Action.ToColor(highlightColorsTable);
+
+			string IViewItem.CheckboxTooltip =>
+				filter.IsDisposed ? "" :
+				filter.Enabled ? "Uncheck to disable rule without deleting it" :
+					"Check to enable rule";
+
+			string IViewItem.ActionTooltip => filter.IsDisposed ? "" : actionTooltip;
+
+			ViewItemImageType IViewItem.ImageType => 
+				filter.IsDisposed ? ViewItemImageType.None :
+				filter.Action == FilterAction.Exclude ? ViewItemImageType.Exclude : 
+					ViewItemImageType.Include;
+
+			bool IViewItem.IsDefaultActionItem => false;
+
+			string IListItem.Key => filter.GetHashCode().ToString();
+
+			bool IListItem.IsSelected => selected;
+		}
 	};
 };

@@ -87,14 +87,11 @@ namespace LogJoint
 			this.changeAffectsFilterResult = changeAffectsFilterResult;
 			this.changeAffectsPreprocessingResult = changeAffectsPreprocessingResult;
 		}
-		public bool ChangeAffectsFilterResult
-		{
-			get { return changeAffectsFilterResult; }
-		}
-		public bool ChangeAffectsPreprocessingResult { get { return changeAffectsPreprocessingResult; } }
+		public bool ChangeAffectsFilterResult => changeAffectsFilterResult;
+		public bool ChangeAffectsPreprocessingResult => changeAffectsPreprocessingResult;
 
-		bool changeAffectsFilterResult;
-		bool changeAffectsPreprocessingResult;
+		readonly bool changeAffectsFilterResult;
+		readonly bool changeAffectsPreprocessingResult;
 	};
 
 	public interface IFilterBulkProcessing : IDisposable

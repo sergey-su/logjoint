@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 
 namespace LogJoint.UI.Presenters.FiltersManager
 {
-	public interface IPresenter: IDisposable
+	public interface IPresenter
 	{
+		IFiltersList FiltersList { get; set; }
 	};
 
 	[Flags]
@@ -24,18 +21,14 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		FilterOptions = 128,
 	};
 
-	public interface IView
-	{
-		void SetPresenter(IViewModel presenter);
-		FiltersListBox.IView FiltersListView { get; }
-		void SetControlsVisibility(ViewControl controlsToShow);
-		void EnableControls(ViewControl controlsToEnable);
-		void SetFiltertingEnabledCheckBoxValue(bool value, string tooltip);
-		void SetFiltertingEnabledCheckBoxLabel(string value);
-	};
-
 	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		FiltersListBox.IViewModel FiltersListBox { get; }
+		FilterDialog.IViewModel FilterDialog { get; }
+		ViewControl VisibileControls { get; }
+		ViewControl EnabledControls { get; }
+		(bool isChecked, string tooltip, string label) FiltertingEnabledCheckBox { get; }
 		void OnEnableFilteringChecked(bool value);
 		void OnAddFilterClicked();
 		void OnRemoveFilterClicked();

@@ -103,15 +103,15 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				UpdateUserDefinedSearchDependentControls(
 					datum is IUserDefinedSearch || datum is IUserDefinedSearchHistoryEntry);
 			};
-			quickSearchPresenter.OnSuggestionLinkClicked += (sender, e) => 
+			quickSearchPresenter.OnSuggestionLinkClicked += async (sender, e) => 
 			{
 				if (!(e.Suggestion.Data is IUserDefinedSearch uds))
 					return;
-				searchEditorDialog.Open(uds);
+				await searchEditorDialog.Open(uds);
 			};
-			quickSearchPresenter.OnCategoryLinkClicked += (sender, e) => 
+			quickSearchPresenter.OnCategoryLinkClicked += async (sender, e) => 
 			{
-				HandleSearchesManagerDialog();
+				await HandleSearchesManagerDialog();
 			};
 			userDefinedSearches.OnChanged += (sender, e) => 
 			{
@@ -197,7 +197,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (uds == null)
 				uds = (datum as IUserDefinedSearchHistoryEntry)?.UDS;
 			if (uds != null)
-				searchEditorDialog.Open(uds);
+				await searchEditorDialog.Open(uds);
 			else
 				await HandleSearchesManagerDialog();
 		}

@@ -1,60 +1,48 @@
 ﻿using System;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SearchEditorDialog;
+using LogJoint.UI.Windows.Reactive;
 
 namespace LogJoint.UI
 {
-	public partial class SearchEditorDialog : Form, IDialogView
+	public partial class SearchEditorDialog : Form
 	{
-		readonly IDialogViewEvents eventsHandler;
+		readonly IViewModel viewModel;
 
-		public SearchEditorDialog(IDialogViewEvents eventsHandler)
+		public SearchEditorDialog(IViewModel viewModel, IReactive reactive)
 		{
 			InitializeComponent();
-			this.eventsHandler = eventsHandler;
-		}
+			this.viewModel = viewModel;
+			filtersManager.SetViewModel(viewModel.FiltersManager, reactive);
 
-		Presenters.FiltersManager.IView IDialogView.FiltersManagerView => filtersManager;
-
-		void IDialogView.CloseModal()
-		{
-			DialogResult = DialogResult.OK;
-		}
-
-		DialogData IDialogView.GetData()
-		{
-			return new DialogData()
+			var dialogConroller = new ModalDialogController(this);
+			var updateVisible = Updaters.Create(() => this.viewModel.IsVisible, dialogConroller.SetVisibility);
+			var updateName = Updaters.Create(() => this.viewModel.Name, (string value) =>
 			{
-				Name = nameTextBox.Text
-			};
-		}
+				if (nameTextBox.Text != value)
+					nameTextBox.Text = value;
+			});
 
-		void IDialogView.OpenModal()
-		{
-			ShowDialog();
-		}
-
-		void IDialogView.SetData(DialogData data)
-		{
-			nameTextBox.Text = data.Name;
+			this.viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				updateName();
+				updateVisible();
+			});
 		}
 
 		private void okButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnConfirmed();
+			viewModel.OnConfirmed();
 		}
 
 		private void cancelButton_Click(object sender, EventArgs e)
 		{
-			eventsHandler.OnCancelled();
+			viewModel.OnCancelled();
+		}
+
+		private void nameTextBox_TextChanged(object sender, System.EventArgs e)
+		{
+			viewModel.OnChangeName(nameTextBox.Text);
 		}
 	}
-
-	public class SearchEditorDialogView : IView
-	{
-		IDialogView IView.CreateDialog(IDialogViewEvents eventsHandler)
-		{
-			return new SearchEditorDialog(eventsHandler);
-		}
-	};
 }

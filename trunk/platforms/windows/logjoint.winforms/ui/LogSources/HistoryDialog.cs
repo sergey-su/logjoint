@@ -23,13 +23,8 @@ namespace LogJoint.UI
 			viewModel.SetView(this);
 
 			var updateItems = Updaters.Create(() => viewModel.ItemsIgnoringTreeState, UpdateItems);
-			var updateVisible = Updaters.Create(() => viewModel.IsVisible, value =>
-			{
-				if (value)
-					ShowDialog();
-				else
-					Hide();
-			});
+			var dialogConroller = new ModalDialogController(this);
+			var updateVisible = Updaters.Create(() => viewModel.IsVisible, dialogConroller.SetVisibility);
 			var updateOpenButton = Updaters.Create(() => viewModel.OpenButtonEnabled, value => openButton.Enabled = value);
 
 			viewModel.ChangeNotification.CreateSubscription(() =>

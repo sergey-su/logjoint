@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using System;
 using System.Threading.Tasks;
 using System.IO;
+using System.Threading;
 
 namespace LogJoint.UI
 {
@@ -52,7 +53,10 @@ namespace LogJoint.UI
 
 		Task<AlertFlags> IAlertPopup.ShowPopupAsync(string caption, string text, AlertFlags flags)
 		{
-			return Task.FromResult(((IAlertPopup)this).ShowPopup(caption, text, flags));
+			var taskSource = new TaskCompletionSource<AlertFlags>();
+			SynchronizationContext.Current.Post(_ => taskSource.SetResult(
+				((IAlertPopup)this).ShowPopup(caption, text, flags)), null);
+			return taskSource.Task;
 		}
 
 		AlertFlags IAlertPopup.ShowPopup(string caption, string text, AlertFlags flags)

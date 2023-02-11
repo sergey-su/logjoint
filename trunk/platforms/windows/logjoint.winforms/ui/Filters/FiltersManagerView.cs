@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.FiltersManager;
+using LogJoint.UI.Windows.Reactive;
 
 namespace LogJoint.UI
 {
-	public partial class FiltersManagerView : UserControl, IView
+	public partial class FiltersManagerView : UserControl
 	{
 		IViewModel viewModel;
-		Dictionary<ViewControl, Control> controls;
+		readonly Dictionary<ViewControl, Control> controls;
+		ISubscription subscription;
+		FilterDialog filterDialog;
 
 		public FiltersManagerView()
 		{
@@ -26,34 +29,39 @@ namespace LogJoint.UI
 			};
 		}
 
-		Presenters.FiltersListBox.IView IView.FiltersListView { get { return this.filtersListView; } }
 
-		void IView.SetPresenter(IViewModel viewModel)
+		public void SetViewModel(IViewModel viewModel, IReactive reactive)
 		{
 			this.viewModel = viewModel;
+			filtersListView.SetViewModel(viewModel.FiltersListBox);
+			filterDialog = new FilterDialog(viewModel.FilterDialog, reactive);
+
+			var enableControls = Updaters.Create(() => viewModel.EnabledControls, EnableControls);
+			var setVisibility = Updaters.Create(() => viewModel.VisibileControls, SetControlsVisibility);
+			var updateCheckbox = Updaters.Create(() => viewModel.FiltertingEnabledCheckBox, state =>
+			{
+				enableFilteringCheckBox.Checked = state.isChecked;
+				toolTip1.SetToolTip(enableFilteringCheckBox, state.tooltip ?? "");
+				enableFilteringCheckBox.Text = state.label;
+			});
+			subscription = viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				enableControls();
+				setVisibility();
+				updateCheckbox();
+			});
 		}
 
-		void IView.EnableControls(ViewControl controlsToEnable)
+		void EnableControls(ViewControl controlsToEnable)
 		{
 			foreach (var c in controls)
 				c.Value.Enabled = (controlsToEnable & c.Key) != 0;
 		}
 
-		void IView.SetControlsVisibility(ViewControl controlsToShow)
+		void SetControlsVisibility(ViewControl controlsToShow)
 		{
 			foreach (var c in controls)
 				c.Value.Visible = (controlsToShow & c.Key) != 0;
-		}
-
-		void IView.SetFiltertingEnabledCheckBoxValue(bool value, string tooltip)
-		{
-			enableFilteringCheckBox.Checked = value;
-			toolTip1.SetToolTip(enableFilteringCheckBox, tooltip ?? "");
-		}
-
-		void IView.SetFiltertingEnabledCheckBoxLabel(string value)
-		{
-			enableFilteringCheckBox.Text = value;
 		}
 
 		private void addFilterButton_Click(object sender, EventArgs e)

@@ -41,6 +41,8 @@ namespace LogJoint.UI.Presenters
 		public StatusReports.IViewModel StatusReports { get; internal set; }
 		public Postprocessing.SummaryDialog.IViewModel PostprocessingSummaryDialog { get; internal set; }
 		public SearchesManagerDialog.IViewModel SearchesManagerDialog { get; internal set; }
+		public SearchEditorDialog.IViewModel SearchEditorDialog { get; internal set; }
+		public FiltersManager.IViewModel HlFiltersManagement { get; internal set; }
 	};
 
 	public static class Factory
@@ -48,9 +50,6 @@ namespace LogJoint.UI.Presenters
 		public interface IViewsFactory
 		{
 			ThreadsList.IView CreateThreadsListView();
-			SearchEditorDialog.IView CreateSearchEditorDialogView();
-			FilterDialog.IView CreateSearchFilterDialogView(SearchEditorDialog.IDialogView parentView);
-			FilterDialog.IView CreateHlFilterDialogView();
 			SourcePropertiesWindow.IView CreateSourcePropertiesWindowView();
 			SharingDialog.IView CreateSharingDialogView();
 			NewLogSourceDialog.IView CreateNewLogSourceDialogView();
@@ -60,7 +59,6 @@ namespace LogJoint.UI.Presenters
 			NewLogSourceDialog.Pages.WindowsEventsLog.IView CreateWindowsEventsLogFormatView();
 			FormatsWizard.Factory.IViewsFactory FormatsWizardViewFactory { get; }
 			MessagePropertiesDialog.IView CreateMessagePropertiesDialogView();
-			FiltersManager.IView CreateHlFiltersManagerView();
 			Options.Dialog.IView CreateOptionsDialogView();
 			About.IView CreateAboutView();
 			MainForm.IView CreateMainFormView();
@@ -96,12 +94,10 @@ namespace LogJoint.UI.Presenters
 			}
 
 			var threadsListView = callOptionalFactory(views.CreateThreadsListView);
-			var searchEditorDialogView = views.CreateSearchEditorDialogView();
 			var sourcePropertiesWindowView = views.CreateSourcePropertiesWindowView();
 			var sharingDialogView = views.CreateSharingDialogView();
 			var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
 			var messagePropertiesDialogView = views.CreateMessagePropertiesDialogView();
-			var hlFiltersManagerView = views.CreateHlFiltersManagerView();
 			var optionsDialogView = callOptionalFactory(views.CreateOptionsDialogView);
 			var aboutView = views.CreateAboutView();
 			var mainFormView = views.CreateMainFormView();
@@ -196,33 +192,27 @@ namespace LogJoint.UI.Presenters
 				model.HeartBeatTimer,
 				colorTheme) : null;
 
-			SearchEditorDialog.IPresenter searchEditorDialog = new SearchEditorDialog.Presenter(
-				searchEditorDialogView,
+			FilterDialog.IPresenter searchFilterDialogPresenter = new FilterDialog.Presenter(
+				model.ChangeNotification,
+				null, // logSources is not required. Scope is not supported by search.
+				highlightColorsTable
+			);
+
+			var searchEditorDialog = new SearchEditorDialog.Presenter(
+				model.ChangeNotification,
 				model.UserDefinedSearches,
-				(filtersList, dialogView) =>
-				{
-					FilterDialog.IPresenter filterDialogPresenter = new FilterDialog.Presenter(
-						null, // logSources is not required. Scope is not supported by search.
-						filtersList,
-						views.CreateSearchFilterDialogView(dialogView),
+				new FiltersManager.Presenter(
+					model.ChangeNotification,
+					new FiltersListBox.Presenter(
+						model.ChangeNotification,
+						searchFilterDialogPresenter,
 						highlightColorsTable
-					);
-					return new FiltersManager.Presenter(
-						filtersList,
-						dialogView.FiltersManagerView,
-						new FiltersListBox.Presenter(
-							filtersList,
-							dialogView.FiltersManagerView.FiltersListView,
-							filterDialogPresenter,
-							highlightColorsTable
-						),
-						filterDialogPresenter,
-						null,
-						model.HeartBeatTimer,
-						model.FiltersFactory,
-						alertPopup
-					);
-				},
+					),
+					searchFilterDialogPresenter,
+					null,
+					model.FiltersFactory,
+					alertPopup
+				),
 				alertPopup
 			);
 
@@ -385,26 +375,20 @@ namespace LogJoint.UI.Presenters
 				model.TelemetryCollector);
 
 
-			FiltersManager.IPresenter createHlFiltersManager(IFiltersList filters, FiltersManager.IView view)
-			{
-				var dialogPresenter = new FilterDialog.Presenter(model.LogSourcesManager, filters, views.CreateHlFilterDialogView(), highlightColorsTable);
-				FiltersListBox.IPresenter listPresenter = new FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter, highlightColorsTable);
-				FiltersManager.IPresenter managerPresenter = new FiltersManager.Presenter(
-					filters,
-					view,
-					listPresenter,
-					dialogPresenter,
+			var hlFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification, model.LogSourcesManager, highlightColorsTable);
+			var hlFiltersManagementPresenter = 
+				new FiltersManager.Presenter(
+					model.ChangeNotification,
+					new FiltersListBox.Presenter(
+						model.ChangeNotification,
+						hlFilterDialogPresenter,
+						highlightColorsTable),
+					hlFilterDialogPresenter,
 					viewerPresenter,
-					model.HeartBeatTimer,
 					model.FiltersFactory,
-					alertPopup
+					alertPopup,
+					model.FiltersManager.HighlightFilters
 				);
-				return managerPresenter;
-			}
-
-			FiltersManager.IPresenter hlFiltersManagerPresenter = hlFiltersManagerView == null ? null : createHlFiltersManager(
-				model.FiltersManager.HighlightFilters,
-				hlFiltersManagerView);
 
 			var bookmarksListPresenter = new BookmarksList.Presenter(
 				model.Bookmarks,
@@ -601,6 +585,8 @@ namespace LogJoint.UI.Presenters
 					StatusReports = statusReportsPresenter,
 					PostprocessingSummaryDialog = postprocessingSummaryDialogPresenter,
 					SearchesManagerDialog = searchesManagerDialogPresenter,
+					SearchEditorDialog = searchEditorDialog,
+					HlFiltersManagement = hlFiltersManagementPresenter,
 				}
 			};
 		}

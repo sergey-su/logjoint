@@ -30,13 +30,8 @@ namespace LogJoint.UI
 			listController.OnSelect = s => viewModel.OnSelect(s.OfType<IViewItem>());
 
 			var updateItems = Updaters.Create(() => viewModel.Items, listController.Update);
-			var updateVisible = Updaters.Create(() => viewModel.IsVisible, value =>
-			{
-				if (value)
-					ShowDialog();
-				else
-					Hide();
-			});
+			var dialogConroller = new ModalDialogController(this);
+			var updateVisible = Updaters.Create(() => viewModel.IsVisible, dialogConroller.SetVisibility);
 			var updateCloseButton = Updaters.Create(() => viewModel.CloseButtonText, value => closeButton.Text = value);
 			var updateControls = Updaters.Create(() => viewModel.EnabledControls, enabled =>
 			{

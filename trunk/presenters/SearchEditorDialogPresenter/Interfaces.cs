@@ -1,37 +1,21 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SearchEditorDialog
 {
-	public interface IView
-	{
-		IDialogView CreateDialog(IDialogViewEvents eventsHandler);
-	};
-
-	public interface IDialogView: IDisposable
-	{
-		FiltersManager.IView FiltersManagerView { get; }
-		void SetData(DialogData data);
-		DialogData GetData();
-		void OpenModal();
-		void CloseModal();
-	};
-
-	public struct DialogData
-	{
-		public string Name;
-	};
-
 	public interface IPresenter
 	{
-		bool Open(IUserDefinedSearch search);
+		Task<bool> Open(IUserDefinedSearch search);
 	};
 
-	public interface IDialogViewEvents
+	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		bool IsVisible { get; }
+		string Name { get; }
+		FiltersManager.IViewModel FiltersManager { get; }
 		void OnConfirmed();
 		void OnCancelled();
+		void OnChangeName(string name);
 	};
 };
