@@ -1247,6 +1247,72 @@ button {
 
 
 
+.filters-manager {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.filters-manager>.actions {
+    display: flex;
+    flex-flow: column nowrap;
+    width: 30px;
+}
+
+.filters-manager>.actions>button {
+    margin-bottom: 3px;
+    border: 1px solid gray;
+    border-radius: 3px;
+}
+
+.filters-manager>.the-list {
+    width: 1px;
+    flex-grow: 2;
+    margin: 0px 4px 2px 4px;
+}
+
+
+
+.filter-dialog {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.filter-dialog>.buttons {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+}
+
+.filter-dialog>.buttons>button {
+    margin: 0px 10px;
+}
+
+.filter-dialog>.prop {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.filter-dialog>.prop>*:nth-child(1) {
+    width: 100px;
+}
+
+.filter-dialog>.prop>.stretch {
+    flex-grow: 2;
+    width: 1px;
+}
+
+.filter-dialog input:disabled {
+    color: gray;
+}
+
+.filter-dialog>.criteria {
+    height: 1px;
+    flex-grow: 2;
+    padding: 10px;
+    display: flex;
+    flex-flow: column nowrap;
+}
+
 
 .tabs {
     display: flex;

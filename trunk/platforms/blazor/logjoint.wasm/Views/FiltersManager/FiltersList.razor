@@ -1,0 +1,53 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.FiltersListBox
+@implements IDisposable
+
+<ListView Items="@ViewModel.Items" 
+          OnSelect="@(items => ViewModel.OnChangeSelection(items.OfType<IViewItem>().ToArray()))" 
+          Class="@ListClass" ItemClass="filters-list-item"
+          OnDoubleClick="@(items => ViewModel.OnDoubleClicked())"
+          ChangeNotification="@ViewModel.ChangeNotification"
+          OnKeyDown="HandleKeyDown">
+    <ItemTemplate>
+        @{var item = (IViewItem)context;}
+        <div>@item.ToString()</div>
+    </ItemTemplate>
+</ListView>
+
+@code {
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+    string ListClass => $"filters-list {Class}"; // todo: factor in enabled state
+
+    protected override void OnInitialized()
+    {
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (ViewModel.IsEnabled, ViewModel.Items),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+    void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.IListItem item)
+    {
+        if (eventArgs.Key == "Enter")
+        {
+            ViewModel.OnEnterPressed();
+        }
+        else if (eventArgs.Key == "Delete" || eventArgs.Key == "Backspace")
+        {
+            ViewModel.OnDeletePressed();
+        }
+    }
+}

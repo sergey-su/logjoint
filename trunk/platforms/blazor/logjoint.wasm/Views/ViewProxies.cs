@@ -10,7 +10,6 @@ namespace LogJoint.Wasm
         public UI.PreprocessingUserInteractionsViewProxy PreprocessingUserInteractions = new();
         public UI.MessagePropertiesViewProxy MessageProperties = new();
         public UI.SourcePropertiesWindowViewProxy SourcePropertiesWindow = new();
-        public UI.FilterDialogViewProxy FilterDialog = new();
         public UI.MainFormViewProxy MainForm = new();
 
         LogJoint.UI.Presenters.FormatsWizard.Factory.IViewsFactory Factory.IViewsFactory.FormatsWizardViewFactory => null;
@@ -25,10 +24,6 @@ namespace LogJoint.Wasm
 
         LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.IView Factory.IViewsFactory.CreateFormatDetectionView() => null;
 
-        LogJoint.UI.Presenters.FilterDialog.IView Factory.IViewsFactory.CreateHlFilterDialogView() => FilterDialog;
-
-        LogJoint.UI.Presenters.FiltersManager.IView Factory.IViewsFactory.CreateHlFiltersManagerView() => null;
-
         LogJoint.UI.Presenters.MainForm.IView Factory.IViewsFactory.CreateMainFormView() => MainForm;
 
         LogJoint.UI.Presenters.MessagePropertiesDialog.IView Factory.IViewsFactory.CreateMessagePropertiesDialogView() => MessageProperties;
@@ -40,9 +35,6 @@ namespace LogJoint.Wasm
 
         LogJoint.UI.Presenters.PreprocessingUserInteractions.IView Factory.IViewsFactory.CreatePreprocessingView() => PreprocessingUserInteractions;
 
-        LogJoint.UI.Presenters.SearchEditorDialog.IView Factory.IViewsFactory.CreateSearchEditorDialogView() => null;
-
-        LogJoint.UI.Presenters.FilterDialog.IView Factory.IViewsFactory.CreateSearchFilterDialogView(LogJoint.UI.Presenters.SearchEditorDialog.IDialogView parentView) => FilterDialog;
 
         LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer.IView LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramView() => null;
 

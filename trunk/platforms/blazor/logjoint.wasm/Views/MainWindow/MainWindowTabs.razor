@@ -13,6 +13,9 @@
         case TabIDs.Bookmarks:
             <BookmarksManager Class="tab-content" />
             break;
+        case TabIDs.HighlightingFilteringRules:
+            <FiltersManager Class="tab-content" ViewModel=@presentation.ViewModels.HlFiltersManagement/>
+            break;
         case TabIDs.Search:
             <SearchPanel Class="tab-content" />
             break;

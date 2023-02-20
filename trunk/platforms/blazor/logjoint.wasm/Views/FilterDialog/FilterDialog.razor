@@ -1,0 +1,82 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.FilterDialog
+@using LogJoint.Drawing
+@implements IDisposable
+@implements IView
+
+<Modal Visible="@ViewModel.IsVisible" Class="resizable-dialog filter-dialog" ClickOutside=@ViewModel.OnCancelled OnCancel=@ViewModel.OnCancelled>
+    <header>@ViewModel.Config.Title</header>
+    <div class="prop">
+        <div>Rule name:</div>
+        <input class="stretch" @ref="edit" value=@ViewModel.NameEdit.Value disabled="@(!ViewModel.NameEdit.Enabled)" />
+        <a href="#" @onclick:preventDefault @onclick="@(e => ViewModel.OnNameEditLinkClicked())">
+            @ViewModel.NameEdit.LinkText
+        </a>
+    </div>
+    <div class="prop">
+        <div>Action:</div>
+        <select class="stretch" @onchange="@(e => ViewModel.OnActionComboBoxValueChange(Convert.ToInt32(e.Value)))">
+            @foreach (var (index, (name, color)) in ViewModel.Config.ActionComboBoxOptions.ZipWithIndex())
+            {
+                <option style="background-color: @(color.HasValue ? color.Value.ToHtmlColor() : "transparent")" value=@index
+                    selected="@(ViewModel.ActionComboBoxValue == index)">@name</option>
+            }
+        </select>
+    </div>
+    <div class="prop">
+        <label for=@enableCheckboxId>Rule enabled:</label>
+        <input id=@enableCheckboxId type="checkbox" checked="@((ViewModel.CheckedBoxes & CheckBoxId.FilterEnabled) != 0)"
+               @oninput="@(e => ViewModel.OnCheckBoxCheck(CheckBoxId.FilterEnabled, e.Value is bool x && x))" />
+    </div>
+    <div class="criteria">
+        <div>Match the messages containing this text:</div>
+        <input value=@ViewModel.Template @onchange="e => ViewModel.OnTemplateChange(e.Value.ToString())" />
+        <div>
+            @foreach (var cb in new[] { (CheckBoxId.MatchCase, "Match case"), (CheckBoxId.WholeWord, "Whole word"), (CheckBoxId.RegExp, "Regex") })
+            {
+                 <label>
+                    <input type="checkbox" checked="@((ViewModel.CheckedBoxes & cb.Item1) != 0)"
+                       @oninput="@(e => ViewModel.OnCheckBoxCheck(cb.Item1, e.Value is bool x && x))" />
+                    @cb.Item2
+                </label>
+            }
+        </div>
+    </div>
+    <div class="buttons">
+        <button @onclick="@(e => ViewModel.OnConfirmed())">Ok</button>
+        <button @onclick="@(e => ViewModel.OnCancelled())">Cancel</button>
+    </div>
+</Modal>
+
+@code {
+    private ISubscription subscription;
+    private readonly string enableCheckboxId = new Guid().ToString();
+    private ElementReference edit;
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        ViewModel.SetView(this);
+
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (ViewModel.IsVisible, ViewModel.Template, ViewModel.CheckedBoxes, 
+                ViewModel.ScopeItems, ViewModel.ActionComboBoxValue, ViewModel.NameEdit),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        ViewModel.SetView(null);
+        subscription?.Dispose();
+    }
+
+
+    async void IView.PutFocusOnNameEdit()
+    {
+        await edit.FocusAsync();
+    }
+}

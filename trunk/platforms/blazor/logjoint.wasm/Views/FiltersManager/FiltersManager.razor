@@ -1,0 +1,48 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint
+@using LogJoint.UI.Presenters.FiltersManager
+@implements IDisposable
+
+<div class='filters-manager @Class'>
+    <div class='actions'>
+        <button disabled="@((ViewModel.EnabledControls & ViewControl.AddFilterButton) == 0)"
+                @onclick=ViewModel.OnAddFilterClicked
+                title="Add new filter">+</button>
+        <button disabled="@((ViewModel.EnabledControls & ViewControl.RemoveFilterButton) == 0)"
+                @onclick=@ViewModel.OnRemoveFilterClicked
+                title="Remove filter">−</button>
+        <button disabled="@((ViewModel.EnabledControls & ViewControl.MoveUpButton) == 0)"
+                @onclick=@ViewModel.OnMoveFilterUpClicked
+                title="Move filter up in the list">⇧</button>
+        <button disabled="@((ViewModel.EnabledControls & ViewControl.MoveDownButton) == 0)"
+                @onclick=@ViewModel.OnMoveFilterDownClicked
+                title="Move filter down in the list">⇩</button>
+        <button disabled="@((ViewModel.EnabledControls & ViewControl.FilterOptions) == 0)"
+                @onclick=@ViewModel.OnOptionsClicked
+                title="Change selected filter">⚙</button>
+    </div>
+    <FiltersList Class="the-list" ViewModel=@ViewModel.FiltersListBox />
+</div>
+
+@code {
+    private ISubscription subscription;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public IViewModel ViewModel { get; set; }
+
+    protected override void OnInitialized()
+    {
+        subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (ViewModel.EnabledControls),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}

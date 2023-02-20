@@ -69,7 +69,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 			visibleTabs =
 				IsBrowser.Value ?
-					new [] { sourcesTab, bookmarksTab, searchTab, postprocessingTab, settingsTab } :
+					new [] { sourcesTab, bookmarksTab, highlightingRulesTab, searchTab, postprocessingTab, settingsTab } :
 				RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
 					new [] { sourcesTab, bookmarksTab, highlightingRulesTab, searchTab, postprocessingTab }
 				:
