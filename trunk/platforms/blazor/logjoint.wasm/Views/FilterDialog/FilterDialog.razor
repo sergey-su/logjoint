@@ -15,10 +15,12 @@
     </div>
     <div class="prop">
         <div>Action:</div>
-        <select class="stretch" @onchange="@(e => ViewModel.OnActionComboBoxValueChange(Convert.ToInt32(e.Value)))">
+        <select class="stretch" @onchange="@(e => ViewModel.OnActionComboBoxValueChange(Convert.ToInt32(e.Value)))"
+                style="background-color: @GetActionBackgroundColor(
+                    ViewModel.Config.ActionComboBoxOptions.ElementAtOrDefault(ViewModel.ActionComboBoxValue).Value)">
             @foreach (var (index, (name, color)) in ViewModel.Config.ActionComboBoxOptions.ZipWithIndex())
             {
-                <option style="background-color: @(color.HasValue ? color.Value.ToHtmlColor() : "transparent")" value=@index
+                <option style="background-color: @GetActionBackgroundColor(color)" value=@index
                     selected="@(ViewModel.ActionComboBoxValue == index)">@name</option>
             }
         </select>
@@ -32,12 +34,23 @@
         <div>Match the messages containing this text:</div>
         <input value=@ViewModel.Template @onchange="e => ViewModel.OnTemplateChange(e.Value.ToString())" />
         <div>
-            @foreach (var cb in new[] { (CheckBoxId.MatchCase, "Match case"), (CheckBoxId.WholeWord, "Whole word"), (CheckBoxId.RegExp, "Regex") })
+            @foreach (var (cb, name) in new[] { (CheckBoxId.MatchCase, "Match case"), (CheckBoxId.WholeWord, "Whole word"), (CheckBoxId.RegExp, "Regex") })
             {
                  <label>
-                    <input type="checkbox" checked="@((ViewModel.CheckedBoxes & cb.Item1) != 0)"
-                       @oninput="@(e => ViewModel.OnCheckBoxCheck(cb.Item1, e.Value is bool x && x))" />
-                    @cb.Item2
+                    <input type="checkbox" checked="@((ViewModel.CheckedBoxes & cb) != 0)"
+                       @oninput="@(e => ViewModel.OnCheckBoxCheck(cb, e.Value is bool x && x))" />
+                    @name
+                </label>
+            }
+        </div>
+        <div class="message-types">
+            <span>Match messages of these types:</span>
+            @foreach (var t in ViewModel.MessageTypeItems)
+            {
+                <label>
+                    <input type="checkbox" checked="@t.IsChecked"
+                       @oninput="@(e => ViewModel.OnMessageTypeItemCheck(t, e.Value is bool x && x))" />
+                    @t.ToString()
                 </label>
             }
         </div>
@@ -78,5 +91,10 @@
     async void IView.PutFocusOnNameEdit()
     {
         await edit.FocusAsync();
+    }
+
+    static string GetActionBackgroundColor(Color? color)
+    {
+        return color.HasValue ? color.Value.ToHtmlColor() : "var(--control-client-background)";
     }
 }

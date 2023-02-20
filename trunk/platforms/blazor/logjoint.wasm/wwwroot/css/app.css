@@ -1313,6 +1313,11 @@ button {
     flex-flow: column nowrap;
 }
 
+.filter-dialog>.criteria>.message-types {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
 
 .tabs {
     display: flex;
