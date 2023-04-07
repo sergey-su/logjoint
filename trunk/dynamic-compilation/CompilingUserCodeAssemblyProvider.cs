@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
+using Microsoft.VisualBasic.FileIO;
 
 namespace LogJoint
 {
@@ -32,7 +33,7 @@ namespace LogJoint
 		}
 
 		int IUserCodeAssemblyProvider.ProviderVersionHash => Hashing.GetStableHashCode(
-				typeof(CSharpCompilation).Assembly.FullName + " gen=4");
+				typeof(CSharpCompilation).Assembly.FullName + " gen=5");
 
 		byte[] IUserCodeAssemblyProvider.GetUserCodeAsssembly(
 			LJTraceSource trace, 
@@ -192,6 +193,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 	static IMessage fakeMsg = new Message(0, 0, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
 			");
 
+
 			code.AppendLine(@"
 	public override LogJoint.IMessage MakeMessage(LogJoint.FieldsProcessor.IMessagesBuilderCallback __callback,
 		LogJoint.FieldsProcessor.MakeMessageFlags __flags)
@@ -205,6 +207,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			bool severityAdded = false;
 			bool typeAdded = false;
 			bool linkAdded = false;
+			string lazyBodyExpression = null;
 
 			string defTimeExpression = @"DateTime.MinValue";
 
@@ -223,7 +226,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				string fieldVar = null;
 				string lazyFieldVar = null;
 				string fieldType = null;
-				string ignoranceFlag = null;
+				string ignoreFlag = null;
 				string lazyFlag = null;
 				string exprWhenIgnored = null;
 				switch (s.Name)
@@ -231,7 +234,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 					case "Time":
 						fieldVar = "__time";
 						fieldType = "DateTime";
-						ignoranceFlag = "HintIgnoreTime";
+						ignoreFlag = "HintIgnoreTime";
 						exprWhenIgnored = defTimeExpression;
 						timeAdded = true;
 						break;
@@ -239,7 +242,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 						fieldVar = "__body";
 						lazyFieldVar = "__lazy_body";
 						fieldType = "StringSlice";
-						ignoranceFlag = "HintIgnoreBody";
+						ignoreFlag = "HintIgnoreBody";
 						lazyFlag = "LazyBody";
 						exprWhenIgnored = defBodyExpression;
 						bodyAdded = true;
@@ -247,7 +250,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 					case "Thread":
 						fieldVar = "__thread";
 						fieldType = "StringSlice";
-						ignoranceFlag = "HintIgnoreThread";
+						ignoreFlag = "HintIgnoreThread";
 						exprWhenIgnored = defThreadExpression;
 						threadAdded = true;
 						break;
@@ -255,20 +258,20 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 						fieldVar = "__severity";
 						fieldType = "Severity";
 						severityAdded = true;
-						ignoranceFlag = "HintIgnoreSeverity";
+						ignoreFlag = "HintIgnoreSeverity";
 						exprWhenIgnored = defSeverityExpression;
 						break;
 					case "EntryType":
 						fieldVar = "__entryType";
 						fieldType = "EntryType";
-						ignoranceFlag = "HintIgnoreEntryType";
+						ignoreFlag = "HintIgnoreEntryType";
 						exprWhenIgnored = defTypeExpression;
 						typeAdded = true;
 						break;
 					case "Link":
 						fieldVar = "__link";
 						fieldType = "StringSlice";
-						ignoranceFlag = "HintIgnoreLink";
+						ignoreFlag = "HintIgnoreLink";
 						exprWhenIgnored = defLinkExpression;
 						linkAdded = true;
 						break;
@@ -282,15 +285,18 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		System.Func<{0}> {2} = null;
 		if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.{3}) == 0)
 			if ((__flags & LogJoint.FieldsProcessor.MakeMessageFlags.{4}) != 0) {{
-				{2} = () => TRIM({5});
+				var clone = (GeneratedMessageBuilder)this.MemberwiseClone();
+				{2} = clone.MakeLazyBody;
 				{1} = {6};
 			}} else
 				{1} = {5};
 		else 
 			{1} = {6};",
-						fieldType, fieldVar, lazyFieldVar, ignoranceFlag, lazyFlag,
+						fieldType, fieldVar, lazyFieldVar, ignoreFlag, lazyFlag,
 						GetOutputFieldExpression(s, fieldType, helperFunctions),
 						exprWhenIgnored);
+						lazyBodyExpression = string.Format("TRIM({0})",
+							GetOutputFieldExpression(s, fieldType, helperFunctions));
 					}
 					else
 					{
@@ -300,7 +306,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			{1} = {3};
 		else 
 			{1} = {4};",
-						fieldType, fieldVar, ignoranceFlag,
+						fieldType, fieldVar, ignoreFlag,
 						GetOutputFieldExpression(s, fieldType, helperFunctions),
 						exprWhenIgnored);
 					}
@@ -399,6 +405,13 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 			code.AppendLine(@"
 	}");
+
+			if (lazyBodyExpression != null)
+			{
+				code.AppendFormat(@"
+	public StringSlice MakeLazyBody() {{ return {0}; }}", lazyBodyExpression);
+				code.AppendLine();
+			}
 
 			code.AppendLine(@"
 	public override LogJoint.Internal.__MessageBuilder Clone()
