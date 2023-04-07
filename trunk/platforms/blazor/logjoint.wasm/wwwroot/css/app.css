@@ -1272,9 +1272,10 @@ button {
 
 
 
-.filter-dialog {
+.resizable-dialog.filter-dialog {
     display: flex;
     flex-flow: column nowrap;
+    min-height: 350px;
 }
 
 .filter-dialog>.buttons {
@@ -1290,6 +1291,7 @@ button {
 .filter-dialog>.prop {
     display: flex;
     flex-flow: row nowrap;
+    padding: 5px 8px;
 }
 
 .filter-dialog>.prop>*:nth-child(1) {
@@ -1308,15 +1310,23 @@ button {
 .filter-dialog>.criteria {
     height: 1px;
     flex-grow: 2;
-    padding: 10px;
+    padding: 6px 8px;
     display: flex;
     flex-flow: column nowrap;
+}
+
+.filter-dialog>.criteria>* {
+    padding: 5px 0px;
 }
 
 .filter-dialog>.criteria>.message-types {
     display: flex;
     flex-flow: column nowrap;
 }
+.filter-dialog>.criteria>.message-types>* {
+    padding-bottom: 5px;
+}
+
 
 
 .tabs {

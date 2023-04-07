@@ -32,7 +32,7 @@
     </div>
     <div class="criteria">
         <div>Match the messages containing this text:</div>
-        <input value=@ViewModel.Template @onchange="e => ViewModel.OnTemplateChange(e.Value.ToString())" />
+        <input value=@ViewModel.Template @onchange="e => ViewModel.OnTemplateChange(e.Value.ToString())" @ref="edit" @onkeydown="HandleKeyDown" />
         <div>
             @foreach (var (cb, name) in new[] { (CheckBoxId.MatchCase, "Match case"), (CheckBoxId.WholeWord, "Whole word"), (CheckBoxId.RegExp, "Regex") })
             {
@@ -59,6 +59,7 @@
         <button @onclick="@(e => ViewModel.OnConfirmed())">Ok</button>
         <button @onclick="@(e => ViewModel.OnCancelled())">Cancel</button>
     </div>
+    <FirstRenderDetector OnFirstRender="@(async () => await edit.FocusAsync())" />
 </Modal>
 
 @code {
@@ -96,5 +97,13 @@
     static string GetActionBackgroundColor(Color? color)
     {
         return color.HasValue ? color.Value.ToHtmlColor() : "var(--control-client-background)";
+    }
+
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ViewModel.OnConfirmed();
+        }
     }
 }

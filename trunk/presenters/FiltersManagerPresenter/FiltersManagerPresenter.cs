@@ -41,7 +41,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				() => filtersList?.Purpose, GetVisibleCtrls);
 			this.enabledCtrls = Selectors.Create(() => filtersListPresenter.SelectedFilters,
 				() => filtersList?.Purpose, () => filtersList != null && filtersList.FilteringEnabled,
-				GetEnabledCtrls);
+				() => filtersList.Items, GetEnabledCtrls);
 
 			filtersListPresenter.DeleteRequested += (s, a) => {
 				DoRemoveSelected ();
@@ -144,12 +144,12 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		void IViewModel.OnMoveFilterUpClicked()
 		{
-			MoveFilterInternal(true);
+			MoveFilterInternal(up: true);
 		}
 
 		void IViewModel.OnMoveFilterDownClicked()
 		{
-			MoveFilterInternal(false);
+			MoveFilterInternal(up: false);
 		}
 
 		void IViewModel.OnPrevClicked()
@@ -193,7 +193,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			return visibleCtrls;
 		}
 
-		static ViewControl GetEnabledCtrls(IImmutableSet<IFilter> selectedFilters, FiltersListPurpose? purpose, bool filteringEnabled)
+		static ViewControl GetEnabledCtrls(IImmutableSet<IFilter> selectedFilters, FiltersListPurpose? purpose, 
+			bool filteringEnabled, IImmutableList<IFilter> allFilters)
 		{
 			int count = selectedFilters.Count;
 			ViewControl enabledCtrls =
@@ -201,7 +202,14 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			if (count > 0)
 				enabledCtrls |= ViewControl.RemoveFilterButton;
 			if (count == 1)
-				enabledCtrls |= (ViewControl.MoveDownButton | ViewControl.MoveUpButton | ViewControl.FilterOptions);
+				enabledCtrls |= ViewControl.FilterOptions;
+			if (count == 1 && allFilters.Count > 1)
+			{
+				if (selectedFilters.Single() != allFilters[0])
+					enabledCtrls |= ViewControl.MoveUpButton;
+				if (selectedFilters.Single() != allFilters[allFilters.Count - 1])
+					enabledCtrls |= ViewControl.MoveDownButton;
+			}
 			if (purpose == FiltersListPurpose.Highlighting && IsNavigationOverHighlightedMessagesEnabled(selectedFilters.Count, filteringEnabled))
 				enabledCtrls |= (ViewControl.PrevButton | ViewControl.NextButton);
 			return enabledCtrls;
@@ -219,7 +227,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			changeNotification.Post();
 		}
 
-		private void DoRemoveSelected()
+		private async void DoRemoveSelected()
 		{
 			var toDelete = new List<IFilter>();
 			foreach (IFilter f in filtersListPresenter.SelectedFilters)
@@ -232,7 +240,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				return;
 			}
 
-			if (alerts.ShowPopup (
+			if (await alerts.ShowPopupAsync (
 				"Rules", 
 				string.Format("You are about to delete ({0}) rules(s).\nAre you sure?", toDelete.Count), 
 				AlertFlags.YesNoCancel | AlertFlags.QuestionIcon) != AlertFlags.Yes)

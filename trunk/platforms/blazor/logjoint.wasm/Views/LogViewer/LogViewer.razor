@@ -40,6 +40,13 @@
                             <span class="pad srhl" style=@PadStyle(r.Item1, r.Item2)></span>
                         }
                     }
+                    @if (item.HighlightingFiltersHighlightingRanges != null)
+                    {
+                        @foreach (var r in item.HighlightingFiltersHighlightingRanges)
+                        {
+                            <span class="pad" style="@PadStyle(r.Item1, r.Item2); background-color: @Drawing.ColorExtensions.ToHtmlColor(@r.Item3)"></span>
+                        }
+                    }
                     @if (item.CursorCharIndex.HasValue)
                     {
                         <span class="@(item.CursorVisible ? "pad cur" : "pad curhid")" style=@PadStyle(item.CursorCharIndex.Value, item.CursorCharIndex.Value)></span>
