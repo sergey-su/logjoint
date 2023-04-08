@@ -41,7 +41,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				() => filtersList?.Purpose, GetVisibleCtrls);
 			this.enabledCtrls = Selectors.Create(() => filtersListPresenter.SelectedFilters,
 				() => filtersList?.Purpose, () => filtersList != null && filtersList.FilteringEnabled,
-				() => filtersList.Items, GetEnabledCtrls);
+				() => filtersList?.Items, GetEnabledCtrls);
 
 			filtersListPresenter.DeleteRequested += (s, a) => {
 				DoRemoveSelected ();
@@ -203,7 +203,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				enabledCtrls |= ViewControl.RemoveFilterButton;
 			if (count == 1)
 				enabledCtrls |= ViewControl.FilterOptions;
-			if (count == 1 && allFilters.Count > 1)
+			if (count == 1 && allFilters != null && allFilters.Count > 1)
 			{
 				if (selectedFilters.Single() != allFilters[0])
 					enabledCtrls |= ViewControl.MoveUpButton;
