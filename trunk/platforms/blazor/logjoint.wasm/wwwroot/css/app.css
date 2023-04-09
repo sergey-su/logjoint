@@ -1271,7 +1271,6 @@ button {
 }
 
 
-
 .resizable-dialog.filter-dialog {
     display: flex;
     flex-flow: column nowrap;
@@ -1328,6 +1327,41 @@ button {
 }
 
 
+.filters-list-item {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    user-select: none;
+}
+
+.filters-list-item > span {
+    flex-grow: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.filters-list-item > .checkbox-or-placeholder {
+    width: 15px;
+    margin: 3px;
+    padding: 0px;
+}
+
+.filters-list-item > .icon {
+    width: var(--item-height);
+    height: var(--item-height);
+    text-align: center;
+    font-weight: bold;
+    background: var(--control-client-background);
+}
+
+
+.filters-list-item > .icon.include {
+    color: green;
+}
+
+.filters-list-item > .icon.exclude {
+    color: darkred;
+}
 
 .tabs {
     display: flex;

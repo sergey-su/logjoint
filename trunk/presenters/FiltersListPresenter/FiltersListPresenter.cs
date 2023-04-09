@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			this.items = Selectors.Create(
 				() => filtersList?.Items, () => filtersList?.GetDefaultAction(),
 				() => filtersList?.Purpose, () => highlightColorsTable.Items,
-				() => selectedFiltersWithNull,
+				() => selectedFiltersWithNull, () => filtersList?.FiltersVersion,
 				GetViewItems);
 			this.selectedFilters = Selectors.Create(() => selectedFiltersWithNull, s => s.Remove(null));
 		}
@@ -58,12 +58,12 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			changeNotification.Post();
 		}
 
-		void IViewModel.OnItemChecked(IViewItem item)
+		void IViewModel.OnItemChecked(IViewItem item, bool isChecked)
 		{
 			IFilter s = (item as ViewItem)?.Filter;
-			if (s != null && !s.IsDisposed && s.Enabled != item.IsChecked)
+			if (s != null && !s.IsDisposed && s.Enabled != isChecked)
 			{
-				s.Enabled = item.IsChecked.GetValueOrDefault();
+				s.Enabled = isChecked;
 			}
 		}
 
@@ -147,7 +147,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		static IReadOnlyList<IViewItem> GetViewItems(
 			IReadOnlyList<IFilter> filters, FilterAction? defaultAction, FiltersListPurpose? purpose,
-			ImmutableArray<Color> highlightColorsTable, IImmutableSet<IFilter> selectedFilters)
+			ImmutableArray<Color> highlightColorsTable, IImmutableSet<IFilter> selectedFilters, int? filtersVersion)
 		{
 			var builder = ImmutableList.CreateBuilder<IViewItem>();
 			if (filters != null)

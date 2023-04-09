@@ -42,6 +42,7 @@ namespace LogJoint.UI
 
 		void UpdateItems(IReadOnlyList<IViewItem> viewItems)
 		{
+			updateLock++;
 			list.BeginUpdate();
 			try
 			{
@@ -126,7 +127,7 @@ namespace LogJoint.UI
 		{
 			if (updateLock > 0)
 				return;
-			viewModel.OnItemChecked(GetFilterListViewItem(e.Item)?.ViewItem);
+			viewModel.OnItemChecked(GetFilterListViewItem(e.Item)?.ViewItem, e.Item.Checked);
 		}
 
 		private void list_MouseDown(object sender, MouseEventArgs e)

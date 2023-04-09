@@ -11,7 +11,30 @@
           OnKeyDown="HandleKeyDown">
     <ItemTemplate>
         @{var item = (IViewItem)context;}
-        <div>@item.ToString()</div>
+        @if (item.ImageType == ViewItemImageType.Include)
+        {
+            <div class="icon include" title=@item.ActionTooltip>✔</div>
+        }
+        else if (item.ImageType == ViewItemImageType.Exclude)
+        {
+            <div class="icon exclude" title=@item.ActionTooltip>✘</div>
+        }
+        else
+        {
+            <div class="icon"></div>
+        }
+        @if (item.IsChecked != null)
+        {
+            <input type="checkbox" class="checkbox-or-placeholder" title=@item.CheckboxTooltip checked="@item.IsChecked"
+               @oninput="@(e => ViewModel.OnItemChecked(item, e.Value is bool x && x))" />
+        }
+        else
+        {
+            <div class="checkbox-or-placeholder">&nbsp;</div>
+        }
+        <span title=@item.ActionTooltip style="@GetItemStyle(item)">
+            @item.ToString()
+        </span>
     </ItemTemplate>
 </ListView>
 
@@ -49,5 +72,11 @@
         {
             ViewModel.OnDeletePressed();
         }
+    }
+
+    string GetItemStyle(IViewItem item)
+    {
+        var cl = (item.IsSelected || !item.Color.HasValue) ? "inherit" : LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.Color.Value);
+        return $"background-color: {cl}";
     }
 }

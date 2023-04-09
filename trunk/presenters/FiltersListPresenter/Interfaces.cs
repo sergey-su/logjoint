@@ -47,7 +47,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		bool IsEnabled { get; }
 		IReadOnlyList<IViewItem> Items { get; }
 		void OnChangeSelection(IViewItem[] items);
-		void OnItemChecked(IViewItem item);
+		void OnItemChecked(IViewItem item, bool isChecked);
 		void OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems);
 		void OnFilterEnabledMenuItemClicked();
 		void OnMoveUpMenuItemClicked();
