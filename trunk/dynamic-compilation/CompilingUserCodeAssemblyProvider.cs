@@ -280,6 +280,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				{
 					if (lazyFieldVar != null)
 					{
+						string outputFieldExpression = GetOutputFieldExpression(s, fieldType, helperFunctions);
 						code.AppendFormat(@"
 		{0} {1};
 		System.Func<{0}> {2} = null;
@@ -293,10 +294,9 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		else 
 			{1} = {6};",
 						fieldType, fieldVar, lazyFieldVar, ignoreFlag, lazyFlag,
-						GetOutputFieldExpression(s, fieldType, helperFunctions),
+						outputFieldExpression,
 						exprWhenIgnored);
-						lazyBodyExpression = string.Format("TRIM({0})",
-							GetOutputFieldExpression(s, fieldType, helperFunctions));
+						lazyBodyExpression = string.Format("TRIM({0})", outputFieldExpression);
 					}
 					else
 					{
