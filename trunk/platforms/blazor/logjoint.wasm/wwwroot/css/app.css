@@ -571,9 +571,10 @@ button {
     height: var(--item-height);
 }
 .tree>.node>.triangle {
-    font-size: 0.8em;
+    font-size: 0.7em;
     width: 1em;
     align-self: center;
+    font-family: math;
 }
 .tree>.node>.contents {
     width: 1px;
