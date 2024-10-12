@@ -31,27 +31,27 @@
 
   <ItemGroup>
     <Reference Include="logjoint.google.plugin">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/logjoint.google.plugin.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net8.0/logjoint.google.plugin.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="logjoint.google.plugin.model.dll">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/logjoint.google.plugin.model.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net8.0/logjoint.google.plugin.model.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="logjoint.google.plugin.presentation.dll">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/logjoint.google.plugin.presentation.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net8.0/logjoint.google.plugin.presentation.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="Google___Analog_exported_log_format">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/Formats/Google___Analog_exported_log_format.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net8.0/Formats/Google___Analog_exported_log_format.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="Google___C___default_log_format">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net7.0/Formats/Google___C___default_log_format.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net8.0/Formats/Google___C___default_log_format.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>

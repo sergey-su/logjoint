@@ -8,6 +8,7 @@
 @using System.Text;
 @using LogJoint.UI.Presenters.Reactive;
 @using System.Collections.Immutable;
+@using System.Xml.Linq;
 
 <div class='@Class settings-panel nice-scroll'>
     <label>
@@ -15,8 +16,15 @@
                checked="@(themeDetector.Mode == LogJoint.UI.Presenters.ColorThemeMode.Dark)"
                @oninput="@(e => SetDarkMode(e.Value is bool x && x))" />Dark mode
     </label>
+    <p>
+        Debug agent address: <input
+            type="text"
+            value="@(debugAgentAddress ?? string.Empty)"
+            disabled="@(debugAgentAddress == null)"
+            @oninput="@(e => SetDebugAgentAddress(e.Value as string ?? ""))" />
+    </p>
     <p class="debug-label">
-        Debug options
+        Advanced options
         <a href="#" @onclick:preventDefault @onclick="ToggleDebugOptions">@(debugOptionsVisible ? "hide" : "show")</a>
     </p>
     @if (debugOptionsVisible)
@@ -57,7 +65,7 @@
                 <button @onclick="DownloadFile">Download file</button>
             </div>
             <input type="file" @ref="fileInputReference" hidden />
-            <button @onclick="LoadLogSameWayChromeExtensionDoes" hidden>LoadLogSameWayChromeExtensionDoes</button>
+            <button @onclick="LoadLogSameWayChromeExtensionDoes">LoadLogSameWayChromeExtensionDoes</button>
         </div>
     }
 </div>
@@ -77,12 +85,19 @@
 
     private bool debugOptionsVisible = false;
 
+    private string debugAgentAddress = null;
+
     class ListItem : IListItem
     {
         public string Key { get; set; }
         public bool IsSelected { get; set; }
         public override string ToString() => Key;
     };
+
+    protected override void OnInitialized()
+    {
+        LoadDebugAgentAddress();
+    }
 
     void ToggleDebugOptions()
     {
@@ -180,15 +195,16 @@
 
     async void LoadLogSameWayChromeExtensionDoes()
     {
-        var fs = (LogJoint.Wasm.IWasmFileSystemConfig)model.FileSystem;
-        var fileName = await fs.AddFileFromInput(fileInputReference);
-        using var stream = await model.FileSystem.OpenFile(fileName);
-        stream.Position = 0;
-        var url = @"https://test.url/123";
-        await model.ExpensibilityEntryPoint.WebContentCache.SetValue(new Uri(url), stream);
+        var url = @"https://test.url/9898";
+        Preprocessing.IPreprocessingStep step =
+            model.ExpensibilityEntryPoint.Preprocessing.ExtensionsRegistry.Items.Select(e => e.CreateStepByName("goog-agent-download",
+                new LogJoint.Preprocessing.PreprocessingStepParams(url, displayName: "My test log"))).FirstOrDefault(s => s != null);
+        if (step == null)
+        {
+            throw new Exception("Can not find goog agent");
+        }
         var task = model.LogSourcesPreprocessings.Preprocess(
-            new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(
-                        new LogJoint.Preprocessing.PreprocessingStepParams(url, displayName: "My test log")) },
+            new[] { step },
             "Processing file"
         );
         await task;
@@ -221,5 +237,25 @@
             var value = await File.ReadAllTextAsync(fname);
             await jsInterop.SaveAs.SaveAs(value, Path.GetFileName(fname));
         }
+    }
+
+    async void LoadDebugAgentAddress()
+    {
+        var storageEntry = await model.StorageManager.GetEntry("debug-agent");
+        await using var section = await storageEntry.OpenXMLSection("settings", Persistence.StorageSectionOpenFlag.ReadOnly);
+        debugAgentAddress = section.Data.Root?.Attribute("address")?.Value ?? "";
+        StateHasChanged();
+    }
+
+
+    async void SetDebugAgentAddress(string address)
+    {
+        var storageEntry = await model.StorageManager.GetEntry("debug-agent");
+        await using var section = await storageEntry.OpenXMLSection("settings", Persistence.StorageSectionOpenFlag.ReadWrite);
+        if (section.Data.Root == null)
+            section.Data.Add(new XElement("settings"));
+        section.Data.Root.SetAttributeValue("address", address);
+        debugAgentAddress = address;
+        StateHasChanged();
     }
 }
