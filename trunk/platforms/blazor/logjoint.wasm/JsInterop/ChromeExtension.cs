@@ -27,6 +27,15 @@ namespace LogJoint.Wasm
             }
         }
 
+        public class AddSourceEventArgs: EventArgs
+        {
+            public string Url { get; private set; }
+            public AddSourceEventArgs(string url)
+            {
+                Url = url;
+            }
+        }
+
         public ChromeExtensionInterop(IJSRuntime jsRuntime)
         {
             this.jsRuntime = jsRuntime;
@@ -39,6 +48,7 @@ namespace LogJoint.Wasm
         }
 
         public event EventHandler<OpenLogEventArgs> OnOpen;
+        public event EventHandler<AddSourceEventArgs> OnAddSource;
 
         class CallbackHelper
         {
@@ -48,6 +58,12 @@ namespace LogJoint.Wasm
             public void Open(string logText, string id, string url, string displayName)
             {
                 owner.OnOpen?.Invoke(owner, new OpenLogEventArgs(logText, id, url, displayName));
+            }
+
+            [JSInvokable]
+            public void AddSource(string url)
+            {
+                owner.OnAddSource?.Invoke(owner, new AddSourceEventArgs(url));
             }
         }
     }

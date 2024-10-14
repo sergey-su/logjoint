@@ -816,6 +816,9 @@
                             console.log("Got open log request from chrome extension. Log len=", msg.text.length, " id=", msg.id);
                             callback.invokeMethodAsync('Open', msg.text, msg.id, msg.url, msg.displayName || msg.id);
                         }
+                    } else if (msg.type === "add_source") {
+                        console.log("Got add source request from chrome extension: ", msg.url);
+                        callback.invokeMethodAsync('AddSource', msg.url);
                     }
                 });
                 port.onDisconnect.addListener(p => {

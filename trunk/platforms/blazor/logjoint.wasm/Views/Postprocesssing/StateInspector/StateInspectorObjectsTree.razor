@@ -85,5 +85,13 @@
     {
         if (eventArgs.Key == "Delete" || eventArgs.Key == "Backspace")
             ViewModel.OnNodeDeleteKeyPressed();
+        else if (eventArgs.Key == "m" || eventArgs.Key == "M")
+        {
+            var menu = ViewModel.OnNodeMenuOpening();
+            if (menu.Items.Count > 0)
+            {
+                menu.Items[0].Click();
+            }
+        }
     }
 }

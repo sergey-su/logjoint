@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 
@@ -22,6 +23,21 @@ namespace LogJoint.Wasm
                 var task = model.LogSourcesPreprocessings.Preprocess(
                     new[] { model.PreprocessingStepsFactory.CreateLocationTypeDetectionStep(
                         new LogJoint.Preprocessing.PreprocessingStepParams(evt.Url, displayName: evt.DisplayName)) },
+                    "Processing file"
+                );
+                await task;
+            };
+
+            jsInterop.ChromeExtension.OnAddSource += async (sender, evt) =>
+            {
+                Console.WriteLine("Adding source id: '{0}'", evt.Url);
+                var model = wasmHost.Services.GetService<ModelObjects>();
+                Preprocessing.IPreprocessingStep step =
+                    model.ExpensibilityEntryPoint.Preprocessing.StepsFactory.CreateURLTypeDetectionStep(
+                        new LogJoint.Preprocessing.PreprocessingStepParams(evt.Url)
+                    );
+                var task = model.LogSourcesPreprocessings.Preprocess(
+                    new[] { step },
                     "Processing file"
                 );
                 await task;
