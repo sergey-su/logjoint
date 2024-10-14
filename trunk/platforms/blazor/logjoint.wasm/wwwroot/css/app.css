@@ -1450,6 +1450,25 @@ button {
 }
 
 
+.context-menu {
+    padding: 7px;
+    margin: 0px;
+    gap: 5px;
+    display: flex;
+    flex-flow: column nowrap;
+    background: var(--control-face-background);
+}
+
+.context-menu>.item {
+    min-width: 100px;
+    border: none;
+    padding: 3px 6px;
+    cursor: pointer;
+}
+
+.context-menu>.item.selected {
+    background: var(--selected-item-background-color);
+}
 
 
 .resizable-dialog {

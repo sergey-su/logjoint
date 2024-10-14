@@ -65,7 +65,7 @@
                 <button @onclick="DownloadFile">Download file</button>
             </div>
             <input type="file" @ref="fileInputReference" hidden />
-            <button @onclick="LoadLogSameWayChromeExtensionDoes">LoadLogSameWayChromeExtensionDoes</button>
+            <button @onclick="LoadLogSameWayChromeExtensionDoes" hidden>LoadLogSameWayChromeExtensionDoes</button>
         </div>
     }
 </div>
@@ -195,7 +195,7 @@
 
     async void LoadLogSameWayChromeExtensionDoes()
     {
-        var url = @"analog://logs/session?text_query=resource.type%20%3D%20%22borg.producer%22%20resource.labels.borg_user%20%3D%20%22rtc-media-router%22%20resource.labels.borg_job%20%3D%20%22prod-00-canary.media-router%22%20resource.labels.borg_cell%20%3D%20%22eu%22%20resource.labels.borg_task_index%20%3D%20%222%22%20text_payload%20%3D~%20%22(%3Fi)%5EszA8MASK6DgimgoKAAiKYigCIAMQ%22&time_range=2024-10-07T13:01:23.000000Z%2F2024-10-07T13:30:55.000000Z";
+        var url = @"analog://logs/session?text_query=";
         Preprocessing.IPreprocessingStep step =
             model.ExpensibilityEntryPoint.Preprocessing.StepsFactory.CreateURLTypeDetectionStep(
                 new LogJoint.Preprocessing.PreprocessingStepParams(url, displayName: "My test analog log")

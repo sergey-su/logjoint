@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters
 		public IClipboardAccess ClipboardAccess { get; internal set; }
 		public IPresentersFacade PresentersFacade { get; internal set; }
 		public IAlertPopup AlertPopup { get; internal set; }
+		public IContextMenu ContextMenu { get; internal set; }
 		public IColorTheme ColorTheme { get; internal set; }
 		public IShellOpen ShellOpen { get; internal set; }
 		public PreprocessingUserInteractions.IPresenter PreprocessingUserInteractions { get; internal set; }
@@ -118,6 +119,8 @@ namespace LogJoint.UI.Presenters
 			{
 				alertPopup = new AlertPopup.Presenter(model.ChangeNotification);
 			}
+
+			var contextMenu = new ContextMenu.Presenter(model.ChangeNotification);
 
 			LogViewer.IPresenterFactory logViewerPresenterFactory = new LogViewer.PresenterFactory(
 				model.ChangeNotification,
@@ -559,6 +562,7 @@ namespace LogJoint.UI.Presenters
 				ClipboardAccess = clipboardAccess,
 				PresentersFacade = presentersFacade,
 				AlertPopup = alertPopup,
+				ContextMenu = contextMenu,
 				ShellOpen = shellOpen,
 				ColorTheme = colorTheme,
 				PreprocessingUserInteractions = preprocessingUserInteractions,

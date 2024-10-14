@@ -28,7 +28,7 @@ namespace LogJoint.Wasm
                 await task;
             };
 
-            jsInterop.ChromeExtension.OnAddSource += async (sender, evt) =>
+            jsInterop.ChromeExtension.OnAddSource += (sender, evt) =>
             {
                 Console.WriteLine("Adding source id: '{0}'", evt.Url);
                 var model = wasmHost.Services.GetService<ModelObjects>();
@@ -36,11 +36,7 @@ namespace LogJoint.Wasm
                     model.ExpensibilityEntryPoint.Preprocessing.StepsFactory.CreateURLTypeDetectionStep(
                         new LogJoint.Preprocessing.PreprocessingStepParams(evt.Url)
                     );
-                var task = model.LogSourcesPreprocessings.Preprocess(
-                    new[] { step },
-                    "Processing file"
-                );
-                await task;
+                model.LogSourcesPreprocessings.Preprocess(new[] { step }, "Processing");
             };
         }
     }

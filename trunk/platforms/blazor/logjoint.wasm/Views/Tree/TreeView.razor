@@ -67,6 +67,9 @@
     [Parameter]
     public Action<ITreeNode> OnDoubleClick { get; set; }
 
+    [Parameter]
+    public Action<MouseEventArgs, ITreeNode> OnRightClick { get; set; }
+
 
     public ValueTask FocusAsync() => FocusPrimaryNode(allowFocusStealing: true);
 

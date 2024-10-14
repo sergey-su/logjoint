@@ -15,7 +15,8 @@
               OnSelect="@(nodes => ViewModel.OnSelect(nodes.OfType<IObjectsTreeNode>().ToArray()))"
               OnExpand="@(node => ViewModel.OnExpandNode(node as IObjectsTreeNode))"
               OnCollapse="@(node => ViewModel.OnCollapseNode(node as IObjectsTreeNode))"
-              OnKeyDown="HandleKeyDown">
+              OnKeyDown="HandleKeyDown"
+              OnRightClick="HandleRightClick">
         <NodeTemplate>
             @{var node = (IObjectsTreeNode)context;}
             @{var paintInfo = PaintNode(node, getPrimaryPropValue: true);}
@@ -73,6 +74,9 @@
     public IViewModel ViewModel { get; set; }
 
     [Parameter]
+    public LogJoint.UI.Presenters.IContextMenu ContextMenuPresenter { get; set; }
+
+    [Parameter]
     public IObjectsTreeNode ObjectsTreeRoot { get; set; }
 
     [Parameter]
@@ -85,13 +89,13 @@
     {
         if (eventArgs.Key == "Delete" || eventArgs.Key == "Backspace")
             ViewModel.OnNodeDeleteKeyPressed();
-        else if (eventArgs.Key == "m" || eventArgs.Key == "M")
-        {
-            var menu = ViewModel.OnNodeMenuOpening();
-            if (menu.Items.Count > 0)
-            {
-                menu.Items[0].Click();
-            }
-        }
+    }
+
+    void HandleRightClick(MouseEventArgs e, LogJoint.UI.Presenters.Reactive.ITreeNode node)
+    {
+        var menu = ViewModel.OnNodeMenuOpening();
+        ContextMenuPresenter.ShowMenu(menu.Items.Select(
+            i => new LogJoint.UI.Presenters.ContextMenuItem(i.Text, i.Click)).ToList(),
+            new Drawing.PointF((float)e.ClientX, (float)e.ClientY));
     }
 }

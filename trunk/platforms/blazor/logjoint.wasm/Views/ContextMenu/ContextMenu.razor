@@ -1,0 +1,67 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.ContextMenu
+@using LogJoint.UI.Presenters 
+@implements IDisposable
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
+
+<Modal Visible="@(viewModel.ViewState != null)" Class="" Style="@GetContentsStyle()" ClickOutside="@(() => viewModel?.OnClickOutside())" OnCancel="@(() => viewModel?.OnClickOutside())">
+    <div class="context-menu" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
+        @foreach (var item in @viewModel.ViewState.Items.ZipWithIndex())
+        {
+            <div
+                @key="item.Key"
+                class="@GetItemClass(item.Key)" 
+                @onclick="@(() => viewModel.OnItemClicked())"
+                @onmouseenter="@(() => viewModel.OnItemHovered(item.Key))"
+                @onmouseleave="@(() => viewModel.OnItemUnhovered(item.Key))"
+            >
+                @item.Value
+            </div>
+        }
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        viewModel = (IViewModel)presentation.ContextMenu; // todo: avoid cast
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.ViewState,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+    string GetItemClass(int i) => $"item {(i == viewModel.ViewState.SelectedItem ? "selected" : "")}";
+
+    string GetContentsStyle()
+    {
+        Drawing.PointF? loc = viewModel.ViewState?.ScreenLocation;
+        if (loc == null)
+            return "";
+        return $"left: {loc.Value.X}px; top: {loc.Value.Y}px; transform: none;";
+    }
+
+    KeyCode GetKey(KeyboardEventArgs keyboardEventArgs)
+    {
+        switch (keyboardEventArgs.Key)
+        {
+            case "ArrowUp":
+                return KeyCode.Up;
+            case "ArrowDown":
+                return KeyCode.Down;
+            case "Enter":
+                return KeyCode.Enter;
+            default:
+                return KeyCode.None;
+        }
+    }
+}

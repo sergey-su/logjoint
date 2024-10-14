@@ -4,7 +4,8 @@
 @inject JsInterop jsInterop
 
 <div class="node @($"c{Level}") @(Node.IsSelected ? "selected" : "") @(IsPrimary ? "primary" : "")"
-     @onclick="TrySelectNodeByMouse" @onclick:stopPropagation tabindex="@(IsPrimary ? 0 : -1)">
+     @onclick="TrySelectNodeByMouse" @onclick:stopPropagation tabindex="@(IsPrimary ? 0 : -1)" 
+     @oncontextmenu="HandleRightClick" @oncontextmenu:preventDefault>
     <div class="triangle" @onclick="TryExpandCollapseByMouse" @onclick:stopPropagation>
         @(!SupportsExpansion(Node) ? " " : (Node.IsExpanded ? "▼" : "▶"))
     </div>
@@ -55,6 +56,15 @@
                 else
                     Owner?.TryExpandNode(Node);
             }
+        }
+    }
+
+    void HandleRightClick(MouseEventArgs e)
+    {
+        TrySelectNodeByMouse(e);
+        if (Owner?.OnRightClick != null)
+        {
+            Owner.OnRightClick.Invoke(e, Node);
         }
     }
 

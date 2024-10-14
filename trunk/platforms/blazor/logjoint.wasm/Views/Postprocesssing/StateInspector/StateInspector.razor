@@ -14,7 +14,8 @@
                                 ObjectsTreeRoot="@viewModel.ObjectsTreeRoot"
                                 PaintNode="@viewModel.PaintNode"
                                 IsNotificationsIconVisibile="@viewModel.IsNotificationsIconVisibile"
-                                ViewModel="@viewModel" />
+                                ViewModel="@viewModel"
+                                ContextMenuPresenter="@presentation.ContextMenu" />
         <div class="v-resizer" @ref="verticalResizerElement"></div>
         <div class="right" @ref="rightContainer" style="@GetRightStyle()">
             <StateInspectorProperties Class="top"
