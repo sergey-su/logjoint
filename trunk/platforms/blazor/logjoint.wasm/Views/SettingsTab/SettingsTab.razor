@@ -19,6 +19,7 @@
     <p>
         Debug agent address: <input
             type="text"
+            style="width: 300px"
             value="@(debugAgentAddress ?? string.Empty)"
             disabled="@(debugAgentAddress == null)"
             @oninput="@(e => SetDebugAgentAddress(e.Value as string ?? ""))" />
