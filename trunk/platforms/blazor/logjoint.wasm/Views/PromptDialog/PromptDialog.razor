@@ -1,0 +1,44 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.PromptDialog
+@using LogJoint.UI.Presenters 
+@implements IDisposable
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
+
+<Modal Visible="@(viewModel.ViewState != null)" Class="prompt" ClickOutside="@(() => viewModel?.OnCancel())" OnCancel="@(() => viewModel?.OnCancel())">
+    <div class="text nice-scroll">
+        @viewModel.ViewState.Prompt
+    </div>
+    <input value="@viewModel.ViewState.Value" @oninput="@(e => viewModel.OnInput(e.Value.ToString()))" @onkeydown="HandleKeyDown" />
+    <div class="buttons">
+        <button @onclick="@(e => viewModel.OnConfirm())">Ok</button>
+        <button @onclick="@(e => viewModel.OnCancel())">Cancel</button>
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        viewModel = (IViewModel)presentation.PromptDialog; // todo: avoid cast
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.ViewState,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            viewModel.OnConfirm();
+        }
+    }
+}

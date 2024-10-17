@@ -1471,6 +1471,41 @@ button {
 }
 
 
+.prompt {
+    border: 2px #444 solid;
+    padding: 10px;
+    min-height: 100px;
+    max-width: 40%;
+    display: flex;
+    flex-flow: column wrap;
+    background: var(--control-face-background);
+}
+.prompt>.text {
+    flex-grow: 2;
+
+    display: block;
+    justify-content: center;
+    align-items: center;
+    white-space: pre;
+    overflow: auto;
+    min-width: 200px;
+    max-width: 1000px;
+    min-height: 50px;
+    max-height: 300px;
+}
+.prompt>.buttons {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-evenly;
+    margin-top: 15px;
+}
+.prompt>.buttons>button {
+    margin: 2px 5px;
+    padding: 0px 10px;
+}
+
+
+
 .resizable-dialog {
     min-width: 400px;
     min-height: 300px;

@@ -14,6 +14,7 @@ namespace LogJoint.UI.Presenters
 		public IPresentersFacade PresentersFacade { get; internal set; }
 		public IAlertPopup AlertPopup { get; internal set; }
 		public IContextMenu ContextMenu { get; internal set; }
+		public IPromptDialog PromptDialog { get; internal set; }
 		public IColorTheme ColorTheme { get; internal set; }
 		public IShellOpen ShellOpen { get; internal set; }
 		public PreprocessingUserInteractions.IPresenter PreprocessingUserInteractions { get; internal set; }
@@ -563,6 +564,7 @@ namespace LogJoint.UI.Presenters
 				PresentersFacade = presentersFacade,
 				AlertPopup = alertPopup,
 				ContextMenu = contextMenu,
+				PromptDialog = promptDialog,
 				ShellOpen = shellOpen,
 				ColorTheme = colorTheme,
 				PreprocessingUserInteractions = preprocessingUserInteractions,

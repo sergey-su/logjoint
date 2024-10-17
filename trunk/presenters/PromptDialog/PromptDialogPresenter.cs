@@ -51,10 +51,11 @@ namespace LogJoint.UI.Presenters.PromptDialog
 
         void EnsureHidden(string value)
         {
-            if (viewState == null)
+            ViewState tmp = viewState;
+            if (tmp == null)
                 return;
-            viewState.taskSource.SetResult(value);
             viewState = null;
+            tmp.taskSource.SetResult(value);
             changeNotification.Post();
         }
 

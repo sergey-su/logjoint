@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <LangVersion>7.3</LangVersion>
     <PackageId>logjoint.presentation.sdk</PackageId>
-    <Version>0.0.5</Version>
+    <Version>0.0.6</Version>
     <Authors>sergeysu</Authors>
     <Company>private</Company>
   </PropertyGroup>
