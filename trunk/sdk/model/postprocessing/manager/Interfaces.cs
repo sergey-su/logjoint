@@ -53,6 +53,7 @@ namespace LogJoint.Postprocessing
 		[Obsolete("Use OpenLogFile() instead")]
 		public string LogFileName;
 		public Task<Stream> OpenLogFile() => openLogFile();
+		public Task<Stream> OpenOutputFile() => openOutputFile();
 		public CancellationToken CancellationToken;
 		public Action<double> ProgressHandler;
 		public Progress.IProgressAggregator ProgressAggregator;

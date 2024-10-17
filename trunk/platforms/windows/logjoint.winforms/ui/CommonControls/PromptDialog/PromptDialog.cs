@@ -1,4 +1,5 @@
 ﻿using LogJoint.UI.Presenters;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LogJoint.UI
@@ -15,6 +16,11 @@ namespace LogJoint.UI
 			string IPromptDialog.ExecuteDialog(string caption, string prompt, string defaultValue)
 			{
 				return PromptDialog.Execute(caption, prompt, defaultValue);
+			}
+
+			public Task<string> ExecuteDialogAsync(string caption, string prompt, string defaultValue)
+			{
+				return Task.FromResult(Execute(caption, prompt, defaultValue));
 			}
 		};
 

@@ -94,7 +94,7 @@ namespace LogJoint.Wasm
 					shellOpen,
 					/*alertPopup=*/null,
 					fileDialogs,
-					/*prompt=*/null,
+					new LogJoint.UI.Presenters.PromptDialog.Presenter(model.ChangeNotification),
 					/*aboutConfig=*/null,
 					/*dragDropHandler=*/null,
 					serviceProvider.GetService<LogJoint.UI.Presenters.GlobalSettingsSystemThemeDetector>(),

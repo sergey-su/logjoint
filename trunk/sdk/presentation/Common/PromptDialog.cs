@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace LogJoint.UI.Presenters
 {
 	/// <summary>
@@ -15,5 +17,10 @@ namespace LogJoint.UI.Presenters
 		/// <returns>Value of text string that the user entered.
 		/// null if dialog was cancelled.</returns>
 		string ExecuteDialog(string caption, string prompt, string defaultValue);
+
+		/// <summary>
+		/// Async version of ExecuteDialog.
+		/// </summary>
+		Task<string> ExecuteDialogAsync(string caption, string prompt, string defaultValue);
 	};
 };
