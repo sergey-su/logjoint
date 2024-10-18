@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace LogJoint.Postprocessing
 {
-	public class FailedRunSummary: IPostprocessorRunSummary
+	public class FailedRunSummary: IPostprocessorRunSummary, IStructuredPostprocessorRunSummary
 	{
 		readonly Exception exception;
 		string report;
@@ -40,5 +41,14 @@ namespace LogJoint.Postprocessing
 				return report;
 			}
 		}
+
+		IEnumerable<(string text, bool isError, IBookmark bookmark)> IStructuredPostprocessorRunSummary.Entries
+		{
+			get
+			{
+				yield return (((IPostprocessorRunSummary)this).Report, true, null);
+			}
+		}
+
 	};
 }
