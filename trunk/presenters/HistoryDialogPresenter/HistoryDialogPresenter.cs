@@ -163,9 +163,9 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			searchBoxPresenter.Focus(null);
 		}
 
-		void IViewModel.OnClearHistoryButtonClicked()
+		async void IViewModel.OnClearHistoryButtonClicked()
 		{
-			if (alerts.ShowPopup(
+			if (await alerts.ShowPopupAsync(
 				"Clear history",
 				string.Format("Do you want to clear the history ({0} items)?", items().items.Count),
 				AlertFlags.YesNoCancel | AlertFlags.WarningIcon
@@ -200,7 +200,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				catch (Exception e)
 				{
 					trace.Error(e, "failed to open '{0}'", item.text);
-					alerts.ShowPopup("Error", "Failed to open " + item.text, AlertFlags.Ok | AlertFlags.WarningIcon);
+					await alerts.ShowPopupAsync("Error", "Failed to open " + item.text, AlertFlags.Ok | AlertFlags.WarningIcon);
 				}
 			});
 			await Task.WhenAll(tasks);
