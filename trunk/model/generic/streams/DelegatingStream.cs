@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class DelegatingStream: Stream, IAsyncDisposable
+	public class DelegatingStream: Stream
 	{
 		Stream impl;
 		bool ownImpl;
@@ -150,7 +150,7 @@ namespace LogJoint
 			impl.Write(buffer, offset, count);
 		}
 
-		async ValueTask IAsyncDisposable.DisposeAsync()
+		public override async ValueTask DisposeAsync()
 		{
 			if (disposeAsync != null)
 			{
