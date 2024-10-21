@@ -48,7 +48,7 @@ namespace LogJoint.Wasm
         }
 
         public event EventHandler<OpenLogEventArgs> OnOpen;
-        public event EventHandler<AddSourceEventArgs> OnAddSource;
+        public Func<AddSourceEventArgs, Task> OnAddSource;
 
         class CallbackHelper
         {
@@ -61,9 +61,12 @@ namespace LogJoint.Wasm
             }
 
             [JSInvokable]
-            public void AddSource(string url)
+            public async Task AddSource(string url)
             {
-                owner.OnAddSource?.Invoke(owner, new AddSourceEventArgs(url));
+                if (owner.OnAddSource != null)
+                {
+                    await owner.OnAddSource(new AddSourceEventArgs(url));
+                }
             }
         }
     }

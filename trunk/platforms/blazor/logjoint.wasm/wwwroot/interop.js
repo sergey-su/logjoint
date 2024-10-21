@@ -788,7 +788,7 @@
                     return;
                 }
                 console.log('Connected to chrome extension', extId);
-                port.onMessage.addListener(msg => {
+                port.onMessage.addListener(async msg => {
                     if (msg.type === "open_log") {
                         let passToApp = false;
                         if (msg.uploadId) {
@@ -818,7 +818,12 @@
                         }
                     } else if (msg.type === "add_source") {
                         console.log("Got add source request from chrome extension: ", msg.url);
-                        callback.invokeMethodAsync('AddSource', msg.url);
+                        try {
+                            await callback.invokeMethodAsync('AddSource', msg.url);
+                            port?.postMessage({requestId: msg.requestId});
+                        } catch (e) {
+                            port?.postMessage({requestId: msg.requestId, error: e.message});
+                        }
                     }
                 });
                 port.onDisconnect.addListener(p => {
@@ -830,6 +835,7 @@
                     } else {
                         resolve(undefined);
                     }
+                    port = null;
                 });
             });
         },
