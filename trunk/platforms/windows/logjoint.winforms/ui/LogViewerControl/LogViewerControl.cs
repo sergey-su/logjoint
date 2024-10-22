@@ -108,7 +108,7 @@ namespace LogJoint.UI
 					if (emptyMessagesCollectionMessage == null)
 						Controls.Add(emptyMessagesCollectionMessage = new EmptyMessagesCollectionMessage { Dock = DockStyle.Fill });
 					emptyMessagesCollectionMessage.Visible = value != null;
-					emptyMessagesCollectionMessage.SetMessage(value ?? "");
+					emptyMessagesCollectionMessage.SetMessage(value != null ? string.Join(" ", value.Select(x => x.Text)) : "");
 				}
 			);
 			viewModel.ChangeNotification.CreateSubscription(() =>

@@ -25,7 +25,7 @@ namespace LogJoint.Wasm
 				BlazorWebContentConfig webContentConfig = new();
 				var logMediaFileSystem = new LogJoint.Wasm.LogMediaFileSystem(serviceProvider.GetService<IJSRuntime>());
 
-				var model = ModelFactory.Create(
+				ModelObjects model = ModelFactory.Create(
 					new ModelConfig
 					{
 						WorkspacesUrl = "",
@@ -47,20 +47,21 @@ namespace LogJoint.Wasm
 						ContentCacheFileSystem = new LogJoint.Wasm.PersistenceFileSystem(
 							(IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>(),
 							serviceProvider.GetService<JsInterop>().IndexedDB, "contentCache"),
+						IsDebugAgentEnabled = true,
 					},
 						invokingSynchronization,
 						(storageManager) => null /*new PreprocessingCredentialsCache (
-                        mainWindow.Window,
-                        storageManager.GlobalSettingsEntry,
-                        invokingSynchronization
-                    )*/,
+						mainWindow.Window,
+						storageManager.GlobalSettingsEntry,
+						invokingSynchronization
+					)*/,
 						(shutdown, webContentCache, traceSourceFactory) => null /*new Presenters.WebViewTools.Presenter (
-                        new WebBrowserDownloaderWindowController (),
-                        invokingSynchronization,
-                        webContentCache,
-                        shutdown,
-                        traceSourceFactory
-                    )*/,
+						new WebBrowserDownloaderWindowController (),
+						invokingSynchronization,
+						webContentCache,
+						shutdown,
+						traceSourceFactory
+					)*/,
 					null/*new Drawing.Matrix.Factory()*/,
 					LogJoint.RegularExpressions.FCLRegexFactory.Instance
 				);

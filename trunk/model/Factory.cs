@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogJoint.Settings;
+using System;
 using System.Runtime.InteropServices;
 
 namespace LogJoint
@@ -51,6 +52,7 @@ namespace LogJoint
 		public RegularExpressions.IRegexFactory RegexFactory { get; internal set; }
 		public FieldsProcessor.IFactory FieldsProcessorFactory { get; internal set; }
 		public LogMedia.IFileSystem FileSystem { get; internal set; }
+		public Settings.IDebugAgentConfig DebugAgentConfig { get; internal set; }
 	};
 
 	public class ModelConfig
@@ -73,6 +75,7 @@ namespace LogJoint
 		public FieldsProcessor.IAssemblyLoader FieldsProcessorAssemblyLoader;
 		public Persistence.Implementation.IFileSystemAccess PersistenceFileSystem;
 		public Persistence.Implementation.IFileSystemAccess ContentCacheFileSystem;
+		public bool IsDebugAgentEnabled;
 	};
 
 	public static class ModelFactory
@@ -375,6 +378,9 @@ namespace LogJoint
 			config.UserCodeAssemblyProvider?.SetPluginsManager(pluginsManager);
 			AutoUpdate.IAutoUpdater autoUpdater = autoUpdateFactory.CreateAutoUpdater(pluginsManager);
 
+			IDebugAgentConfig debugAgentConfig = config.IsDebugAgentEnabled ? new DebugAgentConfig(
+				changeNotification, storageManager) : null;
+
 			Model expensibilityModel = new Model(
 				modelSynchronizationContext,
 				changeNotification,
@@ -453,7 +459,8 @@ namespace LogJoint
 				MatrixFactory = matrixFactory,
 				RegexFactory = regexFactory,
 				FieldsProcessorFactory = fieldsProcessorFactory,
-				FileSystem = fileSystem
+				FileSystem = fileSystem,
+				DebugAgentConfig = debugAgentConfig
 			};
 		}
 

@@ -20,9 +20,10 @@
         Debug agent address: <input
             type="text"
             style="width: 300px"
-            value="@(debugAgentAddress ?? string.Empty)"
-            disabled="@(debugAgentAddress == null)"
-            @oninput="@(e => SetDebugAgentAddress(e.Value as string ?? ""))" />
+            value="@(model.DebugAgentConfig.AgentAddress ?? string.Empty)"
+            disabled="@(model.DebugAgentConfig.AgentAddress == null)"
+            @oninput="@(e => model.DebugAgentConfig.UpdateAddress(e.Value as string ?? ""))"
+            @ref="debugAgentInputRef" />
     </p>
     <p class="debug-label">
         Advanced options
@@ -69,6 +70,7 @@
             <button @onclick="LoadLogSameWayChromeExtensionDoes" hidden>LoadLogSameWayChromeExtensionDoes</button>
         </div>
     }
+    <FirstRenderDetector OnFirstRender="@(async () => await debugAgentInputRef.FocusAsync())" />
 </div>
 
 @code {
@@ -86,7 +88,8 @@
 
     private bool debugOptionsVisible = false;
 
-    private string debugAgentAddress = null;
+    private ISubscription subscription;
+    private ElementReference debugAgentInputRef;
 
     class ListItem : IListItem
     {
@@ -97,7 +100,16 @@
 
     protected override void OnInitialized()
     {
-        LoadDebugAgentAddress();
+        model.DebugAgentConfig.Refresh();
+        subscription = model.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => (model.DebugAgentConfig.AgentAddress),
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
     }
 
     void ToggleDebugOptions()
@@ -235,25 +247,5 @@
             var value = await File.ReadAllTextAsync(fname);
             await jsInterop.SaveAs.SaveAs(value, Path.GetFileName(fname));
         }
-    }
-
-    async void LoadDebugAgentAddress()
-    {
-        var storageEntry = await model.StorageManager.GetEntry("debug-agent");
-        await using var section = await storageEntry.OpenXMLSection("settings", Persistence.StorageSectionOpenFlag.ReadOnly);
-        debugAgentAddress = section.Data.Root?.Attribute("address")?.Value ?? "";
-        StateHasChanged();
-    }
-
-
-    async void SetDebugAgentAddress(string address)
-    {
-        var storageEntry = await model.StorageManager.GetEntry("debug-agent");
-        await using var section = await storageEntry.OpenXMLSection("settings", Persistence.StorageSectionOpenFlag.ReadWrite);
-        if (section.Data.Root == null)
-            section.Data.Add(new XElement("settings"));
-        section.Data.Root.SetAttributeValue("address", address);
-        debugAgentAddress = address;
-        StateHasChanged();
     }
 }

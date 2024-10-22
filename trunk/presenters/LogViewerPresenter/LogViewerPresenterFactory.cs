@@ -1,3 +1,5 @@
+using LogJoint.Settings;
+
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	public class PresenterFactory : IPresenterFactory
@@ -16,7 +18,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IFiltersFactory filtersFactory,
 			IColorTheme theme,
 			ITraceSourceFactory traceSourceFactory,
-			RegularExpressions.IRegexFactory regexFactory
+			RegularExpressions.IRegexFactory regexFactory,
+			IDebugAgentConfig debugAgentConfig,
+			IPresentersFacade presentersFacade
 		)
 		{
 			this.changeNotification = changeNotification;
@@ -33,6 +37,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.theme = theme;
 			this.traceSourceFactory = traceSourceFactory;
 			this.regexFactory = regexFactory;
+			this.debugAgentConfig = debugAgentConfig;
+			this.presentersFacade = presentersFacade;
 		}
 
 		IPresenterInternal IPresenterFactory.CreateLoadedMessagesPresenter()
@@ -45,7 +51,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				clipboard, hlFilters, bookmarks, bookmarksFactory, telemetry,
 				new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new LoadedMessagesViewModeStrategy(logSources, changeNotification),
-				new GlobalSettingsAppearanceStrategy(settings)
+				new GlobalSettingsAppearanceStrategy(settings), debugAgentConfig, presentersFacade
 			);
 		}
 
@@ -65,7 +71,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					clipboard, highlightFilters,  bookmarks, bookmarksFactory, telemetry,
 					new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 					new DelegatingViewModeStrategy(loadedMessagesPresenter),
-					new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy)
+					new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy),
+					debugAgentConfig, presentersFacade
 				),
 				model
 			);
@@ -81,7 +88,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				new ScreenBufferFactory(changeNotification, bookmarksFactory),
 				changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
 				new ProhibitiveViewModeStrategy(),
-				new PermissiveAppearanceStrategy(changeNotification)
+				new PermissiveAppearanceStrategy(changeNotification),
+				debugAgentConfig, presentersFacade
 			);
 			view.SetViewModel(result);
 			return result;
@@ -101,5 +109,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IColorTheme theme;
 		readonly ITraceSourceFactory traceSourceFactory;
 		readonly RegularExpressions.IRegexFactory regexFactory;
+		readonly IDebugAgentConfig debugAgentConfig;
+		readonly IPresentersFacade presentersFacade;
 	};
 };

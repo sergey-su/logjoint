@@ -61,11 +61,23 @@
         </div>
         @if (viewModel.EmptyViewMessage != null)
         {
-            var pluginUrl = "http://go/logjoint-chrome-plugin";
             <div class="empty-view-message">
-                Use <a href="@pluginUrl" target="_blank">Chrome plugin</a> to send logs here
-                <br/>
-                or drag&drop local log files.
+                @foreach (var segment in ViewModel.EmptyViewMessage)
+                {
+                    @(" ")
+                    if (segment.Click != null)
+                    {
+                        <a href="#" @onclick:preventDefault @onclick="@(segment.Click)">@segment.Text</a>
+                    }
+                    else if (segment.Uri != null)
+                    {
+                        <a href="@segment.Uri.ToString()" target="_blank">@segment.Text</a>
+                    }
+                    else
+                    {
+                        <span>@segment.Text</span>
+                    }
+                }
             </div>
         }
     </div>
@@ -130,7 +142,8 @@
         selfRef = DotNetObjectReference.Create(this);
 
         var updateLines = Updaters.Create(
-            () => (viewModel.ViewLines, viewModel.FirstDisplayMessageScrolledLines, viewModel.FocusedMessageMark),
+            () => (viewModel.ViewLines, viewModel.FirstDisplayMessageScrolledLines,
+                viewModel.FocusedMessageMark, viewModel.EmptyViewMessage),
             _ => StateHasChanged()
         );
 

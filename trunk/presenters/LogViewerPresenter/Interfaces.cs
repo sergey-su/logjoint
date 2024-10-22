@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public interface IPresenterInternal: IPresenter, IDisposable, IViewModel
+	public interface IPresenterInternal : IPresenter, IDisposable, IViewModel
 	{
 		PreferredDblClickAction DblClickAction { get; set; }
 		FocusedMessageDisplayModes FocusedMessageDisplayMode { get; set; }
@@ -245,7 +245,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		FontData Font { get; }
 		LJTraceSource Trace { get; }
 		double? VerticalScrollerPosition { get; }
-		string EmptyViewMessage { get; }
+		IReadOnlyList<MessagePart> EmptyViewMessage { get; }
+
 		ColorThemeMode ColorTheme { get; }
 	};
 
@@ -271,6 +272,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Name = name;
 			Size = size;
 		}
+	};
+
+	public struct MessagePart
+	{
+		public string Text;
+		public Action Click;
+		public Uri Uri;
 	};
 
 	public interface IFocusedMessageData

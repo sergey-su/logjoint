@@ -137,7 +137,9 @@ namespace LogJoint.UI.Presenters
 				model.FiltersFactory,
 				colorTheme,
 				model.TraceSourceFactory,
-				model.RegexFactory
+				model.RegexFactory,
+				model.DebugAgentConfig,
+				presentersFacade
 			);
 
 			var loadedMessagesPresenter = new LoadedMessages.Presenter(

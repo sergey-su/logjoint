@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using static LogJoint.Workspaces.WorkspaceDTO;
 
 namespace LogJoint.UI.Presenters
 {
@@ -65,6 +66,11 @@ namespace LogJoint.UI.Presenters
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.Sources);
 			sourcesListPresenter.SelectSource(source);
+		}
+
+		void IPresentersFacade.ShowSettings()
+		{
+			mainFormPresenter.ActivateTab(MainForm.TabIDs.Settings);
 		}
 
 		Task IPresentersFacade.SaveLogSourceAs(ILogSource logSource)

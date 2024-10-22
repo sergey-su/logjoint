@@ -7,6 +7,7 @@ using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
+using LogJoint.Settings;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -26,7 +27,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			RegularExpressions.IRegexFactory regexFactory,
 			ITraceSourceFactory traceSourceFactory,
 			IViewModeStrategy viewModeStrategy,
-			IAppearanceStrategy coloringModeStrategy
+			IAppearanceStrategy coloringModeStrategy,
+			IDebugAgentConfig debugAgentConfig,
+			IPresentersFacade presentersFacade
 		)
 		{
 			this.model = model;
@@ -40,6 +43,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.theme = theme;
 			this.viewModeStrategy = viewModeStrategy;
 			this.appearanceStrategy = coloringModeStrategy;
+			this.debugAgentConfig = debugAgentConfig;
 
 			this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
@@ -157,9 +161,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 				fireFocusedMessageChanged();
 				fireFocusedMessageBookmarkChanged();
 			});
+
+			var pluginUri = new Uri("http://go/logjoint-chrome-plugin");
+			emptyViewMessageWithConfiguredDebugAgent = new[]
+			{
+				new MessagePart { Text = "Use" },
+				new MessagePart { Text = "Chrome Plugin", Uri = pluginUri },
+				new MessagePart { Text = "to send logs here or drag&drop local log files." },
+			};
+			emptyViewMessageWithNotConfiguredDebugAgent = new[]
+			{
+				new MessagePart { Text = "Configure", Click = () => { presentersFacade.ShowSettings(); } },
+				new MessagePart { Text = "Debug Agent and use" },
+				new MessagePart { Text = "Chrome Plugin", Uri = pluginUri },
+				new MessagePart { Text = "to send logs here or drag&drop local log files." },
+			};
 		}
 
-		void IDisposable.Dispose()
+        void IDisposable.Dispose()
 		{
 			selectionManager.Dispose();
 			viewModeStrategy.Dispose();
@@ -696,11 +715,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		double? IViewModel.VerticalScrollerPosition => screenBuffer.Messages.Count > 0 ? screenBuffer.BufferPosition : new double?();
 
-		string IViewModel.EmptyViewMessage =>
+		IReadOnlyList<MessagePart> IViewModel.EmptyViewMessage =>
 			!enableEmptyViewMessage ? null :
 			screenBuffer.Messages.Count != 0 ? null :
 			searchResultModel != null ? null :
-			"No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
+			debugAgentConfig == null ? defaultEmptyViewMessage :
+			string.IsNullOrEmpty(debugAgentConfig.AgentAddress) ? emptyViewMessageWithNotConfiguredDebugAgent :
+			emptyViewMessageWithConfiguredDebugAgent;
 
 		ColoringMode IPresentationProperties.Coloring => appearanceStrategy.Coloring;
 		bool IPresentationProperties.ShowMilliseconds => showMilliseconds;
@@ -1399,6 +1420,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IColorTheme theme;
 		readonly IViewModeStrategy viewModeStrategy;
 		readonly IAppearanceStrategy appearanceStrategy;
+		readonly IDebugAgentConfig debugAgentConfig;
 
 		IView view;
 		IBookmark slaveModeFocusedMessage;
@@ -1423,5 +1445,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		static readonly MessageTextLinesMapper identityTextLinesMapper = i => i;
 		readonly Func<IBookmark> focusedMessageBookmark;
 		readonly Func<ImmutableArray<VisibleLine>> visibleLines;
+
+		readonly IReadOnlyList<MessagePart> defaultEmptyViewMessage = new[]
+		{
+			new MessagePart
+			{
+				Text = "No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file"
+			}
+		};
+		readonly IReadOnlyList<MessagePart> emptyViewMessageWithNotConfiguredDebugAgent;
+		readonly IReadOnlyList<MessagePart> emptyViewMessageWithConfiguredDebugAgent;
 	};
 };
