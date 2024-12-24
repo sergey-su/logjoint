@@ -111,7 +111,7 @@ namespace LogJoint.Preprocessing
 							await writeToTempFile(stream, 0, "Downloading");
 						}
 					}
-					else if (useHttpClient)
+					else
 					{
 						using (var client = new System.Net.Http.HttpClient())
 						{
@@ -119,64 +119,6 @@ namespace LogJoint.Preprocessing
 							var response = await client.GetAsync(uri);
 							await writeToTempFile(await response.Content.ReadAsStreamAsync(),
 								response.Content.Headers.ContentLength.GetValueOrDefault(0), "Downloading");
-						}
-					}
-					else
-					{
-						using (WebClient client = new WebClient())
-						using (ManualResetEvent completed = new ManualResetEvent(false))
-						{
-							ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-							var credentials = new CredentialsImpl() { Callback = callback, CredCache = credCache };
-							client.Credentials = credentials;
-
-							Exception failure = null;
-							client.OpenReadCompleted += (s, evt) =>
-							{
-								failure = evt.Error;
-								if (failure != null)
-								{
-									trace.Error(failure, "Downloading {0} completed with error", sourceFile.Location);
-								}
-								if (failure == null && (evt.Cancelled || callback.Cancellation.IsCancellationRequested))
-								{
-									trace.Warning("Downloading {0} cancelled", sourceFile.Location);
-									failure = new Exception("Aborted");
-								}
-								if (failure == null)
-								{
-									try
-									{
-										long contentLength;
-										long.TryParse(client.ResponseHeaders["Content-Length"] ?? "", out contentLength);
-										writeToTempFile(evt.Result, contentLength, "Downloading").Wait();
-									}
-									catch (Exception e)
-									{
-										trace.Error(e, "Failed saving to file");
-										failure = e;
-									}
-								}
-								completed.Set();
-							};
-
-							trace.Info("Start downloading {0}", sourceFile.Location);
-							client.OpenReadAsync(uri);
-
-							if (WaitHandle.WaitAny(new WaitHandle[] { completed, callback.Cancellation.WaitHandle }) == 1)
-							{
-								trace.Info("Cancellation event was triggered. Cancelling download.");
-								client.CancelAsync();
-								completed.WaitOne();
-							}
-
-							HandleFailure(callback, credentials, failure);
-
-							using (FileStream fs = new FileStream(tmpFileName, FileMode.Open))
-							{
-								cache.SetValue(new Uri(sourceFile.Location), fs).Wait();
-							}
 						}
 					}
 				}
@@ -223,7 +165,6 @@ namespace LogJoint.Preprocessing
 		readonly ICredentialsCache credCache;
 		readonly WebViewTools.IWebViewTools webBrowserDownloader;
 		readonly ILogsDownloaderConfig config;
-		readonly bool useHttpClient = IsBrowser.Value;
 		internal const string name = "download";
 	};
 }

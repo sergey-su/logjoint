@@ -126,7 +126,6 @@ namespace LogJoint.DebugOutput
 
 	public sealed class SafeViewOfFileHandle : SafeHandleZeroOrMinusOneIsInvalid
 	{
-		[SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
 		public SafeViewOfFileHandle(IntPtr handle, bool ownsHandle)
 			: base(ownsHandle)
 		{
