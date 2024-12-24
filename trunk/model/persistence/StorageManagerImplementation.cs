@@ -142,7 +142,7 @@ namespace LogJoint.Persistence.Implementation
 			}
 			else
 			{
-				using SHA1 sha1 = new SHA1CryptoServiceProvider();
+				using SHA1 sha1 = SHA1.Create();
 				var longHash = sha1.ComputeHash(Encoding.Unicode.GetBytes(str));
 				var shortHash = new byte[8];
 				for (int i = 0; i < longHash.Length; ++i)
