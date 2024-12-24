@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.DebugOutput
 {
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 	public class LogProvider : LiveLogProvider
 	{
 		readonly EventWaitHandle dataReadyEvt;

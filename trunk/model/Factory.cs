@@ -486,6 +486,7 @@ namespace LogJoint
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
+		[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 		private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
 			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)

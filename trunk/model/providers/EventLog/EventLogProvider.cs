@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.WindowsEventLog
 {
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 	public class LogProvider : LiveLogProvider
 	{
 		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
