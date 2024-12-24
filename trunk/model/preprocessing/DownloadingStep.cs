@@ -92,9 +92,10 @@ namespace LogJoint.Preprocessing
 						using (var client = new System.Net.Http.HttpClient())
 						{
 							trace.Info("Start downloading {0}", sourceFile.Location);
-							var response = await client.GetAsync(uri);
-							await writeToTempFile(await response.Content.ReadAsStreamAsync(),
+							var response = await client.GetAsync(uri, callback.Cancellation);
+							await writeToTempFile(await response.Content.ReadAsStreamAsync(callback.Cancellation),
 								response.Content.Headers.ContentLength.GetValueOrDefault(0), "Downloading");
+							callback.Cancellation.ThrowIfCancellationRequested();
 						}
 					}
 				}

@@ -149,11 +149,8 @@ namespace LogJoint.Tests.Integration
 
 			await app.Dispose();
 
-			
-			Check.That(downloadingPreprocessing.IsFaulted).IsTrue();
-			var webEx = downloadingPreprocessing.Exception.InnerException as System.Net.WebException;
-			Check.That(webEx).IsNotNull();
-			Check.That(webEx.Status).IsEqualTo(System.Net.WebExceptionStatus.RequestCanceled);
+			Check.That(downloadingPreprocessing.IsCanceled).IsTrue();
+			Check.That(app.Model.SourcesManager.Items.Count).Is(0);
 		}
 	}
 }
