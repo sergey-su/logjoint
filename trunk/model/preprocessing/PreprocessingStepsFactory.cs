@@ -54,7 +54,7 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)
 		{
-			return new DownloadingStep(p, progressAggregator, cache, credCache, webViewTools, logsDownloaderConfig, this);
+			return new DownloadingStep(p, progressAggregator, cache, webViewTools, logsDownloaderConfig, this);
 		}
 
 		IPreprocessingStep IStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)

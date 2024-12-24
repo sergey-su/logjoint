@@ -14,7 +14,6 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile, 
 			Progress.IProgressAggregator progressAgg, 
 			Persistence.IWebContentCache cache, 
-			ICredentialsCache credCache,
 			WebViewTools.IWebViewTools webBrowserDownloader,
 			ILogsDownloaderConfig config,
 			IStepsFactory preprocessingStepsFactory
@@ -24,32 +23,9 @@ namespace LogJoint.Preprocessing
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAgg;
 			this.cache = cache;
-			this.credCache = credCache;
 			this.webBrowserDownloader = webBrowserDownloader;
 			this.config = config;
 		}
-
-		class CredentialsImpl : CredentialCache, ICredentials, ICredentialsByHost
-		{
-			public Tuple<Uri, string> LastRequestedCredential;
-			public IPreprocessingStepCallback Callback;
-			public ICredentialsCache CredCache;
-
-			NetworkCredential ICredentials.GetCredential(Uri uri, string authType)
-			{
-				Callback.Trace.Info("Auth requested for {0}", uri.Host);
-				var ret = CredCache.QueryCredentials(uri, authType).Result;
-				if (ret != null)
-					LastRequestedCredential = new Tuple<Uri, string>(uri, authType);
-				return ret;
-			}
-
-			NetworkCredential ICredentialsByHost.GetCredential(string host, int port, string authenticationType)
-			{
-				Callback.Trace.Info("Auth requested for host {0}:{1}. Auth type={2}", host, port, authenticationType);
-				return base.GetCredential(host, port, authenticationType);
-			}
-		};
 
 		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
 		{
@@ -133,36 +109,10 @@ namespace LogJoint.Preprocessing
 			}
 		}
 
-		private static void HandleFailure(IPreprocessingStepCallback callback, CredentialsImpl credentials, Exception failure)
-		{
-			var trace = callback.Trace;
-			if (failure != null)
-			{
-				trace.Error(failure, "Download failed");
-				var webException = failure as WebException;
-				if (webException != null)
-				{
-					var httpResponse = webException.Response as HttpWebResponse;
-					if (httpResponse != null && httpResponse.StatusCode == HttpStatusCode.Unauthorized)
-					{
-						trace.Warning("User unauthorized");
-						var lastCred = credentials.LastRequestedCredential;
-						if (lastCred != null)
-						{
-							trace.Info("Invalidating last requested credentials: {0} {1}", lastCred.Item1, lastCred.Item2);
-							credentials.CredCache.InvalidateCredentialsCache(lastCred.Item1, lastCred.Item2).Wait();
-						}
-					}
-				}
-				throw failure;
-			}
-		}
-
 		readonly PreprocessingStepParams sourceFile;
 		readonly IStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly Persistence.IWebContentCache cache;
-		readonly ICredentialsCache credCache;
 		readonly WebViewTools.IWebViewTools webBrowserDownloader;
 		readonly ILogsDownloaderConfig config;
 		internal const string name = "download";
