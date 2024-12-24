@@ -19,14 +19,14 @@ namespace LogJoint.Tests
 			var actual = opts.BeginSearch(RegularExpressions.FCLRegexFactory.Instance).SearchInText(new StringSlice(text) , startPosition);
 			if (expectation != null)
 			{
-				Assert.IsTrue(actual != null);
-				Assert.AreEqual(expectation.Value.MatchBegin, actual.Value.MatchBegin);
-				Assert.AreEqual(expectation.Value.MatchEnd, actual.Value.MatchEnd);
-				Assert.AreEqual(expectation.Value.WholeTextMatched, actual.Value.WholeTextMatched);
+				Assert.That(actual, Is.Not.Null);
+				Assert.That(expectation.Value.MatchBegin, Is.EqualTo(actual.Value.MatchBegin));
+				Assert.That(expectation.Value.MatchEnd, Is.EqualTo(actual.Value.MatchEnd));
+				Assert.That(expectation.Value.WholeTextMatched, Is.EqualTo(actual.Value.WholeTextMatched));
 			}
 			else
 			{
-				Assert.IsTrue(actual == null);
+				Assert.That(actual, Is.Null);
 			}
 		}
 

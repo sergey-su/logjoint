@@ -104,7 +104,7 @@ namespace LogJoint.Tests
 			{
 			}
 
-			Assert.IsTrue(cleanupInfo.IsDisposed);
+			Assert.That(cleanupInfo.IsDisposed, Is.True);
 		}
 
 		[Test]
@@ -120,7 +120,7 @@ namespace LogJoint.Tests
 
 			CreateSUT();
 
-			Assert.AreEqual("LC=2012/02/01 02:02:02", Encoding.ASCII.GetString(cleanupInfoBuf), "Current date must be written to cleanup.info");
+			Assert.That("LC=2012/02/01 02:02:02", Is.EqualTo(Encoding.ASCII.GetString(cleanupInfoBuf)), "Current date must be written to cleanup.info");
 			timingThreadingMock.ReceivedWithAnyArgs().StartTask(null);
 		}
 

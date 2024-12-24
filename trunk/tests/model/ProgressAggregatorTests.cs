@@ -41,12 +41,12 @@ namespace LogJoint.Tests
 			invoke = Substitute.For<ISynchronizationContext>();
 			invoke.When(x => x.Post(Arg.Any<Action>())).Do(callInfo => 
 			{
-				Assert.IsNull(lastInvokedAction);
+				Assert.That(lastInvokedAction, Is.Null);
 				lastInvokedAction = callInfo.Arg<Action>();
 			});
 			agg = ((IProgressAggregatorFactory)new ProgressAggregator.Factory(invoke, delay =>
 			{
-				Assert.IsNull(lastSleep);
+				Assert.That(lastSleep, Is.Null);
 				lastSleep = new TaskCompletionSource<int>();
 				return lastSleep.Task;
 			})).CreateProgressAggregator();
@@ -62,7 +62,7 @@ namespace LogJoint.Tests
 
 		void HeartBeat()
 		{
-			Assert.IsNotNull(lastSleep);
+			Assert.That(lastSleep, Is.Not.Null);
 			var sleepToComplete = lastSleep;
 			lastSleep = null;
 			sleepToComplete.SetResult(1);
@@ -70,7 +70,7 @@ namespace LogJoint.Tests
 
 		void RunInvokedAction()
 		{
-			Assert.IsNotNull(lastInvokedAction);
+			Assert.That(lastInvokedAction, Is.Not.Null);
 			var actionToComplete = lastInvokedAction;
 			lastInvokedAction = null;
 			actionToComplete();
@@ -79,9 +79,9 @@ namespace LogJoint.Tests
 		[Test]
 		public void InitialPropertiesStayUnchangedIfNoContributrosCreated()
 		{
-			Assert.AreEqual(null, agg.ProgressValue);
-			Assert.IsNull(lastInvokedAction);
-			Assert.IsNull(lastSleep);
+			Assert.That(null, Is.EqualTo(agg.ProgressValue));
+			Assert.That(lastInvokedAction, Is.Null);
+			Assert.That(lastSleep, Is.Null);
 		}
 
 		[Test]
@@ -92,25 +92,25 @@ namespace LogJoint.Tests
 				RunInvokedAction(); // run periodic
 				HeartBeat();
 				outEvents.Received().ProgressStarted(agg, Arg.Any<EventArgs>());
-				Assert.AreEqual(0d, agg.ProgressValue);
+				Assert.That(0d, Is.EqualTo(agg.ProgressValue));
 
 				sink.SetValue(0);
 				HeartBeat();
 				outEvents.Received().ProgressChanged(agg, Arg.Any<ProgressChangedEventArgs>());
-				Assert.AreEqual(0d, agg.ProgressValue);
+				Assert.That(0d, Is.EqualTo(agg.ProgressValue));
 
 				sink.SetValue(0.1d);
 				HeartBeat();
 				outEvents.Received().ProgressChanged(agg, Arg.Any<ProgressChangedEventArgs>());
-				Assert.AreEqual(0.1d, agg.ProgressValue);
+				Assert.That(0.1d, Is.EqualTo(agg.ProgressValue));
 
 				sink.SetValue(0.9d);
 				HeartBeat();
 				outEvents.Received().ProgressChanged(agg, Arg.Any<ProgressChangedEventArgs>());
-				Assert.AreEqual(0.9d, agg.ProgressValue);
+				Assert.That(0.9d, Is.EqualTo(agg.ProgressValue));
 			}
 			RunInvokedAction();
-			Assert.AreEqual(null, agg.ProgressValue);
+			Assert.That(null, Is.EqualTo(agg.ProgressValue));
 			outEvents.Received().ProgressEnded(agg, Arg.Any<EventArgs>());
 		}
 
@@ -126,21 +126,21 @@ namespace LogJoint.Tests
 					sink2.SetValue(0.1d);
 					HeartBeat();
 					outEvents.Received().ProgressChanged(agg, Arg.Any<ProgressChangedEventArgs>());
-					Assert.AreEqual(0.3d, agg.ProgressValue);
+					Assert.That(0.3d, Is.EqualTo(agg.ProgressValue));
 
 					sink1.SetValue(0.6d);
 					sink2.SetValue(0.8d);
 					HeartBeat();
 					outEvents.Received().ProgressChanged(agg, Arg.Any<ProgressChangedEventArgs>());
-					Assert.AreEqual(0.7d, agg.ProgressValue);
+					Assert.That(0.7d, Is.EqualTo(agg.ProgressValue));
 				}
 				RunInvokedAction();
 				// sink1 stays 0.6, disposed sink2 becomes 1.0
 				// aggregated value becomes (0.6 + 1.0)/2
-				Assert.AreEqual(0.8, agg.ProgressValue);
+				Assert.That(0.8, Is.EqualTo(agg.ProgressValue));
 			}
 			RunInvokedAction();
-			Assert.AreEqual(null, agg.ProgressValue);
+			Assert.That(null, Is.EqualTo(agg.ProgressValue));
 			outEvents.Received().ProgressEnded(agg, Arg.Any<EventArgs>());
 		}
 
@@ -157,33 +157,33 @@ namespace LogJoint.Tests
 					sink.SetValue(0.4);
 					HeartBeat();
 					outEvents.Received().ProgressChanged(agg, Arg.Any<ProgressChangedEventArgs>());
-					Assert.AreEqual(0.2d, agg.ProgressValue); // (sink=0.4 + childAgg=0) / 2
+					Assert.That(0.2d, Is.EqualTo(agg.ProgressValue)); // (sink=0.4 + childAgg=0) / 2
 
 					using (var sink2 = childAgg.CreateProgressSink())
 					{
 						HeartBeat();
 						childAggEvts.Received().ProgressStarted(childAgg, Arg.Any<EventArgs>());
-						Assert.AreEqual(0.2d, agg.ProgressValue); // childAgg's value stays 0 in spite of sink2's creation
+						Assert.That(0.2d, Is.EqualTo(agg.ProgressValue)); // childAgg's value stays 0 in spite of sink2's creation
 
 						sink.SetValue(0.6);
 						sink2.SetValue(0.8);
 						HeartBeat();
 						outEvents.Received().ProgressChanged(agg, Arg.Any<ProgressChangedEventArgs>());
 						childAggEvts.Received().ProgressChanged(childAgg, Arg.Any<ProgressChangedEventArgs>());
-						Assert.AreEqual(0.7d, agg.ProgressValue);
-						Assert.AreEqual(0.8d, childAgg.ProgressValue);
+						Assert.That(0.7d, Is.EqualTo(agg.ProgressValue));
+						Assert.That(0.8d, Is.EqualTo(childAgg.ProgressValue));
 					}
 					RunInvokedAction();
 					childAggEvts.Received().ProgressEnded(childAgg, Arg.Any<EventArgs>());
-					Assert.AreEqual(null, childAgg.ProgressValue);
+					Assert.That(null, Is.EqualTo(childAgg.ProgressValue));
 				}
 				RunInvokedAction();
 				// sink1 stays 0.6, disposed childAgg becomes 1.0
 				// aggregated value becomes (0.6 + 1.0)/2
-				Assert.AreEqual(0.8, agg.ProgressValue);
+				Assert.That(0.8, Is.EqualTo(agg.ProgressValue));
 			}
 			RunInvokedAction();
-			Assert.AreEqual(null, agg.ProgressValue);
+			Assert.That(null, Is.EqualTo(agg.ProgressValue));
 			outEvents.Received().ProgressEnded(agg, Arg.Any<EventArgs>());
 		}
 
@@ -202,14 +202,14 @@ namespace LogJoint.Tests
 
 					HeartBeat();
 					outEvents.Received().ProgressStarted(agg, Arg.Any<EventArgs>());
-					Assert.AreEqual(0, agg.ProgressValue);
+					Assert.That(0, Is.EqualTo(agg.ProgressValue));
 				}
 				RunInvokedAction();
-				Assert.AreEqual(0.5d, agg.ProgressValue);
+				Assert.That(0.5d, Is.EqualTo(agg.ProgressValue));
 			}
 			RunInvokedAction();
 			
-			Assert.AreEqual(null, agg.ProgressValue);
+			Assert.That(null, Is.EqualTo(agg.ProgressValue));
 			outEvents.Received().ProgressEnded(agg, Arg.Any<EventArgs>());
 
 			childAgg1Evts.DidNotReceiveWithAnyArgs().ProgressStarted(null, null);
@@ -228,11 +228,11 @@ namespace LogJoint.Tests
 				using (var sink = childAgg.CreateProgressSink())
 					sink.SetValue(0.5);
 				RunInvokedAction();
-				Assert.AreEqual(1d, agg.ProgressValue);
-				Assert.AreEqual(null, childAgg.ProgressValue);
+				Assert.That(1d, Is.EqualTo(agg.ProgressValue));
+				Assert.That(null, Is.EqualTo(childAgg.ProgressValue));
 			}
 			RunInvokedAction();
-			Assert.AreEqual(null, agg.ProgressValue);
+			Assert.That(null, Is.EqualTo(agg.ProgressValue));
 		}
 
 	}

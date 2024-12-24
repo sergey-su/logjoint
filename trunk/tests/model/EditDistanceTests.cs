@@ -15,7 +15,7 @@ namespace LogJoint.Tests
 				cost
 			);
 			string actual = $"{dist} {string.Join(",", edits.Select(e => e))}";
-			Assert.AreEqual(expected, actual);
+			Assert.That(expected, Is.EqualTo(actual));
 		}
 
 		[Test]

@@ -36,20 +36,20 @@ namespace LogJoint.Tests
 			int i = 0;
 			foreach (MessagesRange r in lines.Ranges)
 			{
-				Assert.AreEqual(ranges[i], r.ToString());
+				Assert.That(ranges[i], Is.EqualTo(r.ToString()));
 				++i;
 			}
-			Assert.AreEqual(ranges.Length, i);
+			Assert.That(ranges.Length, Is.EqualTo(i));
 		}
 
 		void CheckCollection(IMessagesCollection coll, params int[] exp)
 		{
-			Assert.AreEqual(exp.Length, coll.Count);
+			Assert.That(exp.Length, Is.EqualTo(coll.Count));
 			int idx = 0;
 			foreach (IndexedMessage m in coll.Forward(0, int.MaxValue))
 			{
-				Assert.AreEqual(idx, m.Index);
-				Assert.AreEqual(exp[idx].ToString(), m.Message.Text.ToString());
+				Assert.That(idx, Is.EqualTo(m.Index));
+				Assert.That(exp[idx].ToString(), Is.EqualTo(m.Message.Text.ToString()));
 				++idx;
 			}
 			IEnumerable<IndexedMessage> e2 = coll.Reverse(int.MaxValue, -1);
@@ -58,8 +58,8 @@ namespace LogJoint.Tests
 				idx = coll.Count - 1;
 				foreach (IndexedMessage m in e2)
 				{
-					Assert.AreEqual(idx, m.Index);
-					Assert.AreEqual(exp[idx].ToString(), m.Message.Text.ToString());
+					Assert.That(idx, Is.EqualTo(m.Index));
+					Assert.That(exp[idx].ToString(), Is.EqualTo(m.Message.Text.ToString()));
 					--idx;
 				}
 			}
@@ -250,9 +250,9 @@ namespace LogJoint.Tests
 				{
 					r.Add(NewMsg(0), false);
 					r.Complete();
-					Assert.AreEqual(true, r.IsComplete);
+					Assert.That(true, Is.EqualTo(r.IsComplete));
 					r.Add(NewMsg(30), false);
-					Assert.AreEqual(false, r.IsComplete);
+					Assert.That(false, Is.EqualTo(r.IsComplete));
 				}
 			});
 		}
@@ -276,7 +276,7 @@ namespace LogJoint.Tests
 
 
 			lines.SetActiveRange(new Range(0, 5362));
-			Assert.IsNull(lines.GetNextRangeToFill());
+			Assert.That(lines.GetNextRangeToFill(), Is.Null);
 
 			lines.SetActiveRange(new Range(/*894*/1507, 5362));
 
@@ -328,7 +328,7 @@ namespace LogJoint.Tests
 
 		int[] Range(params int[] ranges)
 		{
-			Assert.IsTrue((ranges.Length % 2) == 0);
+			Assert.That(ranges.Length % 2, Is.EqualTo(0));
 
 			List<int> ret = new List<int>();
 			for (int i = 0; i < ranges.Length; i += 2)

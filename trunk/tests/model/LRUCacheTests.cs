@@ -11,36 +11,36 @@ namespace LogJoint.Tests
 		{
 			var cache = new LRUCache<int, int>(3);
 
-			Assert.AreEqual(0, cache.Count);
+			Assert.That(0, Is.EqualTo(cache.Count));
 			cache.Set(1, 10);
-			Assert.AreEqual(1, cache.Count);
+			Assert.That(1, Is.EqualTo(cache.Count));
 			cache.Set(2, 20);
-			Assert.AreEqual(2, cache.Count);
+			Assert.That(2, Is.EqualTo(cache.Count));
 			cache.Set(3, 30);
-			Assert.AreEqual(3, cache.Count);
-			Assert.AreEqual(10, cache[1]);
-			Assert.AreEqual(20, cache[2]);
-			Assert.AreEqual(30, cache[3]);
+			Assert.That(3, Is.EqualTo(cache.Count));
+			Assert.That(10, Is.EqualTo(cache[1]));
+			Assert.That(20, Is.EqualTo(cache[2]));
+			Assert.That(30, Is.EqualTo(cache[3]));
 
 			cache.Set(4, 40);
-			Assert.IsFalse(cache.ContainsKey(1));
-			Assert.AreEqual(40, cache[4]);
-			Assert.AreEqual(3, cache.Count);
+			Assert.That(cache.ContainsKey(1), Is.False);
+			Assert.That(40, Is.EqualTo(cache[4]));
+			Assert.That(3, Is.EqualTo(cache.Count));
 
 			cache[4] = 400;
-			Assert.AreEqual(400, cache[4]);
+			Assert.That(400, Is.EqualTo(cache[4]));
 
 			cache[2] = 200;
-			Assert.AreEqual(200, cache[2]);
+			Assert.That(200, Is.EqualTo(cache[2]));
 			cache[3] = 300;
-			Assert.AreEqual(300, cache[3]);
+			Assert.That(300, Is.EqualTo(cache[3]));
 
 			cache.Set(1, 10);
-			Assert.IsFalse(cache.ContainsKey(4));
+			Assert.That(cache.ContainsKey(4), Is.False);
 
 			cache.Clear();
-			Assert.AreEqual(0, cache.Count);
-			Assert.IsFalse(cache.ContainsKey(1));
+			Assert.That(0, Is.EqualTo(cache.Count));
+			Assert.That(cache.ContainsKey(1), Is.False);
 		}
 	}
 }

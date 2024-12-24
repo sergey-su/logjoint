@@ -21,6 +21,7 @@ namespace LogJoint.UI.Windows
 			base.DrawMode = TreeViewDrawMode.OwnerDrawText;
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public IReadOnlyCollection<TreeNode> SelectedNodes
 		{ 
 			get { return selectedNodes; }

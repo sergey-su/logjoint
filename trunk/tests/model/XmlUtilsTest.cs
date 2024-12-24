@@ -14,7 +14,7 @@ namespace LogJoint.Tests
 			var root = (XmlElement)doc.AppendChild(doc.CreateElement("root"));
 			root.AppendChild(doc.CreateCDataSection("<hello/>"));
 			root.AppendChild(doc.CreateCDataSection("<world/>"));
-			Assert.AreEqual("<hello/><world/>", root.InnerText);
+			Assert.That("<hello/><world/>", Is.EqualTo(root.InnerText));
 		}
 
 		[Test]
@@ -26,7 +26,7 @@ namespace LogJoint.Tests
 			Action<string> test = (val) =>
 			{
 				root.ReplaceValueWithCData(val);
-				Assert.AreEqual(val, root.InnerText);
+				Assert.That(val, Is.EqualTo(root.InnerText));
 			};
 
 			test("foo");

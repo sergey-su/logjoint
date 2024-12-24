@@ -11,7 +11,7 @@ namespace LogJoint.Postprocessing
 			var actualTmp = new HashSet<int>(actual);
 			actualTmp.SymmetricExceptWith(expected);
 			var diff = string.Join(", ", actualTmp);
-			Assert.AreEqual("", diff);
+			Assert.That("", Is.EqualTo(diff));
 		}
 
 		[Test]
@@ -61,7 +61,7 @@ namespace LogJoint.Postprocessing
 			var p1 = matcher.RegisterPrefix("bingo");
 			var p2 = matcher.RegisterPrefix("bingo");
 
-			Assert.AreEqual(p1, p2);
+			Assert.That(p1, Is.EqualTo(p2));
 		}
 	}
 }

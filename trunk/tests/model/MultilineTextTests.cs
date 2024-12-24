@@ -13,24 +13,24 @@ namespace LogJoint.Tests
 		[Test]
 		public void IsMultilineTest()
 		{
-			Assert.IsFalse(new MultilineText(new StringSlice("2323")).IsMultiline);
-			Assert.IsFalse(new MultilineText(new StringSlice("")).IsMultiline);
-			Assert.IsTrue(new MultilineText(new StringSlice("foo bar\nline")).IsMultiline);
-			Assert.IsTrue(new MultilineText(new StringSlice("foo bar\r\nline")).IsMultiline);
+			Assert.That(new MultilineText(new StringSlice("2323")).IsMultiline, Is.False);
+			Assert.That(new MultilineText(new StringSlice("")).IsMultiline, Is.False);
+			Assert.That(new MultilineText(new StringSlice("foo bar\nline")).IsMultiline, Is.True);
+			Assert.That(new MultilineText(new StringSlice("foo bar\r\nline")).IsMultiline, Is.True);
 		}
 
 		[Test]
 		public void LinesTest()
 		{
-			CollectionAssert.AreEqual(new[] { (new StringSlice(""), 0) }, new MultilineText(new StringSlice("")).Lines);
-			CollectionAssert.AreEqual(new[] { (new StringSlice("foo"), 0) }, new MultilineText(new StringSlice("foo")).Lines);
-			CollectionAssert.AreEqual(new[] { (new StringSlice("foo"), 0), (new StringSlice("bar"), 1) }, new MultilineText(new StringSlice("foo\r\nbar")).Lines);
+			Assert.That(new[] { (new StringSlice(""), 0) }, Is.EqualTo(new MultilineText(new StringSlice("")).Lines));
+			Assert.That(new[] { (new StringSlice("foo"), 0) }, Is.EqualTo(new MultilineText(new StringSlice("foo")).Lines));
+			Assert.That(new[] { (new StringSlice("foo"), 0), (new StringSlice("bar"), 1) }, Is.EqualTo(new MultilineText(new StringSlice("foo\r\nbar")).Lines));
 
 			var buffer = "01234foo\nbar567";
 			var lines = new MultilineText(new StringSlice(buffer, 5, 7)).Lines.ToArray();
-			Assert.AreSame(lines[0].line.Buffer, buffer);
-			Assert.AreSame(lines[1].line.Buffer, buffer);
-			CollectionAssert.AreEqual(new[] { (new StringSlice("foo"), 0), (new StringSlice("bar"), 1) }, lines);
+			Assert.That(lines[0].line.Buffer, Is.SameAs(buffer));
+			Assert.That(lines[1].line.Buffer, Is.SameAs(buffer));
+			Assert.That(new[] { (new StringSlice("foo"), 0), (new StringSlice("bar"), 1) }, Is.EqualTo(lines));
 		}
 
 		[Test]
@@ -38,10 +38,10 @@ namespace LogJoint.Tests
 		{
 			var buffer = "012foo\r\nbar";
 			var t = new MultilineText(new StringSlice(buffer, 3));
-			Assert.AreEqual(new StringSlice("foo"), t.GetNthTextLine(0));
-			Assert.AreEqual(new StringSlice("bar"), t.GetNthTextLine(1));
-			Assert.AreSame(t.GetNthTextLine(0).Buffer, buffer);
-			Assert.AreSame(t.GetNthTextLine(1).Buffer, buffer);
+			Assert.That(new StringSlice("foo"), Is.EqualTo(t.GetNthTextLine(0)));
+			Assert.That(new StringSlice("bar"), Is.EqualTo(t.GetNthTextLine(1)));
+			Assert.That(t.GetNthTextLine(0).Buffer, Is.SameAs(buffer));
+			Assert.That(t.GetNthTextLine(1).Buffer, Is.SameAs(buffer));
 		}
 
 		[Test]
@@ -49,16 +49,16 @@ namespace LogJoint.Tests
 		{
 			var buffer = "012foo\r\nbar";
 			var t = new MultilineText(new StringSlice(buffer, 3));
-			Assert.AreEqual(0, t.CharIndexToLineIndex(0));
-			Assert.AreEqual(0, t.CharIndexToLineIndex(1));
-			Assert.AreEqual(0, t.CharIndexToLineIndex(2));
-			Assert.AreEqual(0, t.CharIndexToLineIndex(3));
-			Assert.AreEqual(new int?(), t.CharIndexToLineIndex(4));
-			Assert.AreEqual(1, t.CharIndexToLineIndex(5));
-			Assert.AreEqual(1, t.CharIndexToLineIndex(6));
-			Assert.AreEqual(1, t.CharIndexToLineIndex(7));
-			Assert.AreEqual(1, t.CharIndexToLineIndex(8));
-			Assert.AreEqual(new int?(), t.CharIndexToLineIndex(9));
+			Assert.That(0, Is.EqualTo(t.CharIndexToLineIndex(0)));
+			Assert.That(0, Is.EqualTo(t.CharIndexToLineIndex(1)));
+			Assert.That(0, Is.EqualTo(t.CharIndexToLineIndex(2)));
+			Assert.That(0, Is.EqualTo(t.CharIndexToLineIndex(3)));
+			Assert.That(new int?(), Is.EqualTo(t.CharIndexToLineIndex(4)));
+			Assert.That(1, Is.EqualTo(t.CharIndexToLineIndex(5)));
+			Assert.That(1, Is.EqualTo(t.CharIndexToLineIndex(6)));
+			Assert.That(1, Is.EqualTo(t.CharIndexToLineIndex(7)));
+			Assert.That(1, Is.EqualTo(t.CharIndexToLineIndex(8)));
+			Assert.That(new int?(), Is.EqualTo(t.CharIndexToLineIndex(9)));
 		}
 
 	}

@@ -15,12 +15,12 @@ namespace LogJoint.Tests
 		{
 			int arg = 0;
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(0, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(0, Is.EqualTo(sel().Item2));
 
 			arg = 1;
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(1, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(1, Is.EqualTo(sel().Item2));
 		}
 
 		[Test]
@@ -28,12 +28,12 @@ namespace LogJoint.Tests
 		{
 			DateTime arg = new DateTime(2000, 1, 3);
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i.Day));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(3, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(3, Is.EqualTo(sel().Item2));
 
 			arg = arg.AddDays(1);
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(4, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(4, Is.EqualTo(sel().Item2));
 		}
 
 		[Test]
@@ -41,16 +41,16 @@ namespace LogJoint.Tests
 		{
 			string arg = "a";
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i ?? "-"));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual("a", sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That("a", Is.EqualTo(sel().Item2));
 
 			arg = "b";
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual("b", sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That("b", Is.EqualTo(sel().Item2));
 
 			arg = null;
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual("-", sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That("-", Is.EqualTo(sel().Item2));
 		}
 
 		class MyRefType
@@ -63,22 +63,22 @@ namespace LogJoint.Tests
 		{
 			MyRefType arg = new MyRefType() { x = 2 };
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i != null ? i.x : -1));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(2, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(2, Is.EqualTo(sel().Item2));
 
 			arg = new MyRefType() { x = 3 };
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(3, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(3, Is.EqualTo(sel().Item2));
 			var r1 = sel();
 
 			arg = new MyRefType() { x = 3 };
-			Assert.AreSame(sel(), sel());
-			Assert.AreNotSame(r1, sel());
-			Assert.AreEqual(3, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(r1, Is.Not.SameAs(sel()));
+			Assert.That(3, Is.EqualTo(sel().Item2));
 
 			arg = null;
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(-1, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(-1, Is.EqualTo(sel().Item2));
 		}
 
 		[Test]
@@ -86,20 +86,20 @@ namespace LogJoint.Tests
 		{
 			int? arg = 3;
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i != null ? i : -1));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(3, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(3, Is.EqualTo(sel().Item2));
 
 			arg = 4;
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(4, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(4, Is.EqualTo(sel().Item2));
 
 			arg = null;
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(-1, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(-1, Is.EqualTo(sel().Item2));
 
 			arg = 5;
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(5, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(5, Is.EqualTo(sel().Item2));
 		}
 
 		[Test]
@@ -107,22 +107,22 @@ namespace LogJoint.Tests
 		{
 			Tuple<int> arg = Tuple.Create(3);
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i != null ? i.Item1 : -1));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(3, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(3, Is.EqualTo(sel().Item2));
 			var r1 = sel();
 
 			arg = Tuple.Create(3);
-			Assert.AreSame(sel(), sel());
-			Assert.AreSame(r1, sel());
-			Assert.AreEqual(3, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(r1, Is.EqualTo(sel()));
+			Assert.That(3, Is.EqualTo(sel().Item2));
 
 			arg = Tuple.Create(4);
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(4, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(4, Is.EqualTo(sel().Item2));
 
 			arg = null;
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(-1, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(-1, Is.EqualTo(sel().Item2));
 		}
 
 		struct MyStruct
@@ -136,18 +136,18 @@ namespace LogJoint.Tests
 		{
 			MyStruct arg = new MyStruct() { x = 2, y = 3 };
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i.x + i.y));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(5, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(5, Is.EqualTo(sel().Item2));
 			var r1 = sel();
 
 			arg = new MyStruct() { x = 2, y = 3 };
-			Assert.AreSame(sel(), sel());
-			Assert.AreSame(r1, sel());
-			Assert.AreEqual(5, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(r1, Is.EqualTo(sel()));
+			Assert.That(5, Is.EqualTo(sel().Item2));
 
 			arg = new MyStruct() { x = 2, y = 4 };
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(6, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(6, Is.EqualTo(sel().Item2));
 		}
 
 		[Test]
@@ -155,18 +155,18 @@ namespace LogJoint.Tests
 		{
 			var arg = (2, 3);
 			var sel = Selectors.Create(() => arg, i => Tuple.Create(10, i.Item1 + i.Item2));
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(5, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(5, Is.EqualTo(sel().Item2));
 			var r1 = sel();
 
 			arg = (2, 3);
-			Assert.AreSame(sel(), sel());
-			Assert.AreSame(r1, sel());
-			Assert.AreEqual(5, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(r1, Is.EqualTo(sel()));
+			Assert.That(5, Is.EqualTo(sel().Item2));
 
 			arg = (2, 4);
-			Assert.AreSame(sel(), sel());
-			Assert.AreEqual(6, sel().Item2);
+			Assert.That(sel(), Is.EqualTo(sel()));
+			Assert.That(6, Is.EqualTo(sel().Item2));
 		}
 
 	}

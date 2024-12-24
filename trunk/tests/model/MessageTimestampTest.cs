@@ -10,13 +10,13 @@ namespace LogJoint.Tests
 		public void TimeZoneTest()
 		{
 			var m1 = new MessageTimestamp(new DateTime(123213213, DateTimeKind.Local));
-			Assert.AreEqual(MessageTimestampTimezone.Unknown, m1.TimeZone);
+			Assert.That(MessageTimestampTimezone.Unknown, Is.EqualTo(m1.TimeZone));
 
 			var m2 = new MessageTimestamp(new DateTime(123213213, DateTimeKind.Unspecified));
-			Assert.AreEqual(MessageTimestampTimezone.Unknown, m2.TimeZone);
+			Assert.That(MessageTimestampTimezone.Unknown, Is.EqualTo(m2.TimeZone));
 
 			var m3 = new MessageTimestamp(new DateTime(123213213, DateTimeKind.Utc));
-			Assert.AreEqual(MessageTimestampTimezone.UTC, m3.TimeZone);
+			Assert.That(MessageTimestampTimezone.UTC, Is.EqualTo(m3.TimeZone));
 		}
 
 		[Test]
@@ -25,24 +25,24 @@ namespace LogJoint.Tests
 			Func<long, long> localTicksToUtcTicks = ticks => new DateTime(ticks, DateTimeKind.Local).ToUniversalTime().Ticks;
 
 			var t1 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Local));
-			Assert.IsTrue(MessageTimestamp.Compare(t1, MessageTimestamp.MinValue) > 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t1) < 0);
+			Assert.That(MessageTimestamp.Compare(t1, MessageTimestamp.MinValue), Is.GreaterThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MinValue, t1), Is.LessThan(0));
 
 			var t2 = new MessageTimestamp(new DateTime(localTicksToUtcTicks(3423), DateTimeKind.Utc));
-			Assert.IsTrue(MessageTimestamp.Compare(t2, MessageTimestamp.MinValue) > 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t2) < 0);
+			Assert.That(MessageTimestamp.Compare(t2, MessageTimestamp.MinValue), Is.GreaterThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MinValue, t2), Is.LessThan(0));
 
 			var t3 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Unspecified));
-			Assert.IsTrue(MessageTimestamp.Compare(t3, MessageTimestamp.MinValue) > 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t3) < 0);
+			Assert.That(MessageTimestamp.Compare(t3, MessageTimestamp.MinValue), Is.GreaterThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MinValue, t3), Is.LessThan(0));
 
 			var t4 = new MessageTimestamp(new DateTime(1, DateTimeKind.Local));
-			Assert.IsTrue(MessageTimestamp.Compare(t4, MessageTimestamp.MinValue) > 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t4) < 0);
+			Assert.That(MessageTimestamp.Compare(t4, MessageTimestamp.MinValue), Is.GreaterThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MinValue, t4), Is.LessThan(0));
 
 			var t5 = new MessageTimestamp(new DateTime(localTicksToUtcTicks(1), DateTimeKind.Utc));
-			Assert.IsTrue(MessageTimestamp.Compare(t5, MessageTimestamp.MinValue) > 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t5) < 0);
+			Assert.That(MessageTimestamp.Compare(t5, MessageTimestamp.MinValue), Is.GreaterThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MinValue, t5), Is.LessThan(0));
 		}
 
 
@@ -50,24 +50,24 @@ namespace LogJoint.Tests
 		public void MaximumIsGreaterThanAnyDateTime()
 		{
 			var t1 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Local));
-			Assert.IsTrue(MessageTimestamp.Compare(t1, MessageTimestamp.MaxValue) < 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t1) > 0);
+			Assert.That(MessageTimestamp.Compare(t1, MessageTimestamp.MaxValue), Is.LessThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t1), Is.GreaterThan(0));
 
 			var t2 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Utc));
-			Assert.IsTrue(MessageTimestamp.Compare(t2, MessageTimestamp.MaxValue) < 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t2) > 0);
+			Assert.That(MessageTimestamp.Compare(t2, MessageTimestamp.MaxValue), Is.LessThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t2), Is.GreaterThan(0));
 
 			var t3 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Unspecified));
-			Assert.IsTrue(MessageTimestamp.Compare(t3, MessageTimestamp.MaxValue) < 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t3) > 0);
+			Assert.That(MessageTimestamp.Compare(t3, MessageTimestamp.MaxValue), Is.LessThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t3), Is.GreaterThan(0));
 
 			var t4 = new MessageTimestamp(new DateTime(1, DateTimeKind.Local));
-			Assert.IsTrue(MessageTimestamp.Compare(t4, MessageTimestamp.MaxValue) < 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t4) > 0);
+			Assert.That(MessageTimestamp.Compare(t4, MessageTimestamp.MaxValue), Is.LessThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t4), Is.GreaterThan(0));
 
 			var t5 = new MessageTimestamp(new DateTime(1, DateTimeKind.Utc));
-			Assert.IsTrue(MessageTimestamp.Compare(t5, MessageTimestamp.MaxValue) < 0);
-			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t5) > 0);
+			Assert.That(MessageTimestamp.Compare(t5, MessageTimestamp.MaxValue), Is.LessThan(0));
+			Assert.That(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t5), Is.GreaterThan(0));
 		}
 
 		[Test]
@@ -83,9 +83,9 @@ namespace LogJoint.Tests
 			var d1_restored = MessageTimestamp.ParseFromLoselessFormat(d1_str);
 			var d2_restored = MessageTimestamp.ParseFromLoselessFormat(d2_str);
 			var d3_restored = MessageTimestamp.ParseFromLoselessFormat(d3_str);
-			Assert.AreEqual(0, MessageTimestamp.Compare(d1, d1_restored));
-			Assert.AreEqual(0, MessageTimestamp.Compare(d2, d2_restored));
-			Assert.AreEqual(0, MessageTimestamp.Compare(d2, d2_restored));
+			Assert.That(0, Is.EqualTo(MessageTimestamp.Compare(d1, d1_restored)));
+			Assert.That(0, Is.EqualTo(MessageTimestamp.Compare(d2, d2_restored)));
+			Assert.That(0, Is.EqualTo(MessageTimestamp.Compare(d2, d2_restored)));
 		}
 	}
 }

@@ -48,8 +48,8 @@ namespace LogJoint.Tests
 
 		static void TestCharPosMapping(StreamTextAccess sut, TextStreamPosition pos, int charIdx)
 		{
-			Assert.AreEqual(pos.Value, sut.CharIndexToPosition(charIdx).Value);
-			Assert.AreEqual(charIdx, sut.PositionToCharIndex(pos));
+			Assert.That(pos.Value, Is.EqualTo(sut.CharIndexToPosition(charIdx).Value));
+			Assert.That(charIdx, Is.EqualTo(sut.PositionToCharIndex(pos)));
 		}
 
 		[Test]
@@ -60,9 +60,9 @@ namespace LogJoint.Tests
 				Encoding.ASCII
 			);
 			await buf.BeginReading(0, TextAccessDirection.Forward);
-			Assert.AreEqual(new Str().Add('a', blockSz).ToString(), buf.BufferString);
+			Assert.That(new Str().Add('a', blockSz).ToString(), Is.EqualTo(buf.BufferString));
 			await buf.Advance(blockSz - 5);
-			Assert.AreEqual("aaaaabbbbb", buf.BufferString.Substring(0, 10));
+			Assert.That("aaaaabbbbb", Is.EqualTo(buf.BufferString.Substring(0, 10)));
 		}
 
 		[Test]
@@ -73,11 +73,11 @@ namespace LogJoint.Tests
 				Encoding.ASCII
 			);
 			await buf.BeginReading(blockSz * 2, TextAccessDirection.Backward);
-			Assert.AreEqual("", buf.BufferString);
+			Assert.That("", Is.EqualTo(buf.BufferString));
 			await buf.Advance(0);
-			Assert.AreEqual(new Str().Add('2', blockSz).ToString(), buf.BufferString);
+			Assert.That(new Str().Add('2', blockSz).ToString(), Is.EqualTo(buf.BufferString));
 			await buf.Advance(blockSz);
-			Assert.AreEqual(new Str().Add('1', blockSz).ToString(), buf.BufferString);
+			Assert.That(new Str().Add('1', blockSz).ToString(), Is.EqualTo(buf.BufferString));
 		}
 
 		[Test]
@@ -88,10 +88,10 @@ namespace LogJoint.Tests
 				Encoding.ASCII
 			);
 			await buf.BeginReading(blockSz, TextAccessDirection.Backward);
-			Assert.AreEqual("", buf.BufferString);
+			Assert.That("", Is.EqualTo(buf.BufferString));
 			await buf.Advance(0);
-			Assert.AreEqual(new Str().Add('1', blockSz).ToString(), buf.BufferString);
-			Assert.IsFalse(await buf.Advance(blockSz));
+			Assert.That(new Str().Add('1', blockSz).ToString(), Is.EqualTo(buf.BufferString));
+			Assert.That(await buf.Advance(blockSz), Is.False);
 		}
 
 
@@ -103,9 +103,9 @@ namespace LogJoint.Tests
 				Encoding.Unicode
 			);
 			await buf.BeginReading(0, TextAccessDirection.Forward);
-			Assert.AreEqual(new Str().Add('a', blockSz/2).ToString(), buf.BufferString);
+			Assert.That(new Str().Add('a', blockSz / 2).ToString(), Is.EqualTo(buf.BufferString));
 			await buf.Advance(blockSz/2 - 5);
-			Assert.AreEqual("aaaaabbbbb", buf.BufferString.Substring(0, 10));
+			Assert.That("aaaaabbbbb", Is.EqualTo(buf.BufferString.Substring(0, 10)));
 		}
 
 		[Test]
@@ -116,9 +116,9 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(0, TextAccessDirection.Forward);
-			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
+			Assert.That(new Str().Add('a', blockSz - 1).ToString(), Is.EqualTo(buf.BufferString));
 			await buf.Advance(blockSz - 5);
-			Assert.AreEqual("aaaaΘbbbbb", buf.BufferString.Substring(0, 10));
+			Assert.That("aaaaΘbbbbb", Is.EqualTo(buf.BufferString.Substring(0, 10)));
 		}
 
 		[Test]
@@ -167,7 +167,7 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(blockSz, TextAccessDirection.Forward);
-			Assert.AreEqual("Θbbbbbbbbb", buf.BufferString.Substring(0, 10));
+			Assert.That("Θbbbbbbbbb", Is.EqualTo(buf.BufferString.Substring(0, 10)));
 		}
 
 		[Test]
@@ -178,9 +178,9 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(new TextStreamPosition(blockSz, 0).Value, TextAccessDirection.Backward);
-			Assert.AreEqual("", buf.BufferString);
+			Assert.That("", Is.EqualTo(buf.BufferString));
 			await buf.Advance(0);
-			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
+			Assert.That(new Str().Add('a', blockSz - 1).ToString(), Is.EqualTo(buf.BufferString));
 		}
 
 		[Test]
@@ -191,9 +191,9 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(new TextStreamPosition(blockSz, 1).Value, TextAccessDirection.Backward);
-			Assert.AreEqual("Θ", buf.BufferString);
+			Assert.That("Θ", Is.EqualTo(buf.BufferString));
 			await buf.Advance(0);
-			Assert.AreEqual(new Str().Add('a', blockSz - 1).Add('Θ').ToString(), buf.BufferString);
+			Assert.That(new Str().Add('a', blockSz - 1).Add('Θ').ToString(), Is.EqualTo(buf.BufferString));
 		}
 
 		[Test]
@@ -204,9 +204,9 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(new TextStreamPosition(blockSz, 1).Value, TextAccessDirection.Backward);
-			Assert.AreEqual("Θ", buf.BufferString);
+			Assert.That("Θ", Is.EqualTo(buf.BufferString));
 			await buf.Advance(1);
-			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
+			Assert.That(new Str().Add('a', blockSz - 1).ToString(), Is.EqualTo(buf.BufferString));
 		}
 
 		[Test]
@@ -217,10 +217,10 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(0, TextAccessDirection.Forward);
-			Assert.AreEqual(S().Add('a', blockSz).ToString(), buf.BufferString);
-			Assert.IsTrue(await buf.Advance(20));
-			Assert.AreEqual(S().Add('a', blockSz-20).Add('b', 100).ToString(), buf.BufferString);
-			Assert.IsFalse(await buf.Advance(20));
+			Assert.That(S().Add('a', blockSz).ToString(), Is.EqualTo(buf.BufferString));
+			Assert.That(await buf.Advance(20), Is.True);
+			Assert.That(S().Add('a', blockSz - 20).Add('b', 100).ToString(), Is.EqualTo(buf.BufferString));
+			Assert.That(await buf.Advance(20), Is.False);
 		}
 
 		[Test]
@@ -231,9 +231,9 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(0, TextAccessDirection.Backward);
-			Assert.AreEqual("", buf.BufferString);
+			Assert.That("", Is.EqualTo(buf.BufferString));
 			await buf.Advance(0);
-			Assert.AreEqual("", buf.BufferString);
+			Assert.That("", Is.EqualTo(buf.BufferString));
 		}
 
 		[Test]
@@ -244,10 +244,10 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(blockSz + 100, TextAccessDirection.Backward);
-			Assert.AreEqual(S().Add('b', 100).ToString(), buf.BufferString);
-			Assert.IsTrue(await buf.Advance(10));
-			Assert.AreEqual(S().Add('a', blockSz).Add('b', 90).ToString(), buf.BufferString);
-			Assert.IsFalse(await buf.Advance(90));
+			Assert.That(S().Add('b', 100).ToString(), Is.EqualTo(buf.BufferString));
+			Assert.That(await buf.Advance(10), Is.True);
+			Assert.That(S().Add('a', blockSz).Add('b', 90).ToString(), Is.EqualTo(buf.BufferString));
+			Assert.That(await buf.Advance(90), Is.False);
 		}
 
 
@@ -260,8 +260,8 @@ namespace LogJoint.Tests
 			);
 			await buf.BeginReading(0, TextAccessDirection.Forward);
 			TestCharPosMapping(buf, new TextStreamPosition(0, 20), 20);
-			Assert.IsTrue(await buf.Advance(10));
-			Assert.AreEqual(S().Add('a', blockSz-10).Add('b', 200).ToString(), buf.BufferString);
+			Assert.That(await buf.Advance(10), Is.True);
+			Assert.That(S().Add('a', blockSz - 10).Add('b', 200).ToString(), Is.EqualTo(buf.BufferString));
 			TestCharPosMapping(buf, new TextStreamPosition(0, 20), 10);
 			TestCharPosMapping(buf, new TextStreamPosition(blockSz, 20), blockSz+10);
 		}
@@ -310,7 +310,7 @@ namespace LogJoint.Tests
 			await buf.BeginReading(0, TextAccessDirection.Forward);
 			// valid Unicode text stream positions are from 0 to blockSz/2. below is invalid position.
 			var invalidTextStreamPosition = new TextStreamPosition(blockSz - 10);
-			Assert.AreEqual(blockSz/2, buf.PositionToCharIndex(invalidTextStreamPosition));
+			Assert.That(blockSz/2, Is.EqualTo(buf.PositionToCharIndex(invalidTextStreamPosition)));
 		}
 
 		[Test]
@@ -322,7 +322,7 @@ namespace LogJoint.Tests
 			);
 			await buf.BeginReading(blockSz + 200, TextAccessDirection.Backward);
 			TestCharPosMapping(buf, new TextStreamPosition(blockSz, 20), 20);
-			Assert.IsTrue(await buf.Advance(10));
+			Assert.That(await buf.Advance(10), Is.True);
 			TestCharPosMapping(buf, new TextStreamPosition(blockSz, 20), blockSz + 20);
 			TestCharPosMapping(buf, new TextStreamPosition(20), 20);
 		}
@@ -336,12 +336,12 @@ namespace LogJoint.Tests
 			);
 			await buf.BeginReading(20, TextAccessDirection.Forward);
 			await buf.Advance(10);
-			Assert.AreEqual(buf.AdvanceDirection, TextAccessDirection.Forward);
+			Assert.That(buf.AdvanceDirection, Is.EqualTo(TextAccessDirection.Forward));
 			buf.EndReading();
 
 			await buf.BeginReading(20, TextAccessDirection.Backward);
 			await buf.Advance(10);
-			Assert.AreEqual(buf.AdvanceDirection, TextAccessDirection.Backward);
+			Assert.That(buf.AdvanceDirection, Is.EqualTo(TextAccessDirection.Backward));
 			buf.EndReading();
 		}
 
@@ -374,7 +374,7 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(50, TextAccessDirection.Forward);
-			Assert.AreEqual(S().Add('a', 50).Add('b', 100).Add('c', blockSz - 200).ToString(), buf.BufferString);
+			Assert.That(S().Add('a', 50).Add('b', 100).Add('c', blockSz - 200).ToString(), Is.EqualTo(buf.BufferString));
 			TestCharPosMapping(buf, new TextStreamPosition(50), 0);
 			TestCharPosMapping(buf, new TextStreamPosition(100), 50);
 		}
@@ -388,7 +388,7 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(10, TextAccessDirection.Forward);
-			Assert.AreEqual(S().Add('a', 90).Add('b', 100).ToString(), buf.BufferString);
+			Assert.That(S().Add('a', 90).Add('b', 100).ToString(), Is.EqualTo(buf.BufferString));
 			TestCharPosMapping(buf, new TextStreamPosition(10), 0);
 			TestCharPosMapping(buf, new TextStreamPosition(60), 50);
 			TestCharPosMapping(buf, new TextStreamPosition(200), 190);
@@ -424,7 +424,7 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(11, TextAccessDirection.Forward);
-			Assert.AreEqual("", buf.BufferString);
+			Assert.That("", Is.EqualTo(buf.BufferString));
 		}
 
 		[Test]
@@ -435,7 +435,7 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(11, TextAccessDirection.Backward);
-			Assert.AreEqual(S().Add('a', 10).ToString(), buf.BufferString);
+			Assert.That(S().Add('a', 10).ToString(), Is.EqualTo(buf.BufferString));
 			int idx = buf.PositionToCharIndex(new TextStreamPosition(11));
 		}
 
@@ -447,9 +447,9 @@ namespace LogJoint.Tests
 				Encoding.UTF8
 			);
 			await buf.BeginReading(blockSz*2, TextAccessDirection.Backward);
-			Assert.AreEqual("", buf.BufferString);
+			Assert.That("", Is.EqualTo(buf.BufferString));
 			int idx = buf.PositionToCharIndex(new TextStreamPosition(blockSz*2));
-			Assert.AreEqual(0, idx);
+			Assert.That(0, Is.EqualTo(idx));
 		}
 	}
 }

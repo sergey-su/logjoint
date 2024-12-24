@@ -28,10 +28,11 @@ namespace LogJoint.Tests
 			var d3 = new DateTime(2010, 10, 22, 3, 3, 4, DateTimeKind.Unspecified);
 
 			Action<DateTime, DateTime> assertDatesAreEqual = (x, y) =>
-				Assert.IsTrue(
+				Assert.That(
 					x == y && !(x != y) &&
 					!(x < y) && !(x > y) && !(y < x) && !(y > x) &&
-					x.CompareTo(y) == 0
+					x.CompareTo(y) == 0,
+					Is.True
 				);
 
 			// DateTimeKind is ignored on comparision
@@ -44,22 +45,22 @@ namespace LogJoint.Tests
 
 			// log that contains tz info will be parsed to Utc DateTime
 			var parsedUtc = toDateTime("2010-10-22T06:03:04.0000000+04:00", "yyyy-MM-ddTHH:mm:ss.fffffffzzzzzz");
-			Assert.IsTrue(parsedUtc.Kind == DateTimeKind.Utc);
+			Assert.That(parsedUtc.Kind, Is.EqualTo(DateTimeKind.Utc));
 			assertDatesAreEqual(parsedUtc, new DateTime(2010, 10, 22, 2, 3, 4));
 
 			// log that does not contain tz info will be parsed to Unspecified DateTime
 			var pasredUnspec = toDateTime("2010-10-22T02:03:04.0000000", "yyyy-MM-ddTHH:mm:ss.fffffff");
-			Assert.IsTrue(pasredUnspec.Kind == DateTimeKind.Unspecified);
+			Assert.That(pasredUnspec.Kind, Is.EqualTo(DateTimeKind.Unspecified));
 			assertDatesAreEqual(pasredUnspec, new DateTime(2010, 10, 22, 2, 3, 4));
 
 			// log that is parsed with format specifier K will be parsed as Utc when possible
 			var parsedUtc2 = toDateTime("2010-10-22T06:03:04.0000000+05:00", "yyyy-MM-ddTHH:mm:ss.fffffffK");
-			Assert.IsTrue(parsedUtc2.Kind == DateTimeKind.Utc);
+			Assert.That(parsedUtc2.Kind, Is.EqualTo(DateTimeKind.Utc));
 			assertDatesAreEqual(parsedUtc2, new DateTime(2010, 10, 22, 1, 3, 4));
 			var parsedUtc3 = toDateTime("2010-10-22T03:03:04.0000000Z", "yyyy-MM-ddTHH:mm:ss.fffffffK");
-			Assert.IsTrue(parsedUtc2.Kind == DateTimeKind.Utc);
+			Assert.That(parsedUtc2.Kind, Is.EqualTo(DateTimeKind.Utc));
 			var parsedUnspec2 = toDateTime("2010-10-22T03:03:04.0000000", "yyyy-MM-ddTHH:mm:ss.fffffffK");
-			Assert.IsTrue(parsedUnspec2.Kind == DateTimeKind.Unspecified);
+			Assert.That(parsedUnspec2.Kind, Is.EqualTo(DateTimeKind.Unspecified));
 
 
 			// Kind-preserving string conversions
@@ -74,11 +75,11 @@ namespace LogJoint.Tests
 			var d1_restored = fromStringLoseless(d1_str);
 			var d2_restored = fromStringLoseless(d2_str);
 			var d3_restored = fromStringLoseless(d3_str);
-			Assert.IsTrue(d1.Kind == d1_restored.Kind);
+			Assert.That(d1.Kind, Is.EqualTo(d1_restored.Kind));
 			assertDatesAreEqual(d1, d1_restored);
-			Assert.IsTrue(d2.Kind == d2_restored.Kind);
+			Assert.That(d2.Kind, Is.EqualTo(d2_restored.Kind));
 			assertDatesAreEqual(d2, d2_restored);
-			Assert.IsTrue(d3.Kind == d3_restored.Kind);
+			Assert.That(d3.Kind, Is.EqualTo(d3_restored.Kind));
 			assertDatesAreEqual(d3, d3_restored);
 		}
 

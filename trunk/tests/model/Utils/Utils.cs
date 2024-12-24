@@ -16,7 +16,7 @@ namespace LogJoint.Postprocessing
 		{
 			var resourceName = Assembly.GetCallingAssembly().GetManifestResourceNames().FirstOrDefault(
 				n => n.IndexOf(nameSubstring, StringComparison.InvariantCultureIgnoreCase) >= 0);
-			Assert.IsNotNull(resourceName);
+			Assert.That(resourceName, Is.Not.Null);
 			return Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName);
 		}
 
@@ -48,10 +48,10 @@ namespace LogJoint.Postprocessing
 			{
 				bool expectedTextMoved = expectedTextEnumerator.MoveNext();
 				bool actualTextMoved = actualTextEnumerator.MoveNext();
-				Assert.AreEqual(expectedTextMoved, actualTextMoved, "actual text is at least " + lineIdx.ToString() + " lines long");
+				Assert.That(expectedTextMoved, Is.EqualTo(actualTextMoved), "actual text is at least " + lineIdx.ToString() + " lines long");
 				if (!actualTextMoved)
 					break;
-				Assert.AreEqual(expectedTextEnumerator.Current, actualTextEnumerator.Current, "line nr " + lineIdx.ToString() + " must be same");
+				Assert.That(expectedTextEnumerator.Current, Is.EqualTo(actualTextEnumerator.Current), "line nr " + lineIdx.ToString() + " must be same");
 			}
 			expectedTextEnumerator.Dispose();
 			actualTextEnumerator.Dispose();

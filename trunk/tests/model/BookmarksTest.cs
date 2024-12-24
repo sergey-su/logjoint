@@ -65,10 +65,10 @@ namespace LogJoint.Tests
 			var b2 = bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
 			var foundBmk = bmks.GetNext(CreateBmk(0, "", 0), true);
-			Assert.AreSame(b1, foundBmk);
+			Assert.That(b1, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(30, "", 0), false);
-			Assert.AreSame(b2, foundBmk);
+			Assert.That(b2, Is.SameAs(foundBmk));
 		}
 
 		[Test]
@@ -79,10 +79,10 @@ namespace LogJoint.Tests
 			bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
 			var foundBmk = bmks.GetNext(CreateBmk(40, "", 0), true);
-			Assert.IsNull(foundBmk);
+			Assert.That(foundBmk, Is.Null);
 
 			foundBmk = bmks.GetNext(CreateBmk(5, "", 0), false);
-			Assert.IsNull(foundBmk);
+			Assert.That(foundBmk, Is.Null);
 		}
 
 		[Test]
@@ -91,10 +91,10 @@ namespace LogJoint.Tests
 			IBookmarks bmks = new Bookmarks(CreateBmkFactory(), changeNotification);
 
 			var foundBmk = bmks.GetNext(CreateBmk(0, "", 0), true);
-			Assert.IsNull(foundBmk);
+			Assert.That(foundBmk, Is.Null);
 
 			foundBmk = bmks.GetNext(CreateBmk(0, "", 0), false);
-			Assert.IsNull(foundBmk);
+			Assert.That(foundBmk, Is.Null);
 		}
 
 		[Test]
@@ -110,41 +110,41 @@ namespace LogJoint.Tests
 			IBookmark foundBmk;
 
 			foundBmk = bmks.GetNext(CreateBmk(5, "", 0), true);
-			Assert.AreSame(b2, foundBmk);
+			Assert.That(b2, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 321), true);
-			Assert.AreSame(b4, foundBmk);
+			Assert.That(b4, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 200), true);
-			Assert.AreSame(b1, foundBmk);
+			Assert.That(b1, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 234), true);
-			Assert.AreSame(b1, foundBmk);
+			Assert.That(b1, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 179), true);
-			Assert.AreSame(b3, foundBmk);
+			Assert.That(b3, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 300), true);
-			Assert.AreSame(b4, foundBmk);
+			Assert.That(b4, Is.SameAs(foundBmk));
 
 
 			foundBmk = bmks.GetNext(CreateBmk(11, "", 0), false);
-			Assert.AreSame(b1, foundBmk);
+			Assert.That(b1, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 87), false);
-			Assert.AreSame(b0, foundBmk);
+			Assert.That(b0, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 300), false);
-			Assert.AreSame(b3, foundBmk);
+			Assert.That(b3, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 100), false);
-			Assert.AreSame(b0, foundBmk);
+			Assert.That(b0, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 234), false);
-			Assert.AreSame(b3, foundBmk);
+			Assert.That(b3, Is.SameAs(foundBmk));
 
 			foundBmk = bmks.GetNext(CreateBmk(10, "", 200), false);
-			Assert.AreSame(b2, foundBmk);
+			Assert.That(b2, Is.SameAs(foundBmk));
 		}
 	}
 }

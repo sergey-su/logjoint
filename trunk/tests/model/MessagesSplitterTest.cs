@@ -35,18 +35,18 @@ namespace LogJoint.Tests
 			// 0      8  16         45 56  67 - positions
 			it.CharIndexToPosition(7).Returns((long)8);
 			await target.BeginSplittingSession(new Range(0, 100), 0, MessagesParserDirection.Forward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.CharIndexToPosition(21).Returns((long)45);
 			var capt = new TextMessageCapture();
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
-			Assert.AreEqual(" 283147948 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual(8L, capt.BeginPosition);
-			Assert.AreEqual(45L, capt.EndPosition);
-			Assert.IsFalse(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length)));
+			Assert.That(" 283147948 ", Is.EqualTo(capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength)));
+			Assert.That(8L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(45L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 			it.Advance(24).Returns(_ =>
 			{
@@ -58,13 +58,13 @@ namespace LogJoint.Tests
 				it.CharIndexToPosition(6).Returns((long)72);
 				return trueTask;
 			});
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
-			Assert.AreEqual(" 3498 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual(45L, capt.BeginPosition);
-			Assert.AreEqual(72L, capt.EndPosition);
-			Assert.IsFalse(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length)));
+			Assert.That(" 3498 ", Is.EqualTo(capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength)));
+			Assert.That(45L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(72L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.Advance(9).Returns(_ =>
@@ -77,17 +77,17 @@ namespace LogJoint.Tests
 				it.CharIndexToPosition(8).Returns((long)90);
 				return trueTask;
 			});
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
-			Assert.AreEqual(" 2626277", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual(72L, capt.BeginPosition);
-			Assert.AreEqual(90L, capt.EndPosition);
-			Assert.IsTrue(capt.IsLastMessage);
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length)));
+			Assert.That(" 2626277", Is.EqualTo(capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength)));
+			Assert.That(72L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(90L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.True);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 
 			target.EndSplittingSession();
@@ -113,18 +113,18 @@ namespace LogJoint.Tests
 			// 50     61 67         85 87   100 - position
 			it.CharIndexToPosition(21).Returns((long)85);
 			await target.BeginSplittingSession(new Range(0, 100), 100, MessagesParserDirection.Backward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 			it.CharIndexToPosition(7).Returns((long)61);
 			it.CharIndexToPosition(29).Returns((long)100);
 			var capt = new TextMessageCapture();
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
-			Assert.AreEqual(" 3498", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual(85L, capt.BeginPosition);
-			Assert.AreEqual(100L, capt.EndPosition);
-			Assert.IsTrue(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length)));
+			Assert.That(" 3498", Is.EqualTo(capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength)));
+			Assert.That(85L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(100L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.True);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.Advance(8).Returns(_ =>
@@ -137,13 +137,13 @@ namespace LogJoint.Tests
 				it.CharIndexToPosition(3).Returns((long)33);
 				return trueTask;
 			});
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
-			Assert.AreEqual(" 283147948 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual(61L, capt.BeginPosition);
-			Assert.AreEqual(85L, capt.EndPosition);
-			Assert.IsFalse(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length)));
+			Assert.That(" 283147948 ", Is.EqualTo(capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength)));
+			Assert.That(61L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(85L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.Advance(14).Returns(_ =>
@@ -155,18 +155,18 @@ namespace LogJoint.Tests
 				//  20 33         61 - pos
 				return trueTask;
 			});
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
-			Assert.AreEqual(" 123456 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual(33L, capt.BeginPosition);
-			Assert.AreEqual(61L, capt.EndPosition);
-			Assert.IsFalse(capt.IsLastMessage);
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length)));
+			Assert.That(" 123456 ", Is.EqualTo(capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength)));
+			Assert.That(33L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(61L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 
 
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 
 			target.EndSplittingSession();
@@ -183,12 +183,12 @@ namespace LogJoint.Tests
 
 
 			await target.BeginSplittingSession(new Range(0, 100), 110, MessagesParserDirection.Forward);
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 
 			TextMessageCapture capt = new TextMessageCapture();
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 			target.EndSplittingSession();
 		}
@@ -205,12 +205,12 @@ namespace LogJoint.Tests
 			it.PositionToCharIndex(90).Returns(_ => throw new ArgumentOutOfRangeException());
 			await target.BeginSplittingSession(new Range(0, 100), 90, MessagesParserDirection.Forward);
 			it.Received(1).Dispose();
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 
 			TextMessageCapture capt = new TextMessageCapture();
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 			target.EndSplittingSession();
 		}
@@ -231,13 +231,13 @@ namespace LogJoint.Tests
 			try
 			{
 				await target.BeginSplittingSession(new Range(0, 100), 0, MessagesParserDirection.Forward);
-				Assert.IsTrue(false, "We must never get here because of an exception in prev call");
+				Assert.Fail("We must never get here because of an exception in prev call");
 			}
 			catch (System.Security.SecurityException)
 			{
 			}
 			it.Received(1).Dispose();
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 		}
 
 		[Test]
@@ -254,7 +254,7 @@ namespace LogJoint.Tests
 			it.CurrentBuffer.Returns("00 111 222");
 			it.CharIndexToPosition(3).Returns((long)3);
 			await target.BeginSplittingSession(new Range(0, 100), 0, MessagesParserDirection.Forward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 			Assert.ThrowsAsync<InvalidOperationException>(async () =>
 			{
@@ -322,14 +322,14 @@ namespace LogJoint.Tests
 				return trueTask;
 			});
 			await target.BeginSplittingSession(new Range(0, 10), 0, MessagesParserDirection.Forward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 			it.Advance(3).Returns(falseTask);
 			it.CharIndexToPosition(4).Returns((long)3);
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.MessageHeader);
-			Assert.AreEqual("_", capt.MessageBody);
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.MessageHeader));
+			Assert.That("_", Is.EqualTo(capt.MessageBody));
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 		}
 
 		[Test]
@@ -350,18 +350,18 @@ namespace LogJoint.Tests
 			// 50     61 67         85 87  99\100 - position
 			it.CharIndexToPosition(21).Returns((long)85);
 			await target.BeginSplittingSession(new Range(0, 100), 99, MessagesParserDirection.Backward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 			it.CharIndexToPosition(7).Returns((long)61);
 			it.CharIndexToPosition(28).Returns((long)99);
 			var capt = new TextMessageCapture();
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("abc", capt.MessageHeader);
-			Assert.AreEqual(" 349", capt.MessageBody);
-			Assert.AreEqual(85L, capt.BeginPosition);
-			Assert.AreEqual(99L, capt.EndPosition);
-			Assert.IsTrue(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("abc", Is.EqualTo(capt.MessageHeader));
+			Assert.That(" 349", Is.EqualTo(capt.MessageBody));
+			Assert.That(85L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(99L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.True);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 		}
 
 		[Test]
@@ -391,7 +391,7 @@ namespace LogJoint.Tests
 				return trueTask;
 			});
 			await target.BeginSplittingSession(new Range(10, 20), 15, MessagesParserDirection.Forward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 		}
 
 		[Test]
@@ -413,20 +413,20 @@ namespace LogJoint.Tests
 			it.CharIndexToPosition(1).Returns((long)1);
 			it.CurrentBuffer.Returns("_msg1_msg2_msg3");
 			await target.BeginSplittingSession(new Range(0, 6), 0, MessagesParserDirection.Forward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.CharIndexToPosition(6).Returns((long)6);
 			var capt = new TextMessageCapture();
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("msg", capt.MessageHeader);
-			Assert.AreEqual("1_", capt.MessageBody);
-			Assert.AreEqual(1L, capt.BeginPosition);
-			Assert.AreEqual(6L, capt.EndPosition);
-			Assert.IsTrue(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("msg", Is.EqualTo(capt.MessageHeader));
+			Assert.That("1_", Is.EqualTo(capt.MessageBody));
+			Assert.That(1L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(6L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.True);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
 		}
 
 		[Test]
@@ -448,29 +448,29 @@ namespace LogJoint.Tests
 			it.CharIndexToPosition(1).Returns((long)1);
 			it.CurrentBuffer.Returns("_msg1_msg2_msg3");
 			await target.BeginSplittingSession(new Range(0, 7), 0, MessagesParserDirection.Forward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.CharIndexToPosition(6).Returns((long)6);
 			var capt = new TextMessageCapture();
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("msg", capt.MessageHeader);
-			Assert.AreEqual("1_", capt.MessageBody);
-			Assert.AreEqual(1L, capt.BeginPosition);
-			Assert.AreEqual(6L, capt.EndPosition);
-			Assert.IsFalse(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("msg", Is.EqualTo(capt.MessageHeader));
+			Assert.That("1_", Is.EqualTo(capt.MessageBody));
+			Assert.That(1L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(6L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 			it.CharIndexToPosition(11).Returns((long)11);
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("msg", capt.MessageHeader);
-			Assert.AreEqual("2_", capt.MessageBody);
-			Assert.AreEqual(6L, capt.BeginPosition);
-			Assert.AreEqual(11L, capt.EndPosition);
-			Assert.IsTrue(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("msg", Is.EqualTo(capt.MessageHeader));
+			Assert.That("2_", Is.EqualTo(capt.MessageBody));
+			Assert.That(6L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(11L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.True);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
 		}
 
 		[Test]
@@ -492,21 +492,21 @@ namespace LogJoint.Tests
 			it.CharIndexToPosition(6).Returns((long)6);
 			it.CurrentBuffer.Returns("_msg1_msg2_msg3");
 			await target.BeginSplittingSession(new Range(6, 15), 11, MessagesParserDirection.Backward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.CharIndexToPosition(11).Returns((long)11);
 			it.CharIndexToPosition(1).Returns((long)1);
 			var capt = new TextMessageCapture();
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("msg", capt.MessageHeader);
-			Assert.AreEqual("2_", capt.MessageBody);
-			Assert.AreEqual(6L, capt.BeginPosition);
-			Assert.AreEqual(11L, capt.EndPosition);
-			Assert.IsTrue(capt.IsLastMessage);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("msg", Is.EqualTo(capt.MessageHeader));
+			Assert.That("2_", Is.EqualTo(capt.MessageBody));
+			Assert.That(6L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(11L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.True);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
 		}
 
 		[Test]
@@ -528,34 +528,34 @@ namespace LogJoint.Tests
 			it.CharIndexToPosition(6).Returns((long)6);
 			it.CurrentBuffer.Returns("_msg1_msg2_msg3");
 			await target.BeginSplittingSession(new Range(5, 15), 11, MessagesParserDirection.Backward);
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
 			it.CharIndexToPosition(11).Returns((long)11);
 			it.CharIndexToPosition(1).Returns((long)1);
 			var capt = new TextMessageCapture();
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("msg", capt.MessageHeader);
-			Assert.AreEqual("2_", capt.MessageBody);
-			Assert.AreEqual(6L, capt.BeginPosition);
-			Assert.AreEqual(11L, capt.EndPosition);
-			Assert.IsTrue(capt.IsLastMessage); // in backward mode the first message that was read is "IsLastMessage"
-			Assert.IsFalse(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("msg", Is.EqualTo(capt.MessageHeader));
+			Assert.That("2_", Is.EqualTo(capt.MessageBody));
+			Assert.That(6L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(11L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.True); // in backward mode the first message that was read is "IsLastMessage"
+			Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 			it.Advance(9).Returns(_ =>
 			{
 				it.CurrentBuffer.Returns("_msg1_");
 				return trueTask;
 			});
-			Assert.IsTrue(await target.GetCurrentMessageAndMoveToNextOne(capt));
-			Assert.AreEqual("msg", capt.MessageHeader);
-			Assert.AreEqual("1_", capt.MessageBody);
-			Assert.AreEqual(1L, capt.BeginPosition);
-			Assert.AreEqual(6L, capt.EndPosition);
-			Assert.IsFalse(capt.IsLastMessage);
-			Assert.IsTrue(target.CurrentMessageIsEmpty);
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.True);
+			Assert.That("msg", Is.EqualTo(capt.MessageHeader));
+			Assert.That("1_", Is.EqualTo(capt.MessageBody));
+			Assert.That(1L, Is.EqualTo(capt.BeginPosition));
+			Assert.That(6L, Is.EqualTo(capt.EndPosition));
+			Assert.That(capt.IsLastMessage, Is.False);
+			Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
-			Assert.IsFalse(await target.GetCurrentMessageAndMoveToNextOne(capt));
+			Assert.That(await target.GetCurrentMessageAndMoveToNextOne(capt), Is.False);
 		}
 	}
 }

@@ -22,7 +22,7 @@ namespace LogJoint.Tests
 
 		static void TestStreamContent(MemoryStream stream, string expectedXml)
 		{
-			Assert.AreEqual(expectedXml, LiveLogXMLWriter.OutputEncoding.GetString(stream.ToArray()));
+			Assert.That(expectedXml, Is.EqualTo(LiveLogXMLWriter.OutputEncoding.GetString(stream.ToArray())));
 		}
 
 		[Test]
@@ -185,7 +185,7 @@ namespace LogJoint.Tests
 				livewriter.EndWriteMessage();
 			}
 
-			Assert.AreEqual(close, output.IsDisposed);
+			Assert.That(close, Is.EqualTo(output.IsDisposed));
 		}
 
 		[Test]
@@ -214,10 +214,10 @@ namespace LogJoint.Tests
 					writer.BeginWriteMessage(false).WriteString(testStr);
 					writer.EndWriteMessage();
 
-					Assert.IsTrue(output.Length < maxSizeInBytes);
+					Assert.That(output.Length, Is.LessThan(maxSizeInBytes));
 					string actual = LiveLogXMLWriter.OutputEncoding.GetString(output.ToArray());
-					Assert.IsTrue(actual.Length > 0);
-					Assert.IsTrue(testStr.EndsWith(actual));
+					Assert.That(actual.Length, Is.GreaterThan(0));
+					Assert.That(testStr.EndsWith(actual), Is.True);
 				}
 			}
 		}

@@ -51,8 +51,8 @@ namespace LogJoint.Tests
 		{
 			foreach (var m in expectedMessages)
 			{
-				Assert.IsNotNull(m);
-				Assert.IsFalse(this.expectedMessages.ContainsKey(expectedLine));
+				Assert.That(m, Is.Not.Null);
+				Assert.That(this.expectedMessages.ContainsKey(expectedLine), Is.False);
 				this.expectedMessages.Add(expectedLine, m);
 				++expectedLine;
 			}
@@ -68,7 +68,7 @@ namespace LogJoint.Tests
 		public void FinishVerification()
 		{
 			foreach (var m in expectedMessages)
-				Assert.IsTrue(m.Value.Verified, string.Format("Message {0} left unverified", m.Key));
+				Assert.That(m.Value.Verified, Is.True, string.Format("Message {0} left unverified", m.Key));
 		}
 
 		public void Verify(int actualLine, IMessage actualMessage)
@@ -76,23 +76,23 @@ namespace LogJoint.Tests
 			if (expectedMessages.TryGetValue(actualLine, out EM expectedMessage))
 			{
 				expectedMessage.Verified = true;
-				Assert.IsNotNull(actualMessage);
+				Assert.That(actualMessage, Is.Not.Null);
 				if (expectedMessage.Date != null)
-					Assert.IsTrue(MessageTimestamp.EqualStrict(expectedMessage.Date.Value, actualMessage.Time),
+					Assert.That(MessageTimestamp.EqualStrict(expectedMessage.Date.Value, actualMessage.Time), Is.True,
 						string.Format("Expected message timestamp: {0}, actual: {1}", expectedMessage.Date.Value, actualMessage.Time));
 				else if (expectedMessage.DateVerifier != null)
-					Assert.IsTrue(expectedMessage.DateVerifier(actualMessage.Time));
+					Assert.That(expectedMessage.DateVerifier(actualMessage.Time), Is.True);
 				if (expectedMessage.Thread != null)
-					Assert.AreEqual(expectedMessage.Thread, actualMessage.Thread.ID);
+					Assert.That(expectedMessage.Thread, Is.EqualTo(actualMessage.Thread.ID));
 				if (expectedMessage.ContentType != null)
-					Assert.AreEqual(expectedMessage.ContentType.Value, actualMessage.Flags & MessageFlag.ContentTypeMask);
+					Assert.That(expectedMessage.ContentType.Value, Is.EqualTo(actualMessage.Flags & MessageFlag.ContentTypeMask));
 				if (expectedMessage.Text != null)
 					if (expectedMessage.TextNeedsNormalization)
-						Assert.AreEqual(StringUtils.NormalizeLinebreakes(expectedMessage.Text), StringUtils.NormalizeLinebreakes(actualMessage.Text.Value));
+						Assert.That(StringUtils.NormalizeLinebreakes(expectedMessage.Text), Is.EqualTo(StringUtils.NormalizeLinebreakes(actualMessage.Text.Value)));
 					else
-						Assert.AreEqual(expectedMessage.Text, actualMessage.Text.Value);
+						Assert.That(expectedMessage.Text, Is.EqualTo(actualMessage.Text.Value));
 				else if (expectedMessage.TextVerifier != null)
-					Assert.IsTrue(expectedMessage.TextVerifier(actualMessage.Text.Value));
+					Assert.That(expectedMessage.TextVerifier(actualMessage.Text.Value), Is.True);
 			}
 		}
 
@@ -139,7 +139,7 @@ namespace LogJoint.Tests
 					globalSettingsAccessor, regexFactory, fileSystem));
 			formatsManager.ReloadFactories();
 			var factory = reg.Find(companyName, formatName);
-			Assert.IsNotNull(factory);
+			Assert.That(factory, Is.Not.Null);
 			return factory as IMediaBasedReaderFactory;
 		}
 
@@ -284,8 +284,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			{
 				await reader.UpdateAvailableBounds(false);
 				long? prevMessagePos = await PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
-				Assert.IsTrue(prevMessagePos.HasValue);
-				Assert.AreEqual(0, prevMessagePos.Value);
+				Assert.That(prevMessagePos.HasValue, Is.True);
+				Assert.That(prevMessagePos.Value, Is.EqualTo(0));
 			}
 		}
 
@@ -624,7 +624,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance));
 			formatsManager.ReloadFactories();
 			var factory = reg.Items.FirstOrDefault();
-			Assert.IsNotNull(factory);
+			Assert.That(factory, Is.Not.Null);
 			return factory as IMediaBasedReaderFactory;
 		}
 

@@ -62,7 +62,7 @@ namespace LogJoint.Tests
 
 			public object ProcessRawData(object rawData, object state, CancellationToken cancellationToken)
 			{
-				Assert.IsNotNull(rawData);
+				Assert.That(rawData, Is.Not.Null);
 				DoFakeJob(dataProcessingTime);
 				return ItemIdxToData((int)rawData);
 			}
@@ -88,9 +88,9 @@ namespace LogJoint.Tests
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
 				if (i == callback.ItemsCount)
-					Assert.IsNull(obj);
+					Assert.That(obj, Is.Null);
 				else
-					Assert.AreEqual(FakeCallback.ItemIdxToData(i), (int)obj);
+					Assert.That(FakeCallback.ItemIdxToData(i), Is.EqualTo((int)obj));
 				if (obj == null)
 					break;
 			}
@@ -104,7 +104,7 @@ namespace LogJoint.Tests
 			for (int i = 0; i < callback.ItemsCount; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
-				Assert.AreEqual(FakeCallback.ItemIdxToData(i), (int)obj);
+				Assert.That(FakeCallback.ItemIdxToData(i), Is.EqualTo((int)obj));
 				FakeCallback.DoFakeJob(TimeSpan.FromMilliseconds(8));
 			}
 		}
@@ -117,7 +117,7 @@ namespace LogJoint.Tests
 			for (int i = 0; i < callback.ItemsCount; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
-				Assert.AreEqual(FakeCallback.ItemIdxToData(i), (int)obj);
+				Assert.That(FakeCallback.ItemIdxToData(i), Is.EqualTo((int)obj));
 				FakeCallback.DoFakeJob(TimeSpan.FromTicks(8));
 			}
 		}
@@ -130,7 +130,7 @@ namespace LogJoint.Tests
 			for (int i = 0; i < callback.ItemsCount; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
-				Assert.AreEqual(FakeCallback.ItemIdxToData(i), (int)obj);
+				Assert.That(FakeCallback.ItemIdxToData(i), Is.EqualTo((int)obj));
 				FakeCallback.DoFakeJob(TimeSpan.FromMilliseconds(20));
 			}
 		}
@@ -143,7 +143,7 @@ namespace LogJoint.Tests
 			for (int i = 0; i < callback.ItemsCount/2; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
-				Assert.AreEqual(FakeCallback.ItemIdxToData(i), (int)obj);
+				Assert.That(FakeCallback.ItemIdxToData(i), Is.EqualTo((int)obj));
 				FakeCallback.DoFakeJob(TimeSpan.FromMilliseconds(20));
 			}
 		}

@@ -15,12 +15,12 @@ namespace LogJoint.Tests
 			try
 			{
 				var p = TagsPredicate.Parse(str);
-				Assert.AreEqual(parenthesizedExpr, p.ToString('p'));
-				Assert.AreEqual(parentheseslessExpr, p.ToString());
+				Assert.That(parenthesizedExpr, Is.EqualTo(p.ToString('p')));
+				Assert.That(parentheseslessExpr, Is.EqualTo(p.ToString()));
 			}
 			catch (TagsPredicate.SyntaxError e)
 			{
-				Assert.AreEqual(error, $"{e.Message} at {e.Position}");
+				Assert.That(error, Is.EqualTo($"{e.Message} at {e.Position}"));
 			}
 		}
 
@@ -28,34 +28,34 @@ namespace LogJoint.Tests
 		{
 			var p = TagsPredicate.Parse(expr);
 			var isMatch = p.IsMatch(new HashSet<string>(tags));
-			Assert.AreEqual(expectMatch, isMatch, $"{expr} matches [${string.Join(" ", tags)}]?, expected ${expectMatch}");
+			Assert.That(expectMatch, Is.EqualTo(isMatch), $"{expr} matches [${string.Join(" ", tags)}]?, expected ${expectMatch}");
 		}
 
 		static void TestUsedTags(string expr, params string[] expectedTags)
 		{
 			var p = TagsPredicate.Parse(expr);
 			var actual = p.UsedTags.Select(tag => tag.Item1).ToHashSet();
-			Assert.AreEqual(true, actual.SetEquals(expectedTags), $"{expr} must have used tags ${string.Join(",", expectedTags)}");
+			Assert.That(true, Is.EqualTo(actual.SetEquals(expectedTags)), $"{expr} must have used tags ${string.Join(",", expectedTags)}");
 		}
 
 		static void TestUnuseTag(string expr, string tag, string expectedParenthesizedResultExpr)
 		{
 			var p = TagsPredicate.Parse(expr);
 			p = p.Remove(tag);
-			Assert.AreEqual(expectedParenthesizedResultExpr, p.ToString('p'), $"'{expr}' - '{tag}' must be '{expectedParenthesizedResultExpr}'");
+			Assert.That(expectedParenthesizedResultExpr, Is.EqualTo(p.ToString('p')), $"'{expr}' - '{tag}' must be '{expectedParenthesizedResultExpr}'");
 		}
 
 		static void TestAddTag(string expr, string tag, string expectedParenthesizedResultExpr)
 		{
 			var p = TagsPredicate.Parse(expr);
 			p = p.Add(tag);
-			Assert.AreEqual(expectedParenthesizedResultExpr, p.ToString('p'), $"'{expr}' + '{tag}' must be '{expectedParenthesizedResultExpr}'");
+			Assert.That(expectedParenthesizedResultExpr, Is.EqualTo(p.ToString('p')), $"'{expr}' + '{tag}' must be '{expectedParenthesizedResultExpr}'");
 		}
 
 		static void TestCombine(string expectedResultExpr, params string[] inputExprs)
 		{
 			var p = TagsPredicate.Combine(inputExprs.Select(TagsPredicate.Parse));
-			Assert.AreEqual(expectedResultExpr, p.ToString(), $"combination of '{string.Join(" ", inputExprs)}' must be '{expectedResultExpr}'");
+			Assert.That(expectedResultExpr, Is.EqualTo(p.ToString()), $"combination of '{string.Join(" ", inputExprs)}' must be '{expectedResultExpr}'");
 		}
 
 		[Test]

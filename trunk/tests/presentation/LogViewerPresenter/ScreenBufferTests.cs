@@ -62,15 +62,15 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 		{
 			var actual = string.Join("\r\n",
 				screenBuffer.Messages.Select(m => (verifyRaw ? m.Message.RawTextAsMultilineText : m.Message.TextAsMultilineText).GetNthTextLine(m.TextLineIndex)));
-			Assert.AreEqual(StringUtils.NormalizeLinebreakes(expected.Replace("\t", "")), actual);
+			Assert.That(actual, Is.EqualTo(StringUtils.NormalizeLinebreakes(expected.Replace("\t", ""))));
 			if (expectedTopLineScroll != null)
-				Assert.AreEqual(expectedTopLineScroll.Value, screenBuffer.TopLineScrollValue, 1e-3);
+				Assert.That(screenBuffer.TopLineScrollValue, Is.EqualTo(expectedTopLineScroll.Value).Within(1e-3));
 		}
 
 		static void VerifyIsEmpty(IScreenBuffer screenBuffer)
 		{
-			Assert.AreEqual(0, screenBuffer.Sources.Count);
-			Assert.AreEqual(0, screenBuffer.Messages.Count);
+			Assert.That(screenBuffer.Sources.Count, Is.EqualTo(0));
+			Assert.That(screenBuffer.Messages.Count, Is.EqualTo(0));
 		}
 
 		[TestFixture]
@@ -85,14 +85,14 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.SetSources(new[] { src }, cancel);
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
-				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 0), BookmarkLookupMode.ExactMatch, cancel);
-				Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(1.0).Within(1e-3));
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3], 0), BookmarkLookupMode.ExactMatch, cancel);
 				await screenBuffer.ShiftBy(0.5, cancel);
-				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.5).Within(1e-3));
 			}
 
 			[Test]
@@ -104,14 +104,14 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
-				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
 
 				await screenBuffer.SetTopLineScrollValue(0.5, cancel);
-				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.5).Within(1e-3));
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 0), BookmarkLookupMode.ExactMatch, cancel);
 				await screenBuffer.SetTopLineScrollValue(0, cancel);
-				Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(1).Within(1e-3));
 			}
 
 			[Test]
@@ -123,13 +123,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
-				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
 
 				await screenBuffer.SetTopLineScrollValue(0.5, cancel);
-				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.5).Within(1e-3));
 
 				await screenBuffer.MoveToStreamsEnd(cancel);
-				Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(1).Within(1e-3));
 			}
 
 			[Test]
@@ -141,19 +141,19 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
-				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
 
 				await screenBuffer.ShiftBy(0.5, cancel);
-				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.5).Within(1e-3));
 
 				await screenBuffer.ShiftBy(-0.3, cancel);
-				Assert.AreEqual(0.2, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.2).Within(1e-3));
 
 				await screenBuffer.ShiftBy(0.5, cancel);
-				Assert.AreEqual(0.7, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.7).Within(1e-3));
 
 				await screenBuffer.MoveToStreamsEnd(cancel);
-				Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(1).Within(1e-3));
 			}
 
 			[Test]
@@ -165,13 +165,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.SetSources(new[] { src }, cancel);
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
-				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 5), BookmarkLookupMode.ExactMatch, cancel);
-				Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(1.0).Within(1e-3));
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3], 0), BookmarkLookupMode.ExactMatch, cancel);
-				Assert.AreEqual(0.315, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.315).Within(1e-3));
 			}
 
 			[Test]
@@ -184,13 +184,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
 				await screenBuffer.SetTopLineScrollValue(0.5, cancel);
-				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.5).Within(1e-3));
 
 				await screenBuffer.SetTopLineScrollValue(0.2, cancel);
-				Assert.AreEqual(0.2, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.2).Within(1e-3));
 
 				await screenBuffer.SetTopLineScrollValue(0.7, cancel);
-				Assert.AreEqual(0.7, screenBuffer.BufferPosition, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.7).Within(1e-3));
 			}
 
 			static async Task TestPositionSetter(int messagesCount, int linesPerMessage, float viewSize)
@@ -204,22 +204,22 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					await screenBuffer.SetSources(new[] { src }, cancel);
 
 					await screenBuffer.MoveToPosition(0, cancel);
-					Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+					Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
 
 					await screenBuffer.MoveToPosition(0.5, cancel);
-					Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
+					Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.5).Within(1e-3));
 
 					await screenBuffer.MoveToPosition(0.51, cancel);
-					Assert.AreEqual(0.51, screenBuffer.BufferPosition, 1e-3);
+					Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.51).Within(1e-3));
 
 					await screenBuffer.MoveToPosition(0.2, cancel);
-					Assert.AreEqual(0.2, screenBuffer.BufferPosition, 1e-3);
+					Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.2).Within(1e-3));
 
 					await screenBuffer.MoveToPosition(0.78, cancel);
-					Assert.AreEqual(0.78, screenBuffer.BufferPosition, 1e-3);
+					Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0.78).Within(1e-3));
 
 					await screenBuffer.MoveToPosition(1.0, cancel);
-					Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
+					Assert.That(screenBuffer.BufferPosition, Is.EqualTo(1.0).Within(1e-3));
 				}
 				await testCore(false);
 				await testCore(true);
@@ -264,12 +264,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.SetSources(new[] { src }, cancel);
 
 				await screenBuffer.MoveToPosition(0, cancel);
-				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
-				Assert.AreEqual(0, screenBuffer.TopLineScrollValue, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
+				Assert.That(screenBuffer.TopLineScrollValue, Is.EqualTo(0).Within(1e-3));
 
 				await screenBuffer.MoveToPosition(0.3, cancel);
-				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
-				Assert.AreEqual(0, screenBuffer.TopLineScrollValue, 1e-3);
+				Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
+				Assert.That(screenBuffer.TopLineScrollValue, Is.EqualTo(0).Within(1e-3));
 			}
 		}
 
@@ -294,10 +294,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public void SourceIsAddedButNothingIsLoaded()
 				{
-					Assert.AreSame(src, screenBuffer.Sources.Single().Source);
-					Assert.AreEqual(0, screenBuffer.Sources.Single().Begin);
-					Assert.AreEqual(0, screenBuffer.Sources.Single().End);
-					Assert.AreEqual(0, screenBuffer.Messages.Count);
+					Assert.That(src, Is.SameAs(screenBuffer.Sources.Single().Source));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.Single().Begin));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.Single().End));
+					Assert.That(0, Is.EqualTo(screenBuffer.Messages.Count));
 				}
 
 				[Test]
@@ -373,13 +373,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public void SourceIsAddedButNothingIsLoaded()
 				{
-					Assert.AreSame(src1, screenBuffer.Sources.ElementAt(0).Source);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(0).Begin);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(0).End);
-					Assert.AreSame(src2, screenBuffer.Sources.ElementAt(1).Source);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(1).Begin);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(1).End);
-					Assert.AreEqual(0, screenBuffer.Messages.Count);
+					Assert.That(src1, Is.SameAs(screenBuffer.Sources.ElementAt(0).Source));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(0).Begin));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(0).End));
+					Assert.That(src2, Is.SameAs(screenBuffer.Sources.ElementAt(1).Source));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(1).Begin));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(1).End));
+					Assert.That(0, Is.EqualTo(screenBuffer.Messages.Count));
 				}
 
 				[Test]
@@ -442,13 +442,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public void SourceIsAddedButNothingIsLoaded()
 				{
-					Assert.AreSame(src1, screenBuffer.Sources.ElementAt(0).Source);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(0).Begin);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(0).End);
-					Assert.AreSame(src2, screenBuffer.Sources.ElementAt(1).Source);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(1).Begin);
-					Assert.AreEqual(0, screenBuffer.Sources.ElementAt(1).End);
-					Assert.AreEqual(0, screenBuffer.Messages.Count);
+					Assert.That(src1, Is.SameAs(screenBuffer.Sources.ElementAt(0).Source));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(0).Begin));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(0).End));
+					Assert.That(src2, Is.SameAs(screenBuffer.Sources.ElementAt(1).Source));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(1).Begin));
+					Assert.That(0, Is.EqualTo(screenBuffer.Sources.ElementAt(1).End));
+					Assert.That(0, Is.EqualTo(screenBuffer.Messages.Count));
 				}
 
 				[Test]
@@ -799,10 +799,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
 					await screenBuffer.MoveToBookmark(
 						bmks.CreateBookmark(src.messages.Items[5], 0), BookmarkLookupMode.ExactMatch, cancel);
-					Assert.AreEqual(0, screenBuffer.Messages.Count);
+					Assert.That(0, Is.EqualTo(screenBuffer.Messages.Count));
 
 					await screenBuffer.MoveToStreamsEnd(cancel);
-					Assert.AreEqual(0, screenBuffer.Messages.Count);
+					Assert.That(0, Is.EqualTo(screenBuffer.Messages.Count));
 				}
 			}
 		}
@@ -827,7 +827,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadExactMessageInMiddleOfLog()
 				{
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[2], 2), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[2], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"2-ln_2
 						3-ln_0
@@ -839,7 +839,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadExactMessageInMiddleOfLog_WithScrollingToTopMiddleOfScreen()
 				{
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[2], 2), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[2], 2), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"2-ln_0
 						2-ln_1
@@ -851,7 +851,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadExactMessageAtEndOfLog()
 				{
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[8], 2), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[8], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"8-ln_1
 						8-ln_2
@@ -863,7 +863,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadExactMessageAtEndOfLog_WithScrollingToTopMiddleOfScreen()
 				{
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 1), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 1), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"8-ln_1
 						8-ln_2
@@ -879,7 +879,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					screenBuffer = new ScreenBuffer(changeNotification, bmks, 8.2);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"0-ln_0
 						0-ln_1
@@ -896,7 +896,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 					screenBuffer = new ScreenBuffer(changeNotification, bmks, 8.2);
 					await screenBuffer.SetSources(new[] { src }, cancel);
 
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"0-ln_0
 						0-ln_1
@@ -911,8 +911,8 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					await screenBuffer.MoveToStreamsBegin(cancel);
 
-					Assert.IsFalse(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
-						src.messages.Items[1].Time, src.messages.Items[1].GetLogSource().ConnectionId, 1000000, 2), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+						src.messages.Items[1].Time, src.messages.Items[1].GetLogSource().ConnectionId, 1000000, 2), BookmarkLookupMode.ExactMatch, cancel), Is.False);
 
 					// must stay in old state
 					VerifyMessages(screenBuffer,
@@ -928,8 +928,8 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					await screenBuffer.MoveToStreamsBegin(cancel);
 
-					Assert.IsFalse(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
-						src.messages.Items[1], 4), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+						src.messages.Items[1], 4), BookmarkLookupMode.ExactMatch, cancel), Is.False);
 
 					// must stay in old state
 					VerifyMessages(screenBuffer,
@@ -944,9 +944,9 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task CanLoadNereastMessageInMiddleOfLog()
 				{
 					var nearestMsg = src.messages.Items[2];
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
 						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(0.5)), nearestMsg.GetConnectionId(), nearestMsg.Position + 5, 0
-					), BookmarkLookupMode.FindNearestMessage, cancel));
+					), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"3-ln_0
 						3-ln_1
@@ -959,9 +959,9 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task CanLoadNereastMessagAtBeginningOfLog()
 				{
 					var nearestMsg = src.messages.Items[0];
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
 						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(-100)), nearestMsg.GetConnectionId(), 0, 0
-					), BookmarkLookupMode.FindNearestMessage, cancel));
+					), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"0-ln_0
 						0-ln_1
@@ -974,9 +974,9 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task CanLoadNereastMessagAtEndOfLog()
 				{
 					var nearestMsg = src.messages.Items[src.messages.Items.Count - 1];
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
 						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(100)), nearestMsg.GetConnectionId(), nearestMsg.Position + 100, 0
-					), BookmarkLookupMode.FindNearestMessage, cancel));
+					), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"8-ln_1
 						8-ln_2
@@ -1005,7 +1005,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadExactMessageInMiddleOfLog1()
 				{
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src1.messages.Items[2], 2), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src1.messages.Items[2], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"a2-ln_2
 						b2-ln_0
@@ -1017,7 +1017,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadExactMessageInMiddleOfLog2()
 				{
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src2.messages.Items[2], 1), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src2.messages.Items[2], 1), BookmarkLookupMode.ExactMatch, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"b2-ln_1
 						a3-ln_0
@@ -1029,7 +1029,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task CanLoadExactMessageInMiddleOfLog_WithScrollingToTopMiddleOfScreen()
 				{
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src2.messages.Items[2], 1), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel));
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src2.messages.Items[2], 1), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"a2-ln_2
 						b2-ln_0
@@ -1042,9 +1042,9 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task CanLoadNereastMessageInMiddleOfLog()
 				{
 					var nearestMsg = src2.messages.Items[2];
-					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+					Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
 						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(0.5)), nearestMsg.GetConnectionId(), nearestMsg.Position + 5, 0
-					), BookmarkLookupMode.FindNearestMessage, cancel));
+					), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
 					VerifyMessages(screenBuffer,
 						@"b3-ln_0
 						b3-ln_1
@@ -1108,7 +1108,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftDownHasNoEffect()
 				{
-					Assert.AreEqual(0d, await screenBuffer.ShiftBy(7, cancel), 1e-3);
+					Assert.That(await screenBuffer.ShiftBy(7, cancel), Is.EqualTo(0d).Within(1e-3));
 					VerifyMessages(screenBuffer,
 						@"13-ln_0
 						14-ln_0
@@ -1123,7 +1123,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				public async Task ShiftUpHasNoEffect()
 				{
 					await screenBuffer.MoveToStreamsBegin(cancel);
-					Assert.AreEqual(0d, await screenBuffer.ShiftBy(-2, cancel), 1e-3);
+					Assert.That(await screenBuffer.ShiftBy(-2, cancel), Is.EqualTo(0d).Within(1e-3));
 					VerifyMessages(screenBuffer,
 						@"0-ln_0
 						1-ln_0
@@ -1137,7 +1137,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftUp()
 				{
-					Assert.AreEqual(-4.4, await screenBuffer.ShiftBy(-4.4, cancel), 1e-3);
+					Assert.That(await screenBuffer.ShiftBy(-4.4, cancel), Is.EqualTo(-4.4).Within(1e-3));
 					VerifyMessages(screenBuffer,
 						@"8-ln_0
 						9-ln_0
@@ -1152,7 +1152,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftUpLessThenOneLine()
 				{
-					Assert.AreEqual(-0.4, await screenBuffer.ShiftBy(-0.4, cancel), 1e-3);
+					Assert.That(await screenBuffer.ShiftBy(-0.4, cancel), Is.EqualTo(-0.4).Within(1e-3));
 					VerifyMessages(screenBuffer,
 						@"12-ln_0
 						13-ln_0
@@ -1192,7 +1192,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftUpByLessThanView()
 				{
-					Assert.AreEqual(-4.1, await screenBuffer.ShiftBy(-4.1, cancel), 1e-3);
+					Assert.That(await screenBuffer.ShiftBy(-4.1, cancel), Is.EqualTo(-4.1).Within(1e-3));
 					VerifyMessages(screenBuffer,
 						@"3-ln_9
 						4-ln_0
@@ -1206,7 +1206,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftUpByMoreThanView()
 				{
-					Assert.AreEqual(-10.1, await screenBuffer.ShiftBy(-10.1, cancel), 1e-3);
+					Assert.That(await screenBuffer.ShiftBy(-10.1, cancel), Is.EqualTo(-10.1).Within(1e-3));
 					VerifyMessages(screenBuffer,
 						@"3-ln_3
 						3-ln_4

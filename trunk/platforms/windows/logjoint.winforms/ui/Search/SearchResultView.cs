@@ -301,6 +301,7 @@ namespace LogJoint.UI
 			double? progress;
 			int intrinsicWidth;
 
+			[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 			public double? Progress
 			{
 				get
@@ -314,6 +315,7 @@ namespace LogJoint.UI
 				}
 			}
 
+			[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 			public new string Text
 			{
 				get

@@ -23,8 +23,8 @@ namespace LogJoint.Postprocessing.TimeSeries
 				Environment.SetEnvironmentVariable("TSTEST", tempTimeSeriesConfig);
 				tsTypes.CustomConfigEnvVar = "TSTEST";
 
-				Assert.IsTrue(string.IsNullOrEmpty(tsTypes.CustomConfigLoadingError));
-				Assert.AreEqual(1, tsTypes.GetMetadataTypes().Count(t => t.Name == "FooBar"));
+				Assert.That(string.IsNullOrEmpty(tsTypes.CustomConfigLoadingError), Is.True);
+				Assert.That(1, Is.EqualTo(tsTypes.GetMetadataTypes().Count(t => t.Name == "FooBar")));
 			}
 			finally
 			{

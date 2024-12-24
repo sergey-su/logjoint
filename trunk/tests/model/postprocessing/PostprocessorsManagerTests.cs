@@ -97,12 +97,12 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			mockedSyncContext.Deplete();
 
 			var exposedOutput = manager.LogSourcePostprocessors.Single();
-			Assert.AreSame(null, exposedOutput.OutputData);
-			Assert.AreEqual(LogSourcePostprocessorState.Status.NeverRun, exposedOutput.OutputStatus);
-			Assert.AreSame(null, exposedOutput.LastRunSummary);
-			Assert.AreSame(new double?(), exposedOutput.Progress);
-			Assert.AreEqual(logSource1, exposedOutput.LogSource);
-			Assert.AreEqual(logSourcePP1, exposedOutput.Postprocessor);
+			Assert.That(exposedOutput.OutputData, Is.Null);
+			Assert.That(LogSourcePostprocessorState.Status.NeverRun, Is.EqualTo(exposedOutput.OutputStatus));
+			Assert.That(exposedOutput.LastRunSummary, Is.Null);
+			Assert.That(new double?(), Is.EqualTo(exposedOutput.Progress));
+			Assert.That(logSource1, Is.EqualTo(exposedOutput.LogSource));
+			Assert.That(logSourcePP1, Is.EqualTo(exposedOutput.Postprocessor));
 
 
 			var pp1runResult = new TaskCompletionSource<IPostprocessorRunSummary>();
@@ -111,29 +111,29 @@ namespace LogJoint.Tests.Postprocessing.PostprocessorsManager
 			Task runTask = manager.RunPostprocessors(
 				new[] { exposedOutput }, null);
 			mockedSyncContext.Deplete();
-			Assert.IsFalse(runTask.IsCompleted);
+			Assert.That(runTask.IsCompleted, Is.False);
 
 			exposedOutput = manager.LogSourcePostprocessors.Single();
-			Assert.AreSame(null, exposedOutput.OutputData);
-			Assert.AreEqual(LogSourcePostprocessorState.Status.InProgress, exposedOutput.OutputStatus);
-			Assert.AreSame(null, exposedOutput.LastRunSummary);
-			Assert.AreSame(new double?(), exposedOutput.Progress);
-			Assert.AreEqual(logSource1, exposedOutput.LogSource);
-			Assert.AreEqual(logSourcePP1, exposedOutput.Postprocessor);
+			Assert.That(null, Is.EqualTo(exposedOutput.OutputData));
+			Assert.That(LogSourcePostprocessorState.Status.InProgress, Is.EqualTo(exposedOutput.OutputStatus));
+			Assert.That(null, Is.EqualTo(exposedOutput.LastRunSummary));
+			Assert.That(new double?(), Is.EqualTo(exposedOutput.Progress));
+			Assert.That(logSource1, Is.EqualTo(exposedOutput.LogSource));
+			Assert.That(logSourcePP1, Is.EqualTo(exposedOutput.Postprocessor));
 
 
 			pp1outputXmlSection.Reader.Returns(Substitute.For<XmlReader>());
 			pp1runResult.SetResult(pp1RunSummary);
 			mockedSyncContext.Deplete();
-			Assert.IsTrue(runTask.IsCompleted);
+			Assert.That(runTask.IsCompleted, Is.True);
 
 			exposedOutput = manager.LogSourcePostprocessors.Single();
-			Assert.AreEqual(LogSourcePostprocessorState.Status.Finished, exposedOutput.OutputStatus);
-			Assert.AreSame(pp1PostprocessorOutput, exposedOutput.OutputData);
-			Assert.AreSame(pp1RunSummary, exposedOutput.LastRunSummary);
-			Assert.AreSame(new double?(), exposedOutput.Progress);
-			Assert.AreEqual(logSource1, exposedOutput.LogSource);
-			Assert.AreEqual(logSourcePP1, exposedOutput.Postprocessor);
+			Assert.That(LogSourcePostprocessorState.Status.Finished, Is.EqualTo(exposedOutput.OutputStatus));
+			Assert.That(pp1PostprocessorOutput, Is.EqualTo(exposedOutput.OutputData));
+			Assert.That(pp1RunSummary, Is.EqualTo(exposedOutput.LastRunSummary));
+			Assert.That(new double?(), Is.EqualTo(exposedOutput.Progress));
+			Assert.That(logSource1, Is.EqualTo(exposedOutput.LogSource));
+			Assert.That(logSourcePP1, Is.EqualTo(exposedOutput.Postprocessor));
 		}
 
 		[Test]

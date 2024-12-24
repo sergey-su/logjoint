@@ -37,9 +37,9 @@ namespace LogJoint.Tests
 			byte[] buf = new byte[bytesToRead];
 			long savePos = stm.Position;
 			int read = stm.Read(buf, 0, bytesToRead);
-			Assert.AreEqual(expectation.Length, read);
-			Assert.AreEqual(expectation, Encoding.ASCII.GetString(buf, 0, read));
-			Assert.AreEqual(savePos + read, stm.Position);
+			Assert.That(expectation.Length, Is.EqualTo(read));
+			Assert.That(expectation, Is.EqualTo(Encoding.ASCII.GetString(buf, 0, read)));
+			Assert.That(savePos + read, Is.EqualTo(stm.Position));
 		}
 
 		[Test]
@@ -147,7 +147,7 @@ namespace LogJoint.Tests
 			);
 			s.Position = 8;
 			CheckRead(s, 0, "");
-			Assert.AreEqual(s.Position, (long)8);
+			Assert.That(s.Position, Is.EqualTo((long)8));
 		}
 
 		[Test]

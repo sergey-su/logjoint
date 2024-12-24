@@ -111,7 +111,7 @@ describe('MeetingV2', () => {
 
 		static void VerifyRanges(IEnumerable<(int, int, Color)> actual, params (int, int, Color)[] expected)
 		{
-			CollectionAssert.AreEqual(expected.OrderBy(x => x.Item1), actual.OrderBy(x => x.Item1));
+			Assert.That(expected.OrderBy(x => x.Item1), Is.EqualTo(actual.OrderBy(x => x.Item1)));
 		}
 
 		[TestFixture]
@@ -159,7 +159,7 @@ describe('MeetingV2', () => {
 					MessageTextGetters.Get(false)
 				));
 				CreateHighlightingManager();
-				Assert.IsNull(highlightingManager.SelectionHandler);
+				Assert.That(highlightingManager.SelectionHandler, Is.Null);
 			}
 
 			[Test]
@@ -209,7 +209,7 @@ describe('MeetingV2', () => {
 			{
 				searchFilters.Insert(0, new Filter(FilterAction.Include, "test", true, new Search.Options() { Template = "meeting" }, Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
 				var textInfo = highlightingManager.GetSearchResultMessageText(msgWithMultilineText, MessageTextGetters.SummaryTextGetter, searchFilters);
-				Assert.AreEqual(StringUtils.NormalizeLinebreakes(
+				Assert.That(StringUtils.NormalizeLinebreakes(
 @"import { MeetingSession } from '../../../../client/model/meeting/impl/meeting/meetingSession';
 import { Meeting, MeetingParticipant, LocalMeetingParticipant } from '../../../../client/model/meeting';
 import { MeetingStartupOptions, Meeting as MeetingBase, MediaDevices, ParticipantTracks, ScreenTrack } from '../../../../client/model/meeting';
@@ -221,7 +221,7 @@ import { MeetingLocalMedia } from '../../../../client/model/meeting/impl/media/m
 import { MeetingRemoteMedia } from '../../../../client/model/meeting/impl/media/meetingRemoteMedia';
 import { RtcTokenProvider } from '../../../../client/model/meeting/impl/protocol/impl/rtcTokenProviderImpl';
 describe('MeetingV2', () => {
-    let meeting: Meeting;"), StringUtils.NormalizeLinebreakes(textInfo.DisplayText.ToString()));
+    let meeting: Meeting;"), Is.EqualTo(StringUtils.NormalizeLinebreakes(textInfo.DisplayText.ToString())));
 			}
 
 			[Test]
@@ -232,11 +232,12 @@ describe('MeetingV2', () => {
 					Regexp = true
 				}, Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
 				var textInfo = highlightingManager.GetSearchResultMessageText(msgWithMultilineText, MessageTextGetters.SummaryTextGetter, searchFilters);
-				Assert.AreEqual(StringUtils.NormalizeLinebreakes(
+				Assert.That(StringUtils.NormalizeLinebreakes(
 @"import { MeetingImpl } from '../../../../client/model/meeting/impl/meeting/impl/meetingImpl';
 import { RtcManager, RtcManagerConfig } from '../../../../client/model/rtcManager';
 import { RtcTokenProvider } from '../../../../client/model/meeting/impl/protocol/impl/rtcTokenProviderImpl';
-import { User, UserStore, CurrentUser, UserId } from '../../../../client/model/users/store';"), StringUtils.NormalizeLinebreakes(textInfo.DisplayText.ToString()));
+import { User, UserStore, CurrentUser, UserId } from '../../../../client/model/users/store';"),
+					Is.EqualTo(StringUtils.NormalizeLinebreakes(textInfo.DisplayText.ToString())));
 			}
 
 		}

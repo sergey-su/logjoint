@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -33,7 +34,10 @@ namespace LogJoint.UI.QuickSearchTextBox
 			Size = textBox.Size;
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public Color DefaultBorderColor { get; set; }
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public Color FocusedBorderColor { get; set; }
 
 		public QuickSearchTextBox InnerTextBox

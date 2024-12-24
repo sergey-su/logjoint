@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.ComponentModel;
+using System.Drawing;
 using LogJoint.UI;
 
 namespace System.Windows.Forms
@@ -15,12 +16,14 @@ namespace System.Windows.Forms
 			CtrCommon();
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool ResizingEnabled
 		{
 			get { return resizeRectangleEnabled; }
 			set { resizeRectangleEnabled = value; }
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public static int ResizeRectangleWidth
 		{
 			get { return resizeRectangleWidth; }

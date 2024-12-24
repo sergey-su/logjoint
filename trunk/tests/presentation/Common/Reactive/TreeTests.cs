@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.Reactive.Tests
 		{
 			var edits = TreeEdit.GetTreeEdits(new TestNode(tree1), new TestNode(tree2));
 			var actual = string.Join("; ", edits);
-			Assert.AreEqual(expected, actual);
+			Assert.That(expected, Is.EqualTo(actual));
 		}
 
 		[Test]

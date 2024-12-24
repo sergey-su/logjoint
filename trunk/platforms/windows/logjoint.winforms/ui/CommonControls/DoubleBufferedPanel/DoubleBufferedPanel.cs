@@ -42,8 +42,10 @@ namespace LogJoint.UI
 		[Category("Mouse")]
 		public event EventHandler<HandledMouseEventArgs> SetCursor;
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool DisplayPaintTime { get; set; }
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool FocuslessMouseWheel
 		{
 			get { return focuslessMouseWheelMessagingFilter != null; }

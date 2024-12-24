@@ -59,6 +59,7 @@ namespace LogJoint.UI
 			return new ViewItem(list, thread, presenter.Theme);
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public IViewItem TopItem 
 		{
 			get { return list.TopItem != null ? Get(list.TopItem) : null; }

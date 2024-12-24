@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace System.Windows.Forms
 {
@@ -16,6 +17,7 @@ namespace System.Windows.Forms
 			base.DrawMode = TreeViewDrawMode.OwnerDrawText;
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public IEnumerable<TreeNode> SelectedNodes 
 		{ 
 			get { return selectedNodes; }

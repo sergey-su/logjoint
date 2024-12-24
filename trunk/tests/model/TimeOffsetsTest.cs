@@ -23,23 +23,23 @@ namespace LogJoint.Tests
 		{
 			var timeOffsets = init.ToTimeOffsets();
 			var actualOutputDate = timeOffsets.Get(inputDate);
-			Assert.AreEqual(expectedOutputDate, actualOutputDate);
+			Assert.That(expectedOutputDate, Is.EqualTo(actualOutputDate));
 
 			var inverseTimeOffsets = timeOffsets.Inverse();
 			var actualInvserseOutputDate = inverseTimeOffsets.Get(expectedOutputDate);
-			Assert.AreEqual(inputDate, actualInvserseOutputDate);
+			Assert.That(inputDate, Is.EqualTo(actualInvserseOutputDate));
 		}
 
 		void TestEquality()
 		{
 			var timeOffsets = init.ToTimeOffsets();
-			Assert.IsTrue(timeOffsets.Equals(timeOffsets));
-			Assert.AreEqual(timeOffsets.GetHashCode(), timeOffsets.GetHashCode());
+			Assert.That(timeOffsets.Equals(timeOffsets), Is.True);
+			Assert.That(timeOffsets.GetHashCode(), Is.EqualTo(timeOffsets.GetHashCode()));
 
 			var timeOffsets2 = timeOffsets.Inverse().Inverse();
-			Assert.IsTrue(timeOffsets2.Equals(timeOffsets));
-			Assert.IsTrue(timeOffsets.Equals(timeOffsets2));
-			Assert.AreEqual(timeOffsets2.GetHashCode(), timeOffsets.GetHashCode());
+			Assert.That(timeOffsets2.Equals(timeOffsets), Is.True);
+			Assert.That(timeOffsets.Equals(timeOffsets2), Is.True);
+			Assert.That(timeOffsets2.GetHashCode(), Is.EqualTo(timeOffsets.GetHashCode()));
 		}
 
 		void TestStringification()
@@ -47,10 +47,10 @@ namespace LogJoint.Tests
 			var timeOffsets = init.ToTimeOffsets();
 			ITimeOffsets parsed;
 			var str = timeOffsets.ToString();
-			Assert.IsTrue(TimeOffsets.TryParse(str, out parsed));
-			Assert.IsTrue(parsed.Equals(timeOffsets));
-			Assert.IsTrue(timeOffsets.Equals(parsed));
-			Assert.AreEqual(timeOffsets.GetHashCode(), parsed.GetHashCode());
+			Assert.That(TimeOffsets.TryParse(str, out parsed), Is.True);
+			Assert.That(parsed.Equals(timeOffsets), Is.True);
+			Assert.That(timeOffsets.Equals(parsed), Is.True);
+			Assert.That(timeOffsets.GetHashCode(), Is.EqualTo(parsed.GetHashCode()));
 		}
 
 		[Test]
@@ -163,7 +163,7 @@ namespace LogJoint.Tests
 		{
 			init.SetBaseOffset(TimeSpan.FromSeconds(2));
 			var offsets = init.ToTimeOffsets();
-			Assert.AreEqual(DateTime.MaxValue, offsets.Get(DateTime.MaxValue - TimeSpan.FromSeconds(1)));
+			Assert.That(DateTime.MaxValue, Is.EqualTo(offsets.Get(DateTime.MaxValue - TimeSpan.FromSeconds(1))));
 		}
 
 		[Test]
@@ -171,7 +171,7 @@ namespace LogJoint.Tests
 		{
 			init.SetBaseOffset(TimeSpan.FromSeconds(-2));
 			var offsets = init.ToTimeOffsets();
-			Assert.AreEqual(DateTime.MinValue, offsets.Get(DateTime.MinValue + TimeSpan.FromSeconds(1)));
+			Assert.That(DateTime.MinValue, Is.EqualTo(offsets.Get(DateTime.MinValue + TimeSpan.FromSeconds(1))));
 		}
 
 		[Test]
@@ -179,20 +179,20 @@ namespace LogJoint.Tests
 		{
 			var offsets1 = init.ToTimeOffsets();
 			var offsets2 = init.ToTimeOffsets();
-			Assert.AreSame(offsets1, offsets2);
+			Assert.That(offsets1, Is.SameAs(offsets2));
 		}
 
 		[Test]
 		public void EmptyTimeOffsetsIsEmpty()
 		{
-			Assert.IsTrue(TimeOffsets.Empty.IsEmpty);
+			Assert.That(TimeOffsets.Empty.IsEmpty, Is.True);
 		}
 
 		[Test]
 		public void NotEmptyAdditionalOffsetMakesObjectIsNotEmpty()
 		{
 			init.AddOffset(testDT1, TimeSpan.FromMilliseconds(1));
-			Assert.IsFalse(init.ToTimeOffsets().IsEmpty);
+			Assert.That(init.ToTimeOffsets().IsEmpty, Is.False);
 		}
 
 		[Test]
@@ -200,23 +200,23 @@ namespace LogJoint.Tests
 		{
 			init.SetBaseOffset(TimeSpan.Zero);
 			init.AddOffset(testDT1, TimeSpan.Zero);
-			Assert.IsTrue(init.ToTimeOffsets().IsEmpty);
+			Assert.That(init.ToTimeOffsets().IsEmpty, Is.True);
 		}
 
 
 		[Test]
 		public void DefaultBaseOffsetTest()
 		{
-			Assert.AreEqual(TimeSpan.Zero, init.ToTimeOffsets().BaseOffset);
-			Assert.AreEqual(TimeSpan.Zero, init.ToTimeOffsets().Inverse().BaseOffset);
+			Assert.That(TimeSpan.Zero, Is.EqualTo(init.ToTimeOffsets().BaseOffset));
+			Assert.That(TimeSpan.Zero, Is.EqualTo(init.ToTimeOffsets().Inverse().BaseOffset));
 		}
 
 		[Test]
 		public void NonDefaultBaseOffsetTest()
 		{
 			init.SetBaseOffset(TimeSpan.FromMinutes(1.7));
-			Assert.AreEqual(TimeSpan.FromMinutes(1.7), init.ToTimeOffsets().BaseOffset);
-			Assert.AreEqual(-TimeSpan.FromMinutes(1.7), init.ToTimeOffsets().Inverse().BaseOffset);
+			Assert.That(TimeSpan.FromMinutes(1.7), Is.EqualTo(init.ToTimeOffsets().BaseOffset));
+			Assert.That(-TimeSpan.FromMinutes(1.7), Is.EqualTo(init.ToTimeOffsets().Inverse().BaseOffset));
 		}
 
 		[Test]
@@ -238,29 +238,29 @@ namespace LogJoint.Tests
 		[Test]
 		public void EmptyObjectToStringTest()
 		{
-			Assert.AreEqual("00:00:00", init.ToTimeOffsets().ToString());
+			Assert.That("00:00:00", Is.EqualTo(init.ToTimeOffsets().ToString()));
 		}
 
 		[Test]
 		public void TimeSpanCanBeParsedAsTimeOffsetsObject()
 		{
 			ITimeOffsets parsed;
-			Assert.IsTrue(TimeOffsets.TryParse("00:00:00", out parsed));
-			Assert.AreEqual(TimeSpan.Zero, parsed.BaseOffset);
+			Assert.That(TimeOffsets.TryParse("00:00:00", out parsed), Is.True);
+			Assert.That(TimeSpan.Zero, Is.EqualTo(parsed.BaseOffset));
 
-			Assert.IsTrue(TimeOffsets.TryParse("00:00:01", out parsed));
-			Assert.AreEqual(TimeSpan.FromSeconds(1), parsed.BaseOffset);
+			Assert.That(TimeOffsets.TryParse("00:00:01", out parsed), Is.True);
+			Assert.That(TimeSpan.FromSeconds(1), Is.EqualTo(parsed.BaseOffset));
 
-			Assert.IsTrue(TimeOffsets.TryParse("00:00:00.001", out parsed));
-			Assert.AreEqual(TimeSpan.FromMilliseconds(1), parsed.BaseOffset);
+			Assert.That(TimeOffsets.TryParse("00:00:00.001", out parsed), Is.True);
+			Assert.That(TimeSpan.FromMilliseconds(1), Is.EqualTo(parsed.BaseOffset));
 		}
 
 		[Test]
 		public void NullOrEmptyStringCanBeParsedAsTimeOffsetsObject()
 		{
 			ITimeOffsets parsed;
-			Assert.IsFalse(TimeOffsets.TryParse(null, out parsed));
-			Assert.IsFalse(TimeOffsets.TryParse("", out parsed));
+			Assert.That(TimeOffsets.TryParse(null, out parsed), Is.False);
+			Assert.That(TimeOffsets.TryParse("", out parsed), Is.False);
 		}
 	}
 }

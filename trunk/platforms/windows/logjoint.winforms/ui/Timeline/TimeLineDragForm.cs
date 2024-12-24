@@ -21,12 +21,14 @@ namespace LogJoint.UI
 			SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public DateTime Date
 		{
 			get { return date; }
 			set { date = value; Invalidate(); }
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public ViewArea Area
 		{
 			get { return area; }

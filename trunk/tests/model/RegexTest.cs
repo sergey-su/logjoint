@@ -21,18 +21,18 @@ namespace LogJoint.Tests
 			IMatch m = null;
 			string buf = "   34   56";
 			
-			Assert.IsTrue(re.Match(buf, 0, 10, ref m));
-			Assert.AreEqual(0, m.Index);
-			Assert.AreEqual(5, m.Length);
-			Assert.AreEqual(2, m.Groups.Length);
-			Assert.AreEqual(3, m.Groups[1].Index);
-			Assert.AreEqual(2, m.Groups[1].Length);
+			Assert.That(re.Match(buf, 0, 10, ref m), Is.True);
+			Assert.That(0, Is.EqualTo(m.Index));
+			Assert.That(5, Is.EqualTo(m.Length));
+			Assert.That(2, Is.EqualTo(m.Groups.Length));
+			Assert.That(3, Is.EqualTo(m.Groups[1].Index));
+			Assert.That(2, Is.EqualTo(m.Groups[1].Length));
 
-			Assert.IsTrue(re.Match(buf, 5, 5, ref m));
-			Assert.AreEqual(8, m.Groups[1].Index);
-			Assert.AreEqual(2, m.Groups[1].Length);
+			Assert.That(re.Match(buf, 5, 5, ref m), Is.True);
+			Assert.That(8, Is.EqualTo(m.Groups[1].Index));
+			Assert.That(2, Is.EqualTo(m.Groups[1].Length));
 			
-			Assert.IsFalse(re.Match(buf, 9, 1, ref m));
+			Assert.That(re.Match(buf, 9, 1, ref m), Is.False);
 		}
 
 		[Test]
@@ -98,23 +98,23 @@ namespace LogJoint.Tests
 			var testString = "bar foo boo";
 			TestOnAllSliceVariations(testString, slice =>
 			{
-				Action testMatch = () => { Assert.AreEqual(4, m.Index); Assert.AreEqual(3, m.Length); };
+				Action testMatch = () => { Assert.That(4, Is.EqualTo(m.Index)); Assert.That(3, Is.EqualTo(m.Length)); };
 
-				Assert.IsTrue(re.Match(slice, 0, ref m));
+				Assert.That(re.Match(slice, 0, ref m), Is.True);
 				testMatch();
 
-				Assert.IsTrue(re.Match(slice, 1, ref m));
+				Assert.That(re.Match(slice, 1, ref m), Is.True);
 				testMatch();
 
-				Assert.IsTrue(re.Match(slice, 4, ref m));
+				Assert.That(re.Match(slice, 4, ref m), Is.True);
 				testMatch();
 
-				Assert.IsFalse(re.Match(slice, 5, ref m));
-				Assert.IsFalse(re.Match(slice, testString.Length, ref m));
+				Assert.That(re.Match(slice, 5, ref m), Is.False);
+				Assert.That(re.Match(slice, testString.Length, ref m), Is.False);
 			});
 
-			Assert.IsFalse(re.Match(new StringSlice("foo 222", 1, 5), 0, ref m));
-			Assert.IsFalse(re.Match(new StringSlice("111 foo 333", 0, 6), 0, ref m));
+			Assert.That(re.Match(new StringSlice("foo 222", 1, 5), 0, ref m), Is.False);
+			Assert.That(re.Match(new StringSlice("111 foo 333", 0, 6), 0, ref m), Is.False);
 		}
 
 		[Test]
@@ -131,22 +131,22 @@ namespace LogJoint.Tests
 			var testString = "bar foo boo";
 			TestOnAllSliceVariations(testString, slice =>
 			{
-				Action testMatch = () => { Assert.AreEqual(4, m.Index); Assert.AreEqual(3, m.Length); };
+				Action testMatch = () => { Assert.That(4, Is.EqualTo(m.Index)); Assert.That(3, Is.EqualTo(m.Length)); };
 
-				Assert.IsFalse(re.Match(slice, 0, ref m));
-				Assert.IsFalse(re.Match(slice, 1, ref m));
-				Assert.IsFalse(re.Match(slice, 4, ref m));
-				Assert.IsFalse(re.Match(slice, 6, ref m));
+				Assert.That(re.Match(slice, 0, ref m), Is.False);
+				Assert.That(re.Match(slice, 1, ref m), Is.False);
+				Assert.That(re.Match(slice, 4, ref m), Is.False);
+				Assert.That(re.Match(slice, 6, ref m), Is.False);
 
-				Assert.IsTrue(re.Match(slice, 7, ref m));
+				Assert.That(re.Match(slice, 7, ref m), Is.True);
 				testMatch();
 
-				Assert.IsTrue(re.Match(slice, testString.Length, ref m));
+				Assert.That(re.Match(slice, testString.Length, ref m), Is.True);
 				testMatch();
 			});
 
-			Assert.IsFalse(re.Match(new StringSlice("foo 222", 1, 5), 5, ref m));
-			Assert.IsFalse(re.Match(new StringSlice("111 foo 333", 0, 6), 6, ref m));
+			Assert.That(re.Match(new StringSlice("foo 222", 1, 5), 5, ref m), Is.False);
+			Assert.That(re.Match(new StringSlice("111 foo 333", 0, 6), 6, ref m), Is.False);
 		}
 
 		[Test]
@@ -160,13 +160,13 @@ namespace LogJoint.Tests
 			var re = factory.Create(@"B(o+)m", ReOptions.None);
 			IMatch m = null;
 
-			Assert.IsTrue(re.Match("Boooom", 0, ref m));
-			Assert.IsFalse(re.Match("boooom", 0, ref m));
+			Assert.That(re.Match("Boooom", 0, ref m), Is.True);
+			Assert.That(re.Match("boooom", 0, ref m), Is.False);
 
 			re = factory.Create(@"B(o+)m", ReOptions.IgnoreCase);
 			m = null;
-			Assert.IsTrue(re.Match("Boooom", 0, ref m));
-			Assert.IsTrue(re.Match("boooom", 0, ref m));
+			Assert.That(re.Match("Boooom", 0, ref m), Is.True);
+			Assert.That(re.Match("boooom", 0, ref m), Is.True);
 		}
 
 		[Test]

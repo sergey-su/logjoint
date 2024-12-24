@@ -74,10 +74,10 @@ namespace LogJoint.UI.Presenters.Tests
 
 			// availablity must be false to avoid unnecessary creation of view's objects
 			// for suggestions-less SearchTextBox-es
-			Assert.IsFalse(viewModel.SuggestionsListAvailable);
-			Assert.IsFalse(viewModel.SuggestionsListVisibile);
-			Assert.IsEmpty(viewModel.SuggestionsListItems);
-			Assert.IsNull(viewModel.SelectedSuggestionsListItem);
+			Assert.That(viewModel.SuggestionsListAvailable, Is.False);
+			Assert.That(viewModel.SuggestionsListVisibile, Is.False);
+			Assert.That(viewModel.SuggestionsListItems, Is.Empty);
+			Assert.That(viewModel.SelectedSuggestionsListItem, Is.Null);
 		}
 
 		[Test]
@@ -95,9 +95,9 @@ namespace LogJoint.UI.Presenters.Tests
 
 			viewModel.OnKeyDown(Key.ShowListShortcut);
 
-			Assert.IsTrue(viewModel.SuggestionsListVisibile);
-			Assert.AreEqual(nrOfViewItems, viewModel.SuggestionsListItems.Count);
-			Assert.AreEqual(1, viewModel.SelectedSuggestionsListItem);
+			Assert.That(viewModel.SuggestionsListVisibile, Is.True);
+			Assert.That(nrOfViewItems, Is.EqualTo(viewModel.SuggestionsListItems.Count));
+			Assert.That(1, Is.EqualTo(viewModel.SelectedSuggestionsListItem));
 		}
 
 		[Test]
@@ -107,9 +107,9 @@ namespace LogJoint.UI.Presenters.Tests
 
 			viewModel.OnKeyDown(Key.Down);
 
-			Assert.IsTrue(viewModel.SuggestionsListVisibile);
-			Assert.AreEqual(nrOfViewItems, viewModel.SuggestionsListItems.Count);
-			Assert.AreEqual(1, viewModel.SelectedSuggestionsListItem);
+			Assert.That(viewModel.SuggestionsListVisibile, Is.True);
+			Assert.That(nrOfViewItems, Is.EqualTo(viewModel.SuggestionsListItems.Count));
+			Assert.That(1, Is.EqualTo(viewModel.SelectedSuggestionsListItem));
 		}
 
 		[Test]
@@ -120,7 +120,7 @@ namespace LogJoint.UI.Presenters.Tests
 			viewModel.OnChangeText("test 20");
 			viewModel.OnKeyDown(Key.ShowListShortcut);
 
-			Assert.AreEqual(21, viewModel.SelectedSuggestionsListItem);
+			Assert.That(21, Is.EqualTo(viewModel.SelectedSuggestionsListItem));
 		}
 
 		[Test]
@@ -131,8 +131,8 @@ namespace LogJoint.UI.Presenters.Tests
 			viewModel.OnKeyDown(Key.ShowListShortcut);
 			viewModel.OnSuggestionClicked(6);
 
-			Assert.IsFalse(viewModel.SuggestionsListVisibile);
-			Assert.AreEqual("search 5", viewModel.Text);
+			Assert.That(viewModel.SuggestionsListVisibile, Is.False);
+			Assert.That("search 5", Is.EqualTo(viewModel.Text));
 		}
 
 
@@ -146,7 +146,7 @@ namespace LogJoint.UI.Presenters.Tests
 			viewModel.OnChangeText("foo bar");
 			viewModel.OnKeyDown(Key.Enter);
 
-			Assert.AreEqual(1, onSearchNowRaised);
+			Assert.That(1, Is.EqualTo(onSearchNowRaised));
 		}
 
 		[Test]
@@ -158,8 +158,8 @@ namespace LogJoint.UI.Presenters.Tests
 			presenter.Focus("foo bar");
 			viewModel.OnKeyDown(Key.Enter);
 
-			Assert.AreEqual("foo bar", viewModel.Text);
-			Assert.AreEqual(1, onSearchNowRaised);
+			Assert.That("foo bar", Is.EqualTo(viewModel.Text));
+			Assert.That(1, Is.EqualTo(onSearchNowRaised));
 		}
 
 		[Test]
@@ -173,10 +173,10 @@ namespace LogJoint.UI.Presenters.Tests
 			viewModel.OnKeyDown(Key.Enter);
 			viewModel.OnKeyDown(Key.Enter);
 
-			Assert.AreEqual("search 0", viewModel.Text);
-			Assert.AreEqual(1, onCurrentSuggestionChanged);
-			Assert.AreEqual(1, onSearchNowRaised);
-			Assert.AreEqual("search 0", presenter.CurrentSuggestion.Value.SearchString);
+			Assert.That("search 0", Is.EqualTo(viewModel.Text));
+			Assert.That(1, Is.EqualTo(onCurrentSuggestionChanged));
+			Assert.That(1, Is.EqualTo(onSearchNowRaised));
+			Assert.That("search 0", Is.EqualTo(presenter.CurrentSuggestion.Value.SearchString));
 		}
 
 		[Test]
@@ -192,10 +192,10 @@ namespace LogJoint.UI.Presenters.Tests
 			viewModel.OnKeyDown(Key.Enter);
 			viewModel.OnKeyDown(Key.Enter);
 
-			Assert.AreEqual("search 4", viewModel.Text);
-			Assert.AreEqual(1, onCurrentSuggestionChanged);
-			Assert.AreEqual(1, onSearchNowRaised);
-			Assert.AreEqual("search 4", presenter.CurrentSuggestion.Value.SearchString);
+			Assert.That("search 4", Is.EqualTo(viewModel.Text));
+			Assert.That(1, Is.EqualTo(onCurrentSuggestionChanged));
+			Assert.That(1, Is.EqualTo(onSearchNowRaised));
+			Assert.That("search 4", Is.EqualTo(presenter.CurrentSuggestion.Value.SearchString));
 		}
 
 		[Test]
@@ -209,10 +209,10 @@ namespace LogJoint.UI.Presenters.Tests
 			viewModel.OnSuggestionClicked(nrOfViewItems - 1);
 			viewModel.OnKeyDown(Key.Enter);
 
-			Assert.AreEqual("non-textual 2", viewModel.Text);
-			Assert.AreEqual(1, onCurrentSuggestionChanged);
-			Assert.AreEqual(1, onSearchNowRaised);
-			Assert.AreEqual("cat2.2", (string)presenter.CurrentSuggestion.Value.Data);
+			Assert.That("non-textual 2", Is.EqualTo(viewModel.Text));
+			Assert.That(1, Is.EqualTo(onCurrentSuggestionChanged));
+			Assert.That(1, Is.EqualTo(onSearchNowRaised));
+			Assert.That("cat2.2", Is.EqualTo((string)presenter.CurrentSuggestion.Value.Data));
 		}
 
 		[Test]
@@ -225,12 +225,12 @@ namespace LogJoint.UI.Presenters.Tests
 			viewModel.OnKeyDown(Key.ShowListShortcut);
 			viewModel.OnSuggestionClicked(nrOfViewItems - 1);
 
-			Assert.AreEqual(1, onCurrentSuggestionChanged);
-			Assert.AreEqual("cat2.2", (string)presenter.CurrentSuggestion.Value.Data);
+			Assert.That(1, Is.EqualTo(onCurrentSuggestionChanged));
+			Assert.That("cat2.2", Is.EqualTo((string)presenter.CurrentSuggestion.Value.Data));
 
 			viewModel.OnChangeText("");
-			Assert.AreEqual(2, onCurrentSuggestionChanged);
-			Assert.IsNull(presenter.CurrentSuggestion);
+			Assert.That(2, Is.EqualTo(onCurrentSuggestionChanged));
+			Assert.That(presenter.CurrentSuggestion, Is.Null);
 		}
 	}
 }

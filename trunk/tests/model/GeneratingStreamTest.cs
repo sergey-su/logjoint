@@ -13,7 +13,7 @@ namespace LogJoint.Tests
 		{
 			GeneratingStream target = new GeneratingStream(10, 1);
 			byte[] data = new byte[20];
-			Assert.AreEqual(10, target.Read(data, 0, 10));
+			Assert.That(10, Is.EqualTo(target.Read(data, 0, 10)));
 		}
 
 		[Test]
@@ -22,7 +22,7 @@ namespace LogJoint.Tests
 			GeneratingStream target = new GeneratingStream(10, 1);
 			byte[] data = new byte[20];
 			target.Position = 6;
-			Assert.AreEqual(4, target.Read(data, 0, 10));
+			Assert.That(4, Is.EqualTo(target.Read(data, 0, 10)));
 		}
 
 		[Test]
@@ -30,13 +30,13 @@ namespace LogJoint.Tests
 		{
 			GeneratingStream target = new GeneratingStream(10, 1);
 			byte[] data = new byte[20];
-			Assert.AreEqual(4, target.Read(data, 5, 4));
-			Assert.AreEqual(0, data[4]);
-			Assert.AreEqual(1, data[5]);
-			Assert.AreEqual(1, data[6]);
-			Assert.AreEqual(1, data[7]);
-			Assert.AreEqual(1, data[8]);
-			Assert.AreEqual(0, data[9]);
+			Assert.That(4, Is.EqualTo(target.Read(data, 5, 4)));
+			Assert.That(0, Is.EqualTo(data[4]));
+			Assert.That(1, Is.EqualTo(data[5]));
+			Assert.That(1, Is.EqualTo(data[6]));
+			Assert.That(1, Is.EqualTo(data[7]));
+			Assert.That(1, Is.EqualTo(data[8]));
+			Assert.That(0, Is.EqualTo(data[9]));
 		}
 	}
 }

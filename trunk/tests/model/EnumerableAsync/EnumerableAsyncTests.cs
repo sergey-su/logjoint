@@ -32,8 +32,8 @@ namespace LogJoint.Postprocessing
 			await Task.WhenAll(multiplexed.Open(), list1, list2);
 			for (int i = 0; i < sequenceLen; ++i)
 			{
-				Assert.AreEqual(i * 10, list1.Result[i]);
-				Assert.AreEqual(i * 100, list2.Result[i]);
+				Assert.That(i * 10, Is.EqualTo(list1.Result[i]));
+				Assert.That(i * 100, Is.EqualTo(list2.Result[i]));
 			}
 		}
 	}

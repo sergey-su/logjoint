@@ -13,7 +13,7 @@ namespace LogJoint.Tests
 			long streamPosition = 64 * 1024 * 12;
 			int textPositionInsideBuffer = 1234;
 			TextStreamPosition pos = new TextStreamPosition(streamPosition, textPositionInsideBuffer);
-			Assert.AreEqual(pos.Value, streamPosition + textPositionInsideBuffer);
+			Assert.That(pos.Value, Is.EqualTo(streamPosition + textPositionInsideBuffer));
 		}
 
 		[Test]

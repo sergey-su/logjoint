@@ -12,7 +12,7 @@ namespace LogJoint.Tests
 		{
 			Stream s = new MemoryStream(Encoding.UTF8.GetBytes(streamStr));
 			s.Position = initialPos;
-			Assert.AreEqual(expected, n.Find(s, limit));
+			Assert.That(expected, Is.EqualTo(n.Find(s, limit)));
 		}
 
 		[Test]

@@ -128,24 +128,24 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		protected void VerifyView(ADE[] expectations)
 		{
 			var actual = viewModel.ActivitiesDrawInfo.ToList();
-			Assert.AreEqual(expectations.Length, actual.Count);
+			Assert.That(expectations.Length, Is.EqualTo(actual.Count));
 			for (int i = 0; i < expectations.Length; ++i)
 			{
 				var a = actual[i];
 				var e = expectations[i];
-				Assert.AreEqual(i, a.Index);
+				Assert.That(i, Is.EqualTo(a.Index));
 				if (e.Caption != null)
-					Assert.AreEqual(e.Caption, a.Caption);
+					Assert.That(e.Caption, Is.EqualTo(a.Caption));
 				if (e.X1 != null)
-					Assert.AreEqual(e.X1.Value, a.X1, 1e-3);
+					Assert.That(e.X1.Value, Is.EqualTo(a.X1).Within(1e-3));
 				if (e.X2 != null)
-					Assert.AreEqual(e.X2.Value, a.X2, 1e-3);
+					Assert.That(e.X2.Value, Is.EqualTo(a.X2).Within(1e-3));
 				if (e.Selected != null)
-					Assert.AreEqual(e.Selected.Value, a.IsSelected);
+					Assert.That(e.Selected.Value, Is.EqualTo(a.IsSelected));
 				if (e.Type != null)
-					Assert.AreEqual(e.Type.Value, a.Type);
+					Assert.That(e.Type.Value, Is.EqualTo(a.Type));
 				if (e.VerifyPairedActivityIndex)
-					Assert.AreEqual(e.PairedActivityIndex, a.PairedActivityIndex);
+					Assert.That(e.PairedActivityIndex, Is.EqualTo(a.PairedActivityIndex));
 			}
 		}
 
@@ -341,7 +341,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					new ADE("a") { Selected = true },
 					new ADE("b") { Selected = false },
 				});
-				Assert.AreEqual("OutgoingNetworking: a", viewModel.CurrentActivity.Caption);
+				Assert.That("OutgoingNetworking: a", Is.EqualTo(viewModel.CurrentActivity.Caption));
 
 				SelectActivity(1);
 				VerifyView(new[]
@@ -349,7 +349,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					new ADE("a") { Selected = false },
 					new ADE("b") { Selected = true },
 				});
-				Assert.AreEqual("OutgoingNetworking: b", viewModel.CurrentActivity.Caption);
+				Assert.That("OutgoingNetworking: b", Is.EqualTo(viewModel.CurrentActivity.Caption));
 			}
 
 			[Test]
@@ -363,7 +363,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					new ADE("a") { Selected = false },
 					new ADE("b") { Selected = false },
 				});
-				Assert.AreEqual("", viewModel.CurrentActivity.Caption);
+				Assert.That("", Is.EqualTo(viewModel.CurrentActivity.Caption));
 			}
 
 
@@ -385,7 +385,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					new ADE("b") { Selected = false },
 					new ADE("c") { Selected = false },
 				});
-				Assert.AreEqual("", viewModel.CurrentActivity.Caption);
+				Assert.That("", Is.EqualTo(viewModel.CurrentActivity.Caption));
 			}
 		};
 
@@ -543,7 +543,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			[Test]
 			public void NoContentLinkIsVisible()
 			{
-				Assert.AreEqual(true, viewModel.NoContentMessageVisibile);
+				Assert.That(true, Is.EqualTo(viewModel.NoContentMessageVisibile));
 			}
 
 			[Test]

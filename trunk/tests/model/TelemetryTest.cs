@@ -62,8 +62,8 @@ namespace LogJoint.Tests
 				uploadedStreamContents.Position = 0;
 				using (var zip = new ZipFile(uploadedStreamContents))
 				{
-					Assert.AreEqual(30, zip.GetEntry("description.txt").Size);
-					Assert.AreEqual(17, zip.GetEntry("membuffer.log").Size);
+					Assert.That(30, Is.EqualTo(zip.GetEntry("description.txt").Size));
+					Assert.That(17, Is.EqualTo(zip.GetEntry("membuffer.log").Size));
 				}
 			}
 		}

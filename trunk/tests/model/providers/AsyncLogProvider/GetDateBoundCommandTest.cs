@@ -217,28 +217,28 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 					if (cmdIntf.RunSynchronously(ctx))
 					{
 						cmdIntf.Complete(null);
-						Assert.IsTrue(cmd.Task.IsCompleted);
+						Assert.That(cmd.Task.IsCompleted, Is.True);
 						syncResult = cmd.Task.Result;
 					}
 					bool expectSyncResult = expectedSyncResults.IndexOf(i => i == testId) != null;
-					Assert.AreEqual(expectSyncResult, syncResult != null, "Result must be sync for test " + testId);
+					Assert.That(expectSyncResult, Is.EqualTo(syncResult != null), "Result must be sync for test " + testId);
 
 					cmd = new GetDateBoundCommand(dateToTest, false, bound, boundsCache);
 					cmdIntf = cmd;
 					cmdIntf.ContinueAsynchronously(ctx).Wait();
 					cmdIntf.Complete(null);
-					Assert.IsTrue(cmd.Task.IsCompleted);
+					Assert.That(cmd.Task.IsCompleted, Is.True);
 					DateBoundPositionResponseData asyncResult = cmd.Task.Result;
 
 					if (syncResult != null)
 					{
-						Assert.AreEqual(
+						Assert.That(
 							await PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, syncResult.Position),
-							await PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, asyncResult.Position),
+							Is.EqualTo(await PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, asyncResult.Position)),
 							"Position mismatch " + testId
 						);
-						Assert.AreEqual(syncResult.IsBeforeBeginPosition, asyncResult.IsBeforeBeginPosition, "IsBeforeBeginPosition mismatch " + testId);
-						Assert.AreEqual(syncResult.IsEndPosition, asyncResult.IsEndPosition, "IsEndPosition mismatch " + testId);
+						Assert.That(syncResult.IsBeforeBeginPosition, Is.EqualTo(asyncResult.IsBeforeBeginPosition), "IsBeforeBeginPosition mismatch " + testId);
+						Assert.That(syncResult.IsEndPosition, Is.EqualTo(asyncResult.IsEndPosition), "IsEndPosition mismatch " + testId);
 					}
 				}
 				++dateIdx;

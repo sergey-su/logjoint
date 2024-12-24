@@ -34,8 +34,8 @@ namespace LogJoint.Tests
 
 			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
-				Assert.AreEqual(modifTime, media.LastModified);
-				Assert.AreEqual(size, media.Size);
+				Assert.That(modifTime, Is.EqualTo(media.LastModified));
+				Assert.That(size, Is.EqualTo(media.Size));
 			}
 
 			stm.Received(1).Dispose();
@@ -84,9 +84,9 @@ namespace LogJoint.Tests
 
 			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
-				Assert.AreEqual(time1, media.LastModified);
-				Assert.AreEqual(size1, media.Size);
-				Assert.AreEqual(size1, media.DataStream.Length);
+				Assert.That(time1, Is.EqualTo(media.LastModified));
+				Assert.That(size1, Is.EqualTo(media.Size));
+				Assert.That(size1, Is.EqualTo(media.DataStream.Length));
 
 				DateTime time2 = new DateTime(2000, 2, 2);
 				long size2 = 200;
@@ -96,8 +96,8 @@ namespace LogJoint.Tests
 
 				await media.Update();
 
-				Assert.AreEqual(time2, media.LastModified);
-				Assert.AreEqual(size2, media.Size);
+				Assert.That(time2, Is.EqualTo(media.LastModified));
+				Assert.That(size2, Is.EqualTo(media.Size));
 			}
 
 			stm.Received(1).Dispose();
@@ -124,9 +124,9 @@ namespace LogJoint.Tests
 			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				// Check that media refers to the first stream stm1
-				Assert.AreEqual(initialSize1, media.DataStream.Length);
-				Assert.AreEqual(initialSize1, media.Size);
-				Assert.AreEqual(true, media.IsAvailable);
+				Assert.That(initialSize1, Is.EqualTo(media.DataStream.Length));
+				Assert.That(initialSize1, Is.EqualTo(media.Size));
+				Assert.That(true, Is.EqualTo(media.IsAvailable));
 
 				
 				// Simulate file deletion: Length and LastWriteTime keep returning file properties,
@@ -143,23 +143,23 @@ namespace LogJoint.Tests
 
 
 				// Properties must return previous values as long as Update is not called
-				Assert.AreEqual(initialSize1, media.Size);
-				Assert.AreEqual(initialSize1, media.DataStream.Length);
-				Assert.AreEqual(true, media.IsAvailable);
+				Assert.That(initialSize1, Is.EqualTo(media.Size));
+				Assert.That(initialSize1, Is.EqualTo(media.DataStream.Length));
+				Assert.That(true, Is.EqualTo(media.IsAvailable));
 
 				// This update should detect file deletion and release it
 				await media.Update();
-				Assert.AreEqual(0, media.Size);
-				Assert.AreEqual(0, media.DataStream.Length);
-				Assert.AreEqual(false, media.IsAvailable);
+				Assert.That(0, Is.EqualTo(media.Size));
+				Assert.That(0, Is.EqualTo(media.DataStream.Length));
+				Assert.That(false, Is.EqualTo(media.IsAvailable));
 				stm1.Received(1).Dispose();
 
 				// Subsequent Updates should change nothing
 				await media.Update();
 				await media.Update();
-				Assert.AreEqual(0, media.Size);
-				Assert.AreEqual(0, media.DataStream.Length);
-				Assert.AreEqual(false, media.IsAvailable);
+				Assert.That(0, Is.EqualTo(media.Size));
+				Assert.That(0, Is.EqualTo(media.DataStream.Length));
+				Assert.That(false, Is.EqualTo(media.IsAvailable));
 
 
 				// Simulate that new file with name "test" appeared 
@@ -171,22 +171,22 @@ namespace LogJoint.Tests
 
 
 				// Properties must return previous values as long as Update is not called
-				Assert.AreEqual(0, media.Size);
-				Assert.AreEqual(0, media.DataStream.Length);
-				Assert.AreEqual(false, media.IsAvailable);
+				Assert.That(0, Is.EqualTo(media.Size));
+				Assert.That(0, Is.EqualTo(media.DataStream.Length));
+				Assert.That(false, Is.EqualTo(media.IsAvailable));
 
 				// This Update will pick up new file
 				await media.Update();
-				Assert.AreEqual(initialSize2, media.DataStream.Length);
-				Assert.AreEqual(initialSize2, media.Size);
-				Assert.AreEqual(true, media.IsAvailable);
+				Assert.That(initialSize2, Is.EqualTo(media.DataStream.Length));
+				Assert.That(initialSize2, Is.EqualTo(media.Size));
+				Assert.That(true, Is.EqualTo(media.IsAvailable));
 
 				// Subsequent Updates should change nothing
 				await media.Update();
 				await media.Update();
-				Assert.AreEqual(initialSize2, media.Size);
-				Assert.AreEqual(initialSize2, media.DataStream.Length);
-				Assert.AreEqual(true, media.IsAvailable);
+				Assert.That(initialSize2, Is.EqualTo(media.Size));
+				Assert.That(initialSize2, Is.EqualTo(media.DataStream.Length));
+				Assert.That(true, Is.EqualTo(media.IsAvailable));
 			}
 
 			stm2.Received(1).Dispose();
@@ -209,8 +209,8 @@ namespace LogJoint.Tests
 			using (SimpleFileMedia media = await SimpleFileMedia.Create(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				// Media properties are the same as stm's ones
-				Assert.AreEqual(time1, media.LastModified);
-				Assert.AreEqual(size1, media.Size);
+				Assert.That(time1, Is.EqualTo(media.LastModified));
+				Assert.That(size1, Is.EqualTo(media.Size));
 
 				// Change the properties of stm
 				DateTime time2 = new DateTime(2000, 2, 2);
@@ -220,20 +220,20 @@ namespace LogJoint.Tests
 				stm.IsDeleted.Returns(false);
 
 				// Properties have not still changed
-				Assert.AreEqual(time1, media.LastModified);
-				Assert.AreEqual(size1, media.Size);
+				Assert.That(time1, Is.EqualTo(media.LastModified));
+				Assert.That(size1, Is.EqualTo(media.Size));
 
 				// This Update should refresh media's properties
 				await media.Update();
 
-				Assert.AreEqual(time2, media.LastModified);
-				Assert.AreEqual(size2, media.Size);
+				Assert.That(time2, Is.EqualTo(media.LastModified));
+				Assert.That(size2, Is.EqualTo(media.Size));
 
 				// Subsequent calls change nothing
 				await media.Update();
 				await media.Update();
-				Assert.AreEqual(time2, media.LastModified);
-				Assert.AreEqual(size2, media.Size);
+				Assert.That(time2, Is.EqualTo(media.LastModified));
+				Assert.That(size2, Is.EqualTo(media.Size));
 			}
 
 			stm.Received(1).Dispose();

@@ -20,9 +20,9 @@ namespace LogJoint.Tests
 		public void LengthTest()
 		{
 			var target = CreateTestStream("1234567890");
-			Assert.AreEqual(10L, target.Length);
+			Assert.That(10L, Is.EqualTo(target.Length));
 			target.SetBounds(0, 8);
-			Assert.AreEqual(8L, target.Length);
+			Assert.That(8L, Is.EqualTo(target.Length));
 		}
 
 		[Test]
@@ -30,12 +30,12 @@ namespace LogJoint.Tests
 		{
 			var target = CreateTestStream("1234567890");
 			target.SetBounds(null, 8);
-			Assert.AreEqual((int)'1', target.ReadByte());
+			Assert.That((int)'1', Is.EqualTo(target.ReadByte()));
 			byte[] tmp = new byte[100];
-			Assert.AreEqual(7, target.Read(tmp, 0, 100));
-			Assert.AreEqual((byte)'2', tmp[0]);
-			Assert.AreEqual((byte)'3', tmp[1]);
-			Assert.AreEqual((byte)'8', tmp[6]);
+			Assert.That(7, Is.EqualTo(target.Read(tmp, 0, 100)));
+			Assert.That((byte)'2', Is.EqualTo(tmp[0]));
+			Assert.That((byte)'3', Is.EqualTo(tmp[1]));
+			Assert.That((byte)'8', Is.EqualTo(tmp[6]));
 		}
 
 		[Test]
@@ -44,8 +44,7 @@ namespace LogJoint.Tests
 			var target = CreateTestStream("1234567890");
 			target.SetBounds(null, 5);
 			target.SetLength(8);
-			Assert.AreEqual(5L, target.Length);
+			Assert.That(5L, Is.EqualTo(target.Length));
 		}
-
 	}
 }

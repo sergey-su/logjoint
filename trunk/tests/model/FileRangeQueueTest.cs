@@ -13,18 +13,18 @@ namespace LogJoint.Tests
 	{
 		static public void AssertEqual(R exp, R act)
 		{
-			Assert.AreEqual(exp.IsEmpty, act.IsEmpty);
+			Assert.That(exp.IsEmpty, Is.EqualTo(act.IsEmpty));
 			if (exp.IsEmpty)
 				return;
-			Assert.AreEqual(exp.Begin, act.Begin);
-			Assert.AreEqual(exp.End, act.End);
-			Assert.AreEqual(exp.Priority, act.Priority);
+			Assert.That(exp.Begin, Is.EqualTo(act.Begin));
+			Assert.That(exp.End, Is.EqualTo(act.End));
+			Assert.That(exp.Priority, Is.EqualTo(act.Priority));
 		}
 
 		void DoTestIntersect(R r1, R r2, int pos, R r1left, R r1right, R common, R r2left, R r2right)
 		{
 			S r = R.Intersect(r1, r2);
-			Assert.AreEqual(pos, r.RelativePosition);
+			Assert.That(pos, Is.EqualTo(r.RelativePosition));
 			AssertEqual(r1left, r.Leftover1Left);
 			AssertEqual(r1right, r.Leftover1Right);
 			AssertEqual(common, r.Common);
@@ -97,7 +97,7 @@ namespace LogJoint.Tests
 			AssertEqual(new R(40, 60, 1), q.GetNext().Value);
 
 			q.Remove(new R(40, 60));
-			Assert.IsFalse(q.GetNext().HasValue);
+			Assert.That(q.GetNext().HasValue, Is.False);
 		}
 
 		[Test]
@@ -117,7 +117,7 @@ namespace LogJoint.Tests
 
 			q2.Remove(new R(20, long.MaxValue));
 
-			Assert.IsFalse(q2.GetNext().HasValue);
+			Assert.That(q2.GetNext().HasValue, Is.False);
 		}
 	}
 

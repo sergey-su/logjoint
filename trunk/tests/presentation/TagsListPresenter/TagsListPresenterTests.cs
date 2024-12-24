@@ -81,16 +81,16 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 			[Test]
 			public void SingleLineFlagIsReflectedInViewModel()
 			{
-				Assert.IsTrue(viewModel.IsSingleLine);
+				Assert.That(viewModel.IsSingleLine, Is.True);
 
 				changeNotification.ClearReceivedCalls();
 				presenter.SetIsSingleLine(false);
-				Assert.IsFalse(viewModel.IsSingleLine);
+				Assert.That(viewModel.IsSingleLine, Is.False);
 				changeNotification.Received().Post();
 
 				changeNotification.ClearReceivedCalls();
 				presenter.SetIsSingleLine(true);
-				Assert.IsTrue(viewModel.IsSingleLine);
+				Assert.That(viewModel.IsSingleLine, Is.True);
 				changeNotification.Received().Post();
 			}
 		};
@@ -110,23 +110,23 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 				[Test]
 				public void SelectedTagsAreRendered()
 				{
-					Assert.IsTrue(dialogViewModel.SelectedTags.SetEquals(new[] { "bar", "item-1", "abc" }));
+					Assert.That(dialogViewModel.SelectedTags.SetEquals(new[] { "bar", "item-1", "abc" }), Is.True);
 					var (linkContent, severity) = dialogViewModel.TagsListStatus;
-					Assert.AreEqual(0, LinkLabelUtils.ParseLinkLabelString(linkContent).Links.Count);
-					Assert.AreEqual(MessageSeverity.None, severity);
+					Assert.That(0, Is.EqualTo(LinkLabelUtils.ParseLinkLabelString(linkContent).Links.Count));
+					Assert.That(MessageSeverity.None, Is.EqualTo(severity));
 				}
 
 				[Test]
 				public void FormulaRendered()
 				{
-					Assert.AreEqual("bar OR item-1 AND NOT abc", dialogViewModel.Formula);
+					Assert.That("bar OR item-1 AND NOT abc", Is.EqualTo(dialogViewModel.Formula));
 					var (linkContent, severity) = dialogViewModel.FormulaStatus;
-					Assert.AreEqual(0, LinkLabelUtils.ParseLinkLabelString(linkContent).Links.Count);
-					Assert.AreEqual(MessageSeverity.None, severity);
-					Assert.IsFalse(dialogViewModel.IsEditingFormula);
+					Assert.That(0, Is.EqualTo(LinkLabelUtils.ParseLinkLabelString(linkContent).Links.Count));
+					Assert.That(MessageSeverity.None, Is.EqualTo(severity));
+					Assert.That(dialogViewModel.IsEditingFormula, Is.False);
 					var (suggesionts, selectedSuggestion) = dialogViewModel.FormulaSuggesions;
-					Assert.AreEqual(0, suggesionts.Length);
-					Assert.AreEqual(null, selectedSuggestion);
+					Assert.That(0, Is.EqualTo(suggesionts.Length));
+					Assert.That(null, Is.EqualTo(selectedSuggestion));
 				}
 
 				[Test]
@@ -135,8 +135,8 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 					changeNotification.ClearReceivedCalls();
 					dialogViewModel.OnUseTagClicked("foo");
 					changeNotification.Received().Post();
-					Assert.IsTrue(dialogViewModel.SelectedTags.SetEquals(new[] { "bar", "item-1", "abc", "foo" }));
-					Assert.AreEqual("bar OR item-1 AND NOT abc OR foo", dialogViewModel.Formula);
+					Assert.That(dialogViewModel.SelectedTags.SetEquals(new[] { "bar", "item-1", "abc", "foo" }), Is.True);
+					Assert.That("bar OR item-1 AND NOT abc OR foo", Is.EqualTo(dialogViewModel.Formula));
 				}
 
 				[Test]
@@ -145,8 +145,8 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 					changeNotification.ClearReceivedCalls();
 					dialogViewModel.OnUnuseTagClicked("abc");
 					changeNotification.Received().Post();
-					Assert.IsTrue(dialogViewModel.SelectedTags.SetEquals(new[] { "bar", "item-1" }));
-					Assert.AreEqual("bar OR item-1", dialogViewModel.Formula);
+					Assert.That(dialogViewModel.SelectedTags.SetEquals(new[] { "bar", "item-1" }), Is.True);
+					Assert.That("bar OR item-1", Is.EqualTo(dialogViewModel.Formula));
 				}
 
 				[Test]
@@ -155,8 +155,8 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 					changeNotification.ClearReceivedCalls();
 					dialogViewModel.OnUseAllClicked();
 					changeNotification.Received().Post();
-					Assert.IsTrue(dialogViewModel.SelectedTags.SetEquals(new[] { "foo", "bar", "item-1", "item-2", "abd", "abc" }));
-					Assert.AreEqual("abc OR abd OR bar OR foo OR item-1 OR item-2", dialogViewModel.Formula);
+					Assert.That(dialogViewModel.SelectedTags.SetEquals(new[] { "foo", "bar", "item-1", "item-2", "abd", "abc" }), Is.True);
+					Assert.That("abc OR abd OR bar OR foo OR item-1 OR item-2", Is.EqualTo(dialogViewModel.Formula));
 				}
 
 				[Test]
@@ -165,8 +165,8 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 					changeNotification.ClearReceivedCalls();
 					dialogViewModel.OnUnuseAllClicked();
 					changeNotification.Received().Post();
-					Assert.IsTrue(dialogViewModel.SelectedTags.SetEquals(new string[0]));
-					Assert.AreEqual("", dialogViewModel.Formula);
+					Assert.That(dialogViewModel.SelectedTags.SetEquals(new string[0]), Is.True);
+					Assert.That("", Is.EqualTo(dialogViewModel.Formula));
 				}
 
 				[Test]
@@ -206,8 +206,8 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 						public void FormulaStatusIsRendered()
 						{
 							changeNotification.Received().Post();
-							Assert.IsTrue(dialogViewModel.IsEditingFormula);
-							Assert.AreEqual(dialogViewModel.FormulaStatus, ("Editing: no errors in formula", MessageSeverity.None));
+							Assert.That(dialogViewModel.IsEditingFormula, Is.True);
+							Assert.That(dialogViewModel.FormulaStatus, Is.EqualTo(("Editing: no errors in formula", MessageSeverity.None)));
 						}
 
 						[Test]
@@ -225,7 +225,7 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 							changeNotification.ClearReceivedCalls();
 							dialogViewModel.OnFormulaChange(" foo  OR bar");
 							changeNotification.Received().Post();
-							Assert.AreEqual(" foo  OR bar", dialogViewModel.Formula);
+							Assert.That(" foo  OR bar", Is.EqualTo(dialogViewModel.Formula));
 						}
 
 						[Test]
@@ -254,8 +254,8 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 						{
 							dialogViewModel.OnFormulaChange("foo");
 							dialogViewModel.OnStopEditingFormulaClicked();
-							Assert.AreEqual(false, dialogViewModel.IsEditingFormula);
-							Assert.IsTrue(dialogViewModel.SelectedTags.SetEquals(new[] { "foo" }));
+							Assert.That(false, Is.EqualTo(dialogViewModel.IsEditingFormula));
+							Assert.That(dialogViewModel.SelectedTags.SetEquals(new[] { "foo" }), Is.True);
 						}
 
 						[TestFixture]
@@ -276,7 +276,7 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 								public void FormulaStatusIsWarningAndHasClickableLink()
 								{
 									var (statusText, severity) = dialogViewModel.FormulaStatus;
-									Assert.AreEqual(MessageSeverity.Warning, severity);
+									Assert.That(MessageSeverity.Warning, Is.EqualTo(severity));
 									 var (_, _, linkData) = LinkLabelUtils.ParseLinkLabelString(statusText).Links.Single();
 									dialogViewModel.OnFormulaLinkClicked(linkData);
 									dialogView.Received().FormulaCursorPosition = 4;
@@ -286,8 +286,8 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 								public void SuggestionsListIsRendered()
 								{
 									var (suggestions, selectedSuggestion) = dialogViewModel.FormulaSuggesions;
-									Assert.IsTrue(suggestions.SequenceEqual(new[] { "item-1", "item-2" }));
-									Assert.AreEqual(null, selectedSuggestion);
+									Assert.That(suggestions.SequenceEqual(new[] { "item-1", "item-2" }), Is.True);
+									Assert.That(null, Is.EqualTo(selectedSuggestion));
 								}
 
 								[Test]
@@ -295,38 +295,38 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 								{
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Enter);
 									var (_, selectedSuggestion) = dialogViewModel.FormulaSuggesions;
-									Assert.AreEqual(0, selectedSuggestion);
+									Assert.That(0, Is.EqualTo(selectedSuggestion));
 
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Enter);
 									var (suggestions, _) = dialogViewModel.FormulaSuggesions;
-									Assert.AreEqual(0, suggestions.Length);
+									Assert.That(0, Is.EqualTo(suggestions.Length));
 
-									Assert.AreEqual("foo item-1", dialogViewModel.Formula);
+									Assert.That("foo item-1", Is.EqualTo(dialogViewModel.Formula));
 								}
 
 								[Test]
 								public void CanUseArrowsToSelectSuggestion()
 								{
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Down);
-									Assert.AreEqual(0, dialogViewModel.FormulaSuggesions.Item2);
+									Assert.That(0, Is.EqualTo(dialogViewModel.FormulaSuggesions.Item2));
 
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Up);
-									Assert.AreEqual(0, dialogViewModel.FormulaSuggesions.Item2);
+									Assert.That(0, Is.EqualTo(dialogViewModel.FormulaSuggesions.Item2));
 
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Down);
-									Assert.AreEqual(1, dialogViewModel.FormulaSuggesions.Item2);
+									Assert.That(1, Is.EqualTo(dialogViewModel.FormulaSuggesions.Item2));
 
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Down);
-									Assert.AreEqual(1, dialogViewModel.FormulaSuggesions.Item2);
+									Assert.That(1, Is.EqualTo(dialogViewModel.FormulaSuggesions.Item2));
 
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Up);
-									Assert.AreEqual(0, dialogViewModel.FormulaSuggesions.Item2);
+									Assert.That(0, Is.EqualTo(dialogViewModel.FormulaSuggesions.Item2));
 
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Down);
-									Assert.AreEqual(1, dialogViewModel.FormulaSuggesions.Item2);
+									Assert.That(1, Is.EqualTo(dialogViewModel.FormulaSuggesions.Item2));
 
 									dialogViewModel.OnFormulaKeyPressed(KeyCode.Enter);
-									Assert.AreEqual("foo item-2", dialogViewModel.Formula);
+									Assert.That("foo item-2", Is.EqualTo(dialogViewModel.Formula));
 								}
 
 
@@ -334,10 +334,10 @@ namespace LogJoint.UI.Presenters.Tests.TagsListPresenterTests
 								public void CanClickToUseSuggestion()
 								{
 									dialogViewModel.OnSuggestionClicked(1);
-									Assert.AreEqual(1, dialogViewModel.FormulaSuggesions.Item2);
+									Assert.That(1, Is.EqualTo(dialogViewModel.FormulaSuggesions.Item2));
 
 									dialogViewModel.OnSuggestionClicked(1);
-									Assert.AreEqual("foo item-2", dialogViewModel.Formula);
+									Assert.That("foo item-2", Is.EqualTo(dialogViewModel.Formula));
 								}
 							}
 						}

@@ -48,7 +48,7 @@ namespace LogJoint.Tests
 				}
 				set
 				{
-					Assert.AreEqual(fileSystem.BaseDir.ToLower(), value.ToLower());
+					Assert.That(fileSystem.BaseDir.ToLower(), Is.EqualTo(value.ToLower()));
 					path = value;
 				}
 			}
@@ -98,7 +98,7 @@ namespace LogJoint.Tests
 
 				public override void Close()
 				{
-					Assert.IsTrue(openCounter > 0);
+					Assert.That(openCounter, Is.GreaterThan(0));
 					openCounter--;
 				}
 
@@ -106,7 +106,7 @@ namespace LogJoint.Tests
 				{
 					get 
 					{
-						Assert.IsTrue(openCounter > 0);
+						Assert.That(openCounter, Is.GreaterThan(0));
 						return this.writeTime; 
 					}
 				}
@@ -115,7 +115,7 @@ namespace LogJoint.Tests
 				{
 					get
 					{
-						Assert.IsTrue(openCounter > 0);
+						Assert.That(openCounter, Is.GreaterThan(0));
 						return isDeleted; 
 					}
 				}
@@ -141,7 +141,7 @@ namespace LogJoint.Tests
 			{
 				name = name.ToLower();
 				files[name].isDeleted = true;
-				Assert.IsTrue(files.Remove(name));
+				Assert.That(files.Remove(name), Is.True);
 			}
 
 			public void SetData(string name, int data)
@@ -162,7 +162,7 @@ namespace LogJoint.Tests
 
 			public Task<Stream> OpenFile(string fileName)
 			{
-				Assert.AreEqual(baseDir.ToLower(), Path.GetDirectoryName(fileName).ToLower());
+				Assert.That(baseDir.ToLower(), Is.EqualTo(Path.GetDirectoryName(fileName).ToLower()));
 				if (!files.TryGetValue(Path.GetFileName(fileName).ToLower(), out FileImpl ret))
 					throw new FileNotFoundException();
 				ret.openCounter++;
@@ -178,7 +178,7 @@ namespace LogJoint.Tests
 
 			public string[] GetFiles(string path, string searchPattern)
 			{
-				Assert.AreEqual(baseDir.ToLower(), path.ToLower());
+				Assert.That(baseDir.ToLower(), Is.EqualTo(path.ToLower()));
 
 				List<string> ret = new List<string>();
 				Regex re = new Regex(WildcardToRegex(searchPattern));
@@ -193,7 +193,7 @@ namespace LogJoint.Tests
 
 			public DateTime GetLastWriteTime(string fileName)
 			{
-				Assert.AreEqual(baseDir.ToLower(), Path.GetDirectoryName(fileName).ToLower());
+				Assert.That(baseDir.ToLower(), Is.EqualTo(Path.GetDirectoryName(fileName).ToLower()));
 				if (!files.TryGetValue(Path.GetFileName(fileName).ToLower(), out FileImpl f))
 					throw new IOException();
 				return f.LastWriteTime;
@@ -361,8 +361,8 @@ namespace LogJoint.Tests
 			media.DataStream.Position = 0;
 			StreamReader r = new StreamReader(media.DataStream);
 			string actual = r.ReadToEnd();
-			Assert.AreEqual(expectedContent, actual);
-			Assert.AreEqual(media.Size, (long)expectedContent.Length);
+			Assert.That(actual, Is.EqualTo(expectedContent));
+			Assert.That(media.Size, Is.EqualTo((long)expectedContent.Length));
 		}
 
 		[Test]

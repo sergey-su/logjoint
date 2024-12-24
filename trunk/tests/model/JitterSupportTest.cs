@@ -122,14 +122,14 @@ namespace LogJoint.Tests
 					foreach (LogEntry expectedMessage in expectedParsedMessages)
 					{
 						IMessage actualMessage = await jitter.ReadNext();
-						Assert.IsNotNull(actualMessage);
-						Assert.AreEqual((long)expectedMessage.Time, actualMessage.Time.ToLocalDateTime().Ticks);
-						Assert.AreEqual(expectedMessage.Msg, actualMessage.Text.Value);
-						Assert.AreEqual(validatedParams.StartPosition + messageIdx, actualMessage.Position);
+						Assert.That(actualMessage, Is.Not.Null);
+						Assert.That((long)expectedMessage.Time, Is.EqualTo(actualMessage.Time.ToLocalDateTime().Ticks));
+						Assert.That(expectedMessage.Msg, Is.EqualTo(actualMessage.Text.Value));
+						Assert.That(validatedParams.StartPosition + messageIdx, Is.EqualTo(actualMessage.Position));
 						messageIdx += idxStep;
 					}
 					IMessage lastMessage = await jitter.ReadNext();
-					Assert.IsNull(lastMessage);
+					Assert.That(lastMessage, Is.Null);
 				});
 		}
 
