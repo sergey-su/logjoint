@@ -20,11 +20,6 @@ namespace LogJoint.Chromium.HttpArchive
 			this.cancellation = cancellation;
 		}
 
-		public IEnumerableAsync<Message[]> Read(string dataFileName, Action<double> progressHandler = null)
-		{
-			return Read(() => Task.FromResult<Stream>(new FileStream(dataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), s => s.Dispose(), progressHandler);
-		}
-
 		public IEnumerableAsync<Message[]> Read(Func<Task<Stream>> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null)
 		{
 			using (var ctx = new Context())

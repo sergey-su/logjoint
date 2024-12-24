@@ -27,7 +27,7 @@ namespace LogJoint.Chromium.SequenceDiagram
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.SequenceDiagram,
-				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForHttpArchive(new HAR.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.OpenLogFile, s => s.Dispose(), i.ProgressHandler), i)
 			);
 		}
 

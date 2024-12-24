@@ -35,7 +35,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.Timeline,
-				i => RunForChromeDriver(new CD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForChromeDriver(new CD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.OpenLogFile, s => s.Dispose(), i.ProgressHandler), i)
 			);
 		}
 

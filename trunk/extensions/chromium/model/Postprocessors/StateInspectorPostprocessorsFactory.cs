@@ -40,7 +40,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.StateInspector,
-				i => RunForWebRTCDump(new WRD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForWebRTCDump(new WRD.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.OpenLogFile, s => s.Dispose(), i.ProgressHandler), i)
 			);
 		}
 

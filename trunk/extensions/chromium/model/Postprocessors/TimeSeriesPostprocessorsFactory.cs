@@ -40,7 +40,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessor(
 				PostprocessorKind.TimeSeries,
-				i => RunForWebRtcInternalsDump(new DMP.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.LogFileName, i.ProgressHandler), i)
+				i => RunForWebRtcInternalsDump(new DMP.Reader(postprocessing.TextLogParser, i.CancellationToken).Read(i.OpenLogFile, s => s.Dispose(), i.ProgressHandler), i)
 			);
 		}
 

@@ -79,7 +79,8 @@ namespace LogJoint.Chromium.Correlator
 
 		async Task RunForChromeDriver(LogSourcePostprocessorInput input)
 		{
-			var reader = (new CD.Reader(postprocessing.TextLogParser, input.CancellationToken)).Read(input.LogFileName, input.ProgressHandler);
+			var reader = (new CD.Reader(postprocessing.TextLogParser, input.CancellationToken)).Read(
+				input.OpenLogFile, s => s.Dispose(), input.ProgressHandler);
 			IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
 			var matchedMessages = reader.MatchTextPrefixes(prefixMatcher).Multiplex();
 			var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
@@ -96,7 +97,7 @@ namespace LogJoint.Chromium.Correlator
 
 		async Task RunForWebRtcInternals(LogSourcePostprocessorInput input)
 		{
-			var reader = (new WRD.Reader(postprocessing.TextLogParser, input.CancellationToken)).Read(input.LogFileName, input.ProgressHandler);
+			var reader = (new WRD.Reader(postprocessing.TextLogParser, input.CancellationToken)).Read(input.OpenLogFile, s => s.Dispose(), input.ProgressHandler);
 			IPrefixMatcher prefixMatcher = postprocessing.CreatePrefixMatcher();
 			var matchedMessages = WRD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
 			var webRtcStateInspector = new WRD.WebRtcStateInspector(prefixMatcher);
