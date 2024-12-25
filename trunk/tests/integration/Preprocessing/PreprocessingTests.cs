@@ -152,5 +152,12 @@ namespace LogJoint.Tests.Integration
 			Check.That(downloadingPreprocessing.IsCanceled).IsTrue();
 			Check.That(app.Model.SourcesManager.Items.Count).Is(0);
 		}
+
+		[IntegrationTest]
+		public static async Task CanExtractTarLog(TestAppInstance app)
+		{
+			await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("XmlWriterTraceListener1.tar"));
+			await app.WaitFor(() => IsXmlWriterTraceListenerLogIsLoaded(app));
+		}
 	}
 }

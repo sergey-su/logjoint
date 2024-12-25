@@ -48,7 +48,7 @@ namespace LogJoint.Preprocessing
 			using (var inFileStream = sourceFileInfo.OpenRead())
 			// using (var progress = sourceFileInfo.Length != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null)
 			{
-				using (var tarArchive = TarArchive.CreateInputTarArchive(inFileStream))
+				using (var tarArchive = TarArchive.CreateInputTarArchive(inFileStream, NameEncoding))
 				{
 					tarArchive.ExtractContents(tmpDirectory);
 				}
@@ -76,6 +76,8 @@ namespace LogJoint.Preprocessing
 				traverseFolder("");
 			}
 		}
+
+		public static readonly System.Text.Encoding NameEncoding = null; // Support only ASCII names
 
 		readonly PreprocessingStepParams @params;
 		readonly IStepsFactory preprocessingStepsFactory;

@@ -88,7 +88,7 @@ namespace LogJoint.Preprocessing
 			};
 			try
 			{
-				tarHeader.ParseBuffer(header.Header);
+				tarHeader.ParseBuffer(header.Header, UntarStep.NameEncoding);
 			}
 			catch (Exception)
 			{
