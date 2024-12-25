@@ -270,7 +270,7 @@ namespace LogJoint.StreamParsingStrategies
 					firstPieceOfWork.prevStreamData = new StreamData(
 						beginStreamPos - maxBytesPerCharacter, new byte[maxBytesPerCharacter]);
 					stream.Position = beginStreamPos - maxBytesPerCharacter;
-					stream.Read(firstPieceOfWork.prevStreamData.Bytes, 0, maxBytesPerCharacter);
+					stream.ReadExactly(firstPieceOfWork.prevStreamData.Bytes, 0, maxBytesPerCharacter);
 				}
 				else
 				{

@@ -28,7 +28,7 @@ namespace LogJoint.Postprocessing
 			var buffer = new SlidingBuffer();
 			int currentMessageIndex = 0;
 			if ((options.Flags & TextLogParserFlags.SkipDoubleBytePeamble) != 0)
-				await inputStream.ReadAsync(rawBytesBuffer, 0, 2);
+				await inputStream.ReadExactlyAsync(rawBytesBuffer, 0, 2);
 			for (; ; )
 			{
 				int bytesRead = await inputStream.ReadAsync(rawBytesBuffer, 0, options.RawBufferSize);

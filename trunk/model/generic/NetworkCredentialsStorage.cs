@@ -63,20 +63,20 @@ namespace LogJoint
 			MemoryStream ms = new MemoryStream();
 			doc.Save(ms);
 			var protectedData = credentialsProtection.Protect(ms.ToArray());
-            await using var sect = await (await settingsEntry).OpenRawStreamSection(
-                "network-auth", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions);
-            sect.Data.SetLength(0);
-            await sect.Data.WriteAsync(protectedData, 0, protectedData.Length);
-        }
+			await using var sect = await (await settingsEntry).OpenRawStreamSection(
+				"network-auth", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions);
+			sect.Data.SetLength(0);
+			await sect.Data.WriteAsync(protectedData, 0, protectedData.Length);
+		}
 
 		private async Task Load()
 		{
 			byte[] protectedData;
-            await using (var sect = await (await settingsEntry).OpenRawStreamSection(
+			await using (var sect = await (await settingsEntry).OpenRawStreamSection(
 				"network-auth", Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				protectedData = new byte[sect.Data.Length];
-				await sect.Data.ReadAsync(protectedData, 0, protectedData.Length);
+				await sect.Data.ReadExactlyAsync(protectedData, 0, protectedData.Length);
 			}
 			byte[] unprotectedData;
 			try

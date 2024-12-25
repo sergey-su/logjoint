@@ -308,8 +308,8 @@ namespace LogJoint
 				if (streamPositionToReadFromNextTime != 0 && maxBytesPerChar > 1)
 				{
 					stream.Position = streamPositionToReadFromNextTime - maxBytesPerChar;
-					await stream.ReadAsync(binaryBuffer, 0, maxBytesPerChar);
-					decoder.GetChars(binaryBuffer, 0, maxBytesPerChar, charBuffer, 0);
+					int read = await stream.ReadAsync(binaryBuffer, 0, maxBytesPerChar);
+					decoder.GetChars(binaryBuffer, 0, read, charBuffer, 0);
 				}
 			}
 		}

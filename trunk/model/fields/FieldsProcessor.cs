@@ -290,7 +290,7 @@ namespace LogJoint.FieldsProcessor
 				try
 				{
 					var cachedRawAsm = new byte[cachedRawAsmSize];
-					await cacheSection.Data.ReadAsync(cachedRawAsm, 0, (int)cachedRawAsmSize);
+					await cacheSection.Data.ReadExactlyAsync(cachedRawAsm, 0, (int)cachedRawAsmSize);
 					return assemblyLoader.Load(cachedRawAsm).GetType("GeneratedMessageBuilder");
 				}
 				catch (Exception e)
