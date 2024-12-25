@@ -26,7 +26,7 @@ namespace LogJoint.Preprocessing
 				callback.YieldNextStep(detectedFormatStep);
 			else if (IsZip(sourceFile, header))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateUnpackingStep(sourceFile));
-			else if (IsGzip(sourceFile, header))
+			else if (await IsGzip(sourceFile, header))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateGunzippingStep(sourceFile));
 			else if (IsTar(header))
 				callback.YieldNextStep(preprocessingStepsFactory.CreateUntarStep(sourceFile));
@@ -57,21 +57,21 @@ namespace LogJoint.Preprocessing
 			return Path.GetExtension(fileName).ToLower() == ".gz";
 		}
 
-		static bool IsGzip(PreprocessingStepParams fileInfo, IStreamHeader header)
+		static async ValueTask<bool> IsGzip(PreprocessingStepParams fileInfo, IStreamHeader header)
 		{
 			if (HasGzExtension(fileInfo.Location) || HasGzExtension(fileInfo.FullPath))
 				if (header.Header.Take(2).SequenceEqual(new byte[] { 0x1f, 0x8b }))
-					return IsGzipFile(fileInfo.Location);
+					return await IsGzipFile(fileInfo.Location);
 			return false;
 		}
 
-		static bool IsGzipFile(string filePath)
+		static async ValueTask<bool> IsGzipFile(string filePath)
 		{
 			using var fstm = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 64);
 			using var stm = new ICSharpCode.SharpZipLib.GZip.GZipInputStream(fstm);
 			try
 			{
-				stm.Read(new byte[0], 0, 0);
+				await stm.ReadExactlyAsync(new byte[0], 0, 0);
 				return true;
 			}
 			catch (ICSharpCode.SharpZipLib.GZip.GZipException)
