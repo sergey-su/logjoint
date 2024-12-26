@@ -10,11 +10,12 @@ namespace LogJoint.WindowsEventLog
 	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 	public class LogProvider : LiveLogProvider
 	{
-		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
+		EventLogIdentity eventLogIdentity;
+
+		private LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
 			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
-			:
-			base(host,
+			: base(host,
 				factory,
 				connectParams,
 				tempFilesManager,
@@ -23,20 +24,28 @@ namespace LogJoint.WindowsEventLog
 				modelSynchronizationContext,
 				globalSettings,
 				fileSystem,
-				new DejitteringParams() { JitterBufferSize = 25 }
-			)
+				new DejitteringParams() { JitterBufferSize = 25 })
 		{
+		}
+
+		public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
+			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
+			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+		{
+			LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
+				modelSynchronizationContext, globalSettings, fileSystem);
 			try
 			{
-				eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);
-				StartLiveLogThread();
+				logProvider.eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);
+				logProvider.StartLiveLogThread(logProvider.Worker);
 			}
 			catch (Exception e)
 			{
-				tracer.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
-				Dispose();
+				logProvider.tracer.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
+				await logProvider.Dispose();
 				throw;
 			}
+			return logProvider;
 		}
 
 		public override string GetTaskbarLogName()
@@ -46,12 +55,7 @@ namespace LogJoint.WindowsEventLog
 			return eventLogIdentity.LogName;
 		}
 
-		protected override Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
-		{
-			return TaskUtils.StartInThreadPoolTaskScheduler(() => Worker(stopEvt, output));
-		}
-
-		async Task Worker(CancellationToken stopEvt, LiveLogXMLWriter output)
+		private async Task Worker(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			try
 			{
@@ -175,8 +179,6 @@ namespace LogJoint.WindowsEventLog
 			writer.WriteEndElement();
 			output.EndWriteMessage();
 		}
-
-		readonly EventLogIdentity eventLogIdentity;
 	}
 
 	public class EventLogIdentity
@@ -267,9 +269,9 @@ namespace LogJoint.WindowsEventLog
 
 	public class Factory : ILogProviderFactory
 	{
-		readonly Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory;
+		readonly Func<ILogProviderHost, IConnectionParams, Factory, Task<ILogProvider>> providerFactory;
 
-		public Factory(Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory)
+		public Factory(Func<ILogProviderHost, IConnectionParams, Factory, Task<ILogProvider>> providerFactory)
 		{
 			this.providerFactory = providerFactory;
 		}
@@ -328,7 +330,7 @@ namespace LogJoint.WindowsEventLog
 
 		Task<ILogProvider> ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return Task.FromResult(providerFactory(host, connectParams, this));
+			return providerFactory(host, connectParams, this);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

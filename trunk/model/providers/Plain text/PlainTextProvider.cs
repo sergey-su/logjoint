@@ -16,7 +16,7 @@ namespace LogJoint.PlainText
 		readonly string fileName;
 		long sizeInBytesStat;
 
-		public LogProvider(ILogProviderHost host, IConnectionParams connectParams,
+		private LogProvider(ILogProviderHost host, IConnectionParams connectParams,
 			ILogProviderFactory factory, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
 			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
@@ -26,7 +26,26 @@ namespace LogJoint.PlainText
 			this.regexFactory = regexFactory;
 			this.fileSystem = fileSystem;
 			this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
-			StartLiveLogThread();
+		}
+
+		public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams,
+			ILogProviderFactory factory, ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+		{
+			LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager,
+				traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem);
+			try
+			{
+				logProvider.StartLiveLogThread(logProvider.LiveLogListen);
+			}
+			catch (Exception e)
+			{
+				logProvider.tracer.Error(e, "Failed to initialize PlainText log provider. Disposing what has been created so far.");
+				await logProvider.Dispose();
+				throw;
+			}
+			return logProvider;
 		}
 
 		public override string GetTaskbarLogName()
@@ -39,7 +58,7 @@ namespace LogJoint.PlainText
 			return sizeInBytesStat;
 		}
 
-		protected override async Task LiveLogListen(CancellationToken cancellation, LiveLogXMLWriter output)
+		private async Task LiveLogListen(CancellationToken cancellation, LiveLogXMLWriter output)
 		{
 			using ILogMedia media = await SimpleFileMedia.Create(
 				fileSystem,
@@ -121,11 +140,11 @@ namespace LogJoint.PlainText
 	public class Factory : IFileBasedLogProviderFactory
 	{
 		readonly ITempFilesManager tempFiles;
-		readonly Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory;
+		readonly Func<ILogProviderHost, IConnectionParams, Factory, Task<ILogProvider>> providerFactory;
 
 		public Factory(
 			ITempFilesManager tempFiles,
-			Func<ILogProviderHost, IConnectionParams, Factory, ILogProvider> providerFactory
+			Func<ILogProviderHost, IConnectionParams, Factory, Task<ILogProvider>> providerFactory
 		)
 		{
 			this.tempFiles = tempFiles;
@@ -183,7 +202,7 @@ namespace LogJoint.PlainText
 
 		Task<ILogProvider> ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return Task.FromResult(providerFactory(host, connectParams, this));
+			return providerFactory(host, connectParams, this);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

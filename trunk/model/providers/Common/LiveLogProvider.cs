@@ -143,7 +143,7 @@ namespace LogJoint
 			return connectParams;
 		}
 
-		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
+		protected LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
 			ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
 			RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
 			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, DejitteringParams? dejitteringParams = null)
@@ -167,44 +167,50 @@ namespace LogJoint
 			)
 		{
 			this.originalConnectionParams = new ConnectionParamsReadOnlyView(originalConnectionParams);
-			try
+			string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
+
+			XmlWriterSettings xmlSettings = new XmlWriterSettings
 			{
-				string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
+				CloseOutput = true,
+				ConformanceLevel = ConformanceLevel.Fragment,
+				OmitXmlDeclaration = false,
+				Indent = true
+			};
 
-				XmlWriterSettings xmlSettings = new XmlWriterSettings
-				{
-					CloseOutput = true,
-					ConformanceLevel = ConformanceLevel.Fragment,
-					OmitXmlDeclaration = false,
-					Indent = true
-				};
+			output = new LiveLogXMLWriter(
+				new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
+				xmlSettings,
+				defaultBackupMaxFileSize
+			);
+			tracer.Info("Output created");
 
-				output = new LiveLogXMLWriter(
-					new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
-					xmlSettings,
-					defaultBackupMaxFileSize
-				);
-				tracer.Info("Output created");
-
-				stopEvt = new CancellationTokenSource();
-			}
-			catch (Exception e)
-			{
-				tracer.Error(e, "Failed to initialize live log reader. Disposing what has been created so far.");
-				Dispose();
-				throw;
-			}
+			stopEvt = new CancellationTokenSource();
 		}
+
+		protected void StartLiveLogThread(Func<CancellationToken, LiveLogXMLWriter, Task> threadFunc)
+		{
+			listeningThread = TaskUtils.StartInThreadPoolTaskScheduler(async () =>
+			{
+				try
+				{
+					await threadFunc(this.stopEvt.Token, this.output);
+				}
+				catch (Exception e)
+				{
+					tracer.Error(e, "Live log listening thread failed");
+				}
+				finally
+				{
+					ReportBackgroundActivityStatus(false);
+				}
+			});
+			tracer.Info("Thread started");
+		}
+
 
 		IConnectionParams ILogProvider.ConnectionParams
 		{
 			get { return originalConnectionParams; }
-		}
-
-		protected void StartLiveLogThread()
-		{
-			listeningThread = TaskUtils.StartInThreadPoolTaskScheduler(ListeningThreadProc);
-			tracer.Info("Thread started");
 		}
 
 		public override async Task Dispose()
@@ -224,22 +230,17 @@ namespace LogJoint
 				else
 				{
 					tracer.Info("Thread has been created. Setting stop event and joining the thread.");
-					stopEvt.Cancel();
+					stopEvt?.Cancel();
 					await listeningThread;
 					tracer.Info("Thread finished");
 				}
 			}
 
-			if (output != null)
-			{
-				output.Dispose();
-			}
+			output?.Dispose();
 
 			tracer.Info("Calling base destructor");
 			await base.Dispose();
 		}
-
-		abstract protected Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output);
 
 		protected void ReportBackgroundActivityStatus(bool active)
 		{
@@ -253,22 +254,6 @@ namespace LogJoint
 				}
 				return LogProviderStatsFlag.None;
 			});
-		}
-
-		async Task ListeningThreadProc()
-		{
-			try
-			{
-				await LiveLogListen(this.stopEvt.Token, this.output);
-			}
-			catch (Exception e)
-			{
-				tracer.Error(e, "Live log listening thread failed");
-			}
-			finally
-			{
-				ReportBackgroundActivityStatus(false);
-			}
 		}
 	}
 }

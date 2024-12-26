@@ -480,7 +480,7 @@ namespace LogJoint
 			}
 			logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager,
 				(host, connectParams, factory) => 
-					new PlainText.LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
+					PlainText.LogProvider.Create(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
 						modelSynchronizationContext, globalSettings, fileSystem)));
 			logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
 			userDefinedFormatsManager.ReloadFactories();
@@ -492,10 +492,10 @@ namespace LogJoint
 			ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 		{
 			logProviderFactoryRegistry.Register(new DebugOutput.Factory((host, factory) =>
-				new DebugOutput.LogProvider(host, factory, tempFilesManager, traceSourceFactory, regexFactory, 
+				DebugOutput.LogProvider.Create(host, factory, tempFilesManager, traceSourceFactory, regexFactory, 
 					modelSynchronizationContext, globalSettings, fileSystem)));
 			logProviderFactoryRegistry.Register(new WindowsEventLog.Factory((host, connectParams, factory) =>
-				new WindowsEventLog.LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
+				WindowsEventLog.LogProvider.Create(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
 					modelSynchronizationContext, globalSettings, fileSystem)));
 		}
 

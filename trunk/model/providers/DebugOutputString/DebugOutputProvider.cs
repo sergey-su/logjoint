@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
-using System.Security.Permissions;
 using System.ComponentModel;
 using System.Xml;
 using System.Threading.Tasks;
@@ -12,45 +11,36 @@ namespace LogJoint.DebugOutput
 	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 	public class LogProvider : LiveLogProvider
 	{
-		readonly EventWaitHandle dataReadyEvt;
-		readonly EventWaitHandle bufferReadyEvt;
-		readonly SafeFileHandle bufferFile;
-		readonly SafeViewOfFileHandle bufferAddress;
+		EventWaitHandle dataReadyEvt;
+		EventWaitHandle bufferReadyEvt;
+		SafeFileHandle bufferFile;
+		SafeViewOfFileHandle bufferAddress;
 
-		public LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
+		private LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
 			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
 			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 			:
 			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(Factory.connectionIdentity),
 				tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
+		{}
+
+		public static async Task<ILogProvider> Create(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
+			ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
+			Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
 		{
+			LogProvider logProvider = new LogProvider(host, factory, tempFilesManager, traceSourceFactory,
+				regexFactory, modelSynchronizationContext, globalSettings, fileSystem);
 			try
 			{
-				dataReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_DATA_READY");
-				bufferReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_BUFFER_READY");
-				tracer.Info("Events opened OK. DBWIN_DATA_READY={0}, DBWIN_BUFFER_READY={1}",
-					dataReadyEvt.SafeWaitHandle.DangerousGetHandle(), bufferReadyEvt.SafeWaitHandle.DangerousGetHandle());
-
-				bufferFile = new SafeFileHandle(
-					Unmanaged.CreateFileMapping(new IntPtr(-1), IntPtr.Zero, Unmanaged.PAGE_READWRITE, 0, 1024, "DBWIN_BUFFER"), true);
-				if (bufferFile.IsInvalid)
-					throw new Win32Exception(Marshal.GetLastWin32Error());
-				tracer.Info("DBWIN_BUFFER shared file opened OK. Handle={0}", bufferFile.DangerousGetHandle());
-
-				bufferAddress = new SafeViewOfFileHandle(
-					Unmanaged.MapViewOfFile(bufferFile, Unmanaged.FILE_MAP_READ, 0, 0, 512), true);
-				if (bufferAddress.IsInvalid)
-					throw new Win32Exception(Marshal.GetLastWin32Error());
-				tracer.Info("View of file mapped OK. Ptr={0}", bufferAddress.DangerousGetHandle());
-
-				StartLiveLogThread();
+				logProvider.Init();
 			}
 			catch (Exception e)
 			{
-				tracer.Error(e, "Failed to initialize DebugOutput reader. Disposing what has been created so far.");
-				Cleanup();
+				logProvider.tracer.Error(e, "Failed to initialize DebugOutput reader. Disposing what has been created so far.");
+				await logProvider.Dispose();
 				throw;
 			}
+			return logProvider;
 		}
 
 		public override string GetTaskbarLogName()
@@ -62,6 +52,28 @@ namespace LogJoint.DebugOutput
 		{
 			Cleanup();
 			await base.Dispose();
+		}
+
+		private void Init()
+		{
+			dataReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_DATA_READY");
+			bufferReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_BUFFER_READY");
+			tracer.Info("Events opened OK. DBWIN_DATA_READY={0}, DBWIN_BUFFER_READY={1}",
+				dataReadyEvt.SafeWaitHandle.DangerousGetHandle(), bufferReadyEvt.SafeWaitHandle.DangerousGetHandle());
+
+			bufferFile = new SafeFileHandle(
+				Unmanaged.CreateFileMapping(new IntPtr(-1), IntPtr.Zero, Unmanaged.PAGE_READWRITE, 0, 1024, "DBWIN_BUFFER"), true);
+			if (bufferFile.IsInvalid)
+				throw new Win32Exception(Marshal.GetLastWin32Error());
+			tracer.Info("DBWIN_BUFFER shared file opened OK. Handle={0}", bufferFile.DangerousGetHandle());
+
+			bufferAddress = new SafeViewOfFileHandle(
+				Unmanaged.MapViewOfFile(bufferFile, Unmanaged.FILE_MAP_READ, 0, 0, 512), true);
+			if (bufferAddress.IsInvalid)
+				throw new Win32Exception(Marshal.GetLastWin32Error());
+			tracer.Info("View of file mapped OK. Ptr={0}", bufferAddress.DangerousGetHandle());
+
+			StartLiveLogThread(LiveLogListen);
 		}
 
 		private void Cleanup()
@@ -84,7 +96,7 @@ namespace LogJoint.DebugOutput
 			public static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, UInt32 dwDesiredAccess, UInt32 dwFileOffsetHigh, UInt32 dwFileOffsetLow, UInt32 dwNumberOfBytesToMap);
 		};
 
-		protected override async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
+		private async Task LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			await Task.Yield();
 			try
@@ -144,9 +156,9 @@ namespace LogJoint.DebugOutput
 
 	public class Factory : ILogProviderFactory
 	{
-		readonly Func<ILogProviderHost, Factory, ILogProvider> providerFactory;
+		readonly Func<ILogProviderHost, Factory, Task<ILogProvider>> providerFactory;
 
-		public Factory(Func<ILogProviderHost, Factory, ILogProvider> providerFactory)
+		public Factory(Func<ILogProviderHost, Factory, Task<ILogProvider>> providerFactory)
 		{
 			this.providerFactory = providerFactory;
 		}
@@ -187,7 +199,7 @@ namespace LogJoint.DebugOutput
 
 		Task<ILogProvider> ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return Task.FromResult(providerFactory(host, this));
+			return providerFactory(host, this);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
