@@ -661,11 +661,11 @@ namespace LogJoint.XmlFormat
 			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), tempFiles);
 		}
 
-		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		Task<ILogProvider> ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, 
+			return Task.FromResult<ILogProvider>(new StreamLogProvider(host, this, connectParams, 
 				@params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings),
-				tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem);
+				tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.Default; } }
@@ -777,9 +777,9 @@ namespace LogJoint.XmlFormat
 			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
-		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		public override Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return providerFactory(host, connectParams, this, @params => readerFactory(@params, formatInfo.Value));
+			return Task.FromResult(providerFactory(host, connectParams, this, @params => readerFactory(@params, formatInfo.Value)));
 		}
 
 		public override LogProviderFactoryFlag Flags

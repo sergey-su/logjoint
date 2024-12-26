@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LogJoint
@@ -46,7 +47,7 @@ namespace LogJoint
 		public abstract string UITypeKey { get; }
 		public abstract string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		public abstract IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
-		public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
+		public abstract Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
 		public abstract LogProviderFactoryFlag Flags { get; }
 
 		public UserDefinedFactoryBase(UserDefinedFactoryParams createParams, IRegexFactory regexFactory)

@@ -409,9 +409,9 @@ namespace LogJoint.RegularGrammar
 			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), tempFilesManager);
 		}
 
-		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		public override Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return providerFactory(host, connectParams, this, @params => readerFactory(@params, fmtInfo.Value));
+			return Task.FromResult(providerFactory(host, connectParams, this, @params => readerFactory(@params, fmtInfo.Value)));
 		}
 
 		public override LogProviderFactoryFlag Flags

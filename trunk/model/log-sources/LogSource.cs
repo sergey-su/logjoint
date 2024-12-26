@@ -75,7 +75,7 @@ namespace LogJoint
 			logSourceSpecificStorageEntry = await CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 			var extendedConnectionParams = connectionParams.Clone(true);
 			await LoadPersistedSettings(extendedConnectionParams);
-			provider = providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
+			provider = await providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
 			await LoadBookmarks();
 		}
 

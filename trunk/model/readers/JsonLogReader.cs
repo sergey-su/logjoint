@@ -388,9 +388,9 @@ namespace LogJoint.JsonFormat
 			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
-		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		public override Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return providerFactory(host, connectParams, this, @params => readerFactory(@params, formatInfo.Value));
+			return Task.FromResult(providerFactory(host, connectParams, this, @params => readerFactory(@params, formatInfo.Value)));
 		}
 
 		public override LogProviderFactoryFlag Flags

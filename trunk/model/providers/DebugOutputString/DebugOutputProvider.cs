@@ -185,9 +185,9 @@ namespace LogJoint.DebugOutput
 			return ret;
 		}
 
-		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		Task<ILogProvider> ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return providerFactory(host, this);
+			return Task.FromResult(providerFactory(host, this));
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

@@ -76,7 +76,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 		{
 			try
 			{
-				provider = factory.CreateFromConnectionParams(this, connectParams);
+				provider = await factory.CreateFromConnectionParams(this, connectParams);
 
 				var messages = new List<IMessage>();
 				await this.provider.EnumMessages(

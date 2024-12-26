@@ -133,7 +133,7 @@ namespace LogJoint
 		string CompanyName { get; }
 		string FormatName { get; }
 		string FormatDescription { get; }
-		ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
+		Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
 		string UITypeKey { get; }
 		string GetConnectionId(IConnectionParams connectParams);
 		string GetUserFriendlyConnectionName(IConnectionParams connectParams);
