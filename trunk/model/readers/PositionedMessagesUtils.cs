@@ -36,7 +36,7 @@ namespace LogJoint
 				null, MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageTimeIsNotNeeded,
 				MessagesParserDirection.Forward, null)), async parser =>
 			{
-				if (parser.ReadNext() == null)
+				if (await parser.ReadNext() == null)
 					return (long?)null;
 				IMessage p = await parser.ReadNext();
 				if (p == null)
