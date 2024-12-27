@@ -62,7 +62,6 @@ namespace LogJoint.UI.Presenters.PromptDialog
         class ViewState : IViewState
         {
             public string caption, prompt;
-            public AlertFlags flags;
             public string value;
             public TaskCompletionSource<string> taskSource;
 
