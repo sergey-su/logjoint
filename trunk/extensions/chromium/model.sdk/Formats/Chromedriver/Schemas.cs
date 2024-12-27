@@ -87,7 +87,7 @@ namespace LogJoint.Chromium.ChromeDriver
 
 			public class WebSocketBase: Base
 			{
-				public readonly static new string Prefix = Base.Prefix1 + "webSocket";
+				public readonly static string Prefix = Base.Prefix1 + "webSocket";
 			};
 
 			public class WebSocketCreated: WebSocketBase
