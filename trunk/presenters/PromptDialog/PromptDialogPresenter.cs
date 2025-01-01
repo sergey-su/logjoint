@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.PromptDialog
 {
-    public class Presenter: IPromptDialog, IViewModel
+    public class Presenter : IPromptDialog, IViewModel
     {
         readonly IChangeNotification changeNotification;
         ViewState viewState;

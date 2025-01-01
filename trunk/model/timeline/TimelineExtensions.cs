@@ -6,25 +6,25 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class TimelineExtensions : ITimelineExtensions
-	{
-		public TimelineExtensions()
-		{
-		}
+    public class TimelineExtensions : ITimelineExtensions
+    {
+        public TimelineExtensions()
+        {
+        }
 
-		string ITimelineExtensions.AddLifetimeBar(LifetimeBar bar)
-		{
-			string newId = string.Format("lifetimeBar#{0}", ++lastId);
-			lifetimeBars.Add(newId, bar);
-			return newId;
-		}
+        string ITimelineExtensions.AddLifetimeBar(LifetimeBar bar)
+        {
+            string newId = string.Format("lifetimeBar#{0}", ++lastId);
+            lifetimeBars.Add(newId, bar);
+            return newId;
+        }
 
-		void ITimelineExtensions.RemoveLifetimeBar(string id)
-		{
-			lifetimeBars.Remove(id);
-		}
+        void ITimelineExtensions.RemoveLifetimeBar(string id)
+        {
+            lifetimeBars.Remove(id);
+        }
 
-		int lastId = 0;
-		readonly Dictionary<string, LifetimeBar> lifetimeBars = new Dictionary<string,LifetimeBar>();
-	}
+        int lastId = 0;
+        readonly Dictionary<string, LifetimeBar> lifetimeBars = new Dictionary<string, LifetimeBar>();
+    }
 }

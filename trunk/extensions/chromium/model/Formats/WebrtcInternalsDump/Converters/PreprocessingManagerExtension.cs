@@ -5,47 +5,47 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Chromium.WebrtcInternalsDump
 {
-	public class PreprocessingManagerExtension : IPreprocessingManagerExtension
-	{
-		IStepsFactory preprocessingStepsFactory;
+    public class PreprocessingManagerExtension : IPreprocessingManagerExtension
+    {
+        IStepsFactory preprocessingStepsFactory;
 
-		public PreprocessingManagerExtension(Preprocessing.IStepsFactory preprocessingStepsFactory)
-		{
-			this.preprocessingStepsFactory = preprocessingStepsFactory;
-		}
+        public PreprocessingManagerExtension(Preprocessing.IStepsFactory preprocessingStepsFactory)
+        {
+            this.preprocessingStepsFactory = preprocessingStepsFactory;
+        }
 
-		IPreprocessingStep IPreprocessingManagerExtension.DetectFormat(PreprocessingStepParams fileInfo, IStreamHeader header)
-		{
-			if (IsWebrtcInternalsDump(header))
-				return new JsonUnpackPreprocessingStep(preprocessingStepsFactory, fileInfo);
-			return null;
-		}
+        IPreprocessingStep IPreprocessingManagerExtension.DetectFormat(PreprocessingStepParams fileInfo, IStreamHeader header)
+        {
+            if (IsWebrtcInternalsDump(header))
+                return new JsonUnpackPreprocessingStep(preprocessingStepsFactory, fileInfo);
+            return null;
+        }
 
-		IPreprocessingStep IPreprocessingManagerExtension.CreateStepByName(string stepName, PreprocessingStepParams stepParams)
-		{
-			if (stepName == JsonUnpackPreprocessingStep.stepName)
-				return new JsonUnpackPreprocessingStep(preprocessingStepsFactory, stepParams);
-			return null;
-		}
+        IPreprocessingStep IPreprocessingManagerExtension.CreateStepByName(string stepName, PreprocessingStepParams stepParams)
+        {
+            if (stepName == JsonUnpackPreprocessingStep.stepName)
+                return new JsonUnpackPreprocessingStep(preprocessingStepsFactory, stepParams);
+            return null;
+        }
 
-		IPreprocessingStep IPreprocessingManagerExtension.TryParseLaunchUri(Uri url)
-		{
-			return null;
-		}
+        IPreprocessingStep IPreprocessingManagerExtension.TryParseLaunchUri(Uri url)
+        {
+            return null;
+        }
 
-		Task IPreprocessingManagerExtension.FinalizePreprocessing(IPreprocessingStepCallback callback)
-		{
-			return Task.FromResult(0);
-		}
+        Task IPreprocessingManagerExtension.FinalizePreprocessing(IPreprocessingStepCallback callback)
+        {
+            return Task.FromResult(0);
+        }
 
-		static bool IsWebrtcInternalsDump(IStreamHeader header)
-		{
-			if (header.Header.Length == 0)
-				return false;
-			if ((char)header.Header[0] != '{')
-				return false;
-			var headerAsStr = new string(header.Header.Select(b => (char)b).ToArray());
-			return headerAsStr.Contains("getUserMedia");
-		}
-	};
+        static bool IsWebrtcInternalsDump(IStreamHeader header)
+        {
+            if (header.Header.Length == 0)
+                return false;
+            if ((char)header.Header[0] != '{')
+                return false;
+            var headerAsStr = new string(header.Header.Select(b => (char)b).ToArray());
+            return headerAsStr.Contains("getUserMedia");
+        }
+    };
 }

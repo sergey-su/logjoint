@@ -5,40 +5,40 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.SharingDialog
 {
-	public interface IView
-	{
-		void SetEventsHandler(IViewEvents presenter);
-		void Show();
-		void UpdateDescription(string value);
-		void UpdateWorkspaceUrlEditBox(string value, bool isHintValue, bool allowCopying);
-		void UpdateDialogButtons(bool uploadEnabled, string uploadText, string cancelText);
-		void UpdateProgressIndicator(string text, bool isError, string details);
-		string GetWorkspaceNameEditValue();
-		string GetWorkspaceAnnotationEditValue();
-		void UpdateWorkspaceEditControls(bool enabled, string nameValue, string nameBanner, string nameWarning, string annotationValue);
-	};
+    public interface IView
+    {
+        void SetEventsHandler(IViewEvents presenter);
+        void Show();
+        void UpdateDescription(string value);
+        void UpdateWorkspaceUrlEditBox(string value, bool isHintValue, bool allowCopying);
+        void UpdateDialogButtons(bool uploadEnabled, string uploadText, string cancelText);
+        void UpdateProgressIndicator(string text, bool isError, string details);
+        string GetWorkspaceNameEditValue();
+        string GetWorkspaceAnnotationEditValue();
+        void UpdateWorkspaceEditControls(bool enabled, string nameValue, string nameBanner, string nameWarning, string annotationValue);
+    };
 
-	public interface IPresenter
-	{
-		DialogAvailability Availability { get; }
-		bool IsBusy { get; }
-		void ShowDialog();
+    public interface IPresenter
+    {
+        DialogAvailability Availability { get; }
+        bool IsBusy { get; }
+        void ShowDialog();
 
-		event EventHandler AvailabilityChanged;
-		event EventHandler IsBusyChanged;
-	};
+        event EventHandler AvailabilityChanged;
+        event EventHandler IsBusyChanged;
+    };
 
-	public enum DialogAvailability
-	{
-		PermanentlyUnavaliable,
-		TemporarilyUnavailable,
-		Available
-	};
+    public enum DialogAvailability
+    {
+        PermanentlyUnavaliable,
+        TemporarilyUnavailable,
+        Available
+    };
 
-	public interface IViewEvents
-	{
-		void OnUploadButtonClicked();
-		void OnStatusLinkClicked();
-		void OnCopyUrlClicked();
-	};
+    public interface IViewEvents
+    {
+        void OnUploadButtonClicked();
+        void OnStatusLinkClicked();
+        void OnCopyUrlClicked();
+    };
 };

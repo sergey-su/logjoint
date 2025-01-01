@@ -3,26 +3,26 @@ using System.ComponentModel;
 
 namespace LogJoint.Progress
 {
-	public interface IProgressEventsSink : IDisposable
-	{
-		void SetValue(double value);
-	}
+    public interface IProgressEventsSink : IDisposable
+    {
+        void SetValue(double value);
+    }
 
-	public interface IProgressAggregator: IDisposable
-	{
-		IProgressEventsSink CreateProgressSink();
+    public interface IProgressAggregator : IDisposable
+    {
+        IProgressEventsSink CreateProgressSink();
 
-		IProgressAggregator CreateChildAggregator();
+        IProgressAggregator CreateChildAggregator();
 
-		double? ProgressValue { get; }
+        double? ProgressValue { get; }
 
-		event EventHandler<EventArgs> ProgressStarted;
-		event EventHandler<ProgressChangedEventArgs> ProgressChanged;
-		event EventHandler<EventArgs> ProgressEnded;
-	};
+        event EventHandler<EventArgs> ProgressStarted;
+        event EventHandler<ProgressChangedEventArgs> ProgressChanged;
+        event EventHandler<EventArgs> ProgressEnded;
+    };
 
-	public interface IProgressAggregatorFactory
-	{
-		IProgressAggregator CreateProgressAggregator();
-	};
+    public interface IProgressAggregatorFactory
+    {
+        IProgressAggregator CreateProgressAggregator();
+    };
 }

@@ -3,22 +3,22 @@ using System.Linq;
 
 namespace LogJoint.Drawing
 {
-	public partial class Graphics: IDisposable
-	{
+    public partial class Graphics : IDisposable
+    {
 #if WIN
-		public Graphics(System.Drawing.Graphics g, bool ownsGraphics = false)
-		{
-			Init(g, ownsGraphics);
-		}
-		partial void Init(System.Drawing.Graphics g, bool ownsGraphics);
+        public Graphics(System.Drawing.Graphics g, bool ownsGraphics = false)
+        {
+            Init(g, ownsGraphics);
+        }
+        partial void Init(System.Drawing.Graphics g, bool ownsGraphics);
 
-		public class PerformanceCounters
-		{
-			internal PerformanceCounters(Profiling.Counters countersContainer)
-			{
-			}
-		};
-		partial void ConfigureProfilingImpl(PerformanceCounters counters, Profiling.Counters.Writer writer);
+        public class PerformanceCounters
+        {
+            internal PerformanceCounters(Profiling.Counters countersContainer)
+            {
+            }
+        };
+        partial void ConfigureProfilingImpl(PerformanceCounters counters, Profiling.Counters.Writer writer);
 #endif
 #if MONOMAC
 		public Graphics()
@@ -57,232 +57,232 @@ namespace LogJoint.Drawing
 
 		partial void ConfigureProfilingImpl (PerformanceCounters counters, Profiling.Counters.Writer writer);
 #endif
-		public static PerformanceCounters CreateCounters (Profiling.Counters countersContainer)
-		{
-			return new PerformanceCounters (countersContainer);
-		}
+        public static PerformanceCounters CreateCounters(Profiling.Counters countersContainer)
+        {
+            return new PerformanceCounters(countersContainer);
+        }
 
-		public void ConfigureProfiling (PerformanceCounters counters, Profiling.Counters.Writer writer)
-		{
-			ConfigureProfilingImpl (counters, writer);
-		}
+        public void ConfigureProfiling(PerformanceCounters counters, Profiling.Counters.Writer writer)
+        {
+            ConfigureProfilingImpl(counters, writer);
+        }
 
-		public void FillRectangle(Brush brush, RectangleF rect)
-		{
-			FillRectangleImp(brush, rect);
-		}
+        public void FillRectangle(Brush brush, RectangleF rect)
+        {
+            FillRectangleImp(brush, rect);
+        }
 
-		public void FillRoundRectangle(Brush brush, RectangleF rect, float radius)
-		{
-			FillRoundRectangleImp(brush, rect, radius);
-		}
+        public void FillRoundRectangle(Brush brush, RectangleF rect, float radius)
+        {
+            FillRoundRectangleImp(brush, rect, radius);
+        }
 
-		public void DrawString(string s, Font font, Brush brush, PointF pt, StringFormat format = null)
-		{
-			DrawStringImp(s, font, brush, pt, format);
-		}
+        public void DrawString(string s, Font font, Brush brush, PointF pt, StringFormat format = null)
+        {
+            DrawStringImp(s, font, brush, pt, format);
+        }
 
-		public void DrawString(string s, Font font, Brush brush, RectangleF frame, StringFormat format = null)
-		{
-			DrawStringImp(s, font, brush, frame, format);
-		}
+        public void DrawString(string s, Font font, Brush brush, RectangleF frame, StringFormat format = null)
+        {
+            DrawStringImp(s, font, brush, frame, format);
+        }
 
-		public RectangleF MeasureCharacterRange(string str, Font font, StringFormat format, CharacterRange range)
-		{
-			RectangleF r = new RectangleF();
-			if (range.Length != 0)
-				MeasureCharacterRangeImp(str, font, format, range, ref r);
-			return r;
-		}
+        public RectangleF MeasureCharacterRange(string str, Font font, StringFormat format, CharacterRange range)
+        {
+            RectangleF r = new RectangleF();
+            if (range.Length != 0)
+                MeasureCharacterRangeImp(str, font, format, range, ref r);
+            return r;
+        }
 
-		public void DrawRectangle (Pen pen, RectangleF rect)
-		{
-			DrawRectangleImp(pen, rect);
-		}
+        public void DrawRectangle(Pen pen, RectangleF rect)
+        {
+            DrawRectangleImp(pen, rect);
+        }
 
-		public void DrawEllipse(Pen pen, RectangleF rect)
-		{
-			DrawEllipseImp(pen, rect);
-		}
+        public void DrawEllipse(Pen pen, RectangleF rect)
+        {
+            DrawEllipseImp(pen, rect);
+        }
 
-		public void DrawRoundRectangle(Pen pen, RectangleF rect, float radius)
-		{
-			DrawRoundRectangleImp(pen, rect, radius);
-		}
+        public void DrawRoundRectangle(Pen pen, RectangleF rect, float radius)
+        {
+            DrawRoundRectangleImp(pen, rect, radius);
+        }
 
-		public void DrawLine(Pen pen, PointF pt1, PointF pt2)
-		{
-			DrawLineImp(pen, pt1, pt2);
-		}
+        public void DrawLine(Pen pen, PointF pt1, PointF pt2)
+        {
+            DrawLineImp(pen, pt1, pt2);
+        }
 
-		public SizeF MeasureString (string text, Font font)
-		{
-			SizeF ret = new SizeF();
-			MeasureStringImp(text, font, ref ret);
-			return ret;
-		}
+        public SizeF MeasureString(string text, Font font)
+        {
+            SizeF ret = new SizeF();
+            MeasureStringImp(text, font, ref ret);
+            return ret;
+        }
 
-		public SizeF MeasureString(string text, Font font, StringFormat format, SizeF frameSz)
-		{
-			SizeF ret = new SizeF();
-			MeasureStringImp(text, font, format, frameSz, ref ret);
-			return ret;
-		}
+        public SizeF MeasureString(string text, Font font, StringFormat format, SizeF frameSz)
+        {
+            SizeF ret = new SizeF();
+            MeasureStringImp(text, font, format, frameSz, ref ret);
+            return ret;
+        }
 
-		public void DrawImage(Image image, RectangleF bounds)
-		{
-			DrawImageImp(image, bounds);
-		}
+        public void DrawImage(Image image, RectangleF bounds)
+        {
+            DrawImageImp(image, bounds);
+        }
 
-		public void DrawLines(Pen pen, PointF[] points)
-		{
-			DrawLinesImp(pen, points);
-		}
+        public void DrawLines(Pen pen, PointF[] points)
+        {
+            DrawLinesImp(pen, points);
+        }
 
-		public void FillPolygon(Brush brush, PointF[] points)
-		{
-			FillPolygonImp(brush, points);
-		}
+        public void FillPolygon(Brush brush, PointF[] points)
+        {
+            FillPolygonImp(brush, points);
+        }
 
-		public void PushState()
-		{
-			PushStateImp();
-		}
+        public void PushState()
+        {
+            PushStateImp();
+        }
 
-		public void PopState()
-		{
-			PopStateImp();
-		}
+        public void PopState()
+        {
+            PopStateImp();
+        }
 
-		public void EnableAntialiasing(bool value)
-		{
-			EnableAntialiasingImp(value);
-		}
+        public void EnableAntialiasing(bool value)
+        {
+            EnableAntialiasingImp(value);
+        }
 
-		public void EnableTextAntialiasing(bool value)
-		{
-			EnableTextAntialiasingImp(value);
-		}
+        public void EnableTextAntialiasing(bool value)
+        {
+            EnableTextAntialiasingImp(value);
+        }
 
-		public void TranslateTransform(float dx, float dy)
-		{
-			TranslateTransformImp(dx, dy);
-		}
+        public void TranslateTransform(float dx, float dy)
+        {
+            TranslateTransformImp(dx, dy);
+        }
 
-		public void ScaleTransform(float sx, float sy)
-		{
-			ScaleTransformImp(sx, sy);
-		}
+        public void ScaleTransform(float sx, float sy)
+        {
+            ScaleTransformImp(sx, sy);
+        }
 
-		public void RotateTransform(float degrees)
-		{
-			RotateTransformImp(degrees);
-		}
+        public void RotateTransform(float degrees)
+        {
+            RotateTransformImp(degrees);
+        }
 
 
-		public void IntsersectClip(RectangleF r)
-		{
-			IntersectClipImp(r);
-		}
+        public void IntsersectClip(RectangleF r)
+        {
+            IntersectClipImp(r);
+        }
 
-		partial void FillRectangleImp(Brush brush, RectangleF rect);
-		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius);
-		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format);
-		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format);
-		partial void DrawRectangleImp(Pen pen, RectangleF rect);
-		partial void DrawEllipseImp(Pen pen, RectangleF rect);
-		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius);
-		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2);
-		partial void MeasureStringImp(string text, Font font, ref SizeF ret);
-		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret);
-		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret);
-		partial void DrawImageImp(Image image, RectangleF bounds);
-		partial void DrawLinesImp(Pen pen, PointF[] points);
-		partial void FillPolygonImp(Brush brush, PointF[] points);
-		partial void PushStateImp();
-		partial void PopStateImp();
-		partial void EnableAntialiasingImp(bool value);
-		partial void EnableTextAntialiasingImp(bool value);
-		partial void IntersectClipImp(RectangleF r);
-		partial void TranslateTransformImp(float x, float y);
-		partial void ScaleTransformImp(float x, float y);
-		partial void RotateTransformImp(float degrees);
-	};
+        partial void FillRectangleImp(Brush brush, RectangleF rect);
+        partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius);
+        partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format);
+        partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format);
+        partial void DrawRectangleImp(Pen pen, RectangleF rect);
+        partial void DrawEllipseImp(Pen pen, RectangleF rect);
+        partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius);
+        partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2);
+        partial void MeasureStringImp(string text, Font font, ref SizeF ret);
+        partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret);
+        partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret);
+        partial void DrawImageImp(Image image, RectangleF bounds);
+        partial void DrawLinesImp(Pen pen, PointF[] points);
+        partial void FillPolygonImp(Brush brush, PointF[] points);
+        partial void PushStateImp();
+        partial void PopStateImp();
+        partial void EnableAntialiasingImp(bool value);
+        partial void EnableTextAntialiasingImp(bool value);
+        partial void IntersectClipImp(RectangleF r);
+        partial void TranslateTransformImp(float x, float y);
+        partial void ScaleTransformImp(float x, float y);
+        partial void RotateTransformImp(float degrees);
+    };
 
-	public partial class Pen
-	{
-		public Pen(Color color, float width, float[] dashPattern = null)
-		{
-			Init(new ColorRef(color), width, dashPattern);
-		}
+    public partial class Pen
+    {
+        public Pen(Color color, float width, float[] dashPattern = null)
+        {
+            Init(new ColorRef(color), width, dashPattern);
+        }
 
-		public Pen (ColorRef color, float width, float [] dashPattern = null)
-		{
-			Init (color, width, dashPattern);
-		}
+        public Pen(ColorRef color, float width, float[] dashPattern = null)
+        {
+            Init(color, width, dashPattern);
+        }
 
-		partial void Init(ColorRef color, float width, float [] dashPattern);
-	};
+        partial void Init(ColorRef color, float width, float[] dashPattern);
+    };
 
-	public partial class Brush: IDisposable
-	{
-		public Brush(Color color)
-		{
-			Init(new ColorRef(color));
-		}
+    public partial class Brush : IDisposable
+    {
+        public Brush(Color color)
+        {
+            Init(new ColorRef(color));
+        }
 
-		public Brush (ColorRef color)
-		{
-			Init(color);
-		}
+        public Brush(ColorRef color)
+        {
+            Init(color);
+        }
 
-		partial void Init(ColorRef color);
-	}; 
+        partial void Init(ColorRef color);
+    };
 
-	public partial class Font: IDisposable
-	{
-		public Font(string familyName, float emSize, FontStyle style = FontStyle.Regular)
-		{
-			Init(familyName, emSize, style);
-		}
+    public partial class Font : IDisposable
+    {
+        public Font(string familyName, float emSize, FontStyle style = FontStyle.Regular)
+        {
+            Init(familyName, emSize, style);
+        }
 
-		partial void Init(string familyName, float emSize, FontStyle style);
-	};
+        partial void Init(string familyName, float emSize, FontStyle style);
+    };
 
-	public struct CharacterRange
-	{
-		public int First, Length;
+    public struct CharacterRange
+    {
+        public int First, Length;
 
-		public CharacterRange(int f, int l)
-		{
-			First = f;
-			Length = l;
-		}
-	};
+        public CharacterRange(int f, int l)
+        {
+            First = f;
+            Length = l;
+        }
+    };
 
-	[Flags]
-	public enum FontStyle
-	{
-		Regular = 0,
-		Bold = 1,
-		Italic = 2,
-		Underline = 4,
-		Strikeout = 8,
-	};
+    [Flags]
+    public enum FontStyle
+    {
+        Regular = 0,
+        Bold = 1,
+        Italic = 2,
+        Underline = 4,
+        Strikeout = 8,
+    };
 
-	public enum StringAlignment
-	{
-		Near,
-		Center,
-		Far,
-	};
+    public enum StringAlignment
+    {
+        Near,
+        Center,
+        Far,
+    };
 
-	public partial class Image: IDisposable
-	{
+    public partial class Image : IDisposable
+    {
 #if WIN
-		public Image(System.Drawing.Image img) { Init(img); }
+        public Image(System.Drawing.Image img) { Init(img); }
 
-		partial void Init(System.Drawing.Image img);
+        partial void Init(System.Drawing.Image img);
 #endif
 #if MONOMAC
 		public Image(CoreGraphics.CGImage img) { Init(img); }
@@ -295,277 +295,277 @@ namespace LogJoint.Drawing
 		partial void Init(CoreGraphics.CGImage img);
 #endif
 
-		public int Width { get { return Size.Width; } }
-		public int Height { get { return Size.Height; } }
+        public int Width { get { return Size.Width; } }
+        public int Height { get { return Size.Height; } }
 
-		public Size Size
-		{
-			get
-			{
-				Size ret = new Size();
-				SizeImp(ref ret);
-				return ret;
-			}
-		}
+        public Size Size
+        {
+            get
+            {
+                Size ret = new Size();
+                SizeImp(ref ret);
+                return ret;
+            }
+        }
 
-		partial void SizeImp(ref Size ret);
-	};
+        partial void SizeImp(ref Size ret);
+    };
 
-	public enum LineBreakMode
-	{
-		WrapWords,
-		WrapChars,
-		SingleLineEndEllipsis
-	};
+    public enum LineBreakMode
+    {
+        WrapWords,
+        WrapChars,
+        SingleLineEndEllipsis
+    };
 
-	public partial class StringFormat
-	{
-		public StringFormat(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, 
-			LineBreakMode lineBreakMode = LineBreakMode.WrapWords)
-		{
-			Init(horizontalAlignment, verticalAlignment, lineBreakMode);
-		}
+    public partial class StringFormat
+    {
+        public StringFormat(StringAlignment horizontalAlignment, StringAlignment verticalAlignment,
+            LineBreakMode lineBreakMode = LineBreakMode.WrapWords)
+        {
+            Init(horizontalAlignment, verticalAlignment, lineBreakMode);
+        }
 
-		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, LineBreakMode lineBreakMode);
+        partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, LineBreakMode lineBreakMode);
 #if WIN
-		// todo: get rid of this ctr
-		public StringFormat(System.Drawing.StringFormat f) { Init(f); }
+        // todo: get rid of this ctr
+        public StringFormat(System.Drawing.StringFormat f) { Init(f); }
 
-		partial void Init(System.Drawing.StringFormat f);
+        partial void Init(System.Drawing.StringFormat f);
 #endif
-	};
+    };
 
-	public static class Extensions
-	{
-		public static Rectangle ToRectangle(this RectangleF rect)
-		{
-			return new Rectangle((int)rect.Left, (int)rect.Top, (int)rect.Width, (int)rect.Height);
-		}
+    public static class Extensions
+    {
+        public static Rectangle ToRectangle(this RectangleF rect)
+        {
+            return new Rectangle((int)rect.Left, (int)rect.Top, (int)rect.Width, (int)rect.Height);
+        }
 
-		public static RectangleF ToRectangleF(this Rectangle rect)
-		{
-			return new RectangleF(rect.Left, rect.Top, rect.Width, rect.Height);
-		}
+        public static RectangleF ToRectangleF(this Rectangle rect)
+        {
+            return new RectangleF(rect.Left, rect.Top, rect.Width, rect.Height);
+        }
 
-		public static Point ToPoint(this PointF pt)
-		{
-			return new Point((int)pt.X, (int)pt.Y);
-		}
+        public static Point ToPoint(this PointF pt)
+        {
+            return new Point((int)pt.X, (int)pt.Y);
+        }
 
-		public static PointF ToPointF(this Point pt)
-		{
-			return new PointF(pt.X, pt.Y);
-		}
+        public static PointF ToPointF(this Point pt)
+        {
+            return new PointF(pt.X, pt.Y);
+        }
 
-		public static void DrawRectangle (this Graphics g, Pen pen, Rectangle rect)
-		{
-			g.DrawRectangle(pen, rect.ToRectangleF());
-		}
+        public static void DrawRectangle(this Graphics g, Pen pen, Rectangle rect)
+        {
+            g.DrawRectangle(pen, rect.ToRectangleF());
+        }
 
-		public static void DrawLine(this Graphics g, Pen pen, float x1, float y1, float x2, float y2)
-		{
-			g.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
-		}
+        public static void DrawLine(this Graphics g, Pen pen, float x1, float y1, float x2, float y2)
+        {
+            g.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
+        }
 
-		public static void DrawLine(this Graphics g, Pen pen, int x1, int y1, int x2, int y2)
-		{
-			g.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
-		}
+        public static void DrawLine(this Graphics g, Pen pen, int x1, int y1, int x2, int y2)
+        {
+            g.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
+        }
 
-		public static void DrawImage(this Graphics g, Image img, float x, float y, float width, float height)
-		{
-			g.DrawImage(img, new RectangleF(
-				x, y, width, height
-			));
-		}
+        public static void DrawImage(this Graphics g, Image img, float x, float y, float width, float height)
+        {
+            g.DrawImage(img, new RectangleF(
+                x, y, width, height
+            ));
+        }
 
-		public static void DrawString(this Graphics g, string s, Font font, Brush brush, float x, float y, StringFormat format = null)
-		{
-			g.DrawString(s, font, brush, new PointF(x, y), format);
-		}
+        public static void DrawString(this Graphics g, string s, Font font, Brush brush, float x, float y, StringFormat format = null)
+        {
+            g.DrawString(s, font, brush, new PointF(x, y), format);
+        }
 
-		public static void DrawLines(this Graphics g, Pen pen, Point[] points)
-		{
-			g.DrawLines(pen, points.Select(p => p.ToPointF()).ToArray());
-		}
+        public static void DrawLines(this Graphics g, Pen pen, Point[] points)
+        {
+            g.DrawLines(pen, points.Select(p => p.ToPointF()).ToArray());
+        }
 
-		public static void FillPolygon(this Graphics g, Brush brush, Point[] points)
-		{
-			g.FillPolygon(brush, points.Select(p => p.ToPointF()).ToArray());
-		}
+        public static void FillPolygon(this Graphics g, Brush brush, Point[] points)
+        {
+            g.FillPolygon(brush, points.Select(p => p.ToPointF()).ToArray());
+        }
 
-		public static void FillRectangle(this Graphics g, Brush brush, Rectangle rect)
-		{
-			g.FillRectangle(brush, rect.ToRectangleF());
-		}
+        public static void FillRectangle(this Graphics g, Brush brush, Rectangle rect)
+        {
+            g.FillRectangle(brush, rect.ToRectangleF());
+        }
 
-		public static void FillRectangle(this Graphics g, Brush brush, int x, int y, int w, int h)
-		{
-			g.FillRectangle(brush, new RectangleF(x, y, w, h));
-		}
+        public static void FillRectangle(this Graphics g, Brush brush, int x, int y, int w, int h)
+        {
+            g.FillRectangle(brush, new RectangleF(x, y, w, h));
+        }
 
-		public static void DrawRectangle(this Graphics g, Pen pen, int x, int y, int w, int h)
-		{
-			g.DrawRectangle(pen, new RectangleF(x, y, w, h));
-		}
+        public static void DrawRectangle(this Graphics g, Pen pen, int x, int y, int w, int h)
+        {
+            g.DrawRectangle(pen, new RectangleF(x, y, w, h));
+        }
 
-		public static SizeF Scale(this SizeF sz, float sx, float sy)
-		{
-			return new SizeF(sz.Width * sx, sz.Height * sy);
-		}
+        public static SizeF Scale(this SizeF sz, float sx, float sy)
+        {
+            return new SizeF(sz.Width * sx, sz.Height * sy);
+        }
 
-		public static SizeF Scale(this SizeF sz, float s)
-		{
-			return new SizeF(sz.Width * s, sz.Height * s);
-		}
+        public static SizeF Scale(this SizeF sz, float s)
+        {
+            return new SizeF(sz.Width * s, sz.Height * s);
+        }
 
-		public static SizeF GetImageSize(SizeF physicalSize, float? width = null, float? height = null)
-		{
-			if (width == null && height == null)
-				return physicalSize;
-			if (width != null && height != null)
-				return new SizeF(width.Value, height.Value);
-			if (width != null)
-				return new SizeF(width.Value, physicalSize.Height * width.Value / physicalSize.Width);
-			if (height != null)
-				return new SizeF(physicalSize.Width * height.Value / physicalSize.Height, height.Value);
-			return physicalSize;
-		}
+        public static SizeF GetImageSize(SizeF physicalSize, float? width = null, float? height = null)
+        {
+            if (width == null && height == null)
+                return physicalSize;
+            if (width != null && height != null)
+                return new SizeF(width.Value, height.Value);
+            if (width != null)
+                return new SizeF(width.Value, physicalSize.Height * width.Value / physicalSize.Width);
+            if (height != null)
+                return new SizeF(physicalSize.Width * height.Value / physicalSize.Height, height.Value);
+            return physicalSize;
+        }
 
-		public static SizeF GetSize(this Image img, float? width = null, float? height = null)
-		{
-			return GetImageSize(img.Size, width, height);
-		}
-	};
+        public static SizeF GetSize(this Image img, float? width = null, float? height = null)
+        {
+            return GetImageSize(img.Size, width, height);
+        }
+    };
 
-	public static class SystemColors
-	{
-		public static ColorRef Text { get { return new ColorRef(SystemColorsImpl.instance.text); } }
-		public static ColorRef TextBackground { get { return new ColorRef(SystemColorsImpl.instance.textBackground); } }
-		public static ColorRef Link { get { return new ColorRef (SystemColorsImpl.instance.link); } }
-	};
+    public static class SystemColors
+    {
+        public static ColorRef Text { get { return new ColorRef(SystemColorsImpl.instance.text); } }
+        public static ColorRef TextBackground { get { return new ColorRef(SystemColorsImpl.instance.textBackground); } }
+        public static ColorRef Link { get { return new ColorRef(SystemColorsImpl.instance.link); } }
+    };
 
-	public struct ColorRef
-	{
-		public Color Value => getter ();
+    public struct ColorRef
+    {
+        public Color Value => getter();
 
-		internal ColorRef (Func<Color> value)
-		{
-			getter = value;
-		}
+        internal ColorRef(Func<Color> value)
+        {
+            getter = value;
+        }
 
-		internal ColorRef (Color value): this(() => value)
-		{
-		}
+        internal ColorRef(Color value) : this(() => value)
+        {
+        }
 
-		internal readonly Func<Color> getter;
-	};
+        internal readonly Func<Color> getter;
+    };
 
-	internal partial class SystemColorsImpl
-	{
-		public Func<Color> text;
-		public Func<Color> textBackground;
-		public Func<Color> link;
+    internal partial class SystemColorsImpl
+    {
+        public Func<Color> text;
+        public Func<Color> textBackground;
+        public Func<Color> link;
 
-		public SystemColorsImpl ()
-		{
-			Init ();
-		}
-		partial void Init ();
-		internal static SystemColorsImpl instance = new SystemColorsImpl ();
-	};
+        public SystemColorsImpl()
+        {
+            Init();
+        }
+        partial void Init();
+        internal static SystemColorsImpl instance = new SystemColorsImpl();
+    };
 
-	public static class Brushes
-	{
-		public static readonly Brush White = new Brush(Color.White);
-		public static readonly Brush Red = new Brush(Color.Red);
-		public static readonly Brush Green = new Brush(Color.Green);
-		public static readonly Brush Blue = new Brush(Color.Blue);
-		public static readonly Brush DarkGray = new Brush(Color.DarkGray);
-		public static readonly Brush Black = new Brush(Color.Black);
-		public static readonly Brush Transparent = new Brush(Color.Transparent);
-		public static readonly Brush Text = new Brush(SystemColors.Text);
-		public static readonly Brush TextBackground = new Brush(SystemColors.TextBackground);
-	};
+    public static class Brushes
+    {
+        public static readonly Brush White = new Brush(Color.White);
+        public static readonly Brush Red = new Brush(Color.Red);
+        public static readonly Brush Green = new Brush(Color.Green);
+        public static readonly Brush Blue = new Brush(Color.Blue);
+        public static readonly Brush DarkGray = new Brush(Color.DarkGray);
+        public static readonly Brush Black = new Brush(Color.Black);
+        public static readonly Brush Transparent = new Brush(Color.Transparent);
+        public static readonly Brush Text = new Brush(SystemColors.Text);
+        public static readonly Brush TextBackground = new Brush(SystemColors.TextBackground);
+    };
 
-	public static class Pens
-	{
-		public static readonly Pen Red = new Pen(Color.Red, 1);
-		public static readonly Pen Green = new Pen(Color.Green, 1);
-		public static readonly Pen Blue = new Pen(Color.Blue, 1);
-		public static readonly Pen White = new Pen(Color.White, 1);
-		public static readonly Pen Black = new Pen(Color.Black, 1);
-		public static readonly Pen DarkGray = new Pen(Color.DarkGray, 1);
-	};
+    public static class Pens
+    {
+        public static readonly Pen Red = new Pen(Color.Red, 1);
+        public static readonly Pen Green = new Pen(Color.Green, 1);
+        public static readonly Pen Blue = new Pen(Color.Blue, 1);
+        public static readonly Pen White = new Pen(Color.White, 1);
+        public static readonly Pen Black = new Pen(Color.Black, 1);
+        public static readonly Pen DarkGray = new Pen(Color.DarkGray, 1);
+    };
 
 #if WIN
-	public static class PrimitivesExtensions
-	{
-		public static RectangleF ToRectangleF(this System.Drawing.RectangleF r)
-		{
-			return new RectangleF(r.X, r.Y, r.Width, r.Height);
-		}
+    public static class PrimitivesExtensions
+    {
+        public static RectangleF ToRectangleF(this System.Drawing.RectangleF r)
+        {
+            return new RectangleF(r.X, r.Y, r.Width, r.Height);
+        }
 
-		public static System.Drawing.RectangleF ToSystemDrawingObject(this RectangleF r)
-		{
-			return new System.Drawing.RectangleF(r.X, r.Y, r.Width, r.Height);
-		}
+        public static System.Drawing.RectangleF ToSystemDrawingObject(this RectangleF r)
+        {
+            return new System.Drawing.RectangleF(r.X, r.Y, r.Width, r.Height);
+        }
 
-		public static Rectangle ToRectangle(this System.Drawing.Rectangle r)
-		{
-			return new Rectangle(r.X, r.Y, r.Width, r.Height);
-		}
+        public static Rectangle ToRectangle(this System.Drawing.Rectangle r)
+        {
+            return new Rectangle(r.X, r.Y, r.Width, r.Height);
+        }
 
-		public static System.Drawing.Rectangle ToSystemDrawingObject(this Rectangle r)
-		{
-			return new System.Drawing.Rectangle(r.X, r.Y, r.Width, r.Height);
-		}
+        public static System.Drawing.Rectangle ToSystemDrawingObject(this Rectangle r)
+        {
+            return new System.Drawing.Rectangle(r.X, r.Y, r.Width, r.Height);
+        }
 
-		public static Point ToPoint(this System.Drawing.Point p)
-		{
-			return new Point(p.X, p.Y);
-		}
+        public static Point ToPoint(this System.Drawing.Point p)
+        {
+            return new Point(p.X, p.Y);
+        }
 
-		public static System.Drawing.Point ToSystemDrawingObject(this Point p)
-		{
-			return new System.Drawing.Point(p.X, p.Y);
-		}
+        public static System.Drawing.Point ToSystemDrawingObject(this Point p)
+        {
+            return new System.Drawing.Point(p.X, p.Y);
+        }
 
-		public static System.Drawing.PointF ToSystemDrawingObject(this PointF p)
-		{
-			return new System.Drawing.PointF(p.X, p.Y);
-		}
+        public static System.Drawing.PointF ToSystemDrawingObject(this PointF p)
+        {
+            return new System.Drawing.PointF(p.X, p.Y);
+        }
 
-		public static Size ToSize(this System.Drawing.Size s)
-		{
-			return new Size(s.Width, s.Height);
-		}
+        public static Size ToSize(this System.Drawing.Size s)
+        {
+            return new Size(s.Width, s.Height);
+        }
 
-		public static System.Drawing.Size ToSystemDrawingObject(this Size sz)
-		{
-			return new System.Drawing.Size(sz.Width, sz.Height);
-		}
+        public static System.Drawing.Size ToSystemDrawingObject(this Size sz)
+        {
+            return new System.Drawing.Size(sz.Width, sz.Height);
+        }
 
-		public static SizeF ToSizeF(this System.Drawing.SizeF s)
-		{
-			return new SizeF(s.Width, s.Height);
-		}
+        public static SizeF ToSizeF(this System.Drawing.SizeF s)
+        {
+            return new SizeF(s.Width, s.Height);
+        }
 
-		public static System.Drawing.SizeF ToSystemDrawingObject(this SizeF sz)
-		{
-			return new System.Drawing.SizeF(sz.Width, sz.Height);
-		}
+        public static System.Drawing.SizeF ToSystemDrawingObject(this SizeF sz)
+        {
+            return new System.Drawing.SizeF(sz.Width, sz.Height);
+        }
 
-		public static System.Drawing.Color ToSystemDrawingObject(this Color cl)
-		{
-			return System.Drawing.Color.FromArgb(cl.ToArgb());
-		}
+        public static System.Drawing.Color ToSystemDrawingObject(this Color cl)
+        {
+            return System.Drawing.Color.FromArgb(cl.ToArgb());
+        }
 
-		public static Color ToColor(this System.Drawing.Color cl)
-		{
-			return Color.FromArgb(cl.ToArgb());
-		}
-	};
+        public static Color ToColor(this System.Drawing.Color cl)
+        {
+            return Color.FromArgb(cl.ToArgb());
+        }
+    };
 #endif
 
 #if MONOMAC

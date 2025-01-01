@@ -7,41 +7,41 @@ using System.Xml.Linq;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
-	public class ThrottlingToastNotificationItem: IToastNotificationItem
-	{
-		bool isActive;
+    public class ThrottlingToastNotificationItem : IToastNotificationItem
+    {
+        bool isActive;
 
-		public ThrottlingToastNotificationItem()
-		{
-		}
+        public ThrottlingToastNotificationItem()
+        {
+        }
 
-		public event EventHandler<ItemChangeEventArgs> Changed;
+        public event EventHandler<ItemChangeEventArgs> Changed;
 
-		void IToastNotificationItem.PerformAction (string actionId)
-		{
-		}
+        void IToastNotificationItem.PerformAction(string actionId)
+        {
+        }
 
-		bool IToastNotificationItem.IsActive
-		{
-			get { return isActive; }
-		}
+        bool IToastNotificationItem.IsActive
+        {
+            get { return isActive; }
+        }
 
-		string IToastNotificationItem.Contents
-		{
-			get { return "Dense data is throttled on this view"; }
-		}
+        string IToastNotificationItem.Contents
+        {
+            get { return "Dense data is throttled on this view"; }
+        }
 
-		double? IToastNotificationItem.Progress
-		{
-			get { return null; }
-		}
+        double? IToastNotificationItem.Progress
+        {
+            get { return null; }
+        }
 
-		public void Update(bool isActive)
-		{
-			if (this.isActive == isActive)
-				return;
-			this.isActive = isActive;
-			Changed?.Invoke(this, new ItemChangeEventArgs(isUnsuppressingChange: false));
-		}
-	};
+        public void Update(bool isActive)
+        {
+            if (this.isActive == isActive)
+                return;
+            this.isActive = isActive;
+            Changed?.Invoke(this, new ItemChangeEventArgs(isUnsuppressingChange: false));
+        }
+    };
 }

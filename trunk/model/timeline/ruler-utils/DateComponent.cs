@@ -1,15 +1,15 @@
 
 namespace LogJoint
 {
-	public enum DateComponent
-	{
-		None,
-		Year,
-		Month,
-		Day,
-		Hour,
-		Minute,
-		Seconds,
-		Milliseconds
-	};
+    public enum DateComponent
+    {
+        None,
+        Year,
+        Month,
+        Day,
+        Hour,
+        Minute,
+        Seconds,
+        Milliseconds
+    };
 }

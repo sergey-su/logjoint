@@ -148,7 +148,7 @@ namespace LogJoint.Wasm
                 await newValueSetter(this.ToArray());
                 dirty = false;
             }
-        }   
+        }
     }
 }
 

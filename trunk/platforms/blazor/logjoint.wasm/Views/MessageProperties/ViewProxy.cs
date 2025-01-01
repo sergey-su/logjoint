@@ -2,22 +2,22 @@
 
 namespace LogJoint.Wasm.UI
 {
-	public class MessagePropertiesViewProxy : IView, IDialog
-	{
-		IDialogViewModel viewModel;
+    public class MessagePropertiesViewProxy : IView, IDialog
+    {
+        IDialogViewModel viewModel;
 
-		public IDialogViewModel ViewModel => viewModel;
+        public IDialogViewModel ViewModel => viewModel;
 
-		IDialog IView.CreateDialog(IDialogViewModel value)
-		{
-			viewModel = value;
-			return this;
-		}
+        IDialog IView.CreateDialog(IDialogViewModel value)
+        {
+            viewModel = value;
+            return this;
+        }
 
-		bool IDialog.IsDisposed => false;
+        bool IDialog.IsDisposed => false;
 
-		void IDialog.Show()
-		{
-		}
-	}
+        void IDialog.Show()
+        {
+        }
+    }
 }

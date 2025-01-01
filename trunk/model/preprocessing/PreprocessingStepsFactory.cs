@@ -6,90 +6,90 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
-	public class PreprocessingStepsFactory : IStepsFactory
-	{
-		readonly Workspaces.IWorkspacesManager workspacesManager;
-		readonly AppLaunch.ILaunchUrlParser appLaunch;
-		readonly ISynchronizationContext invoke;
-		readonly IExtensionsRegistry extentions;
-		readonly Progress.IProgressAggregator progressAggregator;
-		readonly Persistence.IWebContentCache cache;
-		readonly ICredentialsCache credCache;
-		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
-		readonly WebViewTools.IWebViewTools webViewTools;
-		readonly ILogsDownloaderConfig logsDownloaderConfig;
-		readonly LogMedia.IFileSystem fileSystem;
+    public class PreprocessingStepsFactory : IStepsFactory
+    {
+        readonly Workspaces.IWorkspacesManager workspacesManager;
+        readonly AppLaunch.ILaunchUrlParser appLaunch;
+        readonly ISynchronizationContext invoke;
+        readonly IExtensionsRegistry extentions;
+        readonly Progress.IProgressAggregator progressAggregator;
+        readonly Persistence.IWebContentCache cache;
+        readonly ICredentialsCache credCache;
+        readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
+        readonly WebViewTools.IWebViewTools webViewTools;
+        readonly ILogsDownloaderConfig logsDownloaderConfig;
+        readonly LogMedia.IFileSystem fileSystem;
 
-		public PreprocessingStepsFactory(
-			Workspaces.IWorkspacesManager workspacesManager, 
-			AppLaunch.ILaunchUrlParser appLaunch,
-			ISynchronizationContext invoke,
-			IExtensionsRegistry extentions,
-			Progress.IProgressAggregator progressAggregator,
-			Persistence.IWebContentCache cache,
-			ICredentialsCache credCache,
-			ILogProviderFactoryRegistry logProviderFactoryRegistry,
-			WebViewTools.IWebViewTools webBrowserDownloader,
-			ILogsDownloaderConfig logsDownloaderConfig,
-			LogMedia.IFileSystem fileSystem
-		)
-		{
-			this.workspacesManager = workspacesManager;
-			this.appLaunch = appLaunch;
-			this.invoke = invoke;
-			this.extentions = extentions;
-			this.progressAggregator = progressAggregator;
-			this.cache = cache;
-			this.credCache = credCache;
-			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
-			this.webViewTools = webBrowserDownloader;
-			this.logsDownloaderConfig = logsDownloaderConfig;
-			this.fileSystem = fileSystem;
-		}
+        public PreprocessingStepsFactory(
+            Workspaces.IWorkspacesManager workspacesManager,
+            AppLaunch.ILaunchUrlParser appLaunch,
+            ISynchronizationContext invoke,
+            IExtensionsRegistry extentions,
+            Progress.IProgressAggregator progressAggregator,
+            Persistence.IWebContentCache cache,
+            ICredentialsCache credCache,
+            ILogProviderFactoryRegistry logProviderFactoryRegistry,
+            WebViewTools.IWebViewTools webBrowserDownloader,
+            ILogsDownloaderConfig logsDownloaderConfig,
+            LogMedia.IFileSystem fileSystem
+        )
+        {
+            this.workspacesManager = workspacesManager;
+            this.appLaunch = appLaunch;
+            this.invoke = invoke;
+            this.extentions = extentions;
+            this.progressAggregator = progressAggregator;
+            this.cache = cache;
+            this.credCache = credCache;
+            this.logProviderFactoryRegistry = logProviderFactoryRegistry;
+            this.webViewTools = webBrowserDownloader;
+            this.logsDownloaderConfig = logsDownloaderConfig;
+            this.fileSystem = fileSystem;
+        }
 
-		IPreprocessingStep IStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
-		{
-			return new FormatDetectionStep(p, extentions, this, fileSystem);
-		}
+        IPreprocessingStep IStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
+        {
+            return new FormatDetectionStep(p, extentions, this, fileSystem);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)
-		{
-			return new DownloadingStep(p, progressAggregator, cache, webViewTools, logsDownloaderConfig, this);
-		}
+        IPreprocessingStep IStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)
+        {
+            return new DownloadingStep(p, progressAggregator, cache, webViewTools, logsDownloaderConfig, this);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)
-		{
-			return new UnpackingStep(p, progressAggregator, credCache, this, fileSystem);
-		}
+        IPreprocessingStep IStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)
+        {
+            return new UnpackingStep(p, progressAggregator, credCache, this, fileSystem);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)
-		{
-			return new URLTypeDetectionStep(p, this, workspacesManager, appLaunch, extentions);
-		}
+        IPreprocessingStep IStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)
+        {
+            return new URLTypeDetectionStep(p, this, workspacesManager, appLaunch, extentions);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateOpenWorkspaceStep(PreprocessingStepParams p)
-		{
-			return new OpenWorkspaceStep(p, workspacesManager, invoke);
-		}
+        IPreprocessingStep IStepsFactory.CreateOpenWorkspaceStep(PreprocessingStepParams p)
+        {
+            return new OpenWorkspaceStep(p, workspacesManager, invoke);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateLocationTypeDetectionStep(PreprocessingStepParams p)
-		{
-			return new LocationTypeDetectionStep(p, this);
-		}
+        IPreprocessingStep IStepsFactory.CreateLocationTypeDetectionStep(PreprocessingStepParams p)
+        {
+            return new LocationTypeDetectionStep(p, this);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateGunzippingStep(PreprocessingStepParams p)
-		{
-			return new GunzippingStep(p, progressAggregator, this);
-		}
+        IPreprocessingStep IStepsFactory.CreateGunzippingStep(PreprocessingStepParams p)
+        {
+            return new GunzippingStep(p, progressAggregator, this);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateTimeAnomalyFixingStep(PreprocessingStepParams p)
-		{
-			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, fileSystem);
-		}
+        IPreprocessingStep IStepsFactory.CreateTimeAnomalyFixingStep(PreprocessingStepParams p)
+        {
+            return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, fileSystem);
+        }
 
-		IPreprocessingStep IStepsFactory.CreateUntarStep(PreprocessingStepParams p)
-		{
-			return new UntarStep(p, progressAggregator, this);
-		}
-	}
+        IPreprocessingStep IStepsFactory.CreateUntarStep(PreprocessingStepParams p)
+        {
+            return new UntarStep(p, progressAggregator, this);
+        }
+    }
 }

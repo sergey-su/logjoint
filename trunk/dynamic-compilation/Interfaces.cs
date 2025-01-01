@@ -4,8 +4,8 @@ using System.Text;
 
 namespace LogJoint
 {
-	public interface IMetadataReferencesProvider
-	{
-		IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference> GetMetadataReferences();
-	};
+    public interface IMetadataReferencesProvider
+    {
+        IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference> GetMetadataReferences();
+    };
 }

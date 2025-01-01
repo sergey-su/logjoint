@@ -10,83 +10,83 @@ using LogJoint.UI.Presenters.About;
 
 namespace LogJoint.UI
 {
-	public partial class AboutBox : Form, IView
-	{
-		IViewEvents eventsHandler;
+    public partial class AboutBox : Form, IView
+    {
+        IViewEvents eventsHandler;
 
-		public AboutBox()
-		{
-			InitializeComponent();
+        public AboutBox()
+        {
+            InitializeComponent();
 
-		}
+        }
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
-		{
-			this.eventsHandler = eventsHandler;
-		}
+        void IView.SetEventsHandler(IViewEvents eventsHandler)
+        {
+            this.eventsHandler = eventsHandler;
+        }
 
-		void IView.Show(string text, string feedbackText, string feedbackLink, string shareText, string shareTextWin, string winInstallerLink, string shareTextMac, string macInstallerLink)
-		{
-			textBox.Text = text;
-			
-			feedbackLinkLabel.Visible = feedbackLink != null;
-			if (feedbackLink != null)
-			{
-				feedbackLinkLabel.Text = feedbackText + " " + feedbackLink;
-				feedbackLinkLabel.LinkArea = new LinkArea(feedbackText.Length + 1, feedbackLink.Length);
-			}
+        void IView.Show(string text, string feedbackText, string feedbackLink, string shareText, string shareTextWin, string winInstallerLink, string shareTextMac, string macInstallerLink)
+        {
+            textBox.Text = text;
 
-			shareTextLabel.Visible = shareText != null;
-			shareTextLabel.Text = shareText ?? "";
+            feedbackLinkLabel.Visible = feedbackLink != null;
+            if (feedbackLink != null)
+            {
+                feedbackLinkLabel.Text = feedbackText + " " + feedbackLink;
+                feedbackLinkLabel.LinkArea = new LinkArea(feedbackText.Length + 1, feedbackLink.Length);
+            }
 
-			winLabel.Visible = winInstallerLink != null;
-			winLinkTextBox.Visible = winInstallerLink != null;
-			copyWinLinkLinkLabel.Visible = winInstallerLink != null;
-			winLabel.Text = shareTextWin ?? "";
-			winLinkTextBox.Text = winInstallerLink ?? "";
+            shareTextLabel.Visible = shareText != null;
+            shareTextLabel.Text = shareText ?? "";
 
-			macLabel.Visible = macInstallerLink != null;
-			macLinkTextBox.Visible = macInstallerLink != null;
-			copyMacLinkLinkLabel.Visible = macInstallerLink != null;
-			macLabel.Text = shareTextMac ?? "";
-			macLinkTextBox.Text = macInstallerLink ?? "";
+            winLabel.Visible = winInstallerLink != null;
+            winLinkTextBox.Visible = winInstallerLink != null;
+            copyWinLinkLinkLabel.Visible = winInstallerLink != null;
+            winLabel.Text = shareTextWin ?? "";
+            winLinkTextBox.Text = winInstallerLink ?? "";
 
-			this.ShowDialog();
-		}
+            macLabel.Visible = macInstallerLink != null;
+            macLinkTextBox.Visible = macInstallerLink != null;
+            copyMacLinkLinkLabel.Visible = macInstallerLink != null;
+            macLabel.Text = shareTextMac ?? "";
+            macLinkTextBox.Text = macInstallerLink ?? "";
 
-		void IView.SetAutoUpdateControlsState(
-			bool featureEnabled, bool checkNowEnabled,
-			string status, string details
-		)
-		{
-			updateStatusCaption.Visible = featureEnabled;
-			updateStatusLabel.Visible = featureEnabled;
-			checkForUpdateLinkLabel.Visible = featureEnabled;
+            this.ShowDialog();
+        }
 
-			updateStatusLabel.Text = status ?? "";
-			toolTip1.SetToolTip(updateStatusLabel, details ?? "");
+        void IView.SetAutoUpdateControlsState(
+            bool featureEnabled, bool checkNowEnabled,
+            string status, string details
+        )
+        {
+            updateStatusCaption.Visible = featureEnabled;
+            updateStatusLabel.Visible = featureEnabled;
+            checkForUpdateLinkLabel.Visible = featureEnabled;
 
-			checkForUpdateLinkLabel.Enabled = checkNowEnabled;
-		}
+            updateStatusLabel.Text = status ?? "";
+            toolTip1.SetToolTip(updateStatusLabel, details ?? "");
 
-		private void copyWinLinkLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			eventsHandler.OnCopyWinInstallerLink();
-		}
+            checkForUpdateLinkLabel.Enabled = checkNowEnabled;
+        }
 
-		private void copyMacLinkLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			eventsHandler.OnCopyMacInstallerLink();
-		}
+        private void copyWinLinkLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            eventsHandler.OnCopyWinInstallerLink();
+        }
 
-		private void feedbackLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			eventsHandler.OnFeedbackLinkClicked();
-		}
+        private void copyMacLinkLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            eventsHandler.OnCopyMacInstallerLink();
+        }
 
-		private void checkForUpdateLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			eventsHandler.OnUpdateNowClicked();
-		}
-	}
+        private void feedbackLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            eventsHandler.OnFeedbackLinkClicked();
+        }
+
+        private void checkForUpdateLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            eventsHandler.OnUpdateNowClicked();
+        }
+    }
 }

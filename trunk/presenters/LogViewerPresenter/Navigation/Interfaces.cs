@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	internal interface INavigationManager
-	{
-		bool NavigationIsInProgress { get; }
-		Task NavigateView(Func<CancellationToken, Task> navigate);
-	};
+    internal interface INavigationManager
+    {
+        bool NavigationIsInProgress { get; }
+        Task NavigateView(Func<CancellationToken, Task> navigate);
+    };
 };

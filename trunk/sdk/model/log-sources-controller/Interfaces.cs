@@ -2,8 +2,8 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public interface ILogSourcesController
-	{
-		Task DeleteAllLogsAndPreprocessings();
-	};
+    public interface ILogSourcesController
+    {
+        Task DeleteAllLogsAndPreprocessings();
+    };
 }

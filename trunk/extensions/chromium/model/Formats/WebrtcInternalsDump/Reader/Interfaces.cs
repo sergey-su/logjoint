@@ -6,64 +6,64 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Chromium.WebrtcInternalsDump
 {
-	public interface IReader
-	{
-		IEnumerableAsync<Message[]> Read(Func<Task<Stream>> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null);
-	}
+    public interface IReader
+    {
+        IEnumerableAsync<Message[]> Read(Func<Task<Stream>> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null);
+    }
 
-	public interface IWriter
-	{
-		Task Write(Func<Stream> getStream, Action<Stream> releaseStream, IEnumerableAsync<Message[]> messages);
-	};
+    public interface IWriter
+    {
+        Task Write(Func<Stream> getStream, Action<Stream> releaseStream, IEnumerableAsync<Message[]> messages);
+    };
 
-	[DebuggerDisplay("{ObjectId}.{PropName}={PropValue}")]
-	public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition, ITriggerText
-	{
-		public readonly int Index;
-		public readonly long StreamPosition;
-		public readonly DateTime Timestamp;
-		public readonly StringSlice RootObjectType;
-		public readonly StringSlice RootObjectId;
-		public readonly StringSlice ObjectId;
-		public readonly StringSlice PropName;
-		public readonly StringSlice PropValue;
-		public readonly StringSlice Text;
+    [DebuggerDisplay("{ObjectId}.{PropName}={PropValue}")]
+    public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition, ITriggerText
+    {
+        public readonly int Index;
+        public readonly long StreamPosition;
+        public readonly DateTime Timestamp;
+        public readonly StringSlice RootObjectType;
+        public readonly StringSlice RootObjectId;
+        public readonly StringSlice ObjectId;
+        public readonly StringSlice PropName;
+        public readonly StringSlice PropValue;
+        public readonly StringSlice Text;
 
-		int IOrderedTrigger.Index { get { return Index; } }
+        int IOrderedTrigger.Index { get { return Index; } }
 
-		DateTime ITriggerTime.Timestamp { get { return Timestamp; } }
+        DateTime ITriggerTime.Timestamp { get { return Timestamp; } }
 
-		long ITriggerStreamPosition.StreamPosition { get { return StreamPosition; } }
+        long ITriggerStreamPosition.StreamPosition { get { return StreamPosition; } }
 
-		string ITriggerText.Text { get { return Text.Value; } }
+        string ITriggerText.Text { get { return Text.Value; } }
 
-		public static class RootObjectTypes
-		{
-			public static StringSlice Connection = new StringSlice("C");
-			public static StringSlice UserMediaRequest = new StringSlice("M");
-		}
+        public static class RootObjectTypes
+        {
+            public static StringSlice Connection = new StringSlice("C");
+            public static StringSlice UserMediaRequest = new StringSlice("M");
+        }
 
-		public Message(
-			int index, 
-			long position,
-			DateTime ts,
-			StringSlice rootObjectType,
-			StringSlice rootObjectId,
-			StringSlice objectId,
-			StringSlice propName,
-			StringSlice propValue,
-			StringSlice text
-		)
-		{
-			Index = index;
-			StreamPosition = position;
-			Timestamp = ts;
-			RootObjectType = rootObjectType;
-			RootObjectId = rootObjectId;
-			ObjectId = objectId;
-			PropName = propName;
-			PropValue = propValue;
-			Text = text;
-		}
-	};
+        public Message(
+            int index,
+            long position,
+            DateTime ts,
+            StringSlice rootObjectType,
+            StringSlice rootObjectId,
+            StringSlice objectId,
+            StringSlice propName,
+            StringSlice propValue,
+            StringSlice text
+        )
+        {
+            Index = index;
+            StreamPosition = position;
+            Timestamp = ts;
+            RootObjectType = rootObjectType;
+            RootObjectId = rootObjectId;
+            ObjectId = objectId;
+            PropName = propName;
+            PropValue = propValue;
+            Text = text;
+        }
+    };
 }

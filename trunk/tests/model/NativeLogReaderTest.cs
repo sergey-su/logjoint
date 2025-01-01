@@ -4,15 +4,15 @@ using NUnit.Framework;
 
 namespace LogJoint.Tests
 {
-	[TestFixture]
-	public class LogReaderTest
-	{
-		Stream GetUTF8StreamFromStr(string str)
-		{
-			return new MemoryStream(Encoding.UTF8.GetBytes(str));
-		}
+    [TestFixture]
+    public class LogReaderTest
+    {
+        Stream GetUTF8StreamFromStr(string str)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(str));
+        }
 
-		/*void DoTestSeekToTheBeginningOfElement(string streamContent, long startPos, long expected)
+        /*void DoTestSeekToTheBeginningOfElement(string streamContent, long startPos, long expected)
 		{
 			Stream s = GetUTF8StreamFromStr(streamContent);
 			s.Position = startPos;
@@ -122,7 +122,7 @@ namespace LogJoint.Tests
 			DoTestGetEndDate("<m d='2009-05-02T00:00:00'></m>", new DateTime(2009, 05, 02));
 			DoTestGetEndDate("<m d='2009-05-02T00:00:00'></m><m d='2009-06-02T00:00:00'></m>", new DateTime(2009, 06, 02));
 		}*/
-	}
+    }
 
 
 }

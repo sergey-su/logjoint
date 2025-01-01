@@ -6,59 +6,59 @@ using LogJoint.Postprocessing.Correlation;
 
 namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
-	public interface IPresentationObjectsFactory
-	{
-		QS.IPresenter CreateQuickSearch(QS.IView view, IChangeNotification changeNotification);
-		TL.IPresenter CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification);
-		TN.IPresenter CreateToastNotifications(IChangeNotification changeNotification);
-		TN.IToastNotificationItem CreateCorrelatorToastNotificationItem();
-		TN.IToastNotificationItem CreateUnprocessedLogsToastNotification(PostprocessorKind postprocessorKind);
-	};
+    public interface IPresentationObjectsFactory
+    {
+        QS.IPresenter CreateQuickSearch(QS.IView view, IChangeNotification changeNotification);
+        TL.IPresenter CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification);
+        TN.IPresenter CreateToastNotifications(IChangeNotification changeNotification);
+        TN.IToastNotificationItem CreateCorrelatorToastNotificationItem();
+        TN.IToastNotificationItem CreateUnprocessedLogsToastNotification(PostprocessorKind postprocessorKind);
+    };
 
-	public class PresentationObjectsFactory: IPresentationObjectsFactory
-	{
-		private readonly IManagerInternal ppm;
-		private readonly ILogSourcesManager lsm;
-		private readonly IAlertPopup alerts;
-		private readonly ICorrelationManager correlationManager;
+    public class PresentationObjectsFactory : IPresentationObjectsFactory
+    {
+        private readonly IManagerInternal ppm;
+        private readonly ILogSourcesManager lsm;
+        private readonly IAlertPopup alerts;
+        private readonly ICorrelationManager correlationManager;
 
-		public PresentationObjectsFactory(
-			IManagerInternal ppm,
-			ILogSourcesManager lsm,
-			IChangeNotification changeNotification,
-			IAlertPopup alerts,
-			ICorrelationManager correlationManager
-		)
-		{
-			this.ppm = ppm;
-			this.lsm = lsm;
-			this.alerts = alerts;
-			this.correlationManager = correlationManager;
-		}
+        public PresentationObjectsFactory(
+            IManagerInternal ppm,
+            ILogSourcesManager lsm,
+            IChangeNotification changeNotification,
+            IAlertPopup alerts,
+            ICorrelationManager correlationManager
+        )
+        {
+            this.ppm = ppm;
+            this.lsm = lsm;
+            this.alerts = alerts;
+            this.correlationManager = correlationManager;
+        }
 
-		TN.IToastNotificationItem IPresentationObjectsFactory.CreateCorrelatorToastNotificationItem ()
-		{
-			return new CorrelatorToastNotification(ppm, lsm, correlationManager);
-		}
+        TN.IToastNotificationItem IPresentationObjectsFactory.CreateCorrelatorToastNotificationItem()
+        {
+            return new CorrelatorToastNotification(ppm, lsm, correlationManager);
+        }
 
-		TN.IToastNotificationItem IPresentationObjectsFactory.CreateUnprocessedLogsToastNotification (PostprocessorKind postprocessorKind)
-		{
-			return new UnprocessedLogsToastNotification(ppm, postprocessorKind);
-		}
+        TN.IToastNotificationItem IPresentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorKind postprocessorKind)
+        {
+            return new UnprocessedLogsToastNotification(ppm, postprocessorKind);
+        }
 
-		TL.IPresenter IPresentationObjectsFactory.CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification)
-		{
-			return new TL.TagsListPresenter(model, view, changeNotification, alerts);
-		}
+        TL.IPresenter IPresentationObjectsFactory.CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification)
+        {
+            return new TL.TagsListPresenter(model, view, changeNotification, alerts);
+        }
 
-		QS.IPresenter IPresentationObjectsFactory.CreateQuickSearch(QS.IView view, IChangeNotification changeNotification)
-		{
-			return new QS.Presenter(view, changeNotification);
-		}
+        QS.IPresenter IPresentationObjectsFactory.CreateQuickSearch(QS.IView view, IChangeNotification changeNotification)
+        {
+            return new QS.Presenter(view, changeNotification);
+        }
 
-		TN.IPresenter IPresentationObjectsFactory.CreateToastNotifications(IChangeNotification changeNotification)
-		{
-			return new TN.Presenter(changeNotification);
-		}
-	};
+        TN.IPresenter IPresentationObjectsFactory.CreateToastNotifications(IChangeNotification changeNotification)
+        {
+            return new TN.Presenter(changeNotification);
+        }
+    };
 }

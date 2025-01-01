@@ -2,8 +2,8 @@
 
 namespace LogJoint.Postprocessing
 {
-	public interface ITagged
-	{
-		HashSet<string> Tags { get; set; }
-	};
+    public interface ITagged
+    {
+        HashSet<string> Tags { get; set; }
+    };
 }

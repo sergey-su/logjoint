@@ -8,10 +8,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace LogJoint.Properties {
+namespace LogJoint.Properties
+{
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,349 +23,419 @@ namespace LogJoint.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
-        
+    internal class Resources
+    {
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal Resources()
+        {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
+        internal static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if (object.ReferenceEquals(resourceMan, null))
+                {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("LogJoint.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
-            get {
+        internal static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
                 return resourceCulture;
             }
-            set {
+            set
+            {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ArrowDown {
-            get {
+        internal static System.Drawing.Bitmap ArrowDown
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ArrowDown", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Bookmark {
-            get {
+        internal static System.Drawing.Bitmap Bookmark
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Bookmark", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Bookmark16x16 {
-            get {
+        internal static System.Drawing.Bitmap Bookmark16x16
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Bookmark16x16", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap BookmarksDelete {
-            get {
+        internal static System.Drawing.Bitmap BookmarksDelete
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("BookmarksDelete", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Dropdown {
-            get {
+        internal static System.Drawing.Bitmap Dropdown
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Dropdown", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Error {
-            get {
+        internal static System.Drawing.Bitmap Error
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Error", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ErrorLogSeverity {
-            get {
+        internal static System.Drawing.Bitmap ErrorLogSeverity
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ErrorLogSeverity", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap FindCurrentTime {
-            get {
+        internal static System.Drawing.Bitmap FindCurrentTime
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("FindCurrentTime", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap FocusedMsg {
-            get {
+        internal static System.Drawing.Bitmap FocusedMsg
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("FocusedMsg", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap FocusedMsgSlave {
-            get {
+        internal static System.Drawing.Bitmap FocusedMsgSlave
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("FocusedMsgSlave", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap HideDropdown {
-            get {
+        internal static System.Drawing.Bitmap HideDropdown
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("HideDropdown", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap InfoBlinking {
-            get {
+        internal static System.Drawing.Bitmap InfoBlinking
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("InfoBlinking", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap loader {
-            get {
+        internal static System.Drawing.Bitmap loader
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("loader", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Log16x16 {
-            get {
+        internal static System.Drawing.Bitmap Log16x16
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Log16x16", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap MoveDown {
-            get {
+        internal static System.Drawing.Bitmap MoveDown
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("MoveDown", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap MoveUp {
-            get {
+        internal static System.Drawing.Bitmap MoveUp
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("MoveUp", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap NextBookmark {
-            get {
+        internal static System.Drawing.Bitmap NextBookmark
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("NextBookmark", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap NextBookmark2 {
-            get {
+        internal static System.Drawing.Bitmap NextBookmark2
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("NextBookmark2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap OkCheck32x32 {
-            get {
+        internal static System.Drawing.Bitmap OkCheck32x32
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("OkCheck32x32", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Pin {
-            get {
+        internal static System.Drawing.Bitmap Pin
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Pin", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Pinned {
-            get {
+        internal static System.Drawing.Bitmap Pinned
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Pinned", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap PrevBookmark {
-            get {
+        internal static System.Drawing.Bitmap PrevBookmark
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("PrevBookmark", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap PrevBookmark2 {
-            get {
+        internal static System.Drawing.Bitmap PrevBookmark2
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("PrevBookmark2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap RawView {
-            get {
+        internal static System.Drawing.Bitmap RawView
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("RawView", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Refresh {
-            get {
+        internal static System.Drawing.Bitmap Refresh
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Refresh", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap RestartApp {
-            get {
+        internal static System.Drawing.Bitmap RestartApp
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("RestartApp", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap status_anim {
-            get {
+        internal static System.Drawing.Bitmap status_anim
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("status_anim", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap WarnLogSeverity {
-            get {
+        internal static System.Drawing.Bitmap WarnLogSeverity
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("WarnLogSeverity", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ZoomIn {
-            get {
+        internal static System.Drawing.Bitmap ZoomIn
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ZoomIn", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ZoomOut {
-            get {
+        internal static System.Drawing.Bitmap ZoomOut
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ZoomOut", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ZoomReset {
-            get {
+        internal static System.Drawing.Bitmap ZoomReset
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ZoomReset", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }

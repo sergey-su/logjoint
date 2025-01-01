@@ -9,20 +9,20 @@ using System.Windows.Forms;
 
 namespace LogJoint.UI
 {
-	public partial class CredentialsDialog : Form
-	{
-		public CredentialsDialog()
-		{
-			InitializeComponent();
-		}
+    public partial class CredentialsDialog : Form
+    {
+        public CredentialsDialog()
+        {
+            InitializeComponent();
+        }
 
-		public bool Execute(string site)
-		{
-			siteTextBox.Text = site;
-			return ShowDialog() == System.Windows.Forms.DialogResult.OK;
-		}
+        public bool Execute(string site)
+        {
+            siteTextBox.Text = site;
+            return ShowDialog() == System.Windows.Forms.DialogResult.OK;
+        }
 
-		public string UserName { get { return userNameTextBox.Text; } }
-		public string Password { get { return passwordTextBox.Text; } }
-	}
+        public string UserName { get { return userNameTextBox.Text; } }
+        public string Password { get { return passwordTextBox.Text; } }
+    }
 }

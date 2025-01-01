@@ -6,164 +6,164 @@ using System.Xml.Linq;
 
 namespace LogJoint
 {
-	class Program
-	{
-		static async Task Main(string[] args)
-		{
-			string pluginPath = null;
-			string inputFormatFilePath = null;
-			string outputFormatFilePath = null;
-			if (args.ElementAtOrDefault(0) == "plugin")
-			{
-				pluginPath = Path.GetFullPath(args.ElementAtOrDefault(1));
-			}
-			if (args.ElementAtOrDefault(0) == "format")
-			{
-				inputFormatFilePath = args.ElementAtOrDefault(1);
-				outputFormatFilePath = args.ElementAtOrDefault(2);
-			}
+    class Program
+    {
+        static async Task Main(string[] args)
+        {
+            string pluginPath = null;
+            string inputFormatFilePath = null;
+            string outputFormatFilePath = null;
+            if (args.ElementAtOrDefault(0) == "plugin")
+            {
+                pluginPath = Path.GetFullPath(args.ElementAtOrDefault(1));
+            }
+            if (args.ElementAtOrDefault(0) == "format")
+            {
+                inputFormatFilePath = args.ElementAtOrDefault(1);
+                outputFormatFilePath = args.ElementAtOrDefault(2);
+            }
 
-			if (pluginPath == null && (inputFormatFilePath == null || outputFormatFilePath == null))
-			{
-				Console.WriteLine("Usage:");
-				Console.WriteLine("   logjoint.precompiler plugin <plugin directory>                   - precompile code for all format definitions in the plugin");
-				Console.WriteLine("   logjoint.precompiler format <in format file> <out format file>   - precompile code the format definition in the given file");
-				return;
-			}
+            if (pluginPath == null && (inputFormatFilePath == null || outputFormatFilePath == null))
+            {
+                Console.WriteLine("Usage:");
+                Console.WriteLine("   logjoint.precompiler plugin <plugin directory>                   - precompile code for all format definitions in the plugin");
+                Console.WriteLine("   logjoint.precompiler format <in format file> <out format file>   - precompile code the format definition in the given file");
+                return;
+            }
 
-			var appDataDir = Path.Combine(Path.GetTempPath(),
-				$"logjoint.precompiler.workdir.{DateTime.Now:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff}");
+            var appDataDir = Path.Combine(Path.GetTempPath(),
+                $"logjoint.precompiler.workdir.{DateTime.Now:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'.'fff}");
 
-			Console.WriteLine("Precompiler data and logs path: {0}", appDataDir);
+            Console.WriteLine("Precompiler data and logs path: {0}", appDataDir);
 
-			var tempFormatsDir = Path.Combine(appDataDir, "TempFormats");
-			Directory.CreateDirectory(tempFormatsDir);
-			var tempFormatFilePath = Path.Combine(tempFormatsDir, "temp.format.xml");
-			if (inputFormatFilePath != null)
-				File.Copy(sourceFileName: inputFormatFilePath, destFileName: tempFormatFilePath);
+            var tempFormatsDir = Path.Combine(appDataDir, "TempFormats");
+            Directory.CreateDirectory(tempFormatsDir);
+            var tempFormatFilePath = Path.Combine(tempFormatsDir, "temp.format.xml");
+            if (inputFormatFilePath != null)
+                File.Copy(sourceFileName: inputFormatFilePath, destFileName: tempFormatFilePath);
 
-			ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
-			var traceListener = new TraceListener(Path.Combine(appDataDir, "precompiler-debug.log") + ";logical-thread=1");
+            ISynchronizationContext serialSynchronizationContext = new SerialSynchronizationContext();
+            var traceListener = new TraceListener(Path.Combine(appDataDir, "precompiler-debug.log") + ";logical-thread=1");
 
-			ModelObjects modelObjects = await serialSynchronizationContext.Invoke(() =>
-			{
-				return ModelFactory.Create(
-					new ModelConfig
-					{
-						WorkspacesUrl = "",
-						TelemetryUrl = "",
-						IssuesUrl = "",
-						AutoUpdateUrl = "",
-						WebContentCacheConfig = null,
-						LogsDownloaderConfig = null,
-						AppDataDirectory = appDataDir,
-						TraceListeners = new TraceListener[] { traceListener },
-						DisableLogjointInstancesCounting = true,
-						AdditionalFormatDirectories = new string[] { tempFormatsDir },
-						UserCodeAssemblyProvider = new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
-					},
-					serialSynchronizationContext,
-					(_1) => null,
-					(_1, _2, _3) => null,
-					null,
-					RegularExpressions.FCLRegexFactory.Instance
-				);
-			});
+            ModelObjects modelObjects = await serialSynchronizationContext.Invoke(() =>
+            {
+                return ModelFactory.Create(
+                    new ModelConfig
+                    {
+                        WorkspacesUrl = "",
+                        TelemetryUrl = "",
+                        IssuesUrl = "",
+                        AutoUpdateUrl = "",
+                        WebContentCacheConfig = null,
+                        LogsDownloaderConfig = null,
+                        AppDataDirectory = appDataDir,
+                        TraceListeners = new TraceListener[] { traceListener },
+                        DisableLogjointInstancesCounting = true,
+                        AdditionalFormatDirectories = new string[] { tempFormatsDir },
+                        UserCodeAssemblyProvider = new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()),
+                    },
+                    serialSynchronizationContext,
+                    (_1) => null,
+                    (_1, _2, _3) => null,
+                    null,
+                    RegularExpressions.FCLRegexFactory.Instance
+                );
+            });
 
-			await serialSynchronizationContext.Invoke(() =>
-			{
-				if (pluginPath != null)
-				{
-					HandlePlugin(pluginPath, modelObjects);
-				}
+            await serialSynchronizationContext.Invoke(() =>
+            {
+                if (pluginPath != null)
+                {
+                    HandlePlugin(pluginPath, modelObjects);
+                }
 
-				if (inputFormatFilePath != null)
-				{
-					HandleFormatFile(tempFormatFilePath, inputFormatFilePath, modelObjects);
-					File.Copy(sourceFileName: tempFormatFilePath, destFileName: outputFormatFilePath, overwrite: true);
-				}
-			});
-		}
+                if (inputFormatFilePath != null)
+                {
+                    HandleFormatFile(tempFormatFilePath, inputFormatFilePath, modelObjects);
+                    File.Copy(sourceFileName: tempFormatFilePath, destFileName: outputFormatFilePath, overwrite: true);
+                }
+            });
+        }
 
-		private static void HandlePlugin(string pluginPath, ModelObjects modelObjects)
-		{
-			modelObjects.PluginsManager.LoadPlugins(new
-			{
-				Model = modelObjects.ExpensibilityEntryPoint,
-				Presentation = (LogJoint.UI.Presenters.IPresentation)null
-			}, pluginPath, preferTestPluginEntryPoints: true);
+        private static void HandlePlugin(string pluginPath, ModelObjects modelObjects)
+        {
+            modelObjects.PluginsManager.LoadPlugins(new
+            {
+                Model = modelObjects.ExpensibilityEntryPoint,
+                Presentation = (LogJoint.UI.Presenters.IPresentation)null
+            }, pluginPath, preferTestPluginEntryPoints: true);
 
-			Extensibility.IPluginManifest pluginManifest = modelObjects.PluginsManager.InstalledPlugins.FirstOrDefault();
-			if (pluginManifest == null)
-			{
-				Console.WriteLine("ERROR: Failed to load plugin from '{0}'", pluginPath);
-				return;
-			}
-			var manifestDoc = XDocument.Load(pluginManifest.AbsolutePath);
-			foreach (Extensibility.IPluginFile formatFile in pluginManifest.Files.Where(f => f.Type == Extensibility.PluginFileType.FormatDefinition))
-			{
-				byte[] asmBytes = HandleFormatFile(formatFile.AbsolutePath, formatFile.AbsolutePath, modelObjects);
-				if (asmBytes != null)
-				{
-					string sanitizeFileName(string absolutePath)
-					{
-						string fname = Path.GetFileNameWithoutExtension(absolutePath);
-						fname = new string(fname.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
-						return Path.Combine(Path.GetDirectoryName(absolutePath), $"{fname}.dll");
-					};
-					var precompiledAsmFilePath = sanitizeFileName(formatFile.AbsolutePath);
-					File.WriteAllBytes(precompiledAsmFilePath, asmBytes);
-					var manifestNode = new XElement("file");
-					manifestNode.SetAttributeValue("type", "dll");
-					manifestNode.SetValue(Path.GetRelativePath(pluginManifest.PluginDirectory, precompiledAsmFilePath));
-					manifestDoc.Root.Add(manifestNode);
-				}
-			}
-			manifestDoc.Save(pluginManifest.AbsolutePath);
-		}
+            Extensibility.IPluginManifest pluginManifest = modelObjects.PluginsManager.InstalledPlugins.FirstOrDefault();
+            if (pluginManifest == null)
+            {
+                Console.WriteLine("ERROR: Failed to load plugin from '{0}'", pluginPath);
+                return;
+            }
+            var manifestDoc = XDocument.Load(pluginManifest.AbsolutePath);
+            foreach (Extensibility.IPluginFile formatFile in pluginManifest.Files.Where(f => f.Type == Extensibility.PluginFileType.FormatDefinition))
+            {
+                byte[] asmBytes = HandleFormatFile(formatFile.AbsolutePath, formatFile.AbsolutePath, modelObjects);
+                if (asmBytes != null)
+                {
+                    string sanitizeFileName(string absolutePath)
+                    {
+                        string fname = Path.GetFileNameWithoutExtension(absolutePath);
+                        fname = new string(fname.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
+                        return Path.Combine(Path.GetDirectoryName(absolutePath), $"{fname}.dll");
+                    };
+                    var precompiledAsmFilePath = sanitizeFileName(formatFile.AbsolutePath);
+                    File.WriteAllBytes(precompiledAsmFilePath, asmBytes);
+                    var manifestNode = new XElement("file");
+                    manifestNode.SetAttributeValue("type", "dll");
+                    manifestNode.SetValue(Path.GetRelativePath(pluginManifest.PluginDirectory, precompiledAsmFilePath));
+                    manifestDoc.Root.Add(manifestNode);
+                }
+            }
+            manifestDoc.Save(pluginManifest.AbsolutePath);
+        }
 
-		private static byte[] HandleFormatFile(string formatFilePath, string formatFilePathForLogging, ModelObjects modelObjects)
-		{
-			IUserDefinedFactory formatFactory = modelObjects.UserDefinedFormatsManager.Items.FirstOrDefault(
-				factory => factory.Location == formatFilePath);
-			if (formatFactory == null)
-			{
-				Console.WriteLine("ERROR: Failed to load format definition '{0}'", formatFilePathForLogging);
-				return null;
-			}
-			var precomp = formatFactory as IPrecompilingLogProviderFactory;
-			if (precomp == null)
-			{
-				Console.WriteLine("WARNING: Skipping '{0}' - precompilation is not supported for it", formatFilePathForLogging);
-				return null;
-			}
-			var formatDoc = XDocument.Load(formatFilePath);
-			var fieldsConfigElement =
-				formatDoc.Elements("format").Elements("regular-grammar").Elements("fields-config").FirstOrDefault();
-			if (fieldsConfigElement == null)
-			{
-				Console.WriteLine("ERROR: failed tofind fields config in '{0}'", formatFilePathForLogging);
-				return null;
-			}
-			var assemblyName = new string(
-				Path.ChangeExtension(Path.GetFileName(formatFilePath), null)
-				.Select(c => char.IsLetterOrDigit(c) ? c : '_')
-				.ToArray());
-			byte[] asmBytes = precomp.Precompile(assemblyName, LJTraceSource.EmptyTracer);
-			XElement precompiledElement = fieldsConfigElement.Element("precompiled");
-			if (precompiledElement == null)
-			{
-				precompiledElement = new XElement("precompiled");
-				fieldsConfigElement.Add(precompiledElement);
-			}
-			precompiledElement.RemoveAll();
-			precompiledElement.Add(new XCData(Convert.ToBase64String(asmBytes)));
+        private static byte[] HandleFormatFile(string formatFilePath, string formatFilePathForLogging, ModelObjects modelObjects)
+        {
+            IUserDefinedFactory formatFactory = modelObjects.UserDefinedFormatsManager.Items.FirstOrDefault(
+                factory => factory.Location == formatFilePath);
+            if (formatFactory == null)
+            {
+                Console.WriteLine("ERROR: Failed to load format definition '{0}'", formatFilePathForLogging);
+                return null;
+            }
+            var precomp = formatFactory as IPrecompilingLogProviderFactory;
+            if (precomp == null)
+            {
+                Console.WriteLine("WARNING: Skipping '{0}' - precompilation is not supported for it", formatFilePathForLogging);
+                return null;
+            }
+            var formatDoc = XDocument.Load(formatFilePath);
+            var fieldsConfigElement =
+                formatDoc.Elements("format").Elements("regular-grammar").Elements("fields-config").FirstOrDefault();
+            if (fieldsConfigElement == null)
+            {
+                Console.WriteLine("ERROR: failed tofind fields config in '{0}'", formatFilePathForLogging);
+                return null;
+            }
+            var assemblyName = new string(
+                Path.ChangeExtension(Path.GetFileName(formatFilePath), null)
+                .Select(c => char.IsLetterOrDigit(c) ? c : '_')
+                .ToArray());
+            byte[] asmBytes = precomp.Precompile(assemblyName, LJTraceSource.EmptyTracer);
+            XElement precompiledElement = fieldsConfigElement.Element("precompiled");
+            if (precompiledElement == null)
+            {
+                precompiledElement = new XElement("precompiled");
+                fieldsConfigElement.Add(precompiledElement);
+            }
+            precompiledElement.RemoveAll();
+            precompiledElement.Add(new XCData(Convert.ToBase64String(asmBytes)));
 
-			formatDoc.Save(formatFilePath);
+            formatDoc.Save(formatFilePath);
 
-			Console.WriteLine("Successfully precompiled '{0}'", formatFilePathForLogging);
+            Console.WriteLine("Successfully precompiled '{0}'", formatFilePathForLogging);
 
-			return asmBytes;
-		}
-	}
+            return asmBytes;
+        }
+    }
 }

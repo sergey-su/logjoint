@@ -5,25 +5,25 @@ using System.Linq;
 
 namespace LogJoint.Chromium.ChromeDebugLog
 {
-	public interface IProcessIdDetector
-	{
-		Task<uint[]> DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
-	}
+    public interface IProcessIdDetector
+    {
+        Task<uint[]> DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input);
+    }
 
-	public class ProcessIdDetector : IProcessIdDetector
-	{
-		async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
-		{
-			var retVal = new HashSet<uint>();
-			await input.ForEach(messages =>
-			{
-				uint pid;
-				foreach (var msg in messages)
-					if (uint.TryParse(msg.Message.ProcessId.Value, out pid))
-						retVal.Add(pid);
-				return Task.FromResult(true);
-			});
-			return retVal.ToArray();
-		}
-	};
+    public class ProcessIdDetector : IProcessIdDetector
+    {
+        async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair<Message>[]> input)
+        {
+            var retVal = new HashSet<uint>();
+            await input.ForEach(messages =>
+            {
+                uint pid;
+                foreach (var msg in messages)
+                    if (uint.TryParse(msg.Message.ProcessId.Value, out pid))
+                        retVal.Add(pid);
+                return Task.FromResult(true);
+            });
+            return retVal.ToArray();
+        }
+    };
 }

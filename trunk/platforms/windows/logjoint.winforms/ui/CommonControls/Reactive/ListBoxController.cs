@@ -6,106 +6,106 @@ using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Windows.Reactive
 {
-	class ListBoxController<Item> : IListBoxController<Item> where Item : class, IListItem
-	{
-		readonly ListBox listBox;
-		IReadOnlyList<Item> currentList = Array.Empty<Item>();
-		bool updating;
+    class ListBoxController<Item> : IListBoxController<Item> where Item : class, IListItem
+    {
+        readonly ListBox listBox;
+        IReadOnlyList<Item> currentList = Array.Empty<Item>();
+        bool updating;
 
-		public ListBoxController(ListBox listBox)
-		{
-			this.listBox = listBox;
-			listBox.SelectedIndexChanged += (s, e) =>
-			{
-				if (updating)
-					return;
-				OnSelect?.Invoke(listBox.SelectedItems.OfType<ViewItem>().Select(i => i.item).ToArray());
-			};
-		}
+        public ListBoxController(ListBox listBox)
+        {
+            this.listBox = listBox;
+            listBox.SelectedIndexChanged += (s, e) =>
+            {
+                if (updating)
+                    return;
+                OnSelect?.Invoke(listBox.SelectedItems.OfType<ViewItem>().Select(i => i.item).ToArray());
+            };
+        }
 
-		public Action<Item[]> OnSelect { get; set; }
-		public Action<Item, int, Item> OnUpdateRow { get; set; }
-		public Func<Item, string> Stringifier { get; set; }
+        public Action<Item[]> OnSelect { get; set; }
+        public Action<Item, int, Item> OnUpdateRow { get; set; }
+        public Func<Item, string> Stringifier { get; set; }
 
-		bool IListBoxController<Item>.IsUpdating => updating;
+        bool IListBoxController<Item>.IsUpdating => updating;
 
-		void IListBoxController<Item>.Update(IReadOnlyList<Item> newList)
-		{
-			bool updateBegun = false;
-			void BeginUpdate()
-			{
-				if (!updateBegun)
-				{
-					// Call ListBox's BeginUpdate/EndUpdate only when needed
-					// tree structure changed to avoid flickering when only selection changes.
-					listBox.BeginUpdate();
-					updateBegun = true;
-				}
-			}
+        void IListBoxController<Item>.Update(IReadOnlyList<Item> newList)
+        {
+            bool updateBegun = false;
+            void BeginUpdate()
+            {
+                if (!updateBegun)
+                {
+                    // Call ListBox's BeginUpdate/EndUpdate only when needed
+                    // tree structure changed to avoid flickering when only selection changes.
+                    listBox.BeginUpdate();
+                    updateBegun = true;
+                }
+            }
 
-			updating = true;
-			try
-			{
-				var edits = ListEdit.GetListEdits(currentList, newList);
-				currentList = newList;
+            updating = true;
+            try
+            {
+                var edits = ListEdit.GetListEdits(currentList, newList);
+                currentList = newList;
 
-				foreach (var e in edits)
-				{
-					switch (e.Type)
-					{
-						case ListEdit.EditType.Insert:
-							BeginUpdate();
-							var newViewItem = new ViewItem { item = (Item)e.Item, stringifier = Stringifier };
-							listBox.Items.Insert(e.Index, newViewItem);
-							OnUpdateRow?.Invoke(newViewItem.item, e.Index, null);
-							break;
-						case ListEdit.EditType.Delete:
-							BeginUpdate();
-							listBox.Items.RemoveAt(e.Index);
-							break;
-						case ListEdit.EditType.Reuse:
-							if (OnUpdateRow != null)
-							{
-								var existingViewItem = (ViewItem)listBox.Items[e.Index];
-								var oldItem = existingViewItem.item;
-								existingViewItem.item = (Item)e.Item;
-								OnUpdateRow?.Invoke(existingViewItem.item, e.Index, oldItem);
-							}
-							else
-							{
-								listBox.Items[e.Index] = new ViewItem { item = (Item)e.Item, stringifier = Stringifier };
-							}
-							break;
-						case ListEdit.EditType.Select:
-							listBox.SelectedIndices.Add(e.Index);
-							break;
-						case ListEdit.EditType.Deselect:
-							listBox.SelectedIndices.Remove(e.Index);
-							break;
-					}
-				}
-			}
-			finally
-			{
-				if (updateBegun)
-				{
-					listBox.EndUpdate();
-				}
-				updating = false;
-			}
-		}
+                foreach (var e in edits)
+                {
+                    switch (e.Type)
+                    {
+                        case ListEdit.EditType.Insert:
+                            BeginUpdate();
+                            var newViewItem = new ViewItem { item = (Item)e.Item, stringifier = Stringifier };
+                            listBox.Items.Insert(e.Index, newViewItem);
+                            OnUpdateRow?.Invoke(newViewItem.item, e.Index, null);
+                            break;
+                        case ListEdit.EditType.Delete:
+                            BeginUpdate();
+                            listBox.Items.RemoveAt(e.Index);
+                            break;
+                        case ListEdit.EditType.Reuse:
+                            if (OnUpdateRow != null)
+                            {
+                                var existingViewItem = (ViewItem)listBox.Items[e.Index];
+                                var oldItem = existingViewItem.item;
+                                existingViewItem.item = (Item)e.Item;
+                                OnUpdateRow?.Invoke(existingViewItem.item, e.Index, oldItem);
+                            }
+                            else
+                            {
+                                listBox.Items[e.Index] = new ViewItem { item = (Item)e.Item, stringifier = Stringifier };
+                            }
+                            break;
+                        case ListEdit.EditType.Select:
+                            listBox.SelectedIndices.Add(e.Index);
+                            break;
+                        case ListEdit.EditType.Deselect:
+                            listBox.SelectedIndices.Remove(e.Index);
+                            break;
+                    }
+                }
+            }
+            finally
+            {
+                if (updateBegun)
+                {
+                    listBox.EndUpdate();
+                }
+                updating = false;
+            }
+        }
 
-		Item IListBoxController<Item>.Map(object listBoxItem)
-		{
-			return (listBoxItem as ViewItem)?.item;
-		}
+        Item IListBoxController<Item>.Map(object listBoxItem)
+        {
+            return (listBoxItem as ViewItem)?.item;
+        }
 
-		class ViewItem
-		{
-			public Item item;
-			public Func<Item, string> stringifier;
+        class ViewItem
+        {
+            public Item item;
+            public Func<Item, string> stringifier;
 
-			public override string ToString() => stringifier != null ? stringifier(item) : item.ToString();
-		};
-	}
+            public override string ToString() => stringifier != null ? stringifier(item) : item.ToString();
+        };
+    }
 }

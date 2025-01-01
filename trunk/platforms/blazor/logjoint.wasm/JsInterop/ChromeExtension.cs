@@ -12,7 +12,7 @@ namespace LogJoint.Wasm
         readonly IJSRuntime jsRuntime;
         DotNetObjectReference<CallbackHelper> callbackObject;
 
-        public class OpenLogEventArgs: EventArgs
+        public class OpenLogEventArgs : EventArgs
         {
             public string LogText { get; private set; }
             public string Id { get; private set; }
@@ -27,7 +27,7 @@ namespace LogJoint.Wasm
             }
         }
 
-        public class AddSourceEventArgs: EventArgs
+        public class AddSourceEventArgs : EventArgs
         {
             public string Url { get; private set; }
             public AddSourceEventArgs(string url)

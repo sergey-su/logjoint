@@ -4,18 +4,18 @@ using System.Xml.Linq;
 namespace LogJoint.Postprocessing.Correlation
 {
 
-	class NullSameNodeDetectionToken : ISameNodeDetectionToken, ISameNodeDetectionTokenFactory
-	{
-		SameNodeDetectionResult ISameNodeDetectionToken.DetectSameNode(ISameNodeDetectionToken otherNodeToken) => null;
+    class NullSameNodeDetectionToken : ISameNodeDetectionToken, ISameNodeDetectionTokenFactory
+    {
+        SameNodeDetectionResult ISameNodeDetectionToken.DetectSameNode(ISameNodeDetectionToken otherNodeToken) => null;
 
-		ISameNodeDetectionTokenFactory ISameNodeDetectionToken.Factory => this;
+        ISameNodeDetectionTokenFactory ISameNodeDetectionToken.Factory => this;
 
-		void ISameNodeDetectionToken.Serialize(XElement node)
-		{
-		}
+        void ISameNodeDetectionToken.Serialize(XElement node)
+        {
+        }
 
-		string ISameNodeDetectionTokenFactory.Id => "null-factory";
+        string ISameNodeDetectionTokenFactory.Id => "null-factory";
 
-		ISameNodeDetectionToken ISameNodeDetectionTokenFactory.Deserialize(XElement element) => this;
-	};
+        ISameNodeDetectionToken ISameNodeDetectionTokenFactory.Deserialize(XElement element) => this;
+    };
 }

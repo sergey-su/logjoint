@@ -9,119 +9,119 @@ using ICCEView = LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog.IVi
 
 namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 {
-	internal class Presenter : IPresenter, IDisposable, ICCEViewEvents
-	{
-		readonly ICCEView dialog;
-		readonly Help.IPresenter help;
-		readonly IAlertPopup alerts;
-		readonly ITestParsing testParsing;
-		XmlNode currentFormatRoot;
-		ISampleLogAccess sampleLogAccess;
+    internal class Presenter : IPresenter, IDisposable, ICCEViewEvents
+    {
+        readonly ICCEView dialog;
+        readonly Help.IPresenter help;
+        readonly IAlertPopup alerts;
+        readonly ITestParsing testParsing;
+        XmlNode currentFormatRoot;
+        ISampleLogAccess sampleLogAccess;
 
-		public Presenter(
-			ICCEView view, 
-			Help.IPresenter help, 
-			IAlertPopup alerts,
-			ITestParsing testParsing
-		)
-		{
-			this.dialog = view;
-			this.dialog.SetEventsHandler(this);
-			this.help = help;
-			this.alerts = alerts;
-			this.testParsing = testParsing;
-			this.dialog.InitStaticControls(
-				"XSLT editor", "XSL transformation code that normalizes your XML log messages", "Help");
-		}
+        public Presenter(
+            ICCEView view,
+            Help.IPresenter help,
+            IAlertPopup alerts,
+            ITestParsing testParsing
+        )
+        {
+            this.dialog = view;
+            this.dialog.SetEventsHandler(this);
+            this.help = help;
+            this.alerts = alerts;
+            this.testParsing = testParsing;
+            this.dialog.InitStaticControls(
+                "XSLT editor", "XSL transformation code that normalizes your XML log messages", "Help");
+        }
 
-		void IDisposable.Dispose ()
-		{
-			dialog.Dispose();
-		}
+        void IDisposable.Dispose()
+        {
+            dialog.Dispose();
+        }
 
-		void ICCEViewEvents.OnCancelClicked ()
-		{
-			dialog.Close();
-		}
+        void ICCEViewEvents.OnCancelClicked()
+        {
+            dialog.Close();
+        }
 
-		void ICCEViewEvents.OnHelpLinkClicked ()
-		{
-			help.ShowHelp("HowXmlParsingWorks.htm#xslt");
-		}
+        void ICCEViewEvents.OnHelpLinkClicked()
+        {
+            help.ShowHelp("HowXmlParsingWorks.htm#xslt");
+        }
 
-		void ICCEViewEvents.OnOkClicked ()
-		{
-			if (!SaveTo(currentFormatRoot))
-				return;
-			
-			dialog.Close();
-		}
+        void ICCEViewEvents.OnOkClicked()
+        {
+            if (!SaveTo(currentFormatRoot))
+                return;
 
-		bool SaveTo(XmlNode formatNode)
-		{
-			var doc = new XmlDocument();
-			try
-			{
-				doc.LoadXml(StringUtils.NormalizeLinebreakes(dialog.CodeTextBoxValue.Trim()));
-			}
-			catch (Exception e)
-			{
-				alerts.ShowPopup("Error", e.Message, AlertFlags.WarningIcon);
-				return false;
-			}
-			var nsMgr = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
+            dialog.Close();
+        }
 
-			if (doc.SelectSingleNode("xsl:stylesheet", nsMgr) == null)
-			{
-				alerts.ShowPopup("Error", "The transformation must have xsl:stylesheet on top level", AlertFlags.WarningIcon);
-				return false;
-			}
-			if (doc.SelectSingleNode("xsl:stylesheet/xsl:output[@method='xml']", nsMgr) == null)
-			{
-				alerts.ShowPopup("Error", "The transformation must output xml. Add <xsl:output method=\"xml\"/>", AlertFlags.WarningIcon);
-				return false;
-			}
+        bool SaveTo(XmlNode formatNode)
+        {
+            var doc = new XmlDocument();
+            try
+            {
+                doc.LoadXml(StringUtils.NormalizeLinebreakes(dialog.CodeTextBoxValue.Trim()));
+            }
+            catch (Exception e)
+            {
+                alerts.ShowPopup("Error", e.Message, AlertFlags.WarningIcon);
+                return false;
+            }
+            var nsMgr = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
 
-			formatNode.SelectNodes("xml/xsl:stylesheet", nsMgr)
-				.OfType<XmlNode>().ToList().ForEach(n => n.ParentNode.RemoveChild(n));
+            if (doc.SelectSingleNode("xsl:stylesheet", nsMgr) == null)
+            {
+                alerts.ShowPopup("Error", "The transformation must have xsl:stylesheet on top level", AlertFlags.WarningIcon);
+                return false;
+            }
+            if (doc.SelectSingleNode("xsl:stylesheet/xsl:output[@method='xml']", nsMgr) == null)
+            {
+                alerts.ShowPopup("Error", "The transformation must output xml. Add <xsl:output method=\"xml\"/>", AlertFlags.WarningIcon);
+                return false;
+            }
 
-			formatNode.SelectSingleNode("xml")?.AppendChild(
-				formatNode.OwnerDocument.ImportNode(doc.DocumentElement, true));			
+            formatNode.SelectNodes("xml/xsl:stylesheet", nsMgr)
+                .OfType<XmlNode>().ToList().ForEach(n => n.ParentNode.RemoveChild(n));
 
-			return true;
-		}
+            formatNode.SelectSingleNode("xml")?.AppendChild(
+                formatNode.OwnerDocument.ImportNode(doc.DocumentElement, true));
 
-		void ICCEViewEvents.OnTestButtonClicked ()
-		{
-			var tmpDoc = new XmlDocument();
-			var tmpRoot = tmpDoc.ImportNode(currentFormatRoot, true);
-			tmpDoc.AppendChild(tmpRoot);
-			if (!SaveTo(tmpRoot))
-				return;
-			testParsing.Test(
-				sampleLogAccess.SampleLog,
-				tmpRoot,
-				"xml"
-			);
-		}
+            return true;
+        }
 
-		void IPresenter.ShowDialog (
-			XmlNode root,
-			ISampleLogAccess sampleLogAccess
-		)
-		{
-			this.currentFormatRoot = root;
-			this.sampleLogAccess = sampleLogAccess;
+        void ICCEViewEvents.OnTestButtonClicked()
+        {
+            var tmpDoc = new XmlDocument();
+            var tmpRoot = tmpDoc.ImportNode(currentFormatRoot, true);
+            tmpDoc.AppendChild(tmpRoot);
+            if (!SaveTo(tmpRoot))
+                return;
+            testParsing.Test(
+                sampleLogAccess.SampleLog,
+                tmpRoot,
+                "xml"
+            );
+        }
 
-			using (var sw = new StringWriter())
-			using (var xw = new XmlTextWriter(sw) { Formatting = Formatting.Indented })
-			{
-				var nsMgr = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
-				root.SelectSingleNode("xml/xsl:stylesheet", nsMgr)?.WriteTo(xw);
-				dialog.CodeTextBoxValue = sw.ToString();
-			}
+        void IPresenter.ShowDialog(
+            XmlNode root,
+            ISampleLogAccess sampleLogAccess
+        )
+        {
+            this.currentFormatRoot = root;
+            this.sampleLogAccess = sampleLogAccess;
 
-			dialog.Show();
-		}
-	};
+            using (var sw = new StringWriter())
+            using (var xw = new XmlTextWriter(sw) { Formatting = Formatting.Indented })
+            {
+                var nsMgr = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
+                root.SelectSingleNode("xml/xsl:stylesheet", nsMgr)?.WriteTo(xw);
+                dialog.CodeTextBoxValue = sw.ToString();
+            }
+
+            dialog.Show();
+        }
+    };
 };

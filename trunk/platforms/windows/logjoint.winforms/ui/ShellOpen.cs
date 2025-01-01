@@ -6,30 +6,30 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
-	class ShellOpen: IShellOpen
-	{
-		void IShellOpen.OpenInWebBrowser(Uri uri)
-		{
-			Process.Start(uri.ToString());
-		}
+    class ShellOpen : IShellOpen
+    {
+        void IShellOpen.OpenInWebBrowser(Uri uri)
+        {
+            Process.Start(uri.ToString());
+        }
 
-		void IShellOpen.OpenFileBrowser(string filePath)
-		{
-			Process.Start("explorer.exe", "/select,\"" + filePath + "\"");
-		}
+        void IShellOpen.OpenFileBrowser(string filePath)
+        {
+            Process.Start("explorer.exe", "/select,\"" + filePath + "\"");
+        }
 
-		void IShellOpen.OpenInTextEditor(string filePath)
-		{
-			Process.Start("notepad.exe", filePath);
-		}
+        void IShellOpen.OpenInTextEditor(string filePath)
+        {
+            Process.Start("notepad.exe", filePath);
+        }
 
-		async Task IShellOpen.EditFile(string filePath, CancellationToken cancel)
-		{
-			using (var process = Process.Start("notepad.exe", filePath))
-			using (cancel.Register(() => process.Kill()))
-			{
-				await process.GetExitCodeAsync(Timeout.InfiniteTimeSpan);
-			}
-		}
-	}
+        async Task IShellOpen.EditFile(string filePath, CancellationToken cancel)
+        {
+            using (var process = Process.Start("notepad.exe", filePath))
+            using (cancel.Register(() => process.Kill()))
+            {
+                await process.GetExitCodeAsync(Timeout.InfiniteTimeSpan);
+            }
+        }
+    }
 }

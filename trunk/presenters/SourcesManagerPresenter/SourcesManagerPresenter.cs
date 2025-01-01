@@ -10,225 +10,225 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
-	public class Presenter : IPresenter, IViewModel
-	{
-		public Presenter(
-			ILogSourcesManager logSources,
-			IUserDefinedFormatsManager udfManager,
-			Preprocessing.IManager logSourcesPreprocessings,
-			Workspaces.IWorkspacesManager workspacesManager,
-			SourcesList.IPresenter sourcesListPresenter,
-			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
-			IHeartBeatTimer heartbeat,
-			SharingDialog.IPresenter sharingDialogPresenter,
-			HistoryDialog.IPresenter historyDialogPresenter,
-			IPresentersFacade facade,
-			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter,
-			IAlertPopup alerts,
-			ITraceSourceFactory traceSourceFactory,
-			IChangeNotification changeNotification
-		)
-		{
-			this.logSources = logSources;
-			this.udfManager = udfManager;
-			this.logSourcesPreprocessings = logSourcesPreprocessings;
-			this.workspacesManager = workspacesManager;
-			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
-			this.sourcesListPresenter = sourcesListPresenter;
-			this.tracer = traceSourceFactory.CreateTraceSource("UI", "smgr-ui");
-			this.sharingDialogPresenter = sharingDialogPresenter;
-			this.historyDialogPresenter = historyDialogPresenter;
-			this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;
-			this.alerts = alerts;
-			this.presentersFacade = facade;
-			this.changeNotification = changeNotification;
+    public class Presenter : IPresenter, IViewModel
+    {
+        public Presenter(
+            ILogSourcesManager logSources,
+            IUserDefinedFormatsManager udfManager,
+            Preprocessing.IManager logSourcesPreprocessings,
+            Workspaces.IWorkspacesManager workspacesManager,
+            SourcesList.IPresenter sourcesListPresenter,
+            NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
+            IHeartBeatTimer heartbeat,
+            SharingDialog.IPresenter sharingDialogPresenter,
+            HistoryDialog.IPresenter historyDialogPresenter,
+            IPresentersFacade facade,
+            SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter,
+            IAlertPopup alerts,
+            ITraceSourceFactory traceSourceFactory,
+            IChangeNotification changeNotification
+        )
+        {
+            this.logSources = logSources;
+            this.udfManager = udfManager;
+            this.logSourcesPreprocessings = logSourcesPreprocessings;
+            this.workspacesManager = workspacesManager;
+            this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
+            this.sourcesListPresenter = sourcesListPresenter;
+            this.tracer = traceSourceFactory.CreateTraceSource("UI", "smgr-ui");
+            this.sharingDialogPresenter = sharingDialogPresenter;
+            this.historyDialogPresenter = historyDialogPresenter;
+            this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;
+            this.alerts = alerts;
+            this.presentersFacade = facade;
+            this.changeNotification = changeNotification;
 
-			sourcesListPresenter.DeleteRequested += (sender, args) =>
-			{
-				DeleteSelectedSources();
-			};
+            sourcesListPresenter.DeleteRequested += (sender, args) =>
+            {
+                DeleteSelectedSources();
+            };
 
-			logSourcesPreprocessings.PreprocessingAdded += (sender, args) =>
-			{
-				if ((args.LogSourcePreprocessing.Flags & PreprocessingOptions.HighlightNewPreprocessing) != 0)
-				{
-					preprocessingAwaitingHighlighting = args.LogSourcePreprocessing;
-					pendingUpdateFlag.Invalidate();
-				}
-			};
+            logSourcesPreprocessings.PreprocessingAdded += (sender, args) =>
+            {
+                if ((args.LogSourcePreprocessing.Flags & PreprocessingOptions.HighlightNewPreprocessing) != 0)
+                {
+                    preprocessingAwaitingHighlighting = args.LogSourcePreprocessing;
+                    pendingUpdateFlag.Invalidate();
+                }
+            };
 
-			heartbeat.OnTimer += (sender, args) =>
-			{
-				if (pendingUpdateFlag.Validate())
-					UpdateView();
-			};
-			
-		}
+            heartbeat.OnTimer += (sender, args) =>
+            {
+                if (pendingUpdateFlag.Validate())
+                    UpdateView();
+            };
 
-		public event EventHandler<BusyStateEventArgs> OnBusyState;
+        }
 
-		async void IPresenter.StartDeletionInteraction(ILogSource[] forSources)
-		{
-			await DeleteSources(forSources, Enumerable.Empty<ILogSourcePreprocessing>());
-		}
+        public event EventHandler<BusyStateEventArgs> OnBusyState;
 
-		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+        async void IPresenter.StartDeletionInteraction(ILogSource[] forSources)
+        {
+            await DeleteSources(forSources, Enumerable.Empty<ILogSourcePreprocessing>());
+        }
 
-		bool IViewModel.DeleteSelectedSourcesButtonEnabled =>
-			(sourcesListPresenter.SelectedSources.Count + sourcesListPresenter.SelectedPreprocessings.Count) > 0;
+        IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
-		bool IViewModel.PropertiesButtonEnabled =>
-			sourcePropertiesWindowPresenter != null && sourcesListPresenter.SelectedSources.Count == 1;
+        bool IViewModel.DeleteSelectedSourcesButtonEnabled =>
+            (sourcesListPresenter.SelectedSources.Count + sourcesListPresenter.SelectedPreprocessings.Count) > 0;
 
-		bool IViewModel.DeleteAllSourcesButtonEnabled =>
-			(logSources.Items.Count + logSourcesPreprocessings.Items.Count) > 0;
+        bool IViewModel.PropertiesButtonEnabled =>
+            sourcePropertiesWindowPresenter != null && sourcesListPresenter.SelectedSources.Count == 1;
 
-		(bool visible, bool enabled, bool progress) IViewModel.ShareButtonState =>
-			(
-				visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
-				enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
-				progress: sharingDialogPresenter.IsBusy
-			);
+        bool IViewModel.DeleteAllSourcesButtonEnabled =>
+            (logSources.Items.Count + logSourcesPreprocessings.Items.Count) > 0;
 
-		void IViewModel.OnAddNewLogButtonClicked()
-		{
-			udfManager.ReloadFactories(); // todo: move it away from this presenter
+        (bool visible, bool enabled, bool progress) IViewModel.ShareButtonState =>
+            (
+                visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
+                enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
+                progress: sharingDialogPresenter.IsBusy
+            );
 
-			newLogSourceDialogPresenter.ShowTheDialog();
-		}
+        void IViewModel.OnAddNewLogButtonClicked()
+        {
+            udfManager.ReloadFactories(); // todo: move it away from this presenter
 
-		void IViewModel.OnPropertiesButtonClicked()
-		{
-			var sel = sourcesListPresenter.SelectedSources.FirstOrDefault();
-			if (sel != null && sourcePropertiesWindowPresenter != null)
-				sourcePropertiesWindowPresenter.ShowWindow(sel);
-		}
+            newLogSourceDialogPresenter.ShowTheDialog();
+        }
 
-		void IViewModel.OnDeleteSelectedLogSourcesButtonClicked()
-		{
-			DeleteSelectedSources();
-		}
+        void IViewModel.OnPropertiesButtonClicked()
+        {
+            var sel = sourcesListPresenter.SelectedSources.FirstOrDefault();
+            if (sel != null && sourcePropertiesWindowPresenter != null)
+                sourcePropertiesWindowPresenter.ShowWindow(sel);
+        }
 
-		void IViewModel.OnDeleteAllLogSourcesButtonClicked()
-		{
-			DeleteAllSources();
-			workspacesManager.DetachFromWorkspace();
-		}
+        void IViewModel.OnDeleteSelectedLogSourcesButtonClicked()
+        {
+            DeleteSelectedSources();
+        }
 
-		void IViewModel.OnShowHistoryDialogButtonClicked()
-		{
-			historyDialogPresenter.ShowDialog();
-		}
+        void IViewModel.OnDeleteAllLogSourcesButtonClicked()
+        {
+            DeleteAllSources();
+            workspacesManager.DetachFromWorkspace();
+        }
 
-		void IViewModel.OnShareButtonClicked()
-		{
-			sharingDialogPresenter.ShowDialog();
-		}
+        void IViewModel.OnShowHistoryDialogButtonClicked()
+        {
+            historyDialogPresenter.ShowDialog();
+        }
 
-		#region Implementation
+        void IViewModel.OnShareButtonClicked()
+        {
+            sharingDialogPresenter.ShowDialog();
+        }
 
-		void UpdateView()
-		{
-			HandlePendingHighlightings();
-		}
+        #region Implementation
 
-		private void HandlePendingHighlightings()
-		{
-			if (preprocessingAwaitingHighlighting != null)
-			{
-				if (!preprocessingAwaitingHighlighting.IsDisposed)
-					presentersFacade.ShowPreprocessing(preprocessingAwaitingHighlighting);
-				preprocessingAwaitingHighlighting = null;
-			}
-		}
+        void UpdateView()
+        {
+            HandlePendingHighlightings();
+        }
 
-		private async void DeleteSelectedSources()
-		{
-			await DeleteSources(sourcesListPresenter.SelectedSources, sourcesListPresenter.SelectedPreprocessings);
-		}
+        private void HandlePendingHighlightings()
+        {
+            if (preprocessingAwaitingHighlighting != null)
+            {
+                if (!preprocessingAwaitingHighlighting.IsDisposed)
+                    presentersFacade.ShowPreprocessing(preprocessingAwaitingHighlighting);
+                preprocessingAwaitingHighlighting = null;
+            }
+        }
 
-		private async void DeleteAllSources()
-		{
-			await DeleteSources(logSources.Items, logSourcesPreprocessings.Items);
-		}
+        private async void DeleteSelectedSources()
+        {
+            await DeleteSources(sourcesListPresenter.SelectedSources, sourcesListPresenter.SelectedPreprocessings);
+        }
 
-		private async Task DeleteSources(IEnumerable<ILogSource> sourcesToDelete, IEnumerable<Preprocessing.ILogSourcePreprocessing> preprocessingToDelete)
-		{
-			using (tracer.NewFrame)
-			{
-				tracer.Info("----> User Command: Delete sources");
+        private async void DeleteAllSources()
+        {
+            await DeleteSources(logSources.Items, logSourcesPreprocessings.Items);
+        }
 
-				var toDelete = new List<ILogSource>();
-				var toDelete2 = new List<Preprocessing.ILogSourcePreprocessing>();
-				foreach (ILogSource s in sourcesToDelete)
-				{
-					tracer.Info("-- source to delete: {0}", s.ToString());
-					toDelete.Add(s);
-				}
-				foreach (Preprocessing.ILogSourcePreprocessing p in preprocessingToDelete)
-				{
-					if (p.IsDisposed)
-						continue;
-					tracer.Info("-- preprocessing to delete: {0}", p.ToString());
-					toDelete2.Add(p);
-				}
+        private async Task DeleteSources(IEnumerable<ILogSource> sourcesToDelete, IEnumerable<Preprocessing.ILogSourcePreprocessing> preprocessingToDelete)
+        {
+            using (tracer.NewFrame)
+            {
+                tracer.Info("----> User Command: Delete sources");
 
-				if (toDelete.Count == 0 && toDelete2.Count == 0)
-				{
-					tracer.Info("Nothing to delete");
-					return;
-				}
+                var toDelete = new List<ILogSource>();
+                var toDelete2 = new List<Preprocessing.ILogSourcePreprocessing>();
+                foreach (ILogSource s in sourcesToDelete)
+                {
+                    tracer.Info("-- source to delete: {0}", s.ToString());
+                    toDelete.Add(s);
+                }
+                foreach (Preprocessing.ILogSourcePreprocessing p in preprocessingToDelete)
+                {
+                    if (p.IsDisposed)
+                        continue;
+                    tracer.Info("-- preprocessing to delete: {0}", p.ToString());
+                    toDelete2.Add(p);
+                }
 
-				int goodItemsCount = 
-					toDelete.Count(s => s.Provider.Stats.State != LogProviderState.LoadError) + 
-					toDelete2.Count(p => p.Failure == null);
-				if (goodItemsCount > 0) // do not ask about failed preprocessors or sources
-				{
-					if (await alerts.ShowPopupAsync(
-						"Delete",
-						string.Format("Are you sure you want to close {0} log (s)", toDelete.Count + toDelete2.Count),
-						AlertFlags.YesNoCancel
-					) != AlertFlags.Yes)
-					{
-						tracer.Info("User didn't confirm the deletion");
-						return;
-					}
-				}
+                if (toDelete.Count == 0 && toDelete2.Count == 0)
+                {
+                    tracer.Info("Nothing to delete");
+                    return;
+                }
 
-				SetWaitState(true);
-				try
-				{
-					await logSources.DeleteLogs(toDelete.ToArray());
-					await logSourcesPreprocessings.DeletePreprocessings(toDelete2.ToArray());
-				}
-				finally
-				{
-					SetWaitState(false);
-				}
-			}
-		}
+                int goodItemsCount =
+                    toDelete.Count(s => s.Provider.Stats.State != LogProviderState.LoadError) +
+                    toDelete2.Count(p => p.Failure == null);
+                if (goodItemsCount > 0) // do not ask about failed preprocessors or sources
+                {
+                    if (await alerts.ShowPopupAsync(
+                        "Delete",
+                        string.Format("Are you sure you want to close {0} log (s)", toDelete.Count + toDelete2.Count),
+                        AlertFlags.YesNoCancel
+                    ) != AlertFlags.Yes)
+                    {
+                        tracer.Info("User didn't confirm the deletion");
+                        return;
+                    }
+                }
 
-		void SetWaitState(bool value)
-		{
-			OnBusyState?.Invoke(this, new BusyStateEventArgs(value));
-		}
+                SetWaitState(true);
+                try
+                {
+                    await logSources.DeleteLogs(toDelete.ToArray());
+                    await logSourcesPreprocessings.DeletePreprocessings(toDelete2.ToArray());
+                }
+                finally
+                {
+                    SetWaitState(false);
+                }
+            }
+        }
 
-		readonly ILogSourcesManager logSources;
-		readonly IUserDefinedFormatsManager udfManager;
-		readonly Preprocessing.IManager logSourcesPreprocessings;
-		readonly Workspaces.IWorkspacesManager workspacesManager;
-		readonly SourcesList.IPresenter sourcesListPresenter;
-		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
-		readonly SharingDialog.IPresenter sharingDialogPresenter;
-		readonly HistoryDialog.IPresenter historyDialogPresenter;
-		readonly SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter;
-		readonly LJTraceSource tracer;
-		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
-		readonly IAlertPopup alerts;
-		readonly IPresentersFacade presentersFacade;
-		readonly IChangeNotification changeNotification;
-		ILogSourcePreprocessing preprocessingAwaitingHighlighting;
+        void SetWaitState(bool value)
+        {
+            OnBusyState?.Invoke(this, new BusyStateEventArgs(value));
+        }
 
-		#endregion
-	};
+        readonly ILogSourcesManager logSources;
+        readonly IUserDefinedFormatsManager udfManager;
+        readonly Preprocessing.IManager logSourcesPreprocessings;
+        readonly Workspaces.IWorkspacesManager workspacesManager;
+        readonly SourcesList.IPresenter sourcesListPresenter;
+        readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
+        readonly SharingDialog.IPresenter sharingDialogPresenter;
+        readonly HistoryDialog.IPresenter historyDialogPresenter;
+        readonly SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter;
+        readonly LJTraceSource tracer;
+        readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
+        readonly IAlertPopup alerts;
+        readonly IPresentersFacade presentersFacade;
+        readonly IChangeNotification changeNotification;
+        ILogSourcePreprocessing preprocessingAwaitingHighlighting;
+
+        #endregion
+    };
 };

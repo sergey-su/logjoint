@@ -20,7 +20,7 @@ namespace LogJoint
             }
         }
 
-        public static async Task<R> Using<T, R>(this T obj, Func<T, Task<R>> body) where T: Postprocessing.IDisposableAsync
+        public static async Task<R> Using<T, R>(this T obj, Func<T, Task<R>> body) where T : Postprocessing.IDisposableAsync
         {
             try
             {

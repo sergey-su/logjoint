@@ -15,7 +15,7 @@ namespace LogJoint.Postprocessing
             _bitcounts = new int[65536];
             int position1 = -1;
             int position2 = -1;
-            
+
             for (int i = 1; i < 65536; i++, position1++)
             {
                 if (position1 == position2)

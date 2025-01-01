@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LogJoint
 {
-	public interface IBookmarksController
-	{
-	};
+    public interface IBookmarksController
+    {
+    };
 }

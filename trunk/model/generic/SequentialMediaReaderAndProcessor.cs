@@ -11,222 +11,222 @@ using System.Linq;
 
 namespace LogJoint
 {
-	public interface ISequentialMediaReaderAndProcessor<ProcessedData> : IDisposable
-	{
-		ProcessedData ReadAndProcessNextPieceOfData();
-	}
+    public interface ISequentialMediaReaderAndProcessor<ProcessedData> : IDisposable
+    {
+        ProcessedData ReadAndProcessNextPieceOfData();
+    }
 
-	/// <summary>
-	/// Implements parallel processing of data being read from a sequential media. 
-	/// An example of a sequential media is a stream opened for sequential reading.
-	/// SequentialMediaReaderAndProcessor is applicable for the scenarios when
-	/// only one thread is allowed to read raw data from the media at a time
-	/// but many threads can process pieces of raw data concurrently.
-	/// SequentialMediaReaderAndProcessor reads data upfront and processes it concurrently.
-	/// SequentialMediaReaderAndProcessor itself is not thread safe i.e. must be created 
-	/// and called from one client thread.
-	/// </summary>
-	public class SequentialMediaReaderAndProcessor<RawData, ProcessedData, ThreadLocalState> :
-			ISequentialMediaReaderAndProcessor<ProcessedData>,
-			IDisposable
-		where ProcessedData : class
-		where RawData : class
-	{
-		public interface ICallback
-		{
-			/// <summary>
-			/// Reads the next piece of data from underlying media.
-			/// Guaranteed to be called from one thread at a time.
-			/// </summary>
-			/// <returns>Opaque objects that store raw data. Will be passed to ProcessRawData() later</returns>
-			IEnumerable<RawData> ReadRawDataFromMedia(CancellationToken cancellationToken);
-			/// <summary>
-			/// SequentialMediaReaderAndProcessor can process data in several threads.
-			/// Each thread can have its own thread local data to avoid contention.
-			/// This function will be called for each thread spawned to process data.
-			/// </summary>
-			ThreadLocalState InitializeThreadLocalState();
-			/// <summary>
-			/// Called when thread local data is not needed anymore
-			/// </summary>
-			void FinalizeThreadLocalState(ref ThreadLocalState state);
-			/// <summary>
-			/// Converts raw data to processed data.
-			/// Can be called concurrently. Guaranteed to be called once for 
-			/// a particular rawData object.
-			/// </summary>
-			/// <param name="rawData">Raw data object prevoisly returned by ReadRawDataFromMedia.</param>
-			/// <returns>Opaque object that stores processed data. Passed rawData may be returned.
-			/// This object will be eventually returned by ReadAndProcessNextPeiceOfData()</returns>
-			ProcessedData ProcessRawData(RawData rawData, ThreadLocalState threadLocalState, CancellationToken cancellationToken);
-		};
+    /// <summary>
+    /// Implements parallel processing of data being read from a sequential media. 
+    /// An example of a sequential media is a stream opened for sequential reading.
+    /// SequentialMediaReaderAndProcessor is applicable for the scenarios when
+    /// only one thread is allowed to read raw data from the media at a time
+    /// but many threads can process pieces of raw data concurrently.
+    /// SequentialMediaReaderAndProcessor reads data upfront and processes it concurrently.
+    /// SequentialMediaReaderAndProcessor itself is not thread safe i.e. must be created 
+    /// and called from one client thread.
+    /// </summary>
+    public class SequentialMediaReaderAndProcessor<RawData, ProcessedData, ThreadLocalState> :
+            ISequentialMediaReaderAndProcessor<ProcessedData>,
+            IDisposable
+        where ProcessedData : class
+        where RawData : class
+    {
+        public interface ICallback
+        {
+            /// <summary>
+            /// Reads the next piece of data from underlying media.
+            /// Guaranteed to be called from one thread at a time.
+            /// </summary>
+            /// <returns>Opaque objects that store raw data. Will be passed to ProcessRawData() later</returns>
+            IEnumerable<RawData> ReadRawDataFromMedia(CancellationToken cancellationToken);
+            /// <summary>
+            /// SequentialMediaReaderAndProcessor can process data in several threads.
+            /// Each thread can have its own thread local data to avoid contention.
+            /// This function will be called for each thread spawned to process data.
+            /// </summary>
+            ThreadLocalState InitializeThreadLocalState();
+            /// <summary>
+            /// Called when thread local data is not needed anymore
+            /// </summary>
+            void FinalizeThreadLocalState(ref ThreadLocalState state);
+            /// <summary>
+            /// Converts raw data to processed data.
+            /// Can be called concurrently. Guaranteed to be called once for 
+            /// a particular rawData object.
+            /// </summary>
+            /// <param name="rawData">Raw data object prevoisly returned by ReadRawDataFromMedia.</param>
+            /// <returns>Opaque object that stores processed data. Passed rawData may be returned.
+            /// This object will be eventually returned by ReadAndProcessNextPeiceOfData()</returns>
+            ProcessedData ProcessRawData(RawData rawData, ThreadLocalState threadLocalState, CancellationToken cancellationToken);
+        };
 
 #if SequentialMediaReaderAndProcessor_PLinqImplementation
-		#region Public interface
+        #region Public interface
 
-		public SequentialMediaReaderAndProcessor(ICallback callback, CancellationToken cancellation, int processingQueueSize = 64)
-		{
-			this.callback = callback;
-			this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
-			this.threadLocalStates = new List<ThreadLocalHolder>();
-			this.threadLocal = new ThreadLocal<ThreadLocalHolder>(() => 
-			{
-				var holder = new ThreadLocalHolder() { State = callback.InitializeThreadLocalState() };
-				lock (this.threadLocalStates)
-					this.threadLocalStates.Add(holder);
-				return holder;
-			});
-			this.processingQueueSize = processingQueueSize;
-			this.inEnumerator = callback.ReadRawDataFromMedia(cancellationTokenSource.Token).GetEnumerator();
-			this.outEnumerator = CreateEnumerator().GetEnumerator();
-		}
+        public SequentialMediaReaderAndProcessor(ICallback callback, CancellationToken cancellation, int processingQueueSize = 64)
+        {
+            this.callback = callback;
+            this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            this.threadLocalStates = new List<ThreadLocalHolder>();
+            this.threadLocal = new ThreadLocal<ThreadLocalHolder>(() =>
+            {
+                var holder = new ThreadLocalHolder() { State = callback.InitializeThreadLocalState() };
+                lock (this.threadLocalStates)
+                    this.threadLocalStates.Add(holder);
+                return holder;
+            });
+            this.processingQueueSize = processingQueueSize;
+            this.inEnumerator = callback.ReadRawDataFromMedia(cancellationTokenSource.Token).GetEnumerator();
+            this.outEnumerator = CreateEnumerator().GetEnumerator();
+        }
 
-		/// <summary>
-		/// Return current piece of processed data and advances the reader.
-		/// </summary>
-		/// <returns>Object that has been returned by ICallback.ProcessRawData.
-		/// null indicates end of sequence.</returns>
-		public ProcessedData ReadAndProcessNextPieceOfData()
-		{
-			CheckDisposed();
-			try
-			{
-				if (outEnumerator.MoveNext())
-					return outEnumerator.Current;
-			}
-			catch (AggregateException ae)
-			{
-				HandleAggregatedCancellation(ae);
-				throw;
-			}
-			return null;
-		}
+        /// <summary>
+        /// Return current piece of processed data and advances the reader.
+        /// </summary>
+        /// <returns>Object that has been returned by ICallback.ProcessRawData.
+        /// null indicates end of sequence.</returns>
+        public ProcessedData ReadAndProcessNextPieceOfData()
+        {
+            CheckDisposed();
+            try
+            {
+                if (outEnumerator.MoveNext())
+                    return outEnumerator.Current;
+            }
+            catch (AggregateException ae)
+            {
+                HandleAggregatedCancellation(ae);
+                throw;
+            }
+            return null;
+        }
 
-		public void Dispose()
-		{
-			if (disposed)
-				return;
-			disposed = true;
-			inEnumerator.Dispose();
-			cancellationTokenSource.Cancel();
-			try
-			{
-				outEnumerator.Dispose();
-			}
-			catch (AggregateException ae)
-			{
-				HandleAggregatedCancellation(ae);
-				throw;
-			}
-			finally
-			{
-				threadLocal.Dispose();
-				foreach (var state in threadLocalStates)
-					callback.FinalizeThreadLocalState(ref state.State);
-				// in case of interruption (e.g. exception) some items may be unprocessed. dispose them.
-				RawDataHolder tmp;
-				while (itemsBeingProcessed.TryDequeue(out tmp))
-					(tmp.Data as IDisposable)?.Dispose();
-			}
-		}
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+            disposed = true;
+            inEnumerator.Dispose();
+            cancellationTokenSource.Cancel();
+            try
+            {
+                outEnumerator.Dispose();
+            }
+            catch (AggregateException ae)
+            {
+                HandleAggregatedCancellation(ae);
+                throw;
+            }
+            finally
+            {
+                threadLocal.Dispose();
+                foreach (var state in threadLocalStates)
+                    callback.FinalizeThreadLocalState(ref state.State);
+                // in case of interruption (e.g. exception) some items may be unprocessed. dispose them.
+                RawDataHolder tmp;
+                while (itemsBeingProcessed.TryDequeue(out tmp))
+                    (tmp.Data as IDisposable)?.Dispose();
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Implementation
+        #region Implementation
 
-		void CheckDisposed()
-		{
-			if (disposed)
-				throw new ObjectDisposedException("SequentialMediaReaderAndProcessor");
-		}
+        void CheckDisposed()
+        {
+            if (disposed)
+                throw new ObjectDisposedException("SequentialMediaReaderAndProcessor");
+        }
 
-		IEnumerable<RawDataHolder> FetchSourceItems()
-		{
-			for (; ; )
-			{
-				if (itemsBeingProcessed.Count >= processingQueueSize)
-				{
-					yield break;
-				}
-				if (inEnumerator.MoveNext())
-				{
-					var holder = new RawDataHolder()
-					{
-						Data = inEnumerator.Current
-					};
-					itemsBeingProcessed.Enqueue(holder);
-					yield return holder;
-				}
-				else
-				{
-					yield return null;
-					yield break;
-				}
-			}
-		}
+        IEnumerable<RawDataHolder> FetchSourceItems()
+        {
+            for (; ; )
+            {
+                if (itemsBeingProcessed.Count >= processingQueueSize)
+                {
+                    yield break;
+                }
+                if (inEnumerator.MoveNext())
+                {
+                    var holder = new RawDataHolder()
+                    {
+                        Data = inEnumerator.Current
+                    };
+                    itemsBeingProcessed.Enqueue(holder);
+                    yield return holder;
+                }
+                else
+                {
+                    yield return null;
+                    yield break;
+                }
+            }
+        }
 
-		IEnumerable<ProcessedData> CreateEnumerator()
-		{
-			var cancellationToken = cancellationTokenSource.Token;
-			while (true)
-			{
-				foreach (var rec in FetchSourceItems()
-					.AsParallel()
-					.AsOrdered()
-					.WithMergeOptions(ParallelMergeOptions.NotBuffered)
-					.Select(rawDataHolder => new 
-					{
-						processedData = rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value.State, cancellationToken) : null,
-						rawDataHolder
-					}
-				))
-				{
-					RawDataHolder tmp;
-					itemsBeingProcessed.TryDequeue(out tmp);
-					if (rec.rawDataHolder != tmp)
-						throw new Exception(string.Format("State is inconsistent, expected {0}, got {1}", rec.rawDataHolder, tmp));
-					if (rec.processedData == null)
-						yield break;
-					yield return rec.processedData;
-					(rec.rawDataHolder?.Data as IDisposable)?.Dispose();
-				}
-				++timesConveyorRestarted;
-			}
-		}
+        IEnumerable<ProcessedData> CreateEnumerator()
+        {
+            var cancellationToken = cancellationTokenSource.Token;
+            while (true)
+            {
+                foreach (var rec in FetchSourceItems()
+                    .AsParallel()
+                    .AsOrdered()
+                    .WithMergeOptions(ParallelMergeOptions.NotBuffered)
+                    .Select(rawDataHolder => new
+                    {
+                        processedData = rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value.State, cancellationToken) : null,
+                        rawDataHolder
+                    }
+                ))
+                {
+                    RawDataHolder tmp;
+                    itemsBeingProcessed.TryDequeue(out tmp);
+                    if (rec.rawDataHolder != tmp)
+                        throw new Exception(string.Format("State is inconsistent, expected {0}, got {1}", rec.rawDataHolder, tmp));
+                    if (rec.processedData == null)
+                        yield break;
+                    yield return rec.processedData;
+                    (rec.rawDataHolder?.Data as IDisposable)?.Dispose();
+                }
+                ++timesConveyorRestarted;
+            }
+        }
 
-		private void HandleAggregatedCancellation(AggregateException ae)
-		{
-			if (cancellationTokenSource.IsCancellationRequested && ae.InnerExceptions.All(e => e is OperationCanceledException))
-				cancellationTokenSource.Token.ThrowIfCancellationRequested();
-		}
+        private void HandleAggregatedCancellation(AggregateException ae)
+        {
+            if (cancellationTokenSource.IsCancellationRequested && ae.InnerExceptions.All(e => e is OperationCanceledException))
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+        }
 
-		class ThreadLocalHolder
-		{
-			public ThreadLocalState State;
-		};
+        class ThreadLocalHolder
+        {
+            public ThreadLocalState State;
+        };
 
-		class RawDataHolder
-		{
-			public RawData Data;
-		}
+        class RawDataHolder
+        {
+            public RawData Data;
+        }
 
-		readonly ICallback callback;
-		readonly CancellationTokenSource cancellationTokenSource;
-		readonly ThreadLocal<ThreadLocalHolder> threadLocal;
-		readonly List<ThreadLocalHolder> threadLocalStates;
-		readonly int processingQueueSize;
-		readonly IEnumerator<RawData> inEnumerator;
-		readonly IEnumerator<ProcessedData> outEnumerator;
+        readonly ICallback callback;
+        readonly CancellationTokenSource cancellationTokenSource;
+        readonly ThreadLocal<ThreadLocalHolder> threadLocal;
+        readonly List<ThreadLocalHolder> threadLocalStates;
+        readonly int processingQueueSize;
+        readonly IEnumerator<RawData> inEnumerator;
+        readonly IEnumerator<ProcessedData> outEnumerator;
 
-		readonly ConcurrentQueue<RawDataHolder> itemsBeingProcessed = new ConcurrentQueue<RawDataHolder>();
-		long timesConveyorRestarted;
-		bool disposed;
+        readonly ConcurrentQueue<RawDataHolder> itemsBeingProcessed = new ConcurrentQueue<RawDataHolder>();
+        long timesConveyorRestarted;
+        bool disposed;
 
-		#endregion
+        #endregion
 
 #else // SequentialMediaReaderAndProcessor_PLinqImplementation
 		
-		#region Public interface
+        #region Public interface
 
 		public SequentialMediaReaderAndProcessor(ICallback callback)
 		{
@@ -279,9 +279,9 @@ namespace LogJoint
 			cancellationTokenSource.Dispose();
 		}
 
-	#endregion
+    #endregion
 
-	#region Implementation
+    #region Implementation
 
 		void CheckDisposed()
 		{
@@ -333,120 +333,120 @@ namespace LogJoint
 
 		bool disposed;
 
-	#endregion
+    #endregion
 
 #endif
-	};
+    };
 
-	public class Temp
-	{
-		static public IEnumerable<ProcessedData> BoundedParallelSelect<RawData, ProcessedData, ThreadLocalState>(IEnumerable<RawData> source,
-			Func<ThreadLocalState> threadLocalInit, Action<ThreadLocalState> threadLocalFinialize, int queueSize)
-		{
-			return null;
-		}
-	}
+    public class Temp
+    {
+        static public IEnumerable<ProcessedData> BoundedParallelSelect<RawData, ProcessedData, ThreadLocalState>(IEnumerable<RawData> source,
+            Func<ThreadLocalState> threadLocalInit, Action<ThreadLocalState> threadLocalFinialize, int queueSize)
+        {
+            return null;
+        }
+    }
 
-	internal interface ISequentialMediaReaderAndProcessorMock
-	{
-		void SpawnWorkerThread(int threadIdx);
-		void FinishWorkerThread(int threadIdx);
-		void ReadNextPieceOfRawData();
-		void ProcessNextPieceOfRawData(int threadIdx, int rawDataIdx);
-	}
+    internal interface ISequentialMediaReaderAndProcessorMock
+    {
+        void SpawnWorkerThread(int threadIdx);
+        void FinishWorkerThread(int threadIdx);
+        void ReadNextPieceOfRawData();
+        void ProcessNextPieceOfRawData(int threadIdx, int rawDataIdx);
+    }
 
-	/// <summary>
-	/// Mock implementation of ISequentialMediaReaderAndProcessor that one can use to replace real SequentialMediaReaderAndProcessor 
-	/// in unit tests.
-	/// </summary>
-	internal class SequentialMediaReaderAndProcessorMock<RawData, ProcessedData, ThreadLocalState> : 
-			ISequentialMediaReaderAndProcessor<ProcessedData>, IDisposable,	ISequentialMediaReaderAndProcessorMock
-		where ProcessedData : class
-		where RawData : class
-	{
-		public SequentialMediaReaderAndProcessorMock(SequentialMediaReaderAndProcessor<RawData, ProcessedData, ThreadLocalState>.ICallback callback)
-		{
-			this.callback = callback;
-		}
+    /// <summary>
+    /// Mock implementation of ISequentialMediaReaderAndProcessor that one can use to replace real SequentialMediaReaderAndProcessor 
+    /// in unit tests.
+    /// </summary>
+    internal class SequentialMediaReaderAndProcessorMock<RawData, ProcessedData, ThreadLocalState> :
+            ISequentialMediaReaderAndProcessor<ProcessedData>, IDisposable, ISequentialMediaReaderAndProcessorMock
+        where ProcessedData : class
+        where RawData : class
+    {
+        public SequentialMediaReaderAndProcessorMock(SequentialMediaReaderAndProcessor<RawData, ProcessedData, ThreadLocalState>.ICallback callback)
+        {
+            this.callback = callback;
+        }
 
-		#region ISequentialMediaReaderAndProcessor interface implementation
+        #region ISequentialMediaReaderAndProcessor interface implementation
 
-		public ProcessedData ReadAndProcessNextPieceOfData()
-		{
-			var entry = processingQueue.Dequeue();
-			if (!entry.Processed)
-				throw new InvalidOperationException("Next piece of data is not ready");
-			return entry.Output;
-		}
+        public ProcessedData ReadAndProcessNextPieceOfData()
+        {
+            var entry = processingQueue.Dequeue();
+            if (!entry.Processed)
+                throw new InvalidOperationException("Next piece of data is not ready");
+            return entry.Output;
+        }
 
-		public void Dispose()
-		{
-			if (enumer == null)
-			{
-				cancellationTokenSource.Cancel();
-				enumer.Dispose();
-				enumer = null;
-			}
-		}
+        public void Dispose()
+        {
+            if (enumer == null)
+            {
+                cancellationTokenSource.Cancel();
+                enumer.Dispose();
+                enumer = null;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region ISequentialMediaReaderAndProcessorMock methods to be called from unit tests
+        #region ISequentialMediaReaderAndProcessorMock methods to be called from unit tests
 
-		public void SpawnWorkerThread(int threadIdx)
-		{
-			if (threads.ContainsKey(threadIdx))
-				throw new InvalidOperationException("Thread with given index already exists");
-			threads[threadIdx] = callback.InitializeThreadLocalState();
-		}
+        public void SpawnWorkerThread(int threadIdx)
+        {
+            if (threads.ContainsKey(threadIdx))
+                throw new InvalidOperationException("Thread with given index already exists");
+            threads[threadIdx] = callback.InitializeThreadLocalState();
+        }
 
-		public void FinishWorkerThread(int threadIdx)
-		{
-			if (!threads.ContainsKey(threadIdx))
-				throw new ArgumentException("Thread doesn't exist", "threadIdx");
-			threads.Remove(threadIdx);
-		}
+        public void FinishWorkerThread(int threadIdx)
+        {
+            if (!threads.ContainsKey(threadIdx))
+                throw new ArgumentException("Thread doesn't exist", "threadIdx");
+            threads.Remove(threadIdx);
+        }
 
-		public void ReadNextPieceOfRawData()
-		{
-			if (enumer == null)
-				enumer = callback.ReadRawDataFromMedia(cancellationTokenSource.Token).GetEnumerator();
-			processingQueue.Enqueue(new Entry() { Input = enumer.MoveNext() ? enumer.Current : null });
-		}
+        public void ReadNextPieceOfRawData()
+        {
+            if (enumer == null)
+                enumer = callback.ReadRawDataFromMedia(cancellationTokenSource.Token).GetEnumerator();
+            processingQueue.Enqueue(new Entry() { Input = enumer.MoveNext() ? enumer.Current : null });
+        }
 
-		public void ProcessNextPieceOfRawData(int threadIdx, int rawDataIdx)
-		{
-			if (!threads.ContainsKey(threadIdx))
-				throw new ArgumentException("Thread doesn't exist", "threadIdx");
-			if (rawDataIdx >= processingQueue.Count)
-				throw new ArithmeticException("rawDataIdx");
-			var entry = processingQueue.ToArray()[rawDataIdx];
-			if (entry.Processed)
-				throw new InvalidOperationException("This piece of raw data is already processed");
-			entry.Processed = true;
-			if (entry.Input == null)
-				entry.Output = null;
-			else
-				entry.Output = callback.ProcessRawData(entry.Input, threads[threadIdx], cancellationTokenSource.Token);
-		}
+        public void ProcessNextPieceOfRawData(int threadIdx, int rawDataIdx)
+        {
+            if (!threads.ContainsKey(threadIdx))
+                throw new ArgumentException("Thread doesn't exist", "threadIdx");
+            if (rawDataIdx >= processingQueue.Count)
+                throw new ArithmeticException("rawDataIdx");
+            var entry = processingQueue.ToArray()[rawDataIdx];
+            if (entry.Processed)
+                throw new InvalidOperationException("This piece of raw data is already processed");
+            entry.Processed = true;
+            if (entry.Input == null)
+                entry.Output = null;
+            else
+                entry.Output = callback.ProcessRawData(entry.Input, threads[threadIdx], cancellationTokenSource.Token);
+        }
 
-		#endregion
+        #endregion
 
-		#region Implementation
+        #region Implementation
 
-		class Entry
-		{
-			public RawData Input;
-			public ProcessedData Output;
-			public bool Processed;
-		};
+        class Entry
+        {
+            public RawData Input;
+            public ProcessedData Output;
+            public bool Processed;
+        };
 
-		readonly SequentialMediaReaderAndProcessor<RawData, ProcessedData, ThreadLocalState>.ICallback callback;
-		readonly Dictionary<int, ThreadLocalState> threads = new Dictionary<int, ThreadLocalState>();
-		readonly Queue<Entry> processingQueue = new Queue<Entry>();
-		readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-		IEnumerator<RawData> enumer;
+        readonly SequentialMediaReaderAndProcessor<RawData, ProcessedData, ThreadLocalState>.ICallback callback;
+        readonly Dictionary<int, ThreadLocalState> threads = new Dictionary<int, ThreadLocalState>();
+        readonly Queue<Entry> processingQueue = new Queue<Entry>();
+        readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        IEnumerator<RawData> enumer;
 
-		#endregion
-	}
+        #endregion
+    }
 }

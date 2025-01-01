@@ -2,8 +2,8 @@
 
 namespace LogJoint
 {
-	public interface IShutdownSource: IShutdown
-	{
-		Task Shutdown();
-	}
+    public interface IShutdownSource : IShutdown
+    {
+        Task Shutdown();
+    }
 }

@@ -6,79 +6,79 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	class DelegatingMessagesReader: IPositionedMessagesReader
-	{
-		public DelegatingMessagesReader(IPositionedMessagesReader underliyingReader)
-		{
-			if (underliyingReader == null)
-				throw new ArgumentNullException("underliyingReader");
-			this.underliyingReader = underliyingReader;
-		}
+    class DelegatingMessagesReader : IPositionedMessagesReader
+    {
+        public DelegatingMessagesReader(IPositionedMessagesReader underliyingReader)
+        {
+            if (underliyingReader == null)
+                throw new ArgumentNullException("underliyingReader");
+            this.underliyingReader = underliyingReader;
+        }
 
-		#region IPositionedMessagesReader Members
+        #region IPositionedMessagesReader Members
 
-		public long BeginPosition
-		{
-			get { return underliyingReader.BeginPosition; }
-		}
+        public long BeginPosition
+        {
+            get { return underliyingReader.BeginPosition; }
+        }
 
-		public long EndPosition
-		{
-			get { return underliyingReader.EndPosition; }
-		}
+        public long EndPosition
+        {
+            get { return underliyingReader.EndPosition; }
+        }
 
-		public Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
-		{
-			return underliyingReader.UpdateAvailableBounds(incrementalMode);
-		}
+        public Task<UpdateBoundsStatus> UpdateAvailableBounds(bool incrementalMode)
+        {
+            return underliyingReader.UpdateAvailableBounds(incrementalMode);
+        }
 
-		public long MaximumMessageSize
-		{
-			get { return underliyingReader.MaximumMessageSize; }
-		}
+        public long MaximumMessageSize
+        {
+            get { return underliyingReader.MaximumMessageSize; }
+        }
 
-		public long PositionRangeToBytes(LogJoint.FileRange.Range range)
-		{
-			return underliyingReader.PositionRangeToBytes(range);
-		}
+        public long PositionRangeToBytes(LogJoint.FileRange.Range range)
+        {
+            return underliyingReader.PositionRangeToBytes(range);
+        }
 
-		public long SizeInBytes
-		{
-			get { return underliyingReader.SizeInBytes; }
-		}
+        public long SizeInBytes
+        {
+            get { return underliyingReader.SizeInBytes; }
+        }
 
-		public ITimeOffsets TimeOffsets
-		{
-			get { return underliyingReader.TimeOffsets; }
-			set { underliyingReader.TimeOffsets = value; }
-		}
+        public ITimeOffsets TimeOffsets
+        {
+            get { return underliyingReader.TimeOffsets; }
+            set { underliyingReader.TimeOffsets = value; }
+        }
 
-		public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
-		{
-			return underliyingReader.CreateParser(p);
-		}
+        public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
+        {
+            return underliyingReader.CreateParser(p);
+        }
 
-		public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
-		{
-			return underliyingReader.CreateSearchingParser(p);
-		}
+        public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
+        {
+            return underliyingReader.CreateSearchingParser(p);
+        }
 
-		ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
-		{
-			return underliyingReader.GetContentsEtag();
-		}
+        ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
+        {
+            return underliyingReader.GetContentsEtag();
+        }
 
-		#endregion
+        #endregion
 
-		#region IDisposable Members
+        #region IDisposable Members
 
-		public void Dispose()
-		{
-			underliyingReader.Dispose();
-		}
+        public void Dispose()
+        {
+            underliyingReader.Dispose();
+        }
 
-		#endregion
+        #endregion
 
-		protected readonly IPositionedMessagesReader underliyingReader;
-	}
+        protected readonly IPositionedMessagesReader underliyingReader;
+    }
 }

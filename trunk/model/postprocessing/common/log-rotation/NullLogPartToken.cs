@@ -2,17 +2,17 @@
 
 namespace LogJoint.Postprocessing
 {
-	class NullLogPartToken : ILogPartToken, ILogPartTokenFactory
-	{
-		ILogPartTokenFactory ILogPartToken.Factory => this;
+    class NullLogPartToken : ILogPartToken, ILogPartTokenFactory
+    {
+        ILogPartTokenFactory ILogPartToken.Factory => this;
 
-		int ILogPartToken.CompareTo(ILogPartToken otherToken) => 0;
+        int ILogPartToken.CompareTo(ILogPartToken otherToken) => 0;
 
-		void ILogPartToken.Serialize(XElement to)
-		{
-		}
+        void ILogPartToken.Serialize(XElement to)
+        {
+        }
 
-		string ILogPartTokenFactory.Id => "null-factory";
-		ILogPartToken ILogPartTokenFactory.Deserialize(XElement element) => this;
-	};
+        string ILogPartTokenFactory.Id => "null-factory";
+        ILogPartToken ILogPartTokenFactory.Deserialize(XElement element) => this;
+    };
 }

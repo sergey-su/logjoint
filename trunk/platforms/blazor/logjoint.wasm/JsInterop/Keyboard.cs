@@ -28,7 +28,7 @@ namespace LogJoint.Wasm
         /// Each key can have options, for example, "Ctrl+F/i" for case-insensitive match for F key.
         /// That's an alternative for the inflexible all-or-nothing @keydown:preventDefault / @keydown:stopPropagation.
         /// </summary>
-        public async ValueTask<IDisposable> AddHandler(ElementReference element, Options options,  params string[] keys)
+        public async ValueTask<IDisposable> AddHandler(ElementReference element, Options options, params string[] keys)
         {
             var resizeInvokeHelper = options.Handler != null ?
                 DotNetObjectReference.Create(new Helper { action = options.Handler }) : null;
@@ -69,7 +69,7 @@ namespace LogJoint.Wasm
             public void Invoke() => action.Invoke();
         }
 
-        class ModalHandle: IAsyncDisposable
+        class ModalHandle : IAsyncDisposable
         {
             public Func<ValueTask> dispose;
             public ValueTask DisposeAsync() => dispose();

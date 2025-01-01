@@ -9,31 +9,31 @@ using NSubstitute;
 
 namespace LogJoint.UI.Presenters.Tests.ExtensionsTests
 {
-	[TestFixture]
-	public class ExtensionsTests
-	{
-		IMessage message;
+    [TestFixture]
+    public class ExtensionsTests
+    {
+        IMessage message;
 
-		[SetUp]
-		public void Setup()
-		{
-			message = Substitute.For<IMessage>();
-		}
+        [SetUp]
+        public void Setup()
+        {
+            message = Substitute.For<IMessage>();
+        }
 
-		ViewLine VL(int textLineIndex, bool bookmarked)
-		{
-			return new ViewLine()
-			{
-				Message = message,
-				TextLineIndex = textLineIndex,
-				IsBookmarked = bookmarked
-			};
-		}
+        ViewLine VL(int textLineIndex, bool bookmarked)
+        {
+            return new ViewLine()
+            {
+                Message = message,
+                TextLineIndex = textLineIndex,
+                IsBookmarked = bookmarked
+            };
+        }
 
-		[Test]
-		public void Test1()
-		{
+        [Test]
+        public void Test1()
+        {
 
-		}
-	}
+        }
+    }
 }

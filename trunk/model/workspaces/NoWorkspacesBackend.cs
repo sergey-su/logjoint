@@ -9,36 +9,36 @@ using System.Xml.Serialization;
 
 namespace LogJoint.Workspaces.Backend
 {
-	class NoWorkspacesBackend: IBackendAccess
-	{
-		bool IBackendAccess.IsConfigured
-		{
-			get { return false; }
-		}
+    class NoWorkspacesBackend : IBackendAccess
+    {
+        bool IBackendAccess.IsConfigured
+        {
+            get { return false; }
+        }
 
-		bool IBackendAccess.IsValidWorkspaceUri(Uri uri)
-		{
-			return false;
-		}
+        bool IBackendAccess.IsValidWorkspaceUri(Uri uri)
+        {
+            return false;
+        }
 
-		Task<CreatedWorkspaceDTO> IBackendAccess.CreateWorkspace(WorkspaceDTO dto)
-		{
-			throw new NotImplementedException();
-		}
+        Task<CreatedWorkspaceDTO> IBackendAccess.CreateWorkspace(WorkspaceDTO dto)
+        {
+            throw new NotImplementedException();
+        }
 
-		Task<WorkspaceDTO> IBackendAccess.GetWorkspace(string workspaceUri, CancellationToken cancellation)
-		{
-			throw new NotImplementedException();
-		}
+        Task<WorkspaceDTO> IBackendAccess.GetWorkspace(string workspaceUri, CancellationToken cancellation)
+        {
+            throw new NotImplementedException();
+        }
 
-		Task IBackendAccess.UploadEntriesArchive(string destinationRef, Stream source)
-		{
-			throw new NotImplementedException();
-		}
-			
-		Task IBackendAccess.GetEntriesArchive(string uri, Stream destinationStream, CancellationToken cancellation)
-		{
-			throw new NotImplementedException();
-		}
-	}
+        Task IBackendAccess.UploadEntriesArchive(string destinationRef, Stream source)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IBackendAccess.GetEntriesArchive(string uri, Stream destinationStream, CancellationToken cancellation)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

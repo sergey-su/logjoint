@@ -7,49 +7,49 @@ using LogJoint.AutoUpdate;
 
 namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
 {
-	public class Presenter : IPresenter, IViewEvents
-	{
-		public Presenter(
-			IAutoUpdater model,
-			IGlobalSettingsAccessor settingsAccessor,
-			IView view)
-		{
-			this.model = model;
-			this.view = view;
+    public class Presenter : IPresenter, IViewEvents
+    {
+        public Presenter(
+            IAutoUpdater model,
+            IGlobalSettingsAccessor settingsAccessor,
+            IView view)
+        {
+            this.model = model;
+            this.view = view;
 
-			view.SetPresenter(this);
+            view.SetPresenter(this);
 
-			UpdateAutomaticUpdatesView();
-			model.Changed += (s, e) => UpdateAutomaticUpdatesView();
-		}
+            UpdateAutomaticUpdatesView();
+            model.Changed += (s, e) => UpdateAutomaticUpdatesView();
+        }
 
-		bool IPresenter.Apply()
-		{
-			return true;
-		}
+        bool IPresenter.Apply()
+        {
+            return true;
+        }
 
-		bool IPresenter.IsAvailable
-		{
-			get { return model.State != AutoUpdateState.Disabled; }
-		}
+        bool IPresenter.IsAvailable
+        {
+            get { return model.State != AutoUpdateState.Disabled; }
+        }
 
-		void IViewEvents.OnCheckUpdateNowClicked()
-		{
-			model.CheckNow();
-		}
+        void IViewEvents.OnCheckUpdateNowClicked()
+        {
+            model.CheckNow();
+        }
 
-		#region Implementation
+        #region Implementation
 
-		void UpdateAutomaticUpdatesView()
-		{
-			var pres = model.GetPresentation(preferShortBrief: false);
-			view.SetLastUpdateCheckInfo(pres.Brief, pres.Details);
-			view.SetCheckNowButtonAvailability(pres.CanCheckNow);
-		}
+        void UpdateAutomaticUpdatesView()
+        {
+            var pres = model.GetPresentation(preferShortBrief: false);
+            view.SetLastUpdateCheckInfo(pres.Brief, pres.Details);
+            view.SetCheckNowButtonAvailability(pres.CanCheckNow);
+        }
 
-		readonly IAutoUpdater model;
-		readonly IView view;
+        readonly IAutoUpdater model;
+        readonly IView view;
 
-		#endregion
-	};
+        #endregion
+    };
 };

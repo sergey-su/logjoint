@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public interface IShutdown
-	{
-		CancellationToken ShutdownToken { get; }
-		void AddCleanupTask(Task task);
+    public interface IShutdown
+    {
+        CancellationToken ShutdownToken { get; }
+        void AddCleanupTask(Task task);
 
-		event EventHandler Cleanup;
-		event EventHandler Phase2Cleanup;
-	}
+        event EventHandler Cleanup;
+        event EventHandler Phase2Cleanup;
+    }
 }

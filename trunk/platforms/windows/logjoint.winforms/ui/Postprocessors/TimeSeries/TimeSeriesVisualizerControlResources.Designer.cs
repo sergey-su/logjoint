@@ -11,8 +11,8 @@
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -24,131 +24,156 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class TimeSeriesVisualizerControlResources
-	{
-        
+    {
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal TimeSeriesVisualizerControlResources() {
+        internal TimeSeriesVisualizerControlResources()
+        {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
+        public static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if (object.ReferenceEquals(resourceMan, null))
+                {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("logjoint.ui.Postprocessors.TimeSeries.TimeSeriesVisualizerControlResources", typeof(TimeSeriesVisualizerControlResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
-            get {
+        public static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
                 return resourceCulture;
             }
-            set {
+            set
+            {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap APICall {
-            get {
+        public static System.Drawing.Bitmap APICall
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("APICall", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap BigBookmark {
-            get {
+        public static System.Drawing.Bitmap BigBookmark
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("BigBookmark", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
-        
+
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap FocusedMsgSlaveVert {
-            get {
+        public static System.Drawing.Bitmap FocusedMsgSlaveVert
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("FocusedMsgSlaveVert", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap SelectCurrentTime {
-            get {
+        public static System.Drawing.Bitmap SelectCurrentTime
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("SelectCurrentTime", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap TimeSeriesBookmark {
-            get {
+        public static System.Drawing.Bitmap TimeSeriesBookmark
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("TimeSeriesBookmark", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
-        
+
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap UserAction {
-            get {
+        public static System.Drawing.Bitmap UserAction
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("UserAction", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap ZoomIn {
-            get {
+        public static System.Drawing.Bitmap ZoomIn
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ZoomIn", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap ZoomOut {
-            get {
+        public static System.Drawing.Bitmap ZoomOut
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ZoomOut", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-		
-        public static System.Drawing.Bitmap Warning {
-            get {
+
+        public static System.Drawing.Bitmap Warning
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Warning", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
-        }		
+        }
     }
 }

@@ -5,25 +5,25 @@ using System.Windows.Forms;
 
 namespace LogJoint.Extensibility
 {
-	class View: UI.Windows.IView
-	{
-		public View(
-			IWinFormsComponentsInitializer winFormsComponentsInitializer,
-			IReactive reactiveImpl
-		)
-		{
-			this.winFormsComponentsInitializer = winFormsComponentsInitializer;
-			this.reactiveImpl = reactiveImpl;
-		}
+    class View : UI.Windows.IView
+    {
+        public View(
+            IWinFormsComponentsInitializer winFormsComponentsInitializer,
+            IReactive reactiveImpl
+        )
+        {
+            this.winFormsComponentsInitializer = winFormsComponentsInitializer;
+            this.reactiveImpl = reactiveImpl;
+        }
 
-		void UI.Windows.IView.RegisterToolForm(Form f)
-		{
-			winFormsComponentsInitializer.InitOwnedForm(f, false);
-		}
+        void UI.Windows.IView.RegisterToolForm(Form f)
+        {
+            winFormsComponentsInitializer.InitOwnedForm(f, false);
+        }
 
-		IReactive IView.Reactive => reactiveImpl;
+        IReactive IView.Reactive => reactiveImpl;
 
-		readonly IWinFormsComponentsInitializer winFormsComponentsInitializer;
-		readonly IReactive reactiveImpl;
-	};
+        readonly IWinFormsComponentsInitializer winFormsComponentsInitializer;
+        readonly IReactive reactiveImpl;
+    };
 }

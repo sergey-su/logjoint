@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace LogJoint.Postprocessing.Messaging
 {
-	public static class MessagingHelpers
-	{
-		public static MessageDirection GetOppositeDirection(this MessageDirection direction)
-		{
-			if (direction == MessageDirection.Invalid)
-				throw new ArgumentException();
-			return direction == MessageDirection.Incoming ? MessageDirection.Outgoing : MessageDirection.Incoming;
-		}
-	}
+    public static class MessagingHelpers
+    {
+        public static MessageDirection GetOppositeDirection(this MessageDirection direction)
+        {
+            if (direction == MessageDirection.Invalid)
+                throw new ArgumentException();
+            return direction == MessageDirection.Incoming ? MessageDirection.Outgoing : MessageDirection.Incoming;
+        }
+    }
 }

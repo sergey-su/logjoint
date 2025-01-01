@@ -1,12 +1,12 @@
 
 namespace LogJoint.MultiInstance
 {
-	public class DummyInstancesCounter : IInstancesCounter
-	{
-		bool IInstancesCounter.IsPrimaryInstance => false;
+    public class DummyInstancesCounter : IInstancesCounter
+    {
+        bool IInstancesCounter.IsPrimaryInstance => false;
 
-		string IInstancesCounter.MutualExecutionKey => "";
+        string IInstancesCounter.MutualExecutionKey => "";
 
-		int IInstancesCounter.Count => 1;
-	};
+        int IInstancesCounter.Count => 1;
+    };
 }

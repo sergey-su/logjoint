@@ -48,7 +48,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         private readonly UInt32 _numericId;
 
 
-		private GenericEventParser(Type eventDataType, EventAttribute eAttr, Regex regex, string prefix, UInt32 numericId)
+        private GenericEventParser(Type eventDataType, EventAttribute eAttr, Regex regex, string prefix, UInt32 numericId)
         {
             _eventDataType = eventDataType;
             _regEx = regex;

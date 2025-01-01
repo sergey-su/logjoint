@@ -12,7 +12,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         private string _classifierGroup;
         private bool _classifierFromObjectAddress;
         private IEnumerable<TimeSeriesDescriptor> _timeSeries;
-        
+
         private readonly Regex _regEx;
         private readonly string _prefix;
         private readonly UInt32 _numericId;
@@ -39,7 +39,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             var tsAttr = eventType.GetCustomAttributes(typeof(TimeSeriesEventAttribute), true).OfType<TimeSeriesEventAttribute>().FirstOrDefault();
             if (tsAttr == null)
                 return null;
-            
+
             return new TimeSeriesEventParser(eventType, tsAttr, regex, prefix, numericId);
         }
 
@@ -79,12 +79,12 @@ namespace LogJoint.Postprocessing.TimeSeries
                 {
                     dynamicName = match.Groups[ts.NameFromGroup].Value;
                 }
-				string dynamicUnit = null;
-				if (ts.UnitFromGroup != null)
-				{
-					dynamicUnit = match.Groups[ts.UnitFromGroup].Value;
-				}
-				visitor.VisitTimeSeries(ts, objectId, dynamicName, dynamicUnit, numVal);
+                string dynamicUnit = null;
+                if (ts.UnitFromGroup != null)
+                {
+                    dynamicUnit = match.Groups[ts.UnitFromGroup].Value;
+                }
+                visitor.VisitTimeSeries(ts, objectId, dynamicName, dynamicUnit, numVal);
             }
         }
 
@@ -98,9 +98,9 @@ namespace LogJoint.Postprocessing.TimeSeries
             return _eventDataType;
         }
 
-		uint ILineParser.GetNumericId()
-		{
-			return _numericId;
-		}
-	}
+        uint ILineParser.GetNumericId()
+        {
+            return _numericId;
+        }
+    }
 }

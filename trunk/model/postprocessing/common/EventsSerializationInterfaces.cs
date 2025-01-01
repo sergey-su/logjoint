@@ -4,8 +4,8 @@ using System.Xml.Linq;
 
 namespace LogJoint.Postprocessing
 {
-	public interface IEventsSerializer
-	{
-		ICollection<XElement> Output { get; }
-	};
+    public interface IEventsSerializer
+    {
+        ICollection<XElement> Output { get; }
+    };
 }

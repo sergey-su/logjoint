@@ -50,7 +50,7 @@ namespace LogJoint.Postprocessing.TimeSeries
     };
 
 
-    public class RegexGenerator: IRegexGenerator
+    public class RegexGenerator : IRegexGenerator
     {
         struct FormatPatternRule
         {
@@ -140,7 +140,8 @@ namespace LogJoint.Postprocessing.TimeSeries
             bool sep = false; // mechanism to avoid adding too many underscores when replacing punctuation characters
             foreach (char c in instring)
             {
-                if (Char.IsLetterOrDigit(c)) {
+                if (Char.IsLetterOrDigit(c))
+                {
                     if (sep)
                     {
                         sb.Append('_');

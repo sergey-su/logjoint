@@ -11,40 +11,40 @@ using System.Windows.Forms;
 
 namespace LogJoint.UI.WebViewTools
 {
-	public partial class WebBrowserDownloaderForm : Form, IView
-	{
-		IViewModel viewModel;
+    public partial class WebBrowserDownloaderForm : Form, IView
+    {
+        IViewModel viewModel;
 
-		public WebBrowserDownloaderForm()
-		{
-			InitializeComponent();
-		}
+        public WebBrowserDownloaderForm()
+        {
+            InitializeComponent();
+        }
 
-		void IView.SetViewModel(IViewModel handler)
-		{
-			this.viewModel = handler;
-			myWebBrowser.Init(viewModel);
-			myWebBrowser.Navigated += (sender, args) => viewModel.OnBrowserNavigated(args.Url);
-			myWebBrowser.Navigating += (sender, args) => viewModel.OnBrowserNavigated(args.Url);
-		}
+        void IView.SetViewModel(IViewModel handler)
+        {
+            this.viewModel = handler;
+            myWebBrowser.Init(viewModel);
+            myWebBrowser.Navigated += (sender, args) => viewModel.OnBrowserNavigated(args.Url);
+            myWebBrowser.Navigating += (sender, args) => viewModel.OnBrowserNavigated(args.Url);
+        }
 
-		void IView.Navigate(Uri uri)
-		{
-			Text = "Downloading from " + uri.Host;
-			myWebBrowser.Navigate(uri);
-		}
+        void IView.Navigate(Uri uri)
+        {
+            Text = "Downloading from " + uri.Host;
+            myWebBrowser.Navigate(uri);
+        }
 
-		bool IView.Visible
-		{
-			get { return base.Visible;  }
-			set { base.Visible = value; }
-		}
+        bool IView.Visible
+        {
+            get { return base.Visible; }
+            set { base.Visible = value; }
+        }
 
-		private void WebBrowserDownloaderForm_FormClosing(object sender, FormClosingEventArgs e)
-		{
-			e.Cancel = true;
-			Visible = false;
-			viewModel.OnAborted();
-		}
-	}
+        private void WebBrowserDownloaderForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = true;
+            Visible = false;
+            viewModel.OnAborted();
+        }
+    }
 }

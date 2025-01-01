@@ -4,33 +4,33 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Persistence
 {
-	public class WebContentCache : IWebContentCache
-	{
-		readonly IContentCache rawContentCache;
-		readonly IWebContentCacheConfig config;
+    public class WebContentCache : IWebContentCache
+    {
+        readonly IContentCache rawContentCache;
+        readonly IWebContentCacheConfig config;
 
-		public WebContentCache(IContentCache rawContentCache, IWebContentCacheConfig config)
-		{
-			this.rawContentCache = rawContentCache;
-			this.config = config;
-		}
+        public WebContentCache(IContentCache rawContentCache, IWebContentCacheConfig config)
+        {
+            this.rawContentCache = rawContentCache;
+            this.config = config;
+        }
 
-		Task<Stream> IWebContentCache.GetValue(Uri uri)
-		{
-			if (config.IsCachingForcedForHost(uri.Host.ToLower()))
-				return rawContentCache.GetValue(MakeCacheKey(uri));
-			return Task.FromResult<Stream>(null);
-		}
+        Task<Stream> IWebContentCache.GetValue(Uri uri)
+        {
+            if (config.IsCachingForcedForHost(uri.Host.ToLower()))
+                return rawContentCache.GetValue(MakeCacheKey(uri));
+            return Task.FromResult<Stream>(null);
+        }
 
-		async Task IWebContentCache.SetValue(Uri uri, Stream data)
-		{
-			if (config.IsCachingForcedForHost(uri.Host.ToLower()))
-				await rawContentCache.SetValue(MakeCacheKey(uri), data);
-		}
+        async Task IWebContentCache.SetValue(Uri uri, Stream data)
+        {
+            if (config.IsCachingForcedForHost(uri.Host.ToLower()))
+                await rawContentCache.SetValue(MakeCacheKey(uri), data);
+        }
 
-		static string MakeCacheKey(Uri uri)
-		{
-			return uri.ToString();
-		}
-	};
+        static string MakeCacheKey(Uri uri)
+        {
+            return uri.ToString();
+        }
+    };
 }

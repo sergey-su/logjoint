@@ -4,18 +4,18 @@ using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public interface IPresenter
-	{
-		IMessage FocusedMessage { get; }
-		IReadOnlyList<VisibleLine> VisibleLines { get; }
-		Task GoHome();
-		Task GoToEnd();
-	}
+    public interface IPresenter
+    {
+        IMessage FocusedMessage { get; }
+        IReadOnlyList<VisibleLine> VisibleLines { get; }
+        Task GoHome();
+        Task GoToEnd();
+    }
 
-	[DebuggerDisplay("{Value}")]
+    [DebuggerDisplay("{Value}")]
 
-	public struct VisibleLine
-	{
-		public string Value { get; internal set; }
-	};
+    public struct VisibleLine
+    {
+        public string Value { get; internal set; }
+    };
 }

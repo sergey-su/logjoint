@@ -7,29 +7,29 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Tests
 {
-	[TestFixture()]
-	public class OracleFormatTests
-	{
-		static IMediaBasedReaderFactory CreateFactory()
-		{
-			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), 
-				"Oracle", "11g alert log xml");
-		}
+    [TestFixture()]
+    public class OracleFormatTests
+    {
+        static IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(),
+                "Oracle", "11g alert log xml");
+        }
 
-		static async Task DoTest(string testLog, ExpectedLog expectedLog)
-		{
-			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
-		}
+        static async Task DoTest(string testLog, ExpectedLog expectedLog)
+        {
+            await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+        }
 
-		static async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
-		{
-			await DoTest(testLog, (new ExpectedLog()).Add(0, expectedMessages));
-		}
+        static async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+        {
+            await DoTest(testLog, (new ExpectedLog()).Add(0, expectedMessages));
+        }
 
-		[Test]
-		public async Task SmokeTest()
-		{
-			await DoTest(@"
+        [Test]
+        public async Task SmokeTest()
+        {
+            await DoTest(@"
 <msg time='2010-03-30T01:00:00.107-05:00' org_id='oracle' comp_id='rdbms'
 client_id='' type='UNKNOWN' level='16'
 host_id='RPRO9' host_addr='151.1.0.76' module=''
@@ -44,7 +44,7 @@ pid='4704'>
 <txt>Thread 1 advanced to log sequence 40 (LGWR switch)
 </txt>
 </msg>",
-				new EM(
+                new EM(
 @"Setting Resource Manager plan DEFAULT_MAINTENANCE_PLAN via parameter
   Organization ID: oracle
   Component ID: rdbms
@@ -54,12 +54,13 @@ pid='4704'>
   Host ID: RPRO9
   Host addr: 151.1.0.76
   Module:", null,
-					new DateTime(2010, 03, 30, 06, 00, 00, 107, DateTimeKind.Utc)) { TextNeedsNormalization = true },
-				new EM(null, null,
-					new DateTime(2010, 03, 30, 06, 00, 10, 254, DateTimeKind.Utc)) 
-					{ TextVerifier = t => t.StartsWith("Thread 1 advanced to log sequence 40 (LGWR switch)") }
-			);
-		}
+                    new DateTime(2010, 03, 30, 06, 00, 00, 107, DateTimeKind.Utc))
+                { TextNeedsNormalization = true },
+                new EM(null, null,
+                    new DateTime(2010, 03, 30, 06, 00, 10, 254, DateTimeKind.Utc))
+                { TextVerifier = t => t.StartsWith("Thread 1 advanced to log sequence 40 (LGWR switch)") }
+            );
+        }
 
-	}
+    }
 }

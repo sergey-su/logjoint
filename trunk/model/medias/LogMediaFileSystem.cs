@@ -7,183 +7,183 @@ using System.Threading.Tasks;
 
 namespace LogJoint.LogMedia
 {
-	class FileSystemImpl : IFileSystem
-	{
-		class Watcher : FileSystemWatcher, IFileSystemWatcher
-		{
-		};
-		
-		class StreamImpl : FileStream, IFileStreamInfo
-		{
-			public StreamImpl(string fileName)
-				:
-				base(fileName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite)
-			{
-				this.fileName = fileName;
-				this.lastTimeFileWasReopened = Environment.TickCount;
-			}
+    class FileSystemImpl : IFileSystem
+    {
+        class Watcher : FileSystemWatcher, IFileSystemWatcher
+        {
+        };
 
-			protected override void Dispose(bool disposing)
-			{
-				disposed = true;
-				base.Dispose(disposing);
-			}
+        class StreamImpl : FileStream, IFileStreamInfo
+        {
+            public StreamImpl(string fileName)
+                :
+                base(fileName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite)
+            {
+                this.fileName = fileName;
+                this.lastTimeFileWasReopened = Environment.TickCount;
+            }
 
-			#region IFileStreamInfo Members
+            protected override void Dispose(bool disposing)
+            {
+                disposed = true;
+                base.Dispose(disposing);
+            }
 
-			public DateTime LastWriteTime
-			{
-				get 
-				{
-					if (disposed)
-					{
-						throw new ObjectDisposedException(GetType().Name);
-					}
+            #region IFileStreamInfo Members
 
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						// Try to detect the time via file handle. It is faster than File.GetLastWriteTime()
-						if (WindowsNative.GetFileTime(this.SafeFileHandle, out _, out _, out long modified))
-						{
-							return DateTime.FromFileTime(modified);
-						}
-					}
+            public DateTime LastWriteTime
+            {
+                get
+                {
+                    if (disposed)
+                    {
+                        throw new ObjectDisposedException(GetType().Name);
+                    }
 
-					// This is default implementation
-					return File.GetLastWriteTime(fileName);
-				}
-			}
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        // Try to detect the time via file handle. It is faster than File.GetLastWriteTime()
+                        if (WindowsNative.GetFileTime(this.SafeFileHandle, out _, out _, out long modified))
+                        {
+                            return DateTime.FromFileTime(modified);
+                        }
+                    }
 
-			public readonly long DeletionDetectionLatency = 3 * 1000;
+                    // This is default implementation
+                    return File.GetLastWriteTime(fileName);
+                }
+            }
 
-			public bool IsDeleted
-			{
-				get 
-				{
-					if (disposed)
-					{
-						throw new ObjectDisposedException(GetType().Name);
-					}
+            public readonly long DeletionDetectionLatency = 3 * 1000;
 
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						if (!isOnNTFSDrive.HasValue)
-						{
-							isOnNTFSDrive = WindowsNative.IsOnNTFSVolume(fileName);
-						}
+            public bool IsDeleted
+            {
+                get
+                {
+                    if (disposed)
+                    {
+                        throw new ObjectDisposedException(GetType().Name);
+                    }
 
-						// First, try quick but platform-dependent way
-						if (isOnNTFSDrive.Value)
-						{
-							// GetFileInformationByHandle is not guaranteed to work ok on all file systems.
-							// Call it only if we are on NTFS drive. 
-							if (WindowsNative.GetFileInformationByHandle(this.SafeFileHandle, out WindowsNative.BY_HANDLE_FILE_INFORMATION info))
-							{
-								return info.nNumberOfLinks == 0;
-							}
-						}
-					}
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        if (!isOnNTFSDrive.HasValue)
+                        {
+                            isOnNTFSDrive = WindowsNative.IsOnNTFSVolume(fileName);
+                        }
 
-					long ticks = Environment.TickCount;
+                        // First, try quick but platform-dependent way
+                        if (isOnNTFSDrive.Value)
+                        {
+                            // GetFileInformationByHandle is not guaranteed to work ok on all file systems.
+                            // Call it only if we are on NTFS drive. 
+                            if (WindowsNative.GetFileInformationByHandle(this.SafeFileHandle, out WindowsNative.BY_HANDLE_FILE_INFORMATION info))
+                            {
+                                return info.nNumberOfLinks == 0;
+                            }
+                        }
+                    }
 
-					// Use slow but decent way otherwise. Do it not more than once per DeletionDetectionLatency.
-					if (ticks - lastTimeFileWasReopened > DeletionDetectionLatency)
-					{
-						try
-						{
-							(new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)).Dispose();
-						}
-						catch (UnauthorizedAccessException)
-						{
-							// If the file has been deleted and it is alredy open 
-							// then bubsequent open request will results in error 5: access denied.
-							return true;
-						}
-						catch (FileNotFoundException)
-						{
-							return true;
-						}
-						lastTimeFileWasReopened = ticks;
-					}
+                    long ticks = Environment.TickCount;
 
-					return false;
-				}
-			}
+                    // Use slow but decent way otherwise. Do it not more than once per DeletionDetectionLatency.
+                    if (ticks - lastTimeFileWasReopened > DeletionDetectionLatency)
+                    {
+                        try
+                        {
+                            (new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)).Dispose();
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            // If the file has been deleted and it is alredy open 
+                            // then bubsequent open request will results in error 5: access denied.
+                            return true;
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            return true;
+                        }
+                        lastTimeFileWasReopened = ticks;
+                    }
 
-			#endregion
+                    return false;
+                }
+            }
 
-			static class WindowsNative
-			{
-				[DllImport("kernel32.dll")]
-				public static extern bool GetFileTime(
-					Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
-					out long lpCreationTime,
-					out long lpLastAccessTime,
-					out long lpLastWriteTime
-				);
+            #endregion
 
-				[StructLayout(LayoutKind.Sequential, Pack = 1)]
-				public struct BY_HANDLE_FILE_INFORMATION
-				{
-					public UInt32 dwFileAttributes;
-					public UInt64 ftCreationTime;
-					public UInt64 ftLastAccessTime;
-					public UInt64 ftLastWriteTime;
-					public UInt32 dwVolumeSerialNumber;
-					public UInt32 nFileSizeHigh;
-					public UInt32 nFileSizeLow;
-					public UInt32 nNumberOfLinks;
-					public UInt32 nFileIndexHigh;
-					public UInt32 nFileIndexLow;
-				};
-				[DllImport("kernel32.dll")]
-				public static extern bool GetFileInformationByHandle(
-					Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
-					out BY_HANDLE_FILE_INFORMATION lpFileInformation
-				);
+            static class WindowsNative
+            {
+                [DllImport("kernel32.dll")]
+                public static extern bool GetFileTime(
+                    Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
+                    out long lpCreationTime,
+                    out long lpLastAccessTime,
+                    out long lpLastWriteTime
+                );
 
-				public static bool IsOnNTFSVolume(string path)
-				{
-					DriveInfo drive;
-					try
-					{
-						drive = new DriveInfo(Path.GetPathRoot(path));
-					}
-					catch (ArgumentException)
-					{
-						return false;
-					}
-					try
-					{
-						return drive.DriveFormat == "NTFS";
-					}
-					catch (DriveNotFoundException)
-					{
-						return false;
-					}
-				}
-			}
+                [StructLayout(LayoutKind.Sequential, Pack = 1)]
+                public struct BY_HANDLE_FILE_INFORMATION
+                {
+                    public UInt32 dwFileAttributes;
+                    public UInt64 ftCreationTime;
+                    public UInt64 ftLastAccessTime;
+                    public UInt64 ftLastWriteTime;
+                    public UInt32 dwVolumeSerialNumber;
+                    public UInt32 nFileSizeHigh;
+                    public UInt32 nFileSizeLow;
+                    public UInt32 nNumberOfLinks;
+                    public UInt32 nFileIndexHigh;
+                    public UInt32 nFileIndexLow;
+                };
+                [DllImport("kernel32.dll")]
+                public static extern bool GetFileInformationByHandle(
+                    Microsoft.Win32.SafeHandles.SafeFileHandle hFile,
+                    out BY_HANDLE_FILE_INFORMATION lpFileInformation
+                );
 
-			bool? isOnNTFSDrive;
+                public static bool IsOnNTFSVolume(string path)
+                {
+                    DriveInfo drive;
+                    try
+                    {
+                        drive = new DriveInfo(Path.GetPathRoot(path));
+                    }
+                    catch (ArgumentException)
+                    {
+                        return false;
+                    }
+                    try
+                    {
+                        return drive.DriveFormat == "NTFS";
+                    }
+                    catch (DriveNotFoundException)
+                    {
+                        return false;
+                    }
+                }
+            }
 
-			readonly string fileName;
-			bool disposed;
-			long lastTimeFileWasReopened;
-		};
+            bool? isOnNTFSDrive;
 
-		public Task<Stream> OpenFile(string fileName)
-		{
-			return Task.FromResult<Stream>(new StreamImpl(fileName));
-		}
-		public string[] GetFiles(string path, string searchPattern)
-		{
-			return Directory.GetFiles(path, searchPattern);
-		}
-		public IFileSystemWatcher CreateWatcher()
-		{
-			return new Watcher();
-		}
+            readonly string fileName;
+            bool disposed;
+            long lastTimeFileWasReopened;
+        };
 
-		public static FileSystemImpl Instance = new FileSystemImpl();
-	};
+        public Task<Stream> OpenFile(string fileName)
+        {
+            return Task.FromResult<Stream>(new StreamImpl(fileName));
+        }
+        public string[] GetFiles(string path, string searchPattern)
+        {
+            return Directory.GetFiles(path, searchPattern);
+        }
+        public IFileSystemWatcher CreateWatcher()
+        {
+            return new Watcher();
+        }
+
+        public static FileSystemImpl Instance = new FileSystemImpl();
+    };
 }

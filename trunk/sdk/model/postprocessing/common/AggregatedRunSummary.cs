@@ -4,48 +4,48 @@ using System.Text;
 
 namespace LogJoint.Postprocessing
 {
-	class AggregatedRunSummary: IPostprocessorRunSummary
-	{
-		string report;
-		bool hasErrors, hasWarnings;
-		readonly Dictionary<ILogSource, IPostprocessorRunSummary> innerSummaries;
-	
-		public AggregatedRunSummary(
-			Dictionary<ILogSource, IPostprocessorRunSummary> innerSummaries
-		)
-		{
-			this.innerSummaries = innerSummaries;
-			var stringBuilder = new StringBuilder();
-			foreach (var x in innerSummaries)
-			{
-				stringBuilder.AppendLine(x.Key.GetShortDisplayNameWithAnnotation());
-				stringBuilder.Append(x.Value.Report ?? "");
-				stringBuilder.AppendLine();
-				hasErrors = hasErrors || x.Value.HasErrors;
-				hasWarnings = hasWarnings || x.Value.HasWarnings;
-			}
-			report = stringBuilder.ToString();
-		}
+    class AggregatedRunSummary : IPostprocessorRunSummary
+    {
+        string report;
+        bool hasErrors, hasWarnings;
+        readonly Dictionary<ILogSource, IPostprocessorRunSummary> innerSummaries;
 
-		bool IPostprocessorRunSummary.HasErrors
-		{
-			get { return hasErrors; }
-		}
+        public AggregatedRunSummary(
+            Dictionary<ILogSource, IPostprocessorRunSummary> innerSummaries
+        )
+        {
+            this.innerSummaries = innerSummaries;
+            var stringBuilder = new StringBuilder();
+            foreach (var x in innerSummaries)
+            {
+                stringBuilder.AppendLine(x.Key.GetShortDisplayNameWithAnnotation());
+                stringBuilder.Append(x.Value.Report ?? "");
+                stringBuilder.AppendLine();
+                hasErrors = hasErrors || x.Value.HasErrors;
+                hasWarnings = hasWarnings || x.Value.HasWarnings;
+            }
+            report = stringBuilder.ToString();
+        }
 
-		bool IPostprocessorRunSummary.HasWarnings
-		{
-			get { return hasWarnings; }
-		}
+        bool IPostprocessorRunSummary.HasErrors
+        {
+            get { return hasErrors; }
+        }
 
-		string IPostprocessorRunSummary.Report
-		{
-			get { return report; }
-		}
-		
-		IPostprocessorRunSummary IPostprocessorRunSummary.GetLogSpecificSummary(ILogSource ls)
-		{
-			innerSummaries.TryGetValue(ls, out IPostprocessorRunSummary ret);
-			return ret;
-		}
-	};
+        bool IPostprocessorRunSummary.HasWarnings
+        {
+            get { return hasWarnings; }
+        }
+
+        string IPostprocessorRunSummary.Report
+        {
+            get { return report; }
+        }
+
+        IPostprocessorRunSummary IPostprocessorRunSummary.GetLogSpecificSummary(ILogSource ls)
+        {
+            innerSummaries.TryGetValue(ls, out IPostprocessorRunSummary ret);
+            return ret;
+        }
+    };
 }

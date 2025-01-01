@@ -5,9 +5,9 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters
 {
-	public interface ITabUsageTracker
-	{
-		void OnTabPressed();
-		bool FocusRectIsRequired { get; }
-	};
+    public interface ITabUsageTracker
+    {
+        void OnTabPressed();
+        bool FocusRectIsRequired { get; }
+    };
 };

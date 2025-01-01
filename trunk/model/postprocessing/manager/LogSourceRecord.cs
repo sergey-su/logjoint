@@ -6,41 +6,41 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing
 {
-	class LogSourceRecord
-	{
-		private readonly LogMedia.IFileSystem fileSystem;
-		public readonly LogSourceMetadata metadata;
-		public readonly ILogSource logSource;
-		public readonly string logFileName;
-		// triggered when log source is closed
-		public readonly CancellationTokenSource cancellation;
+    class LogSourceRecord
+    {
+        private readonly LogMedia.IFileSystem fileSystem;
+        public readonly LogSourceMetadata metadata;
+        public readonly ILogSource logSource;
+        public readonly string logFileName;
+        // triggered when log source is closed
+        public readonly CancellationTokenSource cancellation;
 
-		public bool logSourceIsAlive;
+        public bool logSourceIsAlive;
 
-		public List<PostprocessorOutputRecord> PostprocessorsOutputs = new List<PostprocessorOutputRecord>();
+        public List<PostprocessorOutputRecord> PostprocessorsOutputs = new List<PostprocessorOutputRecord>();
 
-		public LogSourceRecord(ILogSource logSource, LogSourceMetadata metadata, LogMedia.IFileSystem fileSystem)
-		{
-			this.fileSystem = fileSystem;
-			this.logSource = logSource;
-			this.metadata = metadata;
-			this.logFileName = logSource.Provider.ConnectionParams[ConnectionParamsKeys.PathConnectionParam];
-			this.cancellation = new CancellationTokenSource();
-		}
+        public LogSourceRecord(ILogSource logSource, LogSourceMetadata metadata, LogMedia.IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem;
+            this.logSource = logSource;
+            this.metadata = metadata;
+            this.logFileName = logSource.Provider.ConnectionParams[ConnectionParamsKeys.PathConnectionParam];
+            this.cancellation = new CancellationTokenSource();
+        }
 
-		public LogSourcePostprocessorInput ToPostprocessorInput(
-			Func<Task<Stream>> openOutputStream, string inputContentsEtag, object customData)
-		{
-			return new LogSourcePostprocessorInput()
-			{
-				LogFileName = logFileName,
-				openLogFile = () => fileSystem.OpenFile(logFileName),
-				LogSource = logSource,
-				openOutputFile = openOutputStream,
-				CancellationToken = cancellation.Token,
-				InputContentsEtag = inputContentsEtag,
-				CustomData = customData
-			};
-		}
-	};
+        public LogSourcePostprocessorInput ToPostprocessorInput(
+            Func<Task<Stream>> openOutputStream, string inputContentsEtag, object customData)
+        {
+            return new LogSourcePostprocessorInput()
+            {
+                LogFileName = logFileName,
+                openLogFile = () => fileSystem.OpenFile(logFileName),
+                LogSource = logSource,
+                openOutputFile = openOutputStream,
+                CancellationToken = cancellation.Token,
+                InputContentsEtag = inputContentsEtag,
+                CustomData = customData
+            };
+        }
+    };
 }

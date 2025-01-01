@@ -10,91 +10,91 @@ using LogJoint.UI.Presenters.SourcesManager;
 
 namespace LogJoint.UI
 {
-	public partial class SourcesManagementView : UserControl
-	{
-		IViewModel viewModel;
+    public partial class SourcesManagementView : UserControl
+    {
+        IViewModel viewModel;
 
-		public SourcesManagementView()
-		{ 
-			InitializeComponent();
-		}
+        public SourcesManagementView()
+        {
+            InitializeComponent();
+        }
 
-		public SourcesListView SourcesListView
-		{
-			get { return sourcesListView; }
-		}
+        public SourcesListView SourcesListView
+        {
+            get { return sourcesListView; }
+        }
 
-		public void SetViewModel(IViewModel value)
-		{
-			this.viewModel = value;
+        public void SetViewModel(IViewModel value)
+        {
+            this.viewModel = value;
 
-			var updateDeleteAllButton = Updaters.Create(
-				() => value.DeleteAllSourcesButtonEnabled,
-				enabled => deleteAllButton.Enabled = enabled
-			);
-			var enableDeleteSelectedButton = Updaters.Create(
-				() => value.DeleteSelectedSourcesButtonEnabled,
-				enabled => deleteButton.Enabled = enabled
-			);
-			var updateShareButton = Updaters.Create(
-				() => value.ShareButtonState,
-				state =>
-				{
-					shareButton.Visible = state.visible;
-					shareButton.Enabled = state.enabled;
-					if (state.progress)
-					{
-						shareButton.Image = Properties.Resources.loader;
-						shareButton.ImageAlign = ContentAlignment.MiddleLeft;
-					}
-					else
-					{
-						shareButton.Image = null;
-					}
-				}
-			);
-			var updatePropertiesButton = Updaters.Create(
-				() => value.PropertiesButtonEnabled,
-				enabled => propertiesButton.Enabled = enabled
-			);
+            var updateDeleteAllButton = Updaters.Create(
+                () => value.DeleteAllSourcesButtonEnabled,
+                enabled => deleteAllButton.Enabled = enabled
+            );
+            var enableDeleteSelectedButton = Updaters.Create(
+                () => value.DeleteSelectedSourcesButtonEnabled,
+                enabled => deleteButton.Enabled = enabled
+            );
+            var updateShareButton = Updaters.Create(
+                () => value.ShareButtonState,
+                state =>
+                {
+                    shareButton.Visible = state.visible;
+                    shareButton.Enabled = state.enabled;
+                    if (state.progress)
+                    {
+                        shareButton.Image = Properties.Resources.loader;
+                        shareButton.ImageAlign = ContentAlignment.MiddleLeft;
+                    }
+                    else
+                    {
+                        shareButton.Image = null;
+                    }
+                }
+            );
+            var updatePropertiesButton = Updaters.Create(
+                () => value.PropertiesButtonEnabled,
+                enabled => propertiesButton.Enabled = enabled
+            );
 
-			value.ChangeNotification.CreateSubscription(() =>
-			{
-				updateDeleteAllButton();
-				enableDeleteSelectedButton();
-				updateShareButton();
-				updatePropertiesButton();
-			});
-		}
+            value.ChangeNotification.CreateSubscription(() =>
+            {
+                updateDeleteAllButton();
+                enableDeleteSelectedButton();
+                updateShareButton();
+                updatePropertiesButton();
+            });
+        }
 
-		private void addNewLogButton_Click(object sender, EventArgs e)
-		{
-			viewModel.OnAddNewLogButtonClicked();
-		}
+        private void addNewLogButton_Click(object sender, EventArgs e)
+        {
+            viewModel.OnAddNewLogButtonClicked();
+        }
 
-		private void shareButton_Click(object sender, EventArgs e)
-		{
-			viewModel.OnShareButtonClicked();
-		}
+        private void shareButton_Click(object sender, EventArgs e)
+        {
+            viewModel.OnShareButtonClicked();
+        }
 
-		private void propertiesButton_Click(object sender, EventArgs e)
-		{
-			viewModel.OnPropertiesButtonClicked();
-		}
+        private void propertiesButton_Click(object sender, EventArgs e)
+        {
+            viewModel.OnPropertiesButtonClicked();
+        }
 
-		private void deleteButton_Click(object sender, EventArgs e)
-		{
-			viewModel.OnDeleteSelectedLogSourcesButtonClicked();
-		}
+        private void deleteButton_Click(object sender, EventArgs e)
+        {
+            viewModel.OnDeleteSelectedLogSourcesButtonClicked();
+        }
 
-		private void deleteAllButton_Click(object sender, EventArgs e)
-		{
-			viewModel.OnDeleteAllLogSourcesButtonClicked();
-		}
+        private void deleteAllButton_Click(object sender, EventArgs e)
+        {
+            viewModel.OnDeleteAllLogSourcesButtonClicked();
+        }
 
-		private void recentButton_Click(object sender, EventArgs e)
-		{
-			viewModel.OnShowHistoryDialogButtonClicked();
-		}
-	}
+        private void recentButton_Click(object sender, EventArgs e)
+        {
+            viewModel.OnShowHistoryDialogButtonClicked();
+        }
+    }
 }

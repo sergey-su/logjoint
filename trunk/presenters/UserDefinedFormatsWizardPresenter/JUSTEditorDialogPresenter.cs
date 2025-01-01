@@ -10,105 +10,105 @@ using ICCEView = LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog.IVi
 
 namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 {
-	internal class Presenter : IPresenter, IDisposable, ICCEViewEvents
-	{
-		readonly ICCEView dialog;
-		readonly Help.IPresenter help;
-		readonly IAlertPopup alerts;
-		readonly ITestParsing testParsing;
-		readonly IFactory objectsFactory;
-		XmlNode currentFormatRoot;
-		ISampleLogAccess sampleLogAccess;
+    internal class Presenter : IPresenter, IDisposable, ICCEViewEvents
+    {
+        readonly ICCEView dialog;
+        readonly Help.IPresenter help;
+        readonly IAlertPopup alerts;
+        readonly ITestParsing testParsing;
+        readonly IFactory objectsFactory;
+        XmlNode currentFormatRoot;
+        ISampleLogAccess sampleLogAccess;
 
-		public Presenter(
-			ICCEView view, 
-			Help.IPresenter help, 
-			IAlertPopup alerts,
-			ITestParsing testParsing,
-			IFactory objectFactory
-		)
-		{
-			this.dialog = view;
-			this.dialog.SetEventsHandler(this);
-			this.help = help;
-			this.alerts = alerts;
-			this.objectsFactory = objectFactory;
-			this.testParsing = testParsing;
-			this.dialog.InitStaticControls(
-				"JUST editor", "JUST transformation code that normalizes your JSON log messages", "Help");
-		}
+        public Presenter(
+            ICCEView view,
+            Help.IPresenter help,
+            IAlertPopup alerts,
+            ITestParsing testParsing,
+            IFactory objectFactory
+        )
+        {
+            this.dialog = view;
+            this.dialog.SetEventsHandler(this);
+            this.help = help;
+            this.alerts = alerts;
+            this.objectsFactory = objectFactory;
+            this.testParsing = testParsing;
+            this.dialog.InitStaticControls(
+                "JUST editor", "JUST transformation code that normalizes your JSON log messages", "Help");
+        }
 
-		void IDisposable.Dispose ()
-		{
-			dialog.Dispose();
-		}
+        void IDisposable.Dispose()
+        {
+            dialog.Dispose();
+        }
 
-		void ICCEViewEvents.OnCancelClicked ()
-		{
-			dialog.Close();
-		}
+        void ICCEViewEvents.OnCancelClicked()
+        {
+            dialog.Close();
+        }
 
-		void ICCEViewEvents.OnHelpLinkClicked ()
-		{
-			help.ShowHelp("HowJsonParsingWorks.htm#JUST");
-		}
+        void ICCEViewEvents.OnHelpLinkClicked()
+        {
+            help.ShowHelp("HowJsonParsingWorks.htm#JUST");
+        }
 
-		void ICCEViewEvents.OnOkClicked ()
-		{
-			if (!SaveTo(currentFormatRoot))
-				return;
-			
-			dialog.Close();
-		}
+        void ICCEViewEvents.OnOkClicked()
+        {
+            if (!SaveTo(currentFormatRoot))
+                return;
 
-		bool SaveTo(XmlNode formatNode)
-		{
-			var code = dialog.CodeTextBoxValue.Trim();
+            dialog.Close();
+        }
 
-			try
-			{
-				JObject.Parse(code); // validate json syntax
-			}
-			catch (Exception e)
-			{
-				alerts.ShowPopup("Error", e.Message, AlertFlags.WarningIcon);
-				return false;
-			}
+        bool SaveTo(XmlNode formatNode)
+        {
+            var code = dialog.CodeTextBoxValue.Trim();
 
-			formatNode.SelectNodes("json/transform")
-				.OfType<XmlNode>().ToList().ForEach(n => n.ParentNode.RemoveChild(n));
+            try
+            {
+                JObject.Parse(code); // validate json syntax
+            }
+            catch (Exception e)
+            {
+                alerts.ShowPopup("Error", e.Message, AlertFlags.WarningIcon);
+                return false;
+            }
 
-			var transform = formatNode.OwnerDocument.CreateElement("transform");
-			transform.AppendChild(formatNode.OwnerDocument.CreateCDataSection(code));
-			formatNode.SelectSingleNode("json")?.AppendChild(transform);
+            formatNode.SelectNodes("json/transform")
+                .OfType<XmlNode>().ToList().ForEach(n => n.ParentNode.RemoveChild(n));
 
-			return true;
-		}
+            var transform = formatNode.OwnerDocument.CreateElement("transform");
+            transform.AppendChild(formatNode.OwnerDocument.CreateCDataSection(code));
+            formatNode.SelectSingleNode("json")?.AppendChild(transform);
 
-		void ICCEViewEvents.OnTestButtonClicked ()
-		{
-			var tmpDoc = new XmlDocument();
-			var tmpRoot = tmpDoc.ImportNode(currentFormatRoot, true);
-			tmpDoc.AppendChild(tmpRoot);
-			if (!SaveTo(tmpRoot))
-				return;
-			testParsing.Test(
-				sampleLogAccess.SampleLog,
-				tmpRoot,
-				"json"
-			);
-		}
+            return true;
+        }
 
-		void IPresenter.ShowDialog (
-			XmlNode root,
-			ISampleLogAccess sampleLogAccess
-		)
-		{
-			this.currentFormatRoot = root;
-			this.sampleLogAccess = sampleLogAccess;
+        void ICCEViewEvents.OnTestButtonClicked()
+        {
+            var tmpDoc = new XmlDocument();
+            var tmpRoot = tmpDoc.ImportNode(currentFormatRoot, true);
+            tmpDoc.AppendChild(tmpRoot);
+            if (!SaveTo(tmpRoot))
+                return;
+            testParsing.Test(
+                sampleLogAccess.SampleLog,
+                tmpRoot,
+                "json"
+            );
+        }
 
-			dialog.CodeTextBoxValue = root.SelectSingleNode("json/transform")?.InnerText ?? "";
-			dialog.Show();
-		}
-	};
+        void IPresenter.ShowDialog(
+            XmlNode root,
+            ISampleLogAccess sampleLogAccess
+        )
+        {
+            this.currentFormatRoot = root;
+            this.sampleLogAccess = sampleLogAccess;
+
+            dialog.CodeTextBoxValue = root.SelectSingleNode("json/transform")?.InnerText ?? "";
+            dialog.Show();
+        }
+    };
 };

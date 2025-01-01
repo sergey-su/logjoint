@@ -3,18 +3,18 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class ThreadPoolSynchronizationContext : ISynchronizationContext
-	{
-		public ThreadPoolSynchronizationContext()
-		{
-			this.cb = state => ((Action)state)();
-		}
+    public class ThreadPoolSynchronizationContext : ISynchronizationContext
+    {
+        public ThreadPoolSynchronizationContext()
+        {
+            this.cb = state => ((Action)state)();
+        }
 
-		public void Post(Action action)
-		{
-			ThreadPool.QueueUserWorkItem(cb, action);
-		}
+        public void Post(Action action)
+        {
+            ThreadPool.QueueUserWorkItem(cb, action);
+        }
 
-		private readonly WaitCallback cb;
-	}
+        private readonly WaitCallback cb;
+    }
 }

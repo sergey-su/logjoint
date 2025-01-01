@@ -13,214 +13,214 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Tests
 {
-	[Flags]
-	public enum TestOptions
-	{
-	};
+    [Flags]
+    public enum TestOptions
+    {
+    };
 
-	public class ExpectedMessage
-	{
-		public long? Position;
-		public string Text;
-		public string Thread;
-		public MessageTimestamp? Date;
-		public MessageFlag? Type;
-		public MessageFlag? ContentType;
-		public Func<MessageTimestamp, bool> DateVerifier;
-		public Func<string, bool> TextVerifier;
-		internal bool Verified;
-		public bool TextNeedsNormalization;
+    public class ExpectedMessage
+    {
+        public long? Position;
+        public string Text;
+        public string Thread;
+        public MessageTimestamp? Date;
+        public MessageFlag? Type;
+        public MessageFlag? ContentType;
+        public Func<MessageTimestamp, bool> DateVerifier;
+        public Func<string, bool> TextVerifier;
+        internal bool Verified;
+        public bool TextNeedsNormalization;
 
-		public ExpectedMessage()
-		{
-		}
+        public ExpectedMessage()
+        {
+        }
 
-		public ExpectedMessage(string text, string thread = null, DateTime? date = null) 
-		{
-			Text = text;
-			Thread = thread;
-			Date = null;
-			if (date != null)
-				Date = new MessageTimestamp(date.Value);
-		}
-	};
+        public ExpectedMessage(string text, string thread = null, DateTime? date = null)
+        {
+            Text = text;
+            Thread = thread;
+            Date = null;
+            if (date != null)
+                Date = new MessageTimestamp(date.Value);
+        }
+    };
 
-	public class ExpectedLog
-	{
-		public ExpectedLog Add(int expectedLine, params ExpectedMessage[] expectedMessages)
-		{
-			foreach (var m in expectedMessages)
-			{
-				Assert.That(m, Is.Not.Null);
-				Assert.That(this.expectedMessages.ContainsKey(expectedLine), Is.False);
-				this.expectedMessages.Add(expectedLine, m);
-				++expectedLine;
-			}
-			return this;
-		}
+    public class ExpectedLog
+    {
+        public ExpectedLog Add(int expectedLine, params ExpectedMessage[] expectedMessages)
+        {
+            foreach (var m in expectedMessages)
+            {
+                Assert.That(m, Is.Not.Null);
+                Assert.That(this.expectedMessages.ContainsKey(expectedLine), Is.False);
+                this.expectedMessages.Add(expectedLine, m);
+                ++expectedLine;
+            }
+            return this;
+        }
 
-		public void StartVerification()
-		{
-			foreach (var m in expectedMessages.Values)
-				m.Verified = false;
-		}
+        public void StartVerification()
+        {
+            foreach (var m in expectedMessages.Values)
+                m.Verified = false;
+        }
 
-		public void FinishVerification()
-		{
-			foreach (var m in expectedMessages)
-				Assert.That(m.Value.Verified, Is.True, string.Format("Message {0} left unverified", m.Key));
-		}
+        public void FinishVerification()
+        {
+            foreach (var m in expectedMessages)
+                Assert.That(m.Value.Verified, Is.True, string.Format("Message {0} left unverified", m.Key));
+        }
 
-		public void Verify(int actualLine, IMessage actualMessage)
-		{
-			if (expectedMessages.TryGetValue(actualLine, out EM expectedMessage))
-			{
-				expectedMessage.Verified = true;
-				Assert.That(actualMessage, Is.Not.Null);
-				if (expectedMessage.Date != null)
-					Assert.That(MessageTimestamp.EqualStrict(expectedMessage.Date.Value, actualMessage.Time), Is.True,
-						string.Format("Expected message timestamp: {0}, actual: {1}", expectedMessage.Date.Value, actualMessage.Time));
-				else if (expectedMessage.DateVerifier != null)
-					Assert.That(expectedMessage.DateVerifier(actualMessage.Time), Is.True);
-				if (expectedMessage.Thread != null)
-					Assert.That(expectedMessage.Thread, Is.EqualTo(actualMessage.Thread.ID));
-				if (expectedMessage.ContentType != null)
-					Assert.That(expectedMessage.ContentType.Value, Is.EqualTo(actualMessage.Flags & MessageFlag.ContentTypeMask));
-				if (expectedMessage.Text != null)
-					if (expectedMessage.TextNeedsNormalization)
-						Assert.That(StringUtils.NormalizeLinebreakes(expectedMessage.Text), Is.EqualTo(StringUtils.NormalizeLinebreakes(actualMessage.Text.Value)));
-					else
-						Assert.That(expectedMessage.Text, Is.EqualTo(actualMessage.Text.Value));
-				else if (expectedMessage.TextVerifier != null)
-					Assert.That(expectedMessage.TextVerifier(actualMessage.Text.Value), Is.True);
-			}
-		}
+        public void Verify(int actualLine, IMessage actualMessage)
+        {
+            if (expectedMessages.TryGetValue(actualLine, out EM expectedMessage))
+            {
+                expectedMessage.Verified = true;
+                Assert.That(actualMessage, Is.Not.Null);
+                if (expectedMessage.Date != null)
+                    Assert.That(MessageTimestamp.EqualStrict(expectedMessage.Date.Value, actualMessage.Time), Is.True,
+                        string.Format("Expected message timestamp: {0}, actual: {1}", expectedMessage.Date.Value, actualMessage.Time));
+                else if (expectedMessage.DateVerifier != null)
+                    Assert.That(expectedMessage.DateVerifier(actualMessage.Time), Is.True);
+                if (expectedMessage.Thread != null)
+                    Assert.That(expectedMessage.Thread, Is.EqualTo(actualMessage.Thread.ID));
+                if (expectedMessage.ContentType != null)
+                    Assert.That(expectedMessage.ContentType.Value, Is.EqualTo(actualMessage.Flags & MessageFlag.ContentTypeMask));
+                if (expectedMessage.Text != null)
+                    if (expectedMessage.TextNeedsNormalization)
+                        Assert.That(StringUtils.NormalizeLinebreakes(expectedMessage.Text), Is.EqualTo(StringUtils.NormalizeLinebreakes(actualMessage.Text.Value)));
+                    else
+                        Assert.That(expectedMessage.Text, Is.EqualTo(actualMessage.Text.Value));
+                else if (expectedMessage.TextVerifier != null)
+                    Assert.That(expectedMessage.TextVerifier(actualMessage.Text.Value), Is.True);
+            }
+        }
 
-		public int Count { get { return expectedMessages.Count; } }
+        public int Count { get { return expectedMessages.Count; } }
 
-		Dictionary<int, ExpectedMessage> expectedMessages = new Dictionary<int, ExpectedMessage>();
-	};
+        Dictionary<int, ExpectedMessage> expectedMessages = new Dictionary<int, ExpectedMessage>();
+    };
 
-	static class Mocks
-	{
-		public static FieldsProcessor.IFactory SetupFieldsProcessorFactory()
-		{
-			var storageManager = Substitute.For<Persistence.IStorageManager>();
-			var cacheEntry = Substitute.For<Persistence.IStorageEntry>();
-			storageManager.GetEntry(null, 0).ReturnsForAnyArgs(Task.FromResult(cacheEntry));
-			var cacheSection = Substitute.For<Persistence.IRawStreamStorageSection>();
-			cacheSection.Data.Returns(new MemoryStream());
-			cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(Task.FromResult(cacheSection));
-			return new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, Substitute.For<Telemetry.ITelemetryCollector>(),
-				new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()), null);
-		}
-	};
+    static class Mocks
+    {
+        public static FieldsProcessor.IFactory SetupFieldsProcessorFactory()
+        {
+            var storageManager = Substitute.For<Persistence.IStorageManager>();
+            var cacheEntry = Substitute.For<Persistence.IStorageEntry>();
+            storageManager.GetEntry(null, 0).ReturnsForAnyArgs(Task.FromResult(cacheEntry));
+            var cacheSection = Substitute.For<Persistence.IRawStreamStorageSection>();
+            cacheSection.Data.Returns(new MemoryStream());
+            cacheEntry.OpenRawStreamSection(null, Persistence.StorageSectionOpenFlag.None, 0).ReturnsForAnyArgs(Task.FromResult(cacheSection));
+            return new FieldsProcessor.FieldsProcessorImpl.Factory(storageManager, Substitute.For<Telemetry.ITelemetryCollector>(),
+                new CompilingUserCodeAssemblyProvider(new DefaultMetadataReferencesProvider()), null);
+        }
+    };
 
-	public static class ReaderIntegrationTest
-	{
-		static ITempFilesManager tempFilesManager = new TempFilesManager();
+    public static class ReaderIntegrationTest
+    {
+        static ITempFilesManager tempFilesManager = new TempFilesManager();
 
-		public static IMediaBasedReaderFactory CreateFactoryFromAssemblyResource(Assembly asm, string companyName, string formatName)
-		{
-			var repo = new DirectoryFormatsRepository(Path.Combine(Path.GetDirectoryName(asm.Location), "formats"));
-			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			ITraceSourceFactory traceSourceFactory = new TraceSourceFactory();
-			RegularExpressions.IRegexFactory regexFactory = RegularExpressions.FCLRegexFactory.Instance;
-			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg, traceSourceFactory);
-			FieldsProcessor.IFactory fieldsProcessorFactory = Mocks.SetupFieldsProcessorFactory();
-			var modelSyncContext = new SerialSynchronizationContext();
-			var globalSettingsAccessor = Settings.DefaultSettingsAccessor.Instance;
-			var fileSystem = LogMedia.FileSystemImpl.Instance;
-			formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-				config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
-					 traceSourceFactory, modelSyncContext, globalSettingsAccessor, fileSystem));
-			formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-				config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSyncContext, 
-					globalSettingsAccessor, regexFactory, fileSystem));
-			formatsManager.ReloadFactories();
-			var factory = reg.Find(companyName, formatName);
-			Assert.That(factory, Is.Not.Null);
-			return factory as IMediaBasedReaderFactory;
-		}
+        public static IMediaBasedReaderFactory CreateFactoryFromAssemblyResource(Assembly asm, string companyName, string formatName)
+        {
+            var repo = new DirectoryFormatsRepository(Path.Combine(Path.GetDirectoryName(asm.Location), "formats"));
+            ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
+            ITraceSourceFactory traceSourceFactory = new TraceSourceFactory();
+            RegularExpressions.IRegexFactory regexFactory = RegularExpressions.FCLRegexFactory.Instance;
+            IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(repo, reg, traceSourceFactory);
+            FieldsProcessor.IFactory fieldsProcessorFactory = Mocks.SetupFieldsProcessorFactory();
+            var modelSyncContext = new SerialSynchronizationContext();
+            var globalSettingsAccessor = Settings.DefaultSettingsAccessor.Instance;
+            var fileSystem = LogMedia.FileSystemImpl.Instance;
+            formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
+                config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
+                     traceSourceFactory, modelSyncContext, globalSettingsAccessor, fileSystem));
+            formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
+                config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSyncContext,
+                    globalSettingsAccessor, regexFactory, fileSystem));
+            formatsManager.ReloadFactories();
+            var factory = reg.Find(companyName, formatName);
+            Assert.That(factory, Is.Not.Null);
+            return factory as IMediaBasedReaderFactory;
+        }
 
-		public static async Task Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
-		{
-			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
-			{
-				await reader.UpdateAvailableBounds(false);
+        public static async Task Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
+        {
+            using (ILogSourceThreadsInternal threads = new LogSourceThreads())
+            using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
+            {
+                await reader.UpdateAvailableBounds(false);
 
-				List<IMessage> msgs = new List<IMessage>();
+                List<IMessage> msgs = new List<IMessage>();
 
-				await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.BeginPosition)), async parser =>
-				{
-					for (; ; )
-					{
-						var msg = await parser.ReadNext();
-						if (msg == null)
-							break;
-						msgs.Add(msg);
-					}
-				});
+                await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.BeginPosition)), async parser =>
+                {
+                    for (; ; )
+                    {
+                        var msg = await parser.ReadNext();
+                        if (msg == null)
+                            break;
+                        msgs.Add(msg);
+                    }
+                });
 
-				expectation.StartVerification();
-				for (int i = 0; i < msgs.Count; ++i)
-				{
-					expectation.Verify(i, msgs[i]);
-				}
-				expectation.FinishVerification();
-			}
-		}
+                expectation.StartVerification();
+                for (int i = 0; i < msgs.Count; ++i)
+                {
+                    expectation.Verify(i, msgs[i]);
+                }
+                expectation.FinishVerification();
+            }
+        }
 
-		public static async Task Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation)
-		{
-			await Test(factory, testLog, expectation, Encoding.ASCII);
-		}
+        public static async Task Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation)
+        {
+            await Test(factory, testLog, expectation, Encoding.ASCII);
+        }
 
-		public static async Task Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation, Encoding encoding)
-		{
-			using (StringStreamMedia media = new StringStreamMedia(testLog, encoding))
-			{
-				await Test(factory, media, expectation);
-			}
-		}
+        public static async Task Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation, Encoding encoding)
+        {
+            using (StringStreamMedia media = new StringStreamMedia(testLog, encoding))
+            {
+                await Test(factory, media, expectation);
+            }
+        }
 
-		public static async Task Test(IMediaBasedReaderFactory factory, System.IO.Stream testLogStream, ExpectedLog expectation)
-		{
-			using (StringStreamMedia media = new StringStreamMedia())
-			{
-				media.SetData(testLogStream);
+        public static async Task Test(IMediaBasedReaderFactory factory, System.IO.Stream testLogStream, ExpectedLog expectation)
+        {
+            using (StringStreamMedia media = new StringStreamMedia())
+            {
+                media.SetData(testLogStream);
 
-				await Test(factory, media, expectation);
-			}
-		}
-	}
+                await Test(factory, media, expectation);
+            }
+        }
+    }
 
-	[TestFixture]
-	public class TextWriterTraceListenerIntegrationTests
-	{
-		IMediaBasedReaderFactory CreateFactory()
-		{
-			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "TextWriterTraceListener");
-		}
+    [TestFixture]
+    public class TextWriterTraceListenerIntegrationTests
+    {
+        IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "TextWriterTraceListener");
+        }
 
-		async Task DoTest(string testLog, ExpectedLog expectedLog)
-		{
-			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, ExpectedLog expectedLog)
+        {
+            await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+        }
 
-		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
-		{
-			ExpectedLog expectedLog = new ExpectedLog();
-			expectedLog.Add(0, expectedMessages);
-			await DoTest(testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+        {
+            ExpectedLog expectedLog = new ExpectedLog();
+            expectedLog.Add(0, expectedMessages);
+            await DoTest(testLog, expectedLog);
+        }
 
-		[Test]
-		public async Task TextWriterTraceListenerSmokeTest()
-		{
-			await DoTest(
-				@"
+        [Test]
+        public async Task TextWriterTraceListenerSmokeTest()
+        {
+            await DoTest(
+                @"
 SampleApp Information: 0 : No free data file found. Going sleep.
   ProcessId=4756
   ThreadId=7
@@ -251,20 +251,20 @@ SampleApp Information: 0 : Timestamp parsed and ignored
   DateTime=2011-07-12T12:10:35.3294235Z
   Timestamp=232398
 				",
-				new EM("No free data file found. Going sleep.", "4756 - 7"),
-				new EM("Searching for data files", "4756 - 7", null),
-				new EM("No free data file found. Going sleep.", "4756 - 7", null),
-				new EM("File cannot be open which means that it was handled", "4756 - 6", null),
-				new EM("Timestamp parsed and ignored", "4756 - 6", null),
-				new EM("Test frame", "4756 - 6", null),
-				new EM("", "4756 - 6", null)
-			);
-		}
-		
-		[Test]
-		public async Task TextWriterTraceListener_FindPrevMessagePositionTest()
-		{
-			var testLog = 
+                new EM("No free data file found. Going sleep.", "4756 - 7"),
+                new EM("Searching for data files", "4756 - 7", null),
+                new EM("No free data file found. Going sleep.", "4756 - 7", null),
+                new EM("File cannot be open which means that it was handled", "4756 - 6", null),
+                new EM("Timestamp parsed and ignored", "4756 - 6", null),
+                new EM("Test frame", "4756 - 6", null),
+                new EM("", "4756 - 6", null)
+            );
+        }
+
+        [Test]
+        public async Task TextWriterTraceListener_FindPrevMessagePositionTest()
+        {
+            var testLog =
 @"SampleApp Information: 0 : No free data file found. Going sleep.
   ProcessId=4756
   ThreadId=7
@@ -278,44 +278,44 @@ SampleApp Information: 0 : No free data file found. Going sleep.
   ThreadId=7
   DateTime=2011-07-12T12:14:00.0000000Z
 ";
-			using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
-			using (ILogSourceThreadsInternal threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
-			{
-				await reader.UpdateAvailableBounds(false);
-				long? prevMessagePos = await PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
-				Assert.That(prevMessagePos.HasValue, Is.True);
-				Assert.That(prevMessagePos.Value, Is.EqualTo(0));
-			}
-		}
+            using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
+            using (ILogSourceThreadsInternal threads = new LogSourceThreads())
+            using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
+            {
+                await reader.UpdateAvailableBounds(false);
+                long? prevMessagePos = await PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
+                Assert.That(prevMessagePos.HasValue, Is.True);
+                Assert.That(prevMessagePos.Value, Is.EqualTo(0));
+            }
+        }
 
 
-	}
+    }
 
-	[TestFixture]
-	public class XmlWriterTraceListenerIntegrationTests
-	{
-		IMediaBasedReaderFactory CreateFactory()
-		{
-			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(),
-				"Microsoft", "XmlWriterTraceListener");
-		}
+    [TestFixture]
+    public class XmlWriterTraceListenerIntegrationTests
+    {
+        IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(),
+                "Microsoft", "XmlWriterTraceListener");
+        }
 
-		async Task DoTest(string testLog, ExpectedLog expectedLog)
-		{
-			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, ExpectedLog expectedLog)
+        {
+            await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+        }
 
-		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
-		{
-			await DoTest(testLog, new ExpectedLog().Add(0, expectedMessages));
-		}
+        async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+        {
+            await DoTest(testLog, new ExpectedLog().Add(0, expectedMessages));
+        }
 
-		[Test]
-		public async Task XmlWriterTraceListenerSmokeTest()
-		{
-			await DoTest(
-				@"
+        [Test]
+        public async Task XmlWriterTraceListenerSmokeTest()
+        {
+            await DoTest(
+                @"
 <E2ETraceEvent xmlns='http://schemas.microsoft.com/2004/06/E2ETraceEvent'>
  <System xmlns='http://schemas.microsoft.com/2004/06/windows/eventlog/system'>
   <EventID>1</EventID>
@@ -347,58 +347,58 @@ SampleApp Information: 0 : No free data file found. Going sleep.
  <ApplicationData>message 2</ApplicationData>
 </E2ETraceEvent>
 				",
-				new EM("Error message.", "trace_cs.vshost(5620), 10") { ContentType = MessageFlag.Error },
-				new EM("message 2", "trace_cs.vshost(5620), 20") { ContentType = MessageFlag.Info }
-			);
-		}
+                new EM("Error message.", "trace_cs.vshost(5620), 10") { ContentType = MessageFlag.Error },
+                new EM("message 2", "trace_cs.vshost(5620), 20") { ContentType = MessageFlag.Info }
+            );
+        }
 
-		[Test]
-		public async Task RealLogTest()
-		{
-			await ReaderIntegrationTest.Test(
-				CreateFactory(),
-				Assembly.GetExecutingAssembly().GetManifestResourceStream(
-					Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(n => n.Contains("XmlWriterTraceListener1.xml"))),
-				new ExpectedLog()
-				.Add(0, 
-					new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1"),
-					new EM("----- Sample application started 07/24/2011 12:37:26 ----", "SampleLoggingApp(1956), 1")
-				)
-				.Add(8,
-					new EM("Void Producer()", "SampleLoggingApp(1956), 6")
-				)
-				.Add(11,
-					new EM("", "SampleLoggingApp(1956), 1")
-				)
-			);			
-		}
-	}
+        [Test]
+        public async Task RealLogTest()
+        {
+            await ReaderIntegrationTest.Test(
+                CreateFactory(),
+                Assembly.GetExecutingAssembly().GetManifestResourceStream(
+                    Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(n => n.Contains("XmlWriterTraceListener1.xml"))),
+                new ExpectedLog()
+                .Add(0,
+                    new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1"),
+                    new EM("----- Sample application started 07/24/2011 12:37:26 ----", "SampleLoggingApp(1956), 1")
+                )
+                .Add(8,
+                    new EM("Void Producer()", "SampleLoggingApp(1956), 6")
+                )
+                .Add(11,
+                    new EM("", "SampleLoggingApp(1956), 1")
+                )
+            );
+        }
+    }
 
-	[TestFixture]
-	public class HTTPERRIntegrationTests
-	{
-		IMediaBasedReaderFactory CreateFactory()
-		{
-			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "HTTPERR");
-		}
+    [TestFixture]
+    public class HTTPERRIntegrationTests
+    {
+        IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "HTTPERR");
+        }
 
-		async Task DoTest(string testLog, ExpectedLog expectedLog)
-		{
-			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, ExpectedLog expectedLog)
+        {
+            await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+        }
 
-		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
-		{
-			ExpectedLog expectedLog = new ExpectedLog();
-			expectedLog.Add(0, expectedMessages);
-			await DoTest(testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+        {
+            ExpectedLog expectedLog = new ExpectedLog();
+            expectedLog.Add(0, expectedMessages);
+            await DoTest(testLog, expectedLog);
+        }
 
-		[Test]
-		public async Task HTTPERR_SmokeTest()
-		{
-			await DoTest(
-				@"
+        [Test]
+        public async Task HTTPERR_SmokeTest()
+        {
+            await DoTest(
+                @"
 #Software: Microsoft HTTP API 2.0
 #Version: 1.0
 #Date: 2011-12-08 06:06:19
@@ -422,36 +422,36 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 2012-02-29 12:49:34 10.36.206.59 50330 10.85.220.5 80 HTTP/1.1 GET / 404 - NotFound -
 2012-02-29 12:49:50 10.36.206.59 50422 10.85.220.5 80 HTTP/1.1 GET / 404 - NotFound -
 				",
-				new EM("Client: 192.168.150.1:2774, Server: 192.168.150.122:2869, Protocol: HTTP/1.1, Verb: NOTIFY, URL: /upnp/eventing/gerpeyxyas, Status: -, SideID: -, Reason: Connection_Abandoned_By_ReqQueue", null, new DateTime(2011, 12, 8, 6, 6, 19)),
-				new EM("Client: 2001:4898:0:fff:0:5efe:10.164.167.30%0:54697, Server: 2001:4898:0:fff:0:5efe:10.85.220.4%0:80, Protocol: -, Verb: -, URL: -, Status: -, SideID: -, Reason: Timer_ConnectionIdle", null, new DateTime(2012, 2, 6, 13, 31, 17))
-			);
-		}
-	}
+                new EM("Client: 192.168.150.1:2774, Server: 192.168.150.122:2869, Protocol: HTTP/1.1, Verb: NOTIFY, URL: /upnp/eventing/gerpeyxyas, Status: -, SideID: -, Reason: Connection_Abandoned_By_ReqQueue", null, new DateTime(2011, 12, 8, 6, 6, 19)),
+                new EM("Client: 2001:4898:0:fff:0:5efe:10.164.167.30%0:54697, Server: 2001:4898:0:fff:0:5efe:10.85.220.4%0:80, Protocol: -, Verb: -, URL: -, Status: -, SideID: -, Reason: Timer_ConnectionIdle", null, new DateTime(2012, 2, 6, 13, 31, 17))
+            );
+        }
+    }
 
-	[TestFixture]
-	public class IISIntegrationTests
-	{
-		IMediaBasedReaderFactory CreateFactory()
-		{
-			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "IIS");
-		}
+    [TestFixture]
+    public class IISIntegrationTests
+    {
+        IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "IIS");
+        }
 
-		async Task DoTest(string testLog, ExpectedLog expectedLog)
-		{
-			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, ExpectedLog expectedLog)
+        {
+            await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+        }
 
-		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
-		{
-			ExpectedLog expectedLog = new ExpectedLog();
-			expectedLog.Add(0, expectedMessages);
-			await DoTest(testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+        {
+            ExpectedLog expectedLog = new ExpectedLog();
+            expectedLog.Add(0, expectedMessages);
+            await DoTest(testLog, expectedLog);
+        }
 
-		[Test]
-		public async Task IIS_SmokeTest()
-		{
-			await DoTest(
+        [Test]
+        public async Task IIS_SmokeTest()
+        {
+            await DoTest(
 @"192.168.114.201, -, 03/20/01, 7:55:20, W3SVC2, SERVER, 172.21.13.45, 4502, 163, 3223, 200, 0, GET, /DeptLogo.gif, -,
 192.168.110.54, -, 03/20/01, 7:57:20, W3SVC2, SERVER, 172.21.13.45, 411, 221, 1967, 200, 0, GET, /style.css, -,
 192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 0, 261, 1913, 401, 2148074254, GET, /, -, 
@@ -459,55 +459,55 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 192.168.1.109, NT AUTHORITY\LOCAL SERVICE, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 46, 379, 336, 200, 0, GET, /, -, 
 192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 0, 336, 1889, 401, 2148074254, POST, /_vti_bin/sitedata.asmx, -,
 				",
-				new EM("ClientIP=192.168.114.201, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=4502, ClientBytes=163, ServerBytes=3223, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/DeptLogo.gif, body=", null, new DateTime(2001, 3, 20, 7, 55, 20)),
-				new EM("ClientIP=192.168.110.54, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=411, ClientBytes=221, ServerBytes=1967, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/style.css, body=", null, new DateTime(2001, 3, 20, 7, 57, 20)) { ContentType = MessageFlag.Info },
-				new EM("ClientIP=192.168.1.109, Service=W3SVC1893743816, Server=SPUTNIK01, ServerIP=192.168.1.109, TimeTaken=0, ClientBytes=261, ServerBytes=1913, ServiceStatus=401, WindowsStatus=2148074254, Request=GET, Target=/, body=", null, new DateTime(2009, 6, 10, 10, 11, 59)) { ContentType = MessageFlag.Warning }
-			);
-		}
+                new EM("ClientIP=192.168.114.201, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=4502, ClientBytes=163, ServerBytes=3223, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/DeptLogo.gif, body=", null, new DateTime(2001, 3, 20, 7, 55, 20)),
+                new EM("ClientIP=192.168.110.54, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=411, ClientBytes=221, ServerBytes=1967, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/style.css, body=", null, new DateTime(2001, 3, 20, 7, 57, 20)) { ContentType = MessageFlag.Info },
+                new EM("ClientIP=192.168.1.109, Service=W3SVC1893743816, Server=SPUTNIK01, ServerIP=192.168.1.109, TimeTaken=0, ClientBytes=261, ServerBytes=1913, ServiceStatus=401, WindowsStatus=2148074254, Request=GET, Target=/, body=", null, new DateTime(2009, 6, 10, 10, 11, 59)) { ContentType = MessageFlag.Warning }
+            );
+        }
 
-		[Test]
-		public async Task IIS7_Test()
-		{
-			await DoTest(
+        [Test]
+        public async Task IIS7_Test()
+        {
+            await DoTest(
 @"::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 324, 285, 935, 200, 0, GET, /, -,
 ::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 5, 337, 185196, 200, 0, GET, /welcome.png, -,
 ::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 3, 238, 5375, 404, 2, GET, /favicon.ico, -,
 ::1, -, 2/23/2013, 12:12:50, W3SVC1, MSA3644463, ::1, 1, 238, 5375, 404, 2, GET, /favicon.ico, -,
 ",
-				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=324, ClientBytes=285, ServerBytes=935, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
-				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=5, ClientBytes=337, ServerBytes=185196, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/welcome.png, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
-				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=3, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)) { ContentType = MessageFlag.Warning },
-				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=1, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 50)) { ContentType = MessageFlag.Warning }
-			);
-		}
+                new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=324, ClientBytes=285, ServerBytes=935, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
+                new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=5, ClientBytes=337, ServerBytes=185196, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/welcome.png, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
+                new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=3, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)) { ContentType = MessageFlag.Warning },
+                new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=1, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 50)) { ContentType = MessageFlag.Warning }
+            );
+        }
 
-	}
+    }
 
-	[TestFixture]
-	public class WindowsUpdateIntegrationTests
-	{
-		IMediaBasedReaderFactory CreateFactory()
-		{
-			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "WindowsUpdate.log");
-		}
+    [TestFixture]
+    public class WindowsUpdateIntegrationTests
+    {
+        IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "WindowsUpdate.log");
+        }
 
-		async Task DoTest(string testLog, ExpectedLog expectedLog)
-		{
-			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, ExpectedLog expectedLog)
+        {
+            await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+        }
 
-		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
-		{
-			ExpectedLog expectedLog = new ExpectedLog();
-			expectedLog.Add(0, expectedMessages);
-			await DoTest(testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+        {
+            ExpectedLog expectedLog = new ExpectedLog();
+            expectedLog.Add(0, expectedMessages);
+            await DoTest(testLog, expectedLog);
+        }
 
-		[Test]
-		public async Task WindowsUpdate_SmokeTest()
-		{
-			await DoTest(
-				@"
+        [Test]
+        public async Task WindowsUpdate_SmokeTest()
+        {
+            await DoTest(
+                @"
 2013-01-27	10:55:33:204	1160	3ca0	DnldMgr	  * BITS job initialized, JobId = {082DB2AF-902B-4457-810C-62B6E2D3A034}
 2013-01-27	10:55:33:207	1160	3ca0	DnldMgr	  * Downloading from http://sup-eu1-nlb.europe.corp.microsoft.com/Content/E7/BA6933C31C37166A9CAAC87AA635AB5A5BFDF7E7.exe to C:\windows\SoftwareDistribution\Download\29e9d7b4b531db72a29aea5b8094b5cd\ba6933c31c37166a9caac87aa635ab5a5bfdf7e7 (full file).
 2013-01-27	10:55:33:210	1160	3ca0	Agent	*********
@@ -519,40 +519,40 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 2013-01-27	10:55:38:171	1160	3ca0	Report	CWERReporter finishing event handling. (00000000)
 2013-01-27	10:55:44:276	1160	4348	DnldMgr	BITS job {082DB2AF-902B-4457-810C-62B6E2D3A034} completed successfully
 				",
-				new EM(@"DnldMgr   * BITS job initialized, JobId = {082DB2AF-902B-4457-810C-62B6E2D3A034}", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 204)),
-				new EM(@"DnldMgr   * Downloading from http://sup-eu1-nlb.europe.corp.microsoft.com/Content/E7/BA6933C31C37166A9CAAC87AA635AB5A5BFDF7E7.exe to C:\windows\SoftwareDistribution\Download\29e9d7b4b531db72a29aea5b8094b5cd\ba6933c31c37166a9caac87aa635ab5a5bfdf7e7 (full file).", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 207)),
-				new EM(@"Agent *********", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
-				new EM(@"Agent **  END  **  Agent: Downloading updates [CallerId = AutomaticUpdates]", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
-				new EM(@"Agent *************", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
-				new EM(@"AU Successfully wrote event for AU health state:0", "Process: 1160; Thread: 2320", new DateTime(2013, 1, 27, 10, 55, 33, 210))
-			);
-		}
-	}
+                new EM(@"DnldMgr   * BITS job initialized, JobId = {082DB2AF-902B-4457-810C-62B6E2D3A034}", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 204)),
+                new EM(@"DnldMgr   * Downloading from http://sup-eu1-nlb.europe.corp.microsoft.com/Content/E7/BA6933C31C37166A9CAAC87AA635AB5A5BFDF7E7.exe to C:\windows\SoftwareDistribution\Download\29e9d7b4b531db72a29aea5b8094b5cd\ba6933c31c37166a9caac87aa635ab5a5bfdf7e7 (full file).", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 207)),
+                new EM(@"Agent *********", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
+                new EM(@"Agent **  END  **  Agent: Downloading updates [CallerId = AutomaticUpdates]", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
+                new EM(@"Agent *************", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
+                new EM(@"AU Successfully wrote event for AU health state:0", "Process: 1160; Thread: 2320", new DateTime(2013, 1, 27, 10, 55, 33, 210))
+            );
+        }
+    }
 
-	[TestFixture]
-	public class W3CExtendedLogFormatTest
-	{
-		IMediaBasedReaderFactory CreateFactory()
-		{
-			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "W3C", "Extended Log Format");
-		}
+    [TestFixture]
+    public class W3CExtendedLogFormatTest
+    {
+        IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "W3C", "Extended Log Format");
+        }
 
-		async Task DoTest(string testLog, ExpectedLog expectedLog)
-		{
-			await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, ExpectedLog expectedLog)
+        {
+            await ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+        }
 
-		async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
-		{
-			ExpectedLog expectedLog = new ExpectedLog();
-			expectedLog.Add(0, expectedMessages);
-			await DoTest(testLog, expectedLog);
-		}
+        async Task DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+        {
+            ExpectedLog expectedLog = new ExpectedLog();
+            expectedLog.Add(0, expectedMessages);
+            await DoTest(testLog, expectedLog);
+        }
 
-		[Test]
-		public async Task W3CExtendedLogFormat_SmokeTest()
-		{
-			await DoTest(
+        [Test]
+        public async Task W3CExtendedLogFormat_SmokeTest()
+        {
+            await DoTest(
 @"#Software: Microsoft Internet Information Services 7.5
 #Version: 1.0
 #Date: 2013-02-07 08:35:37
@@ -560,11 +560,11 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 2013-02-07 08:35:37 fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340
 2013-02-07 08:35:37 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4
 2013-02-07 08:35:37 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32 - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 1",
-				new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 37)),
-				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37))
-			);
+                new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 37)),
+                new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37))
+            );
 
-			await DoTest(
+            await DoTest(
 @"#Software: Microsoft Internet Information Services 7.5
 #Version: 1.0
 #Date: 2013-02-07 08:35:37
@@ -572,11 +572,11 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 2013-02-07 08:35 fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340
 2013-02-07 08:35 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4
 2013-02-07 08:35 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32 - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 1",
-				new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 0)),
-				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 0))
-			);
+                new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 0)),
+                new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 0))
+            );
 
-			await DoTest(
+            await DoTest(
 @"#Software: Microsoft Internet Information Services 7.5
 #Version: 1.0
 #Date: 2013-02-07 08:35:37
@@ -584,62 +584,62 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 2013-02-07 08:35:37.234 fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340
 2013-02-07 08:35:37.235 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4
 2013-02-07 08:35:37.678 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32 - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 1",
-				new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 37, 234)),
-				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37, 235))
-			);
+                new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 37, 234)),
+                new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37, 235))
+            );
 
-		}
+        }
 
-	}
+    }
 
-	class SingleEntryFormatsRepository : IFormatDefinitionsRepository, IFormatDefinitionRepositoryEntry
-	{
-		public SingleEntryFormatsRepository(string formatDescription)
-		{
-			this.formatElement = XDocument.Parse(formatDescription).Root;
-		}
+    class SingleEntryFormatsRepository : IFormatDefinitionsRepository, IFormatDefinitionRepositoryEntry
+    {
+        public SingleEntryFormatsRepository(string formatDescription)
+        {
+            this.formatElement = XDocument.Parse(formatDescription).Root;
+        }
 
-		public IEnumerable<IFormatDefinitionRepositoryEntry> Entries { get { yield return this; } }
-		public string Location { get { return "test"; } }
-		public DateTime LastModified { get { return new DateTime(); } }
-		public XElement LoadFormatDescription() { return formatElement; }
+        public IEnumerable<IFormatDefinitionRepositoryEntry> Entries { get { yield return this; } }
+        public string Location { get { return "test"; } }
+        public DateTime LastModified { get { return new DateTime(); } }
+        public XElement LoadFormatDescription() { return formatElement; }
 
-		XElement formatElement;
-	};
+        XElement formatElement;
+    };
 
-	[TestFixture]
-	public class JsonReaderTests
-	{
-		IMediaBasedReaderFactory CreateFactory(string formatDescription)
-		{
-			var repo = new SingleEntryFormatsRepository(formatDescription);
-			ITempFilesManager tempFilesManager = new TempFilesManager();
-			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			RegularExpressions.IRegexFactory regexFactory = RegularExpressions.FCLRegexFactory.Instance;
-			IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(
-				repo, reg, new TraceSourceFactory());
-			var modelSyncContext = new SerialSynchronizationContext();
-			formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
-				JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, new TraceSourceFactory(),
-					modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance));
-			formatsManager.ReloadFactories();
-			var factory = reg.Items.FirstOrDefault();
-			Assert.That(factory, Is.Not.Null);
-			return factory as IMediaBasedReaderFactory;
-		}
+    [TestFixture]
+    public class JsonReaderTests
+    {
+        IMediaBasedReaderFactory CreateFactory(string formatDescription)
+        {
+            var repo = new SingleEntryFormatsRepository(formatDescription);
+            ITempFilesManager tempFilesManager = new TempFilesManager();
+            ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
+            RegularExpressions.IRegexFactory regexFactory = RegularExpressions.FCLRegexFactory.Instance;
+            IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(
+                repo, reg, new TraceSourceFactory());
+            var modelSyncContext = new SerialSynchronizationContext();
+            formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
+                JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, new TraceSourceFactory(),
+                    modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance));
+            formatsManager.ReloadFactories();
+            var factory = reg.Items.FirstOrDefault();
+            Assert.That(factory, Is.Not.Null);
+            return factory as IMediaBasedReaderFactory;
+        }
 
-		async Task DoTest(string formatDescription, string testLog, params EM[] expectedMessages)
-		{
-			ExpectedLog expectedLog = new ExpectedLog();
-			expectedLog.Add(0, expectedMessages);
-			await ReaderIntegrationTest.Test(CreateFactory(formatDescription), testLog, expectedLog);
-		}
+        async Task DoTest(string formatDescription, string testLog, params EM[] expectedMessages)
+        {
+            ExpectedLog expectedLog = new ExpectedLog();
+            expectedLog.Add(0, expectedMessages);
+            await ReaderIntegrationTest.Test(CreateFactory(formatDescription), testLog, expectedLog);
+        }
 
-		[Test]
-		public async Task SerilogJsonTest()
-		{
-			await DoTest(
-				@"
+        [Test]
+        public async Task SerilogJsonTest()
+        {
+            await DoTest(
+                @"
 <format>
   <json>
     <head-re><![CDATA[^\{\""@t\""\:]]></head-re>
@@ -648,24 +648,24 @@ SampleApp Information: 0 : No free data file found. Going sleep.
   </json>
   <id company=""Test"" name=""JSON"" />
 </format>",
-				@"
+                @"
 {""@t"":""2018-05-22T20:25:35.9680000Z"",""@mt"":""Hello world""}
 {""@t"":""2018-05-22T20:25:35.9960000Z"",""@m"":""Foo bar""}
 {""@t"":""2018-05-22T20:25:35.9980000Z""}
 {""@t"":""2018-05-22T20:25:35.9990000Z"",""@mt"":""Multiline\nstuff""}
 				",
-				new EM("Hello world", null, new DateTime(2018, 5, 22, 20, 25, 35, 968, DateTimeKind.Utc)),
-				new EM("Foo bar", null, new DateTime(2018, 5, 22, 20, 25, 35, 996, DateTimeKind.Utc)),
-				new EM("", null, new DateTime(2018, 5, 22, 20, 25, 35, 998, DateTimeKind.Utc)),
-				new EM("Multiline\nstuff", null, new DateTime(2018, 5, 22, 20, 25, 35, 999, DateTimeKind.Utc))
-			);
-		}
+                new EM("Hello world", null, new DateTime(2018, 5, 22, 20, 25, 35, 968, DateTimeKind.Utc)),
+                new EM("Foo bar", null, new DateTime(2018, 5, 22, 20, 25, 35, 996, DateTimeKind.Utc)),
+                new EM("", null, new DateTime(2018, 5, 22, 20, 25, 35, 998, DateTimeKind.Utc)),
+                new EM("Multiline\nstuff", null, new DateTime(2018, 5, 22, 20, 25, 35, 999, DateTimeKind.Utc))
+            );
+        }
 
-		[Test]
-		public async Task CustomJsonFunctionsTest()
-		{
-			await DoTest(
-				@"
+        [Test]
+        public async Task CustomJsonFunctionsTest()
+        {
+            await DoTest(
+                @"
 <format>
   <json>
     <head-re><![CDATA[^\{\ \""time\""\:]]></head-re>
@@ -674,22 +674,22 @@ SampleApp Information: 0 : No free data file found. Going sleep.
   </json>
   <id company=""Test"" name=""JSON"" />
 </format>",
-			@"
+            @"
 { ""time"": ""2017-09-03 22:23:14.5340"", ""level"": ""INFO"", ""nested"": { ""message"": ""Hello world"" } }
 { ""time"": ""2017-09-03 22:23:14.5590"", ""level"": ""WARN"", ""nested"": { ""message"": ""Foo\nbar"" } }
 { ""time"": ""2017-09-03 22:23:14.5610"", ""level"": ""INFO"", ""nested"": {  } }
 ",
-				new EM("Hello world", null, new DateTime(2017, 9, 3, 22, 23, 14, 534, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Info },
-				new EM("Foo\nbar", null, new DateTime(2017, 9, 3, 22, 23, 14, 559, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Warning },
-				new EM("", null, new DateTime(2017, 9, 3, 22, 23, 14, 561, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Info }
-			);
-		}
+                new EM("Hello world", null, new DateTime(2017, 9, 3, 22, 23, 14, 534, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Info },
+                new EM("Foo\nbar", null, new DateTime(2017, 9, 3, 22, 23, 14, 559, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Warning },
+                new EM("", null, new DateTime(2017, 9, 3, 22, 23, 14, 561, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Info }
+            );
+        }
 
-		[Test]
-		public async Task MalformedInput_ExtraCharachtersBetweenObjects()
-		{
-			await DoTest(
-				@"
+        [Test]
+        public async Task MalformedInput_ExtraCharachtersBetweenObjects()
+        {
+            await DoTest(
+                @"
 <format>
   <json>
     <head-re><![CDATA[^\{\""@t\""\:]]></head-re>
@@ -698,16 +698,16 @@ SampleApp Information: 0 : No free data file found. Going sleep.
   </json>
   <id company=""Test"" name=""JSON"" />
 </format>",
-				@"
+                @"
 {""@t"":""2018-05-22T20:25:35.9680000Z"",""@mt"":""Hello world""}
 not a json line
 another not a json line
 json-looking stuff {0} {{}{}{}{{{}
 {""@t"":""2018-05-22T20:25:35.9960000Z"",""@m"":""Foo bar""}
 				",
-				new EM("Hello world", null, new DateTime(2018, 5, 22, 20, 25, 35, 968, DateTimeKind.Utc)),
-				new EM("Foo bar", null, new DateTime(2018, 5, 22, 20, 25, 35, 996, DateTimeKind.Utc))
-			);
-		}
-	}
+                new EM("Hello world", null, new DateTime(2018, 5, 22, 20, 25, 35, 968, DateTimeKind.Utc)),
+                new EM("Foo bar", null, new DateTime(2018, 5, 22, 20, 25, 35, 996, DateTimeKind.Utc))
+            );
+        }
+    }
 }

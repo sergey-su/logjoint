@@ -11,8 +11,8 @@
 namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,23 +23,28 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class SequenceDiagramVisualizerControlResources {
-        
+    internal class SequenceDiagramVisualizerControlResources
+    {
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal SequenceDiagramVisualizerControlResources() {
+        internal SequenceDiagramVisualizerControlResources()
+        {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
+        internal static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if (object.ReferenceEquals(resourceMan, null))
+                {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("logjoint.ui.Postprocessors.SequenceDiagram.SequenceDiagramVisualizerControlResource" +
                             "s", typeof(SequenceDiagramVisualizerControlResources).Assembly);
                     resourceMan = temp;
@@ -47,107 +52,127 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
-            get {
+        internal static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
                 return resourceCulture;
             }
-            set {
+            set
+            {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap BigBookmark {
-            get {
+        internal static System.Drawing.Bitmap BigBookmark
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("BigBookmark", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap FocusedMsgSlave {
-            get {
+        internal static System.Drawing.Bitmap FocusedMsgSlave
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("FocusedMsgSlave", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap FocusedMsgSlaveVert {
-            get {
+        internal static System.Drawing.Bitmap FocusedMsgSlaveVert
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("FocusedMsgSlaveVert", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap SelectCurrentTime {
-            get {
+        internal static System.Drawing.Bitmap SelectCurrentTime
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("SelectCurrentTime", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap SmallBookmark {
-            get {
+        internal static System.Drawing.Bitmap SmallBookmark
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("SmallBookmark", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-		internal static System.Drawing.Bitmap UserAction
-		{
-            get {
+        internal static System.Drawing.Bitmap UserAction
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("UserAction", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ZoomIn {
-            get {
+        internal static System.Drawing.Bitmap ZoomIn
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ZoomIn", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ZoomOut {
-            get {
+        internal static System.Drawing.Bitmap ZoomOut
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ZoomOut", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-		
-        internal static System.Drawing.Bitmap Warning {
-            get {
+
+        internal static System.Drawing.Bitmap Warning
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("Warning", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
-        }		
+        }
     }
 }

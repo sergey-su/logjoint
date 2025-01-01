@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.Postprocessing.SummaryDialog
 {
-    internal class Presenter: IPresenter, IViewModel
+    internal class Presenter : IPresenter, IViewModel
     {
         readonly IChangeNotification changeNotification;
         readonly IPresentersFacade facade;

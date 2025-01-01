@@ -5,66 +5,66 @@ using System.Linq;
 
 namespace LogJoint.UI
 {
-	public partial class AppearanceSettingsView : UserControl, IView
-	{
-		public AppearanceSettingsView()
-		{
-			InitializeComponent();
+    public partial class AppearanceSettingsView : UserControl, IView
+    {
+        public AppearanceSettingsView()
+        {
+            InitializeComponent();
 
 
-			controls = new Tuple<ViewControl, Control>[]
-			{
-				Tuple.Create(ViewControl.ColoringSelector, (Control)coloringModeComboBox),
-				Tuple.Create(ViewControl.FontFamilySelector, (Control)fontFamiliesComboBox),
-				Tuple.Create(ViewControl.PaletteSelector, (Control)paletteComboBox),
-			};
-		}
+            controls = new Tuple<ViewControl, Control>[]
+            {
+                Tuple.Create(ViewControl.ColoringSelector, (Control)coloringModeComboBox),
+                Tuple.Create(ViewControl.FontFamilySelector, (Control)fontFamiliesComboBox),
+                Tuple.Create(ViewControl.PaletteSelector, (Control)paletteComboBox),
+            };
+        }
 
-		void IView.SetPresenter(IViewEvents presenter)
-		{
-			this.presenter = presenter;
-		}
+        void IView.SetPresenter(IViewEvents presenter)
+        {
+            this.presenter = presenter;
+        }
 
-		Presenters.LogViewer.IView IView.PreviewLogView { get { return logViewerControl1; } }
+        Presenters.LogViewer.IView IView.PreviewLogView { get { return logViewerControl1; } }
 
-		void IView.SetSelectorControl(ViewControl selector, string[] options, int selectedOption)
-		{
-			var ctrl = IdToControl(selector) as ComboBox;
-			if (ctrl == null)
-				return;
-			ctrl.Items.Clear();
-			ctrl.Items.AddRange(options);
-			ctrl.SelectedIndex = selectedOption;
-		}
+        void IView.SetSelectorControl(ViewControl selector, string[] options, int selectedOption)
+        {
+            var ctrl = IdToControl(selector) as ComboBox;
+            if (ctrl == null)
+                return;
+            ctrl.Items.Clear();
+            ctrl.Items.AddRange(options);
+            ctrl.SelectedIndex = selectedOption;
+        }
 
-		int IView.GetSelectedValue(ViewControl selector)
-		{
-			var ctrl = IdToControl(selector) as ComboBox;
-			if (ctrl == null)
-				return -1;
-			return ctrl.SelectedIndex;
-		}
+        int IView.GetSelectedValue(ViewControl selector)
+        {
+            var ctrl = IdToControl(selector) as ComboBox;
+            if (ctrl == null)
+                return -1;
+            return ctrl.SelectedIndex;
+        }
 
-		Presenters.LabeledStepperPresenter.IView IView.FontSizeControlView => fontSizeEditor;
+        Presenters.LabeledStepperPresenter.IView IView.FontSizeControlView => fontSizeEditor;
 
-		Control IdToControl(ViewControl controlId)
-		{
-			return controls.Where(t => t.Item1 == controlId).Select(t => t.Item2).FirstOrDefault();
-		}
+        Control IdToControl(ViewControl controlId)
+        {
+            return controls.Where(t => t.Item1 == controlId).Select(t => t.Item2).FirstOrDefault();
+        }
 
-		ViewControl? ControlToId(Control control)
-		{
-			return controls.Where(t => t.Item2 == control).Select(t => new ViewControl?(t.Item1)).FirstOrDefault();
-		}
+        ViewControl? ControlToId(Control control)
+        {
+            return controls.Where(t => t.Item2 == control).Select(t => new ViewControl?(t.Item1)).FirstOrDefault();
+        }
 
-		private void fontFamiliesComboBox_SelectedIndexChanged(object sender, System.EventArgs e)
-		{
-			var ctrl = ControlToId(sender as Control);
-			if (ctrl != null)
-				presenter.OnSelectedValueChanged(ctrl.Value);
-		}
+        private void fontFamiliesComboBox_SelectedIndexChanged(object sender, System.EventArgs e)
+        {
+            var ctrl = ControlToId(sender as Control);
+            if (ctrl != null)
+                presenter.OnSelectedValueChanged(ctrl.Value);
+        }
 
-		IViewEvents presenter;
-		Tuple<ViewControl, Control>[] controls;
-	}
+        IViewEvents presenter;
+        Tuple<ViewControl, Control>[] controls;
+    }
 }

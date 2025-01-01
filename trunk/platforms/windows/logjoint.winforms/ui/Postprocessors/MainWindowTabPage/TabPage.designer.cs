@@ -1,33 +1,33 @@
 ﻿namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 {
-	partial class TabPage
-	{
-		/// <summary> 
-		/// Required designer variable.
-		/// </summary>
-		private System.ComponentModel.IContainer components = null;
+    partial class TabPage
+    {
+        /// <summary> 
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-		/// <summary> 
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        /// <summary> 
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
-		#region Component Designer generated code
+        #region Component Designer generated code
 
-		/// <summary> 
-		/// Required method for Designer support - do not modify 
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
             this.collectLogsLabel = new System.Windows.Forms.Label();
             this.prepareLogsLabel = new System.Windows.Forms.Label();
             this.visualizeLogsLabel = new System.Windows.Forms.Label();
@@ -332,32 +332,32 @@
             this.ResumeLayout(false);
             this.PerformLayout();
 
-		}
+        }
 
-		#endregion
+        #endregion
 
-		private System.Windows.Forms.Label collectLogsLabel;
-		private System.Windows.Forms.Label prepareLogsLabel;
+        private System.Windows.Forms.Label collectLogsLabel;
+        private System.Windows.Forms.Label prepareLogsLabel;
         private System.Windows.Forms.Label visualizeLogsLabel;
         private System.Windows.Forms.LinkLabel logsCollectionControlLinkLabel2;
-		private System.Windows.Forms.LinkLabel logsCollectionControlLinkLabel3;
-		private System.Windows.Forms.LinkLabel stateInspectorLinkLabel;
-		private System.Windows.Forms.ProgressBar stateInspectorProgressBar;
-		private System.Windows.Forms.LinkLabel sequenceDiagramLinkLabel;
-		private System.Windows.Forms.ProgressBar sequenceDiagramProgressBar;
-		private System.Windows.Forms.LinkLabel timelineLinkLabel;
-		private System.Windows.Forms.ProgressBar timelineProgressBar;
-		private System.Windows.Forms.LinkLabel timeSeriesLinkLabel;
-		private System.Windows.Forms.ProgressBar timeSeriesProgressBar;
-		private System.Windows.Forms.ProgressBar correlationProgressBar;
-		private System.Windows.Forms.LinkLabel correlationAction1LinkLabel;
-		private System.Windows.Forms.LinkLabel runAllPostprocessorsLinkLabel;
-		private System.Windows.Forms.ProgressBar allPostprocessorsProgressBar;
-		private System.Windows.Forms.ProgressBar logsCollectionControlProgressBar2;
-		private System.Windows.Forms.LinkLabel logsCollectionControlLinkLabel1;
-		private System.Windows.Forms.ProgressBar logsCollectionControlProgressBar1;
-		private System.Windows.Forms.Panel panel3;
-		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
+        private System.Windows.Forms.LinkLabel logsCollectionControlLinkLabel3;
+        private System.Windows.Forms.LinkLabel stateInspectorLinkLabel;
+        private System.Windows.Forms.ProgressBar stateInspectorProgressBar;
+        private System.Windows.Forms.LinkLabel sequenceDiagramLinkLabel;
+        private System.Windows.Forms.ProgressBar sequenceDiagramProgressBar;
+        private System.Windows.Forms.LinkLabel timelineLinkLabel;
+        private System.Windows.Forms.ProgressBar timelineProgressBar;
+        private System.Windows.Forms.LinkLabel timeSeriesLinkLabel;
+        private System.Windows.Forms.ProgressBar timeSeriesProgressBar;
+        private System.Windows.Forms.ProgressBar correlationProgressBar;
+        private System.Windows.Forms.LinkLabel correlationAction1LinkLabel;
+        private System.Windows.Forms.LinkLabel runAllPostprocessorsLinkLabel;
+        private System.Windows.Forms.ProgressBar allPostprocessorsProgressBar;
+        private System.Windows.Forms.ProgressBar logsCollectionControlProgressBar2;
+        private System.Windows.Forms.LinkLabel logsCollectionControlLinkLabel1;
+        private System.Windows.Forms.ProgressBar logsCollectionControlProgressBar1;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
 
-	}
+    }
 }

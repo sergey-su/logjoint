@@ -1,34 +1,34 @@
 ﻿namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 {
-	partial class SequenceDiagramVisualizerControl
-	{
-		/// <summary> 
-		/// Required designer variable.
-		/// </summary>
-		private System.ComponentModel.IContainer components = null;
+    partial class SequenceDiagramVisualizerControl
+    {
+        /// <summary> 
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-		/// <summary> 
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        /// <summary> 
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
-		#region Component Designer generated code
+        #region Component Designer generated code
 
-		/// <summary> 
-		/// Required method for Designer support - do not modify 
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
-			this.components = new System.ComponentModel.Container();
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
             this.panel1 = new System.Windows.Forms.Panel();
             this.currentArrowDescription = new System.Windows.Forms.LinkLabel();
             this.currentArrowCaptionLabel = new System.Windows.Forms.TextBox();
@@ -207,7 +207,7 @@
             this.findCurrentTimeButton.TabIndex = 4;
             this.findCurrentTimeButton.TabStop = true;
             this.findCurrentTimeButton.Text = "current time";
-			this.toolTip1.SetToolTip(this.findCurrentTimeButton, "Find the position of log message currently selected in log text view (F6)");
+            this.toolTip1.SetToolTip(this.findCurrentTimeButton, "Find the position of log message currently selected in log text view (F6)");
             this.findCurrentTimeButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.findCurrentTimeButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.findCurrentTimeButton.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.toolPanelLinkClicked);
@@ -259,19 +259,19 @@
             this.collapseResponsesCheckbox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.collapseResponsesCheckbox.Click += collapseResponsesCheckbox_Click;
             // 
-			// collapseRoleInstancesCheckbox
+            // collapseRoleInstancesCheckbox
             // 
-			this.collapseRoleInstancesCheckbox.AutoSize = true;
-			this.collapseRoleInstancesCheckbox.Location = new System.Drawing.Point(680, 2);
-			this.collapseRoleInstancesCheckbox.Margin = new System.Windows.Forms.Padding(5, 0, 3, 0);
-			this.collapseRoleInstancesCheckbox.Name = "collapseRoleInstancesCheckbox";
-			this.collapseRoleInstancesCheckbox.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-			this.collapseRoleInstancesCheckbox.Size = new System.Drawing.Size(84, 17);
-			this.collapseRoleInstancesCheckbox.TabIndex = 8;
-			this.collapseRoleInstancesCheckbox.TabStop = true;
-			this.collapseRoleInstancesCheckbox.Text = "collapse role instances";
-			this.collapseRoleInstancesCheckbox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.collapseRoleInstancesCheckbox.Click += collapseRoleInstancesCheckbox_Click;
+            this.collapseRoleInstancesCheckbox.AutoSize = true;
+            this.collapseRoleInstancesCheckbox.Location = new System.Drawing.Point(680, 2);
+            this.collapseRoleInstancesCheckbox.Margin = new System.Windows.Forms.Padding(5, 0, 3, 0);
+            this.collapseRoleInstancesCheckbox.Name = "collapseRoleInstancesCheckbox";
+            this.collapseRoleInstancesCheckbox.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.collapseRoleInstancesCheckbox.Size = new System.Drawing.Size(84, 17);
+            this.collapseRoleInstancesCheckbox.TabIndex = 8;
+            this.collapseRoleInstancesCheckbox.TabStop = true;
+            this.collapseRoleInstancesCheckbox.Text = "collapse role instances";
+            this.collapseRoleInstancesCheckbox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.collapseRoleInstancesCheckbox.Click += collapseRoleInstancesCheckbox_Click;
             // 
             // panel6
             // 
@@ -373,7 +373,7 @@
             // 
             // tagsListContainerPanel
             // 
-            this.tagsListContainerPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.tagsListContainerPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tagsListContainerPanel.BackColor = System.Drawing.SystemColors.Control;
             this.tagsListContainerPanel.Controls.Add(this.tagsListControl);
@@ -469,37 +469,37 @@
             this.tagsListContainerPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-		}
+        }
 
-		#endregion
+        #endregion
 
-		private DoubleBufferedPanel arrowsPanel;
-		private DoubleBufferedPanel rolesCaptionsPanel;
-		private System.Windows.Forms.Panel panel1;
-		private System.Windows.Forms.LinkLabel currentArrowDescription;
-		private System.Windows.Forms.TextBox currentArrowCaptionLabel;
-		private DoubleBufferedPanel leftPanel;
-		private System.Windows.Forms.Panel panel2;
-		private System.Windows.Forms.Panel panel3;
-		private TagsListControl tagsListControl;
-		private System.Windows.Forms.Panel tagsListContainerPanel;
-		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-		private System.Windows.Forms.LinkLabel prevUserActionButton;
-		private System.Windows.Forms.LinkLabel nextUserActionButton;
-		private System.Windows.Forms.LinkLabel prevBookmarkButton;
-		private System.Windows.Forms.LinkLabel nextBookmarkButton;
-		private System.Windows.Forms.LinkLabel findCurrentTimeButton;
-		private System.Windows.Forms.LinkLabel zoomInButton;
-		private System.Windows.Forms.LinkLabel zoomOutButton;
-		private System.Windows.Forms.CheckBox collapseResponsesCheckbox;
-		private System.Windows.Forms.CheckBox collapseRoleInstancesCheckbox;
-		private System.Windows.Forms.Panel panel6;
-		private System.Windows.Forms.VScrollBar vScrollBar;
-		private System.Windows.Forms.HScrollBar hScrollBar;
-		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private DoubleBufferedPanel arrowsPanel;
+        private DoubleBufferedPanel rolesCaptionsPanel;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.LinkLabel currentArrowDescription;
+        private System.Windows.Forms.TextBox currentArrowCaptionLabel;
+        private DoubleBufferedPanel leftPanel;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Panel panel3;
+        private TagsListControl tagsListControl;
+        private System.Windows.Forms.Panel tagsListContainerPanel;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
+        private System.Windows.Forms.LinkLabel prevUserActionButton;
+        private System.Windows.Forms.LinkLabel nextUserActionButton;
+        private System.Windows.Forms.LinkLabel prevBookmarkButton;
+        private System.Windows.Forms.LinkLabel nextBookmarkButton;
+        private System.Windows.Forms.LinkLabel findCurrentTimeButton;
+        private System.Windows.Forms.LinkLabel zoomInButton;
+        private System.Windows.Forms.LinkLabel zoomOutButton;
+        private System.Windows.Forms.CheckBox collapseResponsesCheckbox;
+        private System.Windows.Forms.CheckBox collapseRoleInstancesCheckbox;
+        private System.Windows.Forms.Panel panel6;
+        private System.Windows.Forms.VScrollBar vScrollBar;
+        private System.Windows.Forms.HScrollBar hScrollBar;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private LogJoint.UI.QuickSearchTextBox.BorderedQuickSearchTextBox quickSearchEditBox;
         private ToastNotificationsListControl toastNotificationsListControl;
         private System.Windows.Forms.Button notificationsButton;
-		private System.Windows.Forms.ToolTip toolTip1;
-	}
+        private System.Windows.Forms.ToolTip toolTip1;
+    }
 }

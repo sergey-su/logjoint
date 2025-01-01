@@ -6,99 +6,99 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class BlockingProcessingQueue<T>: IDisposable
-	{
-		public interface IUnderlyingCollection: IDisposable
-		{
-			void Add(Token item);
-			Token Take();
-			int Count { get; }
-		};
+    public class BlockingProcessingQueue<T> : IDisposable
+    {
+        public interface IUnderlyingCollection : IDisposable
+        {
+            void Add(Token item);
+            Token Take();
+            int Count { get; }
+        };
 
-		public class Token
-		{
-			public void MarkAsProcessed()
-			{
-				owner.CheckDisposed();
-				processed.Set();
-			}
+        public class Token
+        {
+            public void MarkAsProcessed()
+            {
+                owner.CheckDisposed();
+                processed.Set();
+            }
 
-			public T Value
-			{
-				get { owner.CheckDisposed(); return value; }
-				set { owner.CheckDisposed(); this.value = value; }
-			}
+            public T Value
+            {
+                get { owner.CheckDisposed(); return value; }
+                set { owner.CheckDisposed(); this.value = value; }
+            }
 
-			internal Token(BlockingProcessingQueue<T> owner, T value)
-			{
-				this.owner = owner;
-				this.value = value;
-			}
+            internal Token(BlockingProcessingQueue<T> owner, T value)
+            {
+                this.owner = owner;
+                this.value = value;
+            }
 
-			internal void WaitUntilProcessed()
-			{
-				processed.Wait();
-			}
+            internal void WaitUntilProcessed()
+            {
+                processed.Wait();
+            }
 
-			internal void Dispose()
-			{
-				processed.Dispose();
-			}
+            internal void Dispose()
+            {
+                processed.Dispose();
+            }
 
-			private readonly BlockingProcessingQueue<T> owner;
-			private T value;
-			private ManualResetEventSlim processed = new ManualResetEventSlim();
-		};
+            private readonly BlockingProcessingQueue<T> owner;
+            private T value;
+            private ManualResetEventSlim processed = new ManualResetEventSlim();
+        };
 
 
-		public BlockingProcessingQueue(IUnderlyingCollection underlyingCollection)
-		{
-			this.underlyingCollection = underlyingCollection;
-		}
+        public BlockingProcessingQueue(IUnderlyingCollection underlyingCollection)
+        {
+            this.underlyingCollection = underlyingCollection;
+        }
 
-		public Token Add(T item)
-		{
-			CheckDisposed();
-			Token ret = new Token(this, item);
-			underlyingCollection.Add(ret);
-			return ret;
-		}
+        public Token Add(T item)
+        {
+            CheckDisposed();
+            Token ret = new Token(this, item);
+            underlyingCollection.Add(ret);
+            return ret;
+        }
 
-		public T Take()
-		{
-			CheckDisposed();
-			Token token = underlyingCollection.Take();
-			token.WaitUntilProcessed();
-			token.Dispose();
-			return token.Value;
-		}
+        public T Take()
+        {
+            CheckDisposed();
+            Token token = underlyingCollection.Take();
+            token.WaitUntilProcessed();
+            token.Dispose();
+            return token.Value;
+        }
 
-		public int Count
-		{
-			get 
-			{
-				CheckDisposed();
-				return underlyingCollection.Count;			
-			}
-		}
+        public int Count
+        {
+            get
+            {
+                CheckDisposed();
+                return underlyingCollection.Count;
+            }
+        }
 
-		public void Dispose()
-		{
-			if (disposed)
-				return;
-			disposed = true;
-			while (underlyingCollection.Count > 0)
-				underlyingCollection.Take().Dispose();
-			(underlyingCollection as IDisposable)?.Dispose();
-		}
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+            disposed = true;
+            while (underlyingCollection.Count > 0)
+                underlyingCollection.Take().Dispose();
+            (underlyingCollection as IDisposable)?.Dispose();
+        }
 
-		internal void CheckDisposed()
-		{
-			if (disposed)
-				throw new ObjectDisposedException("BlockingProcessingQueue");
-		}
+        internal void CheckDisposed()
+        {
+            if (disposed)
+                throw new ObjectDisposedException("BlockingProcessingQueue");
+        }
 
-		private IUnderlyingCollection underlyingCollection;
-		private bool disposed;
-	}
+        private IUnderlyingCollection underlyingCollection;
+        private bool disposed;
+    }
 }
