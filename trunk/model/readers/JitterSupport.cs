@@ -28,42 +28,37 @@ namespace LogJoint
     };
 
     /// <summary>
-    /// Implementation of IPositionedMessagesParser that mitigates 'partially-sorted-log' problem.
+    /// Implementation of IAsyncEnumerable<PostprocessedMessage> that mitigates 'partially-sorted-log' problem.
     /// 'partially-sorted-log' problem has to do with logs that are mostly sorded by time but
     /// there might be little defects where several messages have incorrect order. Bad order 
     /// may be a result of bad logic in multithreded log writer. Well known example of a log
     /// having 'partially-sorted-log' problem is Windows Event Log.
-    /// DejitteringMessagesParser is a transparent wrapper for underlying IPositionedMessagesParser.
+    /// DejitteringMessagesParser is a transparent wrapper for the underlying IAsyncEnumerable<PostprocessedMessage>.
     /// Logically DejitteringMessagesParser implements the following idea: when client reads Nth message 
     /// a range of messages is actually read (N - jitterBufferSize/2, N + jitterBufferSize/2). 
     /// This range is sorded by time and the message in the middle of the range is 
     /// returned as Nth message. DejitteringMessagesParser is optimized for sequential reading.
     /// </summary>
-    public class DejitteringMessagesParser : IPositionedMessagesParser
+    public class DejitteringMessagesParser : IAsyncDisposable
     {
-        public static Task<DejitteringMessagesParser> Create(Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory,
+        public static IAsyncEnumerable<PostprocessedMessage> Create(Func<CreateParserParams, IAsyncEnumerable<PostprocessedMessage>> underlyingParserFactory,
             CreateParserParams originalParams, DejitteringParams config)
         {
             return Create(underlyingParserFactory, originalParams, config.JitterBufferSize);
         }
 
-        public static async Task<DejitteringMessagesParser> Create(Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory,
+        public static async IAsyncEnumerable<PostprocessedMessage> Create(Func<CreateParserParams, IAsyncEnumerable<PostprocessedMessage>> underlyingParserFactory,
             CreateParserParams originalParams, int jitterBufferSize)
         {
-            if (underlyingParserFactory == null)
-                throw new ArgumentNullException("underlyingParserFactory");
-
-            var parser = new DejitteringMessagesParser(originalParams, jitterBufferSize);
-            try
+            await using var parser = new DejitteringMessagesParser(originalParams, jitterBufferSize);
+            await parser.CreateUnderlyingParserAndInitJitterBuffer(underlyingParserFactory);
+            for (; ; )
             {
-                await parser.CreateUnderlyingParserAndInitJitterBuffer(underlyingParserFactory);
+                PostprocessedMessage message = await parser.ReadNextAndPostprocess();
+                if (message.Message == null)
+                    break;
+                yield return message;
             }
-            catch
-            {
-                await parser.DisposeAsync();
-                throw;
-            }
-            return parser;
         }
 
 
@@ -82,9 +77,7 @@ namespace LogJoint
             this.positionsBuffer = new Generic.CircularBuffer<MessagesPositions>(jitterBufferSize + 1);
         }
 
-        #region IPositionedMessagesParser Members
-
-        public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
+        private async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
         {
             CheckDisposed();
             for (; ; )
@@ -107,8 +100,6 @@ namespace LogJoint
                 return ret.data;
             }
         }
-
-        #endregion
 
         public async ValueTask DisposeAsync()
         {
@@ -160,7 +151,7 @@ namespace LogJoint
             return direction == MessagesParserDirection.Backward ? MessagesParserDirection.Forward : MessagesParserDirection.Backward;
         }
 
-        async Task CreateUnderlyingParserAndInitJitterBuffer(Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory)
+        async Task CreateUnderlyingParserAndInitJitterBuffer(Func<CreateParserParams, IAsyncEnumerable<PostprocessedMessage>> underlyingParserFactory)
         {
             CreateParserParams reversedParserParams = originalParams;
             reversedParserParams.Range = null;
@@ -169,15 +160,14 @@ namespace LogJoint
 
             int reversedMessagesQueued = 0;
 
-            await using (var reversedParser = await underlyingParserFactory(reversedParserParams))
+            await using (IAsyncEnumerator<PostprocessedMessage> reversedParser = underlyingParserFactory(reversedParserParams).GetAsyncEnumerator())
             {
                 var tmp = new List<PostprocessedMessage>();
                 for (int i = 0; i < jitterBufferSize; ++i)
                 {
-                    var tmpMsg = await reversedParser.ReadNextAndPostprocess();
-                    if (tmpMsg.Message == null)
+                    if (!await reversedParser.MoveNextAsync())
                         break;
-                    tmp.Add(tmpMsg);
+                    tmp.Add(reversedParser.Current);
                 }
                 tmp.Reverse();
                 foreach (var tmpMsg in tmp)
@@ -204,36 +194,29 @@ namespace LogJoint
         }
 
         IEnumerableAsync<PostprocessedMessage> ReadAddMessagesFromRangeCompleteJitterBuffer(
-            Func<CreateParserParams, Task<IPositionedMessagesParser>> underlyingParserFactory)
+            Func<CreateParserParams, IAsyncEnumerable<PostprocessedMessage>> underlyingParserFactory)
         {
             return EnumerableAsync.Produce<PostprocessedMessage>(async yieldAsync =>
             {
                 CreateParserParams mainParserParams = originalParams;
                 //mainParserParams.Range = null;
-                await using (var mainParser = await underlyingParserFactory(mainParserParams))
+                await foreach (PostprocessedMessage msg in underlyingParserFactory(mainParserParams))
                 {
-                    for (; ; )
-                    {
-                        var msg = await mainParser.ReadNextAndPostprocess();
-                        if (msg.Message == null)
-                            break;
-                        if (!await yieldAsync.YieldAsync(msg))
-                            break;
-                    }
+                    if (!await yieldAsync.YieldAsync(msg))
+                        break;
                 }
 
                 CreateParserParams jitterBufferCompletionParams = originalParams;
                 jitterBufferCompletionParams.Flags |= MessagesParserFlag.DisableMultithreading;
                 jitterBufferCompletionParams.Range = null;
                 jitterBufferCompletionParams.StartPosition = originalParams.Direction == MessagesParserDirection.Forward ? originalParams.Range.Value.End : originalParams.Range.Value.Begin;
-                await using (var completionParser = await underlyingParserFactory(jitterBufferCompletionParams))
+                await using (var completionParser = underlyingParserFactory(jitterBufferCompletionParams).GetAsyncEnumerator())
                 {
                     for (int i = 0; i < jitterBufferSize; ++i)
                     {
-                        var msg = await completionParser.ReadNextAndPostprocess();
-                        if (msg.Message == null)
+                        if (!await completionParser.MoveNextAsync())
                             break;
-                        if (!await yieldAsync.YieldAsync(msg))
+                        if (!await yieldAsync.YieldAsync(completionParser.Current))
                             break;
                     }
                 }

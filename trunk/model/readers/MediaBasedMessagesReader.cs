@@ -86,7 +86,7 @@ namespace LogJoint
             return ret;
         }
 
-        async Task<IPositionedMessagesParser> CreateParser(CreateParserParams parserParams)
+        public IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams parserParams)
         {
             // That's not the best place for flushing counters, but it's the only one that works in blazor
             // that lacks periodic calls to UpdateAvailableBounds.
@@ -104,8 +104,8 @@ namespace LogJoint
             DejitteringParams? dejitteringParams = GetDejitteringParams();
             if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
             {
-                return await DejitteringMessagesParser.Create(
-                    async underlyingParserParams => await StreamParser.Create(
+                return DejitteringMessagesParser.Create(
+                    underlyingParserParams => StreamParser.Create(
                         this,
                         EnsureParserRangeDoesNotExceedReadersBoundaries(underlyingParserParams),
                         textStreamPositioningParams,
@@ -116,25 +116,13 @@ namespace LogJoint
                     dejitteringParams.Value
                 );
             }
-            return await StreamParser.Create(
+            return StreamParser.Create(
                 this,
                 parserParams,
                 textStreamPositioningParams,
                 settingsAccessor,
                 strategiesCache
             );
-        }
-
-        public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
-        {
-            await using IPositionedMessagesParser parser = await CreateParser(p);
-            for (; ; )
-            {
-                PostprocessedMessage message = await parser.ReadNextAndPostprocess();
-                if (message.Message == null)
-                    break;
-                yield return message;
-            }
         }
 
         public virtual Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)

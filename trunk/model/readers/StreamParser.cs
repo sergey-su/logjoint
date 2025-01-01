@@ -2,10 +2,11 @@
 using LogJoint.StreamParsingStrategies;
 using LogJoint.Settings;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace LogJoint
 {
-    class StreamParser : IPositionedMessagesParser
+    class StreamParser : IAsyncDisposable
     {
         private bool disposed;
         private readonly bool isSequentialReadingParser;
@@ -13,16 +14,22 @@ namespace LogJoint
         private readonly CreateParserParams initialParams;
         private readonly StreamParsingStrategies.BaseStrategy strategy;
 
-        public static async Task<StreamParser> Create(
+        public static async IAsyncEnumerable<PostprocessedMessage> Create(
             IPositionedMessagesReader owner,
             CreateParserParams p,
             TextStreamPositioningParams textStreamPositioningParams,
             IGlobalSettingsAccessor globalSettings,
             StrategiesCache strategiesCache)
         {
-            var parser = new StreamParser(owner, p, textStreamPositioningParams, globalSettings, strategiesCache);
+            await using var parser = new StreamParser(owner, p, textStreamPositioningParams, globalSettings, strategiesCache);
             await parser.strategy.ParserCreated(parser.initialParams);
-            return parser;
+            for (; ; )
+            {
+                PostprocessedMessage message = await parser.ReadNextAndPostprocess();
+                if (message.Message == null)
+                    break;
+                yield return message;
+            }
         }
 
         private StreamParser(
@@ -116,11 +123,6 @@ namespace LogJoint
             return strategy;
         }
 
-        public bool IsDisposed
-        {
-            get { return disposed; }
-        }
-
         public virtual ValueTask DisposeAsync()
         {
             if (disposed)
@@ -130,7 +132,7 @@ namespace LogJoint
             return ValueTask.CompletedTask;
         }
 
-        public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
+        private ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
         {
             return strategy.ReadNextAndPostprocess();
         }

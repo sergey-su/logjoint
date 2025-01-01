@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Reflection;
-
 using LogJoint;
 using LogJoint.FileRange;
 using Range = LogJoint.FileRange.Range;
@@ -29,66 +28,57 @@ namespace LogJoint.Tests
             public string Msg;
         };
 
-        class ParserImpl : IPositionedMessagesParser
+        static IAsyncEnumerable<PostprocessedMessage> UnderlyingParser(LogEntry[] logContent, CreateParserParams parserParams)
         {
-            readonly LogEntry[] logContent;
             Range effectiveRange;
-            long pos;
-            readonly bool reverse;
-
-            public ParserImpl(LogEntry[] logContent, CreateParserParams parserParams)
+            if (parserParams.Range.HasValue)
             {
-                this.logContent = logContent;
-                if (parserParams.Range.HasValue)
-                {
-                    effectiveRange = parserParams.Range.Value;
-                    if (effectiveRange.Begin < 0)
-                        effectiveRange = new Range(0, effectiveRange.End);
-                    if (effectiveRange.End > logContent.Length)
-                        effectiveRange = new Range(effectiveRange.Begin, logContent.Length);
-                }
-                else
-                {
-                    effectiveRange = new Range(0, logContent.Length);
-                }
-                reverse = parserParams.Direction == MessagesParserDirection.Backward;
-                if (!reverse)
-                {
-                    pos = Math.Max(parserParams.StartPosition, effectiveRange.Begin);
-                }
-                else
-                {
-                    pos = Math.Min(parserParams.StartPosition - 1, effectiveRange.End);
-                }
+                effectiveRange = parserParams.Range.Value;
+                if (effectiveRange.Begin < 0)
+                    effectiveRange = new Range(0, effectiveRange.End);
+                if (effectiveRange.End > logContent.Length)
+                    effectiveRange = new Range(effectiveRange.Begin, logContent.Length);
+            }
+            else
+            {
+                effectiveRange = new Range(0, logContent.Length);
             }
 
-            public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
+            bool reverse = parserParams.Direction == MessagesParserDirection.Backward;
+            long pos;
+            if (!reverse)
             {
-                IMessage m = null;
+                pos = Math.Max(parserParams.StartPosition, effectiveRange.Begin);
+            }
+            else
+            {
+                pos = Math.Min(parserParams.StartPosition - 1, effectiveRange.End);
+            }
+
+            var result = new List<PostprocessedMessage>();
+            for (; ; )
+            {
                 if (!reverse)
                 {
                     if (pos >= effectiveRange.End)
-                        return ValueTask.FromResult(new PostprocessedMessage(m, null));
+                        break;
                 }
                 else
                 {
                     if (pos < effectiveRange.Begin)
-                        return ValueTask.FromResult(new PostprocessedMessage(m, null));
+                        break;
                 }
                 LogEntry l = logContent[pos];
-                m = new Message(pos, pos + 1, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
+                IMessage m = new Message(pos, pos + 1, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
                 if (reverse)
                     pos--;
                 else
                     pos++;
-                return ValueTask.FromResult(new PostprocessedMessage(m, null));
+                result.Add(new PostprocessedMessage(m, null));
             }
+            return result.ToAsyncEnumerable();
+        }
 
-            public ValueTask DisposeAsync()
-            {
-                return ValueTask.CompletedTask;
-            }
-        };
 
         static async Task DoTest(LogEntry[] logContent, CreateParserParams originalParams, int jitterBufferSize, LogEntry[] expectedParsedMessages)
         {
@@ -98,8 +88,8 @@ namespace LogJoint.Tests
             }
             CreateParserParams validatedParams = originalParams;
             validatedParams.EnsureStartPositionIsInRange();
-            await using (var jitter = await DejitteringMessagesParser.Create(
-                p => Task.FromResult<IPositionedMessagesParser>(new ParserImpl(logContent, p)), originalParams, jitterBufferSize))
+            await using (var jitter = DejitteringMessagesParser.Create(
+                p => UnderlyingParser(logContent, p), originalParams, jitterBufferSize).GetAsyncEnumerator())
             {
                 int messageIdx;
                 int idxStep;
@@ -115,15 +105,15 @@ namespace LogJoint.Tests
                 }
                 foreach (LogEntry expectedMessage in expectedParsedMessages)
                 {
-                    IMessage actualMessage = (await jitter.ReadNextAndPostprocess()).Message;
+                    Assert.That(await jitter.MoveNextAsync(), Is.True);
+                    IMessage actualMessage = jitter.Current.Message;
                     Assert.That(actualMessage, Is.Not.Null);
                     Assert.That((long)expectedMessage.Time, Is.EqualTo(actualMessage.Time.ToLocalDateTime().Ticks));
                     Assert.That(expectedMessage.Msg, Is.EqualTo(actualMessage.Text.Value));
                     Assert.That(validatedParams.StartPosition + messageIdx, Is.EqualTo(actualMessage.Position));
                     messageIdx += idxStep;
                 }
-                IMessage lastMessage = (await jitter.ReadNextAndPostprocess()).Message;
-                Assert.That(lastMessage, Is.Null);
+                Assert.That(await jitter.MoveNextAsync(), Is.False);
             }
         }
 
