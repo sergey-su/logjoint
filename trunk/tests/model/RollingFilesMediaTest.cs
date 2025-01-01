@@ -284,13 +284,33 @@ namespace LogJoint.Tests
 
             public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
             {
-                await using IPositionedMessagesParser parser = new Parser(Media);
+                DateTime time = new DateTime();
+                DateTime startOfTime = new DateTime(2000, 1, 1);
+                bool messageRead = false;
+                Media.DataStream.Position = 0;
+                TextReader r = new StreamReader(Media.DataStream);
+                int val = int.Parse(r.ReadToEnd().Trim());
+                if (val == EmptyFileContent)
+                {
+                    messageRead = true;
+                }
+                else if (val == InvalidFileContent)
+                {
+                    throw new InvalidFormatException();
+                }
+                else
+                {
+                    time = startOfTime.Add(TimeSpan.FromHours(val));
+                }
+
+
                 for (; ; )
                 {
-                    PostprocessedMessage message = await parser.ReadNextAndPostprocess();
-                    if (message.Message == null)
-                        break;
-                    yield return message;
+                    if (messageRead)
+                        yield break;
+                    messageRead = true;
+                    IMessage m = new Message(0, 1, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
+                    yield return new PostprocessedMessage(m, null);
                 }
             }
 
@@ -308,45 +328,6 @@ namespace LogJoint.Tests
             }
 
             #endregion
-
-            public class Parser : IPositionedMessagesParser
-            {
-                readonly DateTime time;
-                static readonly DateTime startOfTime = new DateTime(2000, 1, 1);
-                bool messageRead = false;
-                public Parser(ILogMedia media)
-                {
-                    media.DataStream.Position = 0;
-                    TextReader r = new StreamReader(media.DataStream);
-                    int val = int.Parse(r.ReadToEnd().Trim());
-                    if (val == EmptyFileContent)
-                    {
-                        messageRead = true;
-                    }
-                    else if (val == InvalidFileContent)
-                    {
-                        throw new InvalidFormatException();
-                    }
-                    else
-                    {
-                        time = startOfTime.Add(TimeSpan.FromHours(val));
-                    }
-                }
-                public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
-                {
-                    IMessage m = null;
-                    if (messageRead)
-                        return ValueTask.FromResult(new PostprocessedMessage(m, null));
-                    messageRead = true;
-                    m = new Message(0, 1, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
-                    return ValueTask.FromResult(new PostprocessedMessage(m, null));
-                }
-
-                public ValueTask DisposeAsync()
-                {
-                    return ValueTask.CompletedTask;
-                }
-            };
         }
 
         static ILogMedia CreateMedia(FileSystemImpl fs)

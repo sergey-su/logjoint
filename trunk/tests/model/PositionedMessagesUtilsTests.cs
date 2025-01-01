@@ -68,97 +68,63 @@ namespace LogJoint.Tests
                 return new ValueTask<int>(0);
             }
 
-            class Parser : IPositionedMessagesParser
+            public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
             {
-                public Parser(TestReader reader, long startPosition, LogJoint.FileRange.Range? range, MessagesParserDirection direction)
-                {
-                    this.reader = reader;
-                    this.range = range;
-                    this.direction = direction;
+                CheckDisposed();
 
-                    if (direction == MessagesParserDirection.Forward)
+                var range = p.Range;
+                long positionIndex = 0;
+                long startPosition = p.StartPosition;
+
+                if (p.Direction == MessagesParserDirection.Forward)
+                {
+                    for (positionIndex = 0; positionIndex < positions.Length; ++positionIndex)
                     {
-                        for (positionIndex = 0; positionIndex < reader.positions.Length; ++positionIndex)
-                        {
-                            if (reader.positions[positionIndex] >= startPosition)
-                                break;
-                        }
+                        if (positions[positionIndex] >= startPosition)
+                            break;
                     }
-                    else
+                }
+                else
+                {
+                    for (positionIndex = positions.Length - 1; positionIndex >= 0; --positionIndex)
                     {
-                        for (positionIndex = reader.positions.Length - 1; positionIndex >= 0; --positionIndex)
-                        {
-                            if (reader.positions[positionIndex] < startPosition)
-                                break;
-                        }
+                        if (positions[positionIndex] < startPosition)
+                            break;
                     }
                 }
 
-                public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
+                var result = new List<PostprocessedMessage>();
+                for (; ; )
                 {
                     CheckDisposed();
-                    reader.CheckDisposed();
 
-                    ValueTask<PostprocessedMessage> makeResult(IMessage m) => ValueTask.FromResult(new PostprocessedMessage(m, null));
-
-                    IMessage m = null;
                     long currPos;
-                    if (direction == MessagesParserDirection.Forward)
+                    if (p.Direction == MessagesParserDirection.Forward)
                     {
-                        if (positionIndex >= reader.positions.Length)
-                            return makeResult(m);
+                        if (positionIndex >= positions.Length)
+                            break;
 
-                        currPos = reader.positions[positionIndex];
+                        currPos = positions[positionIndex];
                         if (range.HasValue && currPos >= range.Value.End)
-                            return makeResult(m);
+                            break;
 
                         ++positionIndex;
                     }
                     else
                     {
                         if (positionIndex < 0)
-                            return makeResult(m);
+                            break;
 
-                        currPos = reader.positions[positionIndex];
+                        currPos = positions[positionIndex];
                         if (range.HasValue && currPos < range.Value.Begin)
-                            return makeResult(m);
+                            break;
 
                         --positionIndex;
                     }
 
-                    m = new Message(currPos, currPos + 1, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
-                    return makeResult(m);
-                }
-
-                public ValueTask DisposeAsync()
-                {
-                    isDisposed = true;
-                    return ValueTask.CompletedTask;
-                }
-
-                void CheckDisposed()
-                {
-                    if (isDisposed)
-                        throw new ObjectDisposedException(this.ToString());
-                }
-
-                readonly TestReader reader;
-                readonly LogJoint.FileRange.Range? range;
-                long positionIndex;
-                readonly MessagesParserDirection direction;
-                bool isDisposed;
-            };
-
-            public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
-            {
-                CheckDisposed();
-                await using IPositionedMessagesParser parser = new Parser(this, p.StartPosition, p.Range, p.Direction);
-                for (; ; )
-                {
-                    PostprocessedMessage message = await parser.ReadNextAndPostprocess();
-                    if (message.Message == null)
-                        break;
-                    yield return message;
+                    IMessage m = new Message(currPos, currPos + 1, null,
+                        new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
+                    yield return new PostprocessedMessage(m, null);
                 }
             }
 
