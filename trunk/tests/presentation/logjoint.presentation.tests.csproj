@@ -2,10 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-
+    <LangVersion>13.0</LangVersion>
     <IsPackable>false</IsPackable>
-
-    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

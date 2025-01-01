@@ -10,7 +10,7 @@ namespace LogJoint.Wireshark.Dpml
 {
     public interface IReader
     {
-        IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null);
+        IEnumerableAsync<Message[]> Read(Func<Task<Stream>> getStream, Action<Stream> releaseStream, Action<double> progressHandler = null);
     }
 
     public interface IWriter
