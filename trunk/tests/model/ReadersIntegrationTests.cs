@@ -156,7 +156,7 @@ namespace LogJoint.Tests
                 {
                     for (; ; )
                     {
-                        var msg = await parser.ReadNext();
+                        var msg = (await parser.ReadNextAndPostprocess()).Message;
                         if (msg == null)
                             break;
                         msgs.Add(msg);

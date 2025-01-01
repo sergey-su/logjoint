@@ -186,7 +186,6 @@ namespace LogJoint
 
     public interface IPositionedMessagesParser : IDisposableAsync
     {
-        ValueTask<IMessage> ReadNext();
         ValueTask<PostprocessedMessage> ReadNextAndPostprocess();
     };
 

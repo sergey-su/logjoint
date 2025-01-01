@@ -45,16 +45,11 @@ namespace LogJoint.StreamParsingStrategies
             postprocessor?.Dispose();
         }
 
-        public override async ValueTask<IMessage> ReadNext()
-        {
-            if (!await textSplitter.GetCurrentMessageAndMoveToNextOne(capture))
-                return null;
-            return MakeMessage(capture);
-        }
-
         public override async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
         {
-            var msg = await ReadNext();
+            if (!await textSplitter.GetCurrentMessageAndMoveToNextOne(capture))
+                return new PostprocessedMessage(null, null);
+            var msg = MakeMessage(capture);
             return new PostprocessedMessage(
                 msg,
                 msg != null ? postprocessor?.Postprocess(msg) : null

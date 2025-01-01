@@ -83,7 +83,7 @@ namespace LogJoint
                                 MessagesParserFlag.DisableMultithreading | MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward));
                             try
                             {
-                                if (await parser.ReadNext() != null)
+                                if ((await parser.ReadNextAndPostprocess()).Message != null)
                                 {
                                     log.Info("Autodetected format of {0}: {1}", fileName, factory);
                                     localCancellation.Cancel();

@@ -19,8 +19,7 @@ namespace LogJoint.StreamParsingStrategies
 
         public virtual Task ParserCreated(CreateParserParams p) { return Task.CompletedTask; }
         public virtual void ParserDestroyed() { }
-        public virtual ValueTask<IMessage> ReadNext() { return new ValueTask<IMessage>((IMessage)null); }
-        public virtual async ValueTask<PostprocessedMessage> ReadNextAndPostprocess() { return new PostprocessedMessage(await ReadNext(), null); }
+        public virtual ValueTask<PostprocessedMessage> ReadNextAndPostprocess() { return ValueTask.FromResult(new PostprocessedMessage(null, null)); }
 
         protected readonly ILogMedia media;
         protected readonly Encoding encoding;

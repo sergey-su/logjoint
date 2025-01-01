@@ -36,9 +36,9 @@ namespace LogJoint
                 null, MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageTimeIsNotNeeded,
                 MessagesParserDirection.Forward, null)), async parser =>
             {
-                if (await parser.ReadNext() == null)
+                if ((await parser.ReadNextAndPostprocess()).Message == null)
                     return (long?)null;
-                IMessage p = await parser.ReadNext();
+                IMessage p = (await parser.ReadNextAndPostprocess()).Message;
                 if (p == null)
                     return null;
                 return p.Position;
@@ -53,7 +53,7 @@ namespace LogJoint
                 MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
                 MessagesParserDirection.Forward)), async p =>
             {
-                var msgAtOriginalPos = await p.ReadNext();
+                var msgAtOriginalPos = (await p.ReadNextAndPostprocess()).Message;
                 if (msgAtOriginalPos != null)
                     nextMessagePos = msgAtOriginalPos.Position;
                 else
@@ -63,7 +63,7 @@ namespace LogJoint
                 MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
                 MessagesParserDirection.Backward)), async p =>
             {
-                IMessage msg = await p.ReadNext();
+                IMessage msg = (await p.ReadNextAndPostprocess()).Message;
                 if (msg != null)
                     return msg.Position;
                 return (long?)null;
@@ -111,7 +111,7 @@ namespace LogJoint
             await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.EndPosition,
                 null, MessagesParserFlag.Default, MessagesParserDirection.Backward)), async parser =>
             {
-                IMessage tmp = await parser.ReadNext();
+                IMessage tmp = (await parser.ReadNextAndPostprocess()).Message;
                 if (tmp != null)
                     lastMessage = tmp;
             });
@@ -183,7 +183,7 @@ namespace LogJoint
         {
             return await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(position, null, flags, MessagesParserDirection.Forward)), async parser =>
             {
-                IMessage ret = await parser.ReadNext();
+                IMessage ret = (await parser.ReadNextAndPostprocess()).Message;
                 return ret;
             });
         }

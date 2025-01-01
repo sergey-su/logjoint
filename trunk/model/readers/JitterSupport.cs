@@ -84,11 +84,6 @@ namespace LogJoint
 
         #region IPositionedMessagesParser Members
 
-        public async ValueTask<IMessage> ReadNext()
-        {
-            return (await ReadNextAndPostprocess()).Message;
-        }
-
         public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
         {
             CheckDisposed();

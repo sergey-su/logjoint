@@ -130,11 +130,6 @@ namespace LogJoint
             return Task.CompletedTask;
         }
 
-        public ValueTask<IMessage> ReadNext()
-        {
-            return strategy.ReadNext();
-        }
-
         public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
         {
             return strategy.ReadNextAndPostprocess();

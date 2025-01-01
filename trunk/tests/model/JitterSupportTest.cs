@@ -62,18 +62,18 @@ namespace LogJoint.Tests
                 }
             }
 
-            public ValueTask<IMessage> ReadNext()
+            public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
             {
                 IMessage m = null;
                 if (!reverse)
                 {
                     if (pos >= effectiveRange.End)
-                        return ValueTask.FromResult(m);
+                        return ValueTask.FromResult(new PostprocessedMessage(m, null));
                 }
                 else
                 {
                     if (pos < effectiveRange.Begin)
-                        return ValueTask.FromResult(m);
+                        return ValueTask.FromResult(new PostprocessedMessage(m, null));
                 }
                 LogEntry l = logContent[pos];
                 m = new Message(pos, pos + 1, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
@@ -81,12 +81,7 @@ namespace LogJoint.Tests
                     pos--;
                 else
                     pos++;
-                return ValueTask.FromResult(m);
-            }
-
-            public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
-            {
-                return new PostprocessedMessage(await ReadNext(), null);
+                return ValueTask.FromResult(new PostprocessedMessage(m, null));
             }
 
             public Task Dispose()
@@ -121,14 +116,14 @@ namespace LogJoint.Tests
                     }
                     foreach (LogEntry expectedMessage in expectedParsedMessages)
                     {
-                        IMessage actualMessage = await jitter.ReadNext();
+                        IMessage actualMessage = (await jitter.ReadNextAndPostprocess()).Message;
                         Assert.That(actualMessage, Is.Not.Null);
                         Assert.That((long)expectedMessage.Time, Is.EqualTo(actualMessage.Time.ToLocalDateTime().Ticks));
                         Assert.That(expectedMessage.Msg, Is.EqualTo(actualMessage.Text.Value));
                         Assert.That(validatedParams.StartPosition + messageIdx, Is.EqualTo(actualMessage.Position));
                         messageIdx += idxStep;
                     }
-                    IMessage lastMessage = await jitter.ReadNext();
+                    IMessage lastMessage = (await jitter.ReadNextAndPostprocess()).Message;
                     Assert.That(lastMessage, Is.Null);
                 });
         }

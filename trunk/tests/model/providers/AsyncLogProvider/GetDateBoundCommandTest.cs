@@ -280,7 +280,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
             {
                 for (; ; )
                 {
-                    IMessage msg = await parser.ReadNext();
+                    IMessage msg = (await parser.ReadNextAndPostprocess()).Message;
                     if (msg == null)
                         break;
                     else

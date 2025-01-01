@@ -70,7 +70,7 @@ namespace LogJoint
                 {
                     ctx.Cancellation.ThrowIfCancellationRequested();
                     ctx.Preemption.ThrowIfCancellationRequested();
-                    var m = await parser.ReadNext();
+                    var m = (await parser.ReadNextAndPostprocess()).Message;
                     if (m == null)
                         break;
                     if (!callback(m))

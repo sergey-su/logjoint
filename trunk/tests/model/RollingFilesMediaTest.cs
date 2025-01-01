@@ -325,19 +325,16 @@ namespace LogJoint.Tests
                         time = startOfTime.Add(TimeSpan.FromHours(val));
                     }
                 }
-                public ValueTask<IMessage> ReadNext()
+                public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
                 {
                     IMessage m = null;
                     if (messageRead)
-                        return ValueTask.FromResult(m);
+                        return ValueTask.FromResult(new PostprocessedMessage(m, null));
                     messageRead = true;
                     m = new Message(0, 1, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
-                    return ValueTask.FromResult(m);
+                    return ValueTask.FromResult(new PostprocessedMessage(m, null));
                 }
-                public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
-                {
-                    return new PostprocessedMessage(await ReadNext(), null);
-                }
+
                 public Task Dispose()
                 {
                     return Task.CompletedTask;

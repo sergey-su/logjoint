@@ -35,11 +35,6 @@ namespace LogJoint.StreamParsingStrategies
 
         #region BaseStrategy overrides
 
-        public override async ValueTask<IMessage> ReadNext()
-        {
-            return (await ReadNextAndPostprocess()).Message;
-        }
-
         public override ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
         {
             if (!attachedToParser)

@@ -93,43 +93,40 @@ namespace LogJoint.Tests
                     }
                 }
 
-                public ValueTask<IMessage> ReadNext()
+                public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
                 {
                     CheckDisposed();
                     reader.CheckDisposed();
+
+                    ValueTask<PostprocessedMessage> makeResult(IMessage m) => ValueTask.FromResult(new PostprocessedMessage(m, null));
 
                     IMessage m = null;
                     long currPos;
                     if (direction == MessagesParserDirection.Forward)
                     {
                         if (positionIndex >= reader.positions.Length)
-                            return ValueTask.FromResult(m);
+                            return makeResult(m);
 
                         currPos = reader.positions[positionIndex];
                         if (range.HasValue && currPos >= range.Value.End)
-                            return ValueTask.FromResult(m);
+                            return makeResult(m);
 
                         ++positionIndex;
                     }
                     else
                     {
                         if (positionIndex < 0)
-                            return ValueTask.FromResult(m);
+                            return makeResult(m);
 
                         currPos = reader.positions[positionIndex];
                         if (range.HasValue && currPos < range.Value.Begin)
-                            return ValueTask.FromResult(m);
+                            return makeResult(m);
 
                         --positionIndex;
                     }
 
                     m = new Message(currPos, currPos + 1, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
-                    return ValueTask.FromResult(m);
-                }
-
-                public async ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
-                {
-                    return new PostprocessedMessage(await ReadNext(), null);
+                    return makeResult(m);
                 }
 
                 public Task Dispose()

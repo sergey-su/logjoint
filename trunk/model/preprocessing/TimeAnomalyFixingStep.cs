@@ -89,7 +89,7 @@ namespace LogJoint.Preprocessing
                         {
                             if (cancellation.IsCancellationRequested)
                                 break;
-                            var msg = await parser.ReadNext();
+                            var msg = (await parser.ReadNextAndPostprocess()).Message;
                             if (msg == null)
                                 break;
                             if ((msgIdx % progressUpdateThreshold) == 0 && rangeLen > 0)
