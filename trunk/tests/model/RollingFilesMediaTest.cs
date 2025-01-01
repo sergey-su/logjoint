@@ -282,9 +282,16 @@ namespace LogJoint.Tests
                 return ValueTask.FromResult(0);
             }
 
-            public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
+            public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
             {
-                return Task.FromResult<IPositionedMessagesParser>(new Parser(Media));
+                await using IPositionedMessagesParser parser = new Parser(Media);
+                for (; ; )
+                {
+                    PostprocessedMessage message = await parser.ReadNextAndPostprocess();
+                    if (message.Message == null)
+                        break;
+                    yield return message;
+                }
             }
 
             public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)

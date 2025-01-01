@@ -4,6 +4,8 @@ using System.IO;
 using LogJoint.StreamParsingStrategies;
 using LogJoint.RegularExpressions;
 using System.Threading.Tasks;
+using LogJoint.Postprocessing;
+using System.Collections.Generic;
 
 namespace LogJoint
 {
@@ -84,7 +86,7 @@ namespace LogJoint
             return ret;
         }
 
-        public async Task<IPositionedMessagesParser> CreateParser(CreateParserParams parserParams)
+        async Task<IPositionedMessagesParser> CreateParser(CreateParserParams parserParams)
         {
             // That's not the best place for flushing counters, but it's the only one that works in blazor
             // that lacks periodic calls to UpdateAvailableBounds.
@@ -121,6 +123,18 @@ namespace LogJoint
                 settingsAccessor,
                 strategiesCache
             );
+        }
+
+        public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
+        {
+            await using IPositionedMessagesParser parser = await CreateParser(p);
+            for (; ; )
+            {
+                PostprocessedMessage message = await parser.ReadNextAndPostprocess();
+                if (message.Message == null)
+                    break;
+                yield return message;
+            }
         }
 
         public virtual Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)

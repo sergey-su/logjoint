@@ -79,15 +79,12 @@ namespace LogJoint
                             }
                             await reader.UpdateAvailableBounds(false);
                             perfOp.Milestone("bounds detected");
-                            await using (var parser = await reader.CreateParser(new CreateParserParams(0, null,
+                            await foreach (PostprocessedMessage message in reader.Read(new CreateParserParams(0, null,
                                 MessagesParserFlag.DisableMultithreading | MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward)))
                             {
-                                if ((await parser.ReadNextAndPostprocess()).Message != null)
-                                {
-                                    log.Info("Autodetected format of {0}: {1}", fileName, factory);
-                                    localCancellation.Cancel();
-                                    return (fmt: new DetectedFormat(factory, ((IFileBasedLogProviderFactory)factory).CreateParams(fileName)), idx);
-                                }
+                                log.Info("Autodetected format of {0}: {1}", fileName, factory);
+                                localCancellation.Cancel();
+                                return (fmt: new DetectedFormat(factory, ((IFileBasedLogProviderFactory)factory).CreateParams(fileName)), idx);
                             }
                         }
                     }

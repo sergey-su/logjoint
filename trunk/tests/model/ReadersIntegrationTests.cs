@@ -152,15 +152,9 @@ namespace LogJoint.Tests
 
                 List<IMessage> msgs = new List<IMessage>();
 
-                await using (var parser = await reader.CreateParser(new CreateParserParams(reader.BeginPosition)))
+                await foreach (var msg in reader.Read(new CreateParserParams(reader.BeginPosition)))
                 {
-                    for (; ; )
-                    {
-                        var msg = (await parser.ReadNextAndPostprocess()).Message;
-                        if (msg == null)
-                            break;
-                        msgs.Add(msg);
-                    }
+                    msgs.Add(msg.Message);
                 }
 
                 expectation.StartVerification();

@@ -150,31 +150,23 @@ namespace LogJoint
 
                     ResetFlags();
 
-                    await using (var parser = await reader.CreateParser(new CreateParserParams(
+                    await foreach (PostprocessedMessage tmp in reader.Read(new CreateParserParams(
                         currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
                         MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
                         MessagesParserDirection.Forward,
                         postprocessor: null,
                         cancellation: cancellationToken)))
                     {
-                        tracer.Info("parser created");
-                        for (; ; )
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                            ResetFlags();
+                        ResetFlags();
 
-                            if (!await ReadNextMessage(parser))
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-                                break;
-                            }
+                        lastReadMessage = tmp.Message;
+                        ProcessLastReadMessageAndFlush();
 
-                            ProcessLastReadMessageAndFlush();
-
-                            ++messagesRead;
-                        }
+                        ++messagesRead;
                     }
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     tracer.Info("reading finished");
 
@@ -264,13 +256,6 @@ namespace LogJoint
         void ResetFlags()
         {
             lastReadMessage = null;
-        }
-
-        async Task<bool> ReadNextMessage(IPositionedMessagesParser parser)
-        {
-            var tmp = await parser.ReadNextAndPostprocess();
-            lastReadMessage = tmp.Message;
-            return lastReadMessage != null;
         }
 
         private void ProcessLastReadMessageAndFlush()

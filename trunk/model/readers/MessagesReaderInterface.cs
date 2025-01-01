@@ -158,12 +158,11 @@ namespace LogJoint
         /// <summary>
         /// Creates an object that reads messages from reader's media.
         /// </summary>
-        /// <returns>Returns parser object. It must be disposed when is not needed.</returns>
         /// <remarks>
         /// CreateParserParams.StartPosition doesn't have to point to the beginning of a message.
         /// It is reader's responsibility to guarantee that the correct nearest message is read.
         /// </remarks>
-        Task<IPositionedMessagesParser> CreateParser(CreateParserParams p);
+        IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p);
 
         Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p);
     };

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using LogJoint.Settings;
 using NUnit.Framework;
@@ -148,10 +149,17 @@ namespace LogJoint.Tests
                 bool isDisposed;
             };
 
-            public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
+            public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
             {
                 CheckDisposed();
-                return Task.FromResult<IPositionedMessagesParser>(new Parser(this, p.StartPosition, p.Range, p.Direction));
+                await using IPositionedMessagesParser parser = new Parser(this, p.StartPosition, p.Range, p.Direction);
+                for (; ; )
+                {
+                    PostprocessedMessage message = await parser.ReadNextAndPostprocess();
+                    if (message.Message == null)
+                        break;
+                    yield return message;
+                }
             }
 
             public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)

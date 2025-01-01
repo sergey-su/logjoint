@@ -32,42 +32,36 @@ namespace LogJoint
                 return null;
             if (originalMessagePos >= reader.EndPosition)
                 return null;
-            await using (var parser = await reader.CreateParser(new CreateParserParams(originalMessagePos,
+            int msgIndex = 0;
+            await foreach (PostprocessedMessage msg in reader.Read(new CreateParserParams(originalMessagePos,
                 null, MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageTimeIsNotNeeded,
                 MessagesParserDirection.Forward, null)))
             {
-                if ((await parser.ReadNextAndPostprocess()).Message == null)
-                    return (long?)null;
-                IMessage p = (await parser.ReadNextAndPostprocess()).Message;
-                if (p == null)
-                    return null;
-                return p.Position;
+                if (msgIndex == 1)
+                    return msg.Message.Position;
+                ++msgIndex;
             }
+            return null;
         }
 
         public static async Task<long?> FindPrevMessagePosition(IPositionedMessagesReader reader,
             long originalMessagePos)
         {
-            long nextMessagePos = 0;
-            await using (var p = await reader.CreateParser(new CreateParserParams(originalMessagePos, null,
+            long nextMessagePos = reader.EndPosition;
+            await foreach (PostprocessedMessage msgAtOriginalPos in reader.Read(new CreateParserParams(originalMessagePos, null,
                 MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
                 MessagesParserDirection.Forward)))
             {
-                var msgAtOriginalPos = (await p.ReadNextAndPostprocess()).Message;
-                if (msgAtOriginalPos != null)
-                    nextMessagePos = msgAtOriginalPos.Position;
-                else
-                    nextMessagePos = reader.EndPosition;
+                nextMessagePos = msgAtOriginalPos.Message.Position;
+                break;
             }
-            await using (var p = await reader.CreateParser(new CreateParserParams(nextMessagePos, null,
+            await foreach (PostprocessedMessage msg in reader.Read(new CreateParserParams(nextMessagePos, null,
                 MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
                 MessagesParserDirection.Backward)))
             {
-                IMessage msg = (await p.ReadNextAndPostprocess()).Message;
-                if (msg != null)
-                    return msg.Position;
-                return (long?)null;
+                return msg.Message.Position;
             }
+            return null;
         }
 
         public static async Task<MessageTimestamp?> ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
@@ -108,12 +102,11 @@ namespace LogJoint
 
             lastMessage = firstMessage;
 
-            await using (var parser = await reader.CreateParser(new CreateParserParams(reader.EndPosition,
+            await foreach (var tmp in reader.Read(new CreateParserParams(reader.EndPosition,
                 null, MessagesParserFlag.Default, MessagesParserDirection.Backward)))
             {
-                IMessage tmp = (await parser.ReadNextAndPostprocess()).Message;
-                if (tmp != null)
-                    lastMessage = tmp;
+                lastMessage = tmp.Message;
+                break;
             }
             return (firstMessage, lastMessage);
         }
@@ -181,11 +174,11 @@ namespace LogJoint
 
         static public async Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position, MessagesParserFlag flags)
         {
-            await using (var parser = await reader.CreateParser(new CreateParserParams(position, null, flags, MessagesParserDirection.Forward)))
+            await foreach (var msg in reader.Read(new CreateParserParams(position, null, flags, MessagesParserDirection.Forward)))
             {
-                IMessage ret = (await parser.ReadNextAndPostprocess()).Message;
-                return ret;
+                return msg.Message;
             }
+            return null;
         }
     }
 }

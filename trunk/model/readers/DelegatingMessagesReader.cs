@@ -1,4 +1,5 @@
-﻿using LogJoint.Settings;
+﻿using LogJoint.Postprocessing;
+using LogJoint.Settings;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -53,9 +54,9 @@ namespace LogJoint
             set { underliyingReader.TimeOffsets = value; }
         }
 
-        public Task<IPositionedMessagesParser> CreateParser(CreateParserParams p)
+        public IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
         {
-            return underliyingReader.CreateParser(p);
+            return underliyingReader.Read(p);
         }
 
         public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)

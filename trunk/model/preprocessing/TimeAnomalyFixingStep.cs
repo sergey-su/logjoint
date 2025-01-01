@@ -77,20 +77,18 @@ namespace LogJoint.Preprocessing
                 double rangeLen = range.Length;
                 using var progress = progressAggregator.CreateProgressSink();
                 using var writer = new StreamWriter(tmpFileName, false, readerImpl.StreamEncoding);
-                await using var parser = await reader.CreateParser(new CreateParserParams(reader.BeginPosition,
-                    flags: MessagesParserFlag.DisableDejitter | MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading));
                 var queue = new VCSKicksCollection.PriorityQueue<IMessage>(
                     new MessagesComparer(ignoreConnectionIds: true));
                 Action dequeue = () => writer.WriteLine(queue.Dequeue().RawText.ToString());
                 double lastPrctComplete = 0;
                 var cancellation = callback.Cancellation;
-                for (long msgIdx = 0; ; ++msgIdx)
+                long msgIdx = 0;
+                await foreach (PostprocessedMessage postprocessedMessage in reader.Read(new CreateParserParams(reader.BeginPosition,
+                    flags: MessagesParserFlag.DisableDejitter | MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading)))
                 {
                     if (cancellation.IsCancellationRequested)
                         break;
-                    var msg = (await parser.ReadNextAndPostprocess()).Message;
-                    if (msg == null)
-                        break;
+                    IMessage msg = postprocessedMessage.Message;
                     if ((msgIdx % progressUpdateThreshold) == 0 && rangeLen > 0)
                     {
                         var prctComplete = (double)(msg.Position - range.Begin) / rangeLen;
@@ -104,6 +102,7 @@ namespace LogJoint.Preprocessing
                     queue.Enqueue(msg);
                     if (queue.Count > queueSize)
                         dequeue();
+                    ++msgIdx;
                 }
                 while (queue.Count > 0)
                     dequeue();

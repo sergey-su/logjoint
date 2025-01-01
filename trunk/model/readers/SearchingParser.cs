@@ -158,38 +158,31 @@ namespace LogJoint
                 {
                     searchableRangesLength += currentSearchableRange.Length;
                     ++searchableRangesCount;
-                    await using (var parser = await CreateParserForSearchableRange(currentSearchableRange, postprocessor))
+                    long messagesCount = 0;
+                    long hitsCount = 0;
+                    await foreach (PostprocessedMessage tmp in CreateParserForSearchableRange(currentSearchableRange, postprocessor))
                     {
-                        long messagesCount = 0;
-                        long hitsCount = 0;
-                        for (; ; )
+                        ++messagesCount;
+
+                        var msg = tmp.Message;
+                        var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
+                            tmp.PostprocessingResult, dummyFilter);
+
+                        if (filteringResult.Action != FilterAction.Exclude)
                         {
-                            var tmp = await parser.ReadNextAndPostprocess();
-                            if (tmp.Message == null)
-                                break;
-
-                            ++messagesCount;
-
-                            var msg = tmp.Message;
-                            var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
-                                tmp.PostprocessingResult, dummyFilter);
-
-                            if (filteringResult.Action != FilterAction.Exclude)
-                            {
-                                ++hitsCount;
-                                await yieldAsync.YieldAsync(new SearchResultMessage(msg, filteringResult));
-                            }
-
-                            progressAndCancellation.HandleMessageReadingProgress(msg.Position);
-                            progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
-
-                            progressAndCancellation.CheckTextIterationCancellation();
+                            ++hitsCount;
+                            await yieldAsync.YieldAsync(new SearchResultMessage(msg, filteringResult));
                         }
-                        PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange),
-                            hitsCount, messagesCount);
-                        totalMessagesCount += messagesCount;
-                        totalHitsCount += hitsCount;
+
+                        progressAndCancellation.HandleMessageReadingProgress(msg.Position);
+                        progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
+
+                        progressAndCancellation.CheckTextIterationCancellation();
                     }
+                    PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange),
+                        hitsCount, messagesCount);
+                    totalMessagesCount += messagesCount;
+                    totalHitsCount += hitsCount;
                     return true;
                 });
                 trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);
@@ -240,12 +233,12 @@ namespace LogJoint
             });
         }
 
-        async Task<IPositionedMessagesParser> CreateParserForSearchableRange(
+        IAsyncEnumerable<PostprocessedMessage> CreateParserForSearchableRange(
             FileRange.Range searchableRange,
             Func<IMessagesPostprocessor> messagesPostprocessor)
         {
             bool disableMultithreading = false;
-            return await owner.CreateParser(new CreateParserParams(
+            return owner.Read(new CreateParserParams(
                 searchableRange.Begin, searchableRange,
                 MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
                 | (disableMultithreading ? MessagesParserFlag.DisableMultithreading : MessagesParserFlag.None),
