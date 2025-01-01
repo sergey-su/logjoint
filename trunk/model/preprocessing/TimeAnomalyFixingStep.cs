@@ -75,40 +75,38 @@ namespace LogJoint.Preprocessing
                 await reader.UpdateAvailableBounds(false);
                 var range = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
                 double rangeLen = range.Length;
-                using (var progress = progressAggregator.CreateProgressSink())
-                using (var writer = new StreamWriter(tmpFileName, false, readerImpl.StreamEncoding))
-                    await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.BeginPosition,
-                        flags: MessagesParserFlag.DisableDejitter | MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading)), async parser =>
+                using var progress = progressAggregator.CreateProgressSink();
+                using var writer = new StreamWriter(tmpFileName, false, readerImpl.StreamEncoding);
+                await using var parser = await reader.CreateParser(new CreateParserParams(reader.BeginPosition,
+                    flags: MessagesParserFlag.DisableDejitter | MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading));
+                var queue = new VCSKicksCollection.PriorityQueue<IMessage>(
+                    new MessagesComparer(ignoreConnectionIds: true));
+                Action dequeue = () => writer.WriteLine(queue.Dequeue().RawText.ToString());
+                double lastPrctComplete = 0;
+                var cancellation = callback.Cancellation;
+                for (long msgIdx = 0; ; ++msgIdx)
+                {
+                    if (cancellation.IsCancellationRequested)
+                        break;
+                    var msg = (await parser.ReadNextAndPostprocess()).Message;
+                    if (msg == null)
+                        break;
+                    if ((msgIdx % progressUpdateThreshold) == 0 && rangeLen > 0)
                     {
-                        var queue = new VCSKicksCollection.PriorityQueue<IMessage>(
-                            new MessagesComparer(ignoreConnectionIds: true));
-                        Action dequeue = () => writer.WriteLine(queue.Dequeue().RawText.ToString());
-                        double lastPrctComplete = 0;
-                        var cancellation = callback.Cancellation;
-                        for (long msgIdx = 0; ; ++msgIdx)
+                        var prctComplete = (double)(msg.Position - range.Begin) / rangeLen;
+                        progress.SetValue(prctComplete);
+                        if (prctComplete - lastPrctComplete > 0.05)
                         {
-                            if (cancellation.IsCancellationRequested)
-                                break;
-                            var msg = (await parser.ReadNextAndPostprocess()).Message;
-                            if (msg == null)
-                                break;
-                            if ((msgIdx % progressUpdateThreshold) == 0 && rangeLen > 0)
-                            {
-                                var prctComplete = (double)(msg.Position - range.Begin) / rangeLen;
-                                progress.SetValue(prctComplete);
-                                if (prctComplete - lastPrctComplete > 0.05)
-                                {
-                                    setStepDescription(prctComplete);
-                                    lastPrctComplete = prctComplete;
-                                }
-                            }
-                            queue.Enqueue(msg);
-                            if (queue.Count > queueSize)
-                                dequeue();
+                            setStepDescription(prctComplete);
+                            lastPrctComplete = prctComplete;
                         }
-                        while (queue.Count > 0)
-                            dequeue();
-                    });
+                    }
+                    queue.Enqueue(msg);
+                    if (queue.Count > queueSize)
+                        dequeue();
+                }
+                while (queue.Count > 0)
+                    dequeue();
             }
 
             return new PreprocessingStepParams(

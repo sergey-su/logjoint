@@ -129,10 +129,10 @@ namespace LogJoint.Tests
                     return makeResult(m);
                 }
 
-                public Task Dispose()
+                public ValueTask DisposeAsync()
                 {
                     isDisposed = true;
-                    return Task.CompletedTask;
+                    return ValueTask.CompletedTask;
                 }
 
                 void CheckDisposed()

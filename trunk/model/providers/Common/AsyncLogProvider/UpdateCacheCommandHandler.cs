@@ -150,12 +150,12 @@ namespace LogJoint
 
                     ResetFlags();
 
-                    await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(
-                            currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
-                            MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
-                            MessagesParserDirection.Forward,
-                            postprocessor: null,
-                            cancellation: cancellationToken)), async parser =>
+                    await using (var parser = await reader.CreateParser(new CreateParserParams(
+                        currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
+                        MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
+                        MessagesParserDirection.Forward,
+                        postprocessor: null,
+                        cancellation: cancellationToken)))
                     {
                         tracer.Info("parser created");
                         for (; ; )
@@ -174,7 +174,7 @@ namespace LogJoint
 
                             ++messagesRead;
                         }
-                    });
+                    }
 
                     tracer.Info("reading finished");
 

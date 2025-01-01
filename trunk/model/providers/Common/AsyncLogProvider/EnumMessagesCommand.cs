@@ -63,20 +63,18 @@ namespace LogJoint
         async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
         {
             var parserFlags = (flags & EnumMessagesFlag.IsSequentialScanningHint) != 0 ? MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading : MessagesParserFlag.None;
-            await DisposableAsync.Using(await ctx.Reader.CreateParser(
-                new CreateParserParams(positionToContinueAsync, null, parserFlags, direction)), async parser =>
+            await using var parser = await ctx.Reader.CreateParser(
+                new CreateParserParams(positionToContinueAsync, null, parserFlags, direction));
+            for (; ; )
             {
-                for (; ; )
-                {
-                    ctx.Cancellation.ThrowIfCancellationRequested();
-                    ctx.Preemption.ThrowIfCancellationRequested();
-                    var m = (await parser.ReadNextAndPostprocess()).Message;
-                    if (m == null)
-                        break;
-                    if (!callback(m))
-                        break;
-                }
-            });
+                ctx.Cancellation.ThrowIfCancellationRequested();
+                ctx.Preemption.ThrowIfCancellationRequested();
+                var m = (await parser.ReadNextAndPostprocess()).Message;
+                if (m == null)
+                    break;
+                if (!callback(m))
+                    break;
+            }
         }
 
         void IAsyncLogProviderCommandHandler.Complete(Exception e)

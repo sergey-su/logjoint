@@ -271,12 +271,12 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
                 Reader = reader,
                 Tracer = LJTraceSource.EmptyTracer
             };
-            await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams()
+            await using (var parser = await reader.CreateParser(new CreateParserParams()
             {
                 Direction = MessagesParserDirection.Forward,
                 StartPosition = cachedRange.Begin,
                 Range = cachedRange
-            }), async parser =>
+            }))
             {
                 for (; ; )
                 {
@@ -286,7 +286,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
                     else
                         ctx.Cache.Messages.Add(msg);
                 }
-            });
+            }
             await TestSyncResults(ctx, expectedSyncResults);
         }
     }

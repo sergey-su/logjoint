@@ -60,7 +60,7 @@ namespace LogJoint
             }
             catch
             {
-                await parser.Dispose();
+                await parser.DisposeAsync();
                 throw;
             }
             return parser;
@@ -110,7 +110,7 @@ namespace LogJoint
 
         #endregion
 
-        public async Task Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (disposed)
                 return;
@@ -169,7 +169,7 @@ namespace LogJoint
 
             int reversedMessagesQueued = 0;
 
-            await DisposableAsync.Using(await underlyingParserFactory(reversedParserParams), async reversedParser =>
+            await using (var reversedParser = await underlyingParserFactory(reversedParserParams))
             {
                 var tmp = new List<PostprocessedMessage>();
                 for (int i = 0; i < jitterBufferSize; ++i)
@@ -186,7 +186,7 @@ namespace LogJoint
                     positionsBuffer.Push(new MessagesPositions(tmpMsg.Message));
                     ++reversedMessagesQueued;
                 }
-            });
+            };
 
             enumerator = await ReadAddMessagesFromRangeCompleteJitterBuffer(underlyingParserFactory).GetEnumerator();
             for (int i = 0; i < jitterBufferSize; ++i)
@@ -210,7 +210,7 @@ namespace LogJoint
             {
                 CreateParserParams mainParserParams = originalParams;
                 //mainParserParams.Range = null;
-                await DisposableAsync.Using(await underlyingParserFactory(mainParserParams), async mainParser =>
+                await using (var mainParser = await underlyingParserFactory(mainParserParams))
                 {
                     for (; ; )
                     {
@@ -220,13 +220,13 @@ namespace LogJoint
                         if (!await yieldAsync.YieldAsync(msg))
                             break;
                     }
-                });
+                }
 
                 CreateParserParams jitterBufferCompletionParams = originalParams;
                 jitterBufferCompletionParams.Flags |= MessagesParserFlag.DisableMultithreading;
                 jitterBufferCompletionParams.Range = null;
                 jitterBufferCompletionParams.StartPosition = originalParams.Direction == MessagesParserDirection.Forward ? originalParams.Range.Value.End : originalParams.Range.Value.Begin;
-                await DisposableAsync.Using(await underlyingParserFactory(jitterBufferCompletionParams), async completionParser =>
+                await using (var completionParser = await underlyingParserFactory(jitterBufferCompletionParams))
                 {
                     for (int i = 0; i < jitterBufferSize; ++i)
                     {
@@ -236,7 +236,7 @@ namespace LogJoint
                         if (!await yieldAsync.YieldAsync(msg))
                             break;
                     }
-                });
+                }
             });
         }
 

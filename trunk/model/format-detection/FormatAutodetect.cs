@@ -79,9 +79,8 @@ namespace LogJoint
                             }
                             await reader.UpdateAvailableBounds(false);
                             perfOp.Milestone("bounds detected");
-                            var parser = await reader.CreateParser(new CreateParserParams(0, null,
-                                MessagesParserFlag.DisableMultithreading | MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward));
-                            try
+                            await using (var parser = await reader.CreateParser(new CreateParserParams(0, null,
+                                MessagesParserFlag.DisableMultithreading | MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward)))
                             {
                                 if ((await parser.ReadNextAndPostprocess()).Message != null)
                                 {
@@ -89,10 +88,6 @@ namespace LogJoint
                                     localCancellation.Cancel();
                                     return (fmt: new DetectedFormat(factory, ((IFileBasedLogProviderFactory)factory).CreateParams(fileName)), idx);
                                 }
-                            }
-                            finally
-                            {
-                                await parser.Dispose();
                             }
                         }
                     }

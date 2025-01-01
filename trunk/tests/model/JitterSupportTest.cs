@@ -84,9 +84,9 @@ namespace LogJoint.Tests
                 return ValueTask.FromResult(new PostprocessedMessage(m, null));
             }
 
-            public Task Dispose()
+            public ValueTask DisposeAsync()
             {
-                return Task.CompletedTask;
+                return ValueTask.CompletedTask;
             }
         };
 
@@ -98,34 +98,33 @@ namespace LogJoint.Tests
             }
             CreateParserParams validatedParams = originalParams;
             validatedParams.EnsureStartPositionIsInRange();
-            await DisposableAsync.Using(await DejitteringMessagesParser.Create(
-                p => Task.FromResult<IPositionedMessagesParser>(new ParserImpl(logContent, p)), originalParams, jitterBufferSize),
-                async jitter =>
+            await using (var jitter = await DejitteringMessagesParser.Create(
+                p => Task.FromResult<IPositionedMessagesParser>(new ParserImpl(logContent, p)), originalParams, jitterBufferSize))
+            {
+                int messageIdx;
+                int idxStep;
+                if (originalParams.Direction == MessagesParserDirection.Forward)
                 {
-                    int messageIdx;
-                    int idxStep;
-                    if (originalParams.Direction == MessagesParserDirection.Forward)
-                    {
-                        messageIdx = 0;
-                        idxStep = 1;
-                    }
-                    else
-                    {
-                        messageIdx = -1;
-                        idxStep = -1;
-                    }
-                    foreach (LogEntry expectedMessage in expectedParsedMessages)
-                    {
-                        IMessage actualMessage = (await jitter.ReadNextAndPostprocess()).Message;
-                        Assert.That(actualMessage, Is.Not.Null);
-                        Assert.That((long)expectedMessage.Time, Is.EqualTo(actualMessage.Time.ToLocalDateTime().Ticks));
-                        Assert.That(expectedMessage.Msg, Is.EqualTo(actualMessage.Text.Value));
-                        Assert.That(validatedParams.StartPosition + messageIdx, Is.EqualTo(actualMessage.Position));
-                        messageIdx += idxStep;
-                    }
-                    IMessage lastMessage = (await jitter.ReadNextAndPostprocess()).Message;
-                    Assert.That(lastMessage, Is.Null);
-                });
+                    messageIdx = 0;
+                    idxStep = 1;
+                }
+                else
+                {
+                    messageIdx = -1;
+                    idxStep = -1;
+                }
+                foreach (LogEntry expectedMessage in expectedParsedMessages)
+                {
+                    IMessage actualMessage = (await jitter.ReadNextAndPostprocess()).Message;
+                    Assert.That(actualMessage, Is.Not.Null);
+                    Assert.That((long)expectedMessage.Time, Is.EqualTo(actualMessage.Time.ToLocalDateTime().Ticks));
+                    Assert.That(expectedMessage.Msg, Is.EqualTo(actualMessage.Text.Value));
+                    Assert.That(validatedParams.StartPosition + messageIdx, Is.EqualTo(actualMessage.Position));
+                    messageIdx += idxStep;
+                }
+                IMessage lastMessage = (await jitter.ReadNextAndPostprocess()).Message;
+                Assert.That(lastMessage, Is.Null);
+            }
         }
 
         static LogEntry[] ParseTestLog(string str)

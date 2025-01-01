@@ -335,9 +335,9 @@ namespace LogJoint.Tests
                     return ValueTask.FromResult(new PostprocessedMessage(m, null));
                 }
 
-                public Task Dispose()
+                public ValueTask DisposeAsync()
                 {
-                    return Task.CompletedTask;
+                    return ValueTask.CompletedTask;
                 }
             };
         }

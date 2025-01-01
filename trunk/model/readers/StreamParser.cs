@@ -121,13 +121,13 @@ namespace LogJoint
             get { return disposed; }
         }
 
-        public virtual Task Dispose()
+        public virtual ValueTask DisposeAsync()
         {
             if (disposed)
-                return Task.CompletedTask;
+                return ValueTask.CompletedTask;
             disposed = true;
             strategy.ParserDestroyed();
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public ValueTask<PostprocessedMessage> ReadNextAndPostprocess()

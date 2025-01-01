@@ -78,7 +78,7 @@ namespace LogJoint
             return enumerator.Current;
         }
 
-        async Task IDisposableAsync.Dispose()
+        async ValueTask IAsyncDisposable.DisposeAsync()
         {
             if (enumerator != null)
                 await enumerator.Dispose();
@@ -158,7 +158,7 @@ namespace LogJoint
                 {
                     searchableRangesLength += currentSearchableRange.Length;
                     ++searchableRangesCount;
-                    await DisposableAsync.Using(await CreateParserForSearchableRange(currentSearchableRange, postprocessor), async parser =>
+                    await using (var parser = await CreateParserForSearchableRange(currentSearchableRange, postprocessor))
                     {
                         long messagesCount = 0;
                         long hitsCount = 0;
@@ -189,7 +189,7 @@ namespace LogJoint
                             hitsCount, messagesCount);
                         totalMessagesCount += messagesCount;
                         totalHitsCount += hitsCount;
-                    });
+                    }
                     return true;
                 });
                 trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);

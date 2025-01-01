@@ -152,7 +152,7 @@ namespace LogJoint.Tests
 
                 List<IMessage> msgs = new List<IMessage>();
 
-                await DisposableAsync.Using(await reader.CreateParser(new CreateParserParams(reader.BeginPosition)), async parser =>
+                await using (var parser = await reader.CreateParser(new CreateParserParams(reader.BeginPosition)))
                 {
                     for (; ; )
                     {
@@ -161,7 +161,7 @@ namespace LogJoint.Tests
                             break;
                         msgs.Add(msg);
                     }
-                });
+                }
 
                 expectation.StartVerification();
                 for (int i = 0; i < msgs.Count; ++i)

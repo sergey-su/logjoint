@@ -184,12 +184,12 @@ namespace LogJoint
         }
     };
 
-    public interface IPositionedMessagesParser : IDisposableAsync
+    public interface IPositionedMessagesParser : IAsyncDisposable
     {
         ValueTask<PostprocessedMessage> ReadNextAndPostprocess();
     };
 
-    public interface ISearchingParser : IDisposableAsync
+    public interface ISearchingParser : IAsyncDisposable
     {
         ValueTask<SearchResultMessage> GetNext();
     };
