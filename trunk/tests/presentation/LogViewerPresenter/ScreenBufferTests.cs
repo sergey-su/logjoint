@@ -62,7 +62,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
         {
             var actual = string.Join("\r\n",
                 screenBuffer.Messages.Select(m => (verifyRaw ? m.Message.RawTextAsMultilineText : m.Message.TextAsMultilineText).GetNthTextLine(m.TextLineIndex)));
-            Assert.That(actual, Is.EqualTo(StringUtils.NormalizeLinebreakes(expected.Replace("\t", ""))));
+            Assert.That(actual, Is.EqualTo(StringUtils.NormalizeLinebreakes(expected.Replace(" ", ""))));
             if (expectedTopLineScroll != null)
                 Assert.That(screenBuffer.TopLineScrollValue, Is.EqualTo(expectedTopLineScroll.Value).Within(1e-3));
         }
@@ -82,7 +82,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 var src = CreateTestSource();
 
                 IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, 3);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
 
                 await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
                 Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
@@ -101,7 +101,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 var src = CreateTestSource(messagesCount: 2);
 
                 IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, 1);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
                 await screenBuffer.MoveToStreamsBegin(cancel);
 
                 Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
@@ -120,7 +120,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 var src = CreateTestSource(messagesCount: 1, linesPerMessage: 2);
 
                 IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, 1);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
                 await screenBuffer.MoveToStreamsBegin(cancel);
 
                 Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
@@ -138,7 +138,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 var src = CreateTestSource(messagesCount: 1, linesPerMessage: 3);
 
                 IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, 2);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
                 await screenBuffer.MoveToStreamsBegin(cancel);
 
                 Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
@@ -162,7 +162,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 var src = CreateTestSource(linesPerMessage: 6);
 
                 IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, 3);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
 
                 await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
                 Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
@@ -180,7 +180,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 var src = CreateTestSource(messagesCount: 1, linesPerMessage: 11);
 
                 IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, 10);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
                 await screenBuffer.MoveToStreamsBegin(cancel);
 
                 await screenBuffer.SetTopLineScrollValue(0.5, cancel);
@@ -201,7 +201,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
                     IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, viewSize,
                         disableSingleLogPositioningOptimization: disableSingleLogPositioningOptimization);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
 
                     await screenBuffer.MoveToPosition(0, cancel);
                     Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
@@ -261,7 +261,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 var src = CreateTestSource(messagesCount: 1);
 
                 IScreenBuffer screenBuffer = new ScreenBuffer(changeNotification, bmks, 10);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
 
                 await screenBuffer.MoveToPosition(0, cancel);
                 Assert.That(screenBuffer.BufferPosition, Is.EqualTo(0).Within(1e-3));
@@ -287,7 +287,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 20);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 5.3);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                 }
 
 
@@ -313,11 +313,11 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToStreamsBegin(cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						1-ln_0
-						2-ln_0
-						3-ln_0
-						4-ln_0
-						5-ln_0", 0);
+                        1-ln_0
+                        2-ln_0
+                        3-ln_0
+                        4-ln_0
+                        5-ln_0", 0);
                 }
 
                 [Test]
@@ -326,11 +326,11 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToStreamsEnd(cancel);
                     VerifyMessages(screenBuffer,
                         @"14-ln_0
-						15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0
-						19-ln_0", 0.7);
+                        15-ln_0
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0
+                        19-ln_0", 0.7);
                 }
 
                 [Test]
@@ -339,18 +339,18 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 0), BookmarkLookupMode.ExactMatch, cancel);
                     VerifyMessages(screenBuffer,
                         @"9-ln_0
-						10-ln_0
-						11-ln_0
-						12-ln_0
-						13-ln_0
-						14-ln_0", 0);
+                        10-ln_0
+                        11-ln_0
+                        12-ln_0
+                        13-ln_0
+                        14-ln_0", 0);
                 }
 
                 [Test]
                 public async Task CanBeDeletedAfterLoading()
                 {
                     await screenBuffer.MoveToStreamsEnd(cancel);
-                    await screenBuffer.SetSources(Array.Empty<IMessagesSource>(), cancel);
+                    await screenBuffer.SetSources([], cancel);
                     VerifyIsEmpty(screenBuffer);
                 }
             };
@@ -367,7 +367,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     src1 = CreateTestSource(messagesCount: 18, messagesPrefix: "a:");
                     src2 = CreateTestSource(messagesCount: 15, timestampShiftMillis: 50, messagesPrefix: "b:");
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 5.3);
-                    await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
+                    await screenBuffer.SetSources([src1, src2], cancel);
                 }
 
                 [Test]
@@ -388,39 +388,39 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToStreamsEnd(cancel);
                     VerifyMessages(screenBuffer,
                         @"b:9-ln_0
-						b:10-ln_0
-						b:11-ln_0
-						b:12-ln_0
-						b:13-ln_0
-						b:14-ln_0", 0.7);
+                        b:10-ln_0
+                        b:11-ln_0
+                        b:12-ln_0
+                        b:13-ln_0
+                        b:14-ln_0", 0.7);
                 }
 
                 [Test]
                 public async Task WhenLoadedStreamsEndAndDeletedA_MessagesShouldStayTheSame()
                 {
                     await screenBuffer.MoveToStreamsEnd(cancel);
-                    await screenBuffer.SetSources(new[] { src2 }, cancel);
+                    await screenBuffer.SetSources([src2], cancel);
                     VerifyMessages(screenBuffer,
                         @"b:9-ln_0
-						b:10-ln_0
-						b:11-ln_0
-						b:12-ln_0
-						b:13-ln_0
-						b:14-ln_0", 0.7);
+                        b:10-ln_0
+                        b:11-ln_0
+                        b:12-ln_0
+                        b:13-ln_0
+                        b:14-ln_0", 0.7);
                 }
 
                 [Test]
                 public async Task WhenLoadedStreamsEndAndDeletedB_ShouldLoadMessagesFromA()
                 {
                     await screenBuffer.MoveToStreamsEnd(cancel);
-                    await screenBuffer.SetSources(new[] { src1 }, cancel);
+                    await screenBuffer.SetSources([src1], cancel);
                     VerifyMessages(screenBuffer,
                         @"a:12-ln_0
-						a:13-ln_0
-						a:14-ln_0
-						a:15-ln_0
-						a:16-ln_0
-						a:17-ln_0", 0.7);
+                        a:13-ln_0
+                        a:14-ln_0
+                        a:15-ln_0
+                        a:16-ln_0
+                        a:17-ln_0", 0.7);
                 }
             }
 
@@ -436,7 +436,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     src1 = CreateTestSource(messagesCount: 20, messagesPrefix: "a:");
                     src2 = CreateTestSource(messagesCount: 18, timestampShiftMillis: 7, messagesPrefix: "b:");
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 6.3);
-                    await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
+                    await screenBuffer.SetSources([src1, src2], cancel);
                 }
 
                 [Test]
@@ -457,42 +457,42 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToStreamsEnd(cancel);
                     VerifyMessages(screenBuffer,
                         @"a:19-ln_0
-						b:12-ln_0
-						b:13-ln_0
-						b:14-ln_0
-						b:15-ln_0
-						b:16-ln_0
-						b:17-ln_0", 0.7);
+                        b:12-ln_0
+                        b:13-ln_0
+                        b:14-ln_0
+                        b:15-ln_0
+                        b:16-ln_0
+                        b:17-ln_0", 0.7);
                 }
 
                 [Test]
                 public async Task LoadStreamsEndAndDeleteA()
                 {
                     await screenBuffer.MoveToStreamsEnd(cancel);
-                    await screenBuffer.SetSources(new[] { src2 }, cancel);
+                    await screenBuffer.SetSources([src2], cancel);
                     VerifyMessages(screenBuffer,
                         @"b:11-ln_0
-						b:12-ln_0
-						b:13-ln_0
-						b:14-ln_0
-						b:15-ln_0
-						b:16-ln_0
-						b:17-ln_0", 0.7);
+                        b:12-ln_0
+                        b:13-ln_0
+                        b:14-ln_0
+                        b:15-ln_0
+                        b:16-ln_0
+                        b:17-ln_0", 0.7);
                 }
 
                 [Test]
                 public async Task LoadStreamsEndAndDeleteB()
                 {
                     await screenBuffer.MoveToStreamsEnd(cancel);
-                    await screenBuffer.SetSources(new[] { src1 }, cancel);
+                    await screenBuffer.SetSources([src1], cancel);
                     VerifyMessages(screenBuffer,
                         @"a:13-ln_0
-						a:14-ln_0
-						a:15-ln_0
-						a:16-ln_0
-						a:17-ln_0
-						a:18-ln_0
-						a:19-ln_0", 0.7);
+                        a:14-ln_0
+                        a:15-ln_0
+                        a:16-ln_0
+                        a:17-ln_0
+                        a:18-ln_0
+                        a:19-ln_0", 0.7);
                 }
             }
         }
@@ -511,7 +511,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 2, linesPerMessage: 6);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 6.8);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                 }
 
                 [Test]
@@ -520,12 +520,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToStreamsEnd(cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_5
-						1-ln_0
-						1-ln_1
-						1-ln_2
-						1-ln_3
-						1-ln_4
-						1-ln_5", 0.2);
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2
+                        1-ln_3
+                        1-ln_4
+                        1-ln_5", 0.2);
                 }
 
                 [Test]
@@ -535,13 +535,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(7.6, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_4
-						0-ln_5
-						1-ln_0
-						1-ln_1
-						1-ln_2
-						1-ln_3
-						1-ln_4
-						1-ln_5", 0.4);
+                        0-ln_5
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2
+                        1-ln_3
+                        1-ln_4
+                        1-ln_5", 0.4);
                 }
 
                 [Test]
@@ -550,12 +550,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 2), BookmarkLookupMode.ExactMatch, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_2
-						0-ln_3
-						0-ln_4
-						0-ln_5
-						1-ln_0
-						1-ln_1
-						1-ln_2", 0);
+                        0-ln_3
+                        0-ln_4
+                        0-ln_5
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2", 0);
                 }
 
                 [Test]
@@ -565,13 +565,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(7.6, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_2
-						0-ln_3
-						0-ln_4
-						0-ln_5
-						1-ln_0
-						1-ln_1
-						1-ln_2
-						1-ln_3", 0);
+                        0-ln_3
+                        0-ln_4
+                        0-ln_5
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2
+                        1-ln_3", 0);
                 }
 
                 [Test]
@@ -581,14 +581,14 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(8.6, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_3
-						0-ln_4
-						0-ln_5
-						1-ln_0
-						1-ln_1
-						1-ln_2
-						1-ln_3
-						1-ln_4
-						1-ln_5", 0.4);
+                        0-ln_4
+                        0-ln_5
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2
+                        1-ln_3
+                        1-ln_4
+                        1-ln_5", 0.4);
                 }
 
                 [Test]
@@ -598,10 +598,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(4.6, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_2
-						0-ln_3
-						0-ln_4
-						0-ln_5
-						1-ln_0", 0);
+                        0-ln_3
+                        0-ln_4
+                        0-ln_5
+                        1-ln_0", 0);
                 }
 
                 [Test]
@@ -611,17 +611,17 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(15, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						0-ln_1
-						0-ln_2
-						0-ln_3
-						0-ln_4
-						0-ln_5
-						1-ln_0
-						1-ln_1
-						1-ln_2
-						1-ln_3
-						1-ln_4
-						1-ln_5", 0);
+                        0-ln_1
+                        0-ln_2
+                        0-ln_3
+                        0-ln_4
+                        0-ln_5
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2
+                        1-ln_3
+                        1-ln_4
+                        1-ln_5", 0);
                 }
 
                 [Test]
@@ -631,11 +631,11 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(5.1, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_5
-						1-ln_0
-						1-ln_1
-						1-ln_2
-						1-ln_3
-						1-ln_4", 0.2);
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2
+                        1-ln_3
+                        1-ln_4", 0.2);
                 }
 
                 [Test]
@@ -646,7 +646,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(2, cancel);
                     VerifyMessages(screenBuffer,
                         @"1-ln_4
-						1-ln_5", 0.0);
+                        1-ln_5", 0.0);
                 }
 
             }
@@ -662,7 +662,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 7);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 9.2);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                     await screenBuffer.MoveToStreamsEnd(cancel);
                 }
 
@@ -671,12 +671,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						1-ln_0
-						2-ln_0
-						3-ln_0
-						4-ln_0
-						5-ln_0
-						6-ln_0", 0);
+                        1-ln_0
+                        2-ln_0
+                        3-ln_0
+                        4-ln_0
+                        5-ln_0
+                        6-ln_0", 0);
                 }
 
 
@@ -686,12 +686,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(11.9, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						1-ln_0
-						2-ln_0
-						3-ln_0
-						4-ln_0
-						5-ln_0
-						6-ln_0", 0);
+                        1-ln_0
+                        2-ln_0
+                        3-ln_0
+                        4-ln_0
+                        5-ln_0
+                        6-ln_0", 0);
                 }
 
                 [Test]
@@ -700,10 +700,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(4.4, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						1-ln_0
-						2-ln_0
-						3-ln_0
-						4-ln_0", 0);
+                        1-ln_0
+                        2-ln_0
+                        3-ln_0
+                        4-ln_0", 0);
                 }
 
                 [Test]
@@ -713,12 +713,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(10, cancel);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						1-ln_0
-						2-ln_0
-						3-ln_0
-						4-ln_0
-						5-ln_0
-						6-ln_0", 0);
+                        1-ln_0
+                        2-ln_0
+                        3-ln_0
+                        4-ln_0
+                        5-ln_0
+                        6-ln_0", 0);
                 }
             }
 
@@ -733,7 +733,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 20);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 4.6);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                     await screenBuffer.MoveToStreamsEnd(cancel);
                 }
 
@@ -742,10 +742,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     VerifyMessages(screenBuffer,
                         @"15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0
-						19-ln_0", 0.4);
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0
+                        19-ln_0", 0.4);
                 }
 
                 [Test]
@@ -754,13 +754,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(7.6, cancel);
                     VerifyMessages(screenBuffer,
                         @"12-ln_0
-						13-ln_0
-						14-ln_0
-						15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0
-						19-ln_0", 0.4);
+                        13-ln_0
+                        14-ln_0
+                        15-ln_0
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0
+                        19-ln_0", 0.4);
                 }
 
                 [Test]
@@ -769,14 +769,14 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(9, cancel);
                     VerifyMessages(screenBuffer,
                         @"11-ln_0
-						12-ln_0
-						13-ln_0
-						14-ln_0
-						15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0
-						19-ln_0", 0);
+                        12-ln_0
+                        13-ln_0
+                        14-ln_0
+                        15-ln_0
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0
+                        19-ln_0", 0);
                 }
 
                 [Test]
@@ -785,9 +785,9 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.SetViewSize(3.2, cancel);
                     VerifyMessages(screenBuffer,
                         @"15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0", 0.4);
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0", 0.4);
                 }
 
                 [Test]
@@ -795,7 +795,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 20);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 0);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
 
                     await screenBuffer.MoveToBookmark(
                         bmks.CreateBookmark(src.messages.Items[5], 0), BookmarkLookupMode.ExactMatch, cancel);
@@ -821,7 +821,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 10, linesPerMessage: 3);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 4.4);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                 }
 
                 [Test]
@@ -830,10 +830,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[2], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"2-ln_2
-						3-ln_0
-						3-ln_1
-						3-ln_2
-						4-ln_0", 0);
+                        3-ln_0
+                        3-ln_1
+                        3-ln_2
+                        4-ln_0", 0);
                 }
 
                 [Test]
@@ -842,10 +842,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[2], 2), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"2-ln_0
-						2-ln_1
-						2-ln_2
-						3-ln_0
-						3-ln_1", 0.3);
+                        2-ln_1
+                        2-ln_2
+                        3-ln_0
+                        3-ln_1", 0.3);
                 }
 
                 [Test]
@@ -854,10 +854,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[8], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"8-ln_1
-						8-ln_2
-						9-ln_0
-						9-ln_1
-						9-ln_2", 0.6);
+                        8-ln_2
+                        9-ln_0
+                        9-ln_1
+                        9-ln_2", 0.6);
                 }
 
                 [Test]
@@ -866,10 +866,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 1), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"8-ln_1
-						8-ln_2
-						9-ln_0
-						9-ln_1
-						9-ln_2", 0.6);
+                        8-ln_2
+                        9-ln_0
+                        9-ln_1
+                        9-ln_2", 0.6);
                 }
 
                 [Test]
@@ -877,16 +877,16 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 2, linesPerMessage: 3);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 8.2);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
 
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						0-ln_1
-						0-ln_2
-						1-ln_0
-						1-ln_1
-						1-ln_2", 0);
+                        0-ln_1
+                        0-ln_2
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2", 0);
                 }
 
                 [Test]
@@ -894,16 +894,16 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 2, linesPerMessage: 3);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 8.2);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
 
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 2), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						0-ln_1
-						0-ln_2
-						1-ln_0
-						1-ln_1
-						1-ln_2", 0);
+                        0-ln_1
+                        0-ln_2
+                        1-ln_0
+                        1-ln_1
+                        1-ln_2", 0);
                 }
 
                 [Test]
@@ -917,10 +917,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     // must stay in old state
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						0-ln_1
-						0-ln_2
-						1-ln_0
-						1-ln_1", 0);
+                        0-ln_1
+                        0-ln_2
+                        1-ln_0
+                        1-ln_1", 0);
                 }
 
                 [Test]
@@ -934,10 +934,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     // must stay in old state
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						0-ln_1
-						0-ln_2
-						1-ln_0
-						1-ln_1", 0);
+                        0-ln_1
+                        0-ln_2
+                        1-ln_0
+                        1-ln_1", 0);
                 }
 
                 [Test]
@@ -949,10 +949,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     ), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"3-ln_0
-						3-ln_1
-						3-ln_2
-						4-ln_0
-						4-ln_1", 0);
+                        3-ln_1
+                        3-ln_2
+                        4-ln_0
+                        4-ln_1", 0);
                 }
 
                 [Test]
@@ -964,10 +964,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     ), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						0-ln_1
-						0-ln_2
-						1-ln_0
-						1-ln_1", 0);
+                        0-ln_1
+                        0-ln_2
+                        1-ln_0
+                        1-ln_1", 0);
                 }
 
                 [Test]
@@ -979,10 +979,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     ), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"8-ln_1
-						8-ln_2
-						9-ln_0
-						9-ln_1
-						9-ln_2", 0.6);
+                        8-ln_2
+                        9-ln_0
+                        9-ln_1
+                        9-ln_2", 0.6);
                 }
 
             };
@@ -999,7 +999,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     src1 = CreateTestSource(messagesCount: 10, linesPerMessage: 3, messagesPrefix: "a");
                     src2 = CreateTestSource(messagesCount: 10, linesPerMessage: 2, messagesPrefix: "b");
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 4.4);
-                    await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
+                    await screenBuffer.SetSources([src1, src2], cancel);
                 }
 
                 [Test]
@@ -1008,10 +1008,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src1.messages.Items[2], 2), BookmarkLookupMode.ExactMatch, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"a2-ln_2
-						b2-ln_0
-						b2-ln_1
-						a3-ln_0
-						a3-ln_1", 0);
+                        b2-ln_0
+                        b2-ln_1
+                        a3-ln_0
+                        a3-ln_1", 0);
                 }
 
                 [Test]
@@ -1020,10 +1020,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src2.messages.Items[2], 1), BookmarkLookupMode.ExactMatch, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"b2-ln_1
-						a3-ln_0
-						a3-ln_1
-						a3-ln_2
-						b3-ln_0", 0);
+                        a3-ln_0
+                        a3-ln_1
+                        a3-ln_2
+                        b3-ln_0", 0);
                 }
 
                 [Test]
@@ -1032,10 +1032,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src2.messages.Items[2], 1), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel), Is.True);
                     VerifyMessages(screenBuffer,
                         @"a2-ln_2
-						b2-ln_0
-						b2-ln_1
-						a3-ln_0
-						a3-ln_1", 0.3);
+                        b2-ln_0
+                        b2-ln_1
+                        a3-ln_0
+                        a3-ln_1", 0.3);
                 }
 
                 [Test]
@@ -1046,11 +1046,11 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                         new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(0.5)), nearestMsg.GetConnectionId(), nearestMsg.Position + 5, 0
                     ), BookmarkLookupMode.FindNearestMessage, cancel), Is.True);
                     VerifyMessages(screenBuffer,
-                        @"b3-ln_0
-						b3-ln_1
-						a4-ln_0
-						a4-ln_1
-						a4-ln_2", 0);
+                        @"a3-ln_0
+                        a3-ln_1
+                        a3-ln_2
+                        b3-ln_0
+                        b3-ln_1", 0);
                 }
 
                 [Test]
@@ -1059,21 +1059,21 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     src1 = CreateTestSource(messagesCount: 20, linesPerMessage: 1, messagesPrefix: "a", messagesPerTimestamp: 10);
                     src2 = CreateTestSource(messagesCount: 20, linesPerMessage: 1, messagesPrefix: "b", messagesPerTimestamp: 10);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 3);
-                    await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
+                    await screenBuffer.SetSources([src1, src2], cancel);
 
                     await screenBuffer.MoveToBookmark(
                         bmks.CreateBookmark(src1.messages.Items[5], 0), BookmarkLookupMode.ExactMatch, cancel);
                     VerifyMessages(screenBuffer,
                         @"a5-ln_0
-						a6-ln_0
-						a7-ln_0", 0);
+                        a6-ln_0
+                        a7-ln_0", 0);
 
                     await screenBuffer.MoveToBookmark(
                         bmks.CreateBookmark(src2.messages.Items[0], 0), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel);
                     VerifyMessages(screenBuffer,
                         @"a9-ln_0
-						b0-ln_0
-						b1-ln_0", 0);
+                        b0-ln_0
+                        b1-ln_0", 0);
                 }
             }
         }
@@ -1093,16 +1093,16 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 20);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 6.8);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                     await screenBuffer.MoveToStreamsEnd(cancel);
                     VerifyMessages(screenBuffer,
                         @"13-ln_0
-						14-ln_0
-						15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0
-						19-ln_0", 0.2);
+                        14-ln_0
+                        15-ln_0
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0
+                        19-ln_0", 0.2);
                 }
 
                 [Test]
@@ -1111,12 +1111,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.ShiftBy(7, cancel), Is.EqualTo(0d).Within(1e-3));
                     VerifyMessages(screenBuffer,
                         @"13-ln_0
-						14-ln_0
-						15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0
-						19-ln_0", 0.2);
+                        14-ln_0
+                        15-ln_0
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0
+                        19-ln_0", 0.2);
                 }
 
                 [Test]
@@ -1126,12 +1126,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.ShiftBy(-2, cancel), Is.EqualTo(0d).Within(1e-3));
                     VerifyMessages(screenBuffer,
                         @"0-ln_0
-						1-ln_0
-						2-ln_0
-						3-ln_0
-						4-ln_0
-						5-ln_0
-						6-ln_0", 0);
+                        1-ln_0
+                        2-ln_0
+                        3-ln_0
+                        4-ln_0
+                        5-ln_0
+                        6-ln_0", 0);
                 }
 
                 [Test]
@@ -1140,13 +1140,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.ShiftBy(-4.4, cancel), Is.EqualTo(-4.4).Within(1e-3));
                     VerifyMessages(screenBuffer,
                         @"8-ln_0
-						9-ln_0
-						10-ln_0
-						11-ln_0
-						12-ln_0
-						13-ln_0
-						14-ln_0
-						15-ln_0", 0.8);
+                        9-ln_0
+                        10-ln_0
+                        11-ln_0
+                        12-ln_0
+                        13-ln_0
+                        14-ln_0
+                        15-ln_0", 0.8);
                 }
 
                 [Test]
@@ -1155,13 +1155,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.ShiftBy(-0.4, cancel), Is.EqualTo(-0.4).Within(1e-3));
                     VerifyMessages(screenBuffer,
                         @"12-ln_0
-						13-ln_0
-						14-ln_0
-						15-ln_0
-						16-ln_0
-						17-ln_0
-						18-ln_0
-						19-ln_0", 0.8);
+                        13-ln_0
+                        14-ln_0
+                        15-ln_0
+                        16-ln_0
+                        17-ln_0
+                        18-ln_0
+                        19-ln_0", 0.8);
                 }
             }
 
@@ -1177,16 +1177,16 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 5, linesPerMessage: 10);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 6.8);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                     await screenBuffer.MoveToStreamsEnd(cancel);
                     VerifyMessages(screenBuffer,
                         @"4-ln_3
-						4-ln_4
-						4-ln_5
-						4-ln_6
-						4-ln_7
-						4-ln_8
-						4-ln_9", 0.2);
+                        4-ln_4
+                        4-ln_5
+                        4-ln_6
+                        4-ln_7
+                        4-ln_8
+                        4-ln_9", 0.2);
                 }
 
                 [Test]
@@ -1195,12 +1195,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.ShiftBy(-4.1, cancel), Is.EqualTo(-4.1).Within(1e-3));
                     VerifyMessages(screenBuffer,
                         @"3-ln_9
-						4-ln_0
-						4-ln_1
-						4-ln_2
-						4-ln_3
-						4-ln_4
-						4-ln_5", 0.1);
+                        4-ln_0
+                        4-ln_1
+                        4-ln_2
+                        4-ln_3
+                        4-ln_4
+                        4-ln_5", 0.1);
                 }
 
                 [Test]
@@ -1209,12 +1209,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     Assert.That(await screenBuffer.ShiftBy(-10.1, cancel), Is.EqualTo(-10.1).Within(1e-3));
                     VerifyMessages(screenBuffer,
                         @"3-ln_3
-						3-ln_4
-						3-ln_5
-						3-ln_6
-						3-ln_7
-						3-ln_8
-						3-ln_9", 0.1);
+                        3-ln_4
+                        3-ln_5
+                        3-ln_6
+                        3-ln_7
+                        3-ln_8
+                        3-ln_9", 0.1);
                 }
             }
         }
@@ -1233,7 +1233,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 {
                     src = CreateTestSource(messagesCount: 10, linesPerMessage: 5);
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 5.6);
-                    await screenBuffer.SetSources(new[] { src }, cancel);
+                    await screenBuffer.SetSources([src], cancel);
                 }
 
                 [Test]
@@ -1242,12 +1242,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToTimestamp(src.messages.Items[2].Time.ToLocalDateTime().AddMilliseconds(0.7), cancel);
                     VerifyMessages(screenBuffer,
                         @"2-ln_2
-						2-ln_3
-						2-ln_4
-						3-ln_0
-						3-ln_1
-						3-ln_2
-						3-ln_3", 0.7);
+                        2-ln_3
+                        2-ln_4
+                        3-ln_0
+                        3-ln_1
+                        3-ln_2
+                        3-ln_3", 0.7);
                 }
 
                 [Test]
@@ -1256,12 +1256,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToTimestamp(src.messages.Items[2].Time.ToLocalDateTime().AddMilliseconds(0.2), cancel);
                     VerifyMessages(screenBuffer,
                         @"1-ln_2
-						1-ln_3
-						1-ln_4
-						2-ln_0
-						2-ln_1
-						2-ln_2
-						2-ln_3", 0.7);
+                        1-ln_3
+                        1-ln_4
+                        2-ln_0
+                        2-ln_1
+                        2-ln_2
+                        2-ln_3", 0.7);
                 }
             }
 
@@ -1278,7 +1278,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     src1 = CreateTestSource(messagesCount: 5, linesPerMessage: 2, messagesPrefix: "a");
                     src2 = CreateTestSource(messagesCount: 5, linesPerMessage: 2, messagesPrefix: "b");
                     screenBuffer = new ScreenBuffer(changeNotification, bmks, 5.3);
-                    await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
+                    await screenBuffer.SetSources([src1, src2], cancel);
                 }
 
                 [Test]
@@ -1287,12 +1287,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToTimestamp(src1.messages.Items[2].Time.ToLocalDateTime().AddMilliseconds(0.7), cancel);
                     VerifyMessages(screenBuffer,
                         @"a2-ln_1
-						b2-ln_0
-						b2-ln_1
-						a3-ln_0
-						a3-ln_1
-						b3-ln_0
-						b3-ln_1", 0.85);
+                        b2-ln_0
+                        b2-ln_1
+                        a3-ln_0
+                        a3-ln_1
+                        b3-ln_0
+                        b3-ln_1", 0.85);
                 }
 
                 [Test]
@@ -1301,12 +1301,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToTimestamp(src1.messages.Items[4].Time.ToLocalDateTime().AddMilliseconds(-0.1), cancel);
                     VerifyMessages(screenBuffer,
                         @"a3-ln_1
-						b3-ln_0
-						b3-ln_1
-						a4-ln_0
-						a4-ln_1
-						b4-ln_0
-						b4-ln_1", 0.85);
+                        b3-ln_0
+                        b3-ln_1
+                        a4-ln_0
+                        a4-ln_1
+                        b4-ln_0
+                        b4-ln_1", 0.85);
                 }
 
                 [Test]
@@ -1315,12 +1315,12 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                     await screenBuffer.MoveToTimestamp(src1.messages.Items[0].Time.ToLocalDateTime().AddMilliseconds(-0.7), cancel);
                     VerifyMessages(screenBuffer,
                         @"a0-ln_0
-						a0-ln_1
-						b0-ln_0
-						b0-ln_1
-						a1-ln_0
-						a1-ln_1
-						b1-ln_0", 0);
+                        a0-ln_1
+                        b0-ln_0
+                        b0-ln_1
+                        a1-ln_0
+                        a1-ln_1
+                        b1-ln_0", 0);
                 }
             }
         }
@@ -1336,7 +1336,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
             {
                 src = CreateTestSource(messagesCount: 10, linesPerMessage: 2, rawLinesPerMessage: 3);
                 screenBuffer = new ScreenBuffer(changeNotification, bmks, 3.3);
-                await screenBuffer.SetSources(new[] { src }, cancel);
+                await screenBuffer.SetSources([src], cancel);
                 await screenBuffer.MoveToStreamsBegin(cancel);
             }
 
@@ -1346,23 +1346,23 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 await screenBuffer.ShiftBy(1.1, cancel);
                 VerifyMessages(screenBuffer,
                     @"0-ln_1
-					1-ln_0
-					1-ln_1
-					2-ln_0", 0.1);
+                    1-ln_0
+                    1-ln_1
+                    2-ln_0", 0.1);
 
                 await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, null, cancel);
                 VerifyMessages(screenBuffer,
                     @"0-rln_1
-					0-rln_2
-					1-rln_0
-					1-rln_1", 0.1, verifyRaw: true);
+                    0-rln_2
+                    1-rln_0
+                    1-rln_1", 0.1, verifyRaw: true);
 
                 await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, null, cancel);
                 VerifyMessages(screenBuffer,
                     @"0-ln_1
-					1-ln_0
-					1-ln_1
-					2-ln_0", 0.1);
+                    1-ln_0
+                    1-ln_1
+                    2-ln_0", 0.1);
             }
 
             [Test]
@@ -1371,24 +1371,24 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 await screenBuffer.MoveToStreamsEnd(cancel);
                 VerifyMessages(screenBuffer,
                     @"8-ln_0
-					8-ln_1
-					9-ln_0
-					9-ln_1", 0.7);
+                    8-ln_1
+                    9-ln_0
+                    9-ln_1", 0.7);
 
                 await screenBuffer.SetDisplayTextGetter(MessageTextGetters.RawTextGetter, null, cancel);
                 VerifyMessages(screenBuffer,
                     @"8-rln_0
-					8-rln_1
-					8-rln_2
-					9-rln_0", 0.7, verifyRaw: true);
+                    8-rln_1
+                    8-rln_2
+                    9-rln_0", 0.7, verifyRaw: true);
 
                 await screenBuffer.MoveToStreamsEnd(cancel);
                 await screenBuffer.SetDisplayTextGetter(MessageTextGetters.SummaryTextGetter, null, cancel);
                 VerifyMessages(screenBuffer,
                     @"8-ln_0
-					8-ln_1
-					9-ln_0
-					9-ln_1", 0.7);
+                    8-ln_1
+                    9-ln_0
+                    9-ln_1", 0.7);
             }
         }
     }
