@@ -1,5 +1,4 @@
-﻿using LogJoint.Postprocessing;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -32,11 +31,11 @@ namespace LogJoint
     /// there might be little defects where several messages have incorrect order. Bad order 
     /// may be a result of bad logic in multithreded log writer. Well known example of a log
     /// having 'partially-sorted-log' problem is Windows Event Log.
-    /// DejitteringMessagesParser is a transparent wrapper for the underlying IAsyncEnumerable<PostprocessedMessage>.
-    /// Logically DejitteringMessagesParser implements the following idea: when client reads Nth message 
+    /// StreamReordering is a transparent wrapper for the underlying IAsyncEnumerable<PostprocessedMessage>.
+    /// Logically StreamReordering implements the following idea: when client reads Nth message 
     /// a range of messages is actually read (N - jitterBufferSize/2, N + jitterBufferSize/2). 
     /// This range is sorded by time and the message in the middle of the range is 
-    /// returned as Nth message. DejitteringMessagesParser is optimized for sequential reading.
+    /// returned as Nth message. StreamReordering is optimized for sequential reading.
     /// </summary>
     public class StreamReordering : IAsyncDisposable
     {
@@ -107,7 +106,7 @@ namespace LogJoint
             if (disposed)
                 return;
             disposed = true;
-            await enumerator.Dispose();
+            await enumerator.DisposeAsync();
         }
 
         class Comparer : IComparer<Entry>
@@ -179,7 +178,7 @@ namespace LogJoint
                 }
             };
 
-            enumerator = await ReadAddMessagesFromRangeCompleteJitterBuffer(underlyingParserFactory).GetEnumerator();
+            enumerator = ReadAddMessagesFromRangeCompleteJitterBuffer(underlyingParserFactory).GetAsyncEnumerator();
             for (int i = 0; i < jitterBufferSize; ++i)
             {
                 var tmp = await LoadNextMessage();
@@ -194,34 +193,29 @@ namespace LogJoint
             }
         }
 
-        IEnumerableAsync<PostprocessedMessage> ReadAddMessagesFromRangeCompleteJitterBuffer(
+        async IAsyncEnumerable<PostprocessedMessage> ReadAddMessagesFromRangeCompleteJitterBuffer(
             Func<ReadMessagesParams, IAsyncEnumerable<PostprocessedMessage>> underlyingParserFactory)
         {
-            return EnumerableAsync.Produce<PostprocessedMessage>(async yieldAsync =>
+            ReadMessagesParams mainParserParams = originalParams;
+            //mainParserParams.Range = null;
+            await foreach (PostprocessedMessage msg in underlyingParserFactory(mainParserParams))
             {
-                ReadMessagesParams mainParserParams = originalParams;
-                //mainParserParams.Range = null;
-                await foreach (PostprocessedMessage msg in underlyingParserFactory(mainParserParams))
-                {
-                    if (!await yieldAsync.YieldAsync(msg))
-                        break;
-                }
+                yield return msg;
+            }
 
-                ReadMessagesParams jitterBufferCompletionParams = originalParams;
-                jitterBufferCompletionParams.Flags |= ReadMessagesFlag.DisableMultithreading;
-                jitterBufferCompletionParams.Range = null;
-                jitterBufferCompletionParams.StartPosition = originalParams.Direction == ReadMessagesDirection.Forward ? originalParams.Range.Value.End : originalParams.Range.Value.Begin;
-                await using (var completionParser = underlyingParserFactory(jitterBufferCompletionParams).GetAsyncEnumerator())
+            ReadMessagesParams jitterBufferCompletionParams = originalParams;
+            jitterBufferCompletionParams.Flags |= ReadMessagesFlag.DisableMultithreading;
+            jitterBufferCompletionParams.Range = null;
+            jitterBufferCompletionParams.StartPosition = originalParams.Direction == ReadMessagesDirection.Forward ? originalParams.Range.Value.End : originalParams.Range.Value.Begin;
+            await using (var completionParser = underlyingParserFactory(jitterBufferCompletionParams).GetAsyncEnumerator())
+            {
+                for (int i = 0; i < jitterBufferSize; ++i)
                 {
-                    for (int i = 0; i < jitterBufferSize; ++i)
-                    {
-                        if (!await completionParser.MoveNextAsync())
-                            break;
-                        if (!await yieldAsync.YieldAsync(completionParser.Current))
-                            break;
-                    }
+                    if (!await completionParser.MoveNextAsync())
+                        break;
+                    yield return completionParser.Current;
                 }
-            });
+            }
         }
 
         struct LoadNextMessageResult
@@ -235,7 +229,7 @@ namespace LogJoint
             LoadNextMessageResult ret = new LoadNextMessageResult();
             if (eofReached)
                 return ret;
-            if (!await enumerator.MoveNext())
+            if (!await enumerator.MoveNextAsync())
             {
                 eofReached = true;
             }
@@ -276,7 +270,7 @@ namespace LogJoint
         readonly VCSKicksCollection.PriorityQueue<Entry> jitterBuffer;
         readonly Generic.CircularBuffer<MessagesPositions> positionsBuffer;
         readonly int jitterBufferSize;
-        IEnumeratorAsync<PostprocessedMessage> enumerator;
+        IAsyncEnumerator<PostprocessedMessage> enumerator;
         long currentIndex;
         bool eofReached;
         bool disposed;
