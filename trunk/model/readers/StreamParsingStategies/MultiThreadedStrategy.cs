@@ -7,7 +7,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace LogJoint.StreamParsingStrategies
+namespace LogJoint.StreamReadingStrategies
 {
     public abstract class MultiThreadedStrategy<UserThreadLocalData> : BaseStrategy
     {
@@ -46,7 +46,7 @@ namespace LogJoint.StreamParsingStrategies
             return new ValueTask<PostprocessedMessage>(enumer.Current);
         }
 
-        public override Task ParserCreated(CreateParserParams p)
+        public override Task ParserCreated(ReadMessagesParams p)
         {
             tracer.Info("Parser created");
             attachedToParser = true;
@@ -187,7 +187,7 @@ namespace LogJoint.StreamParsingStrategies
 
             public IEnumerable<PieceOfWork> ReadRawDataFromMedia(CancellationToken cancellationToken)
             {
-                if (owner.currentParams.Direction == MessagesParserDirection.Forward)
+                if (owner.currentParams.Direction == ReadMessagesDirection.Forward)
                     return ReadRawDataFromMedia_Forward(cancellationToken);
                 else
                     return ReadRawDataFromMedia_Backward(cancellationToken);
@@ -196,7 +196,7 @@ namespace LogJoint.StreamParsingStrategies
             IEnumerable<PieceOfWork> ReadRawDataFromMedia_Backward(CancellationToken cancellationToken)
             {
                 Stream stream = owner.media.DataStream;
-                CreateParserParams parserParams = owner.currentParams;
+                ReadMessagesParams parserParams = owner.currentParams;
                 FileRange.Range range = parserParams.Range.Value;
                 TextStreamPosition startPosition = new TextStreamPosition(parserParams.StartPosition, owner.textStreamPositioningParams);
 
@@ -250,7 +250,7 @@ namespace LogJoint.StreamParsingStrategies
             IEnumerable<PieceOfWork> ReadRawDataFromMedia_Forward(CancellationToken cancellationToken)
             {
                 Stream stream = owner.media.DataStream;
-                CreateParserParams parserParams = owner.currentParams;
+                ReadMessagesParams parserParams = owner.currentParams;
                 FileRange.Range range = parserParams.Range.Value;
                 TextStreamPosition startPosition = new TextStreamPosition(parserParams.StartPosition, owner.textStreamPositioningParams);
 
@@ -400,7 +400,7 @@ namespace LogJoint.StreamParsingStrategies
                     cancellationToken.ThrowIfCancellationRequested();
                     if (!tls.splitter.GetCurrentMessageAndMoveToNextOne(tls.capture).Result) // Result - see comment above for Wait()
                         break;
-                    bool stopPositionReached = direction == MessagesParserDirection.Forward ?
+                    bool stopPositionReached = direction == ReadMessagesDirection.Forward ?
                         tls.capture.BeginPosition >= pieceOfWork.stopTextPosition : tls.capture.EndPosition <= pieceOfWork.stopTextPosition;
                     if (stopPositionReached)
                         break;
@@ -452,7 +452,7 @@ namespace LogJoint.StreamParsingStrategies
                     // Here is tricky: returning bytes buffer of the piece of work that was handled previously.
                     // Bytes buffer of current piece (currentPieceOfWork.streamData) can still be used
                     // by a thread processing the piece following the current one.
-                    if (currentParams.Direction == MessagesParserDirection.Forward)
+                    if (currentParams.Direction == ReadMessagesDirection.Forward)
                         SafeReturnStreamDataToThePool(currentPieceOfWork.prevStreamData);
                     else
                         SafeReturnStreamDataToThePool(currentPieceOfWork.nextStreamData);
@@ -514,7 +514,7 @@ namespace LogJoint.StreamParsingStrategies
 
         ISequentialMediaReaderAndProcessorMock mockedReaderAndProcessor;
         IEnumerator<PostprocessedMessage> enumer;
-        CreateParserParams currentParams;
+        ReadMessagesParams currentParams;
         int nextPieceOfWorkId;
         int lastThreadLocalStateId;
         int peicesOfWorkBeingProgressed;

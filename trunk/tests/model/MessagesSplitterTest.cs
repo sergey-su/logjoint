@@ -34,7 +34,7 @@ namespace LogJoint.Tests
             // 0      7  10         21 24  28 - char idx
             // 0      8  16         45 56  67 - positions
             it.CharIndexToPosition(7).Returns((long)8);
-            await target.BeginSplittingSession(new Range(0, 100), 0, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 100), 0, ReadMessagesDirection.Forward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
@@ -112,7 +112,7 @@ namespace LogJoint.Tests
             // 0      7  10         21 24   29  - char idx
             // 50     61 67         85 87   100 - position
             it.CharIndexToPosition(21).Returns((long)85);
-            await target.BeginSplittingSession(new Range(0, 100), 100, MessagesParserDirection.Backward);
+            await target.BeginSplittingSession(new Range(0, 100), 100, ReadMessagesDirection.Backward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
             it.CharIndexToPosition(7).Returns((long)61);
@@ -182,7 +182,7 @@ namespace LogJoint.Tests
             MessagesSplitter target = new MessagesSplitter(ta, reFactory.Create(@"111", ReOptions.None));
 
 
-            await target.BeginSplittingSession(new Range(0, 100), 110, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 100), 110, ReadMessagesDirection.Forward);
             Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
 
@@ -203,7 +203,7 @@ namespace LogJoint.Tests
 
             ta.OpenIterator(90, TextAccessDirection.Forward).Returns(it);
             it.PositionToCharIndex(90).Returns(_ => throw new ArgumentOutOfRangeException());
-            await target.BeginSplittingSession(new Range(0, 100), 90, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 100), 90, ReadMessagesDirection.Forward);
             it.Received(1).Dispose();
             Assert.That(target.CurrentMessageIsEmpty, Is.True);
 
@@ -230,7 +230,7 @@ namespace LogJoint.Tests
 
             try
             {
-                await target.BeginSplittingSession(new Range(0, 100), 0, MessagesParserDirection.Forward);
+                await target.BeginSplittingSession(new Range(0, 100), 0, ReadMessagesDirection.Forward);
                 Assert.Fail("We must never get here because of an exception in prev call");
             }
             catch (System.Security.SecurityException)
@@ -253,12 +253,12 @@ namespace LogJoint.Tests
             it.PositionToCharIndex(0).Returns(0);
             it.CurrentBuffer.Returns("00 111 222");
             it.CharIndexToPosition(3).Returns((long)3);
-            await target.BeginSplittingSession(new Range(0, 100), 0, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 100), 0, ReadMessagesDirection.Forward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
             Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
-                await target.BeginSplittingSession(new Range(0, 200), 0, MessagesParserDirection.Forward);
+                await target.BeginSplittingSession(new Range(0, 200), 0, ReadMessagesDirection.Forward);
             });
         }
 
@@ -279,7 +279,7 @@ namespace LogJoint.Tests
             var ta = Substitute.For<ITextAccess>();
             ta.MaximumSequentialAdvancesAllowed.Returns(3);
             MessagesSplitter target = new MessagesSplitter(ta, reFactory.Create(@"111", ReOptions.None));
-            await target.BeginSplittingSession(new Range(0, 100), 200, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 100), 200, ReadMessagesDirection.Forward);
             target.EndSplittingSession();
 
             Assert.Throws<InvalidOperationException>(() =>
@@ -321,7 +321,7 @@ namespace LogJoint.Tests
                 it.CharIndexToPosition(0).Returns((long)0);
                 return trueTask;
             });
-            await target.BeginSplittingSession(new Range(0, 10), 0, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 10), 0, ReadMessagesDirection.Forward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
             it.Advance(3).Returns(falseTask);
@@ -349,7 +349,7 @@ namespace LogJoint.Tests
             // 0      7  10         21 24  28\29  - char idx
             // 50     61 67         85 87  99\100 - position
             it.CharIndexToPosition(21).Returns((long)85);
-            await target.BeginSplittingSession(new Range(0, 100), 99, MessagesParserDirection.Backward);
+            await target.BeginSplittingSession(new Range(0, 100), 99, ReadMessagesDirection.Backward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
             it.CharIndexToPosition(7).Returns((long)61);
@@ -390,7 +390,7 @@ namespace LogJoint.Tests
                 it.CharIndexToPosition(1).Returns((long)12);
                 return trueTask;
             });
-            await target.BeginSplittingSession(new Range(10, 20), 15, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(10, 20), 15, ReadMessagesDirection.Forward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
         }
 
@@ -412,7 +412,7 @@ namespace LogJoint.Tests
             it.PositionToCharIndex(0).Returns(0);
             it.CharIndexToPosition(1).Returns((long)1);
             it.CurrentBuffer.Returns("_msg1_msg2_msg3");
-            await target.BeginSplittingSession(new Range(0, 6), 0, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 6), 0, ReadMessagesDirection.Forward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
@@ -447,7 +447,7 @@ namespace LogJoint.Tests
             it.PositionToCharIndex(0).Returns(0);
             it.CharIndexToPosition(1).Returns((long)1);
             it.CurrentBuffer.Returns("_msg1_msg2_msg3");
-            await target.BeginSplittingSession(new Range(0, 7), 0, MessagesParserDirection.Forward);
+            await target.BeginSplittingSession(new Range(0, 7), 0, ReadMessagesDirection.Forward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
@@ -491,7 +491,7 @@ namespace LogJoint.Tests
             it.PositionToCharIndex(11).Returns(11);
             it.CharIndexToPosition(6).Returns((long)6);
             it.CurrentBuffer.Returns("_msg1_msg2_msg3");
-            await target.BeginSplittingSession(new Range(6, 15), 11, MessagesParserDirection.Backward);
+            await target.BeginSplittingSession(new Range(6, 15), 11, ReadMessagesDirection.Backward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 
@@ -527,7 +527,7 @@ namespace LogJoint.Tests
             it.PositionToCharIndex(11).Returns(11);
             it.CharIndexToPosition(6).Returns((long)6);
             it.CurrentBuffer.Returns("_msg1_msg2_msg3");
-            await target.BeginSplittingSession(new Range(5, 15), 11, MessagesParserDirection.Backward);
+            await target.BeginSplittingSession(new Range(5, 15), 11, ReadMessagesDirection.Backward);
             Assert.That(target.CurrentMessageIsEmpty, Is.False);
 
 

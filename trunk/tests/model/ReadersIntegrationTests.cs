@@ -152,7 +152,7 @@ namespace LogJoint.Tests
 
                 List<IMessage> msgs = new List<IMessage>();
 
-                await foreach (var msg in reader.Read(new CreateParserParams(reader.BeginPosition)))
+                await foreach (var msg in reader.Read(new ReadMessagesParams(reader.BeginPosition)))
                 {
                     msgs.Add(msg.Message);
                 }

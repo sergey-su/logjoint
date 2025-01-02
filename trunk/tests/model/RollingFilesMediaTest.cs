@@ -282,7 +282,7 @@ namespace LogJoint.Tests
                 return ValueTask.FromResult(0);
             }
 
-            public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
+            public async IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p)
             {
                 DateTime time = new DateTime();
                 DateTime startOfTime = new DateTime(2000, 1, 1);
@@ -314,7 +314,7 @@ namespace LogJoint.Tests
                 }
             }
 
-            public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
+            public Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
             {
                 return Task.FromResult<ISearchingParser>(null);
             }

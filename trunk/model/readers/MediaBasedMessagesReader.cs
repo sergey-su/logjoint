@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.IO;
-using LogJoint.StreamParsingStrategies;
+using LogJoint.StreamReadingStrategies;
 using LogJoint.RegularExpressions;
 using System.Threading.Tasks;
 using LogJoint.Postprocessing;
@@ -20,7 +20,7 @@ namespace LogJoint
             BoundFinder endFinder,
             MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
             TextStreamPositioningParams textStreamPositioningParams,
-            MessagesReaderFlags flags,
+            bool isQuickFormatDetectionMode,
             Settings.IGlobalSettingsAccessor settingsAccessor,
             ITraceSourceFactory traceSourceFactory,
             string parentLoggingPrefix
@@ -33,7 +33,7 @@ namespace LogJoint
             this.singleThreadedStrategy = new Lazy<BaseStrategy>(CreateSingleThreadedStrategy);
             this.multiThreadedStrategy = new Lazy<BaseStrategy>(CreateMultiThreadedStrategy);
             this.extensions = new MessagesReaderExtensions(this, extensionsInitData);
-            this.flags = flags;
+            this.isQuickFormatDetectionMode = isQuickFormatDetectionMode;
             this.settingsAccessor = settingsAccessor;
             this.trace = traceSourceFactory.CreateTraceSource("LogSource",
                 string.Format("{0}.r{1:x4}", parentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
@@ -86,7 +86,7 @@ namespace LogJoint
             return ret;
         }
 
-        public IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams parserParams)
+        public IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams parserParams)
         {
             // That's not the best place for flushing counters, but it's the only one that works in blazor
             // that lacks periodic calls to UpdateAvailableBounds.
@@ -95,17 +95,17 @@ namespace LogJoint
 
             parserParams.EnsureRangeIsSet(this);
 
-            var strategiesCache = new StreamParser.StrategiesCache()
+            var strategiesCache = new StreamReading.StrategiesCache()
             {
                 MultiThreadedStrategy = multiThreadedStrategy,
                 SingleThreadedStrategy = singleThreadedStrategy
             };
 
             DejitteringParams? dejitteringParams = GetDejitteringParams();
-            if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
+            if (dejitteringParams != null && (parserParams.Flags & ReadMessagesFlag.DisableDejitter) == 0)
             {
                 return DejitteringMessagesParser.Create(
-                    underlyingParserParams => StreamParser.Create(
+                    underlyingParserParams => StreamReading.Read(
                         this,
                         EnsureParserRangeDoesNotExceedReadersBoundaries(underlyingParserParams),
                         textStreamPositioningParams,
@@ -116,7 +116,7 @@ namespace LogJoint
                     dejitteringParams.Value
                 );
             }
-            return StreamParser.Create(
+            return StreamReading.Read(
                 this,
                 parserParams,
                 textStreamPositioningParams,
@@ -125,7 +125,7 @@ namespace LogJoint
             );
         }
 
-        public virtual Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
+        public virtual Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
         {
             return Task.FromResult<ISearchingParser>(null);
         }
@@ -138,15 +138,7 @@ namespace LogJoint
             return Hashing.GetStableHashCode(buf, 0, read);
         }
 
-        public MessagesReaderFlags Flags
-        {
-            get { return flags; }
-        }
-
-        public bool IsQuickFormatDetectionMode
-        {
-            get { return (flags & MessagesReaderFlags.QuickFormatDetectionMode) != 0; }
-        }
+        public bool IsQuickFormatDetectionMode => isQuickFormatDetectionMode;
 
         #endregion
 
@@ -207,12 +199,12 @@ namespace LogJoint
 
         protected MessagesReaderExtensions Extensions => extensions;
 
-        protected static FieldsProcessor.MakeMessageFlags ParserFlagsToMakeMessageFlags(MessagesParserFlag flags)
+        protected static FieldsProcessor.MakeMessageFlags ParserFlagsToMakeMessageFlags(ReadMessagesFlag flags)
         {
             FieldsProcessor.MakeMessageFlags ret = FieldsProcessor.MakeMessageFlags.Default;
-            if ((flags & MessagesParserFlag.HintMessageTimeIsNotNeeded) != 0)
+            if ((flags & ReadMessagesFlag.HintMessageTimeIsNotNeeded) != 0)
                 ret |= FieldsProcessor.MakeMessageFlags.HintIgnoreTime;
-            if ((flags & MessagesParserFlag.HintMessageContentIsNotNeeed) != 0)
+            if ((flags & ReadMessagesFlag.HintMessageContentIsNotNeeed) != 0)
                 ret |= (FieldsProcessor.MakeMessageFlags.HintIgnoreBody | FieldsProcessor.MakeMessageFlags.HintIgnoreEntryType
                     | FieldsProcessor.MakeMessageFlags.HintIgnoreSeverity | FieldsProcessor.MakeMessageFlags.HintIgnoreThread);
             return ret;
@@ -314,7 +306,7 @@ namespace LogJoint
             return UpdateBoundsStatus.NewMessagesAvailable;
         }
 
-        private CreateParserParams EnsureParserRangeDoesNotExceedReadersBoundaries(CreateParserParams p)
+        private ReadMessagesParams EnsureParserRangeDoesNotExceedReadersBoundaries(ReadMessagesParams p)
         {
             if (p.Range != null)
                 p.Range = FileRange.Range.Intersect(p.Range.Value,
@@ -339,10 +331,10 @@ namespace LogJoint
         readonly BoundFinder beginFinder;
         readonly BoundFinder endFinder;
         readonly MessagesReaderExtensions extensions;
-        readonly Lazy<StreamParsingStrategies.BaseStrategy> singleThreadedStrategy;
-        readonly Lazy<StreamParsingStrategies.BaseStrategy> multiThreadedStrategy;
+        readonly Lazy<StreamReadingStrategies.BaseStrategy> singleThreadedStrategy;
+        readonly Lazy<StreamReadingStrategies.BaseStrategy> multiThreadedStrategy;
         readonly TextStreamPositioningParams textStreamPositioningParams;
-        readonly MessagesReaderFlags flags;
+        readonly bool isQuickFormatDetectionMode;
         readonly Settings.IGlobalSettingsAccessor settingsAccessor;
         readonly LJTraceSource trace;
         readonly Profiling.Counters perfCounters;

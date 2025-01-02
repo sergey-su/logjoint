@@ -83,8 +83,8 @@ namespace LogJoint.Preprocessing
                 double lastPrctComplete = 0;
                 var cancellation = callback.Cancellation;
                 long msgIdx = 0;
-                await foreach (PostprocessedMessage postprocessedMessage in reader.Read(new CreateParserParams(reader.BeginPosition,
-                    flags: MessagesParserFlag.DisableDejitter | MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading)))
+                await foreach (PostprocessedMessage postprocessedMessage in reader.Read(new ReadMessagesParams(reader.BeginPosition,
+                    flags: ReadMessagesFlag.DisableDejitter | ReadMessagesFlag.HintMassiveSequentialReading)))
                 {
                     if (cancellation.IsCancellationRequested)
                         break;

@@ -18,7 +18,7 @@ namespace LogJoint
             if (position == reader.BeginPosition)
                 return position;
             IMessage m = await ReadNearestMessage(reader, position,
-                MessagesParserFlag.HintMessageTimeIsNotNeeded | MessagesParserFlag.HintMessageContentIsNotNeeed);
+                ReadMessagesFlag.HintMessageTimeIsNotNeeded | ReadMessagesFlag.HintMessageContentIsNotNeeed);
             if (m != null)
                 return m.Position;
             return reader.EndPosition;
@@ -33,9 +33,9 @@ namespace LogJoint
             if (originalMessagePos >= reader.EndPosition)
                 return null;
             int msgIndex = 0;
-            await foreach (PostprocessedMessage msg in reader.Read(new CreateParserParams(originalMessagePos,
-                null, MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageTimeIsNotNeeded,
-                MessagesParserDirection.Forward, null)))
+            await foreach (PostprocessedMessage msg in reader.Read(new ReadMessagesParams(originalMessagePos,
+                null, ReadMessagesFlag.HintMessageContentIsNotNeeed | ReadMessagesFlag.HintMessageTimeIsNotNeeded,
+                ReadMessagesDirection.Forward, null)))
             {
                 if (msgIndex == 1)
                     return msg.Message.Position;
@@ -48,16 +48,16 @@ namespace LogJoint
             long originalMessagePos)
         {
             long nextMessagePos = reader.EndPosition;
-            await foreach (PostprocessedMessage msgAtOriginalPos in reader.Read(new CreateParserParams(originalMessagePos, null,
-                MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
-                MessagesParserDirection.Forward)))
+            await foreach (PostprocessedMessage msgAtOriginalPos in reader.Read(new ReadMessagesParams(originalMessagePos, null,
+                ReadMessagesFlag.HintMessageContentIsNotNeeed | ReadMessagesFlag.HintMessageContentIsNotNeeed,
+                ReadMessagesDirection.Forward)))
             {
                 nextMessagePos = msgAtOriginalPos.Message.Position;
                 break;
             }
-            await foreach (PostprocessedMessage msg in reader.Read(new CreateParserParams(nextMessagePos, null,
-                MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
-                MessagesParserDirection.Backward)))
+            await foreach (PostprocessedMessage msg in reader.Read(new ReadMessagesParams(nextMessagePos, null,
+                ReadMessagesFlag.HintMessageContentIsNotNeeed | ReadMessagesFlag.HintMessageContentIsNotNeeed,
+                ReadMessagesDirection.Backward)))
             {
                 return msg.Message.Position;
             }
@@ -66,7 +66,7 @@ namespace LogJoint
 
         public static async Task<MessageTimestamp?> ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
         {
-            IMessage m = await ReadNearestMessage(reader, position, MessagesParserFlag.HintMessageContentIsNotNeeed);
+            IMessage m = await ReadNearestMessage(reader, position, ReadMessagesFlag.HintMessageContentIsNotNeeed);
             if (m != null)
                 return m.Time;
             return null;
@@ -102,8 +102,8 @@ namespace LogJoint
 
             lastMessage = firstMessage;
 
-            await foreach (var tmp in reader.Read(new CreateParserParams(reader.EndPosition,
-                null, MessagesParserFlag.Default, MessagesParserDirection.Backward)))
+            await foreach (var tmp in reader.Read(new ReadMessagesParams(reader.EndPosition,
+                null, ReadMessagesFlag.Default, ReadMessagesDirection.Backward)))
             {
                 lastMessage = tmp.Message;
                 break;
@@ -169,12 +169,12 @@ namespace LogJoint
 
         static public Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position)
         {
-            return ReadNearestMessage(reader, position, MessagesParserFlag.Default);
+            return ReadNearestMessage(reader, position, ReadMessagesFlag.Default);
         }
 
-        static public async Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position, MessagesParserFlag flags)
+        static public async Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position, ReadMessagesFlag flags)
         {
-            await foreach (var msg in reader.Read(new CreateParserParams(position, null, flags, MessagesParserDirection.Forward)))
+            await foreach (var msg in reader.Read(new ReadMessagesParams(position, null, flags, ReadMessagesDirection.Forward)))
             {
                 return msg.Message;
             }

@@ -45,7 +45,7 @@ namespace LogJoint
     public interface IMessagesSplitter
     {
         IRegex MessageHeaderRegex { get; }
-        Task BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction);
+        Task BeginSplittingSession(FileRange.Range range, long startPosition, ReadMessagesDirection direction);
         void EndSplittingSession();
         bool CurrentMessageIsEmpty { get; }
         ValueTask<bool> GetCurrentMessageAndMoveToNextOne(TextMessageCapture capture);
@@ -79,7 +79,7 @@ namespace LogJoint
             get { return forwardModeRe; }
         }
 
-        public async Task BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+        public async Task BeginSplittingSession(FileRange.Range range, long startPosition, ReadMessagesDirection direction)
         {
             if (sessionIsOpen)
                 throw new InvalidOperationException("Cannot start more than one reading session for a single splitter");
@@ -123,7 +123,7 @@ namespace LogJoint
             if (capture.HeaderMatch == null || capture.HeaderMatch.OwnerRegex != re)
                 capture.HeaderMatch = re.CreateEmptyMatch();
 
-            if (direction == MessagesParserDirection.Forward)
+            if (direction == ReadMessagesDirection.Forward)
                 return await GetCurrentMessageAndMoveToNextOneFwd(capture);
             else
                 return await GetCurrentMessageAndMoveToNextOneBwd(capture);
@@ -168,7 +168,7 @@ namespace LogJoint
 
         bool ItsTimeToMoveBuffer()
         {
-            if (direction == MessagesParserDirection.Forward)
+            if (direction == ReadMessagesDirection.Forward)
                 return (cachedCurrentBuffer.Length - headerPointer1) < bufferLengthThreshold;
             else
                 return headerPointer1 < bufferLengthThreshold;
@@ -187,7 +187,7 @@ namespace LogJoint
 
             if (timeToMoveBuffer)
             {
-                if (direction == MessagesParserDirection.Forward)
+                if (direction == ReadMessagesDirection.Forward)
                 {
                     if (await MoveBuffer(headerPointer1))
                         headerPointer1 = 0;
@@ -219,7 +219,7 @@ namespace LogJoint
 
                 prevHeaderPointer1 = headerPointer1;
 
-                if (direction == MessagesParserDirection.Forward)
+                if (direction == ReadMessagesDirection.Forward)
                 {
                     headerPointer2 = m.Index;
                     headerPointer1 = m.Index + m.Length;
@@ -252,10 +252,10 @@ namespace LogJoint
                 throw new InvalidOperationException("Operation is not allowed when no reading session is open");
         }
 
-        void SetCurrentDirection(MessagesParserDirection direction)
+        void SetCurrentDirection(ReadMessagesDirection direction)
         {
             this.direction = direction;
-            if (direction == MessagesParserDirection.Forward)
+            if (direction == ReadMessagesDirection.Forward)
             {
                 re = forwardModeRe;
                 if (forwardModeMatch == null)
@@ -280,13 +280,13 @@ namespace LogJoint
             }
         }
 
-        async Task TryBeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+        async Task TryBeginSplittingSession(FileRange.Range range, long startPosition, ReadMessagesDirection direction)
         {
             bool posIsOutOfRange = DetectOutOfRangeCondition(range, startPosition, direction);
 
             if (!posIsOutOfRange)
             {
-                TextAccessDirection accessDirection = direction == MessagesParserDirection.Forward ?
+                TextAccessDirection accessDirection = direction == ReadMessagesDirection.Forward ?
                     TextAccessDirection.Forward : TextAccessDirection.Backward;
 
                 textIterator = await textAccess.OpenIterator(startPosition, accessDirection);
@@ -320,12 +320,12 @@ namespace LogJoint
             }
         }
 
-        static bool DetectOutOfRangeCondition(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+        static bool DetectOutOfRangeCondition(FileRange.Range range, long startPosition, ReadMessagesDirection direction)
         {
             bool posIsOutOfRange = !range.IsInRange(startPosition);
 
             if (posIsOutOfRange
-             && direction == MessagesParserDirection.Backward
+             && direction == ReadMessagesDirection.Backward
              && startPosition == range.End)
             {
                 // it's ok to start reading from end position when we move backward
@@ -436,7 +436,7 @@ namespace LogJoint
         IRegex re;
         bool quickNewLineOptimizationAvailable;
         IMatch currentMessageHeaderMatch;
-        MessagesParserDirection direction;
+        ReadMessagesDirection direction;
         FileRange.Range range;
         ITextAccessIterator textIterator;
         string cachedCurrentBuffer;
@@ -472,14 +472,14 @@ namespace LogJoint
             get { return underlyingSplitter.MessageHeaderRegex; }
         }
 
-        public async Task BeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+        public async Task BeginSplittingSession(FileRange.Range range, long startPosition, ReadMessagesDirection direction)
         {
-            if (direction == MessagesParserDirection.Forward)
+            if (direction == ReadMessagesDirection.Forward)
             {
                 if (startPosition > range.Begin)
                 {
                     long? fixedStartPosition = null;
-                    await underlyingSplitter.BeginSplittingSession(range, startPosition, MessagesParserDirection.Backward);
+                    await underlyingSplitter.BeginSplittingSession(range, startPosition, ReadMessagesDirection.Backward);
                     try
                     {
                         TextMessageCapture capt = new TextMessageCapture();
@@ -516,7 +516,7 @@ namespace LogJoint
                 if (startPosition < range.End)
                 {
                     long? fixedStartPosition = null;
-                    await underlyingSplitter.BeginSplittingSession(range, startPosition, MessagesParserDirection.Forward);
+                    await underlyingSplitter.BeginSplittingSession(range, startPosition, ReadMessagesDirection.Forward);
                     try
                     {
                         TextMessageCapture capt = new TextMessageCapture();

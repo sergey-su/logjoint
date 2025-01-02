@@ -119,7 +119,7 @@ namespace LogJoint
                 ctx.Cancellation.ThrowIfCancellationRequested();
                 if (messageRequested)
                 {
-                    result.Message = await PositionedMessagesUtils.ReadNearestMessage(ctx.Reader, result.Position, MessagesParserFlag.HintMessageContentIsNotNeeed);
+                    result.Message = await PositionedMessagesUtils.ReadNearestMessage(ctx.Reader, result.Position, ReadMessagesFlag.HintMessageContentIsNotNeeed);
                     ctx.Tracer.Info("Details to return: {0} at {1}", result.Message?.Time, result.Message?.Position);
                 }
             }

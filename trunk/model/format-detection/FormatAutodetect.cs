@@ -68,7 +68,7 @@ namespace LogJoint
                         using (var fileMedia = await createFileMedia())
                         using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
                             new MediaBasedReaderParams(threads, fileMedia,
-                                MessagesReaderFlags.QuickFormatDetectionMode, parentLoggingPrefix: log.Prefix)))
+                                quickFormatDetectionMode: true, parentLoggingPrefix: log.Prefix)))
                         {
                             if (progress != null)
                                 progress.Trying(factory);
@@ -79,8 +79,8 @@ namespace LogJoint
                             }
                             await reader.UpdateAvailableBounds(false);
                             perfOp.Milestone("bounds detected");
-                            await foreach (PostprocessedMessage message in reader.Read(new CreateParserParams(0, null,
-                                MessagesParserFlag.DisableMultithreading | MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward)))
+                            await foreach (PostprocessedMessage message in reader.Read(new ReadMessagesParams(0, null,
+                                ReadMessagesFlag.DisableMultithreading | ReadMessagesFlag.DisableDejitter, ReadMessagesDirection.Forward)))
                             {
                                 log.Info("Autodetected format of {0}: {1}", fileName, factory);
                                 localCancellation.Cancel();

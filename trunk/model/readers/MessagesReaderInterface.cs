@@ -1,8 +1,5 @@
-﻿using LogJoint.Postprocessing;
-using LogJoint.Settings;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,18 +13,18 @@ namespace LogJoint
         OldMessagesAreInvalid = 2
     };
 
-    public enum MessagesParserDirection
+    public enum ReadMessagesDirection
     {
         Forward,
         Backward
     };
 
     [Flags]
-    public enum MessagesParserFlag
+    public enum ReadMessagesFlag
     {
         None = 0,
         Default = 0,
-        HintParserWillBeUsedForMassiveSequentialReading = 1,
+        HintMassiveSequentialReading = 1,
         HintMessageTimeIsNotNeeded = 2,
         HintMessageContentIsNotNeeed = 4,
         DisableDejitter = 8,
@@ -40,7 +37,7 @@ namespace LogJoint
         object Postprocess(IMessage message);
     };
 
-    public struct CreateParserParams
+    public struct ReadMessagesParams
     {
         /// <summary>
         /// Parser starts from position defined by StartPosition.
@@ -52,8 +49,8 @@ namespace LogJoint
         /// If <value>null</value> is passed then the parser is limited by reader's BeginPosition/EndPosition
         /// </summary>
         public FileRange.Range? Range;
-        public MessagesParserFlag Flags;
-        public MessagesParserDirection Direction;
+        public ReadMessagesFlag Flags;
+        public ReadMessagesDirection Direction;
         /// <summary>
         /// Factory delegate that creates postprocessors. 
         /// Factory will be called once in each thread that the parser uses. 
@@ -62,11 +59,11 @@ namespace LogJoint
         public Func<IMessagesPostprocessor> PostprocessorsFactory;
         public CancellationToken Cancellation;
 
-        public CreateParserParams(
+        public ReadMessagesParams(
             long startPosition,
             FileRange.Range? range = null,
-            MessagesParserFlag flags = MessagesParserFlag.Default,
-            MessagesParserDirection direction = MessagesParserDirection.Forward,
+            ReadMessagesFlag flags = ReadMessagesFlag.Default,
+            ReadMessagesDirection direction = ReadMessagesDirection.Forward,
             Func<IMessagesPostprocessor> postprocessor = null,
             CancellationToken? cancellation = null
         )
@@ -97,13 +94,13 @@ namespace LogJoint
         }
     };
 
-    public struct CreateSearchingParserParams
+    public struct SearchMessagesParams
     {
         public FileRange.Range Range;
         public SearchAllOccurencesParams SearchParams;
         public Action<long> ProgressHandler;
-        public System.Threading.CancellationToken Cancellation;
-        public MessagesParserFlag Flags;
+        public CancellationToken Cancellation;
+        public ReadMessagesFlag Flags;
         public object ContinuationToken;
     };
 
@@ -162,9 +159,9 @@ namespace LogJoint
         /// CreateParserParams.StartPosition doesn't have to point to the beginning of a message.
         /// It is reader's responsibility to guarantee that the correct nearest message is read.
         /// </remarks>
-        IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p);
+        IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p);
 
-        Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p);
+        Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p);
     };
 
     public interface ITextStreamPositioningParamsProvider
@@ -188,26 +185,20 @@ namespace LogJoint
         ValueTask<SearchResultMessage> GetNext();
     };
 
-    [Flags]
-    public enum MessagesReaderFlags
-    {
-        None,
-        QuickFormatDetectionMode = 1
-    };
-
     public struct MediaBasedReaderParams
     {
         public ILogSourceThreadsInternal Threads;
         public ILogMedia Media;
-        public MessagesReaderFlags Flags;
+        public bool QuickFormatDetectionMode;
         public string ParentLoggingPrefix;
+
         public MediaBasedReaderParams(ILogSourceThreadsInternal threads, ILogMedia media,
-            MessagesReaderFlags flags = MessagesReaderFlags.None,
+            bool quickFormatDetectionMode = false,
             string parentLoggingPrefix = null)
         {
             Threads = threads;
             Media = media;
-            Flags = flags;
+            QuickFormatDetectionMode = quickFormatDetectionMode;
             ParentLoggingPrefix = parentLoggingPrefix;
         }
     };

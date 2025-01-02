@@ -68,7 +68,7 @@ namespace LogJoint.Tests
                 return new ValueTask<int>(0);
             }
 
-            public async IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
+            public async IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p)
             {
                 CheckDisposed();
 
@@ -76,7 +76,7 @@ namespace LogJoint.Tests
                 long positionIndex = 0;
                 long startPosition = p.StartPosition;
 
-                if (p.Direction == MessagesParserDirection.Forward)
+                if (p.Direction == ReadMessagesDirection.Forward)
                 {
                     for (positionIndex = 0; positionIndex < positions.Length; ++positionIndex)
                     {
@@ -99,7 +99,7 @@ namespace LogJoint.Tests
                     CheckDisposed();
 
                     long currPos;
-                    if (p.Direction == MessagesParserDirection.Forward)
+                    if (p.Direction == ReadMessagesDirection.Forward)
                     {
                         if (positionIndex >= positions.Length)
                             break;
@@ -128,7 +128,7 @@ namespace LogJoint.Tests
                 }
             }
 
-            public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
+            public Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
             {
                 return Task.FromResult<ISearchingParser>(null);
             }

@@ -54,12 +54,12 @@ namespace LogJoint
             set { underliyingReader.TimeOffsets = value; }
         }
 
-        public IAsyncEnumerable<PostprocessedMessage> Read(CreateParserParams p)
+        public IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p)
         {
             return underliyingReader.Read(p);
         }
 
-        public Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
+        public Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
         {
             return underliyingReader.CreateSearchingParser(p);
         }

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LogJoint.RegularExpressions;
 
-namespace LogJoint.StreamParsingStrategies
+namespace LogJoint.StreamReadingStrategies
 {
     public abstract class SingleThreadedStrategy : BaseStrategy
     {
@@ -16,7 +16,7 @@ namespace LogJoint.StreamParsingStrategies
             this.textSplitter = new ReadMessageFromTheMiddleProblem(new MessagesSplitter(new StreamTextAccess(media.DataStream, encoding, textStreamPositioningParams), headerRe, splitterFlags));
         }
 
-        public override async Task ParserCreated(CreateParserParams p)
+        public override async Task ParserCreated(ReadMessagesParams p)
         {
             postprocessor = p.PostprocessorsFactory?.Invoke();
             await textSplitter.BeginSplittingSession(p.Range.Value, p.StartPosition, p.Direction);

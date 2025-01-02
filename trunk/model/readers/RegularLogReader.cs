@@ -82,8 +82,8 @@ namespace LogJoint.RegularGrammar
             ITraceSourceFactory traceSourceFactory,
             Settings.IGlobalSettingsAccessor settings
         ) :
-            base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags,
-                settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
+            base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams,
+                readerParams.QuickFormatDetectionMode, settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
         {
             if (readerParams.Threads == null)
                 throw new ArgumentNullException(nameof(readerParams) + ".Threads");
@@ -170,7 +170,7 @@ namespace LogJoint.RegularGrammar
             return ret;
         }
 
-        class SingleThreadedStrategyImpl : StreamParsingStrategies.SingleThreadedStrategy
+        class SingleThreadedStrategyImpl : StreamReadingStrategies.SingleThreadedStrategy
         {
             readonly MessagesReader reader;
             readonly MessagesBuilderCallback callback;
@@ -194,7 +194,7 @@ namespace LogJoint.RegularGrammar
                 this.bodyRegex = reader.fmtInfo.BodyRe.Regex;
                 this.perfWriter = reader.PerfCounters.GetWriter();
             }
-            public override async Task ParserCreated(CreateParserParams p)
+            public override async Task ParserCreated(ReadMessagesParams p)
             {
                 this.fieldsProcessor = await reader.CreateNewFieldsProcessor();
                 await base.ParserCreated(p);
@@ -209,7 +209,7 @@ namespace LogJoint.RegularGrammar
             }
         };
 
-        protected override StreamParsingStrategies.BaseStrategy CreateSingleThreadedStrategy()
+        protected override StreamReadingStrategies.BaseStrategy CreateSingleThreadedStrategy()
         {
             return new SingleThreadedStrategyImpl(this);
         }
@@ -225,7 +225,7 @@ namespace LogJoint.RegularGrammar
             public MessagesBuilderCallback callback;
         }
 
-        class MultiThreadedStrategyImpl : StreamParsingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
+        class MultiThreadedStrategyImpl : StreamReadingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
         {
             readonly MessagesReader reader;
             FieldsProcessor.MakeMessageFlags flags;
@@ -237,7 +237,7 @@ namespace LogJoint.RegularGrammar
             {
                 this.reader = reader;
             }
-            public override async Task ParserCreated(CreateParserParams p)
+            public override async Task ParserCreated(ReadMessagesParams p)
             {
                 await base.ParserCreated(p);
                 flags = ParserFlagsToMakeMessageFlags(p.Flags);
@@ -262,7 +262,7 @@ namespace LogJoint.RegularGrammar
             }
         };
 
-        protected override StreamParsingStrategies.BaseStrategy CreateMultiThreadedStrategy()
+        protected override StreamReadingStrategies.BaseStrategy CreateMultiThreadedStrategy()
         {
             return new MultiThreadedStrategyImpl(this);
         }
@@ -288,7 +288,7 @@ namespace LogJoint.RegularGrammar
             return fmtInfo.DejitteringParams;
         }
 
-        public override async Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
+        public override async Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
         {
             var allowPlainTextSearchOptimization =
                    (fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0

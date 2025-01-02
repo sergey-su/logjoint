@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LogJoint.RegularExpressions;
 
-namespace LogJoint.StreamParsingStrategies
+namespace LogJoint.StreamReadingStrategies
 {
     public class BaseStrategy
     {
@@ -17,7 +15,7 @@ namespace LogJoint.StreamParsingStrategies
             this.textStreamPositioningParams = textStreamPositioningParams;
         }
 
-        public virtual Task ParserCreated(CreateParserParams p) { return Task.CompletedTask; }
+        public virtual Task ParserCreated(ReadMessagesParams p) { return Task.CompletedTask; }
         public virtual void ParserDestroyed() { }
         public virtual ValueTask<PostprocessedMessage> ReadNextAndPostprocess() { return ValueTask.FromResult(new PostprocessedMessage(null, null)); }
 

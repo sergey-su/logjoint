@@ -150,10 +150,10 @@ namespace LogJoint
 
                     ResetFlags();
 
-                    await foreach (PostprocessedMessage tmp in reader.Read(new CreateParserParams(
+                    await foreach (PostprocessedMessage tmp in reader.Read(new ReadMessagesParams(
                         currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
-                        MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
-                        MessagesParserDirection.Forward,
+                        ReadMessagesFlag.HintMassiveSequentialReading,
+                        ReadMessagesDirection.Forward,
                         postprocessor: null,
                         cancellation: cancellationToken)))
                     {

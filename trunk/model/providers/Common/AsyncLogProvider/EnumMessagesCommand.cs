@@ -12,7 +12,7 @@ namespace LogJoint
             this.positionToContinueAsync = startFrom;
             this.callback = callback;
             this.direction = (flags & EnumMessagesFlag.Backward) != 0 ?
-                MessagesParserDirection.Backward : MessagesParserDirection.Forward;
+                ReadMessagesDirection.Backward : ReadMessagesDirection.Forward;
         }
 
         public Task Task { get { return task.Task; } }
@@ -28,31 +28,31 @@ namespace LogJoint
                 return false;
 
             var cache = ctx.Cache;
-            if (direction == MessagesParserDirection.Forward && startFrom >= ctx.Stats.PositionsRange.End)
+            if (direction == ReadMessagesDirection.Forward && startFrom >= ctx.Stats.PositionsRange.End)
                 return true;
-            if (direction == MessagesParserDirection.Backward && startFrom <= ctx.Stats.PositionsRange.Begin)
+            if (direction == ReadMessagesDirection.Backward && startFrom <= ctx.Stats.PositionsRange.Begin)
                 return true;
 
             bool finishedSynchroniously = false;
-            var testRange = direction == MessagesParserDirection.Forward ?
+            var testRange = direction == ReadMessagesDirection.Forward ?
                 cache.MessagesRange : cache.MessagesRange.ChangeDirection();
             if (testRange.IsInRange(startFrom))
             {
-                foreach (var i in (direction == MessagesParserDirection.Forward ? ctx.Cache.Messages.Forward(startFrom) : ctx.Cache.Messages.Reverse(startFrom)))
+                foreach (var i in (direction == ReadMessagesDirection.Forward ? ctx.Cache.Messages.Forward(startFrom) : ctx.Cache.Messages.Reverse(startFrom)))
                 {
                     finishedSynchroniously = !callback(i.Message);
                     if (finishedSynchroniously)
                         break;
                     ctx.Cancellation.ThrowIfCancellationRequested();
-                    positionToContinueAsync = direction == MessagesParserDirection.Forward ?
+                    positionToContinueAsync = direction == ReadMessagesDirection.Forward ?
                         i.Message.EndPosition : i.Message.Position - 1;
                 }
                 if (!finishedSynchroniously)
                 {
-                    if (direction == MessagesParserDirection.Backward)
+                    if (direction == ReadMessagesDirection.Backward)
                         // example: reading from position AvailableRange.Begin+1
                         finishedSynchroniously = ctx.Cache.MessagesRange.Begin == ctx.Stats.PositionsRange.Begin;
-                    else if (direction == MessagesParserDirection.Forward)
+                    else if (direction == ReadMessagesDirection.Forward)
                         // example: reading from position AvailableRange.End-1
                         finishedSynchroniously = ctx.Cache.MessagesRange.End == ctx.Stats.PositionsRange.End;
                 }
@@ -62,9 +62,9 @@ namespace LogJoint
 
         async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
         {
-            var parserFlags = (flags & EnumMessagesFlag.IsSequentialScanningHint) != 0 ? MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading : MessagesParserFlag.None;
+            var parserFlags = (flags & EnumMessagesFlag.IsSequentialScanningHint) != 0 ? ReadMessagesFlag.HintMassiveSequentialReading : ReadMessagesFlag.None;
             await foreach (PostprocessedMessage m in ctx.Reader.Read(
-                new CreateParserParams(positionToContinueAsync, null, parserFlags, direction)))
+                new ReadMessagesParams(positionToContinueAsync, null, parserFlags, direction)))
             {
                 ctx.Cancellation.ThrowIfCancellationRequested();
                 ctx.Preemption.ThrowIfCancellationRequested();
@@ -85,7 +85,7 @@ namespace LogJoint
         readonly long startFrom;
         readonly EnumMessagesFlag flags;
         readonly Func<IMessage, bool> callback;
-        readonly MessagesParserDirection direction;
+        readonly ReadMessagesDirection direction;
 
         long positionToContinueAsync;
     };

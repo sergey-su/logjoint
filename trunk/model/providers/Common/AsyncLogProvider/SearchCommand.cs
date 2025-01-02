@@ -65,7 +65,7 @@ namespace LogJoint
             var searchRange = new FileRange.Range(
                 searchParams.FromPosition.GetValueOrDefault(ctx.Reader.BeginPosition), ctx.Reader.EndPosition);
 
-            var parserParams = new CreateSearchingParserParams()
+            var parserParams = new SearchMessagesParams()
             {
                 Range = searchRange,
                 SearchParams = searchParams,

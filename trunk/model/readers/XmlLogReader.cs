@@ -362,8 +362,8 @@ namespace LogJoint.XmlFormat
             ITraceSourceFactory traceSourceFactory,
             Settings.IGlobalSettingsAccessor settings
         ) :
-            base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags,
-                settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
+            base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams,
+                readerParams.QuickFormatDetectionMode, settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
         {
             this.formatInfo = fmt;
             this.threads = readerParams.Threads;
@@ -495,7 +495,7 @@ namespace LogJoint.XmlFormat
             return new MessagesBuilderCallback(threads, fakeThread);
         }
 
-        class SingleThreadedStrategyImpl : StreamParsingStrategies.SingleThreadedStrategy
+        class SingleThreadedStrategyImpl : StreamReadingStrategies.SingleThreadedStrategy
         {
             readonly MessagesReader reader;
             readonly MessagesBuilderCallback callback;
@@ -511,7 +511,7 @@ namespace LogJoint.XmlFormat
                 this.callback = reader.CreateMessageBuilderCallback();
                 this.bodyRegex = reader.formatInfo.BodyRe.Regex;
             }
-            public override Task ParserCreated(CreateParserParams p)
+            public override Task ParserCreated(ReadMessagesParams p)
             {
                 return base.ParserCreated(p);
             }
@@ -522,7 +522,7 @@ namespace LogJoint.XmlFormat
             }
         };
 
-        protected override StreamParsingStrategies.BaseStrategy CreateSingleThreadedStrategy()
+        protected override StreamReadingStrategies.BaseStrategy CreateSingleThreadedStrategy()
         {
             return new SingleThreadedStrategyImpl(this);
         }
@@ -534,7 +534,7 @@ namespace LogJoint.XmlFormat
             public MessagesBuilderCallback callback;
         }
 
-        class MultiThreadedStrategyImpl : StreamParsingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
+        class MultiThreadedStrategyImpl : StreamReadingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>
         {
             readonly MessagesReader reader;
 
@@ -544,7 +544,7 @@ namespace LogJoint.XmlFormat
             {
                 this.reader = reader;
             }
-            public override Task ParserCreated(CreateParserParams p)
+            public override Task ParserCreated(ReadMessagesParams p)
             {
                 return base.ParserCreated(p);
             }
@@ -565,7 +565,7 @@ namespace LogJoint.XmlFormat
             }
         };
 
-        protected override StreamParsingStrategies.BaseStrategy CreateMultiThreadedStrategy()
+        protected override StreamReadingStrategies.BaseStrategy CreateMultiThreadedStrategy()
         {
             return new MultiThreadedStrategyImpl(this);
         }
@@ -575,7 +575,7 @@ namespace LogJoint.XmlFormat
             return this.formatInfo.DejitteringParams;
         }
 
-        public override Task<ISearchingParser> CreateSearchingParser(CreateSearchingParserParams p)
+        public override Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
         {
             return Task.FromResult<ISearchingParser>(new SearchingParser(
                 this,

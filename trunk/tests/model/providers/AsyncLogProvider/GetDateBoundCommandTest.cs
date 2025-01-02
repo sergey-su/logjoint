@@ -271,9 +271,9 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
                 Reader = reader,
                 Tracer = LJTraceSource.EmptyTracer
             };
-            await foreach (PostprocessedMessage msg in reader.Read(new CreateParserParams()
+            await foreach (PostprocessedMessage msg in reader.Read(new ReadMessagesParams()
             {
-                Direction = MessagesParserDirection.Forward,
+                Direction = ReadMessagesDirection.Forward,
                 StartPosition = cachedRange.Begin,
                 Range = cachedRange
             }))

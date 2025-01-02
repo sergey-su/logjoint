@@ -14,7 +14,7 @@ namespace LogJoint
     class SearchingParser : ISearchingParser
     {
         readonly IPositionedMessagesReader owner;
-        readonly CreateSearchingParserParams parserParams;
+        readonly SearchMessagesParams parserParams;
         readonly DejitteringParams? dejitteringParams;
         readonly TextStreamPositioningParams textStreamPositioningParams;
         readonly Stream rawStream;
@@ -33,7 +33,7 @@ namespace LogJoint
 
         public SearchingParser(
             IPositionedMessagesReader owner,
-            CreateSearchingParserParams p,
+            SearchMessagesParams p,
             TextStreamPositioningParams textStreamPositioningParams,
             DejitteringParams? dejitteringParams,
             Stream rawStream,
@@ -46,7 +46,7 @@ namespace LogJoint
         {
             this.owner = owner;
             this.parserParams = p;
-            this.plainTextSearchOptimizationAllowed = allowPlainTextSearchOptimization && ((p.Flags & MessagesParserFlag.DisablePlainTextSearchOptimization) == 0);
+            this.plainTextSearchOptimizationAllowed = allowPlainTextSearchOptimization && ((p.Flags & ReadMessagesFlag.DisablePlainTextSearchOptimization) == 0);
             this.requestedRange = p.Range;
             this.textStreamPositioningParams = textStreamPositioningParams;
             this.dejitteringParams = dejitteringParams;
@@ -238,11 +238,11 @@ namespace LogJoint
             Func<IMessagesPostprocessor> messagesPostprocessor)
         {
             bool disableMultithreading = false;
-            return owner.Read(new CreateParserParams(
+            return owner.Read(new ReadMessagesParams(
                 searchableRange.Begin, searchableRange,
-                MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
-                | (disableMultithreading ? MessagesParserFlag.DisableMultithreading : MessagesParserFlag.None),
-                MessagesParserDirection.Forward,
+                ReadMessagesFlag.HintMassiveSequentialReading
+                | (disableMultithreading ? ReadMessagesFlag.DisableMultithreading : ReadMessagesFlag.None),
+                ReadMessagesDirection.Forward,
                 messagesPostprocessor));
         }
 
@@ -276,10 +276,10 @@ namespace LogJoint
             long fixedEnd;
 
             int? inflateRangeBy = null;
-            if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
+            if (dejitteringParams != null && (parserParams.Flags & ReadMessagesFlag.DisableDejitter) == 0)
                 inflateRangeBy = dejitteringParams.Value.JitterBufferSize;
 
-            await aligmentSplitter.BeginSplittingSession(requestedRange, r.End, MessagesParserDirection.Forward);
+            await aligmentSplitter.BeginSplittingSession(requestedRange, r.End, ReadMessagesDirection.Forward);
             if (await aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
             {
                 fixedEnd = aligmentCapture.EndPosition;
@@ -299,7 +299,7 @@ namespace LogJoint
             }
             aligmentSplitter.EndSplittingSession();
 
-            await aligmentSplitter.BeginSplittingSession(requestedRange, fixedBegin, MessagesParserDirection.Backward);
+            await aligmentSplitter.BeginSplittingSession(requestedRange, fixedBegin, ReadMessagesDirection.Backward);
             if (await aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
             {
                 fixedBegin = aligmentCapture.BeginPosition;
@@ -437,7 +437,7 @@ namespace LogJoint
         class PlainTextMatcher
         {
             public PlainTextMatcher(
-                CreateSearchingParserParams p,
+                SearchMessagesParams p,
                 TextStreamPositioningParams textStreamPositioningParams,
                 bool plainTextSearchOptimizationAllowed,
                 RegularExpressions.IRegexFactory regexFactory)

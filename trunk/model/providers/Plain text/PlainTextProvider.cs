@@ -107,7 +107,7 @@ namespace LogJoint.PlainText
 
                 DateTime lastModified = media.LastModified;
 
-                await splitter.BeginSplittingSession(new FileRange.Range(0, lastStreamLength), lastLinePosition, MessagesParserDirection.Forward);
+                await splitter.BeginSplittingSession(new FileRange.Range(0, lastStreamLength), lastLinePosition, ReadMessagesDirection.Forward);
                 try
                 {
                     for (; ; )
