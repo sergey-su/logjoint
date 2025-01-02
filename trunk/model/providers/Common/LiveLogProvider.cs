@@ -146,7 +146,7 @@ namespace LogJoint
         protected LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, DejitteringParams? dejitteringParams = null)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, StreamReorderingParams? dejitteringParams = null)
             :
             base(
                 host,

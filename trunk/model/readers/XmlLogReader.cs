@@ -290,12 +290,12 @@ namespace LogJoint.XmlFormat
         public readonly BoundFinder BeginFinder;
         public readonly BoundFinder EndFinder;
         public readonly TextStreamPositioningParams TextStreamPositioningParams;
-        public readonly DejitteringParams? DejitteringParams;
+        public readonly StreamReorderingParams? DejitteringParams;
         public readonly IFormatViewOptions ViewOptions;
 
         public bool IsNativeFormat { get { return Transform == null; } }
 
-        public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams,
+        public static XmlFormatInfo MakeNativeFormatInfo(string encoding, StreamReorderingParams? dejitteringParams,
             FormatViewOptions viewOptions, IRegexFactory regexFactory)
         {
             var headRe = new LoadedRegex(
@@ -307,7 +307,7 @@ namespace LogJoint.XmlFormat
         }
 
         public XmlFormatInfo(XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
-                TextStreamPositioningParams textStreamPositioningParams, DejitteringParams? dejitteringParams, IFormatViewOptions viewOptions) :
+                TextStreamPositioningParams textStreamPositioningParams, StreamReorderingParams? dejitteringParams, IFormatViewOptions viewOptions) :
             base(extensionsInitData)
         {
             Encoding = encoding;
@@ -570,14 +570,14 @@ namespace LogJoint.XmlFormat
             return new MultiThreadedStrategyImpl(this);
         }
 
-        protected override DejitteringParams? GetDejitteringParams()
+        protected override StreamReorderingParams? GetDejitteringParams()
         {
             return this.formatInfo.DejitteringParams;
         }
 
         public override IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
         {
-            return SearchingParser.Search(
+            return StreamSearching.Search(
                 this,
                 p,
                 ((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
@@ -750,7 +750,7 @@ namespace LogJoint.XmlFormat
                 LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline, extensionsInitData);
                 string encoding = ReadParameter(formatSpecificNode, "encoding");
 
-                DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
+                StreamReorderingParams? dejitteringParams = StreamReorderingParams.FromConfigNode(
                     formatSpecificNode.Element("dejitter"));
 
                 TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(

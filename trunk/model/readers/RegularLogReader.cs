@@ -24,7 +24,7 @@ namespace LogJoint.RegularGrammar
         public readonly LoadedRegex BodyRe;
         public readonly string Encoding;
         public readonly FieldsProcessor.IInitializationParams FieldsProcessorParams;
-        public readonly DejitteringParams? DejitteringParams;
+        public readonly StreamReorderingParams? DejitteringParams;
         public readonly TextStreamPositioningParams TextStreamPositioningParams;
         public readonly static string EmptyBodyReEquivalientTemplate = "^(?<body>.*)$";
         public readonly FormatFlags Flags;
@@ -36,7 +36,7 @@ namespace LogJoint.RegularGrammar
             LoadedRegex headRe, LoadedRegex bodyRe,
             string encoding, FieldsProcessor.IInitializationParams fieldsParams,
             MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
-            DejitteringParams? dejitteringParams,
+            StreamReorderingParams? dejitteringParams,
             TextStreamPositioningParams textStreamPositioningParams,
             FormatFlags flags,
             RotationParams rotationParams,
@@ -283,7 +283,7 @@ namespace LogJoint.RegularGrammar
             return ret;
         }
 
-        protected override DejitteringParams? GetDejitteringParams()
+        protected override StreamReorderingParams? GetDejitteringParams()
         {
             return fmtInfo.DejitteringParams;
         }
@@ -294,7 +294,7 @@ namespace LogJoint.RegularGrammar
                    (fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0
                 || p.SearchParams.SearchInRawText
                 || await isBodySingleFieldExpression.Value;
-            await foreach (var m in SearchingParser.Search(
+            await foreach (var m in StreamSearching.Search(
                 this,
                 p,
                 ((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
@@ -367,7 +367,7 @@ namespace LogJoint.RegularGrammar
                     formatSpecificNode.Element("fields-config"), performChecks: true);
                 MessagesReaderExtensions.XmlInitializationParams extensionsInitData = new MessagesReaderExtensions.XmlInitializationParams(
                     formatSpecificNode.Element("extensions"));
-                DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
+                StreamReorderingParams? dejitteringParams = StreamReorderingParams.FromConfigNode(
                     formatSpecificNode.Element("dejitter"));
                 TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
                     formatSpecificNode);

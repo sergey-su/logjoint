@@ -101,10 +101,10 @@ namespace LogJoint
                 SingleThreadedStrategy = singleThreadedStrategy
             };
 
-            DejitteringParams? dejitteringParams = GetDejitteringParams();
+            StreamReorderingParams? dejitteringParams = GetDejitteringParams();
             if (dejitteringParams != null && (parserParams.Flags & ReadMessagesFlag.DisableDejitter) == 0)
             {
-                return DejitteringMessagesParser.Create(
+                return StreamReordering.Reorder(
                     underlyingParserParams => StreamReading.Read(
                         this,
                         EnsureParserRangeDoesNotExceedReadersBoundaries(underlyingParserParams),
@@ -163,7 +163,7 @@ namespace LogJoint
         protected abstract BaseStrategy CreateSingleThreadedStrategy();
         protected abstract BaseStrategy CreateMultiThreadedStrategy();
 
-        protected virtual DejitteringParams? GetDejitteringParams()
+        protected virtual StreamReorderingParams? GetDejitteringParams()
         {
             return null;
         }

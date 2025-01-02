@@ -88,7 +88,7 @@ namespace LogJoint.Tests
             }
             ReadMessagesParams validatedParams = originalParams;
             validatedParams.EnsureStartPositionIsInRange();
-            await using (var jitter = DejitteringMessagesParser.Create(
+            await using (var jitter = StreamReordering.Reorder(
                 p => UnderlyingParser(logContent, p), originalParams, jitterBufferSize).GetAsyncEnumerator())
             {
                 int messageIdx;

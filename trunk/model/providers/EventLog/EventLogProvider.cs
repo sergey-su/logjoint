@@ -24,7 +24,7 @@ namespace LogJoint.WindowsEventLog
                 modelSynchronizationContext,
                 globalSettings,
                 fileSystem,
-                new DejitteringParams() { JitterBufferSize = 25 })
+                new StreamReorderingParams() { JitterBufferSize = 25 })
         {
         }
 

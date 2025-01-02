@@ -19,7 +19,7 @@ namespace LogJoint.JsonFormat
         public readonly BoundFinder BeginFinder;
         public readonly BoundFinder EndFinder;
         public readonly TextStreamPositioningParams TextStreamPositioningParams;
-        public readonly DejitteringParams? DejitteringParams;
+        public readonly StreamReorderingParams? DejitteringParams;
         public readonly IFormatViewOptions ViewOptions;
         public readonly JObject Transform;
 
@@ -27,7 +27,7 @@ namespace LogJoint.JsonFormat
                 string transform, LoadedRegex headRe, LoadedRegex bodyRe,
                 BoundFinder beginFinder, BoundFinder endFinder, string encoding,
                 TextStreamPositioningParams textStreamPositioningParams,
-                DejitteringParams? dejitteringParams, IFormatViewOptions viewOptions) :
+                StreamReorderingParams? dejitteringParams, IFormatViewOptions viewOptions) :
             base(MessagesReaderExtensions.XmlInitializationParams.Empty)
         {
             Encoding = encoding;
@@ -285,14 +285,14 @@ namespace LogJoint.JsonFormat
             return new MultiThreadedStrategyImpl(this);
         }
 
-        protected override DejitteringParams? GetDejitteringParams()
+        protected override StreamReorderingParams? GetDejitteringParams()
         {
             return this.formatInfo.DejitteringParams;
         }
 
         public override IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
         {
-            return SearchingParser.Search(
+            return StreamSearching.Search(
                 this,
                 p,
                 ((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
@@ -362,7 +362,7 @@ namespace LogJoint.JsonFormat
                 LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline, null);
                 string encoding = ReadParameter(formatSpecificNode, "encoding");
 
-                DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
+                StreamReorderingParams? dejitteringParams = StreamReorderingParams.FromConfigNode(
                     formatSpecificNode.Element("dejitter"));
 
                 TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
