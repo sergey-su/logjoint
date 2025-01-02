@@ -161,7 +161,7 @@ namespace LogJoint
         /// </remarks>
         IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p);
 
-        Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p);
+        IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p);
     };
 
     public interface ITextStreamPositioningParamsProvider
@@ -178,11 +178,6 @@ namespace LogJoint
             Message = msg;
             PostprocessingResult = postprocessingResult;
         }
-    };
-
-    public interface ISearchingParser : IAsyncDisposable
-    {
-        ValueTask<SearchResultMessage> GetNext();
     };
 
     public struct MediaBasedReaderParams

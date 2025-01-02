@@ -314,9 +314,9 @@ namespace LogJoint.Tests
                 }
             }
 
-            public Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
+            public IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
             {
-                return Task.FromResult<ISearchingParser>(null);
+                return null;
             }
 
             #endregion

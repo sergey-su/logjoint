@@ -125,9 +125,9 @@ namespace LogJoint
             );
         }
 
-        public virtual Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
+        public virtual IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
         {
-            return Task.FromResult<ISearchingParser>(null);
+            return null;
         }
 
         async ValueTask<int> IPositionedMessagesReader.GetContentsEtag()

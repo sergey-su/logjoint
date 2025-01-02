@@ -11,7 +11,7 @@ using LogJoint.Search;
 
 namespace LogJoint
 {
-    class SearchingParser : ISearchingParser
+    class SearchingParser : IAsyncDisposable
     {
         readonly IPositionedMessagesReader owner;
         readonly SearchMessagesParams parserParams;
@@ -31,7 +31,29 @@ namespace LogJoint
         IEnumeratorAsync<SearchResultMessage> enumerator;
         readonly IFilter dummyFilter;
 
-        public SearchingParser(
+        public static async IAsyncEnumerable<SearchResultMessage> Search(IPositionedMessagesReader owner,
+            SearchMessagesParams p,
+            TextStreamPositioningParams textStreamPositioningParams,
+            DejitteringParams? dejitteringParams,
+            Stream rawStream,
+            Encoding streamEncoding,
+            bool allowPlainTextSearchOptimization,
+            LoadedRegex headerRe,
+            ITraceSourceFactory traceSourceFactory,
+            RegularExpressions.IRegexFactory regexFactory)
+        {
+            await using var parser = new SearchingParser(owner, p, textStreamPositioningParams, dejitteringParams,
+                rawStream, streamEncoding, allowPlainTextSearchOptimization, headerRe, traceSourceFactory, regexFactory);
+            for (; ; )
+            {
+                SearchResultMessage message = await parser.GetNext();
+                if (message.Message == null)
+                    break;
+                yield return message;
+            }
+        }
+
+        private SearchingParser(
             IPositionedMessagesReader owner,
             SearchMessagesParams p,
             TextStreamPositioningParams textStreamPositioningParams,
@@ -69,19 +91,19 @@ namespace LogJoint
             this.impl = Enum();
         }
 
-        async ValueTask<SearchResultMessage> ISearchingParser.GetNext()
+        async ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            if (enumerator != null)
+                await enumerator.Dispose();
+        }
+
+        private async ValueTask<SearchResultMessage> GetNext()
         {
             if (enumerator == null)
                 enumerator = await impl.GetEnumerator();
             if (!await enumerator.MoveNext())
                 return new SearchResultMessage();
             return enumerator.Current;
-        }
-
-        async ValueTask IAsyncDisposable.DisposeAsync()
-        {
-            if (enumerator != null)
-                await enumerator.Dispose();
         }
 
         class MessagesPostprocessor : IMessagesPostprocessor

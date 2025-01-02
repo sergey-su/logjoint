@@ -59,9 +59,9 @@ namespace LogJoint
             return underliyingReader.Read(p);
         }
 
-        public Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
+        public IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
         {
-            return underliyingReader.CreateSearchingParser(p);
+            return underliyingReader.Search(p);
         }
 
         ValueTask<int> IPositionedMessagesReader.GetContentsEtag()

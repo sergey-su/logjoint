@@ -575,9 +575,9 @@ namespace LogJoint.XmlFormat
             return this.formatInfo.DejitteringParams;
         }
 
-        public override Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
+        public override IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
         {
-            return Task.FromResult<ISearchingParser>(new SearchingParser(
+            return SearchingParser.Search(
                 this,
                 p,
                 ((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
@@ -588,7 +588,7 @@ namespace LogJoint.XmlFormat
                 formatInfo.HeadRe,
                 traceSourceFactory,
                 regexFactory
-            ));
+            );
         }
     };
 

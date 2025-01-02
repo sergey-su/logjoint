@@ -76,11 +76,9 @@ namespace LogJoint
 
             try
             {
-                await using var parser = await ctx.Reader.CreateSearchingParser(parserParams);
-                for (; ; )
+                await foreach (var msg in ctx.Reader.Search(parserParams))
                 {
-                    var msg = await parser.GetNext();
-                    if (msg.Message == null || !callback(msg))
+                    if (!callback(msg))
                         break;
                 }
             }

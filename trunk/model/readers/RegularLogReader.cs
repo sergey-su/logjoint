@@ -288,13 +288,13 @@ namespace LogJoint.RegularGrammar
             return fmtInfo.DejitteringParams;
         }
 
-        public override async Task<ISearchingParser> CreateSearchingParser(SearchMessagesParams p)
+        public override async IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
         {
             var allowPlainTextSearchOptimization =
                    (fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0
                 || p.SearchParams.SearchInRawText
                 || await isBodySingleFieldExpression.Value;
-            return new SearchingParser(
+            await foreach (var m in SearchingParser.Search(
                 this,
                 p,
                 ((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
@@ -305,7 +305,10 @@ namespace LogJoint.RegularGrammar
                 fmtInfo.HeadRe,
                 traceSourceFactory,
                 regexFactory
-            );
+            ))
+            {
+                yield return m;
+            }
         }
     };
 
