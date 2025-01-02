@@ -1039,7 +1039,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
                 }
 
                 [Test]
-                public async Task CanLoadNereastMessageInMiddleOfLog()
+                public async Task CanLoadNearastMessageInMiddleOfLog()
                 {
                     var nearestMsg = src2.messages.Items[2];
                     Assert.That(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
