@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using LogJoint.Postprocessing;
 using LogJoint.Search;
 
 namespace LogJoint
@@ -25,10 +24,10 @@ namespace LogJoint
         readonly StreamTextAccess aligmentTextAccess;
         readonly MessagesSplitter aligmentSplitter;
         readonly TextMessageCapture aligmentCapture;
-        readonly IEnumerableAsync<SearchResultMessage> impl;
+        readonly IAsyncEnumerable<SearchResultMessage> impl;
         readonly LJTraceSource trace;
         readonly RegularExpressions.IRegexFactory regexFactory;
-        IEnumeratorAsync<SearchResultMessage> enumerator;
+        IAsyncEnumerator<SearchResultMessage> enumerator;
         readonly IFilter dummyFilter;
 
         public static async IAsyncEnumerable<SearchResultMessage> Search(IPositionedMessagesReader owner,
@@ -94,14 +93,14 @@ namespace LogJoint
         async ValueTask IAsyncDisposable.DisposeAsync()
         {
             if (enumerator != null)
-                await enumerator.Dispose();
+                await enumerator.DisposeAsync();
         }
 
         private async ValueTask<SearchResultMessage> GetNext()
         {
             if (enumerator == null)
-                enumerator = await impl.GetEnumerator();
-            if (!await enumerator.MoveNext())
+                enumerator = impl.GetAsyncEnumerator();
+            if (!await enumerator.MoveNextAsync())
                 return new SearchResultMessage();
             return enumerator.Current;
         }
@@ -167,54 +166,48 @@ namespace LogJoint
             }
         };
 
-        IEnumerableAsync<SearchResultMessage> Enum()
+        async IAsyncEnumerable<SearchResultMessage> Enum()
         {
-            return EnumerableAsync.Produce<SearchResultMessage>(async yieldAsync =>
+            IMessagesPostprocessor postprocessor() => new MessagesPostprocessor(parserParams.SearchParams, trace, dummyFilter);
+            long searchableRangesLength = 0;
+            int searchableRangesCount = 0;
+            long totalMessagesCount = 0;
+            long totalHitsCount = 0;
+            await foreach (var currentSearchableRange in EnumSearchableRanges())
             {
-                IMessagesPostprocessor postprocessor() => new MessagesPostprocessor(parserParams.SearchParams, trace, dummyFilter);
-                long searchableRangesLength = 0;
-                int searchableRangesCount = 0;
-                long totalMessagesCount = 0;
-                long totalHitsCount = 0;
-                await EnumSearchableRanges().ForEach(async currentSearchableRange =>
+                searchableRangesLength += currentSearchableRange.Length;
+                ++searchableRangesCount;
+                long messagesCount = 0;
+                long hitsCount = 0;
+                await foreach (PostprocessedMessage tmp in CreateParserForSearchableRange(currentSearchableRange, postprocessor))
                 {
-                    searchableRangesLength += currentSearchableRange.Length;
-                    ++searchableRangesCount;
-                    long messagesCount = 0;
-                    long hitsCount = 0;
-                    await foreach (PostprocessedMessage tmp in CreateParserForSearchableRange(currentSearchableRange, postprocessor))
+                    ++messagesCount;
+
+                    var msg = tmp.Message;
+                    var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
+                        tmp.PostprocessingResult, dummyFilter);
+
+                    if (filteringResult.Action != FilterAction.Exclude)
                     {
-                        ++messagesCount;
-
-                        var msg = tmp.Message;
-                        var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
-                            tmp.PostprocessingResult, dummyFilter);
-
-                        if (filteringResult.Action != FilterAction.Exclude)
-                        {
-                            ++hitsCount;
-                            await yieldAsync.YieldAsync(new SearchResultMessage(msg, filteringResult));
-                        }
-
-                        progressAndCancellation.HandleMessageReadingProgress(msg.Position);
-                        progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
-
-                        progressAndCancellation.CheckTextIterationCancellation();
+                        ++hitsCount;
+                        yield return new SearchResultMessage(msg, filteringResult);
                     }
-                    PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange),
-                        hitsCount, messagesCount);
-                    totalMessagesCount += messagesCount;
-                    totalHitsCount += hitsCount;
-                    return true;
-                });
-                trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);
-                trace.Info("Stats: ave searchable range len: {0}",
-                            searchableRangesCount != 0 ? searchableRangesLength / searchableRangesCount : 0);
-                PrintPctStats("searchable ranges coverage pct", searchableRangesLength, requestedRange.Length);
-                PrintPctStats("hits pct overall", totalHitsCount, totalMessagesCount);
 
-                await yieldAsync.YieldAsync(new SearchResultMessage(null, new MessageFilteringResult()));
-            });
+                    progressAndCancellation.HandleMessageReadingProgress(msg.Position);
+                    progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
+
+                    progressAndCancellation.CheckTextIterationCancellation();
+                }
+                PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange),
+                    hitsCount, messagesCount);
+                totalMessagesCount += messagesCount;
+                totalHitsCount += hitsCount;
+            }
+            trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);
+            trace.Info("Stats: ave searchable range len: {0}",
+                        searchableRangesCount != 0 ? searchableRangesLength / searchableRangesCount : 0);
+            PrintPctStats("searchable ranges coverage pct", searchableRangesLength, requestedRange.Length);
+            PrintPctStats("hits pct overall", totalHitsCount, totalMessagesCount);
         }
 
         void PrintPctStats(string name, long num, long denum)
@@ -222,37 +215,33 @@ namespace LogJoint
             trace.Info("Stats: {0}: {1:F4}%", name, denum != 0 ? num * 100d / denum : 0d);
         }
 
-        IEnumerableAsync<FileRange.Range> EnumSearchableRanges()
+        async IAsyncEnumerable<FileRange.Range> EnumSearchableRanges()
         {
-            return EnumerableAsync.Produce<FileRange.Range>(async yieldAsync =>
+            var matcher = new PlainTextMatcher(parserParams, textStreamPositioningParams, plainTextSearchOptimizationAllowed, regexFactory);
+            if (!matcher.PlainTextSearchOptimizationPossible)
             {
-                var matcher = new PlainTextMatcher(parserParams, textStreamPositioningParams, plainTextSearchOptimizationAllowed, regexFactory);
-                if (!matcher.PlainTextSearchOptimizationPossible)
+                yield return requestedRange;
+                yield break;
+            }
+            long? skipRangesDownThisPosition = null;
+            await foreach (var currentRange in EnumSearchableRangesCore(matcher))
+            {
+                if (skipRangesDownThisPosition == null)
                 {
-                    await yieldAsync.YieldAsync(requestedRange);
-                    return;
+                    yield return currentRange;
                 }
-                long? skipRangesDownThisPosition = null;
-                await EnumSearchableRangesCore(matcher).ForEach(async currentRange =>
+                else
                 {
-                    if (skipRangesDownThisPosition == null)
-                    {
-                        await yieldAsync.YieldAsync(currentRange);
-                    }
+                    long skipRangesDownThisPositionVal = skipRangesDownThisPosition.Value;
+                    if (currentRange.End < skipRangesDownThisPositionVal) // todo: < or <= ?
+                        continue;
+                    skipRangesDownThisPosition = null;
+                    if (currentRange.Begin < skipRangesDownThisPositionVal) // todo: < or <= ?
+                        yield return new FileRange.Range(skipRangesDownThisPositionVal, currentRange.End);
                     else
-                    {
-                        long skipRangesDownThisPositionVal = skipRangesDownThisPosition.Value;
-                        if (currentRange.End < skipRangesDownThisPositionVal) // todo: < or <= ?
-                            return true;
-                        skipRangesDownThisPosition = null;
-                        if (currentRange.Begin < skipRangesDownThisPositionVal) // todo: < or <= ?
-                            await yieldAsync.YieldAsync(new FileRange.Range(skipRangesDownThisPositionVal, currentRange.End));
-                        else
-                            await yieldAsync.YieldAsync(currentRange);
-                    }
-                    return true;
-                });
-            });
+                        yield return currentRange;
+                }
+            }
         }
 
         IAsyncEnumerable<PostprocessedMessage> CreateParserForSearchableRange(
@@ -268,28 +257,24 @@ namespace LogJoint
                 messagesPostprocessor));
         }
 
-        IEnumerableAsync<FileRange.Range> EnumSearchableRangesCore(PlainTextMatcher matcher)
+        async IAsyncEnumerable<FileRange.Range> EnumSearchableRangesCore(PlainTextMatcher matcher)
         {
-            return EnumerableAsync.Produce<FileRange.Range>(async yieldAsync =>
+            ITextAccess ta = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
+            using var tai = await ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward);
+            var lastRange = new FileRange.Range();
+            await foreach (var r in IterateMatchRanges(
+                EnumCheckpoints(tai, matcher, progressAndCancellation, trace),
+                // todo: tune next parameter to find the value giving max performance.
+                // On one sample log bigger block was better than many small ones. 
+                // Hence quite big threshold.
+                textStreamPositioningParams.AlignmentBlockSize * 8,
+                progressAndCancellation
+            ))
             {
-                ITextAccess ta = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
-                using var tai = await ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward);
-                var lastRange = new FileRange.Range();
-                await IterateMatchRanges(
-                    EnumCheckpoints(tai, matcher, progressAndCancellation, trace),
-                    // todo: tune next parameter to find the value giving max performance.
-                    // On one sample log bigger block was better than many small ones. 
-                    // Hence quite big threshold.
-                    textStreamPositioningParams.AlignmentBlockSize * 8,
-                    progressAndCancellation
-                ).ForEach(async r =>
-                {
-                    var postprocessedRange = await PostprocessHintRange(r, lastRange);
-                    lastRange = postprocessedRange;
-                    await yieldAsync.YieldAsync(postprocessedRange);
-                    return true;
-                });
-            });
+                var postprocessedRange = await PostprocessHintRange(r, lastRange);
+                lastRange = postprocessedRange;
+                yield return postprocessedRange;
+            }
         }
 
         async Task<FileRange.Range> PostprocessHintRange(FileRange.Range r, FileRange.Range lastRange)
@@ -356,104 +341,97 @@ namespace LogJoint
             public bool IsMatch;
         };
 
-        static IEnumerableAsync<Checkpoint> EnumCheckpoints(
+        static async IAsyncEnumerable<Checkpoint> EnumCheckpoints(
             ITextAccessIterator tai, PlainTextMatcher matcher,
             ProgressAndCancellation progressAndCancellation,
             LJTraceSource trace)
         {
-            return EnumerableAsync.Produce<Checkpoint>(async yieldAsync =>
+            var advanceTime = new Stopwatch();
+            long advancesCount = 0;
+            var matchingTime = new Stopwatch();
+            long matchCount = 0;
+            for (; ; )
             {
-                var advanceTime = new Stopwatch();
-                long advancesCount = 0;
-                var matchingTime = new Stopwatch();
-                long matchCount = 0;
-                for (; ; )
+                StringSlice buf = new StringSlice(tai.CurrentBuffer);
+                for (int startIdx = 0; ;)
                 {
-                    StringSlice buf = new StringSlice(tai.CurrentBuffer);
-                    for (int startIdx = 0; ;)
-                    {
-                        matchingTime.Start();
-                        var match = matcher.Match(buf, startIdx);
-                        matchingTime.Stop();
-                        ++matchCount;
-                        if (!match.HasValue)
-                            break;
-                        await yieldAsync.YieldAsync(new Checkpoint()
-                        {
-                            Position = tai.CharIndexToPosition(match.Value.MatchBegin),
-                            EndPosition = tai.CharIndexToPosition(match.Value.MatchEnd),
-                            IsMatch = true
-                        });
-                        startIdx = match.Value.MatchEnd;
-                        progressAndCancellation.CheckTextIterationCancellation();
-                    }
-                    advanceTime.Start();
-                    bool stop = !await tai.Advance(Math.Max(0, tai.CurrentBuffer.Length - matcher.MaxMatchLength));
-                    advanceTime.Stop();
-                    ++advancesCount;
-                    if (stop)
-                    {
+                    matchingTime.Start();
+                    var match = matcher.Match(buf, startIdx);
+                    matchingTime.Stop();
+                    ++matchCount;
+                    if (!match.HasValue)
                         break;
-                    }
-                    await yieldAsync.YieldAsync(new Checkpoint()
+                    yield return new Checkpoint()
                     {
-                        EndPosition = tai.CharIndexToPosition(0),
-                        IsMatch = false
-                    });
+                        Position = tai.CharIndexToPosition(match.Value.MatchBegin),
+                        EndPosition = tai.CharIndexToPosition(match.Value.MatchEnd),
+                        IsMatch = true
+                    };
+                    startIdx = match.Value.MatchEnd;
                     progressAndCancellation.CheckTextIterationCancellation();
                 }
-                trace.Info("Stats: text buffer matching time: {0} ({1} times)",
-                    matchingTime.Elapsed, matchCount);
-                trace.Info("Stats: text buffer advance time: {0}/{1}={2}",
-                    advanceTime.Elapsed, advancesCount,
-                    TimeSpan.FromTicks(advanceTime.ElapsedTicks / Math.Max(1, advancesCount)));
-            });
+                advanceTime.Start();
+                bool stop = !await tai.Advance(Math.Max(0, tai.CurrentBuffer.Length - matcher.MaxMatchLength));
+                advanceTime.Stop();
+                ++advancesCount;
+                if (stop)
+                {
+                    break;
+                }
+                yield return new Checkpoint()
+                {
+                    EndPosition = tai.CharIndexToPosition(0),
+                    IsMatch = false
+                };
+                progressAndCancellation.CheckTextIterationCancellation();
+            }
+            trace.Info("Stats: text buffer matching time: {0} ({1} times)",
+                matchingTime.Elapsed, matchCount);
+            trace.Info("Stats: text buffer advance time: {0}/{1}={2}",
+                advanceTime.Elapsed, advancesCount,
+                TimeSpan.FromTicks(advanceTime.ElapsedTicks / Math.Max(1, advancesCount)));
         }
 
-        static IEnumerableAsync<FileRange.Range> IterateMatchRanges(
-            IEnumerableAsync<Checkpoint> checkpoints, long threshhold, ProgressAndCancellation progressAndCancellation)
+        static async IAsyncEnumerable<FileRange.Range> IterateMatchRanges(
+            IAsyncEnumerable<Checkpoint> checkpoints, long threshhold, ProgressAndCancellation progressAndCancellation)
         {
-            return EnumerableAsync.Produce<FileRange.Range>(async yieldAsync =>
+            FileRange.Range? lastMatch = null;
+            await foreach (Checkpoint checkpoint in checkpoints)
             {
-                FileRange.Range? lastMatch = null;
-                await checkpoints.ForEach(async checkpoint =>
+                if (lastMatch == null)
                 {
-                    if (lastMatch == null)
+                    if (checkpoint.IsMatch)
+                        lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
+                    else
+                    {
+                        progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
+                        progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
+                    }
+                }
+                else
+                {
+                    FileRange.Range lastMatchVal = lastMatch.Value;
+                    if (checkpoint.Position - lastMatchVal.End < threshhold)
                     {
                         if (checkpoint.IsMatch)
-                            lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
-                        else
-                        {
-                            progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
-                            progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
-                        }
+                            lastMatch = new FileRange.Range(lastMatchVal.Begin, checkpoint.EndPosition);
                     }
                     else
                     {
-                        FileRange.Range lastMatchVal = lastMatch.Value;
-                        if (checkpoint.Position - lastMatchVal.End < threshhold)
-                        {
-                            if (checkpoint.IsMatch)
-                                lastMatch = new FileRange.Range(lastMatchVal.Begin, checkpoint.EndPosition);
-                        }
+                        yield return lastMatchVal;
+                        progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
+                        progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
+                        if (checkpoint.IsMatch)
+                            lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
                         else
-                        {
-                            await yieldAsync.YieldAsync(lastMatchVal);
-                            progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
-                            progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
-                            if (checkpoint.IsMatch)
-                                lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
-                            else
-                                lastMatch = null;
-                        }
+                            lastMatch = null;
                     }
-                    return true;
-                });
-                if (lastMatch != null)
-                {
-                    await yieldAsync.YieldAsync(lastMatch.Value);
                 }
-            });
+            }
+            if (lastMatch != null)
+            {
+                yield return lastMatch.Value;
+            }
         }
 
         class PlainTextMatcher
