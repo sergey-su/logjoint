@@ -346,7 +346,7 @@ namespace LogJoint.XmlFormat
         }
     };
 
-    class MessagesReader : MediaBasedPositionedMessagesReader
+    class MessagesReader : MediaBasedMessagesReader
     {
         internal XmlFormatInfo formatInfo;
         readonly XsltArgumentList transformArgs;
@@ -675,7 +675,7 @@ namespace LogJoint.XmlFormat
             get { return LogProviderFactoryFlag.SupportsRotation; }
         }
 
-        IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
+        IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
             return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings);
         }
@@ -716,8 +716,8 @@ namespace LogJoint.XmlFormat
 
         private delegate ILogProvider ProviderFactory(
             ILogProviderHost host, IConnectionParams connectionParams, UserDefinedFormatFactory factory,
-            Func<MediaBasedReaderParams, IPositionedMessagesReader> readerFactory);
-        private delegate IPositionedMessagesReader ReaderFactory(
+            Func<MediaBasedReaderParams, IMessagesReader> readerFactory);
+        private delegate IMessagesReader ReaderFactory(
             MediaBasedReaderParams @params, XmlFormatInfo fmtInfo);
 
         private UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
@@ -817,7 +817,7 @@ namespace LogJoint.XmlFormat
 
         #endregion
 
-        IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
+        IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
             return readerFactory(readerParams, formatInfo.Value);
         }

@@ -456,7 +456,7 @@ namespace LogJoint
 
     /// <summary>
     /// Solves 'read-message-from-the-middle' problem. See the descirpion
-    /// for IPositionedMessagesReader interface for details.
+    /// for IMessagesReader interface for details.
     /// ReadMessageFromTheMiddleProblem implements IMessagesSplitter. 
     /// It is a decorator for another IMessagesSplitter.
     /// </summary>

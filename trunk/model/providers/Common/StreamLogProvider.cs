@@ -18,7 +18,7 @@ namespace LogJoint
     public class StreamLogProvider : AsyncLogProvider, ISaveAs
     {
         ILogMedia media;
-        IPositionedMessagesReader reader;
+        IMessagesReader reader;
         readonly ITempFilesManager tempFilesManager;
         bool isSavableAs;
         string suggestedSaveAsFileName;
@@ -28,7 +28,7 @@ namespace LogJoint
             ILogProviderHost host,
             ILogProviderFactory factory,
             IConnectionParams connectParams,
-            Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator,
+            Func<MediaBasedReaderParams, IMessagesReader> readerCreator,
             ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext,

@@ -12,7 +12,7 @@ namespace LogJoint
     public static class PositionedMessagesUtils
     {
 
-        public static async Task<long> NormalizeMessagePosition(IPositionedMessagesReader reader,
+        public static async Task<long> NormalizeMessagePosition(IMessagesReader reader,
             long position)
         {
             if (position == reader.BeginPosition)
@@ -24,7 +24,7 @@ namespace LogJoint
             return reader.EndPosition;
         }
 
-        public static async Task<long?> FindNextMessagePosition(IPositionedMessagesReader reader,
+        public static async Task<long?> FindNextMessagePosition(IMessagesReader reader,
             long originalMessagePos)
         {
             // Validate the input.
@@ -44,7 +44,7 @@ namespace LogJoint
             return null;
         }
 
-        public static async Task<long?> FindPrevMessagePosition(IPositionedMessagesReader reader,
+        public static async Task<long?> FindPrevMessagePosition(IMessagesReader reader,
             long originalMessagePos)
         {
             long nextMessagePos = reader.EndPosition;
@@ -64,7 +64,7 @@ namespace LogJoint
             return null;
         }
 
-        public static async Task<MessageTimestamp?> ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
+        public static async Task<MessageTimestamp?> ReadNearestMessageTimestamp(IMessagesReader reader, long position)
         {
             IMessage m = await ReadNearestMessage(reader, position, ReadMessagesFlag.HintMessageContentIsNotNeeed);
             if (m != null)
@@ -87,7 +87,7 @@ namespace LogJoint
         /// <param name="lastMessage">When the function returns 
         /// <paramref name="lastMessage"/> receives the message with the largest available position.</param>
         public static async Task<(IMessage firstMessage, IMessage lastMessage)> GetBoundaryMessages(
-            IPositionedMessagesReader reader,
+            IMessagesReader reader,
             IMessage cachedFirstMessage)
         {
             IMessage firstMessage, lastMessage;
@@ -111,12 +111,12 @@ namespace LogJoint
             return (firstMessage, lastMessage);
         }
 
-        public static async Task<long> LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound)
+        public static async Task<long> LocateDateBound(IMessagesReader reader, DateTime date, ValueBound bound)
         {
             return await LocateDateBound(reader, date, bound, CancellationToken.None);
         }
 
-        public static async Task<long> LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound, CancellationToken cancellation)
+        public static async Task<long> LocateDateBound(IMessagesReader reader, DateTime date, ValueBound bound, CancellationToken cancellation)
         {
             var d = new MessageTimestamp(date);
 
@@ -167,12 +167,12 @@ namespace LogJoint
             return pos;
         }
 
-        static public Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position)
+        static public Task<IMessage> ReadNearestMessage(IMessagesReader reader, long position)
         {
             return ReadNearestMessage(reader, position, ReadMessagesFlag.Default);
         }
 
-        static public async Task<IMessage> ReadNearestMessage(IPositionedMessagesReader reader, long position, ReadMessagesFlag flags)
+        static public async Task<IMessage> ReadNearestMessage(IMessagesReader reader, long position, ReadMessagesFlag flags)
         {
             await foreach (var msg in reader.Read(new ReadMessagesParams(position, null, flags, ReadMessagesDirection.Forward)))
             {

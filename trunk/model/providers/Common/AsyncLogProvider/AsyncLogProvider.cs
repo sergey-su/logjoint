@@ -27,7 +27,7 @@ namespace LogJoint
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
-        protected void StartAsyncReader(Func<Task<IPositionedMessagesReader>> readerFactory)
+        protected void StartAsyncReader(Func<Task<IMessagesReader>> readerFactory)
         {
             Debug.Assert(this.thread == null);
             Debug.Assert(reader == null);
@@ -271,7 +271,7 @@ namespace LogJoint
             }
         }
 
-        protected virtual long CalcTotalBytesStats(IPositionedMessagesReader reader)
+        protected virtual long CalcTotalBytesStats(IMessagesReader reader)
         {
             return reader.SizeInBytes;
         }
@@ -284,7 +284,7 @@ namespace LogJoint
             cmd.Complete();
         }
 
-        async Task Run(Func<Task<IPositionedMessagesReader>> readerFactory)
+        async Task Run(Func<Task<IMessagesReader>> readerFactory)
         {
             try
             {
@@ -676,7 +676,7 @@ namespace LogJoint
         private readonly Settings.IGlobalSettingsAccessor globalSettings;
         Task thread;
         Exception threadFailureException;
-        IPositionedMessagesReader reader;
+        IMessagesReader reader;
         readonly VCSKicksCollection.PriorityQueue<Command> commands = new VCSKicksCollection.PriorityQueue<Command>(new Command.Comparer());
         TaskCompletionSource<int> commandPosted = new TaskCompletionSource<int>();
         CurrentCommandPreemption currentCommandPreemption;

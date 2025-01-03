@@ -80,7 +80,7 @@ namespace LogJoint
         {
             Range = null;
         }
-        public void EnsureRangeIsSet(IPositionedMessagesReader reader)
+        public void EnsureRangeIsSet(IMessagesReader reader)
         {
             if (reader == null)
                 throw new ArgumentNullException("reader");
@@ -105,14 +105,14 @@ namespace LogJoint
     };
 
     /// <summary>
-    /// IPositionedMessagesReader is a generalization of a text log file.
+    /// IMessagesReader is a generalization of a text log file.
     /// It represents a stream of data that supports random positioning.
     /// Positions are long integers. The stream has boundaries - BeginPosition, EndPosition.
     /// EndPosition - is a valid position but represents past-the-end position of the stream.
     /// To read messages from the stream one uses a 'parser'. Parsers created by CreateParser().
     /// </summary>
     /// <remarks>
-    /// IPositionedMessagesReader introduces 'read-message-from-the-middle' problem.
+    /// IMessagesReader introduces 'read-message-from-the-middle' problem.
     /// The problem is that a client can create a parser that starts at position that 
     /// points somewhere in the middle of a message. This reader
     /// can successfully read something that it thinks is a correct message. But it
@@ -122,7 +122,7 @@ namespace LogJoint
     /// correct beginning position. Generally the client cannot be sure that 
     /// the first message starts correctly.
     /// </remarks>
-    public interface IPositionedMessagesReader : IDisposable
+    public interface IMessagesReader : IDisposable
     {
         /// <summary>
         /// Returns the minimum allowed position for this stream
@@ -200,6 +200,6 @@ namespace LogJoint
 
     public interface IMediaBasedReaderFactory
     {
-        IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams);
+        IMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams);
     };
 }

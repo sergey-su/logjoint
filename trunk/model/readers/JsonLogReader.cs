@@ -42,7 +42,7 @@ namespace LogJoint.JsonFormat
         }
     };
 
-    class MessagesReader : MediaBasedPositionedMessagesReader
+    class MessagesReader : MediaBasedMessagesReader
     {
         internal JsonFormatInfo formatInfo;
         readonly ILogSourceThreadsInternal threads;
@@ -333,8 +333,8 @@ namespace LogJoint.JsonFormat
 
         private delegate ILogProvider ProviderFactory(
             ILogProviderHost host, IConnectionParams connectionParams, UserDefinedFormatFactory factory,
-            Func<MediaBasedReaderParams, IPositionedMessagesReader> readerFactory);
-        private delegate IPositionedMessagesReader ReaderFactory(
+            Func<MediaBasedReaderParams, IMessagesReader> readerFactory);
+        private delegate IMessagesReader ReaderFactory(
             MediaBasedReaderParams @params, JsonFormatInfo fmtInfo);
 
         private UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
@@ -418,7 +418,7 @@ namespace LogJoint.JsonFormat
             return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder, this, patterns);
         }
 
-        IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
+        IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
             return readerFactory(readerParams, formatInfo.Value);
         }

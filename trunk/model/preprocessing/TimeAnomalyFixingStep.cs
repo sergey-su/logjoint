@@ -69,7 +69,7 @@ namespace LogJoint.Preprocessing
             using (var reader = readerFactory.CreateMessagesReader(
                 new MediaBasedReaderParams(threads, fileMedia)))
             {
-                var readerImpl = reader as MediaBasedPositionedMessagesReader; // todo: do not use real classes; have stream encoding in an interface.
+                var readerImpl = reader as MediaBasedMessagesReader; // todo: do not use real classes; have stream encoding in an interface.
                 if (readerImpl == null)
                     throw new InvalidDataException("bad reader was made by factory " + factoryName);
                 await reader.UpdateAvailableBounds(false);

@@ -9,7 +9,7 @@ namespace LogJoint.Tests
     [TestFixture]
     public class PositionedMessagesUtilsTests
     {
-        public sealed class TestReader : IPositionedMessagesReader
+        public sealed class TestReader : IMessagesReader
         {
             public TestReader(long[] positions)
             {
@@ -62,7 +62,7 @@ namespace LogJoint.Tests
                 return range.Length;
             }
 
-            ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
+            ValueTask<int> IMessagesReader.GetContentsEtag()
             {
                 CheckDisposed();
                 return new ValueTask<int>(0);

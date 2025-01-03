@@ -14,7 +14,7 @@ namespace LogJoint
         };
 
         public static async IAsyncEnumerable<PostprocessedMessage> Read(
-            IPositionedMessagesReader owner,
+            IMessagesReader owner,
             ReadMessagesParams readParams,
             TextStreamPositioningParams textStreamPositioningParams,
             IGlobalSettingsAccessor globalSettings,
@@ -39,7 +39,7 @@ namespace LogJoint
             private readonly StreamReadingStrategies.BaseStrategy strategy;
 
             public Impl(
-                IPositionedMessagesReader owner,
+                IMessagesReader owner,
                 ReadMessagesParams readParams,
                 TextStreamPositioningParams textStreamPositioningParams,
                 IGlobalSettingsAccessor globalSettings,

@@ -53,7 +53,7 @@ namespace LogJoint.PlainText
             return ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(fileName);
         }
 
-        protected override long CalcTotalBytesStats(IPositionedMessagesReader reader)
+        protected override long CalcTotalBytesStats(IMessagesReader reader)
         {
             return sizeInBytesStat;
         }

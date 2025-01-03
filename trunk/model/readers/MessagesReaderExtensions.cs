@@ -56,7 +56,7 @@ namespace LogJoint
             readonly List<InitializationDataItem> items = new List<InitializationDataItem>();
         };
 
-        public MessagesReaderExtensions(IPositionedMessagesReader owner, XmlInitializationParams initializationData = null)
+        public MessagesReaderExtensions(IMessagesReader owner, XmlInitializationParams initializationData = null)
         {
             this.owner = owner;
             if (initializationData != null)
@@ -194,7 +194,7 @@ namespace LogJoint
                 throw new InvalidOperationException("Operation is not allowed for extensions collection that is not connected to a messages reader");
         }
 
-        readonly IPositionedMessagesReader owner;
+        readonly IMessagesReader owner;
         readonly List<ExtensionDataInternal> items = new List<ExtensionDataInternal>();
         bool attached;
 

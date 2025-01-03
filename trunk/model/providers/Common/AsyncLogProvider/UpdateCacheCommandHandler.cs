@@ -210,7 +210,7 @@ namespace LogJoint
             }
         }
 
-        void UpdateLoadedTimeStats(IPositionedMessagesReader reader)
+        void UpdateLoadedTimeStats(IMessagesReader reader)
         {
             MessagesContainers.RangesManagingCollection tmp = buffer;
 
@@ -329,7 +329,7 @@ namespace LogJoint
         readonly LJTraceSource tracer;
         readonly MessagesContainers.RangesManagingCollection buffer;
         readonly Settings.IGlobalSettingsAccessor settingsAccessor;
-        IPositionedMessagesReader reader;
+        IMessagesReader reader;
         LogProviderStats currentStats;
 
         MessagesContainers.MessagesRange currentRange;

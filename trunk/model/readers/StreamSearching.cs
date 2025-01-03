@@ -12,7 +12,7 @@ namespace LogJoint
 {
     class StreamSearching : IAsyncDisposable
     {
-        readonly IPositionedMessagesReader owner;
+        readonly IMessagesReader owner;
         readonly SearchMessagesParams parserParams;
         readonly StreamReorderingParams? dejitteringParams;
         readonly TextStreamPositioningParams textStreamPositioningParams;
@@ -30,7 +30,7 @@ namespace LogJoint
         IAsyncEnumerator<SearchResultMessage> enumerator;
         readonly IFilter dummyFilter;
 
-        public static async IAsyncEnumerable<SearchResultMessage> Search(IPositionedMessagesReader owner,
+        public static async IAsyncEnumerable<SearchResultMessage> Search(IMessagesReader owner,
             SearchMessagesParams p,
             TextStreamPositioningParams textStreamPositioningParams,
             StreamReorderingParams? dejitteringParams,
@@ -53,7 +53,7 @@ namespace LogJoint
         }
 
         private StreamSearching(
-            IPositionedMessagesReader owner,
+            IMessagesReader owner,
             SearchMessagesParams p,
             TextStreamPositioningParams textStreamPositioningParams,
             StreamReorderingParams? dejitteringParams,

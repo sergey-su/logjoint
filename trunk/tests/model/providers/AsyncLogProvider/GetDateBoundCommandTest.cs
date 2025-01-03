@@ -247,7 +247,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 
         async Task TestSyncResults(FileRange.Range cachedRange, params string[] expectedSyncResults)
         {
-            IPositionedMessagesReader reader = new PositionedMessagesUtilsTests.TestReader(new long[] { 0, 10, 20, 30, 40, 50, 60 });
+            IMessagesReader reader = new PositionedMessagesUtilsTests.TestReader(new long[] { 0, 10, 20, 30, 40, 50, 60 });
             var (firstMsg, lastMsg) = await PositionedMessagesUtils.GetBoundaryMessages(reader, null);
             var availableTime = DateRange.MakeFromBoundaryValues(
                 firstMsg.Time.ToLocalDateTime(),

@@ -22,7 +22,7 @@ namespace LogJoint
     {
         readonly LJTraceSource trace = LJTraceSource.EmptyTracer;
         readonly LogMedia.IFileSystem fileSystem;
-        readonly Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator;
+        readonly Func<MediaBasedReaderParams, IMessagesReader> readerCreator;
         readonly IRollingFilesMediaStrategy rollingStrategy;
         readonly string baseDirectory;
         readonly LogMedia.IFileSystemWatcher fsWatcher;
@@ -34,7 +34,7 @@ namespace LogJoint
 
         public RollingFilesMedia(
             LogMedia.IFileSystem fileSystem,
-            Func<MediaBasedReaderParams, IPositionedMessagesReader> readerCreator,
+            Func<MediaBasedReaderParams, IMessagesReader> readerCreator,
             LJTraceSource traceSource,
             IRollingFilesMediaStrategy rollingStrategy)
         {
@@ -300,7 +300,7 @@ namespace LogJoint
                         if (firstMessageTime == null)
                         {
                             owner.trace.Info("First message time is unknown. Calculating it");
-                            using IPositionedMessagesReader reader = owner.readerCreator(
+                            using IMessagesReader reader = owner.readerCreator(
                                     new MediaBasedReaderParams(owner.tempThreads, SimpleMedia));
                             owner.trace.Info("Reader created");
 

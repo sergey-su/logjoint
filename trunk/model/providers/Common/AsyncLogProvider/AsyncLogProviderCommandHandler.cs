@@ -20,7 +20,7 @@ namespace LogJoint
         public LogProviderStats Stats;
 
         // can be used only in async part
-        public IPositionedMessagesReader Reader;
+        public IMessagesReader Reader;
     };
 
     internal class AsyncLogProviderDataCache

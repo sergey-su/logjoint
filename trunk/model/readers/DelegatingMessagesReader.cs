@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-    class DelegatingMessagesReader : IPositionedMessagesReader
+    class DelegatingMessagesReader : IMessagesReader
     {
-        public DelegatingMessagesReader(IPositionedMessagesReader underliyingReader)
+        public DelegatingMessagesReader(IMessagesReader underliyingReader)
         {
             if (underliyingReader == null)
                 throw new ArgumentNullException("underliyingReader");
             this.underliyingReader = underliyingReader;
         }
 
-        #region IPositionedMessagesReader Members
+        #region IMessagesReader Members
 
         public long BeginPosition
         {
@@ -64,7 +64,7 @@ namespace LogJoint
             return underliyingReader.Search(p);
         }
 
-        ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
+        ValueTask<int> IMessagesReader.GetContentsEtag()
         {
             return underliyingReader.GetContentsEtag();
         }
@@ -80,6 +80,6 @@ namespace LogJoint
 
         #endregion
 
-        protected readonly IPositionedMessagesReader underliyingReader;
+        protected readonly IMessagesReader underliyingReader;
     }
 }

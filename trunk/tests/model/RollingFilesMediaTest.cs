@@ -220,7 +220,7 @@ namespace LogJoint.Tests
             }
         };
 
-        class MessagesReader : IPositionedMessagesReader
+        class MessagesReader : IMessagesReader
         {
             ILogMedia media;
             public const int EmptyFileContent = 0;
@@ -231,7 +231,7 @@ namespace LogJoint.Tests
                 this.Media = readerParams.Media;
             }
 
-            #region IPositionedMessagesReader Members
+            #region IMessagesReader Members
 
             public long BeginPosition
             {
@@ -277,7 +277,7 @@ namespace LogJoint.Tests
 
             public ILogMedia Media { get => media; set => media = value; }
 
-            ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
+            ValueTask<int> IMessagesReader.GetContentsEtag()
             {
                 return ValueTask.FromResult(0);
             }

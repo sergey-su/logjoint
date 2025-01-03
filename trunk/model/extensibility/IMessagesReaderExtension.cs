@@ -6,7 +6,7 @@ namespace LogJoint
 {
     public interface IMessagesReaderExtension : IDisposable
     {
-        void Attach(IPositionedMessagesReader reader);
+        void Attach(IMessagesReader reader);
         void OnAvailableBoundsUpdated(AvailableBoundsUpdateNotificationArgs param);
     };
 

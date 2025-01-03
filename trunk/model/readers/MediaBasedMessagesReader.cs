@@ -10,11 +10,11 @@ using System.Collections.Generic;
 namespace LogJoint
 {
     /// <summary>
-    /// Implements IPositionedMessagesReader interface by getting the data from ILogMedia object.
+    /// Implements IMessagesReader interface by getting the data from ILogMedia object.
     /// </summary>
-    public abstract class MediaBasedPositionedMessagesReader : IPositionedMessagesReader, ITextStreamPositioningParamsProvider
+    public abstract class MediaBasedMessagesReader : IMessagesReader, ITextStreamPositioningParamsProvider
     {
-        internal MediaBasedPositionedMessagesReader(
+        internal MediaBasedMessagesReader(
             ILogMedia media,
             BoundFinder beginFinder,
             BoundFinder endFinder,
@@ -48,7 +48,7 @@ namespace LogJoint
             );
         }
 
-        #region IPositionedMessagesReader
+        #region IMessagesReader
 
         public long BeginPosition => beginPosition.Value;
 
@@ -130,7 +130,7 @@ namespace LogJoint
             return null;
         }
 
-        async ValueTask<int> IPositionedMessagesReader.GetContentsEtag()
+        async ValueTask<int> IMessagesReader.GetContentsEtag()
         {
             VolatileStream.Position = 0;
             byte[] buf = new byte[1024];

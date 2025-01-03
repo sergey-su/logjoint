@@ -65,7 +65,7 @@ namespace LogJoint.RegularGrammar
                 );
     };
 
-    public class MessagesReader : MediaBasedPositionedMessagesReader
+    public class MessagesReader : MediaBasedMessagesReader
     {
         readonly ILogSourceThreadsInternal threads;
         readonly FormatInfo fmtInfo;
@@ -343,8 +343,8 @@ namespace LogJoint.RegularGrammar
 
         private delegate ILogProvider ProviderFactory(
             ILogProviderHost host, IConnectionParams connectionParams, UserDefinedFormatFactory factory,
-            Func<MediaBasedReaderParams, IPositionedMessagesReader> readerFactory);
-        private delegate IPositionedMessagesReader ReaderFactory(
+            Func<MediaBasedReaderParams, IMessagesReader> readerFactory);
+        private delegate IMessagesReader ReaderFactory(
             MediaBasedReaderParams @params, FormatInfo fmtInfo);
 
 
@@ -393,7 +393,7 @@ namespace LogJoint.RegularGrammar
             uiKey = ReadParameter(formatSpecificNode, "ui-key");
         }
 
-        IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
+        IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
             return readerFactory(readerParams, fmtInfo.Value);
         }
