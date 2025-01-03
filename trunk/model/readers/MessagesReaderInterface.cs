@@ -153,10 +153,10 @@ namespace LogJoint
         ValueTask<int> GetContentsEtag();
 
         /// <summary>
-        /// Creates an object that reads messages from reader's media.
+        /// Reads messages from reader's media.
         /// </summary>
         /// <remarks>
-        /// CreateParserParams.StartPosition doesn't have to point to the beginning of a message.
+        /// ReadMessagesParams.StartPosition doesn't have to point to the beginning of a message.
         /// It is reader's responsibility to guarantee that the correct nearest message is read.
         /// </remarks>
         IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p);
