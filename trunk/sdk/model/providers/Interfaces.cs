@@ -226,6 +226,7 @@ namespace LogJoint
         BytesCount = 64,
         AvailableTimeUpdatedIncrementallyFlag = 128,
         AveMsgTime = 256,
+        AvailableTimeUpdatedByFiltering = 512,
         FirstMessageWithTimeConstraintViolation = 2048,
         BackgroundAcivityStatus = 4096,
         PositionsRange = 8192

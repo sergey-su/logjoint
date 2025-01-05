@@ -87,6 +87,15 @@ namespace LogJoint.UI.Presenters.FiltersManager
                         "Enabled highlighting"
                     );
                 }
+                else if (filtersList.Purpose == FiltersListPurpose.Display)
+                {
+                    return (
+                        filtersList.FilteringEnabled,
+                        filtersList.FilteringEnabled ?
+                            "Unckeck to disable all filtering temporarily" : "Check to enable filtering",
+                        "Enabled filtering"
+                    );
+                }
                 else
                 {
                     return (
@@ -110,11 +119,15 @@ namespace LogJoint.UI.Presenters.FiltersManager
             string selectedText = "";
             if (logViewerPresenter != null)
                 selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
-            if (selectedText.Split(new[] { '\r', '\n' }).Length < 2) // is single-line
+            if (selectedText.Split(['\r', '\n']).Length < 2) // is single-line
                 defaultTemplate = selectedText;
             IFilter f = filtersFactory.CreateFilter(
-                filtersList.Purpose == FiltersListPurpose.Highlighting ?
-                    FilterAction.IncludeAndColorizeFirst : FilterAction.Include,
+                filtersList.Purpose switch
+                {
+                    FiltersListPurpose.Highlighting => FilterAction.IncludeAndColorizeFirst,
+                    FiltersListPurpose.Display => FilterAction.Exclude,
+                    _ => FilterAction.Include
+                },
                 string.Format("New rule {0}", ++lastFilterIndex),
                 enabled: true,
                 searchOptions: new Search.Options()
@@ -186,6 +199,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
                 ViewControl.MoveUpButton | ViewControl.MoveDownButton | ViewControl.FilterOptions;
             if (purpose == FiltersListPurpose.Highlighting)
                 visibleCtrls |= (ViewControl.FilteringEnabledCheckbox | ViewControl.PrevButton | ViewControl.NextButton);
+            else if (purpose == FiltersListPurpose.Display)
+                visibleCtrls |= ViewControl.FilteringEnabledCheckbox;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 if (purpose == FiltersListPurpose.Highlighting)

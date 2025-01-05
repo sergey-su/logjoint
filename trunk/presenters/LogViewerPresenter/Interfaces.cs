@@ -344,11 +344,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 
     public class SourceMessagesChangeArgs : EventArgs
     {
-        public bool IsIncrementalChange { get; private set; }
-
-        public SourceMessagesChangeArgs(bool isIncrementalChange)
+        public enum ChangeType
         {
-            this.IsIncrementalChange = isIncrementalChange;
+            Full,
+            Incremental,
+            Filtering,
+        };
+        public ChangeType Type { get; private set; }
+
+        public SourceMessagesChangeArgs(ChangeType type)
+        {
+            this.Type = type;
         }
     };
 

@@ -102,11 +102,14 @@ namespace LogJoint.UI.Presenters.LogViewer
             invokeUpdate = new AsyncInvokeHelper(synchronizationContext, () =>
             {
                 bool isIncrementalUpdate = pendingIncrementalUpdateFlag.Validate();
+                bool isFilteringUpdate = pendingFilteringUpdateFlag.Validate();
                 bool isFullUpdate = pendingFullUpdateFlag.Validate();
-                if (isFullUpdate || isIncrementalUpdate)
+                if (isFullUpdate || isIncrementalUpdate || isFilteringUpdate)
                 {
                     if (viewTailMode || isFullUpdate)
                         ThisIntf.GoToEnd().IgnoreCancellation();
+                    else if (isFilteringUpdate)
+                        Refresh2().IgnoreCancellation();
                     else
                         Refresh().IgnoreCancellation();
                 }
@@ -114,8 +117,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
             this.model.OnSourceMessagesChanged += (sender, e) =>
             {
-                if (e.IsIncrementalChange)
+                if (e.Type == SourceMessagesChangeArgs.ChangeType.Incremental)
                     pendingIncrementalUpdateFlag.Invalidate();
+                else if (e.Type == SourceMessagesChangeArgs.ChangeType.Filtering)
+                    pendingFilteringUpdateFlag.Invalidate();
                 else
                     pendingFullUpdateFlag.Invalidate();
                 invokeUpdate.Invoke();
@@ -962,6 +967,14 @@ namespace LogJoint.UI.Presenters.LogViewer
         {
             return navigationManager.NavigateView(async cancellation =>
             {
+                await screenBuffer.LoadNewMessages(cancellation);
+            });
+        }
+
+        Task Refresh2()
+        {
+            return navigationManager.NavigateView(async cancellation =>
+            {
                 await screenBuffer.Refresh(cancellation);
             });
         }
@@ -1409,8 +1422,9 @@ namespace LogJoint.UI.Presenters.LogViewer
         readonly IBookmarksFactory bookmarksFactory;
         readonly Telemetry.ITelemetryCollector telemetry;
         readonly IScreenBufferFactory screenBufferFactory;
-        readonly LazyUpdateFlag pendingIncrementalUpdateFlag = new LazyUpdateFlag();
-        readonly LazyUpdateFlag pendingFullUpdateFlag = new LazyUpdateFlag();
+        readonly LazyUpdateFlag pendingIncrementalUpdateFlag = new();
+        readonly LazyUpdateFlag pendingFilteringUpdateFlag = new();
+        readonly LazyUpdateFlag pendingFullUpdateFlag = new();
         readonly AsyncInvokeHelper invokeUpdate;
         readonly IScreenBuffer screenBuffer;
         readonly INavigationManager navigationManager;

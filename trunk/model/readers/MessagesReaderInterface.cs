@@ -10,7 +10,8 @@ namespace LogJoint
     {
         NothingUpdated = 0,
         NewMessagesAvailable = 1,
-        OldMessagesAreInvalid = 2
+        OldMessagesAreInvalid = 2,
+        MessagesFiltered = 3,
     };
 
     public enum ReadMessagesDirection

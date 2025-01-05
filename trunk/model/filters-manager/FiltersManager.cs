@@ -23,6 +23,10 @@ namespace LogJoint
                 displayFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
             };
 
+            displayFilters.OnFiltersListChanged += (sender, evt) => logSources.Refresh();
+            displayFilters.OnFilteringEnabledChanged += (sender, evt) => logSources.Refresh();
+            displayFilters.OnPropertiesChanged += (sender, evt) => logSources.Refresh();
+
             shutdown.Cleanup += (sender, args) =>
             {
                 highlightFilters.Dispose();

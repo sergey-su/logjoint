@@ -19,7 +19,7 @@ namespace LogJoint
             ITraceSourceFactory traceSourceFactory,
             IChangeNotification changeNotification
         ) : this(heartbeat, recentlyUsedEntities, shutdown, changeNotification,
-            new LogSourceFactory(threads, bookmarks, invoker, storageManager, traceSourceFactory))
+                new LogSourceFactory(threads, bookmarks, invoker, storageManager, traceSourceFactory))
         {
         }
 

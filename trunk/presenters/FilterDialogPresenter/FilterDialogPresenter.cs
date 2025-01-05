@@ -562,24 +562,31 @@ namespace LogJoint.UI.Presenters.FilterDialog
                 excludeDescription = "Exclude";
             actionOptions.Add((FilterAction.Exclude, excludeDescription, new Color?()));
 
-            if (purpose == FiltersListPurpose.Search)
+            if (purpose == FiltersListPurpose.Display)
             {
-                actionOptions.Add((FilterAction.Include, "Include to search result", new Color?()));
+                actionOptions.Add((FilterAction.Include, "Include", new Color?()));
             }
-
-            string includeAndColorizeFormat;
-            if (purpose == FiltersListPurpose.Highlighting)
-                includeAndColorizeFormat = " Highlight with color #{0} ";
-            else if (purpose == FiltersListPurpose.Search)
-                includeAndColorizeFormat = " Include to search result and highlight with color #{0} ";
             else
-                includeAndColorizeFormat = " Include and highlight with color #{0} ";
-
-            for (var a = FilterAction.IncludeAndColorizeFirst; a <= FilterAction.IncludeAndColorizeLast; ++a)
             {
-                actionOptions.Add((a,
-                    string.Format(includeAndColorizeFormat, a - FilterAction.IncludeAndColorizeFirst + 1),
-                    a.ToColor(highlightColorsTable.Items)));
+                if (purpose == FiltersListPurpose.Search)
+                {
+                    actionOptions.Add((FilterAction.Include, "Include to search result", new Color?()));
+                }
+
+                string includeAndColorizeFormat;
+                if (purpose == FiltersListPurpose.Highlighting)
+                    includeAndColorizeFormat = " Highlight with color #{0} ";
+                else if (purpose == FiltersListPurpose.Search)
+                    includeAndColorizeFormat = " Include to search result and highlight with color #{0} ";
+                else
+                    includeAndColorizeFormat = " Include and highlight with color #{0} ";
+
+                for (var a = FilterAction.IncludeAndColorizeFirst; a <= FilterAction.IncludeAndColorizeLast; ++a)
+                {
+                    actionOptions.Add((a,
+                        string.Format(includeAndColorizeFormat, a - FilterAction.IncludeAndColorizeFirst + 1),
+                        a.ToColor(highlightColorsTable.Items)));
+                }
             }
 
             return actionOptions;

@@ -90,6 +90,7 @@ namespace LogJoint
             mainForm.loadedMessagesControl.SetViewModel(presentation.ViewModels.LoadedMessages);
             mainForm.searchResultView.SetViewModel(presentation.ViewModels.SearchResult);
             mainForm.hlFiltersManagementView.SetViewModel(presentation.ViewModels.HlFiltersManagement, viewsFactory);
+            mainForm.displayFiltersManagementView.SetViewModel(presentation.ViewModels.DisplayFiltersManagement, viewsFactory);
             new StatusReportView(mainForm, mainForm.toolStripStatusLabel, mainForm.cancelLongRunningProcessDropDownButton,
                 mainForm.cancelLongRunningProcessLabel, presentation.ViewModels.StatusReports);
             new UI.HistoryDialog(presentation.ViewModels.HistoryDialog);

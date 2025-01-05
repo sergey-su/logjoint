@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Immutable;
+using LogJoint.UI.Presenters.LogViewer;
 
 namespace LogJoint.UI.Presenters.SearchResult
 {
@@ -514,7 +515,7 @@ namespace LogJoint.UI.Presenters.SearchResult
         public void RaiseMessagesChanged()
         {
             OnSourceMessagesChanged?.Invoke(this,
-                new LogViewer.SourceMessagesChangeArgs(isIncrementalChange: true));
+                new LogViewer.SourceMessagesChangeArgs(SourceMessagesChangeArgs.ChangeType.Incremental));
         }
 
         IEnumerable<LogViewer.IMessagesSource> LogViewer.IModel.Sources

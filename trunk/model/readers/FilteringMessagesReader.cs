@@ -70,6 +70,8 @@ namespace LogJoint
             // The filtering is done on update in this method.
             UpdateBoundsStatus status = await unfilteredReader.UpdateAvailableBounds(incrementalMode);
             bool filteringEnabled = filters != null && filters.FilteringEnabled && filters.Items.Count > 0;
+            bool oldFilteringEnabled = this.filteringEnabled;
+            this.filteringEnabled = filteringEnabled;
 
             if (filteringEnabled && (status != UpdateBoundsStatus.NothingUpdated || filteredMessagesIsDirty))
             {
@@ -77,9 +79,13 @@ namespace LogJoint
                 await UpdateFilteredLog();
                 await filteredLogReader.UpdateAvailableBounds(/*incrementalMode=*/false);
                 filteredMessagesIsDirty = false;
+                this.filteringEnabled = filteringEnabled;
+                return UpdateBoundsStatus.MessagesFiltered;
             }
-
-            this.filteringEnabled = filteringEnabled;
+            if (!filteringEnabled && oldFilteringEnabled)
+            {
+                return UpdateBoundsStatus.MessagesFiltered;
+            }
 
             return status;
         }

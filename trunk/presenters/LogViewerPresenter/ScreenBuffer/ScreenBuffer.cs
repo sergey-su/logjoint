@@ -311,11 +311,11 @@ namespace LogJoint.UI.Presenters.LogViewer
                 return MoveToPositionMultipleLogs(position, cancellation);
         }
 
-        Task IScreenBuffer.Refresh(CancellationToken cancellation)
+        Task IScreenBuffer.LoadNewMessages(CancellationToken cancellation)
         {
             var currentTop = EnumScreenBufferLines().FirstOrDefault();
             return PerformBuffersTransaction(
-                string.Format("Refresh()"),
+                string.Format("LoadNewMessages"),
                 cancellation,
                 modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))),
                 getPivotLine: MakePivotLineGetter(l =>
@@ -328,6 +328,30 @@ namespace LogJoint.UI.Presenters.LogViewer
                 })
             );
         }
+
+        Task IScreenBuffer.Refresh(CancellationToken cancellation)
+        {
+            var currentTop = EnumScreenBufferLines().FirstOrDefault();
+            return PerformBuffersTransaction(
+                string.Format("Refresh()"),
+                cancellation,
+                modifyBuffers: tmp => Task.WhenAll(tmp.Select(b =>
+                    currentTop.IsEmpty ? b.LoadAround(GetMaxBufferSize(viewSize), cancellation) :
+                    b.LoadAt(currentTop.Message.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize), cancellation))),
+                getPivotLine: (lines, bufs) =>
+                {
+                    if (currentTop.IsEmpty)
+                    {
+                        return null;
+                    }
+                    var best = lines
+                        .Select(l => new { l, diff = (l.Message.Time.ToLocalDateTime() - currentTop.Message.Time.ToLocalDateTime()).Abs() })
+                        .Aggregate(new { l = new DisplayLine(), diff = TimeSpan.MaxValue }, (acc, l) => l.diff < acc.diff ? l : acc);
+                    return !best.l.IsEmpty ? Tuple.Create(best.l, 0d) : null;
+                }
+            );
+        }
+
 
         public override string ToString()
         {

@@ -418,7 +418,8 @@ namespace LogJoint
             finally
             {
                 tracer.Info("Disposing what has been loaded up to now");
-                await InvalidateEverythingThatHasBeenLoaded();
+                InvalidateMessages();
+                await InvalidateThreads();
             }
         }
 
@@ -427,12 +428,6 @@ namespace LogJoint
             if (disposed)
                 return;
             await modelSynchronizationContext.Invoke(() => threads.Clear());
-        }
-
-        async Task InvalidateEverythingThatHasBeenLoaded()
-        {
-            InvalidateMessages();
-            await InvalidateThreads();
         }
 
         void InvalidateMessages()
@@ -495,44 +490,62 @@ namespace LogJoint
                 return false;
             }
 
+
+            bool invalidateThreads = !incrementalMode;
+            bool invalidateMessages = !incrementalMode;
+            bool isIncrementalUpdate = incrementalMode;
+            bool isFilterUpdate = false;
+
             if (status == UpdateBoundsStatus.OldMessagesAreInvalid)
             {
-                incrementalMode = false;
+                invalidateThreads = true;
+                invalidateMessages = true;
+                isIncrementalUpdate = false;
+            }
+            else if (status == UpdateBoundsStatus.MessagesFiltered)
+            {
+                invalidateMessages = true;
+                isIncrementalUpdate = false;
+                isFilterUpdate = true;
             }
 
             // Get new boundary values into temporary variables
             (IMessage newFirst, IMessage newLast) = await PositionedMessagesUtils.GetBoundaryMessages(reader, null);
 
-            if (firstMessage != null)
+            if (status != UpdateBoundsStatus.MessagesFiltered && firstMessage != null)
             {
                 if (newFirst == null || MessageTimestamp.Compare(newFirst.Time, firstMessage.Time) != 0)
                 {
-                    // The first message we've just read differs from the cached one. 
-                    // This means that the log was overwritten. Fall to non-incremental mode.
-                    incrementalMode = false;
+                    // The first message we've just read differs from the cached one.
+                    // This means that the log was overwritten. Forget everything loaded so far.
+                    invalidateThreads = true;
+                    invalidateMessages = true;
+                    isIncrementalUpdate = false;
                 }
             }
 
-            if (!incrementalMode)
+
+            if (invalidateMessages)
             {
                 if (!itIsFirstUpdate)
                 {
-                    // Reset everything that has been loaded so far
-                    await InvalidateEverythingThatHasBeenLoaded();
+                    InvalidateMessages();
                 }
                 firstMessage = null;
+            }
+
+            if (invalidateThreads)
+            {
+                await InvalidateThreads();
             }
 
             // Try to get the dates range for new boundary messages
             DateRange newAvailTime = GetAvailableDateRangeHelper(newFirst, newLast);
             firstMessage = newFirst;
 
-            // Getting here means that the boundaries changed. 
-            // Fire the notification.
-
             var positionsRange = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
 
-            if (!incrementalMode)
+            if (invalidateMessages)
             {
                 readerContentsEtag = await reader.GetContentsEtag();
             }
@@ -546,9 +559,13 @@ namespace LogJoint
             {
                 stats.AvailableTime = newAvailTime;
                 LogProviderStatsFlag f = LogProviderStatsFlag.AvailableTime;
-                if (incrementalMode)
+                if (isIncrementalUpdate)
                 {
                     f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag;
+                }
+                else if (isFilterUpdate)
+                {
+                    f |= LogProviderStatsFlag.AvailableTimeUpdatedByFiltering;
                 }
                 stats.TotalBytes = CalcTotalBytesStats(reader);
                 f |= LogProviderStatsFlag.BytesCount;

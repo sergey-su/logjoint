@@ -118,6 +118,17 @@ namespace LogJoint.UI.Presenters.LogViewer
             CancellationToken cancellation
         );
 
+        /// <summary>
+        /// Loads into the screen buffer the new messages that could've become available 
+        /// after the currently loaded messages. Works best when the currently loaded message
+        /// are expected to still be available.
+        /// </summary>
+        Task LoadNewMessages(CancellationToken cancellation);
+
+        /// <summary>
+        /// Reloads into the screen buffer the messages around the currently loaded messages.
+        /// It's suitable for reloading after messages changed due to filtering.
+        /// </summary>
         Task Refresh(CancellationToken cancellation);
     };
 

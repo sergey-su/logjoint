@@ -62,6 +62,7 @@ namespace LogJoint.UI.Presenters.MainForm
             var sourcesTab = new TabInfo { Id = TabIDs.Sources, Caption = "Log Sources" };
             var threadsTab = new TabInfo { Id = TabIDs.Threads, Caption = "Threads" };
             var highlightingRulesTab = new TabInfo { Id = TabIDs.HighlightingFilteringRules, Caption = "Highlighting Rules" };
+            var displayRulesTab = new TabInfo { Id = TabIDs.DisplayFilteringRules, Caption = "Display Rules" };
             var searchTab = new TabInfo { Id = TabIDs.Search, Caption = "Search" };
             var bookmarksTab = new TabInfo { Id = TabIDs.Bookmarks, Caption = "Bookmarks" };
             var postprocessingTab = new TabInfo { Id = TabIDs.Postprocessing, Caption = "Postprocessing" };
@@ -69,11 +70,11 @@ namespace LogJoint.UI.Presenters.MainForm
 
             visibleTabs =
                 IsBrowser.Value ?
-                    new[] { sourcesTab, bookmarksTab, highlightingRulesTab, searchTab, postprocessingTab, settingsTab } :
+                    [sourcesTab, bookmarksTab, highlightingRulesTab, displayRulesTab, searchTab, postprocessingTab, settingsTab] :
                 RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
-                    new[] { sourcesTab, bookmarksTab, highlightingRulesTab, searchTab, postprocessingTab }
+                    [sourcesTab, bookmarksTab, highlightingRulesTab, searchTab, postprocessingTab]
                 :
-                    new[] { sourcesTab, threadsTab, highlightingRulesTab, searchTab, bookmarksTab, postprocessingTab };
+                    [sourcesTab, threadsTab, highlightingRulesTab, displayRulesTab, searchTab, bookmarksTab, postprocessingTab];
             activeTab = Selectors.Create(() => visibleTabs, () => lastActivatedTab,
                 (visible, lastActivated) => visible.IndexOf(i => i.Id == lastActivated).GetValueOrDefault(0));
 

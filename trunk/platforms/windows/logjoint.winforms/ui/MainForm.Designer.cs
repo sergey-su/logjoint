@@ -50,6 +50,7 @@ namespace LogJoint.UI
             this.sourcesTabPage = new System.Windows.Forms.TabPage();
             this.threadsTabPage = new System.Windows.Forms.TabPage();
             this.highlightTabPage = new System.Windows.Forms.TabPage();
+            this.displayFilterTabPage = new System.Windows.Forms.TabPage();
             this.searchTabPage = new System.Windows.Forms.TabPage();
             this.navigationTabPage = new System.Windows.Forms.TabPage();
             this.postprocessingTabPage = new System.Windows.Forms.TabPage();
@@ -65,6 +66,7 @@ namespace LogJoint.UI
             this.sourcesListView = new LogJoint.UI.SourcesManagementView();
             this.threadsListView = new LogJoint.UI.ThreadsListView();
             this.hlFiltersManagementView = new LogJoint.UI.FiltersManagerView();
+            this.displayFiltersManagementView = new LogJoint.UI.FiltersManagerView();
             this.searchPanelView = new LogJoint.UI.SearchPanelView();
             this.bookmarksManagerView = new LogJoint.UI.BookmarksManagerView();
             this.postprocessingView = new Postprocessing.MainWindowTabPage.TabPage();
@@ -82,6 +84,7 @@ namespace LogJoint.UI
             this.sourcesTabPage.SuspendLayout();
             this.threadsTabPage.SuspendLayout();
             this.highlightTabPage.SuspendLayout();
+            this.displayFilterTabPage.SuspendLayout();
             this.searchTabPage.SuspendLayout();
             this.navigationTabPage.SuspendLayout();
             this.postprocessingTabPage.SuspendLayout();
@@ -269,6 +272,7 @@ namespace LogJoint.UI
             this.menuTabControl.Controls.Add(this.sourcesTabPage);
             this.menuTabControl.Controls.Add(this.threadsTabPage);
             this.menuTabControl.Controls.Add(this.highlightTabPage);
+            this.menuTabControl.Controls.Add(this.displayFilterTabPage);
             this.menuTabControl.Controls.Add(this.searchTabPage);
             this.menuTabControl.Controls.Add(this.navigationTabPage);
             this.menuTabControl.Controls.Add(this.postprocessingTabPage);
@@ -313,6 +317,17 @@ namespace LogJoint.UI
             this.highlightTabPage.Text = "Highlighting Rules";
             this.highlightTabPage.UseVisualStyleBackColor = true;
             // 
+            // displayFilterTabPage
+            // 
+            this.displayFilterTabPage.Controls.Add(this.displayFiltersManagementView);
+            this.displayFilterTabPage.Location = new System.Drawing.Point(4, 26);
+            this.displayFilterTabPage.Margin = new System.Windows.Forms.Padding(0);
+            this.displayFilterTabPage.Name = "displayFilteringRules";
+            this.displayFilterTabPage.Size = new System.Drawing.Size(890, 133);
+            this.displayFilterTabPage.TabIndex = 6;
+            this.displayFilterTabPage.Text = "Filtering Rules";
+            this.displayFilterTabPage.UseVisualStyleBackColor = true;
+            // 
             // searchTabPage
             // 
             this.searchTabPage.Controls.Add(this.searchPanelView);
@@ -331,7 +346,7 @@ namespace LogJoint.UI
             this.navigationTabPage.Margin = new System.Windows.Forms.Padding(0);
             this.navigationTabPage.Name = "bookmarks";
             this.navigationTabPage.Size = new System.Drawing.Size(890, 133);
-            this.navigationTabPage.TabIndex = 3;
+            this.navigationTabPage.TabIndex = 4;
             this.navigationTabPage.Text = "Bookmarks";
             this.navigationTabPage.UseVisualStyleBackColor = true;
             // 
@@ -342,7 +357,7 @@ namespace LogJoint.UI
             this.postprocessingTabPage.Margin = new System.Windows.Forms.Padding(0);
             this.postprocessingTabPage.Name = "postprocessing";
             this.postprocessingTabPage.Size = new System.Drawing.Size(890, 133);
-            this.postprocessingTabPage.TabIndex = 3;
+            this.postprocessingTabPage.TabIndex = 5;
             this.postprocessingTabPage.Text = "Postprocessing";
             this.postprocessingTabPage.UseVisualStyleBackColor = true;
             // 
@@ -468,6 +483,16 @@ namespace LogJoint.UI
             this.hlFiltersManagementView.Size = new System.Drawing.Size(890, 134);
             this.hlFiltersManagementView.TabIndex = 2;
             // 
+            // displayFiltersManagementView
+            // 
+            this.displayFiltersManagementView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.displayFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.displayFiltersManagementView.Location = new System.Drawing.Point(0, 0);
+            this.displayFiltersManagementView.Margin = new System.Windows.Forms.Padding(0);
+            this.displayFiltersManagementView.Name = "displayFiltersManagementView";
+            this.displayFiltersManagementView.Size = new System.Drawing.Size(890, 134);
+            this.displayFiltersManagementView.TabIndex = 3;
+            // 
             // searchPanelView
             // 
             this.searchPanelView.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -580,6 +605,7 @@ namespace LogJoint.UI
             this.menuTabControl.ResumeLayout(false);
             this.sourcesTabPage.ResumeLayout(false);
             this.threadsTabPage.ResumeLayout(false);
+            this.displayFilterTabPage.ResumeLayout(false);
             this.highlightTabPage.ResumeLayout(false);
             this.searchTabPage.ResumeLayout(false);
             this.navigationTabPage.ResumeLayout(false);
@@ -622,6 +648,7 @@ namespace LogJoint.UI
         private System.Windows.Forms.ToolStripStatusLabel toolStripAnalyzingImage;
         private System.Windows.Forms.ToolStripStatusLabel toolStripAnalyzingLabel;
         private System.Windows.Forms.TabPage highlightTabPage;
+        private System.Windows.Forms.TabPage displayFilterTabPage;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
@@ -634,6 +661,7 @@ namespace LogJoint.UI
         internal SearchResultView searchResultView;
         internal LoadedMessagesControl loadedMessagesControl;
         internal FiltersManagerView hlFiltersManagementView;
+        internal FiltersManagerView displayFiltersManagementView;
         internal SearchPanelView searchPanelView;
         internal LogJoint.UI.BookmarksManagerView bookmarksManagerView;
         internal LogJoint.UI.Postprocessing.MainWindowTabPage.TabPage postprocessingView;

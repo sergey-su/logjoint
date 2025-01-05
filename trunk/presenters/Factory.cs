@@ -45,6 +45,7 @@ namespace LogJoint.UI.Presenters
         public SearchesManagerDialog.IViewModel SearchesManagerDialog { get; internal set; }
         public SearchEditorDialog.IViewModel SearchEditorDialog { get; internal set; }
         public FiltersManager.IViewModel HlFiltersManagement { get; internal set; }
+        public FiltersManager.IViewModel DisplayFiltersManagement { get; internal set; }
     };
 
     public static class Factory
@@ -381,7 +382,8 @@ namespace LogJoint.UI.Presenters
                 model.TelemetryCollector);
 
 
-            var hlFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification, model.LogSourcesManager, highlightColorsTable);
+            var hlFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification,
+                model.LogSourcesManager, highlightColorsTable);
             var hlFiltersManagementPresenter =
                 new FiltersManager.Presenter(
                     model.ChangeNotification,
@@ -394,6 +396,22 @@ namespace LogJoint.UI.Presenters
                     model.FiltersFactory,
                     alertPopup,
                     model.FiltersManager.HighlightFilters
+                );
+
+            var displayFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification,
+                model.LogSourcesManager, highlightColorsTable);
+            var displayFiltersManagementPresenter =
+                new FiltersManager.Presenter(
+                    model.ChangeNotification,
+                    new FiltersListBox.Presenter(
+                        model.ChangeNotification,
+                        displayFilterDialogPresenter,
+                        highlightColorsTable),
+                    displayFilterDialogPresenter,
+                    viewerPresenter,
+                    model.FiltersFactory,
+                    alertPopup,
+                    model.FiltersManager.DisplayFilters
                 );
 
             var bookmarksListPresenter = new BookmarksList.Presenter(
@@ -595,6 +613,7 @@ namespace LogJoint.UI.Presenters
                     SearchesManagerDialog = searchesManagerDialogPresenter,
                     SearchEditorDialog = searchEditorDialog,
                     HlFiltersManagement = hlFiltersManagementPresenter,
+                    DisplayFiltersManagement = displayFiltersManagementPresenter,
                 }
             };
         }

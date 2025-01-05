@@ -46,6 +46,7 @@ namespace LogJoint.UI.Presenters.MainForm
         public const string Sources = "sources";
         public const string Threads = "threads";
         public const string HighlightingFilteringRules = "highlightingFilteringRules";
+        public const string DisplayFilteringRules = "displayFilteringRules";
         public const string Bookmarks = "bookmarks";
         public const string Search = "search";
         public const string Postprocessing = "postprocessing";

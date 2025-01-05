@@ -44,7 +44,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
                 {
                     if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) != 0)
                     {
-                        FireMessagesChanged(s, isIncrementalChange: true);
+                        FireMessagesChanged(s, SourceMessagesChangeArgs.ChangeType.Incremental);
+                    }
+                    else if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedByFiltering) != 0)
+                    {
+                        FireMessagesChanged(s, SourceMessagesChangeArgs.ChangeType.Filtering);
                     }
                     else if (IsExposableLogSource(e.Value) && !IsExposableLogSource(e.OldValue))
                     {
@@ -52,7 +56,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
                     }
                     else
                     {
-                        FireMessagesChanged(s, isIncrementalChange: false);
+                        FireMessagesChanged(s, SourceMessagesChangeArgs.ChangeType.Full);
                     }
                 }
             };
@@ -88,10 +92,10 @@ namespace LogJoint.UI.Presenters.LoadedMessages
                 OnSourcesChanged(this, EventArgs.Empty);
         }
 
-        void FireMessagesChanged(object logSource, bool isIncrementalChange)
+        void FireMessagesChanged(object logSource, SourceMessagesChangeArgs.ChangeType type)
         {
             synchronizationContext.Post(() =>
-                OnSourceMessagesChanged?.Invoke(logSource, new SourceMessagesChangeArgs(isIncrementalChange)));
+                OnSourceMessagesChanged?.Invoke(logSource, new SourceMessagesChangeArgs(type)));
         }
 
         class MessagesSource : IMessagesSource
