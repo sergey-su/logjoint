@@ -8,6 +8,8 @@ using System.Xml.Linq;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using LogJoint.LogMedia;
+using LogJoint.Settings;
 
 namespace LogJoint.RegularGrammar
 {
@@ -332,13 +334,15 @@ namespace LogJoint.RegularGrammar
             UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, IRegexFactory regexFactory,
             FieldsProcessor.IFactory fieldsProcessorFactory, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettingsAccessor,
-            LogMedia.IFileSystem fileSystem)
+            LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory, fieldsProcessorFactory,
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem),
-                (@params, fmtInfo) => new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory,
-                    traceSourceFactory, globalSettingsAccessor));
+                (@params, fmtInfo) => new FilteringMessagesReader(
+                    new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettingsAccessor),
+                    @params, displayFilters, tempFilesManager, fileSystem, regexFactory, traceSourceFactory, globalSettingsAccessor
+                ));
         }
 
         private delegate ILogProvider ProviderFactory(

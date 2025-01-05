@@ -4,34 +4,34 @@ namespace LogJoint
     {
         readonly ILogSourcesManager logSources;
         readonly IFiltersList highlightFilters;
-        readonly Settings.IGlobalSettingsAccessor globalSettings;
+        readonly IFiltersList displayFilters;
 
         public FiltersManager(
             IFiltersFactory filtersFactory,
-            Settings.IGlobalSettingsAccessor globalSettingsAccessor,
             ILogSourcesManager logSourcesManager,
             IShutdown shutdown
         )
         {
-            this.globalSettings = globalSettingsAccessor;
             this.logSources = logSourcesManager;
 
             this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting);
+            this.displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include, FiltersListPurpose.Display);
 
             this.logSources.OnLogSourceRemoved += (s, e) =>
             {
                 highlightFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
+                displayFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
             };
 
             shutdown.Cleanup += (sender, args) =>
             {
                 highlightFilters.Dispose();
+                displayFilters.Dispose();
             };
         }
 
-        IFiltersList IFiltersManager.HighlightFilters
-        {
-            get { return highlightFilters; }
-        }
+        IFiltersList IFiltersManager.HighlightFilters => highlightFilters;
+
+        IFiltersList IFiltersManager.DisplayFilters => displayFilters;
     }
 }

@@ -86,14 +86,14 @@ namespace LogJoint
             return ret;
         }
 
-        public IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams parserParams)
+        public IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams readParams)
         {
             // That's not the best place for flushing counters, but it's the only one that works in blazor
             // that lacks periodic calls to UpdateAvailableBounds.
             if (perfCounters.Report(atMostOncePer: TimeSpan.FromMilliseconds(500)))
                 perfCounters.ResetAll();
 
-            parserParams.EnsureRangeIsSet(this);
+            readParams.EnsureRangeIsSet(this);
 
             var strategiesCache = new StreamReading.StrategiesCache()
             {
@@ -102,7 +102,7 @@ namespace LogJoint
             };
 
             StreamReorderingParams? dejitteringParams = GetDejitteringParams();
-            if (dejitteringParams != null && (parserParams.Flags & ReadMessagesFlag.DisableDejitter) == 0)
+            if (dejitteringParams != null && (readParams.Flags & ReadMessagesFlag.DisableDejitter) == 0)
             {
                 return StreamReordering.Reorder(
                     underlyingParserParams => StreamReading.Read(
@@ -112,13 +112,13 @@ namespace LogJoint
                         settingsAccessor,
                         strategiesCache
                     ),
-                    parserParams,
+                    readParams,
                     dejitteringParams.Value
                 );
             }
             return StreamReading.Read(
                 this,
-                parserParams,
+                readParams,
                 textStreamPositioningParams,
                 settingsAccessor,
                 strategiesCache

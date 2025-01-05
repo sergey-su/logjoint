@@ -78,6 +78,7 @@ namespace LogJoint
         None,
         Highlighting,
         Search,
+        Display,
     };
 
     public class FilterChangeEventArgs : EventArgs

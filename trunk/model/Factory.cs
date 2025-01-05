@@ -135,18 +135,6 @@ namespace LogJoint
                 config.FieldsProcessorAssemblyLoader);
             UserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
                 formatDefinitionsRepository, logProviderFactoryRegistry, traceSourceFactory);
-            IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
-            userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
-                config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
-                     traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem));
-            userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
-                config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
-                    globalSettingsAccessor, regexFactory, fileSystem));
-            userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
-                config => JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
-                    globalSettingsAccessor, regexFactory, fileSystem));
-            RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
-                modelSynchronizationContext, globalSettingsAccessor, fileSystem);
             IFiltersFactory filtersFactory = new FiltersFactory(changeNotification, regexFactory);
             IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
             var bookmarks = bookmarksFactory.CreateBookmarks();
@@ -286,7 +274,6 @@ namespace LogJoint
 
             IFiltersManager filtersManager = new FiltersManager(
                 filtersFactory,
-                globalSettingsAccessor,
                 logSourcesManager,
                 shutdown
             );
@@ -294,6 +281,19 @@ namespace LogJoint
             Postprocessing.IUserNamesProvider analyticsShortNames = new Postprocessing.CodenameUserNamesProvider(
                 logSourcesManager
             );
+
+            IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
+            userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
+                config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
+                     traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem, filtersManager.DisplayFilters));
+            userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
+                config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
+                    globalSettingsAccessor, regexFactory, fileSystem));
+            userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
+                config => JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
+                    globalSettingsAccessor, regexFactory, fileSystem));
+            RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
+                modelSynchronizationContext, globalSettingsAccessor, fileSystem);
 
             Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 

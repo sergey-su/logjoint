@@ -21,12 +21,14 @@ namespace LogJoint.XmlFormat
         public FactoryWriter(
             FieldsProcessor.IMessagesBuilderCallback callback,
             ITimeOffsets timeOffsets,
-            int? maxLineLen
+            int? maxLineLen,
+            bool useEmbeddedAttributes
         )
         {
             this.callback = callback;
             this.timeOffsets = timeOffsets;
             this.maxLineLen = maxLineLen;
+            this.useEmbeddedAttributes = useEmbeddedAttributes;
             states.Push(WriteState.Content);
         }
 
@@ -147,6 +149,9 @@ namespace LogJoint.XmlFormat
             thread = null;
             dateTime = new MessageTimestamp();
             severity = SeverityFlag.Info;
+            embeddedPositon = null;
+            embeddedEndPositon = null;
+            embeddedRawText = null;
         }
 
         public override void WriteEndElement()
@@ -166,9 +171,19 @@ namespace LogJoint.XmlFormat
                 dateTime,
                 new StringSlice(GetAndClearContent()),
                 severity,
-                callback.CurrentRawText,
+                useEmbeddedAttributes ? new StringSlice(embeddedRawText ?? "") : callback.CurrentRawText,
                 maxLineLen: this.maxLineLen
             );
+
+            if (useEmbeddedAttributes)
+            {
+                if (embeddedPositon == null)
+                    throw new Exception("No embedded position was found in a message");
+                if (embeddedEndPositon == null)
+                    throw new Exception("No embedded end position was found in a message");
+                output.SetEmbeddedPositions(new Message.EmbeddedPositions(
+                    embeddedPositon.Value, embeddedEndPositon.Value));
+            }
 
             elemName = null;
             Reset();
@@ -184,6 +199,9 @@ namespace LogJoint.XmlFormat
                 case "t":
                 case "d":
                 case "s":
+                case "p":
+                case "ep":
+                case "r":
                     attribName = localName;
                     break;
                 default:
@@ -219,6 +237,21 @@ namespace LogJoint.XmlFormat
                             severity = SeverityFlag.Warning;
                             break;
                     }
+                    break;
+                case "p":
+                    if (long.TryParse(GetAndClearContent(), out long p))
+                    {
+                        embeddedPositon = p;
+                    }
+                    break;
+                case "ep":
+                    if (long.TryParse(GetAndClearContent(), out long ep))
+                    {
+                        embeddedEndPositon = ep;
+                    }
+                    break;
+                case "r":
+                    embeddedRawText = GetAndClearContent();
                     break;
                 default:
                     // Ended to read unknown attribute. Need to clear content in order not to affect the following attribs/elems.
@@ -262,6 +295,10 @@ namespace LogJoint.XmlFormat
         readonly FieldsProcessor.IMessagesBuilderCallback callback;
         readonly ITimeOffsets timeOffsets;
         readonly int? maxLineLen;
+        readonly bool useEmbeddedAttributes;
+        long? embeddedPositon;
+        long? embeddedEndPositon;
+        string embeddedRawText;
     };
 
     public class LogJointXSLExtension : UserCodeHelperFunctions
@@ -354,13 +391,15 @@ namespace LogJoint.XmlFormat
         readonly ILogSourceThreadsInternal threads;
         readonly ITraceSourceFactory traceSourceFactory;
         readonly IRegexFactory regexFactory;
+        readonly bool useEmbeddedAttributes;
 
         public MessagesReader(
             MediaBasedReaderParams readerParams,
             XmlFormatInfo fmt,
             IRegexFactory regexFactory,
             ITraceSourceFactory traceSourceFactory,
-            Settings.IGlobalSettingsAccessor settings
+            Settings.IGlobalSettingsAccessor settings,
+            bool useEmbeddedAttributes
         ) :
             base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams,
                 readerParams.QuickFormatDetectionMode, settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
@@ -370,6 +409,7 @@ namespace LogJoint.XmlFormat
             this.traceSourceFactory = traceSourceFactory;
             this.regexFactory = regexFactory;
             this.transformArgs = new XsltArgumentList();
+            this.useEmbeddedAttributes = useEmbeddedAttributes;
 
             this.xslExt = new LogJointXSLExtension();
             transformArgs.AddExtensionObject(Properties.LogJointNS, this.xslExt);
@@ -412,7 +452,7 @@ namespace LogJoint.XmlFormat
         }
 
         static IMessage MakeMessageInternal(TextMessageCapture capture, XmlFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
-            MessagesBuilderCallback callback, XsltArgumentList transformArgs, ITimeOffsets timeOffsets)
+            MessagesBuilderCallback callback, XsltArgumentList transformArgs, ITimeOffsets timeOffsets, bool useEmbeddedAttributes)
         {
             int nrOfSequentialFailures = 0;
             int maxNrOfSequentialFailures = 10;
@@ -443,7 +483,7 @@ namespace LogJoint.XmlFormat
 
                 string messageStr = messageBuf.ToString();
 
-                using FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets, formatInfo.ViewOptions.WrapLineLength);
+                using FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets, formatInfo.ViewOptions.WrapLineLength, useEmbeddedAttributes);
                 using XmlReader xmlReader = XmlReader.Create(new StringReader(messageStr), xmlReaderSettings);
                 try
                 {
@@ -518,7 +558,7 @@ namespace LogJoint.XmlFormat
             protected override IMessage MakeMessage(TextMessageCapture capture)
             {
                 return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback,
-                    reader.transformArgs, reader.TimeOffsets);
+                    reader.transformArgs, reader.TimeOffsets, reader.useEmbeddedAttributes);
             }
         };
 
@@ -551,7 +591,7 @@ namespace LogJoint.XmlFormat
             public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
             {
                 return MakeMessageInternal(capture, reader.formatInfo, threadLocal.bodyRe.Regex,
-                    ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, reader.TimeOffsets);
+                    ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, reader.TimeOffsets, reader.useEmbeddedAttributes);
             }
             public override ProcessingThreadLocalData InitializeThreadLocalState()
             {
@@ -664,7 +704,7 @@ namespace LogJoint.XmlFormat
         Task<ILogProvider> ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
         {
             return Task.FromResult<ILogProvider>(new StreamLogProvider(host, this, connectParams,
-                @params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings),
+                @params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false),
                 tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }
 
@@ -677,7 +717,7 @@ namespace LogJoint.XmlFormat
 
         IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
-            return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings);
+            return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false);
         }
     };
 
@@ -709,7 +749,8 @@ namespace LogJoint.XmlFormat
             IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
-                (readerParams, formatInfo) => new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings),
+                (readerParams, formatInfo) => new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, 
+                    globalSettings, useEmbeddedAttributes: false),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }

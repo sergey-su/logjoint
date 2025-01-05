@@ -91,6 +91,19 @@ namespace LogJoint
             this.link = link;
         }
 
+        public class EmbeddedPositions(long position, long endPosition)
+        {
+            public readonly long Position = position;
+            public readonly long EndPosition = endPosition;
+        };
+
+        public EmbeddedPositions GetEmbeddedPosition() => embeddedPositions;
+
+        public void SetEmbeddedPositions(EmbeddedPositions embeddedPositions)
+        {
+            this.embeddedPositions = embeddedPositions;
+        }
+
         #region Implementation
 
         int GetHashCodeInternal(bool ignoreMessageTime)
@@ -140,8 +153,8 @@ namespace LogJoint
         MultilineText rawTextML;
         int? hashCodeCache;
         StringSlice link = StringSlice.Empty;
+        EmbeddedPositions embeddedPositions;
 
         #endregion
     };
-
 }

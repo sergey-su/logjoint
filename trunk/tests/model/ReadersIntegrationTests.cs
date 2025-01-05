@@ -133,10 +133,13 @@ namespace LogJoint.Tests
             var fileSystem = LogMedia.FileSystemImpl.Instance;
             formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
                 config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
-                     traceSourceFactory, modelSyncContext, globalSettingsAccessor, fileSystem));
+                     traceSourceFactory, modelSyncContext, globalSettingsAccessor, fileSystem,
+                     null));
             formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
                 config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSyncContext,
                     globalSettingsAccessor, regexFactory, fileSystem));
+            reg.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSyncContext,
+                globalSettingsAccessor, fileSystem));
             formatsManager.ReloadFactories();
             var factory = reg.Find(companyName, formatName);
             Assert.That(factory, Is.Not.Null);
@@ -698,10 +701,41 @@ not a json line
 another not a json line
 json-looking stuff {0} {{}{}{}{{{}
 {""@t"":""2018-05-22T20:25:35.9960000Z"",""@m"":""Foo bar""}
-				",
+                ",
                 new EM("Hello world", null, new DateTime(2018, 5, 22, 20, 25, 35, 968, DateTimeKind.Utc)),
                 new EM("Foo bar", null, new DateTime(2018, 5, 22, 20, 25, 35, 996, DateTimeKind.Utc))
             );
+        }
+    }
+
+    [TestFixture]
+    public class NativeXmlReaderTest
+    {
+        IMediaBasedReaderFactory CreateFactory()
+        {
+            return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(),
+                "LogJoint", "Native XML");
+        }
+
+        [Test]
+        public async Task ReadsBackwards()
+        {
+            var testLog = @"<m d=""2009-01-01T00:00:00.0000000"">a</m>
+<m d=""2009-01-01T00:00:10.0000000"">b</m>
+<m d=""2009-01-01T00:00:20.0000000"">c</m>";
+            using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
+            using (ILogSourceThreadsInternal threads = new LogSourceThreads())
+            using (IMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
+            {
+                await reader.UpdateAvailableBounds(false);
+                IMessage[] msgs = await reader.Read(new ReadMessagesParams()
+                {
+                    Direction = ReadMessagesDirection.Backward,
+                    StartPosition = 60 // middle of the second message
+                }).Select(msg => msg.Message).ToArrayAsync();
+                Assert.That(msgs.Length, Is.EqualTo(1));
+                Assert.That(msgs[0].Text, Is.EqualTo("a"));
+            }
         }
     }
 }

@@ -154,10 +154,12 @@ namespace LogJoint
                 CreateConnectionParams(originalConnectionParams, tempFilesManager),
                 @params => new XmlFormat.MessagesReader(
                     @params,
-                    XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.WebName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false), regexFactory),
+                    XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.WebName,
+                        dejitteringParams, new FormatViewOptions(rawViewAllowed: false), regexFactory),
                     regexFactory,
                     traceSourceFactory,
-                    globalSettings
+                    globalSettings,
+                    useEmbeddedAttributes: false
                 ),
                 tempFilesManager,
                 traceSourceFactory,
