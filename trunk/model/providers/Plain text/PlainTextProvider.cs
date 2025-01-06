@@ -19,9 +19,10 @@ namespace LogJoint.PlainText
         private LogProvider(ILogProviderHost host, IConnectionParams connectParams,
             ILogProviderFactory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList)
             :
-            base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
+            base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext,
+                globalSettings, fileSystem, filtersList)
         {
             this.regexFactory = regexFactory;
             this.fileSystem = fileSystem;
@@ -31,10 +32,10 @@ namespace LogJoint.PlainText
         public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams,
             ILogProviderFactory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList)
         {
             LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager,
-                traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem);
+                traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem, filtersList);
             try
             {
                 logProvider.StartLiveLogThread(logProvider.LiveLogListen);

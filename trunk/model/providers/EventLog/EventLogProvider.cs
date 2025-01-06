@@ -14,7 +14,8 @@ namespace LogJoint.WindowsEventLog
 
         private LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
-            ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+            ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
+            IFiltersList displayFilters)
             : base(host,
                 factory,
                 connectParams,
@@ -24,16 +25,18 @@ namespace LogJoint.WindowsEventLog
                 modelSynchronizationContext,
                 globalSettings,
                 fileSystem,
+                displayFilters,
                 new StreamReorderingParams() { JitterBufferSize = 25 })
         {
         }
 
         public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
-            ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+            ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
+            IFiltersList displayFilters)
         {
             LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
-                modelSynchronizationContext, globalSettings, fileSystem);
+                modelSynchronizationContext, globalSettings, fileSystem, displayFilters);
             try
             {
                 logProvider.eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);

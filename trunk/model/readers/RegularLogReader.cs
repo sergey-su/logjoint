@@ -339,9 +339,10 @@ namespace LogJoint.RegularGrammar
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory, fieldsProcessorFactory,
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem),
-                (@params, fmtInfo) => new FilteringMessagesReader(
+                (@params, fmtInfo, hermeticReader) => new FilteringMessagesReader(
                     new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettingsAccessor),
-                    @params, displayFilters, tempFilesManager, fileSystem, regexFactory, traceSourceFactory, globalSettingsAccessor
+                    @params, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
+                    traceSourceFactory, globalSettingsAccessor
                 ));
         }
 
@@ -349,7 +350,7 @@ namespace LogJoint.RegularGrammar
             ILogProviderHost host, IConnectionParams connectionParams, UserDefinedFormatFactory factory,
             Func<MediaBasedReaderParams, IMessagesReader> readerFactory);
         private delegate IMessagesReader ReaderFactory(
-            MediaBasedReaderParams @params, FormatInfo fmtInfo);
+            MediaBasedReaderParams @params, FormatInfo fmtInfo, bool hermeticReader);
 
 
         private UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, IRegexFactory regexFactory,
@@ -399,7 +400,7 @@ namespace LogJoint.RegularGrammar
 
         IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
-            return readerFactory(readerParams, fmtInfo.Value);
+            return readerFactory(readerParams, fmtInfo.Value, hermeticReader: true);
         }
 
         #region ILogReaderFactory Members
@@ -418,7 +419,8 @@ namespace LogJoint.RegularGrammar
 
         public override Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
         {
-            return Task.FromResult(providerFactory(host, connectParams, this, @params => readerFactory(@params, fmtInfo.Value)));
+            return Task.FromResult(providerFactory(host, connectParams, this,
+                @params => readerFactory(@params, fmtInfo.Value, hermeticReader: false)));
         }
 
         public override LogProviderFactoryFlag Flags

@@ -46,6 +46,7 @@ namespace LogJoint.UI.Presenters
         public SearchEditorDialog.IViewModel SearchEditorDialog { get; internal set; }
         public FiltersManager.IViewModel HlFiltersManagement { get; internal set; }
         public FiltersManager.IViewModel DisplayFiltersManagement { get; internal set; }
+        public FilterDialog.IViewModel DisplayFilterDialog { get; internal set; }
     };
 
     public static class Factory
@@ -614,6 +615,7 @@ namespace LogJoint.UI.Presenters
                     SearchEditorDialog = searchEditorDialog,
                     HlFiltersManagement = hlFiltersManagementPresenter,
                     DisplayFiltersManagement = displayFiltersManagementPresenter,
+                    DisplayFilterDialog = displayFilterDialogPresenter,
                 }
             };
         }

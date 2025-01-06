@@ -323,10 +323,14 @@ namespace LogJoint.JsonFormat
         public static UserDefinedFormatFactory Create(UserDefinedFactoryParams createParams,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings,
-            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
+            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
-                (readerParams, formatInfo) => new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings),
+                (readerParams, formatInfo, hermeticReader) => new FilteringMessagesReader(
+                    new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings),
+                    readerParams, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
+                    traceSourceFactory, globalSettings
+                ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }
@@ -335,7 +339,7 @@ namespace LogJoint.JsonFormat
             ILogProviderHost host, IConnectionParams connectionParams, UserDefinedFormatFactory factory,
             Func<MediaBasedReaderParams, IMessagesReader> readerFactory);
         private delegate IMessagesReader ReaderFactory(
-            MediaBasedReaderParams @params, JsonFormatInfo fmtInfo);
+            MediaBasedReaderParams @params, JsonFormatInfo fmtInfo, bool hermeticReader);
 
         private UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
             IRegexFactory regexFactory, ReaderFactory readerFactory, ProviderFactory providerFactory)
@@ -390,7 +394,8 @@ namespace LogJoint.JsonFormat
 
         public override Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
         {
-            return Task.FromResult(providerFactory(host, connectParams, this, @params => readerFactory(@params, formatInfo.Value)));
+            return Task.FromResult(providerFactory(host, connectParams, this,
+                @params => readerFactory(@params, formatInfo.Value, hermeticReader: false)));
         }
 
         public override LogProviderFactoryFlag Flags
@@ -420,7 +425,7 @@ namespace LogJoint.JsonFormat
 
         IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
-            return readerFactory(readerParams, formatInfo.Value);
+            return readerFactory(readerParams, formatInfo.Value, hermeticReader: true);
         }
     };
 }

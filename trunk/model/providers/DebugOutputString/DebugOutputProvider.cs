@@ -18,18 +18,18 @@ namespace LogJoint.DebugOutput
 
         private LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
             :
             base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(Factory.connectionIdentity),
-                tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem)
+                tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem, displayFilters)
         { }
 
         public static async Task<ILogProvider> Create(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
         {
             LogProvider logProvider = new LogProvider(host, factory, tempFilesManager, traceSourceFactory,
-                regexFactory, modelSynchronizationContext, globalSettings, fileSystem);
+                regexFactory, modelSynchronizationContext, globalSettings, fileSystem, displayFilters);
             try
             {
                 logProvider.Init();

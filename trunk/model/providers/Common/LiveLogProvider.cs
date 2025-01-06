@@ -146,20 +146,25 @@ namespace LogJoint
         protected LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, StreamReorderingParams? dejitteringParams = null)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters,
+            StreamReorderingParams? dejitteringParams = null)
             :
             base(
                 host,
                 factory,
                 CreateConnectionParams(originalConnectionParams, tempFilesManager),
-                @params => new XmlFormat.MessagesReader(
-                    @params,
-                    XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.WebName,
-                        dejitteringParams, new FormatViewOptions(rawViewAllowed: false), regexFactory),
-                    regexFactory,
-                    traceSourceFactory,
-                    globalSettings,
-                    useEmbeddedAttributes: false
+                @params => new FilteringMessagesReader(
+                    new XmlFormat.MessagesReader(
+                        @params,
+                        XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.WebName,
+                            dejitteringParams, new FormatViewOptions(rawViewAllowed: false), regexFactory),
+                        regexFactory,
+                        traceSourceFactory,
+                        globalSettings,
+                        useEmbeddedAttributes: false
+                    ),
+                    @params, displayFilters, tempFilesManager, fileSystem, regexFactory, 
+                    traceSourceFactory, globalSettings
                 ),
                 tempFilesManager,
                 traceSourceFactory,

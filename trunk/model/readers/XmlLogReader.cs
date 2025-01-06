@@ -641,9 +641,11 @@ namespace LogJoint.XmlFormat
         readonly ISynchronizationContext modelSynchronizationContext;
         readonly Settings.IGlobalSettingsAccessor globalSettings;
         readonly LogMedia.IFileSystem fileSystem;
+        readonly IFiltersList displayFilters;
 
         public NativeXMLFormatFactory(ITempFilesManager tempFiles, IRegexFactory regexFactory, ITraceSourceFactory traceSourceFactory,
-            ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem)
+            ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, 
+            IFiltersList displayFilters)
         {
             this.tempFiles = tempFiles;
             this.regexFactory = regexFactory;
@@ -651,6 +653,7 @@ namespace LogJoint.XmlFormat
             this.modelSynchronizationContext = modelSynchronizationContext;
             this.globalSettings = globalSettings;
             this.fileSystem = fileSystem;
+            this.displayFilters = displayFilters;
             this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions(), regexFactory);
         }
 
@@ -704,7 +707,11 @@ namespace LogJoint.XmlFormat
         Task<ILogProvider> ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
         {
             return Task.FromResult<ILogProvider>(new StreamLogProvider(host, this, connectParams,
-                @params => new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false),
+                @params => new FilteringMessagesReader(
+                    new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false),
+                    @params, displayFilters, tempFiles, fileSystem, regexFactory,
+                    traceSourceFactory, globalSettings
+                ),
                 tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }
 
@@ -717,7 +724,8 @@ namespace LogJoint.XmlFormat
 
         IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
-            return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false);
+            return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory,
+                globalSettings, useEmbeddedAttributes: false);
         }
     };
 
@@ -746,11 +754,15 @@ namespace LogJoint.XmlFormat
         public static UserDefinedFormatFactory Create(UserDefinedFactoryParams createParams,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings,
-            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem)
+            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
-                (readerParams, formatInfo) => new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, 
-                    globalSettings, useEmbeddedAttributes: false),
+                (readerParams, formatInfo) =>
+                new FilteringMessagesReader(
+                    new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory,
+                        globalSettings, useEmbeddedAttributes: false),
+                    readerParams, displayFilters, tempFilesManager, fileSystem, regexFactory, traceSourceFactory, globalSettings
+                ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }
