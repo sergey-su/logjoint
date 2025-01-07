@@ -16,6 +16,9 @@
         case TabIDs.HighlightingFilteringRules:
             <FiltersManager Class="tab-content" ViewModel=@presentation.ViewModels.HlFiltersManagement/>
             break;
+        case TabIDs.DisplayFilteringRules:
+            <FiltersManager Class="tab-content" ViewModel=@presentation.ViewModels.DisplayFiltersManagement />
+            break;
         case TabIDs.Search:
             <SearchPanel Class="tab-content" />
             break;
