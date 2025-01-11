@@ -323,13 +323,14 @@ namespace LogJoint.JsonFormat
         public static UserDefinedFormatFactory Create(UserDefinedFactoryParams createParams,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings,
-            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
+            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters,
+            FilteringStats filteringStats)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
                 (readerParams, formatInfo, hermeticReader) => new FilteringMessagesReader(
                     new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings),
                     readerParams, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettings, modelSynchronizationContext
+                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats
                 ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));

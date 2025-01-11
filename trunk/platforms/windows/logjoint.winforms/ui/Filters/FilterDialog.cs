@@ -58,7 +58,10 @@ namespace LogJoint.UI
                 matchCaseCheckbox.Checked = (cbs & CheckBoxId.MatchCase) != 0;
                 regExpCheckBox.Checked = (cbs & CheckBoxId.RegExp) != 0;
                 wholeWordCheckbox.Checked = (cbs & CheckBoxId.WholeWord) != 0;
+                bool lengthChanged = templateTextBox.Text.Length != template?.Length;
                 templateTextBox.Text = template;
+                if (lengthChanged)
+                    templateTextBox.Select(templateTextBox.Text.Length, 0);
             });
 
             var updateAction = Updaters.Create(() => viewModel.Config, () => viewModel.ActionComboBoxValue, (config, actionComboBoxValue) =>

@@ -134,12 +134,12 @@ namespace LogJoint.Tests
             formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
                 config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
                      traceSourceFactory, modelSyncContext, globalSettingsAccessor, fileSystem,
-                     null));
+                     null, null));
             formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
                 config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSyncContext,
-                    globalSettingsAccessor, regexFactory, fileSystem, null));
+                    globalSettingsAccessor, regexFactory, fileSystem, null, null));
             reg.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSyncContext,
-                globalSettingsAccessor, fileSystem, null));
+                globalSettingsAccessor, fileSystem, null, null));
             formatsManager.ReloadFactories();
             var factory = reg.Find(companyName, formatName);
             Assert.That(factory, Is.Not.Null);
@@ -618,7 +618,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
             var modelSyncContext = new SerialSynchronizationContext();
             formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
                 JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, new TraceSourceFactory(),
-                    modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance, null));
+                    modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory,
+                    LogMedia.FileSystemImpl.Instance, null, null));
             formatsManager.ReloadFactories();
             var factory = reg.Items.FirstOrDefault();
             Assert.That(factory, Is.Not.Null);

@@ -17,6 +17,7 @@ namespace LogJoint
         private readonly IMessagesReader unfilteredReader;
         private readonly ISynchronizationContext modelSynchronizationContext;
         private readonly IFiltersList modelFilters; // The filters shared with the model threading context.
+        private readonly FilteringStats filteringStats;
 
         private IFiltersList effectiveFilters; // The filters currently used for filtering in this IMessagesReader's context.
         private string filteredLogFile;
@@ -29,11 +30,12 @@ namespace LogJoint
         public FilteringMessagesReader(IMessagesReader unfilteredReader, MediaBasedReaderParams unfilteredReaderParams, IFiltersList filters,
             ITempFilesManager tempFilesManager, IFileSystem fileSystem, IRegexFactory regexFactory,
             ITraceSourceFactory traceSourceFactory, Settings.IGlobalSettingsAccessor globalSettings,
-            ISynchronizationContext modelSynchronizationContext)
+            ISynchronizationContext modelSynchronizationContext, FilteringStats filteringStats)
         {
             this.unfilteredReader = unfilteredReader;
             this.modelSynchronizationContext = modelSynchronizationContext;
             this.modelFilters = filters;
+            this.filteringStats = filteringStats;
 
             if (filters != null)
             {
@@ -101,6 +103,7 @@ namespace LogJoint
 
             if (filteringEnabled && (status != UpdateBoundsStatus.NothingUpdated || filtersChanged || timeOffsetChanged))
             {
+                using var scopedFiltering = filteringStats?.ScopedFilteringProgress();
                 await ensureFilteredLogIsCreated();
                 await UpdateFilteredLog();
                 await filteredLogReader.UpdateAvailableBounds(/*incrementalMode=*/false);
@@ -281,4 +284,33 @@ namespace LogJoint
             return message;
         }
     }
+
+    // Thread-safe.
+    public class FilteringStats
+    {
+        readonly private IChangeNotification changeNotification;
+        volatile int filteringIsInProgress;
+
+        public FilteringStats(IChangeNotification changeNotification)
+        {
+            this.changeNotification = changeNotification;
+        }
+
+        public bool FilteringIsInProgress => filteringIsInProgress != 0;
+
+        public IDisposable ScopedFilteringProgress()
+        {
+            if (Interlocked.Increment(ref filteringIsInProgress) == 1)
+            {
+                changeNotification.Post();
+            }
+            return new ScopedGuard(() =>
+            {
+                if (Interlocked.Decrement(ref filteringIsInProgress) == 0)
+                {
+                    changeNotification.Post();
+                }
+            });
+        }
+    };
 }

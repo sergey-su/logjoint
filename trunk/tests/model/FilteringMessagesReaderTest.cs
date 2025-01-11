@@ -35,10 +35,13 @@ namespace LogJoint.Tests
         {
             filtersFactory = new FiltersFactory(Substitute.For<IChangeNotification>(), FCLRegexFactory.Instance);
             filters = filtersFactory.CreateFiltersList(FilterAction.Include, FiltersListPurpose.Display);
+            ISynchronizationContext synchronizationContext = new SerialSynchronizationContext();
+            IChangeNotification changeNotification = new ChangeNotification(synchronizationContext);
             reader = new FilteringMessagesReader(new FakeMessagesReader([0, 10, 20, 30]),
                 new MediaBasedReaderParams(new LogSourceThreads(), new StringStreamMedia()), filters, new TempFilesManager(),
                 LogMedia.FileSystemImpl.Instance, FCLRegexFactory.Instance,
-                new TraceSourceFactory(), DefaultSettingsAccessor.Instance, new SerialSynchronizationContext());
+                new TraceSourceFactory(), DefaultSettingsAccessor.Instance, synchronizationContext,
+                new FilteringStats(changeNotification));
             await reader.UpdateAvailableBounds(incrementalMode: false);
         }
 

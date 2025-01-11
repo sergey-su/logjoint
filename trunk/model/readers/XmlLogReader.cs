@@ -642,10 +642,11 @@ namespace LogJoint.XmlFormat
         readonly Settings.IGlobalSettingsAccessor globalSettings;
         readonly LogMedia.IFileSystem fileSystem;
         readonly IFiltersList displayFilters;
+        readonly FilteringStats filteringStats;
 
         public NativeXMLFormatFactory(ITempFilesManager tempFiles, IRegexFactory regexFactory, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, 
-            IFiltersList displayFilters)
+            IFiltersList displayFilters, FilteringStats filteringStats)
         {
             this.tempFiles = tempFiles;
             this.regexFactory = regexFactory;
@@ -655,6 +656,7 @@ namespace LogJoint.XmlFormat
             this.fileSystem = fileSystem;
             this.displayFilters = displayFilters;
             this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions(), regexFactory);
+            this.filteringStats = filteringStats;
         }
 
         IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
@@ -710,7 +712,7 @@ namespace LogJoint.XmlFormat
                 @params => new FilteringMessagesReader(
                     new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false),
                     @params, displayFilters, tempFiles, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettings, modelSynchronizationContext
+                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats
                 ),
                 tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }
@@ -754,7 +756,8 @@ namespace LogJoint.XmlFormat
         public static UserDefinedFormatFactory Create(UserDefinedFactoryParams createParams,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings,
-            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
+            IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters,
+            FilteringStats filteringStats)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
                 (readerParams, formatInfo) =>
@@ -762,7 +765,7 @@ namespace LogJoint.XmlFormat
                     new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory,
                         globalSettings, useEmbeddedAttributes: false),
                     readerParams, displayFilters, tempFilesManager, fileSystem, regexFactory, traceSourceFactory, globalSettings,
-                    modelSynchronizationContext
+                    modelSynchronizationContext, filteringStats
                 ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));

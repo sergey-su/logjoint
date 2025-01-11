@@ -34,7 +34,8 @@ namespace LogJoint.UI.Presenters.MainForm
             IShutdownSource shutdown,
             IColorTheme theme,
             IChangeNotification changeNotification,
-            ITraceSourceFactory traceSourceFactory
+            ITraceSourceFactory traceSourceFactory,
+            FilteringStats filteringStats
         )
         {
             this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.main");
@@ -58,6 +59,7 @@ namespace LogJoint.UI.Presenters.MainForm
             this.statusRepors = statusReportFactory;
             this.theme = theme;
             this.changeNotification = changeNotification;
+            this.filteringStats = filteringStats;
 
             var sourcesTab = new TabInfo { Id = TabIDs.Sources, Caption = "Log Sources" };
             var threadsTab = new TabInfo { Id = TabIDs.Threads, Caption = "Threads" };
@@ -365,7 +367,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
         string IViewModel.ResizerTooltip => "Resize the tabs panel";
 
-        bool IViewModel.FiltersLoadingAnimationVisible => false;
+        bool IViewModel.FiltersLoadingAnimationVisible => filteringStats.FilteringIsInProgress;
 
         #region Implementation
 
@@ -459,6 +461,7 @@ namespace LogJoint.UI.Presenters.MainForm
         readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;
         readonly IColorTheme theme;
         readonly IChangeNotification changeNotification;
+        readonly FilteringStats filteringStats;
         readonly IReadOnlyList<TabInfo> visibleTabs;
 
         IInputFocusState inputFocusBeforeWaitState;

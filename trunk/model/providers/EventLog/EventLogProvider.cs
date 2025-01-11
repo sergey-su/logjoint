@@ -15,7 +15,7 @@ namespace LogJoint.WindowsEventLog
         private LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
-            IFiltersList displayFilters)
+            IFiltersList displayFilters, FilteringStats filteringStats)
             : base(host,
                 factory,
                 connectParams,
@@ -26,6 +26,7 @@ namespace LogJoint.WindowsEventLog
                 globalSettings,
                 fileSystem,
                 displayFilters,
+                filteringStats,
                 new StreamReorderingParams() { JitterBufferSize = 25 })
         {
         }
@@ -33,10 +34,10 @@ namespace LogJoint.WindowsEventLog
         public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
-            IFiltersList displayFilters)
+            IFiltersList displayFilters, FilteringStats filteringStats)
         {
             LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
-                modelSynchronizationContext, globalSettings, fileSystem, displayFilters);
+                modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats);
             try
             {
                 logProvider.eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);

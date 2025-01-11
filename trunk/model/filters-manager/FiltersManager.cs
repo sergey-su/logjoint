@@ -5,14 +5,17 @@ namespace LogJoint
         readonly ILogSourcesManager logSources;
         readonly IFiltersList highlightFilters;
         readonly IFiltersList displayFilters;
+        readonly FilteringStats filteringStats;
 
         public FiltersManager(
             IFiltersFactory filtersFactory,
             ILogSourcesManager logSourcesManager,
-            IShutdown shutdown
+            IShutdown shutdown,
+            IChangeNotification changeNotification
         )
         {
             this.logSources = logSourcesManager;
+            this.filteringStats = new FilteringStats(changeNotification);
 
             this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting);
             this.displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include, FiltersListPurpose.Display);
@@ -37,5 +40,7 @@ namespace LogJoint
         IFiltersList IFiltersManager.HighlightFilters => highlightFilters;
 
         IFiltersList IFiltersManager.DisplayFilters => displayFilters;
+
+        FilteringStats IFiltersManager.FilteringStats => filteringStats;
     }
 }

@@ -19,10 +19,11 @@ namespace LogJoint.PlainText
         private LogProvider(ILogProviderHost host, IConnectionParams connectParams,
             ILogProviderFactory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList,
+            FilteringStats filteringStats)
             :
             base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext,
-                globalSettings, fileSystem, filtersList)
+                globalSettings, fileSystem, filtersList, filteringStats)
         {
             this.regexFactory = regexFactory;
             this.fileSystem = fileSystem;
@@ -32,10 +33,12 @@ namespace LogJoint.PlainText
         public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams,
             ILogProviderFactory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList,
+            FilteringStats filteringStats)
         {
             LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager,
-                traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem, filtersList);
+                traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem,
+                filtersList, filteringStats);
             try
             {
                 logProvider.StartLiveLogThread(logProvider.LiveLogListen);

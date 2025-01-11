@@ -4,5 +4,6 @@ namespace LogJoint
     {
         IFiltersList HighlightFilters { get; }
         IFiltersList DisplayFilters { get; }
+        FilteringStats FilteringStats { get; }
     };
 }

@@ -334,7 +334,7 @@ namespace LogJoint.RegularGrammar
             UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, IRegexFactory regexFactory,
             FieldsProcessor.IFactory fieldsProcessorFactory, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettingsAccessor,
-            LogMedia.IFileSystem fileSystem, IFiltersList displayFilters)
+            LogMedia.IFileSystem fileSystem, IFiltersList displayFilters, FilteringStats filteringStats)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory, fieldsProcessorFactory,
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
@@ -342,7 +342,7 @@ namespace LogJoint.RegularGrammar
                 (@params, fmtInfo, hermeticReader) => new FilteringMessagesReader(
                     new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettingsAccessor),
                     @params, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettingsAccessor, modelSynchronizationContext
+                    traceSourceFactory, globalSettingsAccessor, modelSynchronizationContext, filteringStats
                 ));
         }
 

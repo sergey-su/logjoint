@@ -486,7 +486,8 @@ namespace LogJoint.UI.Presenters
                 model.Shutdown,
                 colorTheme,
                 model.ChangeNotification,
-                model.TraceSourceFactory
+                model.TraceSourceFactory,
+                model.FiltersManager.FilteringStats
             );
 
             Options.PluginsInstallationOffer.Init(
