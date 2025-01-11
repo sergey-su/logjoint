@@ -365,6 +365,8 @@ namespace LogJoint.UI.Presenters.MainForm
 
         string IViewModel.ResizerTooltip => "Resize the tabs panel";
 
+        bool IViewModel.FiltersLoadingAnimationVisible => false;
+
         #region Implementation
 
         void UpdateFormCaption()

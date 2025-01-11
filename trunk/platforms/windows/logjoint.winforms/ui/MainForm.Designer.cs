@@ -277,6 +277,7 @@ namespace LogJoint.UI
             this.menuTabControl.Controls.Add(this.navigationTabPage);
             this.menuTabControl.Controls.Add(this.postprocessingTabPage);
             this.menuTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.menuTabControl.ImageList = imageList1;
             this.menuTabControl.Location = new System.Drawing.Point(0, 0);
             this.menuTabControl.Margin = new System.Windows.Forms.Padding(2);
             this.menuTabControl.Name = "menuTabControl";
