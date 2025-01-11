@@ -14,8 +14,6 @@ namespace LogJoint.UI.QuickSearchTextBox
         {
             InitializeComponent();
 
-            this.components = new System.ComponentModel.Container();
-
             this.Multiline = false;
 
             this.Controls.Add(picture);

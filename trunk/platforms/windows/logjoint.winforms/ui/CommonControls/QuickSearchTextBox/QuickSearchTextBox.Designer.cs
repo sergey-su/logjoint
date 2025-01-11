@@ -30,15 +30,24 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            imageList = new System.Windows.Forms.ImageList(components);
+            SuspendLayout();
+            // 
+            // imageList1
+            // 
+            imageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
+            imageList.ImageSize = new System.Drawing.Size(16, 16);
+            imageList.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // QuickSearchTextBox
             // 
-            this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ResumeLayout(false);
-
+            BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            ResumeLayout(false);
         }
 
         #endregion
+
+        private System.Windows.Forms.ImageList imageList;
     }
 }
