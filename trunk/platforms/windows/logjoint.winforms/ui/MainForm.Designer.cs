@@ -46,7 +46,7 @@ namespace LogJoint.UI
             this.button6 = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.splitContainer_Menu_Workspace = new System.Windows.Forms.ExtendedSplitContainer();
-            this.menuTabControl = new System.Windows.Forms.TabControl();
+            this.menuTabControl = new System.Windows.Forms.CompositedTabControl();
             this.sourcesTabPage = new System.Windows.Forms.TabPage();
             this.threadsTabPage = new System.Windows.Forms.TabPage();
             this.highlightTabPage = new System.Windows.Forms.TabPage();
