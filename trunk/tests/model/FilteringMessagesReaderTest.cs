@@ -38,7 +38,7 @@ namespace LogJoint.Tests
             reader = new FilteringMessagesReader(new FakeMessagesReader([0, 10, 20, 30]),
                 new MediaBasedReaderParams(new LogSourceThreads(), new StringStreamMedia()), filters, new TempFilesManager(),
                 LogMedia.FileSystemImpl.Instance, FCLRegexFactory.Instance,
-                new TraceSourceFactory(), DefaultSettingsAccessor.Instance);
+                new TraceSourceFactory(), DefaultSettingsAccessor.Instance, new SerialSynchronizationContext());
             await reader.UpdateAvailableBounds(incrementalMode: false);
         }
 

@@ -342,7 +342,7 @@ namespace LogJoint.RegularGrammar
                 (@params, fmtInfo, hermeticReader) => new FilteringMessagesReader(
                     new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettingsAccessor),
                     @params, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettingsAccessor
+                    traceSourceFactory, globalSettingsAccessor, modelSynchronizationContext
                 ));
         }
 

@@ -2,6 +2,7 @@
 
 namespace LogJoint.Settings
 {
+    // Single-threaded. Should be accessed only from model threading context.
     public interface IGlobalSettingsAccessor
     {
         FileSizes FileSizes { get; set; }

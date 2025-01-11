@@ -329,7 +329,7 @@ namespace LogJoint.JsonFormat
                 (readerParams, formatInfo, hermeticReader) => new FilteringMessagesReader(
                     new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings),
                     readerParams, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettings
+                    traceSourceFactory, globalSettings, modelSynchronizationContext
                 ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));

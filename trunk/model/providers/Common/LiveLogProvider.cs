@@ -164,7 +164,7 @@ namespace LogJoint
                         useEmbeddedAttributes: false
                     ),
                     @params, displayFilters, tempFilesManager, fileSystem, regexFactory, 
-                    traceSourceFactory, globalSettings
+                    traceSourceFactory, globalSettings, modelSynchronizationContext
                 ),
                 tempFilesManager,
                 traceSourceFactory,

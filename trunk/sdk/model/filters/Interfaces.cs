@@ -41,6 +41,7 @@ namespace LogJoint
         MessageFilteringResult ProcessMessage(IMessage msg, int? startFromChar);
     };
 
+    // Single-threaded.
     public interface IFiltersList : IDisposable
     {
         int PurgeDisposedFiltersAndFiltersHavingDisposedThreads();

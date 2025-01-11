@@ -137,9 +137,9 @@ namespace LogJoint.Tests
                      null));
             formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
                 config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSyncContext,
-                    globalSettingsAccessor, regexFactory, fileSystem));
+                    globalSettingsAccessor, regexFactory, fileSystem, null));
             reg.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSyncContext,
-                globalSettingsAccessor, fileSystem));
+                globalSettingsAccessor, fileSystem, null));
             formatsManager.ReloadFactories();
             var factory = reg.Find(companyName, formatName);
             Assert.That(factory, Is.Not.Null);
@@ -618,7 +618,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
             var modelSyncContext = new SerialSynchronizationContext();
             formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
                 JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, new TraceSourceFactory(),
-                    modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance));
+                    modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory, LogMedia.FileSystemImpl.Instance, null));
             formatsManager.ReloadFactories();
             var factory = reg.Items.FirstOrDefault();
             Assert.That(factory, Is.Not.Null);

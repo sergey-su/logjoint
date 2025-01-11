@@ -9,6 +9,7 @@ using FCLTraceSource = System.Diagnostics.TraceSource;
 
 namespace LogJoint
 {
+    // Thread-safe.
     public interface ITraceSourceFactory
     {
         LJTraceSource CreateTraceSource(string configName, string prefix = "");

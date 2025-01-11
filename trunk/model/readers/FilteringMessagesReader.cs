@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -14,27 +15,31 @@ namespace LogJoint
         private static readonly UnicodeEncoding unicodeEncodingNoBOM = new(bigEndian: false, byteOrderMark: false);
 
         private readonly IMessagesReader unfilteredReader;
-        private readonly IFiltersList filters;
+        private readonly ISynchronizationContext modelSynchronizationContext;
+        private readonly IFiltersList modelFilters; // The filters shared with the model threading context.
 
-        private bool filteringEnabled;
+        private IFiltersList effectiveFilters; // The filters currently used for filtering in this IMessagesReader's context.
         private string filteredLogFile;
         private SimpleFileMedia filteredLogMedia;
         private IMessagesReader filteredLogReader;
-        private bool filteredMessagesIsDirty = false;
+        private bool modelFiltersChanged = false; // The flag lives in the model threading context.
+        private bool timeOffsetChanged = false;
         private readonly Func<ValueTask> ensureFilteredLogIsCreated;
 
         public FilteringMessagesReader(IMessagesReader unfilteredReader, MediaBasedReaderParams unfilteredReaderParams, IFiltersList filters,
             ITempFilesManager tempFilesManager, IFileSystem fileSystem, IRegexFactory regexFactory,
-            ITraceSourceFactory traceSourceFactory, Settings.IGlobalSettingsAccessor globalSettings)
+            ITraceSourceFactory traceSourceFactory, Settings.IGlobalSettingsAccessor globalSettings,
+            ISynchronizationContext modelSynchronizationContext)
         {
             this.unfilteredReader = unfilteredReader;
-            this.filters = filters;
+            this.modelSynchronizationContext = modelSynchronizationContext;
+            this.modelFilters = filters;
 
             if (filters != null)
             {
-                filters.OnFilteringEnabledChanged += (sender, evt) => filteredMessagesIsDirty = true;
-                filters.OnFiltersListChanged += (sender, evt) => filteredMessagesIsDirty = true;
-                filters.OnPropertiesChanged += (sender, evt) => filteredMessagesIsDirty = true;
+                filters.OnFilteringEnabledChanged += (sender, evt) => modelFiltersChanged = true;
+                filters.OnFiltersListChanged += (sender, evt) => modelFiltersChanged = true;
+                filters.OnPropertiesChanged += (sender, evt) => modelFiltersChanged = true;
             }
 
             ensureFilteredLogIsCreated = async () =>
@@ -49,15 +54,18 @@ namespace LogJoint
                 MediaBasedReaderParams filteredReaderParams = unfilteredReaderParams;
                 filteredReaderParams.Media = filteredLogMedia;
                 filteredReaderParams.ParentLoggingPrefix = (unfilteredReaderParams.ParentLoggingPrefix ?? "") + ".filtered";
-                filteredLogReader = new XmlFormat.MessagesReader(
-                    filteredReaderParams,
-                    XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(
-                        unicodeEncodingNoBOM.WebName, null, new FormatViewOptions(rawViewAllowed: true), regexFactory),
-                    regexFactory,
-                    traceSourceFactory,
-                    globalSettings,
-                    useEmbeddedAttributes: true
-                );
+                await modelSynchronizationContext.Invoke(() =>
+                {
+                    filteredLogReader = new XmlFormat.MessagesReader(
+                        filteredReaderParams,
+                        XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(
+                            unicodeEncodingNoBOM.WebName, null, new FormatViewOptions(rawViewAllowed: true), regexFactory),
+                        regexFactory,
+                        traceSourceFactory,
+                        globalSettings,
+                        useEmbeddedAttributes: true
+                    );
+                });
             };
         }
 
@@ -69,17 +77,33 @@ namespace LogJoint
         {
             // The filtering is done on update in this method.
             UpdateBoundsStatus status = await unfilteredReader.UpdateAvailableBounds(incrementalMode);
-            bool filteringEnabled = filters != null && filters.FilteringEnabled && filters.Items.Count > 0;
-            bool oldFilteringEnabled = this.filteringEnabled;
-            this.filteringEnabled = filteringEnabled;
+            bool oldFilteringEnabled = this.effectiveFilters != null;
+            bool filteringEnabled = oldFilteringEnabled;
+            bool filtersChanged = false;
+            await modelSynchronizationContext.Invoke(() =>
+            {
+                filteringEnabled = modelFilters != null && modelFilters.FilteringEnabled && modelFilters.Items.Count > 0;
+                filtersChanged = this.modelFiltersChanged;
+                this.modelFiltersChanged = false;
 
-            if (filteringEnabled && (status != UpdateBoundsStatus.NothingUpdated || filteredMessagesIsDirty))
+                // Ensure the invariant that effectiveFilters != null IFF filteringEnabled.
+                if (!filteringEnabled)
+                {
+                    this.effectiveFilters = null;
+                }
+                else if (this.effectiveFilters == null || filtersChanged)
+                {
+                    this.effectiveFilters = modelFilters.Clone();
+                }
+            });
+            bool timeOffsetChanged = this.timeOffsetChanged;
+            this.timeOffsetChanged = false;
+
+            if (filteringEnabled && (status != UpdateBoundsStatus.NothingUpdated || filtersChanged || timeOffsetChanged))
             {
                 await ensureFilteredLogIsCreated();
                 await UpdateFilteredLog();
                 await filteredLogReader.UpdateAvailableBounds(/*incrementalMode=*/false);
-                filteredMessagesIsDirty = false;
-                this.filteringEnabled = filteringEnabled;
                 return UpdateBoundsStatus.MessagesFiltered;
             }
             if (!filteringEnabled && oldFilteringEnabled)
@@ -107,18 +131,18 @@ namespace LogJoint
             set
             {
                 unfilteredReader.TimeOffsets = value;
-                filteredMessagesIsDirty = true;
+                timeOffsetChanged = true;
             }
         }
 
         IAsyncEnumerable<PostprocessedMessage> IMessagesReader.Read(ReadMessagesParams p)
         {
-            return filteringEnabled ? ReadFromFilteredLog(p) : unfilteredReader.Read(p);
+            return effectiveFilters != null ? ReadFromFilteredLog(p) : unfilteredReader.Read(p);
         }
 
         IAsyncEnumerable<SearchResultMessage> IMessagesReader.Search(SearchMessagesParams p)
         {
-            return filteringEnabled ? SearchInFilteredLog(p) : unfilteredReader.Search(p);
+            return effectiveFilters != null ? SearchInFilteredLog(p) : unfilteredReader.Search(p);
         }
 
         void IDisposable.Dispose()
@@ -147,7 +171,7 @@ namespace LogJoint
             {
                 Range = new FileRange.Range(unfilteredReader.BeginPosition, unfilteredReader.EndPosition),
                 Flags = ReadMessagesFlag.HintMassiveSequentialReading,
-                SearchParams = new SearchAllOccurencesParams(filters, searchInRawText: false, fromPosition: null)
+                SearchParams = new SearchAllOccurencesParams(effectiveFilters, searchInRawText: false, fromPosition: null)
             }))
             {
                 outputWriter.WriteStartElement("m");

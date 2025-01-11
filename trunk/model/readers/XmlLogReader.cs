@@ -710,7 +710,7 @@ namespace LogJoint.XmlFormat
                 @params => new FilteringMessagesReader(
                     new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false),
                     @params, displayFilters, tempFiles, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettings
+                    traceSourceFactory, globalSettings, modelSynchronizationContext
                 ),
                 tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }
@@ -761,7 +761,8 @@ namespace LogJoint.XmlFormat
                 new FilteringMessagesReader(
                     new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory,
                         globalSettings, useEmbeddedAttributes: false),
-                    readerParams, displayFilters, tempFilesManager, fileSystem, regexFactory, traceSourceFactory, globalSettings
+                    readerParams, displayFilters, tempFilesManager, fileSystem, regexFactory, traceSourceFactory, globalSettings,
+                    modelSynchronizationContext
                 ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));

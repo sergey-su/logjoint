@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.LogMedia
 {
+    // Single-threaded.
     public interface IFileSystemWatcher : IDisposable
     {
         string Path { get; set; }
@@ -13,6 +14,7 @@ namespace LogJoint.LogMedia
         bool EnableRaisingEvents { get; set; }
     };
 
+    // Thread-safe.
     public interface IFileSystem
     {
         Task<Stream> OpenFile(string fileName);
