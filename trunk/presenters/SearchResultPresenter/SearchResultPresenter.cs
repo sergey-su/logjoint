@@ -515,7 +515,7 @@ namespace LogJoint.UI.Presenters.SearchResult
         public void RaiseMessagesChanged()
         {
             OnSourceMessagesChanged?.Invoke(this,
-                new LogViewer.SourceMessagesChangeArgs(SourceMessagesChangeArgs.ChangeType.IncrementalGeneric));
+                new LogViewer.SourceMessagesChangeArgs(SourceMessagesChangeArgs.ChangeType.Incremental));
         }
 
         IEnumerable<LogViewer.IMessagesSource> LogViewer.IModel.Sources

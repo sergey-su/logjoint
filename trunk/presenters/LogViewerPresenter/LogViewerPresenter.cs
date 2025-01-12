@@ -117,9 +117,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
             this.model.OnSourceMessagesChanged += (sender, e) =>
             {
-                if (e.Type == SourceMessagesChangeArgs.ChangeType.IncrementalGeneric)
+                if (e.Type == SourceMessagesChangeArgs.ChangeType.Incremental)
                     pendingIncrementalUpdateFlag.Invalidate();
-                else if (e.Type == SourceMessagesChangeArgs.ChangeType.IncrementalByFiltering)
+                else if (e.Type == SourceMessagesChangeArgs.ChangeType.Filtering)
                     pendingFilteringUpdateFlag.Invalidate();
                 else
                     pendingFullUpdateFlag.Invalidate();

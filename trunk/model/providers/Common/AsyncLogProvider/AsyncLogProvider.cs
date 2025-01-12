@@ -563,7 +563,7 @@ namespace LogJoint
                 {
                     f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementally;
                 }
-                if (isFilterUpdate)
+                else if (isFilterUpdate)
                 {
                     f |= LogProviderStatsFlag.AvailableTimeUpdatedByFiltering;
                 }
