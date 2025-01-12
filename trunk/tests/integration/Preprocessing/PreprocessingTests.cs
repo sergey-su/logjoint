@@ -145,7 +145,7 @@ namespace LogJoint.Tests.Integration
         [IntegrationTest]
         public static async Task CanQuitAppWhilePreprocessingIsActive(TestAppInstance app)
         {
-            var downloadingPreprocessing = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("chrome_debug_1.log"));
+            var downloadingPreprocessing = app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("TextWriterTraceListener.converted.log"));
 
             await app.Dispose();
 

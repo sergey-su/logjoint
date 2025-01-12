@@ -13,7 +13,8 @@ namespace LogJoint.Tests.Integration
         [IntegrationTest]
         public static async Task FindsAllOccurences(TestAppInstance app)
         {
-            await app.EmulateUrlDragAndDrop(app.Samples.GetSampleAsUri("chrome_debug_1.log"));
+            await app.OpenFileAs(await app.Samples.GetSampleAsLocalFile("TextWriterTraceListener.converted.log"),
+                "Microsoft", "TextWriterTraceListener");
 
             await app.WaitFor(() =>
             {

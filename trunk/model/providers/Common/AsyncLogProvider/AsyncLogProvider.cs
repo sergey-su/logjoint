@@ -491,20 +491,23 @@ namespace LogJoint
             }
 
 
-            bool invalidateThreads = !incrementalMode;
-            bool invalidateMessages = !incrementalMode;
+            bool invalidateThreadsOnNonFirstUpdate = !incrementalMode;
+            bool invalidateMessagesOnNonFirstUpdate = !incrementalMode;
+            bool updateContentsEtag = !incrementalMode;
             bool isIncrementalUpdate = incrementalMode;
             bool isFilterUpdate = false;
 
             if (status == UpdateBoundsStatus.OldMessagesAreInvalid)
             {
-                invalidateThreads = true;
-                invalidateMessages = true;
+                invalidateThreadsOnNonFirstUpdate = true;
+                invalidateMessagesOnNonFirstUpdate = true;
+                updateContentsEtag = true;
                 isIncrementalUpdate = false;
             }
             else if (status == UpdateBoundsStatus.MessagesFiltered)
             {
-                invalidateMessages = true;
+                invalidateMessagesOnNonFirstUpdate = true;
+                updateContentsEtag = true;
                 isIncrementalUpdate = false;
                 isFilterUpdate = true;
             }
@@ -518,23 +521,20 @@ namespace LogJoint
                 {
                     // The first message we've just read differs from the cached one.
                     // This means that the log was overwritten. Forget everything loaded so far.
-                    invalidateThreads = true;
-                    invalidateMessages = true;
+                    invalidateThreadsOnNonFirstUpdate = true;
+                    invalidateMessagesOnNonFirstUpdate = true;
+                    updateContentsEtag = true;
                     isIncrementalUpdate = false;
                 }
             }
 
 
-            if (invalidateMessages)
+            if (invalidateMessagesOnNonFirstUpdate && !itIsFirstUpdate)
             {
-                if (!itIsFirstUpdate)
-                {
-                    InvalidateMessages();
-                }
-                firstMessage = null;
+                InvalidateMessages();
             }
 
-            if (invalidateThreads)
+            if (invalidateThreadsOnNonFirstUpdate && !itIsFirstUpdate)
             {
                 await InvalidateThreads();
             }
@@ -545,7 +545,7 @@ namespace LogJoint
 
             var positionsRange = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
 
-            if (invalidateMessages)
+            if (updateContentsEtag)
             {
                 readerContentsEtag = await reader.GetContentsEtag();
             }
@@ -561,9 +561,9 @@ namespace LogJoint
                 LogProviderStatsFlag f = LogProviderStatsFlag.AvailableTime;
                 if (isIncrementalUpdate)
                 {
-                    f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag;
+                    f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementally;
                 }
-                else if (isFilterUpdate)
+                if (isFilterUpdate)
                 {
                     f |= LogProviderStatsFlag.AvailableTimeUpdatedByFiltering;
                 }

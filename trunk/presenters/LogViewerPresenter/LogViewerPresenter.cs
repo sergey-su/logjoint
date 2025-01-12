@@ -109,7 +109,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                     if (viewTailMode || isFullUpdate)
                         ThisIntf.GoToEnd().IgnoreCancellation();
                     else if (isFilteringUpdate)
-                        Refresh2().IgnoreCancellation();
+                        RefreshAfterFiltering().IgnoreCancellation();
                     else
                         Refresh().IgnoreCancellation();
                 }
@@ -117,9 +117,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
             this.model.OnSourceMessagesChanged += (sender, e) =>
             {
-                if (e.Type == SourceMessagesChangeArgs.ChangeType.Incremental)
+                if (e.Type == SourceMessagesChangeArgs.ChangeType.IncrementalGeneric)
                     pendingIncrementalUpdateFlag.Invalidate();
-                else if (e.Type == SourceMessagesChangeArgs.ChangeType.Filtering)
+                else if (e.Type == SourceMessagesChangeArgs.ChangeType.IncrementalByFiltering)
                     pendingFilteringUpdateFlag.Invalidate();
                 else
                     pendingFullUpdateFlag.Invalidate();
@@ -971,7 +971,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             });
         }
 
-        Task Refresh2()
+        Task RefreshAfterFiltering()
         {
             return navigationManager.NavigateView(async cancellation =>
             {

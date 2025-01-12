@@ -224,7 +224,7 @@ namespace LogJoint
         Error = 16,
         CachedMessagesCount = 32,
         BytesCount = 64,
-        AvailableTimeUpdatedIncrementallyFlag = 128,
+        AvailableTimeUpdatedIncrementally = 128,
         AveMsgTime = 256,
         AvailableTimeUpdatedByFiltering = 512,
         FirstMessageWithTimeConstraintViolation = 2048,

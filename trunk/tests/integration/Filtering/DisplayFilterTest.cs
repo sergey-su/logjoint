@@ -2,7 +2,8 @@
 using System.Threading.Tasks;
 using System.Linq;
 using System.IO;
-using Castle.Core.Logging;
+using NSubstitute;
+using System;
 
 namespace LogJoint.Tests.Integration
 {
@@ -12,7 +13,8 @@ namespace LogJoint.Tests.Integration
         [IntegrationTest]
         public static async Task FiltersTextLogs(TestAppInstance app)
         {
-            await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("chrome_debug_1.log"));
+            await app.EmulateFileDragAndDrop(await app.Samples.GetSampleAsLocalFile("TextWriterTraceListener.converted.log"));
+            Check.That(app.ModelObjects.LogSourcesManager.Items.Select(src => src.Provider.Factory.FormatName).First()).IsEqualTo("TextWriterTraceListener");
 
             app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnKeyPressed(UI.Presenters.LogViewer.Key.EndOfDocument);
 
@@ -104,15 +106,13 @@ namespace LogJoint.Tests.Integration
             File.WriteAllText(testLogFile,
                 "{ \"time\": \"2024-11-20 04:40:43.1000\", \"message\": \"Foo\" }\r\n" +
                 "{ \"time\": \"2024-11-20 04:40:43.2000\", \"message\": \"Bar\" }\r\n" +
-                "{ \"time\": \"2024-11-20 04:40:43.2000\", \"message\": \"Zoo\" }\r\n");
+                "{ \"time\": \"2024-11-20 04:40:43.3000\", \"message\": \"Fizz\" }\r\n");
 
-            await app.EmulateFileDragAndDrop(testLogFile);
+            await app.OpenFileAs(testLogFile, "LogJoint", "JSON Test");
 
-            await app.WaitFor(() =>
-            {
-                string log = app.GetDisplayedLog();
-                return log.Contains("Foo") && log.Contains("Bar") && log.Contains("Zoo");
-            });
+            await app.WaitForLogDisplayed(@"Foo
+Bar
+Fizz");
 
             await app.SynchronizationContext.Invoke(() =>
             {
@@ -123,14 +123,51 @@ namespace LogJoint.Tests.Integration
                 app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
             });
 
-            await Task.Delay(3000);
-            string log = app.GetDisplayedLog();
+            await app.WaitForLogDisplayed(@"Foo
+Fizz");
+        }
 
-            await app.WaitFor(() =>
+        [IntegrationTest]
+        public static async Task FilteringIsPreservedOnReopen(TestAppInstance app)
+        {
+            await app.OpenFileAs(await app.Samples.GetSampleAsLocalFile("TextWriterTraceListener.converted.log"),
+                "Microsoft", "TextWriterTraceListener");
+            await app.WaitFor(() => app.GetDisplayedLog().Length > 0);
+
+            await app.SynchronizationContext.Invoke(() =>
             {
-                string log = app.GetDisplayedLog();
-                return log.Contains("Foo") && !log.Contains("Bar") && log.Contains("Zoo");
+                // Set up an inclusive filter
+                app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
+                app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
+                Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
+                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("SetSink: ssrc:970030813");
+                Check.That(
+                    app.PresentationObjects.ViewModels.DisplayFilterDialog.Config.ActionComboBoxOptions.Select(a => a.Key).ToArray())
+                    .Equals(new string[] { "Exclude", "Include" });
+                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnActionComboBoxValueChange(1);
+                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
             });
+
+            string expectedLog = @"SetSink: ssrc:970030813 (ptr)
+SetSink: ssrc:970030813 nullptr
+SetSink: ssrc:970030813 (ptr)
+SetSink: ssrc:970030813 nullptr
+SetSink: ssrc:970030813 (ptr)
+SetSink: ssrc:970030813 nullptr
+SetSink: ssrc:970030813 (ptr)";
+
+            await app.WaitForLogDisplayed(expectedLog);
+
+            // Close all logs
+            app.Mocks.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
+                Task.FromResult(UI.Presenters.AlertFlags.Yes));
+            app.PresentationObjects.ViewModels.SourcesManager.OnDeleteAllLogSourcesButtonClicked();
+            await app.WaitFor(() => app.PresentationObjects.ViewModels.SourcesList.RootItem.Children.Count == 0);
+
+            // Reopen the log
+            await app.OpenFileAs(await app.Samples.GetSampleAsLocalFile("TextWriterTraceListener.converted.log"),
+                "Microsoft", "TextWriterTraceListener");
+            await app.WaitForLogDisplayed(expectedLog);
         }
     }
 }

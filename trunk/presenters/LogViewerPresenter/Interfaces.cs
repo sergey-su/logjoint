@@ -347,8 +347,8 @@ namespace LogJoint.UI.Presenters.LogViewer
         public enum ChangeType
         {
             Full,
-            Incremental,
-            Filtering,
+            IncrementalGeneric,
+            IncrementalByFiltering,
         };
         public ChangeType Type { get; private set; }
 

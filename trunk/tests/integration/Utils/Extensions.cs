@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LogJoint.Tests.Integration
 {
@@ -20,6 +21,12 @@ namespace LogJoint.Tests.Integration
                 new[] { app.ModelObjects.PreprocessingStepsFactory.CreateURLTypeDetectionStep(new Preprocessing.PreprocessingStepParams(uri.ToString())) },
                 uri.ToString()
             );
+        }
+
+        public static async Task OpenFileAs(this TestAppInstance app, string fileName, string formatCompanyName, string formatName)
+        {
+            var factory = (IFileBasedLogProviderFactory)app.ModelObjects.LogProviderFactoryRegistry.Find(formatCompanyName, formatName);
+            await app.ModelObjects.LogSourcesManager.Create(factory, factory.CreateParams(fileName));
         }
 
         public static async Task WaitFor(this TestAppInstance app, Func<bool> condition, string operationName = null, TimeSpan? timeout = null)

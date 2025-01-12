@@ -2,6 +2,7 @@
 using LogJoint.RegularExpressions;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -155,9 +156,10 @@ namespace LogJoint
             filteredLogMedia?.Dispose();
         }
 
-        async ValueTask UpdateFilteredLog()
+        async Task UpdateFilteredLog()
         {
-            using var outputStream = new FileStream(filteredLogFile, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+            await using var outputStream = new FileStream(
+                filteredLogFile, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
             outputStream.SetLength(0);
             using var outputWriter = XmlWriter.Create(
                 outputStream,
@@ -168,6 +170,7 @@ namespace LogJoint
                     OmitXmlDeclaration = false,
                     Indent = true,
                     Encoding = unicodeEncodingNoBOM,
+                    Async = true,
                 }
             );
             await foreach (SearchResultMessage msg in unfilteredReader.Search(new SearchMessagesParams()
@@ -177,18 +180,20 @@ namespace LogJoint
                 SearchParams = new SearchAllOccurencesParams(effectiveFilters, searchInRawText: false, fromPosition: null)
             }))
             {
-                outputWriter.WriteStartElement("m");
-                outputWriter.WriteAttributeString("d", Listener.FormatDate(msg.Message.Time.ToUnspecifiedTime()));
-                outputWriter.WriteAttributeString("t", msg.Message.Thread?.ID ?? "");
-                outputWriter.WriteAttributeString("p", msg.Message.Position.ToString());
-                outputWriter.WriteAttributeString("ep", msg.Message.EndPosition.ToString());
+                await outputWriter.WriteStartElementAsync(null, "m", null);
+                await outputWriter.WriteAttributeStringAsync(null, "d", null, Listener.FormatDate(msg.Message.Time.ToUnspecifiedTime()));
+                await outputWriter.WriteAttributeStringAsync(null, "t", null, msg.Message.Thread?.ID ?? "");
+                await outputWriter.WriteAttributeStringAsync(null, "p", null, msg.Message.Position.ToString());
+                await outputWriter.WriteAttributeStringAsync(null, "ep", null, msg.Message.EndPosition.ToString());
                 if (msg.Message.RawText.IsInitialized)
                 {
-                    outputWriter.WriteAttributeString("r", msg.Message.RawText.ToString());
+                    await outputWriter.WriteAttributeStringAsync(null, "r", null, msg.Message.RawText.ToString());
                 }
-                outputWriter.WriteString(msg.Message.Text);
-                outputWriter.WriteEndElement();
+                await outputWriter.WriteStringAsync(msg.Message.Text);
+                await outputWriter.WriteEndElementAsync();
             }
+            await outputWriter.FlushAsync();
+            await outputStream.FlushAsync();
         }
 
         async IAsyncEnumerable<PostprocessedMessage> ReadFromFilteredLog(ReadMessagesParams p)

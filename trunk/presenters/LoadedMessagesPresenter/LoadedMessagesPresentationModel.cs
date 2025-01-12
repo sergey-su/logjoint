@@ -42,13 +42,16 @@ namespace LogJoint.UI.Presenters.LoadedMessages
             {
                 if ((e.Flags & LogProviderStatsFlag.PositionsRange) != 0)
                 {
-                    if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) != 0)
+                    if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementally) != 0)
                     {
-                        FireMessagesChanged(s, SourceMessagesChangeArgs.ChangeType.Incremental);
-                    }
-                    else if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedByFiltering) != 0)
-                    {
-                        FireMessagesChanged(s, SourceMessagesChangeArgs.ChangeType.Filtering);
+                        if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedByFiltering) != 0)
+                        {
+                            FireMessagesChanged(s, SourceMessagesChangeArgs.ChangeType.IncrementalByFiltering);
+                        }
+                        else
+                        {
+                            FireMessagesChanged(s, SourceMessagesChangeArgs.ChangeType.IncrementalGeneric);
+                        }
                     }
                     else if (IsExposableLogSource(e.Value) && !IsExposableLogSource(e.OldValue))
                     {
