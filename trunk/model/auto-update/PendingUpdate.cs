@@ -89,17 +89,26 @@ namespace LogJoint.AutoUpdate
 
             async Task<(Process process, string autoRestartFlagFileName)> StartUpdater()
             {
-                var tempUpdaterExePath = tempFiles.GenerateNewName() + ".lj.updater.exe";
+                var tempUpdaterDir = tempFiles.GenerateNewName();
+                var tempUpdaterExePath = Path.Combine(tempUpdaterDir, "logjoint.updater.exe");
                 string updaterExePath;
+                string[] updaterAdditionalFiles;
                 string programToStart;
                 string firstArg;
                 string autoRestartCommandLine;
                 string autoRestartIPCKey;
                 string restartFlagFileName;
 
+                string[] updateAdditionalFileNames =
+                [
+                    "logjoint.updater.dll", "logjoint.updater.runtimeconfig.json"
+                ];
+
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     updaterExePath = Path.Combine(installationDir, Constants.managedAssembliesLocationRelativeToInstallationRoot, "logjoint.updater.exe");
+                    updaterAdditionalFiles = updateAdditionalFileNames.Select(f =>
+                        Path.Combine(installationDir, Constants.managedAssembliesLocationRelativeToInstallationRoot, f)).ToArray();
                     var monoPath = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
                     programToStart = monoPath;
                     firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
@@ -110,6 +119,8 @@ namespace LogJoint.AutoUpdate
                 else
                 {
                     updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
+                    updaterAdditionalFiles = updateAdditionalFileNames.Select(f =>
+                        Path.Combine(installationDir, "updater", f)).ToArray();
                     programToStart = tempUpdaterExePath;
                     firstArg = "";
                     autoRestartIPCKey = Constants.startAfterUpdateEventName;
@@ -117,7 +128,12 @@ namespace LogJoint.AutoUpdate
                     restartFlagFileName = null;
                 }
 
+                Directory.CreateDirectory(tempUpdaterDir);
                 File.Copy(updaterExePath, tempUpdaterExePath);
+                foreach (string additionalFile in updaterAdditionalFiles)
+                {
+                    File.Copy(additionalFile, Path.Combine(tempUpdaterDir, Path.GetFileName(additionalFile)));
+                }
 
                 trace.Info("updater executable copied to '{0}'", tempUpdaterExePath);
 
@@ -136,7 +152,8 @@ namespace LogJoint.AutoUpdate
                         autoRestartIPCKey,
                         autoRestartCommandLine
                     ),
-                    WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
+                    WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath),
+                    WindowStyle = ProcessWindowStyle.Hidden,
                 };
 
                 trace.Info("starting updater executable '{0}' with args '{1}'",

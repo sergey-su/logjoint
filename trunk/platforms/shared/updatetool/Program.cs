@@ -173,18 +173,15 @@ namespace LogJoint.UpdateTool
             configNode = getSettingNode("PluginsUrl");
             configNode.Value = CreatePluginsBlob(prod).Uri.ToString();
 
-            // configure trace listener according to build flavor
-            configNode = configDoc.Descendants()
-                .Elements("sharedListeners").Elements("add")
-                .Where(e => e.Attribute("name")?.Value == "file")
-                .Single();
+            // configure trace listener according to the build flavor
+            configNode = getSettingNode("TraceListenerConfig");
 #if MONOMAC
 			var localLogLocation = "%HOME%/local-lj-debug.log";
 #else
             var localLogLocation = "lj-debug.log";
 #endif
-            configNode.SetAttributeValue("initializeData",
-                (prod ? "" : localLogLocation) + ";membuf=1");
+            configNode.Value =
+                (prod ? "" : localLogLocation) + ";membuf=1";
 
 
             var localPluginsNode = getSettingNode("LocalPlugins");
