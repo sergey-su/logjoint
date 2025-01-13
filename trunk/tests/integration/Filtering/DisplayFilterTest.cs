@@ -143,7 +143,7 @@ Fizz");
                 app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("SetSink: ssrc:970030813");
                 Check.That(
                     app.PresentationObjects.ViewModels.DisplayFilterDialog.Config.ActionComboBoxOptions.Select(a => a.Key).ToArray())
-                    .Equals(new string[] { "Exclude", "Include" });
+                    .Equals(new string[] { "Hide", "Show" });
                 app.PresentationObjects.ViewModels.DisplayFilterDialog.OnActionComboBoxValueChange(1);
                 app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
             });

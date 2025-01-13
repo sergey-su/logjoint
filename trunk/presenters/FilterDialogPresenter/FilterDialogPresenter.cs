@@ -558,13 +558,15 @@ namespace LogJoint.UI.Presenters.FilterDialog
                 excludeDescription = "Exclude from highlighting";
             else if (purpose == FiltersListPurpose.Search)
                 excludeDescription = "Exclude from search results";
+            else if (purpose == FiltersListPurpose.Display)
+                excludeDescription = "Hide";
             else
                 excludeDescription = "Exclude";
             actionOptions.Add((FilterAction.Exclude, excludeDescription, new Color?()));
 
             if (purpose == FiltersListPurpose.Display)
             {
-                actionOptions.Add((FilterAction.Include, "Include", new Color?()));
+                actionOptions.Add((FilterAction.Include, "Show", new Color?()));
             }
             else
             {
