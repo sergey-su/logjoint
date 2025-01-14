@@ -10,7 +10,7 @@ namespace LogJoint.UI
     {
         void IShellOpen.OpenInWebBrowser(Uri uri)
         {
-            Process.Start(uri.ToString());
+            Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true } );
         }
 
         void IShellOpen.OpenFileBrowser(string filePath)
