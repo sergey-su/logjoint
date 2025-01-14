@@ -14,7 +14,7 @@ namespace LogJoint.Tests.Integration
 
             // todo: emulate UI clicks for search
             var filters = app.ModelObjects.FiltersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
-            filters.Insert(0, app.ModelObjects.FiltersFactory.CreateFilter(FilterAction.Include, "", true, new Search.Options { Template = "file" }));
+            filters.Insert(0, app.ModelObjects.FiltersFactory.CreateFilter(FilterAction.Include, "", true, new Search.Options { Template = "file" }, timeRange: null));
             app.ModelObjects.SearchManager.SubmitSearch(new SearchAllOptions { Filters = filters });
             await app.WaitFor(() => !app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines.IsEmpty && app.ModelObjects.SearchManager.Results[0].Status == SearchResultStatus.Finished);
         }

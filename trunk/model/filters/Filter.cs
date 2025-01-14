@@ -9,13 +9,14 @@ namespace LogJoint
     internal class Filter : IDisposable, IFilter
     {
         public Filter(FilterAction action, string initialName, bool enabled,
-            Search.Options options, IFiltersFactory factory, RegularExpressions.IRegexFactory regexFactory)
+            Search.Options options, FilterTimeRange timeRange, IFiltersFactory factory, RegularExpressions.IRegexFactory regexFactory)
         {
             this.factory = factory;
             this.regexFactory = regexFactory;
             this.initialName = initialName ?? throw new ArgumentNullException(nameof(initialName));
             this.enabled = enabled;
             this.action = action;
+            this.timeRange = timeRange;
 
             this.options = options;
 
@@ -117,11 +118,29 @@ namespace LogJoint
             }
         }
 
+        FilterTimeRange IFilter.TimeRange
+        {
+            get
+            {
+                CheckDisposed();
+                return timeRange;
+            }
+            set
+            {
+                CheckDisposed();
+
+                this.timeRange = value;
+
+                OnChange(true, true);
+            }
+        }
+
+
         IFiltersList IFilter.Owner { get { return owner; } }
 
         IFilter IFilter.Clone()
         {
-            IFilter ret = factory.CreateFilter(action, initialName, enabled, options);
+            IFilter ret = factory.CreateFilter(action, initialName, enabled, options, timeRange);
             ret.UserDefinedName = userDefinedName;
             return ret;
         }
@@ -280,6 +299,10 @@ namespace LogJoint
                 e.SetAttributeValue("initial-name", initialName);
             if (userDefinedName != null)
                 e.SetAttributeValue("given-name", userDefinedName);
+            if (timeRange?.Begin != null)
+                e.SetAttributeValue("time-begin", new MessageTimestamp(timeRange.Begin.Value).StoreToLoselessFormat());
+            if (timeRange?.End != null)
+                e.SetAttributeValue("time-end", new MessageTimestamp(timeRange.End.Value).StoreToLoselessFormat());
         }
 
         void LoadInternal(XElement e)
@@ -289,6 +312,13 @@ namespace LogJoint
             action = (FilterAction)e.SafeIntValue("action", (int)FilterAction.Include);
             initialName = e.AttributeValue("initial-name", defaultValue: "");
             userDefinedName = e.AttributeValue("given-name", defaultValue: null);
+
+            DateTime? parseRangeTime(string str)
+                => string.IsNullOrEmpty(str) ? null : MessageTimestamp.ParseFromLoselessFormat(str).ToUnspecifiedTime();
+            DateTime? timeRangeBegin = parseRangeTime(e.AttributeValue("time-begin"));
+            DateTime? timeRangeEnd = parseRangeTime(e.AttributeValue("time-end"));
+            if (timeRangeBegin != null || timeRangeEnd != null)
+                timeRange = new FilterTimeRange(timeRangeBegin, timeRangeEnd);
         }
 
         #endregion
@@ -306,6 +336,7 @@ namespace LogJoint
         private FilterAction action;
         private bool enabled;
         private Search.Options options;
+        private FilterTimeRange timeRange;
 
         private string name;
 

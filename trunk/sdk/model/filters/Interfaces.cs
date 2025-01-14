@@ -101,6 +101,18 @@ namespace LogJoint
         Search.MatchedTextRange? Match(IMessage message, int? startFromChar);
     };
 
+    public class FilterTimeRange
+    {
+        public DateTime? Begin { get; private set; }
+        public DateTime? End { get; private set; }
+
+        public FilterTimeRange(DateTime? begin, DateTime? end)
+        {
+            Begin = begin;
+            End = end;
+        }
+    };
+
     /// <summary>
     /// Filter object can match log message by text template, or by
     /// message's severity, or by message's thread. Filters matching is used 
@@ -119,6 +131,7 @@ namespace LogJoint
         string UserDefinedName { get; set; }
         bool Enabled { get; set; }
         Search.Options Options { get; set; }
+        FilterTimeRange TimeRange { get; set; }
         void Save(XElement e);
 
         IFilterBulkProcessing StartBulkProcessing(
@@ -149,7 +162,7 @@ namespace LogJoint
         IFilterScope CreateScope();
         IFilterScope CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads);
 
-        IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions);
+        IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions, FilterTimeRange timeRange);
         IFilter CreateFilter(XElement e);
 
         IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose);

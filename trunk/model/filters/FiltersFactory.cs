@@ -27,9 +27,9 @@ namespace LogJoint
             return new FilterScope(sources, threads);
         }
 
-        IFilter IFiltersFactory.CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions)
+        IFilter IFiltersFactory.CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions, FilterTimeRange timeRange)
         {
-            return new Filter(type, initialName, enabled, searchOptions, this, regexFactory);
+            return new Filter(type, initialName, enabled, searchOptions, timeRange, this, regexFactory);
         }
 
         IFilter IFiltersFactory.CreateFilter(XElement e)

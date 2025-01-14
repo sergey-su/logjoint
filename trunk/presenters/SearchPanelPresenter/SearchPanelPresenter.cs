@@ -327,7 +327,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
             else
             {
                 filters = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
-                filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
+                filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions, timeRange: null));
             }
 
             var searchHistoryEntry = uds != null ?

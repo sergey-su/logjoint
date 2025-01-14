@@ -134,7 +134,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
                 {
                     Template = defaultTemplate,
                     Scope = filtersFactory.CreateScope()
-                }
+                },
+                timeRange: null
             );
             try
             {

@@ -75,7 +75,7 @@ namespace LogJoint
             this.streamEncoding = streamEncoding;
             this.regexFactory = regexFactory;
             this.trace = traceSourceFactory.CreateTraceSource("LogSource", "srchp." + GetHashCode().ToString("x"));
-            this.dummyFilter = new Filter(FilterAction.Include, "", true, new Search.Options(), null, regexFactory);
+            this.dummyFilter = new Filter(FilterAction.Include, "", true, new Search.Options(), null, null, regexFactory);
             if (p.ContinuationToken as ContinuationToken != null)
                 this.requestedRange = new FileRange.Range((p.ContinuationToken as ContinuationToken).NextPosition, requestedRange.End);
             this.aligmentTextAccess = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
