@@ -21,26 +21,21 @@ namespace LogJoint.Tests.Integration
                 return !app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines.IsEmpty;
             });
 
-            await app.SynchronizationContext.Invoke(() =>
-            {
-                app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.Search);
-                app.PresentationObjects.ViewModels.SearchPanel.QuickSearchTextBox.OnChangeText("76674c6c636d674962746854");
-                app.PresentationObjects.ViewModels.SearchPanel.QuickSearchTextBox.OnKeyDown(UI.Presenters.QuickSearchTextBox.Key.Enter);
-                Check.That(app.PresentationObjects.ViewModels.SearchResult.IsSearchResultsVisible).IsTrue();
-            });
+
+            app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.Search);
+            app.PresentationObjects.ViewModels.SearchPanel.QuickSearchTextBox.OnChangeText("76674c6c636d674962746854");
+            app.PresentationObjects.ViewModels.SearchPanel.QuickSearchTextBox.OnKeyDown(UI.Presenters.QuickSearchTextBox.Key.Enter);
+            Check.That(app.PresentationObjects.ViewModels.SearchResult.IsSearchResultsVisible).IsTrue();
 
             await app.WaitFor(() =>
             {
                 return app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines.Length == 3;
             });
 
-            await app.SynchronizationContext.Invoke(() =>
-            {
-                List<string> lines = app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines.Select(line => line.TextLineValue).ToList();
-                Check.That(lines[0].Contains("Sending STUN ping, id=76674c6c636d674962746854")).IsTrue();
-                Check.That(lines[1].Contains("Sent STUN ping, id=76674c6c636d674962746854")).IsTrue();
-                Check.That(lines[2].Contains("Received STUN ping response, id=76674c6c636d674962746854")).IsTrue();
-            });
+            List<string> lines = app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines.Select(line => line.TextLineValue).ToList();
+            Check.That(lines[0].Contains("Sending STUN ping, id=76674c6c636d674962746854")).IsTrue();
+            Check.That(lines[1].Contains("Sent STUN ping, id=76674c6c636d674962746854")).IsTrue();
+            Check.That(lines[2].Contains("Received STUN ping response, id=76674c6c636d674962746854")).IsTrue();
         }
     }
 }

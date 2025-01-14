@@ -26,14 +26,11 @@ namespace LogJoint.Tests.Integration
                     log.Contains("WebRTC event log successfully stopped.");
             });
 
-            await app.SynchronizationContext.Invoke(() =>
-            {
-                app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
-                app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
-                Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("WebRTC event log successfully stopped.");
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
-            });
+            app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
+            app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
+            Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("WebRTC event log successfully stopped.");
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
 
             await app.WaitFor(() =>
             {
@@ -59,14 +56,11 @@ namespace LogJoint.Tests.Integration
                     log.Contains("No free data file found.");
             });
 
-            await app.SynchronizationContext.Invoke(() =>
-            {
-                app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
-                app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
-                Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("Searching for data files.");
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
-            });
+            app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
+            app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
+            Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("Searching for data files.");
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
 
             await app.WaitFor(() =>
             {
@@ -114,14 +108,11 @@ namespace LogJoint.Tests.Integration
 Bar
 Fizz");
 
-            await app.SynchronizationContext.Invoke(() =>
-            {
-                app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
-                app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
-                Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("Bar");
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
-            });
+            app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
+            app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
+            Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("Bar");
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
 
             await app.WaitForLogDisplayed(@"Foo
 Fizz");
@@ -134,19 +125,16 @@ Fizz");
                 "Microsoft", "TextWriterTraceListener");
             await app.WaitFor(() => app.GetDisplayedLog().Length > 0);
 
-            await app.SynchronizationContext.Invoke(() =>
-            {
-                // Set up an inclusive filter
-                app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
-                app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
-                Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("SetSink: ssrc:970030813");
-                Check.That(
-                    app.PresentationObjects.ViewModels.DisplayFilterDialog.Config.ActionComboBoxOptions.Select(a => a.Key).ToArray())
-                    .Equals(new string[] { "Hide", "Show" });
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnActionComboBoxValueChange(1);
-                app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
-            });
+            // Set up an inclusive filter
+            app.PresentationObjects.MainFormPresenter.ActivateTab(UI.Presenters.MainForm.TabIDs.DisplayFilteringRules);
+            app.PresentationObjects.ViewModels.DisplayFiltersManagement.OnAddFilterClicked();
+            Check.That(app.PresentationObjects.ViewModels.DisplayFilterDialog.IsVisible).IsTrue();
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnTemplateChange("SetSink: ssrc:970030813");
+            Check.That(
+                app.PresentationObjects.ViewModels.DisplayFilterDialog.Config.ActionComboBoxOptions.Select(a => a.Key).ToArray())
+                .Equals(new string[] { "Hide", "Show" });
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnActionComboBoxValueChange(1);
+            app.PresentationObjects.ViewModels.DisplayFilterDialog.OnConfirmed();
 
             string expectedLog = @"SetSink: ssrc:970030813 (ptr)
 SetSink: ssrc:970030813 nullptr
