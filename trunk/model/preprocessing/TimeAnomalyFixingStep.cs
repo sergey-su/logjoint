@@ -69,14 +69,13 @@ namespace LogJoint.Preprocessing
             using (var reader = readerFactory.CreateMessagesReader(
                 new MediaBasedReaderParams(threads, fileMedia)))
             {
-                var readerImpl = reader as MediaBasedMessagesReader; // todo: do not use real classes; have stream encoding in an interface.
-                if (readerImpl == null)
-                    throw new InvalidDataException("bad reader was made by factory " + factoryName);
+                if (reader.Encoding == null)
+                    throw new InvalidDataException("Reader does not support reordering " + factoryName);
                 await reader.UpdateAvailableBounds(false);
                 var range = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
                 double rangeLen = range.Length;
                 using var progress = progressAggregator.CreateProgressSink();
-                using var writer = new StreamWriter(tmpFileName, false, readerImpl.StreamEncoding);
+                using var writer = new StreamWriter(tmpFileName, false, reader.Encoding);
                 var queue = new VCSKicksCollection.PriorityQueue<IMessage>(
                     new MessagesComparer(ignoreConnectionIds: true));
                 Action dequeue = () => writer.WriteLine(queue.Dequeue().RawText.ToString());

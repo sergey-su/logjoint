@@ -69,6 +69,8 @@ namespace LogJoint
             return underliyingReader.GetContentsEtag();
         }
 
+        Encoding IMessagesReader.Encoding => underliyingReader.Encoding;
+
         #endregion
 
         #region IDisposable Members

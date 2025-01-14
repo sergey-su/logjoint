@@ -149,6 +149,8 @@ namespace LogJoint
             return effectiveFilters != null ? SearchInFilteredLog(p) : unfilteredReader.Search(p);
         }
 
+        Encoding IMessagesReader.Encoding => unfilteredReader.Encoding;
+
         void IDisposable.Dispose()
         {
             unfilteredReader.Dispose();

@@ -138,6 +138,8 @@ namespace LogJoint
             return Hashing.GetStableHashCode(buf, 0, read);
         }
 
+        Encoding IMessagesReader.Encoding => StreamEncoding;
+
         public bool IsQuickFormatDetectionMode => isQuickFormatDetectionMode;
 
         #endregion

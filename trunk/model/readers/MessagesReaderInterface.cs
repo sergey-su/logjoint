@@ -163,6 +163,11 @@ namespace LogJoint
         IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p);
 
         IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p);
+
+        /// <summary>
+        /// The encoding of the underlying byte stream, if it exists.
+        /// </summary>
+        System.Text.Encoding Encoding { get; }
     };
 
     public interface ITextStreamPositioningParamsProvider
