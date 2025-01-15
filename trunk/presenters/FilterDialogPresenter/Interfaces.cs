@@ -45,10 +45,17 @@ namespace LogJoint.UI.Presenters.FilterDialog
         WholeWord = 8,
     };
 
-    public class TimeRangeBoundProperties(bool enabled, DateTime value)
+    public class TimeRangeBoundProperties(bool enabled, DateTime value, bool setCurrentLinkEnabled)
     {
         public bool Enabled { get; private set; } = enabled;
         public DateTime Value { get; private set; } = value;
+        public bool SetCurrentLinkEnabled { get; private set; } = setCurrentLinkEnabled;
+    };
+
+    public enum TimeBound
+    {
+        Begin,
+        End,
     };
 
     public interface IViewModel
@@ -76,6 +83,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
         void OnNameChange(string value);
         void OnTemplateChange(string value);
         void OnActionComboBoxValueChange(int value);
+        void OnTimeBoundEnabledChange(TimeBound bound, bool enabled);
+        void OnTimeBoundValueChanged(TimeBound bound, DateTime value);
+        void OnSetCurrentTimeClicked(TimeBound bound);
     };
 
     public interface IView

@@ -79,6 +79,25 @@ namespace LogJoint.UI
                 nameLinkLabel.Text = props.LinkText;
             });
 
+            var updateTimeRange = Updaters.Create(() => viewModel.BeginTimeBound, () => viewModel.EndTimeBound, (begin, end) =>
+            {
+                void updateBoundControls(TimeRangeBoundProperties properties, CheckBox cb, DateTimePicker picker, LinkLabel setCurrent)
+                {
+                    cb.Checked = properties.Enabled;
+                    picker.Value = properties.Value;
+                    picker.Enabled = properties.Enabled;
+                    setCurrent.Enabled = properties.SetCurrentLinkEnabled;
+                }
+                updateBoundControls(begin, timeRangeBeginCheckBox, timeRangeBeginPicker, timeRangeBeginSetCurrentLink);
+                updateBoundControls(end, timeRangeEndCheckBox, timeRangeEndPicker, timeRangeEndSetCurrentLink);
+            });
+            timeRangeBeginCheckBox.Click += (sender, evt) => viewModel.OnTimeBoundEnabledChange(TimeBound.Begin, timeRangeBeginCheckBox.Checked);
+            timeRangeBeginPicker.ValueChanged += (sender, evt) => viewModel.OnTimeBoundValueChanged(TimeBound.Begin, timeRangeBeginPicker.Value);
+            timeRangeBeginSetCurrentLink.Click += (sender, evt) => viewModel.OnSetCurrentTimeClicked(TimeBound.Begin);
+            timeRangeEndCheckBox.Click += (sender, evt) => viewModel.OnTimeBoundEnabledChange(TimeBound.End, timeRangeEndCheckBox.Checked);
+            timeRangeEndPicker.ValueChanged += (sender, evt) => viewModel.OnTimeBoundValueChanged(TimeBound.End, timeRangeEndPicker.Value);
+            timeRangeEndSetCurrentLink.Click += (sender, evt) => viewModel.OnSetCurrentTimeClicked(TimeBound.End);
+
             var dialogConroller = new ModalDialogController(this);
             var showHide = Updaters.Create(() => viewModel.IsVisible, dialogConroller.SetVisibility);
 
@@ -91,6 +110,7 @@ namespace LogJoint.UI
                 updateAction();
                 updateNameEdit();
                 showHide();
+                updateTimeRange();
             });
         }
 

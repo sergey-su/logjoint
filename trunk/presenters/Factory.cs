@@ -203,7 +203,8 @@ namespace LogJoint.UI.Presenters
             FilterDialog.IPresenter searchFilterDialogPresenter = new FilterDialog.Presenter(
                 model.ChangeNotification,
                 null, // logSources is not required. Scope is not supported by search.
-                highlightColorsTable
+                highlightColorsTable,
+                loadedMessagesPresenter.LogViewerPresenter
             );
 
             var searchEditorDialog = new SearchEditorDialog.Presenter(
@@ -384,7 +385,7 @@ namespace LogJoint.UI.Presenters
 
 
             var hlFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification,
-                model.LogSourcesManager, highlightColorsTable);
+                model.LogSourcesManager, highlightColorsTable, loadedMessagesPresenter.LogViewerPresenter);
             var hlFiltersManagementPresenter =
                 new FiltersManager.Presenter(
                     model.ChangeNotification,
@@ -400,7 +401,7 @@ namespace LogJoint.UI.Presenters
                 );
 
             var displayFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification,
-                model.LogSourcesManager, highlightColorsTable);
+                model.LogSourcesManager, highlightColorsTable, loadedMessagesPresenter.LogViewerPresenter);
             var displayFiltersManagementPresenter =
                 new FiltersManager.Presenter(
                     model.ChangeNotification,

@@ -1,10 +1,14 @@
 using LogJoint.Drawing;
 using LogJoint.UI.Presenters.Reactive;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LogJoint.UI.Presenters.FilterDialog
 {
@@ -39,21 +43,50 @@ namespace LogJoint.UI.Presenters.FilterDialog
         const string resetLinkText = "auto";
         readonly Func<NameEditBoxProperties> nameEditBoxProperties;
         readonly Func<FilterData> outputFilterData;
-        TimeRangeBoundProperties beginTimeBound;
-        TimeRangeBoundProperties endTimeBound;
+        readonly record struct TimeRangeBoundData(bool Enabled, DateTime? SetValue);
+        TimeRangeBoundData timeRangeBegin = new(false, null);
+        TimeRangeBoundData timeRangeEnd = new(false, null);
+        readonly Func<TimeRangeBoundProperties> timeRangeBeginProps;
+        readonly Func<TimeRangeBoundProperties> timeRangeEndProps;
+        volatile int sourcesAvaialableTimeVersion;
+        readonly Func<DateRange> sourcesAvaialableTime;
+        DateTime dialogOpenTime = DateTime.UnixEpoch;
+        readonly Func<DateRange> defaultTimeRange;
+        readonly Func<DateTime?> currentMessageTime;
 
         public Presenter(
             IChangeNotification changeNotification,
             ILogSourcesManager logSources,
-            IColorTable highlightColorsTable
+            IColorTable highlightColorsTable,
+            LogViewer.IPresenter viewerPresenter
         )
         {
             this.changeNotification = changeNotification;
             this.logSources = logSources;
             this.highlightColorsTable = highlightColorsTable;
+            if (this.logSources != null)
+            {
+                this.logSources.OnLogSourceStatsChanged += (sender, evt) =>
+                {
+                    if ((evt.Flags & LogProviderStatsFlag.AvailableTime) != 0)
+                        Interlocked.Increment(ref sourcesAvaialableTimeVersion);
+                };
+            }
+            this.sourcesAvaialableTime = Selectors.Create(() => sourcesAvaialableTimeVersion, ver =>
+            {
+                if (this.logSources == null)
+                    return DateRange.MakeEmpty();
+                return this.logSources.Items.Aggregate(DateRange.MakeEmpty(), (result, src) =>
+                    DateRange.Union(result, src.Provider.Stats.AvailableTime));
+            });
+            this.defaultTimeRange = Selectors.Create(this.sourcesAvaialableTime, () => dialogOpenTime,
+                static (sourcesAvaialableTime, dialogOpenTime) => 
+                    !sourcesAvaialableTime.IsEmpty ? sourcesAvaialableTime : new DateRange(dialogOpenTime, dialogOpenTime));
             this.outputFilterData = Selectors.Create(() => (
                 userDefinedName, actionComboBoxValue, checkedBoxes, template,
-                scopeSupported, scopeItems, messageTypeItems), data => new FilterData()
+                scopeSupported, scopeItems, messageTypeItems, timeRangeBegin, timeRangeEnd),
+                defaultTimeRange,
+                static (data, defaultTimeRange) => new FilterData()
                 {
                     template = data.template,
                     actionComboBoxValue = data.actionComboBoxValue,
@@ -61,7 +94,14 @@ namespace LogJoint.UI.Presenters.FilterDialog
                     messageTypeItems = data.messageTypeItems,
                     scopeSupported = data.scopeSupported,
                     scopeItems = data.scopeItems,
-                    userDefinedName = data.userDefinedName
+                    userDefinedName = data.userDefinedName,
+                    timeRange = (data.timeRangeBegin.Enabled || data.timeRangeEnd.Enabled) ?
+                        new FilterTimeRange(
+                            data.timeRangeBegin.Enabled ?
+                                data.timeRangeBegin.SetValue.GetValueOrDefault(defaultTimeRange.Begin) : null,
+                            data.timeRangeEnd.Enabled ?
+                                data.timeRangeEnd.SetValue.GetValueOrDefault(defaultTimeRange.End) : null
+                        ) : null,
                 });
             this.nameEditBoxProperties = Selectors.Create(() => userDefinedName, outputFilterData, (udn, filterData) =>
             {
@@ -81,6 +121,16 @@ namespace LogJoint.UI.Presenters.FilterDialog
                     LinkText = userDefinedNameSet ? resetLinkText : changeLinkText
                 };
             });
+            this.currentMessageTime = Selectors.Create(() => viewerPresenter.FocusedMessage,
+                message => message != null ? message.Time.ToUnspecifiedTime() : new DateTime?());
+            this.timeRangeBeginProps = Selectors.Create(() => timeRangeBegin, defaultTimeRange, currentMessageTime,
+                static (data, defaultTimeRange, currentMessageTime) =>
+                    new TimeRangeBoundProperties(data.Enabled, data.SetValue ?? defaultTimeRange.Begin,
+                        data.Enabled && currentMessageTime.HasValue));
+            this.timeRangeEndProps = Selectors.Create(() => timeRangeEnd, defaultTimeRange, currentMessageTime,
+                static (data, defaultTimeRange, currentMessageTime) =>
+                    new TimeRangeBoundProperties(data.Enabled, data.SetValue ?? defaultTimeRange.End,
+                        data.Enabled && currentMessageTime.HasValue));
         }
 
         Task<bool> IPresenter.ShowTheDialog(IFilter forFilter, FiltersListPurpose filtersListPurpose)
@@ -88,6 +138,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
             Reset();
 
             currentFilter = forFilter;
+            dialogOpenTime = DateTime.Now.ToUnspecifiedTime();
 
             currentTask = new TaskCompletionSource<bool>();
             actionsOptions = MakeActionsOptions(filtersListPurpose, highlightColorsTable);
@@ -109,8 +160,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
             actionComboBoxValue = actionsOptions.IndexOf(i => i.action == currentFilter.Action).GetValueOrDefault(-1);
 
-            beginTimeBound = new TimeRangeBoundProperties((forFilter.TimeRange?.Begin).HasValue, DateTime.Now);
-            endTimeBound = new TimeRangeBoundProperties((forFilter.TimeRange?.End).HasValue, DateTime.Now);
+            TimeRangeBoundData toRangeBoundData(DateTime? dt) => new(dt.HasValue, dt);
+            timeRangeBegin = toRangeBoundData(forFilter.TimeRange?.Begin);
+            timeRangeEnd = toRangeBoundData(forFilter.TimeRange?.End);
 
             dialogConfig = new DialogConfig()
             {
@@ -173,9 +225,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
         NameEditBoxProperties IViewModel.NameEdit => nameEditBoxProperties();
 
-        TimeRangeBoundProperties IViewModel.BeginTimeBound => beginTimeBound;
+        TimeRangeBoundProperties IViewModel.BeginTimeBound => timeRangeBeginProps();
 
-        TimeRangeBoundProperties IViewModel.EndTimeBound => endTimeBound;
+        TimeRangeBoundProperties IViewModel.EndTimeBound => timeRangeEndProps();
 
         string IViewModel.Template => template;
 
@@ -245,6 +297,51 @@ namespace LogJoint.UI.Presenters.FilterDialog
                 actionComboBoxValue = value;
                 changeNotification.Post();
             }
+        }
+
+        void IViewModel.OnTimeBoundEnabledChange(TimeBound bound, bool enabled)
+        {
+            void handle(ref TimeRangeBoundData dt)
+            {
+                if (enabled != dt.Enabled)
+                {
+                    dt = new (enabled, dt.SetValue);
+                    changeNotification.Post();
+                }
+            }
+            handle(ref (bound == TimeBound.Begin ? ref timeRangeBegin : ref timeRangeEnd));
+        }
+
+        void IViewModel.OnTimeBoundValueChanged(TimeBound bound, DateTime value)
+        {
+            void handle(ref TimeRangeBoundData dt, DateTime defaultValue)
+            {
+                if (dt.Enabled && value != dt.SetValue.GetValueOrDefault(defaultValue))
+                {
+                    dt = new(true, value);
+                    changeNotification.Post();
+                }
+            }
+            if (bound == TimeBound.Begin)
+                handle(ref timeRangeBegin, defaultTimeRange().Begin);
+            else
+                handle(ref timeRangeEnd, defaultTimeRange().End);
+        }
+
+        void IViewModel.OnSetCurrentTimeClicked(TimeBound bound)
+        {
+            DateTime? value = currentMessageTime();
+            if (value == null)
+                return;
+            void handle(ref TimeRangeBoundData dt)
+            {
+                if (dt.Enabled)
+                {
+                    dt = new(true, value);
+                    changeNotification.Post();
+                }
+            }
+            handle(ref (bound == TimeBound.Begin ? ref timeRangeBegin : ref timeRangeEnd));
         }
 
         void IViewModel.SetView(IView view)
@@ -473,6 +570,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
             public bool scopeSupported;
             public ImmutableList<ScopeNode> scopeItems;
             public ImmutableList<MessageTypeItem> messageTypeItems;
+            public FilterTimeRange timeRange;
         };
 
         void SetFilterData(IFilter destinationFilter, FilterData data)
@@ -487,8 +585,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
                 Regexp = (data.checkedBoxes & CheckBoxId.RegExp) != 0,
                 WholeWord = (data.checkedBoxes & CheckBoxId.WholeWord) != 0,
                 Scope = CreateScope(data.scopeSupported, data.scopeItems, destinationFilter.Factory),
-                ContentTypes = MakeContextTypesMask(data.messageTypeItems)
+                ContentTypes = MakeContextTypesMask(data.messageTypeItems),
             };
+            destinationFilter.TimeRange = data.timeRange;
         }
 
         static IFilterScope CreateScope(bool scopeSupported, IReadOnlyList<ScopeNode> items, IFiltersFactory filtersFactory)

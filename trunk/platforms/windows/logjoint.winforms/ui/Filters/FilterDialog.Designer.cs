@@ -55,6 +55,13 @@ namespace LogJoint.UI
             this.label6 = new System.Windows.Forms.Label();
             this.enabledCheckBox = new System.Windows.Forms.CheckBox();
             this.nameLinkLabel = new System.Windows.Forms.LinkLabel();
+            this.timeRangeTabPage = new System.Windows.Forms.TabPage();
+            this.timeRangeBeginPicker = new System.Windows.Forms.DateTimePicker();
+            this.timeRangeBeginCheckBox = new System.Windows.Forms.CheckBox();
+            this.timeRangeEndCheckBox = new System.Windows.Forms.CheckBox();
+            this.timeRangeEndPicker = new System.Windows.Forms.DateTimePicker();
+            this.timeRangeBeginSetCurrentLink = new System.Windows.Forms.LinkLabel();
+            this.timeRangeEndSetCurrentLink = new System.Windows.Forms.LinkLabel();
             this.tabControl1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -62,6 +69,7 @@ namespace LogJoint.UI
             this.threadsContainer.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.timeRangeTabPage.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -84,6 +92,7 @@ namespace LogJoint.UI
             this.tableLayoutPanel1.SetColumnSpan(this.tabControl1, 4);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(timeRangeTabPage);
             this.tabControl1.Location = new System.Drawing.Point(8, 97);
             this.tabControl1.Margin = new System.Windows.Forms.Padding(4, 8, 4, 4);
             this.tabControl1.Name = "tabControl1";
@@ -395,6 +404,82 @@ namespace LogJoint.UI
             this.nameLinkLabel.Text = "nameLinkLabel";
             this.nameLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.nameLinkLabel_LinkClicked);
             // 
+            // timeRangeTabPage
+            // 
+            this.timeRangeTabPage.Controls.Add(this.timeRangeEndSetCurrentLink);
+            this.timeRangeTabPage.Controls.Add(this.timeRangeBeginSetCurrentLink);
+            this.timeRangeTabPage.Controls.Add(this.timeRangeEndCheckBox);
+            this.timeRangeTabPage.Controls.Add(this.timeRangeEndPicker);
+            this.timeRangeTabPage.Controls.Add(this.timeRangeBeginCheckBox);
+            this.timeRangeTabPage.Controls.Add(this.timeRangeBeginPicker);
+            this.timeRangeTabPage.Location = new System.Drawing.Point(4, 30);
+            this.timeRangeTabPage.Name = "timeRangeTabPage";
+            this.timeRangeTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.timeRangeTabPage.Size = new System.Drawing.Size(667, 261);
+            this.timeRangeTabPage.TabIndex = 3;
+            this.timeRangeTabPage.Text = "Time range";
+            this.timeRangeTabPage.UseVisualStyleBackColor = true;
+            // 
+            // timeRangeBeginPicker
+            // 
+            this.timeRangeBeginPicker.Location = new System.Drawing.Point(143, 35);
+            this.timeRangeBeginPicker.Name = "timeRangeBeginPicker";
+            this.timeRangeBeginPicker.Size = new System.Drawing.Size(200, 27);
+            this.timeRangeBeginPicker.TabIndex = 0;
+            this.timeRangeBeginPicker.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.timeRangeBeginPicker.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            // 
+            // timeRangeBeginCheckBox
+            // 
+            this.timeRangeBeginCheckBox.AutoSize = true;
+            this.timeRangeBeginCheckBox.Location = new System.Drawing.Point(11, 35);
+            this.timeRangeBeginCheckBox.Name = "timeRangeBeginCheckBox";
+            this.timeRangeBeginCheckBox.Size = new System.Drawing.Size(122, 25);
+            this.timeRangeBeginCheckBox.TabIndex = 1;
+            this.timeRangeBeginCheckBox.Text = "Newer than";
+            this.timeRangeBeginCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // timeRangeEndCheckBox
+            // 
+            this.timeRangeEndCheckBox.AutoSize = true;
+            this.timeRangeEndCheckBox.Location = new System.Drawing.Point(11, 81);
+            this.timeRangeEndCheckBox.Name = "timeRangeEndCheckBox";
+            this.timeRangeEndCheckBox.Size = new System.Drawing.Size(114, 25);
+            this.timeRangeEndCheckBox.TabIndex = 3;
+            this.timeRangeEndCheckBox.Text = "Older than";
+            this.timeRangeEndCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // timeRangeEndPicker
+            // 
+            this.timeRangeEndPicker.Location = new System.Drawing.Point(143, 81);
+            this.timeRangeEndPicker.Name = "timeRangeEndPicker";
+            this.timeRangeEndPicker.Size = new System.Drawing.Size(200, 27);
+            this.timeRangeEndPicker.TabIndex = 2;
+            this.timeRangeEndPicker.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.timeRangeEndPicker.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            // 
+            // timeRangeBeginSetCurrentLink
+            // 
+            this.timeRangeBeginSetCurrentLink.AutoSize = true;
+            this.timeRangeBeginSetCurrentLink.Location = new System.Drawing.Point(360, 38);
+            this.timeRangeBeginSetCurrentLink.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
+            this.timeRangeBeginSetCurrentLink.Name = "timeRangeBeginNowLine";
+            this.timeRangeBeginSetCurrentLink.Size = new System.Drawing.Size(41, 21);
+            this.timeRangeBeginSetCurrentLink.TabIndex = 17;
+            this.timeRangeBeginSetCurrentLink.TabStop = true;
+            this.timeRangeBeginSetCurrentLink.Text = "current";
+            // 
+            // timeRangeEndSetCurrentLink
+            // 
+            this.timeRangeEndSetCurrentLink.AutoSize = true;
+            this.timeRangeEndSetCurrentLink.Location = new System.Drawing.Point(360, 81);
+            this.timeRangeEndSetCurrentLink.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
+            this.timeRangeEndSetCurrentLink.Name = "timeRangeEndNowLine";
+            this.timeRangeEndSetCurrentLink.Size = new System.Drawing.Size(41, 21);
+            this.timeRangeEndSetCurrentLink.TabIndex = 18;
+            this.timeRangeEndSetCurrentLink.TabStop = true;
+            this.timeRangeEndSetCurrentLink.Text = "current";
+            // 
             // FilterDialog
             // 
             this.AcceptButton = this.okButton;
@@ -454,5 +539,12 @@ namespace LogJoint.UI
         internal System.Windows.Forms.Label scopeLabel;
         internal System.Windows.Forms.Panel threadsContainer;
         internal System.Windows.Forms.Label scopeNotSupportedLabel;
+        private System.Windows.Forms.TabPage timeRangeTabPage;
+        private System.Windows.Forms.DateTimePicker timeRangeBeginPicker;
+        internal System.Windows.Forms.LinkLabel timeRangeEndSetCurrentLink;
+        internal System.Windows.Forms.LinkLabel timeRangeBeginSetCurrentLink;
+        private System.Windows.Forms.CheckBox timeRangeEndCheckBox;
+        private System.Windows.Forms.DateTimePicker timeRangeEndPicker;
+        private System.Windows.Forms.CheckBox timeRangeBeginCheckBox;
     }
 }
