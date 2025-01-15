@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using static LogJoint.Workspaces.WorkspaceDTO;
 
 namespace LogJoint.UI.Presenters.FilterDialog
 {
@@ -40,6 +39,8 @@ namespace LogJoint.UI.Presenters.FilterDialog
         const string resetLinkText = "auto";
         readonly Func<NameEditBoxProperties> nameEditBoxProperties;
         readonly Func<FilterData> outputFilterData;
+        TimeRangeBoundProperties beginTimeBound;
+        TimeRangeBoundProperties endTimeBound;
 
         public Presenter(
             IChangeNotification changeNotification,
@@ -108,6 +109,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
             actionComboBoxValue = actionsOptions.IndexOf(i => i.action == currentFilter.Action).GetValueOrDefault(-1);
 
+            beginTimeBound = new TimeRangeBoundProperties((forFilter.TimeRange?.Begin).HasValue, DateTime.Now);
+            endTimeBound = new TimeRangeBoundProperties((forFilter.TimeRange?.End).HasValue, DateTime.Now);
+
             dialogConfig = new DialogConfig()
             {
                 Title = "Filter rule",
@@ -168,6 +172,10 @@ namespace LogJoint.UI.Presenters.FilterDialog
         CheckBoxId IViewModel.CheckedBoxes => checkedBoxes;
 
         NameEditBoxProperties IViewModel.NameEdit => nameEditBoxProperties();
+
+        TimeRangeBoundProperties IViewModel.BeginTimeBound => beginTimeBound;
+
+        TimeRangeBoundProperties IViewModel.EndTimeBound => endTimeBound;
 
         string IViewModel.Template => template;
 

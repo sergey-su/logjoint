@@ -157,9 +157,13 @@ namespace LogJoint
             var tmp = options;
             tmp.MessageTextGetter = messageTextGetter;
             tmp.ReverseSearch = reverseMatchDirection;
+            MessageTimestamp? toRangeBound(DateTime? t) =>
+                t != null ? new MessageTimestamp(t.Value) : null;
             return new BulkProcessing()
             {
-                searchState = tmp.BeginSearch(regexFactory, timeboxedMatching)
+                searchState = tmp.BeginSearch(regexFactory, timeboxedMatching),
+                timeRangeBegin = toRangeBound(timeRange?.Begin),
+                timeRangeEnd = toRangeBound(timeRange?.End),
             };
         }
 
@@ -345,6 +349,8 @@ namespace LogJoint
         class BulkProcessing : IFilterBulkProcessing
         {
             internal Search.SearchState searchState;
+            internal MessageTimestamp? timeRangeBegin;
+            internal MessageTimestamp? timeRangeEnd;
 
             void IDisposable.Dispose()
             {
@@ -352,6 +358,10 @@ namespace LogJoint
 
             Search.MatchedTextRange? IFilterBulkProcessing.Match(IMessage message, int? startFromChar)
             {
+                if (timeRangeBegin != null && message.Time < timeRangeBegin.Value)
+                    return null;
+                if (timeRangeEnd != null && message.Time > timeRangeEnd.Value)
+                    return null;
                 return searchState.SearchInMessageText(message, startFromChar);
             }
         };

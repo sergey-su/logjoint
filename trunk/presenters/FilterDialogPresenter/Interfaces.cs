@@ -45,6 +45,12 @@ namespace LogJoint.UI.Presenters.FilterDialog
         WholeWord = 8,
     };
 
+    public class TimeRangeBoundProperties(bool enabled, DateTime value)
+    {
+        public bool Enabled { get; private set; } = enabled;
+        public DateTime Value { get; private set; } = value;
+    };
+
     public interface IViewModel
     {
         IChangeNotification ChangeNotification { get; }
@@ -54,6 +60,8 @@ namespace LogJoint.UI.Presenters.FilterDialog
         IReadOnlyList<IMessageTypeItem> MessageTypeItems { get; }
         CheckBoxId CheckedBoxes { get; }
         NameEditBoxProperties NameEdit { get; }
+        TimeRangeBoundProperties BeginTimeBound { get; }
+        TimeRangeBoundProperties EndTimeBound { get; }
         string Template { get; }
         int ActionComboBoxValue { get; }
         void SetView(IView view);
