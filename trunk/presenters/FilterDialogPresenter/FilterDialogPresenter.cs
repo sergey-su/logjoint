@@ -123,14 +123,22 @@ namespace LogJoint.UI.Presenters.FilterDialog
             });
             this.currentMessageTime = Selectors.Create(() => viewerPresenter.FocusedMessage,
                 message => message != null ? message.Time.ToUnspecifiedTime() : new DateTime?());
-            this.timeRangeBeginProps = Selectors.Create(() => timeRangeBegin, defaultTimeRange, currentMessageTime,
+            static TimeRangeBoundProperties setStrings(TimeRangeBoundProperties props)
+            {
+                props.SetCurrentLinkName = "time at cursor";
+                props.SetCurrentLinkHint = "Use the time of the currently selected log message.";
+                return props;
+            };
+            this.timeRangeBeginProps = Selectors.Create(() => timeRangeBegin, defaultTimeRange, 
+                    currentMessageTime,
                 static (data, defaultTimeRange, currentMessageTime) =>
-                    new TimeRangeBoundProperties(data.Enabled, data.SetValue ?? defaultTimeRange.Begin,
-                        data.Enabled && currentMessageTime.HasValue));
-            this.timeRangeEndProps = Selectors.Create(() => timeRangeEnd, defaultTimeRange, currentMessageTime,
+                    setStrings(new TimeRangeBoundProperties(data.Enabled, data.SetValue ?? defaultTimeRange.Begin,
+                        data.Enabled && currentMessageTime.HasValue)));
+            this.timeRangeEndProps = Selectors.Create(() => timeRangeEnd, defaultTimeRange,
+                    currentMessageTime,
                 static (data, defaultTimeRange, currentMessageTime) =>
-                    new TimeRangeBoundProperties(data.Enabled, data.SetValue ?? defaultTimeRange.End,
-                        data.Enabled && currentMessageTime.HasValue));
+                    setStrings(new TimeRangeBoundProperties(data.Enabled, data.SetValue ?? defaultTimeRange.End,
+                        data.Enabled && currentMessageTime.HasValue)));
         }
 
         Task<bool> IPresenter.ShowTheDialog(IFilter forFilter, FiltersListPurpose filtersListPurpose)

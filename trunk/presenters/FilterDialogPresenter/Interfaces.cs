@@ -50,6 +50,8 @@ namespace LogJoint.UI.Presenters.FilterDialog
         public bool Enabled { get; private set; } = enabled;
         public DateTime Value { get; private set; } = value;
         public bool SetCurrentLinkEnabled { get; private set; } = setCurrentLinkEnabled;
+        public string SetCurrentLinkName { get; internal set; }
+        public string SetCurrentLinkHint { get; internal set; }
     };
 
     public enum TimeBound

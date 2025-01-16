@@ -29,6 +29,7 @@ namespace LogJoint.UI
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage3 = new System.Windows.Forms.TabPage();
@@ -49,6 +50,7 @@ namespace LogJoint.UI
             this.cancelButton = new System.Windows.Forms.Button();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.label5 = new System.Windows.Forms.Label();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.actionComboBox = new System.Windows.Forms.ComboBox();
             this.nameTextBox = new System.Windows.Forms.TextBox();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -442,7 +444,7 @@ namespace LogJoint.UI
             // timeRangeEndCheckBox
             // 
             this.timeRangeEndCheckBox.AutoSize = true;
-            this.timeRangeEndCheckBox.Location = new System.Drawing.Point(11, 81);
+            this.timeRangeEndCheckBox.Location = new System.Drawing.Point(11, 80);
             this.timeRangeEndCheckBox.Name = "timeRangeEndCheckBox";
             this.timeRangeEndCheckBox.Size = new System.Drawing.Size(114, 25);
             this.timeRangeEndCheckBox.TabIndex = 3;
@@ -451,7 +453,7 @@ namespace LogJoint.UI
             // 
             // timeRangeEndPicker
             // 
-            this.timeRangeEndPicker.Location = new System.Drawing.Point(143, 81);
+            this.timeRangeEndPicker.Location = new System.Drawing.Point(143, 80);
             this.timeRangeEndPicker.Name = "timeRangeEndPicker";
             this.timeRangeEndPicker.Size = new System.Drawing.Size(200, 27);
             this.timeRangeEndPicker.TabIndex = 2;
@@ -463,7 +465,7 @@ namespace LogJoint.UI
             this.timeRangeBeginSetCurrentLink.AutoSize = true;
             this.timeRangeBeginSetCurrentLink.Location = new System.Drawing.Point(360, 38);
             this.timeRangeBeginSetCurrentLink.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
-            this.timeRangeBeginSetCurrentLink.Name = "timeRangeBeginNowLine";
+            this.timeRangeBeginSetCurrentLink.Name = "timeRangeBeginNowLink";
             this.timeRangeBeginSetCurrentLink.Size = new System.Drawing.Size(41, 21);
             this.timeRangeBeginSetCurrentLink.TabIndex = 17;
             this.timeRangeBeginSetCurrentLink.TabStop = true;
@@ -472,9 +474,9 @@ namespace LogJoint.UI
             // timeRangeEndSetCurrentLink
             // 
             this.timeRangeEndSetCurrentLink.AutoSize = true;
-            this.timeRangeEndSetCurrentLink.Location = new System.Drawing.Point(360, 81);
+            this.timeRangeEndSetCurrentLink.Location = new System.Drawing.Point(360, 80);
             this.timeRangeEndSetCurrentLink.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
-            this.timeRangeEndSetCurrentLink.Name = "timeRangeEndNowLine";
+            this.timeRangeEndSetCurrentLink.Name = "timeRangeEndNowLinj";
             this.timeRangeEndSetCurrentLink.Size = new System.Drawing.Size(41, 21);
             this.timeRangeEndSetCurrentLink.TabIndex = 18;
             this.timeRangeEndSetCurrentLink.TabStop = true;
@@ -546,5 +548,6 @@ namespace LogJoint.UI
         private System.Windows.Forms.CheckBox timeRangeEndCheckBox;
         private System.Windows.Forms.DateTimePicker timeRangeEndPicker;
         private System.Windows.Forms.CheckBox timeRangeBeginCheckBox;
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }

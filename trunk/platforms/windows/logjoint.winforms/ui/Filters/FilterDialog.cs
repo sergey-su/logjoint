@@ -7,6 +7,7 @@ using LogJoint.UI.Presenters.FilterDialog;
 using LogJoint.Drawing;
 using LogJoint.UI.Windows.Reactive;
 using System.Collections.Immutable;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace LogJoint.UI
 {
@@ -87,6 +88,8 @@ namespace LogJoint.UI
                     picker.Value = properties.Value;
                     picker.Enabled = properties.Enabled;
                     setCurrent.Enabled = properties.SetCurrentLinkEnabled;
+                    setCurrent.Text = properties.SetCurrentLinkName;
+                    toolTip.SetToolTip(setCurrent, properties.SetCurrentLinkHint);
                 }
                 updateBoundControls(begin, timeRangeBeginCheckBox, timeRangeBeginPicker, timeRangeBeginSetCurrentLink);
                 updateBoundControls(end, timeRangeEndCheckBox, timeRangeEndPicker, timeRangeEndSetCurrentLink);
