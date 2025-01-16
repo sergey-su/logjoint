@@ -6,7 +6,13 @@
     @foreach (var tab in Tabs)
     {
         var captureIndex = index;
-        <button @onclick="@(e => OnSelect?.Invoke(captureIndex))" class="@(index == SelectedTab ? "selected" : "") @tab.Class" title=@tab.Tooltip>@tab.Caption</button>
+        <button @onclick="@(e => OnSelect?.Invoke(captureIndex))" class="@(index == SelectedTab ? "selected" : "") @tab.Class" title=@tab.Tooltip>
+            @if (tab.Progress != null)
+            {
+                <CircularProgress Value=@(tab.Progress.Value) Class="progress" />
+            }
+            @tab.Caption
+        </button>
         ++index;
     }
 </div>
@@ -17,6 +23,7 @@
         public string Caption;
         public string Tooltip;
         public string Class;
+        public double? Progress;
     };
 
     [Parameter]

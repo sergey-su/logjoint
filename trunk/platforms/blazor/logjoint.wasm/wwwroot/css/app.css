@@ -495,6 +495,12 @@ button {
     right: 0;
 }
 
+.main-window-tabs .tabs .progress {
+    width: 13px;
+    height: 13px;
+    padding-right: 4px;
+}
+
 
 .log-sources-manager {
     display: flex;

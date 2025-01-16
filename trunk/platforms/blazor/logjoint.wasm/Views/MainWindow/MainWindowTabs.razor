@@ -1,4 +1,5 @@
 ﻿@namespace LogJoint.Wasm.UI
+@using System.Threading
 @using LogJoint.UI.Presenters.MainForm;
 @inject JsInterop jsInterop
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
@@ -34,10 +35,13 @@
 
 @code {
     private ISubscription subscription;
+    private ISubscription progressSubscription;
     private IViewModel ViewModel => presentation.ViewModels.MainForm;
     private Func<IReadOnlyList<TabsView.TabInfo>> tabNames;
     private ElementReference resizerElement, tabsElement;
     private IDisposable resizeHandler;
+    private int progress = 0;
+    private CancellationTokenSource progressCancellation;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -47,14 +51,35 @@
 
     protected override void OnInitialized()
     {
-        tabNames = Selectors.Create(() => ViewModel.VisibleTabs, tabs => tabs.Select(t => new TabsView.TabInfo
-        {
-            Caption = t.Id == TabIDs.Settings ? "⚙" : t.Caption,
-            Class = t.Id == TabIDs.Settings ? "settings" : null
-        }).ToArray());
+        tabNames = Selectors.Create(() => ViewModel.VisibleTabs, () => ViewModel.FiltersLoadingAnimationVisible, () => progress,
+            (tabs, filtersLoadingAnimationVisible, progress) => tabs.Select(t => new TabsView.TabInfo
+            {
+                Caption = t.Id == TabIDs.Settings ? "⚙" : t.Caption,
+                Class = t.Id == TabIDs.Settings ? "settings" : null,
+                Progress = (t.Id == TabIDs.DisplayFilteringRules && filtersLoadingAnimationVisible) ? ((double)progress / 100.0) : null,
+            }).ToArray());
         subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (ViewModel.VisibleTabs, ViewModel.ActiveTab, ViewModel.Size),
+            () => (ViewModel.VisibleTabs, ViewModel.ActiveTab, ViewModel.Size, ViewModel.FiltersLoadingAnimationVisible),
             _ => StateHasChanged()
+        ));
+        progressSubscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => ViewModel.FiltersLoadingAnimationVisible,
+            (visible) =>
+            {
+                if (visible == (progressCancellation != null))
+                    return;
+                if (!visible)
+                {
+                    progressCancellation.Cancel();
+                    progressCancellation.Dispose();
+                    progressCancellation = null;
+                }
+                else
+                {
+                    progressCancellation = new CancellationTokenSource();
+                    InfiniteProgress(progressCancellation.Token);
+                }
+            }
         ));
     }
 
@@ -70,8 +95,26 @@
     public void Dispose()
     {
         subscription?.Dispose();
+        progressSubscription?.Dispose();
         resizeHandler?.Dispose();
+        progressCancellation?.Dispose();
     }
 
     string GetStyle() => ViewModel.Size.HasValue ? $"height: {100 * ViewModel.Size}%" : "";
+
+    async void InfiniteProgress(CancellationToken tcs)
+    {
+        try
+        {
+            while (!tcs.IsCancellationRequested)
+            {
+                await Task.Delay(200, tcs);
+                progress = (progress + 15) % 100;
+                StateHasChanged();
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
 }
