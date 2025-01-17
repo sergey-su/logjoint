@@ -367,7 +367,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
         string IViewModel.ResizerTooltip => "Resize the tabs panel";
 
-        bool IViewModel.FiltersLoadingAnimationVisible => filteringStats.FilteringIsInProgress;
+        double? IViewModel.FiltersLoadingProgress => filteringStats.FilteringProgress;
 
         #region Implementation
 

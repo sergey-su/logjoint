@@ -88,7 +88,7 @@ namespace LogJoint.UI.Presenters.MainForm
         int ActiveTab { get; }
         double? Size { get; }
         string ResizerTooltip { get; }
-        bool FiltersLoadingAnimationVisible { get; }
+        double? FiltersLoadingProgress { get; }
         void OnClosing();
         void OnLoad();
         void OnTabPressed();

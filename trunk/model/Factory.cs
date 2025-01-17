@@ -276,7 +276,8 @@ namespace LogJoint
                 filtersFactory,
                 logSourcesManager,
                 shutdown,
-                changeNotification
+                changeNotification,
+                progressAggregatorFactory
             );
 
             Postprocessing.IUserNamesProvider analyticsShortNames = new Postprocessing.CodenameUserNamesProvider(

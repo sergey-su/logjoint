@@ -1,4 +1,6 @@
-﻿using LogJoint.LogMedia;
+﻿using ICSharpCode.SharpZipLib.Core;
+using LogJoint.LogMedia;
+using LogJoint.Progress;
 using LogJoint.RegularExpressions;
 using System;
 using System.Collections.Generic;
@@ -104,9 +106,9 @@ namespace LogJoint
 
             if (filteringEnabled && (status != UpdateBoundsStatus.NothingUpdated || filtersChanged || timeOffsetChanged))
             {
-                using var scopedFiltering = filteringStats?.ScopedFilteringProgress();
+                using IProgressEventsSink progressSink = filteringStats?.ScopedFilteringProgress();
                 await ensureFilteredLogIsCreated();
-                await UpdateFilteredLog();
+                await UpdateFilteredLog(progressSink);
                 await filteredLogReader.UpdateAvailableBounds(/*incrementalMode=*/false);
                 return UpdateBoundsStatus.MessagesFiltered;
             }
@@ -158,7 +160,7 @@ namespace LogJoint
             filteredLogMedia?.Dispose();
         }
 
-        async Task UpdateFilteredLog()
+        async Task UpdateFilteredLog(IProgressEventsSink progressSink)
         {
             await using var outputStream = new FileStream(
                 filteredLogFile, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
@@ -175,9 +177,11 @@ namespace LogJoint
                     Async = true,
                 }
             );
+            var range = new FileRange.Range(unfilteredReader.BeginPosition, unfilteredReader.EndPosition);
             await foreach (SearchResultMessage msg in unfilteredReader.Search(new SearchMessagesParams()
             {
-                Range = new FileRange.Range(unfilteredReader.BeginPosition, unfilteredReader.EndPosition),
+                Range = range,
+                ProgressHandler = pos => progressSink.SetValue((double)(pos - range.Begin) / (double)(range.Length > 0 ? range.Length : 1)),
                 Flags = ReadMessagesFlag.HintMassiveSequentialReading,
                 SearchParams = new SearchAllOccurencesParams(effectiveFilters, searchInRawText: false, fromPosition: null)
             }))
@@ -295,29 +299,18 @@ namespace LogJoint
     // Thread-safe.
     public class FilteringStats
     {
-        readonly private IChangeNotification changeNotification;
-        volatile int filteringIsInProgress;
+        readonly IProgressAggregator progressAggregator;
 
-        public FilteringStats(IChangeNotification changeNotification)
+        public FilteringStats(IProgressAggregatorFactory progressAggregatorFactory)
         {
-            this.changeNotification = changeNotification;
+            this.progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
         }
 
-        public bool FilteringIsInProgress => filteringIsInProgress != 0;
+        public double? FilteringProgress => progressAggregator.ProgressValue;
 
-        public IDisposable ScopedFilteringProgress()
+        public IProgressEventsSink ScopedFilteringProgress()
         {
-            if (Interlocked.Increment(ref filteringIsInProgress) == 1)
-            {
-                changeNotification.Post();
-            }
-            return new ScopedGuard(() =>
-            {
-                if (Interlocked.Decrement(ref filteringIsInProgress) == 0)
-                {
-                    changeNotification.Post();
-                }
-            });
+            return progressAggregator.CreateProgressSink();
         }
     };
 }

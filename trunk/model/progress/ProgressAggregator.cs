@@ -201,8 +201,7 @@ namespace LogJoint.Progress
 
         void EndUpdate(AggUpdateInfo info)
         {
-            if (info.childrenUpdates != null)
-                info.childrenUpdates.ForEach(upd => upd.agg.EndUpdate(upd));
+            info.childrenUpdates?.ForEach(upd => upd.agg.EndUpdate(upd));
             bool active = info.active;
             double progress = info.progress;
             EventHandler<EventArgs> startStop = null;
@@ -210,8 +209,7 @@ namespace LogJoint.Progress
                 startStop = active ? ProgressStarted : ProgressEnded;
             isProgressActive = active;
             lastValue = active ? progress : new double?();
-            if (startStop != null)
-                startStop(this, EventArgs.Empty);
+            startStop?.Invoke(this, EventArgs.Empty);
             if (active && ProgressChanged != null)
                 ProgressChanged(this, new ProgressChangedEventArgs((int)(progress * 100f), null));
         }

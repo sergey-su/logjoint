@@ -1,3 +1,5 @@
+using LogJoint.Progress;
+
 namespace LogJoint
 {
     public class FiltersManager : IFiltersManager
@@ -11,11 +13,12 @@ namespace LogJoint
             IFiltersFactory filtersFactory,
             ILogSourcesManager logSourcesManager,
             IShutdown shutdown,
-            IChangeNotification changeNotification
+            IChangeNotification changeNotification,
+            IProgressAggregatorFactory progressAggregatorFactory
         )
         {
             this.logSources = logSourcesManager;
-            this.filteringStats = new FilteringStats(changeNotification);
+            this.filteringStats = new FilteringStats(progressAggregatorFactory);
 
             this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting);
             this.displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include, FiltersListPurpose.Display);
