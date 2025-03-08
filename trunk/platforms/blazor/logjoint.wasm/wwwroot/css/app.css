@@ -918,6 +918,23 @@ button {
     background-color: darkblue;
 }*/
 
+.list>li .annotation {
+    margin-right: 10px;
+    background: yellow;
+}
+.dark-theme .list>li .annotation {
+    background: #CCCC00;
+    color: black;
+}
+.list>li.selected .annotation {
+    background: inherit;
+    color: yellow;
+}
+.dark-theme .list>li.selected .annotation {
+    background: inherit;
+    color: yellow;
+}
+
 
 .search-result {
     display: flex;

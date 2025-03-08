@@ -22,6 +22,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
         string Text { get; }
         Color? ContextColor { get; }
         int Index { get; }
+        string Annotation { get; }
     };
 
     public interface IViewModel
@@ -49,7 +50,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
         None = 0,
         Delete = 1,
         Copy = 2,
-        CopyWithDeltas = 4
+        CopyWithDeltas = 4,
+        Properties = 8,
     };
 
     [Flags]

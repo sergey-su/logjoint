@@ -176,6 +176,10 @@ namespace LogJoint
                             new XAttribute("display-name", XmlUtils.RemoveInvalidXMLChars(b.DisplayName)),
                             new XAttribute("line-index", b.LineIndex),
                     };
+                    if (!string.IsNullOrEmpty(b.Annotation))
+                    {
+                        attrs.Add(new XAttribute("annotation", b.Annotation ?? ""));
+                    }
                     return new XElement("bookmark", attrs);
                 }).ToArray()
             ));
@@ -215,6 +219,7 @@ namespace LogJoint
                     var name = elt.Attribute("display-name");
                     var position = elt.Attribute("position");
                     var lineIndex = elt.Attribute("line-index");
+                    var annotation = elt.Attribute("annotation");
                     if (time != null && thread != null && name != null && position != null)
                     {
                         bookmarks.ToggleBookmark(bookmarks.Factory.CreateBookmark(
@@ -222,7 +227,8 @@ namespace LogJoint
                             logSourceThreads.GetThread(new StringSlice(thread.Value)),
                             name.Value,
                             long.Parse(position.Value),
-                            (lineIndex != null) ? int.Parse(lineIndex.Value) : 0
+                            (lineIndex != null) ? int.Parse(lineIndex.Value) : 0,
+                            annotation?.Value
                         ));
                     }
                 }
@@ -340,7 +346,8 @@ namespace LogJoint
                     logSourceThreads.GetThread(new StringSlice(b.threadId)),
                     b.bmk.DisplayName,
                     b.bmk.Position,
-                    b.bmk.LineIndex));
+                    b.bmk.LineIndex,
+                    annotation: null));
             }
             owner.OnTimeOffsetChanged(this);
             await using var s = await OpenSettings(false);

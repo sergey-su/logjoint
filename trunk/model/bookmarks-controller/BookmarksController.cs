@@ -32,7 +32,8 @@ namespace LogJoint
         async Task HandleEvent(BookmarksChangedEventArgs e)
         {
             if (e.Type == BookmarksChangedEventArgs.ChangeType.Added || e.Type == BookmarksChangedEventArgs.ChangeType.Removed ||
-                e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll || e.Type == BookmarksChangedEventArgs.ChangeType.Purged)
+                e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll || e.Type == BookmarksChangedEventArgs.ChangeType.Purged ||
+                e.Type == BookmarksChangedEventArgs.ChangeType.Annotation)
             {
                 foreach (var affectedSource in
                     e.AffectedBookmarks

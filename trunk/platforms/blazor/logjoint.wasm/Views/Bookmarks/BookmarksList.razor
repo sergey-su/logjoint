@@ -6,25 +6,33 @@
 @inject JsInterop jsInterop
 
 <ListView Items="@viewModel.Items" OnSelect="@(items => viewModel.OnChangeSelection(items.OfType<IViewItem>()))" 
-          Class="@ListClass" ItemClass="bookmarks-list-item"
-          OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())"
-          ChangeNotification="@viewModel.ChangeNotification"
-          OnKeyDown="HandleKeyDown">
+Class="@ListClass" ItemClass="bookmarks-list-item"
+OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())"
+ChangeNotification="@viewModel.ChangeNotification"
+OnKeyDown="HandleKeyDown"
+SelectByNonLeftClick=false>
     <ItemTemplate>
         @{var item = (IViewItem)context;}
         @{var f = viewModel.FocusedMessagePosition; }
         @{var focusedMarkClass =
-                    f == null ? "" :
-                    f.UpperBound == item.Index + 1 ? (f.LowerBound != f.UpperBound ? "f" : "f l") :
-                    (f.LowerBound == 0 && f.UpperBound == 0 && item.Index == 0) ? "f r" :
-                    "";}
+                                      f == null ? "" :
+                                      f.UpperBound == item.Index + 1 ? (f.LowerBound != f.UpperBound ? "f" : "f l") :
+                                      (f.LowerBound == 0 && f.UpperBound == 0 && item.Index == 0) ? "f r" :
+                                      "";}
         <div>@(item.Delta ?? item.AltDelta)</div>
         <div class="icon"></div>
         <div class="p @focusedMarkClass"><span title=@(f?.Tooltip ?? "")>&nbsp;</span></div>
         @if (item.IsEnabled)
         {
             <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))"
-                style="@GetItemStyle(item)">@item.Text</a>
+            @oncontextmenu="@(e => this.HandleBookmarkContextMenu(e))" @oncontextmenu:preventDefault
+            style="@GetItemStyle(item)">
+                @if (!string.IsNullOrEmpty(@item.Annotation))
+                {
+                    <span class="annotation">@item.Annotation</span>
+                }
+                @item.Text
+            </a>
         }
         else
         {
@@ -88,6 +96,31 @@
         else
         {
             return $"background-color: {cl}";
+        }
+    }
+
+    record MenuItemDesc(ContextMenuItem Bit, string Text);
+
+    void HandleBookmarkContextMenu(MouseEventArgs e)
+    {
+        ContextMenuItem menuItemsMask = viewModel.OnContextMenu();
+        var menuItems = new List<LogJoint.UI.Presenters.ContextMenuItem>();
+        foreach (MenuItemDesc item in new[] {
+            new MenuItemDesc(ContextMenuItem.Copy, "Copy"),
+            new MenuItemDesc(ContextMenuItem.CopyWithDeltas, "Copy with time deltas"),
+            new MenuItemDesc(ContextMenuItem.Delete, "Delete"),
+            new MenuItemDesc(ContextMenuItem.Properties, "Properties")
+        })
+        {
+            if ((menuItemsMask & item.Bit) != 0)
+            {
+                menuItems.Add(new LogJoint.UI.Presenters.ContextMenuItem(item.Text, () => { viewModel.OnMenuItemClicked(item.Bit); }));
+            }
+        }
+        if (menuItems.Count > 0)
+        {
+            presentation.ContextMenu.ShowMenu(menuItems,
+                new Drawing.PointF((float)e.ClientX, (float)e.ClientY));
         }
     }
 }

@@ -5,6 +5,7 @@ using LogJoint.Settings;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using LogJoint.Progress;
 
 namespace LogJoint.Tests
 {
@@ -41,7 +42,7 @@ namespace LogJoint.Tests
                 new MediaBasedReaderParams(new LogSourceThreads(), new StringStreamMedia()), filters, new TempFilesManager(),
                 LogMedia.FileSystemImpl.Instance, FCLRegexFactory.Instance,
                 new TraceSourceFactory(), DefaultSettingsAccessor.Instance, synchronizationContext,
-                new FilteringStats(changeNotification));
+                new FilteringStats(new ProgressAggregator.Factory(synchronizationContext)));
             await reader.UpdateAvailableBounds(incrementalMode: false);
         }
 
@@ -70,7 +71,7 @@ namespace LogJoint.Tests
             {
                 Template = ".",
                 Regexp = true,
-            }));
+            }, new FilterTimeRange(null, null)));
             await reader.UpdateAvailableBounds(incrementalMode: true);
             Assert.That(await ReadToLog(new ReadMessagesParams()),
                 Is.EqualTo(["0: 0 0.r", "10: 10 10.r", "20: 20 20.r", "30: 30 30.r"]));
@@ -88,7 +89,7 @@ namespace LogJoint.Tests
             filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Exclude, "", enabled: true, new Search.Options()
             {
                 Template = "20"
-            }));
+            }, new FilterTimeRange(null, null)));
             await reader.UpdateAvailableBounds(incrementalMode: true);
             Assert.That(await ReadToLog(new ReadMessagesParams()),
                 Is.EqualTo(["0: 0 0.r", "10: 10 10.r", "30: 30 30.r"]));
@@ -111,14 +112,14 @@ namespace LogJoint.Tests
             filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Exclude, "", enabled: true, new Search.Options()
             {
                 Template = "20"
-            }));
+            }, new FilterTimeRange(null, null)));
             await reader.UpdateAvailableBounds(incrementalMode: true);
 
             IFiltersList searchFilter = filtersFactory.CreateFiltersList(FilterAction.Include, FiltersListPurpose.Search);
             searchFilter.Insert(0, filtersFactory.CreateFilter(FilterAction.Exclude, "", enabled: true, new Search.Options()
             {
                 Template = "10"
-            }));
+            }, new FilterTimeRange(null, null)));
             Assert.That(await SearchToLog(new SearchMessagesParams() 
                 { Range = new FileRange.Range(0, 100), SearchParams = new SearchAllOccurencesParams(searchFilter, searchInRawText: false, null) }),
                 Is.EqualTo(["0: 0 0.r", "30: 30 30.r"]));

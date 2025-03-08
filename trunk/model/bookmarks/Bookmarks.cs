@@ -66,6 +66,20 @@ namespace LogJoint
             return new BookmarksHandler(this);
         }
 
+        void IBookmarks.SetAnnotation(IBookmark bookmark, string annotation)
+        {
+            var pos = items.GetBound(0, items.Count, bookmark, ValueBound.Lower, cmp);
+            if (pos >= items.Count || items[pos] != bookmark)
+                throw new Exception("Can not set annotation to a free bookmark");
+            if (bookmark.Annotation == annotation)
+            {
+                return;
+            }
+            items[pos] = bookmark.SetAnnotation(annotation);
+            HandleBookmarksChanged(new BookmarksChangedEventArgs(
+                BookmarksChangedEventArgs.ChangeType.Annotation, [bookmark]));
+        }
+
         class BookmarksHandler : IBookmarksHandler, IComparer<IBookmark>
         {
             public BookmarksHandler(Bookmarks owner)
@@ -145,13 +159,11 @@ namespace LogJoint
             if (idx >= 0)
             {
                 items.RemoveAt(idx);
-                HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Removed,
-                    new IBookmark[] { bmk }));
+                HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Removed, [bmk]));
                 return null;
             }
             items.Insert(~idx, bmk);
-            HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Added,
-                new IBookmark[] { bmk }));
+            HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Added, [bmk]));
             return bmk;
         }
 

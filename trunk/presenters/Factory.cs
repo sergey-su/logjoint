@@ -423,7 +423,8 @@ namespace LogJoint.UI.Presenters
                 clipboardAccess,
                 colorTheme,
                 model.ChangeNotification,
-                model.TraceSourceFactory
+                model.TraceSourceFactory,
+                promptDialog
             );
 
             var bookmarksManagerPresenter = new BookmarksManager.Presenter(

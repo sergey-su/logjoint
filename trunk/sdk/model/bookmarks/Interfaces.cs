@@ -13,7 +13,9 @@ namespace LogJoint
         int LineIndex { get; }
         IThread Thread { get; }
         string DisplayName { get; }
+        string Annotation { get; }
         IBookmark Clone();
+        IBookmark SetAnnotation(string value);
     };
 
     public class BookmarksChangedEventArgs : EventArgs
@@ -23,7 +25,8 @@ namespace LogJoint
             Removed,
             Added,
             RemovedAll,
-            Purged
+            Purged,
+            Annotation,
         };
         public ChangeType Type { get { return type; } }
         public IBookmark[] AffectedBookmarks { get { return affectedBookmarks; } }
@@ -45,6 +48,7 @@ namespace LogJoint
         IBookmark GetNext(IBookmark current, bool forward);
         IReadOnlyList<IBookmark> Items { get; }
         IBookmarksHandler CreateHandler();
+        void SetAnnotation(IBookmark bookmark, string annotation);
         void PurgeBookmarksForDisposedThreads();
 
         event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
@@ -59,7 +63,7 @@ namespace LogJoint
 
     public interface IBookmarksFactory
     {
-        IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, long position, int lineIndex);
+        IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, long position, int lineIndex, string annotation);
         IBookmark CreateBookmark(IMessage message, int lineIndex, bool useRawText = true);
         IBookmark CreateBookmark(MessageTimestamp time, string sourceConnectionId, long position, int lineIndex);
 

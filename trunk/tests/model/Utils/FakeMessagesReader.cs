@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LogJoint.Tests
@@ -84,6 +85,8 @@ namespace LogJoint.Tests
         {
             return Search(p).ToAsyncEnumerable();
         }
+
+        Encoding IMessagesReader.Encoding => Encoding.ASCII;
 
         void IDisposable.Dispose()
         {

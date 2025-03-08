@@ -12,8 +12,8 @@
     {
         var itemIndexCopy = itemIndex;
         <li @key="@item.Key" class="@(item.IsSelected ? "selected" : "") @(itemIndex == establishedPrimary ? "primary" : "") @ItemClass"
-            @onmousedown="@(e => SelectByMouse(itemIndexCopy, e))"
-            tabindex="@(itemIndex == establishedPrimary ? 0 : -1)">
+        @onmousedown="@(e => SelectByMouse(itemIndexCopy, e))"
+        tabindex="@(itemIndex == establishedPrimary ? 0 : -1)">
             @if (ItemTemplate != null)
             {
                 @ItemTemplate(item);
@@ -24,7 +24,7 @@
             }
         </li>
         itemIndex++;
-     }
+    }
 </ul>
 
 @code {
@@ -61,6 +61,9 @@
 
     [Parameter, EditorRequired]
     public IChangeNotification ChangeNotification { get; set; }
+
+    [Parameter]
+    public bool SelectByNonLeftClick { get; set; } = true;
 
     protected override void OnInitialized()
     {
@@ -99,6 +102,8 @@
 
     void SelectByMouse(int i, MouseEventArgs e)
     {
+        if (e.Button != 0 && !SelectByNonLeftClick)
+            return;
         candidatePrimary = i;
         if (jsInterop.Browser.HasEditKey(e))
         {

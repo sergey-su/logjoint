@@ -207,7 +207,8 @@ describe('MeetingV2', () => {
             [Test]
             public void SingleLineMatch()
             {
-                searchFilters.Insert(0, new Filter(FilterAction.Include, "test", true, new Search.Options() { Template = "meeting" }, Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
+                searchFilters.Insert(0, new Filter(FilterAction.Include, "test", true, new Search.Options() { Template = "meeting" }, new FilterTimeRange(null, null),
+                    Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
                 var textInfo = highlightingManager.GetSearchResultMessageText(msgWithMultilineText, MessageTextGetters.SummaryTextGetter, searchFilters);
                 Assert.That(StringUtils.NormalizeLinebreakes(
 @"import { MeetingSession } from '../../../../client/model/meeting/impl/meeting/meetingSession';
@@ -231,7 +232,7 @@ describe('MeetingV2', () => {
                 {
                     Template = @"Impl\'\;\r\n+import",
                     Regexp = true
-                }, Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
+                }, new FilterTimeRange(null, null), Substitute.For<IFiltersFactory>(), RegularExpressions.FCLRegexFactory.Instance));
                 var textInfo = highlightingManager.GetSearchResultMessageText(msgWithMultilineText, MessageTextGetters.SummaryTextGetter, searchFilters);
                 Assert.That(StringUtils.NormalizeLinebreakes(
 @"import { MeetingImpl } from '../../../../client/model/meeting/impl/meeting/impl/meetingImpl';

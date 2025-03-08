@@ -282,6 +282,8 @@ namespace LogJoint.Tests
                 return ValueTask.FromResult(0);
             }
 
+            Encoding IMessagesReader.Encoding => Encoding.ASCII;
+
             public async IAsyncEnumerable<PostprocessedMessage> Read(ReadMessagesParams p)
             {
                 DateTime time = new DateTime();

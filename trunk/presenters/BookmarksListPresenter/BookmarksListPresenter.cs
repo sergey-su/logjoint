@@ -25,7 +25,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
             IClipboardAccess clipboardAccess,
             IColorTheme colorTheme,
             IChangeNotification changeNotification,
-            ITraceSourceFactory traceSourceFactory
+            ITraceSourceFactory traceSourceFactory,
+            IPromptDialog promptDialog
         )
         {
             this.bookmarks = bookmarks;
@@ -34,6 +35,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
             this.colorTheme = colorTheme;
             this.changeNotification = changeNotification;
             this.sourcesManager = sourcesManager;
+            this.promptDialog = promptDialog;
             this.trace = traceSourceFactory.CreateTraceSource("UI", "bmks");
 
             itemsSelector = Selectors.Create(
@@ -88,6 +90,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
                 CopyToClipboard(copyTimeDeltas: false);
             else if (item == ContextMenuItem.CopyWithDeltas)
                 CopyToClipboard(copyTimeDeltas: true);
+            else if (item == ContextMenuItem.Properties)
+                ShowSelectedBookmarkProperties();
         }
 
         ContextMenuItem IViewModel.OnContextMenu()
@@ -98,6 +102,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
                 ret |= (ContextMenuItem.Delete | ContextMenuItem.Copy);
             if (selectedCount > 1)
                 ret |= ContextMenuItem.CopyWithDeltas;
+            if (selectedCount == 1)
+                ret |= ContextMenuItem.Properties;
             return ret;
         }
 
@@ -230,7 +236,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
                     isSelected = isSelected,
                     isEnabled = isEnabled,
                     contextColor = threadColors.GetByIndex(colorIndex),
-                    index = index
+                    index = index,
+                    annotation = bmk.Annotation,
                 });
                 prevTimestamp = ts;
                 if (isSelected)
@@ -331,6 +338,17 @@ namespace LogJoint.UI.Presenters.BookmarksList
             return cl;
         }
 
+        async void ShowSelectedBookmarkProperties()
+        {
+            var selected = GetValidSelectedBookmarks().FirstOrDefault();
+            if (selected == null)
+                return;
+            string newValue = await promptDialog.ExecuteDialogAsync(
+                "Bookmark", "Set bookmark annotation", selected.Annotation);
+            if (newValue != null)
+                bookmarks.SetAnnotation(selected, newValue);
+        }
+
         IEnumerable<IBookmark> GetValidSelectedBookmarks()
         {
             return GetValidSelectedBookmarks(bookmarks.Items, selectedBookmarks);
@@ -357,6 +375,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
             int IViewItem.Index => index;
 
+            string IViewItem.Annotation => annotation;
+
             string IListItem.Key => key;
 
             bool IListItem.IsSelected => isSelected;
@@ -372,6 +392,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
             internal Color? contextColor;
             internal string key;
             internal int index;
+            internal string annotation;
         };
 
         readonly IBookmarks bookmarks;
@@ -385,6 +406,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
         readonly Func<ImmutableArray<IViewItem>> itemsSelector;
         readonly Func<FocusedMessageInfo> focusedMessagePositionSelector;
         readonly Func<bool> hasSelectedBookmarks;
+        readonly IPromptDialog promptDialog;
 
         #endregion
     };
