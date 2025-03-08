@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.LogViewer
     internal interface IHighlightingHandler
     {
         /// <summary>
-        /// Enumerates ranges of Message's test that need highlighting. Only the ranges overlapping passed interval as enumerated.
+        /// Enumerates ranges of Message's text that need highlighting. Only the ranges overlapping the passed interval are enumerated.
         /// </summary>
         IEnumerable<(int, int, Color)> GetHighlightingRanges(ViewLine vl);
     };
