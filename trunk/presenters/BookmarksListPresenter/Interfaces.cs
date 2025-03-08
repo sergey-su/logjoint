@@ -11,7 +11,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
     {
         event BookmarkEvent Click;
         void DeleteSelectedBookmarks();
+        void ShowPropertiesDialog();
         bool HasSelectedBookmarks { get; }
+        bool HasOneSelectedBookmark { get; }
     };
 
     public interface IViewItem : IListItem

@@ -18,6 +18,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
         readonly Func<ButtonState> addButton;
         readonly Func<ButtonState> deleteButton;
         readonly Func<ButtonState> deleteAllButton;
+        readonly Func<ButtonState> propertiesButton;
 
         public Presenter(
             IBookmarks bookmarks,
@@ -64,6 +65,11 @@ namespace LogJoint.UI.Presenters.BookmarksManager
                 Enabled = hasBookmarks,
                 Tooltip = "Delete all bookmarks",
             });
+            this.propertiesButton = Selectors.Create(() => listPresenter.HasOneSelectedBookmark, hasSelected => new ButtonState()
+            {
+                Enabled = hasSelected,
+                Tooltip = "Properties",
+            });
 
             listPresenter.Click += (s, bmk) =>
             {
@@ -100,6 +106,8 @@ namespace LogJoint.UI.Presenters.BookmarksManager
         ButtonState IViewModel.AddButton => addButton();
         ButtonState IViewModel.DeleteButton => deleteButton();
         ButtonState IViewModel.DeleteAllButton => deleteAllButton();
+        ButtonState IViewModel.PropertiesButton => propertiesButton();
+
 
         void IViewModel.OnToggleButtonClicked()
         {
@@ -118,6 +126,11 @@ namespace LogJoint.UI.Presenters.BookmarksManager
         void IViewModel.OnDeleteBookmarkButtonClicked()
         {
             listPresenter.DeleteSelectedBookmarks();
+        }
+
+        void IViewModel.OnPropertiesButtonClicked()
+        {
+            listPresenter.ShowPropertiesDialog();
         }
 
         async void IViewModel.OnDeleteAllButtonClicked()

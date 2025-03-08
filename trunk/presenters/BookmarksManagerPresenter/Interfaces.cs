@@ -22,11 +22,13 @@ namespace LogJoint.UI.Presenters.BookmarksManager
         ButtonState AddButton { get; }
         ButtonState DeleteButton { get; }
         ButtonState DeleteAllButton { get; }
+        ButtonState PropertiesButton { get; }
         void OnToggleButtonClicked();
         void OnDeleteAllButtonClicked();
         void OnPrevBmkButtonClicked();
         void OnNextBmkButtonClicked();
         void OnAddBookmarkButtonClicked();
         void OnDeleteBookmarkButtonClicked();
+        void OnPropertiesButtonClicked();
     };
 };

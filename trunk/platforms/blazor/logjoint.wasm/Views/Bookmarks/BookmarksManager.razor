@@ -18,6 +18,12 @@
                 title=@viewModel.DeleteAllButton.Tooltip>
             <ClearAllIcon/>
         </button>
+        <button disabled="@(!viewModel.PropertiesButton.Enabled)"
+                @onclick=@viewModel.OnPropertiesButtonClicked
+                class="properties-button"
+                title=@viewModel.PropertiesButton.Tooltip>
+            ⚙
+        </button>
     </div>
     <BookmarksList Class="the-list" />
 </div>
@@ -32,7 +38,8 @@
     protected override void OnInitialized()
     {
         subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (viewModel.DeleteButton, viewModel.AddButton, viewModel.DeleteAllButton),
+            () => (viewModel.DeleteButton, viewModel.AddButton,
+                viewModel.DeleteAllButton, viewModel.PropertiesButton),
             _ => StateHasChanged()
         ));
     }

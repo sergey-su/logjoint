@@ -56,6 +56,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
                 () => selectedBookmarks,
                 (all, selected) => GetValidSelectedBookmarks(all, selected).Any()
             );
+            hasOneSelectedBookmark = Selectors.Create(
+                () => bookmarks.Items,
+                () => selectedBookmarks,
+                (all, selected) => GetValidSelectedBookmarks(all, selected).Count() == 1
+            );
         }
 
         public event BookmarkEvent Click;
@@ -65,7 +70,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
             DeleteSelectedBookmarks();
         }
 
+        void IPresenter.ShowPropertiesDialog()
+        {
+            ShowSelectedBookmarkProperties();
+        }
+
         bool IPresenter.HasSelectedBookmarks => hasSelectedBookmarks();
+
+        bool IPresenter.HasOneSelectedBookmark => hasOneSelectedBookmark();
 
         void IViewModel.OnEnterKeyPressed()
         {
@@ -406,6 +418,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
         readonly Func<ImmutableArray<IViewItem>> itemsSelector;
         readonly Func<FocusedMessageInfo> focusedMessagePositionSelector;
         readonly Func<bool> hasSelectedBookmarks;
+        readonly Func<bool> hasOneSelectedBookmark;
         readonly IPromptDialog promptDialog;
 
         #endregion
