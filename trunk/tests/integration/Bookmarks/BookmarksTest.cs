@@ -21,13 +21,21 @@ namespace LogJoint.Tests.Integration
 
             // Bookmark the log line
             UI.Presenters.LogViewer.ViewLine findTestViewLine()
-            => app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines.First(
-                l => l.TextLineValue.Contains(testLogLine));
+                => app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines.First(
+                    l => l.TextLineValue.Contains(testLogLine));
 
             app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMessageMouseEvent(
-            findTestViewLine(), 2, UI.Presenters.LogViewer.MessageMouseEventFlag.SingleClick, null);
+                findTestViewLine(), 2, UI.Presenters.LogViewer.MessageMouseEventFlag.SingleClick, null);
             Check.That(findTestViewLine().CursorCharIndex).IsEqualTo(2);
             app.PresentationObjects.ViewModels.BookmarksManager.OnAddBookmarkButtonClicked();
+
+            // Set bookmark's annotation
+            await app.WaitFor(() => app.PresentationObjects.ViewModels.BookmarksList.Items.Count == 1);
+            app.PresentationObjects.ViewModels.BookmarksList.OnChangeSelection(
+                [app.PresentationObjects.ViewModels.BookmarksList.Items[0]]);
+            app.Mocks.PromptDialog.ExecuteDialogAsync(null, null, null).ReturnsForAnyArgs(
+                Task.FromResult("That's interesting!!1"));
+            app.PresentationObjects.ViewModels.BookmarksManager.OnPropertiesButtonClicked();
 
             // Close all logs
             app.Mocks.AlertPopup.ShowPopupAsync(null, null, UI.Presenters.AlertFlags.None).ReturnsForAnyArgs(
@@ -46,6 +54,8 @@ namespace LogJoint.Tests.Integration
             app.PresentationObjects.ViewModels.BookmarksList.OnBookmarkLeftClicked(
                 app.PresentationObjects.ViewModels.BookmarksList.Items[0]);
             await app.WaitFor(() => app.GetDisplayedLog().Contains(testLogLine));
+            Check.That(app.PresentationObjects.ViewModels.BookmarksList.Items[0].Annotation)
+                .IsEqualTo("That's interesting!!1");
         }
     }
 }
