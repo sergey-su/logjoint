@@ -29,7 +29,9 @@ namespace LogJoint.UI.Presenters.LogViewer
             IViewModeStrategy viewModeStrategy,
             IAppearanceStrategy coloringModeStrategy,
             IDebugAgentConfig debugAgentConfig,
-            IPresentersFacade presentersFacade
+            IPresentersFacade presentersFacade,
+            IAnnotationsRegistry annotations,
+            IPromptDialog promptDialog
         )
         {
             this.model = model;
@@ -44,6 +46,8 @@ namespace LogJoint.UI.Presenters.LogViewer
             this.viewModeStrategy = viewModeStrategy;
             this.appearanceStrategy = coloringModeStrategy;
             this.debugAgentConfig = debugAgentConfig;
+            this.annotationsRegistry = annotations;
+            this.promptDialog = promptDialog;
 
             this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
@@ -587,6 +591,9 @@ namespace LogJoint.UI.Presenters.LogViewer
             if (bookmarks != null)
                 ret.VisibleItems |= ContextMenuItem.ToggleBmk;
 
+            if (annotationsRegistry != null)
+                ret.VisibleItems |= ContextMenuItem.Annotate;
+
             ret.DefaultItemText = ThisIntf.DefaultFocusedMessageActionCaption;
             if (!string.IsNullOrEmpty(ret.DefaultItemText))
                 ret.VisibleItems |= ContextMenuItem.DefaultAction;
@@ -617,6 +624,8 @@ namespace LogJoint.UI.Presenters.LogViewer
                 ThisIntf.GoToNextMessageInThread();
             else if (menuItem == ContextMenuItem.GotoPrevMessageInTheThread)
                 ThisIntf.GoToPrevMessageInThread();
+            else if (menuItem == ContextMenuItem.Annotate)
+                AnnotateSelectedText();
         }
 
         void IViewModel.OnIncrementalVScroll(float nrOfDisplayLines)
@@ -1317,7 +1326,8 @@ namespace LogJoint.UI.Presenters.LogViewer
         {
             return Selectors.Create(
                 () => (screenBuffer.Messages, bookmarks?.Items),
-                () => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring: appearanceStrategy.Coloring, logSourceColorsRevision, threadColors: theme.ThreadColors),
+                () => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring: appearanceStrategy.Coloring,
+                    logSourceColorsRevision, threadColors: theme.ThreadColors, annotations: annotationsRegistry.Annotations),
                 () => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
                 () => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
                 (data, displayProps, highlightingProps, selectionProps) =>
@@ -1344,7 +1354,8 @@ namespace LogJoint.UI.Presenters.LogViewer
                                 cursorVisible: selectionProps.CursorState,
                                 searchResultHighlightingHandler: highlightingProps.SearchResultHandler,
                                 selectionHighlightingHandler: highlightingProps.SelectionHandler,
-                                highlightingFiltersHandler: highlightingProps.HighlightingFiltersHandler
+                                highlightingFiltersHandler: highlightingProps.HighlightingFiltersHandler,
+                                displayProps.annotations
                             ));
                         }
                     }
@@ -1410,6 +1421,17 @@ namespace LogJoint.UI.Presenters.LogViewer
             );
         }
 
+        async void AnnotateSelectedText()
+        {
+            var selectedText = await selectionManager.GetSelectedText();
+            if (selectedText == "")
+                return;
+            var annotation = await promptDialog.ExecuteDialogAsync("Annotate", $"Enter annotation for '{selectedText}'", "");
+            if (string.IsNullOrEmpty(annotation))
+                return;
+            annotationsRegistry.Add(selectedText, annotation, null);
+        }
+
         private IPresenterInternal ThisIntf { get { return this; } }
         private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; } }
 
@@ -1435,6 +1457,8 @@ namespace LogJoint.UI.Presenters.LogViewer
         readonly IViewModeStrategy viewModeStrategy;
         readonly IAppearanceStrategy appearanceStrategy;
         readonly IDebugAgentConfig debugAgentConfig;
+        readonly IAnnotationsRegistry annotationsRegistry;
+        readonly IPromptDialog promptDialog;
 
         IView view;
         IBookmark slaveModeFocusedMessage;

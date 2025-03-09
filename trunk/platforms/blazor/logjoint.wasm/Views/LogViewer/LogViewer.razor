@@ -6,52 +6,82 @@
 @implements IView
 @inject IJSRuntime jsRuntime
 @inject JsInterop jsInterop
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class="logview @Class @(viewModel.TimeMaxLength > 0 ? "time-visible" : "")" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))"
-        @onfocus="@(e => focused = true)" @onblur="@(e => focused = false)" @ref="element">
+@onfocus="@(e => focused = true)" @onblur="@(e => focused = false)" @ref="element">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
         <div class="scroll-inner" style="top: @TopProperty" @ref="scrollInner"
-                @ongotpointercapture="@(e => { pointerCaptured = true; })" @onlostpointercapture="@(e => { pointerCaptured = false; })"
-                @onpointermove="@(pointerCaptured ? HandleCapturedMove : null)">
+        @ongotpointercapture="@(e => { pointerCaptured = true; })" @onlostpointercapture="@(e => { pointerCaptured = false; })"
+        @onpointermove="@(pointerCaptured ? HandleCapturedMove : null)">
             @foreach (var item in @viewModel.ViewLines)
             {
                 <div class="logline"
-                     @key="item.LineIndex"
-                     style="@GetLogLineStyle(item.ContextColor)"
-                     @onmousedown="@(e => viewModel.OnMessageMouseEvent(
-                                                            item, GetClickedCharIndex(item, e),
-                                                            GetMessageMouseEventFlags(e), null))">
+                @key="item.LineIndex"
+                style="@GetLogLineStyle(item.ContextColor)"
+                @onmousedown="@(e => this.HandleMouseDown(e, item))"
+                @oncontextmenu="@(e => this.HandleContextMenu(e, item))" @oncontextmenu:preventDefault>
                     @if (item.SelectedBackground.HasValue)
                     {
-                        <span class="pad sel" style=@PadStyle(item.SelectedBackground.Value.Item1, item.SelectedBackground.Value.Item2)></span>
+                        <span class="pad sel" style=@PadStyle(item.SelectedBackground.Value.Item1, item.SelectedBackground.Value.Item2, item.TextAnnotations)></span>
                     }
                     @if (item.SelectionHighlightingRanges != null)
                     {
                         @foreach (var r in item.SelectionHighlightingRanges)
                         {
-                            <span class="pad selhl" style=@PadStyle(r.Item1, r.Item2)></span>
+                            <span class="pad selhl" style=@PadStyle(r.Item1, r.Item2, item.TextAnnotations)></span>
                         }
                     }
                     @if (item.SearchResultHighlightingRanges != null)
                     {
                         @foreach (var r in item.SearchResultHighlightingRanges)
                         {
-                            <span class="pad srhl" style=@PadStyle(r.Item1, r.Item2)></span>
+                            <span class="pad srhl" style=@PadStyle(r.Item1, r.Item2, item.TextAnnotations)></span>
                         }
                     }
                     @if (item.HighlightingFiltersHighlightingRanges != null)
                     {
                         @foreach (var r in item.HighlightingFiltersHighlightingRanges)
                         {
-                            <span class="pad" style="@PadStyle(r.Item1, r.Item2); background-color: @Drawing.ColorExtensions.ToHtmlColor(@r.Item3)"></span>
+                            <span class="pad" style="@PadStyle(r.Item1, r.Item2, item.TextAnnotations); background-color: @Drawing.ColorExtensions.ToHtmlColor(@r.Item3)"></span>
+                        }
+                    }
+                    @if (item.TextAnnotations != null)
+                    {
+                        @foreach (var r in item.TextAnnotations)
+                        {
+                            //<span class="pad annotated" style=@PadStyle(r.Item1, r.Item2, item.TextAnnotations)></span>
                         }
                     }
                     @if (item.CursorCharIndex.HasValue)
                     {
-                        <span class="@(item.CursorVisible ? "pad cur" : "pad curhid")" style=@PadStyle(item.CursorCharIndex.Value, item.CursorCharIndex.Value)></span>
+                        <span class="@(item.CursorVisible ? "pad cur" : "pad curhid")" style=@PadStyle(item.CursorCharIndex.Value, item.CursorCharIndex.Value, item.TextAnnotations)></span>
                     }
-                    <span class="txt">@(item.TextLineValue.Length != 0 ? item.TextLineValue : " ")</span>
+                    @if (item.TextLineValue.Length == 0)
+                    {
+                        <span class="txt">@(" ")</span>
+                    }
+                    else
+                    {
+                        int lastAnnotatonStart = 0;
+                        @if (item.TextAnnotations != null)
+                        {
+                            @foreach (var ann in item.TextAnnotations)
+                            {
+                                @if (ann.TextStartIndex > lastAnnotatonStart)
+                                {
+                                    <span class="txt">@item.TextLineValue.Substring(lastAnnotatonStart, ann.TextStartIndex - lastAnnotatonStart)</span>
+                                }
+                                <span class="annotation" style="padding: 0px @(charWidth/3.0)px; margin: 0px @(charWidth/3.0)px 0px @(charWidth)px">@ann.Value</span>
+                                lastAnnotatonStart = ann.TextStartIndex;
+                            }
+                        }
+                        @if (item.TextLineValue.Length > lastAnnotatonStart)
+                        {
+                            <span class="txt">@item.TextLineValue.Substring(lastAnnotatonStart, item.TextLineValue.Length - lastAnnotatonStart)</span>
+                        }
+                    }
                     @if (item.HasMessageSeparator)
                     {
                         <div class="end-of-multiline-message"></div>
@@ -85,7 +115,7 @@
         @foreach (var item in @viewModel.ViewLines)
         {
             <div @key="item.LineIndex" class="item"
-                 @onmousedown="@(e => viewModel.OnMessageMouseEvent(item, 0,
+            @onmousedown="@(e => viewModel.OnMessageMouseEvent(item, 0,
                                 GetMessageMouseEventFlags(e) | MessageMouseEventFlag.OulineBoxesArea, null))">
                 @{var (focusedMarkClass, tooltip) = GetFocusedMessageRenderData(viewModel.FocusedMessageMark, item);}
                 <span class="p @focusedMarkClass" title=@tooltip>@(" ")</span>
@@ -110,7 +140,7 @@
         <div class="time" style="top: @TopProperty">
             @foreach (var item in @viewModel.ViewLines)
             {
-            <div style="@GetLogLineStyle(item.ContextColor)">@(!string.IsNullOrEmpty(item.Time) ? item.Time : " ")</div>
+                <div style="@GetLogLineStyle(item.ContextColor)">@(!string.IsNullOrEmpty(item.Time) ? item.Time : " ")</div>
             }
         </div>
     }
@@ -128,6 +158,7 @@
     private float displayLinesPerPage = 1;
     private bool pointerCaptured;
     private bool focused;
+    private static int annotationPadding = 2;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -207,8 +238,42 @@
     {
     }
 
-    string PadStyle(int beginIdx, int endIdx)
+    static int ComputeDisplayCharIndex(int textCharIndex, IReadOnlyList<TextLineAnnotation> annotations)
     {
+        if (annotations == null)
+            return textCharIndex;
+        int annotationsLength = 0;
+        foreach (TextLineAnnotation annotation in annotations)
+        {
+            if (textCharIndex >= annotation.TextStartIndex)
+                annotationsLength += annotation.Value.Length + annotationPadding;
+        }
+        return textCharIndex + annotationsLength;
+    }
+
+    static int ComputeTextCharIndex(int displayCharIndex, IReadOnlyList<TextLineAnnotation> annotations)
+    {
+        if (annotations == null)
+            return displayCharIndex;
+        int annotationsLength = 0;
+        foreach (TextLineAnnotation annotation in annotations)
+        {
+            if (annotation.TextStartIndex + annotationsLength > displayCharIndex)
+                break;
+            if (displayCharIndex - annotationsLength <= annotation.TextStartIndex + annotation.Value.Length + annotationPadding)
+            {
+                // Chars inside the annotation are mapped to the beginning of the annotated text.
+                return annotation.TextStartIndex;
+            }
+            annotationsLength += annotation.Value.Length + annotationPadding;
+        }
+        return displayCharIndex - annotationsLength;
+    }
+
+    string PadStyle(int beginIdx, int endIdx, IReadOnlyList<TextLineAnnotation> annotations)
+    {
+        beginIdx = ComputeDisplayCharIndex(beginIdx, annotations);
+        endIdx = ComputeDisplayCharIndex(endIdx, annotations);
         return $"left: {beginIdx * charWidth}px; width: {(endIdx - beginIdx) * charWidth}px";
     }
 
@@ -276,12 +341,14 @@
             result |= MessageMouseEventFlag.AltIsHeld;
         if (mouseEventArgs.CtrlKey)
             result |= MessageMouseEventFlag.CtrlIsHeld;
+        if (mouseEventArgs.Button > 0)
+            result |= MessageMouseEventFlag.RightMouseButton;
         return result;
     }
 
     int GetClickedCharIndex(LogJoint.UI.Presenters.LogViewer.ViewLine viewLine, MouseEventArgs mouseEventArgs)
     {
-        var clickedChar = (int)Math.Round(mouseEventArgs.OffsetX / charWidth);
+        var clickedChar = ComputeTextCharIndex((int)Math.Round(mouseEventArgs.OffsetX / charWidth), viewLine.TextAnnotations);
         return clickedChar;
     }
 
@@ -314,6 +381,8 @@
 
     void HandleCapturedMove(MouseEventArgs e)
     {
+        if (e.Buttons != 1)
+            return;
         var lineIndex = (int)Math.Floor(e.OffsetY / charHeight);
         if (lineIndex >= 0 && lineIndex < viewModel.ViewLines.Length)
         {
@@ -335,5 +404,36 @@
                 slave.Tooltip
             );
         return ("", "");
+    }
+
+    void HandleMouseDown(MouseEventArgs e, ViewLine line)
+    {
+        viewModel.OnMessageMouseEvent(line, GetClickedCharIndex(line, e), GetMessageMouseEventFlags(e), null);
+    }
+
+    record MenuItemDesc(ContextMenuItem Bit, string Text);
+
+    void HandleContextMenu(MouseEventArgs e, ViewLine line)
+    {
+        MenuData menuData = viewModel.OnMenuOpening();
+        var menuItems = new List<LogJoint.UI.Presenters.ContextMenuItem>();
+        foreach (MenuItemDesc item in new[] {
+            new MenuItemDesc(ContextMenuItem.Copy, "Copy"),
+            new MenuItemDesc(ContextMenuItem.ToggleBmk, "Toggle bookmark"),
+            new MenuItemDesc(ContextMenuItem.GotoNextMessageInTheThread, "Next message in the thread"),
+            new MenuItemDesc(ContextMenuItem.GotoPrevMessageInTheThread, "Prev message in the thread"),
+            new MenuItemDesc(ContextMenuItem.Annotate, "Annotate")
+        })
+        {
+            if ((menuData.VisibleItems & item.Bit) != 0)
+            {
+                menuItems.Add(new LogJoint.UI.Presenters.ContextMenuItem(item.Text, () => { viewModel.OnMenuItemClicked(item.Bit); }));
+            }
+        }
+        if (menuItems.Count > 0)
+        {
+            presentation.ContextMenu.ShowMenu(menuItems,
+                new Drawing.PointF((float)e.ClientX, (float)e.ClientY));
+        }
     }
 }

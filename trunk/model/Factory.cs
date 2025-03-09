@@ -53,6 +53,8 @@ namespace LogJoint
         public FieldsProcessor.IFactory FieldsProcessorFactory { get; internal set; }
         public LogMedia.IFileSystem FileSystem { get; internal set; }
         public Settings.IDebugAgentConfig DebugAgentConfig { get; internal set; }
+
+        public IAnnotationsRegistry AnnotationsRegistry { get; internal set; }
     };
 
     public class ModelConfig
@@ -384,6 +386,8 @@ namespace LogJoint
             IDebugAgentConfig debugAgentConfig = config.IsDebugAgentEnabled ? new DebugAgentConfig(
                 changeNotification, storageManager) : null;
 
+            IAnnotationsRegistry annotationsRegistry = new AnnotationsRegistry(changeNotification);
+
             Model expensibilityModel = new Model(
                 modelSynchronizationContext,
                 changeNotification,
@@ -463,7 +467,8 @@ namespace LogJoint
                 RegexFactory = regexFactory,
                 FieldsProcessorFactory = fieldsProcessorFactory,
                 FileSystem = fileSystem,
-                DebugAgentConfig = debugAgentConfig
+                DebugAgentConfig = debugAgentConfig,
+                AnnotationsRegistry = annotationsRegistry
             };
         }
 

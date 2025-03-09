@@ -141,7 +141,9 @@ namespace LogJoint.UI.Presenters
                 model.TraceSourceFactory,
                 model.RegexFactory,
                 model.DebugAgentConfig,
-                presentersFacade
+                presentersFacade,
+                model.AnnotationsRegistry,
+                promptDialog
             );
 
             var loadedMessagesPresenter = new LoadedMessages.Presenter(

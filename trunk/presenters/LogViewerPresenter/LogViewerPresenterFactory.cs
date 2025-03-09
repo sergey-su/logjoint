@@ -20,7 +20,9 @@ namespace LogJoint.UI.Presenters.LogViewer
             ITraceSourceFactory traceSourceFactory,
             RegularExpressions.IRegexFactory regexFactory,
             IDebugAgentConfig debugAgentConfig,
-            IPresentersFacade presentersFacade
+            IPresentersFacade presentersFacade,
+            IAnnotationsRegistry annotations,
+            IPromptDialog promptDialog
         )
         {
             this.changeNotification = changeNotification;
@@ -39,6 +41,8 @@ namespace LogJoint.UI.Presenters.LogViewer
             this.regexFactory = regexFactory;
             this.debugAgentConfig = debugAgentConfig;
             this.presentersFacade = presentersFacade;
+            this.annotations = annotations;
+            this.promptDialog = promptDialog;
         }
 
         IPresenterInternal IPresenterFactory.CreateLoadedMessagesPresenter()
@@ -51,7 +55,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                 clipboard, hlFilters, bookmarks, bookmarksFactory, telemetry,
                 new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
                 new LoadedMessagesViewModeStrategy(logSources, changeNotification),
-                new GlobalSettingsAppearanceStrategy(settings), debugAgentConfig, presentersFacade
+                new GlobalSettingsAppearanceStrategy(settings), debugAgentConfig, presentersFacade, annotations, promptDialog
             );
         }
 
@@ -72,7 +76,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                     new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
                     new DelegatingViewModeStrategy(loadedMessagesPresenter),
                     new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy),
-                    debugAgentConfig, presentersFacade
+                    debugAgentConfig, presentersFacade, annotations, promptDialog
                 ),
                 model
             );
@@ -89,7 +93,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                 changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
                 new ProhibitiveViewModeStrategy(),
                 new PermissiveAppearanceStrategy(changeNotification),
-                debugAgentConfig, presentersFacade
+                debugAgentConfig, presentersFacade, null, null
             );
             view.SetViewModel(result);
             return result;
@@ -111,5 +115,7 @@ namespace LogJoint.UI.Presenters.LogViewer
         readonly RegularExpressions.IRegexFactory regexFactory;
         readonly IDebugAgentConfig debugAgentConfig;
         readonly IPresentersFacade presentersFacade;
+        readonly IAnnotationsRegistry annotations;
+        readonly IPromptDialog promptDialog;
     };
 };

@@ -106,13 +106,24 @@ namespace LogJoint.UI.Presenters.LogViewer
         GotoNextMessageInTheThread = 512,
         GotoPrevMessageInTheThread = 1024,
         CollapseAllFrames = 2048,
-        ExpandAllFrames = 4096
+        ExpandAllFrames = 4096,
+        Annotate = 8192
     };
 
     public enum FocusedMessageDisplayModes
     {
         Master,
         Slave
+    };
+
+    public struct TextLineAnnotation
+    {
+        // Begin of the TextLineValue substring that is being annotated
+        public int TextStartIndex;
+        // End of the TextLineValue substring that is being annotated
+        public int TextEndIndex;
+        // Annnotation value
+        public string Value;
     };
 
     [DebuggerDisplay("{TextLineValue}")]
@@ -131,6 +142,7 @@ namespace LogJoint.UI.Presenters.LogViewer
         public IEnumerable<(int, int, Color)> SearchResultHighlightingRanges => searchResultHighlightingHandler?.GetHighlightingRanges(this);
         public IEnumerable<(int, int, Color)> SelectionHighlightingRanges => selectionHighlightingHandler?.GetHighlightingRanges(this);
         public IEnumerable<(int, int, Color)> HighlightingFiltersHighlightingRanges => highlightingFiltersHandler?.GetHighlightingRanges(this);
+        public IReadOnlyList<TextLineAnnotation> TextAnnotations;
 
         internal IMessage Message;
         internal int TextLineIndex;

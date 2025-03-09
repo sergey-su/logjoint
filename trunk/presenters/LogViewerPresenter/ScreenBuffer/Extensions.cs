@@ -2,6 +2,7 @@ using LogJoint.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +24,8 @@ namespace LogJoint.UI.Presenters.LogViewer
             bool cursorVisible,
             IHighlightingHandler searchResultHighlightingHandler,
             IHighlightingHandler selectionHighlightingHandler,
-            IHighlightingHandler highlightingFiltersHandler
+            IHighlightingHandler highlightingFiltersHandler,
+            IAnnotationsSnapshot annotations
         )
         {
             var msg = e.Message;
@@ -53,7 +55,8 @@ namespace LogJoint.UI.Presenters.LogViewer
                 CursorVisible = cursorVisible,
                 searchResultHighlightingHandler = searchResultHighlightingHandler,
                 selectionHighlightingHandler = selectionHighlightingHandler,
-                highlightingFiltersHandler = highlightingFiltersHandler
+                highlightingFiltersHandler = highlightingFiltersHandler,
+                TextAnnotations = GetTextLineAnnotations(textLine.Value, annotations)
             };
         }
 
@@ -80,6 +83,14 @@ namespace LogJoint.UI.Presenters.LogViewer
                 }
             }
             return null;
+        }
+
+        private static IReadOnlyList<TextLineAnnotation> GetTextLineAnnotations(string str, IAnnotationsSnapshot annotations)
+        {
+            if (annotations.IsEmpty)
+                return null;
+            return [.. annotations.FindAnnotations(str).Select(
+                e => new TextLineAnnotation() { TextStartIndex = e.BeginIndex, TextEndIndex = e.EndIndex, Value = e.Annotation })];
         }
 
         public static async Task<bool> SetTopLineScrollValue(this IScreenBuffer screenBuffer, double value, CancellationToken cancellation)

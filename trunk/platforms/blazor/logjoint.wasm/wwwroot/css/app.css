@@ -314,6 +314,19 @@ button {
 .logline .curhid {
     border-right: none;
 }
+.logline .annotated {
+    background-color: blue;
+}
+.logline .annotation {
+    white-space: pre;
+    position: relative;
+    border-radius: 3px;
+    background-color: yellow;
+}
+.dark-theme .logline .annotation {
+    background-color: #CCCC00;
+    color: black;
+}
 .logview .measure-text {
     position: absolute;
     white-space: pre;
