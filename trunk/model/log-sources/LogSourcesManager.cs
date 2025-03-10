@@ -17,9 +17,11 @@ namespace LogJoint
             MRU.IRecentlyUsedEntities recentlyUsedEntities,
             IShutdown shutdown,
             ITraceSourceFactory traceSourceFactory,
-            IChangeNotification changeNotification
+            IChangeNotification changeNotification,
+            IAnnotationsRegistry annotationsRegistry
         ) : this(heartbeat, recentlyUsedEntities, shutdown, changeNotification,
-                new LogSourceFactory(threads, bookmarks, invoker, storageManager, traceSourceFactory))
+                new LogSourceFactory(threads, bookmarks, invoker,
+                    storageManager, traceSourceFactory, annotationsRegistry))
         {
         }
 

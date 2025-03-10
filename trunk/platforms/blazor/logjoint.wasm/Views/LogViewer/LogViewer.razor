@@ -73,7 +73,7 @@
                                 {
                                     <span class="txt">@item.TextLineValue.Substring(lastAnnotatonStart, ann.TextStartIndex - lastAnnotatonStart)</span>
                                 }
-                                <span class="annotation" style="padding: 0px @(charWidth/3.0)px; margin: 0px @(charWidth/3.0)px 0px @(charWidth)px">@ann.Value</span>
+                                <span class="annotation" style="padding: 0px @(charWidth/2.0)px; margin: 0px @(charWidth/2.0)px 0px @(charWidth/2.0)px">@ann.Value</span>
                                 lastAnnotatonStart = ann.TextStartIndex;
                             }
                         }
@@ -422,7 +422,7 @@
             new MenuItemDesc(ContextMenuItem.ToggleBmk, "Toggle bookmark"),
             new MenuItemDesc(ContextMenuItem.GotoNextMessageInTheThread, "Next message in the thread"),
             new MenuItemDesc(ContextMenuItem.GotoPrevMessageInTheThread, "Prev message in the thread"),
-            new MenuItemDesc(ContextMenuItem.Annotate, "Annotate")
+            new MenuItemDesc(ContextMenuItem.Annotate, "Annotate...")
         })
         {
             if ((menuData.VisibleItems & item.Bit) != 0)

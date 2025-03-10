@@ -29,7 +29,8 @@ namespace LogJoint
         public static async Task<LogSource> Create(ILogSourcesManagerInternal owner, int id,
             ILogProviderFactory providerFactory, IConnectionParams connectionParams,
             IModelThreadsInternal threads, Persistence.IStorageManager storageManager,
-            ISynchronizationContext modelSyncContext, IBookmarks bookmarks, ITraceSourceFactory traceSourceFactory)
+            ISynchronizationContext modelSyncContext, IBookmarks bookmarks, ITraceSourceFactory traceSourceFactory,
+            IAnnotationsRegistry annotationsRegistry)
         {
             var tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
             LogSource logSource = null;
@@ -39,7 +40,7 @@ namespace LogJoint
                     providerFactory.CompanyName, providerFactory.FormatName, connectionParams);
                 logSource = new LogSource(owner, tracer, modelSyncContext, bookmarks,
                     traceSourceFactory, threads);
-                await logSource.Init(providerFactory, connectionParams, storageManager);
+                await logSource.Init(providerFactory, connectionParams, storageManager, annotationsRegistry);
             }
             catch (Exception e)
             {
@@ -70,13 +71,15 @@ namespace LogJoint
             this.timeGaps.OnTimeGapsChanged += TimeGaps_OnTimeGapsChanged;
         }
 
-        async Task Init(ILogProviderFactory providerFactory, IConnectionParams connectionParams, Persistence.IStorageManager storageManager)
+        async Task Init(ILogProviderFactory providerFactory, IConnectionParams connectionParams,
+            Persistence.IStorageManager storageManager, IAnnotationsRegistry annotationsRegistry)
         {
             logSourceSpecificStorageEntry = await CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
             var extendedConnectionParams = connectionParams.Clone(true);
             await LoadPersistedSettings(extendedConnectionParams);
             provider = await providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
             await LoadBookmarks();
+            await annotationsRegistry.LoadAnnotations(this);
         }
 
         ILogProvider ILogSource.Provider { get { return provider; } }
@@ -233,7 +236,6 @@ namespace LogJoint
                     }
                 }
             }
-
         }
 
         async Task LoadPersistedSettings(IConnectionParams extendedConnectionParams)

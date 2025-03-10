@@ -171,6 +171,9 @@ namespace LogJoint
                 shutdown
             );
 
+            IAnnotationsRegistry annotationsRegistry = new AnnotationsRegistry(
+                changeNotification, traceSourceFactory);
+
             ILogSourcesManager logSourcesManager = new LogSourcesManager(
                 heartBeatTimer,
                 modelSynchronizationContext,
@@ -180,7 +183,8 @@ namespace LogJoint
                 recentlyUsedLogs,
                 shutdown,
                 traceSourceFactory,
-                changeNotification
+                changeNotification,
+                annotationsRegistry
             );
 
             telemetryCollectorImpl.SetLogSourcesManager(logSourcesManager);
@@ -385,8 +389,6 @@ namespace LogJoint
 
             IDebugAgentConfig debugAgentConfig = config.IsDebugAgentEnabled ? new DebugAgentConfig(
                 changeNotification, storageManager) : null;
-
-            IAnnotationsRegistry annotationsRegistry = new AnnotationsRegistry(changeNotification);
 
             Model expensibilityModel = new Model(
                 modelSynchronizationContext,

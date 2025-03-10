@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -6,6 +7,7 @@ namespace LogJoint
     {
         IAnnotationsSnapshot Annotations { get; }
         void Add(string key, string value, ILogSource associatedLogSource);
+        Task LoadAnnotations(ILogSource forLogSource);
     }
 
     public record struct StringAnnotationEntry(int BeginIndex, int EndIndex, string Annotation);

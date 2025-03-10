@@ -11,13 +11,15 @@ namespace LogJoint
         readonly ISynchronizationContext invoker;
         readonly Persistence.IStorageManager storageManager;
         readonly ITraceSourceFactory traceSourceFactory;
+        readonly IAnnotationsRegistry annotationsRegistry;
 
         public LogSourceFactory(
             IModelThreadsInternal threads,
             IBookmarks bookmarks,
             ISynchronizationContext invoker,
             Persistence.IStorageManager storageManager,
-            ITraceSourceFactory traceSourceFactory
+            ITraceSourceFactory traceSourceFactory,
+            IAnnotationsRegistry annotationsRegistry
         )
         {
             this.threads = threads;
@@ -25,6 +27,7 @@ namespace LogJoint
             this.invoker = invoker;
             this.storageManager = storageManager;
             this.traceSourceFactory = traceSourceFactory;
+            this.annotationsRegistry = annotationsRegistry;
         }
 
         async Task<ILogSourceInternal> ILogSourceFactory.CreateLogSource(
@@ -42,7 +45,8 @@ namespace LogJoint
                 storageManager,
                 invoker,
                 bookmarks,
-                traceSourceFactory
+                traceSourceFactory,
+                annotationsRegistry
             );
         }
     }

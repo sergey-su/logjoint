@@ -577,7 +577,8 @@ namespace LogJoint.UI.Presenters.LogViewer
                 CheckedItems = ContextMenuItem.None
             };
 
-            if ((disabledUserInteractions & UserInteraction.CopyMenu) == 0)
+            if ((disabledUserInteractions & UserInteraction.CopyMenu) == 0 && 
+                    selectionManager.Selection != null && !selectionManager.Selection.IsEmpty)
                 ret.VisibleItems |= ContextMenuItem.Copy;
 
             if (ThisIntf.ShowTime)
@@ -591,7 +592,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             if (bookmarks != null)
                 ret.VisibleItems |= ContextMenuItem.ToggleBmk;
 
-            if (annotationsRegistry != null)
+            if (annotationsRegistry != null && IsSelectionAnnotationEnabled())
                 ret.VisibleItems |= ContextMenuItem.Annotate;
 
             ret.DefaultItemText = ThisIntf.DefaultFocusedMessageActionCaption;
@@ -1421,15 +1422,20 @@ namespace LogJoint.UI.Presenters.LogViewer
             );
         }
 
+        bool IsSelectionAnnotationEnabled() => selectionManager.Selection != null 
+            && selectionManager.Selection.IsSingleLine && !selectionManager.Selection.IsEmpty;
+
         async void AnnotateSelectedText()
         {
+            if (!IsSelectionAnnotationEnabled())
+                return;
             var selectedText = await selectionManager.GetSelectedText();
             if (selectedText == "")
                 return;
             var annotation = await promptDialog.ExecuteDialogAsync("Annotate", $"Enter annotation for '{selectedText}'", "");
             if (string.IsNullOrEmpty(annotation))
                 return;
-            annotationsRegistry.Add(selectedText, annotation, null);
+            annotationsRegistry.Add(selectedText, annotation, selectionManager.Selection.First.Source.LogSourceHint);
         }
 
         private IPresenterInternal ThisIntf { get { return this; } }
