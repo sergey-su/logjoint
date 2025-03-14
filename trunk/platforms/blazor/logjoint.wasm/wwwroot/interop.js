@@ -682,7 +682,11 @@
 
     mouse: {
         setMouseCapturingHandler: function (element) {
-            const handler = e => element.setPointerCapture(e.pointerId);
+            const handler = e => {
+                if (e.button == 0) {
+                    element.setPointerCapture(e.pointerId);
+                }
+            };
             element.addEventListener('pointerdown', handler, false);
         },
     },
@@ -781,8 +785,8 @@
             return new Promise((resolve, reject) => {
                 const connectInfo = {
                     name: "logjoint.wasm",
-                };    
-                const port = chrome.runtime && chrome.runtime.connect(extId, connectInfo);
+                };
+                let port = chrome.runtime && chrome.runtime.connect(extId, connectInfo);
                 if (!port) {
                     reject(`Can not connect to extension ${extId}`);
                     return;
