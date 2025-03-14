@@ -566,15 +566,16 @@ namespace LogJoint.UI.Presenters.LogViewer
             OnKeyPressedAsync(k).IgnoreCancellation();
         }
 
-        MenuData IViewModel.OnMenuOpening()
+        MenuData IViewModel.OnMenuOpening(ViewLineCharIndex? charIndex)
         {
             var ret = new MenuData
             {
                 VisibleItems =
-                ContextMenuItem.ShowTime |
-                ContextMenuItem.GotoNextMessageInTheThread |
-                ContextMenuItem.GotoPrevMessageInTheThread,
-                CheckedItems = ContextMenuItem.None
+                    ContextMenuItem.ShowTime |
+                    ContextMenuItem.GotoNextMessageInTheThread |
+                    ContextMenuItem.GotoPrevMessageInTheThread,
+                CheckedItems = ContextMenuItem.None,
+                annotationKey = charIndex?.Annotation?.key,
             };
 
             if ((disabledUserInteractions & UserInteraction.CopyMenu) == 0 && 
@@ -599,6 +600,9 @@ namespace LogJoint.UI.Presenters.LogViewer
             if (!string.IsNullOrEmpty(ret.DefaultItemText))
                 ret.VisibleItems |= ContextMenuItem.DefaultAction;
 
+            if (charIndex?.Annotation != null)
+                ret.VisibleItems |= (ContextMenuItem.ChangeAnnotation | ContextMenuItem.DeleteAnnotation);
+
             if (ContextMenuOpening != null)
             {
                 var args = new ContextMenuEventArgs();
@@ -609,7 +613,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             return ret;
         }
 
-        void IViewModel.OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked)
+        void IViewModel.OnMenuItemClicked(ContextMenuItem menuItem, MenuData menuData, bool? itemChecked)
         {
             if (menuItem == ContextMenuItem.Copy)
                 ThisIntf.CopySelectionToClipboard().IgnoreCancellation();
@@ -627,6 +631,10 @@ namespace LogJoint.UI.Presenters.LogViewer
                 ThisIntf.GoToPrevMessageInThread();
             else if (menuItem == ContextMenuItem.Annotate)
                 AnnotateSelectedText();
+            else if (menuItem == ContextMenuItem.ChangeAnnotation && menuData?.annotationKey != null)
+                ChangeAnnotation(menuData?.annotationKey);
+            else if (menuItem == ContextMenuItem.DeleteAnnotation)
+                DeleteAnnotation(menuData?.annotationKey);
         }
 
         void IViewModel.OnIncrementalVScroll(float nrOfDisplayLines)
@@ -649,15 +657,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 
         void IViewModel.OnMessageMouseEvent(
             ViewLine line,
-            int charIndex,
+            ViewLineCharIndex charIndex,
             MessageMouseEventFlag flags,
             object preparedContextMenuPopupData)
         {
             if ((flags & MessageMouseEventFlag.RightMouseButton) != 0)
             {
                 var screeBufferEntry = screenBuffer.Messages.ElementAtOrDefault(line.LineIndex);
-                if (screeBufferEntry.Message != null && !selectionManager.Selection?.Contains(CursorPosition.FromScreenBufferEntry(screeBufferEntry, charIndex)) == true)
-                    selectionManager.SetSelection(line.LineIndex, SelectionFlag.None, charIndex);
+                if (screeBufferEntry.Message != null && !selectionManager.Selection?.Contains(CursorPosition.FromScreenBufferEntry(screeBufferEntry, charIndex.Index)) == true)
+                    selectionManager.SetSelection(line.LineIndex, SelectionFlag.None, charIndex.Index);
                 view?.PopupContextMenu(preparedContextMenuPopupData);
             }
             else
@@ -685,13 +693,13 @@ namespace LogJoint.UI.Presenters.LogViewer
                         }
                         else if (action == PreferredDblClickAction.SelectWord)
                         {
-                            defaultSelection = !selectionManager.SelectWordBoundaries(line, charIndex);
+                            defaultSelection = !selectionManager.SelectWordBoundaries(line, charIndex.Index);
                         }
                     }
                     if (defaultSelection)
                     {
                         selectionManager.SetSelection(line.LineIndex, (flags & MessageMouseEventFlag.ShiftIsHeld) != 0
-                            ? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None, charIndex);
+                            ? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None, charIndex.Index);
                     }
                 }
             }
@@ -1432,10 +1440,30 @@ namespace LogJoint.UI.Presenters.LogViewer
             var selectedText = await selectionManager.GetSelectedText();
             if (selectedText == "")
                 return;
-            var annotation = await promptDialog.ExecuteDialogAsync("Annotate", $"Enter annotation for '{selectedText}'", "");
+            string annotation = annotationsRegistry.Annotations.Find(selectedText);
+            if (annotation == null)
+                annotation = await promptDialog.ExecuteDialogAsync("Annotate", $"Enter annotation for '{selectedText}'", "");
+            else
+                annotation = await promptDialog.ExecuteDialogAsync("Change annotation", $"Enter annotation for '{selectedText}'", annotation);
             if (string.IsNullOrEmpty(annotation))
                 return;
             annotationsRegistry.Add(selectedText, annotation, selectionManager.Selection.First.Source.LogSourceHint);
+        }
+
+        async void ChangeAnnotation(string key)
+        {
+            string annotation = annotationsRegistry.Annotations.Find(key);
+            if (annotation == null)
+                return;
+            annotation = await promptDialog.ExecuteDialogAsync("Change annotation", $"Enter annotation for '{key}'", annotation);
+            if (string.IsNullOrEmpty(annotation))
+                return;
+            annotationsRegistry.Change(key, annotation);
+        }
+
+        void DeleteAnnotation(string key)
+        {
+            annotationsRegistry.Delete(key);
         }
 
         private IPresenterInternal ThisIntf { get { return this; } }

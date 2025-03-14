@@ -209,7 +209,8 @@ namespace LogJoint.UI.LogViewer
                         {
                             flags |= MessageMouseEventFlag.OulineBoxesArea;
                         }
-                        viewModel.OnMessageMouseEvent(i, lineTextPosition, flags, pt);
+                        viewModel.OnMessageMouseEvent(i,
+                            new ViewLineCharIndex(lineTextPosition), flags, pt);
                         break;
                     }
                 }
@@ -238,7 +239,8 @@ namespace LogJoint.UI.LogViewer
                                 | MessageMouseEventFlag.CapturedMouseMove;
                             if (pt.X < ServiceInformationAreaSize)
                                 flags |= MessageMouseEventFlag.OulineBoxesArea;
-                            viewModel.OnMessageMouseEvent(i, lineTextPosition, flags, pt);
+                            viewModel.OnMessageMouseEvent(i,
+                                new ViewLineCharIndex(lineTextPosition), flags, pt);
                         }
                         if (pt.X < ServiceInformationAreaSize)
                             newCursor = CursorType.RightToLeftArrow;

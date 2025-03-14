@@ -55,10 +55,11 @@ namespace LogJoint.Tests.Integration
 
         void EmulateShowTimeMenu()
         {
-            var menuData = appInstance.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMenuOpening();
+            var menuData = appInstance.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMenuOpening(null);
             Check.That((menuData.VisibleItems & UI.Presenters.LogViewer.ContextMenuItem.ShowTime) != 0).IsTrue();
             Check.That((menuData.CheckedItems & UI.Presenters.LogViewer.ContextMenuItem.ShowTime) != 0).IsFalse();
-            appInstance.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMenuItemClicked(UI.Presenters.LogViewer.ContextMenuItem.ShowTime, true);
+            appInstance.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMenuItemClicked(
+                UI.Presenters.LogViewer.ContextMenuItem.ShowTime, null, true);
         }
 
         [IntegrationTest]

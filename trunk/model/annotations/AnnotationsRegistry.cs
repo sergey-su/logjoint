@@ -23,10 +23,31 @@ namespace LogJoint
 
         void IAnnotationsRegistry.Add(string key, string value, ILogSource associatedLogSource)
         {
-            annotations = annotations.Set(key, new LeafValue(value, associatedLogSource));
+            annotations = annotations.Set(key, new LeafValue(key, value, associatedLogSource));
             changeNotification.Post();
             if (associatedLogSource != null && !associatedLogSource.IsDisposed)
                 saveChain.AddTask(() => SaveAnnotations(associatedLogSource));
+        }
+
+        bool IAnnotationsRegistry.Change(string key, string value)
+        {
+            LeafValue leafValue = annotations.Find(key);
+            if (leafValue == null || leafValue.Annotation == value)
+                return false;
+            annotations = annotations.Erase(key);
+            annotations = annotations.Set(key, new LeafValue(key, value, leafValue.AssociatedLogSource));
+            changeNotification.Post();
+            if (leafValue.AssociatedLogSource != null && !leafValue.AssociatedLogSource.IsDisposed)
+                saveChain.AddTask(() => SaveAnnotations(leafValue.AssociatedLogSource));
+            return true;
+        }
+
+        bool IAnnotationsRegistry.Delete(string key)
+        {
+            if (annotations.Find(key) == null)
+                return false;
+            annotations = annotations.Erase(key);
+            return true;
         }
 
         async Task IAnnotationsRegistry.LoadAnnotations(ILogSource forLogSource)
@@ -43,7 +64,7 @@ namespace LogJoint
                 if (key != null && value != null)
                 {
                     annotations = annotations.Set(key.Value,
-                        new LeafValue(value.Value, forLogSource));
+                        new LeafValue(key.Value, value.Value, forLogSource));
                 }
             }
         }
@@ -68,7 +89,7 @@ namespace LogJoint
             }
         }
 
-        record class LeafValue(string Annotation, ILogSource AssociatedLogSource);
+        record class LeafValue(string Key, string Annotation, ILogSource AssociatedLogSource);
 
         class TrieNode : IAnnotationsSnapshot
         {
@@ -82,6 +103,8 @@ namespace LogJoint
             }
 
             bool IAnnotationsSnapshot.IsEmpty => children.IsEmpty;
+
+            string IAnnotationsSnapshot.Find(string key) => Find(key)?.Annotation;
 
             IEnumerable<StringAnnotationEntry> IAnnotationsSnapshot.FindAnnotations(string input)
             {
@@ -104,7 +127,8 @@ namespace LogJoint
                             {
                                 BeginIndex = matchBegin.Value,
                                 EndIndex = i + 1,
-                                Annotation = n.leafValue.Annotation
+                                Key = n.leafValue.Key,
+                                Annotation = n.leafValue.Annotation,
                             };
                             current = this;
                             matchBegin = null;
@@ -121,6 +145,21 @@ namespace LogJoint
                     }
                 }
             }
+
+            public LeafValue Find(string key)
+            {
+                TrieNode current = this;
+                foreach (char c in key)
+                {
+                    TrieNode n = current.children.GetValueOrDefault(c);
+                    if (n == null)
+                        return null;
+                    current = n;
+                }
+                return current?.leafValue;
+            }
+
+            public TrieNode Erase(string key) => Erase(key, 0);
 
             public TrieNode Set(string key, LeafValue value)
             {
@@ -144,6 +183,25 @@ namespace LogJoint
                     foreach (var childAnnotation in child.EnumAnnotations(forLogSource, $"{key}{childChar}"))
                         yield return childAnnotation;
             }
+
+            private TrieNode Erase(string key, int keyIndex)
+            {
+                TrieNode result = this.Clone();
+                if (keyIndex == key.Length)
+                {
+                    result.leafValue = null;
+                }
+                else
+                {
+                    char c = key[keyIndex];
+                    TrieNode child = result.children[c].Erase(key, keyIndex + 1);
+                    result.children = child.IsEmpty ?
+                        result.children.Remove(c) : result.children.SetItem(c, child);
+                }
+                return result;
+            }
+
+            private bool IsEmpty => children.IsEmpty && leafValue == null;
         }
     }
 }

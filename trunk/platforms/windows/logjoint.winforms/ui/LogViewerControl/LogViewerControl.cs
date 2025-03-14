@@ -539,14 +539,14 @@ namespace LogJoint.UI
             {
                 itemChecked = (clickedItem.Item1.Checked = !clickedItem.Item1.Checked);
             }
-            viewModel.OnMenuItemClicked(code, itemChecked);
+            viewModel.OnMenuItemClicked(code, null, itemChecked);
         }
 
         void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
             if (viewModel == null)
                 return;
-            var menuData = viewModel.OnMenuOpening();
+            var menuData = viewModel.OnMenuOpening(null);
             foreach (var mi in menuItemsMap)
             {
                 mi.Item1.Visible = (menuData.VisibleItems & mi.Item2) != 0;

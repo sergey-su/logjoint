@@ -115,7 +115,7 @@
         @foreach (var item in @viewModel.ViewLines)
         {
             <div @key="item.LineIndex" class="item"
-            @onmousedown="@(e => viewModel.OnMessageMouseEvent(item, 0,
+            @onmousedown="@(e => viewModel.OnMessageMouseEvent(item, new ViewLineCharIndex(0),
                                 GetMessageMouseEventFlags(e) | MessageMouseEventFlag.OulineBoxesArea, null))">
                 @{var (focusedMarkClass, tooltip) = GetFocusedMessageRenderData(viewModel.FocusedMessageMark, item);}
                 <span class="p @focusedMarkClass" title=@tooltip>@(" ")</span>
@@ -251,23 +251,23 @@
         return textCharIndex + annotationsLength;
     }
 
-    static int ComputeTextCharIndex(int displayCharIndex, IReadOnlyList<TextLineAnnotation> annotations)
+    static ViewLineCharIndex ComputeTextCharIndex(int displayCharIndex, IReadOnlyList<TextLineAnnotation> viewLineAnnotations)
     {
-        if (annotations == null)
-            return displayCharIndex;
+        if (viewLineAnnotations == null)
+            return new ViewLineCharIndex(displayCharIndex);
         int annotationsLength = 0;
-        foreach (TextLineAnnotation annotation in annotations)
+        foreach (TextLineAnnotation annotation in viewLineAnnotations)
         {
             if (annotation.TextStartIndex + annotationsLength > displayCharIndex)
                 break;
             if (displayCharIndex - annotationsLength <= annotation.TextStartIndex + annotation.Value.Length + annotationPadding)
             {
                 // Chars inside the annotation are mapped to the beginning of the annotated text.
-                return annotation.TextStartIndex;
+                return new ViewLineCharIndex(annotation.TextStartIndex, annotation);
             }
             annotationsLength += annotation.Value.Length + annotationPadding;
         }
-        return displayCharIndex - annotationsLength;
+        return new ViewLineCharIndex(displayCharIndex - annotationsLength);
     }
 
     string PadStyle(int beginIdx, int endIdx, IReadOnlyList<TextLineAnnotation> annotations)
@@ -328,7 +328,7 @@
         }
     }
 
-    LogJoint.UI.Presenters.LogViewer.MessageMouseEventFlag GetMessageMouseEventFlags(MouseEventArgs mouseEventArgs)
+    MessageMouseEventFlag GetMessageMouseEventFlags(MouseEventArgs mouseEventArgs)
     {
         var result = MessageMouseEventFlag.None;
         if (mouseEventArgs.Detail > 1)
@@ -346,10 +346,9 @@
         return result;
     }
 
-    int GetClickedCharIndex(LogJoint.UI.Presenters.LogViewer.ViewLine viewLine, MouseEventArgs mouseEventArgs)
+    ViewLineCharIndex GetClickedCharIndex(ViewLine viewLine, MouseEventArgs mouseEventArgs)
     {
-        var clickedChar = ComputeTextCharIndex((int)Math.Round(mouseEventArgs.OffsetX / charWidth), viewLine.TextAnnotations);
-        return clickedChar;
+        return ComputeTextCharIndex((int)Math.Round(mouseEventArgs.OffsetX / charWidth), viewLine.TextAnnotations);
     }
 
     string GetLogLineStyle(LogJoint.Drawing.Color? contextColor)
@@ -415,19 +414,22 @@
 
     void HandleContextMenu(MouseEventArgs e, ViewLine line)
     {
-        MenuData menuData = viewModel.OnMenuOpening();
+        MenuData menuData = viewModel.OnMenuOpening(GetClickedCharIndex(line, e));
         var menuItems = new List<LogJoint.UI.Presenters.ContextMenuItem>();
         foreach (MenuItemDesc item in new[] {
             new MenuItemDesc(ContextMenuItem.Copy, "Copy"),
             new MenuItemDesc(ContextMenuItem.ToggleBmk, "Toggle bookmark"),
             new MenuItemDesc(ContextMenuItem.GotoNextMessageInTheThread, "Next message in the thread"),
             new MenuItemDesc(ContextMenuItem.GotoPrevMessageInTheThread, "Prev message in the thread"),
-            new MenuItemDesc(ContextMenuItem.Annotate, "Annotate...")
+            new MenuItemDesc(ContextMenuItem.Annotate, "Annotate..."),
+            new MenuItemDesc(ContextMenuItem.ChangeAnnotation, "Change annotation..."),
+            new MenuItemDesc(ContextMenuItem.DeleteAnnotation, "Delete annotation"),
         })
         {
             if ((menuData.VisibleItems & item.Bit) != 0)
             {
-                menuItems.Add(new LogJoint.UI.Presenters.ContextMenuItem(item.Text, () => { viewModel.OnMenuItemClicked(item.Bit); }));
+                menuItems.Add(new LogJoint.UI.Presenters.ContextMenuItem(item.Text,
+                    () => { viewModel.OnMenuItemClicked(item.Bit, menuData); }));
             }
         }
         if (menuItems.Count > 0)

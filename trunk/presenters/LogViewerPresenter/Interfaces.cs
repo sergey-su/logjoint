@@ -107,7 +107,9 @@ namespace LogJoint.UI.Presenters.LogViewer
         GotoPrevMessageInTheThread = 1024,
         CollapseAllFrames = 2048,
         ExpandAllFrames = 4096,
-        Annotate = 8192
+        Annotate = 8192,
+        ChangeAnnotation = 16384,
+        DeleteAnnotation = 32768,
     };
 
     public enum FocusedMessageDisplayModes
@@ -124,6 +126,8 @@ namespace LogJoint.UI.Presenters.LogViewer
         public int TextEndIndex;
         // Annnotation value
         public string Value;
+
+        internal string key;
     };
 
     [DebuggerDisplay("{TextLineValue}")]
@@ -170,6 +174,8 @@ namespace LogJoint.UI.Presenters.LogViewer
             return (0, unchanged);
         }
     };
+
+    public record struct ViewLineCharIndex(int Index, TextLineAnnotation? Annotation = null);
 
     public enum SeverityIcon
     {
@@ -229,11 +235,11 @@ namespace LogJoint.UI.Presenters.LogViewer
         void OnHScroll();
         void OnMouseWheelWithCtrl(int delta);
         void OnKeyPressed(Key k);
-        MenuData OnMenuOpening();
-        void OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked = null);
+        MenuData OnMenuOpening(ViewLineCharIndex? charIndex);
+        void OnMenuItemClicked(ContextMenuItem menuItem, MenuData menuData, bool? itemChecked = null);
         void OnMessageMouseEvent(
             ViewLine line,
-            int charIndex,
+            ViewLineCharIndex charIndex,
             MessageMouseEventFlag flags,
             object preparedContextMenuPopupData);
         void OnDrawingError(Exception e);
@@ -273,6 +279,8 @@ namespace LogJoint.UI.Presenters.LogViewer
             public Action Click;
         };
         public List<ExtendedItem> ExtendededItems;
+
+        internal string annotationKey;
     };
 
     public class FontData

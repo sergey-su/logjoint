@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using LogJoint.UI.Presenters.LogViewer;
 using NFluent;
 using NSubstitute;
 
@@ -25,7 +26,7 @@ namespace LogJoint.Tests.Integration
                     l => l.TextLineValue.Contains(testLogLine));
 
             app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.OnMessageMouseEvent(
-                findTestViewLine(), 2, UI.Presenters.LogViewer.MessageMouseEventFlag.SingleClick, null);
+                findTestViewLine(), new ViewLineCharIndex(2), MessageMouseEventFlag.SingleClick, null);
             Check.That(findTestViewLine().CursorCharIndex).IsEqualTo(2);
             app.PresentationObjects.ViewModels.BookmarksManager.OnAddBookmarkButtonClicked();
 

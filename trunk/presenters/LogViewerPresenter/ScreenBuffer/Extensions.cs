@@ -90,7 +90,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             if (annotations.IsEmpty)
                 return null;
             return [.. annotations.FindAnnotations(str).Select(
-                e => new TextLineAnnotation() { TextStartIndex = e.BeginIndex, TextEndIndex = e.EndIndex, Value = e.Annotation })];
+                e => new TextLineAnnotation() { TextStartIndex = e.BeginIndex, TextEndIndex = e.EndIndex, Value = e.Annotation, key = e.Key })];
         }
 
         public static async Task<bool> SetTopLineScrollValue(this IScreenBuffer screenBuffer, double value, CancellationToken cancellation)
