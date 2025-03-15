@@ -525,7 +525,8 @@ namespace LogJoint.UI.Presenters
                 model.MatrixFactory,
                 model.CorrelationManager,
                 toolsContainer,
-                shellOpen
+                shellOpen,
+                model.AnnotationsRegistry
             );
 
             var postprocessingSummaryDialogPresenter = new Postprocessing.SummaryDialog.Presenter(

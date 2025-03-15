@@ -31,7 +31,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             IChangeNotification changeNotification,
             ToolsContainer.IPresenter toolsContainerPresenter,
             Common.IPresentationObjectsFactory presentationObjectsFactory,
-            IShellOpen shellOpen
+            IShellOpen shellOpen,
+            IAnnotationsRegistry annotationsRegistry
         )
         {
             this.view = view;
@@ -46,6 +47,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             this.theme = theme;
             this.toolsContainerPresenter = toolsContainerPresenter;
             this.shellOpen = shellOpen;
+            this.annotationsRegistry = annotationsRegistry;
             this.changeNotification = changeNotification.CreateChainedChangeNotification(initiallyActive: false);
             this.inlineSearch = new InlineSearch.Presenter(changeNotification);
 
@@ -59,7 +61,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
                 changeNotification.Post();
             };
 
-            var getAnnotationsMap = Selectors.Create(
+            var getLogSourceAnnotationsMap = Selectors.Create(
                 () => logSources.Items,
                 () => annotationsVersion,
                 (sources, _) =>
@@ -68,11 +70,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
                     .ToImmutableDictionary(s => s, s => s.Annotation)
             );
 
-            VisualizerNode rootNode = new VisualizerNode(null, ImmutableList<VisualizerNode>.Empty, true, false, 0, ImmutableDictionary<ILogSource, string>.Empty);
+            VisualizerNode rootNode = new VisualizerNode(null, ImmutableList<VisualizerNode>.Empty, true, false, 0, 
+                ImmutableDictionary<ILogSource, string>.Empty, annotationsRegistry.EmptyAnnotations);
             var updateRoot = Updaters.Create(
                 () => model.Groups,
-                getAnnotationsMap,
-                (groups, annotationsMap) => rootNode = MakeRootNode(groups, OnNodeCreated, annotationsMap, rootNode)
+                getLogSourceAnnotationsMap,
+                () => annotationsRegistry.Annotations,
+                (groups, logSourceAnnotationsMap, freeTextAnnotations) => rootNode = MakeRootNode(
+                    groups, OnNodeCreated, logSourceAnnotationsMap, freeTextAnnotations, rootNode)
             );
             this.getRootNode = () =>
             {
@@ -485,7 +490,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
         static VisualizerNode MakeRootNode(
             IReadOnlyList<IStateInspectorOutputsGroup> groups,
             EventHandler<NodeCreatedEventArgs> nodeCreationHandler,
-            ImmutableDictionary<ILogSource, string> annotationsMap,
+            ImmutableDictionary<ILogSource, string> logSourceAnnotationsMap,
+            IAnnotationsSnapshot freeTextAnnotations,
             VisualizerNode existingRoot
         )
         {
@@ -496,8 +502,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
                 {
                     var existingNode = existingGroups[group].FirstOrDefault();
                     if (existingNode != null)
-                        return existingNode.SetAnnotationsMap(annotationsMap);
-                    var newNode = MakeVisualizerNode(group, 1, annotationsMap);
+                    {
+                        return existingNode.SetAnnotations(logSourceAnnotationsMap, freeTextAnnotations);
+                    }
+                    var newNode = MakeVisualizerNode(group, 1, logSourceAnnotationsMap, freeTextAnnotations);
                     newNode.SetInitialProps(nodeCreationHandler); // call handler on second phase when all children and parents are initiated
                     return newNode;
                 })
@@ -505,7 +513,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
             children = children.Sort((n1, n2) => MessageTimestamp.Compare(GetNodeTimestamp(n1), GetNodeTimestamp(n2)));
 
-            var result = new VisualizerNode(null, children, expanded: true, selected: false, level: 0, annotationsMap);
+            var result = new VisualizerNode(null, children, expanded: true, selected: false, level: 0,
+                logSourceAnnotationsMap, freeTextAnnotations);
 
             if (!result.HasSelectedNodes && result.Children.Count > 0)
                 result = result.Children[0].Select(true);
@@ -615,10 +624,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             return MessageTimestamp.MaxValue;
         }
 
-        static VisualizerNode MakeVisualizerNode(IInspectedObject modelNode, int level, ImmutableDictionary<ILogSource, string> annotationsMap)
+        static VisualizerNode MakeVisualizerNode(IInspectedObject modelNode, int level,
+            ImmutableDictionary<ILogSource, string> logSourceAnnotationsMap, IAnnotationsSnapshot freeTextAnnotations)
         {
-            var children = ImmutableList.CreateRange(modelNode.Children.Select(child => MakeVisualizerNode(child, level + 1, annotationsMap)));
-            return new VisualizerNode(modelNode, children, false, false, level, annotationsMap);
+            var children = ImmutableList.CreateRange(modelNode.Children.Select(
+                child => MakeVisualizerNode(child, level + 1, logSourceAnnotationsMap, freeTextAnnotations)));
+            return new VisualizerNode(modelNode, children, false, false, level, logSourceAnnotationsMap, freeTextAnnotations);
         }
 
         StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo,
@@ -1046,7 +1057,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             private readonly ImmutableList<VisualizerNode> children;
             private readonly int level;
             private readonly bool hasSelectedNodes;
-            private readonly ImmutableDictionary<ILogSource, string> annotationsMap;
+            private readonly ImmutableDictionary<ILogSource, string> logSourceAnnotationsMap;
+            private readonly IAnnotationsSnapshot freeTextAnnotations;
             private readonly string annotation;
 
             // Parent pointers lead to currently visible root node.
@@ -1061,15 +1073,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
                 bool expanded,
                 bool selected,
                 int level,
-                ImmutableDictionary<ILogSource, string> annotationsMap
+                ImmutableDictionary<ILogSource, string> logSourceAnnotationsMap,
+                IAnnotationsSnapshot freeTextAnnotations
             )
             {
                 this.obj = obj;
                 this.key = $"{obj?.GetHashCode():x08}";
                 this.children = children;
-                this.annotationsMap = annotationsMap;
+                this.logSourceAnnotationsMap = logSourceAnnotationsMap;
+                this.freeTextAnnotations = freeTextAnnotations;
                 this.text = GetNodeText(obj, level);
-                this.annotation = GetNodeAnnotation(obj, level, annotationsMap);
+                this.annotation = GetNodeAnnotation(obj, level, logSourceAnnotationsMap, freeTextAnnotations);
                 this.expanded = expanded;
                 this.selected = selected;
                 this.level = level;
@@ -1084,6 +1098,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             public IReadOnlyList<VisualizerNode> Children => children;
             public bool IsExpandable => true;
             public string Annotation => annotation;
+
+            public IAnnotationsSnapshot FreeTextAnnotations => freeTextAnnotations;
 
             public void SetInitialProps(EventHandler<NodeCreatedEventArgs> nodeCreationHandler)
             {
@@ -1104,28 +1120,57 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             public VisualizerNode ReplaceChild(VisualizerNode old, VisualizerNode newChild, bool ensureExpanded)
             {
                 var copy = new VisualizerNode(obj, ImmutableList.CreateRange(children.Select(c => c == old ? newChild : c)),
-                        ensureExpanded || expanded, selected, level, annotationsMap);
+                        ensureExpanded || expanded, selected, level, logSourceAnnotationsMap, freeTextAnnotations);
                 old.parent = null;
                 return parent == null ? copy : parent.ReplaceChild(this, copy, ensureExpanded);
             }
 
             public VisualizerNode Expand(bool value)
             {
-                var copy = new VisualizerNode(obj, children, value, selected, level, annotationsMap);
+                var copy = new VisualizerNode(obj, children, value, selected, level, logSourceAnnotationsMap, freeTextAnnotations);
                 return parent.ReplaceChild(this, copy, ensureExpanded: false);
             }
 
             public VisualizerNode Select(bool value)
             {
-                var copy = new VisualizerNode(obj, children, expanded, value, level, annotationsMap);
+                var copy = new VisualizerNode(obj, children, expanded, value, level, logSourceAnnotationsMap, freeTextAnnotations);
                 return parent.ReplaceChild(this, copy, ensureExpanded: value);
             }
 
-            public VisualizerNode SetAnnotationsMap(ImmutableDictionary<ILogSource, string> annotationsMap)
+            /// <summary>
+            /// Returns a new object if the annotation changes on this node or in any its descendants.
+            /// </summary>
+            public VisualizerNode SetAnnotations(ImmutableDictionary<ILogSource, string> logSourceAnnotationsMap, IAnnotationsSnapshot freeTextAnnotations)
             {
-                if (level != 1 || this.annotationsMap == annotationsMap)
-                    return this;
-                return new VisualizerNode(obj, children, expanded, selected, level, annotationsMap);
+                // This node's annotation may change
+                bool annotationChanged = 
+                    (this.logSourceAnnotationsMap != logSourceAnnotationsMap || this.freeTextAnnotations != freeTextAnnotations) &&
+                    GetNodeAnnotation(obj, level, logSourceAnnotationsMap, freeTextAnnotations) != annotation;
+
+                // Children's annotations may change. If they did, this list will be not null.
+                ImmutableList<VisualizerNode> newChildren = null;
+                if (freeTextAnnotations != this.freeTextAnnotations)
+                {
+                    Dictionary<VisualizerNode, VisualizerNode> replacedChildren = null;
+                    foreach (VisualizerNode child in children)
+                    {
+                        VisualizerNode newChild = child.SetAnnotations(logSourceAnnotationsMap, freeTextAnnotations);
+                        if (newChild != child)
+                        {
+                            replacedChildren ??= new();
+                            replacedChildren[child] = newChild;
+                        }
+                    }
+                    if (replacedChildren != null)
+                        newChildren = [.. children.Select(c => replacedChildren.GetValueOrDefault(c, c))];
+                }
+
+                // Clone only when needed.
+                if (annotationChanged || newChildren != null)
+                    return new VisualizerNode(obj, newChildren ?? children,
+                        expanded, selected, level, logSourceAnnotationsMap, freeTextAnnotations);
+
+                return this;
             }
 
             string IVisualizerNode.Id => obj.Id;
@@ -1174,13 +1219,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             }
 
             static private string GetNodeAnnotation(IInspectedObject node, int level,
-                ImmutableDictionary<ILogSource, string> annotationsMap)
+                ImmutableDictionary<ILogSource, string> annotationsMap, IAnnotationsSnapshot annotations)
             {
+                if (node == null)
+                    return null;
                 if (level == 1)
                 {
                     var ls = node.EnumInvolvedLogSources().FirstOrDefault();
                     if (annotationsMap.TryGetValue(ls, out var logSourceAnnotation))
                         return logSourceAnnotation;
+                }
+                else
+                {
+                    StringAnnotationEntry entry = annotations.FindAnnotations(node.DisplayName).FirstOrDefault();
+                    if (entry.Key != null)
+                        return entry.Annotation;
                 }
                 return null;
             }
@@ -1266,5 +1319,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
         readonly ToolsContainer.IPresenter toolsContainerPresenter;
         readonly ToastNotificationPresenter.IPresenter toastNotification;
         readonly Func<string> getDescription;
+        readonly IAnnotationsRegistry annotationsRegistry;
     }
 }

@@ -10,6 +10,7 @@ namespace LogJoint
         bool Change(string key, string value);
         bool Delete(string key);
         Task LoadAnnotations(ILogSource forLogSource);
+        IAnnotationsSnapshot EmptyAnnotations { get; }
     }
 
     public record struct StringAnnotationEntry(int BeginIndex, int EndIndex, string Key, string Annotation);

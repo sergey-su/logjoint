@@ -54,7 +54,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
             Drawing.IMatrixFactory matrixFactory,
             ICorrelationManager correlationManager,
             ToolsContainer.IPresenter toolsContainerPresenter,
-            IShellOpen shellOpen
+            IShellOpen shellOpen,
+            IAnnotationsRegistry annotationsRegistry
         )
         {
             stateInspectorVisualizer = new Lazy<StateInspectorVisualizer.IPresenterInternal>(() =>
@@ -81,7 +82,8 @@ namespace LogJoint.UI.Presenters.Postprocessing
                     changeNotification,
                     toolsContainerPresenter,
                     new Common.PresentationObjectsFactory(postprocessorsManager, logSourcesManager, changeNotification, alerts, correlationManager),
-                    shellOpen
+                    shellOpen,
+                    annotationsRegistry
                 );
             });
 

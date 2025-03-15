@@ -10,6 +10,7 @@ namespace LogJoint
     {
         readonly IChangeNotification changeNotification;
         TrieNode annotations = new();
+        readonly static TrieNode emptyAnnotations = new();
         readonly TaskChain saveChain = new();
         readonly LJTraceSource tracer;
 
@@ -20,6 +21,8 @@ namespace LogJoint
         }
 
         IAnnotationsSnapshot IAnnotationsRegistry.Annotations => annotations;
+
+        IAnnotationsSnapshot IAnnotationsRegistry.EmptyAnnotations => emptyAnnotations;
 
         void IAnnotationsRegistry.Add(string key, string value, ILogSource associatedLogSource)
         {
