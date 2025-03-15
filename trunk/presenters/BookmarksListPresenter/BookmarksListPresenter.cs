@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using static LogJoint.Settings.Appearance;
 using LogJoint.Drawing;
 using LogJoint.UI.Presenters.Reactive;
-using System.Security.Principal;
+using System.Security;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -308,6 +308,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
             {
                 if (copyTimeDeltas)
                     textToCopy.AppendFormat("{0,-" + maxDeltasLen.ToString() + "}\t", b.Delta);
+                if (!string.IsNullOrEmpty(b.Bookmark.Annotation))
+                    textToCopy.AppendFormat("{0} ", b.Bookmark.Annotation);
                 textToCopy.AppendLine(b.Text);
             }
 
@@ -320,7 +322,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
                 htmlToCopy.AppendFormat("<font style='background: {0}'>", GetBackgroundColorAsHtml(b.Bookmark));
                 if (copyTimeDeltas)
                     htmlToCopy.AppendFormat("{0,-" + maxDeltasLen.ToString() + "}\t", b.Delta);
-                htmlToCopy.Append(System.Security.SecurityElement.Escape(b.Text));
+                if (!string.IsNullOrEmpty(b.Bookmark.Annotation))
+                    htmlToCopy.AppendFormat("{0} ", SecurityElement.Escape(b.Bookmark.Annotation));
+                htmlToCopy.Append(SecurityElement.Escape(b.Text));
                 htmlToCopy.Append("</font>");
             }
             htmlToCopy.Append("</pre><br/>");

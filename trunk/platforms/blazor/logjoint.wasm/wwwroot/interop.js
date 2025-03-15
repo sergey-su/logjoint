@@ -580,7 +580,13 @@
     clipboard: {
         setText: function (value) {
             return navigator.clipboard.writeText(value);
-        }
+        },
+        setTextAndHtml: function (text, html) {
+            return navigator.clipboard.write([new ClipboardItem({
+                ["text/plain"]: text,
+                ["text/html"]: html
+            })]);
+        },
     },
 
     dragDrop: {

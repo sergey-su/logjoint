@@ -23,12 +23,17 @@ namespace LogJoint.Wasm
 
         void IClipboardAccess.SetClipboard(string plainText, string html)
         {
-            WriteText(plainText);
+            WriteTextAndHtml(plainText, html);
         }
 
         async void WriteText(string text)
         {
             await jsRuntime.InvokeVoidAsync("logjoint.clipboard.setText", text);
+        }
+
+        async void WriteTextAndHtml(string text, string html)
+        {
+            await jsRuntime.InvokeVoidAsync("logjoint.clipboard.setTextAndHtml", text, html);
         }
     }
 }
