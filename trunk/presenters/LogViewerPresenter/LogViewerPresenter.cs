@@ -1433,6 +1433,14 @@ namespace LogJoint.UI.Presenters.LogViewer
         bool IsSelectionAnnotationEnabled() => selectionManager.Selection != null 
             && selectionManager.Selection.IsSingleLine && !selectionManager.Selection.IsEmpty;
 
+        static string AnnotationKeyDisplayString(string key)
+        {
+            int maxLength = 32;
+            if (key.Length < maxLength)
+                return key;
+            return $"{key.Substring(0, maxLength)}...";
+        }
+
         async void AnnotateSelectedText()
         {
             if (!IsSelectionAnnotationEnabled())
@@ -1440,25 +1448,30 @@ namespace LogJoint.UI.Presenters.LogViewer
             var selectedText = await selectionManager.GetSelectedText();
             if (selectedText == "")
                 return;
-            string annotation = annotationsRegistry.Annotations.Find(selectedText);
-            if (annotation == null)
-                annotation = await promptDialog.ExecuteDialogAsync("Annotate", $"Enter annotation for '{selectedText}'", "");
-            else
-                annotation = await promptDialog.ExecuteDialogAsync("Change annotation", $"Enter annotation for '{selectedText}'", annotation);
-            if (string.IsNullOrEmpty(annotation))
-                return;
-            annotationsRegistry.Add(selectedText, annotation, selectionManager.Selection.First.Source.LogSourceHint);
+            await ExecuteAnnotationDialog(selectedText, selectionManager.Selection.First.Source.LogSourceHint);
         }
 
         async void ChangeAnnotation(string key)
         {
-            string annotation = annotationsRegistry.Annotations.Find(key);
+            await ExecuteAnnotationDialog(key, null);
+        }
+
+        async Task ExecuteAnnotationDialog(string key, ILogSource logSource)
+        {
+            string existingAnnotation = annotationsRegistry.Annotations.Find(key);
+            string annotation;
+            if (existingAnnotation == null)
+                annotation = await promptDialog.ExecuteDialogAsync("Annotate", $"Enter annotation for '{AnnotationKeyDisplayString(key)}'", "");
+            else
+                annotation = await promptDialog.ExecuteDialogAsync("Change annotation", $"Enter annotation for '{AnnotationKeyDisplayString(key)}'", existingAnnotation);
             if (annotation == null)
-                return;
-            annotation = await promptDialog.ExecuteDialogAsync("Change annotation", $"Enter annotation for '{key}'", annotation);
-            if (string.IsNullOrEmpty(annotation))
-                return;
-            annotationsRegistry.Change(key, annotation);
+                return; // Dialog cancelled
+            if (annotation == "")
+                annotationsRegistry.Delete(key);
+            else if (existingAnnotation != null)
+                annotationsRegistry.Change(key, annotation);
+            else
+                annotationsRegistry.Add(key, annotation, logSource);
         }
 
         void DeleteAnnotation(string key)
