@@ -798,6 +798,14 @@
                     return;
                 }
                 console.log('Connected to chrome extension', extId);
+                const pingIntervalId = setInterval(() => {
+                    if (port) {
+                        // Sent empty message as a ping to keep extension worker alive.
+                        port.postMessage({});
+                    } else {
+                        clearInterval(pingIntervalId);
+                    }
+                }, 10000);
                 port.onMessage.addListener(async msg => {
                     if (msg.type === "open_log") {
                         let passToApp = false;
