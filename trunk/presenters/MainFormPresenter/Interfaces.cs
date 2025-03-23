@@ -89,6 +89,7 @@ namespace LogJoint.UI.Presenters.MainForm
         double? Size { get; }
         string ResizerTooltip { get; }
         double? FiltersLoadingProgress { get; }
+        bool PreprocessingsProgressVisible { get; }
         void OnClosing();
         void OnLoad();
         void OnTabPressed();

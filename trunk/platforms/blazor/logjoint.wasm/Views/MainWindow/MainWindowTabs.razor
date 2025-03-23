@@ -39,6 +39,9 @@
     private Func<IReadOnlyList<TabsView.TabInfo>> tabNames;
     private ElementReference resizerElement, tabsElement;
     private IDisposable resizeHandler;
+    double? preprocessingsProgress;
+    private ISubscription preprocessingsProgressSubscription;
+    private CancellationTokenSource preprocessingsProgressCompletion;
 
     [Parameter]
     public string Class { get; set; } = "";
@@ -48,16 +51,49 @@
 
     protected override void OnInitialized()
     {
-        tabNames = Selectors.Create(() => ViewModel.VisibleTabs, () => ViewModel.FiltersLoadingProgress,
-            (tabs, filteringProgress) => tabs.Select(t => new TabsView.TabInfo
+        tabNames = Selectors.Create(() => ViewModel.VisibleTabs,
+            () => ViewModel.FiltersLoadingProgress, () => preprocessingsProgress,
+            (tabs, filteringProgress, preprocessingsProgress) => tabs.Select(t => new TabsView.TabInfo
             {
                 Caption = t.Id == TabIDs.Settings ? "⚙" : t.Caption,
                 Class = t.Id == TabIDs.Settings ? "settings" : null,
-                Progress = t.Id == TabIDs.DisplayFilteringRules ? filteringProgress : null,
+                Progress = t.Id switch
+                {
+                    TabIDs.DisplayFilteringRules => filteringProgress,
+                    TabIDs.Sources => preprocessingsProgress,
+                    _ => null
+                },
             }).ToArray());
         subscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
-            () => (ViewModel.VisibleTabs, ViewModel.ActiveTab, ViewModel.Size, ViewModel.FiltersLoadingProgress),
+            () => (ViewModel.VisibleTabs, ViewModel.ActiveTab,
+                ViewModel.Size, ViewModel.FiltersLoadingProgress),
             _ => StateHasChanged()
+        ));
+        preprocessingsProgressSubscription = ViewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => ViewModel.PreprocessingsProgressVisible,
+            visible =>
+            {
+                if (!visible)
+                {
+                    preprocessingsProgressCompletion?.Cancel();
+                    preprocessingsProgressCompletion = null;
+                    preprocessingsProgress = null;
+                }
+                else if (preprocessingsProgressCompletion == null)
+                {
+                    preprocessingsProgressCompletion = new();
+                    async void worker(CancellationToken token)
+                    {
+                        for (int i = 0; !token.IsCancellationRequested; ++i)
+                        {
+                            preprocessingsProgress = (i % 10) / 10.0;
+                            StateHasChanged();
+                            await Task.Delay(200);
+                        }
+                    }
+                    worker(preprocessingsProgressCompletion.Token);
+                }
+            }
         ));
     }
 
@@ -73,7 +109,9 @@
     public void Dispose()
     {
         subscription?.Dispose();
+        preprocessingsProgressSubscription?.Dispose();
         resizeHandler?.Dispose();
+        preprocessingsProgressCompletion?.Cancel();
     }
 
     string GetStyle() => ViewModel.Size.HasValue ? $"height: {100 * ViewModel.Size}%" : "";
