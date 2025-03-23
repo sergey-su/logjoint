@@ -68,18 +68,19 @@ namespace LogJoint.UI.Presenters.SourcesList
                 changeNotification.Post();
             }
 
-            var invokeUpdateHelper = new AsyncInvokeHelper(uiSynchronizationContext, updateItems);
+            var invokeUpdateHelper = new AsyncInvokeHelper(uiSynchronizationContext, updateItems)
+                .CreateThrottlingInvoke(TimeSpan.FromMilliseconds(200));
 
             logSources.OnLogSourceVisiblityChanged += (s, e) => updateItems();
             logSources.OnLogSourceAnnotationChanged += (s, e) => updateItems();
             logSources.OnLogSourceColorChanged += (s, e) => updateItems();
 
-            logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => invokeUpdateHelper.Invoke();
+            logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => invokeUpdateHelper();
             logSources.OnLogSourceStatsChanged += (s, e) =>
             {
                 if ((e.Flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.CachedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount | LogProviderStatsFlag.BackgroundAcivityStatus)) != 0)
                 {
-                    invokeUpdateHelper.Invoke();
+                    invokeUpdateHelper();
                 }
             };
 

@@ -4,42 +4,87 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
+    /// <summary>
+    /// Schedules the passed function <see cref="method"/> to the given <see cref="ISynchronizationContext"/> on demand.
+    /// The function is scheduled at most once at a time.
+    /// Thead-safe.
+    /// </summary>
     public class AsyncInvokeHelper
     {
-        public AsyncInvokeHelper(ISynchronizationContext sync, Action method)
+        public AsyncInvokeHelper(ISynchronizationContext sync, Action method, TimeProvider timeProvider)
         {
             this.sync = sync;
             this.method = method;
             this.methodToInvoke = InvokeInternal;
+            this.timeProvider = timeProvider;
         }
 
-        public void Invoke(TimeSpan? delay = null)
+        public AsyncInvokeHelper(ISynchronizationContext sync, Action method): this(sync, method, TimeProvider.System)
         {
-            if (Interlocked.Exchange(ref methodInvoked, 1) == 0)
+        }
+
+        public void Invoke()
+        {
+            if (Interlocked.Exchange(ref methodScheduled, 1) == 0)
             {
-                if (delay != null)
-                    // todo: support invoking earlier than after `delay` if such invokation is requested after this call
-                    PostWithDelay(delay.Value);
-                else
-                    sync.Post(methodToInvoke);
+                sync.Post(methodToInvoke);
             }
+        }
+
+        /// <summary>
+        /// Creates a function that schedules the invokation at most once per <see cref="interval"/>.
+        /// </summary>
+        /// <returns>A function that registers a request to schedule.</returns>
+        public Action CreateThrottlingInvoke(TimeSpan interval)
+        {
+            var mutex = new object();
+            DateTime lastInvoke = DateTime.MinValue;
+            bool sleeping = false;
+            return async () =>
+            {
+                TimeSpan? sleepFor = null;
+                lock (mutex)
+                {
+                    if (sleeping)
+                    {
+                        return;
+                    }
+                    DateTime now = timeProvider.GetLocalNow().Date;
+                    if (now - interval > lastInvoke)
+                    {
+                        lastInvoke = now;
+                        Invoke();
+                    }
+                    else
+                    {
+                        sleeping = true;
+                        sleepFor = lastInvoke - now + interval;
+                    }
+                }
+                if (sleepFor.HasValue)
+                {
+                    await Task.Delay(sleepFor.Value, timeProvider);
+                    lock (mutex)
+                    {
+                        sleeping = false;
+                        lastInvoke += interval;
+                        Invoke();
+                    }
+                }
+            };
         }
 
         void InvokeInternal()
         {
-            methodInvoked = 0;
+            methodScheduled = 0;
             method();
         }
 
-        async void PostWithDelay(TimeSpan delay)
-        {
-            await Task.Delay(delay);
-            sync.Post(methodToInvoke);
-        }
 
         private readonly ISynchronizationContext sync;
         private readonly Action method;
         private readonly Action methodToInvoke;
-        private int methodInvoked;
+        private int methodScheduled;
+        private TimeProvider timeProvider;
     }
 }

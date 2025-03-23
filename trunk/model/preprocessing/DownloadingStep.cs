@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Net;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace LogJoint.Preprocessing
 {
@@ -50,20 +48,17 @@ namespace LogJoint.Preprocessing
                 string tmpFileName = callback.TempFilesManager.GenerateNewName();
                 trace.Info("Temporary filename to download to: {0}", tmpFileName);
 
-                Func<Stream, long, string, Task> writeToTempFile = async (fromStream, contentLength, description) =>
+                async Task writeToTempFile(Stream fromStream, long contentLength, string description)
                 {
-                    using (FileStream fs = new FileStream(tmpFileName, FileMode.Create))
-                    using (var progress = contentLength != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null)
+                    using FileStream fs = new(tmpFileName, FileMode.Create);
+                    using var progress = contentLength != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null;
+                    await IOUtils.CopyStreamWithProgressAsync(fromStream, fs, downloadedBytes =>
                     {
-                        await IOUtils.CopyStreamWithProgressAsync(fromStream, fs, downloadedBytes =>
-                        {
-                            callback.SetStepDescription(string.Format("{2} {0}: {1}",
-                                    IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath, description));
-                            if (progress != null)
-                                progress.SetValue((double)downloadedBytes / (double)contentLength);
-                        }, callback.Cancellation);
-                    }
-                };
+                        callback.SetStepDescription(string.Format("{2} {0}: {1}",
+                                IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath, description));
+                        progress?.SetValue((double)downloadedBytes / (double)contentLength);
+                    }, callback.Cancellation);
+                }
 
                 var uri = new Uri(sourceFile.Location);
                 LogDownloaderRule logDownloaderRule;
@@ -75,28 +70,26 @@ namespace LogJoint.Preprocessing
                     }
                     else if ((logDownloaderRule = config.GetLogDownloaderConfig(uri)) != null && logDownloaderRule.UseWebBrowserDownloader)
                     {
-                        using (var stream = await webBrowserDownloader.Download(new WebViewTools.DownloadParams()
+                        using var stream = await webBrowserDownloader.Download(new WebViewTools.DownloadParams()
                         {
                             Location = uri,
                             ExpectedMimeType = logDownloaderRule.ExpectedMimeType,
                             Cancellation = callback.Cancellation,
                             Progress = progressAggregator,
                             IsLoginUrl = testUri => logDownloaderRule.LoginUrls.Any(loginUrl => testUri.GetLeftPart(UriPartial.Path).Contains(loginUrl))
-                        }))
-                        {
-                            await writeToTempFile(stream, 0, "Downloading");
-                        }
+                        });
+                        await writeToTempFile(stream, 0, "Downloading");
                     }
                     else
                     {
-                        using (var client = new System.Net.Http.HttpClient())
-                        {
-                            trace.Info("Start downloading {0}", sourceFile.Location);
-                            var response = await client.GetAsync(uri, callback.Cancellation);
-                            await writeToTempFile(await response.Content.ReadAsStreamAsync(callback.Cancellation),
-                                response.Content.Headers.ContentLength.GetValueOrDefault(0), "Downloading");
-                            callback.Cancellation.ThrowIfCancellationRequested();
-                        }
+                        using var client = new HttpClient();
+                        trace.Info("Start downloading {0}", sourceFile.Location);
+                        var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead,
+                            callback.Cancellation);
+                        var length = response.Content.Headers.ContentLength.GetValueOrDefault(0);
+                        await writeToTempFile(await response.Content.ReadAsStreamAsync(callback.Cancellation),
+                            length, "Downloading");
+                        callback.Cancellation.ThrowIfCancellationRequested();
                     }
                 }
 

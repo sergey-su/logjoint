@@ -13,6 +13,7 @@ namespace LogJoint
         readonly ISearchObjectsFactory factory;
         ImmutableList<ISearchResultInternal> results = ImmutableList.Create<ISearchResultInternal>();
         readonly AsyncInvokeHelper combinedResultUpdateInvoker;
+        readonly Action combinedResultUpdateThrottledInvoker;
         readonly IChangeNotification changeNotification;
         int lastId;
         ICombinedSearchResultInternal combinedSearchResult;
@@ -50,6 +51,8 @@ namespace LogJoint
             this.combinedSearchResult = factory.CreateCombinedSearchResult(this);
             this.combinedResultUpdateInvoker = new AsyncInvokeHelper(
                 modelSynchronization, UpdateCombinedResult);
+            this.combinedResultUpdateThrottledInvoker = this.combinedResultUpdateInvoker.CreateThrottlingInvoke(
+                TimeSpan.FromMilliseconds(300));
 
             sources.OnLogSourceAdded += (s, e) =>
             {
@@ -136,7 +139,7 @@ namespace LogJoint
             if ((flags & SearchResultChangeFlag.ResultsCollectionChanged) != 0
               || (flags & SearchResultChangeFlag.HitCountChanged) != 0)
             {
-                combinedResultUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(300));
+                combinedResultUpdateThrottledInvoker();
             }
             SearchResultChanged?.Invoke(rslt, new SearchResultChangeEventArgs(flags));
             changeNotification.Post();

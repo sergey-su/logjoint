@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.Timeline
         readonly StatusReports.IPresenter statusReportFactory;
         readonly IHeartBeatTimer heartbeat;
         readonly IColorTheme theme;
-        readonly AsyncInvokeHelper gapsUpdateInvoker;
+        readonly Action gapsUpdateInvoker;
 
         IView view;
         readonly CacheDictionary<ILogSource, ITimeLineDataSource> sourcesCache1 =
@@ -74,7 +74,8 @@ namespace LogJoint.UI.Presenters.Timeline
             this.heartbeat = heartbeat;
             this.theme = theme;
 
-            this.gapsUpdateInvoker = new AsyncInvokeHelper(synchronizationContext, UpdateTimeGaps);
+            this.gapsUpdateInvoker = new AsyncInvokeHelper(synchronizationContext, UpdateTimeGaps).CreateThrottlingInvoke(
+                TimeSpan.FromMilliseconds(150));
 
             sources = Selectors.Create(() => sourcesManager.VisibleItems, () => searchManager.Results, GetSources);
             availableRange = Selectors.Create(sources, () => availableRangeRevision, GetAvailableRange);
@@ -116,8 +117,7 @@ namespace LogJoint.UI.Presenters.Timeline
                 changeNotification.Post();
             };
 
-            var updateRange = Updaters.Create(range, sources,
-                (r, s) => gapsUpdateInvoker.Invoke(TimeSpan.FromMilliseconds(150)));
+            var updateRange = Updaters.Create(range, sources, (r, s) => gapsUpdateInvoker());
             var updateStatusReport = Updaters.Create(range, () => setStatusText, UpdateStatusReport);
             changeNotification.OnChange += (sender, e) =>
             {

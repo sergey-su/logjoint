@@ -78,6 +78,7 @@
                     preprocessingsProgressCompletion?.Cancel();
                     preprocessingsProgressCompletion = null;
                     preprocessingsProgress = null;
+                    StateHasChanged();
                 }
                 else if (preprocessingsProgressCompletion == null)
                 {
