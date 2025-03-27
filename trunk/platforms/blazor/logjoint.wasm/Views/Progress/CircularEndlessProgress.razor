@@ -1,0 +1,42 @@
+﻿@namespace LogJoint.Wasm.UI
+@using System.Threading
+
+@{var circleWidth = 0.2; /* Width of the progress circle. Fraction of the view size. */}
+@{var radius = 0.5 - circleWidth;}
+@{var halfCircumference = radius * Math.PI;}
+
+<svg class="circular-progress @Class" viewBox="0 0 1 1">
+    <circle r=@radius cx="0.5" cy="0.5"
+            stroke-width=@circleWidth
+            stroke-dasharray="@halfCircumference @halfCircumference"
+            stroke-dashoffset="@(halfCircumference*(1.0 - progress))" />
+</svg>
+
+@code {
+    private CancellationTokenSource cancel;
+    private double progress = 0;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        cancel = new();
+        Worker();
+    }
+
+    public void Dispose()
+    {
+        cancel?.Cancel();
+    }
+
+    async void Worker()
+    {
+        for (int i = 0; !cancel.IsCancellationRequested; ++i)
+        {
+            progress = i / 2.0;
+            StateHasChanged();
+            await Task.Delay(200);
+        }
+    }
+}

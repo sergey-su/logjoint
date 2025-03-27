@@ -9,7 +9,14 @@
         <button @onclick="@(e => OnSelect?.Invoke(captureIndex))" class="@(index == SelectedTab ? "selected" : "") @tab.Class" title=@tab.Tooltip>
             @if (tab.Progress != null)
             {
-                <CircularProgress Value=@(tab.Progress.Value) Class="progress" />
+                if (tab.Progress.Value.Value.HasValue)
+                {
+                    <CircularProgress Value=@(tab.Progress.Value.Value.Value) Class="progress" />
+                }
+                else
+                {
+                    <CircularEndlessProgress Class="progress" />
+                }
             }
             @tab.Caption
         </button>
@@ -18,12 +25,20 @@
 </div>
 
 @code {
+    public struct ProgressInfo
+    {
+        // Is not null the progress icon shows a particular progression value.
+        // If null, the progress icon shows never ending looped progression.
+        public double? Value;
+    }
+
     public struct TabInfo
     {
         public string Caption;
         public string Tooltip;
         public string Class;
-        public double? Progress;
+        // Progress icon is visible if the field is not null.
+        public ProgressInfo? Progress;
     };
 
     [Parameter]

@@ -369,7 +369,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
         double? IViewModel.FiltersLoadingProgress => filteringStats.FilteringProgress;
 
-        bool IViewModel.PreprocessingsProgressVisible => preprocessingsManager.Items.Count > 0;
+        bool IViewModel.PreprocessingsProgressVisible => preprocessingsManager.Items.Any(p => p.Failure == null);
 
         #region Implementation
 
