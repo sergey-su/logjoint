@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Http.Headers;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
@@ -16,7 +17,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
             IPresentersFacade navHandler,
             IColorTheme theme,
             IChangeNotification parentChangeNotification,
-            Telemetry.ITelemetryCollector telemetryCollector
+            Telemetry.ITelemetryCollector telemetryCollector,
+            IAnnotationsRegistry annotations
         )
         {
             this.hlFilters = hlFilters;
@@ -26,6 +28,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
             this.navHandler = navHandler;
             this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(false);
             this.inlineSearch = new InlineSearch.Presenter(changeNotification);
+            this.annotations = annotations;
 
             inlineSearch.OnSearch += (s, e) =>
             {
@@ -99,7 +102,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
                 getExtensionViewModes,
                 () => lastSetContentViewModeIndex,
                 effectiveInlineSearchData,
-                (message, bmk, hlEnabled, extensionViewModes, setContentViewMode, inlineSearchData) =>
+                () => annotations.Annotations,
+                (message, bmk, hlEnabled, extensionViewModes, setContentViewMode, inlineSearchData, annotations) =>
             {
                 var (bookmarkedStatus, bookmarkAction) = bmk;
                 ILogSource ls = message?.GetLogSource();
@@ -116,25 +120,6 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
                     customView is string customViewStr ? customViewStr :
                     contentViewMode.TextGetter == null ? null :
                     contentViewMode.TextGetter(message).Text.Value;
-
-                int Mod(int i, int q) => ((i % q) + q) % q; // supports negative i
-
-                IReadOnlyList<TextHighlight> textHighlights = ImmutableList<TextHighlight>.Empty;
-                if (inlineSearchData != null && textValue != null)
-                {
-                    var builder = ImmutableList.CreateBuilder<TextHighlight>();
-                    for (int textPos = 0; ;)
-                    {
-                        var matchPos = textValue.IndexOf(inlineSearchData.Query, textPos);
-                        if (matchPos == -1)
-                            break;
-                        builder.Add(new TextHighlight { Begin = matchPos, End = matchPos + inlineSearchData.Query.Length });
-                        textPos = matchPos + inlineSearchData.Query.Length;
-                    }
-                    if (builder.Count > 0)
-                        builder[Mod(inlineSearchData.Index, builder.Count)].IsPrimary = true;
-                    textHighlights = builder.ToImmutable();
-                }
 
                 StringSlice messageLink = (message?.Link) ?? StringSlice.Empty;
 
@@ -158,8 +143,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
                     ContentViewModes = ImmutableArray.CreateRange(contentViewModes.Select(m => m.Name)),
                     ContentViewModeIndex = effectiveContentViewMode,
-                    TextValue = textValue,
-                    TextHighlights = textHighlights,
+                    TextSegments = CreateTextFragments(textValue, inlineSearchData, annotations),
                     CustomView = customView is string ? null : customView,
 
                     HighlightedCheckboxEnabled = hlEnabled,
@@ -169,7 +153,6 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
                 };
             });
         }
-
         void IPresenter.Show()
         {
             if (GetPropertiesForm() == null)
@@ -285,6 +268,96 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
             return propertiesForm;
         }
 
+        internal static IReadOnlyList<TextSegment> CreateTextFragments(
+            string textValue, InlineSearchData inlineSearchData, IAnnotationsSnapshot annotations)
+        {
+            IReadOnlyList<TextSegment> textSegments = ImmutableList<TextSegment>.Empty;
+            if (textValue != null)
+            {
+                var builder = ImmutableList.CreateBuilder<TextSegment>();
+
+                if (inlineSearchData != null)
+                {
+                    int matchCount = 0;
+                    int textPos = 0;
+                    for (; ;)
+                    {
+                        var matchPos = textValue.IndexOf(inlineSearchData.Query, textPos);
+                        if (matchPos == -1)
+                            break;
+                        if (matchPos > textPos)
+                            builder.Add(new TextSegment(TextSegmentType.Plain,
+                                new StringSlice(textValue, textPos, matchPos - textPos)));
+                        builder.Add(new TextSegment(TextSegmentType.SecondarySearchResult,
+                            new StringSlice(textValue, matchPos, inlineSearchData.Query.Length)));
+                        ++matchCount;
+                        textPos = matchPos + inlineSearchData.Query.Length;
+                    }
+                    if (textPos < textValue.Length)
+                    {
+                        builder.Add(new TextSegment(TextSegmentType.Plain,
+                            new StringSlice(textValue, textPos, textValue.Length - textPos)));
+                    }
+                    if (matchCount > 0)
+                    {
+                        static int Mod(int i, int q) => ((i % q) + q) % q; // supports negative i
+                        int primaryMatchIndex = Mod(inlineSearchData.Index, matchCount);
+                        int matchIndex = 0;
+                        for (int i = 0; i < builder.Count; ++i)
+                        {
+                            if (builder[i].Type == TextSegmentType.SecondarySearchResult)
+                            {
+                                if (matchIndex == primaryMatchIndex)
+                                {
+                                    builder[i] = builder[i] with { Type = TextSegmentType.PrimarySearchResult };
+                                    break;
+                                }
+                                ++matchIndex;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    builder.Add(new TextSegment(TextSegmentType.Plain, new StringSlice(textValue)));
+                }
+
+                if (!annotations.IsEmpty)
+                {
+                    int segmentIndex = 0;
+                    foreach (StringAnnotationEntry ann in annotations.FindAnnotations(textValue))
+                    {
+                        while (builder[segmentIndex].Value.EndIndex < ann.BeginIndex)
+                            ++segmentIndex;
+                        TextSegment originalSegment = builder[segmentIndex];
+                        builder.RemoveAt(segmentIndex);
+                        if (ann.BeginIndex > originalSegment.Value.StartIndex)
+                        {
+                            builder.Insert(segmentIndex, originalSegment with
+                            {
+                                Value = originalSegment.Value.SubString(0, ann.BeginIndex - originalSegment.Value.StartIndex)
+                            });
+                            ++segmentIndex;
+                        }
+                        builder.Insert(segmentIndex, new TextSegment(TextSegmentType.Annotation, new StringSlice(ann.Annotation)));
+                        ++segmentIndex;
+
+                        if (originalSegment.Value.EndIndex > ann.BeginIndex)
+                        {
+                            builder.Insert(segmentIndex, originalSegment with
+                            {
+                                Value = originalSegment.Value.SubString(ann.BeginIndex - originalSegment.Value.StartIndex)
+                            });
+                        }
+                    }
+                }
+
+                textSegments = builder.ToImmutable();
+            }
+
+            return textSegments;
+        }
+
         class ContentViewMode
         {
             public string Name;
@@ -303,7 +376,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
             };
         };
 
-        class InlineSearchData
+        internal class InlineSearchData
         {
             public string Query;
             public int Index;
@@ -317,8 +390,9 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
         readonly IPresentersFacade navHandler;
         readonly Func<IMessage> getFocusedMessage;
         readonly Func<DialogData> getDialogData;
-        readonly HashSet<IExtension> extensions = new HashSet<IExtension>();
+        readonly HashSet<IExtension> extensions = [];
         readonly InlineSearch.IPresenter inlineSearch;
+        readonly IAnnotationsRegistry annotations;
         int lastSetContentViewModeIndex;
         int inlineSearchIndex;
         string inlineSearchText = "";

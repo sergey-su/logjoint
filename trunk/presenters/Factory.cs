@@ -383,7 +383,8 @@ namespace LogJoint.UI.Presenters
                 navHandler,
                 colorTheme,
                 model.ChangeNotification,
-                model.TelemetryCollector);
+                model.TelemetryCollector,
+                model.AnnotationsRegistry);
 
 
             var hlFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification,

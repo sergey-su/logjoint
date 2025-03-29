@@ -32,10 +32,11 @@
     </div>
     <InlineSearch ViewModel="@viewModel.InlineSearch" />
     <div class="contents" @ref="textRef" tabindex="0">
-        @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(d.TextValue, d.TextHighlights.Select(r => (r.Begin, r.End, r))))
+        @foreach (var segment in d.TextSegments)
         {
-            <MessagePropertiesTextSegment class="@(segment.data == null ? "" : segment.data.IsPrimary ? "hl-primary" : "hl")"
-                                          Text=@segment.segment IsPrimary="@(segment.data?.IsPrimary == true)" />
+            <MessagePropertiesTextSegment class="@SegmentClass(segment.Type)"
+                Text=@segment.Value.Value
+                IsPrimary="@(segment.Type == TextSegmentType.PrimarySearchResult)" />
         }
     </div>
 </div>
@@ -91,4 +92,12 @@
             }, "Edit+F/i");
         }
     }
+
+    static string SegmentClass(TextSegmentType type) => type switch
+    {
+        TextSegmentType.PrimarySearchResult => "hl-primary",
+        TextSegmentType.SecondarySearchResult => "hl",
+        TextSegmentType.Annotation => "annotation",
+        _ => "",
+    };
 }

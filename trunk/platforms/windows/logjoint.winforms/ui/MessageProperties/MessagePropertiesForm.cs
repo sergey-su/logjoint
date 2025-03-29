@@ -3,6 +3,7 @@ using LogJoint.UI.Presenters.MessagePropertiesDialog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -96,8 +97,9 @@ namespace LogJoint
 
             severityTextBox.Text = viewData.SeverityValue;
 
-            messagesTextBox.Visible = viewData.TextValue != null;
-            messagesTextBox.Text = FixLineBreaks(viewData.TextValue ?? "");
+            messagesTextBox.Visible = viewData.TextSegments.Count > 0;
+            messagesTextBox.Text = FixLineBreaks(viewData.TextSegments.Aggregate("",
+                (agg, s) => agg == "" ? s.Value.ToString() : $"{agg}{s.Value}"));
 
             var customControl = viewData.CustomView as Control;
             var prevCustomControl = prevViewData?.CustomView as Control;

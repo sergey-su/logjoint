@@ -1680,6 +1680,16 @@ button {
 .message-properties>.contents>.hl-primary {
     background-color: salmon;
 }
+.message-properties>.contents>.annotation {
+    background-color: yellow;
+    color: black;
+    user-select: none;
+    margin: 0px 3px;
+    padding: 0px 3px;
+}
+.dark-theme .message-properties>.contents>.annotation {
+    background-color: #CCCC00;
+}
 .message-properties .bookmark-status {
     margin-right: 10px;
 }
