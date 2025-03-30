@@ -1,6 +1,8 @@
 using System;
 using LogJoint.Settings;
 using LogJoint.MRU;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 {
@@ -10,53 +12,23 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
             Settings.IGlobalSettingsAccessor settings,
             IRecentlyUsedEntities mru,
             ISearchHistory searchHistory,
-            IChangeNotification changeNotification
+            IChangeNotification changeNotification,
+            IAlertPopup alertPopup
         )
         {
             this.settingsAccessor = settings;
             this.recentLogsList = mru;
             this.searchHistory = searchHistory;
             this.changeNotification = changeNotification;
+            this.alertPopup = alertPopup;
 
             this.recentLogsListSizeEditor = new LabeledStepperPresenter.Presenter(changeNotification);
             this.searchHistoryDepthEditor = new LabeledStepperPresenter.Presenter(changeNotification);
             this.maxNumberOfSearchResultsEditor = new LabeledStepperPresenter.Presenter(changeNotification);
             this.logSizeThresholdEditor = new LabeledStepperPresenter.Presenter(changeNotification);
             this.logWindowSizeEditor = new LabeledStepperPresenter.Presenter(changeNotification);
-        }
 
-        bool IPresenter.Apply()
-        {
-            recentLogsList.RecentEntriesListSizeLimit = recentLogsListSizeEditor.Value;
-            searchHistory.MaxCount = searchHistoryDepthEditor.Value;
-            settingsAccessor.MultithreadedParsingDisabled = view.GetControlChecked(ViewControl.DisableMultithreadedParsingCheckBox);
-            settingsAccessor.MaxNumberOfHitsInSearchResultsView = maxNumberOfSearchResultsEditor.Value;
-            settingsAccessor.FileSizes = new FileSizes()
-            {
-                Threshold = logSizeThresholdEditor.Value,
-                WindowSize = logWindowSizeEditor.Value
-            };
-            settingsAccessor.EnableAutoPostprocessing = view.GetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox);
-            return true;
-        }
-
-        IChangeNotification IViewModel.ChangeNotification => changeNotification;
-
-        LabeledStepperPresenter.IViewModel IViewModel.RecentLogsListSizeEditor => recentLogsListSizeEditor;
-
-        LabeledStepperPresenter.IViewModel IViewModel.SearchHistoryDepthEditor => searchHistoryDepthEditor;
-
-        LabeledStepperPresenter.IViewModel IViewModel.MaxNumberOfSearchResultsEditor => maxNumberOfSearchResultsEditor;
-
-        LabeledStepperPresenter.IViewModel IViewModel.LogSizeThresholdEditor => logSizeThresholdEditor;
-
-        LabeledStepperPresenter.IViewModel IViewModel.LogWindowSizeEditor => logWindowSizeEditor;
-
-        void IViewModel.SetView(IView view)
-        {
-            this.view = view;
-
-            this.logSizeThresholdEditor.AllowedValues = new int[] {
+            this.logSizeThresholdEditor.AllowedValues = [
                 1,
                 2,
                 4,
@@ -72,10 +44,10 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
                 120,
                 160,
                 200
-            };
+            ];
             this.logSizeThresholdEditor.Value = 1;
 
-            this.logWindowSizeEditor.AllowedValues = new int[] {
+            this.logWindowSizeEditor.AllowedValues = [
                 1,
                 2,
                 3,
@@ -86,10 +58,10 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
                 12,
                 20,
                 24
-            };
+            ];
             this.logWindowSizeEditor.Value = 1;
 
-            this.searchHistoryDepthEditor.AllowedValues = new int[] {
+            this.searchHistoryDepthEditor.AllowedValues = [
                 0,
                 5,
                 10,
@@ -111,10 +83,10 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
                 240,
                 260,
                 280,
-                300};
+                300];
             this.searchHistoryDepthEditor.Value = 0;
 
-            this.maxNumberOfSearchResultsEditor.AllowedValues = new int[] {
+            this.maxNumberOfSearchResultsEditor.AllowedValues = [
                 1000,
                 4000,
                 8000,
@@ -123,38 +95,86 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
                 50000,
                 70000,
                 100000,
-                200000};
+                200000];
             this.maxNumberOfSearchResultsEditor.Value = 1000;
 
 
-            this.recentLogsListSizeEditor.AllowedValues = new int[] {
+            this.recentLogsListSizeEditor.AllowedValues = [
                 0,
                 100,
                 200,
                 400,
                 800,
-                1500};
+                1500];
             this.recentLogsListSizeEditor.Value = 0;
+        }
+
+        void IPresenter.Load()
+        {
+            multithreadedParsingDisabled = settingsAccessor.MultithreadedParsingDisabled;
+            enableAutoPostprocessing = settingsAccessor.EnableAutoPostprocessing;
+
+            recentLogsListSizeEditor.Value = recentLogsList.RecentEntriesListSizeLimit;
+            maxNumberOfSearchResultsEditor.Value = settingsAccessor.MaxNumberOfHitsInSearchResultsView;
+
+            var fileSizes = settingsAccessor.FileSizes;
+            logSizeThresholdEditor.Value = fileSizes.Threshold;
+            logWindowSizeEditor.Value = fileSizes.WindowSize;
+
+            searchHistoryDepthEditor.Value = searchHistory.MaxCount;
 
             UpdateView();
         }
 
-        void IViewModel.OnLinkClicked(ViewControl control)
+        bool IPresenter.Apply()
+        {
+            recentLogsList.RecentEntriesListSizeLimit = recentLogsListSizeEditor.Value;
+            searchHistory.MaxCount = searchHistoryDepthEditor.Value;
+            settingsAccessor.MultithreadedParsingDisabled = multithreadedParsingDisabled;
+            settingsAccessor.MaxNumberOfHitsInSearchResultsView = maxNumberOfSearchResultsEditor.Value;
+            settingsAccessor.FileSizes = new FileSizes()
+            {
+                Threshold = logSizeThresholdEditor.Value,
+                WindowSize = logWindowSizeEditor.Value
+            };
+            settingsAccessor.EnableAutoPostprocessing = enableAutoPostprocessing;
+            return true;
+        }
+
+        IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+        IReadOnlyDictionary<ViewControl, ViewControlState> IViewModel.Controls => controls;
+
+        LabeledStepperPresenter.IViewModel IViewModel.RecentLogsListSizeEditor => recentLogsListSizeEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.SearchHistoryDepthEditor => searchHistoryDepthEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.MaxNumberOfSearchResultsEditor => maxNumberOfSearchResultsEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.LogSizeThresholdEditor => logSizeThresholdEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.LogWindowSizeEditor => logWindowSizeEditor;
+
+        async void IViewModel.OnLinkClicked(ViewControl control)
         {
             if (control == ViewControl.ClearRecentEntriesListLinkLabel)
             {
-                if (view.ShowConfirmationDialog("Are you sure you want to clear recent logs history?"))
+                if (await alertPopup.ShowPopupAsync("Confirmation",
+                    "Are you sure you want to clear recent logs history?",
+                    AlertFlags.YesNoCancel | AlertFlags.QuestionIcon) == AlertFlags.Yes)
                 {
                     recentLogsList.ClearRecentLogsList();
-                    UpdateRecentLogsControls();
+                    UpdateView();
                 }
             }
             else if (control == ViewControl.ClearSearchHistoryLinkLabel)
             {
-                if (view.ShowConfirmationDialog("Are you sure you want to clear current queries history?"))
+                if (await alertPopup.ShowPopupAsync("Confirmation",
+                    "Are you sure you want to clear current queries history?",
+                    AlertFlags.YesNoCancel | AlertFlags.QuestionIcon) == AlertFlags.Yes)
                 {
                     searchHistory.Clear();
-                    UpdateSearchHistoryControls();
+                    UpdateView();
                 }
             }
             else if (control == ViewControl.CollectUnusedMemoryLinkLabel)
@@ -162,80 +182,93 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
                 GC.Collect(2, GCCollectionMode.Forced);
                 GC.WaitForPendingFinalizers();
                 GC.Collect(2, GCCollectionMode.Forced);
-                UpdateMemoryConsumptionLink();
+                UpdateView();
             }
         }
 
-        void IViewModel.OnCheckboxChecked(ViewControl control)
+        void IViewModel.OnCheckboxChecked(ViewControl control, bool value)
         {
+            if (control == ViewControl.EnableAutoPostprocessingCheckBox)
+            {
+                enableAutoPostprocessing = value;
+                UpdateView();
+            }
+            else if (control == ViewControl.DisableMultithreadedParsingCheckBox)
+            {
+                multithreadedParsingDisabled = value;
+                UpdateView();
+            }
         }
-
-        #region Implementation
 
         void UpdateView()
         {
-            UpdateRecentLogsControls();
-            UpdateSearchHistoryControls();
-            UpdateSearchResultsLimitsControls();
-            UpdateFileSizesControls();
-            UpdateMultithreadingControls();
-            UpdateMemoryConsumptionLink();
-            UpdatePostprocessingControls();
+            var builder = ImmutableDictionary.CreateBuilder<ViewControl, ViewControlState>();
+            UpdateRecentLogsControls(builder);
+            UpdateSearchHistoryControls(builder);
+            UpdateMultithreadingControls(builder);
+            UpdateMemoryConsumptionLink(builder);
+            UpdatePostprocessingControls(builder);
+            controls = builder.ToImmutable();
+            changeNotification.Post();
         }
 
-        private void UpdateMultithreadingControls()
+        private void UpdateMultithreadingControls(ImmutableDictionary<ViewControl, ViewControlState>.Builder controls)
         {
-            view.SetControlChecked(ViewControl.DisableMultithreadedParsingCheckBox, settingsAccessor.MultithreadedParsingDisabled);
+            controls[ViewControl.DisableMultithreadedParsingCheckBox] = new ViewControlState()
+            {
+                Enabled = true,
+                Text = "Disable multi-threaded log parsing",
+                Checked = multithreadedParsingDisabled,
+            };
         }
 
-        private void UpdateSearchResultsLimitsControls()
-        {
-            maxNumberOfSearchResultsEditor.Value = settingsAccessor.MaxNumberOfHitsInSearchResultsView;
-        }
-
-        private void UpdateFileSizesControls()
-        {
-            var fileSizes = settingsAccessor.FileSizes;
-            logSizeThresholdEditor.Value = fileSizes.Threshold;
-            logWindowSizeEditor.Value = fileSizes.WindowSize;
-        }
-
-        private void UpdateSearchHistoryControls()
+        private void UpdateSearchHistoryControls(ImmutableDictionary<ViewControl, ViewControlState>.Builder controls)
         {
             var searchHistorySize = searchHistory.Count;
-            searchHistoryDepthEditor.Value = searchHistory.MaxCount;
-            view.SetControlText(ViewControl.ClearSearchHistoryLinkLabel,
-                string.Format("clear current history ({0} entries)", searchHistorySize));
-            view.SetControlEnabled(ViewControl.ClearSearchHistoryLinkLabel, searchHistorySize > 0);
+            controls[ViewControl.ClearSearchHistoryLinkLabel] = new ViewControlState()
+            {
+                Text = string.Format("clear current history ({0} entries)", searchHistorySize),
+                Enabled = searchHistorySize > 0,
+            };
         }
 
-        private void UpdateRecentLogsControls()
+        private void UpdateRecentLogsControls(ImmutableDictionary<ViewControl, ViewControlState>.Builder controls)
         {
             var currentRecentEntriesListSize = recentLogsList.MRUList.Count;
-            recentLogsListSizeEditor.Value = recentLogsList.RecentEntriesListSizeLimit;
-            view.SetControlText(ViewControl.ClearRecentEntriesListLinkLabel,
-                string.Format("clear current history ({0} entries)", currentRecentEntriesListSize));
-            view.SetControlEnabled(ViewControl.ClearRecentEntriesListLinkLabel, currentRecentEntriesListSize > 0);
+            controls[ViewControl.ClearRecentEntriesListLinkLabel] = new ViewControlState()
+            {
+                Text = string.Format("clear current history ({0} entries)", currentRecentEntriesListSize),
+                Enabled = currentRecentEntriesListSize > 0
+            };
         }
 
-        private void UpdateMemoryConsumptionLink()
+        private void UpdateMemoryConsumptionLink(ImmutableDictionary<ViewControl, ViewControlState>.Builder controls)
         {
-            view.SetControlText(ViewControl.MemoryConsumptionLabel, StringUtils.FormatBytesUserFriendly(GC.GetTotalMemory(false)));
+            controls[ViewControl.MemoryConsumptionLabel] = new ViewControlState()
+            {
+                Enabled = true,
+                Text = StringUtils.FormatBytesUserFriendly(GC.GetTotalMemory(false))
+            };
         }
 
-        private void UpdatePostprocessingControls()
+        private void UpdatePostprocessingControls(ImmutableDictionary<ViewControl, ViewControlState>.Builder controls)
         {
-            view.SetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox, settingsAccessor.EnableAutoPostprocessing);
+            controls[ViewControl.EnableAutoPostprocessingCheckBox] = new ViewControlState()
+            { 
+                Enabled = true,
+                Text = "Enable automatic logs postprocessing",
+                Checked = enableAutoPostprocessing
+            };
         }
 
         readonly IChangeNotification changeNotification;
         readonly IGlobalSettingsAccessor settingsAccessor;
         readonly IRecentlyUsedEntities recentLogsList;
         readonly ISearchHistory searchHistory;
+        readonly IAlertPopup alertPopup;
         readonly LabeledStepperPresenter.IPresenterInternal recentLogsListSizeEditor, searchHistoryDepthEditor,
             maxNumberOfSearchResultsEditor, logSizeThresholdEditor, logWindowSizeEditor;
-        IView view;
-
-        #endregion
+        IReadOnlyDictionary<ViewControl, ViewControlState> controls = ImmutableDictionary<ViewControl, ViewControlState>.Empty;
+        bool multithreadedParsingDisabled, enableAutoPostprocessing;
     };
 };

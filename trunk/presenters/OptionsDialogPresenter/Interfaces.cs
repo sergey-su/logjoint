@@ -54,25 +54,14 @@ namespace LogJoint.UI.Presenters.Options
     {
         public interface IPresenter
         {
+            void Load();
             bool Apply();
-        };
-
-        public interface IView // todo: remove, make reactive
-        {
-            bool GetControlEnabled(ViewControl control);
-            void SetControlEnabled(ViewControl control, bool value);
-            bool GetControlChecked(ViewControl control);
-            void SetControlChecked(ViewControl control, bool value);
-            void FocusControl(ViewControl control);
-            bool ShowConfirmationDialog(string message);
-            void SetControlText(ViewControl ctrlId, string value);
         };
 
         public enum ViewControl
         {
             ClearRecentEntriesListLinkLabel,
             ClearSearchHistoryLinkLabel,
-            LogSpecificStorageEnabledCheckBox,
             ClearLogSpecificStorageLinkLabel,
             DisableMultithreadedParsingCheckBox,
             MemoryConsumptionLabel,
@@ -80,20 +69,27 @@ namespace LogJoint.UI.Presenters.Options
             EnableAutoPostprocessingCheckBox,
         };
 
+        public struct ViewControlState
+        {
+            public bool Enabled;
+            public bool Checked;
+            public string Text;
+        };
+
         public interface IViewModel
         {
-            void SetView(IView view);
-
             IChangeNotification ChangeNotification { get; }
 
-            void OnLinkClicked(ViewControl control);
-            void OnCheckboxChecked(ViewControl control);
+            IReadOnlyDictionary<ViewControl, ViewControlState> Controls { get; }
 
             LabeledStepperPresenter.IViewModel RecentLogsListSizeEditor { get; }
             LabeledStepperPresenter.IViewModel SearchHistoryDepthEditor { get; }
             LabeledStepperPresenter.IViewModel MaxNumberOfSearchResultsEditor { get; }
             LabeledStepperPresenter.IViewModel LogSizeThresholdEditor { get; }
             LabeledStepperPresenter.IViewModel LogWindowSizeEditor { get; }
+
+            void OnLinkClicked(ViewControl control);
+            void OnCheckboxChecked(ViewControl control, bool value);
         };
 
         internal interface IPresenterInternal : IPresenter, IViewModel { };
@@ -101,8 +97,9 @@ namespace LogJoint.UI.Presenters.Options
 
     namespace Appearance
     {
-        public interface IPresenter : IDisposable
+        public interface IPresenter
         {
+            void Load();
             bool Apply();
         };
 
@@ -142,6 +139,8 @@ namespace LogJoint.UI.Presenters.Options
         public interface IPresenter
         {
             bool IsAvailable { get; }
+
+            void Load();
             bool Apply();
         };
 
@@ -162,8 +161,11 @@ namespace LogJoint.UI.Presenters.Options
 
     namespace Plugins
     {
-        public interface IPresenter : IDisposable, IPageAvailability
+        public interface IPresenter : IPageAvailability
         {
+            void Load();
+            void Unload();
+
             bool Apply();
         };
 

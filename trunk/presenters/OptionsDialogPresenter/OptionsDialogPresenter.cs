@@ -22,6 +22,7 @@ namespace LogJoint.UI.Presenters.Options.Dialog
         void IPresenter.ShowDialog(PageId? initiallySelectedPage)
         {
             using var dialog = view.CreateDialog(this);
+            LoadPages();
             currentDialog = dialog;
             if (initiallySelectedPage != null && (GetVisiblePages() & initiallySelectedPage.Value) == 0)
                 initiallySelectedPage = null;
@@ -38,13 +39,13 @@ namespace LogJoint.UI.Presenters.Options.Dialog
             if (pluginPresenter?.Apply() == false)
                 return;
             currentDialog.Hide();
-            DisposePages();
+            UnloadPages();
         }
 
         void IDialogViewModel.OnCancelPressed()
         {
             currentDialog.Hide();
-            DisposePages();
+            UnloadPages();
         }
 
         PageId IDialogViewModel.VisiblePages => GetVisiblePages();
@@ -59,10 +60,17 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 
         #region Implementation
 
-        void DisposePages()
+        void LoadPages()
         {
-            appearancePresenter?.Dispose();
-            pluginPresenter?.Dispose();
+            memAndPerformancePagePresenter.Load();
+            updatesAndFeedbackPresenter.Load();
+            appearancePresenter.Load();
+            pluginPresenter.Load();
+        }
+
+        void UnloadPages()
+        {
+            pluginPresenter.Unload();
         }
 
         PageId GetVisiblePages()

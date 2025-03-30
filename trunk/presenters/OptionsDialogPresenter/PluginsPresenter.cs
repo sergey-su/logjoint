@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.Options.Plugins
     {
         readonly IPluginsManagerInternal pluginsManager;
         readonly IChainedChangeNotification changeNotification;
-        readonly CancellationTokenSource fetchCancellation;
+        CancellationTokenSource fetchCancellation;
         PluginsListFetchingStatus fetchStatus = PluginsListFetchingStatus.Pending;
         IReadOnlyList<IPluginInfo> pluginsInfo = ImmutableArray.Create<IPluginInfo>();
         readonly Func<ImmutableArray<ListItem>> listItemsSelector;
@@ -33,7 +33,6 @@ namespace LogJoint.UI.Presenters.Options.Plugins
             this.autoUpdater = autoUpdater;
 
             this.changeNotification = changeNotification.CreateChainedChangeNotification();
-            this.fetchCancellation = new CancellationTokenSource();
 
             this.pluginInstallationRequestsBuilder = pluginsManager.CreatePluginInstallationRequestsBuilder();
 
@@ -61,7 +60,12 @@ namespace LogJoint.UI.Presenters.Options.Plugins
                     };
                 }
             );
+        }
 
+        void IPresenter.Load()
+        {
+            this.changeNotification.Active = true;
+            this.fetchCancellation = new CancellationTokenSource();
             this.FetchPlugins();
         }
 
@@ -71,13 +75,13 @@ namespace LogJoint.UI.Presenters.Options.Plugins
             return true;
         }
 
-        bool IPageAvailability.IsAvailable => PageAvailability.ComputeAvailability(pluginsManager);
-
-        void IDisposable.Dispose()
+        void IPresenter.Unload()
         {
-            this.changeNotification.Dispose();
+            this.changeNotification.Active = false;
             this.fetchCancellation.Cancel();
         }
+
+        bool IPageAvailability.IsAvailable => PageAvailability.ComputeAvailability(pluginsManager);
 
         void IViewModel.OnSelect(IPluginListItem item)
         {

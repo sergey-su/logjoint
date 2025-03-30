@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.Options.MemAndPerformancePage;
 
 namespace LogJoint.UI
 {
-    public partial class MemAndPerformanceSettingsView : UserControl, IView
+    public partial class MemAndPerformanceSettingsView : UserControl
     {
         IViewModel viewModel;
+        ISubscription subscription;
 
         public MemAndPerformanceSettingsView()
         {
@@ -22,74 +17,28 @@ namespace LogJoint.UI
         public void SetViewModel(IViewModel viewModel)
         {
             this.viewModel = viewModel;
-            viewModel.SetView(this);
 
             recentLogsListSizeEditor.SetViewModel(viewModel.RecentLogsListSizeEditor);
             searchHistoryDepthEditor.SetViewModel(viewModel.SearchHistoryDepthEditor);
             maxNumberOfSearchResultsEditor.SetViewModel(viewModel.MaxNumberOfSearchResultsEditor);
             logSizeThresholdEditor.SetViewModel(viewModel.LogSizeThresholdEditor);
             logWindowSizeEditor.SetViewModel(viewModel.LogWindowSizeEditor);
-        }
 
-        bool IView.GetControlEnabled(ViewControl control)
-        {
-            var ctrl = GetControlById(control);
-            return ctrl != null ? ctrl.Enabled : false;
-        }
+            var updateControls = Updaters.Create(
+                () => viewModel.Controls,
+                controls =>
+                {
+                    foreach (var control in controls)
+                    {
+                        Control ctrl = GetControlById(control.Key);
+                        ctrl.Enabled = control.Value.Enabled;
+                        ctrl.Text = control.Value.Text;
+                        if (ctrl is CheckBox cb)
+                            cb.Checked = control.Value.Checked;
+                    }
+                });
 
-        void IView.SetControlEnabled(ViewControl control, bool value)
-        {
-            var ctrl = GetControlById(control);
-            if (ctrl != null)
-                ctrl.Enabled = value;
-        }
-
-        bool IView.GetControlChecked(ViewControl control)
-        {
-            var ctrl = GetControlById(control) as CheckBox;
-            return ctrl != null ? ctrl.Checked : false;
-        }
-
-        void IView.SetControlChecked(ViewControl control, bool value)
-        {
-            var ctrl = GetControlById(control) as CheckBox;
-            if (ctrl != null)
-                ctrl.Checked = value;
-        }
-
-        void IView.FocusControl(ViewControl control)
-        {
-            var ctrl = GetControlById(control);
-            if (ctrl != null && ctrl.CanFocus)
-                ctrl.Focus();
-        }
-
-        bool IView.ShowConfirmationDialog(string message)
-        {
-            return MessageBox.Show(message, "LogJoint", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) == DialogResult.Yes;
-        }
-
-        void IView.SetControlText(ViewControl controlId, string value)
-        {
-            var ctrl = GetControlById(controlId);
-            if (ctrl != null)
-                ctrl.Text = value;
-        }
-
-        Control GetControlById(ViewControl id)
-        {
-            switch (id)
-            {
-                case ViewControl.ClearRecentEntriesListLinkLabel: return clearRecentLogsListLinkLabel;
-                case ViewControl.ClearSearchHistoryLinkLabel: return clearSearchHistoryLinkLabel;
-                case ViewControl.LogSpecificStorageEnabledCheckBox: return logSizeThresholdEditor;
-                case ViewControl.ClearLogSpecificStorageLinkLabel: return clearLogSpecificStorageLinkLabel;
-                case ViewControl.DisableMultithreadedParsingCheckBox: return disableMultithreadedParsingCheckBox;
-                case ViewControl.MemoryConsumptionLabel: return memoryConsumptionLabel;
-                case ViewControl.CollectUnusedMemoryLinkLabel: return collectUnusedMemoryLinkLabel;
-                case ViewControl.EnableAutoPostprocessingCheckBox: return enableAutoPostprocessingCheckBox;
-                default: return null;
-            }
+            subscription = viewModel.ChangeNotification.CreateSubscription(updateControls);
         }
 
         private void clearRecentLogsListLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -107,24 +56,34 @@ namespace LogJoint.UI
             viewModel.OnLinkClicked(ViewControl.ClearLogSpecificStorageLinkLabel);
         }
 
-        private void logSpecificStorageEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            viewModel.OnCheckboxChecked(ViewControl.LogSpecificStorageEnabledCheckBox);
-        }
-
         private void disableMultithreadedParsingCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            viewModel.OnCheckboxChecked(ViewControl.DisableMultithreadedParsingCheckBox);
+            viewModel.OnCheckboxChecked(ViewControl.DisableMultithreadedParsingCheckBox, disableMultithreadedParsingCheckBox.Checked);
         }
 
         private void enableAutoPostprocessingCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            viewModel.OnCheckboxChecked(ViewControl.EnableAutoPostprocessingCheckBox);
+            viewModel.OnCheckboxChecked(ViewControl.EnableAutoPostprocessingCheckBox, enableAutoPostprocessingCheckBox.Checked);
         }
 
         private void collectUnusedMemoryLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             viewModel.OnLinkClicked(ViewControl.CollectUnusedMemoryLinkLabel);
+        }
+
+        Control GetControlById(ViewControl id)
+        {
+            switch (id)
+            {
+                case ViewControl.ClearRecentEntriesListLinkLabel: return clearRecentLogsListLinkLabel;
+                case ViewControl.ClearSearchHistoryLinkLabel: return clearSearchHistoryLinkLabel;
+                case ViewControl.ClearLogSpecificStorageLinkLabel: return clearLogSpecificStorageLinkLabel;
+                case ViewControl.DisableMultithreadedParsingCheckBox: return disableMultithreadedParsingCheckBox;
+                case ViewControl.MemoryConsumptionLabel: return memoryConsumptionLabel;
+                case ViewControl.CollectUnusedMemoryLinkLabel: return collectUnusedMemoryLinkLabel;
+                case ViewControl.EnableAutoPostprocessingCheckBox: return enableAutoPostprocessingCheckBox;
+                default: return null;
+            }
         }
 
         protected override void OnLayout(LayoutEventArgs e)

@@ -24,6 +24,10 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
             model.Changed += (s, e) => UpdateAutomaticUpdatesView();
         }
 
+        void IPresenter.Load()
+        {
+        }
+
         bool IPresenter.Apply()
         {
             return true;

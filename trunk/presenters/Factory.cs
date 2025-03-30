@@ -444,7 +444,8 @@ namespace LogJoint.UI.Presenters
 
             Options.Dialog.IPresenter optionsDialogPresenter = optionsDialogView != null ? new Options.Dialog.Presenter(
                 optionsDialogView,
-                new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory, model.ChangeNotification),
+                new Options.MemAndPerformancePage.Presenter(
+                    model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory, model.ChangeNotification, alertPopup),
                 new Options.Appearance.Presenter(model.GlobalSettingsAccessor, logViewerPresenterFactory, model.ChangeNotification, colorTheme),
                 new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor),
                 new Options.Plugins.Presenter(model.PluginsManager, model.ChangeNotification, model.AutoUpdater)

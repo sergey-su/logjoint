@@ -10,7 +10,7 @@ using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 
 namespace LogJoint.UI.Presenters.Options.Appearance
 {
-    public class Presenter : IPresenter, IViewModel, IDisposable, IPresenterInternal
+    public class Presenter : IPresenter, IViewModel, IPresenterInternal
     {
         public Presenter(
             Settings.IGlobalSettingsAccessor settings,
@@ -40,9 +40,9 @@ namespace LogJoint.UI.Presenters.Options.Appearance
             this.fontSizeControl.OnValueChanged += (sender, e) => UpdateSampleLogView(fullUpdate: false);
         }
 
-        void IDisposable.Dispose()
+
+        void IPresenter.Load()
         {
-            sampleLogViewerPresenter.Dispose();
         }
 
         bool IPresenter.Apply()
@@ -67,9 +67,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
         void IViewModel.SetView(IView view)
         {
             this.view = view;
-
             InitView();
-
             UpdateSampleLogView(fullUpdate: true);
         }
 
