@@ -23,6 +23,12 @@ namespace LogJoint.UI
         {
             this.viewModel = viewModel;
             viewModel.SetView(this);
+
+            recentLogsListSizeEditor.SetViewModel(viewModel.RecentLogsListSizeEditor);
+            searchHistoryDepthEditor.SetViewModel(viewModel.SearchHistoryDepthEditor);
+            maxNumberOfSearchResultsEditor.SetViewModel(viewModel.MaxNumberOfSearchResultsEditor);
+            logSizeThresholdEditor.SetViewModel(viewModel.LogSizeThresholdEditor);
+            logWindowSizeEditor.SetViewModel(viewModel.LogWindowSizeEditor);
         }
 
         bool IView.GetControlEnabled(ViewControl control)
@@ -36,11 +42,6 @@ namespace LogJoint.UI
             var ctrl = GetControlById(control);
             if (ctrl != null)
                 ctrl.Enabled = value;
-        }
-
-        Presenters.LabeledStepperPresenter.IView IView.GetStepperView(ViewControl ctrlId)
-        {
-            return GetControlById(ctrlId) as GaugeControl;
         }
 
         bool IView.GetControlChecked(ViewControl control)
@@ -79,17 +80,11 @@ namespace LogJoint.UI
         {
             switch (id)
             {
-                case ViewControl.RecentLogsListSizeEditor: return recentLogsListSizeEditor;
                 case ViewControl.ClearRecentEntriesListLinkLabel: return clearRecentLogsListLinkLabel;
-                case ViewControl.SearchHistoryDepthEditor: return searchHistoryDepthEditor;
                 case ViewControl.ClearSearchHistoryLinkLabel: return clearSearchHistoryLinkLabel;
-                case ViewControl.MaxNumberOfSearchResultsEditor: return maxNumberOfSearchResultsEditor;
                 case ViewControl.LogSpecificStorageEnabledCheckBox: return logSizeThresholdEditor;
-                case ViewControl.LogSpecificStorageSpaceLimitEditor: return logSpecificStorageSpaceLimitEditor;
                 case ViewControl.ClearLogSpecificStorageLinkLabel: return clearLogSpecificStorageLinkLabel;
                 case ViewControl.DisableMultithreadedParsingCheckBox: return disableMultithreadedParsingCheckBox;
-                case ViewControl.LogSizeThresholdEditor: return logSizeThresholdEditor;
-                case ViewControl.LogWindowSizeEditor: return logWindowSizeEditor;
                 case ViewControl.MemoryConsumptionLabel: return memoryConsumptionLabel;
                 case ViewControl.CollectUnusedMemoryLinkLabel: return collectUnusedMemoryLinkLabel;
                 case ViewControl.EnableAutoPostprocessingCheckBox: return enableAutoPostprocessingCheckBox;

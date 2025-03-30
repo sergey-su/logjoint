@@ -7,7 +7,7 @@ namespace LogJoint.UI
 {
     public partial class FormatAdditionalOptionsPage : UserControl, IView
     {
-        IViewEvents eventsHandler;
+        IViewModel viewModel;
 
         public FormatAdditionalOptionsPage()
         {
@@ -16,32 +16,32 @@ namespace LogJoint.UI
 
         private void extensionTextBox_TextChanged(object sender, EventArgs e)
         {
-            eventsHandler.OnExtensionTextBoxChanged();
+            viewModel.OnExtensionTextBoxChanged();
         }
 
         private void extensionsListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            eventsHandler.OnExtensionsListBoxSelectionChanged();
+            viewModel.OnExtensionsListBoxSelectionChanged();
         }
 
         private void addExtensionButton_Click(object sender, EventArgs e)
         {
-            eventsHandler.OnAddExtensionClicked();
+            viewModel.OnAddExtensionClicked();
         }
 
         private void removeExtensionButton_Click(object sender, EventArgs e)
         {
-            eventsHandler.OnDelExtensionClicked();
+            viewModel.OnDelExtensionClicked();
         }
 
         private void enableDejitterCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            eventsHandler.OnEnableDejitterCheckBoxClicked();
+            viewModel.OnEnableDejitterCheckBoxClicked();
         }
 
         private void dejitterHelpLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            eventsHandler.OnDejitterHelpLinkClicked();
+            viewModel.OnDejitterHelpLinkClicked();
         }
 
         int IView.EncodingComboBoxSelection
@@ -62,11 +62,11 @@ namespace LogJoint.UI
             set { extensionTextBox.Text = value; }
         }
 
-        Presenters.LabeledStepperPresenter.IView IView.BufferStepperView => dejitterBufferSizeGauge;
-
-        void IView.SetEventsHandler(IViewEvents eventsHandler)
+        void IView.SetViewModel(IViewModel viewModel)
         {
-            this.eventsHandler = eventsHandler;
+            this.viewModel = viewModel;
+
+            dejitterBufferSizeGauge.SetViewModel(viewModel.BufferStepper);
         }
 
         void IView.SetPatternsListBoxItems(string[] value)

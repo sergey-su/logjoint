@@ -35,6 +35,9 @@ namespace LogJoint.UI.Presenters.Options.Appearance
                 LogViewer.UserInteraction.RawViewSwitching |
                 LogViewer.UserInteraction.FramesNavigationMenu |
                 LogViewer.UserInteraction.CopyMenu;
+
+            this.fontSizeControl = new LabeledStepperPresenter.Presenter(changeNotification);
+            this.fontSizeControl.OnValueChanged += (sender, e) => UpdateSampleLogView(fullUpdate: false);
         }
 
         void IDisposable.Dispose()
@@ -59,12 +62,11 @@ namespace LogJoint.UI.Presenters.Options.Appearance
             UpdateSampleLogView(fullUpdate: ctrl == ViewControl.PaletteSelector);
         }
 
+        LabeledStepperPresenter.IViewModel IViewModel.FontSizeControl => fontSizeControl;
+
         void IViewModel.SetView(IView view)
         {
             this.view = view;
-
-            this.fontSizeControl = new LabeledStepperPresenter.Presenter(view.FontSizeControlView);
-            this.fontSizeControl.OnValueChanged += (sender, e) => UpdateSampleLogView(fullUpdate: false);
 
             InitView();
 
@@ -72,8 +74,6 @@ namespace LogJoint.UI.Presenters.Options.Appearance
         }
 
         LogViewer.IViewModel IViewModel.LogView => sampleLogViewerPresenter;
-
-        #region Implementation
 
         void InitView()
         {
@@ -201,10 +201,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
         readonly IModelThreadsInternal sampleThreads;
         readonly LogViewer.DummyModel dummyModel;
         readonly DateTime sampleMessagesBaseTime;
+        readonly LabeledStepperPresenter.IPresenterInternal fontSizeControl;
         IView view;
-        LabeledStepperPresenter.IPresenter fontSizeControl;
-
-        #endregion
-
     };
 };

@@ -6,28 +6,29 @@ using System.Xml;
 
 namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
 {
-    internal class Presenter : IPresenter, IViewEvents
+    internal class Presenter : IPresenter, IViewModel
     {
         readonly IView view;
         readonly IWizardScenarioHost host;
         readonly Help.IPresenter help;
+        readonly LabeledStepperPresenter.IPresenterInternal dejitterBufferStepper;
         XmlNode formatRoot;
-        List<string> patterns = new List<string>();
-        List<EncodingEntry> encodings = new List<EncodingEntry>();
-        LabeledStepperPresenter.IPresenter dejitterBufferStepper;
+        List<string> patterns = [];
+        List<EncodingEntry> encodings = [];
 
         public Presenter(
+            IChangeNotification changeNotification,
             IView view,
             IWizardScenarioHost host,
             Help.IPresenter help
         )
         {
             this.view = view;
-            this.view.SetEventsHandler(this);
             this.host = host;
             this.help = help;
+            this.dejitterBufferStepper = new LabeledStepperPresenter.Presenter(changeNotification);
 
-            this.dejitterBufferStepper = new LabeledStepperPresenter.Presenter(view.BufferStepperView);
+            this.view.SetViewModel(this);
 
             UpdateView();
             InitEncodings();
@@ -95,6 +96,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
             dejitterBufferStepper.Value = dejitterBufferSize.GetValueOrDefault(10);
             UpdateView();
         }
+
+        LabeledStepperPresenter.IViewModel IViewModel.BufferStepper => dejitterBufferStepper;
+
 
         void UpdateView()
         {
@@ -198,17 +202,17 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
             return ext;
         }
 
-        void IViewEvents.OnExtensionTextBoxChanged()
+        void IViewModel.OnExtensionTextBoxChanged()
         {
             UpdateView();
         }
 
-        void IViewEvents.OnExtensionsListBoxSelectionChanged()
+        void IViewModel.OnExtensionsListBoxSelectionChanged()
         {
             UpdateView();
         }
 
-        void IViewEvents.OnAddExtensionClicked()
+        void IViewModel.OnAddExtensionClicked()
         {
             string ext = GetValidExtension();
             if (ext == null)
@@ -221,7 +225,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
             UpdateView();
         }
 
-        void IViewEvents.OnDelExtensionClicked()
+        void IViewModel.OnDelExtensionClicked()
         {
             foreach (var i in view.GetPatternsListBoxSelection().OrderByDescending(i => i))
                 patterns.RemoveAt(i);
@@ -229,12 +233,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
             UpdateView();
         }
 
-        void IViewEvents.OnEnableDejitterCheckBoxClicked()
+        void IViewModel.OnEnableDejitterCheckBoxClicked()
         {
             UpdateView();
         }
 
-        void IViewEvents.OnDejitterHelpLinkClicked()
+        void IViewModel.OnDejitterHelpLinkClicked()
         {
             help.ShowHelp("Dejitter.htm");
         }

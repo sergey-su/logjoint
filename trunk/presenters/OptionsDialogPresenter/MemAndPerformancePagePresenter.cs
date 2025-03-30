@@ -9,11 +9,20 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
         public Presenter(
             Settings.IGlobalSettingsAccessor settings,
             IRecentlyUsedEntities mru,
-            ISearchHistory searchHistory)
+            ISearchHistory searchHistory,
+            IChangeNotification changeNotification
+        )
         {
             this.settingsAccessor = settings;
             this.recentLogsList = mru;
             this.searchHistory = searchHistory;
+            this.changeNotification = changeNotification;
+
+            this.recentLogsListSizeEditor = new LabeledStepperPresenter.Presenter(changeNotification);
+            this.searchHistoryDepthEditor = new LabeledStepperPresenter.Presenter(changeNotification);
+            this.maxNumberOfSearchResultsEditor = new LabeledStepperPresenter.Presenter(changeNotification);
+            this.logSizeThresholdEditor = new LabeledStepperPresenter.Presenter(changeNotification);
+            this.logWindowSizeEditor = new LabeledStepperPresenter.Presenter(changeNotification);
         }
 
         bool IPresenter.Apply()
@@ -31,16 +40,21 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
             return true;
         }
 
+        IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+        LabeledStepperPresenter.IViewModel IViewModel.RecentLogsListSizeEditor => recentLogsListSizeEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.SearchHistoryDepthEditor => searchHistoryDepthEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.MaxNumberOfSearchResultsEditor => maxNumberOfSearchResultsEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.LogSizeThresholdEditor => logSizeThresholdEditor;
+
+        LabeledStepperPresenter.IViewModel IViewModel.LogWindowSizeEditor => logWindowSizeEditor;
+
         void IViewModel.SetView(IView view)
         {
             this.view = view;
-
-            this.recentLogsListSizeEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.RecentLogsListSizeEditor));
-            this.searchHistoryDepthEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.SearchHistoryDepthEditor));
-            this.maxNumberOfSearchResultsEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.MaxNumberOfSearchResultsEditor));
-            this.logSizeThresholdEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.LogSizeThresholdEditor));
-            this.logWindowSizeEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.LogWindowSizeEditor));
-
 
             this.logSizeThresholdEditor.AllowedValues = new int[] {
                 1,
@@ -214,10 +228,11 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
             view.SetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox, settingsAccessor.EnableAutoPostprocessing);
         }
 
+        readonly IChangeNotification changeNotification;
         readonly IGlobalSettingsAccessor settingsAccessor;
         readonly IRecentlyUsedEntities recentLogsList;
         readonly ISearchHistory searchHistory;
-        LabeledStepperPresenter.IPresenter recentLogsListSizeEditor, searchHistoryDepthEditor,
+        readonly LabeledStepperPresenter.IPresenterInternal recentLogsListSizeEditor, searchHistoryDepthEditor,
             maxNumberOfSearchResultsEditor, logSizeThresholdEditor, logWindowSizeEditor;
         IView view;
 

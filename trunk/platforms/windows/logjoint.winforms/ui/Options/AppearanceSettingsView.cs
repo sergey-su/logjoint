@@ -27,6 +27,7 @@ namespace LogJoint.UI
             this.viewModel = viewModel;
             viewModel.SetView(this);
 
+            fontSizeEditor.SetViewModel(viewModel.FontSizeControl);
             logViewerControl1.SetViewModel(viewModel.LogView);
         }
 
@@ -67,8 +68,6 @@ namespace LogJoint.UI
                 return fontSizesMap;
             }
         }
-
-        Presenters.LabeledStepperPresenter.IView IView.FontSizeControlView => fontSizeEditor;
 
         Control IdToControl(ViewControl controlId)
         {

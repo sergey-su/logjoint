@@ -66,22 +66,15 @@ namespace LogJoint.UI.Presenters.Options
             void FocusControl(ViewControl control);
             bool ShowConfirmationDialog(string message);
             void SetControlText(ViewControl ctrlId, string value);
-            LabeledStepperPresenter.IView GetStepperView(ViewControl ctrlId);
         };
 
         public enum ViewControl
         {
-            RecentLogsListSizeEditor,
             ClearRecentEntriesListLinkLabel,
-            SearchHistoryDepthEditor,
             ClearSearchHistoryLinkLabel,
-            MaxNumberOfSearchResultsEditor,
             LogSpecificStorageEnabledCheckBox,
-            LogSpecificStorageSpaceLimitEditor,
             ClearLogSpecificStorageLinkLabel,
             DisableMultithreadedParsingCheckBox,
-            LogSizeThresholdEditor,
-            LogWindowSizeEditor,
             MemoryConsumptionLabel,
             CollectUnusedMemoryLinkLabel,
             EnableAutoPostprocessingCheckBox,
@@ -90,8 +83,17 @@ namespace LogJoint.UI.Presenters.Options
         public interface IViewModel
         {
             void SetView(IView view);
+
+            IChangeNotification ChangeNotification { get; }
+
             void OnLinkClicked(ViewControl control);
             void OnCheckboxChecked(ViewControl control);
+
+            LabeledStepperPresenter.IViewModel RecentLogsListSizeEditor { get; }
+            LabeledStepperPresenter.IViewModel SearchHistoryDepthEditor { get; }
+            LabeledStepperPresenter.IViewModel MaxNumberOfSearchResultsEditor { get; }
+            LabeledStepperPresenter.IViewModel LogSizeThresholdEditor { get; }
+            LabeledStepperPresenter.IViewModel LogWindowSizeEditor { get; }
         };
 
         internal interface IPresenterInternal : IPresenter, IViewModel { };
@@ -108,7 +110,6 @@ namespace LogJoint.UI.Presenters.Options
         {
             string[] AvailablePreferredFamilies { get; }
             KeyValuePair<LogFontSize, int>[] FontSizes { get; }
-            LabeledStepperPresenter.IView FontSizeControlView { get; }
             void SetSelectorControl(ViewControl selector, string[] options, int selectedOption);
             int GetSelectedValue(ViewControl selector);
         };
@@ -125,6 +126,8 @@ namespace LogJoint.UI.Presenters.Options
             void SetView(IView view);
 
             LogViewer.IViewModel LogView { get; }
+
+            LabeledStepperPresenter.IViewModel FontSizeControl { get; }
 
             void OnSelectedValueChanged(ViewControl ctrl);
         };

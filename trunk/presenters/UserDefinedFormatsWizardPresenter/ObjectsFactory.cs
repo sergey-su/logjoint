@@ -4,6 +4,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 {
     public class Factory : IFactory
     {
+        readonly IChangeNotification changeNotification;
         readonly IAlertPopup alerts;
         readonly IFileDialogs fileDialogs;
         readonly ILogProviderFactoryRegistry registry;
@@ -39,6 +40,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
         };
 
         public Factory(
+            IChangeNotification changeNotification,
             IAlertPopup alerts,
             IFileDialogs fileDialogs,
             Help.IPresenter help,
@@ -51,6 +53,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
             FieldsProcessor.IFactory fieldsProcessorFactory
         )
         {
+            this.changeNotification = changeNotification;
             this.viewFactories = viewFactories;
             this.alerts = alerts;
             this.registry = registry;
@@ -95,7 +98,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
         FormatAdditionalOptionsPage.IPresenter IFactory.CreateFormatAdditionalOptionsPage(IWizardScenarioHost host)
         {
-            return new FormatAdditionalOptionsPage.Presenter(viewFactories.CreateFormatAdditionalOptionsPage(), host, help);
+            return new FormatAdditionalOptionsPage.Presenter(changeNotification, viewFactories.CreateFormatAdditionalOptionsPage(), host, help);
         }
 
         SaveFormatPage.IPresenter IFactory.CreateSaveFormatPage(IWizardScenarioHost host, bool newFormatMode)

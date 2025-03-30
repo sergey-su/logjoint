@@ -4,40 +4,42 @@ using LogJoint.UI.Presenters.LabeledStepperPresenter;
 
 namespace LogJoint.UI
 {
-    public partial class GaugeControl : UserControl, IView
+    public partial class GaugeControl : UserControl
     {
-        IViewEvents viewEvents;
+        IViewModel viewModel;
+        ISubscription subscription;
 
         public GaugeControl()
         {
             InitializeComponent();
         }
 
+        public void SetViewModel(IViewModel viewModel)
+        {
+            this.viewModel = viewModel;
+
+            var updateView = Updaters.Create(
+                () => viewModel.EnabledLabel, () => viewModel.Label,
+                () => viewModel.EnabledUp, () => viewModel.EnabledDown,
+                (enabledLabel, label, enabledUp, enabledDown) =>
+                {
+                    valueLabel.Text = label;
+                    upButton.Enabled = enabledUp;
+                    downButton.Enabled = enabledDown;
+                    this.Enabled = enabledUp | enabledDown | enabledLabel;
+                });
+
+            subscription = viewModel.ChangeNotification.CreateSubscription(updateView);
+        }
+
         private void upButton_Click(object sender, EventArgs e)
         {
-            viewEvents.OnUpButtonClicked();
+            viewModel.OnUpButtonClicked();
         }
 
         private void downButton_Click(object sender, EventArgs e)
         {
-            viewEvents.OnDownButtonClicked();
-        }
-
-        void IView.SetEventsHandler(IViewEvents handler)
-        {
-            this.viewEvents = handler;
-        }
-
-        void IView.SetLabel(string value)
-        {
-            valueLabel.Text = value;
-        }
-
-        void IView.EnableControls(bool enableUp, bool enableDown, bool enableLabel)
-        {
-            upButton.Enabled = enableUp;
-            downButton.Enabled = enableDown;
-            this.Enabled = enableUp | enableDown | enableLabel;
+            viewModel.OnDownButtonClicked();
         }
     }
 }

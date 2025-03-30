@@ -3,21 +3,18 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.LabeledStepperPresenter
 {
-    public class Presenter : IPresenter, IViewEvents
+    public class Presenter : IPresenter, IViewModel, IPresenterInternal
     {
-        readonly IView view;
+        readonly IChangeNotification changeNotification;
         int currentValue;
         int[] allowedValues;
         int minValue = int.MinValue;
         int maxValue = int.MaxValue;
         bool enabled = true;
 
-        public Presenter(
-            IView view
-        )
+        public Presenter(IChangeNotification changeNotification)
         {
-            this.view = view;
-            view.SetEventsHandler(this);
+            this.changeNotification = changeNotification;
         }
 
         public event EventHandler<EventArgs> OnValueChanged;
@@ -29,7 +26,7 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
             {
                 allowedValues = value?.ToArray(); // protective copying
                 EnforceConstraints();
-                UpdateView();
+                changeNotification.Post();
             }
         }
 
@@ -40,7 +37,7 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
             {
                 minValue = value;
                 EnforceConstraints();
-                UpdateView();
+                changeNotification.Post();
             }
         }
 
@@ -51,7 +48,7 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
             {
                 maxValue = value;
                 EnforceConstraints();
-                UpdateView();
+                changeNotification.Post();
             }
         }
 
@@ -65,7 +62,7 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
             {
                 currentValue = value;
                 EnforceConstraints();
-                UpdateView();
+                changeNotification.Post();
             }
         }
 
@@ -77,11 +74,21 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
                 if (enabled == value)
                     return;
                 enabled = value;
-                UpdateView();
+                changeNotification.Post();
             }
         }
 
-        void IViewEvents.OnDownButtonClicked()
+        IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+        string IViewModel.Label => currentValue.ToString();
+
+        bool IViewModel.EnabledUp => AllowedValuesSpecified ? enabled && UpAllowed : enabled;
+
+        bool IViewModel.EnabledDown => AllowedValuesSpecified ? enabled && DownAllowed : enabled;
+
+        bool IViewModel.EnabledLabel => enabled;
+
+        void IViewModel.OnDownButtonClicked()
         {
             if (AllowedValuesSpecified)
             {
@@ -93,10 +100,10 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
                 --currentValue;
             }
             FireValueChanged();
-            UpdateView();
+            changeNotification.Post();
         }
 
-        void IViewEvents.OnUpButtonClicked()
+        void IViewModel.OnUpButtonClicked()
         {
             if (AllowedValuesSpecified)
             {
@@ -108,28 +115,7 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
                 ++currentValue;
             }
             FireValueChanged();
-            UpdateView();
-        }
-
-        void UpdateView()
-        {
-            view.SetLabel(currentValue.ToString());
-            if (AllowedValuesSpecified)
-            {
-                view.EnableControls(
-                    enableUp: enabled && UpAllowed,
-                    enableDown: enabled && DownAllowed,
-                    enableLabel: enabled
-                );
-            }
-            else
-            {
-                view.EnableControls(
-                    enableUp: enabled,
-                    enableDown: enabled,
-                    enableLabel: enabled
-                );
-            }
+            changeNotification.Post();
         }
 
         bool UpAllowed => currentValue != allowedValues.Last();

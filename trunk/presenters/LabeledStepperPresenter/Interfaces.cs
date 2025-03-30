@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.LabeledStepperPresenter
 {
@@ -13,16 +12,16 @@ namespace LogJoint.UI.Presenters.LabeledStepperPresenter
         bool Enabled { get; set; }
     };
 
-    public interface IView
+    public interface IViewModel
     {
-        void SetEventsHandler(IViewEvents handler);
-        void SetLabel(string value);
-        void EnableControls(bool enableUp, bool enableDown, bool enableLabel);
-    };
-
-    public interface IViewEvents
-    {
+        IChangeNotification ChangeNotification { get; }
+        string Label { get; }
+        bool EnabledUp { get; }
+        bool EnabledDown { get; }
+        bool EnabledLabel { get; }
         void OnUpButtonClicked();
         void OnDownButtonClicked();
     };
+
+    public interface IPresenterInternal : IPresenter, IViewModel { };
 };

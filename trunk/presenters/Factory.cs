@@ -328,6 +328,7 @@ namespace LogJoint.UI.Presenters
                 ),
                 new FormatsWizard.Presenter(
                     new FormatsWizard.Factory(
+                        model.ChangeNotification,
                         alertPopup,
                         fileDialogs,
                         helpPresenter,
@@ -443,7 +444,7 @@ namespace LogJoint.UI.Presenters
 
             Options.Dialog.IPresenter optionsDialogPresenter = optionsDialogView != null ? new Options.Dialog.Presenter(
                 optionsDialogView,
-                new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory),
+                new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory, model.ChangeNotification),
                 new Options.Appearance.Presenter(model.GlobalSettingsAccessor, logViewerPresenterFactory, model.ChangeNotification, colorTheme),
                 new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor),
                 new Options.Plugins.Presenter(model.PluginsManager, model.ChangeNotification, model.AutoUpdater)

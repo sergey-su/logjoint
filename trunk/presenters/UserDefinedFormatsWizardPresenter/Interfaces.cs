@@ -185,7 +185,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
         public interface IView
         {
-            void SetEventsHandler(IViewEvents eventsHandler);
+            void SetViewModel(IViewModel eventsHandler);
             void SetPatternsListBoxItems(string[] value);
             int[] GetPatternsListBoxSelection();
             void SetEncodingComboBoxItems(string[] items);
@@ -193,10 +193,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
             bool EnableDejitterCheckBoxChecked { get; set; }
             void EnableControls(bool addExtensionButton, bool removeExtensionButton);
             string ExtensionTextBoxValue { get; set; }
-            LabeledStepperPresenter.IView BufferStepperView { get; }
         };
 
-        public interface IViewEvents
+        public interface IViewModel
         {
             void OnExtensionTextBoxChanged();
             void OnExtensionsListBoxSelectionChanged();
@@ -204,6 +203,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
             void OnDelExtensionClicked();
             void OnEnableDejitterCheckBoxClicked();
             void OnDejitterHelpLinkClicked();
+            LabeledStepperPresenter.IViewModel BufferStepper { get; }
         };
     };
 
