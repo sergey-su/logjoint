@@ -7,6 +7,7 @@ namespace LogJoint.UI.Presenters.InlineSearch
         readonly IChangeNotification changeNotification;
         readonly QuickSearchTextBox.IPresenter searchBox;
         bool isVisible;
+        Func<HitCounts> hitCount;
 
         public Presenter(IChangeNotification changeNotification)
         {
@@ -24,6 +25,8 @@ namespace LogJoint.UI.Presenters.InlineSearch
 
         bool IViewModel.IsVisible => isVisible;
 
+        HitCounts IViewModel.HitCounts => hitCount != null ? hitCount() : null;
+
         public event EventHandler<SearchEventArgs> OnSearch;
 
         void IPresenter.Hide() => DoHide();
@@ -38,11 +41,12 @@ namespace LogJoint.UI.Presenters.InlineSearch
 
         void IViewModel.OnPrevClicked() => DoSearch(reverse: true);
 
-        void IPresenter.Show(string initialSearchString)
+        void IPresenter.Show(string initialSearchString, Func<HitCounts> hitCount)
         {
             if (!isVisible)
             {
                 isVisible = true;
+                this.hitCount = hitCount;
                 changeNotification.Post();
             }
             searchBox.Focus(initialSearchString);
@@ -53,6 +57,7 @@ namespace LogJoint.UI.Presenters.InlineSearch
             if (isVisible)
             {
                 isVisible = false;
+                hitCount = null;
                 changeNotification.Post();
             }
         }

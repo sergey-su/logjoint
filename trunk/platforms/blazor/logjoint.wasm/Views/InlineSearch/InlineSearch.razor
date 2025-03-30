@@ -8,6 +8,11 @@
 {
     <div class='inline-search @Class'>
         <QuickSearchTextBox Class="text" ViewModel="@ViewModel.QuickSearchTextBox" />
+        @{var hitCounts = ViewModel.HitCounts;}
+        @if (hitCounts != null)
+        {
+            <span class="counts">@(hitCounts.Current?.ToString() ?? "?")/@(hitCounts.Total?.ToString() ?? "?")</span>
+        }
         <button class="prev" @onclick="@ViewModel.OnPrevClicked">
             <CollapseContentIcon />
         </button>
