@@ -106,7 +106,7 @@ namespace LogJoint.UI.Presenters.Options
         {
             LogViewer.IView PreviewLogView { get; }
             LabeledStepperPresenter.IView FontSizeControlView { get; }
-            void SetPresenter(IViewEvents presenter);
+            void SetPresenter(IViewEvents presenter); // todo: remove
             void SetSelectorControl(ViewControl selector, string[] options, int selectedOption);
             int GetSelectedValue(ViewControl selector);
         };

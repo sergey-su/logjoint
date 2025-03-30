@@ -1336,7 +1336,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             return Selectors.Create(
                 () => (screenBuffer.Messages, bookmarks?.Items),
                 () => (displayTextGetter: displayTextGetterSelector(), showTime, showMilliseconds, coloring: appearanceStrategy.Coloring,
-                    logSourceColorsRevision, threadColors: theme.ThreadColors, annotations: annotationsRegistry.Annotations),
+                    logSourceColorsRevision, threadColors: theme.ThreadColors, annotations: annotationsRegistry?.Annotations),
                 () => (highlightingManager.SearchResultHandler, highlightingManager.SelectionHandler, highlightingManager.HighlightingFiltersHandler),
                 () => (selectionManager.Selection, selectionManager.ViewLinesRange, selectionManager.CursorViewLine, selectionManager.CursorState),
                 (data, displayProps, highlightingProps, selectionProps) =>

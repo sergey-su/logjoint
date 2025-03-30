@@ -87,7 +87,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
         private static IReadOnlyList<TextLineAnnotation> GetTextLineAnnotations(string str, IAnnotationsSnapshot annotations)
         {
-            if (annotations.IsEmpty)
+            if (annotations == null || annotations.IsEmpty)
                 return null;
             return [.. annotations.FindAnnotations(str).Select(
                 e => new TextLineAnnotation() { TextStartIndex = e.BeginIndex, TextEndIndex = e.EndIndex, Value = e.Annotation, key = e.Key })];
