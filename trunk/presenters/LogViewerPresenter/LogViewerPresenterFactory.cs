@@ -95,7 +95,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                 new PermissiveAppearanceStrategy(changeNotification),
                 debugAgentConfig, presentersFacade, null, null
             );
-            view.SetViewModel(result);
+            view?.SetViewModel(result);
             return result;
         }
 

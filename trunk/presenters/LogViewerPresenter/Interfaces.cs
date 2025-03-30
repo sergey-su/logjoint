@@ -208,13 +208,7 @@ namespace LogJoint.UI.Presenters.LogViewer
         DoDefaultAction
     };
 
-    public interface IViewFonts
-    {
-        string[] AvailablePreferredFamilies { get; }
-        KeyValuePair<LogFontSize, int>[] FontSizes { get; }
-    };
-
-    public interface IView : IViewFonts
+    public interface IView
     {
         void SetViewModel(IViewModel viewEvents); // todo: remove this method
         float DisplayLinesPerPage { get; }

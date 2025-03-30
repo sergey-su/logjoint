@@ -2,6 +2,9 @@
 using LogJoint.UI.Presenters.Options.Appearance;
 using System;
 using System.Linq;
+using static LogJoint.Settings.Appearance;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace LogJoint.UI
 {
@@ -11,7 +14,6 @@ namespace LogJoint.UI
         {
             InitializeComponent();
 
-
             controls = new Tuple<ViewControl, Control>[]
             {
                 Tuple.Create(ViewControl.ColoringSelector, (Control)coloringModeComboBox),
@@ -20,12 +22,13 @@ namespace LogJoint.UI
             };
         }
 
-        void IView.SetPresenter(IViewEvents presenter)
+        public void SetViewModel(IViewModel viewModel)
         {
-            this.presenter = presenter;
-        }
+            this.viewModel = viewModel;
+            viewModel.SetView(this);
 
-        Presenters.LogViewer.IView IView.PreviewLogView { get { return logViewerControl1; } }
+            logViewerControl1.SetViewModel(viewModel.LogView);
+        }
 
         void IView.SetSelectorControl(ViewControl selector, string[] options, int selectedOption)
         {
@@ -45,6 +48,26 @@ namespace LogJoint.UI
             return ctrl.SelectedIndex;
         }
 
+        string[] IView.AvailablePreferredFamilies
+        {
+            get
+            {
+                if (availablePreferredFontFamilies == null)
+                    availablePreferredFontFamilies = LogViewerControl.GetAvailablePreferredFontFamilies();
+                return availablePreferredFontFamilies;
+            }
+        }
+
+        KeyValuePair<LogFontSize, int>[] IView.FontSizes
+        {
+            get
+            {
+                if (fontSizesMap == null)
+                    fontSizesMap = LogViewerControl.MakeFontSizesMap();
+                return fontSizesMap;
+            }
+        }
+
         Presenters.LabeledStepperPresenter.IView IView.FontSizeControlView => fontSizeEditor;
 
         Control IdToControl(ViewControl controlId)
@@ -61,10 +84,12 @@ namespace LogJoint.UI
         {
             var ctrl = ControlToId(sender as Control);
             if (ctrl != null)
-                presenter.OnSelectedValueChanged(ctrl.Value);
+                viewModel.OnSelectedValueChanged(ctrl.Value);
         }
 
-        IViewEvents presenter;
+        IViewModel viewModel;
         Tuple<ViewControl, Control>[] controls;
+        string[] availablePreferredFontFamilies;
+        KeyValuePair<LogFontSize, int>[] fontSizesMap;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using static LogJoint.Settings.Appearance;
 
 namespace LogJoint.UI.Presenters.Options
 {
@@ -12,17 +13,16 @@ namespace LogJoint.UI.Presenters.Options
 
         public interface IView
         {
-            IDialog CreateDialog();
+            IDialog CreateDialog(IDialogViewModel viewModel);
         };
 
 
         public interface IDialog : IDisposable
         {
-            void SetViewModel(IDialogViewModel viewModel);
             MemAndPerformancePage.IView MemAndPerformancePage { get; }
-            Appearance.IView ApperancePage { get; }
             UpdatesAndFeedback.IView UpdatesAndFeedbackPage { get; }
             Plugins.IView PluginsPage { get; }
+
             void Show(PageId? initiallySelectedPage);
             void Hide();
         };
@@ -32,6 +32,7 @@ namespace LogJoint.UI.Presenters.Options
             void OnOkPressed();
             void OnCancelPressed();
             PageId VisiblePages { get; }
+            Appearance.IViewModel AppearancePage { get; }
         };
 
         public interface IPagePresenter
@@ -104,9 +105,9 @@ namespace LogJoint.UI.Presenters.Options
 
         public interface IView
         {
-            LogViewer.IView PreviewLogView { get; }
+            string[] AvailablePreferredFamilies { get; }
+            KeyValuePair<LogFontSize, int>[] FontSizes { get; }
             LabeledStepperPresenter.IView FontSizeControlView { get; }
-            void SetPresenter(IViewEvents presenter); // todo: remove
             void SetSelectorControl(ViewControl selector, string[] options, int selectedOption);
             int GetSelectedValue(ViewControl selector);
         };
@@ -118,9 +119,17 @@ namespace LogJoint.UI.Presenters.Options
             PaletteSelector
         };
 
-        public interface IViewEvents
+        public interface IViewModel
         {
+            void SetView(IView view);
+
+            LogViewer.IViewModel LogView { get; }
+
             void OnSelectedValueChanged(ViewControl ctrl);
+        };
+
+        internal interface IPresenterInternal: IPresenter, IViewModel
+        {
         };
     };
 

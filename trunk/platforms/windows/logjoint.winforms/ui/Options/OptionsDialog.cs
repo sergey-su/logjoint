@@ -15,9 +15,11 @@ namespace LogJoint.UI
         IDialogViewModel viewModel;
         readonly Dictionary<PageId, TabPage> pages;
 
-        public OptionsDialog(Windows.Reactive.IReactive reactive)
+        public OptionsDialog(Windows.Reactive.IReactive reactive, IDialogViewModel viewModel)
         {
             InitializeComponent();
+            this.viewModel = viewModel;
+            appearanceSettingsView1.SetViewModel(viewModel.AppearancePage);
             pluginsView1.Init(reactive);
             pages = new Dictionary<PageId, TabPage>
             {
@@ -28,15 +30,10 @@ namespace LogJoint.UI
             };
         }
 
-        void IDialog.SetViewModel(IDialogViewModel value)
-        {
-            this.viewModel = value;
-            foreach (var p in pages)
-                SetPageVisibility((viewModel.VisiblePages & p.Key) != 0, p.Value);
-        }
-
         void IDialog.Show(PageId? initiallySelectedPage)
         {
+            foreach (var page in pages)
+                SetPageVisibility((viewModel.VisiblePages & page.Key) != 0, page.Value);
             if (initiallySelectedPage.HasValue && pages.TryGetValue(initiallySelectedPage.Value, out var p))
                 tabControl1.SelectedIndex = tabControl1.TabPages.IndexOf(p);
             this.ShowDialog();
@@ -51,12 +48,6 @@ namespace LogJoint.UI
         {
             get { return memAndPerformanceSettingsView; }
         }
-
-        Presenters.Options.Appearance.IView IDialog.ApperancePage
-        {
-            get { return appearanceSettingsView1; }
-        }
-
         Presenters.Options.UpdatesAndFeedback.IView IDialog.UpdatesAndFeedbackPage
         {
             get { return updatesAndFeedbackView1; }
@@ -99,9 +90,9 @@ namespace LogJoint.UI
             this.reactive = reactive;
         }
 
-        IDialog IView.CreateDialog()
+        IDialog IView.CreateDialog(IDialogViewModel viewModel)
         {
-            return new OptionsDialog(reactive);
+            return new OptionsDialog(reactive, viewModel);
         }
     };
 }

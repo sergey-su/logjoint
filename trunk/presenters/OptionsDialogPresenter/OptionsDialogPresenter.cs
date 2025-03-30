@@ -2,38 +2,35 @@ using System;
 
 namespace LogJoint.UI.Presenters.Options.Dialog
 {
-    public class Presenter : IPresenter, IDialogViewModel
+    internal class Presenter : IPresenter, IDialogViewModel
     {
         public Presenter(
             IView view,
             Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory,
-            Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory,
+            Appearance.IPresenterInternal appearancePresenter,
             Func<UpdatesAndFeedback.IView, UpdatesAndFeedback.IPresenter> updatesAndFeedbackPresenterFactory,
             Func<Plugins.IView, Plugins.IPresenter> pluginsPresenterFactory
         )
         {
             this.view = view;
             this.memAndPerformancePagePresenterFactory = memAndPerformancePagePresenterFactory;
-            this.appearancePresenterFactory = appearancePresenterFactory;
+            this.appearancePresenter = appearancePresenter;
             this.updatesAndFeedbackPresenterFactory = updatesAndFeedbackPresenterFactory;
             this.pluginsPresenterFactory = pluginsPresenterFactory;
         }
 
         void IPresenter.ShowDialog(PageId? initiallySelectedPage)
         {
-            using var dialog = view.CreateDialog();
+            using var dialog = view.CreateDialog(this);
             currentDialog = dialog;
             if (dialog.MemAndPerformancePage != null)
                 memAndPerformancePagePresenter = memAndPerformancePagePresenterFactory(dialog.MemAndPerformancePage);
-            if (dialog.ApperancePage != null)
-                appearancePresenter = appearancePresenterFactory(dialog.ApperancePage);
             if (dialog.UpdatesAndFeedbackPage != null)
                 updatesAndFeedbackPresenter = updatesAndFeedbackPresenterFactory(dialog.UpdatesAndFeedbackPage);
             if (dialog.PluginsPage != null)
                 pluginPresenter = pluginsPresenterFactory(dialog.PluginsPage);
             if (initiallySelectedPage != null && (GetVisiblePages() & initiallySelectedPage.Value) == 0)
                 initiallySelectedPage = null;
-            currentDialog.SetViewModel(this);
             currentDialog.Show(initiallySelectedPage);
             currentDialog = null;
         }
@@ -57,6 +54,8 @@ namespace LogJoint.UI.Presenters.Options.Dialog
         }
 
         PageId IDialogViewModel.VisiblePages => GetVisiblePages();
+
+        Appearance.IViewModel IDialogViewModel.AppearancePage => appearancePresenter;
 
         #region Implementation
 
@@ -84,7 +83,7 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 
         IDialog currentDialog;
         MemAndPerformancePage.IPresenter memAndPerformancePagePresenter;
-        Appearance.IPresenter appearancePresenter;
+        Appearance.IPresenterInternal appearancePresenter;
         UpdatesAndFeedback.IPresenter updatesAndFeedbackPresenter;
         Plugins.IPresenter pluginPresenter;
 

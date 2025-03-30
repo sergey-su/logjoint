@@ -10,17 +10,15 @@ using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 
 namespace LogJoint.UI.Presenters.Options.Appearance
 {
-    public class Presenter : IPresenter, IViewEvents, IDisposable
+    public class Presenter : IPresenter, IViewModel, IDisposable, IPresenterInternal
     {
         public Presenter(
             Settings.IGlobalSettingsAccessor settings,
-            IView view,
             LogViewer.IPresenterFactory logViewerPresenterFactory,
             IChangeNotification changeNotification,
             IColorTheme theme
         )
         {
-            this.view = view;
             this.settingsAccessor = settings;
 
             this.sampleMessagesBaseTime = DateTime.UtcNow;
@@ -28,7 +26,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
             this.sampleThreads = new ModelThreads(new ColorLease(temporaryColorTheme.ThreadColorsCount));
             this.dummyModel = new LogViewer.DummyModel();
             this.sampleLogViewerPresenter = logViewerPresenterFactory.CreateIsolatedPresenter(
-                dummyModel, view.PreviewLogView,
+                dummyModel, null,
                 theme: temporaryColorTheme);
             this.sampleLogViewerPresenter.ShowTime = false;
             this.sampleLogViewerPresenter.ShowRawMessages = false;
@@ -37,17 +35,6 @@ namespace LogJoint.UI.Presenters.Options.Appearance
                 LogViewer.UserInteraction.RawViewSwitching |
                 LogViewer.UserInteraction.FramesNavigationMenu |
                 LogViewer.UserInteraction.CopyMenu;
-
-            this.viewFonts = view.PreviewLogView;
-
-            this.fontSizeControl = new LabeledStepperPresenter.Presenter(view.FontSizeControlView);
-            this.fontSizeControl.OnValueChanged += (sender, e) => UpdateSampleLogView(fullUpdate: false);
-
-            view.SetPresenter(this);
-
-            InitView();
-
-            UpdateSampleLogView(fullUpdate: true);
         }
 
         void IDisposable.Dispose()
@@ -67,10 +54,24 @@ namespace LogJoint.UI.Presenters.Options.Appearance
             return true;
         }
 
-        void IViewEvents.OnSelectedValueChanged(ViewControl ctrl)
+        void IViewModel.OnSelectedValueChanged(ViewControl ctrl)
         {
             UpdateSampleLogView(fullUpdate: ctrl == ViewControl.PaletteSelector);
         }
+
+        void IViewModel.SetView(IView view)
+        {
+            this.view = view;
+
+            this.fontSizeControl = new LabeledStepperPresenter.Presenter(view.FontSizeControlView);
+            this.fontSizeControl.OnValueChanged += (sender, e) => UpdateSampleLogView(fullUpdate: false);
+
+            InitView();
+
+            UpdateSampleLogView(fullUpdate: true);
+        }
+
+        LogViewer.IViewModel IViewModel.LogView => sampleLogViewerPresenter;
 
         #region Implementation
 
@@ -80,18 +81,18 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
             view.SetSelectorControl(ViewControl.ColoringSelector, coloringModes, (int)appearance.Coloring);
 
-            view.SetSelectorControl(ViewControl.FontFamilySelector, viewFonts.AvailablePreferredFamilies,
-                viewFonts.AvailablePreferredFamilies.IndexOf(f => string.Compare(f, appearance.FontFamily ?? "", true) == 0).GetValueOrDefault(0));
+            view.SetSelectorControl(ViewControl.FontFamilySelector, view.AvailablePreferredFamilies,
+                view.AvailablePreferredFamilies.IndexOf(f => string.Compare(f, appearance.FontFamily ?? "", true) == 0).GetValueOrDefault(0));
 
             fontSizeControl.AllowedValues =
-                viewFonts.FontSizes
+                view.FontSizes
                     .Select(p => p.Value)
                     .ToArray();
             fontSizeControl.Value =
-                viewFonts.FontSizes
+                view.FontSizes
                     .Where(p => p.Key == appearance.FontSize)
                     .Select(p => p.Value)
-                    .FirstOrDefault(viewFonts.FontSizes[0].Value);
+                    .FirstOrDefault(view.FontSizes[0].Value);
 
             view.SetSelectorControl(ViewControl.PaletteSelector, coloringPalettes, (int)appearance.ColoringBrightness);
         }
@@ -129,7 +130,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
         LogFontSize ReadFontSizeControl()
         {
-            return viewFonts.FontSizes
+            return view.FontSizes
                 .Where(p => p.Value == fontSizeControl.Value)
                 .Select(p => p.Key)
                 .FirstOrDefault(LogFontSize.Normal);
@@ -138,7 +139,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
         string ReadFontNameControl()
         {
             int selectedFont = view.GetSelectedValue(ViewControl.FontFamilySelector);
-            var availableFonts = viewFonts.AvailablePreferredFamilies;
+            var availableFonts = view.AvailablePreferredFamilies;
             return (selectedFont >= 0 && selectedFont < availableFonts.Length) ? availableFonts[selectedFont] : null;
         }
 
@@ -194,15 +195,14 @@ namespace LogJoint.UI.Presenters.Options.Appearance
             "Bright",
         };
 
-        readonly IView view;
         readonly IGlobalSettingsAccessor settingsAccessor;
-        readonly LogViewer.IViewFonts viewFonts;
         readonly LogViewer.IPresenterInternal sampleLogViewerPresenter;
         readonly TemporaryColorTheme temporaryColorTheme;
         readonly IModelThreadsInternal sampleThreads;
         readonly LogViewer.DummyModel dummyModel;
         readonly DateTime sampleMessagesBaseTime;
-        readonly LabeledStepperPresenter.IPresenter fontSizeControl;
+        IView view;
+        LabeledStepperPresenter.IPresenter fontSizeControl;
 
         #endregion
 

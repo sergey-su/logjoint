@@ -13,7 +13,7 @@ using System.Globalization;
 
 namespace LogJoint.UI
 {
-    public partial class LogViewerControl : Control, IView, IViewFonts
+    public partial class LogViewerControl : Control, IView
     {
         public LogViewerControl()
         {
@@ -166,26 +166,6 @@ namespace LogJoint.UI
             if (viewLineIndex.HasValue)
                 return new LJD.Point(0, viewDrawing.GetMessageRect(viewModel.ViewLines[viewLineIndex.Value]).Bottom);
             return new LJD.Point();
-        }
-
-        string[] IViewFonts.AvailablePreferredFamilies
-        {
-            get
-            {
-                if (availablePreferredFontFamilies == null)
-                    availablePreferredFontFamilies = GetAvailablePreferredFontFamilies();
-                return availablePreferredFontFamilies;
-            }
-        }
-
-        KeyValuePair<LogFontSize, int>[] IViewFonts.FontSizes
-        {
-            get
-            {
-                if (fontSizesMap == null)
-                    fontSizesMap = MakeFontSizesMap();
-                return fontSizesMap;
-            }
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -460,13 +440,13 @@ namespace LogJoint.UI
         /// </summary>
         static string GetNormalizedFontName(FontFamily f) => f.GetName(1033).ToLower();
 
-        static string[] GetAvailablePreferredFontFamilies()
+        public static string[] GetAvailablePreferredFontFamilies()
         {
             var availableFamilies = FontFamily.Families.ToLookup(GetNormalizedFontName);
             return CreateWindowsPreferredFontFamiliesList().Where(f => availableFamilies[f.ToLower()].Any()).ToArray();
         }
 
-        static KeyValuePair<LogFontSize, int>[] MakeFontSizesMap()
+        public static KeyValuePair<LogFontSize, int>[] MakeFontSizesMap()
         {
             return Enumerable
                 .Range((int)LogFontSize.Minimum, LogFontSize.Maximum - LogFontSize.Minimum)
@@ -878,8 +858,6 @@ namespace LogJoint.UI
         EmptyMessagesCollectionMessage emptyMessagesCollectionMessage;
         Tuple<ToolStripMenuItem, ContextMenuItem>[] menuItemsMap;
         List<ToolStripItem> lastExtendedItems;
-        string[] availablePreferredFontFamilies;
-        KeyValuePair<LogFontSize, int>[] fontSizesMap;
         int scrollPosXCache;
         int viewWidthCache;
     }

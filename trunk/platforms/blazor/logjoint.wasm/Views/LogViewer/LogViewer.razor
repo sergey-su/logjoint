@@ -214,10 +214,6 @@
 
     bool IView.HasInputFocus => focused;
 
-    string[] IViewFonts.AvailablePreferredFamilies => new string[0];
-
-    KeyValuePair<Appearance.LogFontSize, int>[] IViewFonts.FontSizes => new KeyValuePair<Appearance.LogFontSize, int>[0];
-
     object IView.GetContextMenuPopupData(int? viewLineIndex) => null;
 
     void IView.HScrollToSelectedText(int charIndex)
