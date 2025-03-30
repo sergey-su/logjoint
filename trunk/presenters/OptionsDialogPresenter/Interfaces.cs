@@ -17,12 +17,8 @@ namespace LogJoint.UI.Presenters.Options
         };
 
 
-        public interface IDialog : IDisposable
+        public interface IDialog : IDisposable // todo: remove, make reactive
         {
-            MemAndPerformancePage.IView MemAndPerformancePage { get; }
-            UpdatesAndFeedback.IView UpdatesAndFeedbackPage { get; }
-            Plugins.IView PluginsPage { get; }
-
             void Show(PageId? initiallySelectedPage);
             void Hide();
         };
@@ -33,6 +29,9 @@ namespace LogJoint.UI.Presenters.Options
             void OnCancelPressed();
             PageId VisiblePages { get; }
             Appearance.IViewModel AppearancePage { get; }
+            MemAndPerformancePage.IViewModel MemAndPerformancePage { get; }
+            UpdatesAndFeedback.IViewModel UpdatesAndFeedbackPage { get; }
+            Plugins.IViewModel PluginsPage { get; }
         };
 
         public interface IPagePresenter
@@ -58,9 +57,8 @@ namespace LogJoint.UI.Presenters.Options
             bool Apply();
         };
 
-        public interface IView
+        public interface IView // todo: remove, make reactive
         {
-            void SetPresenter(IViewEvents presenter);
             bool GetControlEnabled(ViewControl control);
             void SetControlEnabled(ViewControl control, bool value);
             bool GetControlChecked(ViewControl control);
@@ -89,11 +87,14 @@ namespace LogJoint.UI.Presenters.Options
             EnableAutoPostprocessingCheckBox,
         };
 
-        public interface IViewEvents
+        public interface IViewModel
         {
+            void SetView(IView view);
             void OnLinkClicked(ViewControl control);
             void OnCheckboxChecked(ViewControl control);
         };
+
+        internal interface IPresenterInternal : IPresenter, IViewModel { };
     };
 
     namespace Appearance
@@ -141,17 +142,19 @@ namespace LogJoint.UI.Presenters.Options
             bool Apply();
         };
 
-        public interface IView
+        public interface IView // todo: remove, make reactive
         {
-            void SetPresenter(IViewEvents presenter);
             void SetLastUpdateCheckInfo(string brief, string details);
             void SetCheckNowButtonAvailability(bool canCheckNow);
         };
 
-        public interface IViewEvents
+        public interface IViewModel
         {
+            void SetView(IView view);
             void OnCheckUpdateNowClicked();
         };
+
+        internal interface IPresenterInternal : IPresenter, IViewModel {};
     };
 
     namespace Plugins
@@ -159,11 +162,6 @@ namespace LogJoint.UI.Presenters.Options
         public interface IPresenter : IDisposable, IPageAvailability
         {
             bool Apply();
-        };
-
-        public interface IView
-        {
-            void SetViewModel(IViewModel viewModel);
         };
 
         public interface IViewModel
@@ -175,6 +173,8 @@ namespace LogJoint.UI.Presenters.Options
             void OnSelect(IPluginListItem item);
             void OnAction();
         };
+
+        internal interface IPresenterInternal : IPresenter, IViewModel { };
 
         [Flags]
         public enum StatusFlags

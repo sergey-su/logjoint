@@ -12,16 +12,17 @@ namespace LogJoint.UI
 {
     public partial class UpdatesAndFeedbackView : UserControl, IView
     {
-        IViewEvents presenter;
+        IViewModel viewModel;
 
         public UpdatesAndFeedbackView()
         {
             InitializeComponent();
         }
 
-        void IView.SetPresenter(IViewEvents presenter)
+        public void SetViewModel(IViewModel viewModel)
         {
-            this.presenter = presenter;
+            this.viewModel = viewModel;
+            viewModel.SetView(this);
         }
 
         void IView.SetLastUpdateCheckInfo(string breif, string details)
@@ -54,7 +55,7 @@ namespace LogJoint.UI
 
         private void checkForUpdateLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            presenter.OnCheckUpdateNowClicked();
+            viewModel.OnCheckUpdateNowClicked();
         }
     }
 }

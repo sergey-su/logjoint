@@ -4,23 +4,43 @@ using LogJoint.MRU;
 
 namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 {
-    public class Presenter : IPresenter, IViewEvents
+    internal class Presenter : IPresenter, IViewModel, IPresenterInternal
     {
         public Presenter(
             Settings.IGlobalSettingsAccessor settings,
             IRecentlyUsedEntities mru,
-            ISearchHistory searchHistory,
-            IView view)
+            ISearchHistory searchHistory)
         {
-            this.view = view;
             this.settingsAccessor = settings;
             this.recentLogsList = mru;
             this.searchHistory = searchHistory;
+        }
+
+        bool IPresenter.Apply()
+        {
+            recentLogsList.RecentEntriesListSizeLimit = recentLogsListSizeEditor.Value;
+            searchHistory.MaxCount = searchHistoryDepthEditor.Value;
+            settingsAccessor.MultithreadedParsingDisabled = view.GetControlChecked(ViewControl.DisableMultithreadedParsingCheckBox);
+            settingsAccessor.MaxNumberOfHitsInSearchResultsView = maxNumberOfSearchResultsEditor.Value;
+            settingsAccessor.FileSizes = new FileSizes()
+            {
+                Threshold = logSizeThresholdEditor.Value,
+                WindowSize = logWindowSizeEditor.Value
+            };
+            settingsAccessor.EnableAutoPostprocessing = view.GetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox);
+            return true;
+        }
+
+        void IViewModel.SetView(IView view)
+        {
+            this.view = view;
+
             this.recentLogsListSizeEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.RecentLogsListSizeEditor));
             this.searchHistoryDepthEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.SearchHistoryDepthEditor));
             this.maxNumberOfSearchResultsEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.MaxNumberOfSearchResultsEditor));
             this.logSizeThresholdEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.LogSizeThresholdEditor));
             this.logWindowSizeEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.LogWindowSizeEditor));
+
 
             this.logSizeThresholdEditor.AllowedValues = new int[] {
                 1,
@@ -102,27 +122,10 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
                 1500};
             this.recentLogsListSizeEditor.Value = 0;
 
-            view.SetPresenter(this);
-
             UpdateView();
         }
 
-        bool IPresenter.Apply()
-        {
-            recentLogsList.RecentEntriesListSizeLimit = recentLogsListSizeEditor.Value;
-            searchHistory.MaxCount = searchHistoryDepthEditor.Value;
-            settingsAccessor.MultithreadedParsingDisabled = view.GetControlChecked(ViewControl.DisableMultithreadedParsingCheckBox);
-            settingsAccessor.MaxNumberOfHitsInSearchResultsView = maxNumberOfSearchResultsEditor.Value;
-            settingsAccessor.FileSizes = new FileSizes()
-            {
-                Threshold = logSizeThresholdEditor.Value,
-                WindowSize = logWindowSizeEditor.Value
-            };
-            settingsAccessor.EnableAutoPostprocessing = view.GetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox);
-            return true;
-        }
-
-        void IViewEvents.OnLinkClicked(ViewControl control)
+        void IViewModel.OnLinkClicked(ViewControl control)
         {
             if (control == ViewControl.ClearRecentEntriesListLinkLabel)
             {
@@ -149,7 +152,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
             }
         }
 
-        void IViewEvents.OnCheckboxChecked(ViewControl control)
+        void IViewModel.OnCheckboxChecked(ViewControl control)
         {
         }
 
@@ -211,12 +214,12 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
             view.SetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox, settingsAccessor.EnableAutoPostprocessing);
         }
 
-        readonly IView view;
         readonly IGlobalSettingsAccessor settingsAccessor;
         readonly IRecentlyUsedEntities recentLogsList;
         readonly ISearchHistory searchHistory;
-        readonly LabeledStepperPresenter.IPresenter recentLogsListSizeEditor, searchHistoryDepthEditor,
+        LabeledStepperPresenter.IPresenter recentLogsListSizeEditor, searchHistoryDepthEditor,
             maxNumberOfSearchResultsEditor, logSizeThresholdEditor, logWindowSizeEditor;
+        IView view;
 
         #endregion
     };

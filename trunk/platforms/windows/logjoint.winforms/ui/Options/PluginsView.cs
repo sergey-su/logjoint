@@ -10,7 +10,7 @@ using LogJoint.UI.Presenters.Options.Plugins;
 
 namespace LogJoint.UI
 {
-    public partial class PluginsView : UserControl, IView
+    public partial class PluginsView : UserControl
     {
         IViewModel viewModel;
         Windows.Reactive.IListBoxController<IPluginListItem> pluginsListController;
@@ -20,13 +20,14 @@ namespace LogJoint.UI
             InitializeComponent();
         }
 
-        public void Init(Windows.Reactive.IReactive reactive)
+        public void Init(IViewModel viewModel, Windows.Reactive.IReactive reactive)
         {
             pluginsListController = reactive.CreateListBoxController<IPluginListItem>(pluginsListBox);
             pluginsListController.OnSelect = items => viewModel.OnSelect(items.FirstOrDefault());
+            SetViewModel(viewModel);
         }
 
-        void IView.SetViewModel(IViewModel viewModel)
+        void SetViewModel(IViewModel viewModel)
         {
             this.viewModel = viewModel;
 

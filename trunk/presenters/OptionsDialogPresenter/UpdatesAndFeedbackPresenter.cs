@@ -7,17 +7,18 @@ using LogJoint.AutoUpdate;
 
 namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
 {
-    public class Presenter : IPresenter, IViewEvents
+    public class Presenter : IPresenter, IViewModel, IPresenterInternal
     {
         public Presenter(
             IAutoUpdater model,
-            IGlobalSettingsAccessor settingsAccessor,
-            IView view)
+            IGlobalSettingsAccessor settingsAccessor)
         {
             this.model = model;
-            this.view = view;
+        }
 
-            view.SetPresenter(this);
+        void IViewModel.SetView(IView view)
+        {
+            this.view = view;
 
             UpdateAutomaticUpdatesView();
             model.Changed += (s, e) => UpdateAutomaticUpdatesView();
@@ -33,7 +34,7 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
             get { return model.State != AutoUpdateState.Disabled; }
         }
 
-        void IViewEvents.OnCheckUpdateNowClicked()
+        void IViewModel.OnCheckUpdateNowClicked()
         {
             model.CheckNow();
         }
@@ -48,7 +49,7 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
         }
 
         readonly IAutoUpdater model;
-        readonly IView view;
+        IView view;
 
         #endregion
     };

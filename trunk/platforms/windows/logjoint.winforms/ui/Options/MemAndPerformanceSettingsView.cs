@@ -12,16 +12,17 @@ namespace LogJoint.UI
 {
     public partial class MemAndPerformanceSettingsView : UserControl, IView
     {
-        IViewEvents presenter;
+        IViewModel viewModel;
 
         public MemAndPerformanceSettingsView()
         {
             InitializeComponent();
         }
 
-        void IView.SetPresenter(IViewEvents presenter)
+        public void SetViewModel(IViewModel viewModel)
         {
-            this.presenter = presenter;
+            this.viewModel = viewModel;
+            viewModel.SetView(this);
         }
 
         bool IView.GetControlEnabled(ViewControl control)
@@ -98,37 +99,37 @@ namespace LogJoint.UI
 
         private void clearRecentLogsListLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            presenter.OnLinkClicked(ViewControl.ClearRecentEntriesListLinkLabel);
+            viewModel.OnLinkClicked(ViewControl.ClearRecentEntriesListLinkLabel);
         }
 
         private void clearSearchHistoryLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            presenter.OnLinkClicked(ViewControl.ClearSearchHistoryLinkLabel);
+            viewModel.OnLinkClicked(ViewControl.ClearSearchHistoryLinkLabel);
         }
 
         private void clearLogSpecificStorageLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            presenter.OnLinkClicked(ViewControl.ClearLogSpecificStorageLinkLabel);
+            viewModel.OnLinkClicked(ViewControl.ClearLogSpecificStorageLinkLabel);
         }
 
         private void logSpecificStorageEnabledCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            presenter.OnCheckboxChecked(ViewControl.LogSpecificStorageEnabledCheckBox);
+            viewModel.OnCheckboxChecked(ViewControl.LogSpecificStorageEnabledCheckBox);
         }
 
         private void disableMultithreadedParsingCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            presenter.OnCheckboxChecked(ViewControl.DisableMultithreadedParsingCheckBox);
+            viewModel.OnCheckboxChecked(ViewControl.DisableMultithreadedParsingCheckBox);
         }
 
         private void enableAutoPostprocessingCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            presenter.OnCheckboxChecked(ViewControl.EnableAutoPostprocessingCheckBox);
+            viewModel.OnCheckboxChecked(ViewControl.EnableAutoPostprocessingCheckBox);
         }
 
         private void collectUnusedMemoryLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            presenter.OnLinkClicked(ViewControl.CollectUnusedMemoryLinkLabel);
+            viewModel.OnLinkClicked(ViewControl.CollectUnusedMemoryLinkLabel);
         }
 
         protected override void OnLayout(LayoutEventArgs e)

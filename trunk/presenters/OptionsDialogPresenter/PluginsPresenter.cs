@@ -10,10 +10,9 @@ using LogJoint.UI.Presenters.Reactive;
 
 namespace LogJoint.UI.Presenters.Options.Plugins
 {
-    public class Presenter : IPresenter, IViewModel
+    internal class Presenter : IPresenter, IViewModel, IPresenterInternal
     {
         readonly IPluginsManagerInternal pluginsManager;
-        readonly IView view;
         readonly IChainedChangeNotification changeNotification;
         readonly CancellationTokenSource fetchCancellation;
         PluginsListFetchingStatus fetchStatus = PluginsListFetchingStatus.Pending;
@@ -25,14 +24,12 @@ namespace LogJoint.UI.Presenters.Options.Plugins
         readonly AutoUpdate.IAutoUpdater autoUpdater;
 
         public Presenter(
-            IView view,
             IPluginsManagerInternal pluginsManager,
             IChangeNotification changeNotification,
             AutoUpdate.IAutoUpdater autoUpdater
         )
         {
             this.pluginsManager = pluginsManager;
-            this.view = view;
             this.autoUpdater = autoUpdater;
 
             this.changeNotification = changeNotification.CreateChainedChangeNotification();
@@ -64,8 +61,6 @@ namespace LogJoint.UI.Presenters.Options.Plugins
                     };
                 }
             );
-
-            view.SetViewModel(this);
 
             this.FetchPlugins();
         }

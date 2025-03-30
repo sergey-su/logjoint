@@ -20,7 +20,9 @@ namespace LogJoint.UI
             InitializeComponent();
             this.viewModel = viewModel;
             appearanceSettingsView1.SetViewModel(viewModel.AppearancePage);
-            pluginsView1.Init(reactive);
+            memAndPerformanceSettingsView.SetViewModel(viewModel.MemAndPerformancePage);
+            updatesAndFeedbackView1.SetViewModel(viewModel.UpdatesAndFeedbackPage);
+            pluginsView1.Init(viewModel.PluginsPage, reactive);
             pages = new Dictionary<PageId, TabPage>
             {
                 { PageId.Plugins, pluginsTabPage },
@@ -43,17 +45,6 @@ namespace LogJoint.UI
         {
             DialogResult = DialogResult.OK;
         }
-
-        Presenters.Options.MemAndPerformancePage.IView IDialog.MemAndPerformancePage
-        {
-            get { return memAndPerformanceSettingsView; }
-        }
-        Presenters.Options.UpdatesAndFeedback.IView IDialog.UpdatesAndFeedbackPage
-        {
-            get { return updatesAndFeedbackView1; }
-        }
-
-        Presenters.Options.Plugins.IView IDialog.PluginsPage => pluginsView1;
 
         void SetPageVisibility(bool value, TabPage page)
         {

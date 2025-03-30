@@ -443,10 +443,10 @@ namespace LogJoint.UI.Presenters
 
             Options.Dialog.IPresenter optionsDialogPresenter = optionsDialogView != null ? new Options.Dialog.Presenter(
                 optionsDialogView,
-                pageView => new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory, pageView),
+                new Options.MemAndPerformancePage.Presenter(model.GlobalSettingsAccessor, model.RecentlyUsedLogs, model.SearchHistory),
                 new Options.Appearance.Presenter(model.GlobalSettingsAccessor, logViewerPresenterFactory, model.ChangeNotification, colorTheme),
-                pageView => new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor, pageView),
-                pageView => new Options.Plugins.Presenter(pageView, model.PluginsManager, model.ChangeNotification, model.AutoUpdater)
+                new Options.UpdatesAndFeedback.Presenter(model.AutoUpdater, model.GlobalSettingsAccessor),
+                new Options.Plugins.Presenter(model.PluginsManager, model.ChangeNotification, model.AutoUpdater)
             ) : null;
 
             About.IPresenter aboutDialogPresenter = aboutView == null ? null : new About.Presenter(

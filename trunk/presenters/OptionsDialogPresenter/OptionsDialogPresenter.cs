@@ -6,29 +6,23 @@ namespace LogJoint.UI.Presenters.Options.Dialog
     {
         public Presenter(
             IView view,
-            Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory,
+            MemAndPerformancePage.IPresenterInternal memAndPerformancePagePresenter,
             Appearance.IPresenterInternal appearancePresenter,
-            Func<UpdatesAndFeedback.IView, UpdatesAndFeedback.IPresenter> updatesAndFeedbackPresenterFactory,
-            Func<Plugins.IView, Plugins.IPresenter> pluginsPresenterFactory
+            UpdatesAndFeedback.IPresenterInternal updatesAndFeedbackPresenter,
+            Plugins.IPresenterInternal pluginPresenter
         )
         {
             this.view = view;
-            this.memAndPerformancePagePresenterFactory = memAndPerformancePagePresenterFactory;
+            this.memAndPerformancePagePresenter = memAndPerformancePagePresenter;
             this.appearancePresenter = appearancePresenter;
-            this.updatesAndFeedbackPresenterFactory = updatesAndFeedbackPresenterFactory;
-            this.pluginsPresenterFactory = pluginsPresenterFactory;
+            this.updatesAndFeedbackPresenter = updatesAndFeedbackPresenter;
+            this.pluginPresenter = pluginPresenter;
         }
 
         void IPresenter.ShowDialog(PageId? initiallySelectedPage)
         {
             using var dialog = view.CreateDialog(this);
             currentDialog = dialog;
-            if (dialog.MemAndPerformancePage != null)
-                memAndPerformancePagePresenter = memAndPerformancePagePresenterFactory(dialog.MemAndPerformancePage);
-            if (dialog.UpdatesAndFeedbackPage != null)
-                updatesAndFeedbackPresenter = updatesAndFeedbackPresenterFactory(dialog.UpdatesAndFeedbackPage);
-            if (dialog.PluginsPage != null)
-                pluginPresenter = pluginsPresenterFactory(dialog.PluginsPage);
             if (initiallySelectedPage != null && (GetVisiblePages() & initiallySelectedPage.Value) == 0)
                 initiallySelectedPage = null;
             currentDialog.Show(initiallySelectedPage);
@@ -57,6 +51,12 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 
         Appearance.IViewModel IDialogViewModel.AppearancePage => appearancePresenter;
 
+        MemAndPerformancePage.IViewModel IDialogViewModel.MemAndPerformancePage => memAndPerformancePagePresenter;
+
+        UpdatesAndFeedback.IViewModel IDialogViewModel.UpdatesAndFeedbackPage => updatesAndFeedbackPresenter;
+
+        Plugins.IViewModel IDialogViewModel.PluginsPage => pluginPresenter;
+
         #region Implementation
 
         void DisposePages()
@@ -76,16 +76,12 @@ namespace LogJoint.UI.Presenters.Options.Dialog
         }
 
         readonly IView view;
-        readonly Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory;
-        readonly Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory;
-        readonly Func<UpdatesAndFeedback.IView, UpdatesAndFeedback.IPresenter> updatesAndFeedbackPresenterFactory;
-        readonly Func<Plugins.IView, Plugins.IPresenter> pluginsPresenterFactory;
 
         IDialog currentDialog;
-        MemAndPerformancePage.IPresenter memAndPerformancePagePresenter;
+        MemAndPerformancePage.IPresenterInternal memAndPerformancePagePresenter;
         Appearance.IPresenterInternal appearancePresenter;
-        UpdatesAndFeedback.IPresenter updatesAndFeedbackPresenter;
-        Plugins.IPresenter pluginPresenter;
+        UpdatesAndFeedback.IPresenterInternal updatesAndFeedbackPresenter;
+        Plugins.IPresenterInternal pluginPresenter;
 
         #endregion
     };
