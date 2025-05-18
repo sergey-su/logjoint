@@ -74,7 +74,7 @@ namespace LogJoint.Search
                     }
                     else
                     {
-                        StringComparison cmp = state.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+                        StringComparison cmp = state.options.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                         int i;
                         // todo: use running hash
                         if (state.options.ReverseSearch)
