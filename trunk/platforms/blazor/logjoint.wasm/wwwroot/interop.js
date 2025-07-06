@@ -729,6 +729,7 @@
         trapFocusInModal: function (modalElement) {
             let lastFocusedModalDescendent;
             let suppressFocusHandling;
+            let preModalFocusedElement;
 
             function enumFocusableDescendants(node) {
                 const focusableQuery =
@@ -774,12 +775,22 @@
                 }
             }
 
+            preModalFocusedElement = document.activeElement;
             focusInitialDescendant();
 
             document.addEventListener('focus', handleDocumentFocus, true);
 
             return {
-                dispose: () => document.removeEventListener('focus', handleDocumentFocus, true)
+                dispose: () => {
+                    document.removeEventListener('focus', handleDocumentFocus, true);
+                    // Return the focus in the next JS cycle to avoid focusing an element that
+                    // the modal dialog removed diring closing.
+                    window.setTimeout(() => {
+                        if (preModalFocusedElement && preModalFocusedElement.isConnected) {
+                            preModalFocusedElement.focus()
+                        }
+                    }, 0);
+                }
             }
         },
     },

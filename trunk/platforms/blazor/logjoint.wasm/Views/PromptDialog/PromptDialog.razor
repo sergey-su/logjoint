@@ -8,7 +8,7 @@
     <div class="text nice-scroll">
         @viewModel.ViewState.Prompt
     </div>
-    <input value="@viewModel.ViewState.Value" @oninput="@(e => viewModel.OnInput(e.Value.ToString()))" @onkeydown="HandleKeyDown" />
+    <input value="@viewModel.ViewState.Value" @oninput="@(e => viewModel.OnInput(e.Value.ToString()))" @onkeydown="HandleKeyDown"/>
     <div class="buttons">
         <button @onclick="@(e => viewModel.OnConfirm())">Ok</button>
         <button @onclick="@(e => viewModel.OnCancel())">Cancel</button>
