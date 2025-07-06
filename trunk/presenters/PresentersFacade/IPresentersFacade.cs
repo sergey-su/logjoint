@@ -34,5 +34,6 @@ namespace LogJoint.UI.Presenters
         void ShowOptionsDialog();
         void ShowHistoryDialog();
         void ShowSettings();
+        void ShowKeyboardShortcuts();
     };
 };

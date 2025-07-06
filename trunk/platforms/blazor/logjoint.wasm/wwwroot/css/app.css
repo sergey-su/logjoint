@@ -2395,3 +2395,36 @@ button {
 .postprocessing-summary-dialog>.buttons>button {
     margin: 0px 10px;
 }
+
+
+.shortciuts-dialog {
+    border: 2px #444 solid;
+    padding: 20px;
+    min-height: 100px;
+    max-width: 80%;
+    max-height: 80%;
+    display: flex;
+    flex-flow: column wrap;
+    background: var(--control-face-background);
+}
+.shortciuts-dialog > .buttons {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-evenly;
+    margin-top: 15px;
+}
+.shortciuts-dialog > header {
+    font-size: 1.3em;
+    margin-bottom: 13px;
+}
+.shortciuts-dialog table {
+    border: 1px solid gray;
+    padding: 10px 0px 10px 10px;
+}
+.shortciuts-dialog td {
+    padding: 0px 10px;
+}
+.shortciuts-dialog th {
+    font-weight: bold;
+    padding-top: 5px;
+}

@@ -31,6 +31,7 @@
 <FilterDialog ViewModel=@presentation.ViewModels.HlFiltersManagement.FilterDialog />
 <FilterDialog ViewModel=@presentation.ViewModels.DisplayFiltersManagement.FilterDialog />
 <LogJoint.Wasm.UI.Postprocessing.SummaryDialog />
+<ShortcutsDialog />
 <div class="drag-drop-overlay">
     <p>Drop logs to open</p>
 </div>
@@ -38,7 +39,7 @@
 @code {
     private ElementReference element;
     private DotNetObjectReference<DropHandler> dropHandler;
-    private IDisposable keyHandler;
+    private List<IDisposable> keyHandlers = new ();
     private ISubscription subscription;
 
     class DropHandler
@@ -74,11 +75,26 @@
         {
             dropHandler = DotNetObjectReference.Create(new DropHandler { model = model });
             await jsRuntime.InvokeVoidAsync("logjoint.dragDrop.registerHandler", element, "drag-drop-overlay", dropHandler);
-            keyHandler = await jsInterop.Keyboard.AddHandler(element, new KeyboardInterop.Options
+            keyHandlers.Add(await jsInterop.Keyboard.AddHandler(element, new KeyboardInterop.Options
             {
                 PreventDefault = true,
                 Handler = () => presentation.ViewModels.MainForm.OnKeyPressed(KeyCode.FindShortcut)
-            }, "Edit+F/i");
+            }, "Edit+F/i"));
+            keyHandlers.Add(await jsInterop.Keyboard.AddHandler(element, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                Handler = () => presentation.ViewModels.MainForm.OnKeyPressed(KeyCode.ShowKeyboardShortcuts)
+            }, "Shift+?"));
+            keyHandlers.Add(await jsInterop.Keyboard.AddHandler(element, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                Handler = () => presentation.ViewModels.MainForm.OnKeyPressed(KeyCode.NextBookmarkShortcut)
+            }, "F2"));
+            keyHandlers.Add(await jsInterop.Keyboard.AddHandler(element, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                Handler = () => presentation.ViewModels.MainForm.OnKeyPressed(KeyCode.PrevBookmarkShortcut)
+            }, "Shift+F2"));
         }
     }
 
@@ -103,7 +119,8 @@
     public void Dispose()
     {
         dropHandler?.Dispose();
-        keyHandler?.Dispose();
+        foreach (var h in keyHandlers)
+            h.Dispose();
         subscription?.Dispose();
     }
 }

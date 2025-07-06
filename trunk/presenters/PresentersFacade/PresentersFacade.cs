@@ -14,6 +14,7 @@ namespace LogJoint.UI.Presenters
         About.IPresenter aboutDialogPresenter;
         Options.Dialog.IPresenter optionsDialogPresenter;
         HistoryDialog.IPresenter historyDialogPresenter;
+        ShortcutsDialog.IPresenter shortcutsDialog;
 
         public void Init(
             MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
@@ -23,7 +24,8 @@ namespace LogJoint.UI.Presenters
             MainForm.IPresenter mainFormPresenter,
             About.IPresenter aboutDialogPresenter,
             Options.Dialog.IPresenter optionsDialogPresenter,
-            HistoryDialog.IPresenter historyDialogPresenter
+            HistoryDialog.IPresenter historyDialogPresenter,
+            ShortcutsDialog.IPresenter shortcutsDialog
         )
         {
             this.messagePropertiesDialogPresenter = messagePropertiesDialogPresenter;
@@ -34,6 +36,7 @@ namespace LogJoint.UI.Presenters
             this.optionsDialogPresenter = optionsDialogPresenter;
             this.historyDialogPresenter = historyDialogPresenter;
             this.aboutDialogPresenter = aboutDialogPresenter;
+            this.shortcutsDialog = shortcutsDialog;
         }
 
         void IPresentersFacade.ShowMessageProperties()
@@ -97,6 +100,11 @@ namespace LogJoint.UI.Presenters
         void IPresentersFacade.ShowHistoryDialog()
         {
             historyDialogPresenter.ShowDialog();
+        }
+
+        void IPresentersFacade.ShowKeyboardShortcuts()
+        {
+            shortcutsDialog.ShowDialog();
         }
     };
 };

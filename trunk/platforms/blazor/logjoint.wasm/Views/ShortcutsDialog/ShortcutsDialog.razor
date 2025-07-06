@@ -1,0 +1,87 @@
+﻿@namespace LogJoint.Wasm.UI
+@using LogJoint.UI.Presenters.ShortcutsDialog
+@using LogJoint.UI.Presenters
+@implements IDisposable
+@inject LogJoint.UI.Presenters.PresentationObjects presentation
+
+<Modal Visible="@viewModel.IsVisible" Class="shortciuts-dialog" ClickOutside="@(() => viewModel?.OnCloseRequested())" OnCancel="@(() => viewModel?.OnCloseRequested())">
+    <header>Keyboad shortcuts</header>
+    <div class="text nice-scroll">
+        <table>
+            <tr>
+                <th colspan="2">Navigation</th>
+            </tr>
+            <tr>
+                <td>Ctrl+←, Ctrl+→</td>
+                <td>Jump over words</td>
+            </tr>
+            <tr>
+                <td>Ctrl+↑</td>
+                <td>Jump to the beginning of the joined log</td>
+            </tr>
+            <tr>
+                <td>Ctrl+↓</td>
+                <td>Jump to the end of the joined log</td>
+            </tr>
+            <tr>
+                <td>Alt+↓</td>
+                <td>Select next message in the thread</td>
+            </tr>
+            <tr>
+                <td>Alt+↑</td>
+                <td>Select previous message in the thread</td>
+            </tr>
+            <tr>
+                <td>F4</td>
+                <td>Select next highlighted line</td>
+            </tr>
+            <tr>
+                <td>Shift+F4</td>
+                <td>Select previous highlighted line</td>
+            </tr>
+            <tr>
+                <td>Ctrl+F</td>
+                <td>Search selected text</td>
+            </tr>
+
+            <tr>
+                <th colspan="2">Bookmarks</th>
+            </tr>
+            <tr>
+                <td>B</td>
+                <td>Toggle bookmark for the selected line</td>
+            </tr>
+            <tr>
+                <td>F2</td>
+                <td>Select next bookmarked line</td>
+            </tr>
+            <tr>
+                <td>Shift+F2</td>
+                <td>Select previous bookmarked line</td>
+            </tr>
+        </table>
+    </div>
+    <div class="buttons">
+        <button @onclick="@(e => viewModel.OnCloseRequested())">Close</button>
+    </div>
+</Modal>
+
+@code {
+    private IViewModel viewModel;
+    private ISubscription subscription;
+
+    protected override void OnInitialized()
+    {
+        viewModel = presentation.ViewModels.ShortcutsDialog;
+
+        subscription = viewModel.ChangeNotification.CreateSubscription(Updaters.Create(
+            () => viewModel.IsVisible,
+            _ => StateHasChanged()
+        ));
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}

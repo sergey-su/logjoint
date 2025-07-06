@@ -47,6 +47,7 @@ namespace LogJoint.UI.Presenters
         public FiltersManager.IViewModel HlFiltersManagement { get; internal set; }
         public FiltersManager.IViewModel DisplayFiltersManagement { get; internal set; }
         public FilterDialog.IViewModel DisplayFilterDialog { get; internal set; }
+        public ShortcutsDialog.IViewModel ShortcutsDialog { get; internal set; }
     };
 
     public static class Factory
@@ -535,6 +536,10 @@ namespace LogJoint.UI.Presenters
             var postprocessingSummaryDialogPresenter = new Postprocessing.SummaryDialog.Presenter(
                 model.ChangeNotification, presentersFacade);
 
+            var shortcutsDialog = new ShortcutsDialog.Presenter(
+                model.ChangeNotification
+            );
+
             var postprocessingTabPagePresenter = new Postprocessing.MainWindowTabPage.Presenter(
                 model.PostprocessorsManager,
                 model.CorrelationManager,
@@ -564,7 +569,8 @@ namespace LogJoint.UI.Presenters
                 mainFormPresenter,
                 aboutDialogPresenter,
                 optionsDialogPresenter,
-                historyDialogPresenter
+                historyDialogPresenter,
+                shortcutsDialog
             );
 
             IPresentation expensibilityEntryPoint = new Presentation(
@@ -625,6 +631,7 @@ namespace LogJoint.UI.Presenters
                     HlFiltersManagement = hlFiltersManagementPresenter,
                     DisplayFiltersManagement = displayFiltersManagementPresenter,
                     DisplayFilterDialog = displayFilterDialogPresenter,
+                    ShortcutsDialog = shortcutsDialog,
                 }
             };
         }

@@ -287,6 +287,10 @@ namespace LogJoint.UI.Presenters.MainForm
             {
                 searchResultPresenter.FindCurrentTime();
             }
+            else if (key == KeyCode.ShowKeyboardShortcuts)
+            {
+                presentersFacade.ShowKeyboardShortcuts();
+            }
         }
 
         void IViewModel.OnOptionsLinkClicked()

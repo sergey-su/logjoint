@@ -299,12 +299,16 @@
     Key GetMainKey(KeyboardEventArgs keyboardEventArgs)
     {
         var ctrlOrCommand = keyboardEventArgs.CtrlKey || keyboardEventArgs.MetaKey;
+        var shift = keyboardEventArgs.ShiftKey;
+        var alt = keyboardEventArgs.AltKey;
         switch (keyboardEventArgs.Key)
         {
             case "ArrowUp":
-                return ctrlOrCommand ? Key.BeginOfDocument : Key.Up;
+                return ctrlOrCommand ? Key.BeginOfDocument :
+                    alt ? (Key.Up | Key.AlternativeModeModifier) : Key.Up;
             case "ArrowDown":
-                return ctrlOrCommand ? Key.EndOfDocument : Key.Down;
+                return ctrlOrCommand ? Key.EndOfDocument :
+                    alt ? (Key.Down | Key.AlternativeModeModifier) : Key.Down;
             case "ArrowLeft":
                 return keyboardEventArgs.MetaKey ? Key.BeginOfLine : Key.Left;
             case "ArrowRight":
@@ -320,6 +324,10 @@
             case "c":
             case "C":
                 return ctrlOrCommand ? Key.Copy : Key.None;
+            case "F4":
+                return shift ? Key.PrevHighlightedMessage : Key.NextHighlightedMessage;
+            case "ContextMenu":
+                return Key.ContextMenu;
             default: return Key.None;
         }
     }

@@ -72,6 +72,8 @@ namespace LogJoint.UI.Presenters.MainForm
         NewWindowShortcut,
 
         FindCurrentTimeShortcut,
+
+        ShowKeyboardShortcuts,
     };
 
     public struct TabInfo
