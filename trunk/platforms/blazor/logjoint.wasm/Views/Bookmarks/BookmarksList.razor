@@ -1,6 +1,7 @@
 ﻿@namespace LogJoint.Wasm.UI
 @using LogJoint
 @using LogJoint.UI.Presenters.BookmarksList
+@using LogJoint.Drawing
 @implements IDisposable
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 @inject JsInterop jsInterop
@@ -22,22 +23,29 @@ SelectByNonLeftClick=false>
         <div>@(item.Delta ?? item.AltDelta)</div>
         <div class="icon"></div>
         <div class="p @focusedMarkClass"><span title=@(f?.Tooltip ?? "")>&nbsp;</span></div>
-        @if (item.IsEnabled)
-        {
-            <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))"
-            @oncontextmenu="@(e => this.HandleBookmarkContextMenu(e))" @oncontextmenu:preventDefault
-            style="@GetItemStyle(item)">
-                @if (!string.IsNullOrEmpty(@item.Annotation))
+        <a href="#" @onclick:preventDefault @onclick="@(e => viewModel.OnBookmarkLeftClicked(item))"
+        @oncontextmenu="@(e => this.HandleBookmarkContextMenu(e))" @oncontextmenu:preventDefault
+            style="@GetItemStyle(item)" class="@(item.IsEnabled ? "" : "disabled")">
+            @if (!string.IsNullOrEmpty(@item.Annotation))
+            {
+                <span class="annotation">@item.Annotation</span>
+            }
+            @foreach (var fragment in item.TextFragments)
+            {
+                if (fragment.IsAnnotationFragment)
                 {
-                    <span class="annotation">@item.Annotation</span>
+                    <span class="annotation" style="padding: 0px 5px;">@fragment.Value</span>
                 }
-                @item.Text
+                else if (fragment.HighlightColor.HasValue)
+                {
+                    <span class="txt" style="background-color: @fragment.HighlightColor.Value.ToHtmlColor()">@fragment.Value</span>
+                }
+                else
+                {
+                    <span class="txt">@fragment.Value</span>
+                }
+            }
             </a>
-        }
-        else
-        {
-            <a style="@GetItemStyle(item)" class="disabled">@item.Text</a>
-        }
     </ItemTemplate>
 </ListView>
 

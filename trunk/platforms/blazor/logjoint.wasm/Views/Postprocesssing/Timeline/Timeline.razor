@@ -64,7 +64,7 @@
                 var activityTypeClass = GetActivityTypeClass(a);
                 var errorClass = a.IsError ? "err" : "";
                 <div class="c @selectedClass @errorClass" style=@backgroundStyle>
-                    @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(a.Caption, new []{ (a.CaptionSelectionBegin, a.CaptionSelectionBegin + a.CaptionSelectionLength, viewModel) }))
+                    @foreach (var segment in TextUtils.SplitTextByDisjointRanges(a.Caption, new []{ (a.CaptionSelectionBegin, a.CaptionSelectionBegin + a.CaptionSelectionLength, viewModel) }))
                     {
                         var classes = segment.data != null ? "hl" : "";
                         <span class=@classes>@(segment.segment)</span>
@@ -151,7 +151,7 @@
         @{static (int begin, int end, object data) ToLinkRange(Tuple<object, int, int> l) => (l.Item2, l.Item2 + l.Item3, l.Item1);}
         <div class="caption">@(curr.Caption)</div>
         <div class="desc">
-            @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(curr.DescriptionText,
+            @foreach (var segment in TextUtils.SplitTextByDisjointRanges(curr.DescriptionText,
                 (curr.DescriptionLinks ?? Enumerable.Empty<Tuple<object, int, int>>()).Select(ToLinkRange)))
             {
                 if (segment.data == null)
@@ -167,7 +167,7 @@
         @if (curr.SourceText != null)
         {
             <div class="source">
-                @foreach (var segment in TextUtils.SplitTextByDisdjointRanges(curr.SourceText, new [] { ToLinkRange(curr.SourceLink) }))
+                @foreach (var segment in TextUtils.SplitTextByDisjointRanges(curr.SourceText, new [] { ToLinkRange(curr.SourceLink) }))
                 {
                     if (segment.data == null)
                     {

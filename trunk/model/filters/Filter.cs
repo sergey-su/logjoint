@@ -364,6 +364,11 @@ namespace LogJoint
                     return null;
                 return searchState.SearchInMessageText(message, startFromChar);
             }
+
+            Search.MatchedTextRange? IFilterBulkProcessing.Match(StringSlice text, int? startFromChar)
+            {
+                return searchState.SearchInText(text, startFromChar);
+            }
         };
     };
 }

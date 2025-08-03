@@ -99,6 +99,7 @@ namespace LogJoint
     public interface IFilterBulkProcessing : IDisposable
     {
         Search.MatchedTextRange? Match(IMessage message, int? startFromChar);
+        Search.MatchedTextRange? Match(StringSlice text, int? startFromChar);
     };
 
     public class FilterTimeRange

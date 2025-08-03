@@ -25,6 +25,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
         Color? ContextColor { get; }
         int Index { get; }
         string Annotation { get; }
+        IReadOnlyList<TextFragment> TextFragments { get; }
+    };
+
+    public struct TextFragment
+    {
+        public StringSlice Value;
+        public bool IsAnnotationFragment;
+        public Color? HighlightColor;
     };
 
     public interface IViewModel

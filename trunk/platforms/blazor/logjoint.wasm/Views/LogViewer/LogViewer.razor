@@ -47,13 +47,6 @@
                             <span class="pad" style="@PadStyle(r.Item1, r.Item2, item.TextAnnotations); background-color: @Drawing.ColorExtensions.ToHtmlColor(@r.Item3)"></span>
                         }
                     }
-                    @if (item.TextAnnotations != null)
-                    {
-                        @foreach (var r in item.TextAnnotations)
-                        {
-                            //<span class="pad annotated" style=@PadStyle(r.Item1, r.Item2, item.TextAnnotations)></span>
-                        }
-                    }
                     @if (item.CursorCharIndex.HasValue)
                     {
                         <span class="@(item.CursorVisible ? "pad cur" : "pad curhid")" style=@PadStyle(item.CursorCharIndex.Value, item.CursorCharIndex.Value, item.TextAnnotations)></span>

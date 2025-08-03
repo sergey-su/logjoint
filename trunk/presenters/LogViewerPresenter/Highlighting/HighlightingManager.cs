@@ -33,7 +33,8 @@ namespace LogJoint.UI.Presenters.LogViewer
                 viewSizeQuantizedSelector,
                 () => theme.HighlightingColors,
                 (filtersData, displayTextGetter, viewSize, hlColors) => filtersData.FilteringEnabled == true ?
-                      new CachingHighlightingHandler(msg => GetHlHighlightingRanges(msg, filtersData.Items, displayTextGetter, hlColors), ViewSizeToCacheSize(viewSize))
+                      new CachingHighlightingHandler(msg => GetHlHighlightingRanges(
+                          msg, filtersData.Items, displayTextGetter, hlColors), ViewSizeToCacheSize(viewSize))
                     : (IHighlightingHandler)new DummyHandler()
             );
             this.getSearchResultHandler = Selectors.Create(
@@ -141,45 +142,11 @@ namespace LogJoint.UI.Presenters.LogViewer
         }
 
         private static IEnumerable<(int, int, Color)> GetHlHighlightingRanges(
-            IMessage msg, ImmutableList<IFilter> hlFilters, MessageTextGetter displayTextGetter,
+            IMessage msg, IReadOnlyList<IFilter> hlFilters, MessageTextGetter displayTextGetter,
             ImmutableArray<Color> hlColors)
         {
-            var filtersState = hlFilters
-                .Where(f => f.Enabled)
-                .Select(filter => (filter.StartBulkProcessing(displayTextGetter, false), filter))
-                .ToArray();
-            try
-            {
-                var ret = new List<(int, int, Color)>();
-
-                for (int i = 0; i < filtersState.Length; ++i)
-                {
-                    var filterState = filtersState[i];
-                    for (int? startPos = null; ;)
-                    {
-                        var rslt = filterState.Item1.Match(msg, startPos);
-                        if (rslt == null)
-                            break;
-                        var r = rslt.Value;
-                        if (r.MatchBegin == r.MatchEnd)
-                            break;
-                        if (filterState.filter.Action == FilterAction.Exclude)
-                            return Enumerable.Empty<(int, int, Color)>();
-                        ret.Add((r.MatchBegin, r.MatchEnd,
-                            filterState.filter.Action.ToColor(hlColors).GetValueOrDefault()));
-                        if (r.WholeTextMatched)
-                            break;
-                        startPos = r.MatchEnd;
-                    }
-                }
-
-                return ret;
-            }
-            finally
-            {
-                foreach (var f in filtersState)
-                    f.Item1.Dispose();
-            }
+            return hlFilters.GetHighlightRanges(displayTextGetter, msg).Select(
+                range => (range.beginIdx, range.endIdx, range.action.ToColor(hlColors).GetValueOrDefault()));
         }
 
         private static IEnumerable<(int, int, Color)> GetSearchResultsHighlightingRanges(

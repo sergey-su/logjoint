@@ -5,7 +5,7 @@ namespace LogJoint.Wasm.UI
 {
     public static class TextUtils
     {
-        static public IEnumerable<(string segment, T data)> SplitTextByDisdjointRanges<T>(
+        static public IEnumerable<(string segment, T data)> SplitTextByDisjointRanges<T>(
             string text, IEnumerable<(int begin, int end, T data)> ranges)
         {
             int lastRangeEnd = 0;

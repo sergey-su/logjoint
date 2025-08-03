@@ -1,16 +1,18 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using LogJoint;
-using LogJoint.Settings;
-using LogJoint.Profiling;
-using System.Collections.Immutable;
-using static LogJoint.Settings.Appearance;
 using LogJoint.Drawing;
+using LogJoint.Profiling;
+using LogJoint.Settings;
+using LogJoint.UI.Presenters.LogViewer;
 using LogJoint.UI.Presenters.Reactive;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel;
+using System.Linq;
 using System.Security;
+using System.Text;
+using static LogJoint.Settings.Appearance;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -26,7 +28,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
             IColorTheme colorTheme,
             IChangeNotification changeNotification,
             ITraceSourceFactory traceSourceFactory,
-            IPromptDialog promptDialog
+            IPromptDialog promptDialog,
+            IAnnotationsRegistry annotations,
+            IFiltersList highlightingFilters
         )
         {
             this.bookmarks = bookmarks;
@@ -36,6 +40,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
             this.changeNotification = changeNotification;
             this.sourcesManager = sourcesManager;
             this.promptDialog = promptDialog;
+            this.annotationsRegistry = annotations;
+            this.highlightingFilters = highlightingFilters;
             this.trace = traceSourceFactory.CreateTraceSource("UI", "bmks");
 
             itemsSelector = Selectors.Create(
@@ -44,6 +50,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
                 () => colorTheme.ThreadColors,
                 () => loadedMessagesPresenter.LogViewerPresenter.AppearanceStrategy.Coloring,
                 () => sourcesManager.VisibleItems,
+                () => annotations.Annotations,
+                () => (highlightingFilters?.FilteringEnabled, highlightingFilters.Items,
+                    highlightingFilters?.FiltersVersion, colorTheme.HighlightingColors),
                 CreateViewItems
             );
             focusedMessagePositionSelector = Selectors.Create(
@@ -91,7 +100,10 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
         void IViewModel.OnBookmarkLeftClicked(IViewItem bmk)
         {
-            NavigateTo(((ViewItem)bmk).bookmark, "click");
+            if (bmk.IsEnabled)
+            {
+                NavigateTo(((ViewItem)bmk).bookmark, "click");
+            }
         }
 
         void IViewModel.OnMenuItemClicked(ContextMenuItem item)
@@ -213,7 +225,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
             IImmutableSet<IBookmark> selected,
             ImmutableArray<Color> threadColors,
             ColoringMode coloring,
-            IReadOnlyList<ILogSource> visibleLogSources
+            IReadOnlyList<ILogSource> visibleLogSources,
+            IAnnotationsSnapshot textAnnotations,
+            (bool? enabled, ImmutableList<IFilter> filters, int?, ImmutableArray<Color> colors) highlightFiltersData
         )
         {
             var resultBuilder = ImmutableArray.CreateBuilder<IViewItem>();
@@ -238,11 +252,12 @@ namespace LogJoint.UI.Presenters.BookmarksList
                 if (coloring == Settings.Appearance.ColoringMode.Sources)
                     if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
                         colorIndex = thread.LogSource.ColorIndex;
+                string text = bmk.ToString();
                 resultBuilder.Add(new ViewItem()
                 {
                     bookmark = bmk,
                     key = bmk.GetHashCode().ToString(),
-                    text = bmk.ToString(),
+                    text = text,
                     delta = TimeUtils.TimeDeltaToString(delta),
                     altDelta = TimeUtils.TimeDeltaToString(altDelta),
                     isSelected = isSelected,
@@ -250,6 +265,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
                     contextColor = threadColors.GetByIndex(colorIndex),
                     index = index,
                     annotation = bmk.Annotation,
+                    textFragments = GetTextFragments(
+                        new StringSlice(text), textAnnotations,
+                        highlightFiltersData.enabled == true ? highlightFiltersData.filters : null, highlightFiltersData.colors)
                 });
                 prevTimestamp = ts;
                 if (isSelected)
@@ -290,7 +308,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
                 CreateViewItems(
                     GetValidSelectedBookmarks(), ImmutableHashSet.Create<IBookmark>(),
                     colorTheme.ThreadColors, loadedMessagesPresenter.LogViewerPresenter.AppearanceStrategy.Coloring,
-                    sourcesManager.VisibleItems)
+                    sourcesManager.VisibleItems, annotationsRegistry.Annotations,
+                    (null, null, null, ImmutableArray<Color>.Empty))
                 .Select((b, i) => new
                 {
                     Index = i,
@@ -377,6 +396,85 @@ namespace LogJoint.UI.Presenters.BookmarksList
             return allBookmarks.Where(selectedBookmarks.Contains);
         }
 
+        private static IReadOnlyList<TextFragment> GetTextFragments(
+            StringSlice text, IAnnotationsSnapshot annotationsSnapshot,
+            IReadOnlyList<IFilter> highligingFilters, ImmutableArray<Color> highlightColors)
+        {
+            using var annotations = annotationsSnapshot.FindAnnotations(text).GetEnumerator();
+            using var highlights = highligingFilters.GetHighlightRanges(text).GetEnumerator();
+            var result = new List<TextFragment>();
+
+            int lastTextIndex = 0;
+            void AddTextFragment(int tillIndex, FilterAction? highlightAction)
+            {
+                if (tillIndex > lastTextIndex)
+                {
+                    result.Add(new TextFragment()
+                    {
+                        Value = text.SubString(lastTextIndex, tillIndex - lastTextIndex),
+                        HighlightColor = highlightAction?.ToColor(highlightColors),
+                    });
+                    lastTextIndex = tillIndex;
+                }
+            };
+            void AddAnnotationFragment(string value)
+            {
+                result.Add(new TextFragment()
+                {
+                    Value = new StringSlice(value),
+                    IsAnnotationFragment = true
+                });
+            };
+
+            bool annotationExists = annotations.MoveNext();
+            bool highlightExists = highlights.MoveNext();
+            for (; ; )
+            {
+                if (annotationExists && highlightExists)
+                {
+                    if (annotations.Current.BeginIndex <= highlights.Current.beginIdx)
+                    {
+                        AddTextFragment(annotations.Current.BeginIndex, null);
+                        AddAnnotationFragment(annotations.Current.Annotation);
+                        annotationExists = annotations.MoveNext();
+                    }
+                    else if (annotations.Current.BeginIndex <= highlights.Current.endIdx)
+                    {
+                        AddTextFragment(highlights.Current.beginIdx, null);
+                        AddTextFragment(annotations.Current.BeginIndex, highlights.Current.action);
+                        AddAnnotationFragment(annotations.Current.Annotation);
+                        AddTextFragment(highlights.Current.endIdx, highlights.Current.action);
+                        annotationExists = annotations.MoveNext();
+                        highlightExists = highlights.MoveNext();
+                    }
+                    else
+                    {
+                        AddTextFragment(highlights.Current.beginIdx, null);
+                        AddTextFragment(highlights.Current.endIdx, highlights.Current.action);
+                        highlightExists = highlights.MoveNext();
+                    }
+                }
+                else if (highlightExists)
+                {
+                    AddTextFragment(highlights.Current.beginIdx, null);
+                    AddTextFragment(highlights.Current.endIdx, highlights.Current.action);
+                    highlightExists = highlights.MoveNext();
+                }
+                else if (annotationExists)
+                {
+                    AddTextFragment(annotations.Current.BeginIndex, null);
+                    AddAnnotationFragment(annotations.Current.Annotation);
+                    annotationExists = annotations.MoveNext();
+                }
+                else
+                {
+                    break;
+                }
+            }
+            AddTextFragment(text.Length, null);
+            return result;
+        }
+
         class ViewItem : IViewItem
         {
             string IViewItem.Delta => delta;
@@ -392,6 +490,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
             int IViewItem.Index => index;
 
             string IViewItem.Annotation => annotation;
+
+            IReadOnlyList<TextFragment> IViewItem.TextFragments => textFragments;
 
             string IListItem.Key => key;
 
@@ -409,6 +509,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
             internal string key;
             internal int index;
             internal string annotation;
+            internal IReadOnlyList<TextFragment> textFragments;
         };
 
         readonly IBookmarks bookmarks;
@@ -424,6 +525,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
         readonly Func<bool> hasSelectedBookmarks;
         readonly Func<bool> hasOneSelectedBookmark;
         readonly IPromptDialog promptDialog;
+        readonly IAnnotationsRegistry annotationsRegistry;
+        readonly IFiltersList highlightingFilters;
 
         #endregion
     };
