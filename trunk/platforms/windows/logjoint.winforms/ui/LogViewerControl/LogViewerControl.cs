@@ -429,7 +429,8 @@ namespace LogJoint.UI
                 "source code pro",
                 "droid sans mono",
                 "hack",
-                "nsimsun"
+                "nsimsun",
+                "nanumgothiccoding"
             };
             return preferredFamilies;
         }
