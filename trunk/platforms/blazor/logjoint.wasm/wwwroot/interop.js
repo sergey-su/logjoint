@@ -795,6 +795,12 @@
         },
     },
 
+    forms: {
+        resetSelectValue: function (select) {
+            select.value = select.value;
+        }
+    },
+
     chrome_extension: {
         _uploads: {},
 

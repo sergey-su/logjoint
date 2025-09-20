@@ -3,6 +3,7 @@
 @using LogJoint.Drawing
 @implements IDisposable
 @implements IView
+@inject JsInterop jsInterop
 
 <Modal Visible="@ViewModel.IsVisible" Class="resizable-dialog filter-dialog" ClickOutside=@ViewModel.OnCancelled OnCancel=@ViewModel.OnCancelled>
     <header>@ViewModel.Config.Title</header>
@@ -15,13 +16,16 @@
     </div>
     <div class="prop">
         <div>Action:</div>
-        <select class="stretch" @onchange="@(e => ViewModel.OnActionComboBoxValueChange(Convert.ToInt32(e.Value)))"
-                style="background-color: @GetActionBackgroundColor(
-                    ViewModel.Config.ActionComboBoxOptions.ElementAtOrDefault(ViewModel.ActionComboBoxValue).Value)">
+        <select class="stretch action" @onchange="@(e => ViewModel.OnActionComboBoxValueChange(Convert.ToInt32(e.Value)))" @ref="select">
+            <button>
+                <selectedcontent></selectedcontent>
+            </button>
             @foreach (var (index, (name, color)) in ViewModel.Config.ActionComboBoxOptions.ZipWithIndex())
             {
-                <option style="background-color: @GetActionBackgroundColor(color)" value=@index
-                    selected="@(ViewModel.ActionComboBoxValue == index)">@name</option>
+                <option value=@index selected="@(ViewModel.ActionComboBoxValue == index)">
+                    <span>@name</span>
+                    <span style="background-color: @GetActionBackgroundColor(color); white-space: pre;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                </option>
             }
         </select>
     </div>
@@ -59,13 +63,14 @@
         <button @onclick="@(e => ViewModel.OnConfirmed())">Ok</button>
         <button @onclick="@(e => ViewModel.OnCancelled())">Cancel</button>
     </div>
-    <FirstRenderDetector OnFirstRender="@(async () => await edit.FocusAsync())" />
+    <FirstRenderDetector OnFirstRender=@HandleFirstRender />
 </Modal>
 
 @code {
     private ISubscription subscription;
     private readonly string enableCheckboxId = new Guid().ToString();
     private ElementReference edit;
+    private ElementReference select;
 
     [Parameter]
     public IViewModel ViewModel { get; set; }
@@ -96,7 +101,7 @@
 
     static string GetActionBackgroundColor(Color? color)
     {
-        return color.HasValue ? color.Value.ToHtmlColor() : "var(--control-client-background)";
+        return color.HasValue ? color.Value.ToHtmlColor() : "inherit";
     }
 
     void HandleKeyDown(KeyboardEventArgs e)
@@ -105,5 +110,11 @@
         {
             ViewModel.OnConfirmed();
         }
+    }
+
+    async Task HandleFirstRender()
+    {
+        await edit.FocusAsync();
+        await jsInterop.Forms.ResetSelectValue(select);
     }
 }

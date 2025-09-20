@@ -1363,6 +1363,14 @@ button {
     padding-bottom: 5px;
 }
 
+.filter-dialog .action::picker(select) {
+    appearance: base-select;
+}
+
+.filter-dialog .action {
+    appearance: base-select;
+}
+
 
 .filters-list-item {
     display: flex;
