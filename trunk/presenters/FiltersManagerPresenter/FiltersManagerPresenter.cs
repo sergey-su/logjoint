@@ -60,6 +60,11 @@ namespace LogJoint.UI.Presenters.FiltersManager
             set { SetFiltersList(value); }
         }
 
+        void IPresenter.OpenDialogForSelectedText()
+        {
+            OpenDialog(requireNonEmptyText: true, preferEditExistingFilter: true);
+        }
+
         IChangeNotification IViewModel.ChangeNotification => changeNotification;
 
         FiltersListBox.IViewModel IViewModel.FiltersListBox => (FiltersListBox.IViewModel)filtersListPresenter;
@@ -113,43 +118,9 @@ namespace LogJoint.UI.Presenters.FiltersManager
                 filtersList.FilteringEnabled = value;
         }
 
-        async void IViewModel.OnAddFilterClicked()
+        void IViewModel.OnAddFilterClicked()
         {
-            string defaultTemplate = "";
-            string selectedText = "";
-            if (logViewerPresenter != null)
-                selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
-            if (selectedText.Split(['\r', '\n']).Length < 2) // is single-line
-                defaultTemplate = selectedText;
-            IFilter f = filtersFactory.CreateFilter(
-                filtersList.Purpose switch
-                {
-                    FiltersListPurpose.Highlighting => FilterAction.IncludeAndColorizeFirst,
-                    FiltersListPurpose.Display => FilterAction.Exclude,
-                    _ => FilterAction.Include
-                },
-                string.Format("New rule {0}", ++lastFilterIndex),
-                enabled: true,
-                searchOptions: new Search.Options()
-                {
-                    Template = defaultTemplate,
-                    Scope = filtersFactory.CreateScope()
-                },
-                timeRange: null
-            );
-            try
-            {
-                if (!await filtersDialogPresenter.ShowTheDialog(f, filtersList.Purpose))
-                {
-                    return;
-                }
-                filtersList.Insert(0, f);
-                f = null;
-            }
-            finally
-            {
-                f?.Dispose();
-            }
+            OpenDialog(requireNonEmptyText: false, preferEditExistingFilter: false);
         }
 
         void IViewModel.OnRemoveFilterClicked()
@@ -266,6 +237,62 @@ namespace LogJoint.UI.Presenters.FiltersManager
             }
 
             filtersList.Delete(toDelete);
+        }
+
+        private async void OpenDialog(bool requireNonEmptyText, bool preferEditExistingFilter)
+        {
+            string defaultTemplate = "";
+            string selectedText = "";
+            if (logViewerPresenter != null)
+                selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
+            if (selectedText.Split(['\r', '\n']).Length < 2) // is single-line
+                defaultTemplate = selectedText;
+            if (requireNonEmptyText && defaultTemplate.Length == 0)
+            {
+                return;
+            }
+            IFilter existingFilter = null;
+            if (preferEditExistingFilter)
+            {
+                existingFilter = filtersList.Items.FirstOrDefault(candidate => !candidate.IsDisposed 
+                    && candidate.Options.Template == defaultTemplate);
+            }
+            IFilter newFilter = null;
+            if (existingFilter == null)
+            {
+                newFilter = filtersFactory.CreateFilter(
+                    filtersList.Purpose switch
+                    {
+                        FiltersListPurpose.Highlighting => FilterAction.IncludeAndColorizeFirst,
+                        FiltersListPurpose.Display => FilterAction.Exclude,
+                        _ => FilterAction.Include
+                    },
+                    string.Format("New rule {0}", ++lastFilterIndex),
+                    enabled: true,
+                    searchOptions: new Search.Options()
+                    {
+                        Template = defaultTemplate,
+                        Scope = filtersFactory.CreateScope()
+                    },
+                    timeRange: null
+                );
+            }
+            try
+            {
+                if (!await filtersDialogPresenter.ShowTheDialog(existingFilter ?? newFilter, filtersList.Purpose))
+                {
+                    return;
+                }
+                if (newFilter != null)
+                {
+                    filtersList.Insert(0, newFilter);
+                }
+                newFilter = null;
+            }
+            finally
+            {
+                newFilter?.Dispose();
+            }
         }
     };
 };

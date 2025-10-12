@@ -15,6 +15,7 @@ namespace LogJoint.UI.Presenters
         Options.Dialog.IPresenter optionsDialogPresenter;
         HistoryDialog.IPresenter historyDialogPresenter;
         ShortcutsDialog.IPresenter shortcutsDialog;
+        FiltersManager.IPresenter hightlightingPresenter;
 
         public void Init(
             MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
@@ -25,7 +26,8 @@ namespace LogJoint.UI.Presenters
             About.IPresenter aboutDialogPresenter,
             Options.Dialog.IPresenter optionsDialogPresenter,
             HistoryDialog.IPresenter historyDialogPresenter,
-            ShortcutsDialog.IPresenter shortcutsDialog
+            ShortcutsDialog.IPresenter shortcutsDialog,
+            FiltersManager.IPresenter hightlightingPresenter
         )
         {
             this.messagePropertiesDialogPresenter = messagePropertiesDialogPresenter;
@@ -37,6 +39,7 @@ namespace LogJoint.UI.Presenters
             this.historyDialogPresenter = historyDialogPresenter;
             this.aboutDialogPresenter = aboutDialogPresenter;
             this.shortcutsDialog = shortcutsDialog;
+            this.hightlightingPresenter = hightlightingPresenter;
         }
 
         void IPresentersFacade.ShowMessageProperties()
@@ -105,6 +108,11 @@ namespace LogJoint.UI.Presenters
         void IPresentersFacade.ShowKeyboardShortcuts()
         {
             shortcutsDialog.ShowDialog();
+        }
+
+        void IPresentersFacade.ShowHighlightingDialogForSelectedText()
+        {
+            hightlightingPresenter?.OpenDialogForSelectedText();
         }
     };
 };

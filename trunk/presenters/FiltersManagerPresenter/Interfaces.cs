@@ -5,6 +5,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
     public interface IPresenter
     {
         IFiltersList FiltersList { get; set; }
+        void OpenDialogForSelectedText();
     };
 
     [Flags]

@@ -321,6 +321,10 @@
                 return shift ? Key.PrevHighlightedMessage : Key.NextHighlightedMessage;
             case "ContextMenu":
                 return Key.ContextMenu;
+            case "H": return Key.HighlightShortcut;
+            case "h": return Key.HighlightShortcut;
+            case "A": return Key.AnnotateShortcut;
+            case "a": return Key.AnnotateShortcut;
             default: return Key.None;
         }
     }

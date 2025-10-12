@@ -48,7 +48,7 @@ namespace LogJoint
         {
             var ret = new List<(int, int, FilterAction)>();
             var filtersState = hlFilters
-                .Where(f => f.Enabled)
+                .Where(f => !f.IsDisposed && f.Enabled)
                 .Select(filter => (procssing: filter.StartBulkProcessing(
                     displayTextGetter, false), filter))
                 .ToArray();

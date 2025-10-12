@@ -84,6 +84,8 @@ namespace LogJoint.UI.Presenters.LogViewer
         BookmarkShortcut,
         NextHighlightedMessage,
         PrevHighlightedMessage,
+        HighlightShortcut,
+        AnnotateShortcut,
 
         ModifySelectionModifier = 512,
         AlternativeModeModifier = 1024,

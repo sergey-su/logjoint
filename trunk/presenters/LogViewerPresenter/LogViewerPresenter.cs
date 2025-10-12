@@ -48,6 +48,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             this.debugAgentConfig = debugAgentConfig;
             this.annotationsRegistry = annotations;
             this.promptDialog = promptDialog;
+            this.presentersFacade = presentersFacade;
 
             this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
@@ -799,6 +800,10 @@ namespace LogJoint.UI.Presenters.LogViewer
                     PerformDefaultFocusedMessageAction();
                 else if (k == Key.BookmarkShortcut)
                     bookmarks.ToggleBookmark(ThisIntf.FocusedMessageBookmark);
+                else if (k == Key.HighlightShortcut)
+                    presentersFacade.ShowHighlightingDialogForSelectedText();
+                else if (k == Key.AnnotateShortcut)
+                    AnnotateSelectedText();
             }
             if (k == Key.Copy)
             {
@@ -1506,6 +1511,7 @@ namespace LogJoint.UI.Presenters.LogViewer
         readonly IDebugAgentConfig debugAgentConfig;
         readonly IAnnotationsRegistry annotationsRegistry;
         readonly IPromptDialog promptDialog;
+        readonly IPresentersFacade presentersFacade;
 
         IView view;
         IBookmark slaveModeFocusedMessage;

@@ -572,7 +572,8 @@ namespace LogJoint.UI.Presenters
                 aboutDialogPresenter,
                 optionsDialogPresenter,
                 historyDialogPresenter,
-                shortcutsDialog
+                shortcutsDialog,
+                hlFiltersManagementPresenter
             );
 
             IPresentation expensibilityEntryPoint = new Presentation(
