@@ -4,7 +4,7 @@
 @implements IDisposable
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
-<Modal Visible="@(viewModel.ViewState != null)" Class="" Style="@GetContentsStyle()" ClickOutside="@(() => viewModel?.OnClickOutside())" OnCancel="@(() => viewModel?.OnClickOutside())">
+<Modal Visible="@(viewModel.ViewState != null)" Class="" ContentsPosition="@viewModel.ViewState?.ScreenLocation" ClickOutside="@(() => viewModel?.OnClickOutside())" OnCancel="@(() => viewModel?.OnClickOutside())">
     <div class="context-menu" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))">
         @foreach (var item in @viewModel.ViewState.Items.ZipWithIndex())
         {
@@ -42,13 +42,6 @@
 
     string GetItemClass(int i) => $"item {(i == viewModel.ViewState.SelectedItem ? "selected" : "")}";
 
-    string GetContentsStyle()
-    {
-        Drawing.PointF? loc = viewModel.ViewState?.ScreenLocation;
-        if (loc == null)
-            return "";
-        return $"left: {loc.Value.X}px; top: {loc.Value.Y}px; transform: none;";
-    }
 
     KeyCode GetKey(KeyboardEventArgs keyboardEventArgs)
     {
