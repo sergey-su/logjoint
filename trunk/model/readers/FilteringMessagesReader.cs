@@ -64,7 +64,8 @@ namespace LogJoint
                     filteredLogReader = new XmlFormat.MessagesReader(
                         filteredReaderParams,
                         XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(
-                            unicodeEncodingNoBOM.WebName, null, new FormatViewOptions(rawViewAllowed: true), regexFactory),
+                            unicodeEncodingNoBOM.WebName, null, new TextStreamPositioningParams(1024 * 1024),
+                            new FormatViewOptions(rawViewAllowed: true), regexFactory),
                         regexFactory,
                         traceSourceFactory,
                         globalSettings,

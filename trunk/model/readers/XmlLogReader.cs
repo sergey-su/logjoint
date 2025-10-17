@@ -333,6 +333,7 @@ namespace LogJoint.XmlFormat
         public bool IsNativeFormat { get { return Transform == null; } }
 
         public static XmlFormatInfo MakeNativeFormatInfo(string encoding, StreamReorderingParams? dejitteringParams,
+            TextStreamPositioningParams textStreamPositioningParams,
             FormatViewOptions viewOptions, IRegexFactory regexFactory)
         {
             var headRe = new LoadedRegex(
@@ -340,7 +341,7 @@ namespace LogJoint.XmlFormat
                 suffersFromPartialMatchProblem: false);
             return new XmlFormatInfo(
                 null, headRe, new LoadedRegex(),
-                null, null, encoding, null, TextStreamPositioningParams.Default, dejitteringParams, viewOptions);
+                null, null, encoding, null, textStreamPositioningParams, dejitteringParams, viewOptions);
         }
 
         public XmlFormatInfo(XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
@@ -655,7 +656,8 @@ namespace LogJoint.XmlFormat
             this.globalSettings = globalSettings;
             this.fileSystem = fileSystem;
             this.displayFilters = displayFilters;
-            this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions(), regexFactory);
+            this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null,
+                TextStreamPositioningParams.Default, new FormatViewOptions(), regexFactory);
             this.filteringStats = filteringStats;
         }
 
