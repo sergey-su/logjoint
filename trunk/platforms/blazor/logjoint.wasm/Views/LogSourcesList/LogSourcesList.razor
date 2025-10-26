@@ -11,7 +11,7 @@
           OnSelect="@(nodes => viewModel.OnSelectionChange(nodes.OfType<IViewItem>().ToArray()))"
           OnExpand="@(node => viewModel.OnItemExpand((IViewItem)node))"
           OnCollapse="@(node => viewModel.OnItemCollapse((IViewItem)node))"
-          OnDoubleClick="@(node => viewModel.OnEnterKeyPressed())"
+          OnDoubleClick="HandleDoubleClick"
           OnKeyDown="HandleKeyDown"
           NodeClass="log-sources-list-item">
     <NodeTemplate>
@@ -96,5 +96,13 @@
     string GetFocusedMarkClass(IViewItem item)
     {
         return item == viewModel.FocusedMessageItem ? "f" : "";
+    }
+
+    async void HandleDoubleClick(LogJoint.UI.Presenters.Reactive.ITreeNode node)
+    {
+        if (await jsInterop.Keyboard.GetFocusedElementTag() != "INPUT") // Ignore double-click on the checkbox
+        {
+            viewModel.OnEnterKeyPressed();
+        }
     }
 }

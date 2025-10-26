@@ -2,11 +2,12 @@
 @using LogJoint
 @using LogJoint.UI.Presenters.FiltersListBox
 @implements IDisposable
+@inject JsInterop jsInterop
 
 <ListView Items="@ViewModel.Items" 
           OnSelect="@(items => ViewModel.OnChangeSelection(items.OfType<IViewItem>().ToArray()))" 
           Class="@ListClass" ItemClass="filters-list-item"
-          OnDoubleClick="@(items => ViewModel.OnDoubleClicked())"
+          OnDoubleClick="HandleDoubleClick"
           ChangeNotification="@ViewModel.ChangeNotification"
           OnKeyDown="HandleKeyDown">
     <ItemTemplate>
@@ -72,11 +73,33 @@
         {
             ViewModel.OnDeletePressed();
         }
+        else if (eventArgs.Key == " ")
+        {
+            MaybeToggleCheckedStateByKeyboardShortcut(item);
+        }
+    }
+
+    async void HandleDoubleClick(LogJoint.UI.Presenters.Reactive.IListItem item)
+    {
+        if (await jsInterop.Keyboard.GetFocusedElementTag() != "INPUT") // Ignore double-click on the checkbox
+        {
+            ViewModel.OnDoubleClicked();
+        }
     }
 
     string GetItemStyle(IViewItem item)
     {
         var cl = (item.IsSelected || !item.Color.HasValue) ? "inherit" : LogJoint.Drawing.ColorExtensions.ToHtmlColor(item.Color.Value);
         return $"background-color: {cl}";
+    }
+
+    async void MaybeToggleCheckedStateByKeyboardShortcut(LogJoint.UI.Presenters.Reactive.IListItem item)
+    {
+        var viewItem = item as IViewItem;
+        if (viewItem != null && viewItem.IsChecked.HasValue &&
+            await jsInterop.Keyboard.GetFocusedElementTag() != "INPUT") // if checkbox is focused, it'll handle the keyboard itself
+        {
+            ViewModel.OnItemChecked(viewItem, !viewItem.IsChecked.GetValueOrDefault(true));
+        }
     }
 }

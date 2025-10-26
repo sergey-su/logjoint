@@ -66,13 +66,9 @@ namespace LogJoint.UI.Presenters.LogViewer
                 searchManager,
                 filtersFactory
             );
-            // do not use model's filters.
-            // highlighting in search results is determined 
-            // by filters from search options.
-            IFiltersList highlightFilters = null;
             return (
                 new Presenter(model, synchronizationContext,
-                    clipboard, highlightFilters, bookmarks, bookmarksFactory, telemetry,
+                    clipboard, hlFilters, bookmarks, bookmarksFactory, telemetry,
                     new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
                     new DelegatingViewModeStrategy(loadedMessagesPresenter),
                     new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy),
