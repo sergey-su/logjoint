@@ -49,7 +49,7 @@ namespace LogJoint
                     {
                         return;
                     }
-                    DateTime now = timeProvider.GetLocalNow().Date;
+                    DateTime now = timeProvider.GetLocalNow().DateTime;
                     if (now - interval > lastInvoke)
                     {
                         lastInvoke = now;
