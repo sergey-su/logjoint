@@ -155,7 +155,7 @@ namespace LogJoint.UI.Presenters
                 model.ChangeNotification
             );
 
-            LogViewer.IPresenterInternal viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
+            LogViewer.IPresenterInternal loadedMessagesViewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
             ITabUsageTracker tabUsageTracker = new TabUsageTracker();
 
@@ -173,7 +173,7 @@ namespace LogJoint.UI.Presenters
                 model.LogSourcesPreprocessings,
                 model.SearchManager,
                 model.Bookmarks,
-                viewerPresenter,
+                loadedMessagesViewerPresenter,
                 statusReportFactory,
                 model.HeartBeatTimer,
                 colorTheme);
@@ -199,7 +199,7 @@ namespace LogJoint.UI.Presenters
                 model.ModelThreads,
                 model.LogSourcesManager,
                 threadsListView,
-                viewerPresenter,
+                loadedMessagesViewerPresenter,
                 navHandler,
                 model.HeartBeatTimer,
                 colorTheme) : null;
@@ -222,6 +222,7 @@ namespace LogJoint.UI.Presenters
                         highlightColorsTable
                     ),
                     searchFilterDialogPresenter,
+                    null,
                     null,
                     model.FiltersFactory,
                     alertPopup
@@ -280,7 +281,7 @@ namespace LogJoint.UI.Presenters
                 model.LogSourcesManager,
                 model.LogSourcesPreprocessings,
                 sourcePropertiesWindowPresenter,
-                viewerPresenter,
+                loadedMessagesViewerPresenter,
                 alertPopup,
                 fileDialogs,
                 clipboardAccess,
@@ -382,13 +383,14 @@ namespace LogJoint.UI.Presenters
                 model.Bookmarks,
                 model.FiltersManager.HighlightFilters,
                 messagePropertiesDialogView,
-                viewerPresenter,
+                loadedMessagesViewerPresenter,
                 navHandler,
                 colorTheme,
                 model.ChangeNotification,
                 model.TelemetryCollector,
                 model.AnnotationsRegistry);
 
+            LogViewer.IPresenterInternal searchResultsViewerPresenter = searchResultPresenter.LogViewerPresenter;
 
             var hlFilterDialogPresenter = new FilterDialog.Presenter(model.ChangeNotification,
                 model.LogSourcesManager, highlightColorsTable, loadedMessagesPresenter.LogViewerPresenter);
@@ -400,7 +402,8 @@ namespace LogJoint.UI.Presenters
                         hlFilterDialogPresenter,
                         highlightColorsTable),
                     hlFilterDialogPresenter,
-                    viewerPresenter,
+                    loadedMessagesViewerPresenter,
+                    searchResultsViewerPresenter,
                     model.FiltersFactory,
                     alertPopup,
                     model.FiltersManager.HighlightFilters
@@ -416,7 +419,8 @@ namespace LogJoint.UI.Presenters
                         displayFilterDialogPresenter,
                         highlightColorsTable),
                     displayFilterDialogPresenter,
-                    viewerPresenter,
+                    loadedMessagesViewerPresenter,
+                    searchResultsViewerPresenter,
                     model.FiltersFactory,
                     alertPopup,
                     model.FiltersManager.DisplayFilters
@@ -437,7 +441,7 @@ namespace LogJoint.UI.Presenters
 
             var bookmarksManagerPresenter = new BookmarksManager.Presenter(
                 model.Bookmarks,
-                viewerPresenter,
+                loadedMessagesViewerPresenter,
                 searchResultPresenter,
                 bookmarksListPresenter,
                 statusReportFactory,
@@ -477,7 +481,7 @@ namespace LogJoint.UI.Presenters
                 model.LogSourcesManager,
                 model.LogSourcesPreprocessings,
                 mainFormView,
-                viewerPresenter,
+                loadedMessagesViewerPresenter,
                 searchResultPresenter,
                 searchPanelPresenter,
                 sourcesManagerPresenter,

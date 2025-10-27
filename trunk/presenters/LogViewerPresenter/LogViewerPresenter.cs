@@ -470,6 +470,11 @@ namespace LogJoint.UI.Presenters.LogViewer
             get { return (view?.HasInputFocus).GetValueOrDefault(false); }
         }
 
+        DateTime? IPresenterInternal.LastFocusTime
+        {
+            get { return view?.LastFocusTime; }
+        }
+
         void IPresenterInternal.ReceiveInputFocus()
         {
             view?.ReceiveInputFocus();

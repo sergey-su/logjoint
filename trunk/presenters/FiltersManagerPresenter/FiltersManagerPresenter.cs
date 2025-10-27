@@ -15,7 +15,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
         readonly IFiltersFactory filtersFactory;
         readonly FilterDialog.IPresenter filtersDialogPresenter;
         readonly FiltersListBox.IPresenter filtersListPresenter;
-        readonly LogViewer.IPresenterInternal logViewerPresenter;
+        readonly LogViewer.IPresenterInternal loadedMessagesLogViewerPresenter;
+        readonly LogViewer.IPresenterInternal searchResultsLogViewerPresenter;
         readonly IAlertPopup alerts;
         int lastFilterIndex;
         IFiltersList filtersList;
@@ -24,7 +25,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
             IChangeNotification changeNotification,
             FiltersListBox.IPresenter filtersListPresenter,
             FilterDialog.IPresenter filtersDialogPresenter,
-            LogViewer.IPresenterInternal logViewerPresenter,
+            LogViewer.IPresenterInternal loadedMessagesLogViewerPresenter,
+            LogViewer.IPresenterInternal searchResultsLogViewerPresenter,
             IFiltersFactory filtersFactory,
             IAlertPopup alerts,
             IFiltersList initialFiltersList = null
@@ -33,7 +35,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
             this.changeNotification = changeNotification;
             this.filtersListPresenter = filtersListPresenter;
             this.filtersDialogPresenter = filtersDialogPresenter;
-            this.logViewerPresenter = logViewerPresenter;
+            this.loadedMessagesLogViewerPresenter = loadedMessagesLogViewerPresenter;
+            this.searchResultsLogViewerPresenter = searchResultsLogViewerPresenter;
             this.filtersFactory = filtersFactory;
             this.alerts = alerts;
 
@@ -140,12 +143,12 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
         void IViewModel.OnPrevClicked()
         {
-            logViewerPresenter?.GoToPrevHighlightedMessage();
+            loadedMessagesLogViewerPresenter?.GoToPrevHighlightedMessage();
         }
 
         void IViewModel.OnNextClicked()
         {
-            logViewerPresenter?.GoToNextHighlightedMessage();
+            loadedMessagesLogViewerPresenter?.GoToNextHighlightedMessage();
         }
 
         async void IViewModel.OnOptionsClicked()
@@ -243,8 +246,15 @@ namespace LogJoint.UI.Presenters.FiltersManager
         {
             string defaultTemplate = "";
             string selectedText = "";
+            LogViewer.IPresenterInternal logViewerPresenter = 
+                new[] { searchResultsLogViewerPresenter, loadedMessagesLogViewerPresenter }
+                    .Where(p => p != null)
+                    .OrderByDescending(p => (p.HasInputFocus ? 1 : 0, p.LastFocusTime))
+                    .FirstOrDefault();
             if (logViewerPresenter != null)
+            {
                 selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
+            }
             if (selectedText.Split(['\r', '\n']).Length < 2) // is single-line
                 defaultTemplate = selectedText;
             if (requireNonEmptyText && defaultTemplate.Length == 0)
@@ -263,7 +273,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
                 newFilter = filtersFactory.CreateFilter(
                     filtersList.Purpose switch
                     {
-                        FiltersListPurpose.Highlighting => FilterAction.IncludeAndColorizeFirst,
+                        FiltersListPurpose.Highlighting => GetNextHighlightingFilterAction(filtersList),
                         FiltersListPurpose.Display => FilterAction.Exclude,
                         _ => FilterAction.Include
                     },
@@ -293,6 +303,23 @@ namespace LogJoint.UI.Presenters.FiltersManager
             {
                 newFilter?.Dispose();
             }
+        }
+
+        static private FilterAction GetNextHighlightingFilterAction(IFiltersList filtersList)
+        {
+            var usedActions = filtersList.Items.Select(f => f.Action).ToHashSet();
+            for (FilterAction action = FilterAction.IncludeAndColorizeFirst;; ++action)
+            {
+                if (!usedActions.Contains(action))
+                {
+                    return action;
+                }
+                if (action == FilterAction.IncludeAndColorizeLast)
+                {
+                    break;
+                }
+            }
+            return FilterAction.IncludeAndColorize1;
         }
     };
 };

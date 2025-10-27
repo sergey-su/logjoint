@@ -95,7 +95,7 @@ namespace LogJoint.UI.Presenters.SearchResult
             UpdateExpansionState();
         }
 
-        Presenters.LogViewer.IPresenterInternal IPresenter.LogViewerPresenter { get { return messagesPresenter; } }
+        public IPresenterInternal LogViewerPresenter { get { return messagesPresenter; } }
 
         IMessage IPresenter.FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
         IBookmark IPresenter.FocusedMessageBookmark => messagesPresenter.FocusedMessageBookmark;

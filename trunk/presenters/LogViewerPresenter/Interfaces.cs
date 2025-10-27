@@ -49,6 +49,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
         bool HasInputFocus { get; }
         void ReceiveInputFocus();
+        DateTime? LastFocusTime { get; }
 
         event EventHandler FocusedMessageChanged;
         event EventHandler FocusedMessageBookmarkChanged;
@@ -216,6 +217,7 @@ namespace LogJoint.UI.Presenters.LogViewer
         float DisplayLinesPerPage { get; }
         void HScrollToSelectedText(int charIndex);
         bool HasInputFocus { get; }
+        DateTime? LastFocusTime { get; }
         void ReceiveInputFocus();
         object GetContextMenuPopupData(int? viewLineIndex);
         void PopupContextMenu(object contextMenuPopupData);

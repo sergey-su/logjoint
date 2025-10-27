@@ -132,6 +132,8 @@ namespace LogJoint.UI
                 Focus();
         }
 
+        DateTime? IView.LastFocusTime => null;
+
         void IView.HScrollToSelectedText(int charIndex)
         {
             int pixelThatMustBeVisible = (int)(charIndex * viewDrawing.CharSize.Width) + viewDrawing.TimeAreaSize;

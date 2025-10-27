@@ -9,7 +9,7 @@
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class="logview @Class @(viewModel.TimeMaxLength > 0 ? "time-visible" : "")" tabindex="0" @onkeydown="@(e => viewModel.OnKeyPressed(GetKey(e)))"
-@onfocus="@(e => focused = true)" @onblur="@(e => focused = false)" @ref="element">
+     @onfocus="@(e => SetFocused(true))" @onblur="@(e => SetFocused(false))" @ref="element">
     <span class="measure-text" @ref="measureElement">&nbsp;</span>
     <div class="scroll-outer nice-scroll" @onwheel="@(e => viewModel.OnIncrementalVScroll((float)(e.DeltaY / charHeight)))" @ref="scrollOuter">
         <div class="scroll-inner" style="top: @TopProperty" @ref="scrollInner"
@@ -151,6 +151,7 @@
     private float displayLinesPerPage = 1;
     private bool pointerCaptured;
     private bool focused;
+    private DateTime? lastFocusTime;
     private static int annotationPadding = 2;
 
     [Parameter]
@@ -222,6 +223,8 @@
     {
         await element.FocusAsync();
     }
+
+    DateTime? IView.LastFocusTime => lastFocusTime;
 
     void IView.SetViewModel(IViewModel value)
     {
@@ -437,6 +440,15 @@
         {
             presentation.ContextMenu.ShowMenu(menuItems,
                 new Drawing.PointF((float)e.ClientX, (float)e.ClientY));
+        }
+    }
+
+    void SetFocused(bool value)
+    {
+        focused = value;
+        if (value)
+        {
+            lastFocusTime = DateTime.UtcNow;
         }
     }
 }
