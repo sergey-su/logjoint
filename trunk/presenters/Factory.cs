@@ -10,6 +10,7 @@ namespace LogJoint.UI.Presenters
         public MainForm.IPresenter MainFormPresenter { get; internal set; }
         public SourcesManager.IPresenter SourcesManagerPresenter { get; internal set; }
         public LoadedMessages.IPresenter LoadedMessagesPresenter { get; internal set; }
+        public SearchResult.IPresenter SearchResultPresenter { get; internal set; }
         public IClipboardAccess ClipboardAccess { get; internal set; }
         public IPresentersFacade PresentersFacade { get; internal set; }
         public IAlertPopup AlertPopup { get; internal set; }
@@ -599,6 +600,7 @@ namespace LogJoint.UI.Presenters
                 MainFormPresenter = mainFormPresenter,
                 SourcesManagerPresenter = sourcesManagerPresenter,
                 LoadedMessagesPresenter = loadedMessagesPresenter,
+                SearchResultPresenter = searchResultPresenter,
                 ClipboardAccess = clipboardAccess,
                 PresentersFacade = presentersFacade,
                 AlertPopup = alertPopup,

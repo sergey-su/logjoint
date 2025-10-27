@@ -16,7 +16,9 @@ namespace LogJoint.Tests.Integration
             var filters = app.ModelObjects.FiltersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
             filters.Insert(0, app.ModelObjects.FiltersFactory.CreateFilter(FilterAction.Include, "", true, new Search.Options { Template = "file" }, timeRange: null));
             app.ModelObjects.SearchManager.SubmitSearch(new SearchAllOptions { Filters = filters });
-            await app.WaitFor(() => !app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines.IsEmpty && app.ModelObjects.SearchManager.Results[0].Status == SearchResultStatus.Finished);
+            await app.WaitFor(() => app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines.Length >= 20 && app.ModelObjects.SearchManager.Results[0].Status == SearchResultStatus.Finished);
+            await app.PresentationObjects.LoadedMessagesPresenter.LogViewerPresenter.GoHome();
+            await app.PresentationObjects.SearchResultPresenter.LogViewerPresenter.GoHome();
         }
 
         [IntegrationTest]
@@ -28,10 +30,10 @@ namespace LogJoint.Tests.Integration
             Check.That(vs.Coloring.Options[1].Text.ToLower().Contains("thread"));
 
             var vl1 = app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines;
-            Check.That(vl1[0].ContextColor).IsNotEqualTo(vl1[2].ContextColor);
+            Check.That(vl1[0].ContextColor).IsNotEqualTo(vl1[8].ContextColor);
 
             var vl2 = app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines;
-            Check.That(vl2[19].ContextColor).IsNotEqualTo(vl2[13].ContextColor);
+            Check.That(vl2[0].ContextColor).IsNotEqualTo(vl2[6].ContextColor);
         }
 
         [IntegrationTest]
@@ -42,10 +44,10 @@ namespace LogJoint.Tests.Integration
             Check.That(vs.RawViewButton.Checked).IsFalse();
 
             Check.That(app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines[0].TextLineValue).IsEqualTo(
-                "File cannot be open which means that it was handled");
+                "Void Main(System.String[])");
 
             Check.That(app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines[3].TextLineValue).IsEqualTo(
-                "Processing new file: d5021b3c-f9ae-4860-a429-d0f32e2b7403.data");
+                "No free data file found. Going sleep.");
         }
 
         [IntegrationTest]
@@ -70,10 +72,10 @@ namespace LogJoint.Tests.Integration
             Check.That(app.PresentationObjects.ViewModels.LoadedMessages.ViewState.RawViewButton.Checked).IsTrue();
 
             Check.That(app.PresentationObjects.ViewModels.LoadedMessages.LogViewer.ViewLines[0].TextLineValue).IsEqualTo(
-                "<E2ETraceEvent xmlns=\"http://schemas.microsoft.com/2004/06/E2ETraceEvent\"><System xmlns=\"http://schemas.microsoft.com/2004/06/windows/eventlog/system\"><EventID>0</EventID><Type>3</Type><SubType Name=\"Information\">0</SubType><Level>8</Level><TimeCreated SystemTime=\"2011-07-24T10:37:43.7104727Z\" /><Source Name=\"SampleApp\" /><Correlation ActivityID=\"{00000000-0000-0000-0000-000000000000}\" /><Execution ProcessName=\"SampleLoggingApp\" ProcessID=\"1956\" ThreadID=\"6\" /><Channel/><Computer>SERGEYS-PC</Computer></System><ApplicationData>File cannot be open which means that it was handled</ApplicationData></E2ETraceEvent>");
+                "<E2ETraceEvent xmlns=\"http://schemas.microsoft.com/2004/06/E2ETraceEvent\"><System xmlns=\"http://schemas.microsoft.com/2004/06/windows/eventlog/system\"><EventID>0</EventID><Type>3</Type><SubType Name=\"Start\">0</SubType><Level>255</Level><TimeCreated SystemTime=\"2011-07-24T10:37:25.9854589Z\" /><Source Name=\"SampleApp\" /><Correlation ActivityID=\"{00000000-0000-0000-0000-000000000000}\" /><Execution ProcessName=\"SampleLoggingApp\" ProcessID=\"1956\" ThreadID=\"1\" /><Channel/><Computer>SERGEYS-PC</Computer></System><ApplicationData>Void Main(System.String[])</ApplicationData></E2ETraceEvent>");
 
             Check.That(app.PresentationObjects.ViewModels.SearchResult.LogViewer.ViewLines[3].TextLineValue).IsEqualTo(
-                "<E2ETraceEvent xmlns=\"http://schemas.microsoft.com/2004/06/E2ETraceEvent\"><System xmlns=\"http://schemas.microsoft.com/2004/06/windows/eventlog/system\"><EventID>0</EventID><Type>3</Type><SubType Name=\"Start\">0</SubType><Level>255</Level><TimeCreated SystemTime=\"2011-07-24T10:37:41.7633614Z\" /><Source Name=\"SampleApp\" /><Correlation ActivityID=\"{00000000-0000-0000-0000-000000000000}\" /><Execution ProcessName=\"SampleLoggingApp\" ProcessID=\"1956\" ThreadID=\"6\" /><Channel/><Computer>SERGEYS-PC</Computer></System><ApplicationData>Processing new file: d5021b3c-f9ae-4860-a429-d0f32e2b7403.data</ApplicationData></E2ETraceEvent>");
+                "<E2ETraceEvent xmlns=\"http://schemas.microsoft.com/2004/06/E2ETraceEvent\"><System xmlns=\"http://schemas.microsoft.com/2004/06/windows/eventlog/system\"><EventID>0</EventID><Type>3</Type><SubType Name=\"Information\">0</SubType><Level>8</Level><TimeCreated SystemTime=\"2011-07-24T10:37:27.5515485Z\" /><Source Name=\"SampleApp\" /><Correlation ActivityID=\"{00000000-0000-0000-0000-000000000000}\" /><Execution ProcessName=\"SampleLoggingApp\" ProcessID=\"1956\" ThreadID=\"7\" /><Channel/><Computer>SERGEYS-PC</Computer></System><ApplicationData>No free data file found. Going sleep.</ApplicationData></E2ETraceEvent>");
         }
     }
 }
