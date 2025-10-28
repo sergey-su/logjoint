@@ -167,6 +167,7 @@ namespace LogJoint.Search
                         reOpts |= ReOptions.RightToLeft;
                     if (timeboxedMatching)
                         reOpts |= ReOptions.Timeboxed;
+                    reOpts |= ReOptions.Singleline;
                     try
                     {
                         ret.re = regexFactory.Create(
