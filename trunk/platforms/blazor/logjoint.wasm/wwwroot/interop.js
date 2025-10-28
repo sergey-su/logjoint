@@ -356,6 +356,16 @@
     },
 
     keyboard: {
+        _isMac: false,
+
+        init: function (isMac) {
+            return this._isMac = isMac;
+        },
+
+        hasEditKey: function (e) {
+            return _isMac ? e.metaKey : e.ctrlKey;
+        },
+
         addHandler: function (element, keysStr, handler, preventDefault, stopPropagation) {
             const keys = keysStr.map(keyStr => {
                 const split = keyStr.split("+");
@@ -381,7 +391,7 @@
                                 modifier == "Alt" ? e.altKey :
                                 modifier == "Shift" ? e.shiftKey :
                                 modifier == "Meta" ? e.metaKey :
-                                modifier == "Edit" ? (e.metaKey || e.ctrlKey):
+                                modifier == "Edit" ? this.hasEditKey(e) :
                                 true;
                             allMatch = allMatch && modifierMatch;
                         }
@@ -712,7 +722,7 @@
     },
 
     browser: {
-        isMac: function() {
+        isMac: function () {
             return navigator.appVersion.indexOf("Mac") > -1;
         },
     },

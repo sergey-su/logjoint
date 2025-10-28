@@ -41,7 +41,7 @@
 
     void TrySelectNodeByMouse(MouseEventArgs e)
     {
-        Owner?.TrySelectNode(Index, expandSelection: jsInterop.Browser.HasEditKey(e), allowSelectingNothing: true);
+        Owner?.TrySelectNode(Index, expandSelection: jsInterop.Keyboard.HasEditKey(e), allowSelectingNothing: true);
         bool doubleClick = e.Detail > 1;
         if (doubleClick)
         {

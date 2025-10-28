@@ -294,32 +294,32 @@
 
     Key GetMainKey(KeyboardEventArgs keyboardEventArgs)
     {
-        var ctrlOrCommand = keyboardEventArgs.CtrlKey || keyboardEventArgs.MetaKey;
+        var edit = jsInterop.Keyboard.HasEditKey(keyboardEventArgs);
         var shift = keyboardEventArgs.ShiftKey;
         var alt = keyboardEventArgs.AltKey;
         switch (keyboardEventArgs.Key)
         {
             case "ArrowUp":
-                return ctrlOrCommand ? Key.BeginOfDocument :
+                return edit ? Key.BeginOfDocument :
                     alt ? (Key.Up | Key.AlternativeModeModifier) : Key.Up;
             case "ArrowDown":
-                return ctrlOrCommand ? Key.EndOfDocument :
+                return edit ? Key.EndOfDocument :
                     alt ? (Key.Down | Key.AlternativeModeModifier) : Key.Down;
             case "ArrowLeft":
                 return keyboardEventArgs.MetaKey ? Key.BeginOfLine : Key.Left;
             case "ArrowRight":
                 return keyboardEventArgs.MetaKey ? Key.EndOfLine : Key.Right;
             case "Home":
-                return ctrlOrCommand ? Key.BeginOfDocument : Key.BeginOfLine;
+                return edit ? Key.BeginOfDocument : Key.BeginOfLine;
             case "End":
-                return ctrlOrCommand ? Key.EndOfDocument : Key.EndOfLine;
+                return edit ? Key.EndOfDocument : Key.EndOfLine;
             case "PageUp": return Key.PageUp;
             case "PageDown": return Key.PageDown;
             case "B": return Key.BookmarkShortcut;
             case "b": return Key.BookmarkShortcut;
             case "c":
             case "C":
-                return ctrlOrCommand ? Key.Copy : Key.None;
+                return edit ? Key.Copy : Key.None;
             case "F4":
                 return shift ? Key.PrevHighlightedMessage : Key.NextHighlightedMessage;
             case "ContextMenu":

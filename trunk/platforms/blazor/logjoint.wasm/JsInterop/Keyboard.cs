@@ -1,17 +1,27 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LogJoint.Wasm
 {
     public class KeyboardInterop
     {
         readonly IJSRuntime jsRuntime;
+        bool isMac;
 
         public KeyboardInterop(IJSRuntime jsRuntime)
         {
             this.jsRuntime = jsRuntime;
+        }
+
+        public async Task Init()
+        {
+            isMac = await jsRuntime.InvokeAsync<bool>("logjoint.browser.isMac");
+            await jsRuntime.InvokeVoidAsync("logjoint.keyboard.init", isMac);
         }
 
         public struct Options
@@ -59,6 +69,18 @@ namespace LogJoint.Wasm
             {
                 dispose = () => modal.InvokeVoidAsync("dispose")
             };
+        }
+
+        public bool HasEditKey(MouseEventArgs eventArgs)
+        {
+            // Duplicated the JS implemenation of logjoint.keyboard.hasEditKey
+            return isMac ? eventArgs.MetaKey : eventArgs.CtrlKey;
+        }
+
+        public bool HasEditKey(KeyboardEventArgs eventArgs)
+        {
+            // Duplicated the JS implemenation of logjoint.keyboard.hasEditKey
+            return isMac ? eventArgs.MetaKey : eventArgs.CtrlKey;
         }
 
         class Helper

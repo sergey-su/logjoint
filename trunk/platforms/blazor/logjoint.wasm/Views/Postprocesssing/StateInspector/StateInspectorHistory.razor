@@ -88,7 +88,7 @@
             {
                 ViewModel.OnChangeHistoryItemKeyEvent(historyItem, Key.BookmarkShortcut);
             }
-            else if (eventArgs.Key.ToLower() == "c" && jsInterop.Browser.HasEditKey(eventArgs))
+            else if (eventArgs.Key.ToLower() == "c" && jsInterop.Keyboard.HasEditKey(eventArgs))
             {
                 ViewModel.OnChangeHistoryItemKeyEvent(historyItem, Key.CopyShortcut);
             }

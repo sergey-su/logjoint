@@ -64,9 +64,9 @@
             viewModel.OnEnterKeyPressed();
         else if (eventArgs.Key == " ")
             MaybeToggleCheckedStateByKeyboardShortcut(node);
-        else if (eventArgs.Key.ToLower() == "c" && jsInterop.Browser.HasEditKey(eventArgs))
+        else if (eventArgs.Key.ToLower() == "c" && jsInterop.Keyboard.HasEditKey(eventArgs))
             viewModel.OnCopyShortcutPressed();
-        else if (eventArgs.Key.ToLower() == "a" && jsInterop.Browser.HasEditKey(eventArgs))
+        else if (eventArgs.Key.ToLower() == "a" && jsInterop.Keyboard.HasEditKey(eventArgs))
             viewModel.OnSelectAllShortcutPressed();
     }
 

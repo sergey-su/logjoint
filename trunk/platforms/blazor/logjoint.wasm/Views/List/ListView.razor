@@ -105,7 +105,7 @@
         if (e.Button != 0 && !SelectByNonLeftClick)
             return;
         candidatePrimary = i;
-        if (jsInterop.Browser.HasEditKey(e))
+        if (jsInterop.Keyboard.HasEditKey(e))
         {
             var currentlySelected = getSelected();
             var proposedSelection = currentlySelected.Contains(i) ?

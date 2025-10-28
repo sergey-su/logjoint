@@ -43,7 +43,7 @@
 
     void HandleKeyDown(KeyboardEventArgs eventArgs, LogJoint.UI.Presenters.Reactive.IListItem item)
     {
-        if (eventArgs.Key.ToLower() == "c" && jsInterop.Browser.HasEditKey(eventArgs))
+        if (eventArgs.Key.ToLower() == "c" && jsInterop.Keyboard.HasEditKey(eventArgs))
         {
             ViewModel.OnPropertyCellCopyShortcutPressed();
         }

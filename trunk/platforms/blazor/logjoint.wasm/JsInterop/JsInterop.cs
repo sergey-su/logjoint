@@ -24,6 +24,7 @@ namespace LogJoint.Wasm
         public async Task Init()
         {
             await Browser.Init();
+            await Keyboard.Init();
             await ChromeExtension.Init();
         }
 
