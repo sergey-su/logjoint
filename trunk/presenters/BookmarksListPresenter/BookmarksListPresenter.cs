@@ -267,7 +267,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
                     annotation = bmk.Annotation,
                     textFragments = GetTextFragments(
                         new StringSlice(text), textAnnotations,
-                        highlightFiltersData.enabled == true ? highlightFiltersData.filters : null, highlightFiltersData.colors)
+                        highlightFiltersData.enabled == true ? highlightFiltersData.filters : ImmutableList<IFilter>.Empty,
+                        highlightFiltersData.colors)
                 });
                 prevTimestamp = ts;
                 if (isSelected)
