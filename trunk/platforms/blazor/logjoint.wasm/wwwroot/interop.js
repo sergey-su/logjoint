@@ -363,7 +363,7 @@
         },
 
         hasEditKey: function (e) {
-            return _isMac ? e.metaKey : e.ctrlKey;
+            return this._isMac ? e.metaKey : e.ctrlKey;
         },
 
         addHandler: function (element, keysStr, handler, preventDefault, stopPropagation) {

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System;
+using System.Diagnostics.Tracing;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -73,15 +74,26 @@ namespace LogJoint.Wasm
 
         public bool HasEditKey(MouseEventArgs eventArgs)
         {
-            // Duplicated the JS implemenation of logjoint.keyboard.hasEditKey
+            // Duplicates the JS implemenation of logjoint.keyboard.hasEditKey
             return isMac ? eventArgs.MetaKey : eventArgs.CtrlKey;
         }
 
         public bool HasEditKey(KeyboardEventArgs eventArgs)
         {
-            // Duplicated the JS implemenation of logjoint.keyboard.hasEditKey
+            // Duplicates the JS implemenation of logjoint.keyboard.hasEditKey
             return isMac ? eventArgs.MetaKey : eventArgs.CtrlKey;
         }
+
+        public string EditKeyName
+        {
+            get
+            {
+                // Duplicates the JS implemenation of logjoint.keyboard.hasEditKey
+                return isMac ? "Command⌘" : "Ctrl";
+            }
+        }
+
+        public string AltKeyName => isMac ? "Option⌥" : "Alt";
 
         class Helper
         {

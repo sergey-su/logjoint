@@ -281,11 +281,7 @@
         {
             result |= Key.ModifySelectionModifier;
         }
-        if (jsInterop.Browser.IsMac && keyboardEventArgs.AltKey)
-        {
-            result |= Key.JumpOverWordsModifier;
-        }
-        if (!jsInterop.Browser.IsMac && keyboardEventArgs.CtrlKey)
+        if (jsInterop.Keyboard.HasEditKey(keyboardEventArgs))
         {
             result |= Key.JumpOverWordsModifier;
         }
