@@ -8,6 +8,7 @@
           OnSelect="@(items => ViewModel.OnChangeSelection(items.OfType<IViewItem>().ToArray()))" 
           Class="@ListClass" ItemClass="filters-list-item"
           OnDoubleClick="HandleDoubleClick"
+          OnSelectAll="@(() => ViewModel.OnSelectAllShortcutPressed())"
           ChangeNotification="@ViewModel.ChangeNotification"
           OnKeyDown="HandleKeyDown">
     <ItemTemplate>

@@ -102,6 +102,12 @@ namespace LogJoint.UI.Presenters.FiltersListBox
                 filtersDialogPresenter.ShowTheDialog(f, filtersList.Purpose);
         }
 
+        void IViewModel.OnSelectAllShortcutPressed()
+        {
+            selectedFiltersWithNull = ImmutableHashSet.CreateRange(filtersList.Items);
+            changeNotification.Post();
+        }
+
         void IViewModel.OnPropertiesMenuItemClicked()
         {
             var f = GetTheOnly();

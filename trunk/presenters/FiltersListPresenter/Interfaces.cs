@@ -56,5 +56,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
         void OnEnterPressed();
         void OnDeletePressed();
         void OnDoubleClicked();
+        void OnSelectAllShortcutPressed();
     };
 };

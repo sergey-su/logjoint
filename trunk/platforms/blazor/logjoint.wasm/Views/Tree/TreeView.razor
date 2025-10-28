@@ -47,6 +47,9 @@
     public Action<IEnumerable<ITreeNode>> OnSelect { get; set; }
 
     [Parameter]
+    public Action OnSelectAll { get; set; }
+
+    [Parameter]
     public Action<ITreeNode> OnExpand { get; set; }
 
     [Parameter]
@@ -192,6 +195,11 @@
         if (firstRender)
         {
             await jsInterop.Keyboard.AddDefaultPreventingHandler(TreeRef, "ArrowUp", "ArrowDown");
+            await jsInterop.Keyboard.AddHandler(TreeRef, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                Handler = () => OnSelectAll?.Invoke()
+            }, "Edit+A/i");
         }
         primaryChangeSideEffects();
     }

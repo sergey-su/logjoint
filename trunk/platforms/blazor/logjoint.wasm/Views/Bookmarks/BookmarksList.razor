@@ -8,10 +8,11 @@
 
 <ListView Items="@viewModel.Items" OnSelect="@(items => viewModel.OnChangeSelection(items.OfType<IViewItem>()))" 
 Class="@ListClass" ItemClass="bookmarks-list-item"
-OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())"
-ChangeNotification="@viewModel.ChangeNotification"
-OnKeyDown="HandleKeyDown"
-SelectByNonLeftClick=false>
+        OnDoubleClick="@(items => viewModel.OnViewDoubleClicked())"
+        OnSelectAll="@(() => viewModel.OnSelectAllShortcutPressed())"
+        ChangeNotification="@viewModel.ChangeNotification"
+        OnKeyDown="HandleKeyDown"
+        SelectByNonLeftClick=false>
     <ItemTemplate>
         @{var item = (IViewItem)context;}
         @{var f = viewModel.FocusedMessagePosition; }
@@ -84,10 +85,6 @@ SelectByNonLeftClick=false>
         else if (eventArgs.Key == "Delete" || eventArgs.Key == "Backspace")
         {
             viewModel.OnDeleteButtonPressed();
-        }
-        else if (eventArgs.Key.ToLower() == "a" && jsInterop.Keyboard.HasEditKey(eventArgs))
-        {
-            viewModel.OnSelectAllShortcutPressed();
         }
     }
 

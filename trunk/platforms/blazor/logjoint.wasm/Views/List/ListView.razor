@@ -51,6 +51,9 @@
     public Action<IListItem> OnDoubleClick { get; set; }
 
     [Parameter]
+    public Action OnSelectAll { get; set; }
+
+    [Parameter]
     public RenderFragment<IListItem> ItemTemplate { get; set; } // todo: pass focus to item template
 
     [Parameter]
@@ -170,6 +173,11 @@
         if (firstRender)
         {
             await jsInterop.Keyboard.AddDefaultPreventingHandler(ListRef, "ArrowUp", "ArrowDown");
+            await jsInterop.Keyboard.AddHandler(ListRef, new KeyboardInterop.Options
+            {
+                PreventDefault = true,
+                Handler = () => OnSelectAll?.Invoke()
+            }, "Edit+A/i");
         }
     }
 

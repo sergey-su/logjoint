@@ -12,6 +12,7 @@
           OnExpand="@(node => viewModel.OnItemExpand((IViewItem)node))"
           OnCollapse="@(node => viewModel.OnItemCollapse((IViewItem)node))"
           OnDoubleClick="HandleDoubleClick"
+          OnSelectAll="@(() => viewModel.OnSelectAllShortcutPressed())"
           OnKeyDown="HandleKeyDown"
           NodeClass="log-sources-list-item">
     <NodeTemplate>
@@ -66,8 +67,6 @@
             MaybeToggleCheckedStateByKeyboardShortcut(node);
         else if (eventArgs.Key.ToLower() == "c" && jsInterop.Keyboard.HasEditKey(eventArgs))
             viewModel.OnCopyShortcutPressed();
-        else if (eventArgs.Key.ToLower() == "a" && jsInterop.Keyboard.HasEditKey(eventArgs))
-            viewModel.OnSelectAllShortcutPressed();
     }
 
     async void MaybeToggleCheckedStateByKeyboardShortcut(LogJoint.UI.Presenters.Reactive.ITreeNode node)
