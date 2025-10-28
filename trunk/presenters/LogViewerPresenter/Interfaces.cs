@@ -113,6 +113,7 @@ namespace LogJoint.UI.Presenters.LogViewer
         Annotate = 8192,
         ChangeAnnotation = 16384,
         DeleteAnnotation = 32768,
+        OpenRelatedLink = 65536,
     };
 
     public enum FocusedMessageDisplayModes

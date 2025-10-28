@@ -424,12 +424,20 @@
             new MenuItemDesc(ContextMenuItem.Annotate, "Annotate..."),
             new MenuItemDesc(ContextMenuItem.ChangeAnnotation, "Change annotation..."),
             new MenuItemDesc(ContextMenuItem.DeleteAnnotation, "Delete annotation"),
+            new MenuItemDesc(ContextMenuItem.OpenRelatedLink, "Open related link"),
         })
         {
             if ((menuData.VisibleItems & item.Bit) != 0)
             {
                 menuItems.Add(new LogJoint.UI.Presenters.ContextMenuItem(item.Text,
                     () => { viewModel.OnMenuItemClicked(item.Bit, menuData); }));
+            }
+        }
+        if (menuData.ExtendededItems != null)
+        {
+            foreach (var item in menuData.ExtendededItems)
+            {
+                menuItems.Add(new LogJoint.UI.Presenters.ContextMenuItem(item.Text, item.Click));
             }
         }
         if (menuItems.Count > 0)

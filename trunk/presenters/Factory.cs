@@ -145,7 +145,8 @@ namespace LogJoint.UI.Presenters
                 model.DebugAgentConfig,
                 presentersFacade,
                 model.AnnotationsRegistry,
-                promptDialog
+                promptDialog,
+                shellOpen
             );
 
             var loadedMessagesPresenter = new LoadedMessages.Presenter(

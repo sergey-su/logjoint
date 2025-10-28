@@ -1,4 +1,5 @@
 using Microsoft.JSInterop;
+using System;
 using System.Threading.Tasks;
 
 namespace LogJoint.Wasm
@@ -19,5 +20,10 @@ namespace LogJoint.Wasm
         }
 
         public bool IsMac => isMac;
+
+        public async Task OpenUrl(Uri uri)
+        {
+            await jsRuntime.InvokeVoidAsync("logjoint.browser.openUri", uri.ToString());
+        }
     }
 }

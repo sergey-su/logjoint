@@ -8,6 +8,11 @@ namespace LogJoint.Wasm
 {
     public class ShellOpen : IShellOpen
     {
+        public ShellOpen(BrowserInterop browser)
+        {
+            this.browserInterop = browser;
+        }
+
         public void SetFileEditor(LogJoint.UI.Presenters.FileEditor.IPresenter fileEditor)
         {
             this.fileEditor = fileEditor;
@@ -28,11 +33,12 @@ namespace LogJoint.Wasm
             fileEditor.ShowDialog(filePath, readOnly: true);
         }
 
-        void IShellOpen.OpenInWebBrowser(Uri uri)
+        async void IShellOpen.OpenInWebBrowser(Uri uri)
         {
-            throw new NotImplementedException();
+            await browserInterop.OpenUrl(uri);
         }
 
         LogJoint.UI.Presenters.FileEditor.IPresenter fileEditor;
+        readonly BrowserInterop browserInterop;
     }
 }

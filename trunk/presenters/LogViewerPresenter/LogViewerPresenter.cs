@@ -31,7 +31,8 @@ namespace LogJoint.UI.Presenters.LogViewer
             IDebugAgentConfig debugAgentConfig,
             IPresentersFacade presentersFacade,
             IAnnotationsRegistry annotations,
-            IPromptDialog promptDialog
+            IPromptDialog promptDialog,
+            IShellOpen shellOpen
         )
         {
             this.model = model;
@@ -49,6 +50,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             this.annotationsRegistry = annotations;
             this.promptDialog = promptDialog;
             this.presentersFacade = presentersFacade;
+            this.shellOpen = shellOpen;
 
             this.tracer = traceSourceFactory.CreateTraceSource("UI", "ui.lv" + (this.searchResultModel != null ? "s" : ""));
 
@@ -609,6 +611,12 @@ namespace LogJoint.UI.Presenters.LogViewer
             if (charIndex?.Annotation != null)
                 ret.VisibleItems |= (ContextMenuItem.ChangeAnnotation | ContextMenuItem.DeleteAnnotation);
 
+            if (shellOpen != null && selectionManager.Selection != null
+                && !selectionManager.Selection.First.Message.Link.IsEmpty)
+            {
+                ret.VisibleItems |= ContextMenuItem.OpenRelatedLink;
+            }
+
             if (ContextMenuOpening != null)
             {
                 var args = new ContextMenuEventArgs();
@@ -641,6 +649,8 @@ namespace LogJoint.UI.Presenters.LogViewer
                 ChangeAnnotation(menuData?.annotationKey);
             else if (menuItem == ContextMenuItem.DeleteAnnotation)
                 DeleteAnnotation(menuData?.annotationKey);
+            else if (menuItem == ContextMenuItem.OpenRelatedLink)
+                OpenRelatedLink();
         }
 
         void IViewModel.OnIncrementalVScroll(float nrOfDisplayLines)
@@ -1489,6 +1499,14 @@ namespace LogJoint.UI.Presenters.LogViewer
             annotationsRegistry.Delete(key);
         }
 
+        void OpenRelatedLink()
+        {
+            if (selectionManager.Selection != null && !selectionManager.Selection.First.Message.Link.IsEmpty)
+            {
+                shellOpen.OpenInWebBrowser(new Uri(selectionManager.Selection.First.Message.Link.ToString()));
+            }
+        }
+
         private IPresenterInternal ThisIntf { get { return this; } }
         private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; } }
 
@@ -1517,6 +1535,7 @@ namespace LogJoint.UI.Presenters.LogViewer
         readonly IAnnotationsRegistry annotationsRegistry;
         readonly IPromptDialog promptDialog;
         readonly IPresentersFacade presentersFacade;
+        readonly IShellOpen shellOpen;
 
         IView view;
         IBookmark slaveModeFocusedMessage;

@@ -22,7 +22,8 @@ namespace LogJoint.UI.Presenters.LogViewer
             IDebugAgentConfig debugAgentConfig,
             IPresentersFacade presentersFacade,
             IAnnotationsRegistry annotations,
-            IPromptDialog promptDialog
+            IPromptDialog promptDialog,
+            IShellOpen shellOpen
         )
         {
             this.changeNotification = changeNotification;
@@ -43,6 +44,7 @@ namespace LogJoint.UI.Presenters.LogViewer
             this.presentersFacade = presentersFacade;
             this.annotations = annotations;
             this.promptDialog = promptDialog;
+            this.shellOpen = shellOpen;
         }
 
         IPresenterInternal IPresenterFactory.CreateLoadedMessagesPresenter()
@@ -55,7 +57,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                 clipboard, hlFilters, bookmarks, bookmarksFactory, telemetry,
                 new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
                 new LoadedMessagesViewModeStrategy(logSources, changeNotification),
-                new GlobalSettingsAppearanceStrategy(settings), debugAgentConfig, presentersFacade, annotations, promptDialog
+                new GlobalSettingsAppearanceStrategy(settings), debugAgentConfig, presentersFacade, annotations, promptDialog, shellOpen
             );
         }
 
@@ -72,7 +74,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                     new ScreenBufferFactory(changeNotification, bookmarksFactory), changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
                     new DelegatingViewModeStrategy(loadedMessagesPresenter),
                     new DelegatingAppearanceStrategy(loadedMessagesPresenter.AppearanceStrategy),
-                    debugAgentConfig, presentersFacade, annotations, promptDialog
+                    debugAgentConfig, presentersFacade, annotations, promptDialog, shellOpen
                 ),
                 model
             );
@@ -89,7 +91,7 @@ namespace LogJoint.UI.Presenters.LogViewer
                 changeNotification, theme ?? this.theme, regexFactory, traceSourceFactory,
                 new ProhibitiveViewModeStrategy(),
                 new PermissiveAppearanceStrategy(changeNotification),
-                debugAgentConfig, presentersFacade, null, null
+                debugAgentConfig, presentersFacade, null, null, null
             );
             view?.SetViewModel(result);
             return result;
@@ -113,5 +115,6 @@ namespace LogJoint.UI.Presenters.LogViewer
         readonly IPresentersFacade presentersFacade;
         readonly IAnnotationsRegistry annotations;
         readonly IPromptDialog promptDialog;
+        readonly IShellOpen shellOpen;
     };
 };

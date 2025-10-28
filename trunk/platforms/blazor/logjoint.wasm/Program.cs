@@ -87,7 +87,7 @@ namespace LogJoint.Wasm
 
                 var fileDialogs = new FileDialogs(serviceProvider.GetService<JsInterop>());
 
-                var shellOpen = new ShellOpen();
+                var shellOpen = new ShellOpen(serviceProvider.GetService<JsInterop>().Browser);
 
                 var presentationObjects = LogJoint.UI.Presenters.Factory.Create(
                     model,

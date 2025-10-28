@@ -725,6 +725,10 @@
         isMac: function () {
             return navigator.appVersion.indexOf("Mac") > -1;
         },
+
+        openUri: function (uri) {
+            window.open(uri, "_blank");
+        }
     },
 
     focus: {
