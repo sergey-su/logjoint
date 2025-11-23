@@ -21,6 +21,7 @@ namespace LogJoint
         private readonly ISynchronizationContext modelSynchronizationContext;
         private readonly IFiltersList modelFilters; // The filters shared with the model threading context.
         private readonly FilteringStats filteringStats;
+        private readonly LJTraceSource trace;
 
         private IFiltersList effectiveFilters; // The filters currently used for filtering in this IMessagesReader's context.
         private string filteredLogFile;
@@ -39,6 +40,8 @@ namespace LogJoint
             this.modelSynchronizationContext = modelSynchronizationContext;
             this.modelFilters = filters;
             this.filteringStats = filteringStats;
+            string loggingPrefix = (unfilteredReaderParams.ParentLoggingPrefix ?? "") + ".filtered";
+            this.trace = traceSourceFactory.CreateTraceSource("FilteringReader", loggingPrefix);
 
             if (filters != null)
             {
@@ -53,12 +56,13 @@ namespace LogJoint
                 {
                     return;
                 }
+                using var perfop = new Profiling.Operation(trace, "ensureFilteredLogIsCreated");
                 filteredLogFile = tempFilesManager.CreateEmptyFile();
                 filteredLogMedia = await SimpleFileMedia.Create(
                     fileSystem, SimpleFileMedia.CreateConnectionParamsFromFileName(filteredLogFile));
                 MediaBasedReaderParams filteredReaderParams = unfilteredReaderParams;
                 filteredReaderParams.Media = filteredLogMedia;
-                filteredReaderParams.ParentLoggingPrefix = (unfilteredReaderParams.ParentLoggingPrefix ?? "") + ".filtered";
+                filteredReaderParams.ParentLoggingPrefix = loggingPrefix;
                 await modelSynchronizationContext.Invoke(() =>
                 {
                     filteredLogReader = new XmlFormat.MessagesReader(
@@ -163,6 +167,7 @@ namespace LogJoint
 
         async Task UpdateFilteredLog(IProgressEventsSink progressSink)
         {
+            using var perfop = new Profiling.Operation(trace, "UpdateFilteredLog");
             await using var outputStream = new FileStream(
                 filteredLogFile, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
             outputStream.SetLength(0);
@@ -205,6 +210,7 @@ namespace LogJoint
 
         async IAsyncEnumerable<PostprocessedMessage> ReadFromFilteredLog(ReadMessagesParams p)
         {
+            using var perfop = new Profiling.Operation(trace, "ReadFromFilteredLog");
             bool reverseDirection = p.Direction == ReadMessagesDirection.Backward;
             p.StartPosition = await MapToFilteredLogPosition(p.StartPosition, reverseDirection);
             if (p.Range.HasValue)
@@ -221,6 +227,7 @@ namespace LogJoint
 
         async IAsyncEnumerable<SearchResultMessage> SearchInFilteredLog(SearchMessagesParams p)
         {
+            using var perfop = new Profiling.Operation(trace, "SearchInFilteredLog");
             if (p.SearchParams.FromPosition.HasValue)
             {
                 p.SearchParams = new SearchAllOccurencesParams(p.SearchParams.Filters,
@@ -239,6 +246,7 @@ namespace LogJoint
         // is greater than or equal to the given unfilteredLogPosition.
         async ValueTask<long> MapToFilteredLogPosition(long unfilteredLogPosition, bool reverseDirection)
         {
+            using var perfop = new Profiling.Operation(trace, "MapToFilteredLogPosition");
             long begin = filteredLogReader.BeginPosition;
             long end = filteredLogReader.EndPosition;
             long count = end - begin;
@@ -248,8 +256,12 @@ namespace LogJoint
                 long count2 = count / 2;
                 long mid = pos + count2;
 
-                IMessage msg = await PositionedMessagesUtils.ReadNearestMessage(filteredLogReader, mid,
-                    ReadMessagesFlag.HintMessageContentIsNotNeeed);
+                IMessage msg;
+                {
+                    using var msgPerfop = new Profiling.Operation(trace, "ReadNearestMessage");
+                    msg = await PositionedMessagesUtils.ReadNearestMessage(filteredLogReader, mid,
+                        ReadMessagesFlag.HintMessageContentIsNotNeeed);
+                }
                 long embeddedPosition =
                     msg == null ? unfilteredReader.EndPosition : GetMandatoryEmbeddedPositions(msg).Position;
                 bool moveRight;
@@ -273,6 +285,7 @@ namespace LogJoint
             }
             if (reverseDirection)
             {
+                using var msgPerfop = new Profiling.Operation(trace, "FindPrevMessagePosition");
                 long? tmp = await PositionedMessagesUtils.FindPrevMessagePosition(filteredLogReader, pos);
                 if (tmp == null)
                     return begin - 1;
