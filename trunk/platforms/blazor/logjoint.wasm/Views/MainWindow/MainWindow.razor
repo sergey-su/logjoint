@@ -95,6 +95,7 @@
                 PreventDefault = true,
                 Handler = () => presentation.ViewModels.MainForm.OnKeyPressed(KeyCode.PrevBookmarkShortcut)
             }, "Shift+F2"));
+            await jsInterop.Keyboard.AddDefaultPreventingHandler(element, "Edit+A/i"); // To prevent selecting all visible text
         }
     }
 
