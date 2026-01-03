@@ -5,15 +5,19 @@
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
 
 <div class='postprocessings-tabpage @Class'>
-    @foreach (var control in viewModel.ControlsState)
+    @foreach (var (controlId, controlData) in viewModel.ControlsState)
     {
-        <div class='control @(control.Value.Disabled ? "disabled" : "")'>
-            @foreach (var part in LogJoint.UI.Presenters.LinkLabelUtils.SplitLinkLabelString(control.Value.Content))
+        if (controlId != ViewControlId.StateInspector && controlId != ViewControlId.Timeline)
+        {
+            continue;
+        }
+        <div class='control @(controlData.Disabled ? "disabled" : "")'>
+            @foreach (var part in LogJoint.UI.Presenters.LinkLabelUtils.SplitLinkLabelString(controlData.Content))
             {
                 @if (part.LinkData != null)
                 {
                     <a href="#"
-                       @onclick="@(e => viewModel.OnActionClick(part.LinkData, control.Key, ClickFlags.None))"
+                       @onclick="@(e => viewModel.OnActionClick(part.LinkData, controlId, ClickFlags.None))"
                        @onclick:preventDefault>@part.Text</a>
                 }
                 @if (part.LinkData == null)
@@ -21,9 +25,9 @@
                     <span>@part.Text</span>
                 }
             }
-            @if (control.Value.Progress.HasValue)
+            @if (controlData.Progress.HasValue)
             {
-                <CircularProgress Value=@(control.Value.Progress.Value) />
+                <CircularProgress Value=@(controlData.Progress.Value) />
             }
         </div>
     }
