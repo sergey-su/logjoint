@@ -1,12 +1,13 @@
+using LogJoint;
+using LogJoint.Drawing;
+using LogJoint.Preprocessing;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using System.Threading.Tasks;
-using LogJoint;
-using LogJoint.Preprocessing;
-using LogJoint.Drawing;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LogJoint.UI.Presenters.SourcesList
 {
@@ -48,7 +49,8 @@ namespace LogJoint.UI.Presenters.SourcesList
             SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter,
             IColorTheme theme,
             IChangeNotification changeNotification,
-            ISynchronizationContext uiSynchronizationContext
+            ISynchronizationContext uiSynchronizationContext,
+            IAnnotationsRegistry annotations
         )
         {
             this.logSources = logSources;
@@ -91,10 +93,11 @@ namespace LogJoint.UI.Presenters.SourcesList
                 () => expandedKeys,
                 () => selectedKeys,
                 () => itemsRevision,
-                (sources, preprocessings, themeColors, expanded, selected, rev) => new RootViewItem
+                () => annotations.Annotations,
+                (sources, preprocessings, themeColors, expanded, selected, rev, textAnnotations) => new RootViewItem
                 {
                     Items = ImmutableArray.CreateRange(
-                        EnumItemsData(sources, preprocessings, themeColors, expanded, selected, logSourcesPreprocessings))
+                        EnumItemsData(sources, preprocessings, themeColors, expanded, selected, logSourcesPreprocessings, textAnnotations))
                 }
             );
 
@@ -357,7 +360,8 @@ namespace LogJoint.UI.Presenters.SourcesList
         static IEnumerable<LogSourceViewItem> EnumSourceItemsData(
             IEnumerable<ILogSource> sources,
             ImmutableArray<Color> themeColors,
-            Preprocessing.IManager logSourcesPreprocessings
+            Preprocessing.IManager logSourcesPreprocessings,
+            IAnnotationsSnapshot textAnnotations
         )
         {
             foreach (ILogSource s in sources)
@@ -370,7 +374,7 @@ namespace LogJoint.UI.Presenters.SourcesList
                 };
                 LogProviderStats stats = s.Provider.Stats;
                 itemData.Checked = s.Visible;
-                GetLogSourceDescription(s, stats, itemData);
+                GetLogSourceDescription(s, stats, textAnnotations, itemData);
                 itemData.IsFailed = stats.Error != null;
                 itemData.ItemColor = stats.Error != null ? failedSourceColor : themeColors.GetByIndex(s.ColorIndex);
                 yield return itemData;
@@ -406,7 +410,8 @@ namespace LogJoint.UI.Presenters.SourcesList
             ImmutableArray<Color> themeColors,
             ImmutableHashSet<string> expanded,
             ImmutableHashSet<string> selected,
-            Preprocessing.IManager logSourcesPreprocessings
+            Preprocessing.IManager logSourcesPreprocessings,
+            IAnnotationsSnapshot textAnnotations
         )
         {
             void initSelected(ViewItem item)
@@ -415,7 +420,8 @@ namespace LogJoint.UI.Presenters.SourcesList
             }
 
             foreach (var containerGroup in EnumSourceItemsData(
-                sources, themeColors, logSourcesPreprocessings).GroupBy(src => src.ContainerName))
+                sources, themeColors, logSourcesPreprocessings, textAnnotations).GroupBy(
+                    src => src.ContainerName))
             {
                 var groupSources = ImmutableArray.CreateRange(containerGroup);
                 if (containerGroup.Key != null && groupSources.Length > 1)
@@ -455,46 +461,54 @@ namespace LogJoint.UI.Presenters.SourcesList
             }
         }
 
-        static void GetLogSourceDescription(ILogSource s, LogProviderStats stats, ViewItem item)
+        static void GetLogSourceDescription(ILogSource s, LogProviderStats stats, IAnnotationsSnapshot textAnnotations, ViewItem item)
         {
-            StringBuilder msg = new StringBuilder();
+            var msg = new List<AnnotatedTextFragment>();
+            void AddDisplayNameFragments() => msg.AddRange(TextAnnotation.GetAnnotatedTextFragments(
+                new StringSlice(s.DisplayName), textAnnotations,
+                ImmutableList<IFilter>.Empty, ImmutableArray<Color>.Empty));
+            void AddText(string str) => msg.Add(new AnnotatedTextFragment() { Value = new StringSlice(str) });
             bool appendAnnotation = false;
             switch (stats.State)
             {
                 case LogProviderState.NoFile:
-                    msg.Append("(No trace file)");
+                    AddText("(No log file)");
                     break;
                 case LogProviderState.DetectingAvailableTime:
                     appendAnnotation = true;
-                    msg.AppendFormat("{0}: processing...", s.DisplayName);
+                    AddDisplayNameFragments();
+                    AddText(": processing...");
                     break;
                 case LogProviderState.LoadError:
-                    msg.AppendFormat(
-                        "{0}: loading failed ({1})",
-                        s.DisplayName,
-                        stats.Error != null ? stats.Error.Message : "");
+                    AddDisplayNameFragments();
+                    AddText(string.Format(": loading failed ({0})",
+                        stats.Error != null ? stats.Error.Message : ""));
                     break;
                 case LogProviderState.Idle:
                     if (stats.BackgroundAcivityStatus == LogProviderBackgroundAcivityStatus.Active)
                     {
                         appendAnnotation = true;
-                        msg.AppendFormat("{0}: processing", s.DisplayName);
+                        AddDisplayNameFragments();
+                        AddText(": processing");
                     }
                     else
                     {
                         appendAnnotation = true;
-                        msg.AppendFormat("{0}", s.DisplayName);
+                        AddDisplayNameFragments();
                         if (stats.TotalBytes != null)
                         {
-                            msg.Append(" (");
-                            StringUtils.FormatBytesUserFriendly(stats.TotalBytes.Value, msg);
-                            msg.Append(")");
+                            var buf = new StringBuilder();
+                            buf.Append(" (");
+                            StringUtils.FormatBytesUserFriendly(stats.TotalBytes.Value, buf);
+                            buf.Append(')');
+                            AddText(buf.ToString());
                         }
                     }
                     break;
             }
 
-            item.Description = msg.ToString();
+            item.Description = string.Join("", msg.Where(f => !f.IsAnnotationFragment).Select(f => f.Value));
+            item.DescriptionFragments = msg;
 
             item.Annotation = "";
             if (!string.IsNullOrWhiteSpace(s.Annotation))

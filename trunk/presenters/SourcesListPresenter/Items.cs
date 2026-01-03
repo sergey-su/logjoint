@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.SourcesList
         public bool IsFailed;
         public bool IsSelected;
         public SourcesContainerViewItem Parent;
+        public IReadOnlyList<AnnotatedTextFragment> DescriptionFragments = ImmutableList<AnnotatedTextFragment>.Empty;
 
         string Reactive.ITreeNode.Key => GetKey();
         bool Reactive.ITreeNode.IsExpanded => GetIsExpanded();
@@ -24,6 +25,7 @@ namespace LogJoint.UI.Presenters.SourcesList
         (Color, bool) IViewItem.Color => (ItemColor, IsFailed);
         IViewItem IViewItem.Parent => Parent;
         string IViewItem.Description => Description;
+        IReadOnlyList<AnnotatedTextFragment> IViewItem.DescriptionFragments => DescriptionFragments;
         string IViewItem.Annotation => Annotation;
 
         public abstract string GetKey();
@@ -82,6 +84,7 @@ namespace LogJoint.UI.Presenters.SourcesList
         bool Reactive.ITreeNode.IsExpandable => true;
         IViewItem IViewItem.Parent => null;
         string IViewItem.Description => "";
+        IReadOnlyList<AnnotatedTextFragment> IViewItem.DescriptionFragments => ImmutableArray<AnnotatedTextFragment>.Empty;
         string IViewItem.Annotation => "";
     };
 };

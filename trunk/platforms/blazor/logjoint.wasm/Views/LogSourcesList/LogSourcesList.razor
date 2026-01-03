@@ -1,5 +1,6 @@
 ﻿@namespace LogJoint.Wasm.UI
 @using LogJoint.UI.Presenters.SourcesList
+@using LogJoint.Drawing
 @implements IDisposable
 @implements IView
 @inject LogJoint.UI.Presenters.PresentationObjects presentation
@@ -27,7 +28,21 @@
             {
                 <span class="annotation">@item.Annotation</span>
             }
-            @item.Description
+            @foreach (var fragment in item.DescriptionFragments)
+            {
+                if (fragment.IsAnnotationFragment)
+                {
+                    <span class="annotation" style="padding: 0px 5px;">@fragment.Value</span>
+                }
+                else if (fragment.HighlightColor.HasValue)
+                {
+                    <span class="txt" style="background-color: @fragment.HighlightColor.Value.ToHtmlColor()">@fragment.Value</span>
+                }
+                else
+                {
+                    <span class="txt">@fragment.Value</span>
+                }
+            }
         </span>
     </NodeTemplate>
 </TreeView>

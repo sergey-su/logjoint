@@ -290,7 +290,8 @@ namespace LogJoint.UI.Presenters
                 saveJointLogInteractionPresenter,
                 colorTheme,
                 model.ChangeNotification,
-                model.SynchronizationContext
+                model.SynchronizationContext,
+                model.AnnotationsRegistry
             );
 
             Help.IPresenter helpPresenter = new Help.Presenter(shellOpen);

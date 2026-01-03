@@ -28,6 +28,7 @@ namespace LogJoint.UI.Presenters.SourcesList
         (Color value, bool isFailureColor) Color { get; }
         IViewItem Parent { get; }
         string Description { get; }
+        IReadOnlyList<AnnotatedTextFragment> DescriptionFragments { get; }
         string Annotation { get; }
     };
 
