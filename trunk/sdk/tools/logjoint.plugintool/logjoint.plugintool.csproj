@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>dotnet-logjoint.plugintool</AssemblyName>
     <PackageId>logjoint.plugintool</PackageId>
     <Version>0.0.7</Version>
     <Authors>sergeysu</Authors>
     <Company>private</Company>
-    <LangVersion>13.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <PackAsTool>true</PackAsTool>
   </PropertyGroup>

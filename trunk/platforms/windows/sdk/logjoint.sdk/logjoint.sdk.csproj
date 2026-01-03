@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>LogJoint</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -23,7 +23,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.421302">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -32,8 +31,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\sdk\model\logjoint.model.sdk.csproj" />
     <ProjectReference Include="..\..\..\..\sdk\presentation\logjoint.presentation.sdk.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
   </ItemGroup>
 </Project>

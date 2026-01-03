@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <LangVersion>13.0</LangVersion>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
     <AssemblyName>logjoint</AssemblyName>
     <RootNamespace>LogJoint.Wasm</RootNamespace>
     <RunAOTCompilation>true</RunAOTCompilation>
@@ -10,9 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.0" PrivateAssets="all" />
-    <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,27 +31,27 @@
 
   <ItemGroup>
     <Reference Include="logjoint.google.plugin">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net9.0/logjoint.google.plugin.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net10.0/logjoint.google.plugin.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="logjoint.google.plugin.model.dll">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net9.0/logjoint.google.plugin.model.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net10.0/logjoint.google.plugin.model.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="logjoint.google.plugin.presentation.dll">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net9.0/logjoint.google.plugin.presentation.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net10.0/logjoint.google.plugin.presentation.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="Google___Analog_exported_log_format">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net9.0/Formats/Google___Analog_exported_log_format.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net10.0/Formats/Google___Analog_exported_log_format.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
     <Reference Include="Google___C___default_log_format">
-      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net9.0/Formats/Google___C___default_log_format.dll</HintPath>
+      <HintPath>../../../../../logjoint-google-plugin/plugin/bin/Debug/net10.0/Formats/Google___C___default_log_format.dll</HintPath>
       <Private>True</Private>
       <TreatAsUsed>true</TreatAsUsed>
     </Reference>
@@ -93,11 +92,11 @@
     <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll format &quot;$(ProjectDir)../../../model/Formats/MS-TextWriterTraceListener.format.xml&quot; &quot;$(OutDir)/ms-text-fmt.xml&quot;" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
-    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../extensions/chromium/plugin/bin/Debug/net9.0&quot;" />
-    <Exec Command="dotnet ../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/net9.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../extensions/chromium/plugin/bin/Debug/net10.0&quot;" />
+    <Exec Command="dotnet ../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/net10.0/manifest.xml bin/chromium.zip prod" WorkingDirectory="$(ProjectDir)../../../extensions/chromium/plugin" />
 
     <Exec Command="dotnet build" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
-    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../../../logjoint-google-plugin/plugin/bin/Debug/net9.0&quot;" />
-    <Exec Command="dotnet $(ProjectDir)../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/net9.0/manifest.xml bin/google.zip prod" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
+    <Exec Command="dotnet ../../shared/precompiler/bin/Debug/logjoint.precompiler.dll plugin &quot;$(ProjectDir)../../../../../logjoint-google-plugin/plugin/bin/Debug/net10.0&quot;" />
+    <Exec Command="dotnet $(ProjectDir)../../../sdk/tools/logjoint.plugintool/bin/Debug/dotnet-logjoint.plugintool.dll pack bin/Debug/net10.0/manifest.xml bin/google.zip prod" WorkingDirectory="$(ProjectDir)../../../../../logjoint-google-plugin/plugin" />
   </Target>
 </Project>
