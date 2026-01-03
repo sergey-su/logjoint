@@ -7,6 +7,8 @@ namespace LogJoint.Settings
     {
         string AgentAddress { get; }
 
+        string ConfigComment { get; }
+
         Task UpdateAddress(string value);
 
         Task Refresh();
@@ -17,17 +19,22 @@ namespace LogJoint.Settings
         private readonly IChangeNotification changeNotification;
         private readonly Persistence.IStorageManager storage;
         private string address = null;
+        private string configComment = null;
         private Task sequence;
 
-        public DebugAgentConfig(IChangeNotification changeNotification, Persistence.IStorageManager storage)
+        public DebugAgentConfig(IChangeNotification changeNotification,
+            Persistence.IStorageManager storage, string configComment)
         {
             this.changeNotification = changeNotification;
             this.storage = storage;
             this.sequence = LoadFromStorage();
+            this.configComment = configComment;
         }
 
 
         string IDebugAgentConfig.AgentAddress => address;
+
+        string IDebugAgentConfig.ConfigComment => configComment;
 
         Task IDebugAgentConfig.Refresh()
         {

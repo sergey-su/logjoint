@@ -78,6 +78,7 @@ namespace LogJoint
         public Persistence.Implementation.IFileSystemAccess PersistenceFileSystem;
         public Persistence.Implementation.IFileSystemAccess ContentCacheFileSystem;
         public bool IsDebugAgentEnabled;
+        public string DebugAgentConfigComment;
     };
 
     public static class ModelFactory
@@ -388,7 +389,7 @@ namespace LogJoint
             AutoUpdate.IAutoUpdater autoUpdater = autoUpdateFactory.CreateAutoUpdater(pluginsManager);
 
             IDebugAgentConfig debugAgentConfig = config.IsDebugAgentEnabled ? new DebugAgentConfig(
-                changeNotification, storageManager) : null;
+                changeNotification, storageManager, config.DebugAgentConfigComment) : null;
 
             Model expensibilityModel = new Model(
                 modelSynchronizationContext,

@@ -24,6 +24,19 @@
             disabled="@(model.DebugAgentConfig.AgentAddress == null)"
             @oninput="@(e => model.DebugAgentConfig.UpdateAddress(e.Value as string ?? ""))"
             @ref="debugAgentInputRef" />
+        <span class="agent-comment">
+            @foreach (var segment in TextUtils.ExtractLinks(model.DebugAgentConfig.ConfigComment ?? ""))
+            {
+                if (!string.IsNullOrEmpty(segment.linkUrl))
+                {
+                    <a href="@segment.linkUrl" target="_blank">@segment.text</a>
+                }
+                else
+                {
+                    @segment.text
+                }
+            }
+        </span>
     </p>
     <p class="debug-label">
         Advanced options

@@ -1762,6 +1762,9 @@ button {
     margin: 10px;
 }
 
+.settings-panel .agent-comment {
+    margin-left: 5px;
+}
 
 .file-editor-dialog {
     display: flex;

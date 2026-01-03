@@ -48,6 +48,7 @@ namespace LogJoint.Wasm
                             (IJSInProcessRuntime)serviceProvider.GetService<IJSRuntime>(),
                             serviceProvider.GetService<JsInterop>().IndexedDB, "contentCache"),
                         IsDebugAgentEnabled = true,
+                        DebugAgentConfigComment = "see <a href=\"http://go/logjoint-debug-agent\">go/logjoint-debug-agent</a>"
                     },
                         invokingSynchronization,
                         (storageManager) => null /*new PreprocessingCredentialsCache (
