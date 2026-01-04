@@ -36,11 +36,11 @@
                 }
                 else if (fragment.HighlightColor.HasValue)
                 {
-                    <span class="txt" style="background-color: @fragment.HighlightColor.Value.ToHtmlColor()">@fragment.Value</span>
+                    <span style="background-color: @fragment.HighlightColor.Value.ToHtmlColor()">@fragment.Value</span>
                 }
                 else
                 {
-                    <span class="txt">@fragment.Value</span>
+                    <span>@fragment.Value</span>
                 }
             }
         </span>
