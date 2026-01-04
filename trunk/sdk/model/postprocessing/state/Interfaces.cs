@@ -103,7 +103,6 @@ namespace LogJoint.Postprocessing.StateInspector
         Scalar,
         Reference,
         ThreadReference,
-        UserHash
     };
 
     public class PropertyChange : Event

@@ -44,7 +44,6 @@ namespace LogJoint.UI.Presenters.Postprocessing
             IModelThreads threads,
             Persistence.IStorageManager storageManager,
             ILogSourceNamesProvider logSourceNamesProvider,
-            IUserNamesProvider shortNames,
             SourcesManager.IPresenter sourcesManagerPresenter,
             LoadedMessages.IPresenter loadedMessagesPresenter,
             IClipboardAccess clipboardAccess,
@@ -64,13 +63,11 @@ namespace LogJoint.UI.Presenters.Postprocessing
                 var model = new LogJoint.Postprocessing.StateInspector.StateInspectorVisualizerModel(
                     postprocessorsManager,
                     logSourcesManager,
-                    changeNotification,
-                    shortNames
+                    changeNotification
                 );
                 return new StateInspectorVisualizer.StateInspectorPresenter(
                     view,
                     model,
-                    shortNames,
                     logSourcesManager,
                     loadedMessagesPresenter,
                     bookmarks,
@@ -93,7 +90,6 @@ namespace LogJoint.UI.Presenters.Postprocessing
                 var model = new LogJoint.Postprocessing.Timeline.TimelineVisualizerModel(
                     postprocessorsManager,
                     logSourcesManager,
-                    shortNames,
                     logSourceNamesProvider
                 );
                 return new TimelineVisualizer.TimelineVisualizerPresenter(
@@ -106,7 +102,6 @@ namespace LogJoint.UI.Presenters.Postprocessing
                     bookmarks,
                     storageManager,
                     presentersFacade,
-                    shortNames,
                     changeNotification,
                     colorTheme,
                     toolsContainerPresenter
@@ -119,7 +114,6 @@ namespace LogJoint.UI.Presenters.Postprocessing
                 var model = new LogJoint.Postprocessing.SequenceDiagram.SequenceDiagramVisualizerModel(
                     postprocessorsManager,
                     logSourcesManager,
-                    shortNames,
                     logSourceNamesProvider,
                     changeNotification
                 );
@@ -132,7 +126,6 @@ namespace LogJoint.UI.Presenters.Postprocessing
                     bookmarks,
                     storageManager,
                     presentersFacade,
-                    shortNames,
                     changeNotification,
                     colorTheme,
                     matrixFactory
@@ -145,7 +138,6 @@ namespace LogJoint.UI.Presenters.Postprocessing
                 var model = new LogJoint.Postprocessing.TimeSeries.TimelineVisualizerModel(
                     postprocessorsManager,
                     logSourcesManager,
-                    shortNames,
                     logSourceNamesProvider
                 );
                 return new TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(

@@ -12,7 +12,6 @@ namespace LogJoint.Postprocessing.SequenceDiagram
     public class SequenceDiagramVisualizerModel : ISequenceDiagramVisualizerModel
     {
         readonly IManagerInternal postprocessorsManager;
-        readonly IUserNamesProvider shortNames;
         readonly ILogSourceNamesProvider logSourceNamesProvider;
         readonly IChangeNotification changeNotification;
         ImmutableHashSet<ISequenceDiagramPostprocessorOutput> outputs = ImmutableHashSet.Create<ISequenceDiagramPostprocessorOutput>();
@@ -25,12 +24,10 @@ namespace LogJoint.Postprocessing.SequenceDiagram
         public SequenceDiagramVisualizerModel(
             IManagerInternal postprocessorsManager,
             ILogSourcesManager logSourceManager,
-            IUserNamesProvider shortNames,
             ILogSourceNamesProvider logSourceNamesProvider,
             IChangeNotification changeNotification)
         {
             this.postprocessorsManager = postprocessorsManager;
-            this.shortNames = shortNames;
             this.logSourceNamesProvider = logSourceNamesProvider;
             this.changeNotification = changeNotification;
 
@@ -150,7 +147,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
                 .Where(x => x.SuggestedRoleInstanceName != null)
                 .ToDictionary(x => x.LogSource, x => new LogSourceNames()
                 {
-                    RoleInstanceName = shortNames.ResolveShortNamesMurkup(x.SuggestedRoleInstanceName),
+                    RoleInstanceName = x.SuggestedRoleInstanceName,
                     RoleName = x.SuggestedRoleName
                 })
             );

@@ -7,10 +7,9 @@ namespace LogJoint.Postprocessing.StateInspector
 {
     public class TreeBuilder : IEventsVisitor
     {
-        public TreeBuilder(IStateInspectorOutputsGroup owner, IUserNamesProvider shortNames)
+        public TreeBuilder(IStateInspectorOutputsGroup owner)
         {
             this.owner = owner;
-            this.shortNames = shortNames;
         }
 
         public void AddEventsFrom(IStateInspectorOutputsGroup stateInspectorOutput)
@@ -38,7 +37,7 @@ namespace LogJoint.Postprocessing.StateInspector
             IInspectedObject item;
             if (objects.TryGetValue(id, out item))
                 return item;
-            item = new InspectedObject(owner, id, shortNames);
+            item = new InspectedObject(owner, id);
             objects.Add(id, item);
             return item;
         }
@@ -117,7 +116,6 @@ namespace LogJoint.Postprocessing.StateInspector
         readonly IStateInspectorOutputsGroup owner;
         readonly Dictionary<string, IInspectedObject> objects = new Dictionary<string, IInspectedObject>(); // object id -> object
         readonly List<IInspectedObject> finalizedObjects = new List<IInspectedObject>(); // objects that wont accept new children or prop changes
-        readonly IUserNamesProvider shortNames;
         StateInspectorEvent currentEvent;
     };
 }

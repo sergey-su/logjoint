@@ -7,7 +7,6 @@ namespace LogJoint.Postprocessing.Timeline
     public class TimelineBuilder : IEventsVisitor
     {
         readonly IEntitiesComparer entitiesComparer;
-        readonly IUserNamesProvider shortNames;
         ITimelinePostprocessorOutput currentPostprocessorOutput;
         ITimeOffsets currentTimeOffsets;
         bool currentIsLastEventsSet;
@@ -19,10 +18,9 @@ namespace LogJoint.Postprocessing.Timeline
         EventInfo? endOfTimelineEventInfo;
         string timelineDisplayName;
 
-        public TimelineBuilder(IEntitiesComparer entitiesComparer, IUserNamesProvider shortNames)
+        public TimelineBuilder(IEntitiesComparer entitiesComparer)
         {
             this.entitiesComparer = entitiesComparer;
-            this.shortNames = shortNames;
         }
 
         public void AddEvents(ITimelinePostprocessorOutput postprocessorOutput, IEnumerable<Event> events, bool isLastEventsSet)
@@ -120,7 +118,7 @@ namespace LogJoint.Postprocessing.Timeline
             var evt = endOfTimelineEventInfo.Value.evt as EndOfTimelineEvent;
             if (evt != null && !string.IsNullOrEmpty(evt.DisplayName))
             {
-                timelineDisplayName = shortNames.ResolveShortNamesMurkup(evt.DisplayName);
+                timelineDisplayName = evt.DisplayName;
             }
         }
 

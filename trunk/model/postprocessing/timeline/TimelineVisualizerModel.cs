@@ -11,12 +11,10 @@ namespace LogJoint.Postprocessing.Timeline
         public TimelineVisualizerModel(
             IManagerInternal postprocessorsManager,
             ILogSourcesManager logSourcesManager,
-            IUserNamesProvider shortNames,
             ILogSourceNamesProvider logSourceNamesProvider)
         {
             this.postprocessorsManager = postprocessorsManager;
             this.entitiesComparer = TimelineEntitiesComparer.Instance;
-            this.shortNames = shortNames;
             this.logSourceNamesProvider = logSourceNamesProvider;
 
             postprocessorsManager.Changed += (sender, args) => UpdateOutputs(invalidateGroupContents: true);
@@ -172,7 +170,7 @@ namespace LogJoint.Postprocessing.Timeline
                 {
                     group.Outputs.Sort((x, y) => x.RotatedLogPartToken.CompareTo(y.RotatedLogPartToken));
 
-                    var builder = new TimelineBuilder(entitiesComparer, shortNames);
+                    var builder = new TimelineBuilder(entitiesComparer);
                     var last = group.Outputs.Last();
                     foreach (var output in group.Outputs)
                         builder.AddEvents(output, output.TimelineEvents, isLastEventsSet: output == last);
@@ -293,7 +291,6 @@ namespace LogJoint.Postprocessing.Timeline
         readonly IEntitiesComparer entitiesComparer;
         ImmutableList<IActivity> activities = ImmutableList.Create<IActivity>();
         ImmutableList<IEvent> events = ImmutableList.Create<IEvent>();
-        readonly IUserNamesProvider shortNames;
         readonly ILogSourceNamesProvider logSourceNamesProvider;
         Dictionary<string, RotatedLogGroup> outputsGroups = new Dictionary<string, RotatedLogGroup>();
         DateTime origin;

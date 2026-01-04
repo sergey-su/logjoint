@@ -21,7 +21,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
             IBookmarks bookmarks,
             Persistence.IStorageManager storageManager,
             IPresentersFacade presentersFacade,
-            IUserNamesProvider userNamesProvider,
             IChangeNotification parentChangeNotification,
             IColorTheme theme,
             ToolsContainer.IPresenter toolsContainerPresenter
@@ -35,7 +34,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
             this.loadedMessagesPresenter = loadedMessagesPresenter;
             this.presentersFacade = presentersFacade;
             this.bookmarks = bookmarks;
-            this.userNamesProvider = userNamesProvider;
             this.theme = theme;
             this.toolsContainerPresenter = toolsContainerPresenter;
             this.unfinishedActivitiesFolded = true;
@@ -220,7 +218,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
                         Index = i,
                         X1 = GetTimeX(range, a.GetTimelineBegin()),
                         X2 = GetTimeX(range, a.GetTimelineEnd()),
-                        Caption = userNamesProvider.ResolveShortNamesMurkup(a.DisplayName),
+                        Caption = a.DisplayName,
                         CaptionSelectionBegin = GetActivityMatchIdx(a, filter),
                         CaptionSelectionLength = filter.Length,
                         IsSelected = i == selectedActivityIdx,
@@ -1561,7 +1559,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
         readonly StateInspectorVisualizer.IPresenterInternal stateInspectorVisualizer;
         readonly Common.PresenterPersistentState persistentState;
         readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
-        readonly IUserNamesProvider userNamesProvider;
         readonly Func<int?> getSelectedActivityIndex;
         readonly Func<VisibileActivityInfo?> getSelectedActivityInfo;
         readonly Func<CurrentActivityDrawInfo> getCurrentActivityDrawInfo;

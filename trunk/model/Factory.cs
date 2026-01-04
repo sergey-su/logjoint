@@ -39,7 +39,6 @@ namespace LogJoint
         public Postprocessing.IManagerInternal PostprocessorsManager { get; internal set; }
         public Postprocessing.Correlation.ICorrelationManager CorrelationManager { get; internal set; }
         public IModel ExpensibilityEntryPoint { get; internal set; }
-        public Postprocessing.IUserNamesProvider AnalyticsShortNames { get; internal set; }
         public ISynchronizationContext SynchronizationContext { get; internal set; }
         public AutoUpdate.IAutoUpdater AutoUpdater { get; internal set; }
         public AppLaunch.ICommandLineHandler CommandLineHandler { get; internal set; }
@@ -287,10 +286,6 @@ namespace LogJoint
                 progressAggregatorFactory
             );
 
-            Postprocessing.IUserNamesProvider analyticsShortNames = new Postprocessing.CodenameUserNamesProvider(
-                logSourcesManager
-            );
-
             IUserDefinedFormatsManagerInternal userDefinedFormatsManagerInternal = userDefinedFormatsManager;
             userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
                 config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
@@ -457,7 +452,6 @@ namespace LogJoint
                 PostprocessorsManager = postprocessorsManager,
                 CorrelationManager = correlationManager,
                 ExpensibilityEntryPoint = expensibilityModel,
-                AnalyticsShortNames = analyticsShortNames,
                 SynchronizationContext = modelSynchronizationContext,
                 AutoUpdater = autoUpdater,
                 CommandLineHandler = commandLineHandler,

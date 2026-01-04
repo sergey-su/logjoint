@@ -10,11 +10,9 @@ namespace LogJoint.Postprocessing.TimeSeries
         public TimelineVisualizerModel(
             IManagerInternal postprocessorsManager,
             ILogSourcesManager logSourcesManager,
-            IUserNamesProvider shortNames,
             ILogSourceNamesProvider logSourceNamesProvider)
         {
             this.postprocessorsManager = postprocessorsManager;
-            this.shortNames = shortNames;
             this.logSourceNamesProvider = logSourceNamesProvider;
 
             postprocessorsManager.Changed += (sender, args) => UpdateOutputs();
@@ -59,7 +57,6 @@ namespace LogJoint.Postprocessing.TimeSeries
         }
 
         readonly IManagerInternal postprocessorsManager;
-        readonly IUserNamesProvider shortNames;
         readonly ILogSourceNamesProvider logSourceNamesProvider;
         HashSet<ITimeSeriesPostprocessorOutput> outputs = new HashSet<ITimeSeriesPostprocessorOutput>();
     };

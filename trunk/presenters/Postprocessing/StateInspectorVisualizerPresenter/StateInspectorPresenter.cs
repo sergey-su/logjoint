@@ -19,7 +19,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
         public StateInspectorPresenter(
             IView view,
             IStateInspectorVisualizerModel model,
-            IUserNamesProvider shortNames,
             ILogSourcesManager logSources,
             LoadedMessages.IPresenter loadedMessagesPresenter,
             IBookmarks bookmarks,
@@ -37,7 +36,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
         {
             this.view = view;
             this.model = model;
-            this.shortNames = shortNames;
             this.threads = threads;
             this.presentersFacade = presentersFacade;
             this.bookmarks = bookmarks;
@@ -632,7 +630,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             return new VisualizerNode(modelNode, children, false, false, level, logSourceAnnotationsMap, freeTextAnnotations);
         }
 
-        StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo,
+        static StateHistoryItem MakeStateHistoryItem(StateInspectorEventInfo evtInfo,
             bool isSelected, bool showTimeDeltas, StateInspectorEvent prevSelectedEvent,
             StateHistoryMessageFormatter messageFormatter, int index)
         {
@@ -687,7 +685,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             var selectedEventsSet = selectedEvents.Select(e => (e.Output, e.Index)).ToHashSet();
             bool isEventSelected(StateInspectorEvent e) => selectedEventsSet.Contains((e.Output, e.Index));
 
-            var messageFormatter = new StateHistoryMessageFormatter { shortNames = this.shortNames };
+            var messageFormatter = new StateHistoryMessageFormatter();
             bool showTimeDeltas = changes.Where(c => isEventSelected(c.Event)).Take(2).Count() > 1;
             StateInspectorEvent prevSelectedEvent = null;
             foreach (var change in changes.ZipWithIndex())
@@ -878,7 +876,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
                         yield return (node, e);
                 yield return (node, null);
             };
-            var messageFormatter = new StateHistoryMessageFormatter { shortNames = this.shortNames };
+            var messageFormatter = new StateHistoryMessageFormatter();
             (VisualizerNode node, StateInspectorEventInfo? historyItem) candidateBeforeOrigin = (null, null);
             (VisualizerNode node, StateInspectorEventInfo? historyItem) candidateAfterOrigin = (null, null);
             bool foundOrigin = false;
@@ -1018,7 +1016,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
         class StateHistoryMessageFormatter : IEventsVisitor
         {
             public string message = "";
-            public IUserNamesProvider shortNames;
             public IInspectedObject currentObject;
 
             public void Reset()
@@ -1037,7 +1034,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             void IEventsVisitor.Visit(PropertyChange change)
             {
                 message = string.Format("'{0}'->'{1}'", change.PropertyName,
-                    change.ValueType == SI.ValueType.UserHash ? shortNames.AddShortNameToUserHash(change.Value) :
                     change.ValueType == SI.ValueType.Reference && currentObject.Owner.TryGetDisplayName(change.Value, out var displayName) ? displayName :
                     change.Value);
             }
@@ -1288,7 +1284,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
         readonly IView view;
         readonly IStateInspectorVisualizerModel model;
-        readonly IUserNamesProvider shortNames;
         readonly IModelThreads threads;
         readonly IBookmarks bookmarks;
         readonly IPresentersFacade presentersFacade;

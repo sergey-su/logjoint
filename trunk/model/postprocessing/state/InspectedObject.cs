@@ -5,11 +5,10 @@ namespace LogJoint.Postprocessing.StateInspector
 {
     public class InspectedObject : IInspectedObject
     {
-        public InspectedObject(IStateInspectorOutputsGroup owner, string id, IUserNamesProvider shortNames)
+        public InspectedObject(IStateInspectorOutputsGroup owner, string id)
         {
             this.owner = owner;
             this.id = id;
-            this.shortNames = shortNames;
         }
 
         IStateInspectorOutputsGroup IInspectedObject.Owner { get { return owner; } }
@@ -92,8 +91,6 @@ namespace LogJoint.Postprocessing.StateInspector
                 .LastOrDefault();
             if (lastPC == null)
                 return null;
-            if (lastPC.ValueType == ValueType.UserHash)
-                return shortNames.GetShortNameForUserHash(lastPC.Value);
             if (lastPC.ValueType == ValueType.Reference && owner.TryGetDisplayName(lastPC.Value, out var displayName))
                 return displayName;
             return lastPC.Value;
@@ -153,10 +150,10 @@ namespace LogJoint.Postprocessing.StateInspector
             yield return new KeyValuePair<string, PropertyViewBase>("id", new IdPropertyView(this, id));
             if (creation != null && !isTimeless)
                 yield return new KeyValuePair<string, PropertyViewBase>("created at",
-                    new PropertyChangeView(this, creation, PropertyChangeView.DisplayMode.Date, shortNames));
+                    new PropertyChangeView(this, creation, PropertyChangeView.DisplayMode.Date));
             if (deletion != null && !isTimeless)
                 yield return new KeyValuePair<string, PropertyViewBase>("deleted at",
-                    new PropertyChangeView(this, deletion, PropertyChangeView.DisplayMode.Date, shortNames));
+                    new PropertyChangeView(this, deletion, PropertyChangeView.DisplayMode.Date));
             if (focusedMessageEqualRange.EqualRange == null)
                 yield break;
             var dynamicProps = new Dictionary<string, PropertyViewBase>();
@@ -167,7 +164,7 @@ namespace LogJoint.Postprocessing.StateInspector
                 .Where(e => descriptionPropertyName == null || e.ChangeEvt.PropertyName != descriptionPropertyName))
             {
                 dynamicProps[change.ChangeEvt.PropertyName] =
-                    new PropertyChangeView(this, change.StateInspectorEvt, ToPropDisplayMode(change.ChangeEvt.ValueType), shortNames);
+                    new PropertyChangeView(this, change.StateInspectorEvt, ToPropDisplayMode(change.ChangeEvt.ValueType));
             }
             foreach (var v in dynamicProps)
                 yield return v;
@@ -199,8 +196,6 @@ namespace LogJoint.Postprocessing.StateInspector
                 return PropertyChangeView.DisplayMode.Reference;
             if (propValueType == ValueType.ThreadReference)
                 return PropertyChangeView.DisplayMode.ThreadReference;
-            if (propValueType == ValueType.UserHash)
-                return PropertyChangeView.DisplayMode.UserHash;
             return PropertyChangeView.DisplayMode.Value;
         }
 
@@ -215,16 +210,12 @@ namespace LogJoint.Postprocessing.StateInspector
             var change = query.FirstOrDefault();
             if (change == null)
                 return "";
-            if (change.ValueType == ValueType.UserHash)
-                return shortNames.GetShortNameForUserHash(change.Value);
-            else
-                return change.Value;
+            return change.Value;
         }
 
         readonly IStateInspectorOutputsGroup owner;
         readonly string id;
         readonly HashSet<IInspectedObject> children = new HashSet<IInspectedObject>();
-        readonly IUserNamesProvider shortNames;
         List<StateInspectorEvent> history = new List<StateInspectorEvent>();
         string commentPropertyName;
         string comment;

@@ -11,11 +11,9 @@ namespace LogJoint.Postprocessing.StateInspector
         public StateInspectorVisualizerModel(
             IManagerInternal postprocessorsManager,
             ILogSourcesManager logSourcesManager,
-            IChangeNotification changeNotification,
-            IUserNamesProvider shortNamesManager)
+            IChangeNotification changeNotification)
         {
             this.postprocessorsManager = postprocessorsManager;
-            this.shortNamesManager = shortNamesManager;
 
             int postprocessorsVersion = 0;
             postprocessorsManager.Changed += (sender, args) =>
@@ -97,7 +95,7 @@ namespace LogJoint.Postprocessing.StateInspector
                         foreach (var e in part.Events)
                             group.events.Add(new StateInspectorEvent(group, part, (TextLogEventTrigger)e.Trigger, e, evtIdx++));
 
-                    TreeBuilder treeBuilder = new TreeBuilder(group, shortNamesManager);
+                    TreeBuilder treeBuilder = new TreeBuilder(group);
                     treeBuilder.AddEventsFrom(group);
                     group.roots = treeBuilder.Build();
                     group.displayNames = MakeDisplayNamesMap(group.events);
@@ -209,7 +207,6 @@ namespace LogJoint.Postprocessing.StateInspector
         }
 
         readonly IManagerInternal postprocessorsManager;
-        readonly IUserNamesProvider shortNamesManager;
         HashSet<IStateInspectorOutput> outputs = new HashSet<IStateInspectorOutput>();
         ImmutableDictionary<string, RotatedLogGroup> groups = ImmutableDictionary<string, RotatedLogGroup>.Empty;
         readonly Func<IReadOnlyList<IStateInspectorOutputsGroup>> getGroupsList;

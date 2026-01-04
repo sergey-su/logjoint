@@ -70,8 +70,6 @@ namespace LogJoint.Postprocessing.StateInspector
                 return ValueType.Reference;
             else if (str == valueTypeThreadReferenceStr)
                 return ValueType.ThreadReference;
-            else if (str == valueTypeUserHashStr)
-                return ValueType.UserHash;
             return ValueType.Scalar;
         }
 
@@ -104,7 +102,6 @@ namespace LogJoint.Postprocessing.StateInspector
         readonly Func<XElement, object> triggerDeserializer;
         static readonly string valueTypeReferenceStr = ValueType.Reference.ToString().ToLower();
         static readonly string valueTypeThreadReferenceStr = ValueType.ThreadReference.ToString().ToLower();
-        static readonly string valueTypeUserHashStr = ValueType.UserHash.ToString().ToLower();
         readonly HashSetInternPool<string> tagsPool = new HashSetInternPool<string>();
         readonly StringInternPool objectIdsPool = new StringInternPool();
         readonly StringInternPool propNamesPool = new StringInternPool();

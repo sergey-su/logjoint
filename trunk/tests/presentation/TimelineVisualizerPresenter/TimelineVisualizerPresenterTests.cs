@@ -24,7 +24,6 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
         LoadedMessages.IPresenter loadedMessagesPresenter;
         IBookmarks bookmarks;
         Persistence.IStorageManager storageManager;
-        IUserNamesProvider userNamesProvider;
         QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
         IChangeNotification changeNotification;
         IColorTheme theme;
@@ -38,7 +37,6 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
             bookmarks = Substitute.For<IBookmarks>();
             storageManager = Substitute.For<Persistence.IStorageManager>();
             loadedMessagesPresenter = Substitute.For<LoadedMessages.IPresenter>();
-            userNamesProvider = Substitute.For<IUserNamesProvider>();
             view.When(v => v.SetViewModel(Arg.Any<IViewModel>())).Do(x => viewModel = x.Arg<IViewModel>());
             quickSearchTextBoxPresenter = Substitute.For<QuickSearchTextBox.IPresenter>();
             changeNotification = Substitute.For<IChangeNotification>();
@@ -60,7 +58,6 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
                 bookmarks,
                 storageManager,
                 null,
-                userNamesProvider,
                 changeNotification,
                 theme,
                 null

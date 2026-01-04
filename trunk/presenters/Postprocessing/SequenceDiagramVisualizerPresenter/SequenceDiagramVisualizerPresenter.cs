@@ -31,7 +31,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
         readonly IBookmarks bookmarks;
         readonly LoadedMessages.IPresenter loadedMessagesPresenter;
         readonly IPresentersFacade presentersFacade;
-        readonly IUserNamesProvider userNamesProvider;
         readonly IColorTheme theme;
         readonly Func<StateCache> state;
         ImmutableSortedSet<Arrow> lastSelectedArrows = ImmutableSortedSet.Create<Arrow>(ArrowIndexComparer.Instance);
@@ -68,7 +67,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
             IBookmarks bookmarks,
             Persistence.IStorageManager storageManager,
             IPresentersFacade presentersFacade,
-            IUserNamesProvider userNamesProvider,
             IChangeNotification parentChangeNotification,
             IColorTheme theme,
             IMatrixFactory matrixFactory
@@ -82,7 +80,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
             this.loadedMessagesPresenter = loadedMessagesPresenter;
             this.bookmarks = bookmarks;
             this.presentersFacade = presentersFacade;
-            this.userNamesProvider = userNamesProvider;
             this.theme = theme;
 
             this.transform = matrixFactory.CreateIdentity();

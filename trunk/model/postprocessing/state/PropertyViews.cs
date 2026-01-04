@@ -54,23 +54,20 @@ namespace LogJoint.Postprocessing.StateInspector
         public readonly StateInspectorEvent Change;
         public readonly DisplayMode Mode;
         public readonly IInspectedObject Object;
-        readonly IUserNamesProvider shortNames;
 
         public enum DisplayMode
         {
             Date,
             Value,
             Reference,
-            ThreadReference,
-            UserHash
+            ThreadReference
         };
 
-        public PropertyChangeView(IInspectedObject obj, StateInspectorEvent change, DisplayMode mode, IUserNamesProvider shortNames) : base(obj)
+        public PropertyChangeView(IInspectedObject obj, StateInspectorEvent change, DisplayMode mode) : base(obj)
         {
             this.Change = change;
             this.Object = obj;
             this.Mode = mode;
-            this.shortNames = shortNames;
         }
 
         public override string ToString()
@@ -93,11 +90,6 @@ namespace LogJoint.Postprocessing.StateInspector
                     return "";
                 return Change.Trigger.Timestamp.Adjust(Change.Output.LogSource.TimeOffsets).ToString();
             }
-            if (Mode == DisplayMode.UserHash)
-            {
-                var value = ((PropertyChange)Change.OriginalEvent).Value ?? "";
-                return shortNames.AddShortNameToUserHash(value);
-            }
             return "";
         }
 
@@ -110,8 +102,6 @@ namespace LogJoint.Postprocessing.StateInspector
 
         public override string ToClipboardString()
         {
-            if (Mode == DisplayMode.UserHash)
-                return ((PropertyChange)Change.OriginalEvent).Value;
             return ToString();
         }
     };

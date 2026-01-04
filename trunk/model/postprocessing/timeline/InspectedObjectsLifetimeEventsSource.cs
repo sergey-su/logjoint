@@ -76,10 +76,7 @@ namespace LogJoint.Postprocessing.Timeline
                  && inspectedObject.DisplayId == null
                  && propertyChange.ObjectType.CommentPropertyName == propertyChange.PropertyName)
                 {
-                    if (propertyChange.ValueType == SI.ValueType.UserHash)
-                        inspectedObject.DisplayId = string.Format("<uh>{0}</uh>", propertyChange.Value);
-                    else
-                        inspectedObject.DisplayId = propertyChange.Value;
+                    inspectedObject.DisplayId = propertyChange.Value;
                     inspectedObject.YieldPendingEvents(resultEvents);
                 }
             }

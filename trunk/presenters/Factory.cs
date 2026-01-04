@@ -528,7 +528,6 @@ namespace LogJoint.UI.Presenters
                 model.ModelThreads,
                 model.StorageManager,
                 model.LogSourceNamesProvider,
-                model.AnalyticsShortNames,
                 sourcesManagerPresenter,
                 loadedMessagesPresenter,
                 clipboardAccess,
