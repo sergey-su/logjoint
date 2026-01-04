@@ -11,22 +11,28 @@ namespace LogJoint.UI.Presenters
         public Color? HighlightColor;
     };
 
-    public static class TextAnnotation
+    public class AnnotatedTextFragmentsBuilder
     {
-        public static IReadOnlyList<AnnotatedTextFragment> GetAnnotatedTextFragments(
+        private List<AnnotatedTextFragment> fragments = new();
+
+        public IReadOnlyList<AnnotatedTextFragment> Build()
+        {
+            return fragments;
+        }
+
+        public AnnotatedTextFragmentsBuilder AddAnnotatedTextFragments(
             StringSlice text, IAnnotationsSnapshot annotationsSnapshot,
             IReadOnlyList<IFilter> highligingFilters, ImmutableArray<Color> highlightColors)
         {
             using var annotations = annotationsSnapshot.FindAnnotations(text).GetEnumerator();
             using var highlights = highligingFilters.GetHighlightRanges(text).GetEnumerator();
-            var result = new List<AnnotatedTextFragment>();
 
             int lastTextIndex = 0;
             void AddTextFragment(int tillIndex, FilterAction? highlightAction)
             {
                 if (tillIndex > lastTextIndex)
                 {
-                    result.Add(new AnnotatedTextFragment()
+                    fragments.Add(new AnnotatedTextFragment()
                     {
                         Value = text.SubString(lastTextIndex, tillIndex - lastTextIndex),
                         HighlightColor = highlightAction?.ToColor(highlightColors),
@@ -37,7 +43,7 @@ namespace LogJoint.UI.Presenters
             ;
             void AddAnnotationFragment(string value)
             {
-                result.Add(new AnnotatedTextFragment()
+                fragments.Add(new AnnotatedTextFragment()
                 {
                     Value = new StringSlice(value),
                     IsAnnotationFragment = true
@@ -91,7 +97,20 @@ namespace LogJoint.UI.Presenters
                 }
             }
             AddTextFragment(text.Length, null);
-            return result;
+            return this;
+        }
+
+        public AnnotatedTextFragmentsBuilder AddAnnotatedTextFragments(
+            StringSlice text, IAnnotationsSnapshot annotationsSnapshot)
+        {
+            return AddAnnotatedTextFragments(text, annotationsSnapshot,
+                ImmutableList<IFilter>.Empty, ImmutableArray<Color>.Empty);
+        }
+
+        public AnnotatedTextFragmentsBuilder AddText(StringSlice str)
+        {
+            fragments.Add(new AnnotatedTextFragment() { Value = str });
+            return this;
         }
     };
 }

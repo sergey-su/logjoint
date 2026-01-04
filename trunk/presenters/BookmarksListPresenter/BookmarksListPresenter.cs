@@ -265,10 +265,10 @@ namespace LogJoint.UI.Presenters.BookmarksList
                     contextColor = threadColors.GetByIndex(colorIndex),
                     index = index,
                     annotation = bmk.Annotation,
-                    textFragments = TextAnnotation.GetAnnotatedTextFragments(
+                    textFragments = new AnnotatedTextFragmentsBuilder().AddAnnotatedTextFragments(
                         new StringSlice(text), textAnnotations,
                         highlightFiltersData.enabled == true ? highlightFiltersData.filters : ImmutableList<IFilter>.Empty,
-                        highlightFiltersData.colors)
+                        highlightFiltersData.colors).Build()
                 });
                 prevTimestamp = ts;
                 if (isSelected)

@@ -463,11 +463,10 @@ namespace LogJoint.UI.Presenters.SourcesList
 
         static void GetLogSourceDescription(ILogSource s, LogProviderStats stats, IAnnotationsSnapshot textAnnotations, ViewItem item)
         {
-            var msg = new List<AnnotatedTextFragment>();
-            void AddDisplayNameFragments() => msg.AddRange(TextAnnotation.GetAnnotatedTextFragments(
-                new StringSlice(s.DisplayName), textAnnotations,
-                ImmutableList<IFilter>.Empty, ImmutableArray<Color>.Empty));
-            void AddText(string str) => msg.Add(new AnnotatedTextFragment() { Value = new StringSlice(str) });
+            var msgBuilder = new AnnotatedTextFragmentsBuilder();
+            void AddDisplayNameFragments() => msgBuilder.AddAnnotatedTextFragments(
+                new StringSlice(s.DisplayName), textAnnotations);
+            void AddText(string str) => msgBuilder.AddText(new StringSlice(str));
             bool appendAnnotation = false;
             switch (stats.State)
             {
@@ -507,6 +506,7 @@ namespace LogJoint.UI.Presenters.SourcesList
                     break;
             }
 
+            IReadOnlyList<AnnotatedTextFragment> msg = msgBuilder.Build();
             item.Description = string.Join("", msg.Where(f => !f.IsAnnotationFragment).Select(f => f.Value));
             item.DescriptionFragments = msg;
 
