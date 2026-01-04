@@ -18,7 +18,7 @@
             <div class="item @GetItemClass(item.Type)" @ondblclick="@(e => viewModel.OnDoubleClick())" title="@item.Text">
                 @if (!string.IsNullOrEmpty(item.Annotation))
                 {
-                    <span class="annotation">@item.Annotation</span>
+                    <span class="leading annotation">@item.Annotation</span>
                 }
                 @item.Text
             </div>

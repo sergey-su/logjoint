@@ -26,13 +26,13 @@
         <span style="@GetItemStyle(item)">
             @if (!string.IsNullOrEmpty(item.Annotation))
             {
-                <span class="annotation">@item.Annotation</span>
+                <span class="leading annotation">@item.Annotation</span>
             }
             @foreach (var fragment in item.DescriptionFragments)
             {
                 if (fragment.IsAnnotationFragment)
                 {
-                    <span class="annotation" style="padding: 0px 5px;">@fragment.Value</span>
+                    <span class="inline annotation" style="padding: 0px 5px;">@fragment.Value</span>
                 }
                 else if (fragment.HighlightColor.HasValue)
                 {

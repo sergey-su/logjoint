@@ -615,8 +615,13 @@ button {
 
 
 .tree>.node>.contents .annotation {
-    margin-right: 10px;
     background: yellow;
+}
+.tree>.node>.contents .leading.annotation {
+    margin-right: 10px;
+}
+.tree>.node>.contents .inline.annotation {
+    padding: 0px 5px;
 }
 .dark-theme .tree>.node>.contents .annotation {
     background: #CCCC00;
@@ -936,8 +941,13 @@ button {
 }*/
 
 .list>li .annotation {
-    margin-right: 10px;
     background: yellow;
+}
+.list>li .leading.annotation {
+    margin-right: 10px;
+}
+.list>li .inline.annotation {
+    padding: 0px 5px;
 }
 .dark-theme .list>li .annotation {
     background: #CCCC00;
