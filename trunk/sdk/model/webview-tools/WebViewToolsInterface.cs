@@ -25,24 +25,24 @@ namespace LogJoint.WebViewTools
 
     public class DownloadParams
     {
-        public Uri Location;
-        public string ExpectedMimeType;
+        public required Uri Location;
+        public required string ExpectedMimeType;
         public CancellationToken Cancellation;
-        public Progress.IProgressAggregator Progress;
+        public Progress.IProgressAggregator? Progress;
         public CacheMode CacheMode = CacheMode.AllowCacheReading;
-        public Predicate<Stream> AllowCacheWriting;
-        public Predicate<Uri> IsLoginUrl;
+        public Predicate<Stream>? AllowCacheWriting;
+        public Predicate<Uri>? IsLoginUrl;
     };
 
     public class UploadFormParams
     {
-        public Uri Location;
-        public Uri FormUri;
+        public required Uri Location;
+        public required Uri FormUri;
         public CancellationToken Cancellation;
     };
 
-    public class UploadFormResult
+    public class UploadFormResult(IReadOnlyList<KeyValuePair<string, string>> values)
     {
-        public IReadOnlyList<KeyValuePair<string, string>> Values;
+        public IReadOnlyList<KeyValuePair<string, string>> Values { get; private set; } = values;
     };
 }

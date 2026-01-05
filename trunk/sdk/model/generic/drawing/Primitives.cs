@@ -248,7 +248,7 @@ namespace LogJoint.Drawing
             return string.Format("[Color: A={0}, R={1}, G={2}, B={3}]", A, R, G, B);
         }
 
-        public override bool Equals(object o)
+        public override bool Equals(object? o)
         {
             if (o is Color c)
                 return c.v == this.v;

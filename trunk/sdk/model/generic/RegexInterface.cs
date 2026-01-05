@@ -55,6 +55,6 @@ namespace LogJoint.RegularExpressions
 
     public interface IRegexFactory
     {
-        IRegex Create(string pattern, ReOptions options, System.Text.RegularExpressions.Regex precompiledRegex = null);
+        IRegex Create(string pattern, ReOptions options, System.Text.RegularExpressions.Regex? precompiledRegex = null);
     };
 }

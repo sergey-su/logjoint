@@ -16,9 +16,8 @@
 
         PostprocessorOutputBuilder IModel.CreatePostprocessorOutputBuilder()
         {
-            return new PostprocessorOutputBuilder
-            {
-                build = (postprocessorInput, builder) => PostprocessorOutput.SerializePostprocessorOutput(
+            return new PostprocessorOutputBuilder(
+                build: (postprocessorInput, builder) => PostprocessorOutput.SerializePostprocessorOutput(
                     builder.logPart,
                     logPartTokenFactories,
                     builder.events,
@@ -30,7 +29,7 @@
                     tempFiles,
                     postprocessorInput.CancellationToken
                 )
-            };
+            );
         }
     }
 }

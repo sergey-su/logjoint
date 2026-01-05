@@ -51,14 +51,14 @@ namespace LogJoint.Postprocessing
         }
 
         public static Dictionary<TKey, TElement> ToDictionarySafe<TSource, TKey, TElement>(this IEnumerable<TSource> source,
-            Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, Func<TElement, TElement, TElement> elementsUpdater)
+            Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, Func<TElement, TElement, TElement> elementsUpdater) where TKey : notnull
         {
             var ret = new Dictionary<TKey, TElement>();
             foreach (var x in source)
             {
                 var key = keySelector(x);
                 var value = elementSelector(x);
-                TElement existingElement;
+                TElement? existingElement;
                 if (ret.TryGetValue(key, out existingElement))
                     value = elementsUpdater(existingElement, value);
                 ret[key] = value;
@@ -67,10 +67,10 @@ namespace LogJoint.Postprocessing
         }
 
 
-        static T MaxMinByKey<T, K>(this IEnumerable<T> input, Func<T, K> keySelector, int sign) where K : IComparable<K>
+        static T? MaxMinByKey<T, K>(this IEnumerable<T> input, Func<T, K> keySelector, int sign) where K : IComparable<K>
         {
-            K maxKey = default(K);
-            T ret = default(T);
+            K? maxKey = default;
+            T? ret = default;
             bool first = true;
             foreach (T v in input)
             {
@@ -85,19 +85,19 @@ namespace LogJoint.Postprocessing
             return ret;
         }
 
-        public static T MaxByKey<T, K>(this IEnumerable<T> input, Func<T, K> keySelector) where K : IComparable<K>
+        public static T? MaxByKey<T, K>(this IEnumerable<T> input, Func<T, K> keySelector) where K : IComparable<K>
         {
             return MaxMinByKey(input, keySelector, +1);
         }
 
-        public static T MinByKey<T, K>(this IEnumerable<T> input, Func<T, K> keySelector) where K : IComparable<K>
+        public static T? MinByKey<T, K>(this IEnumerable<T> input, Func<T, K> keySelector) where K : IComparable<K>
         {
             return MaxMinByKey(input, keySelector, -1);
         }
 
-        public static T TryGeyValue<K, T>(this Dictionary<K, T> dict, K key)
+        public static T? TryGeyValue<K, T>(this Dictionary<K, T> dict, K key) where K: notnull
         {
-            T value;
+            T? value;
             dict.TryGetValue(key, out value);
             return value;
         }
@@ -109,7 +109,7 @@ namespace LogJoint.Postprocessing
         )
         {
             bool isFirst = true;
-            T prev = default(T);
+            T? prev = default;
             bool prevReturned = false;
             foreach (var val in keyValues)
             {
@@ -120,10 +120,10 @@ namespace LogJoint.Postprocessing
                     yield return val;
                     valReturned = true;
                 }
-                else if (!keysEqual(val, prev))
+                else if (!keysEqual(val, prev!))
                 {
                     if (numericSemantics && !prevReturned)
-                        yield return prev;
+                        yield return prev!;
                     yield return val;
                     valReturned = true;
                 }
@@ -134,13 +134,13 @@ namespace LogJoint.Postprocessing
             if (!isFirst && !prevReturned)
             {
                 // always add last
-                yield return prev;
+                yield return prev!;
             }
         }
 
         public static IEnumerable<KeyValuePair<T, T>> ZipWithNext<T>(IEnumerable<T> seq) where T : class
         {
-            T prev = null;
+            T? prev = null;
             foreach (var curr in seq)
             {
                 if (prev != null)

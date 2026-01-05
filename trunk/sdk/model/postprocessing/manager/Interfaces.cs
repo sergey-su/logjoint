@@ -44,7 +44,7 @@ namespace LogJoint.Postprocessing
     public interface ILogSourcePostprocessor
     {
         PostprocessorKind Kind { get; }
-        Task<IPostprocessorRunSummary> Run(LogSourcePostprocessorInput[] forLogs);
+        Task<IPostprocessorRunSummary?> Run(LogSourcePostprocessorInput[] forLogs);
     };
 
     public struct LogSourcePostprocessorInput
@@ -91,7 +91,7 @@ namespace LogJoint.Postprocessing
         bool HasErrors { get; }
         bool HasWarnings { get; }
         string Report { get; }
-        IPostprocessorRunSummary GetLogSpecificSummary(ILogSource ls);
+        IPostprocessorRunSummary? GetLogSpecificSummary(ILogSource ls);
     };
 
     public interface IPostprocessorRunSummaryBuilder

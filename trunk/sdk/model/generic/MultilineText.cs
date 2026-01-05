@@ -12,7 +12,7 @@ namespace LogJoint
     public class MultilineText
     {
         readonly StringSlice text;
-        List<StringSlice> lines;
+        List<StringSlice>? lines;
 
         public MultilineText(StringSlice txt)
         {

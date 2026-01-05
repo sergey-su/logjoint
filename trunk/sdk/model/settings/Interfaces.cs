@@ -47,7 +47,7 @@ namespace LogJoint.Settings
         /// <summary>
         /// Font family name or null if platform-default is to be used
         /// </summary>
-        public string FontFamily { get; private set; }
+        public string? FontFamily { get; private set; }
 
         public enum ColoringMode
         {
@@ -70,7 +70,7 @@ namespace LogJoint.Settings
         };
         public ColorTheme Theme { get; private set; }
 
-        public Appearance(LogFontSize fontSize, string fontFamily, ColoringMode coloring, PaletteBrightness coloringBrightness, ColorTheme theme)
+        public Appearance(LogFontSize fontSize, string? fontFamily, ColoringMode coloring, PaletteBrightness coloringBrightness, ColorTheme theme)
         {
             this.FontSize = fontSize;
             this.FontFamily = fontFamily;

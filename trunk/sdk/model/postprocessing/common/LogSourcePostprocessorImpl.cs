@@ -9,11 +9,11 @@ namespace LogJoint.Postprocessing
     public class LogSourcePostprocessor : ILogSourcePostprocessor
     {
         readonly PostprocessorKind kind;
-        readonly Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run;
+        readonly Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary?>> run;
 
         public LogSourcePostprocessor(
             PostprocessorKind kind,
-            Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run
+            Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary?>> run
         )
         {
             this.kind = kind;
@@ -29,31 +29,31 @@ namespace LogJoint.Postprocessing
 
         public LogSourcePostprocessor(
             PostprocessorKind kind,
-            Func<LogSourcePostprocessorInput, Task<IPostprocessorRunSummary>> run
+            Func<LogSourcePostprocessorInput, Task<IPostprocessorRunSummary?>> run
         ) : this(kind, MakeRunAdapter(run))
         {
         }
 
         PostprocessorKind ILogSourcePostprocessor.Kind => kind;
 
-        Task<IPostprocessorRunSummary> ILogSourcePostprocessor.Run(LogSourcePostprocessorInput[] forLogs)
+        Task<IPostprocessorRunSummary?> ILogSourcePostprocessor.Run(LogSourcePostprocessorInput[] forLogs)
         {
             return run(forLogs);
         }
 
-        static Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> MakeRunAdapter(Func<LogSourcePostprocessorInput, Task> postprocessor)
+        static Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary?>> MakeRunAdapter(Func<LogSourcePostprocessorInput, Task> postprocessor)
         {
-            Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> helper = async (inputs) =>
+            Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary?>> helper = async (inputs) =>
             {
                 await Task.WhenAll(inputs.Select(i => postprocessor(i)));
-                return (IPostprocessorRunSummary)null;
+                return (IPostprocessorRunSummary?)null;
             };
             return helper;
         }
 
-        static Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> MakeRunAdapter(Func<LogSourcePostprocessorInput, Task<IPostprocessorRunSummary>> postprocessor)
+        static Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary?>> MakeRunAdapter(Func<LogSourcePostprocessorInput, Task<IPostprocessorRunSummary?>> postprocessor)
         {
-            Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> helper = async (inputs) =>
+            Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary?>> helper = async (inputs) =>
             {
                 var tasks = await Task.WhenAll(inputs.Select(i => postprocessor(i)));
                 return new AggregatedRunSummary(

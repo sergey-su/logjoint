@@ -16,9 +16,8 @@ namespace LogJoint.Postprocessing.StateInspector
 
         PostprocessorOutputBuilder IModel.CreatePostprocessorOutputBuilder()
         {
-            return new PostprocessorOutputBuilder
-            {
-                build = (postprocessorInput, builder) => StateInspectorOutput.SerializePostprocessorOutput(
+            return new PostprocessorOutputBuilder(
+                build: (postprocessorInput, builder) => StateInspectorOutput.SerializePostprocessorOutput(
                     builder.events,
                     builder.rotatedLogPartToken,
                     logPartTokenFactories,
@@ -28,7 +27,7 @@ namespace LogJoint.Postprocessing.StateInspector
                     tempFiles,
                     postprocessorInput.CancellationToken
                 )
-            };
+            );
         }
 
         Task IModel.SavePostprocessorOutput(

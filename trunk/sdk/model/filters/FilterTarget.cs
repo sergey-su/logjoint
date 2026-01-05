@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -75,7 +76,7 @@ namespace LogJoint
             return hash.Value;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             var other = obj as FilterScope;
             if (other == null)
@@ -85,11 +86,14 @@ namespace LogJoint
             if (MatchesAllSourcesInternal())
                 return true;
             return
-                includeAllFromSources.SetEquals(other.includeAllFromSources) &&
-                includeAllFromThreads.SetEquals(other.includeAllFromThreads);
+                includeAllFromSources.SetEquals(other.includeAllFromSources!) &&
+                includeAllFromThreads.SetEquals(other.includeAllFromThreads!);
         }
 
 
+        [MemberNotNullWhen(false, nameof(includeAllFromSources))]
+        [MemberNotNullWhen(false, nameof(includeAllFromThreads))]
+        [MemberNotNullWhen(false, nameof(includeAnythingFromSources))]
         bool MatchesAllSourcesInternal()
         {
             return includeAllFromSources == null;
@@ -110,9 +114,9 @@ namespace LogJoint
         }
 
 
-        private readonly HashSet<ILogSource> includeAllFromSources;
-        private readonly HashSet<IThread> includeAllFromThreads;
-        private readonly HashSet<ILogSource> includeAnythingFromSources;
+        private readonly HashSet<ILogSource>? includeAllFromSources;
+        private readonly HashSet<IThread>? includeAllFromThreads;
+        private readonly HashSet<ILogSource>? includeAnythingFromSources;
         private int? hash;
     };
 }

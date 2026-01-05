@@ -416,10 +416,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
         MenuData IViewModel.OnNodeMenuOpening()
         {
-            var menuData = new MenuData()
-            {
-                Items = new List<MenuData.Item>()
-            };
+            var menuData = new MenuData();
             OnMenu?.Invoke(this, menuData);
             return menuData;
         }
@@ -1104,7 +1101,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
                 {
                     if (nodeCreationHandler != null)
                     {
-                        var args = new NodeCreatedEventArgs() { NodeObject = this };
+                        var args = new NodeCreatedEventArgs(this);
                         nodeCreationHandler(this, args);
                         createCollapsed = args.CreateCollapsed.GetValueOrDefault(createCollapsed);
                     }

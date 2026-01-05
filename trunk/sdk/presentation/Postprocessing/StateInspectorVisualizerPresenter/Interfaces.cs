@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
                 this.Click = click;
             }
         };
-        public List<Item> Items { get; internal set; }
+        public List<Item> Items { get; internal set; } = [];
     };
 
     public class NodeCreatedEventArgs
@@ -34,6 +34,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
         public IVisualizerNode NodeObject { get; internal set; }
         public bool? CreateCollapsed { get; set; }
         public bool? CreateLazilyLoaded { get; set; }
+
+        public NodeCreatedEventArgs(IVisualizerNode nodeObject) => NodeObject = nodeObject;
     };
 
     public interface IVisualizerNode

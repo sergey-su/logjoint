@@ -19,9 +19,8 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
         PostprocessorOutputBuilder IModel.CreatePostprocessorOutputBuilder()
         {
-            return new PostprocessorOutputBuilder
-            {
-                build = (postprocessorInput, builder) => SequenceDiagramPostprocessorOutput.SerializePostprocessorOutput(
+            return new PostprocessorOutputBuilder(
+                build: (postprocessorInput, builder) => SequenceDiagramPostprocessorOutput.SerializePostprocessorOutput(
                     builder.events,
                     builder.timelineComments,
                     builder.stateInspectorComments,
@@ -33,7 +32,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
                     tempFiles,
                     postprocessorInput.CancellationToken
                 )
-            };
+            );
         }
 
         Task IModel.SavePostprocessorOutput(

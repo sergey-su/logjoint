@@ -19,7 +19,7 @@ namespace LogJoint
         /// Returns not disposed log source that given message belongs to.
         /// null if message is not associated with any log source or log source is disposed.
         /// </summary>
-        public static ILogSource GetLogSource(this IMessage message)
+        public static ILogSource? GetLogSource(this IMessage message)
         {
             var thread = message.Thread;
             if (thread == null || thread.IsDisposed)
@@ -30,7 +30,7 @@ namespace LogJoint
             return ls;
         }
 
-        public static bool TryGetLogSource(this IMessage message, out ILogSource ls)
+        public static bool TryGetLogSource(this IMessage message, out ILogSource? ls)
         {
             ls = message.GetLogSource();
             return ls != null;

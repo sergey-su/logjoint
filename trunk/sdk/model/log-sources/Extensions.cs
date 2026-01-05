@@ -34,7 +34,7 @@ namespace LogJoint
             return ls.Provider.ConnectionId;
         }
 
-        public static async Task<IBookmark> CreateTogglableBookmark(
+        public static async Task<IBookmark?> CreateTogglableBookmark(
             this ILogSource ls,
             IBookmarksFactory factory,
             IBookmark sourceBookmark,
@@ -43,7 +43,7 @@ namespace LogJoint
         {
             if (sourceBookmark.LogSourceConnectionId != ls.Provider.ConnectionId)
                 throw new ArgumentException("log source and bookmark have inconsistent connection ids");
-            IMessage messageAtPosition = null;
+            IMessage? messageAtPosition = null;
             await ls.Provider.EnumMessages(
                 sourceBookmark.Position,
                 msg =>

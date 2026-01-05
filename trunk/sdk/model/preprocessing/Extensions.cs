@@ -16,7 +16,7 @@ namespace LogJoint.Preprocessing
             if (!string.IsNullOrEmpty(prepParams.DisplayName))
                 connectParams[ConnectionParamsKeys.DisplayNameConnectionParam] = prepParams.DisplayName;
         }
-        public static void MaybeCopyDisplayName(this IConnectionParams source, IConnectionParams dest, Func<string, string> map = null)
+        public static void MaybeCopyDisplayName(this IConnectionParams source, IConnectionParams dest, Func<string, string>? map = null)
         {
             if (map == null)
                 map = x => x;

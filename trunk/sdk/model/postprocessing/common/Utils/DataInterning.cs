@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LogJoint.Postprocessing
 {
-    public class InternPool<T>
+    public class InternPool<T> where T : notnull
     {
         readonly Dictionary<T, T> data;
 
@@ -21,7 +21,7 @@ namespace LogJoint.Postprocessing
 
         public T Intern(T value)
         {
-            T retVal;
+            T? retVal;
             if (data.TryGetValue(value, out retVal))
                 return retVal;
             data.Add(value, value);
@@ -45,8 +45,11 @@ namespace LogJoint.Postprocessing
 
         class EqualityComparer : IEqualityComparer<HashSet<T>>
         {
-            bool IEqualityComparer<HashSet<T>>.Equals(HashSet<T> x, HashSet<T> y)
+            bool IEqualityComparer<HashSet<T>>.Equals(HashSet<T>? x, HashSet<T>? y)
             {
+                if (ReferenceEquals(x, y)) return true;
+                if (x is null) return false;
+                if (y is null) return false;
                 return x.SetEquals(y);
             }
 
@@ -62,11 +65,11 @@ namespace LogJoint.Postprocessing
     {
         readonly Dictionary<string, string> data = new Dictionary<string, string>();
 
-        public string Intern(string value)
+        public string? Intern(string value)
         {
             if (value == null)
                 return null;
-            string retVal;
+            string? retVal;
             if (data.TryGetValue(value, out retVal))
                 return retVal;
             data.Add(value, value);

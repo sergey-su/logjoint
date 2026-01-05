@@ -11,10 +11,12 @@ namespace LogJoint.Postprocessing.Timeline
         public PostprocessorOutputBuilder SetTriggersConverter(Func<object, TextLogEventTrigger> value) { triggersConverter = value; return this; }
         public Task Build(LogSourcePostprocessorInput postprocessorParams) { return build(postprocessorParams, this); }
 
-        internal IEnumerableAsync<Event[]> events;
-        internal Task<ILogPartToken> rotatedLogPartToken;
-        internal Func<object, TextLogEventTrigger> triggersConverter;
-        internal Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+        internal IEnumerableAsync<Event[]>? events;
+        internal Task<ILogPartToken>? rotatedLogPartToken;
+        internal Func<object, TextLogEventTrigger>? triggersConverter;
+        private Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+
+        internal PostprocessorOutputBuilder(Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build) => this.build = build;
     };
 
     public interface IModel
@@ -28,9 +30,9 @@ namespace LogJoint.Postprocessing.Timeline
             LogSourcePostprocessorInput postprocessorInput
         );
         IEndOfTimelineEventSource<Message> CreateEndOfTimelineEventSource<Message>(
-            Func<Message, object> triggetSelector = null);
+            Func<Message, object>? triggetSelector = null);
         IInspectedObjectsLifetimeEventsSource CreateInspectedObjectsLifetimeEventsSource(
-            Predicate<StateInspector.Event> inspectedObjectsFilter = null);
+            Predicate<StateInspector.Event>? inspectedObjectsFilter = null);
         IMessagingEventsSource CreateMessagingEventsSource();
     };
 
@@ -54,7 +56,7 @@ namespace LogJoint.Postprocessing.Timeline
         public object Trigger;
         public readonly string DisplayName;
         public readonly int TemplateId;
-        public HashSet<string> Tags { get { return tags; } set { tags = value; } }
+        public HashSet<string>? Tags { get { return tags; } set { tags = value; } }
 
         protected Event(object trigger, string displayName, int templateId)
         {
@@ -73,7 +75,7 @@ namespace LogJoint.Postprocessing.Timeline
             return stringifier.Output.ToString();
         }
 
-        HashSet<string> tags;
+        HashSet<string>? tags;
     };
 
     public enum ActivityEventType
@@ -99,7 +101,7 @@ namespace LogJoint.Postprocessing.Timeline
         public readonly string ActivityId;
         public readonly ActivityEventType Type;
         public ActivityStatus Status { get; set; }
-        public List<ActivityPhase> Phases { get { return phases; } set { phases = value; } }
+        public List<ActivityPhase>? Phases { get { return phases; } set { phases = value; } }
 
         protected ActivityEventBase(object trigger, string displayName, string activityId, ActivityEventType type,
                                  int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified)
@@ -110,7 +112,7 @@ namespace LogJoint.Postprocessing.Timeline
             this.Status = status;
         }
 
-        private List<ActivityPhase> phases;
+        private List<ActivityPhase>? phases;
     };
 
     public struct ActivityPhase

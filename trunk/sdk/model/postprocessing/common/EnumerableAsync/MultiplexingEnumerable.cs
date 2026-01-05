@@ -7,7 +7,7 @@ namespace LogJoint.Postprocessing
     class MultiplexingEnumerable<T> : IMultiplexingEnumerable<T>, IEnumerableAsync<T>
     {
         readonly IEnumerableAsync<T> inner;
-        IEnumeratorAsync<T> enumerator;
+        IEnumeratorAsync<T>? enumerator;
         TaskCompletionSource<int> open = new TaskCompletionSource<int>();
         int isOpen;
         TaskCompletionSource<bool> enumeratorMoved = new TaskCompletionSource<bool>();
@@ -39,7 +39,7 @@ namespace LogJoint.Postprocessing
 
             T IEnumeratorAsync<T>.Current
             {
-                get { return owner.enumerator.Current; }
+                get { return owner.enumerator!.Current; }
             }
 
             Task<bool> IEnumeratorAsync<T>.MoveNext()
@@ -69,7 +69,7 @@ namespace LogJoint.Postprocessing
             var enumeratorMovedRef = enumeratorMoved;
             if (Interlocked.Decrement(ref awaitedEnumerators) == 0)
             {
-                result = await enumerator.MoveNext();
+                result = await enumerator!.MoveNext();
                 awaitedEnumerators = totalEnumerators;
                 enumeratorMoved = new TaskCompletionSource<bool>();
                 enumeratorMovedRef.SetResult(result);

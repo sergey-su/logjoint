@@ -11,8 +11,8 @@ namespace LogJoint.Postprocessing
         public readonly MessageTimestamp Timestamp;
 
         public TextLogEventTrigger(XElement evtElement) : this(
-            long.Parse(evtElement.Attribute(triggerPositionAttr).Value),
-            MessageTimestamp.ParseFromLoselessFormat(evtElement.Attribute(triggerTimestampAttr).Value))
+            long.Parse(evtElement.Attribute(triggerPositionAttr)?.Value ?? ""),
+            MessageTimestamp.ParseFromLoselessFormat(evtElement.Attribute(triggerTimestampAttr)?.Value ?? ""))
         {
         }
 
@@ -46,8 +46,8 @@ namespace LogJoint.Postprocessing
 
         internal TextLogEventTrigger(XmlReader reader)
             : this(
-                long.Parse(reader.GetAttribute(triggerPositionAttrShort)),
-                MessageTimestamp.ParseFromLoselessFormat(reader.GetAttribute(triggerTimestampAttrShort)))
+                long.Parse(reader.GetAttribute(triggerPositionAttrShort) ?? ""),
+                MessageTimestamp.ParseFromLoselessFormat(reader.GetAttribute(triggerTimestampAttrShort) ?? ""))
         {
         }
 
@@ -95,7 +95,7 @@ namespace LogJoint.Postprocessing
     [XmlRoot("trigger")]
     public class XmlSerializableTextLogEventTrigger : IXmlSerializable
     {
-        TextLogEventTrigger data;
+        TextLogEventTrigger? data;
 
         public XmlSerializableTextLogEventTrigger(TextLogEventTrigger data)
         {
@@ -106,9 +106,9 @@ namespace LogJoint.Postprocessing
         {
         }
 
-        public TextLogEventTrigger Data { get { return data; } }
+        public TextLogEventTrigger? Data { get { return data; } }
 
-        System.Xml.Schema.XmlSchema IXmlSerializable.GetSchema()
+        System.Xml.Schema.XmlSchema? IXmlSerializable.GetSchema()
         {
             return null;
         }
@@ -120,7 +120,7 @@ namespace LogJoint.Postprocessing
 
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
-            data.Save(writer);
+            data?.Save(writer);
         }
     };
 }

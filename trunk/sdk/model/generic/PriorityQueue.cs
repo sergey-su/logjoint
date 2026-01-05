@@ -14,7 +14,7 @@ namespace VCSKicksCollection
     /// </summary>
     public class PriorityQueue<T>
     {
-        protected List<T> storedValues;
+        protected List<T?> storedValues;
         protected IComparer<T> comparer;
 
         public PriorityQueue(IComparer<T> comparer)
@@ -22,10 +22,10 @@ namespace VCSKicksCollection
             this.comparer = comparer;
 
             //Initialize the array that will hold the values
-            storedValues = new List<T>();
+            storedValues = new List<T?>();
 
             //Fill the first cell in the array with an empty value
-            storedValues.Add(default(T));
+            storedValues.Add(default);
         }
 
         /// <summary>
@@ -39,10 +39,10 @@ namespace VCSKicksCollection
         /// <summary>
         /// Returns the value at the head of the Priority Queue without removing it.
         /// </summary>
-        public T Peek()
+        public T? Peek()
         {
             if (this.Count == 0)
-                return default(T); //Priority Queue empty
+                return default; //Priority Queue empty
             else
                 return storedValues[1]; //head of the queue
         }
@@ -63,19 +63,19 @@ namespace VCSKicksCollection
         /// <summary>
         /// Returns the minimum value inside the Priority Queue
         /// </summary>
-        public T Dequeue()
+        public T? Dequeue()
         {
             if (this.Count == 0)
-                return default(T); //queue is empty
+                return default; //queue is empty
             else
             {
                 //The smallest value in the Priority Queue is the first item in the array
-                T minValue = this.storedValues[1];
+                T? minValue = this.storedValues[1];
 
                 //If there's more than one item, replace the first item in the array with the last one
                 if (this.storedValues.Count > 2)
                 {
-                    T lastValue = this.storedValues[storedValues.Count - 1];
+                    T? lastValue = this.storedValues[storedValues.Count - 1];
 
                     //Move last node to the head
                     this.storedValues.RemoveAt(storedValues.Count - 1);
@@ -105,8 +105,8 @@ namespace VCSKicksCollection
             while (this.IsParentBigger(cell))
             {
                 //Get values of parent and child
-                T parentValue = this.storedValues[cell / 2];
-                T childValue = this.storedValues[cell];
+                T? parentValue = this.storedValues[cell / 2];
+                T? childValue = this.storedValues[cell];
 
                 //Swap the values
                 this.storedValues[cell / 2] = childValue;
@@ -131,8 +131,8 @@ namespace VCSKicksCollection
                 if (child == -1) //Left Child
                 {
                     //Swap values
-                    T parentValue = storedValues[cell];
-                    T leftChildValue = storedValues[2 * cell];
+                    T? parentValue = storedValues[cell];
+                    T? leftChildValue = storedValues[2 * cell];
 
                     storedValues[cell] = leftChildValue;
                     storedValues[2 * cell] = parentValue;
@@ -142,8 +142,8 @@ namespace VCSKicksCollection
                 else if (child == 1) //Right Child
                 {
                     //Swap values
-                    T parentValue = storedValues[cell];
-                    T rightChildValue = storedValues[2 * cell + 1];
+                    T? parentValue = storedValues[cell];
+                    T? rightChildValue = storedValues[2 * cell + 1];
 
                     storedValues[cell] = rightChildValue;
                     storedValues[2 * cell + 1] = parentValue;
@@ -208,8 +208,8 @@ namespace VCSKicksCollection
                     int leftChild = 2 * parentCell;
                     int rightChild = 2 * parentCell + 1;
 
-                    T leftValue = this.storedValues[leftChild];
-                    T rightValue = this.storedValues[rightChild];
+                    T? leftValue = this.storedValues[leftChild];
+                    T? rightValue = this.storedValues[rightChild];
 
                     //Compare the values of the children
                     if (comparer.Compare(leftValue, rightValue) <= 0)

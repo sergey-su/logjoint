@@ -11,10 +11,12 @@ namespace LogJoint.Postprocessing.StateInspector
         public PostprocessorOutputBuilder SetTriggersConverter(Func<object, TextLogEventTrigger> value) { triggersConverter = value; return this; }
         public Task Build(LogSourcePostprocessorInput postprocessorParams) { return build(postprocessorParams, this); }
 
-        internal IEnumerableAsync<Event[]> events;
-        internal Task<ILogPartToken> rotatedLogPartToken;
-        internal Func<object, TextLogEventTrigger> triggersConverter;
-        internal Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+        internal IEnumerableAsync<Event[]>? events;
+        internal Task<ILogPartToken>? rotatedLogPartToken;
+        internal Func<object, TextLogEventTrigger>? triggersConverter;
+        private Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+
+        internal PostprocessorOutputBuilder(Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build) => this.build = build;
     };
 
     public interface IModel
@@ -34,7 +36,7 @@ namespace LogJoint.Postprocessing.StateInspector
     {
         public object Trigger;
         public readonly string ObjectId;
-        public HashSet<string> Tags { get { return tags; } set { tags = value; } }
+        public HashSet<string>? Tags { get { return tags; } set { tags = value; } }
         public readonly ObjectTypeInfo ObjectType;
         public readonly int TemplateId;
 
@@ -62,7 +64,7 @@ namespace LogJoint.Postprocessing.StateInspector
                 throw new ArgumentException("objectId");
         }
 
-        HashSet<string> tags;
+        HashSet<string>? tags;
     };
 
     public class ObjectCreation : Event
@@ -75,10 +77,10 @@ namespace LogJoint.Postprocessing.StateInspector
         /// Default: false (strong)
         /// </summary>
         public readonly bool IsWeak;
-        public readonly string DisplayName;
+        public readonly string? DisplayName;
 
         public ObjectCreation(object trigger, string objectId, ObjectTypeInfo objectTypeInfo,
-                int templateId = 0, bool isWeak = false, string displayName = null) :
+                int templateId = 0, bool isWeak = false, string? displayName = null) :
             base(trigger, objectId, objectTypeInfo, templateId)
         {
             IsWeak = isWeak;
@@ -107,12 +109,13 @@ namespace LogJoint.Postprocessing.StateInspector
 
     public class PropertyChange : Event
     {
-        public readonly string PropertyName;
-        public readonly string Value;
+        public readonly string? PropertyName;
+        public readonly string? Value;
         public readonly ValueType ValueType;
-        public readonly string OldValue;
+        public readonly string? OldValue;
 
-        public PropertyChange(object trigger, string objectId, ObjectTypeInfo objectTypeInfo, string propertyName = null, string value = null, ValueType valueType = ValueType.Scalar, string oldValue = null, int templateId = 0)
+        public PropertyChange(object trigger, string objectId, ObjectTypeInfo objectTypeInfo,
+                string? propertyName = null, string? value = null, ValueType valueType = ValueType.Scalar, string? oldValue = null, int templateId = 0)
             : base(trigger, objectId, objectTypeInfo, templateId)
         {
             PropertyName = propertyName;
@@ -126,10 +129,10 @@ namespace LogJoint.Postprocessing.StateInspector
 
     public class ParentChildRelationChange : Event
     {
-        public readonly string NewParentObjectId;
+        public readonly string? NewParentObjectId;
         public readonly bool IsWeak;
 
-        public ParentChildRelationChange(object trigger, string objectId, ObjectTypeInfo objectTypeInfo, string newParentObjectId = null, int templateId = 0, bool isWeak = false)
+        public ParentChildRelationChange(object trigger, string objectId, ObjectTypeInfo objectTypeInfo, string? newParentObjectId = null, int templateId = 0, bool isWeak = false)
             : base(trigger, objectId, objectTypeInfo, templateId)
         {
             NewParentObjectId = newParentObjectId;
@@ -141,23 +144,23 @@ namespace LogJoint.Postprocessing.StateInspector
 
     public class ObjectTypeInfo
     {
-        public readonly string CommentPropertyName;
-        public readonly string PrimaryPropertyName;
+        public readonly string? CommentPropertyName;
+        public readonly string? PrimaryPropertyName;
         public readonly string TypeName;
         public readonly bool IsTimeless;
         [Obsolete("Use CommentPropertyName instead")]
-        public string DisplayIdPropertyName { get { return CommentPropertyName; } }
-        public readonly string DescriptionPropertyName;
+        public string? DisplayIdPropertyName { get { return CommentPropertyName; } }
+        public readonly string? DescriptionPropertyName;
 
         public struct Options
         {
-            public string PrimaryPropertyName { get; set; }
-            public string CommentPropertyName { get; set; }
-            public string DescriptionPropertyName { get; set; }
+            public string? PrimaryPropertyName { get; set; }
+            public string? CommentPropertyName { get; set; }
+            public string? DescriptionPropertyName { get; set; }
             public bool IsTimeless { get; set; }
         };
 
-        public ObjectTypeInfo(string type, string displayIdPropertyName = null, string primaryPropertyName = null, bool isTimeless = false) :
+        public ObjectTypeInfo(string type, string? displayIdPropertyName = null, string? primaryPropertyName = null, bool isTimeless = false) :
             this(type, new Options
             {
                 CommentPropertyName = displayIdPropertyName,

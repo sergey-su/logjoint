@@ -17,8 +17,11 @@ namespace LogJoint
             return string.CompareOrdinal(connectionId1, connectionId2);
         }
 
-        static public int Compare(IMessage m1, IMessage m2, bool ignoreConnectionIds = false)
+        static public int Compare(IMessage? m1, IMessage? m2, bool ignoreConnectionIds = false)
         {
+            if (ReferenceEquals(m1, m2)) return 0;
+            if (m1 is null) return -1;
+            if (m2 is null) return 1;
             int sign = MessageTimestamp.Compare(m1.Time, m2.Time);
             if (sign == 0)
             {
@@ -31,8 +34,11 @@ namespace LogJoint
             return sign;
         }
 
-        static public int Compare(IBookmark b1, IBookmark b2, bool ignoreConnectionIds = false)
+        static public int Compare(IBookmark? b1, IBookmark? b2, bool ignoreConnectionIds = false)
         {
+            if (ReferenceEquals(b1, b2)) return 0;
+            if (b1 is null) return -1;
+            if (b2 is null) return 1;
             int sign = MessageTimestamp.Compare(b1.Time, b2.Time);
             if (sign == 0)
             {
@@ -49,12 +55,12 @@ namespace LogJoint
             return sign;
         }
 
-        int IComparer<IMessage>.Compare(IMessage m1, IMessage m2)
+        int IComparer<IMessage>.Compare(IMessage? m1, IMessage? m2)
         {
             return Compare(m1, m2, ignoreConnectionIds);
         }
 
-        int IComparer<IBookmark>.Compare(IBookmark b1, IBookmark b2)
+        int IComparer<IBookmark>.Compare(IBookmark? b1, IBookmark? b2)
         {
             return Compare(b1, b2, ignoreConnectionIds);
         }
@@ -71,7 +77,7 @@ namespace LogJoint
             this.d = d;
         }
 
-        int IComparer<IMessage>.Compare(IMessage x, IMessage y)
+        int IComparer<IMessage>.Compare(IMessage? x, IMessage? y)
         {
             var d1 = x == null ? d : x.Time.ToLocalDateTime();
             var d2 = y == null ? d : y.Time.ToLocalDateTime();
@@ -88,7 +94,7 @@ namespace LogJoint
             this.p = pos;
         }
 
-        int IComparer<IMessage>.Compare(IMessage x, IMessage y)
+        int IComparer<IMessage>.Compare(IMessage? x, IMessage? y)
         {
             var p1 = x == null ? p : x.Position;
             var p2 = y == null ? p : y.Position;

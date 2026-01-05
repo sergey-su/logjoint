@@ -18,12 +18,12 @@ namespace LogJoint.Postprocessing
 
         class Enumerator : IEnumeratorAsync<T>, IYieldAsync<T>
         {
-            T currentValue;
+            T? currentValue;
             Task producerTask;
 
             SemaphoreSlim fillCount = new SemaphoreSlim(0);
             SemaphoreSlim emptyCount = new SemaphoreSlim(1);
-            T queue; // queue of produced items that consists of 1 element
+            T? queue; // queue of produced items that consists of 1 element
             int queueLength;
             TaskCompletionSource<int> disposed;
 
@@ -35,7 +35,7 @@ namespace LogJoint.Postprocessing
 
             T IEnumeratorAsync<T>.Current
             {
-                get { return currentValue; }
+                get { return currentValue!; }
             }
 
             async Task<bool> IEnumeratorAsync<T>.MoveNext()

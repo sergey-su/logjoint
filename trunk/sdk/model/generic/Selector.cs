@@ -11,7 +11,7 @@ namespace LogJoint
         {
             var memoArg1 = default(A1);
             var cmp1 = GetEqualityComparer<A1>();
-            R memoRet = default(R);
+            R? memoRet = default(R);
             bool firstEvaluation = true;
             return () =>
             {
@@ -22,7 +22,7 @@ namespace LogJoint
                     memoRet = resultSelector(arg1);
                     memoArg1 = arg1;
                 }
-                return memoRet;
+                return memoRet!;
             };
         }
 
@@ -35,7 +35,7 @@ namespace LogJoint
             var cmp1 = GetEqualityComparer<A1>();
             var memoArg2 = default(A2);
             var cmp2 = GetEqualityComparer<A2>();
-            R memoRet = default(R);
+            R? memoRet = default(R);
             bool firstEvaluation = true;
             return () =>
             {
@@ -48,7 +48,7 @@ namespace LogJoint
                     memoArg1 = arg1;
                     memoArg2 = arg2;
                 }
-                return memoRet;
+                return memoRet!;
             };
         }
 
@@ -64,7 +64,7 @@ namespace LogJoint
             var cmp2 = GetEqualityComparer<A2>();
             var memoArg3 = default(A3);
             var cmp3 = GetEqualityComparer<A3>();
-            R memoRet = default(R);
+            R? memoRet = default(R);
             bool firstEvaluation = true;
             return () =>
             {
@@ -79,7 +79,7 @@ namespace LogJoint
                     memoArg2 = arg2;
                     memoArg3 = arg3;
                 }
-                return memoRet;
+                return memoRet!;
             };
         }
 
@@ -98,7 +98,7 @@ namespace LogJoint
             var cmp3 = GetEqualityComparer<A3>();
             var memoArg4 = default(A4);
             var cmp4 = GetEqualityComparer<A4>();
-            R memoRet = default(R);
+            R? memoRet = default(R);
             bool firstEvaluation = true;
             return () =>
             {
@@ -115,7 +115,7 @@ namespace LogJoint
                     memoArg3 = arg3;
                     memoArg4 = arg4;
                 }
-                return memoRet;
+                return memoRet!;
             };
         }
 
@@ -137,7 +137,7 @@ namespace LogJoint
             var cmp4 = GetEqualityComparer<A4>();
             var memoArg5 = default(A5);
             var cmp5 = GetEqualityComparer<A5>();
-            R memoRet = default(R);
+            R? memoRet = default(R);
             bool firstEvaluation = true;
             return () =>
             {
@@ -156,7 +156,7 @@ namespace LogJoint
                     memoArg4 = arg4;
                     memoArg5 = arg5;
                 }
-                return memoRet;
+                return memoRet!;
             };
         }
 
@@ -181,7 +181,7 @@ namespace LogJoint
             var cmp5 = GetEqualityComparer<A5>();
             var memoArg6 = default(A6);
             var cmp6 = GetEqualityComparer<A6>();
-            R memoRet = default(R);
+            R? memoRet = default(R);
             bool firstEvaluation = true;
             return () =>
             {
@@ -202,7 +202,7 @@ namespace LogJoint
                     memoArg5 = arg5;
                     memoArg6 = arg6;
                 }
-                return memoRet;
+                return memoRet!;
             };
         }
 
@@ -230,7 +230,7 @@ namespace LogJoint
             var cmp6 = GetEqualityComparer<A6>();
             var memoArg7 = default(A7);
             var cmp7 = GetEqualityComparer<A7>();
-            R memoRet = default(R);
+            R? memoRet = default(R);
             bool firstEvaluation = true;
             return () =>
             {
@@ -253,7 +253,7 @@ namespace LogJoint
                     memoArg6 = arg6;
                     memoArg7 = arg7;
                 }
-                return memoRet;
+                return memoRet!;
             };
         }
 
@@ -265,7 +265,7 @@ namespace LogJoint
 
     public static class Updaters
     {
-        public static Action Create<A1>(Func<A1> argSelector1, Action<A1, A1> update)
+        public static Action Create<A1>(Func<A1> argSelector1, Action<A1, A1?> update)
         {
             var prevA1 = default(A1);
             bool firstUpdate = true;

@@ -8,10 +8,10 @@ namespace LogJoint.Postprocessing
     {
         string report;
         bool hasErrors, hasWarnings;
-        readonly Dictionary<ILogSource, IPostprocessorRunSummary> innerSummaries;
+        readonly Dictionary<ILogSource, IPostprocessorRunSummary?> innerSummaries;
 
         public AggregatedRunSummary(
-            Dictionary<ILogSource, IPostprocessorRunSummary> innerSummaries
+            Dictionary<ILogSource, IPostprocessorRunSummary?> innerSummaries
         )
         {
             this.innerSummaries = innerSummaries;
@@ -19,10 +19,13 @@ namespace LogJoint.Postprocessing
             foreach (var x in innerSummaries)
             {
                 stringBuilder.AppendLine(x.Key.GetShortDisplayNameWithAnnotation());
-                stringBuilder.Append(x.Value.Report ?? "");
-                stringBuilder.AppendLine();
-                hasErrors = hasErrors || x.Value.HasErrors;
-                hasWarnings = hasWarnings || x.Value.HasWarnings;
+                if (x.Value != null)
+                {
+                    stringBuilder.Append(x.Value.Report ?? "");
+                    stringBuilder.AppendLine();
+                    hasErrors = hasErrors || x.Value.HasErrors;
+                    hasWarnings = hasWarnings || x.Value.HasWarnings;
+                }
             }
             report = stringBuilder.ToString();
         }
@@ -42,9 +45,9 @@ namespace LogJoint.Postprocessing
             get { return report; }
         }
 
-        IPostprocessorRunSummary IPostprocessorRunSummary.GetLogSpecificSummary(ILogSource ls)
+        IPostprocessorRunSummary? IPostprocessorRunSummary.GetLogSpecificSummary(ILogSource ls)
         {
-            innerSummaries.TryGetValue(ls, out IPostprocessorRunSummary ret);
+            innerSummaries.TryGetValue(ls, out IPostprocessorRunSummary? ret);
             return ret;
         }
     };

@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <PackageId>logjoint.presentation.sdk</PackageId>
     <Version>0.0.7</Version>
     <Authors>sergeysu</Authors>
     <Company>private</Company>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -59,28 +59,28 @@ namespace LogJoint.Postprocessing.TimeSeries
     [DebuggerDisplay("TimeSeries = {Name}({ObjectId}) Samples = {DataPoints.Count}")]
     public class TimeSeriesData
     {
-        public TimeSeriesDescriptor Descriptor { get; set; }
+        public TimeSeriesDescriptor? Descriptor { get; set; }
 
         /// <summary>
         /// The name of the Timeseries.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Unit of all datapoints in the Timeseries
         /// </summary>
-        public string Unit { get; set; }
+        public string? Unit { get; set; }
 
         /// <summary>
         /// The name of the classifier
         /// </summary>
-        public string ObjectType { get; set; }
+        public string? ObjectType { get; set; }
 
         /// <summary>
         /// The classifier value is that distinguishes two logical streams of the same timeseries type.
         /// <remarks>The classifier will always be interpreted as a string</remarks>
         /// </summary>
-        public string ObjectId { get; set; }
+        public string? ObjectId { get; set; }
 
         /// <summary>
         /// A list of all the data points in the timeseries.
@@ -106,34 +106,34 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The name of the Timeseries.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public string NameFromGroup { get; set; }
+        public string? NameFromGroup { get; set; }
 
         /// <summary>
         /// The categorizing type of the timeseries
         /// </summary>
-        public string ObjectType { get; set; }
+        public string? ObjectType { get; set; }
 
         /// <summary>
         /// The static unit of each data point in the time series.
         /// </summary>
-        public string Unit { get; set; }
+        public string? Unit { get; set; }
 
         /// <summary>
         /// Name of the group to obtain unit from dynamically.
         /// </summary>
-        public string UnitFromGroup { get; set; }
+        public string? UnitFromGroup { get; set; }
 
         /// <summary>
         /// Example log lines that this time series is parsed from.
         /// </summary>
-        public List<string> ExampleLogLines { get; set; }
+        public List<string>? ExampleLogLines { get; set; }
 
         /// <summary>
         /// A short description of data field.
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
         #endregion
 
         #region Technical data could be used for parsing
@@ -152,12 +152,12 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The regexp group from which the data should be extracted.
         /// </summary>
-        public string From { get; set; }
+        public string? From { get; set; }
 
         /// <summary>
         /// The regexp group from which the object ID should be extracted.
         /// </summary>
-        public string ObjectIdFromGroup { get; set; }
+        public string? ObjectIdFromGroup { get; set; }
 
         /// <summary>
         /// If true then the id is taken from a externally parsed ObjectAddress
@@ -176,22 +176,22 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The name of the event.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// The name of the classifier for the event.
         /// </summary>
-        public string ObjectType { get; set; }
+        public string? ObjectType { get; set; }
 
         /// <summary>
         /// Example log lines that this event is parsed from.
         /// </summary>
-        public List<string> ExampleLogLines { get; set; }
+        public List<string>? ExampleLogLines { get; set; }
 
         /// <summary>
         /// A short description of data field.
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
         #endregion
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// of different data streams such as Audio and Video.
         /// <remarks>The classifier will always be interpreted as a string</remarks>
         /// </summary>
-        public string ObjectId { get; set; }
+        public string? ObjectId { get; set; }
 
         /// <summary>
         /// Timestamp when the data point occured in time.
@@ -272,7 +272,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 
         public TimeSpan Total { get; set; }
 
-        internal Stopwatch Sw;
+        internal Stopwatch? Sw;
     }
 
     public interface ICombinedParser

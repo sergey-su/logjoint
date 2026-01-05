@@ -16,9 +16,8 @@ namespace LogJoint.Postprocessing.Timeline
 
         PostprocessorOutputBuilder IModel.CreatePostprocessorOutputBuilder()
         {
-            return new PostprocessorOutputBuilder
-            {
-                build = (postprocessorInput, builder) => TimelinePostprocessorOutput.SerializePostprocessorOutput(
+            return new PostprocessorOutputBuilder(
+                build: (postprocessorInput, builder) => TimelinePostprocessorOutput.SerializePostprocessorOutput(
                     builder.events,
                     builder.rotatedLogPartToken,
                     logPartTokenFactories,
@@ -28,7 +27,7 @@ namespace LogJoint.Postprocessing.Timeline
                     tempFiles,
                     postprocessorInput.CancellationToken
                 )
-            };
+            );
         }
 
         Task IModel.SavePostprocessorOutput(

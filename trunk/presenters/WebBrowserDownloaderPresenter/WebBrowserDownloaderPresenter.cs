@@ -120,10 +120,7 @@ namespace LogJoint.UI.Presenters.WebViewTools
             }
             TryTakeNewTask();
             var values = await task.promise.Task;
-            return new UploadFormResult
-            {
-                Values = values
-            };
+            return new UploadFormResult(values);
         }
 
         #region View events

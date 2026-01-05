@@ -196,7 +196,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             if (c == null)
                 return;
 
-            c.Total += c.Sw.Elapsed;
+            c.Total += c.Sw!.Elapsed;
             if (_lastParserSucceeded)
                 c.Matches++;
         }

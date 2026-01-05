@@ -89,14 +89,14 @@ namespace LogJoint
 
         public class LambdaComparer<T> : IComparer<T>
         {
-            readonly Func<T, T, int> comparer;
+            readonly Func<T?, T?, int> comparer;
 
-            public LambdaComparer(Func<T, T, int> comparer)
+            public LambdaComparer(Func<T?, T?, int> comparer)
             {
                 this.comparer = comparer;
             }
 
-            public int Compare(T x, T y)
+            public int Compare(T? x, T? y)
             {
                 return comparer(x, y);
             }
@@ -234,7 +234,7 @@ namespace LogJoint
             return i;
         }
 
-        public static int RemoveAll<T>(this List<T> list, Predicate<T> pred, Action<T> preRemoveAction = null)
+        public static int RemoveAll<T>(this List<T> list, Predicate<T> pred, Action<T>? preRemoveAction = null)
         {
             int i = RemoveIf(list, 0, list.Count, pred);
             int count = list.Count - i;
@@ -243,7 +243,7 @@ namespace LogJoint
             return count;
         }
 
-        public static int RemoveAll<T>(this ImmutableArray<T>.Builder list, Predicate<T> pred, Action<T> preRemoveAction = null)
+        public static int RemoveAll<T>(this ImmutableArray<T>.Builder list, Predicate<T> pred, Action<T>? preRemoveAction = null)
         {
             int i = RemoveIf(list, 0, list.Count, pred);
             int count = list.Count - i;
@@ -252,7 +252,7 @@ namespace LogJoint
             return count;
         }
 
-        private static void FinalizeRemovedElements<T>(IList<T> list, Action<T> preRemoveAction, int i, int count)
+        private static void FinalizeRemovedElements<T>(IList<T> list, Action<T>? preRemoveAction, int i, int count)
         {
             if (preRemoveAction != null)
                 for (int j = 0; j < count; ++j)

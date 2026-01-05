@@ -30,8 +30,8 @@ namespace LogJoint.Postprocessing
         public static IEnumerableAsync<Out[]> Select<In, Out>(
             this IEnumerableAsync<In[]> input,
             Action<In, Queue<Out>> selector,
-            Action<Queue<Out>> finalSelector = null,
-            Action<Out> resultPostprocessor = null)
+            Action<Queue<Out>>? finalSelector = null,
+            Action<Out>? resultPostprocessor = null)
         {
             Action<In[], Queue<Out>> tmp = (inBatch, q) =>
             {
@@ -49,8 +49,8 @@ namespace LogJoint.Postprocessing
         public static IEnumerableAsync<Out[]> Select<In, Out>(
             this IEnumerableAsync<In[]> input,
             Action<In[], Queue<Out>> selector,
-            Action<Queue<Out>> finalSelector = null,
-            Action<Out> resultPostprocessor = null)
+            Action<Queue<Out>>? finalSelector = null,
+            Action<Out>? resultPostprocessor = null)
         {
             var buf = new Queue<Out>();
             var emptyOutBatch = new Out[0];
@@ -123,9 +123,9 @@ namespace LogJoint.Postprocessing
             }));
         }
 
-        public static async Task<T> FirstOrDefault<T>(this IEnumerableAsync<T> input, Func<T, bool> predecate)
+        public static async Task<T?> FirstOrDefault<T>(this IEnumerableAsync<T> input, Func<T, bool> predecate)
         {
-            T result = default;
+            T? result = default;
             bool resultSet = false;
             await input.ForEach(i =>
             {
@@ -276,9 +276,9 @@ namespace LogJoint.Postprocessing
             return ret;
         }
 
-        public static async Task<T> TryFinallyAsync<T>(Func<Task<T>> body, Func<Task> finallyBlock)
+        public static async Task<T?> TryFinallyAsync<T>(Func<Task<T>> body, Func<Task> finallyBlock)
         {
-            T retVal = default(T);
+            T? retVal = default;
             try
             {
                 retVal = await body();
@@ -307,7 +307,7 @@ namespace LogJoint.Postprocessing
 
             T IEnumeratorAsync<T>.Current
             {
-                get { return default(T); }
+                get { throw new InvalidOperationException(); }
             }
 
             Task<bool> IEnumeratorAsync<T>.MoveNext()
@@ -322,7 +322,7 @@ namespace LogJoint.Postprocessing
         };
 
         public static IEnumerableAsync<T> Select<T, M>(this IEnumerableAsync<M[]> input,
-            Func<M, IEnumerable<T>> selector, Func<IEnumerable<T>> finalizer)
+            Func<M, IEnumerable<T>> selector, Func<IEnumerable<T>>? finalizer)
         {
             return EnumerableAsync.Produce<T>(async yieldAsync =>
             {
@@ -343,7 +343,7 @@ namespace LogJoint.Postprocessing
         public static IEnumerableAsync<T> Select<T, M>(this IEnumerableAsync<M[]> input,
             Func<M, IEnumerable<T>> selector)
         {
-            return Select<T, M>(input, selector, (Func<IEnumerable<T>>)null);
+            return Select<T, M>(input, selector, (Func<IEnumerable<T>>?)null);
         }
 
         public static IEnumerableAsync<T> Select<T, M>(this IEnumerableAsync<M[]> input, Func<M, T> selector)
@@ -361,8 +361,8 @@ namespace LogJoint.Postprocessing
         public static IEnumerableAsync<T> SelectMany<M, T>(
             this IEnumerableAsync<M[]> input,
             Action<M, Queue<T>> selector,
-            Action<Queue<T>> finalSelector = null,
-            Action<T> resultPostprocessor = null)
+            Action<Queue<T>>? finalSelector = null,
+            Action<T>? resultPostprocessor = null)
         {
             var buffer = new Queue<T>();
             Func<T, T> postprocessor;
@@ -392,7 +392,7 @@ namespace LogJoint.Postprocessing
         }
 
         public static IEnumerableAsync<T> SelectMany<M, T>(this IEnumerableAsync<M> input,
-            Action<M, Queue<T>> selector, Action<Queue<T>> finalizer = null)
+            Action<M, Queue<T>> selector, Action<Queue<T>>? finalizer = null)
         {
             var buffer = new Queue<T>();
             return EnumerableAsync.Produce<T>(async yieldAsync =>

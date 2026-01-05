@@ -10,7 +10,7 @@ namespace LogJoint.Postprocessing.Messaging
         public object Trigger;
         public readonly string DisplayName;
         public EventStatus Status { get; set; }
-        public HashSet<string> Tags { get { return tags; } set { tags = value; } }
+        public HashSet<string>? Tags { get { return tags; } set { tags = value; } }
 
         public Event(
             object trigger,
@@ -31,7 +31,7 @@ namespace LogJoint.Postprocessing.Messaging
             return stringifier.Output.ToString();
         }
 
-        HashSet<string> tags;
+        HashSet<string>? tags;
     };
 
     public enum EventStatus
@@ -61,8 +61,8 @@ namespace LogJoint.Postprocessing.Messaging
         public readonly MessageDirection MessageDirection;
         public readonly MessageType MessageType;
         public readonly string EventType;
-        public readonly string TargetIdHint;
-        public readonly string RemoteSideId; // todo: document the diff from TargetIdHint
+        public readonly string? TargetIdHint;
+        public readonly string? RemoteSideId; // todo: document the diff from TargetIdHint
 
         public NetworkMessageEvent(
             object trigger,
@@ -71,8 +71,8 @@ namespace LogJoint.Postprocessing.Messaging
             MessageType type,
             string eventType,
             string messageId,
-            string targetIdHint,
-            string remoteSideId,
+            string? targetIdHint,
+            string? remoteSideId,
             EventStatus status = EventStatus.Unspecified
         ) :
             base(trigger, displayName, status)
@@ -90,7 +90,7 @@ namespace LogJoint.Postprocessing.Messaging
 
     public class ResponselessNetworkMessageEvent : NetworkMessageEvent
     {
-        public ResponselessNetworkMessageEvent(object trigger, string displayName, MessageDirection direction, MessageType type, string messageId, string targetIdHint = null) :
+        public ResponselessNetworkMessageEvent(object trigger, string displayName, MessageDirection direction, MessageType type, string messageId, string? targetIdHint = null) :
             base(trigger, displayName, direction, type, "rsplsp", messageId, targetIdHint, null)
         {
         }
@@ -103,16 +103,17 @@ namespace LogJoint.Postprocessing.Messaging
 
     public class HttpMessage : NetworkMessageEvent
     {
-        public string Url { get { return base.RemoteSideId; } }
+        public string? Url { get { return base.RemoteSideId; } }
         public readonly string Method;
         public readonly string Body;
         public readonly IReadOnlyList<KeyValuePair<string, string>> Headers;
         public readonly int? StatusCode;
-        public readonly string StatusComment;
+        public readonly string? StatusComment;
 
         public new static readonly string EventType = "http";
 
-        public HttpMessage(object trigger, string displayName, MessageDirection direction, MessageType type, string messageId, string url, string method, string body, IEnumerable<KeyValuePair<string, string>> headers, int? statusCode, string targetIdHint = null, string statusComment = null) :
+        public HttpMessage(object trigger, string displayName, MessageDirection direction, MessageType type, string messageId, string url, string method, string body,
+                IEnumerable<KeyValuePair<string, string>> headers, int? statusCode, string? targetIdHint = null, string? statusComment = null) :
             base(trigger, displayName, direction, type, EventType, messageId, targetIdHint, url)
         {
             Method = method;

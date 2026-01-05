@@ -4,7 +4,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 {
     public interface IPresenter
     {
-        void ShowTheDialog(string selectedPageName = null);
+        void ShowTheDialog(string? selectedPageName = null);
         IPagePresentersRegistry PagesRegistry { get; }
         string FormatDetectorPageName { get; }
     };

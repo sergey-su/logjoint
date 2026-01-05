@@ -212,7 +212,7 @@ namespace LogJoint
             return Compare(this, other) == 0;
         }
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             if (!(other is StringSlice))
                 return false;
@@ -408,7 +408,7 @@ namespace LogJoint
         readonly int index;
         readonly int length;
 
-        string cachedValue;
+        string? cachedValue;
 
 
         #endregion

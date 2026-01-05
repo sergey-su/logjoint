@@ -195,11 +195,11 @@ namespace LogJoint
         public FileRange.Range PositionsRange;
         public int PositionsRangeUpdatesCount;
         public DateRange LoadedTime;
-        public Exception Error;
+        public Exception? Error;
         public int MessagesCount;
         public long? LoadedBytes;
         public long? TotalBytes;
-        public IMessage FirstMessageWithTimeConstraintViolation;
+        public IMessage? FirstMessageWithTimeConstraintViolation;
         public LogProviderBackgroundAcivityStatus BackgroundAcivityStatus;
         public int? ContentsEtag;
 
@@ -248,7 +248,7 @@ namespace LogJoint
 
     public class SearchCancelledException : OperationCanceledException
     {
-        public object ContinuationToken;
+        public object? ContinuationToken;
     };
 
     public class DateBoundPositionResponseData
@@ -256,7 +256,7 @@ namespace LogJoint
         public long Position;
         public bool IsEndPosition;
         public bool IsBeforeBeginPosition;
-        public IMessage Message;
+        public IMessage? Message;
         public int Index;
     };
 

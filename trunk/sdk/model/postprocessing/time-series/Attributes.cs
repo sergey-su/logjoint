@@ -10,7 +10,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The object type
         /// </summary>
-        public string Type { get; set; }
+        public string? Type { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
@@ -30,17 +30,17 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The object type
         /// </summary>
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         /// <summary>
         /// Specifies the name of produced event.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// A short description of the event.
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The regexp group from which the data should be extracted.
         /// </summary>
-        public string From { get; set; }
+        public string? From { get; set; }
 
         /// <summary>
         /// If true then the id is taken from a externally parsed ObjectAddress
@@ -67,7 +67,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The prefix used to speed up log parsing by skipping regex parsing if it's guaranteed to not match.
         /// </summary>
-        public string Prefix { get; set; }
+        public string? Prefix { get; set; }
 
         /// <summary>
         /// The regular expression template used to parse time series or events.
@@ -90,12 +90,12 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The regexp group from which the data should be extracted.
         /// </summary>
-        public string From { get; set; }
+        public string? From { get; set; }
 
         /// <summary>
         /// A short description of the data field.
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         /// <summary>
         /// Unit label for each datapoint in the time series.
@@ -103,7 +103,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// the unit it's a regex group from where the unit will be
         /// read dynamically.
         /// </summary>
-        public string Unit { get; set; }
+        public string? Unit { get; set; }
 
         /// <summary>
         /// Conversion factor to multiply each data point with to get the desired unit.
@@ -119,7 +119,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The regexp group from which the data series name is taken. Optional. By default data series name is taken from field name.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Field)]
@@ -128,7 +128,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         /// <summary>
         /// The regexp group from which the data should be extracted.
         /// </summary>
-        public string From { get; set; }
+        public string? From { get; set; }
 
         /// <summary>
         /// If set to true the event field will get the value of the object address from the prefix of the log line.

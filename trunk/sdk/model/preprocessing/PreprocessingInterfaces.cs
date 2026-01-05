@@ -19,7 +19,7 @@ namespace LogJoint.Preprocessing
         string ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams);
         string ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams);
         string ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams);
-        IConnectionParams AppendStep(IConnectionParams connectParams, string stepName, string stepArgument = null);
+        IConnectionParams AppendStep(IConnectionParams connectParams, string stepName, string? stepArgument = null);
 
         /// <summary>
         /// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
@@ -193,17 +193,17 @@ namespace LogJoint.Preprocessing
         public string Location { get; private set; }
         public string FullPath { get; private set; }
         public ImmutableList<PreprocessingHistoryItem> PreprocessingHistory { get; private set; }
-        public string DisplayName { get; private set; }
-        public string Argument { get; private set; }
+        public string? DisplayName { get; private set; }
+        public string? Argument { get; private set; }
 
         internal const string DefaultStepName = "get";
 
         public PreprocessingStepParams(
             string location,
             string fullPath,
-            ImmutableList<PreprocessingHistoryItem> history = null,
-            string displayName = null,
-            string argument = null
+            ImmutableList<PreprocessingHistoryItem>? history = null,
+            string? displayName = null,
+            string? argument = null
         )
         {
             PreprocessingHistory = history ?? ImmutableList<PreprocessingHistoryItem>.Empty;
@@ -213,7 +213,7 @@ namespace LogJoint.Preprocessing
             Argument = argument;
         }
 
-        public PreprocessingStepParams(string originalSource, string displayName = null)
+        public PreprocessingStepParams(string originalSource, string? displayName = null)
         {
             PreprocessingHistory = ImmutableList.Create(new PreprocessingHistoryItem(DefaultStepName, originalSource));
             Location = originalSource;
@@ -225,15 +225,15 @@ namespace LogJoint.Preprocessing
     public class PreprocessingHistoryItem
     {
         public string StepName { get; private set; }
-        public string Argument { get; private set; }
+        public string? Argument { get; private set; }
 
-        public PreprocessingHistoryItem(string name, string argument = null)
+        public PreprocessingHistoryItem(string name, string? argument = null)
         {
             StepName = !string.IsNullOrEmpty(name) ? name : throw new ArgumentException(nameof(name));
             Argument = !string.IsNullOrEmpty(argument) ? argument : null;
         }
 
-        public static bool TryParse(string str, out PreprocessingHistoryItem ret)
+        public static bool TryParse(string str, out PreprocessingHistoryItem? ret)
         {
             str = str.Trim();
             if (str.Length != 0)
@@ -327,10 +327,10 @@ namespace LogJoint.Preprocessing
     public class LogDownloaderRule
     {
         public bool UseWebBrowserDownloader { get; private set; }
-        public string ExpectedMimeType { get; private set; }
+        public string? ExpectedMimeType { get; private set; }
         public IReadOnlyList<string> LoginUrls { get; private set; }
 
-        public static LogDownloaderRule CreateBrowserDownloaderRule(IEnumerable<string> loginUrls, string expectedMimeType = null)
+        public static LogDownloaderRule CreateBrowserDownloaderRule(IEnumerable<string> loginUrls, string? expectedMimeType = null)
         {
             var result = new LogDownloaderRule(true, loginUrls, expectedMimeType);
             if (result.LoginUrls.Count == 0)
@@ -343,7 +343,7 @@ namespace LogJoint.Preprocessing
             return plainHttpDownloaderRule;
         }
 
-        internal LogDownloaderRule(bool useWebBrowserDownloader, IEnumerable<string> loginUrls, string expectedMimeType)
+        internal LogDownloaderRule(bool useWebBrowserDownloader, IEnumerable<string> loginUrls, string? expectedMimeType)
         {
             UseWebBrowserDownloader = useWebBrowserDownloader;
             LoginUrls = ImmutableArray.CreateRange(loginUrls);

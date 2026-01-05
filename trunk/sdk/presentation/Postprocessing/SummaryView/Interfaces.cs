@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SummaryView
     public class ActionState
     {
         public bool Enabled { get; internal set; }
-        public Action Run { get; internal set; }
-        public Action Show { get; internal set; }
+        public Action? Run { get; internal set; }
+        public Action? Show { get; internal set; }
     };
 }

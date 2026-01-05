@@ -41,11 +41,13 @@ namespace LogJoint.Postprocessing.Correlation
         public PostprocessorOutputBuilder SetTriggersConverter(Func<object, TextLogEventTrigger> value) { triggersConverter = value; return this; }
         public Task Build(LogSourcePostprocessorInput postprocessorParams) { return build(postprocessorParams, this); }
 
-        internal IEnumerableAsync<M.Event[]> events;
-        internal Task<ILogPartToken> logPart;
-        internal Task<ISameNodeDetectionToken> sameNodeDetectionToken;
-        internal Func<object, TextLogEventTrigger> triggersConverter;
-        internal Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+        internal IEnumerableAsync<M.Event[]>? events;
+        internal Task<ILogPartToken>? logPart;
+        internal Task<ISameNodeDetectionToken>? sameNodeDetectionToken;
+        internal Func<object, TextLogEventTrigger>? triggersConverter;
+        private Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
+
+        internal PostprocessorOutputBuilder(Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build) => this.build = build;
     };
 
     public interface IModel

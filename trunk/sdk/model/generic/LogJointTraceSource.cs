@@ -17,7 +17,7 @@ namespace LogJoint
 
     public class LJTraceSource
     {
-        internal LJTraceSource(string configName, string prefix, TraceListener[] programmaticListeners,
+        internal LJTraceSource(string configName, string prefix, TraceListener[]? programmaticListeners,
             bool removeDefaultTraceListener)
         {
             if (programmaticListeners == null)
@@ -139,19 +139,19 @@ namespace LogJoint
             }
             else
             {
-                Exception inner = e.InnerException;
+                Exception? inner = e.InnerException;
                 if (inner != null)
                     WriteException(inner, writer.AppendLine(innerExceptionSeparator));
             }
         }
 
-        void BeginFrameImpl(string name)
+        void BeginFrameImpl(string? name)
         {
             if (!underlyingSource.Switch.ShouldTrace(TraceEventType.Start | TraceEventType.Stop))
                 return;
             if (name == null)
             {
-                MethodBase m = new StackFrame(2).GetMethod();
+                MethodBase? m = new StackFrame(2).GetMethod();
                 if (m != null)
                 {
                     underlyingSource.TraceEvent(TraceEventType.Start, 0,
@@ -169,7 +169,7 @@ namespace LogJoint
             }
         }
 
-        internal static string SafeFormat(string fmt, params object[] args)
+        internal static string SafeFormat(string? fmt, params object?[]? args)
         {
             string str;
             if (fmt == null)
@@ -235,7 +235,7 @@ namespace LogJoint
             base.Close();
         }
 
-        public override void Fail(string message, string detailMessage)
+        public override void Fail(string? message, string? detailMessage)
         {
             StringBuilder builder = new StringBuilder(message);
             if (detailMessage != null)
@@ -246,12 +246,12 @@ namespace LogJoint
             this.TraceEvent(null, thisSourceName, TraceEventType.Error, 0, builder.ToString());
         }
 
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
+        public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, string? message)
         {
             TraceEvent(eventCache, source, eventType, id, message, null);
         }
 
-        void WriteMessage(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string fmt, params object[] args)
+        void WriteMessage(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, string? fmt, params object?[]? args)
         {
             ThreadData d = Data;
             XmlWriter writer = d.writer;
@@ -312,7 +312,7 @@ namespace LogJoint
             Flush(d, t);
         }
 
-        void WriteBeginFrame(string fmt, params object[] args)
+        void WriteBeginFrame(string? fmt, params object?[]? args)
         {
             ThreadData d = Data;
             XmlWriter writer = d.writer;
@@ -332,7 +332,7 @@ namespace LogJoint
             get { return "Thread info: "; }
         }
 
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string fmt, params object[] args)
+        public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, string? fmt, params object?[]? args)
         {
             if (base.Filter != null && !base.Filter.ShouldTrace(eventCache, source, eventType, id, fmt, args, null, null))
                 return;
@@ -351,16 +351,18 @@ namespace LogJoint
             }
         }
 
-        public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
+        public override void TraceData(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, object? data)
         {
             WriteMessage(eventCache, source, TraceEventType.Verbose, id, "{0}", data);
         }
 
-        public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object[] data)
+        public override void TraceData(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, object?[]? data)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (object i in data)
-                sb.AppendLine(i.ToString());
+            if (data != null)
+                foreach (object? i in data)
+                    if (i != null)
+                        sb.AppendLine(i.ToString());
             WriteMessage(eventCache, source, TraceEventType.Verbose, id, sb.ToString(), null);
         }
 
@@ -397,11 +399,7 @@ namespace LogJoint
                 Thread t = Thread.CurrentThread;
                 if (data == null)
                 {
-                    data = new ThreadData();
-                    data.ID = Interlocked.Increment(ref lastThreadID);
-                    data.IDStr = data.ID.ToString();
-                    data.stream = new StringBuilder();
-                    data.writer = XmlWriter.Create(data.stream, settings);
+                    data = new ThreadData(Interlocked.Increment(ref lastThreadID), settings);
                     XmlWriter writer = data.writer;
                     writer.WriteStartElement("m");
                     writer.WriteAttributeString("d", FormatDate(DateTime.Now));
@@ -433,13 +431,20 @@ namespace LogJoint
         {
             public int ID;
             public string IDStr;
-            public StringBuilder stream;
+            public StringBuilder stream = new();
             public XmlWriter writer;
+
+            public ThreadData(int id, XmlWriterSettings writerSettings)
+            {
+                ID = id;
+                IDStr = id.ToString();
+                writer = XmlWriter.Create(stream, writerSettings);
+            }
         }
 
         class Token
         {
-            public volatile string Data;
+            public volatile string? Data;
             public readonly DateTime DateIssued;
             public Token()
             {
@@ -484,7 +489,7 @@ namespace LogJoint
         }
 
         [ThreadStatic]
-        static ThreadData data;
+        static ThreadData? data;
         static int lastThreadID;
 
         static readonly string newLine = Environment.NewLine;
@@ -500,12 +505,12 @@ namespace LogJoint
             settings.ConformanceLevel = ConformanceLevel.Fragment;
         }
 
-        public override void Write(string message)
+        public override void Write(string? message)
         {
             TraceEvent(null, thisSourceName, TraceEventType.Information, 0, message);
         }
 
-        public override void WriteLine(string message)
+        public override void WriteLine(string? message)
         {
             Write(message);
         }

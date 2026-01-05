@@ -154,7 +154,7 @@ namespace LogJoint.FileRange
         {
             if (rangeToAdd.IsEmpty)
                 return;
-            for (LinkedListNode<Range> i = ranges.First; i != null; i = i.Next)
+            for (LinkedListNode<Range>? i = ranges.First; i != null; i = i.Next)
             {
                 IntersectStruct r = Range.Intersect(rangeToAdd, i.Value);
                 if (r.RelativePosition < 0)
@@ -204,9 +204,9 @@ namespace LogJoint.FileRange
         }
         public void Remove(Range rangeToRemove)
         {
-            for (LinkedListNode<Range> i = ranges.First; i != null;)
+            for (LinkedListNode<Range>? i = ranges.First; i != null;)
             {
-                LinkedListNode<Range> next = i.Next;
+                LinkedListNode<Range>? next = i.Next;
                 IntersectStruct r = Range.Intersect(rangeToRemove, i.Value);
                 if (r.RelativePosition == 0)
                 {
@@ -237,9 +237,9 @@ namespace LogJoint.FileRange
 
         void MergeDown()
         {
-            for (LinkedListNode<Range> i = ranges.First; i != null;)
+            for (LinkedListNode<Range>? i = ranges.First; i != null;)
             {
-                LinkedListNode<Range> n = i.Next;
+                LinkedListNode<Range>? n = i.Next;
                 if (n == null)
                     break;
                 if (i.Value.End == n.Value.Begin && i.Value.Priority == n.Value.Priority)
