@@ -246,7 +246,7 @@ namespace LogJoint
             {
                 trackingEnabled = root.AttributeValue("tracking") != "false";
                 annotation = root.AttributeValue("annotation");
-                if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out ITimeOffsets timeOffset) && !timeOffset.IsEmpty)
+                if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out ITimeOffsets? timeOffset) && !timeOffset.IsEmpty)
                 {
                     extendedConnectionParams[ConnectionParamsKeys.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
                 }

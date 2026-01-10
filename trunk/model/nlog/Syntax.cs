@@ -91,7 +91,7 @@ namespace LogJoint.NLog
 
             while (toks.Current.Type == Parser.TokenType.ParamColon)
             {
-                Node param = MakeParamNode(toks);
+                Node? param = MakeParamNode(toks);
                 if (param != null)
                     ret.Children.Add(param);
             }

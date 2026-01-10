@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 
 namespace LogJoint
@@ -12,7 +13,7 @@ namespace LogJoint
         {
             bool baseOffsetSet;
             List<Entry> entries = new List<Entry>();
-            TimeOffsets result;
+            TimeOffsets? result;
 
             void ITimeOffsetsBuilder.SetBaseOffset(TimeSpan value)
             {
@@ -54,7 +55,7 @@ namespace LogJoint
 
         public static ITimeOffsets Empty { get { return emptyOffsets; } }
 
-        public static bool TryParse(string str, out ITimeOffsets value)
+        public static bool TryParse(string str, [NotNullWhen(true)] out ITimeOffsets? value)
         {
             value = null;
             if (str == null)
@@ -148,17 +149,17 @@ namespace LogJoint
             get { return entries.All(e => e.offset == TimeSpan.Zero); }
         }
 
-        bool IEquatable<ITimeOffsets>.Equals(ITimeOffsets obj)
+        bool IEquatable<ITimeOffsets>.Equals(ITimeOffsets? obj)
         {
-            TimeOffsets other = obj as TimeOffsets;
+            TimeOffsets? other = obj as TimeOffsets;
             if (other == null)
                 return false;
             return EqualsInternal(other);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            TimeOffsets other = obj as TimeOffsets;
+            TimeOffsets? other = obj as TimeOffsets;
             if (other == null)
                 return false;
             return EqualsInternal(other);
@@ -209,9 +210,10 @@ namespace LogJoint
 
             class Comparer : IEqualityComparer<Entry>
             {
-                bool IEqualityComparer<Entry>.Equals(Entry x, Entry y)
+                bool IEqualityComparer<Entry>.Equals(Entry? x, Entry? y)
                 {
-                    return x.at == y.at && x.offset == y.offset;
+                    if (x == null && y == null) return true;
+                    return x != null && y != null && x.at == y.at && x.offset == y.offset;
                 }
 
                 int IEqualityComparer<Entry>.GetHashCode(Entry obj)
