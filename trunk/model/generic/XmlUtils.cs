@@ -127,6 +127,8 @@ namespace System.Xml
     {
         public static void ReplaceValueWithCData(this XmlNode n, string value)
         {
+            if (n.OwnerDocument == null)
+                return;
             var texts = n.ChildNodes.OfType<XmlNode>().Where(
                 c => c.NodeType == XmlNodeType.CDATA || c.NodeType == XmlNodeType.Text).ToArray();
             foreach (var t in texts) // remove all texts and CDATAs preserving attributes and child elements

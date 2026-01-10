@@ -17,7 +17,7 @@ namespace LogJoint
         }
 
         IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, IThread thread, string displayName,
-            long position, int lineIndex, string annotation)
+            long position, int lineIndex, string? annotation)
         {
             return new Bookmark(time, thread, displayName, position, lineIndex, annotation);
         }

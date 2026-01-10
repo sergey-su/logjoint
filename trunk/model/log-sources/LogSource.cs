@@ -58,28 +58,36 @@ namespace LogJoint
             return logSource;
         }
 
-        private LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer,
+        async static public Task<LogSource> Create(ILogSourcesManagerInternal owner, LJTraceSource tracer,
             ISynchronizationContext modelSyncContext, IBookmarks bookmarks, ITraceSourceFactory traceSourceFactory,
-            IModelThreadsInternal threads)
+            IModelThreadsInternal threads, ILogProviderFactory providerFactory, IConnectionParams connectionParams,
+            Persistence.IStorageManager storageManager, IAnnotationsRegistry annotationsRegistry)
+        {
+            var logSourceSpecificStorageEntry = await CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
+            var extendedConnectionParams = connectionParams.Clone(true);
+            LogSource result = new LogSource(owner, tracer, modelSyncContext, threads,
+                bookmarks, traceSourceFactory, logSourceSpecificStorageEntry);
+            await result.LoadPersistedSettings(extendedConnectionParams);
+            result.provider = await providerFactory.CreateFromConnectionParams(result, extendedConnectionParams);
+            await result.LoadBookmarks();
+            await annotationsRegistry.LoadAnnotations(result);
+            return result;
+        }
+
+        private LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer,
+            ISynchronizationContext modelSyncContext, IModelThreadsInternal threads,
+            IBookmarks bookmarks, ITraceSourceFactory traceSourceFactory,
+            Persistence.IStorageEntry logSourceSpecificStorageEntry)
         {
             this.owner = owner;
             this.tracer = tracer;
             this.bookmarks = bookmarks;
+            this.logSourceSpecificStorageEntry = logSourceSpecificStorageEntry;
+            this.provider = null!; // The factory method inits it.
 
             this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
             this.timeGaps = new TimeGapsDetector(tracer, modelSyncContext, new LogSourceGapsSource(this), traceSourceFactory);
             this.timeGaps.OnTimeGapsChanged += TimeGaps_OnTimeGapsChanged;
-        }
-
-        async Task Init(ILogProviderFactory providerFactory, IConnectionParams connectionParams,
-            Persistence.IStorageManager storageManager, IAnnotationsRegistry annotationsRegistry)
-        {
-            logSourceSpecificStorageEntry = await CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
-            var extendedConnectionParams = connectionParams.Clone(true);
-            await LoadPersistedSettings(extendedConnectionParams);
-            provider = await providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
-            await LoadBookmarks();
-            await annotationsRegistry.LoadAnnotations(this);
         }
 
         ILogProvider ILogSource.Provider { get { return provider; } }
@@ -175,13 +183,16 @@ namespace LogJoint
                     {
                             new XAttribute("time", b.Time),
                             new XAttribute("position", b.Position.ToString()),
-                            new XAttribute("thread-id", b.Thread.ID),
                             new XAttribute("display-name", XmlUtils.RemoveInvalidXMLChars(b.DisplayName)),
                             new XAttribute("line-index", b.LineIndex),
                     };
                     if (!string.IsNullOrEmpty(b.Annotation))
                     {
                         attrs.Add(new XAttribute("annotation", b.Annotation ?? ""));
+                    }
+                    if (b.Thread != null)
+                    {
+                        attrs.Add(new XAttribute("thread-id", b.Thread.ID));
                     }
                     return new XElement("bookmark", attrs);
                 }).ToArray()
@@ -290,7 +301,7 @@ namespace LogJoint
             }
         }
 
-        void TimeGaps_OnTimeGapsChanged(object sender, EventArgs e)
+        void TimeGaps_OnTimeGapsChanged(object? sender, EventArgs e)
         {
             owner.OnTimegapsChanged(this);
         }
@@ -335,13 +346,14 @@ namespace LogJoint
                 return;
             var savedBookmarks = bookmarks.Items
                 .Where(b => b.GetLogSource() == this)
-                .Select(b => new { bmk = b, threadId = b.Thread.ID })
+                .Select(b => new { bmk = b, threadId = b.Thread?.ID })
                 .ToArray();
             await provider.SetTimeOffsets(value, CancellationToken.None);
             var invserseOld = oldOffsets.Inverse();
             bookmarks.PurgeBookmarksForDisposedThreads();
             foreach (var b in savedBookmarks)
             {
+                if (b.threadId == null) continue;
                 var newBmkTime = b.bmk.Time.Adjust(invserseOld).Adjust(value);
                 bookmarks.ToggleBookmark(new Bookmark(
                     newBmkTime,
@@ -353,7 +365,7 @@ namespace LogJoint
             }
             owner.OnTimeOffsetChanged(this);
             await using var s = await OpenSettings(false);
-            s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
+            s.Data.Root?.SetAttributeValue("timeOffset", value.ToString());
         }
 
         private async void SetTrackingEnabled(bool value)
@@ -363,7 +375,7 @@ namespace LogJoint
             trackingEnabled = value;
             owner.OnSourceTrackingChanged(this);
             await using var s = await OpenSettings(false);
-            s.Data.Root.SetAttributeValue("tracking", value ? "true" : "false");
+            s.Data.Root?.SetAttributeValue("tracking", value ? "true" : "false");
         }
 
         private async void SetAnnotation(string value)
@@ -373,7 +385,7 @@ namespace LogJoint
             annotation = value;
             owner.OnSourceAnnotationChanged(this);
             await using var s = await OpenSettings(false);
-            s.Data.Root.SetAttributeValue("annotation", value);
+            s.Data.Root?.SetAttributeValue("annotation", value);
         }
     };
 }

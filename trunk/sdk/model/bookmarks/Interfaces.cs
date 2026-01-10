@@ -63,7 +63,7 @@ namespace LogJoint
 
     public interface IBookmarksFactory
     {
-        IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, long position, int lineIndex, string annotation);
+        IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, long position, int lineIndex, string? annotation);
         IBookmark CreateBookmark(IMessage message, int lineIndex, bool useRawText = true);
         IBookmark CreateBookmark(MessageTimestamp time, string sourceConnectionId, long position, int lineIndex);
 
