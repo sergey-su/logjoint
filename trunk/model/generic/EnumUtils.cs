@@ -265,14 +265,14 @@ namespace LogJoint
         public static IEnumerable<T> MergeSortedSequences<T>(this IEnumerable<T>[] enums, IComparer<T> valueComparer)
         {
             var comparer = new EnumeratorsComparer<T>(valueComparer);
-            var iters = new VCSKicksCollection.PriorityQueue<IEnumerator<T>>(comparer);
+            var iters = new PriorityQueue<IEnumerator<T>, IEnumerator<T>>(comparer);
             try
             {
                 foreach (var e in enums)
                 {
                     var i = e.GetEnumerator();
                     if (i.MoveNext())
-                        iters.Enqueue(i);
+                        iters.Enqueue(i, i);
                 }
                 for (; iters.Count > 0;)
                 {
@@ -282,7 +282,7 @@ namespace LogJoint
                         yield return i.Current;
                         if (i.MoveNext())
                         {
-                            iters.Enqueue(i);
+                            iters.Enqueue(i, i);
                             i = null;
                         }
                     }
@@ -309,8 +309,11 @@ namespace LogJoint
                 this.valueComparer = valueComparer;
             }
 
-            int IComparer<IEnumerator<T>>.Compare(IEnumerator<T> x, IEnumerator<T> y)
+            int IComparer<IEnumerator<T>>.Compare(IEnumerator<T>? x, IEnumerator<T>? y)
             {
+                if (x == null && y == null) return 0;
+                if (x == null) return -1;
+                if (y == null) return 1;
                 return valueComparer.Compare(x.Current, y.Current);
             }
         };

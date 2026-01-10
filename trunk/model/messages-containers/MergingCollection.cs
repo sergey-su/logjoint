@@ -69,7 +69,7 @@ namespace LogJoint.MessagesContainers
             {
                 int totalCount = 0;
                 var queueComparer = new QueueEntriesComparer(reverse: false);
-                var queue = new VCSKicksCollection.PriorityQueue<QueueEntry>(queueComparer);
+                var queue = new PriorityQueue<QueueEntry, QueueEntry>(queueComparer);
                 try
                 {
                     int collectionsCount = 0;
@@ -80,16 +80,20 @@ namespace LogJoint.MessagesContainers
                         totalCount += localCount;
                         IEnumerator<IndexedMessage> i = l.Forward(0, localCount).GetEnumerator();
                         if (i.MoveNext())
-                            queue.Enqueue(new QueueEntry(i, l));
+                        {
+                            var entry = new QueueEntry(i, l);
+                            queue.Enqueue(entry, entry);
+                        }
                     }
                     startPos = RangeUtils.PutInRange(0, totalCount, startPos);
                     endPosition = RangeUtils.PutInRange(0, totalCount, endPosition);
 
                     if (collectionsCount == 1) // optimized version for the case when there is only one collection to merge
                     {
-                        var entry = queue.Dequeue();
-                        using (IEnumerator<IndexedMessage> i = entry.enumerator)
+                        if (endPosition > 0)
                         {
+                            var entry = queue.Dequeue();
+                            using IEnumerator<IndexedMessage> i = entry.enumerator;
                             for (int idx = 0; idx < endPosition; ++idx)
                             {
                                 if (idx >= startPos)
@@ -113,7 +117,7 @@ namespace LogJoint.MessagesContainers
                                         new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
                                 if (i.MoveNext())
                                 {
-                                    queue.Enqueue(entry);
+                                    queue.Enqueue(entry, entry);
                                     i = null;
                                 }
                             }
@@ -149,7 +153,7 @@ namespace LogJoint.MessagesContainers
             try
             {
                 var queueComparer = new QueueEntriesComparer(reverse: true);
-                var queue = new VCSKicksCollection.PriorityQueue<QueueEntry>(queueComparer);
+                var queue = new PriorityQueue<QueueEntry, QueueEntry>(queueComparer);
                 try
                 {
                     int collectionsCount = 0;
@@ -161,7 +165,10 @@ namespace LogJoint.MessagesContainers
                         c += lc;
                         IEnumerator<IndexedMessage> i = l.Reverse(lc - 1, -1).GetEnumerator();
                         if (i.MoveNext())
-                            queue.Enqueue(new QueueEntry(i, l));
+                        {
+                            var entry = new QueueEntry(i, l);
+                            queue.Enqueue(entry, entry);
+                        }
                     }
                     startPos = RangeUtils.PutInRange(-1, c - 1, startPos);
                     endPosition = RangeUtils.PutInRange(-1, c - 1, endPosition);
@@ -176,7 +183,7 @@ namespace LogJoint.MessagesContainers
                                     new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
                             if (i.MoveNext())
                             {
-                                queue.Enqueue(entry);
+                                queue.Enqueue(entry, entry);
                                 i = null;
                             }
                         }

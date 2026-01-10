@@ -76,7 +76,7 @@ namespace LogJoint.Preprocessing
                 double rangeLen = range.Length;
                 using var progress = progressAggregator.CreateProgressSink();
                 using var writer = new StreamWriter(tmpFileName, false, reader.Encoding);
-                var queue = new VCSKicksCollection.PriorityQueue<IMessage>(
+                var queue = new PriorityQueue<IMessage, IMessage>(
                     new MessagesComparer(ignoreConnectionIds: true));
                 Action dequeue = () => writer.WriteLine(queue.Dequeue().RawText.ToString());
                 double lastPrctComplete = 0;
@@ -98,7 +98,7 @@ namespace LogJoint.Preprocessing
                             lastPrctComplete = prctComplete;
                         }
                     }
-                    queue.Enqueue(msg);
+                    queue.Enqueue(msg, msg);
                     if (queue.Count > queueSize)
                         dequeue();
                     ++msgIdx;

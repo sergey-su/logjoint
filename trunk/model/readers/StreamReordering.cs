@@ -73,7 +73,7 @@ namespace LogJoint
             this.originalParams.EnsureStartPositionIsInRange();
 
             this.jitterBufferSize = jitterBufferSize;
-            this.jitterBuffer = new VCSKicksCollection.PriorityQueue<Entry>(new Comparer(originalParams.Direction, jitterBufferSize));
+            this.jitterBuffer = new PriorityQueue<Entry, Entry>(new Comparer(originalParams.Direction, jitterBufferSize));
             this.positionsBuffer = new Generic.CircularBuffer<MessagesPositions>(jitterBufferSize + 1);
         }
 
@@ -82,9 +82,10 @@ namespace LogJoint
             CheckDisposed();
             for (; ; )
             {
-                var ret = jitterBuffer.Dequeue();
-                if (ret.data.Message != null)
+                Entry ret = new();
+                if (jitterBuffer.Count > 0)
                 {
+                    ret = jitterBuffer.Dequeue();
                     var positions = positionsBuffer.Pop();
                     ret.data.Message.SetPosition(positions.Position, positions.EndPosition);
                     if (currentIndex - ret.index > jitterBufferSize + 2)
@@ -172,7 +173,8 @@ namespace LogJoint
                 tmp.Reverse();
                 foreach (var tmpMsg in tmp)
                 {
-                    jitterBuffer.Enqueue(new Entry() { data = tmpMsg, index = currentIndex++ });
+                    var entry = new Entry() { data = tmpMsg, index = currentIndex++ };
+                    jitterBuffer.Enqueue(entry, entry);
                     positionsBuffer.Push(new MessagesPositions(tmpMsg.Message));
                     ++reversedMessagesQueued;
                 }
@@ -237,7 +239,8 @@ namespace LogJoint
             {
                 var tmp = enumerator.Current;
                 ret.LoadedMessage = tmp.Message;
-                jitterBuffer.Enqueue(new Entry() { data = tmp, index = currentIndex++ });
+                var entry = new Entry() { data = tmp, index = currentIndex++ };
+                jitterBuffer.Enqueue(entry, entry);
                 positionsBuffer.Push(new MessagesPositions(tmp.Message));
                 if (jitterBuffer.Count > jitterBufferSize)
                 {
@@ -267,7 +270,7 @@ namespace LogJoint
         };
 
         readonly ReadMessagesParams originalParams;
-        readonly VCSKicksCollection.PriorityQueue<Entry> jitterBuffer;
+        readonly PriorityQueue<Entry, Entry> jitterBuffer;
         readonly Generic.CircularBuffer<MessagesPositions> positionsBuffer;
         readonly int jitterBufferSize;
         IAsyncEnumerator<PostprocessedMessage> enumerator;

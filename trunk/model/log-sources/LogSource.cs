@@ -38,9 +38,9 @@ namespace LogJoint
             {
                 tracer.Info("Creating new log source. Provider type = {0}/{1}. Connection params = {2}",
                     providerFactory.CompanyName, providerFactory.FormatName, connectionParams);
-                logSource = new LogSource(owner, tracer, modelSyncContext, bookmarks,
-                    traceSourceFactory, threads);
-                await logSource.Init(providerFactory, connectionParams, storageManager, annotationsRegistry);
+                logSource = await LogSource.Create(owner, tracer, modelSyncContext, bookmarks,
+                    traceSourceFactory, threads, providerFactory, connectionParams,
+                    storageManager, annotationsRegistry);
             }
             catch (Exception e)
             {

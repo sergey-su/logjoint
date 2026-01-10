@@ -245,7 +245,7 @@ namespace LogJoint
                 if (threadFailureException != null)
                     CompleteCommand(cmd, new TaskCanceledException("provider has failed and can not accept new commands", threadFailureException));
                 else
-                    commands.Enqueue(cmd);
+                    commands.Enqueue(cmd, cmd);
                 if (!commandPosted.Task.IsCompleted)
                 {
                     commandPosted.SetResult(1);
@@ -310,12 +310,12 @@ namespace LogJoint
                         return LogProviderStatsFlag.None;
                     });
 
-                    Command cmd = null;
-                    CurrentCommandPreemption cmdPreemption = null;
+                    Command? cmd = null;
+                    CurrentCommandPreemption? cmdPreemption = null;
 
                     lock (sync)
                     {
-                        cmd = commands.Peek();
+                        cmd = commands.Count > 0 ? commands.Peek() : null;
                         if (cmd == null && commandPosted.Task.IsCompleted)
                             commandPosted = new TaskCompletionSource<int>();
                     }
@@ -694,7 +694,7 @@ namespace LogJoint
         Task thread;
         Exception threadFailureException;
         IMessagesReader reader;
-        readonly VCSKicksCollection.PriorityQueue<Command> commands = new VCSKicksCollection.PriorityQueue<Command>(new Command.Comparer());
+        readonly PriorityQueue<Command, Command> commands = new(new Command.Comparer());
         TaskCompletionSource<int> commandPosted = new TaskCompletionSource<int>();
         CurrentCommandPreemption currentCommandPreemption;
 

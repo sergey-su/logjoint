@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO;
-using System.Text;
 
 namespace LogJoint
 {
@@ -122,7 +122,7 @@ namespace LogJoint
             CancellationToken cancellation
         )
         {
-            var queue = new VCSKicksCollection.PriorityQueue<EnumMessagesHelper>(
+            var queue = new PriorityQueue<EnumMessagesHelper, EnumMessagesHelper>(
                 new EnumMessagesHelper.Comparer());
             var helpers = sources.Select(s => new EnumMessagesHelper(
                 s, cancellation, progress.CreateProgressSink())).ToList();
@@ -132,7 +132,7 @@ namespace LogJoint
                 void enqueueOrKill(EnumMessagesHelper h)
                 {
                     if (h.Peek() != null)
-                        queue.Enqueue(h);
+                        queue.Enqueue(h, h);
                     else
                         h.Dispose();
                 }

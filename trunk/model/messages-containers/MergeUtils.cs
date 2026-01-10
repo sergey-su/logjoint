@@ -11,14 +11,14 @@ namespace LogJoint.MessagesContainers
         public static IEnumerable<PostprocessedMessage> MergePostprocessedMessage(IEnumerable<PostprocessedMessage>[] enums)
         {
             var comparer = new EnumeratorsComparer();
-            var iters = new VCSKicksCollection.PriorityQueue<IEnumerator<PostprocessedMessage>>(comparer);
+            var iters = new PriorityQueue<IEnumerator<PostprocessedMessage>, IEnumerator<PostprocessedMessage>>(comparer);
             try
             {
                 foreach (var e in enums)
                 {
                     var i = e.GetEnumerator();
                     if (i.MoveNext())
-                        iters.Enqueue(i);
+                        iters.Enqueue(i, i);
                 }
                 for (; iters.Count > 0;)
                 {
@@ -28,7 +28,7 @@ namespace LogJoint.MessagesContainers
                         yield return i.Current;
                         if (i.MoveNext())
                         {
-                            iters.Enqueue(i);
+                            iters.Enqueue(i, i);
                             i = null;
                         }
                     }

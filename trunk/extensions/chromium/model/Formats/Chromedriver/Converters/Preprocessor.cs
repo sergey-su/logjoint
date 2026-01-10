@@ -190,7 +190,7 @@ namespace LogJoint.Chromium.ChromeDriver
         {
             DateTime? timestampBase = null;
             var pendingMessages = new List<MessageEntry>();
-            var queue = new VCSKicksCollection.PriorityQueue<MessageEntry>(new Comparer());
+            var queue = new PriorityQueue<MessageEntry, MessageEntry>(new Comparer());
             var queuedRequestStarts = new Dictionary<string, MessageEntry>();
             double? lastDequeuedTimestamp = null;
             Action<Queue<Message>> dequeue = (outputQueue) =>
@@ -209,7 +209,7 @@ namespace LogJoint.Chromium.ChromeDriver
             enqueue = (r) =>
             {
                 var rebased = r.Rebase(timestampBase.Value);
-                queue.Enqueue(rebased);
+                queue.Enqueue(rebased, rebased);
                 if (r.Type == MessageEntry.EntryType.StartRequest)
                 {
                     queuedRequestStarts[r.RequestId] = rebased;

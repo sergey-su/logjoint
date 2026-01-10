@@ -83,7 +83,7 @@ namespace LogJoint.Postprocessing
                 var readers = chunks.Select(chunkFileName => XmlReader.Create(chunkFileName, readersSettings)).ToList();
                 try
                 {
-                    var q = new VCSKicksCollection.PriorityQueue<KeyValuePair<XmlReader, XElement>>(Comparer<KeyValuePair<XmlReader, XElement>>.Create((item1, item2) =>
+                    var q = new PriorityQueue<KeyValuePair<XmlReader, XElement>, KeyValuePair<XmlReader, XElement>>(Comparer<KeyValuePair<XmlReader, XElement>>.Create((item1, item2) =>
                     {
                         return string.CompareOrdinal(item1.Value.Attribute(sortKeyAttr).Value, item2.Value.Attribute(sortKeyAttr).Value);
                     }));
@@ -93,7 +93,8 @@ namespace LogJoint.Postprocessing
                         {
                             if (reader.MoveToContent() != XmlNodeType.Element)
                                 throw new InvalidOperationException("bad chunk");
-                            q.Enqueue(new KeyValuePair<XmlReader, XElement>(reader, (XElement)XNode.ReadFrom(reader)));
+                            var value = new KeyValuePair<XmlReader, XElement>(reader, (XElement)XNode.ReadFrom(reader));
+                            q.Enqueue(value, value);
                         }
                     };
                     readers.ForEach(enqueueReader);
