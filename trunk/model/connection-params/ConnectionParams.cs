@@ -17,7 +17,7 @@ namespace LogJoint
         }
         public bool AreEqual(IConnectionParams other)
         {
-            SemicolonSeparatedMap map = other as SemicolonSeparatedMap;
+            SemicolonSeparatedMap? map = other as SemicolonSeparatedMap;
             if (map == null)
                 return false;
             return base.AreEqual(map);

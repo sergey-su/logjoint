@@ -217,13 +217,13 @@ namespace LogJoint.Postprocessing.StateInspector
         readonly string id;
         readonly HashSet<IInspectedObject> children = new HashSet<IInspectedObject>();
         List<StateInspectorEvent> history = new List<StateInspectorEvent>();
-        string commentPropertyName;
+        string? commentPropertyName;
         string comment;
-        string primaryPropertyName;
-        string descriptionPropertyName;
+        string? primaryPropertyName;
+        string? descriptionPropertyName;
         string description;
         bool isTimeless;
-        string displayName;
+        string? displayName;
         IInspectedObject parent;
         StateInspectorEvent creation;
         StateInspectorEvent deletion;

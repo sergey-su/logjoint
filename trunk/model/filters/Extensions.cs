@@ -7,15 +7,15 @@ namespace LogJoint
 {
     public static class FiltersExtensions
     {
-        public static List<IFilter> GetPositiveFilters(this IFiltersList filters)
+        public static List<IFilter?> GetPositiveFilters(this IFiltersList filters)
         {
-            var positiveFilters = filters.Items.Where(f => f.Enabled && f.Action != FilterAction.Exclude).ToList();
+            var positiveFilters = filters.Items.Where(f => f.Enabled && f.Action != FilterAction.Exclude).ToList<IFilter?>();
             if (filters.GetDefaultAction() != FilterAction.Exclude)
                 positiveFilters.Add(null);
             return positiveFilters;
         }
 
-        public static IEnumerable<ILogSource> GetScopeSources(this IEnumerable<ILogSource> sources, List<IFilter> positiveFilters)
+        public static IEnumerable<ILogSource> GetScopeSources(this IEnumerable<ILogSource> sources, List<IFilter?> positiveFilters)
         {
             return sources.Where(s => positiveFilters.Any(f =>
                 f == null || f.Options.Scope.ContainsAnythingFromSource(s)));

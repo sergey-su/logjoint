@@ -132,12 +132,12 @@ namespace LogJoint
                     tid, filteringTime.Elapsed, matchedMessages, totalMessages);
             }
 
-            public object Postprocess(IMessage msg)
+            public object? Postprocess(IMessage msg)
             {
                 ++totalMessages;
                 filteringTime.Start();
                 var rslt = bulkProcessing.ProcessMessage(msg, null);
-                IFilter ret;
+                IFilter? ret;
                 if (rslt.Action == FilterAction.Exclude)
                 {
                     ret = null;

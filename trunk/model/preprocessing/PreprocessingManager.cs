@@ -294,7 +294,7 @@ namespace LogJoint.Preprocessing
                 );
             }
 
-            static PreprocessingStepParams SetArgument(PreprocessingStepParams p, string argument)
+            static PreprocessingStepParams SetArgument(PreprocessingStepParams p, string? argument)
             {
                 return new PreprocessingStepParams(
                     p?.Location,
@@ -305,7 +305,7 @@ namespace LogJoint.Preprocessing
                 );
             }
 
-            async Task<PreprocessingStepParams> ProcessLoadedStep(PreprocessingHistoryItem loadedStep, PreprocessingStepParams currentParams)
+            async Task<PreprocessingStepParams?> ProcessLoadedStep(PreprocessingHistoryItem loadedStep, PreprocessingStepParams currentParams)
             {
                 var step = owner.CreateStepByName(loadedStep.StepName, SetArgument(currentParams, loadedStep.Argument));
                 if (step != null)

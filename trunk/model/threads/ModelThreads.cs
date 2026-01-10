@@ -96,7 +96,7 @@ namespace LogJoint
                 }
             }
 
-            IBookmark IThread.FirstKnownMessage
+            IBookmark? IThread.FirstKnownMessage
             {
                 get
                 {
@@ -108,7 +108,7 @@ namespace LogJoint
                 }
             }
 
-            IBookmark IThread.LastKnownMessage
+            IBookmark? IThread.LastKnownMessage
             {
                 get
                 {
@@ -195,9 +195,9 @@ namespace LogJoint
             Thread next, prev;
             string? description;
             IMessage firstMessage;
-            IBookmark firstMessageBmk;
+            IBookmark? firstMessageBmk;
             IMessage lastMessage;
-            IBookmark lastMessageBmk;
+            IBookmark? lastMessageBmk;
         };
 
         object sync = new object();

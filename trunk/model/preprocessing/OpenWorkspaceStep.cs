@@ -27,7 +27,7 @@ namespace LogJoint.Preprocessing
                 callback.YieldChildPreprocessing(entry.Log, entry.IsHiddenLog);
         }
 
-        Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
+        Task<PreprocessingStepParams?> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
         {
             throw new NotImplementedException();
         }

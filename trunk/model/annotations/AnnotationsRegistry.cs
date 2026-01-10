@@ -34,7 +34,7 @@ namespace LogJoint
 
         bool IAnnotationsRegistry.Change(string key, string value)
         {
-            LeafValue leafValue = annotations.Find(key);
+            LeafValue? leafValue = annotations.Find(key);
             if (leafValue == null || leafValue.Annotation == value)
                 return false;
             annotations = annotations.Erase(key);
@@ -98,7 +98,7 @@ namespace LogJoint
         {
             ImmutableDictionary<char, TrieNode> children = ImmutableDictionary.Create<char, TrieNode>();
             // Non-null only when this trie node is a leaf
-            LeafValue leafValue = null;
+            LeafValue? leafValue = null;
 
             public TrieNode Clone()
             {
@@ -170,7 +170,7 @@ namespace LogJoint
                 TrieNode current = result;
                 foreach (char c in key)
                 {
-                    TrieNode n = current.children.GetValueOrDefault(c);
+                    TrieNode? n = current.children.GetValueOrDefault(c);
                     current.children = current.children.SetItem(c, n = n != null ? n.Clone() : new TrieNode());
                     current = n;
                 }

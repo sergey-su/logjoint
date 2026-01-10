@@ -46,7 +46,7 @@ namespace LogJoint.AppLaunch
 
         async private Task<string[]> HandleBatchArg(string[] args, CommandLineEventArgs evtArgs)
         {
-            var argsCopy = (string[])args.Clone();
+            var argsCopy = (string?[])args.Clone();
 
             var batchArgIdx = args.IndexOf(a => a.ToLower() == "/batch");
             if (batchArgIdx != null)
@@ -71,7 +71,7 @@ namespace LogJoint.AppLaunch
                 }
             }
 
-            return argsCopy.Where(a => a != null).ToArray();
+            return argsCopy.OfType<string>().ToArray();
         }
 
         IEnumerable<string> RemoveNamedArgs(string[] args)
@@ -89,31 +89,29 @@ namespace LogJoint.AppLaunch
             }
         }
 
-        class BatchFile
+        class BatchFile(XDocument doc)
         {
-            XDocument doc;
+            XDocument doc = doc;
 
-            public static BatchFile TryLoad(string fileName)
+            public static BatchFile? TryLoad(string fileName)
             {
-                var ret = new BatchFile();
                 try
                 {
                     if (fileName == "-")
                         using (var stdIn = Console.OpenStandardInput())
-                            ret.doc = XDocument.Load(stdIn);
+                            return new BatchFile(XDocument.Load(stdIn));
                     else
-                        ret.doc = XDocument.Load(fileName);
+                        return new BatchFile(XDocument.Load(fileName));
                 }
                 catch
                 {
                     return null;
                 }
-                return ret;
             }
 
             public IEnumerable<KeyValuePair<string, XElement>> EnumCommands()
             {
-                foreach (var e in doc.Root.Elements("command"))
+                foreach (var e in doc.Root.SafeElements("command"))
                 {
                     var type = e.AttributeValue("type");
                     if (type != "")
@@ -125,7 +123,7 @@ namespace LogJoint.AppLaunch
             {
                 get
                 {
-                    var configVal = doc.Root.Element("startUi").SafeValue();
+                    var configVal = doc.Root.SafeElement("startUi").SafeValue();
                     return configVal == "true" || configVal == "1";
                 }
             }

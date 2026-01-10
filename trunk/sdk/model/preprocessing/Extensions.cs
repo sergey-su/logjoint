@@ -20,8 +20,9 @@ namespace LogJoint.Preprocessing
         {
             if (map == null)
                 map = x => x;
-            if (!string.IsNullOrEmpty(source[ConnectionParamsKeys.DisplayNameConnectionParam]))
-                dest[ConnectionParamsKeys.DisplayNameConnectionParam] = map(source[ConnectionParamsKeys.DisplayNameConnectionParam]);
+            string? value = source[ConnectionParamsKeys.DisplayNameConnectionParam];
+            if (!string.IsNullOrEmpty(value))
+                dest[ConnectionParamsKeys.DisplayNameConnectionParam] = map(value);
         }
     };
 }

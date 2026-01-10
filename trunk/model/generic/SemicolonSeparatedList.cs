@@ -48,7 +48,7 @@ namespace LogJoint
                 return false;
             foreach (KeyValuePair<string, string> i in values)
             {
-                if (!other.values.TryGetValue(i.Key, out string v))
+                if (!other.values.TryGetValue(i.Key, out string? v))
                     return false;
                 if (v != i.Value)
                     return false;

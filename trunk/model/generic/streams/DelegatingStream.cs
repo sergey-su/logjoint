@@ -1,19 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading.Tasks;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
     public class DelegatingStream : Stream
     {
-        Stream impl;
+        Stream? impl;
         bool ownImpl;
         bool disposed;
-        Func<ValueTask> disposeAsync;
+        Func<ValueTask>? disposeAsync;
 
+        [MemberNotNull(nameof(impl))]
         void CheckImpl()
         {
             if (impl == null)
@@ -30,7 +32,7 @@ namespace LogJoint
             ownImpl = false;
         }
 
-        public DelegatingStream(Stream stream = null, bool ownStream = false, Func<ValueTask> disposeAsync = null)
+        public DelegatingStream(Stream? stream = null, bool ownStream = false, Func<ValueTask>? disposeAsync = null)
         {
             SetStream(stream, ownStream, disposeAsync);
         }
@@ -45,7 +47,7 @@ namespace LogJoint
             base.Dispose(disposing);
         }
 
-        public void SetStream(Stream value, bool ownStream, Func<ValueTask> disposeAsync = null)
+        public void SetStream(Stream? value, bool ownStream, Func<ValueTask>? disposeAsync = null)
         {
             Reset();
             this.impl = value;

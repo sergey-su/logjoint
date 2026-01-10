@@ -453,7 +453,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
             var objs = getSelectedInspectedObjects();
             if (objs.All(x => x.Parent == null))
             {
-                var logSources = objs.Select(obj => obj.GetPrimarySource()).Distinct().ToArray();
+                var logSources = objs.Select(obj => obj.GetPrimarySource()).Where(ls => ls != null).Distinct().ToArray();
                 if (logSources.Length > 0)
                 {
                     sourcesManagerPresenter.StartDeletionInteraction(logSources);

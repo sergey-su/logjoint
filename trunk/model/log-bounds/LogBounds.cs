@@ -1,10 +1,11 @@
+using LogJoint.StreamSearch;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Xml;
-using LogJoint.StreamSearch;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace LogJoint
@@ -32,8 +33,8 @@ namespace LogJoint
 
     public class TrieBoundFinder : BoundFinder
     {
-        TrieNode trieNode;
-        List<string> textTests;
+        TrieNode? trieNode;
+        List<string>? textTests;
 
         public TrieBoundFinder(XElement node)
         {
@@ -59,6 +60,7 @@ namespace LogJoint
             return new TextStreamPosition(tmp.Value, positioningParams);
         }
 
+        [MemberNotNull(nameof(trieNode))]
         void EnsureInitialized(Encoding encoding)
         {
             if (trieNode != null)

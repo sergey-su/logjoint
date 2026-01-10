@@ -20,7 +20,7 @@ namespace LogJoint
             semaphore = null;
         }
 
-        private Semaphore semaphore;
+        private Semaphore? semaphore;
     }
 
     public sealed class SemaphoreSlimLock : IDisposable
@@ -40,7 +40,7 @@ namespace LogJoint
             semaphore = null;
         }
 
-        private SemaphoreSlim semaphore;
+        private SemaphoreSlim? semaphore;
     }
 
 }

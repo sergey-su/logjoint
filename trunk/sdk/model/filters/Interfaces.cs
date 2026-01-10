@@ -122,23 +122,23 @@ namespace LogJoint
     /// </summary>
     public interface IFilter : IDisposable
     {
-        IFiltersList Owner { get; }
+        IFiltersList? Owner { get; }
         IFilter Clone();
         IFiltersFactory Factory { get; }
         bool IsDisposed { get; }
         FilterAction Action { get; set; }
         string Name { get; }
         string InitialName { get; }
-        string UserDefinedName { get; set; }
+        string? UserDefinedName { get; set; }
         bool Enabled { get; set; }
         Search.Options Options { get; set; }
-        FilterTimeRange TimeRange { get; set; }
+        FilterTimeRange? TimeRange { get; set; }
         void Save(XElement e);
 
         IFilterBulkProcessing StartBulkProcessing(
             MessageTextGetter messageTextGetter, bool reverseMatchDirection, bool timeboxedMatching = false);
 
-        void SetOwner(IFiltersList newOwner);
+        void SetOwner(IFiltersList? newOwner);
     };
 
     /// <summary>
@@ -163,7 +163,7 @@ namespace LogJoint
         IFilterScope CreateScope();
         IFilterScope CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads);
 
-        IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions, FilterTimeRange timeRange);
+        IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions, FilterTimeRange? timeRange);
         IFilter CreateFilter(XElement e);
 
         IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose);

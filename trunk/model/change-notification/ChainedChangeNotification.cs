@@ -15,7 +15,7 @@ namespace LogJoint
 
         bool IChainedChangeNotification.Active { get => subscription.Active; set => subscription.Active = value; }
 
-        public event EventHandler OnChange;
+        public event EventHandler? OnChange;
 
         void IDisposable.Dispose()
         {

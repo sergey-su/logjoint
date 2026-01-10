@@ -1,15 +1,16 @@
+using LogJoint.Search;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Xml.Linq;
-using LogJoint.Search;
 
 namespace LogJoint
 {
     internal class Filter : IDisposable, IFilter
     {
         public Filter(FilterAction action, string initialName, bool enabled,
-            Search.Options options, FilterTimeRange timeRange, IFiltersFactory factory, RegularExpressions.IRegexFactory regexFactory)
+            Search.Options options, FilterTimeRange? timeRange, IFiltersFactory factory, RegularExpressions.IRegexFactory regexFactory)
         {
             this.factory = factory;
             this.regexFactory = regexFactory;
@@ -67,7 +68,7 @@ namespace LogJoint
 
         string IFilter.InitialName { get { return initialName; } }
 
-        string IFilter.UserDefinedName
+        string? IFilter.UserDefinedName
         {
             get { return userDefinedName; }
             set
@@ -118,7 +119,7 @@ namespace LogJoint
             }
         }
 
-        FilterTimeRange IFilter.TimeRange
+        FilterTimeRange? IFilter.TimeRange
         {
             get
             {
@@ -136,7 +137,7 @@ namespace LogJoint
         }
 
 
-        IFiltersList IFilter.Owner { get { return owner; } }
+        IFiltersList? IFilter.Owner { get { return owner; } }
 
         IFilter IFilter.Clone()
         {
@@ -172,7 +173,7 @@ namespace LogJoint
             SaveInternal(e);
         }
 
-        void IFilter.SetOwner(IFiltersList newOwner)
+        void IFilter.SetOwner(IFiltersList? newOwner)
         {
             CheckDisposed();
             if (newOwner != null && owner != null)
@@ -208,6 +209,7 @@ namespace LogJoint
                 owner.InvalidateDefaultAction();
         }
 
+        [MemberNotNull(nameof(name))]
         void InternalUpdateName()
         {
             if (userDefinedName != null)
@@ -279,6 +281,7 @@ namespace LogJoint
             }
         }
 
+        [MemberNotNull(nameof(name))]
         void InternalEnsureName()
         {
             CheckDisposed();
@@ -309,6 +312,7 @@ namespace LogJoint
                 e.SetAttributeValue("time-end", new MessageTimestamp(timeRange.End.Value).StoreToLoselessFormat());
         }
 
+        [MemberNotNull(nameof(initialName))]
         void LoadInternal(XElement e)
         {
             options = new Search.Options().Load(e);
@@ -333,24 +337,24 @@ namespace LogJoint
         private readonly RegularExpressions.IRegexFactory regexFactory;
 
         private bool isDisposed;
-        private IFiltersList owner;
+        private IFiltersList? owner;
         private string initialName;
-        private string userDefinedName;
+        private string? userDefinedName;
 
         private FilterAction action;
         private bool enabled;
         private Search.Options options;
-        private FilterTimeRange timeRange;
+        private FilterTimeRange? timeRange;
 
-        private string name;
+        private string? name;
 
         #endregion
 
         class BulkProcessing : IFilterBulkProcessing
         {
-            internal Search.SearchState searchState;
-            internal MessageTimestamp? timeRangeBegin;
-            internal MessageTimestamp? timeRangeEnd;
+            required internal Search.SearchState searchState;
+            required internal MessageTimestamp? timeRangeBegin;
+            required internal MessageTimestamp? timeRangeEnd;
 
             void IDisposable.Dispose()
             {

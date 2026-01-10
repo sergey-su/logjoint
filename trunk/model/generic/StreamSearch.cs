@@ -15,7 +15,7 @@ namespace LogJoint.StreamSearch
                 return;
             }
             byte key = data[pos];
-            TrieNode child;
+            TrieNode? child;
             if (!children.TryGetValue(key, out child))
             {
                 child = new TrieNode();
@@ -33,7 +33,7 @@ namespace LogJoint.StreamSearch
                 int k = s.ReadByte();
                 if (k == -1)
                     return null;
-                if (!this.children.TryGetValue((byte)k, out TrieNode n))
+                if (!this.children.TryGetValue((byte)k, out TrieNode? n))
                     continue;
                 long pos = s.Position - 1;
                 for (long bytesRead2 = bytesRead; ;)
@@ -43,7 +43,7 @@ namespace LogJoint.StreamSearch
                     int k2 = s.ReadByte();
                     if (k2 == -1)
                         break;
-                    if (!n.children.TryGetValue((byte)k2, out TrieNode n2))
+                    if (!n.children.TryGetValue((byte)k2, out TrieNode? n2))
                         break;
                     if (n2.isTerminal)
                         return pos;

@@ -25,7 +25,7 @@ namespace LogJoint
             }
         }
 
-        public event EventHandler OnChange;
+        public event EventHandler? OnChange;
 
         bool IChangeNotification.IsEmittingEvents => true;
 

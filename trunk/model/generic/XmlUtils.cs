@@ -6,7 +6,7 @@ namespace System.Xml.Linq
 {
     public static class MyExtensions
     {
-        public static string AttributeValue(this XElement source, XName name, string defaultValue = "")
+        public static string AttributeValue(this XElement? source, XName name, string defaultValue = "")
         {
             if (source == null)
                 return defaultValue;
@@ -16,21 +16,21 @@ namespace System.Xml.Linq
             return attr.Value;
         }
 
-        public static string SafeValue(this XElement source, string defaultValue = "")
+        public static string SafeValue(this XElement? source, string defaultValue = "")
         {
             if (source == null)
                 return defaultValue;
             return source.Value;
         }
 
-        public static IEnumerable<XElement> SafeElements(this XContainer source, XName name)
+        public static IEnumerable<XElement> SafeElements(this XContainer? source, XName name)
         {
             if (source == null)
                 return Enumerable.Empty<XElement>();
             return source.Elements(name);
         }
 
-        public static XElement? SafeElement(this XContainer source, XName name)
+        public static XElement? SafeElement(this XContainer? source, XName name)
         {
             if (source == null)
                 return null;

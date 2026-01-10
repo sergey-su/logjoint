@@ -4,7 +4,7 @@ namespace LogJoint
 {
     public class ScopedGuard : IDisposable
     {
-        public ScopedGuard(Action initilization, Action finalization)
+        public ScopedGuard(Action? initilization, Action finalization)
         {
             if (initilization != null)
                 initilization();
@@ -23,6 +23,6 @@ namespace LogJoint
             }
         }
 
-        Action finalization;
+        Action? finalization;
     }
 }

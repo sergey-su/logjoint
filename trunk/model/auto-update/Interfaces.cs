@@ -46,7 +46,7 @@ namespace LogJoint.AutoUpdate
     public interface IUpdateDownloader
     {
         bool IsDownloaderConfigured { get; }
-        Task<DownloadUpdateResult> DownloadUpdate(string etag, Stream targetStream, CancellationToken cancellation);
+        Task<DownloadUpdateResult> DownloadUpdate(string? etag, Stream targetStream, CancellationToken cancellation);
         Task<DownloadUpdateResult> CheckUpdate(string etag, CancellationToken cancellation);
     };
 

@@ -19,8 +19,8 @@ namespace LogJoint
         string Description { get; }
         string DisplayName { get; }
         int ThreadColorIndex { get; }
-        IBookmark FirstKnownMessage { get; }
-        IBookmark LastKnownMessage { get; }
+        IBookmark? FirstKnownMessage { get; }
+        IBookmark? LastKnownMessage { get; }
         /// <summary>
         /// Can be gotten on disposed object.
         /// </summary>

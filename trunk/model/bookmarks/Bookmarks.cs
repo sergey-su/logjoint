@@ -14,7 +14,7 @@ namespace LogJoint
             itemsRef = ImmutableArray.CreateRange(items);
         }
 
-        public event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
+        public event EventHandler<BookmarksChangedEventArgs>? OnBookmarksChanged;
 
         IBookmark? IBookmarks.ToggleBookmark(IBookmark bmk)
         {
@@ -128,15 +128,15 @@ namespace LogJoint
             readonly List<IBookmark> items;
             MessageTimestamp current;
             int begin, end;
-            string logSourceConnectionId;
+            string? logSourceConnectionId;
             long position;
             int lineIndex;
 
             public int Compare(IBookmark? x, IBookmark? y)
             {
                 int sign;
-                string connectionId1 = x != null ? x.LogSourceConnectionId : logSourceConnectionId;
-                string connectionId2 = y != null ? y.LogSourceConnectionId : logSourceConnectionId;
+                string? connectionId1 = x != null ? x.LogSourceConnectionId : logSourceConnectionId;
+                string? connectionId2 = y != null ? y.LogSourceConnectionId : logSourceConnectionId;
                 if ((sign = string.CompareOrdinal(connectionId1, connectionId2)) != 0)
                     return sign;
                 long pos1 = x != null ? x.Position : position;

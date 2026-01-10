@@ -15,9 +15,9 @@ namespace LogJoint.Preprocessing
             this.@params = @params;
         }
 
-        Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
+        async Task<PreprocessingStepParams?> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
         {
-            return Task.FromResult(new PreprocessingStepParams(@params.Argument));
+            return new PreprocessingStepParams(@params.Argument);
         }
 
         Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)

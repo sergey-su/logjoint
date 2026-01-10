@@ -10,7 +10,7 @@ namespace LogJoint
     [DebuggerDisplay("Time={Time}, Position={Position}")]
     public class Bookmark : IBookmark
     {
-        public Bookmark(MessageTimestamp time, IThread? thread, string displayName, long position, int lineIndex, string annotation) :
+        public Bookmark(MessageTimestamp time, IThread? thread, string displayName, long position, int lineIndex, string? annotation) :
             this(time, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.Provider.ConnectionId : "",
                 displayName, position, lineIndex, annotation)
         { }

@@ -21,6 +21,6 @@ namespace LogJoint
             mtx = null;
         }
 
-        private Mutex mtx;
+        private Mutex? mtx;
     }
 }

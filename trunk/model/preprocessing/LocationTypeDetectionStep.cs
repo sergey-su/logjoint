@@ -24,7 +24,7 @@ namespace LogJoint.Preprocessing
             return Task.FromResult(0);
         }
 
-        Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
+        Task<PreprocessingStepParams?> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
         {
             throw new NotImplementedException();
         }

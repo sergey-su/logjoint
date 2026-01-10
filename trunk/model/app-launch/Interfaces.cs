@@ -19,8 +19,8 @@ namespace LogJoint.AppLaunch
 
     public class LaunchUriData
     {
-        public string SingleLogUri;
-        public string WorkspaceUri;
+        public string? SingleLogUri;
+        public string? WorkspaceUri;
     };
 
     public class CommandLineEventArgs : EventArgs

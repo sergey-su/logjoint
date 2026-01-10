@@ -19,18 +19,18 @@ namespace LogJoint
             Component = comp;
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
-            string labelFmt = GetRulerLabelFormat();
+            string? labelFmt = GetRulerLabelFormat();
             if (labelFmt != null)
                 return Time.ToString(labelFmt);
             else
                 return null;
         }
 
-        public string GetRulerLabelFormat()
+        public string? GetRulerLabelFormat()
         {
-            string labelFmt = null;
+            string? labelFmt = null;
             switch (Component)
             {
                 case DateComponent.Year:

@@ -19,9 +19,9 @@ namespace LogJoint.Preprocessing
             this.progressAggregator = progressAggregator;
         }
 
-        async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
+        async Task<PreprocessingStepParams?> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
         {
-            PreprocessingStepParams ret = null;
+            PreprocessingStepParams? ret = null;
             await ExecuteInternal(callback, x => { ret = x; });
             return ret;
         }

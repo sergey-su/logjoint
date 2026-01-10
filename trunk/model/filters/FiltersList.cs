@@ -366,7 +366,7 @@ namespace LogJoint
                         };
                         if (startFromChar == null)
                             return result;
-                        if (candidate == null || m.Value.MatchBegin < candidate.Value.MatchedRange.Value.MatchBegin)
+                        if (candidate == null || m.Value.MatchBegin < candidate.Value.MatchedRange!.Value.MatchBegin)
                             candidate = result;
                     }
                 }

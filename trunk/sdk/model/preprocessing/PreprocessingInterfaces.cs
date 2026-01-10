@@ -165,7 +165,7 @@ namespace LogJoint.Preprocessing
     public interface IPreprocessingStep
     {
         Task Execute(IPreprocessingStepCallback callback);
-        Task<PreprocessingStepParams> ExecuteLoadedStep(IPreprocessingStepCallback callback);
+        Task<PreprocessingStepParams?> ExecuteLoadedStep(IPreprocessingStepCallback callback);
     };
 
     public interface IGetPreprocessingStep : IPreprocessingStep

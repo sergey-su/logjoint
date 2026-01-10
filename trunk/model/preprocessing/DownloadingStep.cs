@@ -25,9 +25,9 @@ namespace LogJoint.Preprocessing
             this.config = config;
         }
 
-        Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
+        async Task<PreprocessingStepParams?> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
         {
-            return ExecuteInternal(callback);
+            return await ExecuteInternal(callback);
         }
 
         async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)

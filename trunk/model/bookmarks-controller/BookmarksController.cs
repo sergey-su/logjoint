@@ -38,6 +38,7 @@ namespace LogJoint
                 foreach (var affectedSource in
                     e.AffectedBookmarks
                     .Select(b => b.GetLogSource())
+                    .OfType<ILogSource>()
                     .Where(s => s.LogSourceStateIsOkToChangePersistentState())
                     .Distinct())
                 {

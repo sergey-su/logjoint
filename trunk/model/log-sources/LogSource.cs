@@ -33,7 +33,7 @@ namespace LogJoint
             IAnnotationsRegistry annotationsRegistry)
         {
             var tracer = traceSourceFactory.CreateTraceSource("LogSource", string.Format("ls{0:D2}", id));
-            LogSource logSource = null;
+            LogSource? logSource = null;
             try
             {
                 tracer.Info("Creating new log source. Provider type = {0}/{1}. Connection params = {2}",

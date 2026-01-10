@@ -293,7 +293,7 @@ namespace LogJoint
             trace.Info("Stats: search time: {0}", searchTime.Elapsed);
         }
 
-        private void HandleProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        private void HandleProgressChanged(object? sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
             owner.OnResultChanged(this, SearchResultChangeFlag.ProgressChanged);
         }

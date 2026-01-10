@@ -14,9 +14,9 @@ namespace LogJoint.AutoUpdate
     {
         public string BinariesETag;
         public DateTime? LastCheckTimestamp;
-        public string LastCheckError;
+        public string? LastCheckError;
 
-        public UpdateInfoFileContent(string binariesETag, DateTime? lastCheckTimestamp, string lastCheckError)
+        public UpdateInfoFileContent(string binariesETag, DateTime? lastCheckTimestamp, string? lastCheckError)
         {
             BinariesETag = binariesETag;
             LastCheckTimestamp = lastCheckTimestamp;
@@ -31,15 +31,15 @@ namespace LogJoint.AutoUpdate
                 try
                 {
                     var updateInfoDoc = XDocument.Load(fileName);
-                    XAttribute attr;
-                    if ((attr = updateInfoDoc.Root.Attribute("binaries-etag")) != null)
+                    XAttribute? attr;
+                    if ((attr = updateInfoDoc.Root?.Attribute("binaries-etag")) != null)
                         retVal.BinariesETag = attr.Value;
                     DateTime lastChecked;
-                    if ((attr = updateInfoDoc.Root.Attribute("last-check-timestamp")) != null)
+                    if ((attr = updateInfoDoc.Root?.Attribute("last-check-timestamp")) != null)
                         if (DateTime.TryParseExact(attr.Value, "o", null,
                                 System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out lastChecked))
                             retVal.LastCheckTimestamp = lastChecked;
-                    if ((attr = updateInfoDoc.Root.Attribute("last-check-error")) != null)
+                    if ((attr = updateInfoDoc.Root?.Attribute("last-check-error")) != null)
                         retVal.LastCheckError = attr.Value;
                 }
                 catch

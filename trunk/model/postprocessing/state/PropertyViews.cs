@@ -5,7 +5,7 @@ namespace LogJoint.Postprocessing.StateInspector
 {
     public class PropertyViewBase
     {
-        public virtual object GetTrigger() { return null; }
+        public virtual object? GetTrigger() { return null; }
         public virtual bool IsLink() { return false; }
         public IInspectedObject InspectedObject { get; private set; }
 
@@ -14,7 +14,7 @@ namespace LogJoint.Postprocessing.StateInspector
             this.InspectedObject = obj;
         }
 
-        public virtual string ToClipboardString() { return ToString(); }
+        public virtual string ToClipboardString() { return ToString() ?? ""; }
     };
 
     public class SimplePropertyView : PropertyViewBase
@@ -26,7 +26,7 @@ namespace LogJoint.Postprocessing.StateInspector
             this.value = value;
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return value?.ToString() ?? "";
         }
@@ -38,7 +38,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         public IdPropertyView(IInspectedObject obj, object value) : base(obj, value) { }
 
-        public override string ToString()
+        public override string? ToString()
         {
             var str = value.ToString();
             str = InspectedObject.Owner.TryGetDisplayName(str, out var displayName) ? displayName : str;
@@ -70,7 +70,7 @@ namespace LogJoint.Postprocessing.StateInspector
             this.Mode = mode;
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             if (Change == null)
                 return "";
@@ -93,7 +93,7 @@ namespace LogJoint.Postprocessing.StateInspector
             return "";
         }
 
-        public override object GetTrigger() { return Change; }
+        public override object? GetTrigger() { return Change; }
 
         public override bool IsLink()
         {
@@ -102,7 +102,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         public override string ToClipboardString()
         {
-            return ToString();
+            return ToString() ?? "";
         }
     };
 
@@ -120,7 +120,7 @@ namespace LogJoint.Postprocessing.StateInspector
             return true;
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             var s = ls.GetShortDisplayNameWithAnnotation();
             if (s.Length > 40)
@@ -128,7 +128,7 @@ namespace LogJoint.Postprocessing.StateInspector
             return s;
         }
 
-        public override object GetTrigger()
+        public override object? GetTrigger()
         {
             return ls;
         }

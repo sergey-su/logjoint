@@ -34,7 +34,7 @@ namespace LogJoint.Preprocessing
                 await AutodetectFormatAndYield(sourceFile, callback);
         }
 
-        Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
+        Task<PreprocessingStepParams?> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
         {
             throw new NotImplementedException();
         }

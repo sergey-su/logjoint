@@ -35,7 +35,7 @@ namespace LogJoint
 
     public interface IMessagesPostprocessor : IDisposable
     {
-        object Postprocess(IMessage message);
+        object? Postprocess(IMessage message);
     };
 
     public struct ReadMessagesParams
@@ -57,7 +57,7 @@ namespace LogJoint
         /// Factory will be called once in each thread that the parser uses. 
         /// Factory method must be thread-safe.
         /// </summary>
-        public Func<IMessagesPostprocessor> PostprocessorsFactory;
+        public Func<IMessagesPostprocessor>? PostprocessorsFactory;
         public CancellationToken Cancellation;
 
         public ReadMessagesParams(
@@ -65,7 +65,7 @@ namespace LogJoint
             FileRange.Range? range = null,
             ReadMessagesFlag flags = ReadMessagesFlag.Default,
             ReadMessagesDirection direction = ReadMessagesDirection.Forward,
-            Func<IMessagesPostprocessor> postprocessor = null,
+            Func<IMessagesPostprocessor>? postprocessor = null,
             CancellationToken? cancellation = null
         )
         {

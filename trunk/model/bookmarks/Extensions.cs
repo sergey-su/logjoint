@@ -33,15 +33,13 @@ namespace LogJoint
             return ls != null && !ls.IsDisposed ? ls : null;
         }
 
-        public static Tuple<int, int>? FindBookmark(this IBookmarks bmks, IBookmark bmk)
+        public static Tuple<int, int> FindBookmark(this IBookmarks bmks, IBookmark bmk)
         {
             return FindBookmark(bmks.Items, bmk);
         }
 
-        public static Tuple<int, int>? FindBookmark(this IReadOnlyList<IBookmark> items, IBookmark bmk)
+        public static Tuple<int, int> FindBookmark(this IReadOnlyList<IBookmark> items, IBookmark bmk)
         {
-            if (bmk == null)
-                return null;
             int cmp(IBookmark b) => MessagesComparer.Compare(b, bmk);
             int lowerBound = items.BinarySearch(0, items.Count, e => cmp(e) < 0);
             int upperBound = items.BinarySearch(lowerBound, items.Count, e => cmp(e) <= 0);

@@ -25,7 +25,7 @@ namespace LogJoint.AutoUpdate
             get { return isConfigured; }
         }
 
-        async Task<DownloadUpdateResult> IUpdateDownloader.DownloadUpdate(string etag, Stream targetStream, CancellationToken cancellation)
+        async Task<DownloadUpdateResult> IUpdateDownloader.DownloadUpdate(string? etag, Stream targetStream, CancellationToken cancellation)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace LogJoint.AutoUpdate
             }
         }
 
-        async Task<DownloadUpdateResult> DownloadUpdateInternal(string etag, Stream targetStream, CancellationToken cancellation)
+        async Task<DownloadUpdateResult> DownloadUpdateInternal(string? etag, Stream? targetStream, CancellationToken cancellation)
         {
             if (!isConfigured)
                 return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure };

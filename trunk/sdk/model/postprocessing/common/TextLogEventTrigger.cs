@@ -40,7 +40,8 @@ namespace LogJoint.Postprocessing
         public TextLogEventTrigger(IBookmark bmk)
         {
             StreamPosition = bmk.Position;
-            Timestamp = new MessageTimestamp(bmk.Time.Adjust(bmk.Thread.LogSource.TimeOffsets.Inverse()).ToUnspecifiedTime());
+            var timeOffset = bmk.Thread?.LogSource?.TimeOffsets?.Inverse();
+            Timestamp = new MessageTimestamp((timeOffset != null ? bmk.Time.Adjust(timeOffset) : bmk.Time).ToUnspecifiedTime());
         }
 #endif
 

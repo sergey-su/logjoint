@@ -97,7 +97,7 @@ namespace LogJoint
             bool NeedsEscaping(UnicodeCategory category) => new[] { UnicodeCategory.Control, UnicodeCategory.OtherNotAssigned,
                 UnicodeCategory.ParagraphSeparator, UnicodeCategory.LineSeparator, UnicodeCategory.Surrogate}.Contains(category);
 
-            bool TryReplaceChar(char c, out string replaceWith)
+            bool TryReplaceChar(char c, out string? replaceWith)
             {
                 if ("\\\0\a\b\f\n\r\t\v".Contains(c))
                 {

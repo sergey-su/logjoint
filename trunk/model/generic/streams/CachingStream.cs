@@ -14,7 +14,7 @@ namespace LogJoint
         private long readFromCache;
         private long readFromUnderlyingStream;
 
-        public CachingStream(long sizeLimit, Stream stream = null, bool ownStream = false, int pageSize = 4096) : base(stream, ownStream)
+        public CachingStream(long sizeLimit, Stream? stream = null, bool ownStream = false, int pageSize = 4096) : base(stream, ownStream)
         {
             this.pageSize = pageSize;
             this.cache = new MemoryCache(new MemoryCacheOptions()
@@ -23,7 +23,7 @@ namespace LogJoint
             });
         }
 
-        public CachingStream(MemoryCache cache, Stream stream = null, bool ownStream = false, int pageSize = 4096) : base(stream, ownStream)
+        public CachingStream(MemoryCache cache, Stream? stream = null, bool ownStream = false, int pageSize = 4096) : base(stream, ownStream)
         {
             this.pageSize = pageSize;
             this.cache = cache;
@@ -64,7 +64,7 @@ namespace LogJoint
                 bool cacheHit = cache.TryGetValue(page, out var pageDataObj);
                 if (cacheHit)
                 {
-                    pageData = (byte[])pageDataObj;
+                    pageData = (byte[])pageDataObj!;
                 }
                 else
                 {

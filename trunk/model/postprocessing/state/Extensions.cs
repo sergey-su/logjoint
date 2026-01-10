@@ -35,7 +35,7 @@ namespace LogJoint.Postprocessing.StateInspector
             }
         }
 
-        public static ILogSource GetPrimarySource(this IInspectedObject obj)
+        public static ILogSource? GetPrimarySource(this IInspectedObject obj)
         {
             if (obj.CreationEvent != null)
                 return obj.CreationEvent.Output.LogSource;

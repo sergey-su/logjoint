@@ -27,7 +27,7 @@ namespace LogJoint.Preprocessing
             {
                 var uri = new Uri(sourceFile.Location);
                 string localFilePath;
-                AppLaunch.LaunchUriData launchUriData;
+                AppLaunch.LaunchUriData? launchUriData;
                 IPreprocessingStep extensionStep;
 
                 if ((localFilePath = TryDetectLocalFileUri(uri)) != null)
@@ -58,7 +58,7 @@ namespace LogJoint.Preprocessing
             return Task.FromResult(0);
         }
 
-        Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
+        Task<PreprocessingStepParams?> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback)
         {
             throw new InvalidOperationException();
         }

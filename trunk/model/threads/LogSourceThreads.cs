@@ -37,7 +37,7 @@ namespace LogJoint
 
         IThread ILogSourceThreadsInternal.GetThread(StringSlice id)
         {
-            IThread ret;
+            IThread? ret;
             bool writing = false;
 
             threadsDictLock.AcquireReaderLock(Timeout.Infinite);

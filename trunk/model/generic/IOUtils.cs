@@ -93,7 +93,7 @@ namespace LogJoint
             try
             {
                 using (var process = Process.Start(pi))
-                    testFailed = await process.GetExitCodeAsync(TimeSpan.FromSeconds(10)) != 0;
+                    testFailed = process != null && await process.GetExitCodeAsync(TimeSpan.FromSeconds(10)) != 0;
             }
             catch
             {

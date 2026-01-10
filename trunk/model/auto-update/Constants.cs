@@ -27,9 +27,9 @@ namespace LogJoint.AutoUpdate
             RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "../" : ".";
         public static readonly string managedAssembliesLocationRelativeToInstallationRoot =
             RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "MonoBundle/" : ".";
-        public static readonly string nativeExecutableLocationRelativeToInstallationRoot =
+        public static readonly string? nativeExecutableLocationRelativeToInstallationRoot =
             RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "MacOS/logjoint" : null;
-        public static readonly string startAfterUpdateEventName =
+        public static readonly string? startAfterUpdateEventName =
             RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? null : "LogJoint.Updater.StartAfterUpdate";
     };
 }

@@ -7,7 +7,7 @@ namespace LogJoint
     {
         public ThreadPoolSynchronizationContext()
         {
-            this.cb = state => ((Action)state)();
+            this.cb = state => ((Action)state!)();
         }
 
         public void Post(Action action)
