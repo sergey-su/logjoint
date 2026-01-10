@@ -394,10 +394,10 @@ namespace LogJoint.UI.Presenters.SourcesList
                     Preprocessing = pls,
                     Checked = null, // uncheckable
                 };
-                itemData.Description = pls.CurrentStepDescription;
                 if (pls.Failure != null)
-                    itemData.Description = string.Format("{0}. Error: {1}", itemData.Description, pls.Failure.Message);
-                itemData.CombinedDescription = itemData.Description;
+                    itemData.SetDescription(string.Format("{0}. Error: {1}", pls.CurrentStepDescription, pls.Failure.Message));
+                else
+                    itemData.SetDescription(pls.CurrentStepDescription);
                 itemData.ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor;
                 itemData.IsFailed = pls.Failure != null;
                 yield return itemData;
@@ -431,8 +431,7 @@ namespace LogJoint.UI.Presenters.SourcesList
                         ContainerName = containerGroup.Key
                     };
                     item.LogSources = groupSources;
-                    item.Description = string.Format("{0} ({1} logs)", containerGroup.Key, groupSources.Length);
-                    item.CombinedDescription = item.Description;
+                    item.SetDescription(string.Format("{0} ({1} logs)", containerGroup.Key, groupSources.Length));
                     item.ItemColor = groupSources[0].ItemColor;
                     item.Checked = groupSources.All(s => s.Checked.GetValueOrDefault());
                     item.IsExpanded = expanded.Contains(item.GetKey());
@@ -507,16 +506,19 @@ namespace LogJoint.UI.Presenters.SourcesList
             }
 
             IReadOnlyList<AnnotatedTextFragment> msg = msgBuilder.Build();
-            item.Description = string.Join("", msg.Where(f => !f.IsAnnotationFragment).Select(f => f.Value));
-            item.DescriptionFragments = msg;
 
-            item.Annotation = "";
+            string desription = string.Join("", msg.Where(f => !f.IsAnnotationFragment).Select(f => f.Value));
+
+            string annotation = "";
             if (!string.IsNullOrWhiteSpace(s.Annotation))
-                item.Annotation = s.Annotation;
+                annotation = s.Annotation;
 
-            item.CombinedDescription = item.Description;
-            if (appendAnnotation)
-                item.CombinedDescription = item.Annotation + "    " + item.Description;
+            item.SetDescription(
+                description: desription,
+                annotation: annotation,
+                combinedDescription: appendAnnotation ? (annotation + "    " + desription) : desription,
+                descriptionFragments: msg
+            );
         }
 
         ILogSource GetSingleSelectedLogSource()

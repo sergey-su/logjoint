@@ -7,13 +7,32 @@ namespace LogJoint.UI.Presenters.SourcesList
 {
     abstract class ViewItem : IViewItem
     {
+        private string description, annotation, combinedDescription;
+        private IReadOnlyList<AnnotatedTextFragment> descriptionFragments = ImmutableList<AnnotatedTextFragment>.Empty;
         public bool? Checked;
-        public string Description, Annotation, CombinedDescription;
         public Color ItemColor;
         public bool IsFailed;
         public bool IsSelected;
         public SourcesContainerViewItem Parent;
-        public IReadOnlyList<AnnotatedTextFragment> DescriptionFragments = ImmutableList<AnnotatedTextFragment>.Empty;
+
+        public void SetDescription(string description)
+        {
+            this.description = description;
+            this.combinedDescription = description;
+            this.descriptionFragments = [new AnnotatedTextFragment() { Value = new StringSlice(description) }];
+        }
+
+        public void SetDescription(
+            string description,
+            string annotation,
+            string combinedDescription,
+            IReadOnlyList<AnnotatedTextFragment> descriptionFragments)
+        {
+            this.description = description;
+            this.annotation = annotation;
+            this.combinedDescription = combinedDescription;
+            this.descriptionFragments = descriptionFragments;
+        }
 
         string Reactive.ITreeNode.Key => GetKey();
         bool Reactive.ITreeNode.IsExpanded => GetIsExpanded();
@@ -24,15 +43,15 @@ namespace LogJoint.UI.Presenters.SourcesList
         bool? IViewItem.Checked => Checked;
         (Color, bool) IViewItem.Color => (ItemColor, IsFailed);
         IViewItem IViewItem.Parent => Parent;
-        string IViewItem.Description => Description;
-        IReadOnlyList<AnnotatedTextFragment> IViewItem.DescriptionFragments => DescriptionFragments;
-        string IViewItem.Annotation => Annotation;
+        string IViewItem.Description => description;
+        IReadOnlyList<AnnotatedTextFragment> IViewItem.DescriptionFragments => descriptionFragments;
+        string IViewItem.Annotation => annotation;
 
         public abstract string GetKey();
         public abstract IReadOnlyList<Reactive.ITreeNode> GetChildren();
         public virtual bool GetIsExpanded() => false;
 
-        public override string ToString() => CombinedDescription;
+        public override string ToString() => combinedDescription;
 
         public static IEnumerable<Reactive.ITreeNode> Flatten(Reactive.ITreeNode root)
         {
