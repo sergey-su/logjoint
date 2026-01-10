@@ -90,7 +90,7 @@ namespace LogJoint
             }
         }
 
-        void IAsyncLogProviderCommandHandler.Complete(Exception e)
+        void IAsyncLogProviderCommandHandler.Complete(Exception? e)
         {
             if (e != null)
                 task.SetException(e);

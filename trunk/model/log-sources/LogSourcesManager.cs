@@ -55,15 +55,15 @@ namespace LogJoint
             };
         }
 
-        public event EventHandler OnLogSourceAdded;
-        public event EventHandler OnLogSourceRemoved;
-        public event EventHandler OnLogSourceVisiblityChanged;
-        public event EventHandler OnLogSourceTrackingFlagChanged;
-        public event EventHandler OnLogSourceAnnotationChanged;
-        public event EventHandler OnLogSourceTimeOffsetChanged;
-        public event EventHandler OnLogSourceColorChanged;
-        public event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
-        public event EventHandler OnLogTimeGapsChanged;
+        public event EventHandler? OnLogSourceAdded;
+        public event EventHandler? OnLogSourceRemoved;
+        public event EventHandler? OnLogSourceVisiblityChanged;
+        public event EventHandler? OnLogSourceTrackingFlagChanged;
+        public event EventHandler? OnLogSourceAnnotationChanged;
+        public event EventHandler? OnLogSourceTimeOffsetChanged;
+        public event EventHandler? OnLogSourceColorChanged;
+        public event EventHandler<LogSourceStatsEventArgs>? OnLogSourceStatsChanged;
+        public event EventHandler? OnLogTimeGapsChanged;
 
         IReadOnlyList<ILogSource> ILogSourcesManager.Items => logSources;
 
@@ -71,7 +71,7 @@ namespace LogJoint
 
         async Task<ILogSource> ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
         {
-            ILogSource src = ((ILogSourcesManager)this).Find(cp);
+            ILogSource? src = ((ILogSourcesManager)this).Find(cp);
             if (src != null && src.Provider.Stats.State == LogProviderState.LoadError)
             {
                 await src.Dispose();
@@ -90,7 +90,7 @@ namespace LogJoint
             return src;
         }
 
-        ILogSource ILogSourcesManager.Find(IConnectionParams connectParams)
+        ILogSource? ILogSourcesManager.Find(IConnectionParams connectParams)
         {
             return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
         }

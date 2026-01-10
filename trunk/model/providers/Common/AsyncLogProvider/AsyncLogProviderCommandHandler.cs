@@ -8,14 +8,14 @@ namespace LogJoint
     {
         bool RunSynchronously(CommandContext ctx);
         Task ContinueAsynchronously(CommandContext ctx);
-        void Complete(Exception e);
+        void Complete(Exception? e);
     };
 
     internal class CommandContext
     {
         public CancellationToken Cancellation;
         public CancellationToken Preemption;
-        public AsyncLogProviderDataCache Cache;
+        public AsyncLogProviderDataCache? Cache;
         public LJTraceSource Tracer;
         public LogProviderStats Stats;
 
@@ -37,5 +37,14 @@ namespace LogJoint
         long ActivePositionHint { get; }
         LogProviderStats Stats { get; }
         bool ResetPendingUpdateFlag();
+    };
+
+    class StopCommandHandler : IAsyncLogProviderCommandHandler
+    {
+        void IAsyncLogProviderCommandHandler.Complete(Exception? e) { }
+
+        Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx) => Task.CompletedTask;
+
+        bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx) { return false; }
     };
 }

@@ -32,7 +32,7 @@ namespace LogJoint
             }
         }
 
-        void IAsyncLogProviderCommandHandler.Complete(Exception e)
+        void IAsyncLogProviderCommandHandler.Complete(Exception? e)
         {
             task.SetResult(0);
         }

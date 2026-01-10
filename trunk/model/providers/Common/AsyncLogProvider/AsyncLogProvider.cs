@@ -164,7 +164,8 @@ namespace LogJoint
                 disposed = true;
                 if (threadFailureException == null)
                     PostCommand(new Command(Command.CommandType.Stop,
-                        LogProviderCommandPriority.RealtimeUserAction, tracer, CancellationToken.None, null));
+                        LogProviderCommandPriority.RealtimeUserAction, tracer, CancellationToken.None,
+                        new StopCommandHandler()));
                 if (thread != null && !thread.IsCompleted)
                 {
                     tracer.Info("Thread is still alive. Waiting for it to complete.");
@@ -173,8 +174,7 @@ namespace LogJoint
                 for (; commands.Count > 0;)
                 {
                     var cmd = commands.Dequeue();
-                    if (cmd.Handler != null)
-                        cmd.Handler.Complete(new OperationCanceledException("log was closed while handling the command"));
+                    cmd.Handler.Complete(new OperationCanceledException("log was closed while handling the command"));
                     cmd.Complete();
                 }
                 threads.Dispose();
@@ -218,23 +218,20 @@ namespace LogJoint
         void PostCommand(Command cmd)
         {
             tracer.Info("posted cmd {0}", cmd.ToString());
-            if (cmd.Handler != null)
+            bool handledSynchroniously = cmd.Handler.RunSynchronously(new CommandContext()
             {
-                bool handledSynchroniously = cmd.Handler.RunSynchronously(new CommandContext()
-                {
-                    Cancellation = cmd.Cancellation,
-                    Cache = cache,
-                    Preemption = CancellationToken.None,
-                    Stats = externalStats,
-                    Tracer = tracer
-                });
-                cmd.Perfop.Milestone(handledSynchroniously ? "completed synchronously" : "did run synchronous part");
-                if (handledSynchroniously)
-                {
-                    cmd.Handler.Complete(null);
-                    cmd.Complete();
-                    return;
-                }
+                Cancellation = cmd.Cancellation,
+                Cache = cache,
+                Preemption = CancellationToken.None,
+                Stats = externalStats,
+                Tracer = tracer
+            });
+            cmd.Perfop.Milestone(handledSynchroniously ? "completed synchronously" : "did run synchronous part");
+            if (handledSynchroniously)
+            {
+                cmd.Handler.Complete(null);
+                cmd.Complete();
+                return;
             }
             lock (sync)
             {
@@ -691,14 +688,14 @@ namespace LogJoint
         readonly object sync = new object();
         private readonly ISynchronizationContext modelSynchronizationContext;
         private readonly Settings.IGlobalSettingsAccessor globalSettings;
-        Task thread;
-        Exception threadFailureException;
-        IMessagesReader reader;
+        Task? thread;
+        Exception? threadFailureException;
+        IMessagesReader? reader;
         readonly PriorityQueue<Command, Command> commands = new(new Command.Comparer());
         TaskCompletionSource<int> commandPosted = new TaskCompletionSource<int>();
-        CurrentCommandPreemption currentCommandPreemption;
+        CurrentCommandPreemption? currentCommandPreemption;
 
-        IMessage firstMessage;
+        IMessage? firstMessage;
         bool firstUpdateFlag = true;
         int readerContentsEtag;
 
@@ -707,7 +704,7 @@ namespace LogJoint
         LogProviderStats externalStats;
 
         readonly MessagesContainers.RangesManagingCollection messagesCacheBackbuffer = new MessagesContainers.RangesManagingCollection();
-        AsyncLogProviderDataCache cache;
+        AsyncLogProviderDataCache? cache;
         readonly IDateBoundsCache dateBoundsCache = new DateBoundsCache();
 
         long activePositionHint;

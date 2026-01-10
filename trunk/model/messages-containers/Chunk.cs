@@ -50,8 +50,8 @@ namespace LogJoint.MessagesContainers
         IMessage[] data = new IMessage[MaxChunkSize];
         short size;
 
-        internal Chunk prev;
-        internal Chunk next;
+        internal Chunk? prev;
+        internal Chunk? next;
 
         #region ILinesCollection Members
 

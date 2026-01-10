@@ -60,7 +60,7 @@ namespace LogJoint
         /// </summary>
         IReadOnlyList<ILogSource> VisibleItems { get; }
         Task<ILogSource> Create(ILogProviderFactory providerFactory, IConnectionParams cp);
-        ILogSource Find(IConnectionParams connectParams);
+        ILogSource? Find(IConnectionParams connectParams);
         ITimeOffsetsBuilder CreateTimeOffsetsBuilder();
 
         void Refresh();

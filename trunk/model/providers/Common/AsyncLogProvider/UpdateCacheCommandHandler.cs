@@ -61,7 +61,7 @@ namespace LogJoint
             await FillCacheRanges(ctx.Preemption);
         }
 
-        void IAsyncLogProviderCommandHandler.Complete(Exception e)
+        void IAsyncLogProviderCommandHandler.Complete(Exception? e)
         {
         }
 

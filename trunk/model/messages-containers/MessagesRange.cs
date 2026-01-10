@@ -131,7 +131,7 @@ namespace LogJoint.MessagesContainers
 
         IEnumerable<PositionedLine> ForwardIterator(long startFrom)
         {
-            Chunk b = first;
+            Chunk? b = first;
             for (; b != null; b = b.next)
                 if (b.Last.Position >= startFrom)
                     break;
@@ -151,7 +151,7 @@ namespace LogJoint.MessagesContainers
 
         IEnumerable<PositionedLine> ReverseIterator(long startFrom)
         {
-            Chunk b = last;
+            Chunk? b = last;
             for (; b != null; b = b.prev)
                 if (b.First.Position < startFrom)
                     break;
@@ -331,7 +331,7 @@ namespace LogJoint.MessagesContainers
             get
             {
                 int ret = 0;
-                for (Chunk b = first; b != null; b = b.next)
+                for (Chunk? b = first; b != null; b = b.next)
                     ret++;
                 return ret;
             }
@@ -351,7 +351,7 @@ namespace LogJoint.MessagesContainers
             }
         }
 
-        void Add(Chunk b, Chunk e)
+        void Add(Chunk? b, Chunk? e)
         {
             if (b == null)
                 return;
@@ -368,41 +368,17 @@ namespace LogJoint.MessagesContainers
             }
         }
 
-        Chunk Remove(Chunk b)
-        {
-            Chunk ret = null;
-
-            if (b == first)
-            {
-                first = b.next;
-                if (first == null)
-                    last = null;
-                ret = first;
-            }
-            else
-            {
-                b.prev.next = b.next;
-                if (b.next != null)
-                    b.next.prev = b.prev;
-                else
-                    last = b.prev;
-                ret = b.next;
-            }
-
-            return ret;
-        }
-
         #region ConcatCollection members
 
         protected override IEnumerable<IMessagesCollection> GetCollectionsToConcat()
         {
-            for (Chunk b = first; b != null; b = b.next)
+            for (Chunk? b = first; b != null; b = b.next)
                 yield return b;
         }
 
         protected override IEnumerable<IMessagesCollection> GetCollectionsToConcatReverse()
         {
-            for (Chunk b = last; b != null; b = b.prev)
+            for (Chunk? b = last; b != null; b = b.prev)
                 yield return b;
         }
 
@@ -432,10 +408,10 @@ namespace LogJoint.MessagesContainers
             }
         }
 
-        IMessagesRangeHost host;
+        IMessagesRangeHost? host;
         FRange desirableRange;
-        Chunk first;
-        Chunk last;
+        Chunk? first;
+        Chunk? last;
         bool isComplete;
     };
 }

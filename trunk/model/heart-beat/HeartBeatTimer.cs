@@ -15,7 +15,7 @@ namespace LogJoint
             this.collector = collector;
         }
 
-        public event EventHandler<HeartBeatEventArgs> OnTimer;
+        public event EventHandler<HeartBeatEventArgs>? OnTimer;
 
         void IHeartBeatTimer.Suspend()
         {
@@ -73,6 +73,6 @@ namespace LogJoint
         int suspended = 0;
         int timerEventsCounter = 0;
         Task worker;
-        Telemetry.ITelemetryCollector collector;
+        Telemetry.ITelemetryCollector? collector;
     }
 }

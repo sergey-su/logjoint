@@ -126,7 +126,7 @@ namespace LogJoint
             dateBoundsCache.Set(date, result);
         }
 
-        void IAsyncLogProviderCommandHandler.Complete(Exception e)
+        void IAsyncLogProviderCommandHandler.Complete(Exception? e)
         {
             if (e != null)
                 task.SetException(e);

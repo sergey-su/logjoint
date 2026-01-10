@@ -27,7 +27,7 @@ namespace LogJoint
             await owner.UpdateAvailableTime(incrementalMode: true);
         }
 
-        void IAsyncLogProviderCommandHandler.Complete(Exception e)
+        void IAsyncLogProviderCommandHandler.Complete(Exception? e)
         {
         }
 
