@@ -135,7 +135,7 @@ namespace LogJoint.Preprocessing
         void YieldLogProvider(YieldedProvider provider);
         void YieldChildPreprocessing(IRecentlyUsedEntity log, bool makeHiddenLog);
         void YieldNextStep(IPreprocessingStep step);
-        Task<PreprocessingStepParams> ReplayHistory(ImmutableArray<PreprocessingHistoryItem> history);
+        Task<PreprocessingStepParams?> ReplayHistory(ImmutableArray<PreprocessingHistoryItem> history);
         /// <summary>
         /// await on the returned Awaitable to schedule the rest of your IPreprocessingStep's method
         /// for execution in the thread-pool. All subsequent await-able calls will also be done in
@@ -290,7 +290,7 @@ namespace LogJoint.Preprocessing
     public interface IPreprocessingManagerExtension
     {
         IPreprocessingStep DetectFormat(PreprocessingStepParams param, IStreamHeader header);
-        IPreprocessingStep CreateStepByName(string stepName, PreprocessingStepParams stepParams);
+        IPreprocessingStep? CreateStepByName(string stepName, PreprocessingStepParams stepParams);
         IPreprocessingStep TryParseLaunchUri(Uri url);
         Task FinalizePreprocessing(IPreprocessingStepCallback callback);
     };

@@ -6,7 +6,7 @@ namespace LogJoint
 {
     public class ComponentModelSynchronizationContext : ISynchronizationContext
     {
-        public ComponentModelSynchronizationContext(ISynchronizeInvoke impl, Func<bool> isReady = null)
+        public ComponentModelSynchronizationContext(ISynchronizeInvoke impl, Func<bool>? isReady = null)
         {
             this.impl = impl;
             this.isReady = isReady != null ? isReady : () => true;

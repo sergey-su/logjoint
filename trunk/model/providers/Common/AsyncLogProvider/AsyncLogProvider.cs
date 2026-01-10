@@ -464,7 +464,7 @@ namespace LogJoint
             }
         }
 
-        private static DateRange GetAvailableDateRangeHelper(IMessage first, IMessage last)
+        private static DateRange GetAvailableDateRangeHelper(IMessage? first, IMessage? last)
         {
             if (first == null || last == null)
                 return DateRange.MakeEmpty();

@@ -135,9 +135,9 @@ namespace LogJoint.Profiling
 
         public class Writer
         {
-            private readonly Counters owner;
+            private readonly Counters? owner;
 
-            internal Writer(Counters owner)
+            internal Writer(Counters? owner)
             {
                 this.owner = owner;
             }
@@ -169,7 +169,7 @@ namespace LogJoint.Profiling
             /// Time is meaasured in <see cref="TimeSpan"/> ticks.
             /// Can return null if <see cref="Writer"/> is a Null writer.
             /// </summary>
-            public IDisposable IncrementTicks(CounterDescriptor counter)
+            public IDisposable? IncrementTicks(CounterDescriptor counter)
             {
                 if (owner == null)
                     return null;

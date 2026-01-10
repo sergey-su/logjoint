@@ -75,7 +75,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         StateInspectorEvent IInspectedObject.CreationEvent { get { return creation; } }
 
-        string IInspectedObject.GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage)
+        string? IInspectedObject.GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage)
         {
             if (primaryPropertyName == null)
                 return null;
@@ -161,9 +161,9 @@ namespace LogJoint.Postprocessing.StateInspector
                 .TakeWhile(e => isTimeless || e.Index < focusedMessageEqualRange.EqualRange.Item2)
                 .Select(e => new { ChangeEvt = e.OriginalEvent as PropertyChange, StateInspectorEvt = e })
                 .Where(e => e.ChangeEvt != null)
-                .Where(e => descriptionPropertyName == null || e.ChangeEvt.PropertyName != descriptionPropertyName))
+                .Where(e => descriptionPropertyName == null || e.ChangeEvt!.PropertyName != descriptionPropertyName))
             {
-                dynamicProps[change.ChangeEvt.PropertyName] =
+                dynamicProps[change.ChangeEvt!.PropertyName] =
                     new PropertyChangeView(this, change.StateInspectorEvt, ToPropDisplayMode(change.ChangeEvt.ValueType));
             }
             foreach (var v in dynamicProps)
@@ -210,7 +210,7 @@ namespace LogJoint.Postprocessing.StateInspector
             var change = query.FirstOrDefault();
             if (change == null)
                 return "";
-            return change.Value;
+            return change.Value ?? "";
         }
 
         readonly IStateInspectorOutputsGroup owner;

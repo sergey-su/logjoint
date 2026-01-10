@@ -38,7 +38,7 @@ namespace LogJoint
 
         Search.Options ISimpleSearchHistoryEntry.Options => ToSearchOptions();
 
-        bool IEquatable<ISearchHistoryEntry>.Equals(ISearchHistoryEntry other)
+        bool IEquatable<ISearchHistoryEntry>.Equals(ISearchHistoryEntry? other)
         {
             var e = other as SearchHistoryEntry;
             if (e == null)

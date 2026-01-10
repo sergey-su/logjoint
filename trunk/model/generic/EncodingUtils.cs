@@ -16,7 +16,7 @@ namespace LogJoint
             return Encoding.Default;
         }
 
-        public static Encoding GetEncodingFromConfigXMLName(string encoding, LJTraceSource trace)
+        public static Encoding? GetEncodingFromConfigXMLName(string encoding, LJTraceSource trace)
         {
             if (encoding == null)
                 encoding = "";
@@ -50,7 +50,7 @@ namespace LogJoint
             return tmpReader.CurrentEncoding ?? defaultEncoding;
         }
 
-        public static Encoding DetectEncodingFromProcessingInstructions(Stream stream)
+        public static Encoding? DetectEncodingFromProcessingInstructions(Stream stream)
         {
             stream.Position = 0;
             XmlReaderSettings rs = new XmlReaderSettings();
@@ -64,7 +64,7 @@ namespace LogJoint
                     {
                         if (tmpReader.NodeType == XmlNodeType.XmlDeclaration)
                         {
-                            string encoding = tmpReader.GetAttribute("encoding");
+                            string? encoding = tmpReader.GetAttribute("encoding");
                             if (!string.IsNullOrEmpty(encoding))
                             {
                                 try

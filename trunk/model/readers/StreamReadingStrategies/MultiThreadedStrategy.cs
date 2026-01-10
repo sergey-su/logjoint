@@ -172,7 +172,7 @@ namespace LogJoint.StreamReadingStrategies
             public StreamTextAccess textAccess;
             public IMessagesSplitter splitter;
             public TextMessageCapture capture;
-            public IMessagesPostprocessor postprocessor;
+            public IMessagesPostprocessor? postprocessor;
             public UserThreadLocalData userData;
         };
 
@@ -392,7 +392,7 @@ namespace LogJoint.StreamReadingStrategies
                 var postprocessor = tls.postprocessor;
 
                 tls.splitter.BeginSplittingSession(
-                    owner.currentParams.Range.Value,
+                    owner.currentParams.Range!.Value,
                     pieceOfWork.startTextPosition,
                     direction).Wait(); // Wait() could be a problem in blazor, but blazor won't use multi-threaded strategy
                 for (; ; )

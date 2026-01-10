@@ -56,7 +56,7 @@ namespace LogJoint.Postprocessing.Timeline
         public object Trigger;
         public readonly string DisplayName;
         public readonly int TemplateId;
-        public HashSet<string>? Tags { get { return tags; } set { tags = value; } }
+        public HashSet<string> Tags { get { return tags; } set { tags = value; } }
 
         protected Event(object trigger, string displayName, int templateId)
         {
@@ -75,7 +75,7 @@ namespace LogJoint.Postprocessing.Timeline
             return stringifier.Output.ToString();
         }
 
-        HashSet<string>? tags;
+        HashSet<string> tags;
     };
 
     public enum ActivityEventType

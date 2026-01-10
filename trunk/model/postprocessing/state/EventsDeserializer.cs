@@ -73,14 +73,14 @@ namespace LogJoint.Postprocessing.StateInspector
             return ValueType.Scalar;
         }
 
-        object MakeTrigger(XElement e)
+        object? MakeTrigger(XElement e)
         {
             if (triggerDeserializer != null)
                 return triggerDeserializer(e);
             return null;
         }
 
-        static string Attr(XElement e, string name)
+        static string? Attr(XElement e, string name)
         {
             var attr = e.Attribute(name);
             return attr == null ? null : attr.Value;
@@ -88,7 +88,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         class ObjectTypeInfoPoolComparer : IEqualityComparer<ObjectTypeInfo>
         {
-            bool IEqualityComparer<ObjectTypeInfo>.Equals(ObjectTypeInfo x, ObjectTypeInfo y)
+            bool IEqualityComparer<ObjectTypeInfo>.Equals(ObjectTypeInfo? x, ObjectTypeInfo? y)
             {
                 return ObjectTypeInfo.Equals(x, y);
             }

@@ -200,7 +200,7 @@ namespace LogJoint.Settings
 
                 appearance = Validate(new Appearance(
                     fontSize: (Appearance.LogFontSize)root.SafeIntValue(fontSizeAttrName, (int)Appearance.Default.FontSize),
-                    fontFamily: root.AttributeValue(fontNameAttrName, Appearance.Default.FontFamily),
+                    fontFamily: root.AttributeValue(fontNameAttrName, Appearance.Default.FontFamily ?? ""),
                     coloring: (Appearance.ColoringMode)root.SafeIntValue(coloringAttrName, (int)Appearance.Default.Coloring),
                     coloringBrightness: (PaletteBrightness)root.SafeIntValue(coloringPaletteAttrName, (int)Appearance.Default.ColoringBrightness),
                     theme: (Appearance.ColorTheme)root.SafeIntValue(themeAttrName, (int)Appearance.Default.Theme)

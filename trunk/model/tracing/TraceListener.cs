@@ -14,20 +14,20 @@ namespace LogJoint
     public class TraceListener : System.Diagnostics.TraceListener
     {
         const string NullStr = "(null)";
-        readonly Lazy<TextWriter> writer;
+        readonly Lazy<TextWriter?> writer;
         readonly ConcurrentQueue<Entry> entries = new ConcurrentQueue<Entry>();
         int writeToStreamScheduled;
         bool disposed;
         readonly bool enableMemBuffer;
         readonly bool enableConsole;
         readonly uint memBufMaxSize = 128 * 1024;
-        CircularBuffer memBuffer;
-        static TraceListener lastInstance;
+        CircularBuffer? memBuffer;
+        static TraceListener? lastInstance;
         readonly bool enableLogicalThread;
 
         class InitializationParams
         {
-            public readonly string FileName;
+            public readonly string? FileName;
             public readonly bool EnableMemBuffer;
             public readonly bool EnableConsole;
             public readonly bool EnableLogicalThread;
@@ -65,8 +65,8 @@ namespace LogJoint
             public EntryType type;
             public DateTime dt;
             public string thread;
-            public string logicalThread;
-            public string message;
+            public string? logicalThread;
+            public string? message;
             public TraceEventType msgType;
 
             public void Write(TextWriter w)
@@ -86,7 +86,7 @@ namespace LogJoint
         {
         }
 
-        public static TraceListener LastInstance
+        public static TraceListener? LastInstance
         {
             get { return lastInstance; }
         }
@@ -96,7 +96,7 @@ namespace LogJoint
             get { return enableMemBuffer; }
         }
 
-        public List<Entry> ClearMemBufferAndGetCurrentEntries()
+        public List<Entry>? ClearMemBufferAndGetCurrentEntries()
         {
             if (!enableMemBuffer)
                 return null;
@@ -120,14 +120,14 @@ namespace LogJoint
             AddEntry(new Entry() { type = EntryType.Flush });
         }
 
-        public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
+        public override void TraceData(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, object? data)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(eventCache, source, eventType, id, null, null, data, null))
                 return;
             AddMessage(eventCache, source, eventType, data != null ? data.ToString() : NullStr);
         }
 
-        public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, params object[] data)
+        public override void TraceData(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, params object?[]? data)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(eventCache, source, eventType, id, null, null, null, data))
                 return;
@@ -138,21 +138,22 @@ namespace LogJoint
                 {
                     if (i != 0)
                         messageBuilder.Append(", ");
-                    if (data[i] != null)
-                        messageBuilder.Append(data[i].ToString());
+                    string? s = data[i]?.ToString();
+                    if (s != null)
+                        messageBuilder.Append(s);
                 }
             }
             AddMessage(eventCache, source, eventType, messageBuilder.ToString());
         }
 
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
+        public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, string? message)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(eventCache, source, eventType, id, message, null, null, null))
                 return;
             AddMessage(eventCache, source, eventType, message);
         }
 
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+        public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, string? format, params object?[]? args)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
                 return;
@@ -162,28 +163,28 @@ namespace LogJoint
                 AddMessage(eventCache, source, eventType, format);
         }
 
-        public override void Write(string message)
+        public override void Write(string? message)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(null, "", TraceEventType.Verbose, 0, message, null, null, null))
                 return;
             AddVerboseMessage(message);
         }
 
-        public override void Write(object obj)
+        public override void Write(object? obj)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(null, "", TraceEventType.Verbose, 0, null, null, obj, null))
                 return;
             AddVerboseMessage(obj == null ? NullStr : obj.ToString());
         }
 
-        public override void Write(string message, string category)
+        public override void Write(string? message, string? category)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(null, "", TraceEventType.Verbose, 0, message, null, null, null))
                 return;
             AddVerboseMessage((category ?? NullStr) + ": " + (message ?? NullStr));
         }
 
-        public override void Write(object obj, string category)
+        public override void Write(object? obj, string? category)
         {
             if (this.Filter != null && !this.Filter.ShouldTrace(null, "", TraceEventType.Verbose, 0, category, null, obj, null))
                 return;
@@ -194,22 +195,22 @@ namespace LogJoint
         {
         }
 
-        public override void WriteLine(string message)
+        public override void WriteLine(string? message)
         {
             Write(message);
         }
 
-        public override void WriteLine(object obj)
+        public override void WriteLine(object? obj)
         {
             Write(obj);
         }
 
-        public override void WriteLine(string message, string category)
+        public override void WriteLine(string? message, string? category)
         {
             Write(message, category);
         }
 
-        public override void WriteLine(object obj, string category)
+        public override void WriteLine(object? obj, string? category)
         {
             Write(obj, category);
         }
@@ -217,7 +218,7 @@ namespace LogJoint
         private TraceListener(InitializationParams initializationParams)
             : base(initializationParams.FileName)
         {
-            writer = new Lazy<TextWriter>(() =>
+            writer = new Lazy<TextWriter?>(() =>
             {
                 if (string.IsNullOrEmpty(initializationParams.FileName))
                 {
@@ -243,21 +244,21 @@ namespace LogJoint
             lastInstance = this;
         }
 
-        void AddVerboseMessage(string message)
+        void AddVerboseMessage(string? message)
         {
             AddMessage(new TraceEventCache(), "", TraceEventType.Verbose, message);
         }
 
-        void AddMessage(TraceEventCache evtCache, string source, TraceEventType eventType, string message)
+        void AddMessage(TraceEventCache? evtCache, string source, TraceEventType eventType, string? message)
         {
             AddEntry(new Entry()
             {
                 type = EntryType.LogMessage,
-                dt = evtCache.DateTime,
+                dt = evtCache != null ? evtCache.DateTime : DateTime.Now,
                 thread =
                     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? // on mono TraceEventCache.ThreadId does not return ID but thread name
                         Thread.CurrentThread.ManagedThreadId.ToString() :
-                        evtCache.ThreadId,
+                        evtCache?.ThreadId ?? "",
                 logicalThread = enableLogicalThread ? (SynchronizationContext.Current?.ToString() ?? "NA") : null,
                 msgType = eventType,
                 message = message
@@ -332,7 +333,7 @@ namespace LogJoint
             else if (e.type == EntryType.Cleanup)
             {
                 if (writer.IsValueCreated)
-                    writer.Value.Close();
+                    writer.Value?.Close();
                 disposed = true;
             }
         }

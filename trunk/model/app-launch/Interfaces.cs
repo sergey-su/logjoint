@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -12,7 +13,7 @@ namespace LogJoint.AppLaunch
 
     public interface ILaunchUrlParser
     {
-        bool TryParseLaunchUri(Uri uri, out LaunchUriData data);
+        bool TryParseLaunchUri(Uri uri, [MaybeNullWhen(false)] out LaunchUriData data);
         string ProtocolName { get; }
     }
 

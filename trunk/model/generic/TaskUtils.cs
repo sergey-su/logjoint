@@ -8,6 +8,7 @@ using System.Threading;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LogJoint
 {
@@ -103,7 +104,7 @@ namespace LogJoint
             }
         }
 
-        public static async Task<T> IgnoreCancellation<T>(this Task<T> task, T defaultValue = default(T))
+        public static async Task<T> IgnoreCancellation<T>(this Task<T> task, T defaultValue = default)
         {
             try
             {

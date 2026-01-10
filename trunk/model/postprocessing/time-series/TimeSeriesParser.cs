@@ -31,7 +31,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             _classifierFromObjectAddress = firstTs.ObjectIdFromAddress;
         }
 
-        public static TimeSeriesEventParser TryCreate(Type eventType, Regex regex, string prefix, UInt32 numericId)
+        public static TimeSeriesEventParser? TryCreate(Type eventType, Regex regex, string prefix, UInt32 numericId)
         {
             if (prefix == null && numericId == 0)
                 return null;
@@ -43,7 +43,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             return new TimeSeriesEventParser(eventType, tsAttr, regex, prefix, numericId);
         }
 
-        void ILineParser.Parse(string text, ILineParserVisitor visitor, string objectAddress)
+        void ILineParser.Parse(string text, ILineParserVisitor visitor, string? objectAddress)
         {
             var match = _regEx.Match(text);
             if (!match.Success)
@@ -51,7 +51,7 @@ namespace LogJoint.Postprocessing.TimeSeries
                 return;
             }
 
-            string objectId = null;
+            string? objectId = null;
             if (_classifierGroup != null)
             {
                 objectId = match.Groups[_classifierGroup].Value;

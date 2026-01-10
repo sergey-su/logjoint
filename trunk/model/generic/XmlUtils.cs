@@ -30,7 +30,7 @@ namespace System.Xml.Linq
             return source.Elements(name);
         }
 
-        public static XElement SafeElement(this XContainer source, XName name)
+        public static XElement? SafeElement(this XContainer source, XName name)
         {
             if (source == null)
                 return null;
@@ -51,7 +51,7 @@ namespace System.Xml.Linq
             return source.IntValue(name).GetValueOrDefault(defaultValue);
         }
 
-        public static int SafeIntValue(this XElement source, XName name, int defaultValue)
+        public static int SafeIntValue(this XElement? source, XName name, int defaultValue)
         {
             if (source == null)
                 return defaultValue;

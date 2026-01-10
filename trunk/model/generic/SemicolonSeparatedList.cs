@@ -56,11 +56,11 @@ namespace LogJoint
             return true;
         }
 
-        public string this[string name]
+        public string? this[string name]
         {
             get
             {
-                values.TryGetValue(name, out string ret);
+                values.TryGetValue(name, out string? ret);
                 return ret;
             }
             set

@@ -6,10 +6,10 @@ namespace LogJoint.AutoUpdate
 {
     class UpdateKey : IUpdateKey
     {
-        readonly string appEtag;
+        readonly string? appEtag;
         readonly IReadOnlyDictionary<string, string> pluginEtags;
 
-        public UpdateKey(string appEtag, IReadOnlyDictionary<string, string> pluginEtags)
+        public UpdateKey(string? appEtag, IReadOnlyDictionary<string, string> pluginEtags)
         {
             this.appEtag = appEtag;
             this.pluginEtags = pluginEtags ?? throw new NullReferenceException(nameof(pluginEtags));

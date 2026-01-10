@@ -112,13 +112,13 @@ namespace LogJoint
         }
 
         [Conditional("TRACE")]
-        public void Info(string fmt, params object[] args)
+        public void Info(string fmt, params object?[] args)
         {
             this.Message(TraceEventType.Information, fmt, args);
         }
 
         [Conditional("TRACE")]
-        public void Message(TraceEventType t, string fmt, params object[] args)
+        public void Message(TraceEventType t, string fmt, params object?[] args)
         {
             var bld = new StringBuilder();
             bld.AppendFormat("{0}: ", prefix);

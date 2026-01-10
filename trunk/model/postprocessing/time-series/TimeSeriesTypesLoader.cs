@@ -11,12 +11,12 @@ namespace LogJoint.Postprocessing.TimeSeries
 {
     public class TimeSeriesTypesLoader : ITimeSeriesTypesAccess
     {
-        string customConfigEnvVar;
+        string? customConfigEnvVar;
         readonly HashSet<Assembly> timeSeriesTypesAssemblies = new HashSet<Assembly>();
         readonly object sync = new object();
-        XmlSerializer eventsSerializer;
-        XmlSerializer seriesSerializer;
-        Metadata metadataCache;
+        XmlSerializer? eventsSerializer;
+        XmlSerializer? seriesSerializer;
+        Metadata? metadataCache;
         long lastCustomConfigUpdateCheck = Environment.TickCount;
 
         void ITimeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(Assembly asm)
@@ -132,7 +132,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             return metadataCache;
         }
 
-        static IEnumerable<string> GetUserDefinedParserConfigPaths(string evnVar)
+        static IEnumerable<string> GetUserDefinedParserConfigPaths(string? evnVar)
         {
             var envPathOverride = evnVar != null ? Environment.GetEnvironmentVariable(evnVar) : null;
             if (envPathOverride != null)
@@ -142,7 +142,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 
         static Metadata CreateMetadata(string evnVar, Assembly[] registeredTimeSeriesTypesAssemblies)
         {
-            Metadata asm = null;
+            Metadata? asm = null;
 
             var customConfigLoadingError = new StringBuilder();
             foreach (var customPath in GetUserDefinedParserConfigPaths(evnVar))

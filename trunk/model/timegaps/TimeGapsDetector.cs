@@ -97,7 +97,7 @@ namespace LogJoint
             return r == ResultCode.Stop || r == ResultCode.Invalidate;
         }
 
-        async Task<ResultCode> WaitEvents(int timeout, Task userEvent)
+        async Task<ResultCode> WaitEvents(int timeout, Task? userEvent)
         {
             var evts = new List<Task>
             {
@@ -241,7 +241,7 @@ namespace LogJoint
                     else
                         currentDate = MessageTimestamp.MaxValue;
 
-                    Task<DateBoundPositionResponseData> getBoundsTask = null;
+                    Task<DateBoundPositionResponseData>? getBoundsTask = null;
 
                     for (int iteration = 0; ; ++iteration)
                     {
@@ -352,7 +352,7 @@ namespace LogJoint
 
                     if (advanceDate)
                     {
-                        trace.Info("reader might need to advance the current date from {0} to {1}. Getting writer lock to make final decision...", currentDate, res.Message.Time);
+                        trace.Info("reader might need to advance the current date from {0} to {1}. Getting writer lock to make final decision...", currentDate, res.Message!.Time);
 
                         if (shouldAdvanceDate(res.Message.Time))
                         {

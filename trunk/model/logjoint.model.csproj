@@ -5,6 +5,7 @@
     <LangVersion>14.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
   </PropertyGroup>
 

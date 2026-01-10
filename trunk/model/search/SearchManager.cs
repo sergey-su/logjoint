@@ -189,9 +189,9 @@ namespace LogJoint
             CombinedSearchResultChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        ISearchResultInternal GetTopSearch()
+        ISearchResultInternal? GetTopSearch()
         {
-            ISearchResultInternal candidate = null;
+            ISearchResultInternal? candidate = null;
             foreach (var r in results)
                 if (candidate == null || r.Id > candidate.Id)
                     candidate = r;
@@ -208,12 +208,14 @@ namespace LogJoint
 
         class SearchResultComparer : IEqualityComparer<ISearchResultInternal>
         {
-            bool IEqualityComparer<ISearchResultInternal>.Equals(ISearchResultInternal x, ISearchResultInternal y)
+            bool IEqualityComparer<ISearchResultInternal>.Equals(ISearchResultInternal? x, ISearchResultInternal? y)
             {
+                if (ReferenceEquals(x, y)) return true;
+                if (x == null || y == null) return false;
                 if ((x.OptionsFilter != null) != (y.OptionsFilter != null))
                     return false;
                 if (x.OptionsFilter != null)
-                    return Search.EqualityComparer.Instance.Equals(x.OptionsFilter.Options, y.OptionsFilter.Options);
+                    return Search.EqualityComparer.Instance.Equals(x.OptionsFilter.Options, y.OptionsFilter!.Options);
                 else
                     return x.Options.SearchName == y.Options.SearchName;
             }

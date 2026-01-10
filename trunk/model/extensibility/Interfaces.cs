@@ -81,7 +81,7 @@ namespace LogJoint.Extensibility
 
     public class BadManifestException : Exception
     {
-        public BadManifestException(string message, Exception inner = null) : base(message, inner) { }
+        public BadManifestException(string message, Exception? inner = null) : base(message, inner) { }
     };
 
     public interface IPluginsIndex

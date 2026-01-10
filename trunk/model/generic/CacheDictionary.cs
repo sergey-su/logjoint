@@ -6,12 +6,12 @@ using System.Threading;
 
 namespace LogJoint
 {
-    public class CacheDictionary<K, V>
+    public class CacheDictionary<K, V> where K: notnull
     {
         public class Entry
         {
             public bool valid;
-            public V value;
+            required public V value;
         };
 
         readonly Dictionary<K, Entry> cache = new Dictionary<K, Entry>();
@@ -24,22 +24,22 @@ namespace LogJoint
 
         public V Get(K key, Func<K, V> factory)
         {
-            Entry entry;
+            Entry? entry;
             if (!cache.TryGetValue(key, out entry))
                 cache.Add(key, entry = new Entry() { value = factory(key) });
             entry.valid = true;
             return entry.value;
         }
 
-        public V Get(K key)
+        public V? Get(K key)
         {
-            Entry entry;
+            Entry? entry;
             if (!cache.TryGetValue(key, out entry))
-                return default(V);
+                return default;
             return entry.value;
         }
 
-        public void Cleanup(Action<KeyValuePair<K, V>> finalizer = null)
+        public void Cleanup(Action<KeyValuePair<K, V>>? finalizer = null)
         {
             var deadEntries = cache.Where(x => !x.Value.valid).ToList();
             foreach (var e in deadEntries)

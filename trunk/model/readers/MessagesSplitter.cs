@@ -428,18 +428,18 @@ namespace LogJoint
 
         readonly ITextAccess textAccess;
         private readonly IRegex forwardModeRe;
-        private IRegex backwardModeRe;
-        IMatch forwardModeMatch, backwardModeMatch;
+        private IRegex? backwardModeRe;
+        IMatch? forwardModeMatch, backwardModeMatch;
         readonly int bufferLengthThreshold;
 
         bool sessionIsOpen;
-        IRegex re;
+        IRegex? re;
         bool quickNewLineOptimizationAvailable;
-        IMatch currentMessageHeaderMatch;
+        IMatch? currentMessageHeaderMatch;
         ReadMessagesDirection direction;
         FileRange.Range range;
-        ITextAccessIterator textIterator;
-        string cachedCurrentBuffer;
+        ITextAccessIterator? textIterator;
+        string? cachedCurrentBuffer;
 
         // These fields relate to current message's header. Are idxs in cachedCurrentBuffer.
         int headerPointer1; // index of a) header's end in forward mode b) header's begin in backward mode

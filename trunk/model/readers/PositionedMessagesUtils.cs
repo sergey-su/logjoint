@@ -17,7 +17,7 @@ namespace LogJoint
         {
             if (position == reader.BeginPosition)
                 return position;
-            IMessage m = await ReadNearestMessage(reader, position,
+            IMessage? m = await ReadNearestMessage(reader, position,
                 ReadMessagesFlag.HintMessageTimeIsNotNeeded | ReadMessagesFlag.HintMessageContentIsNotNeeed);
             if (m != null)
                 return m.Position;
@@ -66,7 +66,7 @@ namespace LogJoint
 
         public static async Task<MessageTimestamp?> ReadNearestMessageTimestamp(IMessagesReader reader, long position)
         {
-            IMessage m = await ReadNearestMessage(reader, position, ReadMessagesFlag.HintMessageContentIsNotNeeed);
+            IMessage? m = await ReadNearestMessage(reader, position, ReadMessagesFlag.HintMessageContentIsNotNeeed);
             if (m != null)
                 return m.Time;
             return null;
@@ -86,11 +86,11 @@ namespace LogJoint
         /// the message with the smallest available position.</param>
         /// <param name="lastMessage">When the function returns 
         /// <paramref name="lastMessage"/> receives the message with the largest available position.</param>
-        public static async Task<(IMessage firstMessage, IMessage lastMessage)> GetBoundaryMessages(
+        public static async Task<(IMessage? firstMessage, IMessage? lastMessage)> GetBoundaryMessages(
             IMessagesReader reader,
-            IMessage cachedFirstMessage)
+            IMessage? cachedFirstMessage)
         {
-            IMessage firstMessage, lastMessage;
+            IMessage? firstMessage, lastMessage;
             if (cachedFirstMessage == null)
             {
                 firstMessage = await ReadNearestMessage(reader, reader.BeginPosition);
@@ -167,12 +167,12 @@ namespace LogJoint
             return pos;
         }
 
-        static public Task<IMessage> ReadNearestMessage(IMessagesReader reader, long position)
+        static public Task<IMessage?> ReadNearestMessage(IMessagesReader reader, long position)
         {
             return ReadNearestMessage(reader, position, ReadMessagesFlag.Default);
         }
 
-        static public async Task<IMessage> ReadNearestMessage(IMessagesReader reader, long position, ReadMessagesFlag flags)
+        static public async Task<IMessage?> ReadNearestMessage(IMessagesReader reader, long position, ReadMessagesFlag flags)
         {
             await foreach (var msg in reader.Read(new ReadMessagesParams(position, null, flags, ReadMessagesDirection.Forward)))
             {

@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace LogJoint.AppLaunch
 {
     public class LaunchUrlParser : ILaunchUrlParser
     {
-        bool ILaunchUrlParser.TryParseLaunchUri(Uri uri, out LaunchUriData data)
+        bool ILaunchUrlParser.TryParseLaunchUri(Uri uri, [MaybeNullWhen(false)] out LaunchUriData data)
         {
             data = null;
             if (string.Compare(uri.Scheme, protocolName, true) != 0)
@@ -16,7 +17,7 @@ namespace LogJoint.AppLaunch
 
         string ILaunchUrlParser.ProtocolName { get { return protocolName; } }
 
-        LaunchUriData CreateData(Uri uri)
+        LaunchUriData? CreateData(Uri uri)
         {
             // Logic below involves parsing of query string.
             // Having this in a separate function ensures loading of System.Web.dll on demand 

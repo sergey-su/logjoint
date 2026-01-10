@@ -67,7 +67,7 @@ namespace LogJoint
             owner = null;
         }
 
-        void HandleFiltersListChange(object sender, EventArgs args)
+        void HandleFiltersListChange(object? sender, EventArgs args)
         {
             owner?.OnFiltersChanged(this);
         }

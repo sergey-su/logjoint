@@ -75,7 +75,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
             foreach (var newGroup in newGroups)
             {
-                RotatedLogGroup existingGroup;
+                RotatedLogGroup? existingGroup;
                 if (oldGroups.TryGetValue(newGroup.key, out existingGroup))
                     builder.Add(newGroup.key, existingGroup);
                 else
@@ -141,7 +141,7 @@ namespace LogJoint.Postprocessing.StateInspector
                 get { return parts; }
             }
 
-            bool IStateInspectorOutputsGroup.TryGetDisplayName(string objectId, out string displayName)
+            bool IStateInspectorOutputsGroup.TryGetDisplayName(string objectId, out string? displayName)
             {
                 displayName = null;
                 return objectId != null && displayNames.TryGetValue(objectId, out displayName);
@@ -154,7 +154,7 @@ namespace LogJoint.Postprocessing.StateInspector
                         new SourceReferencePropertyView(this, parts[i].LogSource));
             }
 
-            string IInspectedObject.GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage) => null;
+            string? IInspectedObject.GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage) => null;
 
             InspectedObjectLiveStatus IInspectedObject.GetLiveStatus(FocusedMessageEventsRange focusedMessage) => InspectedObjectLiveStatus.Alive;
 
@@ -191,17 +191,17 @@ namespace LogJoint.Postprocessing.StateInspector
 
             string IInspectedObject.Id => key;
 
-            string IInspectedObject.DisplayName => null;
+            string? IInspectedObject.DisplayName => null;
 
             string IInspectedObject.Comment => "";
 
             string IInspectedObject.Description => "";
 
-            IInspectedObject IInspectedObject.Parent => null;
+            IInspectedObject? IInspectedObject.Parent => null;
 
             IEnumerable<StateInspectorEvent> IInspectedObject.StateChangeHistory => Enumerable.Empty<StateInspectorEvent>();
 
-            StateInspectorEvent IInspectedObject.CreationEvent => null;
+            StateInspectorEvent? IInspectedObject.CreationEvent => null;
 
             bool IInspectedObject.IsTimeless => true;
         }

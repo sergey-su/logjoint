@@ -44,11 +44,11 @@ namespace LogJoint.Postprocessing.TimeSeries
         private EventDescriptor _eventDescriptor;
 
         private readonly Regex _regEx;
-        private readonly string _prefix;
+        private readonly string? _prefix;
         private readonly UInt32 _numericId;
 
 
-        private GenericEventParser(Type eventDataType, EventAttribute eAttr, Regex regex, string prefix, UInt32 numericId)
+        private GenericEventParser(Type eventDataType, EventAttribute eAttr, Regex regex, string? prefix, UInt32 numericId)
         {
             _eventDataType = eventDataType;
             _regEx = regex;
@@ -65,7 +65,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             }
         }
 
-        public static GenericEventParser TryCreate(Type eventDataType, Regex regex, string prefix, UInt32 numericId)
+        public static GenericEventParser? TryCreate(Type eventDataType, Regex regex, string prefix, UInt32 numericId)
         {
             if (prefix == null && numericId == 0)
                 return null;
@@ -77,7 +77,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             return new GenericEventParser(eventDataType, eAttr, regex, prefix, numericId);
         }
 
-        void ILineParser.Parse(string text, ILineParserVisitor visitor, string objectAddress)
+        void ILineParser.Parse(string text, ILineParserVisitor visitor, string? objectAddress)
         {
             var match = _regEx.Match(text);
             if (!match.Success)

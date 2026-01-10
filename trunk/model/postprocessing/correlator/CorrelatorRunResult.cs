@@ -16,20 +16,20 @@ namespace LogJoint.Postprocessing.Correlation
             this.correlatedConnectionIds = correlatedConnectionIds;
         }
 
-        public static CorrelatorRunResult Parse(XmlReader reader)
+        public static CorrelatorRunResult? Parse(XmlReader reader)
         {
             return Parse(XDocument.Load(reader));
         }
 
-        public static CorrelatorRunResult Parse(XDocument doc)
+        public static CorrelatorRunResult? Parse(XDocument doc)
         {
             if (doc == null)
                 return null;
-            var slnNode = doc.Root.Element(NodeSolution.XmlName);
+            var slnNode = doc.Root?.Element(NodeSolution.XmlName);
             if (slnNode == null)
                 return null;
             var solution = new NodeSolution(slnNode);
-            var correlatedConnectionIds = new HashSet<string>(doc.Root.Elements("context").Elements("conn-id").Select(e => e.Value));
+            var correlatedConnectionIds = new HashSet<string>(doc.Root!.Elements("context").Elements("conn-id").Select(e => e.Value));
             return new CorrelatorRunResult(solution, correlatedConnectionIds);
         }
 

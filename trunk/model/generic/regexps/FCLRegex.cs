@@ -7,7 +7,7 @@ namespace LogJoint.RegularExpressions
 {
     public class FCLRegex : IRegex
     {
-        public FCLRegex(IRegexFactory factory, string pattern, ReOptions options, RENS.Regex precompiledRegex)
+        public FCLRegex(IRegexFactory factory, string pattern, ReOptions options, RENS.Regex? precompiledRegex)
         {
             this.factory = factory;
             this.options = options;
@@ -221,7 +221,7 @@ namespace LogJoint.RegularExpressions
 
     public class FCLRegexFactory : IRegexFactory
     {
-        public IRegex Create(string pattern, ReOptions options, System.Text.RegularExpressions.Regex precompiledRegex)
+        public IRegex Create(string pattern, ReOptions options, System.Text.RegularExpressions.Regex? precompiledRegex)
         {
             return new FCLRegex(this, pattern, options, precompiledRegex);
         }

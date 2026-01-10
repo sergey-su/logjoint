@@ -29,9 +29,9 @@ namespace LogJoint.MessagesContainers
 
             FRange fileRange = new FRange(p1, p2, 1);
 
-            for (LinkedListNode<MessagesRange> r = ranges.First; r != null;)
+            for (LinkedListNode<MessagesRange>? r = ranges.First; r != null;)
             {
-                LinkedListNode<MessagesRange> next = r.Next;
+                LinkedListNode<MessagesRange>? next = r.Next;
 
                 FIntersectStruct s = FRange.Intersect(r.Value.DesirableRange, fileRange);
                 if (s.RelativePosition < 0)
@@ -94,14 +94,14 @@ namespace LogJoint.MessagesContainers
             get { return ranges; }
         }
 
-        public MessagesRange GetNextRangeToFill()
+        public MessagesRange? GetNextRangeToFill()
         {
             if (openRange != null)
                 throw new InvalidOperationException("Cannot switch to next range when there is another range being filled.");
 
-            LinkedListNode<MessagesRange> ret = null;
+            LinkedListNode<MessagesRange>? ret = null;
             int topPriority = int.MinValue;
-            for (LinkedListNode<MessagesRange> r = ranges.First; r != null; r = r.Next)
+            for (LinkedListNode<MessagesRange>? r = ranges.First; r != null; r = r.Next)
             {
                 if (r.Value.IsComplete)
                     continue;

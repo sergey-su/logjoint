@@ -394,9 +394,9 @@ namespace LogJoint.Preprocessing
                     nextSteps.Enqueue(step);
             }
 
-            async Task<PreprocessingStepParams> IPreprocessingStepCallback.ReplayHistory(ImmutableArray<PreprocessingHistoryItem> history)
+            async Task<PreprocessingStepParams?> IPreprocessingStepCallback.ReplayHistory(ImmutableArray<PreprocessingHistoryItem> history)
             {
-                PreprocessingStepParams currentParams = null;
+                PreprocessingStepParams? currentParams = null;
                 foreach (var loadedStep in history)
                 {
                     currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
@@ -595,7 +595,7 @@ namespace LogJoint.Preprocessing
             }
         }
 
-        IPreprocessingStep CreateStepByName(string name, PreprocessingStepParams param)
+        IPreprocessingStep? CreateStepByName(string name, PreprocessingStepParams param)
         {
             return
                 extensions

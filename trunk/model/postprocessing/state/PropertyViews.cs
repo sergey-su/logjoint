@@ -28,7 +28,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         public override string ToString()
         {
-            return value != null ? value.ToString() : "";
+            return value?.ToString() ?? "";
         }
     };
 

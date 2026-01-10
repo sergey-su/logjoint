@@ -48,9 +48,9 @@ namespace LogJoint.MessagesContainers
 
         class EnumeratorsComparer : IComparer<IEnumerator<PostprocessedMessage>>
         {
-            public int Compare(IEnumerator<PostprocessedMessage> x, IEnumerator<PostprocessedMessage> y)
+            public int Compare(IEnumerator<PostprocessedMessage>? x, IEnumerator<PostprocessedMessage>? y)
             {
-                return MessagesComparer.Compare(x.Current.Message, y.Current.Message);
+                return MessagesComparer.Compare(x?.Current.Message, y?.Current.Message);
             }
         };
     };

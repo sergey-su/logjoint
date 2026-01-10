@@ -7,7 +7,7 @@ namespace LogJoint
 {
     public interface IConnectionParams
     {
-        string this[string key] { get; set; }
+        string? this[string key] { get; set; }
         void AssignFrom(IConnectionParams other);
         bool AreEqual(IConnectionParams other);
         IConnectionParams Clone(bool makeWritebleCopyIfReadonly = false);

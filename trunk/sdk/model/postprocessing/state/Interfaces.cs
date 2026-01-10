@@ -36,7 +36,7 @@ namespace LogJoint.Postprocessing.StateInspector
     {
         public object Trigger;
         public readonly string ObjectId;
-        public HashSet<string>? Tags { get { return tags; } set { tags = value; } }
+        public HashSet<string> Tags { get { return tags; } set { tags = value; } }
         public readonly ObjectTypeInfo ObjectType;
         public readonly int TemplateId;
 
@@ -47,6 +47,7 @@ namespace LogJoint.Postprocessing.StateInspector
             ObjectId = objectId;
             ObjectType = objectType;
             TemplateId = templateId;
+            tags = new HashSet<string>();
         }
 
         public abstract void Visit(IEventsVisitor visitor);
@@ -64,7 +65,7 @@ namespace LogJoint.Postprocessing.StateInspector
                 throw new ArgumentException("objectId");
         }
 
-        HashSet<string>? tags;
+        HashSet<string> tags;
     };
 
     public class ObjectCreation : Event
@@ -109,13 +110,13 @@ namespace LogJoint.Postprocessing.StateInspector
 
     public class PropertyChange : Event
     {
-        public readonly string? PropertyName;
-        public readonly string? Value;
+        public readonly string PropertyName;
+        public readonly string Value;
         public readonly ValueType ValueType;
         public readonly string? OldValue;
 
         public PropertyChange(object trigger, string objectId, ObjectTypeInfo objectTypeInfo,
-                string? propertyName = null, string? value = null, ValueType valueType = ValueType.Scalar, string? oldValue = null, int templateId = 0)
+                string propertyName, string value, ValueType valueType = ValueType.Scalar, string? oldValue = null, int templateId = 0)
             : base(trigger, objectId, objectTypeInfo, templateId)
         {
             PropertyName = propertyName;
@@ -180,8 +181,10 @@ namespace LogJoint.Postprocessing.StateInspector
             DescriptionPropertyName = options.DescriptionPropertyName;
         }
 
-        internal static bool Equals(ObjectTypeInfo obj1, ObjectTypeInfo obj2)
+        internal static bool Equals(ObjectTypeInfo? obj1, ObjectTypeInfo? obj2)
         {
+            if (obj1 == null && obj2 == null) return true;
+            if (obj1 == null || obj2 == null) return false;
             return
                 obj1.TypeName == obj2.TypeName
              && obj1.IsTimeless == obj2.IsTimeless

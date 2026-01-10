@@ -67,9 +67,9 @@ namespace LogJoint
         }
 
         #region Events
-        public event EventHandler OnFiltersListChanged;
-        public event EventHandler OnFilteringEnabledChanged;
-        public event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
+        public event EventHandler? OnFiltersListChanged;
+        public event EventHandler? OnFilteringEnabledChanged;
+        public event EventHandler<FilterChangeEventArgs>? OnPropertiesChanged;
         #endregion
 
         #region Filters access and manipulation

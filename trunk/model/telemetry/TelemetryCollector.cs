@@ -172,7 +172,7 @@ namespace LogJoint.Telemetry
                 return;
             lock (sync)
             {
-                if (!usedFeatures.TryGetValue(featureId, out UsedFeature feature))
+                if (!usedFeatures.TryGetValue(featureId, out UsedFeature? feature))
                     usedFeatures.Add(featureId, feature = new UsedFeature());
                 feature.useCounter++;
                 if (subFeaturesUseCounters != null)
@@ -237,21 +237,24 @@ namespace LogJoint.Telemetry
                 Persistence.StorageSectionOpenFlag.ReadWrite))
             {
                 string installationId;
+                XElement root;
                 if (sessions.Data.Root == null)
                 {
                     telemetryStorageJustInitialized = true;
                     installationId = Guid.NewGuid().ToString("n");
-                    sessions.Data.Add(new XElement("root",
+                    root = new XElement("root",
                         new XAttribute("installationId", installationId)
-                    ));
+                    );
+                    sessions.Data.Add(root);
                 }
                 else
                 {
-                    installationId = sessions.Data.Root.AttributeValue("installationId");
+                    root = sessions.Data.Root;
+                    installationId = root.AttributeValue("installationId");
                 }
                 staticTelemetryProperties["installationId"] = installationId;
 
-                sessions.Data.Root.Add(new XElement(sessionsRegistrySessionElementName,
+                root.Add(new XElement(sessionsRegistrySessionElementName,
                     new XAttribute("id", currentSessionId),
                     new XAttribute("started", DateTime.UtcNow.ToString("o"))
                 ));
@@ -268,17 +271,21 @@ namespace LogJoint.Telemetry
                 .FirstOrDefault(n => n.Contains("BuildInfo"));
             if (buildInfoResourceName != null)
             {
-                using var reader = new StreamReader(
-                    Assembly.GetExecutingAssembly().GetManifestResourceStream(buildInfoResourceName), Encoding.ASCII, false, 1024, true);
-                for (var lineNr = 0; ; ++lineNr)
+                Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(buildInfoResourceName);
+                if (stream != null)
                 {
-                    var line = reader.ReadLine();
-                    if (line == null)
-                        break;
-                    if (lineNr == 0)
-                        staticTelemetryProperties["buildTime"] = line;
-                    else if (lineNr == 1)
-                        staticTelemetryProperties["sourceRevision"] = line;
+                    using var reader = new StreamReader(stream, Encoding.ASCII,
+                        detectEncodingFromByteOrderMarks: false, 1024, leaveOpen: true);
+                    for (var lineNr = 0; ; ++lineNr)
+                    {
+                        var line = reader.ReadLine();
+                        if (line == null)
+                            break;
+                        if (lineNr == 0)
+                            staticTelemetryProperties["buildTime"] = line;
+                        else if (lineNr == 1)
+                            staticTelemetryProperties["sourceRevision"] = line;
+                    }
                 }
             }
 
@@ -446,7 +453,7 @@ namespace LogJoint.Telemetry
             var attemptedAndFailedSessions = new HashSet<string>();
             for (int recordsSubmitted = 0; ;)
             {
-                XElement sessionAwaitingUploading;
+                XElement? sessionAwaitingUploading;
                 lock (sync)
                 {
                     sessionAwaitingUploading = sessionsAwaitingUploading

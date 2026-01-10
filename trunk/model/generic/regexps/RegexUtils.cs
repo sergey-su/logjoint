@@ -32,7 +32,7 @@ namespace LogJoint.RegularExpressions
 #endif
         }
 
-        public static IRegex CloneRegex(IRegex re, ReOptions optionsToAdd = ReOptions.None)
+        public static IRegex? CloneRegex(IRegex re, ReOptions optionsToAdd = ReOptions.None)
         {
             if (re != null)
                 return re.Factory.Create(re.Pattern, re.Options | optionsToAdd);

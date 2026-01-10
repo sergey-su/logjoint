@@ -81,7 +81,7 @@ namespace LogJoint
         SearchResultStatus Status { get; }
         IEnumerable<ISourceSearchResult> Results { get; }
         SearchAllOptions Options { get; }
-        IFilter OptionsFilter { get; }
+        IFilter? OptionsFilter { get; }
         int HitsCount { get; }
         double? Progress { get; }
         /// <summary>

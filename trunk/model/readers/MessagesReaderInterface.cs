@@ -178,8 +178,8 @@ namespace LogJoint
     public struct PostprocessedMessage
     {
         public readonly IMessage Message;
-        public readonly object PostprocessingResult;
-        public PostprocessedMessage(IMessage msg, object postprocessingResult)
+        public readonly object? PostprocessingResult;
+        public PostprocessedMessage(IMessage msg, object? postprocessingResult)
         {
             Message = msg;
             PostprocessingResult = postprocessingResult;
@@ -191,11 +191,11 @@ namespace LogJoint
         public ILogSourceThreadsInternal Threads;
         public ILogMedia Media;
         public bool QuickFormatDetectionMode;
-        public string ParentLoggingPrefix;
+        public string? ParentLoggingPrefix;
 
         public MediaBasedReaderParams(ILogSourceThreadsInternal threads, ILogMedia media,
             bool quickFormatDetectionMode = false,
-            string parentLoggingPrefix = null)
+            string? parentLoggingPrefix = null)
         {
             Threads = threads;
             Media = media;

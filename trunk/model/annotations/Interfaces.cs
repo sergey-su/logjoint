@@ -19,6 +19,6 @@ namespace LogJoint
     {
         bool IsEmpty { get; }
         IEnumerable<StringAnnotationEntry> FindAnnotations(string input);
-        string Find(string key);
+        string? Find(string key);
     }
 }

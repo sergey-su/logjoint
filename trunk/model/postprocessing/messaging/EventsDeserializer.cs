@@ -89,14 +89,14 @@ namespace LogJoint.Postprocessing.Messaging
             return ret != null;
         }
 
-        object MakeTrigger(XElement e)
+        object? MakeTrigger(XElement e)
         {
             if (triggerDeserializer != null)
                 return triggerDeserializer(e);
             return null;
         }
 
-        static string Attr(XElement e, string name)
+        static string? Attr(XElement e, string name)
         {
             var attr = e.Attribute(name);
             return attr == null ? null : attr.Value;

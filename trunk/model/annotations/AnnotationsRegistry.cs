@@ -107,7 +107,7 @@ namespace LogJoint
 
             bool IAnnotationsSnapshot.IsEmpty => children.IsEmpty;
 
-            string IAnnotationsSnapshot.Find(string key) => Find(key)?.Annotation;
+            string? IAnnotationsSnapshot.Find(string key) => Find(key)?.Annotation;
 
             IEnumerable<StringAnnotationEntry> IAnnotationsSnapshot.FindAnnotations(string input)
             {
@@ -116,7 +116,7 @@ namespace LogJoint
                 for (int i = 0; i < input.Length; ++i)
                 {
                     char c = input[i];
-                    TrieNode n = current.children.GetValueOrDefault(c);
+                    TrieNode? n = current.children.GetValueOrDefault(c);
                     if (n != null)
                     {
                         if (matchBegin == null)
@@ -149,12 +149,12 @@ namespace LogJoint
                 }
             }
 
-            public LeafValue Find(string key)
+            public LeafValue? Find(string key)
             {
                 TrieNode current = this;
                 foreach (char c in key)
                 {
-                    TrieNode n = current.children.GetValueOrDefault(c);
+                    TrieNode? n = current.children.GetValueOrDefault(c);
                     if (n == null)
                         return null;
                     current = n;

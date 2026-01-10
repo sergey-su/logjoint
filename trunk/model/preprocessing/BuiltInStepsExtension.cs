@@ -25,7 +25,7 @@ namespace LogJoint.Preprocessing
             return null;
         }
 
-        IPreprocessingStep IPreprocessingManagerExtension.CreateStepByName(string stepName, PreprocessingStepParams stepParams)
+        IPreprocessingStep? IPreprocessingManagerExtension.CreateStepByName(string stepName, PreprocessingStepParams stepParams)
         {
             switch (stepName)
             {

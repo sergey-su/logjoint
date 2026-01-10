@@ -185,7 +185,7 @@ namespace LogJoint
                 {
                     description = ComposeDescriptionFromTheFirstKnownLine(firstMessage);
                 }
-                return description;
+                return description ?? "";
             }
 
             readonly ILogSource logSource;
@@ -193,7 +193,7 @@ namespace LogJoint
             readonly int color;
             ModelThreads owner;
             Thread next, prev;
-            string description;
+            string? description;
             IMessage firstMessage;
             IBookmark firstMessageBmk;
             IMessage lastMessage;

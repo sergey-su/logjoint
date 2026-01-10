@@ -52,7 +52,7 @@ namespace LogJoint.Postprocessing.TimeSeries
         string GetPrefix();
         UInt32 GetNumericId();
 
-        void Parse(string text, ILineParserVisitor visitor, string objectAddress);
+        void Parse(string text, ILineParserVisitor visitor, string? objectAddress);
 
         Type GetMetadataSource();
     }

@@ -6,7 +6,7 @@ namespace LogJoint
 {
     public class SerialSynchronizationContext : SynchronizationContext, ISynchronizationContext
     {
-        readonly ConcurrentQueue<(SendOrPostCallback cb, object state)> queue = new ConcurrentQueue<(SendOrPostCallback, object)>();
+        readonly ConcurrentQueue<(SendOrPostCallback cb, object? state)> queue = new();
         private readonly WaitCallback threadPoolCallback;
         private readonly SendOrPostCallback actionCallback;
         private readonly string id;
@@ -16,7 +16,7 @@ namespace LogJoint
         {
             this.id = GetHashCode().ToString("x4").Substring(0, 4);
             this.threadPoolCallback = _ => Run();
-            this.actionCallback = state => ((Action)state)();
+            this.actionCallback = state => ((Action)state!)();
         }
 
         void ISynchronizationContext.Post(Action action)
@@ -25,7 +25,7 @@ namespace LogJoint
             EnsurePosted();
         }
 
-        public override void Post(SendOrPostCallback d, object state)
+        public override void Post(SendOrPostCallback d, object? state)
         {
             queue.Enqueue((d, state));
             EnsurePosted();

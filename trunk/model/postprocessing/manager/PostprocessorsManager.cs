@@ -95,7 +95,7 @@ namespace LogJoint.Postprocessing
                 var outputType = typesAndSource.Postprocessor;
                 var forLogSource = typesAndSource.LogSource;
 
-                if (!knownLogSources.TryGetValue(forLogSource, out LogSourceRecord logSourceRecord))
+                if (!knownLogSources.TryGetValue(forLogSource, out LogSourceRecord? logSourceRecord))
                     throw new ArgumentException("Log source is unknown");
 
                 var postprocessorRecord = logSourceRecord.PostprocessorsOutputs.SingleOrDefault(parserRec => parserRec.metadata == outputType);
@@ -146,7 +146,7 @@ namespace LogJoint.Postprocessing
 
                 var innerTask = RunPostprocessorBody(async () =>
                 {
-                    IPostprocessorRunSummary summary;
+                    IPostprocessorRunSummary? summary;
                     using (var progressSinks = new ProgressSinksCollection())
                     {
                         summary = await postprocessorTypeGroup.Key.Run(
@@ -192,7 +192,7 @@ namespace LogJoint.Postprocessing
                 rec.logSourceIsAlive = false;
             foreach (var src in EnumLogSourcesOfKnownTypes())
             {
-                if (!knownLogSources.TryGetValue(src.Key, out LogSourceRecord rec))
+                if (!knownLogSources.TryGetValue(src.Key, out LogSourceRecord? rec))
                 {
                     rec = new LogSourceRecord(src.Key, src.Value, logFileSystem);
                     foreach (var postprocessorType in rec.metadata.SupportedPostprocessors)
@@ -251,13 +251,13 @@ namespace LogJoint.Postprocessing
         {
             foreach (ILogSource src in logSources.Items.ToArray())
             {
-                LogSourceMetadata meta;
+                LogSourceMetadata? meta;
                 if (knownLogTypes.TryGetValue(src.Provider.Factory, out meta))
                     yield return new KeyValuePair<ILogSource, LogSourceMetadata>(src, meta);
             }
         }
 
-        async Task<IPostprocessorRunSummary> RunPostprocessorBody(Func<Task<IPostprocessorRunSummary>> postprocessorBody)
+        async Task<IPostprocessorRunSummary?> RunPostprocessorBody(Func<Task<IPostprocessorRunSummary?>> postprocessorBody)
         {
             try
             {

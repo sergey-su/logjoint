@@ -8,7 +8,7 @@ namespace LogJoint.Postprocessing.StateInspector
 {
     public class EventsSerializer : IEventsVisitor, IEventsSerializer
     {
-        public EventsSerializer(Action<object, XElement> triggerSerializer = null)
+        public EventsSerializer(Action<object, XElement>? triggerSerializer = null)
         {
             this.triggerSerializer = triggerSerializer;
         }
@@ -60,7 +60,7 @@ namespace LogJoint.Postprocessing.StateInspector
             );
         }
 
-        static XAttribute MakeNullableAttr(string attrName, object value)
+        static XAttribute? MakeNullableAttr(string attrName, object value)
         {
             if (value == null)
                 return null;
@@ -83,7 +83,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
 
         readonly List<XElement> output = new List<XElement>();
-        readonly Action<object, XElement> triggerSerializer;
+        readonly Action<object, XElement>? triggerSerializer;
         readonly static HashSet<string> noTags = new HashSet<string>();
     }
 }

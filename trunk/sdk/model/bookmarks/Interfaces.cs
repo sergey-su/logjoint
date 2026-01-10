@@ -11,9 +11,9 @@ namespace LogJoint
         MessageTimestamp Time { get; }
         long Position { get; }
         int LineIndex { get; }
-        IThread Thread { get; }
+        IThread? Thread { get; }
         string DisplayName { get; }
-        string Annotation { get; }
+        string? Annotation { get; }
         IBookmark Clone();
         IBookmark SetAnnotation(string value);
     };
@@ -43,9 +43,9 @@ namespace LogJoint
 
     public interface IBookmarks
     {
-        IBookmark ToggleBookmark(IBookmark bmk);
+        IBookmark? ToggleBookmark(IBookmark bmk);
         void Clear();
-        IBookmark GetNext(IBookmark current, bool forward);
+        IBookmark? GetNext(IBookmark current, bool forward);
         IReadOnlyList<IBookmark> Items { get; }
         IBookmarksHandler CreateHandler();
         void SetAnnotation(IBookmark bookmark, string annotation);

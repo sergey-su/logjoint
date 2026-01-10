@@ -14,7 +14,7 @@ namespace LogJoint
     {
         public abstract TextStreamPosition? Find(Stream stream, Encoding encoding, bool findEnd, TextStreamPositioningParams positioningParams);
 
-        public static BoundFinder CreateBoundFinder(XElement node)
+        public static BoundFinder? CreateBoundFinder(XElement node)
         {
             if (node == null)
                 return null;

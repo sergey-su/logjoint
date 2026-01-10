@@ -52,13 +52,14 @@ namespace LogJoint.AutoUpdate
         public void Write(string fileName)
         {
             UpdateInfoFileContent updateInfoFileContent = this;
-            var doc = new XDocument(new XElement("root"));
+            XElement root = new XElement("root");
+            var doc = new XDocument(root);
             if (updateInfoFileContent.BinariesETag != null)
-                doc.Root.Add(new XAttribute("binaries-etag", updateInfoFileContent.BinariesETag));
+                root.Add(new XAttribute("binaries-etag", updateInfoFileContent.BinariesETag));
             if (updateInfoFileContent.LastCheckTimestamp.HasValue)
-                doc.Root.Add(new XAttribute("last-check-timestamp", updateInfoFileContent.LastCheckTimestamp.Value.ToString("o")));
+                root.Add(new XAttribute("last-check-timestamp", updateInfoFileContent.LastCheckTimestamp.Value.ToString("o")));
             if (updateInfoFileContent.LastCheckError != null)
-                doc.Root.Add(new XAttribute("last-check-error", updateInfoFileContent.LastCheckError));
+                root.Add(new XAttribute("last-check-error", updateInfoFileContent.LastCheckError));
             doc.Save(fileName);
         }
     };

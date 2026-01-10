@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LogJoint
 {
-    public class LRUCache<K, V>
+    public class LRUCache<K, V> where K: notnull
     {
         private readonly int capacity;
         private readonly Dictionary<K, Entry> map = new Dictionary<K, Entry>();
         private readonly LinkedList<K> lruKeys = new LinkedList<K>();
-        private readonly Action<V> destroyValue;
+        private readonly Action<V>? destroyValue;
 
-        public LRUCache(int capacity, Action<V> destroyValue = null)
+        public LRUCache(int capacity, Action<V>? destroyValue = null)
         {
             if (capacity <= 0)
                 throw new ArgumentException("bad LRUCache capacity");
@@ -29,7 +30,7 @@ namespace LogJoint
             set => Set(key, value);
         }
 
-        public bool TryGetValue(K key, out V value)
+        public bool TryGetValue(K key, [MaybeNullWhen(false)] out V value)
         {
             if (!map.TryGetValue(key, out var entry))
             {
@@ -59,8 +60,8 @@ namespace LogJoint
                 if (map.Count >= capacity)
                 {
                     if (destroyValue != null)
-                        destroyValue(map[lruKeys.First.Value].value);
-                    map.Remove(lruKeys.First.Value);
+                        destroyValue(map[lruKeys.First!.Value].value);
+                    map.Remove(lruKeys.First!.Value);
                     lruKeys.RemoveFirst();
                 }
                 map.Add(key, new Entry()
@@ -90,8 +91,8 @@ namespace LogJoint
 
         private class Entry
         {
-            public V value;
-            public LinkedListNode<K> keyNode;
+            required public V value;
+            required public LinkedListNode<K> keyNode;
         }
     }
 }

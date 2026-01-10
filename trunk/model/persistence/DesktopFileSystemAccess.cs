@@ -18,13 +18,13 @@ namespace LogJoint.Persistence.Implementation
             }
         }
 
-        static public DesktopFileSystemAccess CreatePersistentUserDataFileSystem(string appDataDirectory = null)
+        static public DesktopFileSystemAccess CreatePersistentUserDataFileSystem(string? appDataDirectory = null)
         {
             return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}",
                 appDataDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.DirectorySeparatorChar));
         }
 
-        static public DesktopFileSystemAccess CreateCacheFileSystemAccess(string appDataDirectory = null)
+        static public DesktopFileSystemAccess CreateCacheFileSystemAccess(string? appDataDirectory = null)
         {
             return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}Cache{1}",
                 appDataDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.DirectorySeparatorChar));

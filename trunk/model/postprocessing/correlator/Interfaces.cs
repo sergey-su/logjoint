@@ -93,6 +93,6 @@ namespace LogJoint.Postprocessing.Correlation
 
         public StatusCode Status;
         public double? Progress;
-        public string Report;
+        public string? Report;
     };
 }

@@ -14,16 +14,16 @@ namespace LogJoint.Postprocessing.StateInspector
     {
         IStateInspectorOutputsGroup Owner { get; }
         string Id { get; }
-        string DisplayName { get; }
+        string? DisplayName { get; }
         string Comment { get; }
         string Description { get; }
 
         IEnumerable<IInspectedObject> Children { get; }
-        IInspectedObject Parent { get; }
+        IInspectedObject? Parent { get; }
         IEnumerable<StateInspectorEvent> StateChangeHistory { get; }
-        StateInspectorEvent CreationEvent { get; }
+        StateInspectorEvent? CreationEvent { get; }
         IEnumerable<KeyValuePair<string, PropertyViewBase>> GetCurrentProperties(FocusedMessageEventsRange focusedMessage);
-        string GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage);
+        string? GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage);
         InspectedObjectLiveStatus GetLiveStatus(FocusedMessageEventsRange focusedMessage);
         IEnumerable<ILogSource> EnumInvolvedLogSources();
         bool IsTimeless { get; }
@@ -53,6 +53,6 @@ namespace LogJoint.Postprocessing.StateInspector
         string Key { get; }
         IReadOnlyList<StateInspectorEvent> Events { get; }
         IReadOnlyList<IStateInspectorOutput> Outputs { get; }
-        bool TryGetDisplayName(string objectId, out string displayName);
+        bool TryGetDisplayName(string objectId, out string? displayName);
     };
 }

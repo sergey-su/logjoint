@@ -16,7 +16,7 @@ namespace LogJoint
 
         public event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
 
-        IBookmark IBookmarks.ToggleBookmark(IBookmark bmk)
+        IBookmark? IBookmarks.ToggleBookmark(IBookmark bmk)
         {
             if (bmk != null)
                 return ToggleBookmarkInternal(bmk);
@@ -36,13 +36,13 @@ namespace LogJoint
         void IBookmarks.PurgeBookmarksForDisposedThreads()
         {
             Lazy<List<IBookmark>> removedBookmarks = new Lazy<List<IBookmark>>(() => new List<IBookmark>());
-            if (ListUtils.RemoveAll(items, bmk => bmk.Thread.IsDisposed, bmk => removedBookmarks.Value.Add(bmk)) > 0)
+            if (ListUtils.RemoveAll(items, bmk => bmk.Thread?.IsDisposed ?? true, bmk => removedBookmarks.Value.Add(bmk)) > 0)
             {
                 HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Purged, removedBookmarks.Value.ToArray()));
             }
         }
 
-        IBookmark IBookmarks.GetNext(IBookmark current, bool forward)
+        IBookmark? IBookmarks.GetNext(IBookmark current, bool forward)
         {
             var i = items.GetBound(0, items.Count, current,
                 forward ? ValueBound.Upper : ValueBound.UpperReversed, cmp);
@@ -132,7 +132,7 @@ namespace LogJoint
             long position;
             int lineIndex;
 
-            public int Compare(IBookmark x, IBookmark y)
+            public int Compare(IBookmark? x, IBookmark? y)
             {
                 int sign;
                 string connectionId1 = x != null ? x.LogSourceConnectionId : logSourceConnectionId;
@@ -151,7 +151,7 @@ namespace LogJoint
             }
         };
 
-        IBookmark ToggleBookmarkInternal(IBookmark bmk)
+        IBookmark? ToggleBookmarkInternal(IBookmark bmk)
         {
             if (bmk.Thread == null)
                 throw new ArgumentException("can not trigger bookmark not linked to a thread");

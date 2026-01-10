@@ -179,7 +179,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             _genericEventsList.Add(e);
         }
 
-        private ParserCounter StartMeasure(Type metadataSourceType)
+        private ParserCounter? StartMeasure(Type metadataSourceType)
         {
             if (!_profilingEnabled)
                 return null;
@@ -211,7 +211,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             foreach (var exprAttr in exprAttrs)
             {
                 regexps.Add(RegexBuilder.Create(exprAttr.Expression));
-                prefixes.Add(exprAttr.Prefix);
+                prefixes.Add(exprAttr.Prefix ?? "");
                 numericIds.Add(0);
             }
         }

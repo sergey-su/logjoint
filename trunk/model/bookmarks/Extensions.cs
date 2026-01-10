@@ -13,18 +13,18 @@ namespace LogJoint
             return Enumerable.Range(indexes1.Item1, indexes2.Item2 - indexes1.Item1).Select(i => bmks.Items[i]).ToArray();
         }
 
-        public static ILogSource GetLogSource(this IBookmark bmk)
+        public static ILogSource? GetLogSource(this IBookmark bmk)
         {
             return bmk.Thread?.LogSource;
         }
 
-        public static IThread GetSafeThread(this IBookmark bmk)
+        public static IThread? GetSafeThread(this IBookmark bmk)
         {
             var t = bmk.Thread;
             return t != null && !t.IsDisposed ? t : null;
         }
 
-        public static ILogSource GetSafeLogSource(this IBookmark bmk)
+        public static ILogSource? GetSafeLogSource(this IBookmark bmk)
         {
             var t = bmk.GetSafeThread();
             if (t == null)
@@ -33,12 +33,12 @@ namespace LogJoint
             return ls != null && !ls.IsDisposed ? ls : null;
         }
 
-        public static Tuple<int, int> FindBookmark(this IBookmarks bmks, IBookmark bmk)
+        public static Tuple<int, int>? FindBookmark(this IBookmarks bmks, IBookmark bmk)
         {
             return FindBookmark(bmks.Items, bmk);
         }
 
-        public static Tuple<int, int> FindBookmark(this IReadOnlyList<IBookmark> items, IBookmark bmk)
+        public static Tuple<int, int>? FindBookmark(this IReadOnlyList<IBookmark> items, IBookmark bmk)
         {
             if (bmk == null)
                 return null;

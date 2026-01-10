@@ -82,7 +82,7 @@ namespace LogJoint.Postprocessing.Correlation
             }
 
             NodeId makeNodeId(ILogSource logSource) =>
-                new NodeId(logSource.Provider.Factory.ToString(), getUniqueRoleInstanceName(logSource));
+                new NodeId(logSource.Provider.Factory.ToString() ?? "", getUniqueRoleInstanceName(logSource));
 
             var allLogs =
                 outputs
@@ -246,10 +246,10 @@ namespace LogJoint.Postprocessing.Correlation
                     Progress = progress
                 };
             }
-            string report = lastRunSummary?.Report;
+            string? report = lastRunSummary?.Report;
             if (numFailed != 0)
             {
-                IPostprocessorRunSummary summaryWithError = correlationOutputs
+                IPostprocessorRunSummary? summaryWithError = correlationOutputs
                     .Select(output => output.LastRunSummary)
                     .OfType<IPostprocessorRunSummary>()
                     .Where(summary => summary.HasErrors)
@@ -304,7 +304,7 @@ namespace LogJoint.Postprocessing.Correlation
         class RunSummary
         {
             public bool IsFailure;
-            public string Report;
+            public required string Report;
         };
     }
 }

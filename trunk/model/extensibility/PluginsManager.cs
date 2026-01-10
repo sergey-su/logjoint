@@ -63,7 +63,7 @@ namespace LogJoint.Extensibility
             types[typeof(PluginType)] = plugin;
         }
 
-        PluginType IPluginsManager.Get<PluginType>()
+        PluginType? IPluginsManager.Get<PluginType>() where PluginType : class
         {
             if (!types.TryGetValue(typeof(PluginType), out var plugin))
                 return null;

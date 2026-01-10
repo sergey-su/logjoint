@@ -18,7 +18,7 @@ namespace LogJoint
             readonly CancellationToken cancellation;
             readonly Progress.IProgressEventsSink progress;
             readonly FileRange.Range lsRange;
-            IMessage peek;
+            IMessage? peek;
             long lastReadPositon;
             bool eof;
             bool disposed;
@@ -45,7 +45,7 @@ namespace LogJoint
                 }
             }
 
-            public IMessage Peek()
+            public IMessage? Peek()
             {
                 return peek;
             }
@@ -108,9 +108,9 @@ namespace LogJoint
 
             public class Comparer : IComparer<EnumMessagesHelper>
             {
-                int IComparer<EnumMessagesHelper>.Compare(EnumMessagesHelper x, EnumMessagesHelper y)
+                int IComparer<EnumMessagesHelper>.Compare(EnumMessagesHelper? x, EnumMessagesHelper? y)
                 {
-                    return MessagesComparer.Compare(x.Peek(), y.Peek());
+                    return MessagesComparer.Compare(x?.Peek(), y?.Peek());
                 }
             }
         };

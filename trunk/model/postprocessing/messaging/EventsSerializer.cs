@@ -63,7 +63,7 @@ namespace LogJoint.Postprocessing.Messaging
                 new XAttribute(SC.Attr_MetaValue, evt.Value));
         }
 
-        static XAttribute MakeNullableAttr(string attrName, object value)
+        static XAttribute? MakeNullableAttr(string attrName, object value)
         {
             if (value == null)
                 return null;

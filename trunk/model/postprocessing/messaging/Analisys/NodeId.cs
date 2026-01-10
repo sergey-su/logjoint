@@ -15,9 +15,9 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
             this.RoleInstance = roleInstance;
         }
 
-        public bool Equals(NodeId other)
+        public bool Equals(NodeId? other)
         {
-            return Role == other.Role && RoleInstance == other.RoleInstance;
+            return Role == other?.Role && RoleInstance == other?.RoleInstance;
         }
 
         public override int GetHashCode()

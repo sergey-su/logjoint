@@ -147,8 +147,8 @@ namespace LogJoint.Postprocessing.SequenceDiagram
                 .Where(x => x.SuggestedRoleInstanceName != null)
                 .ToDictionary(x => x.LogSource, x => new LogSourceNames()
                 {
-                    RoleInstanceName = x.SuggestedRoleInstanceName,
-                    RoleName = x.SuggestedRoleName
+                    RoleInstanceName = x.SuggestedRoleInstanceName ?? "",
+                    RoleName = x.SuggestedRoleName ?? ""
                 })
             );
             var groups =

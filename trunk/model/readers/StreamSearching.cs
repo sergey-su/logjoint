@@ -486,6 +486,8 @@ namespace LogJoint
 
             public Search.MatchedTextRange? Match(StringSlice s, int startIndex)
             {
+                if (opts == null)
+                    return null;
                 foreach (var i in opts)
                 {
                     var tmp = i.SearchInText(s, startIndex);
@@ -497,17 +499,17 @@ namespace LogJoint
 
             readonly bool plainTextSearchOptimizationPossible;
             readonly int maxMatchLength;
-            readonly Search.SearchState[] opts;
+            readonly Search.SearchState[]? opts;
         };
 
         class ProgressAndCancellation
         {
-            public Action<long> progressHandler;
-            public CancellationToken cancellationToken;
+            required public Action<long>? progressHandler;
+            required public CancellationToken cancellationToken;
             public int blocksReadSinseLastProgressUpdate;
             public int lastTimeHandlerWasCalled = Environment.TickCount;
             public int messagesReadSinseLastProgressUpdate;
-            public ContinuationToken continuationToken;
+            required public ContinuationToken continuationToken;
 
             public void HandleTextIterationProgress(long pos)
             {

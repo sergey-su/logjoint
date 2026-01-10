@@ -122,7 +122,7 @@ namespace LogJoint.NLog
             return destinationNode.Data.Length > 0;
         }
 
-        static Node MakeParamNode(IEnumerator<Parser.Token> toks)
+        static Node? MakeParamNode(IEnumerator<Parser.Token> toks)
         {
             Node ret = new Node(NodeType.RendererParam, "", "");
             if (!ReadName(ret, toks))

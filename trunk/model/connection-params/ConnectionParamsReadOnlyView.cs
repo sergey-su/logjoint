@@ -13,7 +13,7 @@ namespace LogJoint
 
         IConnectionParams underlyingParams;
 
-        public string this[string key]
+        public string? this[string key]
         {
             get
             {
@@ -56,7 +56,7 @@ namespace LogJoint
             throw new InvalidOperationException("Cannot change readonly connection params");
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return underlyingParams.ToString();
         }

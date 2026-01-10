@@ -10,7 +10,7 @@ namespace LogJoint.Postprocessing.Messaging
         public object Trigger;
         public readonly string DisplayName;
         public EventStatus Status { get; set; }
-        public HashSet<string>? Tags { get { return tags; } set { tags = value; } }
+        public HashSet<string> Tags { get { return tags; } set { tags = value; } }
 
         public Event(
             object trigger,
@@ -20,6 +20,7 @@ namespace LogJoint.Postprocessing.Messaging
         {
             this.Trigger = trigger;
             this.DisplayName = displayName;
+            this.tags = new HashSet<string>();
         }
 
         public abstract void Visit(IEventsVisitor visitor);
@@ -31,7 +32,7 @@ namespace LogJoint.Postprocessing.Messaging
             return stringifier.Output.ToString();
         }
 
-        HashSet<string>? tags;
+        HashSet<string> tags;
     };
 
     public enum EventStatus
