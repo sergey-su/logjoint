@@ -257,7 +257,6 @@ namespace LogJoint.Preprocessing
                 async Task<YieldedProvider[]> helper()
                 {
                     await preprocLogic();
-                    throw new Exception("Ups");
                     LoadChildPreprocessings();
                     return await owner.invokeSynchronize.InvokeAndAwait(LoadYieldedProviders);
                 }
