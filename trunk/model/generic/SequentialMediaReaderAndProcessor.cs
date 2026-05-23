@@ -13,7 +13,7 @@ namespace LogJoint
 {
     public interface ISequentialMediaReaderAndProcessor<ProcessedData> : IDisposable
     {
-        ProcessedData ReadAndProcessNextPieceOfData();
+        ProcessedData? ReadAndProcessNextPieceOfData();
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ namespace LogJoint
         /// </summary>
         /// <returns>Object that has been returned by ICallback.ProcessRawData.
         /// null indicates end of sequence.</returns>
-        public ProcessedData ReadAndProcessNextPieceOfData()
+        public ProcessedData? ReadAndProcessNextPieceOfData()
         {
             CheckDisposed();
             try
@@ -124,7 +124,7 @@ namespace LogJoint
                 foreach (var state in threadLocalStates)
                     callback.FinalizeThreadLocalState(ref state.State);
                 // in case of interruption (e.g. exception) some items may be unprocessed. dispose them.
-                RawDataHolder tmp;
+                RawDataHolder? tmp;
                 while (itemsBeingProcessed.TryDequeue(out tmp))
                     (tmp.Data as IDisposable)?.Dispose();
             }
@@ -140,7 +140,7 @@ namespace LogJoint
                 throw new ObjectDisposedException("SequentialMediaReaderAndProcessor");
         }
 
-        IEnumerable<RawDataHolder> FetchSourceItems()
+        IEnumerable<RawDataHolder?> FetchSourceItems()
         {
             for (; ; )
             {
@@ -176,12 +176,12 @@ namespace LogJoint
                     .WithMergeOptions(ParallelMergeOptions.NotBuffered)
                     .Select(rawDataHolder => new
                     {
-                        processedData = rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value.State, cancellationToken) : null,
+                        processedData = rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value!.State, cancellationToken) : null,
                         rawDataHolder
                     }
                 ))
                 {
-                    RawDataHolder tmp;
+                    RawDataHolder? tmp;
                     itemsBeingProcessed.TryDequeue(out tmp);
                     if (rec.rawDataHolder != tmp)
                         throw new Exception(string.Format("State is inconsistent, expected {0}, got {1}", rec.rawDataHolder, tmp));
@@ -202,12 +202,12 @@ namespace LogJoint
 
         class ThreadLocalHolder
         {
-            public ThreadLocalState State;
+            public required ThreadLocalState State;
         };
 
         class RawDataHolder
         {
-            public RawData Data;
+            public required RawData Data;
         }
 
         readonly ICallback callback;
@@ -340,7 +340,7 @@ namespace LogJoint
 
     public class Temp
     {
-        static public IEnumerable<ProcessedData> BoundedParallelSelect<RawData, ProcessedData, ThreadLocalState>(IEnumerable<RawData> source,
+        static public IEnumerable<ProcessedData>? BoundedParallelSelect<RawData, ProcessedData, ThreadLocalState>(IEnumerable<RawData> source,
             Func<ThreadLocalState> threadLocalInit, Action<ThreadLocalState> threadLocalFinialize, int queueSize)
         {
             return null;
@@ -371,7 +371,7 @@ namespace LogJoint
 
         #region ISequentialMediaReaderAndProcessor interface implementation
 
-        public ProcessedData ReadAndProcessNextPieceOfData()
+        public ProcessedData? ReadAndProcessNextPieceOfData()
         {
             var entry = processingQueue.Dequeue();
             if (!entry.Processed)
@@ -381,7 +381,7 @@ namespace LogJoint
 
         public void Dispose()
         {
-            if (enumer == null)
+            if (enumer != null)
             {
                 cancellationTokenSource.Cancel();
                 enumer.Dispose();
@@ -436,8 +436,8 @@ namespace LogJoint
 
         class Entry
         {
-            public RawData Input;
-            public ProcessedData Output;
+            public RawData? Input;
+            public ProcessedData? Output;
             public bool Processed;
         };
 
@@ -445,7 +445,7 @@ namespace LogJoint
         readonly Dictionary<int, ThreadLocalState> threads = new Dictionary<int, ThreadLocalState>();
         readonly Queue<Entry> processingQueue = new Queue<Entry>();
         readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        IEnumerator<RawData> enumer;
+        IEnumerator<RawData>? enumer;
 
         #endregion
     }

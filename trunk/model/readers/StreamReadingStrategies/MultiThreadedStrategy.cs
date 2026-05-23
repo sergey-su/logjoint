@@ -442,7 +442,7 @@ namespace LogJoint.StreamReadingStrategies
                 for (; ; )
                 {
                     currentParams.Cancellation.ThrowIfCancellationRequested();
-                    PieceOfWork currentPieceOfWork = readerAndProcessor.ReadAndProcessNextPieceOfData();
+                    PieceOfWork? currentPieceOfWork = readerAndProcessor.ReadAndProcessNextPieceOfData();
                     if (currentPieceOfWork == null)
                         break;
                     currentPieceOfWork.perfop.Milestone("Starting consuming");
