@@ -30,7 +30,7 @@ namespace LogJoint
         public static (int totalCost, List<(int? i, int? j, int cost)> edits) GetEditDistance<U, V>(
             IReadOnlyList<U> s1,
             IReadOnlyList<V> s2,
-            Func<U, V, int> cost
+            Func<U?, V?, int> cost
         )
         {
             int INF = int.MaxValue;

@@ -42,7 +42,7 @@ namespace LogJoint
         string ILogProviderFactory.FormatName { get { return formatName; } }
         string ILogProviderFactory.FormatDescription { get { return description; } }
         IFormatViewOptions ILogProviderFactory.ViewOptions { get { return viewOptions; } }
-        string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams) { return ConnectionParamsUtils.GetConnectionIdentity(connectParams); }
+        string? ILogProviderFactory.GetConnectionId(IConnectionParams connectParams) { return ConnectionParamsUtils.GetConnectionIdentity(connectParams); }
 
         public abstract string UITypeKey { get; }
         public abstract string GetUserFriendlyConnectionName(IConnectionParams connectParams);

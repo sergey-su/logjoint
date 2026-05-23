@@ -135,7 +135,7 @@ namespace LogJoint
         string FormatDescription { get; }
         Task<ILogProvider> CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
         string UITypeKey { get; }
-        string GetConnectionId(IConnectionParams connectParams);
+        string? GetConnectionId(IConnectionParams connectParams);
         string GetUserFriendlyConnectionName(IConnectionParams connectParams);
         IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
         IFormatViewOptions ViewOptions { get; }

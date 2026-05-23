@@ -64,9 +64,9 @@ namespace LogJoint
             yield return val;
         }
 
-        public static T Min<T>(this IEnumerable<T> coll, Func<T, T, bool> firstArgLessThanSecondPredicate)
+        public static T? Min<T>(this IEnumerable<T> coll, Func<T?, T?, bool> firstArgLessThanSecondPredicate)
         {
-            T ret = default(T);
+            T? ret = default;
             int idx = 0;
             foreach (var x in coll)
             {
@@ -248,16 +248,18 @@ namespace LogJoint
             }
         }
 
-        public static V Upsert<K, V>(this Dictionary<K, V> dict, K key, Func<V> newValueFactory, Action<V> updater) where V : class
+        public static V Upsert<K, V>(this Dictionary<K, V> dict, K key, Func<V> newValueFactory, Action<V> updater)
+            where K : notnull
+            where V : class
         {
-            V value;
+            V? value;
             if (dict.TryGetValue(key, out value))
             {
                 updater(value);
             }
             else
             {
-                dict.Add(key, newValueFactory());
+                dict.Add(key, value = newValueFactory());
             }
             return value;
         }

@@ -68,7 +68,7 @@ namespace LogJoint
                 yield return p;
             }
         }
-        public static string GetConnectionIdentity(IConnectionParams cp)
+        public static string? GetConnectionIdentity(IConnectionParams cp)
         {
             var ret = cp[ConnectionParamsKeys.IdentityConnectionParam];
             if (string.IsNullOrWhiteSpace(ret))

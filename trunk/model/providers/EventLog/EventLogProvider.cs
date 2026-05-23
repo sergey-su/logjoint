@@ -319,7 +319,7 @@ namespace LogJoint.WindowsEventLog
             return "Windows Event Log: " + EventLogIdentity.FromConnectionParams(connectParams).ToUserFriendlyString();
         }
 
-        string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
+        string? ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
         {
             return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
         }

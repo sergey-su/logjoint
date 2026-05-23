@@ -704,7 +704,7 @@ namespace LogJoint.XmlFormat
             return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
         }
 
-        string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
+        string? ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
         {
             return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
         }
