@@ -119,7 +119,7 @@ namespace LogJoint.MessagesContainers
 
         public DateBoundPositionResponseData GetDateBoundPosition(DateTime d, ValueBound bound)
         {
-            var idx = ListUtils.GetBound(messages, (IMessage)null, bound, new DatesComparer(d));
+            var idx = ListUtils.GetBound(messages, (IMessage?)null, bound, new DatesComparer(d));
             if (idx < 0)
                 return new DateBoundPositionResponseData()
                 {

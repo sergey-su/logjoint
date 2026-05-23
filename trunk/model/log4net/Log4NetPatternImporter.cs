@@ -14,16 +14,17 @@ namespace LogJoint
 
     public class Log4NetPatternImporter : IDisposable
     {
-        StringBuilder headerRe = new StringBuilder();
-        StringBuilder bodyRe = new StringBuilder();
+        StringBuilder headerRe = new();
+        StringBuilder bodyRe = new();
         bool inHeader;
-        Dictionary<string, int> captureCounters = new Dictionary<string, int>();
+        Dictionary<string, int> captureCounters = [];
         class OutputField
         {
-            public StringBuilder Code = new StringBuilder();
-            public string CodeType;
+            public StringBuilder Code = new();
+            public string? CodeType;
         };
-        Dictionary<string, OutputField> outputFields = new Dictionary<string, OutputField>();
+        Dictionary<string, OutputField> outputFields = [];
+        static Exception badTemplate = new InvalidOperationException("Bad template");
 
         public static void GenerateRegularGrammarElement(XmlElement root, string pattern)
         {
@@ -147,7 +148,7 @@ namespace LogJoint
 
         OutputField GetOutputField(string name)
         {
-            OutputField ret;
+            OutputField? ret;
             if (!outputFields.TryGetValue(name, out ret))
                 outputFields[name] = ret = new OutputField();
             return ret;
@@ -187,9 +188,9 @@ namespace LogJoint
         {
             string captureName;
             string re;
-            string outputFieldName = null;
-            string outputFieldCode = null;
-            string outputFieldCodeType = null;
+            string? outputFieldName = null;
+            string? outputFieldCode = null;
+            string? outputFieldCodeType = null;
 
             switch (t.Value)
             {
@@ -348,7 +349,7 @@ default:
 
             StringBuilder reToAppend = inHeader ? headerRe : bodyRe;
 
-            string paddingString = null;
+            string? paddingString = null;
             if (t.Padding != 0)
                 paddingString = string.Format(@"\ {{0,{0}}}", t.Padding);
 
@@ -403,13 +404,13 @@ default:
 
         void WriteRegularGrammarElement(XmlElement root)
         {
-            XmlNode regGram = root.SelectSingleNode("regular-grammar");
+            XmlNode regGram = root.SelectSingleNode("regular-grammar") ?? throw badTemplate;
 
-            ((XmlElement)regGram.SelectSingleNode("head-re")).ReplaceValueWithCData(headerRe.ToString());
+            (regGram.SelectSingleNode("head-re") as XmlElement ?? throw badTemplate).ReplaceValueWithCData(headerRe.ToString());
 
-            ((XmlElement)regGram.SelectSingleNode("body-re")).ReplaceValueWithCData(bodyRe.ToString());
+            (regGram.SelectSingleNode("body-re") as XmlElement ?? throw badTemplate).ReplaceValueWithCData(bodyRe.ToString());
 
-            XmlNode fieldsConfig = regGram.SelectSingleNode("fields-config");
+            XmlNode fieldsConfig = regGram.SelectSingleNode("fields-config") ?? throw badTemplate;
             fieldsConfig.RemoveAll();
 
             WriteFields(fieldsConfig);
@@ -434,7 +435,7 @@ default:
         {
             foreach (KeyValuePair<string, OutputField> f in outputFields)
             {
-                XmlElement fldElem = fieldsConfig.OwnerDocument.CreateElement("field");
+                XmlElement fldElem = (fieldsConfig.OwnerDocument ?? throw badTemplate).CreateElement("field");
                 fieldsConfig.AppendChild(fldElem);
                 fldElem.SetAttribute("name", f.Key);
                 if (f.Value.CodeType != null)

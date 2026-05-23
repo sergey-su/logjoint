@@ -68,7 +68,7 @@ namespace LogJoint
         readonly bool ignoreConnectionIds;
     };
 
-    public class DatesComparer : IComparer<IMessage>
+    public class DatesComparer : IComparer<IMessage?>
     {
         readonly DateTime d;
 
@@ -77,7 +77,7 @@ namespace LogJoint
             this.d = d;
         }
 
-        int IComparer<IMessage>.Compare(IMessage? x, IMessage? y)
+        int IComparer<IMessage?>.Compare(IMessage? x, IMessage? y)
         {
             var d1 = x == null ? d : x.Time.ToLocalDateTime();
             var d2 = y == null ? d : y.Time.ToLocalDateTime();
@@ -85,7 +85,7 @@ namespace LogJoint
         }
     };
 
-    public class PositionsComparer : IComparer<IMessage>
+    public class PositionsComparer : IComparer<IMessage?>
     {
         readonly long p;
 
@@ -94,7 +94,7 @@ namespace LogJoint
             this.p = pos;
         }
 
-        int IComparer<IMessage>.Compare(IMessage? x, IMessage? y)
+        int IComparer<IMessage?>.Compare(IMessage? x, IMessage? y)
         {
             var p1 = x == null ? p : x.Position;
             var p2 = y == null ? p : y.Position;

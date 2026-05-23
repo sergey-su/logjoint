@@ -147,7 +147,12 @@ namespace LogJoint.LogMedia
                     DriveInfo drive;
                     try
                     {
-                        drive = new DriveInfo(Path.GetPathRoot(path));
+                        string? pathRoot = Path.GetPathRoot(path);
+                        if (pathRoot == null)
+                        {
+                            return false;
+                        }
+                        drive = new DriveInfo(pathRoot);
                     }
                     catch (ArgumentException)
                     {

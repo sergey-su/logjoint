@@ -8,7 +8,7 @@ namespace LogJoint
         /// Allocates a new thread and adds it to the list.
         /// Threading: can be called from any thread.
         /// </summary>
-        IThread RegisterThread(string id, ILogSource logSource);
+        IThread RegisterThread(string id, ILogSource? logSource);
         /// <summary>
         /// Removed the thread from the list.
         /// Threading: can be called from any thread.

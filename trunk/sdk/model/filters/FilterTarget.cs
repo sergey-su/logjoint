@@ -22,7 +22,7 @@ namespace LogJoint
             this.includeAllFromSources = new HashSet<ILogSource>(includeAllFromSources);
             this.includeAllFromThreads = new HashSet<IThread>(includeAllFromThreads);
             this.includeAnythingFromSources = new HashSet<ILogSource>(includeAllFromSources);
-            this.includeAnythingFromSources.UnionWith(includeAllFromThreads.Select(t => t.LogSource));
+            this.includeAnythingFromSources.UnionWith(includeAllFromThreads.Select(t => t.LogSource).OfType<ILogSource>());
         }
 
         public static readonly IFilterScope DefaultScope = new FilterScope();
@@ -49,7 +49,7 @@ namespace LogJoint
 
         bool IFilterScope.ContainsMessage(IMessage msg)
         {
-            return MatchesAllSourcesInternal() || MatchesSourceInternal(msg.Thread.LogSource) || MatchesThreadInternal(msg.Thread);
+            return MatchesAllSourcesInternal() || (msg.Thread.LogSource != null && MatchesSourceInternal(msg.Thread.LogSource)) || MatchesThreadInternal(msg.Thread);
         }
 
         bool IFilterScope.IsDead

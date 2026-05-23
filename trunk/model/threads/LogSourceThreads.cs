@@ -9,7 +9,7 @@ namespace LogJoint
 {
     public class LogSourceThreads : ILogSourceThreads, ILogSourceThreadsInternal, IDisposable
     {
-        public LogSourceThreads(LJTraceSource tracer, IModelThreadsInternal modelThreads, ILogSource threadsSource)
+        public LogSourceThreads(LJTraceSource tracer, IModelThreadsInternal modelThreads, ILogSource? threadsSource)
         {
             this.tracer = tracer;
             this.modelThreads = modelThreads;
@@ -105,7 +105,7 @@ namespace LogJoint
 
         readonly LJTraceSource tracer;
         readonly IModelThreadsInternal modelThreads;
-        readonly ILogSource logSource;
+        readonly ILogSource? logSource;
         readonly Dictionary<StringSlice, IThread> threadsDict = new Dictionary<StringSlice, IThread>();
         readonly ReaderWriterLock threadsDictLock = new ReaderWriterLock();
         bool disposed;

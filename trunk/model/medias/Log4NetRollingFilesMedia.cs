@@ -20,11 +20,11 @@ namespace LogJoint.Log4net
 
         public RollingStrategy(LJTraceSource trace, IConnectionParams connectionParams)
         {
-            baseFileName = connectionParams[fileNameParam];
-            if (string.IsNullOrEmpty(baseFileName))
+            baseFileName = connectionParams[fileNameParam] ?? 
                 throw new ArgumentException("Base file name is not specified in the connection params");
             baseFileNameFirstChar = GetFileNameFirstChar(baseFileName);
-            baseDirectory = Path.GetDirectoryName(baseFileName);
+            baseDirectory = Path.GetDirectoryName(baseFileName) ??
+                 throw new ArgumentException("Base file name does not have base directory");
             trace.Info("Base file name first character: {0}", baseFileNameFirstChar);
         }
 

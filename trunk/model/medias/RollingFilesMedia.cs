@@ -168,7 +168,7 @@ namespace LogJoint
 
                 var orderedParts = new List<LogPart>(parts.Values);
 
-                orderedParts.Sort(LogPartsComparer.Instance);
+                orderedParts.Sort(CompareLogParts);
 
                 using (trace.NewNamedFrame("Sorted log parts"))
                 {
@@ -257,7 +257,7 @@ namespace LogJoint
             private readonly RollingFilesMedia owner;
             readonly string fileName;
             MessageTimestamp? firstMessageTime;
-            SimpleFileMedia simpleMedia;
+            SimpleFileMedia? simpleMedia;
             bool isDisposed;
 
             public LogPart(RollingFilesMedia owner, string fileName)
@@ -301,13 +301,13 @@ namespace LogJoint
                         {
                             owner.trace.Info("First message time is unknown. Calculating it");
                             using IMessagesReader reader = owner.readerCreator(
-                                    new MediaBasedReaderParams(owner.tempThreads, SimpleMedia));
+                                    new MediaBasedReaderParams(owner.tempThreads, simpleMedia));
                             owner.trace.Info("Reader created");
 
                             await reader.UpdateAvailableBounds(false);
                             owner.trace.Info("Bounds found");
 
-                            IMessage first = await PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
+                            IMessage? first = await PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
                             if (first == null)
                             {
                                 owner.trace.Warning("No messages found");
@@ -362,7 +362,7 @@ namespace LogJoint
                 get
                 {
                     CheckDisposed();
-                    return simpleMedia;
+                    return simpleMedia!;
                 }
             }
 
@@ -398,24 +398,19 @@ namespace LogJoint
             }
         };
 
-        class LogPartsComparer : IComparer<LogPart>
+        static int CompareLogParts(LogPart x, LogPart y)
         {
-            public int Compare(LogPart x, LogPart y)
-            {
-                int tmp;
+            int tmp;
 
-                tmp = MessageTimestamp.Compare(x.FirstMessageTime, y.FirstMessageTime);
-                if (tmp != 0)
-                    return tmp;
-
-                tmp = string.Compare(x.FileName, y.FileName, true);
-                if (tmp != 0)
-                    return tmp;
-
+            tmp = MessageTimestamp.Compare(x.FirstMessageTime, y.FirstMessageTime);
+            if (tmp != 0)
                 return tmp;
-            }
 
-            public static readonly LogPartsComparer Instance = new LogPartsComparer();
-        };
+            tmp = string.Compare(x.FileName, y.FileName, true);
+            if (tmp != 0)
+                return tmp;
+
+            return tmp;
+        }
     }
 }

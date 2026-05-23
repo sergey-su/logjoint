@@ -24,7 +24,7 @@ namespace LogJoint
         /// <summary>
         /// Can be gotten on disposed object.
         /// </summary>
-        ILogSource LogSource { get; }
+        ILogSource? LogSource { get; }
         /// <summary>
         /// Notifies that a log message was seen to belong to this thread.
         /// No-op for disposed threads.

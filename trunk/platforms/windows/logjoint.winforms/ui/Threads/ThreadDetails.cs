@@ -42,7 +42,7 @@ namespace LogJoint.UI
             colorPanel.BackColor = theme.ThreadColors.GetByIndex(thread.ThreadColorIndex).ToSystemDrawingObject();
             SetBookmark(firstMessageLinkLabel, thread.FirstKnownMessage);
             SetBookmark(lastMessageLinkLabel, thread.LastKnownMessage);
-            logSourceLink.Text = thread.LogSource.DisplayName;
+            logSourceLink.Text = thread.LogSource?.DisplayName ?? "";
         }
 
         private void linkLabelClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -54,7 +54,8 @@ namespace LogJoint.UI
 
         private void logSourceLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            handler.ShowLogSource(thread.LogSource);
+            if (thread.LogSource != null)
+                handler.ShowLogSource(thread.LogSource);
         }
 
     }

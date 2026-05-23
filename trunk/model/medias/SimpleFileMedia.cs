@@ -15,7 +15,7 @@ namespace LogJoint
         readonly DelegatingStream stream = new DelegatingStream();
         bool disposed;
         string fileName;
-        IFileStreamInfo fsInfo;
+        IFileStreamInfo? fsInfo;
         DateTime lastModified;
         long size;
 
@@ -44,9 +44,10 @@ namespace LogJoint
         private SimpleFileMedia(IFileSystem fileSystem, IConnectionParams connectParams)
         {
             this.fileSystem = fileSystem ?? throw new ArgumentNullException("fileSystem");
-            this.fileName = connectParams[fileNameParam];
+            var fileName = connectParams[fileNameParam];
             if (string.IsNullOrEmpty(fileName))
                 throw new ArgumentException("Invalid or incomplete connection params");
+            this.fileName = fileName;
         }
 
         async Task Init()

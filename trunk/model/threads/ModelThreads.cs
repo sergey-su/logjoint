@@ -19,7 +19,7 @@ namespace LogJoint
         public event EventHandler? OnThreadListChanged;
         public event EventHandler? OnThreadPropertiesChanged;
 
-        IThread IModelThreadsInternal.RegisterThread(string id, ILogSource logSource)
+        IThread IModelThreadsInternal.RegisterThread(string id, ILogSource? logSource)
         {
             return new Thread(id, this, logSource);
         }
@@ -53,7 +53,7 @@ namespace LogJoint
 
             int IThread.ThreadColorIndex => color;
 
-            ILogSource IThread.LogSource => logSource;
+            ILogSource? IThread.LogSource => logSource;
 
             string IThread.DisplayName
             {
@@ -154,7 +154,7 @@ namespace LogJoint
                 return string.Format("{0}. {1}", id, String.IsNullOrEmpty(desc) ? "<no name>" : desc);
             }
 
-            public Thread(string id, ModelThreads owner, ILogSource logSource)
+            public Thread(string id, ModelThreads owner, ILogSource? logSource)
             {
                 this.id = id;
                 this.owner = owner;
@@ -190,7 +190,7 @@ namespace LogJoint
                 return description ?? "";
             }
 
-            readonly ILogSource logSource;
+            readonly ILogSource? logSource;
             readonly string id;
             readonly int color;
             ModelThreads? owner;
