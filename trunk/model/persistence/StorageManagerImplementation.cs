@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 
 namespace LogJoint.Persistence.Implementation
 {
@@ -22,12 +23,11 @@ namespace LogJoint.Persistence.Implementation
         {
             if (cleanupTask != null)
             {
-                cleanupCancellation.Cancel();
-                cleanupTask.Wait();
-                cleanupTask.Dispose();
-                cleanupCancellation.Dispose();
+                cleanupTask.Value.cancellation.Cancel();
+                cleanupTask.Value.task.Wait();
+                cleanupTask.Value.task.Dispose();
+                cleanupTask.Value.cancellation.Dispose();
                 cleanupTask = null;
-                cleanupCancellation = null;
             }
         }
 
@@ -72,12 +72,12 @@ namespace LogJoint.Persistence.Implementation
 
         internal IFileSystemAccess FileSystem
         {
-            get { return fs; }
+            get { AssertInited(); return fs; }
         }
 
         private async Task<IStorageEntry> GetEntryById(string id)
         {
-            StorageEntry entry;
+            StorageEntry? entry;
             using (await SemaphoreSlimLock.Create(sync))
             {
                 if (!entriesCache.TryGetValue(id, out entry))
@@ -162,6 +162,7 @@ namespace LogJoint.Persistence.Implementation
         async Task DoCleanupIfItIsTimeTo()
         {
             await inited.Task;
+            AssertInited();
             bool timeToCleanup = false;
             using (var cleanupInfoStream = await FileSystem.OpenFile("cleanup.info"))
             {
@@ -189,86 +190,109 @@ namespace LogJoint.Persistence.Implementation
             }
             if (timeToCleanup)
             {
-                cleanupCancellation = new CancellationTokenSource();
-                cleanupTask = env.StartTask(CleanupWorker);
+                var cancellation = new CancellationTokenSource();
+                cleanupTask = new CleanupTask
+                {
+                    cancellation = cancellation,
+                    task = env.StartTask(() => CleanupWorker(cancellation.Token)),
+                };
             }
         }
 
-        internal async Task CleanupWorker()
+        internal async Task CleanupWorker(CancellationToken cancellationToken)
         {
-            using (trace.NewFrame)
-                try
+            using var traceFrame = trace.NewFrame;
+            try
+            {
+                AssertInited();
+                long sz = await FileSystem.CalcStorageSize(cancellationToken);
+                trace.Info("Storage size: {0}", sz);
+                int meg = 1024 * 1024;
+                if (sz < Settings.StorageSizes.MinStoreSizeLimit * meg
+                    || sz < config.SizeLimit * meg)
                 {
-                    var cancellationToken = cleanupCancellation.Token;
-                    long sz = await FileSystem.CalcStorageSize(cancellationToken);
-                    trace.Info("Storage size: {0}", sz);
-                    int meg = 1024 * 1024;
-                    if (sz < Settings.StorageSizes.MinStoreSizeLimit * meg
-                     || sz < config.SizeLimit * meg)
+                    trace.Info("Storage size has not exceeded the capacity");
+                    return;
+                }
+                var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
+                var dirs = (await Task.WhenAll((await FileSystem.ListDirectories("", cancellationToken)).Select(async dir =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    using var s = await FileSystem.OpenFileReadOnly(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName);
+                    trace.Info("Handling '{0}'", dir);
+                    if (s == null)
                     {
-                        trace.Info("Storage size has not exceeded the capacity");
-                        return;
+                        trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
+                        return null;
                     }
-                    var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
-                    var dirs = await Task.WhenAll((await FileSystem.ListDirectories("", cancellationToken)).Select(async dir =>
+                    var cleanupInfoContent = await (new StreamReader(s, Encoding.ASCII)).ReadToEndAsync();
+                    if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
+                            dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out DateTime lastAccessed))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        using var s = await FileSystem.OpenFileReadOnly(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName);
-                        trace.Info("Handling '{0}'", dir);
-                        if (s == null)
-                        {
-                            trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
-                            return null;
-                        }
-                        var cleanupInfoContent = await (new StreamReader(s, Encoding.ASCII)).ReadToEndAsync();
-                        if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
-                                dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out DateTime lastAccessed))
-                        {
-                            trace.Warning("Could not parse '{0}'; assuming it's very old and therefore first to cleanup", cleanupInfoContent);
-                            lastAccessed = new DateTime(2000, 1, 1);
-                        }
-                        else
-                        {
-                            trace.Info("Last accessed on {0}", lastAccessed);
-                        }
-                        return new { RelativeDirPath = dir, LastAccess = lastAccessed };
-                    }));
-                    dirs = dirs.Where(dir => dir != null).OrderBy(dir => dir.LastAccess).ToArray();
-                    var dirsToDelete = Math.Max(1, dirs.Length / 3);
-                    trace.Info("Found {0} deletable dirs. Deleting top {1}", dirs.Length, dirsToDelete);
-                    foreach (var dir in dirs.Take(dirsToDelete))
-                    {
-                        trace.Info("Deleting '{0}'", dir.RelativeDirPath);
-                        cancellationToken.ThrowIfCancellationRequested();
-                        await FileSystem.DeleteDirectory(dir.RelativeDirPath);
+                        trace.Warning("Could not parse '{0}'; assuming it's very old and therefore first to cleanup", cleanupInfoContent);
+                        lastAccessed = new DateTime(2000, 1, 1);
                     }
-                }
-                catch (OperationCanceledException)
+                    else
+                    {
+                        trace.Info("Last accessed on {0}", lastAccessed);
+                    }
+                    return new DirectoryInfo { RelativeDirPath = dir, LastAccess = lastAccessed };
+                }))).OfType<DirectoryInfo>().OrderBy(dir => dir!.LastAccess).ToArray();
+                var dirsToDelete = Math.Max(1, dirs.Length / 3);
+                trace.Info("Found {0} deletable dirs. Deleting top {1}", dirs.Length, dirsToDelete);
+                foreach (var dir in dirs.Take(dirsToDelete))
                 {
-                    trace.Warning("Operation cancelled");
+                    trace.Info("Deleting '{0}'", dir.RelativeDirPath);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await FileSystem.DeleteDirectory(dir.RelativeDirPath);
                 }
-                catch (Exception e)
-                {
-                    trace.Error(e, "Cleanup failed");
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                trace.Warning("Operation cancelled");
+            }
+            catch (Exception e)
+            {
+                trace.Error(e, "Cleanup failed");
+            }
+        }
+
+        [MemberNotNull(nameof(env))]
+        [MemberNotNull(nameof(fs))]
+        [MemberNotNull(nameof(config))]
+        void AssertInited()
+        {
+            if (env == null || fs == null || config == null)
+                throw new InvalidOperationException("Not inited");
         }
 
         #endregion
+
+        struct CleanupTask
+        {
+            public required CancellationTokenSource cancellation;
+            public required Task task;
+        };
+
+        class DirectoryInfo
+        {
+            public required string RelativeDirPath;
+            public required DateTime LastAccess;
+        };
 
         #region Members
 
         static readonly string invalidKeyChars = new string(Path.GetInvalidFileNameChars());
         static readonly string entryKeyPrefix = "e";
         LJTraceSource trace;
-        ITimingAndThreading env;
-        IFileSystemAccess fs;
-        IStorageConfigAccess config;
+        ITimingAndThreading? env;
+        IFileSystemAccess? fs;
+        IStorageConfigAccess? config;
         readonly TaskCompletionSource<int> inited = new TaskCompletionSource<int>();
         readonly Task ready;
         readonly SemaphoreSlim sync = new SemaphoreSlim(1, 1);
         readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
-        CancellationTokenSource cleanupCancellation;
-        Task cleanupTask;
+        CleanupTask? cleanupTask;
 
         #endregion
     };
