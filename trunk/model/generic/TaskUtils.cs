@@ -104,7 +104,7 @@ namespace LogJoint
             }
         }
 
-        public static async Task<T> IgnoreCancellation<T>(this Task<T> task, T defaultValue = default)
+        public static async Task<T> IgnoreCancellation<T>(this Task<T> task, T defaultValue)
         {
             try
             {
@@ -116,7 +116,7 @@ namespace LogJoint
             }
         }
 
-        public static async Task<R> IgnoreCancellation<T, R>(this Task<T> task, Func<T, R> converter, R cancellationValue = default(R))
+        public static async Task<R> IgnoreCancellation<T, R>(this Task<T> task, Func<T, R> converter, R cancellationValue)
         {
             T val;
             try
@@ -169,7 +169,7 @@ namespace LogJoint
         /// Note that for some reason throwing TaskCanceledException withing a task
         /// leaves task's Exception propetry null.
         /// </summary>
-        public static Exception GetTaskException(this Task t)
+        public static Exception? GetTaskException(this Task t)
         {
             if (t.Exception != null)
                 return t.Exception;
@@ -245,7 +245,7 @@ namespace LogJoint
 
     public class SynchronizationContextSwitch : IDisposable
     {
-        SynchronizationContext oldContext;
+        SynchronizationContext? oldContext;
 
         public SynchronizationContextSwitch(SynchronizationContext newContext)
         {

@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.SearchResult
                 {
                     if (await navHandler.ShowMessage(messagesPresenter.FocusedMessageBookmark,
                         BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet
-                    ).IgnoreCancellation())
+                    ).IgnoreCancellation(defaultValue: false))
                     {
                         loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
                     }

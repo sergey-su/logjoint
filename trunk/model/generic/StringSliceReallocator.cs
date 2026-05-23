@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace LogJoint
@@ -59,6 +60,7 @@ namespace LogJoint
             return ret;
         }
 
+        [MemberNotNull(nameof(buf))]
         void AllocateNewBuffer(int minLen)
         {
             int sz = 64 * 1024;

@@ -477,7 +477,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
             await presentersFacade.ShowMessage(
                 bmk,
                 BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
-            ).IgnoreCancellation();
+            ).IgnoreCancellation(defaultValue: false);
         }
 
         static DateTime GetTimestamp(DateTime dataPointOrEventTs, ITimeSeriesPostprocessorOutput owner)

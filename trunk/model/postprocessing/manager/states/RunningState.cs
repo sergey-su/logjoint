@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing
 {
@@ -27,11 +28,12 @@ namespace LogJoint.Postprocessing
             if (task.IsCompleted)
             {
                 IPostprocessorRunSummary runSummary;
-                if (task.GetTaskException() != null)
+                Exception? taskException = task.GetTaskException();
+                if (taskException != null)
                 {
                     if (task.Exception != null)
                         ctx.telemetry.ReportException(task.Exception, "postprocessor");
-                    runSummary = new FailedRunSummary(task.GetTaskException());
+                    runSummary = new FailedRunSummary(taskException);
                 }
                 else
                 {

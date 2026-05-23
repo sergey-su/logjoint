@@ -11,10 +11,10 @@ namespace LogJoint.DebugOutput
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class LogProvider : LiveLogProvider
     {
-        EventWaitHandle dataReadyEvt;
-        EventWaitHandle bufferReadyEvt;
-        SafeFileHandle bufferFile;
-        SafeViewOfFileHandle bufferAddress;
+        EventWaitHandle? dataReadyEvt;
+        EventWaitHandle? bufferReadyEvt;
+        SafeFileHandle? bufferFile;
+        SafeViewOfFileHandle? bufferAddress;
 
         private LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
@@ -102,9 +102,9 @@ namespace LogJoint.DebugOutput
             await Task.Yield();
             try
             {
-                bufferReadyEvt.Set();
+                bufferReadyEvt!.Set();
                 long msgIdx = 1;
-                WaitHandle[] evts = new WaitHandle[] { dataReadyEvt, stopEvt.WaitHandle };
+                WaitHandle[] evts = new WaitHandle[] { dataReadyEvt!, stopEvt.WaitHandle };
 
                 while (true)
                 {
@@ -112,7 +112,7 @@ namespace LogJoint.DebugOutput
                     if (evtIdx == 1)
                         break;
 
-                    IntPtr addr = bufferAddress.DangerousGetHandle();
+                    IntPtr addr = bufferAddress!.DangerousGetHandle();
                     UInt32 appID = (UInt32)Marshal.ReadInt32(addr);
                     long strAddr = addr.ToInt64() + sizeof(UInt32);
                     string msg = string.Format("{0} [{1}] {2}",
