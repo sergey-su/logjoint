@@ -47,8 +47,7 @@ namespace LogJoint.MRU
             var m = MatchRecentLogEntryString(recentLogEntryString);
             string company = m.Groups["company"].Value;
             string name = m.Groups["name"].Value;
-            this.Factory = registry.Find(company, name);
-            if (Factory == null)
+            this.Factory = registry.Find(company, name) ??
                 throw new FormatNotRegistedException(company, name);
             this.ConnectionParams = new ConnectionParams(m.Groups["connectStr"].Value);
             ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);

@@ -25,7 +25,7 @@ namespace LogJoint.MRU
             get { return "Workspace " + Name; }
         }
 
-        ILogProviderFactory IRecentlyUsedEntity.Factory => null;
+        ILogProviderFactory? IRecentlyUsedEntity.Factory => null;
 
         string IRecentlyUsedEntity.Annotation
         {
@@ -42,7 +42,7 @@ namespace LogJoint.MRU
             get { return UseTimestampUtc; }
         }
 
-        IConnectionParams IRecentlyUsedEntity.ConnectionParams
+        IConnectionParams? IRecentlyUsedEntity.ConnectionParams
         {
             get { return null; }
         }

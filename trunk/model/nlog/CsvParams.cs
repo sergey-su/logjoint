@@ -18,7 +18,7 @@ namespace LogJoint.NLog
         public char QuoteChar { get; internal set; } = '"';
         public const string AutoDelimiter = "";
         public string Delimiter { get; internal set; } = AutoDelimiter;
-        internal string FalalLoadingError { get; set; }
+        internal string? FalalLoadingError { get; set; }
 
         internal CsvParams()
         {

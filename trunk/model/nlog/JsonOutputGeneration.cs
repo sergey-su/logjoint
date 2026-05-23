@@ -22,8 +22,7 @@ namespace LogJoint.NLog
             var configBuilder = new ConfigBuilder(log, new EscapingOptions() { EscapingFormat = "JSON_UNESCAPE({0})" });
             configBuilder.HeaderReBuilder.Append("^");
 
-            Action<JsonParams.Layout> handleLayout = null;
-            handleLayout = (layout) =>
+            void handleLayout(JsonParams.Layout layout)
             {
                 string spacesRegex = layout.SuppressSpaces ? "" : "\\s";
 
@@ -71,7 +70,7 @@ namespace LogJoint.NLog
                     configBuilder.HeaderReBuilder.AppendFormat("{0}(\\,.+?)? # optional extra attributes", Environment.NewLine);
                 }
                 configBuilder.HeaderReBuilder.AppendFormat("{0}{1}{2} # json layout end", Environment.NewLine, spacesRegex, '}');
-            };
+            }
 
             handleLayout(jsonParams.Root);
 

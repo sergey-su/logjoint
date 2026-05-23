@@ -1,9 +1,10 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
-using FRange = LogJoint.FileRange.Range;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using FIntersectStruct = LogJoint.FileRange.IntersectStruct;
+using FRange = LogJoint.FileRange.Range;
 
 namespace LogJoint.MessagesContainers
 {
@@ -229,7 +230,7 @@ namespace LogJoint.MessagesContainers
             //   - The log grows, the last message gets written completely. We start reading from the last
             //     position an read this last message again. This time this message is read completely.
             //     We want to replace the partially loaded message with the completely loaded one.
-            if (messagePosition == lastReadPosition)
+            if (messagePosition == lastReadPosition && last != null)
             {
                 if (last.Last.GetHashCode(ignoreMessageTime) != msg.GetHashCode(ignoreMessageTime))
                 // We don't want the last message to be overwritten with the new reference if nothing changed.
@@ -337,6 +338,8 @@ namespace LogJoint.MessagesContainers
             }
         }
 
+
+        [MemberNotNull(nameof(last))]
         void Add(Chunk b)
         {
             if (last == null)

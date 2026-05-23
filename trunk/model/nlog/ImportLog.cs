@@ -27,10 +27,10 @@ namespace LogJoint.NLog
         {
             public MessageType Type { get; internal set; }
             public MessageSeverity Severity { get; internal set; }
-            public string LayoutId { get; internal set; }
+            public string? LayoutId { get; internal set; }
             public class Fragment
             {
-                public string Value { get; internal set; }
+                public required string Value { get; set; }
             };
             public class LayoutSliceLink : Fragment
             {
@@ -125,6 +125,6 @@ namespace LogJoint.NLog
         }
 
         List<Message> messages = new List<Message>();
-        string currentLayoutId;
+        string? currentLayoutId;
     };
 }

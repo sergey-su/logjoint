@@ -149,11 +149,11 @@ namespace LogJoint.MessagesContainers
             {
                 if (ranges.Count == 0)
                     return new FRange();
-                return new FRange(ranges.First.Value.DesirableRange.Begin, ranges.Last.Value.DesirableRange.End);
+                return new FRange(ranges.First!.Value.DesirableRange.Begin, ranges.Last!.Value.DesirableRange.End);
             }
         }
 
-        public MessagesRange OpenRange
+        public MessagesRange? OpenRange
         {
             get { return openRange != null ? openRange.Value : null; }
         }
@@ -174,7 +174,7 @@ namespace LogJoint.MessagesContainers
         }
         protected override IEnumerable<IMessagesCollection> GetCollectionsToConcatReverse()
         {
-            for (LinkedListNode<MessagesRange> r = ranges.Last; r != null; r = r.Previous)
+            for (LinkedListNode<MessagesRange>? r = ranges.Last; r != null; r = r.Previous)
                 yield return r.Value;
         }
 
@@ -209,9 +209,9 @@ namespace LogJoint.MessagesContainers
         {
             CheckIntegrity();
 
-            for (LinkedListNode<MessagesRange> i = ranges.First; i != null;)
+            for (LinkedListNode<MessagesRange>? i = ranges.First; i != null;)
             {
-                LinkedListNode<MessagesRange> n = i.Next;
+                LinkedListNode<MessagesRange>? n = i.Next;
                 if (i.Value.DesirableRange.IsEmpty)
                 {
                     ranges.Remove(i);
@@ -219,9 +219,9 @@ namespace LogJoint.MessagesContainers
                 i = n;
             }
 
-            for (LinkedListNode<MessagesRange> i = ranges.Last; i != null;)
+            for (LinkedListNode<MessagesRange>? i = ranges.Last; i != null;)
             {
-                LinkedListNode<MessagesRange> p = i.Previous;
+                LinkedListNode<MessagesRange>? p = i.Previous;
                 if (p == null)
                     break;
                 if (i.Value.Priority == p.Value.Priority
@@ -239,7 +239,7 @@ namespace LogJoint.MessagesContainers
         [Conditional("RANGE_MANAGEMENT_DEBUG")]
         void CheckIntegrity()
         {
-            for (LinkedListNode<MessagesRange> i = ranges.First; i != null; i = i.Next)
+            for (LinkedListNode<MessagesRange>? i = ranges.First; i != null; i = i.Next)
             {
                 if (i.Next != null)
                 {
@@ -255,6 +255,6 @@ namespace LogJoint.MessagesContainers
         }
 
         LinkedList<MessagesRange> ranges = new LinkedList<MessagesRange>();
-        LinkedListNode<MessagesRange> openRange;
+        LinkedListNode<MessagesRange>? openRange;
     };
 }
