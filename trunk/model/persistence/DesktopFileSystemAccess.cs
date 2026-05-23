@@ -55,7 +55,17 @@ namespace LogJoint.Persistence.Implementation
             return Task.CompletedTask;
         }
 
-        public async Task<Stream> OpenFile(string relativePath, bool readOnly)
+        public async Task<Stream> OpenFile(string relativePath)
+        {
+            return (await OpenFile(relativePath, readOnly: false))!;
+        }
+
+        public async Task<Stream?> OpenFileReadOnly(string relativePath)
+        {
+            return await OpenFile(relativePath, readOnly: true);
+        }
+
+        private async Task<Stream?> OpenFile(string relativePath, bool readOnly)
         {
             // It is a common case when existing file is opened for reading.
             // Handle that without throwing hidden exceptions.

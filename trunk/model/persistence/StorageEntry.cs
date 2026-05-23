@@ -25,14 +25,14 @@ namespace LogJoint.Persistence.Implementation
 
         public async ValueTask ReadCleanupInfo()
         {
-            using Stream s = await manager.FileSystem.OpenFile(CleanupInfoFilePath, true);
+            using Stream? s = await manager.FileSystem.OpenFileReadOnly(CleanupInfoFilePath);
             cleanupAllowed = s != null;
         }
 
         public async ValueTask WriteCleanupInfoIfCleanupAllowed()
         {
             if (cleanupAllowed)
-                using (Stream s = await manager.FileSystem.OpenFile(CleanupInfoFilePath, false))
+                using (Stream s = await manager.FileSystem.OpenFile(CleanupInfoFilePath))
                 {
                     var cleanupInfoData = Encoding.ASCII.GetBytes(DateTime.Now.ToString(cleanupInfoLastAccessFormat,
                             System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat));
@@ -90,14 +90,14 @@ namespace LogJoint.Persistence.Implementation
 
         async Task IStorageEntry.TakeSectionSnapshot(string sectionId, Stream targetStream)
         {
-            using var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true);
+            using var fs = await manager.FileSystem.OpenFileReadOnly(Path + System.IO.Path.DirectorySeparatorChar + sectionId);
             if (fs != null)
                 await fs.CopyToAsync(targetStream);
         }
 
         async Task IStorageEntry.LoadSectionFromSnapshot(string sectionId, Stream sourceStream, CancellationToken cancellation)
         {
-            using var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false);
+            using var fs = await manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId);
             fs.SetLength(0);
             fs.Position = 0;
             await sourceStream.CopyToAsync(fs, 4000, cancellation);

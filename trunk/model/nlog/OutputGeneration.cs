@@ -272,7 +272,7 @@ namespace LogJoint.NLog
         {
             var n = parent.SelectSingleNode(name);
             if (n == null)
-                n = parent.AppendChild(parent.OwnerDocument.CreateElement(name));
+                n = parent.AppendChild(parent.OwnerDocument!.CreateElement(name))!;
             return n;
         }
 
@@ -305,8 +305,8 @@ namespace LogJoint.NLog
             {
                 foreach (var re in regexps)
                 {
-                    List<CapturedNodeRegex> capturesList;
-                    string capturePrefix;
+                    List<CapturedNodeRegex>? capturesList;
+                    string? capturePrefix;
 
                     if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsIgnorable) != 0)
                     {
@@ -344,7 +344,7 @@ namespace LogJoint.NLog
                     if (headerReBuilder.Length > 0)
                         headerReBuilder.Append(Environment.NewLine);
 
-                    if (capturePrefix != null)
+                    if (capturePrefix != null && capturesList != null)
                     {
                         string captureName = string.Format("{0}{1}", capturePrefix, capturesList.Count + 1);
                         capturesList.Add(new CapturedNodeRegex() { Regex = re, CaptureName = captureName, LayoutId = layoutId });
@@ -369,13 +369,13 @@ namespace LogJoint.NLog
                 EnsureEmptyElement(regGrammar, "head-re").ReplaceValueWithCData(headerReBuilder.ToString());
                 var fieldsNode = EnsureEmptyElement(regGrammar, "fields-config");
 
-                var timeNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+                var timeNode = (XmlElement)fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field"))!;
                 timeNode.SetAttribute("name", "Time");
                 timeNode.ReplaceValueWithCData(dateTimeCode);
 
                 if (severityCode.Length > 0)
                 {
-                    var severityNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+                    var severityNode = (XmlElement)fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field"))!;
                     severityNode.SetAttribute("name", "Severity");
                     severityNode.SetAttribute("code-type", "function");
                     severityNode.ReplaceValueWithCData(severityCode);
@@ -383,13 +383,13 @@ namespace LogJoint.NLog
 
                 if (threadCode.Length > 0)
                 {
-                    var threadNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+                    var threadNode = (XmlElement)fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field"))!;
                     threadNode.SetAttribute("name", "Thread");
                     threadNode.SetAttribute("code-type", "function");
                     threadNode.ReplaceValueWithCData(threadCode);
                 }
 
-                var bodyNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+                var bodyNode = (XmlElement)fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field"))!;
                 bodyNode.SetAttribute("name", "Body");
                 bodyNode.ReplaceValueWithCData(bodyCode);
             }
@@ -438,7 +438,7 @@ namespace LogJoint.NLog
 
             StringBuilder dateTimeCode = new StringBuilder();
 
-            Func<SyntaxAnalysis.NodeRegexFlags, bool, CapturedNodeRegex> findDateTimeRe = (representationMask, isConditional) =>
+            Func<SyntaxAnalysis.NodeRegexFlags, bool, CapturedNodeRegex?> findDateTimeRe = (representationMask, isConditional) =>
                 dateTimeRegexps.FirstOrDefault(re =>
                     (re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime) == representationMask
                     && ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0) == isConditional);
@@ -448,7 +448,8 @@ namespace LogJoint.NLog
                 if (re.Regex.DateTimeFormat == SyntaxAnalysis.TicksFakeDateTimeFormat)
                     return string.Format("TICKS_TO_DATETIME({0})", re.CaptureName);
                 string fmt = re.Regex.DateTimeCulture == null ? "TO_DATETIME({0}, {1})" : "TO_DATETIME({0}, {1}, \"{2}\")";
-                return string.Format(fmt, re.CaptureName, StringUtils.GetCSharpStringLiteral(re.Regex.DateTimeFormat), re.Regex.DateTimeCulture);
+                string dtFmt = StringUtils.GetCSharpStringLiteral(re.Regex.DateTimeFormat ?? throw new InvalidOperationException("No date time format found"));
+                return string.Format(fmt, re.CaptureName, dtFmt, re.Regex.DateTimeCulture);
             };
 
             var concreteDateTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime, false);
@@ -587,7 +588,7 @@ return Severity.Info;", getCode(concreteSeverities[0]));
                 return false;
             var skipableChars = "|-/\\ \t-()[]#\"'";
             Func<char, bool> isNotSkipableChar = c => skipableChars.IndexOf(c) < 0;
-            return re.Regex.StringLiteral.Any(isNotSkipableChar) == false;
+            return re.Regex.StringLiteral!.Any(isNotSkipableChar) == false;
         }
 
         private static string GetBodyCode(List<CapturedNodeRegex> otherRegexps, ImportLog log, EscapingOptions escaping)

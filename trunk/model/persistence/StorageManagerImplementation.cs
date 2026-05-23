@@ -163,7 +163,7 @@ namespace LogJoint.Persistence.Implementation
         {
             await inited.Task;
             bool timeToCleanup = false;
-            using (var cleanupInfoStream = await FileSystem.OpenFile("cleanup.info", readOnly: false))
+            using (var cleanupInfoStream = await FileSystem.OpenFile("cleanup.info"))
             {
                 cleanupInfoStream.Position = 0;
                 var cleanupInfoContent = await (new StreamReader(cleanupInfoStream, Encoding.ASCII)).ReadToEndAsync();
@@ -213,7 +213,7 @@ namespace LogJoint.Persistence.Implementation
                     var dirs = await Task.WhenAll((await FileSystem.ListDirectories("", cancellationToken)).Select(async dir =>
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        using var s = await FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, readOnly: true);
+                        using var s = await FileSystem.OpenFileReadOnly(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName);
                         trace.Info("Handling '{0}'", dir);
                         if (s == null)
                         {

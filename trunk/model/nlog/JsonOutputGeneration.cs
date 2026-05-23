@@ -50,7 +50,7 @@ namespace LogJoint.NLog
                             configBuilder.HeaderReBuilder.AppendFormat(@"{0}(?<!\\)"" # value of '{1}' ends", Environment.NewLine, attr.Key);
                         }
                     }
-                    else
+                    else if (attr.Value.JsonLayout != null)
                     {
                         if (attr.Value.Encode)
                         {

@@ -11,10 +11,10 @@ namespace LogJoint.NLog
         {
             public class Attr
             {
-                public string Id { get; internal set; }
+                public required string Id { get; set; }
 
-                public Layout JsonLayout { get; internal set; }
-                public string SimpleLayout { get; internal set; }
+                public Layout? JsonLayout { get; internal set; }
+                public string? SimpleLayout { get; internal set; }
 
                 public bool Encode { get; internal set; } = true;
                 public bool EscapeUnicode { get; internal set; } = true;
@@ -27,7 +27,7 @@ namespace LogJoint.NLog
             public bool RenderEmptyObject { get; internal set; } = true;
         };
         public Layout Root { get; internal set; } = new Layout();
-        internal string FalalLoadingError { get; set; }
+        internal string? FalalLoadingError { get; set; }
 
         internal JsonParams()
         {
@@ -35,8 +35,7 @@ namespace LogJoint.NLog
 
         public JsonParams(XmlElement rootElement)
         {
-            Func<XmlElement, string, Layout> makeJsonLayout = null;
-            makeJsonLayout = (layoutElement, baseId) =>
+            Layout makeJsonLayout(XmlElement layoutElement, string baseId)
             {
                 var ret = new Layout();
                 ret.SuppressSpaces = ReadBool(layoutElement, "suppressSpaces", ret.SuppressSpaces);
@@ -44,7 +43,7 @@ namespace LogJoint.NLog
                 ret.IncludeMdlc = ReadBool(layoutElement, "includeMdlc", ret.IncludeMdlc);
                 ret.IncludeMdc = ReadBool(layoutElement, "includeMdc", ret.IncludeMdc);
                 ret.RenderEmptyObject = ReadBool(layoutElement, "renderEmptyObject", ret.RenderEmptyObject);
-                foreach (XmlElement attrElement in layoutElement.SelectNodes("*[local-name()='attribute']"))
+                foreach (XmlElement attrElement in layoutElement.SelectNodes("*[local-name()='attribute']")!)
                 {
                     var name = attrElement.GetAttribute("name");
                     if (string.IsNullOrEmpty(name))
@@ -57,7 +56,7 @@ namespace LogJoint.NLog
                         Id = string.Format("{0}[{1}]", baseId, name)
                     };
                     var simpleLayout = attrElement.GetAttribute("layout");
-                    XmlElement nestedLayoutElement;
+                    XmlElement? nestedLayoutElement;
                     if (!string.IsNullOrEmpty(simpleLayout))
                         attr.SimpleLayout = simpleLayout;
                     else if ((nestedLayoutElement = attrElement.SelectSingleNode("*[local-name()='layout']") as XmlElement) != null)
@@ -73,7 +72,8 @@ namespace LogJoint.NLog
                         ret.Attrs[name] = attr;
                 }
                 return ret;
-            };
+            }
+
             Root = makeJsonLayout(rootElement, "");
         }
 

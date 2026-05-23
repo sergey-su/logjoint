@@ -88,7 +88,7 @@ namespace LogJoint.Persistence.Implementation
         {
             if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
             {
-                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: true);
+                using var s = await Manager.FileSystem.OpenFileReadOnly(Path);
                 try
                 {
                     if (s != null)
@@ -107,7 +107,7 @@ namespace LogJoint.Persistence.Implementation
         {
             try
             {
-                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
+                using var s = await Manager.FileSystem.OpenFile(Path);
                 s.SetLength(0);
                 s.Position = 0;
                 data.Save(s);
@@ -162,7 +162,7 @@ namespace LogJoint.Persistence.Implementation
             }
             if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
             {
-                fileSystemStream = await Manager.FileSystem.OpenFile(Path, readOnly: true);
+                fileSystemStream = await Manager.FileSystem.OpenFileReadOnly(Path);
                 if (fileSystemStream != null)
                 {
                     reader = XmlReader.Create(fileSystemStream);
@@ -207,14 +207,14 @@ namespace LogJoint.Persistence.Implementation
         public const string KeyPrefix = "b";
 
         public static async Task<IRawStreamStorageSection> Create(StorageManagerImplementation manager,
-            StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string keyPrefix = null)
+            StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string? keyPrefix = null)
         {
             var result = new BinaryStorageSection(manager, entry, key, additionalNumericKey, openFlags, keyPrefix);
             await result.Init();
             return result;
         }
 
-        private BinaryStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string keyPrefix) :
+        private BinaryStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags, string? keyPrefix) :
             base(manager, entry, key, additionalNumericKey, keyPrefix ?? KeyPrefix, openFlags)
         { }
 
@@ -222,7 +222,7 @@ namespace LogJoint.Persistence.Implementation
         {
             if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
             {
-                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: true);
+                using var s = await Manager.FileSystem.OpenFileReadOnly(Path);
                 if (s != null)
                 {
                     await s.CopyToAsync(data);
@@ -237,7 +237,7 @@ namespace LogJoint.Persistence.Implementation
         {
             try
             {
-                using var s = await Manager.FileSystem.OpenFile(Path, readOnly: false);
+                using var s = await Manager.FileSystem.OpenFile(Path);
                 s.SetLength(0);
                 s.Position = 0;
                 data.Position = 0;
@@ -252,7 +252,7 @@ namespace LogJoint.Persistence.Implementation
 
         async ValueTask<bool> IStorageSectionInternal.ExistsInFileSystem()
         {
-            using var s = await Manager.FileSystem.OpenFile(Path, readOnly: true);
+            using var s = await Manager.FileSystem.OpenFileReadOnly(Path);
             return s != null;
         }
 

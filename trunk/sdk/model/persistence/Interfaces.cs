@@ -98,7 +98,7 @@ namespace LogJoint.Persistence
 
     public interface IContentCache
     {
-        Task<Stream> GetValue(string key);
+        Task<Stream?> GetValue(string key);
         Task SetValue(string key, Stream data);
     };
 

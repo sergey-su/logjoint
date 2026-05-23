@@ -48,7 +48,8 @@ namespace LogJoint.Persistence
             /// OpenFile does the best to handle concurrent access and fails only
             /// if something really bad happens.
             /// </summary>
-            Task<Stream> OpenFile(string relativePath, bool readOnly);
+            Task<Stream> OpenFile(string relativePath);
+            Task<Stream?> OpenFileReadOnly(string relativePath);
             /// <summary>
             /// Returns relative paths of subdirectories. It throws OperationCanceledException if cancellation was requested before enumeration is finished.
             /// </summary>

@@ -43,9 +43,9 @@ namespace LogJoint.NLog
             public int? LayoutSliceEnd;
             public RegexModifyingWrapper? WrapperThatMakesRegexNotSpecific;
             public RegexModifyingWrapper? WrapperThatMakesRegexConditional;
-            public string DateTimeFormat;
-            public string DateTimeCulture;
-            public string StringLiteral;
+            public string? DateTimeFormat;
+            public string? DateTimeCulture;
+            public string? StringLiteral;
             public NodeRegex(string re, string description, NodeRegexFlags flags,
                 int? layoutSliceBegin, int? layoutSliceEnd)
             {
@@ -83,8 +83,8 @@ namespace LogJoint.NLog
         {
             public WrapperType Type;
             public Syntax.Node WrapperRenderer;
-            public string CustomRendererName;
-            public RegexModifyingWrapper(WrapperType type, Syntax.Node renderer, string customRendererName = null)
+            public string? CustomRendererName;
+            public RegexModifyingWrapper(WrapperType type, Syntax.Node renderer, string? customRendererName = null)
             {
                 Type = type;
                 WrapperRenderer = renderer;
@@ -435,7 +435,7 @@ namespace LogJoint.NLog
             var userName = GetBoolPropertyDefaultTrue(renderer, "userName");
             var domain = GetBoolPropertyDefaultTrue(renderer, "domain");
             string partRe = @"[\w\-_]+";
-            string ret;
+            string? ret;
             // all is optional to enable parsing logs recorded on mac
             if (userName && domain)
                 ret = string.Format(@"({0}([\\\/]{0})?)?", partRe);
@@ -590,7 +590,7 @@ namespace LogJoint.NLog
 
         class FormatParsing_RegexBuilderHook : DateTimeFormatParsing.IRegexBuilderHook
         {
-            public NodeRegexContext ctx;
+            public required NodeRegexContext ctx;
             public string GetRegexFromStringLiteral(string str) { return ctx.GetRegexFromStringLiteral(str); }
         };
 
