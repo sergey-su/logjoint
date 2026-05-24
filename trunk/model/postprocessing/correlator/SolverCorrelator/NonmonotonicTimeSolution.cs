@@ -66,17 +66,16 @@ namespace LogJoint.Postprocessing.Correlation
         {
             Func<A.Message, Expr> getTerm = m =>
             {
-                Expr ret = new TermExpr() { Variable = nodeDecisions[m.Node.NodeId].Decision };
+                Expr ret = new TermExpr(nodeDecisions[m.Node.NodeId].Decision);
                 for (; m != null; m = m.Prev)
                 {
-                    MessageDecision d;
+                    MessageDecision? d;
                     if (msgDecisions.TryGetValue(m, out d))
-                        ret = new OperatorExpr()
-                        {
-                            Op = OperatorExpr.OpType.Sub,
-                            Left = ret,
-                            Right = new TermExpr() { Variable = d.Decision }
-                        };
+                        ret = new OperatorExpr(
+                            OperatorExpr.OpType.Sub,
+                            ret,
+                            new TermExpr(d.Decision)
+                        );
                 }
                 return ret;
             };
@@ -88,20 +87,17 @@ namespace LogJoint.Postprocessing.Correlation
 
                 solverModel.AddConstraints(
                     SolverUtils.MakeValidSolverIdentifierFromString("MessageConstraint_" + message.Id),
-                    new OperatorExpr()
-                    {
-                        Op = OperatorExpr.OpType.Get,
-                        Left = new OperatorExpr()
-                        {
-                            Op = OperatorExpr.OpType.Sub,
-                            Left = toNodeDecision,
-                            Right = fromNodeDecision,
-                        },
-                        Right = new ConstantExpr()
-                        {
-                            Value = (message.FromTimestamp - message.ToTimestamp).Ticks + 1
-                        }
-                    }
+                    new OperatorExpr(
+                        OperatorExpr.OpType.Get,
+                        new OperatorExpr(
+                            OperatorExpr.OpType.Sub,
+                            toNodeDecision,
+                            fromNodeDecision
+                        ),
+                        new ConstantExpr(
+                            (message.FromTimestamp - message.ToTimestamp).Ticks + 1
+                        )
+                    )
                 );
                 nodeDecisions[message.IncomingMessage.Node.NodeId].UsedInConstraint();
                 nodeDecisions[message.OutgoingMessage.Node.NodeId].UsedInConstraint();

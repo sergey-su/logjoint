@@ -23,17 +23,15 @@ namespace LogJoint.Postprocessing.Correlation
                 var fromNodeDecision = nodeDecisions[constraint.Node2];
                 solverModel.AddConstraints(
                     SolverUtils.MakeValidSolverIdentifierFromString(string.Format("fixed-diff-{0}-{1}", constraint.Node1, constraint.Node2)),
-                    new OperatorExpr()
-                    {
-                        Op = OperatorExpr.OpType.Eq,
-                        Left = new OperatorExpr()
-                        {
-                            Op = OperatorExpr.OpType.Sub,
-                            Left = new TermExpr() { Variable = toNodeDecision.Decision },
-                            Right = new TermExpr() { Variable = fromNodeDecision.Decision },
-                        },
-                        Right = new ConstantExpr() { Value = constraint.Value.Ticks }
-                    }
+                    new OperatorExpr(
+                        OperatorExpr.OpType.Eq,
+                        new OperatorExpr(
+                            OperatorExpr.OpType.Sub,
+                            new TermExpr(toNodeDecision.Decision),
+                            new TermExpr(fromNodeDecision.Decision)
+                        ),
+                        new ConstantExpr(constraint.Value.Ticks)
+                    )
                 );
                 toNodeDecision.UsedInConstraint();
                 fromNodeDecision.UsedInConstraint();
@@ -60,10 +58,10 @@ namespace LogJoint.Postprocessing.Correlation
                             .Where(m => m.InternodeMessage != null && m.InternodeMessage.GetOppositeMessage(m).Node == n2)
                             .Where(m => !(m.InternodeMessage.OutgoingMessage.Event is ResponselessNetworkMessageEvent))
                             .Select(m => m.InternodeMessage)
-                            .Aggregate(new { D = TimeSpan.MaxValue, M = (InternodeMessage)null }, (rslt, m) =>
+                            .Aggregate(new { D = TimeSpan.MaxValue, M = (InternodeMessage?)null }, (rslt, m) =>
                             {
                                 var d = m.FromTimestamp - m.ToTimestamp;
-                                return d < rslt.D ? new { D = d, M = m } : rslt;
+                                return d < rslt.D ? new { D = d, M = (InternodeMessage?)m } : rslt;
                             }, rslt => rslt.M);
                         if (message == null)
                             continue;
@@ -74,17 +72,15 @@ namespace LogJoint.Postprocessing.Correlation
                         var fromNodeDecision = nodeDecisions[message.From.NodeId];
                         solverModel.AddConstraints(
                             SolverUtils.MakeValidSolverIdentifierFromString(message.Id) + "_reverse",
-                            new OperatorExpr()
-                            {
-                                Op = OperatorExpr.OpType.Get,
-                                Left = new OperatorExpr()
-                                {
-                                    Op = OperatorExpr.OpType.Sub,
-                                    Left = new TermExpr() { Variable = fromNodeDecision.Decision },
-                                    Right = new TermExpr() { Variable = toNodeDecision.Decision }
-                                },
-                                Right = new ConstantExpr() { Value = (message.ToTimestamp - message.FromTimestamp).Ticks - 1 }
-                            }
+                            new OperatorExpr(
+                                OperatorExpr.OpType.Get,
+                                new OperatorExpr(
+                                    OperatorExpr.OpType.Sub,
+                                    new TermExpr(fromNodeDecision.Decision),
+                                    new TermExpr(toNodeDecision.Decision)
+                                ),
+                                new ConstantExpr((message.ToTimestamp - message.FromTimestamp).Ticks - 1)
+                            )
                         );
                     }
                 }
@@ -124,17 +120,15 @@ namespace LogJoint.Postprocessing.Correlation
                     var badDomainDecision = nodeDecisions[badDomain.Value[0].Key.NodeId];
                     solverModel.AddConstraints(
                         "isolated_domain_link_" + SolverUtils.MakeValidSolverIdentifierFromString(string.Join("_", badDomain.Key)),
-                        new OperatorExpr()
-                        {
-                            Op = OperatorExpr.OpType.Eq,
-                            Left = new OperatorExpr()
-                            {
-                                Op = OperatorExpr.OpType.Sub,
-                                Left = new TermExpr() { Variable = goodDomainDecision.Decision },
-                                Right = new TermExpr() { Variable = badDomainDecision.Decision }
-                            },
-                            Right = new ConstantExpr() { Value = 0 }
-                        }
+                        new OperatorExpr(
+                            OperatorExpr.OpType.Eq,
+                            new OperatorExpr(
+                                OperatorExpr.OpType.Sub,
+                                new TermExpr(goodDomainDecision.Decision),
+                                new TermExpr(badDomainDecision.Decision)
+                            ),
+                            new ConstantExpr(0)
+                        )
                     );
                     handledBadDomains.Add(badDomain.Key);
                 }

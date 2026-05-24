@@ -4,20 +4,17 @@ namespace LogJoint.Postprocessing.Correlation.ExternalSolver.Protocol
 {
     public class Request
     {
-        public class Expr
-        {
-            public Expr left;
-            public Expr right;
-            public string op;
-            public string variable;
-            public double? value;
-        };
-        public Expr[] constraints;
+        public abstract record Expr;
+        public record BinaryExpr(Expr Left, Expr Right, string Op) : Expr;
+        public record VariableExpr(string Name) : Expr;
+        public record ValueExpr(double Value) : Expr;
+
+        public required Expr[] constraints;
         public class Goal
         {
-            public Expr expr;
+            public required Expr expr;
         };
-        public Goal goal;
+        public required Goal goal;
     };
 
     public class Response
@@ -26,7 +23,7 @@ namespace LogJoint.Postprocessing.Correlation.ExternalSolver.Protocol
         public static string Infeasible = "infeasible";
         public static string TooComplex = "too complex";
 
-        public string status;
-        public Dictionary<string, double> variables;
+        public required string status;
+        public Dictionary<string, double>? variables;
     };
 }

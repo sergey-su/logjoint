@@ -1,8 +1,8 @@
 ﻿// using GLS = Google.OrTools.LinearSolver;
 // using Google.OrTools.LinearSolver;
 using LogJoint.Postprocessing.Correlation.ExternalSolver.Protocol;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -13,10 +13,12 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
         public static Response Solve(Request rq)
         {
             var solverAsm = Assembly.Load("Google.OrTools");
-            var solverType = solverAsm.GetType("Google.OrTools.LinearSolver.Solver");
+            var solverType = solverAsm.GetType("Google.OrTools.LinearSolver.Solver")
+                ?? throw new InvalidProgramException("Can not find solver type");
             dynamic /*GLS.Solver*/ solver = solverType.InvokeMember("CreateSolver",
                 BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public, null, null,
-                new[] { "IntegerProgramming", "GLOP_LINEAR_PROGRAMMING" });
+                new[] { "IntegerProgramming", "GLOP_LINEAR_PROGRAMMING" })
+                ?? throw new InvalidProgramException("Can not instantiate solver");
             // var solver = GLS.Solver.CreateSolver("IntegerProgramming", "GLOP_LINEAR_PROGRAMMING");
 
 
@@ -34,7 +36,7 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 
             dynamic /*GLS.Solver.ResultStatus*/ resultStatus = solver.Solve();
 
-            var rsp = new Response();
+            Response rsp;
 
             bool isSolved(dynamic /* GLS.Solver.ResultStatus */ result) =>
                    result.ToString() == "OPTIMAL"
@@ -42,14 +44,19 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 
             if (!isSolved(resultStatus))
             {
-                rsp.status = Response.Infeasible;
+                rsp = new Response()
+                {
+                    status = Response.Infeasible
+                };
             }
             else
             {
-                rsp.status = Response.Solved;
-                rsp.variables = vars
-                    .Where(v => v.Key != identityConstant)
-                    .ToDictionary(v => v.Key, v => (double)v.Value.SolutionValue());
+                rsp = new Response() {
+                    status = Response.Solved,
+                    variables = vars
+                        .Where(v => v.Key != identityConstant)
+                        .ToDictionary(v => v.Key, v => (double)v.Value.SolutionValue())
+                };
             }
 
             return rsp;
@@ -59,12 +66,17 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
 
         static void CollectVariables(Request.Expr e, Dictionary<string, dynamic /*Variable*/> vars, dynamic /*GLS.Solver*/ solver)
         {
-            if (e.variable != null && !vars.ContainsKey(e.variable))
-                vars[e.variable] = solver.MakeNumVar(0.0, double.PositiveInfinity, e.variable);
-            if (e.left != null)
-                CollectVariables(e.left, vars, solver);
-            if (e.right != null)
-                CollectVariables(e.right, vars, solver);
+            switch (e)
+            {
+                case Request.VariableExpr v:
+                    if (!vars.ContainsKey(v.Name))
+                        vars[v.Name] = solver.MakeNumVar(0.0, double.PositiveInfinity, v.Name);
+                    break;
+                case Request.BinaryExpr b:
+                    CollectVariables(b.Left, vars, solver);
+                    CollectVariables(b.Right, vars, solver);
+                    break;
+            }
         }
 
 
@@ -78,24 +90,20 @@ namespace LogJoint.Postprocessing.Correlation.EmbeddedSolver
             }
         }
 
-        static dynamic /*LinearExpr*/ ToLinearExpr(Request.Expr e, Dictionary<string, dynamic /*Variable*/> vars)
+        static dynamic /*LinearExpr*/ ToLinearExpr(Request.Expr e, Dictionary<string, dynamic /*Variable*/> vars) => e switch
         {
-            if (e.variable != null)
-                return vars[e.variable];
-            if (e.value != null)
-                return vars[identityConstant] * e.value.Value;
-            if (e.op != null)
-                return ToLinearExpr(ToLinearExpr(e.left, vars), ToLinearExpr(e.right, vars), e.op);
-            throw new ArgumentException();
-        }
+            Request.VariableExpr v => vars[v.Name],
+            Request.ValueExpr v => vars[identityConstant] * v.Value,
+            Request.BinaryExpr b => ToLinearExpr(ToLinearExpr(b.Left, vars), ToLinearExpr(b.Right, vars), b.Op),
+            _ => throw new ArgumentException()
+        };
 
         static dynamic /*LinearConstraint*/ ToLinearConstraint(Request.Expr e, Dictionary<string, dynamic /*Variable*/> vars)
         {
-            if (e.op == null)
-                throw new ArgumentException();
-            var l = ToLinearExpr(e.left, vars);
-            var r = ToLinearExpr(e.right, vars);
-            switch (e.op)
+            var b = e as Request.BinaryExpr ?? throw new ArgumentException();
+            var l = ToLinearExpr(b.Left, vars);
+            var r = ToLinearExpr(b.Right, vars);
+            switch (b.Op)
             {
                 case "get": return l >= r;
                 case "let": return l <= r;

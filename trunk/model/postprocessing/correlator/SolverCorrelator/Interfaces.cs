@@ -1,10 +1,6 @@
-﻿using LogJoint.Postprocessing.Messaging.Analisys;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using System.Threading;
+using static LogJoint.Postprocessing.Correlation.Solver.OperatorExpr;
 
 namespace LogJoint.Postprocessing.Correlation.Solver
 {
@@ -31,30 +27,20 @@ namespace LogJoint.Postprocessing.Correlation.Solver
         bool IsInfeasible { get; }
     };
 
-    public class Expr
-    {
-    };
+    public abstract record Expr;
 
-    public class TermExpr : Expr
-    {
-        public IDecision Variable;
-    };
+    public record TermExpr(IDecision Variable) : Expr;
 
-    public class OperatorExpr : Expr
+
+    public record OperatorExpr(OpType Operator, Expr Left, Expr Right) : Expr
     {
         public enum OpType
         {
             Get, Let, Eq, Sub, Add
         };
-        public OpType Op;
-        public Expr Left;
-        public Expr Right;
     };
 
-    public class ConstantExpr : Expr
-    {
-        public double Value;
-    };
+    public record ConstantExpr(double Value) : Expr;
 
     public class UnsolvableModelException : Exception
     {

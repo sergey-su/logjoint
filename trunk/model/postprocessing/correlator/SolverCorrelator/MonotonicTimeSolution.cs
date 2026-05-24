@@ -56,26 +56,15 @@ namespace LogJoint.Postprocessing.Correlation
                 var fromNodeDecision = nodeDecisions[message.From.NodeId];
                 solverModel.AddConstraints(
                     SolverUtils.MakeValidSolverIdentifierFromString(message.Id),
-                    new OperatorExpr()
-                    {
-                        Op = OperatorExpr.OpType.Get,
-                        Left = new OperatorExpr()
-                        {
-                            Op = OperatorExpr.OpType.Sub,
-                            Left = new TermExpr()
-                            {
-                                Variable = toNodeDecision.Decision,
-                            },
-                            Right = new TermExpr()
-                            {
-                                Variable = fromNodeDecision.Decision,
-                            },
-                        },
-                        Right = new ConstantExpr()
-                        {
-                            Value = (message.FromTimestamp - message.ToTimestamp).Ticks + 1
-                        }
-                    }
+                    new OperatorExpr(
+                        OperatorExpr.OpType.Get,
+                        new OperatorExpr(
+                            OperatorExpr.OpType.Sub,
+                            new TermExpr(toNodeDecision.Decision),
+                            new TermExpr(fromNodeDecision.Decision)
+                        ),
+                        new ConstantExpr((message.FromTimestamp - message.ToTimestamp).Ticks + 1)
+                    )
                 );
                 toNodeDecision.UsedInConstraint();
                 fromNodeDecision.UsedInConstraint();

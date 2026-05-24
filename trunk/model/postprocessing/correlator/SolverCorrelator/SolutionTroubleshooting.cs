@@ -12,9 +12,9 @@ namespace LogJoint.Postprocessing.Correlation
     {
         public class ProblematicNodesCombination
         {
-            public Dictionary<NodeId, Node> Nodes;
+            public required Dictionary<NodeId, Node> Nodes;
             public int InternodeMessagesCount;
-            public List<List<InternodeMessage>> ProblematicMessagesGroups;
+            public required List<List<InternodeMessage>> ProblematicMessagesGroups;
         };
 
         public static List<ProblematicNodesCombination> FindProblematicNodesCombinations(
@@ -53,7 +53,7 @@ namespace LogJoint.Postprocessing.Correlation
 
             Func<Node, string> getNodeAbbreviation = node =>
             {
-                string abbreviation;
+                string? abbreviation;
                 if (nodeAbbreviations.TryGetValue(node.NodeId, out abbreviation))
                     return abbreviation;
                 abbreviation = new string((char)(((int)'A') + nodeAbbreviations.Count), 1);
