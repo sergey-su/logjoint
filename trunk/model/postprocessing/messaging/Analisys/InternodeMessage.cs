@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 
 namespace LogJoint.Postprocessing.Messaging.Analisys
 {
@@ -36,7 +37,7 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
                 return IncomingMessage;
             if (m == IncomingMessage)
                 return OutgoingMessage;
-            return null;
+            throw new ArgumentException();
         }
     };
 }

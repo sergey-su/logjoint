@@ -15,7 +15,7 @@ namespace LogJoint.Postprocessing.Messaging
             CoreMessageAttrsOnly = 1
         };
 
-        public EventsSerializer(Action<object, XElement> triggerSerializer = null, Flags flags = Flags.Default)
+        public EventsSerializer(Action<object, XElement>? triggerSerializer = null, Flags flags = Flags.Default)
         {
             this.triggerSerializer = triggerSerializer;
             this.flags = flags;
@@ -63,14 +63,14 @@ namespace LogJoint.Postprocessing.Messaging
                 new XAttribute(SC.Attr_MetaValue, evt.Value));
         }
 
-        static XAttribute? MakeNullableAttr(string attrName, object value)
+        static XAttribute? MakeNullableAttr(string attrName, object? value)
         {
             if (value == null)
                 return null;
             return new XAttribute(attrName, value);
         }
 
-        XElement CreateElement(NetworkMessageEvent evt, string name, params XAttribute[] attrs)
+        XElement CreateElement(NetworkMessageEvent evt, string name, params XAttribute?[] attrs)
         {
             if ((flags & Flags.CoreMessageAttrsOnly) != 0)
             {
@@ -88,7 +88,7 @@ namespace LogJoint.Postprocessing.Messaging
             }).ToArray());
         }
 
-        XElement CreateElement(Event evt, string name, params XAttribute[] attrs)
+        XElement CreateElement(Event evt, string name, params XAttribute?[] attrs)
         {
             if ((flags & Flags.CoreMessageAttrsOnly) == 0)
             {
@@ -106,7 +106,7 @@ namespace LogJoint.Postprocessing.Messaging
 
         readonly Flags flags;
         readonly List<XElement> output = new List<XElement>();
-        readonly Action<object, XElement> triggerSerializer;
+        readonly Action<object, XElement>? triggerSerializer;
         readonly static HashSet<string> noTags = new HashSet<string>();
     }
 }

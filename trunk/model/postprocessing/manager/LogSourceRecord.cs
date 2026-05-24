@@ -24,7 +24,8 @@ namespace LogJoint.Postprocessing
             this.fileSystem = fileSystem;
             this.logSource = logSource;
             this.metadata = metadata;
-            this.logFileName = logSource.Provider.ConnectionParams[ConnectionParamsKeys.PathConnectionParam];
+            this.logFileName = logSource.Provider.ConnectionParams[ConnectionParamsKeys.PathConnectionParam]
+                ?? throw new ArgumentException("No path found");
             this.cancellation = new CancellationTokenSource();
         }
 

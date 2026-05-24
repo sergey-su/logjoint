@@ -7,14 +7,14 @@ namespace LogJoint.Postprocessing.Messaging
 {
     public abstract class Event : ITagged, IVisitable<IEventsVisitor>
     {
-        public object Trigger;
-        public readonly string DisplayName;
+        public object? Trigger;
+        public readonly string? DisplayName;
         public EventStatus Status { get; set; }
         public HashSet<string> Tags { get { return tags; } set { tags = value; } }
 
         public Event(
-            object trigger,
-            string displayName,
+            object? trigger,
+            string? displayName,
             EventStatus status = EventStatus.Unspecified
         )
         {
@@ -66,8 +66,8 @@ namespace LogJoint.Postprocessing.Messaging
         public readonly string? RemoteSideId; // todo: document the diff from TargetIdHint
 
         public NetworkMessageEvent(
-            object trigger,
-            string displayName,
+            object? trigger,
+            string? displayName,
             MessageDirection direction,
             MessageType type,
             string eventType,
@@ -91,7 +91,7 @@ namespace LogJoint.Postprocessing.Messaging
 
     public class ResponselessNetworkMessageEvent : NetworkMessageEvent
     {
-        public ResponselessNetworkMessageEvent(object trigger, string displayName, MessageDirection direction, MessageType type, string messageId, string? targetIdHint = null) :
+        public ResponselessNetworkMessageEvent(object? trigger, string? displayName, MessageDirection direction, MessageType type, string messageId, string? targetIdHint = null) :
             base(trigger, displayName, direction, type, "rsplsp", messageId, targetIdHint, null)
         {
         }
@@ -105,7 +105,7 @@ namespace LogJoint.Postprocessing.Messaging
     public class HttpMessage : NetworkMessageEvent
     {
         public string? Url { get { return base.RemoteSideId; } }
-        public readonly string Method;
+        public readonly string? Method;
         public readonly string Body;
         public readonly IReadOnlyList<KeyValuePair<string, string>> Headers;
         public readonly int? StatusCode;
@@ -113,7 +113,7 @@ namespace LogJoint.Postprocessing.Messaging
 
         public new static readonly string EventType = "http";
 
-        public HttpMessage(object trigger, string displayName, MessageDirection direction, MessageType type, string messageId, string url, string method, string body,
+        public HttpMessage(object? trigger, string? displayName, MessageDirection direction, MessageType type, string messageId, string? url, string? method, string body,
                 IEnumerable<KeyValuePair<string, string>> headers, int? statusCode, string? targetIdHint = null, string? statusComment = null) :
             base(trigger, displayName, direction, type, EventType, messageId, targetIdHint, url)
         {
@@ -134,7 +134,7 @@ namespace LogJoint.Postprocessing.Messaging
     {
         public readonly string RequestMessageId;
 
-        public RequestCancellationEvent(object trigger, string displayName, string requestMessageId) :
+        public RequestCancellationEvent(object? trigger, string? displayName, string requestMessageId) :
             base(trigger, displayName)
         {
             RequestMessageId = requestMessageId;
@@ -152,7 +152,7 @@ namespace LogJoint.Postprocessing.Messaging
         public readonly MessageDirection MessageDirection;
         public readonly MessageType MessageType;
 
-        public FunctionInvocationEvent(object trigger, string displayName, MessageDirection direction, MessageType type, string invocationId) :
+        public FunctionInvocationEvent(object? trigger, string? displayName, MessageDirection direction, MessageType type, string invocationId) :
             base(trigger, displayName)
         {
             InvocationId = invocationId;
@@ -172,7 +172,7 @@ namespace LogJoint.Postprocessing.Messaging
         public readonly string Key;
         public readonly string Value;
 
-        public MetadataEvent(object trigger, string key, string value) :
+        public MetadataEvent(object? trigger, string key, string value) :
             base(trigger, "")
         {
             this.Key = key;

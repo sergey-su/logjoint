@@ -65,7 +65,7 @@ namespace LogJoint.Postprocessing
     {
         readonly Dictionary<string, string> data = new Dictionary<string, string>();
 
-        public string? Intern(string value)
+        public string? Intern(string? value)
         {
             if (value == null)
                 return null;

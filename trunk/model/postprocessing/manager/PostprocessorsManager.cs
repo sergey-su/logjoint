@@ -43,7 +43,7 @@ namespace LogJoint.Postprocessing
             logSources.OnLogSourceAdded += (sender, args) => updater.Invoke();
             logSources.OnLogSourceRemoved += (sender, args) => updater.Invoke();
             logSources.OnLogSourceAnnotationChanged += (sender, args) => updater.Invoke();
-            logSources.OnLogSourceStatsChanged += (object sender, LogSourceStatsEventArgs e) =>
+            logSources.OnLogSourceStatsChanged += (object? sender, LogSourceStatsEventArgs e) =>
             {
                 if ((e.Flags & LogProviderStatsFlag.ContentsEtag) != 0)
                     updater.Invoke();
@@ -62,7 +62,7 @@ namespace LogJoint.Postprocessing
             Refresh();
         }
 
-        public event EventHandler Changed;
+        public event EventHandler? Changed;
 
         IReadOnlyList<LogSourcePostprocessorState> IManagerInternal.LogSourcePostprocessors => visiblePostprocessorsOutputs();
 

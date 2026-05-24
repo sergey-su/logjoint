@@ -24,9 +24,9 @@ namespace LogJoint.Postprocessing.SequenceDiagram
                     builder.events,
                     builder.timelineComments,
                     builder.stateInspectorComments,
-                    builder.logPart,
+                    builder.logPart!,
                     logPartTokenFactories,
-                    builder.triggersConverter,
+                    builder.triggersConverter!,
                     postprocessorInput.InputContentsEtag,
                     postprocessorInput.openOutputFile,
                     tempFiles,
@@ -39,7 +39,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
             IEnumerableAsync<M.Event[]> events,
             IEnumerableAsync<TL.Event[]> timelineComments,
             IEnumerableAsync<SI.Event[]> stateInspectorComments,
-            Task<ILogPartToken> rotatedLogPartToken,
+            Task<ILogPartToken?>? rotatedLogPartToken,
             Func<object, TextLogEventTrigger> triggersConverter,
             LogSourcePostprocessorInput postprocessorInput
         )

@@ -42,7 +42,7 @@ namespace LogJoint.Postprocessing
             }
         }
 
-        IEnumerable<(string text, bool isError, IBookmark bookmark)> IStructuredPostprocessorRunSummary.Entries
+        IEnumerable<(string text, bool isError, IBookmark? bookmark)> IStructuredPostprocessorRunSummary.Entries
         {
             get
             {

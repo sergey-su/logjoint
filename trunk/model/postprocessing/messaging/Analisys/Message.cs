@@ -9,8 +9,8 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
         public readonly DateTime Timestamp;
         public readonly int SequenceNr;
         public readonly Messaging.Event Event;
-        public InternodeMessage InternodeMessage;
-        public Message Prev;
+        public InternodeMessage? InternodeMessage;
+        public Message? Prev;
 
         public Messaging.MessageDirection Direction { get { return Key.Direction; } }
 

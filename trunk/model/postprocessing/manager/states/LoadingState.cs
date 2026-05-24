@@ -5,12 +5,12 @@ namespace LogJoint.Postprocessing
 {
     internal class LoadingState : PostprocessorOutputRecordState
     {
-        private readonly Task<object> task;
-        private readonly IPostprocessorRunSummary lastRunSummary;
-        private readonly TaskCompletionSource<int> flowCompletion;
+        private readonly Task<object?> task;
+        private readonly IPostprocessorRunSummary? lastRunSummary;
+        private readonly TaskCompletionSource<int>? flowCompletion;
         private double progress;
 
-        public LoadingState(Context ctx, IPostprocessorRunSummary lastRunSummary, TaskCompletionSource<int> flowCompletion) : base(ctx)
+        public LoadingState(Context ctx, IPostprocessorRunSummary? lastRunSummary, TaskCompletionSource<int>? flowCompletion) : base(ctx)
         {
             this.lastRunSummary = lastRunSummary;
             this.flowCompletion = flowCompletion;
@@ -27,7 +27,7 @@ namespace LogJoint.Postprocessing
                     }
                     else
                     {
-                        void updateProgress(object sender, HeartBeatEventArgs e)
+                        void updateProgress(object? sender, HeartBeatEventArgs e)
                         {
                             if (e.IsNormalUpdate && Math.Abs(progress - existingSection.ReadProgress) > 1e-3)
                             {

@@ -5,11 +5,11 @@ namespace LogJoint.Postprocessing
 {
     internal class RunningState : PostprocessorOutputRecordState
     {
-        private readonly Task<IPostprocessorRunSummary> task;
+        private readonly Task<IPostprocessorRunSummary?> task;
         private readonly Progress.IProgressAggregator progress;
-        private TaskCompletionSource<int> flowCompletion;
+        private TaskCompletionSource<int>? flowCompletion;
 
-        public RunningState(Context ctx, Task<IPostprocessorRunSummary> task, Progress.IProgressAggregator progress, TaskCompletionSource<int> flowCompletion) : base(ctx)
+        public RunningState(Context ctx, Task<IPostprocessorRunSummary?> task, Progress.IProgressAggregator progress, TaskCompletionSource<int> flowCompletion) : base(ctx)
         {
             this.task = task;
             this.progress = progress;
@@ -27,7 +27,7 @@ namespace LogJoint.Postprocessing
         {
             if (task.IsCompleted)
             {
-                IPostprocessorRunSummary runSummary;
+                IPostprocessorRunSummary? runSummary;
                 Exception? taskException = task.GetTaskException();
                 if (taskException != null)
                 {

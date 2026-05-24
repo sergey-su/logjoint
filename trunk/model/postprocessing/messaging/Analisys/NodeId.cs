@@ -37,8 +37,8 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
 
         internal NodeId(XElement node)
         {
-            Role = node.Attribute("role").Value;
-            RoleInstance = node.Attribute("instance").Value;
+            Role = node.SafeValue("role");
+            RoleInstance = node.SafeValue("instance");
         }
     };
 }

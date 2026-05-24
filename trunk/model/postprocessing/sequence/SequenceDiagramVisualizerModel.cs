@@ -114,8 +114,8 @@ namespace LogJoint.Postprocessing.SequenceDiagram
                 {
                     Id = AnalysisNode.NodeId.ToString(),
                     TimeOffsets = defaultLogSource.TimeOffsets,
-                    RoleInstanceName = roleName.RoleInstanceName,
-                    RoleName = roleName.RoleName,
+                    RoleInstanceName = roleName.RoleInstanceName!,
+                    RoleName = roleName.RoleName!,
                     LogSources = Outputs.Select(output => output.LogSource).ToList()
                 };
             }

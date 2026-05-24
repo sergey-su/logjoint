@@ -14,7 +14,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 {
     class SequenceDiagramPostprocessorOutput : ISequenceDiagramPostprocessorOutput
     {
-        public SequenceDiagramPostprocessorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory rotatedLogPartFactory)
+        public SequenceDiagramPostprocessorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory? rotatedLogPartFactory)
         {
             this.logSource = p.LogSource;
             var reader = p.Reader;
@@ -52,13 +52,13 @@ namespace LogJoint.Postprocessing.SequenceDiagram
         }
 
         public static async Task SerializePostprocessorOutput(
-            IEnumerableAsync<M.Event[]> events,
-            IEnumerableAsync<TLBlock.Event[]> timelineComments,
-            IEnumerableAsync<SIBlock.Event[]> stateInspectorComments,
-            Task<ILogPartToken> logPartToken,
+            IEnumerableAsync<M.Event[]>? events,
+            IEnumerableAsync<TLBlock.Event[]>? timelineComments,
+            IEnumerableAsync<SIBlock.Event[]>? stateInspectorComments,
+            Task<ILogPartToken?>? logPartToken,
             ILogPartTokenFactories logPartTokenFactories,
             Func<object, TextLogEventTrigger> triggersConverter,
-            string contentsEtagAttr,
+            string? contentsEtagAttr,
             Func<Task<Stream>> openOutputStream,
             ITempFilesManager tempFiles,
             CancellationToken cancellation
@@ -67,7 +67,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
             events = events ?? new List<M.Event[]>().ToAsync();
             timelineComments = timelineComments ?? new List<TLBlock.Event[]>().ToAsync();
             stateInspectorComments = stateInspectorComments ?? new List<SIBlock.Event[]>().ToAsync();
-            logPartToken = logPartToken ?? Task.FromResult<ILogPartToken>(null);
+            logPartToken = logPartToken ?? Task.FromResult<ILogPartToken?>(null);
 
             var eventsTmpFile = tempFiles.GenerateNewName();
             var timelineCommentsTmpFile = tempFiles.GenerateNewName();
@@ -132,7 +132,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
         ILogPartToken ISequenceDiagramPostprocessorOutput.RotatedLogPartToken { get { return rotatedLogPartToken; } }
 
-        string IPostprocessorOutputETag.ETag { get { return etag.Value; } }
+        string? IPostprocessorOutputETag.ETag { get { return etag.Value; } }
 
         private const string messagingEventsElementName = "messaging";
         private const string timelineCommentsElementName = "timeline-comments";

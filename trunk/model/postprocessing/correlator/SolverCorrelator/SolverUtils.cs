@@ -56,8 +56,9 @@ namespace LogJoint.Postprocessing.Correlation
                         var message =
                             n1.Messages
                             .Where(m => m.InternodeMessage != null && m.InternodeMessage.GetOppositeMessage(m).Node == n2)
-                            .Where(m => !(m.InternodeMessage.OutgoingMessage.Event is ResponselessNetworkMessageEvent))
+                            .Where(m => !(m.InternodeMessage!.OutgoingMessage.Event is ResponselessNetworkMessageEvent))
                             .Select(m => m.InternodeMessage)
+                            .OfType<InternodeMessage>()
                             .Aggregate(new { D = TimeSpan.MaxValue, M = (InternodeMessage?)null }, (rslt, m) =>
                             {
                                 var d = m.FromTimestamp - m.ToTimestamp;

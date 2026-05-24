@@ -19,11 +19,11 @@ namespace LogJoint.Postprocessing.StateInspector
         {
             CreateElement(SC.Elt_ObjectCreation, objectCreation.Trigger,
                 new XAttribute(SC.Attr_ObjectId, objectCreation.ObjectId),
-                MakeNullableAttr(SC.Attr_ObjectType, objectCreation.ObjectType.TypeName),
-                MakeNullableAttr(SC.Attr_CommentPropertyName, objectCreation.ObjectType.CommentPropertyName),
-                MakeNullableAttr(SC.Attr_PrimaryPropertyName, objectCreation.ObjectType.PrimaryPropertyName),
-                MakeNullableAttr(SC.Attr_DescriptionPropertyName, objectCreation.ObjectType.DescriptionPropertyName),
-                objectCreation.ObjectType.IsTimeless ? new XAttribute(SC.Attr_IsTimeless, "1") : null,
+                MakeNullableAttr(SC.Attr_ObjectType, objectCreation.ObjectType?.TypeName),
+                MakeNullableAttr(SC.Attr_CommentPropertyName, objectCreation.ObjectType?.CommentPropertyName),
+                MakeNullableAttr(SC.Attr_PrimaryPropertyName, objectCreation.ObjectType?.PrimaryPropertyName),
+                MakeNullableAttr(SC.Attr_DescriptionPropertyName, objectCreation.ObjectType?.DescriptionPropertyName),
+                objectCreation.ObjectType?.IsTimeless == true ? new XAttribute(SC.Attr_IsTimeless, "1") : null,
                 objectCreation.IsWeak ? new XAttribute(SC.Attr_IsWeak, "1") : null,
                 MakeTagsAttr(objectCreation),
                 MakeNullableAttr(SC.Attr_DisplayNamePropertyName, objectCreation.DisplayName)
@@ -60,16 +60,16 @@ namespace LogJoint.Postprocessing.StateInspector
             );
         }
 
-        static XAttribute? MakeNullableAttr(string attrName, object value)
+        static XAttribute? MakeNullableAttr(string attrName, object? value)
         {
             if (value == null)
                 return null;
             return new XAttribute(attrName, value);
         }
 
-        XElement CreateElement(string name, object trigger, params XAttribute[] attrs)
+        XElement CreateElement(string name, object? trigger, params XAttribute?[] attrs)
         {
-            var element = new XElement(name, attrs.Where(a => a != null).ToArray());
+            var element = new XElement(name, attrs.OfType<XAttribute>().ToArray());
             if (trigger != null && triggerSerializer != null)
                 triggerSerializer(trigger, element);
             output.Add(element);

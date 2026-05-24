@@ -41,7 +41,7 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
                     return Math.Sign(m1.SequenceNr - m2.SequenceNr);
                 });
 
-                Message prev = null;
+                Message? prev = null;
                 foreach (var m in node.Messages)
                 {
                     m.Prev = prev;
@@ -109,7 +109,7 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
             while (messagesMap.Count > 0)
             {
                 Message m1 = messagesMap.First().Value;
-                Message m2;
+                Message? m2;
                 if (messagesMap.TryGetValue(m1.Key.MakeComplementKey(), out m2))
                 {
                     var outgoingMessage = m1.Direction == Messaging.MessageDirection.Outgoing ? m1 : m2;
@@ -127,7 +127,7 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
                     else
                     {
                         var discoveredMessage = new InternodeMessage(outgoingMessage.Key.ToString(), outgoingMessage, incomingMessage);
-                        List<InternodeMessage> tmp;
+                        List<InternodeMessage>? tmp;
                         var nodeIdsPair = new NodeIdsPair() { N1 = outgoingMessage.Node.NodeId, N2 = incomingMessage.Node.NodeId };
                         if (!internodeMessages.TryGetValue(nodeIdsPair, out tmp))
                             internodeMessages.Add(nodeIdsPair, (tmp = new List<InternodeMessage>()));

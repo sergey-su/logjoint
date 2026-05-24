@@ -49,8 +49,13 @@ namespace LogJoint.Postprocessing.Messaging.Analisys
 
     class MessageKeyComparer : IComparer<MessageKey>
     {
-        int IComparer<MessageKey>.Compare(MessageKey x, MessageKey y)
+        int IComparer<MessageKey>.Compare(MessageKey? x, MessageKey? y)
         {
+            if (x == y) return 0;
+            if (x == null)
+                return 1;
+            if (y == null)
+                return -1;
             int i = string.CompareOrdinal(x.MessageId, y.MessageId);
             if (i != 0)
                 return i;

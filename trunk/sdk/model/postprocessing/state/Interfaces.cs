@@ -34,13 +34,13 @@ namespace LogJoint.Postprocessing.StateInspector
 
     public abstract class Event : ITagged, IVisitable<IEventsVisitor>
     {
-        public object Trigger;
+        public object? Trigger;
         public readonly string ObjectId;
         public HashSet<string> Tags { get { return tags; } set { tags = value; } }
-        public readonly ObjectTypeInfo ObjectType;
+        public readonly ObjectTypeInfo? ObjectType;
         public readonly int TemplateId;
 
-        public Event(object trigger, string objectId, ObjectTypeInfo objectType, int templateId)
+        public Event(object? trigger, string objectId, ObjectTypeInfo? objectType, int templateId)
         {
             ValidateObjectId(objectId);
             Trigger = trigger;
@@ -80,7 +80,7 @@ namespace LogJoint.Postprocessing.StateInspector
         public readonly bool IsWeak;
         public readonly string? DisplayName;
 
-        public ObjectCreation(object trigger, string objectId, ObjectTypeInfo objectTypeInfo,
+        public ObjectCreation(object? trigger, string objectId, ObjectTypeInfo objectTypeInfo,
                 int templateId = 0, bool isWeak = false, string? displayName = null) :
             base(trigger, objectId, objectTypeInfo, templateId)
         {
@@ -93,7 +93,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
     public class ObjectDeletion : Event
     {
-        public ObjectDeletion(object trigger, string objectId, ObjectTypeInfo objectTypeInfo, int templateId = 0)
+        public ObjectDeletion(object? trigger, string objectId, ObjectTypeInfo? objectTypeInfo, int templateId = 0)
             : base(trigger, objectId, objectTypeInfo, templateId)
         {
         }
@@ -115,7 +115,7 @@ namespace LogJoint.Postprocessing.StateInspector
         public readonly ValueType ValueType;
         public readonly string? OldValue;
 
-        public PropertyChange(object trigger, string objectId, ObjectTypeInfo objectTypeInfo,
+        public PropertyChange(object? trigger, string objectId, ObjectTypeInfo? objectTypeInfo,
                 string propertyName, string value, ValueType valueType = ValueType.Scalar, string? oldValue = null, int templateId = 0)
             : base(trigger, objectId, objectTypeInfo, templateId)
         {
@@ -133,7 +133,7 @@ namespace LogJoint.Postprocessing.StateInspector
         public readonly string? NewParentObjectId;
         public readonly bool IsWeak;
 
-        public ParentChildRelationChange(object trigger, string objectId, ObjectTypeInfo objectTypeInfo, string? newParentObjectId = null, int templateId = 0, bool isWeak = false)
+        public ParentChildRelationChange(object? trigger, string objectId, ObjectTypeInfo? objectTypeInfo, string? newParentObjectId = null, int templateId = 0, bool isWeak = false)
             : base(trigger, objectId, objectTypeInfo, templateId)
         {
             NewParentObjectId = newParentObjectId;

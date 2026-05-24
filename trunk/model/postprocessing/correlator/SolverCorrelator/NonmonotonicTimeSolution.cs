@@ -67,10 +67,10 @@ namespace LogJoint.Postprocessing.Correlation
             Func<A.Message, Expr> getTerm = m =>
             {
                 Expr ret = new TermExpr(nodeDecisions[m.Node.NodeId].Decision);
-                for (; m != null; m = m.Prev)
+                for (A.Message? i = m; i != null; i = i.Prev)
                 {
                     MessageDecision? d;
-                    if (msgDecisions.TryGetValue(m, out d))
+                    if (msgDecisions.TryGetValue(i, out d))
                         ret = new OperatorExpr(
                             OperatorExpr.OpType.Sub,
                             ret,

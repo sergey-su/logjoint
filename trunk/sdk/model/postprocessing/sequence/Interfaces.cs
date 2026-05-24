@@ -33,7 +33,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
             IEnumerableAsync<M.Event[]> events,
             IEnumerableAsync<TL.Event[]> timelineComments,
             IEnumerableAsync<SI.Event[]> stateInspectorComments,
-            Task<ILogPartToken> logPartToken,
+            Task<ILogPartToken?>? logPartToken,
             Func<object, TextLogEventTrigger> triggersConverter,
             LogSourcePostprocessorInput postprocessorInput
         );

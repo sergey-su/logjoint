@@ -11,7 +11,7 @@ namespace LogJoint.Postprocessing.TimeSeries
     public class TimeSeriesPostprocessorOutput : ITimeSeriesPostprocessorOutput
     {
         public TimeSeriesPostprocessorOutput(LogSourcePostprocessorDeserializationParams p,
-            ILogPartTokenFactory rotatedLogPartFactory, TSBlocks.ITimeSeriesTypesAccess timeSeriesTypesAccess)
+            ILogPartTokenFactory? rotatedLogPartFactory, TSBlocks.ITimeSeriesTypesAccess timeSeriesTypesAccess)
         {
             this.logSource = p.LogSource;
             logDisplayName = logSource.DisplayName;

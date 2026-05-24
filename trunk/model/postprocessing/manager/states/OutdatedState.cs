@@ -3,9 +3,9 @@
     internal class OutdatedState : PostprocessorOutputRecordState
     {
         private readonly object output;
-        private readonly IPostprocessorRunSummary lastRunSummary;
+        private readonly IPostprocessorRunSummary? lastRunSummary;
 
-        public OutdatedState(Context ctx, object output, IPostprocessorRunSummary lastRunSummary) : base(ctx)
+        public OutdatedState(Context ctx, object output, IPostprocessorRunSummary? lastRunSummary) : base(ctx)
         {
             this.output = output;
             this.lastRunSummary = lastRunSummary;

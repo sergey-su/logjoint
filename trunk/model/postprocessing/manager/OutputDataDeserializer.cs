@@ -15,7 +15,7 @@ namespace LogJoint.Postprocessing
             this.nodeDetectionTokenFactories = nodeDetectionTokenFactories;
         }
 
-        public object Deserialize(PostprocessorKind kind, LogSourcePostprocessorDeserializationParams p)
+        public object? Deserialize(PostprocessorKind kind, LogSourcePostprocessorDeserializationParams p)
         {
             switch (kind)
             {
