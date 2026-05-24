@@ -16,9 +16,9 @@ namespace LogJoint.Preprocessing
         Task<YieldedProvider[]> Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
         Task<YieldedProvider[]> Preprocess(IRecentlyUsedEntity recentLogEntry, PreprocessingOptions options = PreprocessingOptions.None);
         bool ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams);
-        string ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams);
-        string ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams);
-        string ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams);
+        string? ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams);
+        string? ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams);
+        string? ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams);
         IConnectionParams AppendStep(IConnectionParams connectParams, string stepName, string? stepArgument = null);
 
         /// <summary>

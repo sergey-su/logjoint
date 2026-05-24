@@ -34,7 +34,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         IInspectedObject GetObject(string id)
         {
-            IInspectedObject item;
+            IInspectedObject? item;
             if (objects.TryGetValue(id, out item))
                 return item;
             item = new InspectedObject(owner, id);
@@ -44,7 +44,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         void FinalizeExistingObject(string id)
         {
-            IInspectedObject existingItem;
+            IInspectedObject? existingItem;
             if (objects.TryGetValue(id, out existingItem) && existingItem.CreationEvent != null)
             {
                 finalizedObjects.Add(existingItem);

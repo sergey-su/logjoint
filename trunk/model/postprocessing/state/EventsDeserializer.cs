@@ -19,6 +19,7 @@ namespace LogJoint.Postprocessing.StateInspector
             string? objectId = null;
             string? propertyName = null;
             string? objectType = null;
+            string? newParentObjectId = null;
             switch (elt.Name.LocalName)
             {
                 case SC.Elt_ObjectCreation:
@@ -62,12 +63,13 @@ namespace LogJoint.Postprocessing.StateInspector
                     break;
                 case SC.Elt_ParentChildRelationChange:
                     objectId = objectIdsPool.Intern(Attr(elt, SC.Attr_ObjectId));
-                    if (objectId != null)
+                    newParentObjectId = objectIdsPool.Intern(Attr(elt, SC.Attr_NewParentObjectId));
+                    if (objectId != null && newParentObjectId != null)
                         ret = new ParentChildRelationChange(
                             MakeTrigger(elt),
                             objectId,
                             null,
-                            newParentObjectId: objectIdsPool.Intern(Attr(elt, SC.Attr_NewParentObjectId)),
+                            newParentObjectId: newParentObjectId,
                             isWeak: (Attr(elt, SC.Attr_IsWeak) ?? "0") == "1");
                     break;
             }

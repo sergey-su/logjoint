@@ -162,7 +162,7 @@ namespace LogJoint.Postprocessing.Timeline
             internal ActivityStatus status;
         };
 
-        void HandleActivityEvent(ActivityEventBase evt, ActivityType type, string activityMatchingId = null)
+        void HandleActivityEvent(ActivityEventBase evt, ActivityType type, string? activityMatchingId = null)
         {
             var eventInfo = new EventInfo(evt, currentTimeOffsets);
             SetOrigin(eventInfo);
@@ -184,7 +184,7 @@ namespace LogJoint.Postprocessing.Timeline
             }
             else if (evt.Type == ActivityEventType.End)
             {
-                StartedActivity startedActivity;
+                StartedActivity? startedActivity;
                 if (startedActivities.TryGetValue(evt.ActivityId, out startedActivity))
                 {
                     AddPhases(startedActivity, evt);
@@ -195,7 +195,7 @@ namespace LogJoint.Postprocessing.Timeline
             }
             else if (evt.Type == ActivityEventType.Milestone)
             {
-                StartedActivity startedActivity;
+                StartedActivity? startedActivity;
                 if (startedActivities.TryGetValue(evt.ActivityId, out startedActivity))
                 {
                     startedActivity.milestones.Add(new ActivityMilestoneInfo(

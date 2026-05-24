@@ -80,7 +80,7 @@ namespace LogJoint.Preprocessing
                 .Any(s => CreateStepByName(s.StepName, null) is IDownloadPreprocessingStep);
         }
 
-        string IManager.ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams)
+        string? IManager.ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams)
         {
             var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
             var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
@@ -93,7 +93,7 @@ namespace LogJoint.Preprocessing
             return null;
         }
 
-        string IManager.ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams)
+        string? IManager.ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams)
         {
             var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
             var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
@@ -105,11 +105,11 @@ namespace LogJoint.Preprocessing
             return null;
         }
 
-        string IManager.ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams)
+        string? IManager.ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams)
         {
             var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
             var stepObjects = steps.Select(s => CreateStepByName(s.StepName, null));
-            string fileName = null;
+            string? fileName = null;
             if (stepObjects.FirstOrDefault() is IGetPreprocessingStep getStep)
             {
                 var secondStep = stepObjects.Skip(1).FirstOrDefault();
@@ -205,12 +205,12 @@ namespace LogJoint.Preprocessing
                 this.options = options;
                 preprocLogic = async () =>
                 {
-                    IConnectionParams preprocessedConnectParams = null;
+                    IConnectionParams? preprocessedConnectParams = null;
                     bool interrupted = false;
                     if (recentLogEntry.Factory is IFileBasedLogProviderFactory fileBasedFactory)
                     {
                         using var perfop = new Profiling.Operation(trace, recentLogEntry.Factory.GetUserFriendlyConnectionName(recentLogEntry.ConnectionParams));
-                        PreprocessingStepParams currentParams = null;
+                        PreprocessingStepParams? currentParams = null;
                         foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
                         {
                             currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
@@ -294,7 +294,7 @@ namespace LogJoint.Preprocessing
                 );
             }
 
-            static PreprocessingStepParams SetArgument(PreprocessingStepParams p, string? argument)
+            static PreprocessingStepParams SetArgument(PreprocessingStepParams? p, string? argument)
             {
                 return new PreprocessingStepParams(
                     p?.Location,
@@ -305,7 +305,7 @@ namespace LogJoint.Preprocessing
                 );
             }
 
-            async Task<PreprocessingStepParams?> ProcessLoadedStep(PreprocessingHistoryItem loadedStep, PreprocessingStepParams currentParams)
+            async Task<PreprocessingStepParams?> ProcessLoadedStep(PreprocessingHistoryItem loadedStep, PreprocessingStepParams? currentParams)
             {
                 var step = owner.CreateStepByName(loadedStep.StepName, SetArgument(currentParams, loadedStep.Argument));
                 if (step != null)
@@ -610,7 +610,7 @@ namespace LogJoint.Preprocessing
             public IDisposable value;
             public int useCounter;
             public TimeSpan ttl;
-            public Task cleanupTask;
+            public Task? cleanupTask;
             public int cleanupId;
         };
 
@@ -628,11 +628,13 @@ namespace LogJoint.Preprocessing
                 this.syncRoot = syncRoot;
                 lock (syncRoot)
                 {
-                    if (!sharedValues.TryGetValue(key, out record))
+                    SharedValueRecord? rec;
+                    if (!sharedValues.TryGetValue(key, out rec))
                     {
-                        sharedValues.Add(key, record = new SharedValueRecord() { key = key, value = valueFactory() });
+                        sharedValues.Add(key, rec = new SharedValueRecord() { key = key, value = valueFactory() });
                         isValueCreator = true;
                     }
+                    record = rec;
                     record.useCounter++;
                     record.cleanupTask = null; // cancel cleanup if it happends to be scheduled
                 }

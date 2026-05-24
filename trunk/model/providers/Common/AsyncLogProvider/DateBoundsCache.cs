@@ -7,7 +7,7 @@ namespace LogJoint
 {
     public interface IDateBoundsCache
     {
-        DateBoundPositionResponseData Get(DateTime d);
+        DateBoundPositionResponseData? Get(DateTime d);
         void Set(DateTime d, DateBoundPositionResponseData data);
         void Invalidate();
     };
@@ -18,14 +18,14 @@ namespace LogJoint
         class Entry
         {
             public int lastUsed;
-            public DateBoundPositionResponseData value;
+            public required DateBoundPositionResponseData value;
         };
         Dictionary<DateTime, Entry> data = new Dictionary<DateTime, Entry>();
         int time;
         int hitsCount;
         int requestsCount;
 
-        DateBoundPositionResponseData IDateBoundsCache.Get(DateTime d)
+        DateBoundPositionResponseData? IDateBoundsCache.Get(DateTime d)
         {
             lock (sync)
             {

@@ -130,10 +130,10 @@ namespace LogJoint.Postprocessing.StateInspector
 
     public class ParentChildRelationChange : Event
     {
-        public readonly string? NewParentObjectId;
+        public readonly string NewParentObjectId;
         public readonly bool IsWeak;
 
-        public ParentChildRelationChange(object? trigger, string objectId, ObjectTypeInfo? objectTypeInfo, string? newParentObjectId = null, int templateId = 0, bool isWeak = false)
+        public ParentChildRelationChange(object? trigger, string objectId, ObjectTypeInfo? objectTypeInfo, string newParentObjectId = null, int templateId = 0, bool isWeak = false)
             : base(trigger, objectId, objectTypeInfo, templateId)
         {
             NewParentObjectId = newParentObjectId;
