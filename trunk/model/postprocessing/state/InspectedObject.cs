@@ -13,7 +13,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         IStateInspectorOutputsGroup IInspectedObject.Owner { get { return owner; } }
 
-        IInspectedObject IInspectedObject.Parent { get { return parent; } }
+        IInspectedObject? IInspectedObject.Parent { get { return parent; } }
 
         string IInspectedObject.Id
         {
@@ -73,7 +73,7 @@ namespace LogJoint.Postprocessing.StateInspector
             get { return isTimeless; }
         }
 
-        StateInspectorEvent IInspectedObject.CreationEvent { get { return creation; } }
+        StateInspectorEvent? IInspectedObject.CreationEvent { get { return creation; } }
 
         string? IInspectedObject.GetCurrentPrimaryPropertyValue(FocusedMessageEventsRange focusedMessage)
         {
@@ -122,10 +122,10 @@ namespace LogJoint.Postprocessing.StateInspector
                 return;
             creation = evt;
             var cevt = (ObjectCreation)evt.OriginalEvent;
-            commentPropertyName = cevt.ObjectType.CommentPropertyName;
-            primaryPropertyName = cevt.ObjectType.PrimaryPropertyName;
-            descriptionPropertyName = cevt.ObjectType.DescriptionPropertyName;
-            isTimeless = cevt.ObjectType.IsTimeless;
+            commentPropertyName = cevt.ObjectType?.CommentPropertyName;
+            primaryPropertyName = cevt.ObjectType?.PrimaryPropertyName;
+            descriptionPropertyName = cevt.ObjectType?.DescriptionPropertyName;
+            isTimeless = cevt.ObjectType?.IsTimeless == true;
             displayName = cevt.DisplayName;
         }
 
@@ -218,14 +218,14 @@ namespace LogJoint.Postprocessing.StateInspector
         readonly HashSet<IInspectedObject> children = new HashSet<IInspectedObject>();
         List<StateInspectorEvent> history = new List<StateInspectorEvent>();
         string? commentPropertyName;
-        string comment;
+        string? comment;
         string? primaryPropertyName;
         string? descriptionPropertyName;
-        string description;
+        string? description;
         bool isTimeless;
         string? displayName;
-        IInspectedObject parent;
-        StateInspectorEvent creation;
-        StateInspectorEvent deletion;
+        IInspectedObject? parent;
+        StateInspectorEvent? creation;
+        StateInspectorEvent? deletion;
     };
 }

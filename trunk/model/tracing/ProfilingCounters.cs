@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -20,7 +21,7 @@ namespace LogJoint.Profiling
 
         public CounterDescriptor AddCounter(
             string name,
-            string unit = null,
+            string? unit = null,
             bool reportSum = false,
             bool reportCount = false,
             bool reportAverage = false,
@@ -28,10 +29,8 @@ namespace LogJoint.Profiling
             bool reportMin = false
         )
         {
-            var counter = new CounterDescriptor
+            var counter = new CounterDescriptor(name, !string.IsNullOrEmpty(unit) ? $" {unit}" : "")
             {
-                name = name,
-                unitSuffix = !string.IsNullOrEmpty(unit) ? $" {unit}" : "",
                 reportCount = reportCount,
                 reportSum = reportSum,
                 reportAverage = reportAverage,
@@ -44,6 +43,12 @@ namespace LogJoint.Profiling
 
         public class CounterDescriptor
         {
+            internal CounterDescriptor(string name, string unitSuffix)
+            {
+                this.name = name;
+                this.unitSuffix = unitSuffix;
+            }
+
             internal string name;
             internal long value;
             internal long max;
