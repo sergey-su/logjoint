@@ -7,7 +7,7 @@ namespace LogJoint.Postprocessing.Correlation
 {
     public interface ISameNodeDetectionToken
     {
-        SameNodeDetectionResult DetectSameNode(ISameNodeDetectionToken otherNodeToken);
+        SameNodeDetectionResult? DetectSameNode(ISameNodeDetectionToken otherNodeToken);
         ISameNodeDetectionTokenFactory Factory { get; }
         void Serialize(XElement node);
     };
@@ -35,15 +35,15 @@ namespace LogJoint.Postprocessing.Correlation
 
     public class PostprocessorOutputBuilder
     {
-        public PostprocessorOutputBuilder SetLogPartToken(Task<ILogPartToken> value) { logPart = value; return this; }
+        public PostprocessorOutputBuilder SetLogPartToken(Task<ILogPartToken?> value) { logPart = value; return this; }
         public PostprocessorOutputBuilder SetMessagingEvents(IEnumerableAsync<M.Event[]> value) { events = value; return this; }
-        public PostprocessorOutputBuilder SetSameNodeDetectionToken(Task<ISameNodeDetectionToken> value) { sameNodeDetectionToken = value; return this; }
+        public PostprocessorOutputBuilder SetSameNodeDetectionToken(Task<ISameNodeDetectionToken?> value) { sameNodeDetectionToken = value; return this; }
         public PostprocessorOutputBuilder SetTriggersConverter(Func<object, TextLogEventTrigger> value) { triggersConverter = value; return this; }
         public Task Build(LogSourcePostprocessorInput postprocessorParams) { return build(postprocessorParams, this); }
 
         internal IEnumerableAsync<M.Event[]>? events;
-        internal Task<ILogPartToken>? logPart;
-        internal Task<ISameNodeDetectionToken>? sameNodeDetectionToken;
+        internal Task<ILogPartToken?>? logPart;
+        internal Task<ISameNodeDetectionToken?>? sameNodeDetectionToken;
         internal Func<object, TextLogEventTrigger>? triggersConverter;
         private Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
 

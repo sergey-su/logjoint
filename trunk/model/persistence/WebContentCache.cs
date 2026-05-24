@@ -15,11 +15,11 @@ namespace LogJoint.Persistence
             this.config = config;
         }
 
-        Task<Stream> IWebContentCache.GetValue(Uri uri)
+        Task<Stream?> IWebContentCache.GetValue(Uri uri)
         {
             if (config != null && config.IsCachingForcedForHost(uri.Host.ToLower()))
                 return rawContentCache.GetValue(MakeCacheKey(uri));
-            return Task.FromResult<Stream>(null);
+            return Task.FromResult<Stream?>(null);
         }
 
         async Task IWebContentCache.SetValue(Uri uri, Stream data)

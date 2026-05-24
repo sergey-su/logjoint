@@ -14,12 +14,12 @@ namespace LogJoint.Postprocessing
         /// Name of the business role that the log producer plays. For example if the log in question is from a service
         /// the value contains user-friendly name of the whole service such as "Invoices service".
         /// </summary>
-        public string RoleName;
+        public string? RoleName;
         /// <summary>
         /// If the log producer runs on multiple machines (instances) this field contains the user-friendly name of the instance.
         /// Example: "InvoicesService.2"
         /// </summary>
-        public string RoleInstanceName;
+        public string? RoleInstanceName;
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ namespace LogJoint.Postprocessing
 
     public interface ILogSourceNamesGenerator : IDisposable
     {
-        LogSourceNames Generate(ILogSource logSource);
+        LogSourceNames? Generate(ILogSource logSource);
     };
 
     public interface IAggregatingLogSourceNamesProvider : ILogSourceNamesProvider
@@ -56,13 +56,13 @@ namespace LogJoint.Postprocessing
 
         class Generator : ILogSourceNamesGenerator
         {
-            internal ILogSourceNamesGenerator[] inner;
+            internal required ILogSourceNamesGenerator[] inner;
 
             void IDisposable.Dispose()
             {
             }
 
-            LogSourceNames ILogSourceNamesGenerator.Generate(ILogSource logSource)
+            LogSourceNames? ILogSourceNamesGenerator.Generate(ILogSource logSource)
             {
                 return inner.Select(i => i.Generate(logSource)).FirstOrDefault(i => i != null);
             }

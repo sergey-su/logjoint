@@ -5,8 +5,10 @@ namespace LogJoint.Postprocessing.Correlation
 
     public class SameNodeEqualityComparer : IEqualityComparer<ISameNodeDetectionToken>
     {
-        bool IEqualityComparer<ISameNodeDetectionToken>.Equals(ISameNodeDetectionToken x, ISameNodeDetectionToken y)
+        bool IEqualityComparer<ISameNodeDetectionToken>.Equals(ISameNodeDetectionToken? x, ISameNodeDetectionToken? y)
         {
+            if (x == null || y == null)
+                return false;
             return x.DetectSameNode(y) != null;
         }
 

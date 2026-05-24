@@ -6,7 +6,7 @@ namespace LogJoint.Postprocessing.Correlation
 
     class NullSameNodeDetectionToken : ISameNodeDetectionToken, ISameNodeDetectionTokenFactory
     {
-        SameNodeDetectionResult ISameNodeDetectionToken.DetectSameNode(ISameNodeDetectionToken otherNodeToken) => null;
+        SameNodeDetectionResult? ISameNodeDetectionToken.DetectSameNode(ISameNodeDetectionToken otherNodeToken) => null;
 
         ISameNodeDetectionTokenFactory ISameNodeDetectionToken.Factory => this;
 

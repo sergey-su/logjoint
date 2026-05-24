@@ -4,9 +4,9 @@ namespace LogJoint.Postprocessing
 {
     public struct PostprocessorOutputETag
     {
-        public string Value { get; private set; }
+        public string? Value { get; private set; }
 
-        public PostprocessorOutputETag(string value)
+        public PostprocessorOutputETag(string? value)
         {
             Value = value;
         }

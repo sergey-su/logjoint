@@ -19,7 +19,7 @@ namespace LogJoint.Postprocessing
 
     public interface IHeaderMatcher
     {
-        unsafe IHeaderMatch Match(char* pBuffer, int length, int startFrom, string buffer);
+        unsafe IHeaderMatch? Match(char* pBuffer, int length, int startFrom, string buffer);
     };
 
     [Flags]

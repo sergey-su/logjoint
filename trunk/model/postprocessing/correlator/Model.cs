@@ -1,4 +1,6 @@
-﻿namespace LogJoint.Postprocessing.Correlation
+﻿using System;
+
+namespace LogJoint.Postprocessing.Correlation
 {
     class Model : IModel
     {
@@ -23,7 +25,7 @@
                     builder.events,
                     builder.sameNodeDetectionToken,
                     nodeDetectionTokenFactories,
-                    builder.triggersConverter,
+                    builder.triggersConverter ?? throw new InvalidOperationException("Trigger converter was not set"),
                     postprocessorInput.InputContentsEtag,
                     postprocessorInput.openOutputFile,
                     tempFiles,

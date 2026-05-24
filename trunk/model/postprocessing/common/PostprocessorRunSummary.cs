@@ -6,7 +6,7 @@ namespace LogJoint.Postprocessing
 {
     public interface IStructuredPostprocessorRunSummary : IPostprocessorRunSummary
     {
-        IEnumerable<(string text, bool isError, IBookmark bookmark)> Entries { get; }
+        IEnumerable<(string text, bool isError, IBookmark? bookmark)> Entries { get; }
     };
 
 
@@ -24,7 +24,7 @@ namespace LogJoint.Postprocessing
 
         IPostprocessorRunSummary IPostprocessorRunSummaryBuilder.ToSummary() => this;
 
-        private void AddMessage(string message, IBookmark bookmark, bool isError)
+        private void AddMessage(string message, IBookmark? bookmark, bool isError)
         {
             entries.Add(new Entry() { message = message, isError = isError, bookmark = bookmark });
         }
@@ -50,12 +50,12 @@ namespace LogJoint.Postprocessing
             }
         }
 
-        IPostprocessorRunSummary IPostprocessorRunSummary.GetLogSpecificSummary(ILogSource ls)
+        IPostprocessorRunSummary? IPostprocessorRunSummary.GetLogSpecificSummary(ILogSource ls)
         {
             return null;
         }
 
-        IEnumerable<(string text, bool isError, IBookmark bookmark)> IStructuredPostprocessorRunSummary.Entries =>
+        IEnumerable<(string text, bool isError, IBookmark? bookmark)> IStructuredPostprocessorRunSummary.Entries =>
             entries.Select(e => (e.message, e.isError, e.bookmark));
 
 
@@ -79,7 +79,7 @@ namespace LogJoint.Postprocessing
         {
             public string message;
             public bool isError;
-            public IBookmark bookmark;
+            public IBookmark? bookmark;
         };
     };
 }

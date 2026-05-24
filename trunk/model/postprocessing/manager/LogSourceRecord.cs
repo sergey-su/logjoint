@@ -29,7 +29,7 @@ namespace LogJoint.Postprocessing
         }
 
         public LogSourcePostprocessorInput ToPostprocessorInput(
-            Func<Task<Stream>> openOutputStream, string inputContentsEtag, object customData)
+            Func<Task<Stream>> openOutputStream, string? inputContentsEtag, object? customData)
         {
             return new LogSourcePostprocessorInput()
             {

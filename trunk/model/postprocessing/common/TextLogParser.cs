@@ -94,11 +94,14 @@ namespace LogJoint.Postprocessing
 
                     YieldMessage(buffer, contentPtr, match.Index, messages, ref currentMessageIndex);
 
+                    buffer.AllocatedMatchHeader = new MessageHeader()
+                    {
+                        StreamPosition = buffer.ContentStreamPosition + match.Index,
+                        EndOfHeaderPosition = match.Index + match.Length,
+                        Match2 = match,
+                        Buffer = content,
+                    };
                     var h = buffer.AllocatedMatchHeader;
-                    h.StreamPosition = buffer.ContentStreamPosition + match.Index;
-                    h.EndOfHeaderPosition = match.Index + match.Length;
-                    h.Match2 = match;
-                    h.Buffer = content;
                     buffer.CurrentMessageHeader = h;
 
                     if ((flags & TextLogParserFlags.UCS2) != 0)
@@ -178,16 +181,16 @@ namespace LogJoint.Postprocessing
         {
             public long StreamPosition;
             public int EndOfHeaderPosition;
-            public IHeaderMatch Match2;
-            public string Buffer;
+            public required IHeaderMatch Match2;
+            public required string Buffer;
         };
 
         class SlidingBuffer
         {
             public string CurrentContent = "";
-            public MessageHeader CurrentMessageHeader;
+            public MessageHeader? CurrentMessageHeader;
             public long ContentStreamPosition = 0;
-            public MessageHeader AllocatedMatchHeader = new MessageHeader();
+            public MessageHeader? AllocatedMatchHeader;
 
             public void Push(char[] chars, int count)
             {
@@ -216,7 +219,7 @@ namespace LogJoint.Postprocessing
             this.re = re;
         }
 
-        unsafe IHeaderMatch IHeaderMatcher.Match(char* pBuffer, int length, int startFrom, string buffer)
+        unsafe IHeaderMatch? IHeaderMatcher.Match(char* pBuffer, int length, int startFrom, string buffer)
         {
             var m = re.Match(buffer, startFrom);
             if (!m.Success)

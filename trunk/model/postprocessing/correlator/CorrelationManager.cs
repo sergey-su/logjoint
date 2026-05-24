@@ -22,7 +22,7 @@ namespace LogJoint.Postprocessing.Correlation
         // todo: persist results it in log's local storage to have
         // green correlation status when logs are reopen
         ImmutableDictionary<string, CorrelatorRunResult> logConnectionIdToLastRunResult = ImmutableDictionary<string, CorrelatorRunResult>.Empty;
-        RunSummary lastRunSummary;
+        RunSummary? lastRunSummary;
         int logSourceTimeOffsetRevision;
 
         public CorrelationManager(
@@ -98,7 +98,7 @@ namespace LogJoint.Postprocessing.Correlation
                 {
                     Node1 = pair.Key.NodeId,
                     Node2 = pair.Value.NodeId,
-                    Value = pair.Value.SameNodeDetectionToken.DetectSameNode(pair.Key.SameNodeDetectionToken).TimeDiff
+                    Value = pair.Value.SameNodeDetectionToken.DetectSameNode(pair.Key.SameNodeDetectionToken)?.TimeDiff ?? TimeSpan.Zero
                 }))
                 .ToList();
 
@@ -192,7 +192,7 @@ namespace LogJoint.Postprocessing.Correlation
         static CorrelationStateSummary GetCorrelatorStateSummary(
             ImmutableArray<LogSourcePostprocessorState> correlationOutputs,
             ImmutableDictionary<string, CorrelatorRunResult> lastResult,
-            RunSummary lastRunSummary,
+            RunSummary? lastRunSummary,
             int _timeShiftsRevision
         )
         {

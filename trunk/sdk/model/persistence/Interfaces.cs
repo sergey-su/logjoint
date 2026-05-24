@@ -109,7 +109,7 @@ namespace LogJoint.Persistence
 
     public interface IWebContentCache
     {
-        Task<Stream> GetValue(Uri uri);
+        Task<Stream?> GetValue(Uri uri);
         Task SetValue(Uri key, Stream data);
     };
 

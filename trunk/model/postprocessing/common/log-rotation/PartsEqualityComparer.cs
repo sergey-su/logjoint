@@ -4,8 +4,12 @@ namespace LogJoint.Postprocessing
 {
     class PartsOfSameLogEqualityComparer : IEqualityComparer<ILogPartToken>
     {
-        bool IEqualityComparer<ILogPartToken>.Equals(ILogPartToken x, ILogPartToken y)
+        bool IEqualityComparer<ILogPartToken>.Equals(ILogPartToken? x, ILogPartToken? y)
         {
+            if (x == null && y == null)
+                return true;
+            if (x == null || y == null)
+                return false;
             return x.CompareTo(y) != 0;
         }
 

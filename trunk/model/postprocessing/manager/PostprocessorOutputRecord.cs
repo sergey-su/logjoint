@@ -57,8 +57,8 @@ namespace LogJoint.Postprocessing
         public LogSourcePostprocessorState BuildData(
             LogSourcePostprocessorState.Status status,
             double? progress = null,
-            object outputData = null,
-            IPostprocessorRunSummary lastRunSummary = null)
+            object? outputData = null,
+            IPostprocessorRunSummary? lastRunSummary = null)
         {
             return new LogSourcePostprocessorState
             {

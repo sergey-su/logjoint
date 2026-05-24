@@ -14,7 +14,7 @@ namespace LogJoint.Postprocessing.Correlation
         string correlationLog = "";
         readonly internal static string xmlName = "solution";
 
-        public SolutionResult(SolutionStatus status, Dictionary<NodeId, INodeSolution> nodeSolutions = null)
+        public SolutionResult(SolutionStatus status, Dictionary<NodeId, INodeSolution>? nodeSolutions = null)
         {
             this.status = status;
             this.nodeSolutions = nodeSolutions ?? new Dictionary<NodeId, INodeSolution>();
@@ -99,16 +99,19 @@ namespace LogJoint.Postprocessing.Correlation
 
         internal SolutionResult(XElement solutionNode)
         {
-            status = (SolutionStatus)int.Parse(solutionNode.Attribute("status").Value);
+            status = (SolutionStatus)int.Parse(solutionNode.SafeValue("status"));
             correlationLog = solutionNode.Elements("log").Select(e => e.Value).FirstOrDefault() ?? "";
             var nodeDict = new Dictionary<NodeId, INodeSolution>();
             nodeSolutions = nodeDict;
             foreach (var nodeElement in solutionNode.Elements("node"))
             {
-                nodeDict.Add(
-                    new NodeId(nodeElement.Element(NodeId.xmlName)),
-                    new NodeSolution(nodeElement.Element(NodeSolution.xmlName))
-                );
+                XElement? id = nodeElement.Element(NodeId.xmlName);
+                XElement? name = nodeElement.Element(NodeSolution.xmlName);
+                if (id != null && name != null)
+                    nodeDict.Add(
+                        new NodeId(id),
+                        new NodeSolution(name)
+                    );
             }
         }
     };

@@ -38,11 +38,11 @@ namespace LogJoint.Postprocessing.Correlation
 
         public NodeSolution(XElement node)
         {
-            BaseDelta = TimeSpan.FromTicks(long.Parse(node.Attribute("base-delta").Value));
-            NrOnConstraints = int.Parse(node.Attribute("nr-of-constraints").Value);
+            BaseDelta = TimeSpan.FromTicks(long.Parse(node.SafeValue("base-delta")));
+            NrOnConstraints = int.Parse(node.SafeValue("nr-of-constraints"));
             TimeDeltas = node.Elements("delta").Select(de => new TimeDeltaEntry(
-               new DateTime(long.Parse(de.Attribute("at").Value), DateTimeKind.Unspecified),
-               TimeSpan.FromTicks(long.Parse(de.Attribute("value").Value)),
+               new DateTime(long.Parse(de.SafeValue("at")), DateTimeKind.Unspecified),
+               TimeSpan.FromTicks(long.Parse(de.SafeValue("value"))),
                null,
                null
            )).ToList();
@@ -63,9 +63,9 @@ namespace LogJoint.Postprocessing.Correlation
         {
             public static TimeDeltaEntryComparer Instance = new TimeDeltaEntryComparer();
 
-            bool IEqualityComparer<TimeDeltaEntry>.Equals(TimeDeltaEntry x, TimeDeltaEntry y)
+            bool IEqualityComparer<TimeDeltaEntry>.Equals(TimeDeltaEntry? x, TimeDeltaEntry? y)
             {
-                return x.At == y.At && x.Delta == y.Delta;
+                return x?.At == y?.At && x?.Delta == y?.Delta;
             }
 
             int IEqualityComparer<TimeDeltaEntry>.GetHashCode(TimeDeltaEntry obj)

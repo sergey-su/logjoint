@@ -26,13 +26,17 @@ namespace LogJoint.Postprocessing
 
         public override bool CanRead { get { return false; } }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
+            if (value == null)
+            {
+                return;
+            }
             writer.Formatting = Formatting.None;
             var representation = JToken.FromObject(value);
             representation.WriteTo(writer);
@@ -108,12 +112,12 @@ namespace LogJoint.Postprocessing
             }
         }
 
-        public static T DeserializeObject<T>(string value)
+        public static T? DeserializeObject<T>(string value)
         {
             return JsonConvert.DeserializeObject<T>(value, new StringEnumConverter());
         }
 
-        public static T DeserializeObject<T>(StreamReader reader)
+        public static T? DeserializeObject<T>(StreamReader reader)
         {
             var serializer = new JsonSerializer();
             using (var jsonTextReader = new JsonTextReader(reader))
@@ -122,7 +126,7 @@ namespace LogJoint.Postprocessing
             }
         }
 
-        public static T DeserializeObjectFromFile<T>(string jsonPath)
+        public static T? DeserializeObjectFromFile<T>(string jsonPath)
         {
             using (var reader = new System.IO.StreamReader(jsonPath))
             {

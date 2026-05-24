@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace LogJoint.Postprocessing.Correlation
@@ -6,7 +7,7 @@ namespace LogJoint.Postprocessing.Correlation
     interface ISameNodeDetectionTokenFactories
     {
         void Register(ISameNodeDetectionTokenFactory factory);
-        bool TryReadLogPartToken(XElement element, out ISameNodeDetectionToken token);
-        void SafeWriteTo(ISameNodeDetectionToken logPartToken, XmlWriter writer);
+        bool TryReadLogPartToken(XElement element, [MaybeNullWhen(false)] out ISameNodeDetectionToken token);
+        void SafeWriteTo(ISameNodeDetectionToken? logPartToken, XmlWriter writer);
     }
 }

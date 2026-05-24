@@ -58,8 +58,8 @@ namespace LogJoint.Postprocessing
         public Action<double> ProgressHandler;
         public Progress.IProgressAggregator ProgressAggregator;
         public ICodepathTracker TemplatesTracker;
-        public string InputContentsEtag;
-        public object CustomData;
+        public string? InputContentsEtag;
+        public object? CustomData;
 
         internal Func<Task<Stream>> openLogFile;
         internal Func<Task<Stream>> openOutputFile;
@@ -83,7 +83,7 @@ namespace LogJoint.Postprocessing
 
     public interface IPostprocessorOutputETag
     {
-        string ETag { get; }
+        string? ETag { get; }
     };
 
     public interface IPostprocessorRunSummary

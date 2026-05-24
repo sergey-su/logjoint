@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace LogJoint.Postprocessing
@@ -6,7 +7,7 @@ namespace LogJoint.Postprocessing
     interface ILogPartTokenFactories
     {
         void Register(ILogPartTokenFactory factory);
-        bool TryReadLogPartToken(XElement element, out ILogPartToken token);
-        void SafeWriteTo(ILogPartToken logPartToken, XmlWriter writer);
+        bool TryReadLogPartToken(XElement element, [MaybeNullWhen(false)] out ILogPartToken token);
+        void SafeWriteTo(ILogPartToken? logPartToken, XmlWriter writer);
     }
 }

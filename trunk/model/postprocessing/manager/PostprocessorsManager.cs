@@ -88,7 +88,7 @@ namespace LogJoint.Postprocessing
 
         async Task IManagerInternal.RunPostprocessors(
             IReadOnlyList<LogSourcePostprocessorState> typesAndSources,
-            object customData)
+            object? customData)
         {
             var sources = typesAndSources.Select(typesAndSource =>
             {

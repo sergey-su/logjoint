@@ -54,21 +54,21 @@ namespace LogJoint.Postprocessing.Correlation
         }
 
         public static async Task SerializePostprocessorOutput(
-            Task<ILogPartToken> logPartToken,
+            Task<ILogPartToken?>? logPartToken,
             ILogPartTokenFactories logPartTokenFactories,
-            IEnumerableAsync<M.Event[]> events,
-            Task<ISameNodeDetectionToken> sameNodeDetectionTokenTask,
+            IEnumerableAsync<M.Event[]>? events,
+            Task<ISameNodeDetectionToken?>? sameNodeDetectionTokenTask,
             ISameNodeDetectionTokenFactories nodeDetectionTokenFactories,
             Func<object, TextLogEventTrigger> triggersConverter,
-            string contentsEtagAttr,
+            string? contentsEtagAttr,
             Func<Task<Stream>> openOutputStream,
             ITempFilesManager tempFiles,
             CancellationToken cancellation
         )
         {
             events = events ?? new List<M.Event[]>().ToAsync();
-            logPartToken = logPartToken ?? Task.FromResult<ILogPartToken>(null);
-            sameNodeDetectionTokenTask = sameNodeDetectionTokenTask ?? Task.FromResult<ISameNodeDetectionToken>(null);
+            logPartToken = logPartToken ?? Task.FromResult<ILogPartToken?>(null);
+            sameNodeDetectionTokenTask = sameNodeDetectionTokenTask ?? Task.FromResult<ISameNodeDetectionToken?>(null);
 
             var eventsTmpFile = tempFiles.GenerateNewName();
 
@@ -107,6 +107,6 @@ namespace LogJoint.Postprocessing.Correlation
 
         ISameNodeDetectionToken ICorrelatorOutput.SameNodeDetectionToken => sameNodeDetectionToken;
 
-        string IPostprocessorOutputETag.ETag => etag.Value;
+        string? IPostprocessorOutputETag.ETag => etag.Value;
     };
 }

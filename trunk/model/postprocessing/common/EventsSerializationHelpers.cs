@@ -15,21 +15,20 @@ namespace LogJoint.Postprocessing
         public static async Task SerializePostprocessorOutput<Evt, Serializer, EvtVisitor>(
             this IEnumerableAsync<Evt[]> events,
             Func<Action<object, XElement>, Serializer> serializerFactory,
-            Task<ILogPartToken> rotatedLogPartToken,
+            Task<ILogPartToken?>? rotatedLogPartToken,
             ILogPartTokenFactories rotatedLogPartFactories,
             Func<object, TextLogEventTrigger> triggersConverter,
-            string contentsEtagAttr,
+            string? contentsEtagAttr,
             string rootElementName,
             Func<Task<Stream>> openOutputStream,
             ITempFilesManager tempFiles,
             CancellationToken cancellation
         ) where Evt : IVisitable<EvtVisitor> where Serializer : class, IEventsSerializer, EvtVisitor
         {
-            rotatedLogPartToken = rotatedLogPartToken ?? Task.FromResult<ILogPartToken>(null);
+            rotatedLogPartToken = rotatedLogPartToken ?? Task.FromResult<ILogPartToken?>(null);
             var sortKeyAttr = XName.Get("__key");
             var chunks = new List<string>();
-            Serializer serializer = null;
-            Action resetSerializer = () =>
+            Serializer resetSerializer(Serializer? serializer)
             {
                 if (serializer?.Output?.Count > 0)
                 {
@@ -41,7 +40,7 @@ namespace LogJoint.Postprocessing
                         ConformanceLevel = ConformanceLevel.Fragment
                     }))
                     {
-                        foreach (var e in serializer.Output.OrderBy(e => e.Attribute(sortKeyAttr).Value))
+                        foreach (var e in serializer.Output.OrderBy(e => e.Attribute(sortKeyAttr)?.Value))
                             e.WriteTo(writer);
                     }
                 }
@@ -50,19 +49,20 @@ namespace LogJoint.Postprocessing
                     triggersConverter(trigger).Save(elt);
                     elt.SetAttributeValue(sortKeyAttr, ((IOrderedTrigger)trigger).Index.ToString("x8"));
                 });
-            };
-            resetSerializer();
+                return serializer;
+            }
+            Serializer serializer = resetSerializer(null);
             await events.ForEach(batch =>
             {
                 foreach (var e in batch)
                 {
                     e.Visit(serializer);
                     if (serializer.Output.Count >= 8 * 1024)
-                        resetSerializer();
+                        serializer = resetSerializer(serializer);
                 }
                 return Task.FromResult(!cancellation.IsCancellationRequested);
             });
-            resetSerializer();
+            serializer = resetSerializer(serializer);
 
             if (cancellation.IsCancellationRequested)
                 return;
@@ -75,7 +75,9 @@ namespace LogJoint.Postprocessing
             {
                 outputWriter.WriteStartElement(rootElementName);
                 new PostprocessorOutputETag(contentsEtagAttr).Write(outputWriter);
-                rotatedLogPartFactories.SafeWriteTo(await rotatedLogPartToken, outputWriter);
+                ILogPartToken? token = await rotatedLogPartToken;
+                if (token != null)
+                    rotatedLogPartFactories.SafeWriteTo(token, outputWriter);
                 var readersSettings = new XmlReaderSettings()
                 {
                     ConformanceLevel = ConformanceLevel.Fragment
@@ -85,7 +87,7 @@ namespace LogJoint.Postprocessing
                 {
                     var q = new PriorityQueue<KeyValuePair<XmlReader, XElement>, KeyValuePair<XmlReader, XElement>>(Comparer<KeyValuePair<XmlReader, XElement>>.Create((item1, item2) =>
                     {
-                        return string.CompareOrdinal(item1.Value.Attribute(sortKeyAttr).Value, item2.Value.Attribute(sortKeyAttr).Value);
+                        return string.CompareOrdinal(item1.Value.Attribute(sortKeyAttr)?.Value, item2.Value?.Attribute(sortKeyAttr)?.Value);
                     }));
                     Action<XmlReader> enqueueReader = reader =>
                     {
@@ -101,7 +103,7 @@ namespace LogJoint.Postprocessing
                     while (q.Count > 0)
                     {
                         var item = q.Dequeue();
-                        item.Value.Attribute(sortKeyAttr).Remove();
+                        item.Value.Attribute(sortKeyAttr)?.Remove();
                         item.Value.WriteTo(outputWriter);
                         enqueueReader(item.Key);
                     }

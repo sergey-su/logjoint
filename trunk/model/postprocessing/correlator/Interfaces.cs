@@ -34,7 +34,8 @@ namespace LogJoint.Postprocessing.Correlation
 
     public class FixedConstraint
     {
-        public NodeId Node1, Node2;
+        public required NodeId Node1;
+        public required NodeId Node2;
         public TimeSpan Value;
     };
 
@@ -59,10 +60,10 @@ namespace LogJoint.Postprocessing.Correlation
     {
         public DateTime At { get; private set; }
         public TimeSpan Delta { get; private set; }
-        public M.Event RelatedMessagingEvent { get; private set; }
-        internal MessageKey RelatedMessageKey { get; private set; }
+        public M.Event? RelatedMessagingEvent { get; private set; }
+        internal MessageKey? RelatedMessageKey { get; private set; }
 
-        internal TimeDeltaEntry(DateTime at, TimeSpan delta, MessageKey messageKey, M.Event evt)
+        internal TimeDeltaEntry(DateTime at, TimeSpan delta, MessageKey? messageKey, M.Event? evt)
         {
             At = at;
             Delta = delta;

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -17,7 +18,7 @@ namespace LogJoint.Postprocessing.Correlation
 
         void ISameNodeDetectionTokenFactories.Register(ISameNodeDetectionTokenFactory factory) => factories[factory.Id] = factory;
 
-        bool ISameNodeDetectionTokenFactories.TryReadLogPartToken(XElement element, out ISameNodeDetectionToken token)
+        bool ISameNodeDetectionTokenFactories.TryReadLogPartToken(XElement element, [MaybeNullWhen(false)] out ISameNodeDetectionToken token)
         {
             token = null;
             if (element != null && element.Name.LocalName == sameNodeDetectionTokenEltName)
@@ -29,7 +30,7 @@ namespace LogJoint.Postprocessing.Correlation
             return token != null;
         }
 
-        void ISameNodeDetectionTokenFactories.SafeWriteTo(ISameNodeDetectionToken token, XmlWriter writer)
+        void ISameNodeDetectionTokenFactories.SafeWriteTo(ISameNodeDetectionToken? token, XmlWriter writer)
         {
             if (token == null)
                 return;

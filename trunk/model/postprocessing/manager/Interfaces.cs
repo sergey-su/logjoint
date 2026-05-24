@@ -14,7 +14,7 @@ namespace LogJoint.Postprocessing
         IReadOnlyList<LogSourcePostprocessorState> LogSourcePostprocessors { get; }
         Task RunPostprocessors(
             IReadOnlyList<LogSourcePostprocessorState> postprocessors,
-            object customData = null
+            object? customData = null
         );
 
         event EventHandler Changed; // todo: remove
@@ -25,8 +25,8 @@ namespace LogJoint.Postprocessing
     /// </summary>
     public class LogSourcePostprocessorState
     {
-        public ILogSource LogSource { get; internal set; }
-        public ILogSourcePostprocessor Postprocessor { get; internal set; }
+        public required ILogSource LogSource { get; set; }
+        public required ILogSourcePostprocessor Postprocessor { get; set; }
         public enum Status
         {
             NeverRun,
@@ -37,8 +37,8 @@ namespace LogJoint.Postprocessing
             Outdated,
         };
         public Status OutputStatus { get; internal set; }
-        public IPostprocessorRunSummary LastRunSummary { get; internal set; }
-        public object OutputData { get; internal set; }
+        public IPostprocessorRunSummary? LastRunSummary { get; internal set; }
+        public object? OutputData { get; internal set; }
         public double? Progress { get; internal set; }
 
         public override string ToString()

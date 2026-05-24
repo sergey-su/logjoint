@@ -86,21 +86,21 @@ namespace LogJoint.Persistence.Implementation
 
         private async ValueTask Init()
         {
+            XDocument? doc = null;
             if ((OpenFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
             {
                 using var s = await Manager.FileSystem.OpenFileReadOnly(Path);
                 try
                 {
                     if (s != null)
-                        data = XDocument.Load(s);
+                        doc = XDocument.Load(s);
                 }
                 catch (XmlException)
                 {
-                    data = null;
+                    doc = null;
                 }
             }
-            if (data == null)
-                data = new XDocument();
+            data = doc ?? new XDocument();
         }
 
         protected override async ValueTask Commit()

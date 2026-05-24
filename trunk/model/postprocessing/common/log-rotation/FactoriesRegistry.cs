@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -8,7 +9,7 @@ namespace LogJoint.Postprocessing
     {
         const string rotatedLogPartTokenEltName = "rotatedLogPartToken";
         const string factoryAttributeName = "_factory";
-        readonly Dictionary<string, ILogPartTokenFactory> factories = new Dictionary<string, ILogPartTokenFactory>();
+        readonly Dictionary<string, ILogPartTokenFactory> factories = [];
 
         public LogPartTokenFactories()
         {
@@ -17,7 +18,7 @@ namespace LogJoint.Postprocessing
 
         void ILogPartTokenFactories.Register(ILogPartTokenFactory factory) => factories[factory.Id] = factory;
 
-        bool ILogPartTokenFactories.TryReadLogPartToken(XElement element, out ILogPartToken token)
+        bool ILogPartTokenFactories.TryReadLogPartToken(XElement element, [MaybeNullWhen(false)] out ILogPartToken token)
         {
             token = null;
             if (element != null && element.Name.LocalName == rotatedLogPartTokenEltName)
@@ -29,7 +30,7 @@ namespace LogJoint.Postprocessing
             return token != null;
         }
 
-        void ILogPartTokenFactories.SafeWriteTo(ILogPartToken logPartToken, XmlWriter writer)
+        void ILogPartTokenFactories.SafeWriteTo(ILogPartToken? logPartToken, XmlWriter writer)
         {
             if (logPartToken == null)
                 return;
