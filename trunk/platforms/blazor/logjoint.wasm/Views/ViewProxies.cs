@@ -38,8 +38,6 @@ namespace LogJoint.Wasm
 
         LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer.IView LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory.CreateSequenceDiagramView() => null;
 
-        LogJoint.UI.Presenters.SharingDialog.IView Factory.IViewsFactory.CreateSharingDialogView() => null;
-
         LogJoint.UI.Presenters.SourcePropertiesWindow.IView Factory.IViewsFactory.CreateSourcePropertiesWindowView() => SourcePropertiesWindow;
 
         LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer.IView LogJoint.UI.Presenters.Postprocessing.Factory.IViewsFactory.CreateStateInspectorView() => PostprocesssingStateInspectorViewProxy;

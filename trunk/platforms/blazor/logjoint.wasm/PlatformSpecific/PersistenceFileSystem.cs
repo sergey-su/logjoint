@@ -39,16 +39,15 @@ namespace LogJoint.Wasm
             if (await Get(key) == null)
                 await Set(key, new byte[] { 42 });
         }
-        async Task<Stream> IFileSystemAccess.OpenFile(string relativePath, bool readOnly)
+
+        Task<Stream> IFileSystemAccess.OpenFile(string relativePath)
         {
-            var key = FileKey(relativePath);
-            var value = await Get(key);
-            if (value == null && readOnly)
-                return null;
-            Func<byte[], ValueTask> newValueSetter = null;
-            if (!readOnly)
-                newValueSetter = v => Set(key, v);
-            return new StreamImpl(value, newValueSetter);
+            return OpenFile(relativePath, readOnly: false);
+        }
+
+        Task<Stream> IFileSystemAccess.OpenFileReadOnly(string relativePath)
+        {
+           return OpenFile(relativePath, readOnly: true);
         }
 
         public string AbsoluteRootPath => throw new NotImplementedException("Can not get absolute path in web");
@@ -75,6 +74,18 @@ namespace LogJoint.Wasm
         {
             await indexedDB.DeleteByPrefix(dbStoreName, relativePath);
             await indexedDB.Delete(dbStoreName, DirectoryKey(relativePath));
+        }
+
+        async Task<Stream> OpenFile(string relativePath, bool readOnly)
+        {
+            var key = FileKey(relativePath);
+            var value = await Get(key);
+            if (value == null && readOnly)
+                return null;
+            Func<byte[], ValueTask> newValueSetter = null;
+            if (!readOnly)
+                newValueSetter = v => Set(key, v);
+            return new StreamImpl(value, newValueSetter);
         }
 
         static string FileKey(string relativePath)

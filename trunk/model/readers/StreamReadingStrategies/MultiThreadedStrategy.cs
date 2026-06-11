@@ -35,15 +35,14 @@ namespace LogJoint.StreamReadingStrategies
 
         #region BaseStrategy overrides
 
-        public override ValueTask<PostprocessedMessage> ReadNextAndPostprocess()
+        public override ValueTask<PostprocessedMessage?> ReadNextAndPostprocess()
         {
             if (!attachedToParser)
                 throw new InvalidOperationException("Cannot read messages when not attached to a parser");
             if (enumer == null)
                 enumer = MessagesEnumerator().GetEnumerator();
-            if (!enumer.MoveNext())
-                return new ValueTask<PostprocessedMessage>(new PostprocessedMessage());
-            return new ValueTask<PostprocessedMessage>(enumer.Current);
+            return new ValueTask<PostprocessedMessage?>(
+                enumer.MoveNext() ? enumer.Current : null);
         }
 
         public override Task ParserCreated(ReadMessagesParams p)

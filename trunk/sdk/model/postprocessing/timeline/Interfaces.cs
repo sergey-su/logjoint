@@ -30,7 +30,7 @@ namespace LogJoint.Postprocessing.Timeline
             LogSourcePostprocessorInput postprocessorInput
         );
         IEndOfTimelineEventSource<Message> CreateEndOfTimelineEventSource<Message>(
-            Func<Message, object>? triggetSelector = null) where Message: class;
+            Func<Message, object>? triggetSelector = null) where Message: notnull;
         IInspectedObjectsLifetimeEventsSource CreateInspectedObjectsLifetimeEventsSource(
             Predicate<StateInspector.Event>? inspectedObjectsFilter = null);
         IMessagingEventsSource CreateMessagingEventsSource();

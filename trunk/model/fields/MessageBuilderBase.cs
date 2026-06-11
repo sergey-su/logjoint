@@ -56,7 +56,7 @@ namespace LogJoint.Internal
 
         public abstract IMessage MakeMessage(FieldsProcessor.IMessagesBuilderCallback callback, FieldsProcessor.MakeMessageFlags flags);
         public abstract __MessageBuilder Clone();
-        public abstract void SetExtensionByName(string name, object ext);
+        public abstract void SetExtensionByName(string name, object? ext);
 
         public abstract void SetInputFieldByIndex(int __index, StringSlice __value);
         public abstract void ResetFieldValues();

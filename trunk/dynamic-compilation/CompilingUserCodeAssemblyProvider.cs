@@ -174,7 +174,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
             }
 
             code.AppendLine(@"
-	public override void SetExtensionByName(string __name, object __ext)
+	public override void SetExtensionByName(string __name, object? __ext)
 	{
 		switch (__name)
 		{");

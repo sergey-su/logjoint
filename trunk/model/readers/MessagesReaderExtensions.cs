@@ -20,13 +20,13 @@ namespace LogJoint
                 items.AddRange(
                     from e in extensionsNode.Elements("extension")
                     let name = e.Attribute("name")
-                    let parsedClassName = ParseFullClassName(e.Attribute("class-name").Value)
-                    where name != null && parsedClassName.Item1 != null
+                    let parsedClassName = ParseFullClassName(e.Attribute("class-name")?.Value)
+                    where name != null && parsedClassName != null
                     select new InitializationDataItem(name.Value, parsedClassName.Item2, parsedClassName.Item1)
                 );
             }
 
-            static Tuple<string, string> ParseFullClassName(string fullClassName)
+            static Tuple<string, string>? ParseFullClassName(string? fullClassName)
             {
                 if (fullClassName != null)
                 {
@@ -37,7 +37,7 @@ namespace LogJoint
                             fullClassName.Substring(i + 1).Trim());
                     }
                 }
-                return new Tuple<string, string>(null, null);
+                return null;
             }
 
             internal void InitializeInstance(MessagesReaderExtensions instance)
@@ -145,8 +145,8 @@ namespace LogJoint
             public InitializationDataItem initData;
             public Func<object> instanceGetter;
 
-            object instance;
-            IMessagesReaderExtension instanceIntf;
+            object? instance;
+            IMessagesReaderExtension? instanceIntf;
 
             public ExtensionDataInternal()
             {
@@ -167,7 +167,7 @@ namespace LogJoint
                 return instance;
             }
 
-            public IMessagesReaderExtension GetInstanceIntf()
+            public IMessagesReaderExtension? GetInstanceIntf()
             {
                 GetInstance();
                 return instanceIntf;

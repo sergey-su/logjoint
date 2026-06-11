@@ -177,9 +177,9 @@ namespace LogJoint
 
     public struct PostprocessedMessage
     {
-        public readonly IMessage? Message;
+        public readonly IMessage Message;
         public readonly object? PostprocessingResult;
-        public PostprocessedMessage(IMessage? msg, object? postprocessingResult)
+        public PostprocessedMessage(IMessage msg, object? postprocessingResult)
         {
             Message = msg;
             PostprocessingResult = postprocessingResult;

@@ -24,10 +24,10 @@ namespace LogJoint
             await impl.Init();
             for (; ; )
             {
-                PostprocessedMessage message = await impl.ReadNextAndPostprocess();
-                if (message.Message == null)
+                PostprocessedMessage? message = await impl.ReadNextAndPostprocess();
+                if (message == null)
                     break;
-                yield return message;
+                yield return message.Value;
             }
         }
 
@@ -61,7 +61,7 @@ namespace LogJoint
 
             public async ValueTask Init() => await strategy.ParserCreated(readParams);
 
-            public ValueTask<PostprocessedMessage> ReadNextAndPostprocess() => strategy.ReadNextAndPostprocess();
+            public ValueTask<PostprocessedMessage?> ReadNextAndPostprocess() => strategy.ReadNextAndPostprocess();
 
             static bool HeuristicallyDetectWhetherMultithreadingMakesSense(ReadMessagesParams parserParams,
                 TextStreamPositioningParams textStreamPositioningParams)

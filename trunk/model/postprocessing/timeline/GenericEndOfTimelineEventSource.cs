@@ -2,7 +2,7 @@
 
 namespace LogJoint.Postprocessing.Timeline
 {
-    public class GenericEndOfTimelineEventSource<Message> : IEndOfTimelineEventSource<Message> where Message : class
+    public class GenericEndOfTimelineEventSource<Message> : IEndOfTimelineEventSource<Message> where Message : notnull
     {
         public GenericEndOfTimelineEventSource(Func<Message, object>? triggetSelector = null)
         {
