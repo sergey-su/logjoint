@@ -10,14 +10,12 @@ namespace LogJoint.Preprocessing
         internal URLTypeDetectionStep(
             PreprocessingStepParams srcFile,
             IStepsFactory preprocessingStepsFactory,
-            Workspaces.IWorkspacesManager workspacesManager,
             AppLaunch.ILaunchUrlParser appLaunch,
             IExtensionsRegistry extensions
         )
         {
             this.sourceFile = srcFile;
             this.preprocessingStepsFactory = preprocessingStepsFactory;
-            this.workspacesManager = workspacesManager;
             this.appLaunch = appLaunch;
             this.extensions = extensions;
         }
@@ -36,16 +34,10 @@ namespace LogJoint.Preprocessing
                     callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(
                         new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingHistory, sourceFile.DisplayName)));
                 }
-                else if (workspacesManager.IsWorkspaceUri(uri))
-                {
-                    callback.YieldNextStep(preprocessingStepsFactory.CreateOpenWorkspaceStep(sourceFile));
-                }
                 else if (appLaunch.TryParseLaunchUri(uri, out launchUriData))
                 {
                     if (launchUriData.SingleLogUri != null)
                         callback.YieldNextStep(preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(launchUriData.SingleLogUri)));
-                    else if (launchUriData.WorkspaceUri != null)
-                        callback.YieldNextStep(preprocessingStepsFactory.CreateOpenWorkspaceStep(new PreprocessingStepParams(launchUriData.WorkspaceUri)));
                 }
                 else if (TryExtensions(uri, out extensionStep))
                 {
@@ -88,7 +80,6 @@ namespace LogJoint.Preprocessing
 
         readonly PreprocessingStepParams sourceFile;
         readonly IStepsFactory preprocessingStepsFactory;
-        readonly Workspaces.IWorkspacesManager workspacesManager;
         readonly AppLaunch.ILaunchUrlParser appLaunch;
         readonly IExtensionsRegistry extensions;
     };

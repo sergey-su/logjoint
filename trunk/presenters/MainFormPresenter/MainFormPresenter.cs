@@ -29,7 +29,6 @@ namespace LogJoint.UI.Presenters.MainForm
             IAutoUpdater autoUpdater,
             Progress.IProgressAggregator progressAggregator,
             IAlertPopup alerts,
-            SharingDialog.IPresenter sharingDialogPresenter,
             IssueReportDialogPresenter.IPresenter issueReportDialogPresenter,
             IShutdownSource shutdown,
             IColorTheme theme,
@@ -53,7 +52,6 @@ namespace LogJoint.UI.Presenters.MainForm
             this.autoUpdater = autoUpdater;
             this.progressAggregator = progressAggregator;
             this.alerts = alerts;
-            this.sharingDialogPresenter = sharingDialogPresenter;
             this.issueReportDialogPresenter = issueReportDialogPresenter;
             this.shutdown = shutdown;
             this.statusRepors = statusReportFactory;
@@ -151,20 +149,7 @@ namespace LogJoint.UI.Presenters.MainForm
                 UpdateFormCaption();
             };
 
-            if (sharingDialogPresenter != null)
-            {
-                sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
-                {
-                    UpdateShareButton();
-                };
-                sharingDialogPresenter.IsBusyChanged += (sender, args) =>
-                {
-                    UpdateShareButton();
-                };
-            };
-
             UpdateFormCaption();
-            UpdateShareButton();
 
             view.SetIssueReportingMenuAvailablity(issueReportDialogPresenter.IsAvailable);
         }
@@ -231,11 +216,6 @@ namespace LogJoint.UI.Presenters.MainForm
         void IViewModel.OnTabPressed()
         {
             tabUsageTracker.OnTabPressed();
-        }
-
-        void IViewModel.OnShareButtonClicked()
-        {
-            sharingDialogPresenter.ShowDialog();
         }
 
         void IViewModel.OnReportProblemMenuItemClicked()
@@ -408,18 +388,6 @@ namespace LogJoint.UI.Presenters.MainForm
             view.SetCaption(builder.ToString());
         }
 
-        void UpdateShareButton()
-        {
-            if (sharingDialogPresenter != null)
-            {
-                view.SetShareButtonState(
-                    visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
-                    enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
-                    progress: sharingDialogPresenter.IsBusy
-                );
-            }
-        }
-
         void SetWaitState(bool wait)
         {
             if (wait)
@@ -461,7 +429,6 @@ namespace LogJoint.UI.Presenters.MainForm
         readonly IAutoUpdater autoUpdater;
         readonly Progress.IProgressAggregator progressAggregator;
         readonly IAlertPopup alerts;
-        readonly SharingDialog.IPresenter sharingDialogPresenter;
         readonly IShutdownSource shutdown;
         readonly StatusReports.IPresenter statusRepors;
         readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;

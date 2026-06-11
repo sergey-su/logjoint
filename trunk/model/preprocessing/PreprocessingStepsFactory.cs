@@ -8,7 +8,6 @@ namespace LogJoint.Preprocessing
 {
     public class PreprocessingStepsFactory : IStepsFactory
     {
-        readonly Workspaces.IWorkspacesManager workspacesManager;
         readonly AppLaunch.ILaunchUrlParser appLaunch;
         readonly ISynchronizationContext invoke;
         readonly IExtensionsRegistry extentions;
@@ -21,7 +20,6 @@ namespace LogJoint.Preprocessing
         readonly LogMedia.IFileSystem fileSystem;
 
         public PreprocessingStepsFactory(
-            Workspaces.IWorkspacesManager workspacesManager,
             AppLaunch.ILaunchUrlParser appLaunch,
             ISynchronizationContext invoke,
             IExtensionsRegistry extentions,
@@ -34,7 +32,6 @@ namespace LogJoint.Preprocessing
             LogMedia.IFileSystem fileSystem
         )
         {
-            this.workspacesManager = workspacesManager;
             this.appLaunch = appLaunch;
             this.invoke = invoke;
             this.extentions = extentions;
@@ -64,12 +61,7 @@ namespace LogJoint.Preprocessing
 
         IPreprocessingStep IStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)
         {
-            return new URLTypeDetectionStep(p, this, workspacesManager, appLaunch, extentions);
-        }
-
-        IPreprocessingStep IStepsFactory.CreateOpenWorkspaceStep(PreprocessingStepParams p)
-        {
-            return new OpenWorkspaceStep(p, workspacesManager, invoke);
+            return new URLTypeDetectionStep(p, this, appLaunch, extentions);
         }
 
         IPreprocessingStep IStepsFactory.CreateLocationTypeDetectionStep(PreprocessingStepParams p)

@@ -36,23 +36,6 @@ namespace LogJoint.UI
                 () => value.DeleteSelectedSourcesButtonEnabled,
                 enabled => deleteButton.Enabled = enabled
             );
-            var updateShareButton = Updaters.Create(
-                () => value.ShareButtonState,
-                state =>
-                {
-                    shareButton.Visible = state.visible;
-                    shareButton.Enabled = state.enabled;
-                    if (state.progress)
-                    {
-                        shareButton.Image = Properties.Resources.loader;
-                        shareButton.ImageAlign = ContentAlignment.MiddleLeft;
-                    }
-                    else
-                    {
-                        shareButton.Image = null;
-                    }
-                }
-            );
             var updatePropertiesButton = Updaters.Create(
                 () => value.PropertiesButtonEnabled,
                 enabled => propertiesButton.Enabled = enabled
@@ -62,7 +45,6 @@ namespace LogJoint.UI
             {
                 updateDeleteAllButton();
                 enableDeleteSelectedButton();
-                updateShareButton();
                 updatePropertiesButton();
             });
         }
@@ -70,11 +52,6 @@ namespace LogJoint.UI
         private void addNewLogButton_Click(object sender, EventArgs e)
         {
             viewModel.OnAddNewLogButtonClicked();
-        }
-
-        private void shareButton_Click(object sender, EventArgs e)
-        {
-            viewModel.OnShareButtonClicked();
         }
 
         private void propertiesButton_Click(object sender, EventArgs e)

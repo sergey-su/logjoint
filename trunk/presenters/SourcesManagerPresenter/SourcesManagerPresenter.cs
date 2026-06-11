@@ -16,11 +16,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
             ILogSourcesManager logSources,
             IUserDefinedFormatsManager udfManager,
             Preprocessing.IManager logSourcesPreprocessings,
-            Workspaces.IWorkspacesManager workspacesManager,
             SourcesList.IPresenter sourcesListPresenter,
             NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
             IHeartBeatTimer heartbeat,
-            SharingDialog.IPresenter sharingDialogPresenter,
             HistoryDialog.IPresenter historyDialogPresenter,
             IPresentersFacade facade,
             SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter,
@@ -32,11 +30,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
             this.logSources = logSources;
             this.udfManager = udfManager;
             this.logSourcesPreprocessings = logSourcesPreprocessings;
-            this.workspacesManager = workspacesManager;
             this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
             this.sourcesListPresenter = sourcesListPresenter;
             this.tracer = traceSourceFactory.CreateTraceSource("UI", "smgr-ui");
-            this.sharingDialogPresenter = sharingDialogPresenter;
             this.historyDialogPresenter = historyDialogPresenter;
             this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;
             this.alerts = alerts;
@@ -83,13 +79,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
         bool IViewModel.DeleteAllSourcesButtonEnabled =>
             (logSources.Items.Count + logSourcesPreprocessings.Items.Count) > 0;
 
-        (bool visible, bool enabled, bool progress) IViewModel.ShareButtonState =>
-            (
-                visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
-                enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
-                progress: sharingDialogPresenter.IsBusy
-            );
-
         void IViewModel.OnAddNewLogButtonClicked()
         {
             udfManager.ReloadFactories(); // todo: move it away from this presenter
@@ -112,17 +101,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
         void IViewModel.OnDeleteAllLogSourcesButtonClicked()
         {
             DeleteAllSources();
-            workspacesManager.DetachFromWorkspace();
         }
 
         void IViewModel.OnShowHistoryDialogButtonClicked()
         {
             historyDialogPresenter.ShowDialog();
-        }
-
-        void IViewModel.OnShareButtonClicked()
-        {
-            sharingDialogPresenter.ShowDialog();
         }
 
         #region Implementation
@@ -216,10 +199,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
         readonly ILogSourcesManager logSources;
         readonly IUserDefinedFormatsManager udfManager;
         readonly Preprocessing.IManager logSourcesPreprocessings;
-        readonly Workspaces.IWorkspacesManager workspacesManager;
         readonly SourcesList.IPresenter sourcesListPresenter;
         readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
-        readonly SharingDialog.IPresenter sharingDialogPresenter;
         readonly HistoryDialog.IPresenter historyDialogPresenter;
         readonly SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter;
         readonly LJTraceSource tracer;

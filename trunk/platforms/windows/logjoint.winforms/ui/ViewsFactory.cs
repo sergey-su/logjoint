@@ -21,7 +21,6 @@ namespace LogJoint.UI.Presenters
 
         ThreadsList.IView Factory.IViewsFactory.CreateThreadsListView() => mainForm.threadsListView;
         SourcePropertiesWindow.IView Factory.IViewsFactory.CreateSourcePropertiesWindowView() => new SourceDetailsWindowView();
-        SharingDialog.IView Factory.IViewsFactory.CreateSharingDialogView() => new ShareDialog();
         NewLogSourceDialog.IView Factory.IViewsFactory.CreateNewLogSourceDialogView() => new UI.NewLogSourceDialogView();
         NewLogSourceDialog.Pages.FormatDetection.IView Factory.IViewsFactory.CreateFormatDetectionView() => new NewLogSourceDialog.Pages.FormatDetection.AnyLogFormatUI();
         NewLogSourceDialog.Pages.FileBasedFormat.IView Factory.IViewsFactory.CreateFileBasedFormatView() => new NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI();

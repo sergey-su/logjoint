@@ -49,12 +49,12 @@ namespace LogJoint.Preprocessing
         }
 
 
-        public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingAdded;
-        public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingWillDispose;
-        public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
-        public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
-        public event EventHandler<LogSourcePreprocessingWillYieldEventArg> PreprocessingWillYieldProviders;
-        public event EventHandler<LogSourcePreprocessingFailedEventArg> PreprocessingYieldFailed;
+        public event EventHandler<LogSourcePreprocessingEventArg>? PreprocessingAdded;
+        public event EventHandler<LogSourcePreprocessingEventArg>? PreprocessingWillDispose;
+        public event EventHandler<LogSourcePreprocessingEventArg>? PreprocessingDisposed;
+        public event EventHandler<LogSourcePreprocessingEventArg>? PreprocessingChangedAsync;
+        public event EventHandler<LogSourcePreprocessingWillYieldEventArg>? PreprocessingWillYieldProviders;
+        public event EventHandler<LogSourcePreprocessingFailedEventArg>? PreprocessingYieldFailed;
 
         Task<YieldedProvider[]> IManager.Preprocess(
             IEnumerable<IPreprocessingStep> steps,
@@ -547,7 +547,7 @@ namespace LogJoint.Preprocessing
             Exception failure;
             readonly Func<Task> preprocLogic;
             Task task; // this task never fails
-            Queue<IPreprocessingStep> nextSteps;
+            Queue<IPreprocessingStep>? nextSteps;
 
             static readonly string genericProcessingDescription = "Processing...";
         };

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using static LogJoint.Workspaces.WorkspaceDTO;
 
 namespace LogJoint.UI.Presenters
 {

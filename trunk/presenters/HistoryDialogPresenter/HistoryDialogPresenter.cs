@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
-using LogJoint.Workspaces;
 using LogJoint.Preprocessing;
 using LogJoint.MRU;
 using System.Diagnostics;
@@ -182,18 +181,12 @@ namespace LogJoint.UI.Presenters.HistoryDialog
                 return;
             visible = false;
             changeNotification.Post();
-            if (selected.Any(i => i.data is RecentWorkspaceEntry))
-            {
-                await Task.WhenAll(logSourcesManager.DeleteAllLogs(), sourcesPreprocessingManager.DeleteAllPreprocessings());
-            }
             var tasks = selected.Select(async item =>
             {
                 try
                 {
                     if (item.data is RecentLogEntry log)
                         await sourcesPreprocessingManager.Preprocess(log);
-                    else if (item.data is RecentWorkspaceEntry ws)
-                        await sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
                     else if (item.data is IRecentlyUsedEntity[] container)
                         await Task.WhenAll(container.OfType<RecentLogEntry>().Select(innerLog => sourcesPreprocessingManager.Preprocess(innerLog)));
                 }

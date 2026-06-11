@@ -26,12 +26,10 @@ namespace LogJoint.UI.Presenters.SourcesManager
         bool DeleteSelectedSourcesButtonEnabled { get; }
         bool PropertiesButtonEnabled { get; }
         bool DeleteAllSourcesButtonEnabled { get; }
-        (bool visible, bool enabled, bool progress) ShareButtonState { get; }
 
         void OnAddNewLogButtonClicked();
         void OnDeleteSelectedLogSourcesButtonClicked();
         void OnDeleteAllLogSourcesButtonClicked();
-        void OnShareButtonClicked();
         void OnShowHistoryDialogButtonClicked();
         void OnPropertiesButtonClicked();
     };

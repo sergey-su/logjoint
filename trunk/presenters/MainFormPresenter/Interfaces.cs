@@ -105,7 +105,6 @@ namespace LogJoint.UI.Presenters.MainForm
         void OnRestartPictureClicked();
         void OnOpenRecentMenuClicked();
         void OnChangeTab(string tabId);
-        void OnShareButtonClicked();
         void OnReportProblemMenuItemClicked();
         void OnResizing(double size);
     };

@@ -280,7 +280,6 @@ namespace LogJoint.Preprocessing
         IPreprocessingStep CreateDownloadingStep(PreprocessingStepParams p);
         IPreprocessingStep CreateUnpackingStep(PreprocessingStepParams p);
         IPreprocessingStep CreateURLTypeDetectionStep(PreprocessingStepParams p);
-        IPreprocessingStep CreateOpenWorkspaceStep(PreprocessingStepParams p);
         IPreprocessingStep CreateLocationTypeDetectionStep(PreprocessingStepParams p);
         IPreprocessingStep CreateGunzippingStep(PreprocessingStepParams sourceFile);
         IPreprocessingStep CreateTimeAnomalyFixingStep(PreprocessingStepParams p);
@@ -290,7 +289,7 @@ namespace LogJoint.Preprocessing
     public interface IPreprocessingManagerExtension
     {
         IPreprocessingStep? DetectFormat(PreprocessingStepParams param, IStreamHeader header);
-        IPreprocessingStep? CreateStepByName(string stepName, PreprocessingStepParams stepParams);
+        IPreprocessingStep? CreateStepByName(string stepName, PreprocessingStepParams? stepParams);
         IPreprocessingStep TryParseLaunchUri(Uri url);
         Task FinalizePreprocessing(IPreprocessingStepCallback callback);
     };

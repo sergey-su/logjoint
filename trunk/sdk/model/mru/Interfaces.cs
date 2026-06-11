@@ -11,7 +11,6 @@ namespace LogJoint.MRU
     {
         void RegisterRecentLogEntry(ILogProvider provider, string annotation);
         void UpdateRecentLogEntry(ILogProvider provider, string annotation);
-        void RegisterRecentWorkspaceEntry(string workspaceUri, string workspaceName, string workspaceAnnotation);
         IReadOnlyList<IRecentlyUsedEntity> MRUList { get; }
         Func<ILogProviderFactory, int> MakeFactoryMRUIndexGetter();
         IEnumerable<ILogProviderFactory> SortFactoriesMoreRecentFirst(IEnumerable<ILogProviderFactory> factories);

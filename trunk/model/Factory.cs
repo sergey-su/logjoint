@@ -25,7 +25,6 @@ namespace LogJoint
         required public ISearchHistory SearchHistory { get; init; }
         required public Progress.IProgressAggregatorFactory ProgressAggregatorFactory { get; init; }
         required public Preprocessing.IStepsFactory PreprocessingStepsFactory { get; init; }
-        required public Workspaces.IWorkspacesManager WorkspacesManager { get; init; }
         required public MRU.IRecentlyUsedEntities RecentlyUsedLogs { get; init; }
         required public ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; init; }
         required public IUserDefinedFormatsManagerInternal UserDefinedFormatsManager { get; init; }
@@ -197,22 +196,6 @@ namespace LogJoint
                 fileSystem
             );
 
-            Workspaces.Backend.IBackendAccess workspacesBackendAccess = new Workspaces.Backend.AzureWorkspacesBackend(
-                traceSourceFactory,
-                config.WorkspacesUrl
-            );
-
-            Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
-                logSourcesManager,
-                logProviderFactoryRegistry,
-                storageManager,
-                workspacesBackendAccess,
-                tempFilesManager,
-                recentlyUsedLogs,
-                shutdown,
-                traceSourceFactory
-            );
-
             AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
 
             Preprocessing.IExtensionsRegistry preprocessingManagerExtensionsRegistry =
@@ -225,7 +208,6 @@ namespace LogJoint
             WebViewTools.IWebViewTools webBrowserDownloader = createWebBrowserDownloader(shutdown, webContentCache, traceSourceFactory);
 
             Preprocessing.IStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
-                workspacesManager,
                 launchUrlParser,
                 modelSynchronizationContext,
                 preprocessingManagerExtensionsRegistry,
@@ -437,7 +419,6 @@ namespace LogJoint
                 SearchHistory = searchHistory,
                 ProgressAggregatorFactory = progressAggregatorFactory,
                 PreprocessingStepsFactory = preprocessingStepsFactory,
-                WorkspacesManager = workspacesManager,
                 RecentlyUsedLogs = recentlyUsedLogs,
                 LogProviderFactoryRegistry = logProviderFactoryRegistry,
                 UserDefinedFormatsManager = userDefinedFormatsManager,

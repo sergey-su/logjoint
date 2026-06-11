@@ -57,7 +57,6 @@ namespace LogJoint.UI.Presenters
         {
             ThreadsList.IView CreateThreadsListView();
             SourcePropertiesWindow.IView CreateSourcePropertiesWindowView();
-            SharingDialog.IView CreateSharingDialogView();
             NewLogSourceDialog.IView CreateNewLogSourceDialogView();
             NewLogSourceDialog.Pages.FormatDetection.IView CreateFormatDetectionView();
             NewLogSourceDialog.Pages.FileBasedFormat.IView CreateFileBasedFormatView();
@@ -101,7 +100,6 @@ namespace LogJoint.UI.Presenters
 
             var threadsListView = callOptionalFactory(views.CreateThreadsListView);
             var sourcePropertiesWindowView = views.CreateSourcePropertiesWindowView();
-            var sharingDialogView = views.CreateSharingDialogView();
             var newLogSourceDialogView = views.CreateNewLogSourceDialogView();
             var messagePropertiesDialogView = views.CreateMessagePropertiesDialogView();
             var optionsDialogView = callOptionalFactory(views.CreateOptionsDialogView);
@@ -296,16 +294,6 @@ namespace LogJoint.UI.Presenters
 
             Help.IPresenter helpPresenter = new Help.Presenter(shellOpen);
 
-            SharingDialog.IPresenter sharingDialogPresenter = sharingDialogView == null ? null : new SharingDialog.Presenter(
-                model.LogSourcesManager,
-                model.WorkspacesManager,
-                model.LogSourcesPreprocessings,
-                alertPopup,
-                clipboardAccess,
-                sharingDialogView,
-                model.ChangeNotification
-            );
-
             var historyDialogPresenter = new HistoryDialog.Presenter(
                 model.LogSourcesManager,
                 model.ChangeNotification,
@@ -367,11 +355,9 @@ namespace LogJoint.UI.Presenters
                 model.LogSourcesManager,
                 model.UserDefinedFormatsManager,
                 model.LogSourcesPreprocessings,
-                model.WorkspacesManager,
                 sourcesListPresenter,
                 newLogSourceDialogPresenter,
                 model.HeartBeatTimer,
-                sharingDialogPresenter,
                 historyDialogPresenter,
                 presentersFacade,
                 sourcePropertiesWindowPresenter,
@@ -498,7 +484,6 @@ namespace LogJoint.UI.Presenters
                 model.AutoUpdater,
                 model.ProgressAggregator,
                 alertPopup,
-                sharingDialogPresenter,
                 issueReportDialogPresenter,
                 model.Shutdown,
                 colorTheme,

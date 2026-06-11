@@ -1,6 +1,5 @@
 ﻿using LogJoint.AppLaunch;
 using LogJoint.Preprocessing;
-using LogJoint.Workspaces;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,6 @@ namespace LogJoint.Tests
     {
         IStepsFactory preprocessingStepsFactory;
         IPreprocessingStepCallback callback;
-        IWorkspacesManager workspacesManager;
         ILaunchUrlParser appLaunch;
         IExtensionsRegistry extensions;
 
@@ -29,13 +27,12 @@ namespace LogJoint.Tests
         [SetUp]
         public void Setup()
         {
-            workspacesManager = Substitute.For<IWorkspacesManager>();
             appLaunch = Substitute.For<ILaunchUrlParser>();
             preprocessingStepsFactory = Substitute.For<IStepsFactory>();
             extensions = Substitute.For<IExtensionsRegistry>();
             preprocessingStepsFactory.CreateURLTypeDetectionStep(null).ReturnsForAnyArgs(
                 callInfo => new URLTypeDetectionStep(
-                    callInfo.Arg<PreprocessingStepParams>(), preprocessingStepsFactory, workspacesManager, appLaunch, extensions));
+                    callInfo.Arg<PreprocessingStepParams>(), preprocessingStepsFactory, appLaunch, extensions));
             callback = Substitute.For<IPreprocessingStepCallback>();
         }
 
@@ -61,18 +58,6 @@ namespace LogJoint.Tests
         }
 
         [Test]
-        public void LocationTypeDetectionStepDetectsWorkspaceUri()
-        {
-            workspacesManager.IsWorkspaceUri(new Uri(@"https://workspaces/123")).Returns(true);
-
-            RunChain(new LocationTypeDetectionStep(
-                new PreprocessingStepParams(@"https://workspaces/123"), preprocessingStepsFactory));
-
-            preprocessingStepsFactory.Received().CreateOpenWorkspaceStep(
-                Arg.Is<PreprocessingStepParams>(p => p.Location == @"https://workspaces/123"));
-        }
-
-        [Test]
         public void LocationTypeDetectionStepDetectsLocalFileUri()
         {
             RunChain(new LocationTypeDetectionStep(
@@ -80,25 +65,6 @@ namespace LogJoint.Tests
 
             preprocessingStepsFactory.Received().CreateFormatDetectionStep(
                 Arg.Is<PreprocessingStepParams>(p => p.Location == @"M:\foo.log"));
-        }
-
-        [Test]
-        public void LocationTypeDetectionStepDetectsWorkspaceLaunchUri()
-        {
-            string testUri = @"logjoint:?t=workspace&uri=https://workspaces/123";
-
-            LaunchUriData tmp;
-            appLaunch.TryParseLaunchUri(new Uri(testUri), out tmp).Returns(callInfo =>
-            {
-                callInfo[1] = new LaunchUriData() { WorkspaceUri = "https://workspaces/123" };
-                return true;
-            });
-
-            RunChain(new LocationTypeDetectionStep(
-                new PreprocessingStepParams(testUri), preprocessingStepsFactory));
-
-            preprocessingStepsFactory.Received().CreateOpenWorkspaceStep(
-                Arg.Is<PreprocessingStepParams>(p => p.Location == @"https://workspaces/123"));
         }
 
         [Test]

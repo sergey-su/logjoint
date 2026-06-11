@@ -6,15 +6,6 @@ namespace LogJoint.Preprocessing
 {
     public static class Utils
     {
-        public static Task OpenWorkspace(this IManager logSourcesPreprocessings,
-            IStepsFactory preprocessingStepsFactory, string workspaceUrl)
-        {
-            return logSourcesPreprocessings.Preprocess(
-                new[] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new PreprocessingStepParams(workspaceUrl)) },
-                "opening workspace"
-            );
-        }
-
         public static async Task DeletePreprocessings(this IManager lspm,
             ILogSourcePreprocessing[] preprs)
         {

@@ -16,7 +16,6 @@ namespace LogJoint.MRU
         static readonly string EntryNodeName = "entry";
         static readonly string ListSizeLimitAttrName = "max-nr-of-entries";
         static readonly string TypeAttrName = "type";
-        static readonly string WorkspaceTypeAttrValue = "ws";
         static readonly string LogTypeAttrValue = "log";
         static readonly string AnnotationAttrName = "annotation";
         static readonly string DateAttrName = "date";
@@ -56,11 +55,6 @@ namespace LogJoint.MRU
             AddOrReplaceLog(provider, annotation, updateExisting: true);
         }
 
-        void IRecentlyUsedEntities.RegisterRecentWorkspaceEntry(string workspaceUrl, string workspaceName, string workspaceAnnotation)
-        {
-            AddOrReplaceWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
-        }
-
         IReadOnlyList<IRecentlyUsedEntity> IRecentlyUsedEntities.MRUList => mruList();
 
         IReadOnlyList<IRecentlyUsedEntity> GetMRUList(XDocument document)
@@ -68,38 +62,26 @@ namespace LogJoint.MRU
             var result = ImmutableArray.CreateBuilder<IRecentlyUsedEntity>();
             foreach (var e in document.SafeElement(RootNodeName).SafeElements(EntryNodeName))
             {
-                if (e.AttributeValue(TypeAttrName) == WorkspaceTypeAttrValue)
+                RecentLogEntry entry;
+                try
                 {
-                    result.Add(new RecentWorkspaceEntry(
-                        e.Value,
-                        e.AttributeValue(NameAttrName),
-                        e.AttributeValue(AnnotationAttrName),
-                        e.DateTimeValue(DateAttrName)
-                    ));
+                    entry = new RecentLogEntry(logProviderFactoryRegistry,
+                        e.Value, e.AttributeValue(AnnotationAttrName), e.DateTimeValue(DateAttrName));
                 }
-                else
+                catch (RecentLogEntry.FormatNotRegistedException)
                 {
-                    RecentLogEntry entry;
-                    try
-                    {
-                        entry = new RecentLogEntry(logProviderFactoryRegistry,
-                            e.Value, e.AttributeValue(AnnotationAttrName), e.DateTimeValue(DateAttrName));
-                    }
-                    catch (RecentLogEntry.FormatNotRegistedException)
-                    {
-                        continue;
-                    }
-                    catch (InvalidConnectionParamsException)
-                    {
-                        continue;
-                    }
-                    catch (RecentLogEntry.SerializationException ex)
-                    {
-                        telemetry.ReportException(ex, "broken MRU entry");
-                        continue;
-                    }
-                    result.Add(entry);
+                    continue;
                 }
+                catch (InvalidConnectionParamsException)
+                {
+                    continue;
+                }
+                catch (RecentLogEntry.SerializationException ex)
+                {
+                    telemetry.ReportException(ex, "broken MRU entry");
+                    continue;
+                }
+                result.Add(entry);
             }
             return result.ToImmutable();
         }
@@ -269,25 +251,6 @@ namespace LogJoint.MRU
                 (e1, e2) => e1.SafeValue() == e2.SafeValue(),
                 DefaultRecentLogsListSizeLimit,
                 updateExisting
-            );
-        }
-
-        private void AddOrReplaceWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
-        {
-            AddOrReplaceEntry(
-                ref recentLogsDocument,
-                RecentLogsSectionName,
-                new XElement(
-                    EntryNodeName,
-                    new XAttribute(TypeAttrName, WorkspaceTypeAttrValue),
-                    new XAttribute(NameAttrName, workspaceName),
-                    new XAttribute(AnnotationAttrName, workspaceAnnotation),
-                    DateTime.UtcNow.ToDateTimeAttribute(DateAttrName),
-                    workspaceUrl
-                ),
-                (e1, e2) => e1.SafeValue() == e2.SafeValue(),
-                DefaultRecentLogsListSizeLimit,
-                updateExisting: false
             );
         }
 

@@ -40,8 +40,6 @@ namespace LogJoint.AppLaunch
             {
                 case "log":
                     return new LaunchUriData() { SingleLogUri = contentUri };
-                case "workspace":
-                    return new LaunchUriData() { WorkspaceUri = contentUri };
             }
 
             return null;
