@@ -15,7 +15,7 @@ namespace LogJoint
             if (traceListener == null)
                 return;
             var entries = traceListener.ClearMemBufferAndGetCurrentEntries();
-            entries.ForEach(e => e.Write(writer));
+            entries?.ForEach(e => e.Write(writer));
         }
     };
 }
