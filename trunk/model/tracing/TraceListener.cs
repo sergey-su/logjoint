@@ -18,7 +18,6 @@ namespace LogJoint
         readonly ConcurrentQueue<Entry> entries = new ConcurrentQueue<Entry>();
         int writeToStreamScheduled;
         bool disposed;
-        readonly bool enableMemBuffer;
         readonly bool enableConsole;
         readonly uint memBufMaxSize = 128 * 1024;
         CircularBuffer? memBuffer;
@@ -93,12 +92,12 @@ namespace LogJoint
 
         public bool MemBufferEnabled
         {
-            get { return enableMemBuffer; }
+            get { return memBuffer != null; }
         }
 
         public List<Entry>? ClearMemBufferAndGetCurrentEntries()
         {
-            if (!enableMemBuffer)
+            if (memBuffer == null)
                 return null;
             return Interlocked.Exchange(ref memBuffer, new CircularBuffer(memBufMaxSize)).ToList();
         }
@@ -235,7 +234,6 @@ namespace LogJoint
             }, true);
             if (initializationParams.EnableMemBuffer)
             {
-                enableMemBuffer = true;
                 memBuffer = new CircularBuffer(memBufMaxSize);
             }
             enableConsole = initializationParams.EnableConsole;
