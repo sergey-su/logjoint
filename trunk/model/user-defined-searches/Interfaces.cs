@@ -14,7 +14,7 @@ namespace LogJoint
         void Export(IUserDefinedSearch[] searches, Stream stm);
         Task Import(Stream stm, Func<string, Task<NameDuplicateResolution>> dupesResolver);
 
-        event EventHandler OnChanged;
+        event EventHandler? OnChanged;
     };
 
     /// <summary>

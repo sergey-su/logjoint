@@ -42,7 +42,7 @@ namespace LogJoint
             return items.ContainsKey(name);
         }
 
-        public event EventHandler OnChanged;
+        public event EventHandler? OnChanged;
 
         IUserDefinedSearch IUserDefinedSearches.AddNew()
         {

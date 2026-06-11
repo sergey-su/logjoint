@@ -44,7 +44,7 @@ namespace LogJoint
     /// </remarks>
     public interface ITimeGapsDetector
     {
-        event EventHandler OnTimeGapsChanged;
+        event EventHandler? OnTimeGapsChanged;
         void Update(DateRange r);
         bool IsWorking { get; }
         ITimeGaps Gaps { get; }

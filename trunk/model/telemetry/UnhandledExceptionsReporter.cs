@@ -17,7 +17,7 @@ namespace LogJoint.Telemetry
             }
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionEventHandler;
 
-            void unobservedTaskExceptionEventHandler(object sender, UnobservedTaskExceptionEventArgs e)
+            void unobservedTaskExceptionEventHandler(object? sender, UnobservedTaskExceptionEventArgs e)
             {
                 tracer.Error(e.Exception, "UnobservedTaskException");
             }
@@ -48,7 +48,7 @@ namespace LogJoint.Telemetry
 
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionEventHandler;
 
-            void unobservedTaskExceptionEventHandler(object sender, UnobservedTaskExceptionEventArgs e)
+            void unobservedTaskExceptionEventHandler(object? sender, UnobservedTaskExceptionEventArgs e)
             {
                 telemetryCollector.ReportException(e.Exception, "TaskScheduler.UnobservedTaskException");
             }

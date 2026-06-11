@@ -4,7 +4,7 @@ namespace LogJoint
 {
     class UserDefinedSearch : IUserDefinedSearch, IUserDefinedSearchInternal
     {
-        IUserDefinedSearchesInternal owner;
+        IUserDefinedSearchesInternal? owner;
         string name;
         IFiltersList filters;
 

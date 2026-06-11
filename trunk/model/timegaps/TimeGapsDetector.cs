@@ -34,7 +34,7 @@ namespace LogJoint
                 gaps = null;
         }
 
-        public event EventHandler OnTimeGapsChanged;
+        public event EventHandler? OnTimeGapsChanged;
 
         bool ITimeGapsDetector.IsWorking
         {
@@ -377,7 +377,7 @@ namespace LogJoint
                 this.gaps = gaps;
             }
             trace.Info("posting OnTimeGapsChanged event");
-            await modelSynchronizationContext.Invoke(() => OnTimeGapsChanged(this, EventArgs.Empty));
+            await modelSynchronizationContext.Invoke(() => OnTimeGapsChanged?.Invoke(this, EventArgs.Empty));
         }
 
         class TooManyGapsException : Exception
@@ -509,7 +509,7 @@ namespace LogJoint
         volatile bool isWorking;
         #endregion
 
-        TimeGaps gaps;
+        TimeGaps? gaps;
         static readonly TimeGaps emptyGaps = new TimeGaps();
         int lastHelperId;
     }
