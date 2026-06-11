@@ -8,7 +8,7 @@ namespace LogJoint.Postprocessing.Timeline
 {
     public class EventsSerializer : IEventsVisitor, IEventsSerializer
     {
-        public EventsSerializer(Action<object, XElement> triggerSerializer = null)
+        public EventsSerializer(Action<object, XElement>? triggerSerializer = null)
         {
             this.triggerSerializer = triggerSerializer;
         }
@@ -46,7 +46,7 @@ namespace LogJoint.Postprocessing.Timeline
             CreateEventElement(evt, SC.Elt_EOF);
         }
 
-        static XAttribute MakeNullableAttr(string attrName, object value)
+        static XAttribute? MakeNullableAttr(string attrName, object? value)
         {
             if (value == null)
                 return null;
@@ -90,6 +90,6 @@ namespace LogJoint.Postprocessing.Timeline
         }
 
         readonly List<XElement> output = new List<XElement>();
-        readonly Action<object, XElement> triggerSerializer;
+        readonly Action<object, XElement>? triggerSerializer;
     }
 }

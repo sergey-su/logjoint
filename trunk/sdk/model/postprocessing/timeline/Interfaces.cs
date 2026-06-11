@@ -30,7 +30,7 @@ namespace LogJoint.Postprocessing.Timeline
             LogSourcePostprocessorInput postprocessorInput
         );
         IEndOfTimelineEventSource<Message> CreateEndOfTimelineEventSource<Message>(
-            Func<Message, object>? triggetSelector = null);
+            Func<Message, object>? triggetSelector = null) where Message: class;
         IInspectedObjectsLifetimeEventsSource CreateInspectedObjectsLifetimeEventsSource(
             Predicate<StateInspector.Event>? inspectedObjectsFilter = null);
         IMessagingEventsSource CreateMessagingEventsSource();
@@ -53,12 +53,12 @@ namespace LogJoint.Postprocessing.Timeline
 
     public abstract class Event : ITagged, IVisitable<IEventsVisitor>
     {
-        public object Trigger;
-        public readonly string DisplayName;
+        public object? Trigger;
+        public readonly string? DisplayName;
         public readonly int TemplateId;
         public HashSet<string> Tags { get { return tags; } set { tags = value; } }
 
-        protected Event(object trigger, string displayName, int templateId)
+        protected Event(object? trigger, string? displayName, int templateId)
         {
             this.Trigger = trigger;
             this.DisplayName = displayName;
@@ -103,7 +103,7 @@ namespace LogJoint.Postprocessing.Timeline
         public ActivityStatus Status { get; set; }
         public List<ActivityPhase>? Phases { get { return phases; } set { phases = value; } }
 
-        protected ActivityEventBase(object trigger, string displayName, string activityId, ActivityEventType type,
+        protected ActivityEventBase(object? trigger, string? displayName, string activityId, ActivityEventType type,
                                  int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified)
             : base(trigger, displayName, templateId)
         {
@@ -133,7 +133,7 @@ namespace LogJoint.Postprocessing.Timeline
 
     public class ProcedureEvent : ActivityEventBase
     {
-        public ProcedureEvent(object trigger, string displayName, string procedureId, ActivityEventType type, int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified) :
+        public ProcedureEvent(object? trigger, string? displayName, string procedureId, ActivityEventType type, int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified) :
             base(trigger, displayName, procedureId, type, templateId, status)
         { }
 
@@ -151,7 +151,7 @@ namespace LogJoint.Postprocessing.Timeline
     {
         public readonly NetworkMessageDirection Direction;
 
-        public NetworkMessageEvent(object trigger, string displayName, string messageId, ActivityEventType type, NetworkMessageDirection direction,
+        public NetworkMessageEvent(object? trigger, string? displayName, string messageId, ActivityEventType type, NetworkMessageDirection direction,
                                    int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified) :
             base(trigger, displayName, messageId, type, templateId, status)
         { Direction = direction; }
@@ -161,7 +161,7 @@ namespace LogJoint.Postprocessing.Timeline
 
     public class ObjectLifetimeEvent : ActivityEventBase
     {
-        public ObjectLifetimeEvent(object trigger, string displayName, string objectId, ActivityEventType type, int templateId = 0) :
+        public ObjectLifetimeEvent(object? trigger, string? displayName, string objectId, ActivityEventType type, int templateId = 0) :
             base(trigger, displayName, objectId, type, templateId)
         { }
 
@@ -170,21 +170,21 @@ namespace LogJoint.Postprocessing.Timeline
 
     public class UserActionEvent : Event
     {
-        public UserActionEvent(object trigger, string displayName, int templateId = 0) : base(trigger, displayName, templateId) { }
+        public UserActionEvent(object? trigger, string? displayName, int templateId = 0) : base(trigger, displayName, templateId) { }
 
         public override void Visit(IEventsVisitor visitor) { visitor.Visit(this); }
     };
 
     public class APICallEvent : Event
     {
-        public APICallEvent(object trigger, string displayName, int templateId = 0) : base(trigger, displayName, templateId) { }
+        public APICallEvent(object? trigger, string? displayName, int templateId = 0) : base(trigger, displayName, templateId) { }
 
         public override void Visit(IEventsVisitor visitor) { visitor.Visit(this); }
     };
 
     public class EndOfTimelineEvent : Event
     {
-        public EndOfTimelineEvent(object trigger, string displayName) : base(trigger, displayName, 0) { }
+        public EndOfTimelineEvent(object? trigger, string? displayName) : base(trigger, displayName, 0) { }
 
         public override void Visit(IEventsVisitor visitor) { visitor.Visit(this); }
     };

@@ -50,7 +50,7 @@ namespace LogJoint.Postprocessing.Timeline
         }
 
         IEndOfTimelineEventSource<Message> IModel.CreateEndOfTimelineEventSource<Message>(
-            Func<Message, object> triggetSelector)
+            Func<Message, object> triggetSelector) where Message : class
         {
             return new GenericEndOfTimelineEventSource<Message>(triggetSelector);
         }

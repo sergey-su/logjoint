@@ -102,7 +102,7 @@ namespace LogJoint
         public Action<long> ProgressHandler;
         public CancellationToken Cancellation;
         public ReadMessagesFlag Flags;
-        public object ContinuationToken;
+        public object? ContinuationToken;
     };
 
     /// <summary>

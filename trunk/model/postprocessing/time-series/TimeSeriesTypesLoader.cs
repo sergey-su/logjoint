@@ -236,12 +236,12 @@ namespace LogJoint.Postprocessing.TimeSeries
 
     public class DynamicScriptLoader
     {
-        public Assembly Load(FileInfo sourceFile, bool debugInfo, IEnumerable<string> dependencies = null)
+        public Assembly Load(FileInfo sourceFile, bool debugInfo, IEnumerable<string>? dependencies = null)
         {
             return Load(new FileInfo[] { sourceFile }, debugInfo, dependencies);
         }
 
-        public Assembly Load(FileInfo[] sourceFiles, bool debugInfo, IEnumerable<string> dependencies = null)
+        public Assembly Load(FileInfo[] sourceFiles, bool debugInfo, IEnumerable<string>? dependencies = null)
         {
             throw new NotSupportedException("Dynamic time series not supported");
         }

@@ -595,7 +595,7 @@ namespace LogJoint.Preprocessing
             }
         }
 
-        IPreprocessingStep? CreateStepByName(string name, PreprocessingStepParams param)
+        IPreprocessingStep? CreateStepByName(string name, PreprocessingStepParams? param)
         {
             return
                 extensions

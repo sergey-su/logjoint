@@ -8,8 +8,14 @@ namespace LogJoint.Postprocessing.Timeline
     {
         public readonly static IEntitiesComparer Instance = new TimelineEntitiesComparer();
 
-        int IComparer<IActivity>.Compare(IActivity x, IActivity y)
+        int IComparer<IActivity>.Compare(IActivity? x, IActivity? y)
         {
+            if (ReferenceEquals(x, y))
+                return 0;
+            if (x is null)
+                return -1;
+            if (y is null)
+                return 1;
             int ret = TimeSpan.Compare(x.GetTimelineBegin(), y.GetTimelineBegin());
             if (ret != 0)
                 return ret;
@@ -19,8 +25,14 @@ namespace LogJoint.Postprocessing.Timeline
             return CompareTriggers(x.BeginTrigger, y.BeginTrigger);
         }
 
-        int IComparer<IEvent>.Compare(IEvent x, IEvent y)
+        int IComparer<IEvent>.Compare(IEvent? x, IEvent? y)
         {
+            if (ReferenceEquals(x, y))
+                return 0;
+            if (x is null)
+                return -1;
+            if (y is null)
+                return 1;
             int ret = TimeSpan.Compare(x.GetTimelineTime(), y.GetTimelineTime());
             if (ret != 0)
                 return ret;

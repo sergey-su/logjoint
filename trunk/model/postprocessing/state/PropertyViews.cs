@@ -40,7 +40,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         public override string? ToString()
         {
-            var str = value.ToString();
+            var str = value.ToString() ?? "";
             str = InspectedObject.Owner.TryGetDisplayName(str, out var displayName) ? displayName : str;
             if (ObjectNr != 0)
                 return string.Format("{0} (#{1})", str, ObjectNr);

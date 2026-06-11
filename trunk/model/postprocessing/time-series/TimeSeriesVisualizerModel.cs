@@ -22,7 +22,7 @@ namespace LogJoint.Postprocessing.TimeSeries
             UpdateOutputs();
         }
 
-        public event EventHandler Changed;
+        public event EventHandler? Changed;
 
         ICollection<ITimeSeriesPostprocessorOutput> ITimeSeriesVisualizerModel.Outputs
         {

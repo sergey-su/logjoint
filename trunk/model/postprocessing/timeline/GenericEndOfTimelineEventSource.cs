@@ -2,11 +2,11 @@
 
 namespace LogJoint.Postprocessing.Timeline
 {
-    public class GenericEndOfTimelineEventSource<Message> : IEndOfTimelineEventSource<Message>
+    public class GenericEndOfTimelineEventSource<Message> : IEndOfTimelineEventSource<Message> where Message : class
     {
-        public GenericEndOfTimelineEventSource(Func<Message, object> triggetSelector = null)
+        public GenericEndOfTimelineEventSource(Func<Message, object>? triggetSelector = null)
         {
-            this.triggetSelector = triggetSelector ?? (x => x);
+            this.triggetSelector = triggetSelector ?? Identity;
         }
 
         public IEnumerableAsync<Timeline.Event[]> GetEvents(IEnumerableAsync<Message[]> input)
@@ -24,7 +24,9 @@ namespace LogJoint.Postprocessing.Timeline
             });
         }
 
+        object Identity(Message m) => m;
+
         readonly Func<Message, object> triggetSelector;
-        Message lastMessage;
+        Message? lastMessage;
     }
 }

@@ -30,7 +30,7 @@ namespace LogJoint
             lock (sync)
             {
                 requestsCount++;
-                DateBoundsCache.Entry e;
+                DateBoundsCache.Entry? e;
                 if (data.TryGetValue(d, out e))
                 {
                     hitsCount++;

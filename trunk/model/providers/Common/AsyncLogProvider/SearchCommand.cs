@@ -126,7 +126,7 @@ namespace LogJoint
         readonly SearchAllOccurencesParams searchParams;
         readonly Func<SearchResultMessage, bool> callback;
         readonly Progress.IProgressEventsSink progress;
-        object continuationToken;
+        object? continuationToken;
         int messagesReadSinceCompletionPercentageUpdate;
     };
 }

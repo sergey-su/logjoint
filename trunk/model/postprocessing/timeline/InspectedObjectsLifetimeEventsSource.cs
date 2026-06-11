@@ -7,7 +7,7 @@ namespace LogJoint.Postprocessing.Timeline
 {
     public class InspectedObjectsLifetimeEventsSource : StateInspector.IEventsVisitor, IInspectedObjectsLifetimeEventsSource
     {
-        public InspectedObjectsLifetimeEventsSource(Predicate<SI.Event> inspectedObjectsFilter = null)
+        public InspectedObjectsLifetimeEventsSource(Predicate<SI.Event>? inspectedObjectsFilter = null)
         {
             this.inspectedObjectsFilter = inspectedObjectsFilter ?? defaultFilter;
         }

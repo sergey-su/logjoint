@@ -67,7 +67,7 @@ namespace LogJoint.JsonFormat
 
         protected override Encoding DetectStreamEncoding(Stream stream)
         {
-            Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(formatInfo.Encoding, Trace);
+            Encoding? ret = EncodingUtils.GetEncodingFromConfigXMLName(formatInfo.Encoding, Trace);
             if (ret != null)
                 return ret;
             if (formatInfo.Encoding == "BOM")
@@ -80,10 +80,10 @@ namespace LogJoint.JsonFormat
                 if (ret == null)
                     ret = EncodingUtils.DetectEncodingFromBOM(stream, Encoding.UTF8);
             }
-            return ret;
+            return ret ?? Encoding.UTF8;
         }
 
-        static IMessage MakeMessageInternal(TextMessageCapture capture, JsonFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
+        static IMessage? MakeMessageInternal(TextMessageCapture capture, JsonFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
             MessagesBuilderCallback callback)
         {
             StringBuilder messageBuf = new StringBuilder();
@@ -231,7 +231,7 @@ namespace LogJoint.JsonFormat
             {
                 return base.ParserCreated(p);
             }
-            protected override IMessage MakeMessage(TextMessageCapture capture)
+            protected override IMessage? MakeMessage(TextMessageCapture capture)
             {
                 return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback);
             }
@@ -263,7 +263,7 @@ namespace LogJoint.JsonFormat
             {
                 return base.ParserCreated(p);
             }
-            public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
+            public override IMessage? MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
             {
                 return MakeMessageInternal(capture, reader.formatInfo, threadLocal.bodyRe.Regex,
                     ref threadLocal.bodyMatch, threadLocal.callback);

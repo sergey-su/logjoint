@@ -42,7 +42,7 @@ namespace LogJoint.Postprocessing.TimeSeries
     {
         ICollection<ITimeSeriesPostprocessorOutput> Outputs { get; }
 
-        event EventHandler Changed;
+        event EventHandler? Changed;
     };
 
     #region Internal parsing interfaces
