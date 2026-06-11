@@ -21,19 +21,29 @@ namespace LogJoint.Telemetry
         static readonly string sessionsRegistrySessionElementName = "session";
         const int maxExceptionsInfoLen = 1024 * 16;
         readonly ITelemetryUploader telemetryUploader;
-        Persistence.IStorageEntry telemetryStorageEntry;
+        Persistence.IStorageEntry? telemetryStorageEntry;
         readonly IMemBufferTraceAccess traceAccess;
         readonly Task inited;
         readonly TaskChain queue = new TaskChain();
 
-        readonly string currentSessionId;
+        readonly string? currentSessionId;
         readonly Dictionary<string, string> staticTelemetryProperties = new Dictionary<string, string>();
 
         readonly AsyncInvokeHelper transactionInvoker;
 
-        readonly CancellationTokenSource workerCancellation;
-        readonly TaskCompletionSource<int> workerCancellationTask;
-        readonly Task worker;
+        class Worker
+        {
+            public Task task;
+            public CancellationTokenSource cancellation = new();
+            public TaskCompletionSource<int> cancellationTask = new();
+
+            public Worker(TelemetryCollector collector)
+            {
+                task = TaskUtils.StartInThreadPoolTaskScheduler(() => collector.RunWorker(this));
+            }
+        };
+
+        readonly Worker? worker;
 
         readonly object sync = new object();
         readonly Dictionary<string, XElement> sessionsAwaitingUploading = new Dictionary<string, XElement>();
@@ -87,9 +97,7 @@ namespace LogJoint.Telemetry
 
             if (telemetryUploader.IsTelemetryConfigured && instancesCounter.IsPrimaryInstance)
             {
-                this.workerCancellation = new CancellationTokenSource();
-                this.workerCancellationTask = new TaskCompletionSource<int>();
-                this.worker = TaskUtils.StartInThreadPoolTaskScheduler(Worker);
+                this.worker = new Worker(this);
             }
         }
 
@@ -113,12 +121,12 @@ namespace LogJoint.Telemetry
             trace.Info("disposing telemetry");
             if (worker != null)
             {
-                workerCancellation.Cancel();
-                workerCancellationTask.TrySetResult(1);
+                worker.cancellation.Cancel();
+                worker.cancellationTask.TrySetResult(1);
                 bool workerCompleted = false;
                 try
                 {
-                    await worker.WithTimeout(TimeSpan.FromSeconds(10));
+                    await worker.task.WithTimeout(TimeSpan.FromSeconds(10));
                     workerCompleted = true;
                 }
                 catch (Exception e)
@@ -166,7 +174,7 @@ namespace LogJoint.Telemetry
             transactionInvoker.Invoke();
         }
 
-        void ITelemetryCollector.ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>> subFeaturesUseCounters)
+        void ITelemetryCollector.ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>>? subFeaturesUseCounters)
         {
             if (!IsCollecting)
                 return;
@@ -413,27 +421,27 @@ namespace LogJoint.Telemetry
             return false;
         }
 
-        private async Task Worker()
+        private async Task RunWorker(Worker worker)
         {
             try
             {
-                for (; !workerCancellation.IsCancellationRequested;)
+                for (; !worker.cancellation.IsCancellationRequested;)
                 {
                     var sleepTask = Task.Delay(
                         TimeSpan.FromSeconds(30),
-                        workerCancellation.Token);
+                        worker.cancellation.Token);
                     await Task.WhenAny(
                         sessionsAwaitingUploadingChanged.Task,
                         sleepTask,
-                        workerCancellationTask.Task
+                        worker.cancellationTask.Task
                     );
-                    if (workerCancellation.IsCancellationRequested)
+                    if (worker.cancellation.IsCancellationRequested)
                         break;
                     if (sessionsAwaitingUploadingChanged.Task.IsCompleted)
                         sessionsAwaitingUploadingChanged = new TaskCompletionSource<int>();
                     if (sleepTask.IsCompleted)
                         transactionInvoker.Invoke();
-                    if (await HandleFinalizedSessionsQueues() > 0)
+                    if (await HandleFinalizedSessionsQueues(worker) > 0)
                         transactionInvoker.Invoke();
                 }
 
@@ -448,7 +456,7 @@ namespace LogJoint.Telemetry
             }
         }
 
-        private async Task<int> HandleFinalizedSessionsQueues()
+        private async Task<int> HandleFinalizedSessionsQueues(Worker worker)
         {
             var attemptedAndFailedSessions = new HashSet<string>();
             for (int recordsSubmitted = 0; ;)
@@ -463,7 +471,7 @@ namespace LogJoint.Telemetry
                 }
                 if (sessionAwaitingUploading == null)
                     return recordsSubmitted;
-                if (workerCancellation.IsCancellationRequested)
+                if (worker.cancellation.IsCancellationRequested)
                     return recordsSubmitted;
 
                 var timestamp = GetSessionStartTime(sessionAwaitingUploading);
@@ -483,7 +491,7 @@ namespace LogJoint.Telemetry
                                     Attributes().
                                     Select(a => new KeyValuePair<string, string>(a.Name.LocalName, a.Value))
                             ).ToDictionary(a => a.Key, a => a.Value),
-                            workerCancellation.Token
+                            worker.cancellation.Token
                         );
                     }
                     catch (Exception e)

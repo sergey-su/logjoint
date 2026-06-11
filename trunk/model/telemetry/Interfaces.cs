@@ -9,7 +9,7 @@ namespace LogJoint.Telemetry
     public interface ITelemetryCollector
     {
         void ReportException(Exception e, string context);
-        void ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>> subFeaturesUseCounters = null);
+        void ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>>? subFeaturesUseCounters = null);
         Task ReportIssue(string description);
     };
 

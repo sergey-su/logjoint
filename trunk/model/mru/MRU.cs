@@ -19,7 +19,6 @@ namespace LogJoint.MRU
         static readonly string LogTypeAttrValue = "log";
         static readonly string AnnotationAttrName = "annotation";
         static readonly string DateAttrName = "date";
-        static readonly string NameAttrName = "name";
         const int DefaultRecentLogsListSizeLimit = 400;
         const int DefaultRecentFactoriesListSizeLimit = 20;
         readonly IChangeNotification changeNotification;

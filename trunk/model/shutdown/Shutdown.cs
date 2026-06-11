@@ -42,7 +42,7 @@ namespace LogJoint
             }
         }
 
-        public event EventHandler Cleanup;
-        public event EventHandler Phase2Cleanup;
+        public event EventHandler? Cleanup;
+        public event EventHandler? Phase2Cleanup;
     }
 }
