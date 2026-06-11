@@ -86,7 +86,7 @@ namespace LogJoint.Telemetry
             {
                 inited = ((Func<Task>)(async () =>
                 {
-                    await CreateCurrentSessionSection(storage);
+                    await CreateCurrentSessionSection(storage, currentSessionId);
                     InitStaticTelemetryProperties();
                 }))();
             }
@@ -152,7 +152,7 @@ namespace LogJoint.Telemetry
             exceptionInfo.AppendFormat("context: '{0}'\r\ntype: {3}\r\nmessage: {1}\r\nstack:\r\n{2}\r\n", context, e.Message, e.StackTrace, e.GetType().Name);
             for (; ; )
             {
-                Exception inner = e.InnerException;
+                Exception? inner = e.InnerException;
                 if (inner == null)
                     break;
                 if (exceptionInfo.Length > maxExceptionsInfoLen)
@@ -237,7 +237,7 @@ namespace LogJoint.Telemetry
 
         private bool IsCollecting { get { return worker != null; } }
 
-        private async Task CreateCurrentSessionSection(Persistence.IStorageManager storage)
+        private async Task CreateCurrentSessionSection(Persistence.IStorageManager storage, string sessionId)
         {
             telemetryStorageEntry = await storage.GetEntry("telemetry");
             bool telemetryStorageJustInitialized = false;
@@ -263,7 +263,7 @@ namespace LogJoint.Telemetry
                 staticTelemetryProperties["installationId"] = installationId;
 
                 root.Add(new XElement(sessionsRegistrySessionElementName,
-                    new XAttribute("id", currentSessionId),
+                    new XAttribute("id", sessionId),
                     new XAttribute("started", DateTime.UtcNow.ToString("o"))
                 ));
             }

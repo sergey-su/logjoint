@@ -390,7 +390,7 @@ namespace LogJoint
                     {
                         lock (sync)
                         {
-                            currentCommandPreemption.Dispose();
+                            currentCommandPreemption?.Dispose();
                             currentCommandPreemption = null;
                         }
                     }
@@ -477,6 +477,11 @@ namespace LogJoint
 
         async Task<bool> UpdateAvailableTime(bool incrementalMode)
         {
+            if (reader == null)
+            {
+                return false;
+            }
+
             bool itIsFirstUpdate = firstUpdateFlag;
             firstUpdateFlag = false;
 
@@ -510,7 +515,7 @@ namespace LogJoint
             }
 
             // Get new boundary values into temporary variables
-            (IMessage newFirst, IMessage newLast) = await PositionedMessagesUtils.GetBoundaryMessages(reader, null);
+            (IMessage? newFirst, IMessage? newLast) = await PositionedMessagesUtils.GetBoundaryMessages(reader, null);
 
             if (status != UpdateBoundsStatus.MessagesFiltered && firstMessage != null)
             {
@@ -630,9 +635,10 @@ namespace LogJoint
 
             public class Comparer : IComparer<Command>
             {
-                int IComparer<Command>.Compare(Command x, Command y)
+                int IComparer<Command>.Compare(Command? x, Command? y)
                 {
-                    return (int)y.Priority - (int)x.Priority;
+                    static int toPrio(Command? c) => c != null ? (int)c.Priority : 0;
+                    return toPrio(y) - toPrio(x);
                 }
             };
         };

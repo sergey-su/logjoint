@@ -4,9 +4,9 @@ namespace LogJoint.Profiling
 {
     public class Operation : IDisposable
     {
-        readonly LJTraceSource trace;
-        readonly string name;
-        readonly string id;
+        readonly LJTraceSource? trace;
+        readonly string? name;
+        readonly string? id;
         bool disposed;
 
         public static readonly Operation Null = new Operation();
@@ -39,9 +39,9 @@ namespace LogJoint.Profiling
             LogPoint("milestone", data);
         }
 
-        void LogPoint(string pointType, string data)
+        void LogPoint(string pointType, string? data)
         {
-            trace.Info(data == null ? "perfop #{0} '{1}' {2}" : "perfop #{0} '{1}' {2} '{3}'", id, name, pointType, data);
+            trace?.Info(data == null ? "perfop #{0} '{1}' {2}" : "perfop #{0} '{1}' {2} '{3}'", id, name, pointType, data);
         }
     };
 
