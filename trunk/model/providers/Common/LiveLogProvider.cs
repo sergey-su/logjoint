@@ -64,7 +64,7 @@ namespace LogJoint
                 throw new InvalidOperationException("There is no open message");
             messageOpen = false;
 
-            writer.Flush();
+            writer!.Flush();
 
             if (maxSize > 0)
                 DoLimitSize();
@@ -124,14 +124,14 @@ namespace LogJoint
         bool isDisposed;
         bool messageOpen;
         long lastMessagePosition;
-        XmlWriter writer;
+        XmlWriter? writer;
     };
 
     public abstract class LiveLogProvider : StreamLogProvider, ILogProvider
     {
         readonly IConnectionParams originalConnectionParams;
         readonly CancellationTokenSource stopEvt;
-        Task listeningThread;
+        Task? listeningThread;
         readonly LiveLogXMLWriter output;
         readonly long defaultBackupMaxFileSize = 0;//16 * 1024 * 1024;
 
@@ -177,7 +177,8 @@ namespace LogJoint
             )
         {
             this.originalConnectionParams = new ConnectionParamsReadOnlyView(originalConnectionParams);
-            string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
+            string fileName = base.connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam]
+                ?? throw new ArgumentException("Bad connection params: no path");
 
             XmlWriterSettings xmlSettings = new XmlWriterSettings
             {

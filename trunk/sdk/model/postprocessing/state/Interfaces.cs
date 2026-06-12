@@ -6,13 +6,13 @@ namespace LogJoint.Postprocessing.StateInspector
 {
     public class PostprocessorOutputBuilder
     {
-        public PostprocessorOutputBuilder SetLogPartToken(Task<ILogPartToken> value) { rotatedLogPartToken = value; return this; }
+        public PostprocessorOutputBuilder SetLogPartToken(Task<ILogPartToken?> value) { rotatedLogPartToken = value; return this; }
         public PostprocessorOutputBuilder SetEvents(IEnumerableAsync<Event[]> value) { events = value; return this; }
         public PostprocessorOutputBuilder SetTriggersConverter(Func<object, TextLogEventTrigger> value) { triggersConverter = value; return this; }
         public Task Build(LogSourcePostprocessorInput postprocessorParams) { return build(postprocessorParams, this); }
 
         internal IEnumerableAsync<Event[]>? events;
-        internal Task<ILogPartToken>? rotatedLogPartToken;
+        internal Task<ILogPartToken?>? rotatedLogPartToken;
         internal Func<object, TextLogEventTrigger>? triggersConverter;
         private Func<LogSourcePostprocessorInput, PostprocessorOutputBuilder, Task> build;
 
@@ -25,7 +25,7 @@ namespace LogJoint.Postprocessing.StateInspector
         [Obsolete]
         Task SavePostprocessorOutput(
             IEnumerableAsync<Event[]> events,
-            Task<ILogPartToken> rotatedLogPartToken,
+            Task<ILogPartToken?>? rotatedLogPartToken,
             Func<object, TextLogEventTrigger> triggersConverter,
             LogSourcePostprocessorInput postprocessorInput
         );

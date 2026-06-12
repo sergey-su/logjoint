@@ -27,7 +27,8 @@ namespace LogJoint.PlainText
         {
             this.regexFactory = regexFactory;
             this.fileSystem = fileSystem;
-            this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam];
+            this.fileName = connectParams[ConnectionParamsKeys.PathConnectionParam] ??
+                throw new ArgumentException("Bad connection params: no path");
         }
 
         public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams,
@@ -67,8 +68,8 @@ namespace LogJoint.PlainText
             using ILogMedia media = await SimpleFileMedia.Create(
                 fileSystem,
                 SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
-            using FileSystemWatcher watcher = IsBrowser.Value ? null :
-                new FileSystemWatcher(Path.GetDirectoryName(fileName), Path.GetFileName(fileName));
+            using FileSystemWatcher? watcher = IsBrowser.Value ? null :
+                new FileSystemWatcher(Path.GetDirectoryName(fileName)!, Path.GetFileName(fileName));
             TaskCompletionSource<int> fileChangedEvt = new TaskCompletionSource<int>();
             fileChangedEvt.SetResult(1);
             IMessagesSplitter splitter = new MessagesSplitter(

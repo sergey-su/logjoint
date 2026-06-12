@@ -30,10 +30,10 @@ namespace LogJoint.Postprocessing.StateInspector
 
         public static Task SerializePostprocessorOutput(
             IEnumerableAsync<Event[]> events,
-            Task<ILogPartToken> rotatedLogPartToken,
+            Task<ILogPartToken?>? rotatedLogPartToken,
             ILogPartTokenFactories logPartTokenFactories,
             Func<object, TextLogEventTrigger> triggersConverter,
-            string contentsEtagAttr,
+            string? contentsEtagAttr,
             Func<Task<Stream>> openOutputStream,
             ITempFilesManager tempFiles,
             CancellationToken cancellation
@@ -67,7 +67,7 @@ namespace LogJoint.Postprocessing.StateInspector
             get { return rotatedLogPartToken; }
         }
 
-        string IPostprocessorOutputETag.ETag { get { return etag.Value; } }
+        string? IPostprocessorOutputETag.ETag { get { return etag.Value; } }
 
         readonly ILogSource logSource;
         readonly List<Event> events = new List<Event>();

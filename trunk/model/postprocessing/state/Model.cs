@@ -18,10 +18,10 @@ namespace LogJoint.Postprocessing.StateInspector
         {
             return new PostprocessorOutputBuilder(
                 build: (postprocessorInput, builder) => StateInspectorOutput.SerializePostprocessorOutput(
-                    builder.events,
+                    builder.events ?? throw new InvalidOperationException("Events not set"),
                     builder.rotatedLogPartToken,
                     logPartTokenFactories,
-                    builder.triggersConverter,
+                    builder.triggersConverter ?? throw new InvalidOperationException("Trigger converter not set"),
                     postprocessorInput.InputContentsEtag,
                     postprocessorInput.openOutputFile,
                     tempFiles,
@@ -32,7 +32,7 @@ namespace LogJoint.Postprocessing.StateInspector
 
         Task IModel.SavePostprocessorOutput(
             IEnumerableAsync<Event[]> events,
-            Task<ILogPartToken> rotatedLogPartToken,
+            Task<ILogPartToken?>? rotatedLogPartToken,
             Func<object, TextLogEventTrigger> triggersConverter,
             LogSourcePostprocessorInput postprocessorInput
         )

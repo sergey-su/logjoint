@@ -65,7 +65,7 @@ namespace LogJoint.WindowsEventLog
             try
             {
                 var query = CreateQuery();
-                for (EventBookmark lastReadBookmark = null; ;)
+                for (EventBookmark? lastReadBookmark = null; ;)
                 {
                     ReportBackgroundActivityStatus(true);
                     using (var reader = new EventLogReader(query, lastReadBookmark))
