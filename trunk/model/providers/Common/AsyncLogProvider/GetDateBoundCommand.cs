@@ -131,7 +131,7 @@ namespace LogJoint
             if (e != null)
                 task.SetException(e);
             else
-                task.SetResult(result);
+                task.SetResult(result!);
         }
 
         readonly TaskCompletionSource<DateBoundPositionResponseData> task = new TaskCompletionSource<DateBoundPositionResponseData>();
@@ -140,8 +140,6 @@ namespace LogJoint
         readonly bool messageRequested;
         readonly IDateBoundsCache dateBoundsCache;
 
-        DateBoundPositionResponseData result;
-
-        static DateBoundsCache dcache = new DateBoundsCache();
+        DateBoundPositionResponseData? result;
     };
 }
