@@ -36,13 +36,13 @@ namespace LogJoint
         /// Called when log source swithed on or off.
         /// Called from model thread.
         /// </summary>
-        void FireChangeEventIfContainsSourceResults(ILogSource source);
+        void FireChangeEventIfContainsSourceResults(ILogSource? source);
     };
 
     internal interface ISearchObjectsFactory
     {
-        ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options, IFilter optionsFilter,
-            int id, IList<ILogSourceSearchWorkerInternal> workers);
+        ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options,
+            IFilter? optionsFilter, int id, IList<ILogSourceSearchWorkerInternal> workers);
         ISourceSearchResultInternal CreateSourceSearchResults(ILogSourceSearchWorkerInternal searchWorker,
             ISearchResultInternal owner, CancellationToken cancellation, Progress.IProgressAggregator progress);
         ICombinedSearchResultInternal CreateCombinedSearchResult(ISearchManagerInternal owner);

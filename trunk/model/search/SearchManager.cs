@@ -17,8 +17,8 @@ namespace LogJoint
         readonly IChangeNotification changeNotification;
         int lastId;
         ICombinedSearchResultInternal combinedSearchResult;
-        Task combinedResultUpdater;
-        CancellationTokenSource combinedResultUpdaterCancellation;
+        Task? combinedResultUpdater;
+        CancellationTokenSource? combinedResultUpdaterCancellation;
 
         public SearchManager(
             ILogSourcesManager sources,
@@ -78,9 +78,9 @@ namespace LogJoint
             };
         }
 
-        public event EventHandler SearchResultsChanged;
-        public event EventHandler<SearchResultChangeEventArgs> SearchResultChanged;
-        public event EventHandler CombinedSearchResultChanged;
+        public event EventHandler? SearchResultsChanged;
+        public event EventHandler<SearchResultChangeEventArgs>? SearchResultChanged;
+        public event EventHandler? CombinedSearchResultChanged;
 
         void ISearchManager.SubmitSearch(SearchAllOptions options)
         {

@@ -147,7 +147,7 @@ namespace LogJoint
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
             Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters,
-            FilteringStats filteringStats, StreamReorderingParams? dejitteringParams = null)
+            FilteringStats filteringStats, IFiltersFactory filtersFactory, StreamReorderingParams? dejitteringParams = null)
             :
             base(
                 host,
@@ -162,10 +162,12 @@ namespace LogJoint
                         regexFactory,
                         traceSourceFactory,
                         globalSettings,
-                        useEmbeddedAttributes: false
+                        useEmbeddedAttributes: false,
+                        filtersFactory
                     ),
                     @params, displayFilters, tempFilesManager, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats
+                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats,
+                    filtersFactory
                 ),
                 tempFilesManager,
                 traceSourceFactory,

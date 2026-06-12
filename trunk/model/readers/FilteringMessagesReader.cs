@@ -34,7 +34,7 @@ namespace LogJoint
         public FilteringMessagesReader(IMessagesReader unfilteredReader, MediaBasedReaderParams unfilteredReaderParams, IFiltersList? filters,
             ITempFilesManager tempFilesManager, IFileSystem fileSystem, IRegexFactory regexFactory,
             ITraceSourceFactory traceSourceFactory, Settings.IGlobalSettingsAccessor globalSettings,
-            ISynchronizationContext modelSynchronizationContext, FilteringStats filteringStats)
+            ISynchronizationContext modelSynchronizationContext, FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             this.unfilteredReader = unfilteredReader;
             this.modelSynchronizationContext = modelSynchronizationContext;
@@ -73,7 +73,8 @@ namespace LogJoint
                         regexFactory,
                         traceSourceFactory,
                         globalSettings,
-                        useEmbeddedAttributes: true
+                        useEmbeddedAttributes: true,
+                        filtersFactory
                     );
                 });
             };

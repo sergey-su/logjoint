@@ -42,7 +42,7 @@ namespace LogJoint.Tests
                 new MediaBasedReaderParams(new LogSourceThreads(), new StringStreamMedia()), filters, new TempFilesManager(),
                 LogMedia.FileSystemImpl.Instance, FCLRegexFactory.Instance,
                 new TraceSourceFactory(), DefaultSettingsAccessor.Instance, synchronizationContext,
-                new FilteringStats(new ProgressAggregator.Factory(synchronizationContext)));
+                new FilteringStats(new ProgressAggregator.Factory(synchronizationContext)), filtersFactory);
             await reader.UpdateAvailableBounds(incrementalMode: false);
         }
 

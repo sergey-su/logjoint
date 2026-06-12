@@ -27,7 +27,7 @@ namespace LogJoint
         }
 
         ISearchResultInternal ISearchObjectsFactory.CreateSearchResults(
-            ISearchManagerInternal owner, SearchAllOptions options, IFilter optionsFilter, int id, IList<ILogSourceSearchWorkerInternal> workers)
+            ISearchManagerInternal owner, SearchAllOptions options, IFilter? optionsFilter, int id, IList<ILogSourceSearchWorkerInternal> workers)
         {
             return new SearchResult(owner, options, optionsFilter, workers, progressAggregatorFactory, modelSynchronization, settings, id, this, traceSourceFactory);
         }

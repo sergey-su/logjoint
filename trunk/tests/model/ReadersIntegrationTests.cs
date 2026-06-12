@@ -1,15 +1,16 @@
-using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
 using LogJoint;
-using System.Reflection;
-using System.IO;
-using EM = LogJoint.Tests.ExpectedMessage;
-using NUnit.Framework;
-using System.Xml.Linq;
+using LogJoint.RegularExpressions;
 using NSubstitute;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using EM = LogJoint.Tests.ExpectedMessage;
 
 namespace LogJoint.Tests
 {
@@ -131,15 +132,16 @@ namespace LogJoint.Tests
             var modelSyncContext = new SerialSynchronizationContext();
             var globalSettingsAccessor = Settings.DefaultSettingsAccessor.Instance;
             var fileSystem = LogMedia.FileSystemImpl.Instance;
+            var filtersFactory = new FiltersFactory(Substitute.For<IChangeNotification>(), regexFactory);
             formatsManager.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
                 config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
                      traceSourceFactory, modelSyncContext, globalSettingsAccessor, fileSystem,
-                     null, null));
+                     null, null, filtersFactory));
             formatsManager.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
                 config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSyncContext,
-                    globalSettingsAccessor, regexFactory, fileSystem, null, null));
+                    globalSettingsAccessor, regexFactory, fileSystem, null, null, filtersFactory));
             reg.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory, modelSyncContext,
-                globalSettingsAccessor, fileSystem, null, null));
+                globalSettingsAccessor, fileSystem, null, null, filtersFactory));
             formatsManager.ReloadFactories();
             var factory = reg.Find(companyName, formatName);
             Assert.That(factory, Is.Not.Null);
@@ -616,10 +618,11 @@ SampleApp Information: 0 : No free data file found. Going sleep.
             IUserDefinedFormatsManagerInternal formatsManager = new UserDefinedFormatsManager(
                 repo, reg, new TraceSourceFactory());
             var modelSyncContext = new SerialSynchronizationContext();
+            var filtersFactory = new FiltersFactory(Substitute.For<IChangeNotification>(), regexFactory);
             formatsManager.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName, config =>
                 JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, new TraceSourceFactory(),
                     modelSyncContext, Settings.DefaultSettingsAccessor.Instance, regexFactory,
-                    LogMedia.FileSystemImpl.Instance, null, null));
+                    LogMedia.FileSystemImpl.Instance, null, null, filtersFactory));
             formatsManager.ReloadFactories();
             var factory = reg.Items.FirstOrDefault();
             Assert.That(factory, Is.Not.Null);

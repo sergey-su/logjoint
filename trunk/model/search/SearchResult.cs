@@ -11,7 +11,7 @@ namespace LogJoint
     {
         readonly ISearchManagerInternal owner;
         readonly SearchAllOptions options;
-        readonly IFilter optionsFilter;
+        readonly IFilter? optionsFilter;
         readonly CancellationTokenSource cancellation;
         readonly List<ISourceSearchResultInternal> results;
         readonly Progress.IProgressAggregator progressAggregator;
@@ -30,7 +30,7 @@ namespace LogJoint
         public SearchResult(
             ISearchManagerInternal owner,
             SearchAllOptions options,
-            IFilter optionsFilter,
+            IFilter? optionsFilter,
             IList<ILogSourceSearchWorkerInternal> workers,
             Progress.IProgressAggregatorFactory progressAggregatorFactory,
             ISynchronizationContext modelSynchronization,
@@ -89,7 +89,7 @@ namespace LogJoint
             get { return options; }
         }
 
-        IFilter ISearchResult.OptionsFilter
+        IFilter? ISearchResult.OptionsFilter
         {
             get { return optionsFilter; }
         }
@@ -177,7 +177,7 @@ namespace LogJoint
             return Interlocked.Increment(ref hitsCounter) <= hitsLimit;
         }
 
-        void ISearchResultInternal.FireChangeEventIfContainsSourceResults(ILogSource source)
+        void ISearchResultInternal.FireChangeEventIfContainsSourceResults(ILogSource? source)
         {
             if (results.Any(r => r.Source == source && r.HitsCount > 0))
             {

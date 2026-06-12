@@ -37,17 +37,17 @@ namespace LogJoint
         /// Occurs when the Results collection changes.
         /// Fired from model thread.
         /// </summary>
-        event EventHandler SearchResultsChanged;
+        event EventHandler? SearchResultsChanged;
         /// <summary>
         /// Occurs when individual ISearchResult changes. It's fired from a thread pool thread. 
         /// Can be very frequent. Do not do expensive computations in the handler.
         /// </summary>
-        event EventHandler<SearchResultChangeEventArgs> SearchResultChanged;
+        event EventHandler<SearchResultChangeEventArgs>? SearchResultChanged;
         /// <summary>
         /// Occurs when CombinedSearchResult changes.
         /// Fired from an thread pool thread.
         /// </summary>
-        event EventHandler CombinedSearchResultChanged;
+        event EventHandler? CombinedSearchResultChanged;
     };
 
     public class SearchAllOptions

@@ -75,6 +75,7 @@ namespace LogJoint.RegularGrammar
         readonly ITraceSourceFactory traceSourceFactory;
         readonly IRegexFactory regexFactory;
         readonly Lazy<ValueTask<bool>> isBodySingleFieldExpression;
+        readonly IFiltersFactory filtersFactory;
 
         public MessagesReader(
             MediaBasedReaderParams readerParams,
@@ -82,7 +83,8 @@ namespace LogJoint.RegularGrammar
             FieldsProcessor.IFactory fieldsProcessorFactory,
             IRegexFactory regexFactory,
             ITraceSourceFactory traceSourceFactory,
-            Settings.IGlobalSettingsAccessor settings
+            Settings.IGlobalSettingsAccessor settings,
+            IFiltersFactory filtersFactory
         ) :
             base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams,
                 readerParams.QuickFormatDetectionMode, settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
@@ -94,6 +96,7 @@ namespace LogJoint.RegularGrammar
             this.regexFactory = regexFactory;
             this.fmtInfo = fmt;
             this.fieldsProcessorFactory = fieldsProcessorFactory;
+            this.filtersFactory = filtersFactory;
 
             base.Extensions.AttachExtensions();
 
@@ -308,7 +311,8 @@ namespace LogJoint.RegularGrammar
                 allowPlainTextSearchOptimization,
                 fmtInfo.HeadRe,
                 traceSourceFactory,
-                regexFactory
+                regexFactory,
+                filtersFactory
             ))
             {
                 yield return m;
@@ -336,15 +340,16 @@ namespace LogJoint.RegularGrammar
             UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager, IRegexFactory regexFactory,
             FieldsProcessor.IFactory fieldsProcessorFactory, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettingsAccessor,
-            LogMedia.IFileSystem fileSystem, IFiltersList displayFilters, FilteringStats filteringStats)
+            LogMedia.IFileSystem fileSystem, IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory, fieldsProcessorFactory,
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem),
                 (@params, fmtInfo, hermeticReader) => new FilteringMessagesReader(
-                    new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory, traceSourceFactory, globalSettingsAccessor),
+                    new MessagesReader(@params, fmtInfo, fieldsProcessorFactory, regexFactory, traceSourceFactory,
+                        globalSettingsAccessor, filtersFactory),
                     @params, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettingsAccessor, modelSynchronizationContext, filteringStats
+                    traceSourceFactory, globalSettingsAccessor, modelSynchronizationContext, filteringStats, filtersFactory
                 ));
         }
 

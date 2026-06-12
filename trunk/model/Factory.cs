@@ -271,15 +271,16 @@ namespace LogJoint
             userDefinedFormatsManagerInternal.RegisterFormatConfigType(RegularGrammar.UserDefinedFormatFactory.ConfigNodeName,
                 config => RegularGrammar.UserDefinedFormatFactory.Create(config, tempFilesManager, regexFactory, fieldsProcessorFactory,
                      traceSourceFactory, modelSynchronizationContext, globalSettingsAccessor, fileSystem, filtersManager.DisplayFilters,
-                     filtersManager.FilteringStats));
+                     filtersManager.FilteringStats, filtersFactory));
             userDefinedFormatsManagerInternal.RegisterFormatConfigType(XmlFormat.UserDefinedFormatFactory.ConfigNodeName,
                 config => XmlFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
-                    globalSettingsAccessor, regexFactory, fileSystem, filtersManager.DisplayFilters, filtersManager.FilteringStats));
+                    globalSettingsAccessor, regexFactory, fileSystem, filtersManager.DisplayFilters, filtersManager.FilteringStats, filtersFactory));
             userDefinedFormatsManagerInternal.RegisterFormatConfigType(JsonFormat.UserDefinedFormatFactory.ConfigNodeName,
                 config => JsonFormat.UserDefinedFormatFactory.Create(config, tempFilesManager, traceSourceFactory, modelSynchronizationContext,
-                    globalSettingsAccessor, regexFactory, fileSystem, filtersManager.DisplayFilters, filtersManager.FilteringStats));
+                    globalSettingsAccessor, regexFactory, fileSystem, filtersManager.DisplayFilters, filtersManager.FilteringStats, filtersFactory));
             RegisterPredefinedFormatFactories(logProviderFactoryRegistry, tempFilesManager, userDefinedFormatsManager, regexFactory, traceSourceFactory,
-                modelSynchronizationContext, globalSettingsAccessor, fileSystem, filtersManager.DisplayFilters, filtersManager.FilteringStats);
+                modelSynchronizationContext, globalSettingsAccessor, fileSystem, filtersManager.DisplayFilters, filtersManager.FilteringStats,
+                filtersFactory);
 
             Postprocessing.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Postprocessing.TimeSeries.TimeSeriesTypesLoader();
 
@@ -458,19 +459,20 @@ namespace LogJoint
             Settings.IGlobalSettingsAccessor globalSettings,
             LogMedia.IFileSystem fileSystem,
             IFiltersList displayFilters,
-            FilteringStats filteringStats)
+            FilteringStats filteringStats, 
+            IFiltersFactory filtersFactory)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 RegisterWindowsOnlyFactories(logProviderFactoryRegistry, tempFilesManager, traceSourceFactory, regexFactory,
-                    modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats);
+                    modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory);
             }
             logProviderFactoryRegistry.Register(new PlainText.Factory(tempFilesManager,
                 (host, connectParams, factory) =>
                     PlainText.LogProvider.Create(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
-                        modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats)));
+                        modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory)));
             logProviderFactoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFilesManager, regexFactory, traceSourceFactory,
-                modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats));
+                modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory));
             userDefinedFormatsManager.ReloadFactories();
         }
 
@@ -478,14 +480,14 @@ namespace LogJoint
         private static void RegisterWindowsOnlyFactories(ILogProviderFactoryRegistry logProviderFactoryRegistry,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
-            IFiltersList displayFilters, FilteringStats filteringStats)
+            IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             logProviderFactoryRegistry.Register(new DebugOutput.Factory((host, factory) =>
                 DebugOutput.LogProvider.Create(host, factory, tempFilesManager, traceSourceFactory, regexFactory,
-                    modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats)));
+                    modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory)));
             logProviderFactoryRegistry.Register(new WindowsEventLog.Factory((host, connectParams, factory) =>
                 WindowsEventLog.LogProvider.Create(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
-                    modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats)));
+                    modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory)));
         }
 
         // This uses names that static anaylzer would trim otherwise as unused. These names need to be preserved for plugins.

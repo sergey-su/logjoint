@@ -15,7 +15,7 @@ namespace LogJoint.WindowsEventLog
         private LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
-            IFiltersList displayFilters, FilteringStats filteringStats)
+            IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory)
             : base(host,
                 factory,
                 connectParams,
@@ -27,6 +27,7 @@ namespace LogJoint.WindowsEventLog
                 fileSystem,
                 displayFilters,
                 filteringStats,
+                filtersFactory,
                 new StreamReorderingParams() { JitterBufferSize = 25 })
         {
         }
@@ -34,10 +35,10 @@ namespace LogJoint.WindowsEventLog
         public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
-            IFiltersList displayFilters, FilteringStats filteringStats)
+            IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
-                modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats);
+                modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory);
             try
             {
                 logProvider.eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);

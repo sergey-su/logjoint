@@ -20,10 +20,10 @@ namespace LogJoint.PlainText
             ILogProviderFactory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
             Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList,
-            FilteringStats filteringStats)
+            FilteringStats filteringStats, IFiltersFactory filtersFactory)
             :
             base(host, factory, connectParams, tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext,
-                globalSettings, fileSystem, filtersList, filteringStats)
+                globalSettings, fileSystem, filtersList, filteringStats, filtersFactory)
         {
             this.regexFactory = regexFactory;
             this.fileSystem = fileSystem;
@@ -34,11 +34,11 @@ namespace LogJoint.PlainText
             ILogProviderFactory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
             Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList filtersList,
-            FilteringStats filteringStats)
+            FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager,
                 traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem,
-                filtersList, filteringStats);
+                filtersList, filteringStats, filtersFactory);
             try
             {
                 logProvider.StartLiveLogThread(logProvider.LiveLogListen);

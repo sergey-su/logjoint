@@ -18,19 +18,21 @@ namespace LogJoint.DebugOutput
 
         private LogProvider(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters, FilteringStats filteringStats)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters, FilteringStats filteringStats,
+            IFiltersFactory filtersFactory)
             :
             base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(Factory.connectionIdentity),
                 tempFilesManager, traceSourceFactory, regexFactory, modelSynchronizationContext, globalSettings, fileSystem,
-                displayFilters, filteringStats)
+                displayFilters, filteringStats, filtersFactory)
         { }
 
         public static async Task<ILogProvider> Create(ILogProviderHost host, Factory factory, ITempFilesManager tempFilesManager,
             ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory, ISynchronizationContext modelSynchronizationContext,
-            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters, FilteringStats filteringStats)
+            Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters, FilteringStats filteringStats,
+            IFiltersFactory filtersFactory)
         {
             LogProvider logProvider = new LogProvider(host, factory, tempFilesManager, traceSourceFactory,
-                regexFactory, modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats);
+                regexFactory, modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory);
             try
             {
                 logProvider.Init();

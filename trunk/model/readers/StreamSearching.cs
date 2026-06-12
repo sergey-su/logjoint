@@ -27,7 +27,7 @@ namespace LogJoint
         readonly IAsyncEnumerable<SearchResultMessage> impl;
         readonly LJTraceSource trace;
         readonly RegularExpressions.IRegexFactory regexFactory;
-        IAsyncEnumerator<SearchResultMessage> enumerator;
+        IAsyncEnumerator<SearchResultMessage>? enumerator;
         readonly IFilter dummyFilter;
 
         public static async IAsyncEnumerable<SearchResultMessage> Search(IMessagesReader owner,
@@ -39,10 +39,12 @@ namespace LogJoint
             bool allowPlainTextSearchOptimization,
             LoadedRegex headerRe,
             ITraceSourceFactory traceSourceFactory,
-            RegularExpressions.IRegexFactory regexFactory)
+            RegularExpressions.IRegexFactory regexFactory,
+            IFiltersFactory filtersFactory)
         {
             await using var parser = new StreamSearching(owner, p, textStreamPositioningParams, dejitteringParams,
-                rawStream, streamEncoding, allowPlainTextSearchOptimization, headerRe, traceSourceFactory, regexFactory);
+                rawStream, streamEncoding, allowPlainTextSearchOptimization, headerRe,
+                traceSourceFactory, regexFactory, filtersFactory);
             for (; ; )
             {
                 SearchResultMessage message = await parser.GetNext();
@@ -62,7 +64,8 @@ namespace LogJoint
             bool allowPlainTextSearchOptimization,
             LoadedRegex headerRe,
             ITraceSourceFactory traceSourceFactory,
-            RegularExpressions.IRegexFactory regexFactory
+            RegularExpressions.IRegexFactory regexFactory,
+            IFiltersFactory filtersFactory
         )
         {
             this.owner = owner;
@@ -75,9 +78,9 @@ namespace LogJoint
             this.streamEncoding = streamEncoding;
             this.regexFactory = regexFactory;
             this.trace = traceSourceFactory.CreateTraceSource("LogSource", "srchp." + GetHashCode().ToString("x"));
-            this.dummyFilter = new Filter(FilterAction.Include, "", true, new Search.Options(), null, null, regexFactory);
-            if (p.ContinuationToken as ContinuationToken != null)
-                this.requestedRange = new FileRange.Range((p.ContinuationToken as ContinuationToken).NextPosition, requestedRange.End);
+            this.dummyFilter = new Filter(FilterAction.Include, "", true, new Search.Options(), null, filtersFactory, regexFactory);
+            if (p.ContinuationToken is ContinuationToken token)
+                this.requestedRange = new FileRange.Range(token.NextPosition, requestedRange.End);
             this.aligmentTextAccess = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
             this.aligmentSplitter = new MessagesSplitter(aligmentTextAccess, headerRe.Regex, headerRe.GetHeaderReSplitterFlags());
             this.aligmentCapture = new TextMessageCapture();
@@ -151,9 +154,9 @@ namespace LogJoint
                 return ret;
             }
 
-            public static MessageFilteringResult GetFilteringResultFromPostprocessorResult(object obj, IFilter dummyFilter)
+            public static MessageFilteringResult GetFilteringResultFromPostprocessorResult(object? obj, IFilter dummyFilter)
             {
-                var f = (IFilter)obj;
+                var f = (IFilter?)obj;
                 if (f == null)
                     return new MessageFilteringResult { Action = FilterAction.Exclude };
                 if (f == dummyFilter)

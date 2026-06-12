@@ -48,13 +48,15 @@ namespace LogJoint.JsonFormat
         readonly ILogSourceThreadsInternal threads;
         readonly ITraceSourceFactory traceSourceFactory;
         readonly IRegexFactory regexFactory;
+        readonly IFiltersFactory filtersFactory;
 
         public MessagesReader(
             MediaBasedReaderParams readerParams,
             JsonFormatInfo fmt,
             IRegexFactory regexFactory,
             ITraceSourceFactory traceSourceFactory,
-            Settings.IGlobalSettingsAccessor settings
+            Settings.IGlobalSettingsAccessor settings,
+            IFiltersFactory filtersFactory
         ) :
             base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.QuickFormatDetectionMode,
                 settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
@@ -63,6 +65,7 @@ namespace LogJoint.JsonFormat
             this.threads = readerParams.Threads;
             this.traceSourceFactory = traceSourceFactory;
             this.regexFactory = regexFactory;
+            this.filtersFactory = filtersFactory;
         }
 
         protected override Encoding DetectStreamEncoding(Stream stream)
@@ -302,7 +305,8 @@ namespace LogJoint.JsonFormat
                 false,
                 formatInfo.HeadRe,
                 traceSourceFactory,
-                regexFactory
+                regexFactory,
+                filtersFactory
             );
         }
     };
@@ -324,13 +328,13 @@ namespace LogJoint.JsonFormat
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings,
             IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters,
-            FilteringStats filteringStats)
+            FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
                 (readerParams, formatInfo, hermeticReader) => new FilteringMessagesReader(
-                    new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings),
+                    new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory, globalSettings, filtersFactory),
                     readerParams, hermeticReader ? null : displayFilters, tempFilesManager, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats
+                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats, filtersFactory
                 ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
                     tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));

@@ -399,6 +399,7 @@ namespace LogJoint.XmlFormat
         readonly ITraceSourceFactory traceSourceFactory;
         readonly IRegexFactory regexFactory;
         readonly bool useEmbeddedAttributes;
+        readonly IFiltersFactory filtersFactory;
 
         public MessagesReader(
             MediaBasedReaderParams readerParams,
@@ -406,7 +407,8 @@ namespace LogJoint.XmlFormat
             IRegexFactory regexFactory,
             ITraceSourceFactory traceSourceFactory,
             Settings.IGlobalSettingsAccessor settings,
-            bool useEmbeddedAttributes
+            bool useEmbeddedAttributes,
+            IFiltersFactory filtersFactory
         ) :
             base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams,
                 readerParams.QuickFormatDetectionMode, settings, traceSourceFactory, readerParams.ParentLoggingPrefix)
@@ -417,6 +419,7 @@ namespace LogJoint.XmlFormat
             this.regexFactory = regexFactory;
             this.transformArgs = new XsltArgumentList();
             this.useEmbeddedAttributes = useEmbeddedAttributes;
+            this.filtersFactory = filtersFactory;
 
             this.xslExt = new LogJointXSLExtension();
             transformArgs.AddExtensionObject(Properties.LogJointNS, this.xslExt);
@@ -634,7 +637,8 @@ namespace LogJoint.XmlFormat
                 false,
                 formatInfo.HeadRe,
                 traceSourceFactory,
-                regexFactory
+                regexFactory,
+                filtersFactory
             );
         }
     };
@@ -650,10 +654,11 @@ namespace LogJoint.XmlFormat
         readonly LogMedia.IFileSystem fileSystem;
         readonly IFiltersList displayFilters;
         readonly FilteringStats filteringStats;
+        readonly IFiltersFactory filtersFactory;
 
         public NativeXMLFormatFactory(ITempFilesManager tempFiles, IRegexFactory regexFactory, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem, 
-            IFiltersList displayFilters, FilteringStats filteringStats)
+            IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             this.tempFiles = tempFiles;
             this.regexFactory = regexFactory;
@@ -665,6 +670,7 @@ namespace LogJoint.XmlFormat
             this.nativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null,
                 TextStreamPositioningParams.Default, new FormatViewOptions(), regexFactory);
             this.filteringStats = filteringStats;
+            this.filtersFactory = filtersFactory;
         }
 
         IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
@@ -718,9 +724,10 @@ namespace LogJoint.XmlFormat
         {
             return Task.FromResult<ILogProvider>(new StreamLogProvider(host, this, connectParams,
                 @params => new FilteringMessagesReader(
-                    new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings, useEmbeddedAttributes: false),
+                    new MessagesReader(@params, nativeFormatInfo, regexFactory, traceSourceFactory, globalSettings,
+                        useEmbeddedAttributes: false, filtersFactory),
                     @params, displayFilters, tempFiles, fileSystem, regexFactory,
-                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats
+                    traceSourceFactory, globalSettings, modelSynchronizationContext, filteringStats, filtersFactory
                 ),
                 tempFiles, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
         }
@@ -735,7 +742,7 @@ namespace LogJoint.XmlFormat
         IMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
         {
             return new MessagesReader(readerParams, nativeFormatInfo, regexFactory, traceSourceFactory,
-                globalSettings, useEmbeddedAttributes: false);
+                globalSettings, useEmbeddedAttributes: false, filtersFactory);
         }
     };
 
@@ -752,6 +759,7 @@ namespace LogJoint.XmlFormat
         static readonly XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
         static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
         readonly string uiKey;
+        readonly IFiltersFactory filtersFactory;
 
         static UserDefinedFormatFactory()
         {
@@ -765,18 +773,18 @@ namespace LogJoint.XmlFormat
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings,
             IRegexFactory regexFactory, LogMedia.IFileSystem fileSystem, IFiltersList displayFilters,
-            FilteringStats filteringStats)
+            FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
             return new UserDefinedFormatFactory(createParams, tempFilesManager, regexFactory,
                 (readerParams, formatInfo) =>
                 new FilteringMessagesReader(
                     new MessagesReader(readerParams, formatInfo, regexFactory, traceSourceFactory,
-                        globalSettings, useEmbeddedAttributes: false),
+                        globalSettings, useEmbeddedAttributes: false, filtersFactory),
                     readerParams, displayFilters, tempFilesManager, fileSystem, regexFactory, traceSourceFactory, globalSettings,
-                    modelSynchronizationContext, filteringStats
+                    modelSynchronizationContext, filteringStats, filtersFactory
                 ),
                 (host, connectParams, factory, readerFactory) => new StreamLogProvider(host, factory, connectParams, readerFactory,
-                    tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem));
+                    tempFilesManager, traceSourceFactory, modelSynchronizationContext, globalSettings, fileSystem), filtersFactory);
         }
 
         private delegate ILogProvider ProviderFactory(
@@ -786,9 +794,11 @@ namespace LogJoint.XmlFormat
             MediaBasedReaderParams @params, XmlFormatInfo fmtInfo);
 
         private UserDefinedFormatFactory(UserDefinedFactoryParams createParams, ITempFilesManager tempFilesManager,
-            IRegexFactory regexFactory, ReaderFactory readerFactory, ProviderFactory providerFactory)
+            IRegexFactory regexFactory, ReaderFactory readerFactory, ProviderFactory providerFactory,
+            IFiltersFactory filtersFactory)
             : base(createParams, regexFactory)
         {
+            this.filtersFactory = filtersFactory;
             var formatSpecificNode = createParams.FormatSpecificNode;
             ReadPatterns(formatSpecificNode, patterns);
 
