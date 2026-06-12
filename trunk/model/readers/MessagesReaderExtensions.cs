@@ -162,7 +162,7 @@ namespace LogJoint
                 var extType = asm?.GetType(initData.ClassName);
                 if (extType == null)
                     throw new TypeLoadException($"Extension type {initData.ClassName} not found in {initData.AssemblyName}");
-                instance = Activator.CreateInstance(extType);
+                instance = Activator.CreateInstance(extType) ?? new TypeLoadException($"Can not instantiate type {extType}");
                 instanceIntf = instance as IMessagesReaderExtension;
                 return instance;
             }

@@ -49,16 +49,15 @@ namespace LogJoint
 
         async Task IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
         {
-            this.reader = ctx.Reader;
-            this.currentStats = owner.Stats;
             long cacheSize = CalcMaxActiveRangeSize(settingsAccessor,
                 new FileRange.Range(ctx.Reader.BeginPosition, ctx.Reader.EndPosition));
             var startFrom = owner.ActivePositionHint;
             ConstrainedNavigate(
                 startFrom - cacheSize / 2,
-                startFrom + cacheSize / 2 + (cacheSize % 2) // add remainder to ensure that the diff between positions equals exactly cacheSize
+                startFrom + cacheSize / 2 + (cacheSize % 2), // add remainder to ensure that the diff between positions equals exactly cacheSize
+                owner.Stats
             );
-            await FillCacheRanges(ctx.Preemption);
+            await FillCacheRanges(ctx.Reader, ctx.Preemption);
         }
 
         void IAsyncLogProviderCommandHandler.Complete(Exception? e)
@@ -79,7 +78,7 @@ namespace LogJoint
                 return partialLoadingSize;
         }
 
-        bool ConstrainedNavigate(long p1, long p2)
+        bool ConstrainedNavigate(long p1, long p2, LogProviderStats currentStats)
         {
             var availableRange = currentStats.PositionsRange;
             if (p1 < availableRange.Begin)
@@ -119,7 +118,7 @@ namespace LogJoint
             }
         }
 
-        async Task FillCacheRanges(CancellationToken cancellationToken)
+        async Task FillCacheRanges(IMessagesReader reader, CancellationToken cancellationToken)
         {
             using var perfop = new Profiling.Operation(tracer, "FillRanges");
             bool updateStarted = false;
@@ -128,12 +127,11 @@ namespace LogJoint
             for (; ; )
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                currentRange = buffer.GetNextRangeToFill();
+                var currentRange = buffer.GetNextRangeToFill();
                 if (currentRange == null) // Nothing to fill
                 {
                     break;
                 }
-                currentMessagesContainer = buffer;
                 tracer.Info("currentRange={0}", currentRange);
 
                 bool failed = false;
@@ -162,7 +160,7 @@ namespace LogJoint
                         ResetFlags();
 
                         lastReadMessage = tmp.Message;
-                        ProcessLastReadMessageAndFlush();
+                        ProcessLastReadMessageAndFlush(buffer, currentRange);
 
                         ++messagesRead;
                     }
@@ -170,7 +168,7 @@ namespace LogJoint
 
                     tracer.Info("reading finished");
 
-                    FlushBuffer();
+                    FlushBuffer(buffer, currentRange);
                 }
                 catch
                 {
@@ -191,7 +189,6 @@ namespace LogJoint
                     }
                     currentRange.Dispose();
                     currentRange = null;
-                    currentMessagesContainer = null;
                     perfop.Milestone("range completed");
                 }
             }
@@ -258,7 +255,8 @@ namespace LogJoint
             lastReadMessage = null;
         }
 
-        private void ProcessLastReadMessageAndFlush()
+        private void ProcessLastReadMessageAndFlush(MessagesContainers.RangesManagingCollection currentMessagesContainer,
+            MessagesContainers.MessagesRange currentRange)
         {
             if (lastReadMessage != null)
             {
@@ -266,20 +264,21 @@ namespace LogJoint
 
                 if (readBuffer.Count >= 1024)
                 {
-                    FlushBuffer();
+                    FlushBuffer(currentMessagesContainer, currentRange);
                     return;
                 }
             }
         }
 
-        bool FlushBuffer()
+        bool FlushBuffer(MessagesContainers.RangesManagingCollection currentMessagesContainer,
+            MessagesContainers.MessagesRange currentRange)
         {
             if (readBuffer.Count == 0)
                 return false;
 
             bool messagesChanged = false;
             int newMessagesCount = 0;
-            IMessage firstMessageWithTimeConstraintViolation = null;
+            IMessage? firstMessageWithTimeConstraintViolation = null;
 
             foreach (IMessage m in readBuffer)
             {
@@ -329,12 +328,8 @@ namespace LogJoint
         readonly LJTraceSource tracer;
         readonly MessagesContainers.RangesManagingCollection buffer;
         readonly Settings.IGlobalSettingsAccessor settingsAccessor;
-        IMessagesReader reader;
-        LogProviderStats currentStats;
 
-        MessagesContainers.MessagesRange currentRange;
-        MessagesContainers.RangesManagingCollection currentMessagesContainer; // todo: get rid of it
         readonly List<IMessage> readBuffer = new List<IMessage>();
-        IMessage lastReadMessage;
+        IMessage? lastReadMessage;
     };
 }
