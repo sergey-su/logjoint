@@ -94,7 +94,7 @@ namespace LogJoint
         );
         void PeriodicUpdate();
         void Refresh();
-        string GetTaskbarLogName();
+        string? GetTaskbarLogName();
     };
 
     public enum LogProviderCommandPriority
@@ -307,7 +307,7 @@ namespace LogJoint
     public interface ISaveAs
     {
         bool IsSavableAs { get; }
-        string SuggestedFileName { get; }
+        string? SuggestedFileName { get; }
         Task SaveAs(Stream outStream);
     };
 

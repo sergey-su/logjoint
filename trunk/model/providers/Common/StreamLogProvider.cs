@@ -17,12 +17,12 @@ namespace LogJoint
 
     public class StreamLogProvider : AsyncLogProvider, ISaveAs
     {
-        ILogMedia media;
-        IMessagesReader reader;
+        ILogMedia? media;
+        IMessagesReader? reader;
         readonly ITempFilesManager tempFilesManager;
         bool isSavableAs;
-        string suggestedSaveAsFileName;
-        string taskbarName;
+        string? suggestedSaveAsFileName;
+        string? taskbarName;
 
         public StreamLogProvider(
             ILogProviderHost host,
@@ -76,7 +76,7 @@ namespace LogJoint
         {
             if (IsDisposed)
                 return;
-            string tmpFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
+            string? tmpFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
             if (tmpFileName != null && !tempFilesManager.IsTemporaryFile(tmpFileName))
                 tmpFileName = null;
             await base.Dispose();
@@ -93,7 +93,7 @@ namespace LogJoint
             get { return isSavableAs; }
         }
 
-        string ISaveAs.SuggestedFileName
+        string? ISaveAs.SuggestedFileName
         {
             get { return suggestedSaveAsFileName; }
         }
@@ -101,7 +101,7 @@ namespace LogJoint
         async Task ISaveAs.SaveAs(Stream outStream)
         {
             CheckDisposed();
-            string srcFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
+            string? srcFileName = connectionParamsReadonlyView[ConnectionParamsKeys.PathConnectionParam];
             if (srcFileName == null)
                 return;
             using var inStream = new FileStream(srcFileName, FileMode.Open);
@@ -113,29 +113,29 @@ namespace LogJoint
         {
             isSavableAs = false;
             taskbarName = null;
-            string guessedFileName = null;
+            string? guessedFileName = null;
 
-            string fname = connectParams[ConnectionParamsKeys.PathConnectionParam];
+            string? fname = connectParams[ConnectionParamsKeys.PathConnectionParam];
             if (fname != null)
             {
                 bool isTempFile = tempFilesManager.IsTemporaryFile(fname);
                 isSavableAs = isTempFile;
             }
-            string connectionIdentity = connectParams[ConnectionParamsKeys.IdentityConnectionParam];
+            string? connectionIdentity = connectParams[ConnectionParamsKeys.IdentityConnectionParam];
             if (connectionIdentity != null)
                 guessedFileName = ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(connectionIdentity);
-            string displayName = connectParams[ConnectionParamsKeys.DisplayNameConnectionParam];
+            string? displayName = connectParams[ConnectionParamsKeys.DisplayNameConnectionParam];
             if (isSavableAs)
             {
                 if (!string.IsNullOrEmpty(displayName))
                     suggestedSaveAsFileName = SanitizeSuggestedFileName(displayName);
-                else
+                else if (guessedFileName != null)
                     suggestedSaveAsFileName = SanitizeSuggestedFileName(guessedFileName);
             }
             taskbarName = !string.IsNullOrEmpty(displayName) ? displayName : guessedFileName;
         }
 
-        public override string GetTaskbarLogName()
+        public override string? GetTaskbarLogName()
         {
             return taskbarName;
         }

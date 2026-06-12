@@ -46,6 +46,16 @@ namespace System.Xml.Linq
             return ret;
         }
 
+        public static long? LongValue(this XElement source, XName name)
+        {
+            var attr = source.Attribute(name);
+            if (attr == null)
+                return null;
+            if (!long.TryParse(attr.Value, out var ret))
+                return null;
+            return ret;
+        }
+
         public static int IntValue(this XElement source, XName name, int defaultValue)
         {
             return source.IntValue(name).GetValueOrDefault(defaultValue);

@@ -92,7 +92,7 @@ namespace LogJoint
                     {
                         continue;
                     }
-                    if (!originalParams.Range.Value.IsInRange(ret.data.Message.Position))
+                    if (!originalParams.Range!.Value.IsInRange(ret.data.Message.Position))
                     {
                         return new PostprocessedMessage();
                     }
@@ -107,7 +107,8 @@ namespace LogJoint
             if (disposed)
                 return;
             disposed = true;
-            await enumerator.DisposeAsync();
+            if (enumerator != null)
+                await enumerator.DisposeAsync();
         }
 
         class Comparer : IComparer<Entry>
@@ -208,7 +209,8 @@ namespace LogJoint
             ReadMessagesParams jitterBufferCompletionParams = originalParams;
             jitterBufferCompletionParams.Flags |= ReadMessagesFlag.DisableMultithreading;
             jitterBufferCompletionParams.Range = null;
-            jitterBufferCompletionParams.StartPosition = originalParams.Direction == ReadMessagesDirection.Forward ? originalParams.Range.Value.End : originalParams.Range.Value.Begin;
+            jitterBufferCompletionParams.StartPosition = originalParams.Direction == ReadMessagesDirection.Forward ?
+                originalParams.Range!.Value.End : originalParams.Range!.Value.Begin;
             await using (var completionParser = underlyingParserFactory(jitterBufferCompletionParams).GetAsyncEnumerator())
             {
                 for (int i = 0; i < jitterBufferSize; ++i)
@@ -229,7 +231,7 @@ namespace LogJoint
         async ValueTask<LoadNextMessageResult> LoadNextMessage()
         {
             LoadNextMessageResult ret = new LoadNextMessageResult();
-            if (eofReached)
+            if (eofReached || enumerator == null)
                 return ret;
             if (!await enumerator.MoveNextAsync())
             {
@@ -273,7 +275,7 @@ namespace LogJoint
         readonly PriorityQueue<Entry, Entry> jitterBuffer;
         readonly Generic.CircularBuffer<MessagesPositions> positionsBuffer;
         readonly int jitterBufferSize;
-        IAsyncEnumerator<PostprocessedMessage> enumerator;
+        IAsyncEnumerator<PostprocessedMessage>? enumerator;
         long currentIndex;
         bool eofReached;
         bool disposed;

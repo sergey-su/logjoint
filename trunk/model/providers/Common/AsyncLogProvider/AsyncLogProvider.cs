@@ -73,7 +73,7 @@ namespace LogJoint
             }
         }
 
-        public abstract string GetTaskbarLogName();
+        public abstract string? GetTaskbarLogName();
 
         void ILogProvider.PeriodicUpdate()
         {

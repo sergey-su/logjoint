@@ -8,7 +8,7 @@ namespace LogJoint
         readonly string baseDirectory;
         readonly IEnumerable<string> searchPatterns;
 
-        public GenericRollingMediaStrategy(string baseDirectory, IEnumerable<string> searchPatterns)
+        public GenericRollingMediaStrategy(string? baseDirectory, IEnumerable<string> searchPatterns)
         {
             this.baseDirectory = baseDirectory ?? throw new ArgumentNullException(nameof(baseDirectory));
             var searchPatternsSet = searchPatterns.ToHashSet();

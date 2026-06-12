@@ -1,21 +1,23 @@
+using Newtonsoft.Json.Schema.Generation;
 using System;
-using System.Threading;
-using System.Xml;
-using System.Text.RegularExpressions;
 using System.Diagnostics.Eventing.Reader;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using static System.Collections.Specialized.BitVector32;
 
 namespace LogJoint.WindowsEventLog
 {
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class LogProvider : LiveLogProvider
     {
-        EventLogIdentity eventLogIdentity;
+        readonly EventLogIdentity eventLogIdentity;
 
         private LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
             ITempFilesManager tempFilesManager, ITraceSourceFactory traceSourceFactory, RegularExpressions.IRegexFactory regexFactory,
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
-            IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory)
+            IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory, EventLogIdentity eventLogIdentity)
             : base(host,
                 factory,
                 connectParams,
@@ -30,6 +32,7 @@ namespace LogJoint.WindowsEventLog
                 filtersFactory,
                 new StreamReorderingParams() { JitterBufferSize = 25 })
         {
+            this.eventLogIdentity = eventLogIdentity;
         }
 
         public static async Task<ILogProvider> Create(ILogProviderHost host, IConnectionParams connectParams, Factory factory,
@@ -37,17 +40,22 @@ namespace LogJoint.WindowsEventLog
             ISynchronizationContext modelSynchronizationContext, Settings.IGlobalSettingsAccessor globalSettings, LogMedia.IFileSystem fileSystem,
             IFiltersList displayFilters, FilteringStats filteringStats, IFiltersFactory filtersFactory)
         {
-            LogProvider logProvider = new LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
-                modelSynchronizationContext, globalSettings, fileSystem, displayFilters, filteringStats, filtersFactory);
+            LogProvider? logProvider = null;
             try
             {
-                logProvider.eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);
+                var eventLogIdentity = EventLogIdentity.FromConnectionParams(connectParams);
+                logProvider = new LogProvider(host, connectParams, factory, tempFilesManager, traceSourceFactory, regexFactory,
+                    modelSynchronizationContext, globalSettings, fileSystem, displayFilters,
+                    filteringStats, filtersFactory, eventLogIdentity);
                 logProvider.StartLiveLogThread(logProvider.Worker);
             }
             catch (Exception e)
             {
-                logProvider.tracer.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
-                await logProvider.Dispose();
+                if (logProvider != null)
+                {
+                    logProvider.tracer.Error(e, "Failed to initialize Windows Event Log reader. Disposing what has been created so far.");
+                    await logProvider.Dispose();
+                }
                 throw;
             }
             return logProvider;
@@ -55,9 +63,12 @@ namespace LogJoint.WindowsEventLog
 
         public override string GetTaskbarLogName()
         {
-            if (eventLogIdentity.FileName != null)
-                return ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(eventLogIdentity.FileName);
-            return eventLogIdentity.LogName;
+            return eventLogIdentity switch
+            {
+                EventLogIdentity.FileLog fileLog => ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(fileLog.FileName),
+                EventLogIdentity.LiveLog liveLog => liveLog.LogName,
+                _ => ""
+            };
         }
 
         private async Task Worker(CancellationToken stopEvt, LiveLogXMLWriter output)
@@ -104,18 +115,16 @@ namespace LogJoint.WindowsEventLog
 
         EventLogQuery CreateQuery()
         {
-            switch (eventLogIdentity.Type)
+            return eventLogIdentity switch
             {
-                case EventLogIdentity.EventLogType.File:
-                    return new EventLogQuery(eventLogIdentity.FileName, PathType.FilePath);
-                case EventLogIdentity.EventLogType.LocalLiveLog:
-                    return new EventLogQuery(eventLogIdentity.LogName, PathType.LogName);
-                case EventLogIdentity.EventLogType.RemoteLiveLog:
-                    var session = new EventLogSession(eventLogIdentity.MachineName);
-                    return new EventLogQuery(eventLogIdentity.LogName, PathType.LogName) { Session = session };
-                default:
-                    throw new InvalidOperationException();
-            }
+                EventLogIdentity.FileLog fileLog => new EventLogQuery(fileLog.FileName, PathType.FilePath),
+                EventLogIdentity.LiveLog liveLog when liveLog.Type == EventLogIdentity.EventLogType.LocalLiveLog => new EventLogQuery(liveLog.LogName, PathType.LogName),
+                EventLogIdentity.LiveLog liveLog when liveLog.Type == EventLogIdentity.EventLogType.RemoteLiveLog => new EventLogQuery(liveLog.LogName, PathType.LogName)
+                { 
+                    Session = new EventLogSession(liveLog.MachineName) 
+                },
+                _ => throw new InvalidOperationException()
+            };
         }
 
         static string GetEventThreadId(EventRecord eventRecord)
@@ -154,7 +163,7 @@ namespace LogJoint.WindowsEventLog
                 keywords.Length > 0 ? ", keywords=" : "", keywords);
         }
 
-        static string GetEventSeverity(EventRecord eventRecord)
+        static string? GetEventSeverity(EventRecord eventRecord)
         {
             if (!eventRecord.Level.HasValue)
                 return null;
@@ -186,8 +195,72 @@ namespace LogJoint.WindowsEventLog
         }
     }
 
-    public class EventLogIdentity
+    public abstract record EventLogIdentity
     {
+        private EventLogIdentity() { }
+
+        public sealed record LiveLog : EventLogIdentity
+        {
+            public string MachineName { get; }
+            public string LogName { get; }
+
+
+            public LiveLog(string machineName, string logName)
+            {
+                MachineName = string.IsNullOrWhiteSpace(machineName) ? "." : machineName.Trim();
+                LogName = logName;
+            }
+
+            public override EventLogType Type => MachineName != "." ?
+                EventLogType.RemoteLiveLog : EventLogType.LocalLiveLog;
+
+            public override string ToIdentityString()
+            {
+                if (MachineName == ".")
+                    return "l:" + LogName;
+                else
+                    return string.Format("r:{0}/{1}", MachineName, LogName);
+            }
+
+            public override string ToUserFriendlyString()
+            {
+                return string.Format("{0}/{1}", MachineName, LogName);
+            }
+        }
+
+        public sealed record FileLog : EventLogIdentity
+        {
+            public string FileName { get; }
+
+
+            public FileLog(string fileName)
+            {
+                FileName = fileName;
+            }
+
+            public override EventLogType Type => EventLogType.File;
+            public override string ToIdentityString() => "f:" + FileName;
+            public override string ToUserFriendlyString() => FileName;
+        }
+
+        public static EventLogIdentity FromConnectionParams(IConnectionParams connectParams)
+        {
+            return ParseIdentityString(connectParams[ConnectionParamsKeys.IdentityConnectionParam]);
+        }
+
+        public static EventLogIdentity ParseIdentityString(string? identityString)
+        {
+            var m = identityRegex.Match(identityString ?? "");
+            if (!m.Success)
+                throw new ArgumentException("Cannot parse windows event log identity " + identityString);
+            if (m.Groups["fname"].Success)
+                return new FileLog(m.Groups["fname"].Value);
+            else if (m.Groups["remoteLog"].Success)
+                return new LiveLog(m.Groups["machine"].Value, m.Groups["remoteLog"].Value);
+            else
+                return new LiveLog(".", m.Groups["localLog"].Value);
+        }
+
         public enum EventLogType
         {
             File,
@@ -195,82 +268,13 @@ namespace LogJoint.WindowsEventLog
             RemoteLiveLog
         };
 
-        public static EventLogIdentity FromConnectionParams(IConnectionParams connectParams)
-        {
-            return ParseIdentityString(connectParams[ConnectionParamsKeys.IdentityConnectionParam]);
-        }
-
-        public static EventLogIdentity FromLiveLogParams(string machineName, string logName)
-        {
-            return new EventLogIdentity()
-            {
-                machineName = string.IsNullOrWhiteSpace(machineName) ? "." : machineName.Trim(),
-                logName = logName
-            };
-        }
-
-        public static EventLogIdentity FromFileName(string fileName)
-        {
-            return new EventLogIdentity()
-            {
-                fileName = fileName
-            };
-        }
-
-        public static EventLogIdentity ParseIdentityString(string identityString)
-        {
-            var m = identityRegex.Match(identityString);
-            if (!m.Success)
-                throw new ArgumentException("Cannot parse windows event log identity " + identityString);
-            if (m.Groups["fname"].Success)
-                return FromFileName(m.Groups["fname"].Value);
-            else if (m.Groups["remoteLog"].Success)
-                return FromLiveLogParams(m.Groups["machine"].Value, m.Groups["remoteLog"].Value);
-            else
-                return FromLiveLogParams(".", m.Groups["localLog"].Value);
-        }
-
-        public EventLogType Type
-        {
-            get
-            {
-                if (fileName != null)
-                    return EventLogType.File;
-                if (machineName != ".")
-                    return EventLogType.RemoteLiveLog;
-                return EventLogType.LocalLiveLog;
-            }
-        }
-
-        public string FileName { get { return fileName; } }
-        public string MachineName { get { return machineName; } }
-        public string LogName { get { return logName; } }
-
-        public string ToIdentityString()
-        {
-            if (fileName != null)
-                return "f:" + fileName;
-            else if (machineName == ".")
-                return "l:" + logName;
-            else
-                return string.Format("r:{0}/{1}", machineName, logName);
-        }
-
-        public string ToUserFriendlyString()
-        {
-            if (fileName != null)
-                return fileName;
-            else
-                return string.Format("{0}/{1}", machineName, logName);
-        }
+        public abstract EventLogType Type { get; }
+        public abstract string ToIdentityString();
+        public abstract string ToUserFriendlyString();
 
         static readonly Regex identityRegex = new Regex(@"^(f\:(?<fname>.+))|(r\:(?<machine>[^\/]+)\/(?<remoteLog>.+))|(l\:(?<localLog>.+))$",
             RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-
-        string machineName;
-        string logName;
-        string fileName;
-    };
+    }
 
     public class Factory : ILogProviderFactory
     {
@@ -290,12 +294,12 @@ namespace LogJoint.WindowsEventLog
 
         public IConnectionParams CreateParamsFromFileName(string fileName)
         {
-            return CreateParamsFromIdentity(EventLogIdentity.FromFileName(fileName));
+            return CreateParamsFromIdentity(new EventLogIdentity.FileLog(fileName));
         }
 
         public IConnectionParams CreateParamsFromEventLogName(string machineName, string eventLogName)
         {
-            return CreateParamsFromIdentity(EventLogIdentity.FromLiveLogParams(machineName, eventLogName));
+            return CreateParamsFromIdentity(new EventLogIdentity.LiveLog(machineName, eventLogName));
         }
 
         string ILogProviderFactory.CompanyName

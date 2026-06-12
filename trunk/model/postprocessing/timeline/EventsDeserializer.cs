@@ -77,12 +77,20 @@ namespace LogJoint.Postprocessing.Timeline
                 var act = ret as ActivityEventBase;
                 if (act != null)
                 {
-                    var phases = elt.Elements(SC.Elt_Phase).Select(ph => new ActivityPhase(
-                        TimeSpan.FromTicks(long.Parse(Attr(ph, SC.Attr_Begin))),
-                        TimeSpan.FromTicks(long.Parse(Attr(ph, SC.Attr_End))),
-                        int.Parse(Attr(ph, SC.Attr_Type)),
-                        Attr(ph, SC.Attr_DisplayName)
-                    )).ToList();
+                    ActivityPhase? ToPhase(XElement ph)
+                    {
+                        long? b = ph.LongValue(SC.Attr_Begin);
+                        long? e = ph.LongValue(SC.Attr_End);
+                        int? t = ph.IntValue(SC.Attr_Type);
+                        string? displayName = Attr(ph, SC.Attr_DisplayName);
+                        if (b == null || e == null || t == null || displayName == null)
+                            return null;
+                        return new ActivityPhase(
+                            TimeSpan.FromTicks(b.Value), TimeSpan.FromTicks(e.Value),
+                            t.Value, displayName);
+                    }
+                    ;
+                    var phases = elt.Elements(SC.Elt_Phase).Select(ToPhase).OfType<ActivityPhase>().ToList();
                     if (phases.Count > 0)
                     {
                         act.Phases = phases;

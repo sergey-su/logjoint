@@ -53,7 +53,7 @@ namespace LogJoint.Postprocessing.Timeline
             return new XAttribute(attrName, value);
         }
 
-        XElement CreateEventElement(Event evt, string name, params XAttribute[] attrs)
+        XElement CreateEventElement(Event evt, string name, params XAttribute?[] attrs)
         {
             var element = new XElement(name, attrs.Concat(new[] {
                 MakeNullableAttr(SC.Attr_DisplayName, evt.DisplayName),
