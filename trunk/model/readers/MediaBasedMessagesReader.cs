@@ -1,11 +1,12 @@
-﻿using System;
-using System.Text;
-using System.IO;
-using LogJoint.StreamReadingStrategies;
+﻿using LogJoint.Postprocessing;
 using LogJoint.RegularExpressions;
-using System.Threading.Tasks;
-using LogJoint.Postprocessing;
+using LogJoint.StreamReadingStrategies;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -125,10 +126,7 @@ namespace LogJoint
             );
         }
 
-        public virtual IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p)
-        {
-            return null;
-        }
+        public abstract IAsyncEnumerable<SearchResultMessage> Search(SearchMessagesParams p);
 
         async ValueTask<int> IMessagesReader.GetContentsEtag()
         {
@@ -178,6 +176,7 @@ namespace LogJoint
 
         public Stream VolatileStream => media.DataStream;
 
+        [MemberNotNull(nameof(encoding))]
         public void EnsureStreamEncodingIsCached()
         {
             if (encoding == null)
@@ -341,7 +340,7 @@ namespace LogJoint
         readonly LJTraceSource trace;
         readonly Profiling.Counters perfCounters;
 
-        Encoding encoding;
+        Encoding? encoding;
 
         long mediaSize;
         TextStreamPosition beginPosition;

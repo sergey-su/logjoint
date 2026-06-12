@@ -102,7 +102,7 @@ namespace LogJoint
             return root.Elements(name).Select(a => a.Value).FirstOrDefault() ?? "";
         }
 
-        protected LoadedRegex ReadRe(XElement root, string name, ReOptions opts, MessagesReaderExtensions.XmlInitializationParams extensionsInitData)
+        protected LoadedRegex ReadRe(XElement root, string name, ReOptions opts, MessagesReaderExtensions.XmlInitializationParams? extensionsInitData)
         {
             LoadedRegex ret = new LoadedRegex();
             var n = root.Element(name);

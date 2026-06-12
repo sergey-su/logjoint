@@ -74,7 +74,7 @@ namespace LogJoint
             if (logsListBox.SelectedItem == null)
                 return null;
             string machine = machineNameTextBox.Text;
-            return WindowsEventLog.EventLogIdentity.FromLiveLogParams(machine, ((Item)logsListBox.SelectedItem).Name);
+            return new WindowsEventLog.EventLogIdentity.LiveLog(machine, ((Item)logsListBox.SelectedItem).Name);
         }
 
         private void logsListBox_SelectedIndexChanged(object sender, EventArgs e)

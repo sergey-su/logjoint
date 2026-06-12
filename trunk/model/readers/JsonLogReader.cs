@@ -1,13 +1,14 @@
-using System;
-using System.Text;
-using System.IO;
-using System.Collections.Generic;
-using LogJoint.RegularExpressions;
-using System.Linq;
-using System.Xml;
 using JUST;
+using LogJoint.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace LogJoint.JsonFormat
 {
@@ -16,8 +17,8 @@ namespace LogJoint.JsonFormat
         public readonly string Encoding;
         public readonly LoadedRegex HeadRe;
         public readonly LoadedRegex BodyRe;
-        public readonly BoundFinder BeginFinder;
-        public readonly BoundFinder EndFinder;
+        public readonly BoundFinder? BeginFinder;
+        public readonly BoundFinder? EndFinder;
         public readonly TextStreamPositioningParams TextStreamPositioningParams;
         public readonly StreamReorderingParams? DejitteringParams;
         public readonly IFormatViewOptions ViewOptions;
@@ -25,7 +26,7 @@ namespace LogJoint.JsonFormat
 
         public JsonFormatInfo(
                 string transform, LoadedRegex headRe, LoadedRegex bodyRe,
-                BoundFinder beginFinder, BoundFinder endFinder, string encoding,
+                BoundFinder? beginFinder, BoundFinder? endFinder, string encoding,
                 TextStreamPositioningParams textStreamPositioningParams,
                 StreamReorderingParams? dejitteringParams, IFormatViewOptions viewOptions) :
             base(MessagesReaderExtensions.XmlInitializationParams.Empty)
@@ -86,7 +87,7 @@ namespace LogJoint.JsonFormat
             return ret ?? Encoding.UTF8;
         }
 
-        static IMessage? MakeMessageInternal(TextMessageCapture capture, JsonFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
+        static IMessage? MakeMessageInternal(TextMessageCapture capture, JsonFormatInfo formatInfo, IRegex bodyRe, ref IMatch? bodyReMatch,
             MessagesBuilderCallback callback)
         {
             StringBuilder messageBuf = new StringBuilder();
@@ -133,8 +134,8 @@ namespace LogJoint.JsonFormat
             DateTime date;
             if (d != null && d.Type == JTokenType.String)
                 date = DateTime.Parse(d.ToString(), null, System.Globalization.DateTimeStyles.RoundtripKind);
-            else if (d != null && d.Type == JTokenType.Date)
-                date = (DateTime)((JValue)d).Value;
+            else if (d is not null && d.Type == JTokenType.Date)
+                date = (DateTime)((JValue)d).Value!;
             else
                 throw new Exception("Bad time property \"d\"");
 
@@ -165,7 +166,7 @@ namespace LogJoint.JsonFormat
             return ret;
         }
 
-        static bool TryRemoveAdditionalText(string str, out string fixedString)
+        static bool TryRemoveAdditionalText(string str, [NotNullWhen(true)] out string? fixedString)
         {
             int depth = 0;
             int objectBegin = 0;
@@ -209,7 +210,7 @@ namespace LogJoint.JsonFormat
 
         MessagesBuilderCallback CreateMessageBuilderCallback()
         {
-            IThread fakeThread = null;
+            IThread? fakeThread = null;
             //fakeThread = threads.GetThread("");
             return new MessagesBuilderCallback(threads, fakeThread);
         }
@@ -220,7 +221,7 @@ namespace LogJoint.JsonFormat
             readonly MessagesBuilderCallback callback;
             readonly IRegex bodyRegex;
 
-            IMatch bodyMatch;
+            IMatch? bodyMatch;
 
             public SingleThreadedStrategyImpl(MessagesReader reader) :
                 base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
@@ -247,9 +248,9 @@ namespace LogJoint.JsonFormat
 
         class ProcessingThreadLocalData
         {
-            public LoadedRegex bodyRe;
-            public IMatch bodyMatch;
-            public MessagesBuilderCallback callback;
+            required public LoadedRegex bodyRe;
+            public IMatch? bodyMatch;
+            required public MessagesBuilderCallback callback;
         }
 
         class MultiThreadedStrategyImpl : StreamReadingStrategies.MultiThreadedStrategy<ProcessingThreadLocalData>

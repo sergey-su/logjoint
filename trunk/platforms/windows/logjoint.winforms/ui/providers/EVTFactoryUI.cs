@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                eventsHandler.OnIdentitySelected(WindowsEventLog.EventLogIdentity.FromFileName(openFileDialog.FileName));
+                eventsHandler.OnIdentitySelected(new WindowsEventLog.EventLogIdentity.FileLog(openFileDialog.FileName));
             }
         }
 
