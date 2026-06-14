@@ -32,7 +32,7 @@ namespace LogJoint.Postprocessing.Timeline
 
         Task IModel.SavePostprocessorOutput(
             IEnumerableAsync<Event[]> events,
-            Task<ILogPartToken> rotatedLogPartToken,
+            Task<ILogPartToken?>? rotatedLogPartToken,
             Func<object, TextLogEventTrigger> triggersConverter,
             LogSourcePostprocessorInput postprocessorInput
         )

@@ -25,8 +25,8 @@ namespace LogJoint.Postprocessing.Timeline
             UpdateOutputs(invalidateGroupContents: false);
         }
 
-        public event EventHandler EverythingChanged;
-        public event EventHandler SequenceDiagramNamesChanged;
+        public event EventHandler? EverythingChanged;
+        public event EventHandler? SequenceDiagramNamesChanged;
 
         IReadOnlyCollection<ITimelinePostprocessorOutput> ITimelineVisualizerModel.Outputs
         {
@@ -41,11 +41,11 @@ namespace LogJoint.Postprocessing.Timeline
 
         Tuple<TimeSpan, TimeSpan> ITimelineVisualizerModel.AvailableRange { get { return Tuple.Create(availableRangeBegin, availableRangeEnd); } }
 
-        Tuple<IActivity, IActivity> ITimelineVisualizerModel.GetPairedActivities(IActivity a)
+        Tuple<IActivity, IActivity?>? ITimelineVisualizerModel.GetPairedActivities(IActivity a)
         {
             if (a.ActivityMatchingId == null)
                 return null;
-            MatchedActivitiesPair pair;
+            MatchedActivitiesPair? pair;
             if (outgoingNetworkingActivities.TryGetValue(a.ActivityMatchingId, out pair))
                 return Tuple.Create(pair.OutgoingActivity, pair.IncomingActivity);
             return null;
@@ -96,7 +96,7 @@ namespace LogJoint.Postprocessing.Timeline
             var tmp = outputsGroups.Values.Select(
                 group => new { group = group, originWithTimeOffset = group.Origin }).ToArray();
             DateTime earliestGroupTime = DateTime.MaxValue;
-            RotatedLogGroup earliestGroup = null;
+            RotatedLogGroup? earliestGroup = null;
             foreach (var i in tmp)
             {
                 if (i.originWithTimeOffset.HasValue && i.originWithTimeOffset < earliestGroupTime)
@@ -119,7 +119,7 @@ namespace LogJoint.Postprocessing.Timeline
                 outputsGroups.Values
                     .Where(g => !string.IsNullOrEmpty(g.GroupDisplayName))
                     .SelectMany(g => g.Outputs.Select(
-                        output => new { LogSource = output.LogSource, SuggestedName = g.GroupDisplayName }
+                        output => new { LogSource = output.LogSource, SuggestedName = g.GroupDisplayName! }
                     ))
                     .ToDictionary(x => x.LogSource, x => new LogSourceNames()
                     {
@@ -157,7 +157,7 @@ namespace LogJoint.Postprocessing.Timeline
 
             foreach (var newGroup in newGroups)
             {
-                RotatedLogGroup existingGroup;
+                RotatedLogGroup? existingGroup;
                 if (oldGroups.TryGetValue(newGroup.Key, out existingGroup))
                     outputsGroups.Add(newGroup.Key, existingGroup);
                 else
@@ -218,7 +218,7 @@ namespace LogJoint.Postprocessing.Timeline
                 }
                 else if (a.Type == ActivityType.IncomingNetworking)
                 {
-                    MatchedActivitiesPair pair;
+                    MatchedActivitiesPair? pair;
                     if (outgoingNetworkingActivities.TryGetValue(a.ActivityMatchingId, out pair))
                     {
                         if (pair.IncomingActivity == null)
@@ -273,18 +273,19 @@ namespace LogJoint.Postprocessing.Timeline
 
         class MatchedActivitiesPair
         {
-            public IActivity OutgoingActivity, IncomingActivity;
+            required public IActivity OutgoingActivity;
+            public IActivity? IncomingActivity;
         };
 
         class RotatedLogGroup
         {
-            public string Key;
-            public List<ITimelinePostprocessorOutput> Outputs;
+            required public string Key;
+            required public List<ITimelinePostprocessorOutput> Outputs;
             public bool IsInitialized;
-            public IList<IActivity> Activities;
-            public IList<IEvent> Events;
+            public IList<IActivity> Activities = [];
+            public IList<IEvent> Events = [];
             public DateTime? Origin;
-            public string GroupDisplayName;
+            public string? GroupDisplayName;
         };
 
         readonly IManagerInternal postprocessorsManager;

@@ -11,7 +11,7 @@ namespace LogJoint.Postprocessing.Timeline
         readonly TimeSpan end;
         readonly ITimelinePostprocessorOutput endOwner;
         readonly string displayName;
-        readonly string activityMatchingId;
+        readonly string? activityMatchingId;
         readonly ActivityType type;
         readonly object beginTrigger;
         readonly object endTrigger;
@@ -25,7 +25,7 @@ namespace LogJoint.Postprocessing.Timeline
             ITimelinePostprocessorOutput beginOwner,
             ITimelinePostprocessorOutput endOwner,
             TimeSpan begin, TimeSpan end,
-            string displayName, string activityMatchingId,
+            string displayName, string? activityMatchingId,
             ActivityType type,
             object beginTrigger, object endTrigger,
             IEnumerable<ActivityMilestoneInfo> detachedMilestones,
@@ -46,7 +46,7 @@ namespace LogJoint.Postprocessing.Timeline
             this.milestones = detachedMilestones.Select(
                 ms => new ActivityMilestoneInfo(this, ms.Owner, ms.Time, ms.DisplayName, ms.Trigger)).ToList().AsReadOnly();
             this.phases = detachedPhases.Select(
-                ph => new ActivityPhaseInfo(this, ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
+                ph => new ActivityPhaseInfo(ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
             this.tags = new HashSet<string>(tags);
             this.isError = isError;
             this.isEndedForcefully = isEndedForcefully;
@@ -62,7 +62,7 @@ namespace LogJoint.Postprocessing.Timeline
 
         string IActivity.DisplayName { get { return displayName; } }
 
-        string IActivity.ActivityMatchingId { get { return activityMatchingId; } }
+        string? IActivity.ActivityMatchingId { get { return activityMatchingId; } }
 
         ActivityType IActivity.Type { get { return type; } }
 

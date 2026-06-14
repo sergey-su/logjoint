@@ -19,7 +19,7 @@ namespace LogJoint.Postprocessing
         /// If the log producer runs on multiple machines (instances) this field contains the user-friendly name of the instance.
         /// Example: "InvoicesService.2"
         /// </summary>
-        public string? RoleInstanceName;
+        required public string RoleInstanceName;
     }
 
     /// <summary>

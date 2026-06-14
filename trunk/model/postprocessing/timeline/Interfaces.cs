@@ -9,7 +9,7 @@ namespace LogJoint.Postprocessing.Timeline
         IList<Event> TimelineEvents { get; }
         TimeSpan TimelineOffset { get; }
         void SetTimelineOffset(TimeSpan value);
-        string SequenceDiagramName { get; }
+        string? SequenceDiagramName { get; }
         void SetSequenceDiagramName(string value);
         ILogPartToken RotatedLogPartToken { get; }
     };
@@ -21,11 +21,11 @@ namespace LogJoint.Postprocessing.Timeline
         IReadOnlyList<IActivity> Activities { get; }
         IReadOnlyList<IEvent> Events { get; }
         Tuple<TimeSpan, TimeSpan> AvailableRange { get; }
-        Tuple<IActivity, IActivity> GetPairedActivities(IActivity a);
+        Tuple<IActivity, IActivity?>? GetPairedActivities(IActivity a);
         IEntitiesComparer Comparer { get; }
 
-        event EventHandler EverythingChanged;
-        event EventHandler SequenceDiagramNamesChanged;
+        event EventHandler? EverythingChanged;
+        event EventHandler? SequenceDiagramNamesChanged;
     };
 
     public interface IEntitiesComparer : IComparer<IActivity>, IComparer<IEvent>
@@ -49,7 +49,7 @@ namespace LogJoint.Postprocessing.Timeline
         TimeSpan End { get; }
         ITimelinePostprocessorOutput EndOwner { get; }
         string DisplayName { get; }
-        string ActivityMatchingId { get; }
+        string? ActivityMatchingId { get; }
         object BeginTrigger { get; }
         object EndTrigger { get; }
         IReadOnlyList<ActivityMilestoneInfo> Milestones { get; }
@@ -83,7 +83,6 @@ namespace LogJoint.Postprocessing.Timeline
 
     public struct ActivityPhaseInfo
     {
-        public readonly IActivity Activity;
         public readonly ITimelinePostprocessorOutput Owner;
         public readonly TimeSpan Begin;
         public readonly TimeSpan End;
@@ -94,10 +93,9 @@ namespace LogJoint.Postprocessing.Timeline
         public readonly int Type;
         public readonly string DisplayName;
 
-        public ActivityPhaseInfo(IActivity a, ITimelinePostprocessorOutput owner,
+        public ActivityPhaseInfo(ITimelinePostprocessorOutput owner,
             TimeSpan b, TimeSpan e, int type, string displayName)
         {
-            Activity = a;
             Owner = owner;
             Begin = b;
             End = e;

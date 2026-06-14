@@ -36,7 +36,7 @@ namespace LogJoint.Postprocessing.Timeline
 
         public static Task SerializePostprocessorOutput(
             IEnumerableAsync<Event[]> events,
-            Task<ILogPartToken> rotatedLogPartToken,
+            Task<ILogPartToken?>? rotatedLogPartToken,
             ILogPartTokenFactories logPartTokenFactories,
             Func<object, TextLogEventTrigger> triggersConverter,
             string contentsEtagAttr,
@@ -66,19 +66,19 @@ namespace LogJoint.Postprocessing.Timeline
         TimeSpan ITimelinePostprocessorOutput.TimelineOffset { get { return timelineOffset; } }
         void ITimelinePostprocessorOutput.SetTimelineOffset(TimeSpan value) { timelineOffset = value; }
 
-        string ITimelinePostprocessorOutput.SequenceDiagramName { get { return sequenceDiagramName; } }
+        string? ITimelinePostprocessorOutput.SequenceDiagramName { get { return sequenceDiagramName; } }
         void ITimelinePostprocessorOutput.SetSequenceDiagramName(string value) { sequenceDiagramName = value; }
 
         ILogPartToken ITimelinePostprocessorOutput.RotatedLogPartToken { get { return rotatedLogPartToken; } }
 
-        string IPostprocessorOutputETag.ETag { get { return etag.Value; } }
+        string? IPostprocessorOutputETag.ETag { get { return etag.Value; } }
 
         readonly ILogSource logSource;
         readonly ILogPartToken rotatedLogPartToken = new NullLogPartToken();
         readonly PostprocessorOutputETag etag;
         readonly IList<Event> timelineEvents;
         TimeSpan timelineOffset;
-        string sequenceDiagramName;
+        string? sequenceDiagramName;
 
         const string rotatedLogPartTokenEltName = "rotatedLogPartToken";
     };
